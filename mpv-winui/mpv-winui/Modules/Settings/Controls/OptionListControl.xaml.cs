@@ -13,24 +13,6 @@ public sealed partial class OptionListControl : UserControl
         InitializeComponent();
     }
 
-    public bool ShowHeaders
-    {
-        get => (bool)GetValue(ShowHeadersProperty);
-        set => SetValue(ShowHeadersProperty, value);
-    }
-
-    public static readonly DependencyProperty ShowHeadersProperty = DependencyProperty.Register(
-        nameof(ShowHeaders),
-        typeof(bool),
-        typeof(OptionListControl),
-        new PropertyMetadata(true, (d, e) =>
-        {
-            if (d is OptionListControl self)
-            {
-                self.ApplyItemsSource();
-            }
-        }));
-
     private void OnContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
     {
         if (args.InRecycleQueue)
@@ -67,32 +49,27 @@ public sealed partial class OptionListControl : UserControl
     {
         if (d is OptionListControl self)
         {
-            self.ApplyItemsSource();
-        }
-    }
-
-    private void ApplyItemsSource()
-    {
-        if (OptionList is { Count: > 0 } options && ShowHeaders)
-        {
-            var groups = new List<OptionGroup>();
-            foreach (var option in options)
+            if (e.NewValue is List<Option> options && options.Count > 0)
             {
-                var group = groups.FirstOrDefault(g => g.Key == option.Category);
-                if (group is null)
+                var groups = new List<OptionGroup>();
+                foreach (var option in options)
                 {
-                    group = new OptionGroup { Key = option.Category };
-                    groups.Add(group);
+                    var group = groups.FirstOrDefault(g => g.Key == option.Category);
+                    if (group is null)
+                    {
+                        group = new OptionGroup { Key = option.Category };
+                        groups.Add(group);
+                    }
+                    group.Add(option);
                 }
-                group.Add(option);
-            }
 
-            var viewSource = new CollectionViewSource { IsSourceGrouped = true, Source = groups };
-            OptionListView.ItemsSource = viewSource.View;
-        }
-        else
-        {
-            OptionListView.ItemsSource = OptionList;
+                var viewSource = new CollectionViewSource { IsSourceGrouped = true, Source = groups };
+                self.OptionListView.ItemsSource = viewSource.View;
+            }
+            else
+            {
+                self.OptionListView.ItemsSource = null;
+            }
         }
     }
 }

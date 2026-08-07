@@ -4,7 +4,6 @@ using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Settings.Controls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AppInstance = Microsoft.Windows.AppLifecycle.AppInstance;
 
 namespace mpv_winui.Modules.Settings;
@@ -12,27 +11,11 @@ namespace mpv_winui.Modules.Settings;
 public sealed partial class SettingsPage : Page
 {
     public List<Option> Settings { get; } = [];
-    public List<string> Categories { get; } = [];
 
     public SettingsPage()
     {
         InitializeComponent();
-        var options = BuildSettings();
-        Settings.AddRange(options);
-        Categories.AddRange(options.Select(o => o.Category).Distinct());
-        CategoryList.ItemsSource = Categories;
-        CategoryList.SelectedIndex = 0;
-        UpdateOptions();
-    }
-
-    private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateOptions();
-
-    private void UpdateOptions()
-    {
-        var selected = CategoryList.SelectedItem as string;
-        OptionsControl.OptionList = selected is null
-            ? Settings
-            : Settings.Where(o => o.Category == selected).ToList();
+        Settings.AddRange(BuildSettings());
     }
 
     private List<Option> BuildSettings()
@@ -98,11 +81,7 @@ public sealed partial class SettingsPage : Page
                 },
                 Setter = v =>
                 {
-                    var newLang = (string)v!;
-                    var current = AppContext.AppSetting.CurrentLanguage;
-                    if (string.IsNullOrEmpty(current)) current = "en-US";
-                    if (current == newLang) return; // 控件初始化回填不视为用户改动
-                    AppContext.AppSetting.CurrentLanguage = newLang;
+                    AppContext.AppSetting.CurrentLanguage = (string)v!;
                     PromptRestartIfNeeded(AppContext.AppLang.SettingLanguages);
                 }
             },
