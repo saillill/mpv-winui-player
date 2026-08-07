@@ -26,7 +26,17 @@ public static class MpvSettings
             nameof(AppSettings.AudioDevice) => string.IsNullOrWhiteSpace((string)value) ? null : $"set audio-device {(string)value}",
             nameof(AppSettings.ScreenshotDirectory) => string.IsNullOrWhiteSpace((string)value) ? null : $"set screenshot-directory {(string)value}",
             nameof(AppSettings.ScreenshotTemplate) => string.IsNullOrWhiteSpace((string)value) ? null : $"set screenshot-template {(string)value}",
-            nameof(AppSettings.CacheDir) => string.IsNullOrWhiteSpace((string)value) ? null : $"set cache-dir {(string)value}",
+            nameof(AppSettings.SavePositionOnQuit) => $"set save-position-on-quit {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.ScreenshotFormat) => $"set screenshot-format {(string)value}",
+            nameof(AppSettings.ScreenshotJpegQuality) => $"set screenshot-jpeg-quality {value}",
+            nameof(AppSettings.VideoSync) => $"set video-sync {(string)value}",
+            nameof(AppSettings.Interpolation) => $"set interpolation {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.CorrectDownscaling) => $"set correct-downscaling {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.AudioChannels) => $"set audio-channels {(string)value}",
+            nameof(AppSettings.AudioDelay) => $"set audio-delay {value}",
+            nameof(AppSettings.SubAssOverride) => $"set sub-ass-override {(string)value}",
+            nameof(AppSettings.SubBlur) => $"set sub-blur {value}",
+            nameof(AppSettings.CacheSecs) => (value is int n && n > 0) ? $"set cache-secs {n}" : null,
             _ => null,
         };
     }
@@ -51,7 +61,17 @@ public static class MpvSettings
             (nameof(AppSettings.AudioDevice), s.AudioDevice),
             (nameof(AppSettings.ScreenshotDirectory), s.ScreenshotDirectory),
             (nameof(AppSettings.ScreenshotTemplate), s.ScreenshotTemplate),
-            (nameof(AppSettings.CacheDir), s.CacheDir),
+            (nameof(AppSettings.SavePositionOnQuit), s.SavePositionOnQuit),
+            (nameof(AppSettings.ScreenshotFormat), s.ScreenshotFormat),
+            (nameof(AppSettings.ScreenshotJpegQuality), s.ScreenshotJpegQuality),
+            (nameof(AppSettings.VideoSync), s.VideoSync),
+            (nameof(AppSettings.Interpolation), s.Interpolation),
+            (nameof(AppSettings.CorrectDownscaling), s.CorrectDownscaling),
+            (nameof(AppSettings.AudioChannels), s.AudioChannels),
+            (nameof(AppSettings.AudioDelay), s.AudioDelay),
+            (nameof(AppSettings.SubAssOverride), s.SubAssOverride),
+            (nameof(AppSettings.SubBlur), s.SubBlur),
+            (nameof(AppSettings.CacheSecs), s.CacheSecs),
         })
         {
             if (ToCommand(key, value) is { } cmd)

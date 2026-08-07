@@ -42,7 +42,7 @@ public sealed partial class SettingsPage : Page
         var video = AppContext.AppLang.SettingsCategoryVideo;
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var subtitle = AppContext.AppLang.SettingsCategorySubtitle;
-        var paths = AppContext.AppLang.SettingsCategoryPaths;
+        var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
 
         return
         [
@@ -156,6 +156,16 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.SavePositionOnQuit),
+                Label = AppContext.AppLang.SettingsSavePositionOnQuit,
+                Category = playback,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SavePositionOnQuit,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SavePositionOnQuit), AppContext.AppSetting.SavePositionOnQuit = (bool)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.Speed),
                 Label = AppContext.AppLang.SettingsSpeed,
                 Category = playback,
@@ -169,12 +179,35 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.Interpolation),
+                Label = AppContext.AppLang.SettingsInterpolation,
+                Category = playback,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Interpolation,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Interpolation), AppContext.AppSetting.Interpolation = (bool)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.EnableVideoPreview),
                 Label = AppContext.AppLang.SettingsVideoPreview,
                 Category = playback,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableVideoPreview,
                 Setter = v => AppContext.AppSetting.EnableVideoPreview = (bool)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CacheSecs),
+                Label = AppContext.AppLang.SettingsCacheSecs,
+                Category = playback,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 600,
+                Step = 10,
+                Getter = () => (double)AppContext.AppSetting.CacheSecs,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CacheSecs), AppContext.AppSetting.CacheSecs = Convert.ToInt32(v))
             },
 
             // ===== Video / 视频 =====
@@ -200,6 +233,27 @@ public sealed partial class SettingsPage : Page
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AspectRatio), AppContext.AppSetting.AspectRatio = (string)v!)
             },
 
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VideoSync),
+                Label = AppContext.AppLang.SettingsVideoSync,
+                Category = video,
+                Type = OptionType.StringList,
+                Options = ["audio", "display-resample", "display-resample-vdrop", "display-adrop", "cfr"],
+                Getter = () => AppContext.AppSetting.VideoSync,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoSync), AppContext.AppSetting.VideoSync = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CorrectDownscaling),
+                Label = AppContext.AppLang.SettingsCorrectDownscaling,
+                Category = video,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CorrectDownscaling,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CorrectDownscaling), AppContext.AppSetting.CorrectDownscaling = (bool)v!)
+            },
+
             // ===== Audio / 音频 =====
             new Option
             {
@@ -220,6 +274,30 @@ public sealed partial class SettingsPage : Page
                 Type = OptionType.String,
                 Getter = () => AppContext.AppSetting.AudioDevice,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioDevice), AppContext.AppSetting.AudioDevice = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioChannels),
+                Label = AppContext.AppLang.SettingsAudioChannels,
+                Category = audio,
+                Type = OptionType.StringList,
+                Options = ["auto", "stereo", "5.1", "7.1"],
+                Getter = () => AppContext.AppSetting.AudioChannels,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioChannels), AppContext.AppSetting.AudioChannels = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioDelay),
+                Label = AppContext.AppLang.SettingsAudioDelay,
+                Category = audio,
+                Type = OptionType.Double,
+                Min = -10,
+                Max = 10,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.AudioDelay,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioDelay), AppContext.AppSetting.AudioDelay = (double)v!)
             },
 
             // ===== Subtitle / 字幕 =====
@@ -273,12 +351,36 @@ public sealed partial class SettingsPage : Page
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubtitleLanguage), AppContext.AppSetting.SubtitleLanguage = (string)v!)
             },
 
-            // ===== Paths / 路径 =====
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAssOverride),
+                Label = AppContext.AppLang.SettingsSubAssOverride,
+                Category = subtitle,
+                Type = OptionType.StringList,
+                Options = ["no", "yes", "force", "scale"],
+                Getter = () => AppContext.AppSetting.SubAssOverride,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssOverride), AppContext.AppSetting.SubAssOverride = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubBlur),
+                Label = AppContext.AppLang.SettingsSubBlur,
+                Category = subtitle,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 20,
+                Step = 0.5,
+                Getter = () => AppContext.AppSetting.SubBlur,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubBlur), AppContext.AppSetting.SubBlur = (double)v!)
+            },
+
+            // ===== Screenshot / 截屏 =====
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotDirectory),
                 Label = AppContext.AppLang.SettingsScreenshotDirectory,
-                Category = paths,
+                Category = screenshot,
                 Type = OptionType.String,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.ScreenshotDirectory,
@@ -289,7 +391,7 @@ public sealed partial class SettingsPage : Page
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotTemplate),
                 Label = AppContext.AppLang.SettingsScreenshotTemplate,
-                Category = paths,
+                Category = screenshot,
                 Type = OptionType.String,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.ScreenshotTemplate,
@@ -298,13 +400,26 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.CacheDir),
-                Label = AppContext.AppLang.SettingsCacheDir,
-                Category = paths,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.CacheDir,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CacheDir), AppContext.AppSetting.CacheDir = (string)v!)
+                Key = nameof(AppContext.AppSetting.ScreenshotFormat),
+                Label = AppContext.AppLang.SettingsScreenshotFormat,
+                Category = screenshot,
+                Type = OptionType.StringList,
+                Options = ["png", "jpg", "webp"],
+                Getter = () => AppContext.AppSetting.ScreenshotFormat,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotFormat), AppContext.AppSetting.ScreenshotFormat = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ScreenshotJpegQuality),
+                Label = AppContext.AppLang.SettingsScreenshotJpegQuality,
+                Category = screenshot,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 100,
+                Step = 5,
+                Getter = () => (double)AppContext.AppSetting.ScreenshotJpegQuality,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotJpegQuality), AppContext.AppSetting.ScreenshotJpegQuality = Convert.ToInt32(v))
             },
         ];
     }

@@ -144,6 +144,18 @@ namespace mpv_winui.Modules.Language
         public string RestartNow { get; set; } = "Restart";
         public string RestartLater { get; set; } = "Later";
         public string HelpMpvDocs { get; set; } = "mpv Official Manual";
+        public string SettingsCategoryScreenshot { get; set; } = "Screenshot";
+        public string SettingsSavePositionOnQuit { get; set; } = "Save playback position";
+        public string SettingsScreenshotFormat { get; set; } = "Screenshot format";
+        public string SettingsScreenshotJpegQuality { get; set; } = "Screenshot JPEG quality";
+        public string SettingsVideoSync { get; set; } = "Video sync mode";
+        public string SettingsInterpolation { get; set; } = "Frame interpolation";
+        public string SettingsCorrectDownscaling { get; set; } = "Correct downscaling";
+        public string SettingsAudioChannels { get; set; } = "Audio channels";
+        public string SettingsAudioDelay { get; set; } = "Audio delay (s)";
+        public string SettingsSubAssOverride { get; set; } = "ASS override mode";
+        public string SettingsSubBlur { get; set; } = "Subtitle blur";
+        public string SettingsCacheSecs { get; set; } = "Network cache (s)";
 
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)
