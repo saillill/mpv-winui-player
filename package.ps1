@@ -68,3 +68,6 @@ finally {
 
 Write-Host "Package created: $zip"
 Write-Host "Size: $([math]::Round((Get-Item $zip).Length / 1MB, 1)) MB"
+# pwsh 7 会把最后一条原生命令（robocopy）的退出码当作脚本退出码，
+# 这里显式以 0 结束（robocopy 的 0-7 都算成功）。
+exit 0
