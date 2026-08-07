@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using mpv_winui.Modules.Common.View;
+using mpv_winui;
 using Windows.Graphics;
 
 namespace mpv_winui.Modules.Settings;
@@ -11,6 +12,7 @@ public sealed partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
+        SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
 
         Closed += SettingsWindow_Closed;
 

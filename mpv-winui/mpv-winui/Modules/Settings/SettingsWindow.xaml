@@ -11,6 +11,7 @@
             Grid.Row="0"
             Padding="16,8">
             <TextBlock
+                x:Name="SettingsTitleText"
                 FontSize="16"
                 FontWeight="SemiBold"
                 Text="Settings" />

@@ -1,5 +1,11 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Text.Json;
+
 namespace mpv_winui.Modules.Language
 {
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     public partial class AppLang
     {
         public string AppName { get; } = "mpv winui";
@@ -49,5 +55,89 @@ namespace mpv_winui.Modules.Language
         public string AudioTracks { get; set; } = "Audio Tracks";
         public string VideoTracks { get; set; } = "Video Tracks";
         public string SecondSubtitle { get; set; } = "Secondary Subtitle";
+
+        // Right-click / menu bar strings (localized via JSON)
+        public string File { get; set; } = "File";
+        public string OpenFile { get; set; } = "Open File";
+        public string OpenFolder { get; set; } = "Open Folder";
+        public string OpenUrl { get; set; } = "Open URL";
+        public string OpenFromClipboard { get; set; } = "Open from Clipboard";
+        public string OpenWatchHistory { get; set; } = "Open Watch History";
+        public string OpenWatchLater { get; set; } = "Open Watch Later";
+        public string Playlist { get; set; } = "Playlist";
+        public string Window { get; set; } = "Window";
+        public string TogglePlaylist { get; set; } = "Toggle Playlist";
+        public string ToggleFullScreen { get; set; } = "Toggle Full Screen";
+        public string ToggleFullWindow { get; set; } = "Toggle Full Window";
+        public string Quit { get; set; } = "Quit";
+        public string Backdrop { get; set; } = "Backdrop";
+        public string DebugLog { get; set; } = "Debug Log";
+        public string SettingsTitle { get; set; } = "Settings";
+        public string FileLoadSubtitle { get; set; } = "Add Subtitle";
+        public string FileOpen { get; set; } = "Open File";
+        public string FileOpenBd { get; set; } = "Open Blu-ray";
+        public string FileOpenClipboard { get; set; } = "Open from Clipboard";
+        public string FileOpenDvd { get; set; } = "Open DVD";
+        public string FileOpenFolder { get; set; } = "Open Folder";
+        public string FileOpenUrl { get; set; } = "Open URL";
+        public string FileOpenWatchHistory { get; set; } = "Open Watch History";
+        public string FileOpenWatchLater { get; set; } = "Open Watch Later";
+        public string FileQuit { get; set; } = "Quit";
+        public string FileRestart { get; set; } = "Restart";
+        public string FileScreenshot { get; set; } = "Screenshot";
+        public string FileScreenshotNoSub { get; set; } = "Screenshot (No Subtitles)";
+        public string HelpAbout { get; set; } = "About";
+        public string MenuFile { get; set; } = "File";
+        public string MenuHelp { get; set; } = "Help";
+        public string MenuView { get; set; } = "View";
+        public string MoreFullScreen { get; set; } = "Full Screen";
+        public string MoreFullWindow { get; set; } = "Full Window";
+        public string MoreNextTrack { get; set; } = "Next Track";
+        public string MorePlaybackRate { get; set; } = "Playback Rate";
+        public string MorePreviousTrack { get; set; } = "Previous Track";
+        public string MoreRepeat { get; set; } = "Repeat";
+        public string MoreShuffle { get; set; } = "Shuffle";
+        public string MoreSkipBackward { get; set; } = "Skip Backward";
+        public string MoreSkipForward { get; set; } = "Skip Forward";
+        public string MoreZoom { get; set; } = "Zoom";
+        public string MoreZoomAuto { get; set; } = "Auto";
+        public string PlaylistCopyPath { get; set; } = "Copy File Path";
+        public string PlaylistCopyTitle { get; set; } = "Copy Title";
+        public string PlaylistMoveBottom { get; set; } = "Move to Bottom";
+        public string PlaylistMoveDown { get; set; } = "Move Down";
+        public string PlaylistMoveTop { get; set; } = "Move to Top";
+        public string PlaylistMoveUp { get; set; } = "Move Up";
+        public string PlaylistOpenLocation { get; set; } = "Open File Location";
+        public string PlaylistPlay { get; set; } = "Play";
+        public string PlaylistRemove { get; set; } = "Remove";
+        public string ViewConfFolder { get; set; } = "Open Conf Folder";
+        public string ViewFullScreen { get; set; } = "Full Screen";
+        public string ViewFullWindow { get; set; } = "Full Window";
+        public string ViewMpvFolder { get; set; } = "Open mpv Folder";
+        public string ViewOptions { get; set; } = "Options";
+        public string ViewPlaylist { get; set; } = "Playlist";
+
+        /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
+        public void LoadFromJson(string path)
+        {
+            try
+            {
+                if (!System.IO.File.Exists(path)) return;
+                using var doc = JsonDocument.Parse(System.IO.File.ReadAllText(path));
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    if (prop.Value.ValueKind != JsonValueKind.String) continue;
+                    var p = GetType().GetProperty(prop.Name);
+                    if (p is { CanWrite: true })
+                    {
+                        p.SetValue(this, prop.Value.GetString());
+                    }
+                }
+            }
+            catch
+            {
+                // A broken language file falls back to defaults.
+            }
+        }
     }
 }

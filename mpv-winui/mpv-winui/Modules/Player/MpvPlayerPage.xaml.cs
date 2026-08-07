@@ -29,6 +29,7 @@ namespace mpv_winui.Modules.Player
             _selfWeakReference = new(this);
             _appWindow = App.Window?.AppWindow!;
             InitializeComponent();
+            ApplyLocalizedStrings();
 
             _task = CreateAsync();
 
