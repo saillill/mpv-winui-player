@@ -1,35 +1,68 @@
 # mpv-winui-player
 
+[![License: LGPL-2.1](https://img.shields.io/badge/License-LGPL--2.1-blue.svg)](LICENSE.txt)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20x64-0078d6.svg)]()
+[![Release](https://img.shields.io/github/v/release/saillill/mpv-winui-player)](https://github.com/saillill/mpv-winui-player/releases)
+
 [简体中文](README_zh-CN.md)
 
-A WinUI 3 media player that embeds [libmpv](https://github.com/mpv-player/mpv) through a C++/WinRT component, bundled with a trimmed config layer based on [mpv-lazy](https://github.com/hooke007/mpv_PlayKit).
+> A WinUI 3 media player powered by libmpv (C++/WinRT), with a curated config layer trimmed from mpv-lazy. Focused on correct HDR/WCG output in embedded mode, bilingual UI, and a clean out-of-the-box experience.
 
-## Links
+## Brief Introduction
 
-- Releases: <https://github.com/saillill/mpv-winui-player/releases>
+[mpv-winui-player](https://github.com/saillill/mpv-winui-player) embeds [libmpv](https://github.com/mpv-player/mpv) into a native WinUI 3 shell through a C++/WinRT component (`mpv_winrt`). The mpv configuration is provided by a dedicated config layer (`mpv-winui-lazy/`) based on [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit) (mpv-lazy), so the player works without extra setup:
+
+- Rendering: `vo=gpu-next` + `d3d11-output-mode=composition` (no window border flicker, native WinUI overlay).
+- Display detection: the app reads `DisplayInformation` and exposes `user-data/mpvw/color-kind` (`SDR` / `WCG` / `HDR`) and `user-data/mpvw/refresh-rate` to mpv; `profiles.conf` switches output parameters automatically.
+- Deployment: unpackaged build, one zip, `deploy-config.ps1` syncs the config layer to `%LOCALAPPDATA%\mpv-winui\mpv`.
+
+Related projects:
+
 - Upstream app: [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player)
-- Config base: [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit) (mpv-lazy)
-- mpv: [mpv-player/mpv](https://github.com/mpv-player/mpv) · libplacebo: [haasn/libplacebo](https://github.com/haasn/libplacebo)
+- Config base: [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)
+- Core engine: [mpv-player/mpv](https://github.com/mpv-player/mpv) · [haasn/libplacebo](https://github.com/haasn/libplacebo)
+- Windows libmpv builds: [ikas-mc/mpv-windows-builder](https://github.com/ikas-mc/mpv-windows-builder)
 
-## Features
+## UI Features
 
-- HDR/WCG auto output: the app detects the display and writes `user-data/mpvw/color-kind`; `profiles.conf` switches output automatically (WCG→bt.2020, HDR→PQ/bt.2020/1000nit).
-- RTX Video HDR / NVIDIA VSR auto toggling (`hdr_auto.lua` / `vsr_auto.lua`, temporarily removed while seeking).
-- en-US / zh-CN UI: all strings come from `AppLang` + `Languages/*.json`; switch in Settings (restart required).
-- MediaInfo: official CLI v26.05 bundled; works from the OSD/menu.
-- Open files via command line (`mpv-winui.exe "file"`) or `mpv-winui://?file=<url-encoded path>`.
-- Logs off by default (no `mpv.log` / `hdr_auto.log`).
+- **Menu bar**: File (open file/folder/URL/clipboard, DVD/BD, watch history, watch later, add subtitle, screenshots, restart, quit), View (playlist, fullscreen/full-window, options, open config/mpv folders), Help (about).
+- **Player controls**: play/pause, skip, shuffle, repeat, playback rate, audio/video track switching, zoom, full window/full screen, volume, seek bar with thumbnails.
+- **Playlist panel**: context menu (play, move, remove, copy title/path, open file location), watch history and watch later.
+- **Right-click menu**: fixed File/Window items plus script-generated dynamic submenus (NVIDIA VSR / RTX Video HDR / shaders).
+- **Settings window**: theme (auto/light/dark), backdrop (acrylic/mica), language, debug log, player options.
+
+## What's New vs. Upstream
+
+| Area | Upstream `ikas-mc/mpv-winui-player` | This project |
+|---|---|---|
+| HDR/WCG output | SDR-only example workaround; HDR washed out in composition mode | Auto profiles `mpvw-sdr/wcg/hdr`; WCG→`bt.2020` (invalid `display-p3` fixed); HDR→`target-trc=pq` + `target-prim=bt.2020` + `target-peak=1000`; `target-colorspace-hint=yes` while RTX HDR is active |
+| Localization | English-only hardcoded strings, no switch | `AppLang` + `Languages/*.json`, en-US / zh-CN, switch in Settings (restart) |
+| MediaInfo | Not bundled | Official MediaInfo CLI v26.05 (BSD-2-Clause) bundled |
+| Opening files | Protocol/CLI activation broken in unpackaged mode | Command line and `mpv-winui://` both fixed and verified |
+| Logging | mpv logs verbose by default | Off by default (`log-file` commented, `hdr_auto` `log=no`) |
+| Config layer | Not shipped | `mpv-winui-lazy/` (mpv-lazy based): HDR/WCG profiles, RTX HDR/VSR scripts, clean key bindings, MediaInfo config |
+| Build & release | Manual | `build.ps1` / `package.ps1`; GitHub Actions produces the Release zip without a signing certificate |
 
 ## Quick Start
 
-1. Download the zip from [Releases](https://github.com/saillill/mpv-winui-player/releases) and extract it.
-2. Deploy the config layer:
-   `powershell -File mpv-winui-lazy\deploy-config.ps1`
-3. Run `mpv-winui.exe`.
+1. Download `mpv-winui-win-x64-Release.zip` from the [Releases page](https://github.com/saillill/mpv-winui-player/releases).
+2. Extract it anywhere (Windows 10/11 x64).
+3. Deploy the config layer (first run):
+
+```powershell
+powershell -File mpv-winui-lazy\deploy-config.ps1
+```
+
+4. Run `mpv-winui.exe`. Open files from the menu, drag & drop, the command line, or the URL protocol:
+
+```powershell
+mpv-winui.exe "D:\Videos\movie.mkv"
+mpv-winui://?file=D%3A%5CVideos%5Cmovie.mkv
+```
 
 ## Configuration
 
-### HDR/WCG auto profiles (`profiles.conf`)
+### HDR / WCG auto profiles (`mpv-winui-lazy/profiles.conf`)
 
 ```ini
 [mpvw-sdr]
@@ -52,35 +85,51 @@ target-prim=bt.2020
 target-peak=1000
 ```
 
-Notes: `d3d11-output-csp=display-p3` is invalid; HDR requires the three `target-*` options or the driver never enters HDR.
+Notes: `d3d11-output-csp=display-p3` is not a valid value; HDR needs all three `target-*` options, otherwise the swap chain is PQ but the render pipeline stays SDR and the driver never switches to HDR.
 
-### RTX HDR / VSR (`script-opts/`)
+### RTX Video HDR / NVIDIA VSR (`mpv-winui-lazy/script-opts/`)
 
-- `hdr_auto.conf`: `log=no` (default), `mode=auto|on|off`.
-- `mpvw_hdr_override.conf`: `mode=` empty = follow the app; `HDR`/`SDR` to force.
+- `hdr_auto.conf`: `log=no` by default; `mode=auto|on|off`.
+- `mpvw_hdr_override.conf`: `mode=` empty = follow the app; `HDR` / `SDR` force an override.
 
-### Keys (`input.conf`)
+### Key bindings (`mpv-winui-lazy/input.conf`)
 
-Wheel = volume/seek, `ESC` = fullscreen, `` ` `` = console, `F6/F7` = playlist/track info, `TAB` = stats, `Alt+i` = MediaInfo, `Ctrl+1..0` = color, `[ ] { }` = speed. `input_plus.lua` is not shipped.
+Wheel: volume/seek · `` ` ``: console · `F6/F7`: playlist/track info · `TAB`: stats · `Alt+i`: MediaInfo · `Ctrl+1..0`: color adjust · `w/W`: panscan · `[ ] { }`: speed. (`input_plus.lua` is intentionally not shipped.)
 
-### Localization / MediaInfo / Logs
+### Localization / MediaInfo / logs
 
-- Language: Settings page, or edit `Languages\<lang>.json`.
-- MediaInfo: `stats_mediainfo.conf` → `mediainfo_path=~~/MediaInfo.exe`.
-- Troubleshooting logs: uncomment `log-file` in `mpv.conf` and set `msg-level=all=v`; set `log=yes` in `hdr_auto.conf`.
+- Language: Settings page, or edit `Languages\<lang>.json` (keys are `AppLang` property names).
+- MediaInfo: `script-opts/stats_mediainfo.conf` → `mediainfo_path=~~/MediaInfo.exe`.
+- Troubleshooting: uncomment `log-file` in `mpv.conf` and set `msg-level=all=v`; set `log=yes` in `hdr_auto.conf`.
 
 ## Build
 
-Requirements: .NET 10 SDK, VS Build Tools (C++), Windows App SDK 2.3.x.
+### Environment
+
+| Requirement | Notes |
+|---|---|
+| Windows 10/11 x64 | target platform |
+| [.NET 10 SDK](https://dotnet.microsoft.com/) | builds the C# WinUI 3 app |
+| Visual Studio Build Tools (C++ workload) | builds `mpv_winrt` (`VCTargetsPath` is a VS component) |
+| Windows App SDK 2.3.x | restored via NuGet |
+| `mpv-2.dll` | downloaded from [ikas-mc/mpv-windows-builder](https://github.com/ikas-mc/mpv-windows-builder) into `mpv-winui\libs\` |
+
+### Build & package
 
 ```powershell
 .\build.ps1 -Configuration Release -Platform x64
-.\package.ps1 -Configuration Release -Platform x64   # -> dist\*.zip
+.\package.ps1 -Configuration Release -Platform x64   # -> dist\mpv-winui-win-x64-Release.zip
 ```
 
-`mpv-2.dll` is downloaded from [ikas-mc/mpv-windows-builder](https://github.com/ikas-mc/mpv-windows-builder) into `mpv-winui\libs\`; CI passes `/p:BuildMpvWinrtWithReference=true` (see `.github/workflows/build.yml`).
+CI (`.github/workflows/build.yml`, manual `workflow_dispatch`) builds the same way; without certificate secrets it skips MSIX and uploads the unpackaged output plus the Release zip.
+
+### References
+
+- Runtime: mpv (LGPL-2.1+ / GPL-2.0+), libplacebo (LGPL-2.1+), Windows App SDK / WinUI 3 (MIT), CsWinRT / CsWin32 (MIT), NLog (BSD-3), MediaInfo (BSD-2), .NET (MIT), NUnit (MIT).
+- Config layer: hooke007/mpv_PlayKit (baseline; unlisted files default UNLICENSED per its LICENSE.MD), tsl0922/mpv-menu (GPL-2.0-only), coverart / recent-menu / metadata-osd (MIT), thumbfast (MPL-2.0), mpv's console/select/stats scripts, Source Han Sans / LXGW WenKai fonts (OFL-1.1), shaders (see file headers).
+- Full list and license texts: [mpv-winui-lazy/THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md).
 
 ## License
 
-- App code: LGPL-2.1 ([LICENSE.txt](LICENSE.txt), same as upstream).
-- Config layer, project-written parts: LGPL-2.1-or-later; third-party components keep their own licenses (see [THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md)).
+- App code: **LGPL-2.1** ([LICENSE.txt](LICENSE.txt), same as upstream).
+- Config layer, project-written parts: **LGPL-2.1-or-later**; third-party components keep their own licenses (see [THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md)).
