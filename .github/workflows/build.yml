@@ -10,7 +10,7 @@ jobs:
         configuration: [Release]
         platform: [x64]
 
-    runs-on: windows-2025-vs2026
+    runs-on: windows-2025
     env:
       Appx_Package_Dir: ${{github.workspace}}\mpv-winui\Packages\
 
@@ -42,21 +42,24 @@ jobs:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
 
+    # Optional code-signing: only runs when both secrets are configured.
+    # A fresh fork without secrets still gets the unpackaged Release zip.
     - name: Decode the pfx
+      if: ${{ secrets.BASE64_ENCODED_PFX != '' && secrets.Pfx_Key != '' }}
       run: |
         $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
         $certificatePath = "GitHubActionsWorkflow.pfx"
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
     - name: Create Unpackaged
-      run: msbuild mpv-winui\mpv-winui\mpv-winui.csproj /t:Publish /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:PackageCertificateKeyFile=${{env.CertFile}} /p:PackageCertificatePassword=${{ secrets.Pfx_Key }} 
+      run: msbuild mpv-winui\mpv-winui\mpv-winui.csproj /t:Publish /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:BuildMpvWinrtWithReference=true /p:GenerateAppxPackageOnBuild=false /p:AppxPackageSigningEnabled=false
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
-        CertFile: ${{github.workspace}}\GitHubActionsWorkflow.pfx
 
     - name: Create Package
-      run: msbuild mpv-winui\mpv-winui\mpv-winui.csproj /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=${{env.CertFile}} /p:PackageCertificatePassword=${{ secrets.Pfx_Key }} /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+      if: ${{ secrets.BASE64_ENCODED_PFX != '' && secrets.Pfx_Key != '' }}
+      run: msbuild mpv-winui\mpv-winui\mpv-winui.csproj /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:BuildMpvWinrtWithReference=true /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=${{env.CertFile}} /p:PackageCertificatePassword=${{ secrets.Pfx_Key }} /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
       env:
         Appx_Bundle: Never
         Appx_Package_Build_Mode: SideloadOnly
@@ -65,9 +68,18 @@ jobs:
         CertFile: ${{github.workspace}}\GitHubActionsWorkflow.pfx
 
     - name: Remove the pfx
-      run: Remove-Item -path GitHubActionsWorkflow.pfx
+      if: ${{ secrets.BASE64_ENCODED_PFX != '' && secrets.Pfx_Key != '' }}
+      run: Remove-Item -path GitHubActionsWorkflow.pfx -ErrorAction SilentlyContinue
+
+    - name: Create Release Zip
+      shell: pwsh
+      run: .\package.ps1 -Configuration $env:Configuration -Platform $env:Platform -SkipPublish
+      env:
+        Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }}
 
     - name: Upload Deps
+      if: ${{ secrets.BASE64_ENCODED_PFX != '' && secrets.Pfx_Key != '' }}
       uses: actions/upload-artifact@v7
       with:
         name: mpv-winui-Deps-${{ matrix.platform }}
@@ -76,6 +88,7 @@ jobs:
           ${{env.Appx_Package_Dir}}\*\Dependencies\${{ matrix.platform }}\*
 
     - name: Upload Package
+      if: ${{ secrets.BASE64_ENCODED_PFX != '' && secrets.Pfx_Key != '' }}
       uses: actions/upload-artifact@v7
       with:
         name: mpv-winui-${{ matrix.platform }}-${{ matrix.configuration }}
@@ -89,3 +102,9 @@ jobs:
       with:
         name: mpv-winui-unpackaged-${{ matrix.platform }}-${{ matrix.configuration }}
         path: ${{github.workspace}}\mpv-winui\mpv-winui\bin\win-${{ matrix.platform }}\publish
+
+    - name: Upload Release Zip
+      uses: actions/upload-artifact@v7
+      with:
+        name: mpv-winui-release-${{ matrix.platform }}-${{ matrix.configuration }}
+        path: ${{github.workspace}}\dist\mpv-winui-win-${{ matrix.platform }}-${{ matrix.configuration }}.zip

@@ -68,13 +68,33 @@
         <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.2" />
         <PackageReference Include="NLog" Version="6.1.4" />
     </ItemGroup>
-    <ItemGroup>
+    <!--
+      Build modes:
+      - Local (default): mpv_winrt is built separately by build.ps1 with VS MSBuild,
+        and referenced from ..\bin\$(Platform)\$(Configuration)\mpv_winrt\.
+        `dotnet build` cannot build the C++ project (VCTargetsPath is a VS component).
+      - CI: pass /p:BuildMpvWinrtWithReference=true so the C++ project is built
+        as a ProjectReference (matches upstream GitHub Actions / msbuild).
+    -->
+    <ItemGroup Condition="'$(BuildMpvWinrtWithReference)' == 'true'">
         <ProjectReference Include="..\mpv-winrt\mpv-winrt.vcxproj" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(BuildMpvWinrtWithReference)' != 'true'">
+        <Reference Include="mpv_winrt.winmd">
+            <HintPath>..\bin\$(Platform)\$(Configuration)\mpv_winrt\mpv_winrt.winmd</HintPath>
+        </Reference>
+        <Content Include="..\bin\$(Platform)\$(Configuration)\mpv_winrt\mpv_winrt.dll" Link="mpv_winrt.dll" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="..\bin\$(Platform)\$(Configuration)\mpv_winrt\Microsoft.WindowsAppRuntime.Bootstrap.dll" Link="Microsoft.WindowsAppRuntime.Bootstrap.dll" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
     <ItemGroup>
         <Page Update="Modules\Player\MpvPlayerPage.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="Languages\**\*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
@@ -130,4 +150,18 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
       <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     </PropertyGroup>
+
+    <!--
+      Unpackaged WinUI 3 apps may look for either resources.pri or <AppName>.pri
+      depending on the Windows App SDK version; keep both names in the output.
+    -->
+    <Target Name="CopyPriAsAppName" AfterTargets="Build;Publish" Condition="Exists('$(OutputPath)resources.pri')">
+        <Copy SourceFiles="$(OutputPath)resources.pri"
+              DestinationFiles="$(OutputPath)$(AssemblyName).pri"
+              SkipUnchangedFiles="true" />
+        <Copy SourceFiles="$(OutputPath)resources.pri"
+              DestinationFiles="$(PublishDir)$(AssemblyName).pri"
+              SkipUnchangedFiles="true"
+              Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+    </Target>
 </Project>

@@ -1,4 +1,5 @@
 using Microsoft.Graphics.Display;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using mpv_winui.Modules.Common.Utils;
 using System;
@@ -18,6 +19,7 @@ namespace mpv_winui.Modules.Player
         private uint _lastRefreshRate = DefaultRefreshRate;
         private HMONITOR? _lastMonitor;
         private DispatcherTimerDebouncer<int>? _displayInfoDebouncer;
+        private DispatcherQueueTimer? _displayInfoTimer;
 
         private void InitDisplayInfo()
         {
@@ -27,9 +29,13 @@ namespace mpv_winui.Modules.Player
             _displayInfo.AdvancedColorInfoChanged += OnAdvancedColorInfoChanged;
 
             _displayInfoDebouncer = new(DispatcherQueue, TimeSpan.FromSeconds(1), CheckAndUpdateDisplayInfo);
+            _displayInfoTimer = DispatcherQueue.CreateTimer();
+            _displayInfoTimer.Interval = TimeSpan.FromSeconds(3);
+            _displayInfoTimer.Tick += OnDisplayInfoTimerTick;
+            _displayInfoTimer.Start();
             _lastMonitor = Win32WindowHelper.GetMonitor(App.Window!);
             _lastRefreshRate = ReadRefreshRate();
-            //_appWindow.Changed += OnDisplayAppWindowChanged;
+            _appWindow.Changed += OnDisplayAppWindowChanged;
 
             unsafe
             {
@@ -41,7 +47,14 @@ namespace mpv_winui.Modules.Player
 
         private void CleanupDisplayInfo()
         {
-            //_appWindow?.Changed -= OnDisplayAppWindowChanged;
+            _appWindow.Changed -= OnDisplayAppWindowChanged;
+
+            if (_displayInfoTimer is { } timer)
+            {
+                timer.Stop();
+                timer.Tick -= OnDisplayInfoTimerTick;
+                _displayInfoTimer = null;
+            }
 
             if (_displayInfo is { } displayInfo)
             {
@@ -77,19 +90,24 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private mpv_winrt.DisplayColorKind ReadColorKind()
+        private mpv_winrt.DisplayColorKind ReadColorKind(bool log = true)
         {
             try
             {
                 var colorInfo = _displayInfo?.GetAdvancedColorInfo();
                 if (colorInfo != null)
                 {
-                    return colorInfo.CurrentAdvancedColorKind switch
+                    var kind = colorInfo.CurrentAdvancedColorKind switch
                     {
                         DisplayAdvancedColorKind.HighDynamicRange => mpv_winrt.DisplayColorKind.HDR,
                         DisplayAdvancedColorKind.WideColorGamut => mpv_winrt.DisplayColorKind.WCG,
                         _ => mpv_winrt.DisplayColorKind.SDR
                     };
+                    if (log)
+                    {
+                        TryLogDisplayInfo(kind, colorInfo);
+                    }
+                    return kind;
                 }
             }
             catch (Exception ex)
@@ -97,6 +115,48 @@ namespace mpv_winui.Modules.Player
                 _logger.Error(ex);
             }
             return mpv_winrt.DisplayColorKind.SDR;
+        }
+
+        // 定时兜底：WinRT 事件在跨显示器/系统 HDR 切换时可能不触发，
+        // 定期重读一次，确保 color-kind 最终与当前显示器一致。
+        private void OnDisplayInfoTimerTick(DispatcherQueueTimer sender, object args)
+        {
+            CheckAndUpdateDisplayInfo(0);
+
+            if (_displayInfo is null)
+            {
+                return;
+            }
+
+            var newKind = ReadColorKind(false);
+            if (newKind != _lastColorKind)
+            {
+                _lastColorKind = newKind;
+                _mediaPlayer?.UpdateDisplayColorInfo(newKind);
+            }
+        }
+
+        private void TryLogDisplayInfo(mpv_winrt.DisplayColorKind kind, DisplayAdvancedColorInfo? colorInfo)
+        {
+            try
+            {
+                if (colorInfo is null) return;
+                var logDir = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "mpv-winui", "logs");
+                System.IO.Directory.CreateDirectory(logDir);
+                System.IO.File.AppendAllText(
+                    System.IO.Path.Combine(logDir, "display-info.log"),
+                    $"{DateTime.Now:HH:mm:ss.fff} kind={kind} " +
+                    $"advanced={colorInfo.CurrentAdvancedColorKind} " +
+                    $"sdrWhite={colorInfo.SdrWhiteLevelInNits:0.0} " +
+                    $"maxLuma={colorInfo.MaxLuminanceInNits:0.0} " +
+                    $"minLuma={colorInfo.MinLuminanceInNits:0.0} " +
+                    $"monitor={_lastMonitor} windowId={_appWindow.Id.Value}\n");
+            }
+            catch
+            {
+            }
         }
 
         private uint ReadRefreshRate()
@@ -123,6 +183,10 @@ namespace mpv_winui.Modules.Player
                 _lastColorKind = newKind;
                 _mediaPlayer?.UpdateDisplayColorInfo(newKind);
             }
+            else
+            {
+                TryLogDisplayInfo(newKind, _displayInfo?.GetAdvancedColorInfo());
+            }
         }
 
         private void OnDisplayAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
@@ -145,7 +209,23 @@ namespace mpv_winui.Modules.Player
 
             if (type > 1 || _lastMonitor != monitor)
             {
+                var monitorChanged = _lastMonitor != monitor;
                 _lastMonitor = monitor;
+
+                // 窗口换了显示器后，DisplayInformation 需要重建才能跟随新显示器
+                if (monitorChanged)
+                {
+                    RecreateDisplayInfo();
+                }
+
+                // 修复：跨显示器/显示器状态变化时同步更新 color-kind，驱动自动配置切换
+                var newKind = ReadColorKind(type > 1 || monitorChanged);
+                if (newKind != _lastColorKind)
+                {
+                    _lastColorKind = newKind;
+                    _mediaPlayer?.UpdateDisplayColorInfo(newKind);
+                }
+
                 var rate = ReadRefreshRate();
                 if (_logger.IsDebugEnabled)
                 {
@@ -156,6 +236,32 @@ namespace mpv_winui.Modules.Player
                     _lastRefreshRate = rate;
                     _mediaPlayer?.UpdateDisplayRefreshRate(rate);
                 }
+            }
+        }
+
+        private void RecreateDisplayInfo()
+        {
+            try
+            {
+                if (_displayInfo is { } old)
+                {
+                    old.AdvancedColorInfoChanged -= OnAdvancedColorInfoChanged;
+                    old.Dispose();
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                _displayInfo = DisplayInformation.CreateForWindowId(_appWindow.Id);
+                _displayInfo.AdvancedColorInfoChanged += OnAdvancedColorInfoChanged;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                _displayInfo = null;
             }
         }
 

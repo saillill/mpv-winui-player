@@ -108,109 +108,113 @@
                 MaxWidth="300" />
         </Grid.ColumnDefinitions>
         <MenuBar
+            x:Name="MainMenuBar"
             Grid.Row="0"
             Grid.ColumnSpan="1">
             <MenuBarItem
                 Title="File"
+                Tag="file"
                 IsTabStop="False">
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="open"
-                    Text="Open File" />
+                Text="Open File" />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="open-folder"
-                    Text="Open Folder" />
+                Text="Open Folder" />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="open-url"
-                    Text="Open URL" />
+                Text="Open URL" />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="open-clipboard"
-                    Text="Open from Clipboard" />
+                Text="Open from Clipboard" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="open-dvd"
-                    Text="Open DVD" />
+                Text="Open DVD" />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="open-bd"
-                    Text="Open Blu-ray" />
+                Text="Open Blu-ray" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="open-watch-history"
-                    Text="Open Watch History" />
+                Text="Open Watch History" />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="open-watch-later"
-                    Text="Open Watch Later" />
+                Text="Open Watch Later" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="load-subtitle"
-                    Text="Add Subtitle" />
+                Text="Add Subtitle" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="screenshot"
-                    Text="Screenshot" />
+                Text="Screenshot" />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="screenshot-no-sub"
-                    Text="Screenshot (No Subtitles)" />
+                Text="Screenshot (No Subtitles)" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="restart"
-                    Text="Restart" />
+                Text="Restart" />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="quit"
-                    Text="Quit" />
+                Text="Quit" />
             </MenuBarItem>
 
             <MenuBarItem
                 Title="View"
+                Tag="view"
                 IsTabStop="False">
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="playlist"
-                    Text="Playlist" />
+                Text="Playlist" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="fullwindow"
-                    Text="Full Window" />
+                Text="Full Window" />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="fullscreen"
-                    Text="Full Screen" />
+                Text="Full Screen" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="options"
-                    Text="Options" />
+                Text="Options" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="conf-folder"
-                    Text="Open Conf Folder" />
+                Text="Open Conf Folder" />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="mpv-folder"
-                    Text="Open mpv Folder" />
+                Text="Open mpv Folder" />
             </MenuBarItem>
 
             <MenuBarItem
                 Title="Help"
+                Tag="help"
                 IsTabStop="False">
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="about"
-                    Text="About" />
+                Text="About" />
             </MenuBarItem>
         </MenuBar>
 

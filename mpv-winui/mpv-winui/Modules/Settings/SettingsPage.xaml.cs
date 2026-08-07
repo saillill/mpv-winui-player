@@ -22,7 +22,7 @@ public sealed partial class SettingsPage : Page
            new Option
             {
                 Key = nameof(AppContext.AppSetting.ThemeType),
-                Label = "Theme",
+                Label = AppContext.AppLang.AppSettingTheme,
                 Type = OptionType.StringList,
                 Options = [AppSettings.ThemeType_Auto, AppSettings.ThemeType_Light, AppSettings.ThemeType_Dark],
                 Getter = () => AppContext.AppSetting.ThemeType,
@@ -35,7 +35,7 @@ public sealed partial class SettingsPage : Page
             new Option
             {
                 Key =  nameof(AppContext.AppSetting.BackdropType),
-                Label = "Backdrop",
+                Label = AppContext.AppLang.Backdrop,
                 Type = OptionType.StringList,
                 Options = [AppSettings.BackdropType_Acrylic, AppSettings.BackdropType_Mica],
                 Getter = () => AppContext.AppSetting.BackdropType,
@@ -45,10 +45,24 @@ public sealed partial class SettingsPage : Page
             new Option
             {
                 Key =  nameof(AppContext.AppSetting.EnableDebugLog),
-                Label = "Debug Log",
+                Label = AppContext.AppLang.DebugLog,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableDebugLog,
                 Setter = v => AppContext.AppSetting.EnableDebugLog = (bool)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurrentLanguage),
+                Label = AppContext.AppLang.SettingLanguages,
+                Type = OptionType.StringList,
+                Options = ["en-US", "zh-CN"],
+                Getter = () =>
+                {
+                    var lang = AppContext.AppSetting.CurrentLanguage;
+                    return string.IsNullOrEmpty(lang) ? "en-US" : lang;
+                },
+                Setter = v => AppContext.AppSetting.CurrentLanguage = (string)v!
             },
         ];
     }

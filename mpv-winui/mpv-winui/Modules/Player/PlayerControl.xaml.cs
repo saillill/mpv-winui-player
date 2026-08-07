@@ -68,10 +68,33 @@ namespace mpv_winui.Modules.Player
         public PlayerControl()
         {
             this.InitializeComponent();
+            ApplyLocalizedStrings();
             this.Loaded += PlayerControl_Loaded;
             this.Unloaded += PlayerControl_Unloaded;
 
             _positionUpdateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+        }
+
+        private void ApplyLocalizedStrings()
+        {
+            MoreSkipBackward.Text = AppContext.AppLang.MoreSkipBackward;
+            MoreSkipForward.Text = AppContext.AppLang.MoreSkipForward;
+            MoreShuffle.Text = AppContext.AppLang.MoreShuffle;
+            MoreRepeat.Text = AppContext.AppLang.MoreRepeat;
+            MorePlaybackRate.Text = AppContext.AppLang.MorePlaybackRate;
+            MorePreviousTrack.Text = AppContext.AppLang.MorePreviousTrack;
+            MoreNextTrack.Text = AppContext.AppLang.MoreNextTrack;
+            MoreZoom.Text = AppContext.AppLang.MoreZoom;
+            foreach (var zoomItem in MoreZoom.Items)
+            {
+                if (zoomItem is MenuFlyoutItem { Tag: "no" } zoomAuto)
+                {
+                    zoomAuto.Text = AppContext.AppLang.MoreZoomAuto;
+                    break;
+                }
+            }
+            MoreFullWindow.Text = AppContext.AppLang.MoreFullWindow;
+            MoreFullScreen.Text = AppContext.AppLang.MoreFullScreen;
         }
 
         public MpvMediaPlayer? MediaPlayer

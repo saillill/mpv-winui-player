@@ -367,3 +367,5 @@ FodyWeavers.xsd
 /mpv-winui/libs-dev
 /mpv-winui/libs
 /plan.txt
+/dist/
+/mpv-winui-lazy/cache/

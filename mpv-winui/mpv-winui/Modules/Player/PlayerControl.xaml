@@ -453,21 +453,21 @@
                                 Placement="Top">
                                 <MenuFlyoutItem
                                     x:Name="MoreSkipBackward"
-                                    Text="Skip Backward">
+                Text="Skip Backward">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xED3C;" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     x:Name="MoreSkipForward"
-                                    Text="Skip Forward">
+                Text="Skip Forward">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xED3D;" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     x:Name="MoreShuffle"
-                                    Text="Shuffle">
+                Text="Shuffle">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon
                                             x:Name="MoreShuffleIcon"
@@ -478,7 +478,7 @@
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     x:Name="MoreRepeat"
-                                    Text="Repeat">
+                Text="Repeat">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon
                                             x:Name="MoreRepeatIcon"
@@ -488,7 +488,7 @@
                                 <MenuFlyoutSeparator x:Name="MoreTransportSep" />
                                 <MenuFlyoutSubItem
                                     x:Name="MorePlaybackRate"
-                                    Text="Playback Rate">
+                Text="Playback Rate">
                                     <MenuFlyoutSubItem.Icon>
                                         <FontIcon Glyph="&#xEC57;" />
                                     </MenuFlyoutSubItem.Icon>
@@ -528,27 +528,27 @@
                                 </MenuFlyoutSubItem>
                                 <MenuFlyoutItem
                                     x:Name="MorePreviousTrack"
-                                    Text="Previous Track">
+                Text="Previous Track">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xF8AC;" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     x:Name="MoreNextTrack"
-                                    Text="Next Track">
+                Text="Next Track">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xF8AD;" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutSubItem
                                     x:Name="MoreZoom"
-                                    Text="Zoom">
+                Text="Zoom">
                                     <MenuFlyoutSubItem.Icon>
                                         <FontIcon Glyph="&#xE799;" />
                                     </MenuFlyoutSubItem.Icon>
                                     <MenuFlyoutItem
                                         Tag="no"
-                                        Text="Auto" />
+                Text="Auto" />
                                     <MenuFlyoutItem
                                         Tag="4:3"
                                         Text="4:3" />
@@ -561,7 +561,7 @@
                                 </MenuFlyoutSubItem>
                                 <MenuFlyoutItem
                                     x:Name="MoreFullWindow"
-                                    Text="Full Window">
+                Text="Full Window">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon
                                             x:Name="MoreFullWindowIcon"
@@ -570,7 +570,7 @@
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     x:Name="MoreFullScreen"
-                                    Text="Full Screen">
+                Text="Full Screen">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon
                                             x:Name="MoreFullScreenIcon"

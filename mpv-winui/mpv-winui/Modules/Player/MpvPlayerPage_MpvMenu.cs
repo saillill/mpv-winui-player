@@ -1,8 +1,10 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
+using mpv_winui;
 using System;
 using System.Collections.Generic;
 
@@ -32,36 +34,36 @@ namespace mpv_winui.Modules.Player
 
         private void AddOpenHeaderItems(IList<MenuFlyoutItemBase> target)
         {
-            var openSub = new MenuFlyoutSubItem { Text = "File" };
+            var openSub = new MenuFlyoutSubItem { Text = AppContext.AppLang.File };
             target.Add(openSub);
 
-            var item = new MenuFlyoutItem { Text = "Open File", Tag = "open" };
+            var item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenFile, Tag = "open" };
             item.Click += Item_Click;
             openSub.Items.Add(item);
 
-            item = new MenuFlyoutItem { Text = "Open Folder", Tag = "open-folder" };
+            item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenFolder, Tag = "open-folder" };
             item.Click += Item_Click;
             openSub.Items.Add(item);
 
-            item = new MenuFlyoutItem { Text = "Open URL", Tag = "open-url" };
+            item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenUrl, Tag = "open-url" };
             item.Click += Item_Click;
             openSub.Items.Add(item);
 
-            item = new MenuFlyoutItem { Text = "Open from Clipboard", Tag = "open-clipboard" };
+            item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenFromClipboard, Tag = "open-clipboard" };
             item.Click += Item_Click;
             openSub.Items.Add(item);
 
             openSub.Items.Add(new MenuFlyoutSeparator());
 
-            item = new MenuFlyoutItem { Text = "Open Watch History", Tag = "open-watch-history" };
+            item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenWatchHistory, Tag = "open-watch-history" };
             item.Click += Item_Click;
             openSub.Items.Add(item);
 
-            item = new MenuFlyoutItem { Text = "Open Watch Later", Tag = "open-watch-later" };
+            item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenWatchLater, Tag = "open-watch-later" };
             item.Click += Item_Click;
             openSub.Items.Add(item);
 
-            item = new MenuFlyoutItem { Text = "Playlist", Tag = "playlist" };
+            item = new MenuFlyoutItem { Text = AppContext.AppLang.Playlist, Tag = "playlist" };
             item.Click += Item_Click;
             target.Add(item);
         }
@@ -70,14 +72,14 @@ namespace mpv_winui.Modules.Player
         {
             var subItem = new MenuFlyoutSubItem
             {
-                Text = "Window",
+                Text = AppContext.AppLang.Window,
                 MinWidth = 200
             };
             target.Add(subItem);
 
             var item = new MenuFlyoutItem
             {
-                Text = "Toggle Playlist",
+                Text = AppContext.AppLang.TogglePlaylist,
                 Tag = "playlist"
             };
             item.Click += Item_Click;
@@ -85,7 +87,7 @@ namespace mpv_winui.Modules.Player
 
             item = new MenuFlyoutItem
             {
-                Text = "Toggle Full Screen",
+                Text = AppContext.AppLang.ToggleFullScreen,
                 Tag = "fullscreen"
             };
             item.Click += Item_Click;
@@ -93,7 +95,7 @@ namespace mpv_winui.Modules.Player
 
             item = new MenuFlyoutItem
             {
-                Text = "Toggle Full Window",
+                Text = AppContext.AppLang.ToggleFullWindow,
                 Tag = "fullwindow"
             };
             item.Click += Item_Click;
@@ -101,14 +103,14 @@ namespace mpv_winui.Modules.Player
 
             item = new MenuFlyoutItem
             {
-                Text = "Quit",
+                Text = AppContext.AppLang.Quit,
                 Tag = "quit"
             };
             item.Click += Item_Click;
             target.Add(item);
         }
 
-        private void AddMenuDataItems(IList<MenuFlyoutItemBase> target, IReadOnlyList<MpvMenuItem> items)
+        private void AddMenuDataItems(IList<MenuFlyoutItemBase> target, IReadOnlyList<MpvMenuItem> items, string? inheritGlyph = null)
         {
             bool isSeparatorPre = false;
             foreach (var entry in items)
@@ -137,8 +139,11 @@ namespace mpv_winui.Modules.Player
 
                 if (entry.Type == "submenu" && entry.Items.Count > 0)
                 {
-                    var subItem = new MenuFlyoutSubItem { Text = entry.Title?.Replace("&", "") ?? string.Empty, IsEnabled = !entry.IsDisabled };
-                    AddMenuDataItems(subItem.Items, entry.Items);
+                    var subItem = new MenuFlyoutSubItem { Text = DisplayTitle(entry.Title), IsEnabled = !entry.IsDisabled };
+                    var gs = IconMap.For(entry.Title) ?? inheritGlyph;
+                    if (gs is not null)
+                        subItem.Icon = new FontIcon { Glyph = gs, FontFamily = new FontFamily(IconMap.Font) };
+                    AddMenuDataItems(subItem.Items, entry.Items, gs);
                     if (subItem.Items.Count > 0)
                     {
                         target.Add(subItem);
@@ -150,18 +155,27 @@ namespace mpv_winui.Modules.Player
                     MenuFlyoutItem item;
                     if (entry.IsChecked)
                     {
-                        item = new ToggleMenuFlyoutItem { Text = entry.Title?.Replace("&", "") ?? string.Empty, IsEnabled = !entry.IsDisabled, IsChecked = true, };
+                        item = new ToggleMenuFlyoutItem { Text = DisplayTitle(entry.Title), IsEnabled = !entry.IsDisabled, IsChecked = true, };
                     }
                     else
                     {
-                        item = new MenuFlyoutItem { Text = entry.Title?.Replace("&", "") ?? string.Empty, IsEnabled = !entry.IsDisabled, };
+                        item = new MenuFlyoutItem { Text = DisplayTitle(entry.Title), IsEnabled = !entry.IsDisabled, };
                     }
 
+                    var g = IconMap.For(entry.Title) ?? inheritGlyph;
+                    if (g is not null)
+                        item.Icon = new FontIcon { Glyph = g, FontFamily = new FontFamily(IconMap.Font) };
                     item.Click += (_, _) => MpvMenuItemClick(cmd);
                     target.Add(item);
                 }
             }
         }
+
+        /// <summary>mpv 菜单标题还原：dyn_menu escape_title 会把字面 & 写成 &amp;&amp;，WinUI 不解释 &，还原为单 &。</summary>
+        private static string DisplayTitle(string? title) =>
+            title is not null && title.Contains("&&", StringComparison.Ordinal)
+                ? title.Replace("&&", "&")
+                : title ?? string.Empty;
 
         private async void Item_Click(object sender, RoutedEventArgs e)
         {
@@ -310,6 +324,78 @@ namespace mpv_winui.Modules.Player
             }
 
             args.Handled = true;
+        }
+
+        /// <summary>
+        /// 将固定菜单文本从 AppLang 应用到 XAML（unpackaged WinUI 3 不支持 x:Uid 语言切换，
+        /// 也不支持 x:Bind 静态属性，故用代码后置赋值；AppLang 在 AppContext.Init 时已加载）。
+        /// </summary>
+        private void ApplyLocalizedStrings()
+        {
+            if (Resources["PlaylistContextMenu"] is MenuFlyout playlistMenu)
+            {
+                foreach (var item in playlistMenu.Items)
+                {
+                    if (item is MenuFlyoutItem mi)
+                    {
+                        mi.Text = mi.Tag switch
+                        {
+                            "play" => AppContext.AppLang.PlaylistPlay,
+                            "move-top" => AppContext.AppLang.PlaylistMoveTop,
+                            "move-up" => AppContext.AppLang.PlaylistMoveUp,
+                            "move-down" => AppContext.AppLang.PlaylistMoveDown,
+                            "move-bottom" => AppContext.AppLang.PlaylistMoveBottom,
+                            "remove" => AppContext.AppLang.PlaylistRemove,
+                            "copy-title" => AppContext.AppLang.PlaylistCopyTitle,
+                            "copy-path" => AppContext.AppLang.PlaylistCopyPath,
+                            "open-location" => AppContext.AppLang.PlaylistOpenLocation,
+                            _ => mi.Text,
+                        };
+                    }
+                }
+            }
+
+            foreach (var barItem in MainMenuBar.Items)
+            {
+                barItem.Title = barItem.Tag switch
+                {
+                    "file" => AppContext.AppLang.MenuFile,
+                    "view" => AppContext.AppLang.MenuView,
+                    "help" => AppContext.AppLang.MenuHelp,
+                    _ => barItem.Title,
+                };
+
+                foreach (var baseItem in barItem.Items)
+                {
+                    if (baseItem is MenuFlyoutItem mi)
+                    {
+                        mi.Text = mi.Tag switch
+                        {
+                            "open" => AppContext.AppLang.FileOpen,
+                            "open-folder" => AppContext.AppLang.FileOpenFolder,
+                            "open-url" => AppContext.AppLang.FileOpenUrl,
+                            "open-clipboard" => AppContext.AppLang.FileOpenClipboard,
+                            "open-dvd" => AppContext.AppLang.FileOpenDvd,
+                            "open-bd" => AppContext.AppLang.FileOpenBd,
+                            "open-watch-history" => AppContext.AppLang.FileOpenWatchHistory,
+                            "open-watch-later" => AppContext.AppLang.FileOpenWatchLater,
+                            "load-subtitle" => AppContext.AppLang.FileLoadSubtitle,
+                            "screenshot" => AppContext.AppLang.FileScreenshot,
+                            "screenshot-no-sub" => AppContext.AppLang.FileScreenshotNoSub,
+                            "restart" => AppContext.AppLang.FileRestart,
+                            "quit" => AppContext.AppLang.FileQuit,
+                            "playlist" => AppContext.AppLang.ViewPlaylist,
+                            "fullwindow" => AppContext.AppLang.ViewFullWindow,
+                            "fullscreen" => AppContext.AppLang.ViewFullScreen,
+                            "options" => AppContext.AppLang.ViewOptions,
+                            "conf-folder" => AppContext.AppLang.ViewConfFolder,
+                            "mpv-folder" => AppContext.AppLang.ViewMpvFolder,
+                            "about" => AppContext.AppLang.HelpAbout,
+                            _ => mi.Text,
+                        };
+                    }
+                }
+            }
         }
     }
 }
