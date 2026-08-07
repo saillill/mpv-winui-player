@@ -6,7 +6,6 @@
 |---|---|---|
 | `scripts/dyn_menu.lua`、`scripts/dialog.lua`、`scripts/menu.dll` | [tsl0922/mpv-menu-plugin](https://github.com/tsl0922/mpv-menu-plugin) | GPL-2.0-only（menu.dll 为 mpv-lazy 随附二进制；dyn_menu.lua 含本项目裁剪） |
 | `scripts/select.lua`、`scripts/console.lua`、`scripts/stats.lua` | [mpv-player/mpv](https://github.com/mpv-player/mpv) | 见文件头（select=LGPL-2.1+，console=ISC 风格许可） |
-| `scripts/input_plus.lua` | [hooke007/mpv_PlayKit discussions #615](https://github.com/hooke007/mpv_PlayKit/discussions/615) | 无 SPDX 头；mpv_PlayKit 的 LICENSE.MD 未列出文件默认 UNLICENSED（随 mpv-lazy 发行版分发，发布前建议向上游确认） |
 | `scripts/coverart.lua` | [CogentRedTester/mpv-coverart](https://github.com/CogentRedTester/mpv-coverart) | MIT |
 | `scripts/recentmenu.lua` | [natural-harmonia-gropius/recent-menu](https://github.com/natural-harmonia-gropius/recent-menu) | MIT |
 | `scripts/thumbfast.lua` | [po5/thumbfast](https://github.com/po5/thumbfast) | MPL-2.0（mpv-lazy 适配版） |
