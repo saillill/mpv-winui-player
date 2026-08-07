@@ -70,6 +70,7 @@
   "RestartRequiredMessage": "{0}：该设置重启后生效，是否立即重启？",
   "RestartNow": "立即重启",
   "RestartLater": "稍后",
+  "HelpMpvDocs": "mpv 官方手册",
   "About": "关于",
   "Add": "添加",
   "Cancel": "取消",

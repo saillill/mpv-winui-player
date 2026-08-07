@@ -15,6 +15,82 @@ local o = {
 }
 opts.read_options(o)
 
+-- ===== 菜单本地化 =====
+-- 应用把界面语言写入 user-data/mpvw/language（如 en-US/zh-CN），
+-- 这里按语言翻译 input.conf 的 #menu: 标题与动态菜单标题；未收录的键保持原样。
+local menu_lang = mp.get_property('user-data/mpvw/language') or 'en-US'
+local menu_i18n = {
+    ['en-US'] = {
+        ['播放'] = 'Play', ['暂停'] = 'Pause', ['停止'] = 'Stop', ['播放列表'] = 'Playlist',
+        ['版本'] = 'Editions', ['轨道'] = 'Tracks', ['章节'] = 'Chapters',
+        ['查看'] = 'View', ['导航'] = 'Navigation', ['视频'] = 'Video', ['音频'] = 'Audio',
+        ['字幕'] = 'Subtitle', ['音量'] = 'Volume', ['速度'] = 'Speed', ['工具'] = 'Tools',
+        ['截屏'] = 'Screenshot', ['滤镜与增强'] = 'Filters & Enhance', ['着色器'] = 'Shaders',
+        ['清空所有脚本'] = 'Clear all scripts',
+        ['窗口'] = 'Window', ['窗口-无OSD'] = 'Window (no OSD)', ['原始'] = 'Raw',
+        ['比例'] = 'Aspect', ['调色'] = 'Color', ['帧位'] = 'Pan', ['缩放'] = 'Zoom',
+        ['自动'] = 'Auto', ['自动 ICC 配置'] = 'Auto ICC profile', ['反交错'] = 'Deinterlace',
+        ['去色带'] = 'Deband', ['去黑边 -'] = 'Remove borders -', ['去黑边 +'] = 'Remove borders +',
+        ['切换轨道'] = 'Switch track', ['切换解码模式'] = 'Toggle decode mode',
+        ['切换循环播放'] = 'Toggle loop', ['切换硬件解码'] = 'Toggle hardware decoding',
+        ['加载文件...'] = 'Load file...', ['顺时针旋转'] = 'Rotate clockwise',
+        ['逆时针旋转'] = 'Rotate counterclockwise', ['时间码解析模式'] = 'Timecode parse mode',
+        ['放大 +1%'] = 'Zoom in +1%', ['缩小 -1%'] = 'Zoom out -1%',
+        ['上移'] = 'Move up', ['下移'] = 'Move down', ['左移'] = 'Move left', ['右移'] = 'Move right',
+        ['重置'] = 'Reset', ['对比度 +1'] = 'Contrast +1', ['对比度 -1'] = 'Contrast -1',
+        ['亮度 +1'] = 'Brightness +1', ['亮度 -1'] = 'Brightness -1',
+        ['伽马 +1'] = 'Gamma +1', ['伽马 -1'] = 'Gamma -1',
+        ['饱和度 +1'] = 'Saturation +1', ['饱和度 -1'] = 'Saturation -1',
+        ['色调 +1'] = 'Hue +1', ['色调 -1'] = 'Hue -1',
+        ['输出设备'] = 'Output device', ['延迟 +0.1'] = 'Delay +0.1', ['延迟 -0.1'] = 'Delay -0.1',
+        ['重置 音频与字幕同步'] = 'Reset A/V sync',
+        ['主字幕'] = 'Primary subtitle', ['次字幕'] = 'Secondary subtitle',
+        ['主字幕选项'] = 'Primary subtitle options', ['次字幕选项'] = 'Secondary subtitle options',
+        ['可见性'] = 'Visibility', ['增加字体大小'] = 'Increase subtitle size',
+        ['减少字体大小'] = 'Decrease subtitle size',
+        ['增加'] = 'Increase', ['降低'] = 'Decrease', ['静音'] = 'Mute',
+        ['+10%'] = '+10%', ['-10%'] = '-10%', ['翻倍'] = 'Double', ['减半'] = 'Halve',
+        ['0.2 倍'] = '0.2x', ['0.5 倍'] = '0.5x', ['1.0 倍'] = '1.0x',
+        ['1.5 倍'] = '1.5x', ['2.0 倍'] = '2.0x', ['64.0 倍'] = '64.0x',
+        ['上个文件'] = 'Previous file', ['下个文件'] = 'Next file',
+        ['上一章节'] = 'Previous chapter', ['下一章节'] = 'Next chapter',
+        ['上一帧'] = 'Previous frame', ['下一帧'] = 'Next frame',
+        ['前进 5 秒'] = 'Forward 5s', ['后退 5 秒'] = 'Back 5s',
+        ['前进 30 秒'] = 'Forward 30s', ['后退 30 秒'] = 'Back 30s',
+        ['前进 5 分钟'] = 'Forward 5min', ['后退 5 分钟'] = 'Back 5min',
+        ['显示 OSD 时间轴'] = 'Show OSD timeline', ['显示进度'] = 'Show progress',
+        ['显示控制台'] = 'Show console', ['显示统计信息'] = 'Show stats',
+        ['常驻显示统计信息'] = 'Persistent stats', ['按键绑定列表'] = 'Key binding list',
+        ['打乱播放列表'] = 'Shuffle playlist', ['导出播放列表'] = 'Export playlist',
+        ['复制文件路径'] = 'Copy file path', ['复制视频元数据'] = 'Copy video metadata',
+        ['复制 MediaInfo 信息'] = 'Copy MediaInfo', ['显示 MediaInfo 信息'] = 'Show MediaInfo',
+        ['配置文件'] = 'Profiles', ['设置/清除 A-B 循环点'] = 'Set/clear A-B loop',
+        ['清除已记录的属性值'] = 'Clear saved properties',
+        ['打开select总菜单'] = 'Select menu', ['打开select分菜单-属性列表'] = 'Select menu: properties',
+        ['音轨'] = 'Audio', ['关闭'] = 'Off', ['自动选择设备'] = 'Auto device', ['条目'] = 'Item',
+        ['播放列表为空'] = 'Playlist is empty', ['没有可用音轨'] = 'No audio tracks',
+        ['（强制）'] = ' (forced)', ['（外部）'] = ' (external)', ['（默认）'] = ' (default)',
+        [' 声道'] = ' ch', ['[默认]'] = ' [default]',
+    },
+}
+
+local dyn_prefix_i18n = {
+    ['en-US'] = { ['章节'] = 'Chapter', ['版本'] = 'Edition' },
+}
+
+local function localize_title(title)
+    if not title or title == '' then return title end
+    local t = menu_i18n[menu_lang]
+    if t and t[title] then return t[title] end
+    return title
+end
+
+local function localize_prefix(prefix)
+    local t = dyn_prefix_i18n[menu_lang]
+    if t and t[prefix] then return t[prefix] end
+    return prefix
+end
+
 local use_mpv_impl = o.use_mpv_impl and (mp.get_property_native('menu-data') ~= nil)
 local menu_prop = use_mpv_impl and 'menu-data' or 'user-data/menu/items' -- menu data property
 local menu_items = {}                    -- raw menu data
@@ -204,7 +280,7 @@ local function build_track_title(track, prefix, filename)
     end
     -- set a default title if it's empty
     if title == '' then
-        local names = { video = '视频', audio = '音轨', sub = '字幕' }
+        local names = { video = localize_title('视频'), audio = localize_title('音轨'), sub = localize_title('字幕') }
         local name = names[type] or type:sub(1, 1):upper() .. type:sub(2, #type)
         title = string.format('%s %d', name, track.id)
     else
@@ -219,15 +295,15 @@ local function build_track_title(track, prefix, filename)
         h(track['demux-w'] and (track['demux-w'] .. 'x' .. track['demux-h'] or track['demux-h'] .. 'p'))
     end
     if track['demux-fps'] then h(string.format('%.5g fps', track['demux-fps'])) end
-    if track['audio-channels'] then h(track['audio-channels'] .. ' 声道') end
+    if track['audio-channels'] then h(track['audio-channels'] .. localize_title(' 声道')) end
     if track['demux-samplerate'] then h(string.format('%.5g kHz', track['demux-samplerate'] / 1000)) end
     if track['demux-bitrate'] then h(string.format('%.5g kbps', track['demux-bitrate'] / 1000)) end
     if #hints > 0 then title = string.format('%s [%s]', title, table.concat(hints, ', ')) end
 
     -- put some important info at the end
-    if track.forced then title = title .. '（强制）' end
-    if track.external then title = title .. '（外部）' end
-    if track.default then title = title .. '（默认）' end
+    if track.forced then title = title .. localize_title('（强制）') end
+    if track.external then title = title .. localize_title('（外部）') end
+    if track.default then title = title .. localize_title('（默认）') end
 
     -- prepend a 1-letter type prefix, used when displaying multiple track types
     if prefix then title = string.format('%s: %s', type:sub(1, 1):upper(), title) end
@@ -268,7 +344,7 @@ local function build_track_items(list, type, prop, prefix)
 
     -- add an extra item to disable or re-enable the track
     if #items > 0 then
-        local title = pos > 0 and '关闭' or '自动'
+        local title = pos > 0 and localize_title('关闭') or localize_title('自动')
         local value = pos > 0 and 'no' or 'auto'
         if prefix then title = string.format('%s: %s', type:sub(1, 1):upper(), title) end
 
@@ -329,7 +405,7 @@ local function update_chapters_menu(menu)
     local pos = get('chapter', -1)
     for id, chapter in ipairs(chapter_list) do
         local title = abbr_title(chapter.title)
-        if title == '' then title = '章节 ' .. id end
+        if title == '' then title = localize_prefix('章节') .. ' ' .. id end
 
         append_menu(submenu, {
             title = title,
@@ -349,8 +425,8 @@ local function update_editions_menu(menu)
     local current = get('current-edition', -1)
     for id, edition in ipairs(edition_list) do
         local title = abbr_title(edition.title)
-        if title == '' then title = '版本 ' .. id end
-        if edition.default then title = title .. ' [默认]' end
+        if title == '' then title = localize_prefix('版本') .. ' ' .. id end
+        if edition.default then title = title .. localize_title('[默认]') end
         append_menu(submenu, {
             title = title,
             cmd = string.format('set edition %d', id - 1),
@@ -367,7 +443,7 @@ local function update_audio_devices_menu(menu)
 
     local current = get('audio-device', '')
     for _, device in ipairs(device_list) do
-        local dev_title = device.name == 'auto' and '自动选择设备'
+        local dev_title = device.name == 'auto' and localize_title('自动选择设备')
             or device.description or device.name
         append_menu(submenu, {
             title = dev_title,
@@ -387,7 +463,7 @@ local function build_playlist_title(item, id)
         if title == '' then title = n and n or filename end
         if e then ext = e end
     end
-    title = title ~= '' and abbr_title(title) or '条目 ' .. id
+    title = title ~= '' and abbr_title(title) or localize_title('条目') .. ' ' .. id
     return title, ext
 end
 
@@ -620,7 +696,7 @@ local function parse_input_conf(conf)
                 if not by_id[submenu_id] then
                     local submenu = {}
                     by_id[submenu_id] = submenu
-                    append_menu(target_menu, { type = 'submenu', title = name, submenu = submenu })
+                    append_menu(target_menu, { type = 'submenu', title = localize_title(name), submenu = submenu })
                 end
                 target_menu = by_id[submenu_id]
             else
@@ -628,7 +704,7 @@ local function parse_input_conf(conf)
                     append_menu(target_menu, { type = 'separator' })
                 else
                     local shortcut = (key ~= '' and key ~= '_') and key or nil
-                    append_menu(target_menu, { title = name, shortcut = shortcut, cmd = cmd })
+                    append_menu(target_menu, { title = localize_title(name), shortcut = shortcut, cmd = cmd })
                 end
             end
         end
@@ -694,7 +770,7 @@ local menu_native = 'menu'
 mp.register_script_message('playlist-menu', function()
     local playlist = mp.get_property_native('playlist') or {}
     if #playlist == 0 then
-        mp.commandv('show-text', '播放列表为空', 1500)
+        mp.commandv('show-text', localize_title('播放列表为空'), 1500)
         return
     end
 
@@ -727,7 +803,7 @@ mp.register_script_message('audio-menu', function()
     local items = {}
     local audio_items = build_track_items(track_list, 'audio', 'aid', false)
     if #audio_items == 0 then
-        mp.commandv('show-text', '没有可用音轨', 1500)
+        mp.commandv('show-text', localize_title('没有可用音轨'), 1500)
         return
     end
     for _, item in ipairs(audio_items) do append_menu(items, item) end
@@ -799,9 +875,19 @@ end
 --
 -- NOTE: to simplify the code, we don't watch for the menu data change event, this
 --       make it conflict with other scripts that also update the menu data property.
-local conf = get_input_conf()
+local input_conf_text = get_input_conf()
+local conf = input_conf_text
 if conf then
     menu_items = parse_input_conf(conf)
     menu_items_dirty = true
     load_dyn_menus()
 end
+
+-- 界面语言变化时（应用设置后重启前也会写入）重解析菜单
+mp.observe_property('user-data/mpvw/language', 'string', function()
+    menu_lang = mp.get_property('user-data/mpvw/language') or 'en-US'
+    if input_conf_text then
+        menu_items = parse_input_conf(input_conf_text)
+        menu_items_dirty = true
+    end
+end)

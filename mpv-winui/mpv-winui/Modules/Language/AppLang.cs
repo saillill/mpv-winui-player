@@ -143,6 +143,7 @@ namespace mpv_winui.Modules.Language
         public string RestartRequiredMessage { get; set; } = "{0}: this setting takes effect after restart. Restart now?";
         public string RestartNow { get; set; } = "Restart";
         public string RestartLater { get; set; } = "Later";
+        public string HelpMpvDocs { get; set; } = "mpv Official Manual";
 
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)

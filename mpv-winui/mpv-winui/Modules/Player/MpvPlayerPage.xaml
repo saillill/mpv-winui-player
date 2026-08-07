@@ -214,7 +214,11 @@
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="about"
-                Text="About" />
+                    Text="About" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="mpv-docs"
+                    Text="mpv Official Manual" />
             </MenuBarItem>
         </MenuBar>
 

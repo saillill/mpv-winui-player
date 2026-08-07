@@ -1,6 +1,25 @@
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
+-- ===== 菜单本地化 =====
+local menu_lang = mp.get_property('user-data/mpvw/language') or 'en-US'
+local menu_i18n = {
+    ['en-US'] = {
+        ['自动（SDR 片源 + 屏幕 HDR）'] = 'Auto (SDR source + HDR screen)',
+        ['强制开启（仅 SDR 片源）'] = 'Force on (SDR source only)',
+        ['关闭'] = 'Off',
+        ['关闭 VSR'] = 'Disable VSR',
+        ['清空所有脚本'] = 'Clear all scripts',
+    },
+}
+
+local function localize_title(title)
+    if not title or title == '' then return title end
+    local t = menu_i18n[menu_lang]
+    if t and t[title] then return t[title] end
+    return title
+end
+
 -- =========================================================================
 --  配置区域 1：Nvidia VSR 滤镜（扁平子菜单，直接挂在“滤镜与增强”下）
 -- =========================================================================
@@ -107,10 +126,10 @@ local function build_json(items)
             node.type = "separator"
         elseif item.type == "submenu" then
             node.type = "submenu"
-            node.title = item.title
+            node.title = localize_title(item.title)
             node.submenu = build_json(item.items)
         else
-            node.title = item.title
+            node.title = localize_title(item.title)
             node.cmd = item.cmd
             if item.state then
                 node.state = item.state
@@ -143,3 +162,7 @@ mp.register_script_message('menu-ready', update_menus)
 mp.observe_property("glsl-shaders", "native", update_menus)
 mp.observe_property("vf", "native", update_menus)
 mp.observe_property("user-data/hdr-auto/mode", "native", update_menus)
+mp.observe_property('user-data/mpvw/language', 'string', function()
+    menu_lang = mp.get_property('user-data/mpvw/language') or 'en-US'
+    update_menus()
+end)

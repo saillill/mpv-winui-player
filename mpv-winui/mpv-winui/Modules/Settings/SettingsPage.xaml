@@ -8,8 +8,29 @@
     mc:Ignorable="d">
 
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <ListView
+            x:Name="CategoryList"
+            Padding="8,12,4,12"
+            SelectionChanged="CategoryList_SelectionChanged"
+            SelectionMode="Single">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <TextBlock
+                        Padding="8,6"
+                        Style="{StaticResource BodyTextBlockStyle}"
+                        Text="{x:Bind}" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
         <ctl:OptionListControl
-            Padding="8,0,8,0"
-            OptionList="{x:Bind Settings}" />
+            x:Name="OptionsControl"
+            Grid.Column="1"
+            ShowHeaders="False" />
     </Grid>
 </Page>

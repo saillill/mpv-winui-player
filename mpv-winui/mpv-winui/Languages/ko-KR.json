@@ -111,6 +111,7 @@
   "RestartRequiredMessage": "{0}: 이 설정은 다시 시작 후 적용됩니다. 지금 다시 시작할까요?",
   "RestartNow": "지금 다시 시작",
   "RestartLater": "나중에",
+  "HelpMpvDocs": "mpv 공식 매뉴얼",
   "Stop": "정지",
   "Subtitles": "자막",
   "Test": "테스트",

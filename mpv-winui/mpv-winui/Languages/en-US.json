@@ -70,6 +70,7 @@
   "RestartRequiredMessage": "{0}: this setting takes effect after restart. Restart now?",
   "RestartNow": "Restart",
   "RestartLater": "Later",
+  "HelpMpvDocs": "mpv Official Manual",
   "About": "About",
   "Add": "Add",
   "Cancel": "Cancel",

@@ -28,8 +28,8 @@ Related projects:
 - **Menu bar**: File (open file/folder/URL/clipboard, DVD/BD, watch history, watch later, add subtitle, screenshots, restart, quit), View (playlist, fullscreen/full-window, options, open config/mpv folders), Help (about).
 - **Player controls**: play/pause, skip, shuffle, repeat, playback rate, audio/video track switching, zoom, full window/full screen, volume, seek bar with thumbnails.
 - **Playlist panel**: context menu (play, move, remove, copy title/path, open file location), watch history and watch later.
-- **Right-click menu**: mpv data menus (153 items, tsl0922/mpv-menu layout) plus fixed File/Window items; the filters are shown directly under "滤镜与增强" (NVIDIA VSR / RTX Video HDR / clear all scripts — no extra submenu level).
-- **Settings window**: categorized (General / Playback / Video / Audio / Subtitle / Paths) with theme, backdrop, 8 languages, debug log, and PotPlayer-style options: hardware decoding, max volume, after-playback, loop, default speed, deinterlace, aspect ratio, subtitle size/position/delay, preferred audio/subtitle languages, audio device, screenshot folder & filename template, cache folder. Changes apply to mpv live; language changes show a restart prompt.
+- **Right-click menu**: mpv data menus (153 items, tsl0922/mpv-menu layout) plus fixed File/Window items; filters are shown directly under "滤镜与增强" (no extra submenu level). Menu titles follow the app language (English by default; Chinese/other languages switch automatically via `user-data/mpvw/language`).
+- **Settings window**: two-pane layout (left categories, right options) with General / Playback / Video / Audio / Subtitle / Paths, theme, backdrop, 8 languages, debug log, and PotPlayer-style options: hardware decoding, max volume, after-playback, loop, default speed, deinterlace, aspect ratio, subtitle size/position/delay, preferred audio/subtitle languages, audio device, screenshot folder & filename template, cache folder. Changes apply to mpv live; language changes show a restart prompt.
 
 ## What's New vs. Upstream
 
@@ -109,7 +109,7 @@ Hardware decoding (`hwdec`), max volume (`volume-max`), after-playback behavior 
 
 ### Help / About
 
-The About dialog links the mpv GitHub repository, the official mpv manual (<https://mpv.io/manual/master/>), and this project (<https://github.com/saillill/mpv-winui-player>).
+The Help menu has a dedicated "mpv Official Manual" item (<https://mpv.io/manual/master/>); the About dialog links the mpv GitHub repository and this project (<https://github.com/saillill/mpv-winui-player>).
 
 ## Build
 
