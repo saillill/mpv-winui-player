@@ -6,8 +6,6 @@ namespace mpv_winui.Modules.Settings.Controls;
 
 public sealed partial class OptionIntegerControl : OptionControlBase
 {
-    private bool _loading;
-
     public OptionIntegerControl()
     {
         InitializeComponent();
@@ -21,27 +19,25 @@ public sealed partial class OptionIntegerControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
-            UpdateHelpButton(HelpButton);
 
-            _loading = true;
-            try
+            if (newValue.Min.HasValue)
             {
-                if (newValue.Min.HasValue)
-                {
-                    NumberBox.Minimum = newValue.Min.Value;
-                }
+                NumberBox.Minimum = newValue.Min.Value;
+            }
 
-                if (newValue.Max.HasValue)
-                {
-                    NumberBox.Maximum = newValue.Max.Value;
-                }
+            if (newValue.Max.HasValue)
+            {
+                NumberBox.Maximum = newValue.Max.Value;
+            }
 
-                if (newValue.Step.HasValue)
-                {
-                    NumberBox.SmallChange = newValue.Step.Value;
-                }
+            if (newValue.Step.HasValue)
+            {
+                NumberBox.SmallChange = newValue.Step.Value;
+            }
 
-                if (newValue.Getter is Func<object?> func && func() is double value)
+            if (newValue.Getter is Func<object?> func)
+            {
+                if (func() is double value)
                 {
                     NumberBox.Value = value;
                 }
@@ -49,10 +45,6 @@ public sealed partial class OptionIntegerControl : OptionControlBase
                 {
                     NumberBox.Value = 0;
                 }
-            }
-            finally
-            {
-                _loading = false;
             }
         }
     }
@@ -91,10 +83,7 @@ public sealed partial class OptionIntegerControl : OptionControlBase
 
     private void OnValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
     {
-        if (!_loading)
-        {
-            TryCommit();
-        }
+        TryCommit();
     }
 
     private void OnLostFocus(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
