@@ -2,81 +2,63 @@ local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
 -- =========================================================================
---  配置区域 1：VapourSynth 脚本菜单 (三级菜单结构)
+--  配置区域 1：Nvidia VSR 滤镜（扁平子菜单，直接挂在“滤镜与增强”下）
 -- =========================================================================
-local vs_menu_data = {
-    -- 1. Nvidia VSR
+local vsr_menu_data = {
     {
-        title = "Nvidia VSR",
-        type = "submenu",
-        items = {
-            {
-                title = "1.5x",
-                type = "command",
-                cmd = 'vf remove @vsr; vf pre @vsr:d3d11vpp=format=nv12:scale=1.5:scaling-mode=nvidia'
-            },
-            {
-                title = "2.0x",
-                type = "command",
-                cmd = 'vf remove @vsr; vf pre @vsr:d3d11vpp=format=nv12:scale=2:scaling-mode=nvidia'
-            },
-            {
-                title = "3.0x",
-                type = "command",
-                cmd = 'vf remove @vsr; vf pre @vsr:d3d11vpp=format=nv12:scale=3:scaling-mode=nvidia'
-            },
-            {
-                title = "4.0x",
-                type = "command",
-                cmd = 'vf remove @vsr; vf pre @vsr:d3d11vpp=format=nv12:scale=4:scaling-mode=nvidia'
-            },
-
-            { title = "-", type = "separator" },
-
-            {
-                title = "关闭 VSR",
-                type = "command",
-                cmd = 'vf remove @vsr'
-            },
-        }
+        title = "1.5x",
+        type = "command",
+        cmd = 'vf remove @vsr; vf pre @vsr:d3d11vpp=format=nv12:scale=1.5:scaling-mode=nvidia'
     },
-
-    -- 2. RTX Video HDR（hdr_auto.lua：仅 SDR 片源 + 屏幕 HDR 时自动启用）
     {
-        title = "RTX Video HDR",
-        type = "submenu",
-        items = {
-            {
-                title = "自动（SDR 片源 + 屏幕 HDR）",
-                type = "toggle",
-                cmd = 'script-message-to hdr_auto mode auto',
-                check_prop = "user-data/hdr-auto/mode",
-                check_val = "auto"
-            },
-            {
-                title = "强制开启（仅 SDR 片源）",
-                type = "toggle",
-                cmd = 'script-message-to hdr_auto mode on',
-                check_prop = "user-data/hdr-auto/mode",
-                check_val = "on"
-            },
-            {
-                title = "关闭",
-                type = "toggle",
-                cmd = 'script-message-to hdr_auto mode off',
-                check_prop = "user-data/hdr-auto/mode",
-                check_val = "off"
-            },
-        }
+        title = "2.0x",
+        type = "command",
+        cmd = 'vf remove @vsr; vf pre @vsr:d3d11vpp=format=nv12:scale=2:scaling-mode=nvidia'
+    },
+    {
+        title = "3.0x",
+        type = "command",
+        cmd = 'vf remove @vsr; vf pre @vsr:d3d11vpp=format=nv12:scale=3:scaling-mode=nvidia'
+    },
+    {
+        title = "4.0x",
+        type = "command",
+        cmd = 'vf remove @vsr; vf pre @vsr:d3d11vpp=format=nv12:scale=4:scaling-mode=nvidia'
     },
 
     { title = "-", type = "separator" },
 
-    -- 底部全局控制
     {
-        title = "清空所有脚本",
+        title = "关闭 VSR",
         type = "command",
-        cmd = 'vf clr ""'
+        cmd = 'vf remove @vsr'
+    },
+}
+
+-- =========================================================================
+--  配置区域 2：RTX Video HDR（扁平子菜单，直接挂在“滤镜与增强”下）
+-- =========================================================================
+local hdr_menu_data = {
+    {
+        title = "自动（SDR 片源 + 屏幕 HDR）",
+        type = "toggle",
+        cmd = 'script-message-to hdr_auto mode auto',
+        check_prop = "user-data/hdr-auto/mode",
+        check_val = "auto"
+    },
+    {
+        title = "强制开启（仅 SDR 片源）",
+        type = "toggle",
+        cmd = 'script-message-to hdr_auto mode on',
+        check_prop = "user-data/hdr-auto/mode",
+        check_val = "on"
+    },
+    {
+        title = "关闭",
+        type = "toggle",
+        cmd = 'script-message-to hdr_auto mode off',
+        check_prop = "user-data/hdr-auto/mode",
+        check_val = "off"
     },
 }
 
@@ -147,8 +129,11 @@ local function build_json(items)
 end
 
 local function update_menus()
-    local vs_json = utils.format_json({ type = "submenu", submenu = build_json(vs_menu_data) })
-    mp.commandv('script-message-to', 'dyn_menu', 'update', 'vs_menu', vs_json)
+    local vsr_json = utils.format_json({ type = "submenu", submenu = build_json(vsr_menu_data) })
+    mp.commandv('script-message-to', 'dyn_menu', 'update', 'vsr_menu', vsr_json)
+
+    local hdr_json = utils.format_json({ type = "submenu", submenu = build_json(hdr_menu_data) })
+    mp.commandv('script-message-to', 'dyn_menu', 'update', 'hdr_menu', hdr_json)
 
     local shader_json = utils.format_json({ type = "submenu", submenu = build_json(shader_menu_data) })
     mp.commandv('script-message-to', 'dyn_menu', 'update', 'shader_menu', shader_json)

@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
@@ -47,7 +49,27 @@ public sealed partial class OptionListControl : UserControl
     {
         if (d is OptionListControl self)
         {
-            self.OptionListView.ItemsSource = e.NewValue as List<Option> ?? [];
+            if (e.NewValue is List<Option> options && options.Count > 0)
+            {
+                var groups = new List<OptionGroup>();
+                foreach (var option in options)
+                {
+                    var group = groups.FirstOrDefault(g => g.Key == option.Category);
+                    if (group is null)
+                    {
+                        group = new OptionGroup { Key = option.Category };
+                        groups.Add(group);
+                    }
+                    group.Add(option);
+                }
+
+                var viewSource = new CollectionViewSource { IsSourceGrouped = true, Source = groups };
+                self.OptionListView.ItemsSource = viewSource.View;
+            }
+            else
+            {
+                self.OptionListView.ItemsSource = null;
+            }
         }
     }
 }

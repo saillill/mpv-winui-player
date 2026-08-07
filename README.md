@@ -28,8 +28,8 @@ Related projects:
 - **Menu bar**: File (open file/folder/URL/clipboard, DVD/BD, watch history, watch later, add subtitle, screenshots, restart, quit), View (playlist, fullscreen/full-window, options, open config/mpv folders), Help (about).
 - **Player controls**: play/pause, skip, shuffle, repeat, playback rate, audio/video track switching, zoom, full window/full screen, volume, seek bar with thumbnails.
 - **Playlist panel**: context menu (play, move, remove, copy title/path, open file location), watch history and watch later.
-- **Right-click menu**: mpv data menus (153 items, tsl0922/mpv-menu layout) plus fixed File/Window items and dynamic submenus (NVIDIA VSR / RTX Video HDR / shaders).
-- **Settings window**: theme (auto/light/dark), backdrop (acrylic/mica), 8 languages, debug log, and PotPlayer-style player options (hardware decoding, max volume, after-playback behavior, loop, deinterlace, aspect ratio, subtitle size/delay, video preview).
+- **Right-click menu**: mpv data menus (153 items, tsl0922/mpv-menu layout) plus fixed File/Window items; the filters are shown directly under "滤镜与增强" (NVIDIA VSR / RTX Video HDR / clear all scripts — no extra submenu level).
+- **Settings window**: categorized (General / Playback / Video / Audio / Subtitle / Paths) with theme, backdrop, 8 languages, debug log, and PotPlayer-style options: hardware decoding, max volume, after-playback, loop, default speed, deinterlace, aspect ratio, subtitle size/position/delay, preferred audio/subtitle languages, audio device, screenshot folder & filename template, cache folder. Changes apply to mpv live; language changes show a restart prompt.
 
 ## What's New vs. Upstream
 
@@ -37,7 +37,7 @@ Related projects:
 |---|---|---|
 | HDR/WCG output | SDR-only example workaround; HDR washed out in composition mode | Auto profiles `mpvw-sdr/wcg/hdr`; WCG→`bt.2020` (invalid `display-p3` fixed); HDR→`target-trc=pq` + `target-prim=bt.2020` + `target-peak=1000`; `target-colorspace-hint=yes` while RTX HDR is active |
 | Localization | English-only hardcoded strings, no switch | `AppLang` + `Languages/*.json`, 8 languages (en-US / zh-CN / ja-JP / ko-KR / de-DE / fr-FR / es-ES / ru-RU), switch in Settings (restart) |
-| Player settings | Minimal | PotPlayer-style options (hwdec, volume-max, keep-open, loop, deinterlace, aspect ratio, subtitle size/delay, video preview) applied to mpv live and on startup |
+| Player settings | Minimal | Categorized PotPlayer-style options (hwdec, volume-max, keep-open, loop, speed, deinterlace, aspect, subtitle size/position/delay, alang/slang, audio device, screenshot folder/template, cache dir) applied live and on startup; restart prompt for restart-required settings |
 | MediaInfo | Not bundled | Official MediaInfo CLI v26.05 (BSD-2-Clause) bundled |
 | Opening files | Protocol/CLI activation broken in unpackaged mode | Command line and `mpv-winui://` both fixed and verified |
 | Logging | mpv logs verbose by default | Off by default (`log-file` commented, `hdr_auto` `log=no`) |
@@ -102,6 +102,14 @@ Wheel: volume/seek · `` ` ``: console · `F6/F7`: playlist/track info · `TAB`:
 - Language: Settings page, or edit `Languages\<lang>.json` (keys are `AppLang` property names).
 - MediaInfo: `script-opts/stats_mediainfo.conf` → `mediainfo_path=~~/MediaInfo.exe`.
 - Troubleshooting: uncomment `log-file` in `mpv.conf` and set `msg-level=all=v`; set `log=yes` in `hdr_auto.conf`.
+
+### Player settings (Settings window)
+
+Hardware decoding (`hwdec`), max volume (`volume-max`), after-playback behavior (`keep-open`), loop file (`loop-file`), default speed, deinterlace, aspect ratio, subtitle font size / position / delay, preferred audio/subtitle languages (`alang`/`slang`), audio device, screenshot folder & filename template, cache folder, video preview thumbnails. Changes are sent to mpv immediately and applied on startup; restart-required settings (e.g. language) show a dialog with "Restart now".
+
+### Help / About
+
+The About dialog links the mpv GitHub repository, the official mpv manual (<https://mpv.io/manual/master/>), and this project (<https://github.com/saillill/mpv-winui-player>).
 
 ## Build
 

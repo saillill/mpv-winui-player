@@ -143,25 +143,32 @@ namespace mpv_winui.Modules.Player
                 HorizontalAlignment = HorizontalAlignment.Left
             };
             stack.Children.Add(mpvLink);
+            var mpvDocsLink = new HyperlinkButton
+            {
+                Content = "mpv.io/manual/master (官方文档)",
+                NavigateUri = new Uri("https://mpv.io/manual/master/"),
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+            stack.Children.Add(mpvDocsLink);
 
             stack.Children.Add(new TextBlock
             {
-                Text = "mpv-winui",
+                Text = "mpv-winui-player",
                 TextWrapping = TextWrapping.Wrap
             });
             var projectLink = new HyperlinkButton
             {
-                Content = "github.com/ikas-mc/mpv-winui",
-                NavigateUri = new Uri("https://github.com/ikas-mc/mpv-winui"),
+                Content = "github.com/saillill/mpv-winui-player",
+                NavigateUri = new Uri("https://github.com/saillill/mpv-winui-player"),
                 HorizontalAlignment = HorizontalAlignment.Left
             };
             stack.Children.Add(projectLink);
 
             var dialog = new ContentDialog
             {
-                Title = "About",
+                Title = AppContext.AppLang.HelpAbout,
                 Content = stack,
-                CloseButtonText = "Close",
+                CloseButtonText = AppContext.AppLang.Ok,
                 XamlRoot = XamlRoot
             };
             await dialog.ShowAsync();

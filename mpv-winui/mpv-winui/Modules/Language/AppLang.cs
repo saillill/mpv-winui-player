@@ -125,6 +125,24 @@ namespace mpv_winui.Modules.Language
         public string SettingsSubFontSize { get; set; } = "Subtitle font size";
         public string SettingsSubDelay { get; set; } = "Subtitle delay (s)";
         public string SettingsVideoPreview { get; set; } = "Video preview thumbnails";
+        public string SettingsCategoryGeneral { get; set; } = "General";
+        public string SettingsCategoryPlayback { get; set; } = "Playback";
+        public string SettingsCategoryVideo { get; set; } = "Video";
+        public string SettingsCategoryAudio { get; set; } = "Audio";
+        public string SettingsCategorySubtitle { get; set; } = "Subtitle";
+        public string SettingsCategoryPaths { get; set; } = "Paths";
+        public string SettingsSpeed { get; set; } = "Default speed";
+        public string SettingsSubPos { get; set; } = "Subtitle position (%)";
+        public string SettingsAudioLanguage { get; set; } = "Preferred audio language";
+        public string SettingsSubtitleLanguage { get; set; } = "Preferred subtitle language";
+        public string SettingsAudioDevice { get; set; } = "Audio output device";
+        public string SettingsScreenshotDirectory { get; set; } = "Screenshot folder";
+        public string SettingsScreenshotTemplate { get; set; } = "Screenshot filename template";
+        public string SettingsCacheDir { get; set; } = "Cache folder";
+        public string RestartRequiredTitle { get; set; } = "Restart required";
+        public string RestartRequiredMessage { get; set; } = "{0}: this setting takes effect after restart. Restart now?";
+        public string RestartNow { get; set; } = "Restart";
+        public string RestartLater { get; set; } = "Later";
 
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)

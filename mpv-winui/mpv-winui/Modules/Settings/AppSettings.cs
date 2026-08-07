@@ -123,5 +123,53 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(SubDelay), 0.0);
             set => _dataSetting.SetValue(nameof(SubDelay), value);
         }
+
+        public double Speed
+        {
+            get => _dataSetting.GetValue(nameof(Speed), 1.0);
+            set => _dataSetting.SetValue(nameof(Speed), value);
+        }
+
+        public int SubPos
+        {
+            get => _dataSetting.GetValue(nameof(SubPos), 100);
+            set => _dataSetting.SetValue(nameof(SubPos), value);
+        }
+
+        public string AudioLanguage
+        {
+            get => _dataSetting.GetValue(nameof(AudioLanguage), string.Empty);
+            set => _dataSetting.SetValue(nameof(AudioLanguage), value);
+        }
+
+        public string SubtitleLanguage
+        {
+            get => _dataSetting.GetValue(nameof(SubtitleLanguage), string.Empty);
+            set => _dataSetting.SetValue(nameof(SubtitleLanguage), value);
+        }
+
+        public string AudioDevice
+        {
+            get => _dataSetting.GetValue(nameof(AudioDevice), "auto");
+            set => _dataSetting.SetValue(nameof(AudioDevice), value);
+        }
+
+        public string ScreenshotDirectory
+        {
+            get => _dataSetting.GetValue(nameof(ScreenshotDirectory), string.Empty);
+            set => _dataSetting.SetValue(nameof(ScreenshotDirectory), value);
+        }
+
+        public string ScreenshotTemplate
+        {
+            get => _dataSetting.GetValue(nameof(ScreenshotTemplate), string.Empty);
+            set => _dataSetting.SetValue(nameof(ScreenshotTemplate), value);
+        }
+
+        public string CacheDir
+        {
+            get => _dataSetting.GetValue(nameof(CacheDir), string.Empty);
+            set => _dataSetting.SetValue(nameof(CacheDir), value);
+        }
     }
 }

@@ -28,8 +28,8 @@
 - **菜单栏**：文件（打开文件/文件夹/URL/剪贴板、DVD/蓝光、观看历史、稍后观看、加载字幕、截屏、重启、退出）、查看（播放列表、全屏/全窗口、选项、打开配置/mpv 目录）、帮助（关于）。
 - **播放控制**：播放/暂停、跳转、随机、循环、倍速、音视频轨道切换、缩放、全窗口/全屏、音量、带缩略图的进度条。
 - **播放列表**：右键菜单（播放、移动、移除、复制标题/路径、打开文件位置）、观看历史、稍后观看。
-- **右键菜单**：mpv 数据菜单（153 项，tsl0922/mpv-menu 排版）+ 固定文件/窗口项 + 动态子菜单（NVIDIA VSR / RTX Video HDR / 着色器）。
-- **设置窗口**：主题（自动/浅色/深色）、背景（亚克力/Mica）、8 种语言、调试日志，以及 PotPlayer 式播放器选项（硬解、最大音量、播放结束动作、循环、反交错、画面比例、字幕字号/延迟、视频预览）。
+- **右键菜单**：mpv 数据菜单（153 项，tsl0922/mpv-menu 排版）+ 固定文件/窗口项；“滤镜与增强”下直接显示两个滤镜（Nvidia VSR / RTX Video HDR / 清空所有脚本），不再多一层子菜单。
+- **设置窗口**：按类型分类（常规/播放/视频/音频/字幕/路径），含主题、背景、8 种语言、调试日志，以及 PotPlayer 式选项：硬解、最大音量、播放结束、循环、默认速度、反交错、画面比例、字幕字号/位置/延迟、首选音频/字幕语言、音频设备、截图目录与文件名模板、缓存目录；改动即时下发 mpv，需要重启的设置（如语言）弹出系统提示。
 
 ## 相比原版的改进
 
@@ -37,7 +37,7 @@
 |---|---|---|
 | HDR/WCG 输出 | 只有 SDR 示例；composition 模式下 HDR 发白 | `mpvw-sdr/wcg/hdr` 自动配置；WCG→`bt.2020`（修复非法的 `display-p3`）；HDR→`target-trc=pq`+`target-prim=bt.2020`+`target-peak=1000`；RTX HDR 期间固定 `target-colorspace-hint=yes` |
 | 本地化 | 英文硬编码，无切换 | `AppLang` + `Languages/*.json`，8 种语言（en-US/zh-CN/ja-JP/ko-KR/de-DE/fr-FR/es-ES/ru-RU），设置页切换（重启生效） |
-| 播放器设置 | 选项较少 | PotPlayer 式选项（hwdec、volume-max、keep-open、循环、反交错、画面比例、字幕字号/延迟、视频预览），改动即时下发 mpv、启动时自动应用 |
+| 播放器设置 | 选项较少 | 分类的 PotPlayer 式选项（hwdec、volume-max、keep-open、循环、速度、反交错、画面比例、字幕字号/位置/延迟、alang/slang、音频设备、截图目录/模板、缓存目录），即时下发并在启动时应用；需重启的设置弹提示 |
 | MediaInfo | 未随包 | 随包官方 CLI v26.05（BSD-2-Clause） |
 | 开文件 | unpackaged 下协议/命令行失效 | 命令行与 `mpv-winui://` 均已修复并实测 |
 | 日志 | mpv 默认 verbose | 默认关闭（`log-file` 注释、`hdr_auto` `log=no`） |
@@ -101,6 +101,14 @@ target-peak=1000
 - 语言：设置页切换，或编辑 `Languages\<lang>.json`（键为 `AppLang` 属性名）。
 - MediaInfo：`script-opts/stats_mediainfo.conf` → `mediainfo_path=~~/MediaInfo.exe`。
 - 排障：`mpv.conf` 取消 `log-file` 注释并设 `msg-level=all=v`；`hdr_auto.conf` 设 `log=yes`。
+
+### 播放器设置（设置窗口）
+
+硬解（`hwdec`）、最大音量（`volume-max`）、播放结束动作（`keep-open`）、循环当前文件（`loop-file`）、默认速度、反交错、画面比例、字幕字号/位置/延迟、首选音频/字幕语言（`alang`/`slang`）、音频设备、截图目录与文件名模板、缓存目录、视频预览缩略图。改动即时下发 mpv，启动时自动应用；需要重启的设置（如语言）弹出“立即重启”系统提示。
+
+### 帮助 / 关于
+
+关于对话框提供 mpv GitHub、mpv 官方手册（<https://mpv.io/manual/master/>）与本项目（<https://github.com/saillill/mpv-winui-player>）链接。
 
 ## 构建
 

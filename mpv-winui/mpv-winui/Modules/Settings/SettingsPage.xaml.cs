@@ -1,8 +1,10 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Settings.Controls;
 using System;
 using System.Collections.Generic;
+using AppInstance = Microsoft.Windows.AppLifecycle.AppInstance;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -18,16 +20,26 @@ public sealed partial class SettingsPage : Page
 
     private List<Option> BuildSettings()
     {
+        var general = AppContext.AppLang.SettingsCategoryGeneral;
+        var playback = AppContext.AppLang.SettingsCategoryPlayback;
+        var video = AppContext.AppLang.SettingsCategoryVideo;
+        var audio = AppContext.AppLang.SettingsCategoryAudio;
+        var subtitle = AppContext.AppLang.SettingsCategorySubtitle;
+        var paths = AppContext.AppLang.SettingsCategoryPaths;
+
         return
         [
-           new Option
+            // ===== General / 常规 =====
+            new Option
             {
                 Key = nameof(AppContext.AppSetting.ThemeType),
                 Label = AppContext.AppLang.AppSettingTheme,
+                Category = general,
                 Type = OptionType.StringList,
                 Options = [AppSettings.ThemeType_Auto, AppSettings.ThemeType_Light, AppSettings.ThemeType_Dark],
                 Getter = () => AppContext.AppSetting.ThemeType,
-                Setter = v =>{
+                Setter = v =>
+                {
                     AppContext.AppSetting.ThemeType = (string)v;
                     UpdateTheme((string)v);
                 }
@@ -35,8 +47,9 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
-                Key =  nameof(AppContext.AppSetting.BackdropType),
+                Key = nameof(AppContext.AppSetting.BackdropType),
                 Label = AppContext.AppLang.Backdrop,
+                Category = general,
                 Type = OptionType.StringList,
                 Options = [AppSettings.BackdropType_Acrylic, AppSettings.BackdropType_Mica],
                 Getter = () => AppContext.AppSetting.BackdropType,
@@ -45,8 +58,9 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
-                Key =  nameof(AppContext.AppSetting.EnableDebugLog),
+                Key = nameof(AppContext.AppSetting.EnableDebugLog),
                 Label = AppContext.AppLang.DebugLog,
+                Category = general,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableDebugLog,
                 Setter = v => AppContext.AppSetting.EnableDebugLog = (bool)v!
@@ -56,6 +70,8 @@ public sealed partial class SettingsPage : Page
             {
                 Key = nameof(AppContext.AppSetting.CurrentLanguage),
                 Label = AppContext.AppLang.SettingLanguages,
+                Category = general,
+                RequiresRestart = true,
                 Type = OptionType.StringList,
                 Options = AppContext.AvailableLanguages(),
                 Getter = () =>
@@ -63,13 +79,19 @@ public sealed partial class SettingsPage : Page
                     var lang = AppContext.AppSetting.CurrentLanguage;
                     return string.IsNullOrEmpty(lang) ? "en-US" : lang;
                 },
-                Setter = v => AppContext.AppSetting.CurrentLanguage = (string)v!
+                Setter = v =>
+                {
+                    AppContext.AppSetting.CurrentLanguage = (string)v!;
+                    PromptRestartIfNeeded(AppContext.AppLang.SettingLanguages);
+                }
             },
 
+            // ===== Playback / 播放 =====
             new Option
             {
                 Key = nameof(AppContext.AppSetting.Hwdec),
                 Label = AppContext.AppLang.SettingsHwdec,
+                Category = playback,
                 Description = "auto / no / d3d11va / nvdec / dxva2",
                 Type = OptionType.StringList,
                 Options = ["auto", "no", "d3d11va", "nvdec", "dxva2"],
@@ -81,6 +103,7 @@ public sealed partial class SettingsPage : Page
             {
                 Key = nameof(AppContext.AppSetting.VolumeMax),
                 Label = AppContext.AppLang.SettingsVolumeMax,
+                Category = playback,
                 Type = OptionType.Integer,
                 Min = 100,
                 Max = 300,
@@ -93,6 +116,7 @@ public sealed partial class SettingsPage : Page
             {
                 Key = nameof(AppContext.AppSetting.KeepOpen),
                 Label = AppContext.AppLang.SettingsKeepOpen,
+                Category = playback,
                 Type = OptionType.StringList,
                 Options = ["yes", "no", "always"],
                 Getter = () => AppContext.AppSetting.KeepOpen,
@@ -103,6 +127,7 @@ public sealed partial class SettingsPage : Page
             {
                 Key = nameof(AppContext.AppSetting.LoopFile),
                 Label = AppContext.AppLang.SettingsLoopFile,
+                Category = playback,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.LoopFile,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopFile), AppContext.AppSetting.LoopFile = (bool)v!)
@@ -110,8 +135,33 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.Speed),
+                Label = AppContext.AppLang.SettingsSpeed,
+                Category = playback,
+                Type = OptionType.Double,
+                Min = 0.25,
+                Max = 4,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.Speed,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Speed), AppContext.AppSetting.Speed = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.EnableVideoPreview),
+                Label = AppContext.AppLang.SettingsVideoPreview,
+                Category = playback,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.EnableVideoPreview,
+                Setter = v => AppContext.AppSetting.EnableVideoPreview = (bool)v!
+            },
+
+            // ===== Video / 视频 =====
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.Deinterlace),
                 Label = AppContext.AppLang.SettingsDeinterlace,
+                Category = video,
                 Type = OptionType.StringList,
                 Options = ["auto", "yes", "no"],
                 Getter = () => AppContext.AppSetting.Deinterlace,
@@ -122,16 +172,41 @@ public sealed partial class SettingsPage : Page
             {
                 Key = nameof(AppContext.AppSetting.AspectRatio),
                 Label = AppContext.AppLang.SettingsAspect,
+                Category = video,
                 Type = OptionType.StringList,
                 Options = ["auto", "16:9", "4:3", "2.35:1", "1.85:1"],
                 Getter = () => AppContext.AppSetting.AspectRatio,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AspectRatio), AppContext.AppSetting.AspectRatio = (string)v!)
             },
 
+            // ===== Audio / 音频 =====
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioLanguage),
+                Label = AppContext.AppLang.SettingsAudioLanguage,
+                Category = audio,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.AudioLanguage,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioLanguage), AppContext.AppSetting.AudioLanguage = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioDevice),
+                Label = AppContext.AppLang.SettingsAudioDevice,
+                Category = audio,
+                Type = OptionType.String,
+                Getter = () => AppContext.AppSetting.AudioDevice,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioDevice), AppContext.AppSetting.AudioDevice = (string)v!)
+            },
+
+            // ===== Subtitle / 字幕 =====
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubFontSize),
                 Label = AppContext.AppLang.SettingsSubFontSize,
+                Category = subtitle,
                 Type = OptionType.Integer,
                 Min = 10,
                 Max = 120,
@@ -144,6 +219,7 @@ public sealed partial class SettingsPage : Page
             {
                 Key = nameof(AppContext.AppSetting.SubDelay),
                 Label = AppContext.AppLang.SettingsSubDelay,
+                Category = subtitle,
                 Type = OptionType.Double,
                 Min = -10,
                 Max = 10,
@@ -154,11 +230,60 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.EnableVideoPreview),
-                Label = AppContext.AppLang.SettingsVideoPreview,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.EnableVideoPreview,
-                Setter = v => AppContext.AppSetting.EnableVideoPreview = (bool)v!
+                Key = nameof(AppContext.AppSetting.SubPos),
+                Label = AppContext.AppLang.SettingsSubPos,
+                Category = subtitle,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 100,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.SubPos,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubPos), AppContext.AppSetting.SubPos = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubtitleLanguage),
+                Label = AppContext.AppLang.SettingsSubtitleLanguage,
+                Category = subtitle,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.SubtitleLanguage,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubtitleLanguage), AppContext.AppSetting.SubtitleLanguage = (string)v!)
+            },
+
+            // ===== Paths / 路径 =====
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ScreenshotDirectory),
+                Label = AppContext.AppLang.SettingsScreenshotDirectory,
+                Category = paths,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.ScreenshotDirectory,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotDirectory), AppContext.AppSetting.ScreenshotDirectory = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ScreenshotTemplate),
+                Label = AppContext.AppLang.SettingsScreenshotTemplate,
+                Category = paths,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.ScreenshotTemplate,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotTemplate), AppContext.AppSetting.ScreenshotTemplate = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CacheDir),
+                Label = AppContext.AppLang.SettingsCacheDir,
+                Category = paths,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.CacheDir,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CacheDir), AppContext.AppSetting.CacheDir = (string)v!)
             },
         ];
     }
@@ -168,6 +293,28 @@ public sealed partial class SettingsPage : Page
         if (MpvSettings.ToCommand(key, value) is { } cmd)
         {
             AppContext.SendMpvCommand(cmd);
+        }
+    }
+
+    private async void PromptRestartIfNeeded(string settingLabel)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = AppContext.AppLang.RestartRequiredTitle,
+            Content = string.Format(AppContext.AppLang.RestartRequiredMessage, settingLabel),
+            PrimaryButtonText = AppContext.AppLang.RestartNow,
+            CloseButtonText = AppContext.AppLang.RestartLater,
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            if (App.Window is MainWindow mainWindow)
+            {
+                mainWindow.SaveWindowPositionAndSize();
+            }
+            AppInstance.Restart("Reset");
         }
     }
 

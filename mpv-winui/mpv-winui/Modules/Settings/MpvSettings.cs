@@ -19,6 +19,14 @@ public static class MpvSettings
             nameof(AppSettings.AspectRatio) => $"set video-aspect-override {value}",
             nameof(AppSettings.SubFontSize) => $"set sub-font-size {value}",
             nameof(AppSettings.SubDelay) => $"set sub-delay {value}",
+            nameof(AppSettings.Speed) => $"set speed {value}",
+            nameof(AppSettings.SubPos) => $"set sub-pos {value}",
+            nameof(AppSettings.AudioLanguage) => string.IsNullOrWhiteSpace((string)value) ? null : $"set alang {(string)value}",
+            nameof(AppSettings.SubtitleLanguage) => string.IsNullOrWhiteSpace((string)value) ? null : $"set slang {(string)value}",
+            nameof(AppSettings.AudioDevice) => string.IsNullOrWhiteSpace((string)value) ? null : $"set audio-device {(string)value}",
+            nameof(AppSettings.ScreenshotDirectory) => string.IsNullOrWhiteSpace((string)value) ? null : $"set screenshot-directory {(string)value}",
+            nameof(AppSettings.ScreenshotTemplate) => string.IsNullOrWhiteSpace((string)value) ? null : $"set screenshot-template {(string)value}",
+            nameof(AppSettings.CacheDir) => string.IsNullOrWhiteSpace((string)value) ? null : $"set cache-dir {(string)value}",
             _ => null,
         };
     }
@@ -36,6 +44,14 @@ public static class MpvSettings
             (nameof(AppSettings.AspectRatio), s.AspectRatio),
             (nameof(AppSettings.SubFontSize), s.SubFontSize),
             (nameof(AppSettings.SubDelay), s.SubDelay),
+            (nameof(AppSettings.Speed), s.Speed),
+            (nameof(AppSettings.SubPos), s.SubPos),
+            (nameof(AppSettings.AudioLanguage), s.AudioLanguage),
+            (nameof(AppSettings.SubtitleLanguage), s.SubtitleLanguage),
+            (nameof(AppSettings.AudioDevice), s.AudioDevice),
+            (nameof(AppSettings.ScreenshotDirectory), s.ScreenshotDirectory),
+            (nameof(AppSettings.ScreenshotTemplate), s.ScreenshotTemplate),
+            (nameof(AppSettings.CacheDir), s.CacheDir),
         })
         {
             if (ToCommand(key, value) is { } cmd)
