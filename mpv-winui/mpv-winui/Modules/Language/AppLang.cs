@@ -8,7 +8,7 @@ namespace mpv_winui.Modules.Language
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     public partial class AppLang
     {
-        public string AppName { get; } = "mpv winui";
+        public string AppName { get; } = "MPV";
         public string AppVersion { get; } = "1.0";
         public string About { get; set; } = "About";
         public string Add { get; set; } = "Add";
@@ -116,6 +116,15 @@ namespace mpv_winui.Modules.Language
         public string ViewMpvFolder { get; set; } = "Open mpv Folder";
         public string ViewOptions { get; set; } = "Options";
         public string ViewPlaylist { get; set; } = "Playlist";
+        public string SettingsHwdec { get; set; } = "Hardware decoding";
+        public string SettingsVolumeMax { get; set; } = "Max volume (%)";
+        public string SettingsKeepOpen { get; set; } = "After playback ends";
+        public string SettingsLoopFile { get; set; } = "Loop current file";
+        public string SettingsDeinterlace { get; set; } = "Deinterlace";
+        public string SettingsAspect { get; set; } = "Aspect ratio";
+        public string SettingsSubFontSize { get; set; } = "Subtitle font size";
+        public string SettingsSubDelay { get; set; } = "Subtitle delay (s)";
+        public string SettingsVideoPreview { get; set; } = "Video preview thumbnails";
 
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)

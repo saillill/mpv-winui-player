@@ -4,6 +4,7 @@ using mpv_winui.Modules.Settings;
 using NLog;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace mpv_winui
@@ -17,6 +18,31 @@ namespace mpv_winui
         public static AppSettings AppSetting { get; } = new();
 
         private static Task? _task;
+
+        /// <summary>由播放页在 mpv 初始化后挂接，用于把设置即时下发到 mpv。</summary>
+        public static Action<string>? RunMpvCommand { get; set; }
+
+        public static void SendMpvCommand(string cmd) => RunMpvCommand?.Invoke(cmd);
+
+        /// <summary>枚举程序目录 Languages/*.json 作为可选语言；目录缺失时回退内置列表。</summary>
+        public static string[] AvailableLanguages()
+        {
+            var dir = Path.Combine(System.AppContext.BaseDirectory, "Languages");
+            if (Directory.Exists(dir))
+            {
+                var names = Directory.GetFiles(dir, "*.json")
+                    .Select(Path.GetFileNameWithoutExtension)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+                if (names.Length > 0)
+                {
+                    return names!;
+                }
+            }
+
+            return ["en-US", "zh-CN"];
+        }
 
         public static void Init()
         {

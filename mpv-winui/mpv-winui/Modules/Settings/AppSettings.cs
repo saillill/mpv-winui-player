@@ -75,5 +75,53 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(EnableVideoPreview), false);
             set => _dataSetting.SetValue(nameof(EnableVideoPreview), value);
         }
+
+        public string Hwdec
+        {
+            get => _dataSetting.GetValue(nameof(Hwdec), "auto");
+            set => _dataSetting.SetValue(nameof(Hwdec), value);
+        }
+
+        public int VolumeMax
+        {
+            get => _dataSetting.GetValue(nameof(VolumeMax), 100);
+            set => _dataSetting.SetValue(nameof(VolumeMax), value);
+        }
+
+        public string KeepOpen
+        {
+            get => _dataSetting.GetValue(nameof(KeepOpen), "yes");
+            set => _dataSetting.SetValue(nameof(KeepOpen), value);
+        }
+
+        public bool LoopFile
+        {
+            get => _dataSetting.GetValue(nameof(LoopFile), false);
+            set => _dataSetting.SetValue(nameof(LoopFile), value);
+        }
+
+        public string Deinterlace
+        {
+            get => _dataSetting.GetValue(nameof(Deinterlace), "auto");
+            set => _dataSetting.SetValue(nameof(Deinterlace), value);
+        }
+
+        public string AspectRatio
+        {
+            get => _dataSetting.GetValue(nameof(AspectRatio), "auto");
+            set => _dataSetting.SetValue(nameof(AspectRatio), value);
+        }
+
+        public int SubFontSize
+        {
+            get => _dataSetting.GetValue(nameof(SubFontSize), 42);
+            set => _dataSetting.SetValue(nameof(SubFontSize), value);
+        }
+
+        public double SubDelay
+        {
+            get => _dataSetting.GetValue(nameof(SubDelay), 0.0);
+            set => _dataSetting.SetValue(nameof(SubDelay), value);
+        }
     }
 }

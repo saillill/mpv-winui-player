@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Navigation;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.FileSystem;
+using mpv_winui.Modules.Settings;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -64,6 +65,9 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.StartListen();
 
+                AppContext.RunMpvCommand = cmd => _mediaPlayer.RunCommandAsync(cmd).FireAndForget(OnException);
+                MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
+
                 SetupKeyboardInput();
                 SetupPreview();
 
@@ -77,6 +81,7 @@ namespace mpv_winui.Modules.Player
 
         private void MpvPlayerPage_Unloaded(object sender, RoutedEventArgs e)
         {
+            AppContext.RunMpvCommand = null;
             CleanupDisplayInfo();
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;

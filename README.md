@@ -6,7 +6,7 @@
 
 [简体中文](README_zh-CN.md)
 
-> A WinUI 3 media player powered by libmpv (C++/WinRT), with a curated config layer trimmed from mpv-lazy. Focused on correct HDR/WCG output in embedded mode, bilingual UI, and a clean out-of-the-box experience.
+> A WinUI 3 media player powered by libmpv (C++/WinRT), with a curated config layer trimmed from mpv-lazy. Focused on correct HDR/WCG output in embedded mode, multilingual UI (8 languages), and a clean out-of-the-box experience.
 
 ## Brief Introduction
 
@@ -28,15 +28,16 @@ Related projects:
 - **Menu bar**: File (open file/folder/URL/clipboard, DVD/BD, watch history, watch later, add subtitle, screenshots, restart, quit), View (playlist, fullscreen/full-window, options, open config/mpv folders), Help (about).
 - **Player controls**: play/pause, skip, shuffle, repeat, playback rate, audio/video track switching, zoom, full window/full screen, volume, seek bar with thumbnails.
 - **Playlist panel**: context menu (play, move, remove, copy title/path, open file location), watch history and watch later.
-- **Right-click menu**: fixed File/Window items plus script-generated dynamic submenus (NVIDIA VSR / RTX Video HDR / shaders).
-- **Settings window**: theme (auto/light/dark), backdrop (acrylic/mica), language, debug log, player options.
+- **Right-click menu**: mpv data menus (153 items, tsl0922/mpv-menu layout) plus fixed File/Window items and dynamic submenus (NVIDIA VSR / RTX Video HDR / shaders).
+- **Settings window**: theme (auto/light/dark), backdrop (acrylic/mica), 8 languages, debug log, and PotPlayer-style player options (hardware decoding, max volume, after-playback behavior, loop, deinterlace, aspect ratio, subtitle size/delay, video preview).
 
 ## What's New vs. Upstream
 
 | Area | Upstream `ikas-mc/mpv-winui-player` | This project |
 |---|---|---|
 | HDR/WCG output | SDR-only example workaround; HDR washed out in composition mode | Auto profiles `mpvw-sdr/wcg/hdr`; WCG→`bt.2020` (invalid `display-p3` fixed); HDR→`target-trc=pq` + `target-prim=bt.2020` + `target-peak=1000`; `target-colorspace-hint=yes` while RTX HDR is active |
-| Localization | English-only hardcoded strings, no switch | `AppLang` + `Languages/*.json`, en-US / zh-CN, switch in Settings (restart) |
+| Localization | English-only hardcoded strings, no switch | `AppLang` + `Languages/*.json`, 8 languages (en-US / zh-CN / ja-JP / ko-KR / de-DE / fr-FR / es-ES / ru-RU), switch in Settings (restart) |
+| Player settings | Minimal | PotPlayer-style options (hwdec, volume-max, keep-open, loop, deinterlace, aspect ratio, subtitle size/delay, video preview) applied to mpv live and on startup |
 | MediaInfo | Not bundled | Official MediaInfo CLI v26.05 (BSD-2-Clause) bundled |
 | Opening files | Protocol/CLI activation broken in unpackaged mode | Command line and `mpv-winui://` both fixed and verified |
 | Logging | mpv logs verbose by default | Off by default (`log-file` commented, `hdr_auto` `log=no`) |

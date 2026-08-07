@@ -3,9 +3,9 @@
 mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)（mpv-lazy）裁剪而成：
 
 - 移除了 ModernZ / k7f_zen / 旧 WinUI 菜单宿主（工具目录与 dead 配置）；
-- `input.conf` 只保留快捷键绑定，不含 160 条中文 `#menu:` 数据菜单（本地定制版备份在
-  `%LOCALAPPDATA%\mpv-winui\mpv\input.conf.bak-20260807-menu`）；动态“增强脚本/着色器”
-  子菜单仍由 `dynamic_menu.lua` 生成；
+- `input.conf` 恢复 mpv 数据菜单（153 条 `#menu:`，沿用此前 mpv-lazy/tsl0922 排版；
+  原 160 条本地定制版备份在 `%LOCALAPPDATA%\mpv-winui\mpv\input.conf.bak-20260807-menu`）；
+  动态“增强脚本/着色器”子菜单仍由 `dynamic_menu.lua` 生成；
 - `input_plus.lua` 已移除（F3-F5 临时清滤镜/着色器、`,`/`.` 按住倍速、Ctrl+←/→ 流媒体式跳转等绑定随之删除）；
 - 针对 WinUI composition 模式（`d3d11-output-mode=composition`）修正 HDR/WCG 输出：
   `profiles.conf` 的 `[mpvw-sdr|mpvw-wcg|mpvw-hdr]` 按 App 写入的

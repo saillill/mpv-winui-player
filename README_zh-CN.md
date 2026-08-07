@@ -6,7 +6,7 @@
 
 [English](README.md)
 
-> WinUI 3 + libmpv 的 Windows 播放器（C++/WinRT 组件），配置层基于 mpv-lazy 裁剪。重点解决嵌入模式下的 HDR/WCG 正确输出、中英双语界面，开箱即用。
+> WinUI 3 + libmpv 的 Windows 播放器（C++/WinRT 组件），配置层基于 mpv-lazy 裁剪。重点解决嵌入模式下的 HDR/WCG 正确输出、8 种语言界面，开箱即用。
 
 ## 简要介绍
 
@@ -28,15 +28,16 @@
 - **菜单栏**：文件（打开文件/文件夹/URL/剪贴板、DVD/蓝光、观看历史、稍后观看、加载字幕、截屏、重启、退出）、查看（播放列表、全屏/全窗口、选项、打开配置/mpv 目录）、帮助（关于）。
 - **播放控制**：播放/暂停、跳转、随机、循环、倍速、音视频轨道切换、缩放、全窗口/全屏、音量、带缩略图的进度条。
 - **播放列表**：右键菜单（播放、移动、移除、复制标题/路径、打开文件位置）、观看历史、稍后观看。
-- **右键菜单**：固定文件/窗口项 + 脚本动态子菜单（NVIDIA VSR / RTX Video HDR / 着色器）。
-- **设置窗口**：主题（自动/浅色/深色）、背景（亚克力/Mica）、语言、调试日志、播放器选项。
+- **右键菜单**：mpv 数据菜单（153 项，tsl0922/mpv-menu 排版）+ 固定文件/窗口项 + 动态子菜单（NVIDIA VSR / RTX Video HDR / 着色器）。
+- **设置窗口**：主题（自动/浅色/深色）、背景（亚克力/Mica）、8 种语言、调试日志，以及 PotPlayer 式播放器选项（硬解、最大音量、播放结束动作、循环、反交错、画面比例、字幕字号/延迟、视频预览）。
 
 ## 相比原版的改进
 
 | 方面 | 上游 ikas-mc/mpv-winui-player | 本项目 |
 |---|---|---|
 | HDR/WCG 输出 | 只有 SDR 示例；composition 模式下 HDR 发白 | `mpvw-sdr/wcg/hdr` 自动配置；WCG→`bt.2020`（修复非法的 `display-p3`）；HDR→`target-trc=pq`+`target-prim=bt.2020`+`target-peak=1000`；RTX HDR 期间固定 `target-colorspace-hint=yes` |
-| 本地化 | 英文硬编码，无切换 | `AppLang` + `Languages/*.json`，内置 en-US/zh-CN，设置页切换（重启生效） |
+| 本地化 | 英文硬编码，无切换 | `AppLang` + `Languages/*.json`，8 种语言（en-US/zh-CN/ja-JP/ko-KR/de-DE/fr-FR/es-ES/ru-RU），设置页切换（重启生效） |
+| 播放器设置 | 选项较少 | PotPlayer 式选项（hwdec、volume-max、keep-open、循环、反交错、画面比例、字幕字号/延迟、视频预览），改动即时下发 mpv、启动时自动应用 |
 | MediaInfo | 未随包 | 随包官方 CLI v26.05（BSD-2-Clause） |
 | 开文件 | unpackaged 下协议/命令行失效 | 命令行与 `mpv-winui://` 均已修复并实测 |
 | 日志 | mpv 默认 verbose | 默认关闭（`log-file` 注释、`hdr_auto` `log=no`） |
