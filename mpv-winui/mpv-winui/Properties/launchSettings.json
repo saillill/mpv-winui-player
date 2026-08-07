@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "mpv-winui (Package)": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": false,
+      "doNotLaunchApp": false
+    },
+    "mpv-winui (Unpackaged)": {
+      "commandName": "Project",
+      "debugEngines": "managed"
+    }
+  }
+}
