@@ -615,5 +615,16 @@
   "SectionVideoFilters": "NVIDIA フィルター",
   "OptionValueCodePageAuto": "自動検出（推奨）",
   "SettingsSubFontFile": "字幕フォントファイル",
-  "SettingsHelpSubFontFile": "TTF/OTF フォントファイルを選択すると mpv がそのフォルダーをスキャンします。その後「字幕フォント」でフォントファミリーを選んでください。次回起動時に有効です。"
+  "SettingsHelpSubFontFile": "TTF/OTF フォントファイルを選択すると mpv がそのフォルダーをスキャンします。その後「字幕フォント」でフォントファミリーを選んでください。次回起動時に有効です。",
+  "SettingsThemeAccentColor": "アクセントカラー",
+  "SettingsHelpThemeAccentColor": "ウィンドウ背景の着色色。空にするとシステムのアクセントカラーに従います。",
+  "SettingsThemeOpacity": "背景の透明度",
+  "SettingsHelpThemeOpacity": "値が大きいほど背景が透明になります。Acrylic 背景のみ有効です。",
+  "OptionValueThemeAccentAuto": "自動（システム）",
+  "OptionValueColorBlue": "青",
+  "OptionValueColorGreen": "緑",
+  "OptionValueColorRed": "赤",
+  "OptionValueColorPurple": "紫",
+  "OptionValueColorOrange": "オレンジ",
+  "WarningThemeOpacityBackdrop": "Acrylic 背景を選択している場合のみ有効です。"
 }

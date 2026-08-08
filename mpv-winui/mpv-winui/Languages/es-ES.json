@@ -615,5 +615,16 @@
   "SectionVideoFilters": "Filtros NVIDIA",
   "OptionValueCodePageAuto": "Detección automática (recomendada)",
   "SettingsSubFontFile": "Archivo de fuente de subtítulos",
-  "SettingsHelpSubFontFile": "Elija un archivo de fuente TTF/OTF; mpv escanea su carpeta y luego seleccione la familia en Fuente de subtítulos. Efectivo en el próximo inicio."
+  "SettingsHelpSubFontFile": "Elija un archivo de fuente TTF/OTF; mpv escanea su carpeta y luego seleccione la familia en Fuente de subtítulos. Efectivo en el próximo inicio.",
+  "SettingsThemeAccentColor": "Color de acento",
+  "SettingsHelpThemeAccentColor": "Color de tinte del fondo de la ventana. Vacío = acento del sistema.",
+  "SettingsThemeOpacity": "Transparencia del fondo",
+  "SettingsHelpThemeOpacity": "Los valores más altos hacen el fondo más transparente. Solo aplica al fondo Acrílico.",
+  "OptionValueThemeAccentAuto": "Automático (sistema)",
+  "OptionValueColorBlue": "Azul",
+  "OptionValueColorGreen": "Verde",
+  "OptionValueColorRed": "Rojo",
+  "OptionValueColorPurple": "Púrpura",
+  "OptionValueColorOrange": "Naranja",
+  "WarningThemeOpacityBackdrop": "Solo aplica cuando se selecciona el fondo Acrílico."
 }

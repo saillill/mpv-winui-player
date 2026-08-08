@@ -61,6 +61,20 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(BackdropType), value);
         }
 
+        /// <summary>Accent tint color for the window backdrop (#RRGGBB / #AARRGGBB). Empty follows the system accent.</summary>
+        public string ThemeAccentColor
+        {
+            get => _dataSetting.GetValue(nameof(ThemeAccentColor), string.Empty);
+            set => _dataSetting.SetValue(nameof(ThemeAccentColor), value);
+        }
+
+        /// <summary>Backdrop transparency, 0 (opaque) to 100 (fully transparent).</summary>
+        public int ThemeOpacity
+        {
+            get => _dataSetting.GetValue(nameof(ThemeOpacity), 80);
+            set => _dataSetting.SetValue(nameof(ThemeOpacity), value);
+        }
+
         public bool EnableDebugLog
         {
             get => _dataSetting.GetValue(nameof(EnableDebugLog), false);

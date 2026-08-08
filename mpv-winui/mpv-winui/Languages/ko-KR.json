@@ -615,5 +615,16 @@
   "SectionVideoFilters": "NVIDIA 필터",
   "OptionValueCodePageAuto": "자동 감지(권장)",
   "SettingsSubFontFile": "자막 글꼴 파일",
-  "SettingsHelpSubFontFile": "TTF/OTF 글꼴 파일을 선택하면 mpv가 해당 폴더를 검색합니다. 그런 다음 '자막 글꼴'에서 글꼴 패밀리를 선택하세요. 다음 시작 시 적용됩니다."
+  "SettingsHelpSubFontFile": "TTF/OTF 글꼴 파일을 선택하면 mpv가 해당 폴더를 검색합니다. 그런 다음 '자막 글꼴'에서 글꼴 패밀리를 선택하세요. 다음 시작 시 적용됩니다.",
+  "SettingsThemeAccentColor": "테마 색상",
+  "SettingsHelpThemeAccentColor": "창 배경의 색조 색상입니다. 비워 두면 시스템 강조색을 따릅니다.",
+  "SettingsThemeOpacity": "배경 투명도",
+  "SettingsHelpThemeOpacity": "값이 높을수록 배경이 더 투명해집니다. Acrylic 배경에서만 적용됩니다.",
+  "OptionValueThemeAccentAuto": "자동(시스템)",
+  "OptionValueColorBlue": "파랑",
+  "OptionValueColorGreen": "초록",
+  "OptionValueColorRed": "빨강",
+  "OptionValueColorPurple": "보라",
+  "OptionValueColorOrange": "주황",
+  "WarningThemeOpacityBackdrop": "Acrylic 배경을 선택한 경우에만 적용됩니다."
 }

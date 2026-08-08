@@ -615,5 +615,16 @@
   "SectionVideoFilters": "NVIDIA 滤镜",
   "OptionValueCodePageAuto": "自动检测（推荐）",
   "SettingsSubFontFile": "字幕字体文件",
-  "SettingsHelpSubFontFile": "选择 TTF/OTF 字体文件，mpv 会扫描其所在目录；随后在“字幕字体”里选择该字体族。下次启动生效。"
+  "SettingsHelpSubFontFile": "选择 TTF/OTF 字体文件，mpv 会扫描其所在目录；随后在“字幕字体”里选择该字体族。下次启动生效。",
+  "SettingsThemeAccentColor": "主题色",
+  "SettingsHelpThemeAccentColor": "窗口背景的着色颜色，留空跟随系统强调色。",
+  "SettingsThemeOpacity": "背景透明度",
+  "SettingsHelpThemeOpacity": "数值越高背景越透明，仅对 Acrylic 背景生效。",
+  "OptionValueThemeAccentAuto": "自动（跟随系统）",
+  "OptionValueColorBlue": "蓝色",
+  "OptionValueColorGreen": "绿色",
+  "OptionValueColorRed": "红色",
+  "OptionValueColorPurple": "紫色",
+  "OptionValueColorOrange": "橙色",
+  "WarningThemeOpacityBackdrop": "仅在选择 Acrylic 背景时生效。"
 }

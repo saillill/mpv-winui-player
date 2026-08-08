@@ -27,6 +27,17 @@ namespace mpv_winui.Modules.Language
         public string SettingsAlwaysOnTop { get; set; } = "Always on top";
         public string ThemeDarkName { get; set; } = "Dark";
         public string ThemeLightName { get; set; } = "Light";
+        public string SettingsThemeAccentColor { get; set; } = "Accent color";
+        public string SettingsHelpThemeAccentColor { get; set; } = "Tint color for the window backdrop. Leave empty to follow the system accent.";
+        public string SettingsThemeOpacity { get; set; } = "Backdrop transparency";
+        public string SettingsHelpThemeOpacity { get; set; } = "Higher values make the backdrop more transparent. Only applies to the Acrylic backdrop.";
+        public string OptionValueThemeAccentAuto { get; set; } = "Auto (system accent)";
+        public string OptionValueColorBlue { get; set; } = "Blue";
+        public string OptionValueColorGreen { get; set; } = "Green";
+        public string OptionValueColorRed { get; set; } = "Red";
+        public string OptionValueColorPurple { get; set; } = "Purple";
+        public string OptionValueColorOrange { get; set; } = "Orange";
+        public string WarningThemeOpacityBackdrop { get; set; } = "Only applies when the Acrylic backdrop is selected.";
         public string Save { get; set; } = "Save";
         public string Test { get; set; } = "Test";
         public string Open { get; set; } = "Open";

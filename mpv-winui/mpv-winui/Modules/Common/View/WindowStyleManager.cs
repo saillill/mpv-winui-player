@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Settings;
 using System;
+using Windows.UI;
 using Windows.UI.ViewManagement;
 using WinRT;
 
@@ -129,7 +130,7 @@ public sealed partial class WindowStyleManager : IDisposable
             }
             else
             {
-                _acrylicController?.TintColor = sender.GetColorValue(UIColorType.AccentLight1);
+                UpdateBackdropTheme(_theme);
             }
         });
     }
@@ -150,17 +151,58 @@ public sealed partial class WindowStyleManager : IDisposable
         if (theme == ElementTheme.Dark)
         {
             _acrylicController?.Kind = DesktopAcrylicKind.Thin;
-            _acrylicController?.TintOpacity = 0.2F;
-            _acrylicController?.TintColor = _uiSettings.GetColorValue(UIColorType.AccentLight1);
+            _acrylicController?.TintOpacity = GetBackdropTintOpacity();
+            _acrylicController?.TintColor = GetBackdropTintColor(theme);
             _acrylicController?.LuminosityOpacity = 0.1F;
         }
         else
         {
             _acrylicController?.Kind = DesktopAcrylicKind.Thin;
-            _acrylicController?.TintOpacity = 0.2F;
-            _acrylicController?.TintColor = Colors.White;
+            _acrylicController?.TintOpacity = GetBackdropTintOpacity();
+            _acrylicController?.TintColor = GetBackdropTintColor(theme);
             _acrylicController?.LuminosityOpacity = 0.8F;
         }
+    }
+
+    private Color GetBackdropTintColor(ElementTheme theme)
+    {
+        if (TryParseColor(AppContext.AppSetting.ThemeAccentColor) is { } custom)
+        {
+            return custom;
+        }
+
+        return theme == ElementTheme.Dark
+            ? _uiSettings.GetColorValue(UIColorType.AccentLight1)
+            : Colors.White;
+    }
+
+    private float GetBackdropTintOpacity()
+    {
+        var opacity = Math.Clamp(AppContext.AppSetting.ThemeOpacity, 0, 100);
+        return 1f - opacity / 100f;
+    }
+
+    private static Color? TryParseColor(string? hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex))
+        {
+            return null;
+        }
+
+        var value = hex.Trim().TrimStart('#');
+        if (value.Length == 6
+            && uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var rgb))
+        {
+            return Color.FromArgb(255, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
+        }
+
+        if (value.Length == 8
+            && uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var argb))
+        {
+            return Color.FromArgb((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
+        }
+
+        return null;
     }
 
     private void UpdateTitleBarColors(ElementTheme theme)

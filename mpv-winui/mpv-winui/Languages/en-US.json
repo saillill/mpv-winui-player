@@ -615,5 +615,16 @@
   "SectionVideoFilters": "NVIDIA filters",
   "OptionValueCodePageAuto": "Auto-detect (recommended)",
   "SettingsSubFontFile": "Subtitle font file",
-  "SettingsHelpSubFontFile": "Pick a TTF/OTF font file; mpv scans its folder, then choose the font family in Subtitle font. Takes effect on the next start."
+  "SettingsHelpSubFontFile": "Pick a TTF/OTF font file; mpv scans its folder, then choose the font family in Subtitle font. Takes effect on the next start.",
+  "SettingsThemeAccentColor": "Accent color",
+  "SettingsHelpThemeAccentColor": "Tint color for the window backdrop. Leave empty to follow the system accent.",
+  "SettingsThemeOpacity": "Backdrop transparency",
+  "SettingsHelpThemeOpacity": "Higher values make the backdrop more transparent. Only applies to the Acrylic backdrop.",
+  "OptionValueThemeAccentAuto": "Auto (system accent)",
+  "OptionValueColorBlue": "Blue",
+  "OptionValueColorGreen": "Green",
+  "OptionValueColorRed": "Red",
+  "OptionValueColorPurple": "Purple",
+  "OptionValueColorOrange": "Orange",
+  "WarningThemeOpacityBackdrop": "Only applies when the Acrylic backdrop is selected."
 }

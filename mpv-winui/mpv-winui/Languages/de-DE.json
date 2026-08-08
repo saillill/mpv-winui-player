@@ -615,5 +615,16 @@
   "SectionVideoFilters": "NVIDIA-Filter",
   "OptionValueCodePageAuto": "Automatisch erkennen (empfohlen)",
   "SettingsSubFontFile": "Untertitel-Schriftdatei",
-  "SettingsHelpSubFontFile": "Wählen Sie eine TTF/OTF-Schriftdatei; mpv durchsucht deren Ordner. Wählen Sie danach die Schriftfamilie unter Untertitel-Schrift. Wirkt beim nächsten Start."
+  "SettingsHelpSubFontFile": "Wählen Sie eine TTF/OTF-Schriftdatei; mpv durchsucht deren Ordner. Wählen Sie danach die Schriftfamilie unter Untertitel-Schrift. Wirkt beim nächsten Start.",
+  "SettingsThemeAccentColor": "Akzentfarbe",
+  "SettingsHelpThemeAccentColor": "Farbton des Fensterhintergrunds. Leer = Systemakzentfarbe.",
+  "SettingsThemeOpacity": "Hintergrundtransparenz",
+  "SettingsHelpThemeOpacity": "Höhere Werte machen den Hintergrund transparenter. Nur für Acrylic-Hintergrund.",
+  "OptionValueThemeAccentAuto": "Automatisch (System)",
+  "OptionValueColorBlue": "Blau",
+  "OptionValueColorGreen": "Grün",
+  "OptionValueColorRed": "Rot",
+  "OptionValueColorPurple": "Violett",
+  "OptionValueColorOrange": "Orange",
+  "WarningThemeOpacityBackdrop": "Gilt nur, wenn der Acrylic-Hintergrund ausgewählt ist."
 }

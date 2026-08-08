@@ -615,5 +615,16 @@
   "SectionVideoFilters": "Filtres NVIDIA",
   "OptionValueCodePageAuto": "Détection automatique (recommandée)",
   "SettingsSubFontFile": "Fichier de police des sous-titres",
-  "SettingsHelpSubFontFile": "Choisissez un fichier de police TTF/OTF ; mpv analyse son dossier, puis choisissez la famille dans Police des sous-titres. Effectif au prochain démarrage."
+  "SettingsHelpSubFontFile": "Choisissez un fichier de police TTF/OTF ; mpv analyse son dossier, puis choisissez la famille dans Police des sous-titres. Effectif au prochain démarrage.",
+  "SettingsThemeAccentColor": "Couleur d'accentuation",
+  "SettingsHelpThemeAccentColor": "Couleur de teinte de l'arrière-plan de la fenêtre. Vide = accent système.",
+  "SettingsThemeOpacity": "Transparence de l'arrière-plan",
+  "SettingsHelpThemeOpacity": "Des valeurs plus élevées rendent l'arrière-plan plus transparent. S'applique uniquement au fond Acrylic.",
+  "OptionValueThemeAccentAuto": "Automatique (système)",
+  "OptionValueColorBlue": "Bleu",
+  "OptionValueColorGreen": "Vert",
+  "OptionValueColorRed": "Rouge",
+  "OptionValueColorPurple": "Violet",
+  "OptionValueColorOrange": "Orange",
+  "WarningThemeOpacityBackdrop": "S'applique uniquement lorsque le fond Acrylic est sélectionné."
 }
