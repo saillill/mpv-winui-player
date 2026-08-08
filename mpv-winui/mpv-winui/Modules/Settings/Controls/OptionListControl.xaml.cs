@@ -38,11 +38,19 @@ public sealed partial class OptionListControl : UserControl
             return;
         }
 
+        if (args.Item is SectionHeaderItem)
+        {
+            args.ItemContainer.Style = (Style)Resources["SectionHeaderItemStyle"];
+            args.Handled = true;
+            return;
+        }
+
         if (args.Item is not Option option)
         {
             return;
         }
 
+        args.ItemContainer.Style = (Style)Resources["OptionListViewItemStyle"];
         if (args.ItemContainer.ContentTemplateRoot is OptionControlBase control)
         {
             control.Setting = option;
@@ -73,8 +81,17 @@ public sealed partial class OptionListControl : UserControl
 
     private void ApplyItemsSource()
     {
-        // Sections are rendered as in-control captions (Option.ShowSectionHeader),
-        // which is more reliable than ListView grouping for mixed empty/named groups.
-        OptionListView.ItemsSource = OptionList;
+        // Sections are rendered as separate list rows (SectionHeaderItem),
+        // so the caption keeps its own typography and is not merged into a card.
+        var items = new List<object>(OptionList.Count + 8);
+        foreach (var option in OptionList)
+        {
+            if (option.ShowSectionHeader)
+            {
+                items.Add(new SectionHeaderItem { Caption = option.Section ?? string.Empty });
+            }
+            items.Add(option);
+        }
+        OptionListView.ItemsSource = items;
     }
 }

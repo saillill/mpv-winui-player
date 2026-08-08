@@ -23,11 +23,6 @@ public sealed partial class OptionStringControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            SectionHeader.Visibility = newValue.ShowSectionHeader ? Visibility.Visible : Visibility.Collapsed;
-            if (newValue.ShowSectionHeader)
-            {
-                SectionHeaderText.Text = newValue.Section ?? string.Empty;
-            }
 
             BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
             BrowseButton.Visibility = newValue.PickFolder ? Visibility.Visible : Visibility.Collapsed;

@@ -19,11 +19,6 @@ public sealed partial class OptionDoubleControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            SectionHeader.Visibility = newValue.ShowSectionHeader ? Visibility.Visible : Visibility.Collapsed;
-            if (newValue.ShowSectionHeader)
-            {
-                SectionHeaderText.Text = newValue.Section ?? string.Empty;
-            }
             NumberBox.IsEnabled = newValue.IsEnabled;
 
             _loading = true;

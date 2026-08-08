@@ -63,7 +63,7 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
-    /// <summary>Renders a section caption above this option (first option of a section).</summary>
+    /// <summary>Marks the first option of a section; the list renders a separate section caption row above it.</summary>
     public bool ShowSectionHeader
     {
         get; set;
