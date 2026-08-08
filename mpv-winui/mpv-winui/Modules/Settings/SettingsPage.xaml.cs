@@ -6,7 +6,6 @@ using mpv_winui.Modules.Settings.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppInstance = Microsoft.Windows.AppLifecycle.AppInstance;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -87,7 +86,11 @@ public sealed partial class SettingsPage : Page
                     new OptionChoice(AppSettings.BackdropType_Mica, lang.OptionValueBackdropMica),
                 ],
                 Getter = () => AppContext.AppSetting.BackdropType,
-                Setter = v => AppContext.AppSetting.BackdropType = (string)v
+                Setter = v =>
+                {
+                    AppContext.AppSetting.BackdropType = (string)v;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), v);
+                }
             },
 
             new Option
@@ -98,7 +101,11 @@ public sealed partial class SettingsPage : Page
                 Description = lang.SettingsHelpDebugLog,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableDebugLog,
-                Setter = v => AppContext.AppSetting.EnableDebugLog = (bool)v!
+                Setter = v =>
+                {
+                    AppContext.AppSetting.EnableDebugLog = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.EnableDebugLog), v);
+                }
             },
 
             new Option
@@ -107,7 +114,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingLanguages,
                 Category = general,
                 Description = lang.SettingsHelpLanguage,
-                RequiresRestart = true,
                 Type = OptionType.StringList,
                 Choices = AppContext.AvailableLanguages()
                     .Select(code => new OptionChoice(code, AppLang.NativeLanguageName(code)))
@@ -123,8 +129,7 @@ public sealed partial class SettingsPage : Page
                     var current = AppContext.AppSetting.CurrentLanguage;
                     if (string.IsNullOrEmpty(current)) current = "en-US";
                     if (current == newLang) return; // 控件初始化回填不视为用户改动
-                    AppContext.AppSetting.CurrentLanguage = newLang;
-                    PromptRestartIfNeeded(lang.SettingLanguages);
+                    AppContext.SwitchLanguage(newLang);
                 }
             },
 
@@ -286,7 +291,11 @@ public sealed partial class SettingsPage : Page
                 Group = pluginGroup,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableVideoPreview,
-                Setter = v => AppContext.AppSetting.EnableVideoPreview = (bool)v!
+                Setter = v =>
+                {
+                    AppContext.AppSetting.EnableVideoPreview = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.EnableVideoPreview), v);
+                }
             },
 
             // ===== Video / 视频 =====
@@ -1010,6 +1019,37 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.VideoDecodeDirect),
+                Label = lang.SettingsVideoDecodeDirect,
+                Category = advanced,
+                Description = lang.SettingsHelpVideoDecodeDirect,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("yes", lang.OptionValueYes),
+                    new OptionChoice("no", lang.OptionValueNo),
+                ],
+                Getter = () => AppContext.AppSetting.VideoDecodeDirect,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoDecodeDirect), AppContext.AppSetting.VideoDecodeDirect = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.DemuxerMaxBytes),
+                Label = lang.SettingsDemuxerMaxBytes,
+                Category = advanced,
+                Description = lang.SettingsHelpDemuxerMaxBytes,
+                Type = OptionType.Integer,
+                Min = 32,
+                Max = 4096,
+                Step = 32,
+                Getter = () => (double)AppContext.AppSetting.DemuxerMaxBytes,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerMaxBytes), AppContext.AppSetting.DemuxerMaxBytes = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.AudioDisplay),
                 Label = lang.SettingsAudioDisplay,
                 Category = advanced,
@@ -1346,28 +1386,6 @@ public sealed partial class SettingsPage : Page
             nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => false,
             _ => true,
         };
-    }
-
-    private async void PromptRestartIfNeeded(string settingLabel)
-    {
-        var dialog = new ContentDialog
-        {
-            Title = AppContext.AppLang.RestartRequiredTitle,
-            Content = string.Format(AppContext.AppLang.RestartRequiredMessage, settingLabel),
-            PrimaryButtonText = AppContext.AppLang.RestartNow,
-            CloseButtonText = AppContext.AppLang.RestartLater,
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            if (App.Window is MainWindow mainWindow)
-            {
-                mainWindow.SaveWindowPositionAndSize();
-            }
-            AppInstance.Restart("Reset");
-        }
     }
 
     private void UpdateTheme(string theme)

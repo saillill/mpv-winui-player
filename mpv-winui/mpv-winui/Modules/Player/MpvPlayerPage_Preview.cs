@@ -33,6 +33,7 @@ namespace mpv_winui.Modules.Player
             PlayerControl.PreviewUpdateRequested -= PlayerControl_PreviewUpdateRequested;
             PlayerControl.PreviewClearRequested -= PlayerControl_PreviewClearRequested;
             _mediaPlayer.PreviewChanged -= MediaPlayer_PreviewChanged;
+            HidePreview();
         }
 
         private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double RelativeX, double RelativeY) args)

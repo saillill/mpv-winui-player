@@ -75,7 +75,6 @@
   "Save": "저장",
   "SecondSubtitle": "보조 자막",
   "SettingLanguages": "앱 언어",
-  "SettingLanguagesDescription": "다시 시작해야 적용됩니다",
   "SettingLanguagesExportTip": "현재 언어 내보내기",
   "SettingLanguagesFolderOpenTip": "언어 폴더 열기",
   "SettingLanguagesGroup": "언어",
@@ -107,10 +106,6 @@
   "SettingsScreenshotDirectory": "스크린샷 폴더",
   "SettingsScreenshotTemplate": "스크린샷 파일명 템플릿",
   "SettingsCacheDir": "캐시 폴더",
-  "RestartRequiredTitle": "다시 시작 필요",
-  "RestartRequiredMessage": "{0}: 이 설정은 다시 시작 후 적용됩니다. 지금 다시 시작할까요?",
-  "RestartNow": "지금 다시 시작",
-  "RestartLater": "나중에",
   "HelpMpvDocs": "mpv 공식 매뉴얼",
   "SettingsCategoryScreenshot": "스크린샷",
   "SettingsSavePositionOnQuit": "재생 위치 저장",
@@ -236,7 +231,7 @@
   "SettingsHelpTheme": "색상 테마를 선택합니다. 자동은 Windows 앱 모드를 따릅니다.",
   "SettingsHelpBackdrop": "메인 창의 배경 재질입니다. 마이카가 GPU 사용량이 더 적습니다.",
   "SettingsHelpDebugLog": "디버그 로그를 %LOCALAPPDATA%\\mpv-winui\\logs에 기록합니다. 문제 보고 시 유용합니다.",
-  "SettingsHelpLanguage": "설정 UI와 오른쪽 클릭 메뉴의 언어입니다. 다시 시작한 후 적용됩니다.",
+  "SettingsHelpLanguage": "설정 창, 메뉴 모음, 오른쪽 클릭 메뉴의 언어입니다. 변경 즉시 적용됩니다.",
   "SettingsHelpHwdec": "하드웨어 디코딩 API입니다. 자동을 권장하며 끄면 소프트웨어 디코딩(일부 필터는 소프트웨어에서만 확실히 동작).",
   "SettingsHelpVolumeMax": "볼륨 상한(% )입니다. 100 이상은 앰프 부스트와 비슷합니다.",
   "SettingsHelpInterpolation": "프레임 보간으로 끊김을 줄입니다. “디스플레이 새로 고침 빈도로 리샘플링” 동기화 모드가 필요합니다.",
@@ -344,5 +339,9 @@
   "SettingsHelpStretchImageSubsToScreen": "이미지 자막(예: PGS)을 화면 해상도로 늘려 검은 여백에도 표시할 수 있게 합니다.",
   "SettingsHelpOsdFont": "화면 메시지에 사용하는 글꼴입니다. 기본값은 시스템 글꼴입니다.",
   "SettingsHelpOsdOnSeek": "탐색 중 표시할 내용: 막대, 메시지, 둘 다, 없음. 메시지를 권장합니다.",
-  "SettingsHelpScreenshotSw": "소프트웨어 경로로 화면을 캡처합니다. 일부 GPU와 호환성이 높지만 더 느립니다."
+  "SettingsHelpScreenshotSw": "소프트웨어 경로로 화면을 캡처합니다. 일부 GPU와 호환성이 높지만 더 느립니다.",
+  "SettingsVideoDecodeDirect": "GPU로 직접 디코딩",
+  "SettingsHelpVideoDecodeDirect": "디코딩한 프레임을 GPU 메모리로 직접 전달해 복사 비용을 줄입니다. 자동을 권장하며, 일부 드라이버에서 화면이 깨지면 끔으로 설정하세요.",
+  "SettingsDemuxerMaxBytes": "디먹서 캐시 (MiB)",
+  "SettingsHelpDemuxerMaxBytes": "각 스트림에서 디먹서가 유지하는 버퍼 용량입니다. 크게 설정하면 네트워크 재생에서 되감기가 원활해지지만 메모리를 더 사용합니다(기본 150 MiB, 권장 1024 MiB)."
 }

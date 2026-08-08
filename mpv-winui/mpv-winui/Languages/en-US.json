@@ -66,10 +66,6 @@
   "SettingsScreenshotDirectory": "Screenshot folder",
   "SettingsScreenshotTemplate": "Screenshot filename template",
   "SettingsCacheDir": "Cache folder",
-  "RestartRequiredTitle": "Restart required",
-  "RestartRequiredMessage": "{0}: this setting takes effect after restart. Restart now?",
-  "RestartNow": "Restart",
-  "RestartLater": "Later",
   "HelpMpvDocs": "mpv Official Manual",
   "SettingsCategoryScreenshot": "Screenshot",
   "SettingsSavePositionOnQuit": "Save playback position",
@@ -117,7 +113,6 @@
   "ThemeAuto": "Auto",
   "SettingLanguagesGroup": "Languages",
   "SettingLanguages": "App language",
-  "SettingLanguagesDescription": "Restart required",
   "SettingLanguagesHelp": "Help",
   "SettingLanguagesShare": "Share or download languages",
   "SettingLanguagesReloadTip": "Reload custom languages",
@@ -236,7 +231,7 @@
   "SettingsHelpTheme": "Choose the color theme. Auto follows the Windows app mode.",
   "SettingsHelpBackdrop": "Background material of the main window. Mica is lighter on GPU usage.",
   "SettingsHelpDebugLog": "Write debug logs to %LOCALAPPDATA%\\mpv-winui\\logs. Useful when reporting issues.",
-  "SettingsHelpLanguage": "Language of the settings UI and right-click menus. Takes effect after restart.",
+  "SettingsHelpLanguage": "Language of the settings UI, menu bar and right-click menus. Applies immediately.",
   "SettingsHelpHwdec": "Hardware decoding API. Auto is recommended; Off uses software decoding (some video filters only work reliably in software).",
   "SettingsHelpVolumeMax": "Upper limit of the volume control (%). Values above 100 allow amplifier-style boost.",
   "SettingsHelpInterpolation": "Interpolate frames to reduce judder. Requires the \"Resample to display refresh\" video sync mode; otherwise it has no effect.",
@@ -344,5 +339,9 @@
   "SettingsHelpStretchImageSubsToScreen": "Stretch image subtitles (e.g. PGS) to the screen resolution so they can render in the black margins.",
   "SettingsHelpOsdFont": "Font used for on-screen messages. Defaults to the system font.",
   "SettingsHelpOsdOnSeek": "What to show while seeking: progress bar, message, both, or nothing. Message is recommended.",
-  "SettingsHelpScreenshotSw": "Capture screenshots through the software path. More compatible with some GPUs, but slower."
+  "SettingsHelpScreenshotSw": "Capture screenshots through the software path. More compatible with some GPUs, but slower.",
+  "SettingsVideoDecodeDirect": "Decode directly to GPU",
+  "SettingsHelpVideoDecodeDirect": "Decode video frames directly into GPU memory to reduce copies. Auto is recommended; set to Off if you see glitches with some drivers.",
+  "SettingsDemuxerMaxBytes": "Demuxer cache (MiB)",
+  "SettingsHelpDemuxerMaxBytes": "How much data the demuxer keeps buffered for each stream. Larger values improve seeking back on network files but use more memory (default 150 MiB, recommended 1024 MiB)."
 }

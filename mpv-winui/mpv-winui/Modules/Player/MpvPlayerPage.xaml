@@ -340,6 +340,8 @@
             </SwapChainPanel>
             <Border
                 x:Name="PreviewCard"
+                AutomationProperties.Name="Video preview"
+                AutomationProperties.AutomationId="PreviewCard"
                 Padding="4"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"

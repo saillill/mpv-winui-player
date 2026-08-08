@@ -27,7 +27,16 @@ namespace mpv_winui
         /// <summary>由播放页挂接，用于设置页动态枚举 mpv 音频输出设备。</summary>
         public static Func<IReadOnlyList<MpvAudioDevice>>? GetAudioDevices { get; set; }
 
+        public static event Action<string, object?>? SettingChanged;
+
+        public static event Action? LanguageChanged;
+
         public static void SendMpvCommand(string cmd) => RunMpvCommand?.Invoke(cmd);
+
+        public static void NotifySettingChanged(string key, object? value)
+        {
+            SettingChanged?.Invoke(key, value);
+        }
 
         /// <summary>枚举程序目录 Languages/*.json 作为可选语言；目录缺失时回退内置列表。</summary>
         public static string[] AvailableLanguages()
@@ -52,10 +61,28 @@ namespace mpv_winui
         public static void Init()
         {
             LoadLanguage();
+            SettingChanged += OnSettingChanged;
             _task = Task.WhenAll([
                 Task.Run(LoggerHelper.SetupLogger),
                 AppBootstrap.RunAsync()
             ]);
+        }
+
+        private static void OnSettingChanged(string key, object? value)
+        {
+            if (key == nameof(AppSetting.EnableDebugLog))
+            {
+                LoggerHelper.ApplyLogLevel();
+            }
+        }
+
+        public static void SwitchLanguage(string code)
+        {
+            var lang = string.IsNullOrWhiteSpace(code) ? "en-US" : code;
+            AppSetting.CurrentLanguage = lang;
+            AppLang.LoadFromJson(LanguageFilePath(lang));
+            SendMpvCommand($"set user-data/mpvw/language {lang}");
+            LanguageChanged?.Invoke();
         }
 
         private static void LoadLanguage()
@@ -66,6 +93,11 @@ namespace mpv_winui
                 lang = "en-US";
             }
 
+            AppLang.LoadFromJson(LanguageFilePath(lang));
+        }
+
+        private static string LanguageFilePath(string lang)
+        {
             var candidates = new[]
             {
                 Path.Combine(
@@ -78,10 +110,11 @@ namespace mpv_winui
             {
                 if (File.Exists(path))
                 {
-                    AppLang.LoadFromJson(path);
-                    return;
+                    return path;
                 }
             }
+
+            return candidates[0];
         }
 
         public static async Task WaitAll()

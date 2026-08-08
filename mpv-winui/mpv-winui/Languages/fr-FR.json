@@ -75,7 +75,6 @@
   "Save": "Enregistrer",
   "SecondSubtitle": "Sous-titre secondaire",
   "SettingLanguages": "Langue de l'application",
-  "SettingLanguagesDescription": "Redémarrage requis",
   "SettingLanguagesExportTip": "Exporter la langue actuelle",
   "SettingLanguagesFolderOpenTip": "Ouvrir le dossier des langues",
   "SettingLanguagesGroup": "Langues",
@@ -107,10 +106,6 @@
   "SettingsScreenshotDirectory": "Dossier des captures",
   "SettingsScreenshotTemplate": "Modèle de nom de fichier des captures",
   "SettingsCacheDir": "Dossier de cache",
-  "RestartRequiredTitle": "Redémarrage requis",
-  "RestartRequiredMessage": "{0} : ce paramètre prendra effet après un redémarrage. Redémarrer maintenant ?",
-  "RestartNow": "Redémarrer maintenant",
-  "RestartLater": "Plus tard",
   "HelpMpvDocs": "Manuel officiel de mpv",
   "SettingsCategoryScreenshot": "Capture d'écran",
   "SettingsSavePositionOnQuit": "Enregistrer la position",
@@ -236,7 +231,7 @@
   "SettingsHelpTheme": "Choisissez le thème de couleurs. Auto suit le mode Windows.",
   "SettingsHelpBackdrop": "Matériau d'arrière-plan de la fenêtre principale. Mica est plus léger pour le GPU.",
   "SettingsHelpDebugLog": "Écrire les journaux dans %LOCALAPPDATA%\\mpv-winui\\logs. Utile pour signaler un problème.",
-  "SettingsHelpLanguage": "Langue de l'interface et des menus contextuels. Effet après redémarrage.",
+  "SettingsHelpLanguage": "Langue de l'interface des paramètres, de la barre de menus et des menus contextuels. S'applique immédiatement.",
   "SettingsHelpHwdec": "API de décodage matériel. Automatique est recommandé ; désactivé utilise le logiciel (certains filtres ne sont fiables qu'en logiciel).",
   "SettingsHelpVolumeMax": "Limite du volume (%). Au-dessus de 100, un boost type amplificateur est possible.",
   "SettingsHelpInterpolation": "Interpole les images pour réduire les saccades. Nécessite la synchronisation « Rééchantillonner vers le taux de rafraîchissement ».",
@@ -344,5 +339,9 @@
   "SettingsHelpStretchImageSubsToScreen": "Étire les sous-titres image (ex. PGS) à la résolution de l'écran pour qu'ils puissent apparaître dans les marges.",
   "SettingsHelpOsdFont": "Police des messages à l'écran. Par défaut, celle du système.",
   "SettingsHelpOsdOnSeek": "Ce qui s'affiche pendant la recherche : barre, message, les deux ou rien. Le message est recommandé.",
-  "SettingsHelpScreenshotSw": "Capture l'image par le chemin logiciel. Plus compatible avec certains GPU, mais plus lent."
+  "SettingsHelpScreenshotSw": "Capture l'image par le chemin logiciel. Plus compatible avec certains GPU, mais plus lent.",
+  "SettingsVideoDecodeDirect": "Décodage direct vers le GPU",
+  "SettingsHelpVideoDecodeDirect": "Envoie les images décodées directement dans la mémoire du GPU pour réduire les copies. Auto est recommandé ; passez à Non en cas d'artefacts avec certains pilotes.",
+  "SettingsDemuxerMaxBytes": "Cache du démultiplexeur (MiB)",
+  "SettingsHelpDemuxerMaxBytes": "Quantité de données mises en mémoire tampon par le démultiplexeur pour chaque flux. Des valeurs plus élevées améliorent le retour en arrière sur les fichiers réseau, mais consomment plus de mémoire (défaut 150 MiB, recommandé 1024 MiB)."
 }

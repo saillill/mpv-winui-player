@@ -308,6 +308,12 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(VideoOutputLevels), value);
         }
 
+        public string VideoDecodeDirect
+        {
+            get => _dataSetting.GetValue(nameof(VideoDecodeDirect), "auto");
+            set => _dataSetting.SetValue(nameof(VideoDecodeDirect), value);
+        }
+
         public bool IccProfileAuto
         {
             get => _dataSetting.GetValue(nameof(IccProfileAuto), false);
@@ -318,6 +324,12 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Icc3dlutSize), "auto");
             set => _dataSetting.SetValue(nameof(Icc3dlutSize), value);
+        }
+
+        public int DemuxerMaxBytes
+        {
+            get => _dataSetting.GetValue(nameof(DemuxerMaxBytes), 1024);
+            set => _dataSetting.SetValue(nameof(DemuxerMaxBytes), value);
         }
 
         public string AudioChannels

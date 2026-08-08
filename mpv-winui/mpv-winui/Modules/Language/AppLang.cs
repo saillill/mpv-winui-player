@@ -44,7 +44,6 @@ namespace mpv_winui.Modules.Language
         public string ThemeAuto { get; set; } = "Auto";
         public string SettingLanguagesGroup { get; set; } = "Languages";
         public string SettingLanguages { get; set; } = "App language";
-        public string SettingLanguagesDescription { get; set; } = "Restart required";
         public string SettingLanguagesHelp { get; set; } = "Help";
         public string SettingLanguagesShare { get; set; } = "Share or download languages";
         public string SettingLanguagesReloadTip { get; set; } = "Reload custom languages";
@@ -139,10 +138,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsScreenshotDirectory { get; set; } = "Screenshot folder";
         public string SettingsScreenshotTemplate { get; set; } = "Screenshot filename template";
         public string SettingsCacheDir { get; set; } = "Cache folder";
-        public string RestartRequiredTitle { get; set; } = "Restart required";
-        public string RestartRequiredMessage { get; set; } = "{0}: this setting takes effect after restart. Restart now?";
-        public string RestartNow { get; set; } = "Restart";
-        public string RestartLater { get; set; } = "Later";
         public string HelpMpvDocs { get; set; } = "mpv Official Manual";
         public string SettingsCategoryScreenshot { get; set; } = "Screenshot";
         public string SettingsCategoryAdvanced { get; set; } = "Advanced";
@@ -160,6 +155,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsCacheSecs { get; set; } = "Network cache (s)";
         public string SettingsCacheOnDisk { get; set; } = "Cache stream to disk";
         public string SettingsVideoOutputLevels { get; set; } = "Video output levels";
+        public string SettingsVideoDecodeDirect { get; set; } = "Decode directly to GPU";
+        public string SettingsDemuxerMaxBytes { get; set; } = "Demuxer cache (MiB)";
         public string SettingsIccProfileAuto { get; set; } = "Auto color profile (ICC)";
         public string SettingsIcc3dlutSize { get; set; } = "ICC 3D LUT size";
         public string SettingsAudioDisplay { get; set; } = "Audio file display";
@@ -321,7 +318,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpTheme { get; set; } = "Choose the color theme. Auto follows the Windows app mode.";
         public string SettingsHelpBackdrop { get; set; } = "Background material of the main window. Mica is lighter on GPU usage.";
         public string SettingsHelpDebugLog { get; set; } = "Write debug logs to %LOCALAPPDATA%\\mpv-winui\\logs. Useful when reporting issues.";
-        public string SettingsHelpLanguage { get; set; } = "Language of the settings UI and right-click menus. Takes effect after restart.";
+        public string SettingsHelpLanguage { get; set; } = "Language of the settings UI, menu bar and right-click menus. Applies immediately.";
         public string SettingsHelpHwdec { get; set; } = "Hardware decoding API. Auto is recommended; Off uses software decoding (some video filters only work reliably in software).";
         public string SettingsHelpVolumeMax { get; set; } = "Upper limit of the volume control (%). Values above 100 allow amplifier-style boost.";
         public string SettingsHelpInterpolation { get; set; } = "Interpolate frames to reduce judder. Requires the \"Resample to display refresh\" video sync mode; otherwise it has no effect.";
@@ -359,6 +356,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpCacheDirectory { get; set; } = "Folder mpv uses for cache files. Leave empty for the built-in default.";
         public string SettingsHelpCacheOnDisk { get; set; } = "Buffer network streams to disk while playing, so seeking back does not re-download.";
         public string SettingsHelpVideoOutputLevels { get; set; } = "Signal range sent to the display. Limited is TV range, Full is PC range.";
+        public string SettingsHelpVideoDecodeDirect { get; set; } = "Decode video frames directly into GPU memory to reduce copies. Auto is recommended; set to Off if you see glitches with some drivers.";
+        public string SettingsHelpDemuxerMaxBytes { get; set; } = "How much data the demuxer keeps buffered for each stream. Larger values improve seeking back on network files but use more memory (default 150 MiB, recommended 1024 MiB).";
         public string SettingsHelpIccProfileAuto { get; set; } = "Load the display's ICC profile automatically for color calibration.";
         public string SettingsHelpIcc3dlutSize { get; set; } = "Size of the 3D LUT generated from the ICC profile. Larger is more accurate but slower.";
         public string SettingsHelpAudioDisplay { get; set; } = "What to show while playing audio: embedded cover art, external cover art, or nothing.";

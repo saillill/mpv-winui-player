@@ -75,7 +75,6 @@
   "Save": "保存",
   "SecondSubtitle": "副字幕",
   "SettingLanguages": "アプリの言語",
-  "SettingLanguagesDescription": "再起動が必要です",
   "SettingLanguagesExportTip": "現在の言語をエクスポート",
   "SettingLanguagesFolderOpenTip": "言語フォルダーを開く",
   "SettingLanguagesGroup": "言語",
@@ -107,10 +106,6 @@
   "SettingsScreenshotDirectory": "スクリーンショット保存先",
   "SettingsScreenshotTemplate": "スクリーンショットのファイル名テンプレート",
   "SettingsCacheDir": "キャッシュフォルダー",
-  "RestartRequiredTitle": "再起動が必要",
-  "RestartRequiredMessage": "{0}：この設定は再起動後に有効になります。今すぐ再起動しますか？",
-  "RestartNow": "今すぐ再起動",
-  "RestartLater": "後で",
   "HelpMpvDocs": "mpv 公式マニュアル",
   "SettingsCategoryScreenshot": "スクリーンショット",
   "SettingsSavePositionOnQuit": "再生位置を保存",
@@ -236,7 +231,7 @@
   "SettingsHelpTheme": "配色テーマを選択します。自動はWindowsのアプリモードに従います。",
   "SettingsHelpBackdrop": "メインウィンドウの背景素材。マイカのほうがGPU負荷が軽いです。",
   "SettingsHelpDebugLog": "デバッグログを %LOCALAPPDATA%\\mpv-winui\\logs に出力します。問題報告時に役立ちます。",
-  "SettingsHelpLanguage": "設定UIと右クリックメニューの言語。再起動後に反映されます。",
+  "SettingsHelpLanguage": "設定画面、メニューバー、右クリックメニューの言語。変更はすぐに反映されます。",
   "SettingsHelpHwdec": "ハードウェアデコードAPI。自動を推奨。無効にするとソフトウェアデコード（一部の映像フィルターはソフトウェアでのみ確実に動作）。",
   "SettingsHelpVolumeMax": "音量の上限（%）。100以上はアンプブースト相当です。",
   "SettingsHelpInterpolation": "フレーム補間でカクつきを減らします。「ディスプレイのリフレッシュレートに再サンプリング」同期モードが必要です。",
@@ -344,5 +339,9 @@
   "SettingsHelpStretchImageSubsToScreen": "画像字幕（PGSなど）を画面解像度に引き伸ばし、黒帯にも表示できるようにします。",
   "SettingsHelpOsdFont": "画面メッセージに使うフォント。既定ではシステムフォントです。",
   "SettingsHelpOsdOnSeek": "シーク中に表示する内容：バー、メッセージ、両方、なし。メッセージを推奨。",
-  "SettingsHelpScreenshotSw": "ソフトウェア処理で画面をキャプチャします。互換性は高いですが遅くなります。"
+  "SettingsHelpScreenshotSw": "ソフトウェア処理で画面をキャプチャします。互換性は高いですが遅くなります。",
+  "SettingsVideoDecodeDirect": "GPU へ直接デコード",
+  "SettingsHelpVideoDecodeDirect": "デコードしたフレームを GPU メモリーへ直接渡し、コピーを減らします。推奨は自動。一部のドライバーで表示が乱れる場合はオフにしてください。",
+  "SettingsDemuxerMaxBytes": "デマルチプレクサーキャッシュ (MiB)",
+  "SettingsHelpDemuxerMaxBytes": "各ストリームでデマルチプレクサーが保持するデータ量。大きいほどネットワーク再生で巻き戻ししやすくなりますが、メモリーを多く使います（既定 150 MiB、推奨 1024 MiB）。"
 }

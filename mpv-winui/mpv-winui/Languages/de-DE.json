@@ -75,7 +75,6 @@
   "Save": "Speichern",
   "SecondSubtitle": "Zweite Untertitel",
   "SettingLanguages": "App-Sprache",
-  "SettingLanguagesDescription": "Neustart erforderlich",
   "SettingLanguagesExportTip": "Aktuelle Sprache exportieren",
   "SettingLanguagesFolderOpenTip": "Sprachordner öffnen",
   "SettingLanguagesGroup": "Sprachen",
@@ -107,10 +106,6 @@
   "SettingsScreenshotDirectory": "Screenshot-Ordner",
   "SettingsScreenshotTemplate": "Screenshot-Dateinamensvorlage",
   "SettingsCacheDir": "Cache-Ordner",
-  "RestartRequiredTitle": "Neustart erforderlich",
-  "RestartRequiredMessage": "{0}: Diese Einstellung wird nach einem Neustart wirksam. Jetzt neu starten?",
-  "RestartNow": "Jetzt neu starten",
-  "RestartLater": "Später",
   "HelpMpvDocs": "mpv Offizielles Handbuch",
   "SettingsCategoryScreenshot": "Screenshot",
   "SettingsSavePositionOnQuit": "Wiedergabeposition speichern",
@@ -236,7 +231,7 @@
   "SettingsHelpTheme": "Wählen Sie das Farbthema. Auto folgt dem Windows-App-Modus.",
   "SettingsHelpBackdrop": "Hintergrundmaterial des Hauptfensters. Mica ist GPU-schonender.",
   "SettingsHelpDebugLog": "Debug-Logs nach %LOCALAPPDATA%\\mpv-winui\\logs schreiben. Hilfreich bei Fehlermeldungen.",
-  "SettingsHelpLanguage": "Sprache der Einstellungen und Kontextmenüs. Wird nach einem Neustart wirksam.",
+  "SettingsHelpLanguage": "Sprache der Einstellungen, Menüleiste und Rechtsklickmenüs. Änderungen gelten sofort.",
   "SettingsHelpHwdec": "Hardware-Dekodierungs-API. Automatisch wird empfohlen; Aus nutzt Software-Dekodierung (manche Filter funktionieren nur dort zuverlässig).",
   "SettingsHelpVolumeMax": "Obergrenze der Lautstärke (%). Werte über 100 erlauben Verstärker-Boost.",
   "SettingsHelpInterpolation": "Frames interpolieren, um Ruckeln zu reduzieren. Benötigt die Synchronisation „Auf Anzeige-Refresh umsampeln“, sonst wirkungslos.",
@@ -344,5 +339,9 @@
   "SettingsHelpStretchImageSubsToScreen": "Bild-Untertitel (z. B. PGS) auf die Bildschirmauflösung strecken, damit sie in den Rändern erscheinen können.",
   "SettingsHelpOsdFont": "Schriftart für Bildschirmmeldungen. Standard ist die Systemschrift.",
   "SettingsHelpOsdOnSeek": "Was beim Suchen angezeigt wird: Balken, Meldung, beides oder nichts. Meldung wird empfohlen.",
-  "SettingsHelpScreenshotSw": "Screenshots über den Softwarepfad aufnehmen. Kompatibler mit manchen GPUs, aber langsamer."
+  "SettingsHelpScreenshotSw": "Screenshots über den Softwarepfad aufnehmen. Kompatibler mit manchen GPUs, aber langsamer.",
+  "SettingsVideoDecodeDirect": "Direkt in den Grafikspeicher dekodieren",
+  "SettingsHelpVideoDecodeDirect": "Dekodierte Frames direkt in den Grafikspeicher übertragen, um Kopien zu vermeiden. Auto wird empfohlen; bei Darstellungsfehlern einzelner Treiber auf Aus stellen.",
+  "SettingsDemuxerMaxBytes": "Demuxer-Zwischenspeicher (MiB)",
+  "SettingsHelpDemuxerMaxBytes": "Wie viele Daten der Demuxer pro Stream puffert. Größere Werte verbessern das Zurückspulen bei Netzwerkdateien, benötigen aber mehr Arbeitsspeicher (Standard 150 MiB, empfohlen 1024 MiB)."
 }
