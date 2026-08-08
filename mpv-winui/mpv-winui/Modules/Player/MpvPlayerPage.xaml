@@ -200,6 +200,10 @@
                     Click="MenuFlyoutItem_Click"
                     Tag="mpv-command"
                     Text="Run mpv command" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="shortcut-search"
+                    Text="Search shortcuts" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"

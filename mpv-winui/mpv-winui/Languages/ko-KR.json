@@ -548,5 +548,20 @@
   "SettingsHelpMetadataOsdAutohideStatusTimeout": "상태 OSD가 자동으로 숨겨질 때까지의 초 수입니다. 다음 시작 시 적용.",
   "SettingsHelpMetadataOsdShowAlbumTrack": "메타데이터 OSD에 앨범 트랙 번호를 표시합니다. 다음 시작 시 적용.",
   "SettingsHelpCoverArtLoadFromFilesystem": "파일 시스템에서 표지 이미지를 검색합니다. 다음 시작 시 적용.",
-  "SettingsHelpCoverArtPreload": "재생 시작 전에 표지를 로드합니다. 다음 시작 시 적용."
+  "SettingsHelpCoverArtPreload": "재생 시작 전에 표지를 로드합니다. 다음 시작 시 적용.",
+  "ShortcutSearchTitle": "단축키 검색",
+  "ShortcutSearchPlaceholder": "키 바인딩 검색…",
+  "ShortcutSearchEmpty": "일치하는 키 바인딩이 없습니다.",
+  "SettingsMetadataOsdMessageMaxLength": "메타데이터 OSD 메시지 길이",
+  "SettingsCoverArtNames": "표지 파일 이름",
+  "SettingsCoverArtImageExts": "표지 이미지 확장자",
+  "SettingsThumbfastDirectIo": "썸네일 직접 I/O",
+  "SettingsThumbfastQuitAfterInactivity": "썸네일 프로세스 유휴 제한(초)",
+  "SettingsAudioBuffer": "오디오 버퍼(ms)",
+  "SettingsScreenshotAvifEncoder": "AVIF 인코더",
+  "SettingsHelpMetadataOsdMessageMaxLength": "메타데이터 OSD 메시지의 최대 문자 수입니다. 다음 시작 시 적용.",
+  "SettingsHelpCoverArtNames": "찾을 표지 파일 이름 목록입니다. 세미콜론으로 구분. 다음 시작 시 적용.",
+  "SettingsHelpThumbfastDirectIo": "Windows 네이티브 API로 썸네일 프레임을 씁니다. 다음 시작 시 적용.",
+  "SettingsHelpThumbfastQuitAfterInactivity": "썸네일 프로세스를 이 초 동안 유휴 상태면 종료합니다. 0은 비활성화. 다음 시작 시 적용.",
+  "SettingsHelpAudioBuffer": "오디오 출력 버퍼(ms)입니다. 0은 mpv가 결정하며, 크게 하면 노이즈가 줄지만 지연이 늘어납니다."
 }

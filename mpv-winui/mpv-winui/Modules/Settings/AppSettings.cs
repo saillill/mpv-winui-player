@@ -1117,5 +1117,47 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(CoverArtPreload), false);
             set => _dataSetting.GetValue(nameof(CoverArtPreload), value);
         }
+
+        public int MetadataOsdMessageMaxLength
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdMessageMaxLength), 96);
+            set => _dataSetting.GetValue(nameof(MetadataOsdMessageMaxLength), value);
+        }
+
+        public string CoverArtNames
+        {
+            get => _dataSetting.GetValue(nameof(CoverArtNames), "cover;folder;album;front");
+            set => _dataSetting.GetValue(nameof(CoverArtNames), value);
+        }
+
+        public string CoverArtImageExts
+        {
+            get => _dataSetting.GetValue(nameof(CoverArtImageExts), "jpg;jpeg;png;bmp;gif;webp");
+            set => _dataSetting.GetValue(nameof(CoverArtImageExts), value);
+        }
+
+        public bool ThumbfastDirectIo
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastDirectIo), true);
+            set => _dataSetting.GetValue(nameof(ThumbfastDirectIo), value);
+        }
+
+        public int ThumbfastQuitAfterInactivity
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastQuitAfterInactivity), 0);
+            set => _dataSetting.GetValue(nameof(ThumbfastQuitAfterInactivity), value);
+        }
+
+        public int AudioBuffer
+        {
+            get => _dataSetting.GetValue(nameof(AudioBuffer), 0);
+            set => _dataSetting.GetValue(nameof(AudioBuffer), value);
+        }
+
+        public string ScreenshotAvifEncoder
+        {
+            get => _dataSetting.GetValue(nameof(ScreenshotAvifEncoder), string.Empty);
+            set => _dataSetting.GetValue(nameof(ScreenshotAvifEncoder), value);
+        }
     }
 }

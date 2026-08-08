@@ -548,5 +548,20 @@
   "SettingsHelpMetadataOsdAutohideStatusTimeout": "状态 OSD 自动隐藏的秒数，下次启动生效。",
   "SettingsHelpMetadataOsdShowAlbumTrack": "在元数据 OSD 中显示专辑音轨号，下次启动生效。",
   "SettingsHelpCoverArtLoadFromFilesystem": "在文件系统中搜索封面图片，下次启动生效。",
-  "SettingsHelpCoverArtPreload": "在播放开始前加载封面，下次启动生效。"
+  "SettingsHelpCoverArtPreload": "在播放开始前加载封面，下次启动生效。",
+  "ShortcutSearchTitle": "搜索快捷键",
+  "ShortcutSearchPlaceholder": "搜索按键绑定…",
+  "ShortcutSearchEmpty": "没有匹配的按键绑定。",
+  "SettingsMetadataOsdMessageMaxLength": "元数据 OSD 消息长度",
+  "SettingsCoverArtNames": "封面文件名",
+  "SettingsCoverArtImageExts": "封面图片扩展名",
+  "SettingsThumbfastDirectIo": "缩略图直接 I/O",
+  "SettingsThumbfastQuitAfterInactivity": "缩略图进程空闲超时（秒）",
+  "SettingsAudioBuffer": "音频缓冲（毫秒）",
+  "SettingsScreenshotAvifEncoder": "AVIF 编码器",
+  "SettingsHelpMetadataOsdMessageMaxLength": "元数据 OSD 消息的最大字符数，下次启动生效。",
+  "SettingsHelpCoverArtNames": "要查找的封面文件名，分号分隔，下次启动生效。",
+  "SettingsHelpThumbfastDirectIo": "使用 Windows 原生 API 写入缩略图帧，下次启动生效。",
+  "SettingsHelpThumbfastQuitAfterInactivity": "缩略图进程空闲多少秒后结束；0 关闭，下次启动生效。",
+  "SettingsHelpAudioBuffer": "音频输出缓冲（毫秒）。0 由 mpv 决定；调大可减少爆音但增加延迟。"
 }

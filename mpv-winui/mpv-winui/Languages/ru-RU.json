@@ -548,5 +548,20 @@
   "SettingsHelpMetadataOsdAutohideStatusTimeout": "Секунды до скрытия статуса OSD. Действует со следующего запуска.",
   "SettingsHelpMetadataOsdShowAlbumTrack": "Показывать номер дорожки альбома в OSD. Действует со следующего запуска.",
   "SettingsHelpCoverArtLoadFromFilesystem": "Искать обложку в файловой системе. Действует со следующего запуска.",
-  "SettingsHelpCoverArtPreload": "Загружать обложку до начала воспроизведения. Действует со следующего запуска."
+  "SettingsHelpCoverArtPreload": "Загружать обложку до начала воспроизведения. Действует со следующего запуска.",
+  "ShortcutSearchTitle": "Поиск горячих клавиш",
+  "ShortcutSearchPlaceholder": "Поиск привязок клавиш…",
+  "ShortcutSearchEmpty": "Совпадений не найдено.",
+  "SettingsMetadataOsdMessageMaxLength": "Длина сообщения OSD метаданных",
+  "SettingsCoverArtNames": "Имена файлов обложек",
+  "SettingsCoverArtImageExts": "Расширения изображений обложек",
+  "SettingsThumbfastDirectIo": "Прямой ввод-вывод миниатюр",
+  "SettingsThumbfastQuitAfterInactivity": "Таймаут простоя процесса миниатюр (с)",
+  "SettingsAudioBuffer": "Аудиобуфер (мс)",
+  "SettingsScreenshotAvifEncoder": "Кодировщик AVIF",
+  "SettingsHelpMetadataOsdMessageMaxLength": "Максимальная длина сообщений OSD в символах. Действует со следующего запуска.",
+  "SettingsHelpCoverArtNames": "Имена файлов обложек для поиска, через точку с запятой. Действует со следующего запуска.",
+  "SettingsHelpThumbfastDirectIo": "Использует нативные API Windows для записи кадров миниатюр. Действует со следующего запуска.",
+  "SettingsHelpThumbfastQuitAfterInactivity": "Завершает процесс миниатюр после стольких секунд простоя. 0 отключает. Действует со следующего запуска.",
+  "SettingsHelpAudioBuffer": "Буфер аудиовыхода в мс. 0 — выбор mpv; больше снижает помехи, но добавляет задержку."
 }

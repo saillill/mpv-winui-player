@@ -978,6 +978,20 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.AudioBuffer),
+                Label = lang.SettingsAudioBuffer,
+                Category = audio,
+                Description = lang.SettingsHelpAudioBuffer,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 2000,
+                Step = 50,
+                Getter = () => (double)AppContext.AppSetting.AudioBuffer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioBuffer), AppContext.AppSetting.AudioBuffer = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.CoverArtPreferEmbedded),
                 Label = lang.SettingsCoverArtPreferEmbedded,
                 Category = audio,
@@ -1032,6 +1046,37 @@ public sealed partial class SettingsPage : Page
                 Setter = v =>
                 {
                     AppContext.AppSetting.CoverArtPreload = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CoverArtNames),
+                Label = lang.SettingsCoverArtNames,
+                Category = audio,
+                Description = lang.SettingsHelpCoverArtNames,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.CoverArtNames,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.CoverArtNames = (string)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CoverArtImageExts),
+                Label = lang.SettingsCoverArtImageExts,
+                Category = audio,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.CoverArtImageExts,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.CoverArtImageExts = (string)v!;
                     AppContext.WritePluginConfigs();
                 }
             },
@@ -1629,6 +1674,17 @@ public sealed partial class SettingsPage : Page
                 Step = 1,
                 Getter = () => (double)AppContext.AppSetting.ScreenshotJxlEffort,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotJxlEffort), AppContext.AppSetting.ScreenshotJxlEffort = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ScreenshotAvifEncoder),
+                Label = lang.SettingsScreenshotAvifEncoder,
+                Category = screenshot,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.ScreenshotAvifEncoder,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotAvifEncoder), AppContext.AppSetting.ScreenshotAvifEncoder = (string)v!)
             },
 
             new Option
@@ -2358,6 +2414,24 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.MetadataOsdMessageMaxLength),
+                Label = lang.SettingsMetadataOsdMessageMaxLength,
+                Category = advanced,
+                Description = lang.SettingsHelpMetadataOsdMessageMaxLength,
+                Type = OptionType.Integer,
+                Min = 16,
+                Max = 512,
+                Step = 8,
+                Getter = () => (double)AppContext.AppSetting.MetadataOsdMessageMaxLength,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.MetadataOsdMessageMaxLength = Convert.ToInt32(v);
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.ThumbfastQuality),
                 Label = lang.SettingsThumbfastQuality,
                 Category = advanced,
@@ -2504,6 +2578,39 @@ public sealed partial class SettingsPage : Page
                 Setter = v =>
                 {
                     AppContext.AppSetting.ThumbfastFrequency = (double)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbfastDirectIo),
+                Label = lang.SettingsThumbfastDirectIo,
+                Category = advanced,
+                Description = lang.SettingsHelpThumbfastDirectIo,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.ThumbfastDirectIo,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbfastDirectIo = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbfastQuitAfterInactivity),
+                Label = lang.SettingsThumbfastQuitAfterInactivity,
+                Category = advanced,
+                Description = lang.SettingsHelpThumbfastQuitAfterInactivity,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 600,
+                Step = 5,
+                Getter = () => (double)AppContext.AppSetting.ThumbfastQuitAfterInactivity,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbfastQuitAfterInactivity = Convert.ToInt32(v);
                     AppContext.WritePluginConfigs();
                 }
             },

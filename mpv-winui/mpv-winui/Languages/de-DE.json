@@ -548,5 +548,20 @@
   "SettingsHelpMetadataOsdAutohideStatusTimeout": "Sekunden bis das Status-OSD ausgeblendet wird. Wirkt beim nächsten Start.",
   "SettingsHelpMetadataOsdShowAlbumTrack": "Zeigt die Albumtitelnummer im Metadaten-OSD. Wirkt beim nächsten Start.",
   "SettingsHelpCoverArtLoadFromFilesystem": "Sucht Cover im Dateisystem. Wirkt beim nächsten Start.",
-  "SettingsHelpCoverArtPreload": "Lädt das Cover vor dem Abspielen. Wirkt beim nächsten Start."
+  "SettingsHelpCoverArtPreload": "Lädt das Cover vor dem Abspielen. Wirkt beim nächsten Start.",
+  "ShortcutSearchTitle": "Tastenkürzel suchen",
+  "ShortcutSearchPlaceholder": "Tastenbelegungen suchen…",
+  "ShortcutSearchEmpty": "Keine passenden Tastenbelegungen.",
+  "SettingsMetadataOsdMessageMaxLength": "Länge der Metadaten-OSD-Meldung",
+  "SettingsCoverArtNames": "Cover-Dateinamen",
+  "SettingsCoverArtImageExts": "Cover-Bilderweiterungen",
+  "SettingsThumbfastDirectIo": "Thumbnail direktes I/O",
+  "SettingsThumbfastQuitAfterInactivity": "Leerlauf-Timeout Thumbnail-Prozess (s)",
+  "SettingsAudioBuffer": "Audio-Puffer (ms)",
+  "SettingsScreenshotAvifEncoder": "AVIF-Encoder",
+  "SettingsHelpMetadataOsdMessageMaxLength": "Maximale Zeichenzahl der Metadaten-OSD-Meldung. Wirkt beim nächsten Start.",
+  "SettingsHelpCoverArtNames": "Zu suchende Cover-Dateinamen, durch Semikolons getrennt. Wirkt beim nächsten Start.",
+  "SettingsHelpThumbfastDirectIo": "Nutzt Windows-native APIs zum Schreiben der Thumbnail-Frames. Wirkt beim nächsten Start.",
+  "SettingsHelpThumbfastQuitAfterInactivity": "Beendet den Thumbnail-Prozess nach dieser Leerlaufzeit in Sekunden. 0 deaktiviert. Wirkt beim nächsten Start.",
+  "SettingsHelpAudioBuffer": "Audioausgabe-Puffer in ms. 0 überlässt mpv die Wahl; größer reduziert Störgeräusche, erhöht aber die Latenz."
 }

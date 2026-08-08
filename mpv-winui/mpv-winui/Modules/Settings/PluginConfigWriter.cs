@@ -27,6 +27,7 @@ public static class PluginConfigWriter
             ["enable_for_image"] = "no",
             ["autohide_statusosd_timeout_sec"] = "5",
             ["show_albumtracknumber"] = "no",
+            ["osd_message_maxlength"] = "96",
         },
         ["coverart.conf"] = new()
         {
@@ -34,6 +35,8 @@ public static class PluginConfigWriter
             ["always_scan_coverart"] = "no",
             ["load_from_filesystem"] = "yes",
             ["preload"] = "no",
+            ["names"] = "cover;folder;album;front",
+            ["imageExts"] = "jpg;jpeg;png;bmp;gif;webp",
         },
         ["thumbfast.conf"] = new()
         {
@@ -46,6 +49,8 @@ public static class PluginConfigWriter
             ["spawn_first"] = "no",
             ["sw_threads"] = "6",
             ["frequency"] = "0.15",
+            ["direct_io"] = "yes",
+            ["quit_after_inactivity"] = "0",
         },
     };
 
@@ -60,10 +65,13 @@ public static class PluginConfigWriter
         Managed["metadata_osd.conf"]["enable_for_image"] = s.MetadataOsdEnableForImage ? "yes" : "no";
         Managed["metadata_osd.conf"]["autohide_statusosd_timeout_sec"] = s.MetadataOsdAutohideStatusTimeout.ToString();
         Managed["metadata_osd.conf"]["show_albumtracknumber"] = s.MetadataOsdShowAlbumTrack ? "yes" : "no";
+        Managed["metadata_osd.conf"]["osd_message_maxlength"] = s.MetadataOsdMessageMaxLength.ToString();
         Managed["coverart.conf"]["prefer_embedded"] = s.CoverArtPreferEmbedded ? "yes" : "no";
         Managed["coverart.conf"]["always_scan_coverart"] = s.CoverArtAlwaysScan ? "yes" : "no";
         Managed["coverart.conf"]["load_from_filesystem"] = s.CoverArtLoadFromFilesystem ? "yes" : "no";
         Managed["coverart.conf"]["preload"] = s.CoverArtPreload ? "yes" : "no";
+        Managed["coverart.conf"]["names"] = s.CoverArtNames;
+        Managed["coverart.conf"]["imageExts"] = s.CoverArtImageExts;
         Managed["thumbfast.conf"]["quality"] = s.ThumbfastQuality.ToString();
         Managed["thumbfast.conf"]["network"] = s.ThumbfastNetwork ? "yes" : "no";
         Managed["thumbfast.conf"]["min_duration"] = s.ThumbfastMinDuration.ToString();
@@ -73,6 +81,8 @@ public static class PluginConfigWriter
         Managed["thumbfast.conf"]["spawn_first"] = s.ThumbfastSpawnFirst ? "yes" : "no";
         Managed["thumbfast.conf"]["sw_threads"] = s.ThumbfastThreads.ToString();
         Managed["thumbfast.conf"]["frequency"] = s.ThumbfastFrequency.ToString("0.##");
+        Managed["thumbfast.conf"]["direct_io"] = s.ThumbfastDirectIo ? "yes" : "no";
+        Managed["thumbfast.conf"]["quit_after_inactivity"] = s.ThumbfastQuitAfterInactivity.ToString();
 
         var dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

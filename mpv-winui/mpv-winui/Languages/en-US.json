@@ -548,5 +548,20 @@
   "SettingsHelpMetadataOsdAutohideStatusTimeout": "Seconds before the status OSD hides automatically. Takes effect on the next start.",
   "SettingsHelpMetadataOsdShowAlbumTrack": "Show the album track number in the metadata OSD. Takes effect on the next start.",
   "SettingsHelpCoverArtLoadFromFilesystem": "Search the filesystem for cover art files. Takes effect on the next start.",
-  "SettingsHelpCoverArtPreload": "Load cover art before playback starts. Takes effect on the next start."
+  "SettingsHelpCoverArtPreload": "Load cover art before playback starts. Takes effect on the next start.",
+  "ShortcutSearchTitle": "Search shortcuts",
+  "ShortcutSearchPlaceholder": "Search key bindings…",
+  "ShortcutSearchEmpty": "No matching key bindings.",
+  "SettingsMetadataOsdMessageMaxLength": "Metadata OSD message length",
+  "SettingsCoverArtNames": "Cover art filenames",
+  "SettingsCoverArtImageExts": "Cover art image extensions",
+  "SettingsThumbfastDirectIo": "Thumbnail direct I/O",
+  "SettingsThumbfastQuitAfterInactivity": "Thumbnail process idle timeout (s)",
+  "SettingsAudioBuffer": "Audio buffer (ms)",
+  "SettingsScreenshotAvifEncoder": "AVIF encoder",
+  "SettingsHelpMetadataOsdMessageMaxLength": "Maximum length of metadata OSD messages in characters. Takes effect on the next start.",
+  "SettingsHelpCoverArtNames": "Cover art filenames to look for, separated by semicolons. Takes effect on the next start.",
+  "SettingsHelpThumbfastDirectIo": "Use Windows native APIs to write thumbnail frames. Takes effect on the next start.",
+  "SettingsHelpThumbfastQuitAfterInactivity": "Kill the thumbnail process after this many idle seconds. 0 disables. Takes effect on the next start.",
+  "SettingsHelpAudioBuffer": "Audio output buffer in milliseconds. 0 lets mpv choose; larger reduces glitches but adds latency."
 }

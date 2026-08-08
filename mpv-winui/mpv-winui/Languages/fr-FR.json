@@ -548,5 +548,20 @@
   "SettingsHelpMetadataOsdAutohideStatusTimeout": "Secondes avant le masquage du statut OSD. Effectif au prochain démarrage.",
   "SettingsHelpMetadataOsdShowAlbumTrack": "Affiche le numéro de piste d'album dans l'OSD. Effectif au prochain démarrage.",
   "SettingsHelpCoverArtLoadFromFilesystem": "Recherche la pochette dans le système de fichiers. Effectif au prochain démarrage.",
-  "SettingsHelpCoverArtPreload": "Charge la pochette avant la lecture. Effectif au prochain démarrage."
+  "SettingsHelpCoverArtPreload": "Charge la pochette avant la lecture. Effectif au prochain démarrage.",
+  "ShortcutSearchTitle": "Rechercher des raccourcis",
+  "ShortcutSearchPlaceholder": "Rechercher des raccourcis clavier…",
+  "ShortcutSearchEmpty": "Aucun raccourci correspondant.",
+  "SettingsMetadataOsdMessageMaxLength": "Longueur du message OSD",
+  "SettingsCoverArtNames": "Noms de fichiers de pochette",
+  "SettingsCoverArtImageExts": "Extensions d'image de pochette",
+  "SettingsThumbfastDirectIo": "E/S directes des vignettes",
+  "SettingsThumbfastQuitAfterInactivity": "Délai d'inactivité du processus (s)",
+  "SettingsAudioBuffer": "Tampon audio (ms)",
+  "SettingsScreenshotAvifEncoder": "Encodeur AVIF",
+  "SettingsHelpMetadataOsdMessageMaxLength": "Longueur maximale des messages OSD en caractères. Effectif au prochain démarrage.",
+  "SettingsHelpCoverArtNames": "Noms de fichiers de pochette à chercher, séparés par des points-virgules. Effectif au prochain démarrage.",
+  "SettingsHelpThumbfastDirectIo": "Utilise les API natives Windows pour écrire les vignettes. Effectif au prochain démarrage.",
+  "SettingsHelpThumbfastQuitAfterInactivity": "Ferme le processus de vignettes après ce délai d'inactivité. 0 désactive. Effectif au prochain démarrage.",
+  "SettingsHelpAudioBuffer": "Tampon de sortie audio en ms. 0 laisse mpv choisir ; plus grand réduit les crachotements mais ajoute de la latence."
 }

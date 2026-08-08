@@ -548,5 +548,20 @@
   "SettingsHelpMetadataOsdAutohideStatusTimeout": "ステータス OSD を自動非表示にする秒数。次回起動時に有効。",
   "SettingsHelpMetadataOsdShowAlbumTrack": "メタデータ OSD にアルバムトラック番号を表示します。次回起動時に有効。",
   "SettingsHelpCoverArtLoadFromFilesystem": "ファイルシステムからカバー画像を探します。次回起動時に有効。",
-  "SettingsHelpCoverArtPreload": "再生開始前にカバーを読み込みます。次回起動時に有効。"
+  "SettingsHelpCoverArtPreload": "再生開始前にカバーを読み込みます。次回起動時に有効。",
+  "ShortcutSearchTitle": "ショートカットを検索",
+  "ShortcutSearchPlaceholder": "キーバインドを検索…",
+  "ShortcutSearchEmpty": "一致するキーバインドがありません。",
+  "SettingsMetadataOsdMessageMaxLength": "メタデータOSD メッセージ長",
+  "SettingsCoverArtNames": "カバーアートのファイル名",
+  "SettingsCoverArtImageExts": "カバーアートの画像拡張子",
+  "SettingsThumbfastDirectIo": "サムネイル直接 I/O",
+  "SettingsThumbfastQuitAfterInactivity": "サムネイルプロセス待機タイムアウト（秒）",
+  "SettingsAudioBuffer": "オーディオバッファー（ミリ秒）",
+  "SettingsScreenshotAvifEncoder": "AVIF エンコーダー",
+  "SettingsHelpMetadataOsdMessageMaxLength": "メタデータOSD メッセージの最大文字数。次回起動時に有効。",
+  "SettingsHelpCoverArtNames": "探すカバーアートのファイル名。セミコロン区切り。次回起動時に有効。",
+  "SettingsHelpThumbfastDirectIo": "Windows ネイティブ API でサムネイルフレームを書き込みます。次回起動時に有効。",
+  "SettingsHelpThumbfastQuitAfterInactivity": "サムネイルプロセスをこの秒数アイドル後に終了。0 は無効。次回起動時に有効。",
+  "SettingsHelpAudioBuffer": "音声出力バッファー（ミリ秒）。0 は mpv 任せ。大きくするとノイズが減りますが遅延が増えます。"
 }

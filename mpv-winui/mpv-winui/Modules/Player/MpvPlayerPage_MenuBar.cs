@@ -3,6 +3,9 @@ using Microsoft.UI.Xaml.Controls;
 using mpv_winui.Modules.AppModel;
 using mpv_winui.Modules.FileSystem;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;
 using AppInstance = Microsoft.Windows.AppLifecycle.AppInstance;
@@ -105,6 +108,9 @@ public sealed partial class MpvPlayerPage
                         case "mpv-command":
                             await ShowMpvCommandDialogAsync();
                             break;
+                        case "shortcut-search":
+                            await ShowShortcutSearchDialogAsync();
+                            break;
                         case "sleep-off":
                             SetSleepTimer(0);
                             break;
@@ -200,6 +206,99 @@ public sealed partial class MpvPlayerPage
             {
                 AppContext.SendMpvCommand(command);
             }
+        }
+
+        private async Task ShowShortcutSearchDialogAsync()
+        {
+            var search = new TextBox
+            {
+                PlaceholderText = AppContext.AppLang.ShortcutSearchPlaceholder,
+                MinWidth = 440
+            };
+            var list = new ListView
+            {
+                MaxHeight = 380,
+                SelectionMode = ListViewSelectionMode.None
+            };
+            var empty = new TextBlock
+            {
+                Text = AppContext.AppLang.ShortcutSearchEmpty,
+                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    Microsoft.UI.Colors.Gray),
+                Visibility = Visibility.Collapsed
+            };
+            var panel = new StackPanel { Spacing = 8 };
+            panel.Children.Add(search);
+            panel.Children.Add(list);
+            panel.Children.Add(empty);
+
+            var bindings = LoadBindings();
+            var query = string.Empty;
+            void Refresh()
+            {
+                var items = bindings
+                    .Where(b => string.IsNullOrWhiteSpace(query)
+                                || b.Key.Contains(query, StringComparison.OrdinalIgnoreCase)
+                                || b.Command.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .Select(b => $"{b.Key}    {b.Command}")
+                    .ToList();
+                list.ItemsSource = items;
+                empty.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            search.TextChanged += (_, _) =>
+            {
+                query = search.Text ?? string.Empty;
+                Refresh();
+            };
+            Refresh();
+
+            var dialog = new ContentDialog
+            {
+                Title = AppContext.AppLang.ShortcutSearchTitle,
+                Content = panel,
+                CloseButtonText = AppContext.AppLang.Cancel,
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+            await dialog.ShowAsync();
+        }
+
+        private static List<(string Key, string Command)> LoadBindings()
+        {
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "mpv-winui",
+                "mpv",
+                "input.conf");
+            if (!File.Exists(path))
+            {
+                return [];
+            }
+
+            var result = new List<(string, string)>();
+            foreach (var raw in File.ReadAllLines(path))
+            {
+                var line = raw.Trim();
+                if (line.Length == 0 || line[0] == '#')
+                {
+                    continue;
+                }
+
+                var separator = line.IndexOfAny([' ', '\t']);
+                if (separator <= 0)
+                {
+                    continue;
+                }
+
+                var key = line[..separator].Trim();
+                var command = line[separator..].Trim();
+                if (key.Length > 0 && command.Length > 0)
+                {
+                    result.Add((key, command));
+                }
+            }
+            return result;
         }
 
         private void ShowSettingsWindow()

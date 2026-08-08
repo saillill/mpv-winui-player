@@ -548,5 +548,20 @@
   "SettingsHelpMetadataOsdAutohideStatusTimeout": "Segundos antes de ocultar el estado OSD. Efectivo en el próximo inicio.",
   "SettingsHelpMetadataOsdShowAlbumTrack": "Muestra el número de pista del álbum en el OSD. Efectivo en el próximo inicio.",
   "SettingsHelpCoverArtLoadFromFilesystem": "Busca la carátula en el sistema de archivos. Efectivo en el próximo inicio.",
-  "SettingsHelpCoverArtPreload": "Carga la carátula antes de reproducir. Efectivo en el próximo inicio."
+  "SettingsHelpCoverArtPreload": "Carga la carátula antes de reproducir. Efectivo en el próximo inicio.",
+  "ShortcutSearchTitle": "Buscar atajos",
+  "ShortcutSearchPlaceholder": "Buscar asignaciones de teclas…",
+  "ShortcutSearchEmpty": "No hay asignaciones de teclas coincidentes.",
+  "SettingsMetadataOsdMessageMaxLength": "Longitud del mensaje OSD",
+  "SettingsCoverArtNames": "Nombres de archivos de carátula",
+  "SettingsCoverArtImageExts": "Extensiones de imagen de carátula",
+  "SettingsThumbfastDirectIo": "E/S directas de miniaturas",
+  "SettingsThumbfastQuitAfterInactivity": "Tiempo de inactividad del proceso (s)",
+  "SettingsAudioBuffer": "Búfer de audio (ms)",
+  "SettingsScreenshotAvifEncoder": "Codificador AVIF",
+  "SettingsHelpMetadataOsdMessageMaxLength": "Longitud máxima de los mensajes OSD en caracteres. Efectivo en el próximo inicio.",
+  "SettingsHelpCoverArtNames": "Nombres de archivo de carátula a buscar, separados por punto y coma. Efectivo en el próximo inicio.",
+  "SettingsHelpThumbfastDirectIo": "Usa API nativas de Windows para escribir las miniaturas. Efectivo en el próximo inicio.",
+  "SettingsHelpThumbfastQuitAfterInactivity": "Cierra el proceso de miniaturas tras este tiempo inactivo. 0 desactiva. Efectivo en el próximo inicio.",
+  "SettingsHelpAudioBuffer": "Búfer de salida de audio en ms. 0 deja que mpv decida; más grande reduce cortes pero añade latencia."
 }
