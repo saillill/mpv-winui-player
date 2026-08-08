@@ -348,5 +348,6 @@
   "SettingsHelpIccCacheDir": "ICC 配置文件转 3D LUT 的缓存位置。留空使用内置默认目录。",
   "SettingsGpuShaderCacheDir": "着色器缓存目录",
   "SettingsHelpGpuShaderCacheDir": "编译后的 GLSL 着色器缓存位置。留空使用内置默认目录。",
-  "OptionValueCustom": "???"
+  "OptionValueCustom": "???",
+  "OptionSectionAssAdvanced": "ASS ????"
 }

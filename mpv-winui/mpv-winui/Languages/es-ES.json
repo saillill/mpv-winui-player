@@ -348,5 +348,6 @@
   "SettingsHelpIccCacheDir": "Carpeta para las conversiones de perfil ICC a LUT 3D. Déjela vacía para usar la predeterminada.",
   "SettingsGpuShaderCacheDir": "Carpeta de caché de sombreadores",
   "SettingsHelpGpuShaderCacheDir": "Carpeta para las cachés de sombreadores GLSL compilados. Déjela vacía para usar la predeterminada.",
-  "OptionValueCustom": "Personalizado"
+  "OptionValueCustom": "Personalizado",
+  "OptionSectionAssAdvanced": "Subt?tulos ASS avanzados"
 }

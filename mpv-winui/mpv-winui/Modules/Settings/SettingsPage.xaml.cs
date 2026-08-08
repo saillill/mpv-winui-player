@@ -43,6 +43,7 @@ public sealed partial class SettingsPage : Page
         var video = AppContext.AppLang.SettingsCategoryVideo;
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var subtitle = AppContext.AppLang.SettingsCategorySubtitle;
+        var assSection = AppContext.AppLang.OptionSectionAssAdvanced;
         var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
         var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var lang = AppContext.AppLang;
@@ -669,6 +670,7 @@ public sealed partial class SettingsPage : Page
                 Key = nameof(AppContext.AppSetting.SubAssOverride),
                 Label = lang.SettingsSubAssOverride,
                 Category = subtitle,
+                Section = assSection,
                 Description = lang.SettingsHelpSubAssOverride,
                 Type = OptionType.StringList,
                 Choices =
@@ -681,19 +683,6 @@ public sealed partial class SettingsPage : Page
                 ],
                 Getter = () => AppContext.AppSetting.SubAssOverride,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssOverride), AppContext.AppSetting.SubAssOverride = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.SubBlur),
-                Label = lang.SettingsSubBlur,
-                Category = subtitle,
-                Type = OptionType.Double,
-                Min = 0,
-                Max = 20,
-                Step = 0.5,
-                Getter = () => AppContext.AppSetting.SubBlur,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubBlur), AppContext.AppSetting.SubBlur = (double)v!)
             },
 
             new Option
@@ -789,13 +778,15 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.SubEmbeddedFonts),
-                Label = lang.SettingsSubEmbeddedFonts,
+                Key = nameof(AppContext.AppSetting.SubBlur),
+                Label = lang.SettingsSubBlur,
                 Category = subtitle,
-                Description = lang.SettingsHelpSubEmbeddedFonts,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.SubEmbeddedFonts,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubEmbeddedFonts), AppContext.AppSetting.SubEmbeddedFonts = (bool)v!)
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 20,
+                Step = 0.5,
+                Getter = () => AppContext.AppSetting.SubBlur,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubBlur), AppContext.AppSetting.SubBlur = (double)v!)
             },
 
             new Option
@@ -814,10 +805,71 @@ public sealed partial class SettingsPage : Page
                 Key = nameof(AppContext.AppSetting.SubAssForceMargins),
                 Label = lang.SettingsSubAssForceMargins,
                 Category = subtitle,
+                Section = assSection,
                 Description = lang.SettingsHelpSubAssForceMargins,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SubAssForceMargins,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssForceMargins), AppContext.AppSetting.SubAssForceMargins = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAssScaleWithWindow),
+                Label = lang.SettingsSubAssScaleWithWindow,
+                Category = subtitle,
+                Section = assSection,
+                Description = lang.SettingsHelpSubAssScaleWithWindow,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubAssScaleWithWindow,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssScaleWithWindow), AppContext.AppSetting.SubAssScaleWithWindow = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubEmbeddedFonts),
+                Label = lang.SettingsSubEmbeddedFonts,
+                Category = subtitle,
+                Section = assSection,
+                Description = lang.SettingsHelpSubEmbeddedFonts,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubEmbeddedFonts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubEmbeddedFonts), AppContext.AppSetting.SubEmbeddedFonts = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.BlendSubtitles),
+                Label = lang.SettingsBlendSubtitles,
+                Category = subtitle,
+                Section = assSection,
+                Description = lang.SettingsHelpBlendSubtitles,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueBlendSubtitlesNo),
+                    new OptionChoice("yes", lang.OptionValueBlendSubtitlesYes),
+                    new OptionChoice("video", lang.OptionValueBlendSubtitlesVideo),
+                ],
+                Getter = () => AppContext.AppSetting.BlendSubtitles,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.BlendSubtitles), AppContext.AppSetting.BlendSubtitles = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubFallback),
+                Label = lang.SettingsSubFallback,
+                Category = subtitle,
+                Section = assSection,
+                Description = lang.SettingsHelpSubFallback,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("default", lang.OptionValueSubsFallbackDefault),
+                    new OptionChoice("yes", lang.OptionValueSubsFallbackYes),
+                    new OptionChoice("no", lang.OptionValueSubsFallbackNo),
+                ],
+                Getter = () => AppContext.AppSetting.SubFallback,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFallback), AppContext.AppSetting.SubFallback = (string)v!)
             },
 
             new Option
@@ -1074,51 +1126,6 @@ public sealed partial class SettingsPage : Page
                 ],
                 Getter = () => AppContext.AppSetting.AudioDisplay,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioDisplay), AppContext.AppSetting.AudioDisplay = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.SubFallback),
-                Label = lang.SettingsSubFallback,
-                Category = advanced,
-                Description = lang.SettingsHelpSubFallback,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("default", lang.OptionValueSubsFallbackDefault),
-                    new OptionChoice("yes", lang.OptionValueSubsFallbackYes),
-                    new OptionChoice("no", lang.OptionValueSubsFallbackNo),
-                ],
-                Getter = () => AppContext.AppSetting.SubFallback,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFallback), AppContext.AppSetting.SubFallback = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.BlendSubtitles),
-                Label = lang.SettingsBlendSubtitles,
-                Category = advanced,
-                Description = lang.SettingsHelpBlendSubtitles,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("no", lang.OptionValueBlendSubtitlesNo),
-                    new OptionChoice("yes", lang.OptionValueBlendSubtitlesYes),
-                    new OptionChoice("video", lang.OptionValueBlendSubtitlesVideo),
-                ],
-                Getter = () => AppContext.AppSetting.BlendSubtitles,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.BlendSubtitles), AppContext.AppSetting.BlendSubtitles = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.SubAssScaleWithWindow),
-                Label = lang.SettingsSubAssScaleWithWindow,
-                Category = advanced,
-                Description = lang.SettingsHelpSubAssScaleWithWindow,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.SubAssScaleWithWindow,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssScaleWithWindow), AppContext.AppSetting.SubAssScaleWithWindow = (bool)v!)
             },
 
             new Option

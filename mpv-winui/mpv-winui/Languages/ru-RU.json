@@ -348,5 +348,6 @@
   "SettingsHelpIccCacheDir": "Папка для преобразования профиля ICC в 3D LUT. Пусто — использовать папку по умолчанию.",
   "SettingsGpuShaderCacheDir": "Папка кэша шейдеров",
   "SettingsHelpGpuShaderCacheDir": "Папка для кэша скомпилированных GLSL-шейдеров. Пусто — использовать папку по умолчанию.",
-  "OptionValueCustom": "???? ???????"
+  "OptionValueCustom": "???? ???????",
+  "OptionSectionAssAdvanced": "??????????? ???????? ASS"
 }

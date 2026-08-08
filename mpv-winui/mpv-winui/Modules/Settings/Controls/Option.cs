@@ -57,6 +57,12 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Optional section caption used to split a category into topic groups.</summary>
+    public string? Section
+    {
+        get; set;
+    }
+
     /// <summary>Localized warning shown in yellow when the option may be ineffective in the current state.</summary>
     public string? Warning
     {

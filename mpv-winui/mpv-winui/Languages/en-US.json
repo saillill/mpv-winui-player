@@ -348,5 +348,6 @@
   "SettingsHelpIccCacheDir": "Folder for cached ICC profile to 3D LUT conversions. Leave empty for the built-in default.",
   "SettingsGpuShaderCacheDir": "Shader cache folder",
   "SettingsHelpGpuShaderCacheDir": "Folder for compiled GLSL shader caches. Leave empty for the built-in default.",
-  "OptionValueCustom": "Custom"
+  "OptionValueCustom": "Custom",
+  "OptionSectionAssAdvanced": "ASS advanced subtitles"
 }

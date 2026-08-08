@@ -129,6 +129,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsCategoryVideo { get; set; } = "Video";
         public string SettingsCategoryAudio { get; set; } = "Audio";
         public string SettingsCategorySubtitle { get; set; } = "Subtitle";
+        public string OptionSectionAssAdvanced { get; set; } = "ASS advanced subtitles";
         public string SettingsSpeed { get; set; } = "Default speed";
         public string SettingsSubPos { get; set; } = "Subtitle position (%)";
         public string SettingsAudioLanguage { get; set; } = "Preferred audio language";

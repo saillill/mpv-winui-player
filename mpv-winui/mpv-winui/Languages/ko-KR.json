@@ -348,5 +348,6 @@
   "SettingsHelpIccCacheDir": "ICC 프로필에서 3D LUT로 변환한 결과를 저장하는 폴더입니다. 비워 두면 기본 위치를 사용합니다.",
   "SettingsGpuShaderCacheDir": "셰이더 캐시 폴더",
   "SettingsHelpGpuShaderCacheDir": "컴파일된 GLSL 셰이더 캐시를 저장하는 폴더입니다. 비워 두면 기본 위치를 사용합니다.",
-  "OptionValueCustom": "??? ??"
+  "OptionValueCustom": "??? ??",
+  "OptionSectionAssAdvanced": "ASS ?? ??"
 }

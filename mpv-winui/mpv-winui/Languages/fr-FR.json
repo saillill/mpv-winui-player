@@ -348,5 +348,6 @@
   "SettingsHelpIccCacheDir": "Dossier des conversions profil ICC vers LUT 3D. Laissez vide pour utiliser le dossier par défaut.",
   "SettingsGpuShaderCacheDir": "Dossier de cache des shaders",
   "SettingsHelpGpuShaderCacheDir": "Dossier des caches de shaders GLSL compilés. Laissez vide pour utiliser le dossier par défaut.",
-  "OptionValueCustom": "Personnalis?"
+  "OptionValueCustom": "Personnalis?",
+  "OptionSectionAssAdvanced": "Sous-titres ASS avanc?s"
 }

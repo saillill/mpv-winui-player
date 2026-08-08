@@ -73,15 +73,16 @@ public sealed partial class OptionListControl : UserControl
 
     private void ApplyItemsSource()
     {
-        if (OptionList is { Count: > 0 } options && ShowHeaders)
+        if (OptionList is { Count: > 0 } options && (ShowHeaders || options.Any(o => !string.IsNullOrEmpty(o.Section))))
         {
             var groups = new List<OptionGroup>();
             foreach (var option in options)
             {
-                var group = groups.FirstOrDefault(g => g.Key == option.Category);
+                var key = ShowHeaders ? option.Category : option.Section ?? string.Empty;
+                var group = groups.FirstOrDefault(g => g.Key == key);
                 if (group is null)
                 {
-                    group = new OptionGroup { Key = option.Category };
+                    group = new OptionGroup { Key = key };
                     groups.Add(group);
                 }
                 group.Add(option);
