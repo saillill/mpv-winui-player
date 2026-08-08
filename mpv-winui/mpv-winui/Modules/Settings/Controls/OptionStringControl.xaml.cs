@@ -24,6 +24,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
+            InputBox.PlaceholderText = newValue.Placeholder ?? string.Empty;
 
             BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
             BrowseButton.Visibility = newValue.PickFolder || newValue.PickFile ? Visibility.Visible : Visibility.Collapsed;
@@ -117,12 +118,11 @@ public sealed partial class OptionStringControl : OptionControlBase
                         ?? mpv_winui.App.Window!.AppWindow.Id;
             if (Setting?.PickFile == true)
             {
-                var file = await FilePickerHelper.PickSingleFileAsync(picker =>
-                {
-                    picker.FileTypeFilter.Add(".ttf");
-                    picker.FileTypeFilter.Add(".otf");
-                    picker.FileTypeFilter.Add(".ttc");
-                });
+                var filePicker = new FileOpenPicker(owner);
+                filePicker.FileTypeFilter.Add(".ttf");
+                filePicker.FileTypeFilter.Add(".otf");
+                filePicker.FileTypeFilter.Add(".ttc");
+                var file = await filePicker.PickSingleFileAsync();
                 if (file?.Path is string filePath && !string.IsNullOrEmpty(filePath))
                 {
                     InputBox.Text = filePath;

@@ -620,7 +620,6 @@
   "SettingsHelpThemeAccentColor": "ウィンドウ背景の着色色。空にするとシステムのアクセントカラーに従います。",
   "SettingsThemeOpacity": "背景の透明度",
   "SettingsHelpThemeOpacity": "値が大きいほど背景が透明になります。Acrylic 背景のみ有効です。",
-  "WarningThemeOpacityBackdrop": "Acrylic 背景を選択している場合のみ有効です。",
   "SettingsChooseThemeColor": "色を選択…",
   "ThemeColorRecentColors": "最近使用した色",
   "ThemeColorWindowsColors": "Windows の色",
@@ -628,5 +627,8 @@
   "ThemeColorRed": "赤",
   "ThemeColorGreen": "緑",
   "ThemeColorBlue": "青",
-  "ThemeColorDone": "完了"
+  "ThemeColorDone": "完了",
+  "SettingsThemeLuminosity": "背景の明るさ",
+  "SettingsHelpThemeLuminosity": "Acrylic 背景の明るさ。Acrylic 背景選択時のみ有効です。",
+  "SettingsUiFont": "UI フォント"
 }

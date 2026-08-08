@@ -34,12 +34,21 @@ namespace mpv_winui
         {
             if (key == nameof(AppContext.AppSetting.BackdropType)
                 || key == nameof(AppContext.AppSetting.ThemeAccentColor)
-                || key == nameof(AppContext.AppSetting.ThemeOpacity))
+                || key == nameof(AppContext.AppSetting.ThemeOpacity)
+                || key == nameof(AppContext.AppSetting.ThemeLuminosity))
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     _styleManager?.UpdateBackdrop();
                     _settingsWindow?.UpdateBackdrop();
+                });
+            }
+            else if (key == nameof(AppContext.AppSetting.UiFont))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    _styleManager?.UpdateUiFont();
+                    _settingsWindow?.UpdateUiFont();
                 });
             }
         }

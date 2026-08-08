@@ -620,7 +620,6 @@
   "SettingsHelpThemeAccentColor": "Farbton des Fensterhintergrunds. Leer = Systemakzentfarbe.",
   "SettingsThemeOpacity": "Hintergrundtransparenz",
   "SettingsHelpThemeOpacity": "Höhere Werte machen den Hintergrund transparenter. Nur für Acrylic-Hintergrund.",
-  "WarningThemeOpacityBackdrop": "Gilt nur, wenn der Acrylic-Hintergrund ausgewählt ist.",
   "SettingsChooseThemeColor": "Farbe wählen…",
   "ThemeColorRecentColors": "Zuletzt verwendete Farben",
   "ThemeColorWindowsColors": "Windows-Farben",
@@ -628,5 +627,8 @@
   "ThemeColorRed": "Rot",
   "ThemeColorGreen": "Grün",
   "ThemeColorBlue": "Blau",
-  "ThemeColorDone": "Fertig"
+  "ThemeColorDone": "Fertig",
+  "SettingsThemeLuminosity": "Hintergrundhelligkeit",
+  "SettingsHelpThemeLuminosity": "Helligkeit des Acrylic-Hintergrunds. Gilt nur bei Acrylic-Hintergrund.",
+  "SettingsUiFont": "UI-Schriftart"
 }

@@ -620,7 +620,6 @@
   "SettingsHelpThemeAccentColor": "창 배경의 색조 색상입니다. 비워 두면 시스템 강조색을 따릅니다.",
   "SettingsThemeOpacity": "배경 투명도",
   "SettingsHelpThemeOpacity": "값이 높을수록 배경이 더 투명해집니다. Acrylic 배경에서만 적용됩니다.",
-  "WarningThemeOpacityBackdrop": "Acrylic 배경을 선택한 경우에만 적용됩니다.",
   "SettingsChooseThemeColor": "색 선택…",
   "ThemeColorRecentColors": "최근 사용한 색",
   "ThemeColorWindowsColors": "Windows 색상",
@@ -628,5 +627,8 @@
   "ThemeColorRed": "빨강",
   "ThemeColorGreen": "초록",
   "ThemeColorBlue": "파랑",
-  "ThemeColorDone": "완료"
+  "ThemeColorDone": "완료",
+  "SettingsThemeLuminosity": "배경 밝기",
+  "SettingsHelpThemeLuminosity": "Acrylic 배경의 밝기입니다. Acrylic 배경 선택 시에만 적용됩니다.",
+  "SettingsUiFont": "UI 글꼴"
 }

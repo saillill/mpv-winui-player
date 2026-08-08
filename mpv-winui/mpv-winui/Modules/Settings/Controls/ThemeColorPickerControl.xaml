@@ -12,6 +12,7 @@
         <StackPanel
             MinWidth="360"
             MaxWidth="460"
+            Padding="0,0,16,0"
             Spacing="12">
 
             <TextBlock

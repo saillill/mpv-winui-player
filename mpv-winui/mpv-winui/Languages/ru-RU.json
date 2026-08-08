@@ -620,7 +620,6 @@
   "SettingsHelpThemeAccentColor": "Цвет оттенка фона окна. Пусто = системный акцент.",
   "SettingsThemeOpacity": "Прозрачность фона",
   "SettingsHelpThemeOpacity": "Чем выше значение, тем прозрачнее фон. Действует только для фона Acrylic.",
-  "WarningThemeOpacityBackdrop": "Действует только при выборе фона Acrylic.",
   "SettingsChooseThemeColor": "Выбрать цвет…",
   "ThemeColorRecentColors": "Недавние цвета",
   "ThemeColorWindowsColors": "Цвета Windows",
@@ -628,5 +627,8 @@
   "ThemeColorRed": "Красный",
   "ThemeColorGreen": "Зелёный",
   "ThemeColorBlue": "Синий",
-  "ThemeColorDone": "Готово"
+  "ThemeColorDone": "Готово",
+  "SettingsThemeLuminosity": "Яркость фона",
+  "SettingsHelpThemeLuminosity": "Яркость фона Acrylic. Действует только при фоне Acrylic.",
+  "SettingsUiFont": "Шрифт интерфейса"
 }

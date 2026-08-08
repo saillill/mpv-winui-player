@@ -620,7 +620,6 @@
   "SettingsHelpThemeAccentColor": "Tint color for the window backdrop. Leave empty to follow the system accent.",
   "SettingsThemeOpacity": "Backdrop transparency",
   "SettingsHelpThemeOpacity": "Higher values make the backdrop more transparent. Only applies to the Acrylic backdrop.",
-  "WarningThemeOpacityBackdrop": "Only applies when the Acrylic backdrop is selected.",
   "SettingsChooseThemeColor": "Choose color...",
   "ThemeColorRecentColors": "Recent colors",
   "ThemeColorWindowsColors": "Windows colors",
@@ -628,5 +627,8 @@
   "ThemeColorRed": "Red",
   "ThemeColorGreen": "Green",
   "ThemeColorBlue": "Blue",
-  "ThemeColorDone": "Done"
+  "ThemeColorDone": "Done",
+  "SettingsThemeLuminosity": "Backdrop brightness",
+  "SettingsHelpThemeLuminosity": "Brightness of the Acrylic backdrop. Only applies when the Acrylic backdrop is selected.",
+  "SettingsUiFont": "UI font"
 }

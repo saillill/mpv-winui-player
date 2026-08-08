@@ -27,6 +27,12 @@ public sealed class Option : INotifyPropertyChanged
     public string Label { get; set; } = string.Empty;
     public string Category { get; set; } = "General";
 
+    /// <summary>Placeholder text shown when the value is empty (e.g. the built-in default path).</summary>
+    public string? Placeholder
+    {
+        get; set;
+    }
+
     /// <summary>Explanatory text shown behind the info (i) button.</summary>
     public string? Description
     {

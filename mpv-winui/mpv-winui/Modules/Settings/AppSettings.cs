@@ -82,6 +82,20 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ThemeRecentColors), value);
         }
 
+        /// <summary>Backdrop luminosity/brightness, 0 (dark) to 100 (bright).</summary>
+        public int ThemeLuminosity
+        {
+            get => _dataSetting.GetValue(nameof(ThemeLuminosity), 40);
+            set => _dataSetting.GetValue(nameof(ThemeLuminosity), value);
+        }
+
+        /// <summary>UI font family for the app interface. Empty follows the system font.</summary>
+        public string UiFont
+        {
+            get => _dataSetting.GetValue(nameof(UiFont), string.Empty);
+            set => _dataSetting.GetValue(nameof(UiFont), value);
+        }
+
         public bool EnableDebugLog
         {
             get => _dataSetting.GetValue(nameof(EnableDebugLog), false);
@@ -725,7 +739,7 @@ namespace mpv_winui.Modules.Settings
 
         public string OsdPlayingMsg
         {
-            get => _dataSetting.GetValue(nameof(OsdPlayingMsg), "${filename}");
+            get => _dataSetting.GetValue(nameof(OsdPlayingMsg), string.Empty);
             set => _dataSetting.SetValue(nameof(OsdPlayingMsg), value);
         }
 

@@ -48,7 +48,8 @@
             <TextBox
                 x:Name="InputBox"
                 Grid.Column="0"
-                HorizontalAlignment="Stretch"
+                MaxWidth="340"
+                HorizontalAlignment="Right"
                 LostFocus="OnLostFocus"
                 KeyDown="OnKeyDown"
                 TextChanged="InputBox_TextChanged" />

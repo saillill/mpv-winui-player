@@ -31,6 +31,9 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpThemeAccentColor { get; set; } = "Tint color for the window backdrop. Leave empty to follow the system accent.";
         public string SettingsThemeOpacity { get; set; } = "Backdrop transparency";
         public string SettingsHelpThemeOpacity { get; set; } = "Higher values make the backdrop more transparent. Only applies to the Acrylic backdrop.";
+        public string SettingsThemeLuminosity { get; set; } = "Backdrop brightness";
+        public string SettingsHelpThemeLuminosity { get; set; } = "Brightness of the Acrylic backdrop. Only applies when the Acrylic backdrop is selected.";
+        public string SettingsUiFont { get; set; } = "UI font";
         public string SettingsChooseThemeColor { get; set; } = "Choose color...";
         public string ThemeColorRecentColors { get; set; } = "Recent colors";
         public string ThemeColorWindowsColors { get; set; } = "Windows colors";
@@ -39,7 +42,6 @@ namespace mpv_winui.Modules.Language
         public string ThemeColorGreen { get; set; } = "Green";
         public string ThemeColorBlue { get; set; } = "Blue";
         public string ThemeColorDone { get; set; } = "Done";
-        public string WarningThemeOpacityBackdrop { get; set; } = "Only applies when the Acrylic backdrop is selected.";
         public string Save { get; set; } = "Save";
         public string Test { get; set; } = "Test";
         public string Open { get; set; } = "Open";

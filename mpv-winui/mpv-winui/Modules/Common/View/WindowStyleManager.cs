@@ -3,6 +3,7 @@ using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Settings;
 using System;
@@ -33,6 +34,7 @@ public sealed partial class WindowStyleManager : IDisposable
         _theme = GetThemeType();
         UpdateTitleBarColors(_theme);
         UpdateContentTheme(_theme);
+        UpdateUiFont();
 
         _window.DispatcherQueue.EnsureSystemDispatcherQueue();
         _configurationSource = new SystemBackdropConfiguration
@@ -52,6 +54,20 @@ public sealed partial class WindowStyleManager : IDisposable
     {
         ApplyBackdrop();
         UpdateBackdropTheme(_theme);
+    }
+
+    /// <summary>Applies the user-selected UI font to the window content.</summary>
+    public void UpdateUiFont()
+    {
+        var font = AppContext.AppSetting.UiFont;
+        if (string.IsNullOrWhiteSpace(font))
+        {
+            Application.Current.Resources.Remove("ContentControlThemeFontFamily");
+        }
+        else
+        {
+            Application.Current.Resources["ContentControlThemeFontFamily"] = new FontFamily(font);
+        }
     }
 
     private void ApplyBackdrop()
@@ -153,14 +169,14 @@ public sealed partial class WindowStyleManager : IDisposable
             _acrylicController?.Kind = DesktopAcrylicKind.Thin;
             _acrylicController?.TintOpacity = GetBackdropTintOpacity();
             _acrylicController?.TintColor = GetBackdropTintColor(theme);
-            _acrylicController?.LuminosityOpacity = 0.1F;
+            _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
         }
         else
         {
             _acrylicController?.Kind = DesktopAcrylicKind.Thin;
             _acrylicController?.TintOpacity = GetBackdropTintOpacity();
             _acrylicController?.TintColor = GetBackdropTintColor(theme);
-            _acrylicController?.LuminosityOpacity = 0.8F;
+            _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
         }
     }
 
@@ -180,6 +196,11 @@ public sealed partial class WindowStyleManager : IDisposable
     {
         var opacity = Math.Clamp(AppContext.AppSetting.ThemeOpacity, 0, 100);
         return 1f - opacity / 100f;
+    }
+
+    private float GetBackdropLuminosityOpacity()
+    {
+        return Math.Clamp(AppContext.AppSetting.ThemeLuminosity, 0, 100) / 100f;
     }
 
     private static Color? TryParseColor(string? hex)

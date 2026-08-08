@@ -620,7 +620,6 @@
   "SettingsHelpThemeAccentColor": "Couleur de teinte de l'arrière-plan de la fenêtre. Vide = accent système.",
   "SettingsThemeOpacity": "Transparence de l'arrière-plan",
   "SettingsHelpThemeOpacity": "Des valeurs plus élevées rendent l'arrière-plan plus transparent. S'applique uniquement au fond Acrylic.",
-  "WarningThemeOpacityBackdrop": "S'applique uniquement lorsque le fond Acrylic est sélectionné.",
   "SettingsChooseThemeColor": "Choisir une couleur…",
   "ThemeColorRecentColors": "Couleurs récentes",
   "ThemeColorWindowsColors": "Couleurs Windows",
@@ -628,5 +627,8 @@
   "ThemeColorRed": "Rouge",
   "ThemeColorGreen": "Vert",
   "ThemeColorBlue": "Bleu",
-  "ThemeColorDone": "Terminé"
+  "ThemeColorDone": "Terminé",
+  "SettingsThemeLuminosity": "Luminosité de l'arrière-plan",
+  "SettingsHelpThemeLuminosity": "Luminosité du fond Acrylic. S'applique uniquement au fond Acrylic.",
+  "SettingsUiFont": "Police de l'interface"
 }

@@ -61,6 +61,11 @@ public sealed partial class SettingsWindow : Window
         _styleManager?.UpdateBackdrop();
     }
 
+    public void UpdateUiFont()
+    {
+        _styleManager?.UpdateUiFont();
+    }
+
     private void SettingsWindow_LanguageChanged()
     {
         DispatcherQueue.TryEnqueue(() =>
