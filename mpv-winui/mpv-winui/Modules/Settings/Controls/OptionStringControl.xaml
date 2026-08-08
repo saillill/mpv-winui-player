@@ -28,8 +28,7 @@
                 Style="{StaticResource BodyTextBlockStyle}"
                 TextWrapping="Wrap" />
             <Grid
-                Grid.Column="1"
-                ColumnSpacing="8">
+                Grid.Column="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -48,6 +47,7 @@
                     <Button
                         x:Name="OpenButton"
                         MinWidth="96"
+                        Margin="8,0,0,0"
                         VerticalAlignment="Center"
                         Click="OnOpenFolderClick"
                         Content="Open"

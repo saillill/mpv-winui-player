@@ -9,33 +9,63 @@
 
     <UserControl.Resources>
         <DataTemplate x:Key="BooleanTemplate">
-            <ctl:OptionBooleanControl
-                Margin="0,0,0,2"
-                VerticalAlignment="Center" />
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,8"
+                Padding="16,8"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionBooleanControl VerticalAlignment="Center" />
+            </Border>
         </DataTemplate>
 
         <DataTemplate x:Key="TextTemplate">
-            <ctl:OptionStringControl
-                Margin="0,0,0,2"
-                VerticalAlignment="Center" />
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,8"
+                Padding="16,8"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionStringControl VerticalAlignment="Center" />
+            </Border>
         </DataTemplate>
 
         <DataTemplate x:Key="IntegerTemplate">
-            <ctl:OptionIntegerControl
-                Margin="0,0,0,2"
-                VerticalAlignment="Center" />
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,8"
+                Padding="16,8"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionIntegerControl VerticalAlignment="Center" />
+            </Border>
         </DataTemplate>
 
         <DataTemplate x:Key="DoubleTemplate">
-            <ctl:OptionDoubleControl
-                Margin="0,0,0,2"
-                VerticalAlignment="Center" />
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,8"
+                Padding="16,8"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionDoubleControl VerticalAlignment="Center" />
+            </Border>
         </DataTemplate>
 
         <DataTemplate x:Key="TextListTemplate">
-            <ctl:OptionStringListControl
-                Margin="0,0,0,2"
-                VerticalAlignment="Center" />
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,8"
+                Padding="16,8"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionStringListControl VerticalAlignment="Center" />
+            </Border>
         </DataTemplate>
 
         <DataTemplate x:Key="SectionHeaderTemplate" x:DataType="ctl:SectionHeaderItem">
@@ -67,25 +97,12 @@
             x:Key="OptionListViewItemStyle"
             BasedOn="{StaticResource DefaultListViewItemStyle}"
             TargetType="ListViewItem">
-            <Setter Property="Margin" Value="0,0,0,8" />
-            <Setter Property="MinHeight" Value="60" />
-            <Setter Property="Padding" Value="16,8" />
-            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="IsTabStop" Value="False" />
-        </Style>
-
-        <Style
-            x:Key="SectionHeaderItemStyle"
-            BasedOn="{StaticResource DefaultListViewItemStyle}"
-            TargetType="ListViewItem">
             <Setter Property="Margin" Value="0" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="IsTabStop" Value="False" />
         </Style>
     </UserControl.Resources>

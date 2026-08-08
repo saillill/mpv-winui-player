@@ -40,7 +40,6 @@ public sealed partial class OptionListControl : UserControl
 
         if (args.Item is SectionHeaderItem)
         {
-            args.ItemContainer.Style = (Style)Resources["SectionHeaderItemStyle"];
             args.Handled = true;
             return;
         }
@@ -50,7 +49,6 @@ public sealed partial class OptionListControl : UserControl
             return;
         }
 
-        args.ItemContainer.Style = (Style)Resources["OptionListViewItemStyle"];
         if (args.ItemContainer.ContentTemplateRoot is OptionControlBase control)
         {
             control.Setting = option;
