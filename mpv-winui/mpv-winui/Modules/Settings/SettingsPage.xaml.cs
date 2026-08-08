@@ -44,7 +44,6 @@ public sealed partial class SettingsPage : Page
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var subtitle = AppContext.AppLang.SettingsCategorySubtitle;
         var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
-        var paths = AppContext.AppLang.SettingsCategoryPaths;
         var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var lang = AppContext.AppLang;
         var pluginGroup = lang.OptionGroupPlugin;
@@ -855,6 +854,8 @@ public sealed partial class SettingsPage : Page
                 Category = screenshot,
                 Description = lang.SettingsHelpScreenshotTemplate,
                 Type = OptionType.StringList,
+                OpenFolder = true,
+                OpenFolderPathProvider = () => AppContext.AppSetting.ScreenshotDirectory,
                 Choices =
                 [
                     new OptionChoice("", lang.SettingsScreenshotTemplateDefault),
@@ -1212,9 +1213,51 @@ public sealed partial class SettingsPage : Page
             // ===== Paths / 路径 =====
             new Option
             {
+                Key = nameof(AppContext.AppSetting.WatchLaterDir),
+                Label = lang.SettingsWatchLaterDir,
+                Category = advanced,
+                Description = lang.SettingsHelpWatchLaterDir,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                PickFolder = true,
+                OpenFolder = true,
+                Getter = () => AppContext.AppSetting.WatchLaterDir,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.WatchLaterDir), AppContext.AppSetting.WatchLaterDir = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.IccCacheDir),
+                Label = lang.SettingsIccCacheDir,
+                Category = advanced,
+                Description = lang.SettingsHelpIccCacheDir,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                PickFolder = true,
+                OpenFolder = true,
+                Getter = () => AppContext.AppSetting.IccCacheDir,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.IccCacheDir), AppContext.AppSetting.IccCacheDir = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.GpuShaderCacheDir),
+                Label = lang.SettingsGpuShaderCacheDir,
+                Category = advanced,
+                Description = lang.SettingsHelpGpuShaderCacheDir,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                PickFolder = true,
+                OpenFolder = true,
+                Getter = () => AppContext.AppSetting.GpuShaderCacheDir,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GpuShaderCacheDir), AppContext.AppSetting.GpuShaderCacheDir = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.CacheDirectory),
                 Label = lang.SettingsCacheDir,
-                Category = paths,
+                Category = advanced,
                 Description = lang.SettingsHelpCacheDirectory,
                 Type = OptionType.String,
                 AllowEmpty = true,

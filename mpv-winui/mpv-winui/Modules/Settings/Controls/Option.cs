@@ -57,6 +57,12 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Resolves the folder opened by the "Open" button when it is not the option value itself.</summary>
+    public Func<string?>? OpenFolderPathProvider
+    {
+        get; set;
+    }
+
     /// <summary>Optional sub-group label shown as a group header (e.g. "Plugin options").</summary>
     public string? Group
     {

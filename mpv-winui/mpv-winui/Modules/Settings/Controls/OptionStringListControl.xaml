@@ -42,12 +42,23 @@
                 VerticalAlignment="Center"
                 Style="{StaticResource BodyTextBlockStyle}"
                 TextWrapping="Wrap" />
-            <ComboBox
-                x:Name="Combo"
+            <StackPanel
                 Grid.Column="1"
-                MinWidth="160"
-                HorizontalAlignment="Right"
-                SelectionChanged="OnSelectionChanged" />
+                Orientation="Horizontal"
+                Spacing="8">
+                <ComboBox
+                    x:Name="Combo"
+                    MinWidth="160"
+                    HorizontalAlignment="Right"
+                    SelectionChanged="OnSelectionChanged" />
+                <Button
+                    x:Name="OpenButton"
+                    MinWidth="96"
+                    VerticalAlignment="Center"
+                    Click="OnOpenFolderClick"
+                    Content="Open"
+                    Visibility="Collapsed" />
+            </StackPanel>
         </Grid>
         <TextBlock
             x:Name="DescriptionText"

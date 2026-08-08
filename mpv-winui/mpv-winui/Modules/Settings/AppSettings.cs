@@ -120,6 +120,24 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(CacheDirectory), value);
         }
 
+        public string WatchLaterDir
+        {
+            get => _dataSetting.GetValue(nameof(WatchLaterDir), string.Empty);
+            set => _dataSetting.SetValue(nameof(WatchLaterDir), value);
+        }
+
+        public string IccCacheDir
+        {
+            get => _dataSetting.GetValue(nameof(IccCacheDir), string.Empty);
+            set => _dataSetting.SetValue(nameof(IccCacheDir), value);
+        }
+
+        public string GpuShaderCacheDir
+        {
+            get => _dataSetting.GetValue(nameof(GpuShaderCacheDir), string.Empty);
+            set => _dataSetting.SetValue(nameof(GpuShaderCacheDir), value);
+        }
+
         public string Deinterlace
         {
             get => _dataSetting.GetValue(nameof(Deinterlace), "auto");

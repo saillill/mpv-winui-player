@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.IO;
+using Windows.System;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
@@ -25,6 +27,9 @@ public sealed partial class OptionStringListControl : OptionControlBase
                 GroupHeaderText.Text = newValue.Group ?? string.Empty;
             }
             Combo.IsEnabled = newValue.IsEnabled;
+            OpenButton.Content = mpv_winui.AppContext.AppLang.Open;
+            OpenButton.Visibility = newValue.OpenFolder ? Visibility.Visible : Visibility.Collapsed;
+            OpenButton.IsEnabled = newValue.IsEnabled;
 
             _loading = true;
             Combo.Items.Clear();
@@ -70,7 +75,9 @@ public sealed partial class OptionStringListControl : OptionControlBase
     protected override void OnOptionStateChanged()
     {
         UpdateWarning(WarningText);
-        Combo.IsEnabled = Setting?.IsEnabled ?? true;
+        var enabled = Setting?.IsEnabled ?? true;
+        Combo.IsEnabled = enabled;
+        OpenButton.IsEnabled = enabled;
     }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -78,6 +85,32 @@ public sealed partial class OptionStringListControl : OptionControlBase
         if (!_loading && Setting?.Setter is not null && Combo.SelectedItem is ComboBoxItem { Tag: string val })
         {
             Setting?.Setter?.Invoke(val);
+        }
+    }
+
+    private async void OnOpenFolderClick(object sender, RoutedEventArgs e)
+    {
+        var path = Setting?.OpenFolderPathProvider?.Invoke();
+        if (string.IsNullOrWhiteSpace(path) && Setting?.Getter?.Invoke() is string value)
+        {
+            path = value;
+        }
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        try
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            await Launcher.LaunchFolderPathAsync(path);
+        }
+        catch (Exception ex)
+        {
+            mpv_winui.AppContext.AppLogger.Error(ex, "Failed to open folder");
         }
     }
 }
