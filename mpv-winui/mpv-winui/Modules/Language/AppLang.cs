@@ -115,6 +115,8 @@ namespace mpv_winui.Modules.Language
         public string ViewFullWindow { get; set; } = "Full Window";
         public string ViewMpvFolder { get; set; } = "Open mpv Folder";
         public string ViewOptions { get; set; } = "Options";
+        public string SettingsCommandMenuItem { get; set; } = "Run mpv command";
+        public string SettingsCommandPlaceholder { get; set; } = "Type an mpv command, e.g. set volume 60";
         public string ViewPlaylist { get; set; } = "Playlist";
         public string SettingsHwdec { get; set; } = "Hardware decoding";
         public string SettingsHwdecCodecs { get; set; } = "Hardware decoding codecs";
@@ -234,8 +236,14 @@ namespace mpv_winui.Modules.Language
         public string SettingsMetadataOsdEnabled { get; set; } = "Metadata OSD on start";
         public string SettingsMetadataOsdAutohideTimeout { get; set; } = "Metadata OSD auto-hide (s)";
         public string SettingsMetadataOsdShowChapter { get; set; } = "Metadata OSD chapter number";
+        public string SettingsMetadataOsdEnableForVideo { get; set; } = "Metadata OSD for video";
+        public string SettingsMetadataOsdEnableForImage { get; set; } = "Metadata OSD for images";
+        public string SettingsMetadataOsdAutohideStatusTimeout { get; set; } = "Metadata status OSD auto-hide (s)";
+        public string SettingsMetadataOsdShowAlbumTrack { get; set; } = "Metadata OSD album track number";
         public string SettingsCoverArtPreferEmbedded { get; set; } = "Prefer embedded cover art";
         public string SettingsCoverArtAlwaysScan { get; set; } = "Scan cover art for any file";
+        public string SettingsCoverArtLoadFromFilesystem { get; set; } = "Search cover art on disk";
+        public string SettingsCoverArtPreload { get; set; } = "Preload cover art";
         public string SettingsThumbfastQuality { get; set; } = "Thumbnail preview quality";
         public string SettingsThumbfastNetwork { get; set; } = "Network stream thumbnails";
         public string SettingsThumbfastMinDuration { get; set; } = "Thumbnails minimum duration (s)";
@@ -558,6 +566,12 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpThumbfastThreads { get; set; } = "Software decoder threads used for thumbnails. Takes effect on the next start.";
         public string SettingsHelpD3d11Adapter { get; set; } = "GPU adapter used in D3D11 mode, e.g. NVIDIA GeForce RTX 4070 Ti Super. Empty keeps the system default.";
         public string SettingsHelpGlslShadersAppend { get; set; } = "Additional GLSL shader files loaded at startup, separated by semicolons.";
+        public string SettingsHelpMetadataOsdEnableForVideo { get; set; } = "Show the metadata OSD for video files too. Takes effect on the next start.";
+        public string SettingsHelpMetadataOsdEnableForImage { get; set; } = "Show the metadata OSD for image files too. Takes effect on the next start.";
+        public string SettingsHelpMetadataOsdAutohideStatusTimeout { get; set; } = "Seconds before the status OSD hides automatically. Takes effect on the next start.";
+        public string SettingsHelpMetadataOsdShowAlbumTrack { get; set; } = "Show the album track number in the metadata OSD. Takes effect on the next start.";
+        public string SettingsHelpCoverArtLoadFromFilesystem { get; set; } = "Search the filesystem for cover art files. Takes effect on the next start.";
+        public string SettingsHelpCoverArtPreload { get; set; } = "Load cover art before playback starts. Takes effect on the next start.";
 
         /// <summary>Native (autonym) name of an app UI language, e.g. zh-CN → 中文.</summary>
         public static string NativeLanguageName(string code)

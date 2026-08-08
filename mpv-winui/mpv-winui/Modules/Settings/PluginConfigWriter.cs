@@ -23,11 +23,17 @@ public static class PluginConfigWriter
             ["enable_on_start"] = "yes",
             ["autohide_timeout_sec"] = "5",
             ["show_chapternumber"] = "no",
+            ["enable_for_video"] = "no",
+            ["enable_for_image"] = "no",
+            ["autohide_statusosd_timeout_sec"] = "5",
+            ["show_albumtracknumber"] = "no",
         },
         ["coverart.conf"] = new()
         {
             ["prefer_embedded"] = "no",
             ["always_scan_coverart"] = "no",
+            ["load_from_filesystem"] = "yes",
+            ["preload"] = "no",
         },
         ["thumbfast.conf"] = new()
         {
@@ -50,8 +56,14 @@ public static class PluginConfigWriter
         Managed["metadata_osd.conf"]["enable_on_start"] = s.MetadataOsdEnabled ? "yes" : "no";
         Managed["metadata_osd.conf"]["autohide_timeout_sec"] = s.MetadataOsdAutohideTimeout.ToString();
         Managed["metadata_osd.conf"]["show_chapternumber"] = s.MetadataOsdShowChapter ? "yes" : "no";
+        Managed["metadata_osd.conf"]["enable_for_video"] = s.MetadataOsdEnableForVideo ? "yes" : "no";
+        Managed["metadata_osd.conf"]["enable_for_image"] = s.MetadataOsdEnableForImage ? "yes" : "no";
+        Managed["metadata_osd.conf"]["autohide_statusosd_timeout_sec"] = s.MetadataOsdAutohideStatusTimeout.ToString();
+        Managed["metadata_osd.conf"]["show_albumtracknumber"] = s.MetadataOsdShowAlbumTrack ? "yes" : "no";
         Managed["coverart.conf"]["prefer_embedded"] = s.CoverArtPreferEmbedded ? "yes" : "no";
         Managed["coverart.conf"]["always_scan_coverart"] = s.CoverArtAlwaysScan ? "yes" : "no";
+        Managed["coverart.conf"]["load_from_filesystem"] = s.CoverArtLoadFromFilesystem ? "yes" : "no";
+        Managed["coverart.conf"]["preload"] = s.CoverArtPreload ? "yes" : "no";
         Managed["thumbfast.conf"]["quality"] = s.ThumbfastQuality.ToString();
         Managed["thumbfast.conf"]["network"] = s.ThumbfastNetwork ? "yes" : "no";
         Managed["thumbfast.conf"]["min_duration"] = s.ThumbfastMinDuration.ToString();

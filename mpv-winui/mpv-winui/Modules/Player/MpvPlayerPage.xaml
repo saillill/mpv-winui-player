@@ -195,7 +195,11 @@
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="options"
-                Text="Options" />
+                    Text="Options" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="mpv-command"
+                    Text="Run mpv command" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"

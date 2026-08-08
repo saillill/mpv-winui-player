@@ -1006,6 +1006,36 @@ public sealed partial class SettingsPage : Page
                 }
             },
 
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CoverArtLoadFromFilesystem),
+                Label = lang.SettingsCoverArtLoadFromFilesystem,
+                Category = audio,
+                Description = lang.SettingsHelpCoverArtLoadFromFilesystem,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CoverArtLoadFromFilesystem,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.CoverArtLoadFromFilesystem = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CoverArtPreload),
+                Label = lang.SettingsCoverArtPreload,
+                Category = audio,
+                Description = lang.SettingsHelpCoverArtPreload,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CoverArtPreload,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.CoverArtPreload = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
             // ===== Subtitle / 字幕 =====
             new Option
             {
@@ -2259,6 +2289,69 @@ public sealed partial class SettingsPage : Page
                 Setter = v =>
                 {
                     AppContext.AppSetting.MetadataOsdShowChapter = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.MetadataOsdEnableForVideo),
+                Label = lang.SettingsMetadataOsdEnableForVideo,
+                Category = advanced,
+                Description = lang.SettingsHelpMetadataOsdEnableForVideo,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.MetadataOsdEnableForVideo,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.MetadataOsdEnableForVideo = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.MetadataOsdEnableForImage),
+                Label = lang.SettingsMetadataOsdEnableForImage,
+                Category = advanced,
+                Description = lang.SettingsHelpMetadataOsdEnableForImage,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.MetadataOsdEnableForImage,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.MetadataOsdEnableForImage = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.MetadataOsdAutohideStatusTimeout),
+                Label = lang.SettingsMetadataOsdAutohideStatusTimeout,
+                Category = advanced,
+                Description = lang.SettingsHelpMetadataOsdAutohideStatusTimeout,
+                Type = OptionType.Integer,
+                Min = 1,
+                Max = 60,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.MetadataOsdAutohideStatusTimeout,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.MetadataOsdAutohideStatusTimeout = Convert.ToInt32(v);
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.MetadataOsdShowAlbumTrack),
+                Label = lang.SettingsMetadataOsdShowAlbumTrack,
+                Category = advanced,
+                Description = lang.SettingsHelpMetadataOsdShowAlbumTrack,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.MetadataOsdShowAlbumTrack,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.MetadataOsdShowAlbumTrack = (bool)v!;
                     AppContext.WritePluginConfigs();
                 }
             },

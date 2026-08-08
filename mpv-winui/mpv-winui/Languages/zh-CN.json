@@ -534,5 +534,19 @@
   "SettingsOsdOutlineColor": "OSD 描边颜色",
   "SettingsGlslShadersAppend": "附加 GLSL 着色器",
   "SettingsHelpD3d11Adapter": "D3D11 模式下使用的显卡，例如 NVIDIA GeForce RTX 4070 Ti Super；留空使用系统默认。",
-  "SettingsHelpGlslShadersAppend": "启动时额外加载的 GLSL 着色器文件，用分号分隔。"
+  "SettingsHelpGlslShadersAppend": "启动时额外加载的 GLSL 着色器文件，用分号分隔。",
+  "SettingsCommandMenuItem": "运行 mpv 命令",
+  "SettingsCommandPlaceholder": "输入 mpv 命令，例如 set volume 60",
+  "SettingsMetadataOsdEnableForVideo": "视频也显示元数据 OSD",
+  "SettingsMetadataOsdEnableForImage": "图片也显示元数据 OSD",
+  "SettingsMetadataOsdAutohideStatusTimeout": "元数据状态 OSD 自动隐藏（秒）",
+  "SettingsMetadataOsdShowAlbumTrack": "元数据 OSD 显示专辑音轨号",
+  "SettingsCoverArtLoadFromFilesystem": "在磁盘上搜索封面",
+  "SettingsCoverArtPreload": "预加载封面",
+  "SettingsHelpMetadataOsdEnableForVideo": "视频文件也显示元数据 OSD，下次启动生效。",
+  "SettingsHelpMetadataOsdEnableForImage": "图片文件也显示元数据 OSD，下次启动生效。",
+  "SettingsHelpMetadataOsdAutohideStatusTimeout": "状态 OSD 自动隐藏的秒数，下次启动生效。",
+  "SettingsHelpMetadataOsdShowAlbumTrack": "在元数据 OSD 中显示专辑音轨号，下次启动生效。",
+  "SettingsHelpCoverArtLoadFromFilesystem": "在文件系统中搜索封面图片，下次启动生效。",
+  "SettingsHelpCoverArtPreload": "在播放开始前加载封面，下次启动生效。"
 }

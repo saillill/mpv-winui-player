@@ -534,5 +534,19 @@
   "SettingsOsdOutlineColor": "OSD-Konturfarbe",
   "SettingsGlslShadersAppend": "Zusätzliche GLSL-Shader",
   "SettingsHelpD3d11Adapter": "GPU im D3D11-Modus, z. B. NVIDIA GeForce RTX 4070 Ti Super. Leer = Systemstandard.",
-  "SettingsHelpGlslShadersAppend": "Zusätzliche GLSL-Shader beim Start, durch Semikolons getrennt."
+  "SettingsHelpGlslShadersAppend": "Zusätzliche GLSL-Shader beim Start, durch Semikolons getrennt.",
+  "SettingsCommandMenuItem": "mpv-Befehl ausführen",
+  "SettingsCommandPlaceholder": "mpv-Befehl eingeben, z. B. set volume 60",
+  "SettingsMetadataOsdEnableForVideo": "Metadaten-OSD für Video",
+  "SettingsMetadataOsdEnableForImage": "Metadaten-OSD für Bilder",
+  "SettingsMetadataOsdAutohideStatusTimeout": "Status-OSD automatisch ausblenden (s)",
+  "SettingsMetadataOsdShowAlbumTrack": "Albumtitelnummer im OSD",
+  "SettingsCoverArtLoadFromFilesystem": "Cover auf der Festplatte suchen",
+  "SettingsCoverArtPreload": "Cover vorladen",
+  "SettingsHelpMetadataOsdEnableForVideo": "Zeigt das Metadaten-OSD auch für Videos. Wirkt beim nächsten Start.",
+  "SettingsHelpMetadataOsdEnableForImage": "Zeigt das Metadaten-OSD auch für Bilder. Wirkt beim nächsten Start.",
+  "SettingsHelpMetadataOsdAutohideStatusTimeout": "Sekunden bis das Status-OSD ausgeblendet wird. Wirkt beim nächsten Start.",
+  "SettingsHelpMetadataOsdShowAlbumTrack": "Zeigt die Albumtitelnummer im Metadaten-OSD. Wirkt beim nächsten Start.",
+  "SettingsHelpCoverArtLoadFromFilesystem": "Sucht Cover im Dateisystem. Wirkt beim nächsten Start.",
+  "SettingsHelpCoverArtPreload": "Lädt das Cover vor dem Abspielen. Wirkt beim nächsten Start."
 }

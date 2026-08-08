@@ -534,5 +534,19 @@
   "SettingsOsdOutlineColor": "Couleur du contour OSD",
   "SettingsGlslShadersAppend": "Shaders GLSL supplémentaires",
   "SettingsHelpD3d11Adapter": "GPU utilisée en mode D3D11, ex. NVIDIA GeForce RTX 4070 Ti Super. Vide = défaut système.",
-  "SettingsHelpGlslShadersAppend": "Fichiers shaders GLSL supplémentaires au démarrage, séparés par des points-virgules."
+  "SettingsHelpGlslShadersAppend": "Fichiers shaders GLSL supplémentaires au démarrage, séparés par des points-virgules.",
+  "SettingsCommandMenuItem": "Exécuter une commande mpv",
+  "SettingsCommandPlaceholder": "Saisissez une commande mpv, ex. set volume 60",
+  "SettingsMetadataOsdEnableForVideo": "OSD de métadonnées pour la vidéo",
+  "SettingsMetadataOsdEnableForImage": "OSD de métadonnées pour les images",
+  "SettingsMetadataOsdAutohideStatusTimeout": "Masquage auto du statut OSD (s)",
+  "SettingsMetadataOsdShowAlbumTrack": "Numéro de piste d'album dans l'OSD",
+  "SettingsCoverArtLoadFromFilesystem": "Chercher la pochette sur le disque",
+  "SettingsCoverArtPreload": "Précharger la pochette",
+  "SettingsHelpMetadataOsdEnableForVideo": "Affiche l'OSD de métadonnées aussi pour les vidéos. Effectif au prochain démarrage.",
+  "SettingsHelpMetadataOsdEnableForImage": "Affiche l'OSD de métadonnées aussi pour les images. Effectif au prochain démarrage.",
+  "SettingsHelpMetadataOsdAutohideStatusTimeout": "Secondes avant le masquage du statut OSD. Effectif au prochain démarrage.",
+  "SettingsHelpMetadataOsdShowAlbumTrack": "Affiche le numéro de piste d'album dans l'OSD. Effectif au prochain démarrage.",
+  "SettingsHelpCoverArtLoadFromFilesystem": "Recherche la pochette dans le système de fichiers. Effectif au prochain démarrage.",
+  "SettingsHelpCoverArtPreload": "Charge la pochette avant la lecture. Effectif au prochain démarrage."
 }

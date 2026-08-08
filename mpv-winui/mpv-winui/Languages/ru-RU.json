@@ -534,5 +534,19 @@
   "SettingsOsdOutlineColor": "Цвет контура OSD",
   "SettingsGlslShadersAppend": "Дополнительные GLSL-шейдеры",
   "SettingsHelpD3d11Adapter": "GPU в режиме D3D11, напр. NVIDIA GeForce RTX 4070 Ti Super. Пусто — системный выбор.",
-  "SettingsHelpGlslShadersAppend": "Дополнительные GLSL-шейдеры при запуске, через точку с запятой."
+  "SettingsHelpGlslShadersAppend": "Дополнительные GLSL-шейдеры при запуске, через точку с запятой.",
+  "SettingsCommandMenuItem": "Выполнить команду mpv",
+  "SettingsCommandPlaceholder": "Введите команду mpv, напр. set volume 60",
+  "SettingsMetadataOsdEnableForVideo": "OSD метаданных для видео",
+  "SettingsMetadataOsdEnableForImage": "OSD метаданных для изображений",
+  "SettingsMetadataOsdAutohideStatusTimeout": "Автоскрытие статуса OSD (с)",
+  "SettingsMetadataOsdShowAlbumTrack": "Номер дорожки альбома в OSD",
+  "SettingsCoverArtLoadFromFilesystem": "Искать обложку на диске",
+  "SettingsCoverArtPreload": "Предзагружать обложку",
+  "SettingsHelpMetadataOsdEnableForVideo": "Показывать OSD метаданных и для видео. Действует со следующего запуска.",
+  "SettingsHelpMetadataOsdEnableForImage": "Показывать OSD метаданных и для изображений. Действует со следующего запуска.",
+  "SettingsHelpMetadataOsdAutohideStatusTimeout": "Секунды до скрытия статуса OSD. Действует со следующего запуска.",
+  "SettingsHelpMetadataOsdShowAlbumTrack": "Показывать номер дорожки альбома в OSD. Действует со следующего запуска.",
+  "SettingsHelpCoverArtLoadFromFilesystem": "Искать обложку в файловой системе. Действует со следующего запуска.",
+  "SettingsHelpCoverArtPreload": "Загружать обложку до начала воспроизведения. Действует со следующего запуска."
 }

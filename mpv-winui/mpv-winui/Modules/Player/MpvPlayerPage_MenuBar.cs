@@ -102,6 +102,9 @@ public sealed partial class MpvPlayerPage
                         case "options":
                             ShowSettingsWindow();
                             break;
+                        case "mpv-command":
+                            await ShowMpvCommandDialogAsync();
+                            break;
                         case "sleep-off":
                             SetSleepTimer(0);
                             break;
@@ -156,6 +159,48 @@ public sealed partial class MpvPlayerPage
         }
 
         private static string QuoteForMpv(string value) => $"\"{value.Replace("\"", "\\\"")}\"";
+
+        private async Task ShowMpvCommandDialogAsync()
+        {
+            var input = new TextBox
+            {
+                PlaceholderText = AppContext.AppLang.SettingsCommandPlaceholder,
+                MinWidth = 360,
+                AcceptsReturn = false
+            };
+            var dialog = new ContentDialog
+            {
+                Title = AppContext.AppLang.SettingsCommandMenuItem,
+                Content = input,
+                PrimaryButtonText = AppContext.AppLang.Ok,
+                CloseButtonText = AppContext.AppLang.Cancel,
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = XamlRoot
+            };
+
+            input.KeyDown += (_, e) =>
+            {
+                if (e.Key == Windows.System.VirtualKey.Enter)
+                {
+                    RunMpvCommandInput(input.Text);
+                    dialog.Hide();
+                }
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                RunMpvCommandInput(input.Text);
+            }
+        }
+
+        private static void RunMpvCommandInput(string? text)
+        {
+            var command = text?.Trim();
+            if (!string.IsNullOrEmpty(command))
+            {
+                AppContext.SendMpvCommand(command);
+            }
+        }
 
         private void ShowSettingsWindow()
         {

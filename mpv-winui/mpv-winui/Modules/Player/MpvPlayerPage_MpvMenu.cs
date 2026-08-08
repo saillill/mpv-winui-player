@@ -389,6 +389,7 @@ namespace mpv_winui.Modules.Player
                             "fullwindow" => AppContext.AppLang.ViewFullWindow,
                             "fullscreen" => AppContext.AppLang.ViewFullScreen,
                             "options" => AppContext.AppLang.ViewOptions,
+                            "mpv-command" => AppContext.AppLang.SettingsCommandMenuItem,
                             "conf-folder" => AppContext.AppLang.ViewConfFolder,
                             "mpv-folder" => AppContext.AppLang.ViewMpvFolder,
                             "about" => AppContext.AppLang.HelpAbout,

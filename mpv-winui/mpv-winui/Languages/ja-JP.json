@@ -534,5 +534,19 @@
   "SettingsOsdOutlineColor": "OSD アウトライン色",
   "SettingsGlslShadersAppend": "追加 GLSL シェーダー",
   "SettingsHelpD3d11Adapter": "D3D11 モードで使う GPU。例：NVIDIA GeForce RTX 4070 Ti Super。空はシステム既定。",
-  "SettingsHelpGlslShadersAppend": "起動時に読み込む追加 GLSL シェーダーファイル。セミコロン区切り。"
+  "SettingsHelpGlslShadersAppend": "起動時に読み込む追加 GLSL シェーダーファイル。セミコロン区切り。",
+  "SettingsCommandMenuItem": "mpv コマンドを実行",
+  "SettingsCommandPlaceholder": "mpv コマンドを入力（例：set volume 60）",
+  "SettingsMetadataOsdEnableForVideo": "動画でもメタデータ OSD を表示",
+  "SettingsMetadataOsdEnableForImage": "画像でもメタデータ OSD を表示",
+  "SettingsMetadataOsdAutohideStatusTimeout": "ステータス OSD 自動非表示（秒）",
+  "SettingsMetadataOsdShowAlbumTrack": "アルバムトラック番号を表示",
+  "SettingsCoverArtLoadFromFilesystem": "ディスクからカバーを検索",
+  "SettingsCoverArtPreload": "カバーを先読み",
+  "SettingsHelpMetadataOsdEnableForVideo": "動画ファイルでもメタデータ OSD を表示します。次回起動時に有効。",
+  "SettingsHelpMetadataOsdEnableForImage": "画像ファイルでもメタデータ OSD を表示します。次回起動時に有効。",
+  "SettingsHelpMetadataOsdAutohideStatusTimeout": "ステータス OSD を自動非表示にする秒数。次回起動時に有効。",
+  "SettingsHelpMetadataOsdShowAlbumTrack": "メタデータ OSD にアルバムトラック番号を表示します。次回起動時に有効。",
+  "SettingsHelpCoverArtLoadFromFilesystem": "ファイルシステムからカバー画像を探します。次回起動時に有効。",
+  "SettingsHelpCoverArtPreload": "再生開始前にカバーを読み込みます。次回起動時に有効。"
 }

@@ -534,5 +534,19 @@
   "SettingsOsdOutlineColor": "Color del contorno OSD",
   "SettingsGlslShadersAppend": "Shaders GLSL adicionales",
   "SettingsHelpD3d11Adapter": "GPU usado en modo D3D11, p. ej. NVIDIA GeForce RTX 4070 Ti Super. Vacío usa el predeterminado.",
-  "SettingsHelpGlslShadersAppend": "Shaders GLSL adicionales al iniciar, separados por punto y coma."
+  "SettingsHelpGlslShadersAppend": "Shaders GLSL adicionales al iniciar, separados por punto y coma.",
+  "SettingsCommandMenuItem": "Ejecutar comando de mpv",
+  "SettingsCommandPlaceholder": "Escriba un comando mpv, p. ej. set volume 60",
+  "SettingsMetadataOsdEnableForVideo": "OSD de metadatos para vídeo",
+  "SettingsMetadataOsdEnableForImage": "OSD de metadatos para imágenes",
+  "SettingsMetadataOsdAutohideStatusTimeout": "Ocultado automático del estado OSD (s)",
+  "SettingsMetadataOsdShowAlbumTrack": "Número de pista del álbum en OSD",
+  "SettingsCoverArtLoadFromFilesystem": "Buscar carátula en el disco",
+  "SettingsCoverArtPreload": "Precargar carátula",
+  "SettingsHelpMetadataOsdEnableForVideo": "Muestra el OSD de metadatos también en vídeos. Efectivo en el próximo inicio.",
+  "SettingsHelpMetadataOsdEnableForImage": "Muestra el OSD de metadatos también en imágenes. Efectivo en el próximo inicio.",
+  "SettingsHelpMetadataOsdAutohideStatusTimeout": "Segundos antes de ocultar el estado OSD. Efectivo en el próximo inicio.",
+  "SettingsHelpMetadataOsdShowAlbumTrack": "Muestra el número de pista del álbum en el OSD. Efectivo en el próximo inicio.",
+  "SettingsHelpCoverArtLoadFromFilesystem": "Busca la carátula en el sistema de archivos. Efectivo en el próximo inicio.",
+  "SettingsHelpCoverArtPreload": "Carga la carátula antes de reproducir. Efectivo en el próximo inicio."
 }

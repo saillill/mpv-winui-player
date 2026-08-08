@@ -534,5 +534,19 @@
   "SettingsOsdOutlineColor": "OSD 테두리 색상",
   "SettingsGlslShadersAppend": "추가 GLSL 셰이더",
   "SettingsHelpD3d11Adapter": "D3D11 모드에서 사용할 GPU입니다(예: NVIDIA GeForce RTX 4070 Ti Super). 비워 두면 시스템 기본값.",
-  "SettingsHelpGlslShadersAppend": "시작 시 추가로 로드할 GLSL 셰이더 파일 목록입니다. 세미콜론으로 구분."
+  "SettingsHelpGlslShadersAppend": "시작 시 추가로 로드할 GLSL 셰이더 파일 목록입니다. 세미콜론으로 구분.",
+  "SettingsCommandMenuItem": "mpv 명령 실행",
+  "SettingsCommandPlaceholder": "mpv 명령 입력(예: set volume 60)",
+  "SettingsMetadataOsdEnableForVideo": "동영상에서도 메타데이터 OSD 표시",
+  "SettingsMetadataOsdEnableForImage": "이미지에서도 메타데이터 OSD 표시",
+  "SettingsMetadataOsdAutohideStatusTimeout": "상태 OSD 자동 숨김(초)",
+  "SettingsMetadataOsdShowAlbumTrack": "앨범 트랙 번호 표시",
+  "SettingsCoverArtLoadFromFilesystem": "디스크에서 표지 검색",
+  "SettingsCoverArtPreload": "표지 미리 로드",
+  "SettingsHelpMetadataOsdEnableForVideo": "동영상 파일에서도 메타데이터 OSD를 표시합니다. 다음 시작 시 적용.",
+  "SettingsHelpMetadataOsdEnableForImage": "이미지 파일에서도 메타데이터 OSD를 표시합니다. 다음 시작 시 적용.",
+  "SettingsHelpMetadataOsdAutohideStatusTimeout": "상태 OSD가 자동으로 숨겨질 때까지의 초 수입니다. 다음 시작 시 적용.",
+  "SettingsHelpMetadataOsdShowAlbumTrack": "메타데이터 OSD에 앨범 트랙 번호를 표시합니다. 다음 시작 시 적용.",
+  "SettingsHelpCoverArtLoadFromFilesystem": "파일 시스템에서 표지 이미지를 검색합니다. 다음 시작 시 적용.",
+  "SettingsHelpCoverArtPreload": "재생 시작 전에 표지를 로드합니다. 다음 시작 시 적용."
 }

@@ -1081,5 +1081,41 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(GlslShadersAppend), string.Empty);
             set => _dataSetting.GetValue(nameof(GlslShadersAppend), value);
         }
+
+        public bool MetadataOsdEnableForVideo
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForVideo), false);
+            set => _dataSetting.GetValue(nameof(MetadataOsdEnableForVideo), value);
+        }
+
+        public bool MetadataOsdEnableForImage
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForImage), false);
+            set => _dataSetting.GetValue(nameof(MetadataOsdEnableForImage), value);
+        }
+
+        public int MetadataOsdAutohideStatusTimeout
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideStatusTimeout), 5);
+            set => _dataSetting.GetValue(nameof(MetadataOsdAutohideStatusTimeout), value);
+        }
+
+        public bool MetadataOsdShowAlbumTrack
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdShowAlbumTrack), false);
+            set => _dataSetting.GetValue(nameof(MetadataOsdShowAlbumTrack), value);
+        }
+
+        public bool CoverArtLoadFromFilesystem
+        {
+            get => _dataSetting.GetValue(nameof(CoverArtLoadFromFilesystem), true);
+            set => _dataSetting.GetValue(nameof(CoverArtLoadFromFilesystem), value);
+        }
+
+        public bool CoverArtPreload
+        {
+            get => _dataSetting.GetValue(nameof(CoverArtPreload), false);
+            set => _dataSetting.GetValue(nameof(CoverArtPreload), value);
+        }
     }
 }
