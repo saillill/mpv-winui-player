@@ -304,7 +304,6 @@
   "SettingsHelpVsrAuto": "Agrandit automatiquement les vidéos basse résolution avec NVIDIA VSR si le GPU le prend en charge. Recommandé sur GPU NVIDIA ; compatible RTX HDR, suspendu avec d'autres filtres.",
   "SettingsHelpHdrAutoMode": "RTX Video HDR (NVIDIA uniquement). Auto est recommandé et suit l'écran ; forcer active toujours (sources SDR uniquement) ; désactivé l'éteint.",
   "SettingsHelpSeekHold": "Garde la taille de la fenêtre fixe pendant la recherche afin que la réapplication des filtres ne la modifie pas.",
-  "OptionGroupPlugin": "Options des extensions",
   "SettingsResumePlayback": "Reprendre la position de lecture",
   "SettingsHrSeekFramedrop": "Supprimer des images pendant la recherche",
   "SettingsSubFontProvider": "Fournisseur de police des sous-titres",

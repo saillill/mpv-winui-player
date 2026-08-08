@@ -1,14 +1,15 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
-using System.IO;
-using Windows.System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
 public sealed partial class OptionStringListControl : OptionControlBase
 {
     private bool _loading;
+    private List<OptionChoice> _choices = [];
 
     public OptionStringListControl()
     {
@@ -21,46 +22,23 @@ public sealed partial class OptionStringListControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            GroupHeader.Visibility = newValue.ShowGroupHeader ? Visibility.Visible : Visibility.Collapsed;
-            if (newValue.ShowGroupHeader)
-            {
-                GroupHeaderText.Text = newValue.Group ?? string.Empty;
-            }
-            Combo.IsEnabled = newValue.IsEnabled;
-            OpenButton.Content = mpv_winui.AppContext.AppLang.Open;
-            OpenButton.Visibility = newValue.OpenFolder ? Visibility.Visible : Visibility.Collapsed;
-            OpenButton.IsEnabled = newValue.IsEnabled;
+            InputBox.IsEnabled = newValue.IsEnabled;
 
             _loading = true;
-            Combo.Items.Clear();
             try
             {
-                var choices = newValue.ChoicesProvider?.Invoke() ?? newValue.Choices;
-                if (choices is { Count: > 0 })
+                _choices = newValue.ChoicesProvider?.Invoke()?.ToList()
+                           ?? newValue.Choices?.ToList()
+                           ?? [];
+                if (_choices.Count == 0 && newValue.Options is not null)
                 {
-                    foreach (var choice in choices)
-                    {
-                        Combo.Items.Add(new ComboBoxItem { Content = choice.Label, Tag = choice.Value });
-                    }
-                }
-                else if (newValue.Options is not null)
-                {
-                    foreach (var opt in newValue.Options)
-                    {
-                        Combo.Items.Add(new ComboBoxItem { Content = opt, Tag = opt });
-                    }
+                    _choices = newValue.Options.Select(o => new OptionChoice(o, o)).ToList();
                 }
 
+                InputBox.ItemsSource = _choices;
                 if (newValue.Getter is Func<object?> func && func() is string current)
                 {
-                    for (var i = 0; i < Combo.Items.Count; i++)
-                    {
-                        if (Combo.Items[i] is ComboBoxItem item && string.Equals(item.Tag?.ToString(), current, StringComparison.Ordinal))
-                        {
-                            Combo.SelectedIndex = i;
-                            break;
-                        }
-                    }
+                    InputBox.Text = DisplayText(current);
                 }
             }
             finally
@@ -75,42 +53,73 @@ public sealed partial class OptionStringListControl : OptionControlBase
     protected override void OnOptionStateChanged()
     {
         UpdateWarning(WarningText);
-        var enabled = Setting?.IsEnabled ?? true;
-        Combo.IsEnabled = enabled;
-        OpenButton.IsEnabled = enabled;
+        InputBox.IsEnabled = Setting?.IsEnabled ?? true;
     }
 
-    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void OnTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        if (!_loading && Setting?.Setter is not null && Combo.SelectedItem is ComboBoxItem { Tag: string val })
-        {
-            Setting?.Setter?.Invoke(val);
-        }
-    }
-
-    private async void OnOpenFolderClick(object sender, RoutedEventArgs e)
-    {
-        var path = Setting?.OpenFolderPathProvider?.Invoke();
-        if (string.IsNullOrWhiteSpace(path) && Setting?.Getter?.Invoke() is string value)
-        {
-            path = value;
-        }
-        if (string.IsNullOrWhiteSpace(path))
+        if (_loading || args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
         {
             return;
         }
 
-        try
+        var text = sender.Text?.Trim() ?? string.Empty;
+        sender.ItemsSource = _choices
+            .Where(c => c.Label.Contains(text, StringComparison.OrdinalIgnoreCase)
+                        || c.Value.Contains(text, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private void OnSuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    {
+        if (args.SelectedItem is OptionChoice choice)
         {
-            if (!Directory.Exists(path))
+            _loading = true;
+            try
             {
-                Directory.CreateDirectory(path);
+                sender.Text = choice.Label;
             }
-            await Launcher.LaunchFolderPathAsync(path);
+            finally
+            {
+                _loading = false;
+            }
+            Commit(choice.Value);
         }
-        catch (Exception ex)
+    }
+
+    private void OnQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        if (args.ChosenSuggestion is OptionChoice choice)
         {
-            mpv_winui.AppContext.AppLogger.Error(ex, "Failed to open folder");
+            Commit(choice.Value);
         }
+        else
+        {
+            Commit(sender.Text?.Trim() ?? string.Empty);
+        }
+    }
+
+    private void OnLostFocus(object sender, RoutedEventArgs e)
+    {
+        Commit(((AutoSuggestBox)sender).Text?.Trim() ?? string.Empty);
+    }
+
+    private string DisplayText(string value)
+    {
+        var choice = _choices.FirstOrDefault(c => string.Equals(c.Value, value, StringComparison.Ordinal))
+                  ?? _choices.FirstOrDefault(c => string.Equals(c.Label, value, StringComparison.OrdinalIgnoreCase));
+        return choice?.Label ?? value;
+    }
+
+    private void Commit(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return;
+        }
+
+        var choice = _choices.FirstOrDefault(c => string.Equals(c.Label, raw, StringComparison.OrdinalIgnoreCase))
+                  ?? _choices.FirstOrDefault(c => string.Equals(c.Value, raw, StringComparison.OrdinalIgnoreCase));
+        Setting?.Setter?.Invoke(choice?.Value ?? raw);
     }
 }

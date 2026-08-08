@@ -304,7 +304,6 @@
   "SettingsHelpVsrAuto": "Automatically upscale low-resolution video with NVIDIA VSR when the GPU supports it. Recommended on NVIDIA GPUs; works with RTX Video HDR and is suspended while other filters are active.",
   "SettingsHelpHdrAutoMode": "RTX Video HDR (NVIDIA only). Auto is recommended and follows the display state; Force on always enables it (SDR sources only); Off disables it.",
   "SettingsHelpSeekHold": "Keep the window size fixed while seeking so filter reattachment does not resize the window.",
-  "OptionGroupPlugin": "Plugin options",
   "SettingsResumePlayback": "Resume playback position",
   "SettingsHrSeekFramedrop": "Drop frames while seeking",
   "SettingsSubFontProvider": "Subtitle font provider",

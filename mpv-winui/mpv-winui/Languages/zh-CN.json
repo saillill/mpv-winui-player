@@ -304,7 +304,6 @@
   "SettingsHelpVsrAuto": "NVIDIA GPU 支持时自动用 VSR 提升低分辨率视频。N 卡推荐开启；可与 RTX HDR 叠加，检测到其它滤镜时自动摘除。",
   "SettingsHelpHdrAutoMode": "RTX Video HDR（仅 NVIDIA）。推荐自动，按显示器状态判断；强制开启始终启用（仅限 SDR 片源）；关闭则停用。",
   "SettingsHelpSeekHold": "拖动进度时保持窗口大小固定，避免滤镜重新挂接导致窗口尺寸变化。",
-  "OptionGroupPlugin": "插件选项",
   "SettingsResumePlayback": "恢复播放进度",
   "SettingsHrSeekFramedrop": "跳转时允许丢帧",
   "SettingsSubFontProvider": "字幕字体提供程序",

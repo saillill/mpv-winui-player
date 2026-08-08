@@ -178,8 +178,6 @@ namespace mpv_winui.Modules.Language
         public string No { get; set; } = "No";
         public string Browse { get; set; } = "Browse...";
 
-        public string OptionGroupPlugin { get; set; } = "Plugin options";
-
         // ===== Yellow "may be ineffective" warnings =====
         public string WarningInterpolationVideoSync { get; set; } = "Only effective with the \"Resample to display refresh\" video sync mode.";
         public string WarningHrSeekFramedrop { get; set; } = "Not recommended while frame interpolation is enabled; disable it to keep interpolation accurate.";

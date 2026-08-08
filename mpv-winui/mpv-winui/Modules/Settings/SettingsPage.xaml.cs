@@ -46,7 +46,6 @@ public sealed partial class SettingsPage : Page
         var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
         var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var lang = AppContext.AppLang;
-        var pluginGroup = lang.OptionGroupPlugin;
 
         var options = new List<Option>
         {
@@ -287,7 +286,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsVideoPreview,
                 Category = playback,
                 Description = lang.SettingsHelpVideoPreview,
-                Group = pluginGroup,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableVideoPreview,
                 Setter = v =>
@@ -854,8 +852,6 @@ public sealed partial class SettingsPage : Page
                 Category = screenshot,
                 Description = lang.SettingsHelpScreenshotTemplate,
                 Type = OptionType.StringList,
-                OpenFolder = true,
-                OpenFolderPathProvider = () => AppContext.AppSetting.ScreenshotDirectory,
                 Choices =
                 [
                     new OptionChoice("", lang.SettingsScreenshotTemplateDefault),
@@ -991,6 +987,37 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.VideoDecodeDirect),
+                Label = lang.SettingsVideoDecodeDirect,
+                Category = advanced,
+                Description = lang.SettingsHelpVideoDecodeDirect,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("yes", lang.OptionValueYes),
+                    new OptionChoice("no", lang.OptionValueNo),
+                ],
+                Getter = () => AppContext.AppSetting.VideoDecodeDirect,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoDecodeDirect), AppContext.AppSetting.VideoDecodeDirect = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.DemuxerMaxBytes),
+                Label = lang.SettingsDemuxerMaxBytes,
+                Category = advanced,
+                Description = lang.SettingsHelpDemuxerMaxBytes,
+                Type = OptionType.Integer,
+                Min = 32,
+                Max = 4096,
+                Step = 32,
+                Getter = () => (double)AppContext.AppSetting.DemuxerMaxBytes,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerMaxBytes), AppContext.AppSetting.DemuxerMaxBytes = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.IccProfileAuto),
                 Label = lang.SettingsIccProfileAuto,
                 Category = advanced,
@@ -1020,33 +1047,16 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.VideoDecodeDirect),
-                Label = lang.SettingsVideoDecodeDirect,
+                Key = nameof(AppContext.AppSetting.IccCacheDir),
+                Label = lang.SettingsIccCacheDir,
                 Category = advanced,
-                Description = lang.SettingsHelpVideoDecodeDirect,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("auto", lang.OptionValueAuto),
-                    new OptionChoice("yes", lang.OptionValueYes),
-                    new OptionChoice("no", lang.OptionValueNo),
-                ],
-                Getter = () => AppContext.AppSetting.VideoDecodeDirect,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoDecodeDirect), AppContext.AppSetting.VideoDecodeDirect = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.DemuxerMaxBytes),
-                Label = lang.SettingsDemuxerMaxBytes,
-                Category = advanced,
-                Description = lang.SettingsHelpDemuxerMaxBytes,
-                Type = OptionType.Integer,
-                Min = 32,
-                Max = 4096,
-                Step = 32,
-                Getter = () => (double)AppContext.AppSetting.DemuxerMaxBytes,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerMaxBytes), AppContext.AppSetting.DemuxerMaxBytes = Convert.ToInt32(v))
+                Description = lang.SettingsHelpIccCacheDir,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                PickFolder = true,
+                OpenFolder = true,
+                Getter = () => AppContext.AppSetting.IccCacheDir,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.IccCacheDir), AppContext.AppSetting.IccCacheDir = (string)v!)
             },
 
             new Option
@@ -1174,7 +1184,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsVsrAuto,
                 Category = advanced,
                 Description = lang.SettingsHelpVsrAuto,
-                Group = pluginGroup,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.VsrAutoEnabled,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VsrAutoEnabled), AppContext.AppSetting.VsrAutoEnabled = (bool)v!)
@@ -1186,7 +1195,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsHdrAutoMode,
                 Category = advanced,
                 Description = lang.SettingsHelpHdrAutoMode,
-                Group = pluginGroup,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -1204,13 +1212,12 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsSeekHold,
                 Category = advanced,
                 Description = lang.SettingsHelpSeekHold,
-                Group = pluginGroup,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SeekHoldEnabled,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SeekHoldEnabled), AppContext.AppSetting.SeekHoldEnabled = (bool)v!)
             },
 
-            // ===== Paths / 路径 =====
+            // ===== Path folders =====
             new Option
             {
                 Key = nameof(AppContext.AppSetting.WatchLaterDir),
@@ -1223,20 +1230,6 @@ public sealed partial class SettingsPage : Page
                 OpenFolder = true,
                 Getter = () => AppContext.AppSetting.WatchLaterDir,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.WatchLaterDir), AppContext.AppSetting.WatchLaterDir = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.IccCacheDir),
-                Label = lang.SettingsIccCacheDir,
-                Category = advanced,
-                Description = lang.SettingsHelpIccCacheDir,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                PickFolder = true,
-                OpenFolder = true,
-                Getter = () => AppContext.AppSetting.IccCacheDir,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.IccCacheDir), AppContext.AppSetting.IccCacheDir = (string)v!)
             },
 
             new Option
@@ -1273,15 +1266,6 @@ public sealed partial class SettingsPage : Page
             if (RedundantDescriptions.Contains(option.Key))
             {
                 option.Description = null;
-            }
-        }
-
-        var seenPluginGroup = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var option in options)
-        {
-            if (!string.IsNullOrEmpty(option.Group) && seenPluginGroup.Add(option.Category))
-            {
-                option.ShowGroupHeader = true;
             }
         }
 

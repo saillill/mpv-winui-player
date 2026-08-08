@@ -304,7 +304,6 @@
   "SettingsHelpVsrAuto": "GPUが対応していれば低解像度映像をNVIDIA VSRで自動アップスケール。NVIDIA GPUではオンを推奨。RTX HDRと併用でき、他フィルター検出時は自動解除。",
   "SettingsHelpHdrAutoMode": "RTX Video HDR（NVIDIAのみ）。自動を推奨し、ディスプレイ状態に応じます。強制オンは常に有効（SDRソースのみ）。オフで無効。",
   "SettingsHelpSeekHold": "シーク中はウィンドウサイズを固定し、フィルターの再適用でサイズが変わらないようにします。",
-  "OptionGroupPlugin": "プラグイン設定",
   "SettingsResumePlayback": "再生位置を復元",
   "SettingsHrSeekFramedrop": "シーク中にフレームを落とす",
   "SettingsSubFontProvider": "字幕フォントプロバイダー",
