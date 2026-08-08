@@ -356,6 +356,18 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.YtdlRawOptionsAppend),
+                Label = lang.SettingsYtdlRawOptionsAppend,
+                Category = playback,
+                Description = lang.SettingsHelpYtdlRawOptionsAppend,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.YtdlRawOptionsAppend,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.YtdlRawOptionsAppend), AppContext.AppSetting.YtdlRawOptionsAppend = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.AutoCreatePlaylist),
                 Label = lang.SettingsAutoCreatePlaylist,
                 Category = playback,
@@ -387,6 +399,30 @@ public sealed partial class SettingsPage : Page
                 ],
                 Getter = () => AppContext.AppSetting.DirectoryMode,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DirectoryMode), AppContext.AppSetting.DirectoryMode = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.DirectoryFilterTypes),
+                Label = lang.SettingsDirectoryFilterTypes,
+                Category = playback,
+                Description = lang.SettingsHelpDirectoryFilterTypes,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.DirectoryFilterTypes,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DirectoryFilterTypes), AppContext.AppSetting.DirectoryFilterTypes = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VideoExts),
+                Label = lang.SettingsVideoExts,
+                Category = playback,
+                Description = lang.SettingsHelpVideoExts,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.VideoExts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoExts), AppContext.AppSetting.VideoExts = (string)v!)
             },
 
             new Option
@@ -616,6 +652,59 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.VideoUnscaled),
+                Label = lang.SettingsVideoUnscaled,
+                Category = video,
+                Description = lang.SettingsHelpVideoUnscaled,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.OptionValueAuto),
+                    new OptionChoice("no", lang.OptionValueVideoUnscaledNo),
+                    new OptionChoice("yes", lang.OptionValueVideoUnscaledYes),
+                    new OptionChoice("downscale-big", lang.OptionValueVideoUnscaledDownscaleBig),
+                ],
+                Getter = () => AppContext.AppSetting.VideoUnscaled,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoUnscaled), AppContext.AppSetting.VideoUnscaled = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.BackgroundTileColor0),
+                Label = lang.SettingsBackgroundTileColor0,
+                Category = video,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.BackgroundTileColor0,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.BackgroundTileColor0), AppContext.AppSetting.BackgroundTileColor0 = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.BackgroundTileColor1),
+                Label = lang.SettingsBackgroundTileColor1,
+                Category = video,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.BackgroundTileColor1,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.BackgroundTileColor1), AppContext.AppSetting.BackgroundTileColor1 = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.BackgroundTileSize),
+                Label = lang.SettingsBackgroundTileSize,
+                Category = video,
+                Type = OptionType.Integer,
+                Min = 16,
+                Max = 512,
+                Step = 16,
+                Getter = () => (double)AppContext.AppSetting.BackgroundTileSize,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.BackgroundTileSize), AppContext.AppSetting.BackgroundTileSize = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.VideoRotate),
                 Label = lang.SettingsVideoRotate,
                 Category = video,
@@ -840,6 +929,33 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.AudioGapless),
+                Label = lang.SettingsAudioGapless,
+                Category = audio,
+                Description = lang.SettingsHelpAudioGapless,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueAudioGaplessNo),
+                    new OptionChoice("yes", lang.OptionValueAudioGaplessYes),
+                    new OptionChoice("weak", lang.OptionValueAudioGaplessWeak),
+                ],
+                Getter = () => AppContext.AppSetting.AudioGapless,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioGapless), AppContext.AppSetting.AudioGapless = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioWaitOpen),
+                Label = lang.SettingsAudioWaitOpen,
+                Category = audio,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.AudioWaitOpen,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioWaitOpen), AppContext.AppSetting.AudioWaitOpen = (bool)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.CoverArtPreferEmbedded),
                 Label = lang.SettingsCoverArtPreferEmbedded,
                 Category = audio,
@@ -984,6 +1100,28 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.SubBackColor),
+                Label = lang.SettingsSubBackColor,
+                Category = subtitle,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.SubBackColor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubBackColor), AppContext.AppSetting.SubBackColor = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubBorderColor),
+                Label = lang.SettingsSubBorderColor,
+                Category = subtitle,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.SubBorderColor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubBorderColor), AppContext.AppSetting.SubBorderColor = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.SubScaleSigns),
                 Label = lang.SettingsSubScaleSigns,
                 Category = subtitle,
@@ -1010,6 +1148,57 @@ public sealed partial class SettingsPage : Page
                 ],
                 Getter = () => AppContext.AppSetting.SubAssOverride,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssOverride), AppContext.AppSetting.SubAssOverride = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAssUseVideoData),
+                Label = lang.SettingsSubAssUseVideoData,
+                Category = subtitle,
+                Section = assSection,
+                Description = lang.SettingsHelpSubAssUseVideoData,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.OptionValueAuto),
+                    new OptionChoice("none", lang.OptionValueAssUseVideoDataNone),
+                    new OptionChoice("aspect-ratio", lang.OptionValueAssUseVideoDataAspectRatio),
+                    new OptionChoice("all", lang.OptionValueAssUseVideoDataAll),
+                ],
+                Getter = () => AppContext.AppSetting.SubAssUseVideoData,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssUseVideoData), AppContext.AppSetting.SubAssUseVideoData = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAssVideoAspectOverride),
+                Label = lang.SettingsSubAssVideoAspectOverride,
+                Category = subtitle,
+                Section = assSection,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.SubAssVideoAspectOverride,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssVideoAspectOverride), AppContext.AppSetting.SubAssVideoAspectOverride = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAssVsfilterColorCompat),
+                Label = lang.SettingsSubAssVsfilterColorCompat,
+                Category = subtitle,
+                Section = assSection,
+                Description = lang.SettingsHelpSubAssVsfilterColorCompat,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.OptionValueAuto),
+                    new OptionChoice("basic", lang.OptionValueVsfilterBasic),
+                    new OptionChoice("full", lang.OptionValueVsfilterFull),
+                    new OptionChoice("force-601", lang.OptionValueVsfilterForce601),
+                    new OptionChoice("no", lang.OptionValueNo),
+                ],
+                Getter = () => AppContext.AppSetting.SubAssVsfilterColorCompat,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssVsfilterColorCompat), AppContext.AppSetting.SubAssVsfilterColorCompat = (string)v!)
             },
 
             new Option
@@ -1534,6 +1723,32 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.IccProfile),
+                Label = lang.SettingsIccProfile,
+                Category = advanced,
+                Description = lang.SettingsHelpIccProfile,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.IccProfile,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.IccProfile), AppContext.AppSetting.IccProfile = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.IccForceContrast),
+                Label = lang.SettingsIccForceContrast,
+                Category = advanced,
+                Description = lang.SettingsHelpIccForceContrast,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 1000000,
+                Step = 10000,
+                Getter = () => (double)AppContext.AppSetting.IccForceContrast,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.IccForceContrast), AppContext.AppSetting.IccForceContrast = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.Icc3dlutSize),
                 Label = lang.SettingsIcc3dlutSize,
                 Category = advanced,
@@ -1880,6 +2095,17 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.OsdColor),
+                Label = lang.SettingsOsdColor,
+                Category = advanced,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.OsdColor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdColor), AppContext.AppSetting.OsdColor = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.VsrAutoEnabled),
                 Label = lang.SettingsVsrAuto,
                 Category = advanced,
@@ -2046,6 +2272,102 @@ public sealed partial class SettingsPage : Page
                     AppContext.AppSetting.ThumbfastPrecise = Convert.ToInt32(v);
                     AppContext.WritePluginConfigs();
                 }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbfastMaxWidth),
+                Label = lang.SettingsThumbfastMaxWidth,
+                Category = advanced,
+                Type = OptionType.Integer,
+                Min = 64,
+                Max = 2000,
+                Step = 16,
+                Getter = () => (double)AppContext.AppSetting.ThumbfastMaxWidth,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbfastMaxWidth = Convert.ToInt32(v);
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbfastMaxHeight),
+                Label = lang.SettingsThumbfastMaxHeight,
+                Category = advanced,
+                Type = OptionType.Integer,
+                Min = 64,
+                Max = 4000,
+                Step = 16,
+                Getter = () => (double)AppContext.AppSetting.ThumbfastMaxHeight,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbfastMaxHeight = Convert.ToInt32(v);
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbfastSpawnFirst),
+                Label = lang.SettingsThumbfastSpawnFirst,
+                Category = advanced,
+                Description = lang.SettingsHelpThumbfastSpawnFirst,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.ThumbfastSpawnFirst,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbfastSpawnFirst = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbfastThreads),
+                Label = lang.SettingsThumbfastThreads,
+                Category = advanced,
+                Description = lang.SettingsHelpThumbfastThreads,
+                Type = OptionType.Integer,
+                Min = 1,
+                Max = 16,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.ThumbfastThreads,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbfastThreads = Convert.ToInt32(v);
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbfastFrequency),
+                Label = lang.SettingsThumbfastFrequency,
+                Category = advanced,
+                Type = OptionType.Double,
+                Min = 0.05,
+                Max = 1,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.ThumbfastFrequency,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbfastFrequency = (double)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.InputIpcServer),
+                Label = lang.SettingsInputIpcServer,
+                Category = advanced,
+                Description = lang.SettingsHelpInputIpcServer,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.InputIpcServer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InputIpcServer), AppContext.AppSetting.InputIpcServer = (string)v!)
             },
 
             // ===== Path folders =====

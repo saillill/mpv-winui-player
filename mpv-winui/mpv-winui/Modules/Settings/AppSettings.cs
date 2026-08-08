@@ -913,5 +913,143 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(CoverArtAlwaysScan), false);
             set => _dataSetting.GetValue(nameof(CoverArtAlwaysScan), value);
         }
+
+        public string BackgroundTileColor0
+        {
+            get => _dataSetting.GetValue(nameof(BackgroundTileColor0), "#B4B4B4");
+            set => _dataSetting.GetValue(nameof(BackgroundTileColor0), value);
+        }
+
+        public string BackgroundTileColor1
+        {
+            get => _dataSetting.GetValue(nameof(BackgroundTileColor1), "#DCDCDC");
+            set => _dataSetting.GetValue(nameof(BackgroundTileColor1), value);
+        }
+
+        public int BackgroundTileSize
+        {
+            get => _dataSetting.GetValue(nameof(BackgroundTileSize), 128);
+            set => _dataSetting.GetValue(nameof(BackgroundTileSize), value);
+        }
+
+        public string IccProfile
+        {
+            get => _dataSetting.GetValue(nameof(IccProfile), string.Empty);
+            set => _dataSetting.GetValue(nameof(IccProfile), value);
+        }
+
+        public int IccForceContrast
+        {
+            get => _dataSetting.GetValue(nameof(IccForceContrast), 0);
+            set => _dataSetting.GetValue(nameof(IccForceContrast), value);
+        }
+
+        public string VideoUnscaled
+        {
+            get => _dataSetting.GetValue(nameof(VideoUnscaled), string.Empty);
+            set => _dataSetting.GetValue(nameof(VideoUnscaled), value);
+        }
+
+        public string SubBackColor
+        {
+            get => _dataSetting.GetValue(nameof(SubBackColor), string.Empty);
+            set => _dataSetting.GetValue(nameof(SubBackColor), value);
+        }
+
+        public string SubBorderColor
+        {
+            get => _dataSetting.GetValue(nameof(SubBorderColor), string.Empty);
+            set => _dataSetting.GetValue(nameof(SubBorderColor), value);
+        }
+
+        public string SubAssUseVideoData
+        {
+            get => _dataSetting.GetValue(nameof(SubAssUseVideoData), string.Empty);
+            set => _dataSetting.GetValue(nameof(SubAssUseVideoData), value);
+        }
+
+        public string SubAssVideoAspectOverride
+        {
+            get => _dataSetting.GetValue(nameof(SubAssVideoAspectOverride), string.Empty);
+            set => _dataSetting.GetValue(nameof(SubAssVideoAspectOverride), value);
+        }
+
+        public string SubAssVsfilterColorCompat
+        {
+            get => _dataSetting.GetValue(nameof(SubAssVsfilterColorCompat), string.Empty);
+            set => _dataSetting.GetValue(nameof(SubAssVsfilterColorCompat), value);
+        }
+
+        public string AudioGapless
+        {
+            get => _dataSetting.GetValue(nameof(AudioGapless), "no");
+            set => _dataSetting.GetValue(nameof(AudioGapless), value);
+        }
+
+        public bool AudioWaitOpen
+        {
+            get => _dataSetting.GetValue(nameof(AudioWaitOpen), false);
+            set => _dataSetting.GetValue(nameof(AudioWaitOpen), value);
+        }
+
+        public string OsdColor
+        {
+            get => _dataSetting.GetValue(nameof(OsdColor), string.Empty);
+            set => _dataSetting.GetValue(nameof(OsdColor), value);
+        }
+
+        public string YtdlRawOptionsAppend
+        {
+            get => _dataSetting.GetValue(nameof(YtdlRawOptionsAppend), string.Empty);
+            set => _dataSetting.GetValue(nameof(YtdlRawOptionsAppend), value);
+        }
+
+        public string InputIpcServer
+        {
+            get => _dataSetting.GetValue(nameof(InputIpcServer), string.Empty);
+            set => _dataSetting.GetValue(nameof(InputIpcServer), value);
+        }
+
+        public string DirectoryFilterTypes
+        {
+            get => _dataSetting.GetValue(nameof(DirectoryFilterTypes), "video,audio");
+            set => _dataSetting.GetValue(nameof(DirectoryFilterTypes), value);
+        }
+
+        public string VideoExts
+        {
+            get => _dataSetting.GetValue(nameof(VideoExts), "3g2,3gp,avi,flv,m2ts,m4v,mj2,mkv,mov,mp4,mpeg,mpg,ogv,rmvb,ts,webm,wmv,y4m,rm");
+            set => _dataSetting.GetValue(nameof(VideoExts), value);
+        }
+
+        public int ThumbfastMaxWidth
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastMaxWidth), 200);
+            set => _dataSetting.GetValue(nameof(ThumbfastMaxWidth), value);
+        }
+
+        public int ThumbfastMaxHeight
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastMaxHeight), 2000);
+            set => _dataSetting.GetValue(nameof(ThumbfastMaxHeight), value);
+        }
+
+        public bool ThumbfastSpawnFirst
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastSpawnFirst), false);
+            set => _dataSetting.GetValue(nameof(ThumbfastSpawnFirst), value);
+        }
+
+        public int ThumbfastThreads
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastThreads), 6);
+            set => _dataSetting.GetValue(nameof(ThumbfastThreads), value);
+        }
+
+        public double ThumbfastFrequency
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastFrequency), 0.15);
+            set => _dataSetting.GetValue(nameof(ThumbfastFrequency), value);
+        }
     }
 }

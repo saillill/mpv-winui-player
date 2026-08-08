@@ -35,6 +35,11 @@ public static class PluginConfigWriter
             ["network"] = "no",
             ["min_duration"] = "0",
             ["precise"] = "0",
+            ["max_width"] = "200",
+            ["max_height"] = "2000",
+            ["spawn_first"] = "no",
+            ["sw_threads"] = "6",
+            ["frequency"] = "0.15",
         },
     };
 
@@ -51,6 +56,11 @@ public static class PluginConfigWriter
         Managed["thumbfast.conf"]["network"] = s.ThumbfastNetwork ? "yes" : "no";
         Managed["thumbfast.conf"]["min_duration"] = s.ThumbfastMinDuration.ToString();
         Managed["thumbfast.conf"]["precise"] = s.ThumbfastPrecise.ToString();
+        Managed["thumbfast.conf"]["max_width"] = s.ThumbfastMaxWidth.ToString();
+        Managed["thumbfast.conf"]["max_height"] = s.ThumbfastMaxHeight.ToString();
+        Managed["thumbfast.conf"]["spawn_first"] = s.ThumbfastSpawnFirst ? "yes" : "no";
+        Managed["thumbfast.conf"]["sw_threads"] = s.ThumbfastThreads.ToString();
+        Managed["thumbfast.conf"]["frequency"] = s.ThumbfastFrequency.ToString("0.##");
 
         var dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
