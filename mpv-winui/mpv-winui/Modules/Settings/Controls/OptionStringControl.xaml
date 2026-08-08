@@ -8,10 +8,10 @@
     mc:Ignorable="d">
 
     <Grid VerticalAlignment="Center">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="260" />
-        </Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="InputColumn" Width="260" />
+            </Grid.ColumnDefinitions>
         <StackPanel
             Grid.Column="0"
             VerticalAlignment="Center"
@@ -41,20 +41,24 @@
         <Grid
             Grid.Column="1"
             VerticalAlignment="Center">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <TextBox
                 x:Name="InputBox"
-                Grid.Column="0"
+                Grid.Row="0"
                 HorizontalAlignment="Stretch"
                 LostFocus="OnLostFocus"
                 KeyDown="OnKeyDown"
                 TextChanged="InputBox_TextChanged" />
             <StackPanel
-                Grid.Column="1"
+                x:Name="ButtonRow"
+                Grid.Row="1"
+                Margin="0,8,0,0"
+                HorizontalAlignment="Right"
                 Orientation="Horizontal"
+                Visibility="Collapsed"
                 Spacing="8">
                 <Button
                     x:Name="OpenButton"

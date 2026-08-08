@@ -67,6 +67,7 @@ public sealed partial class SettingsPage : Page
         var sVideoDecode = AppContext.AppLang.SectionVideoDecode;
         var sVideoImage = AppContext.AppLang.SectionVideoImage;
         var sVideoHdr = AppContext.AppLang.SectionVideoHdr;
+        var sVideoFilters = AppContext.AppLang.SectionVideoFilters;
         var sVideoUpscaling = AppContext.AppLang.SectionVideoUpscaling;
         var sAudioOutput = AppContext.AppLang.SectionAudioOutput;
         var sAudioVolume = AppContext.AppLang.SectionAudioVolume;
@@ -884,7 +885,6 @@ public sealed partial class SettingsPage : Page
                 Key = nameof(AppContext.AppSetting.AudioLanguage),
                 Label = lang.SettingsAudioLanguage,
                 Category = audio,
-                Description = lang.SettingsHelpAudioLanguage,
                 Type = OptionType.StringList,
                 Choices = LanguageChoices(true),
                 Getter = () => AppContext.AppSetting.AudioLanguage,
@@ -1171,7 +1171,6 @@ public sealed partial class SettingsPage : Page
                 Key = nameof(AppContext.AppSetting.SubtitleLanguage),
                 Label = lang.SettingsSubtitleLanguage,
                 Category = subtitles,
-                Description = lang.SettingsHelpSubtitleLanguage,
                 Type = OptionType.StringList,
                 Choices = LanguageChoices(true),
                 Getter = () => AppContext.AppSetting.SubtitleLanguage,
@@ -2481,14 +2480,18 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsThumbfastQuality,
                 Category = gpuRenderer,
                 Description = lang.SettingsHelpThumbfastQuality,
-                Type = OptionType.Integer,
-                Min = 1,
-                Max = 3,
-                Step = 1,
-                Getter = () => (double)AppContext.AppSetting.ThumbfastQuality,
+                Type = OptionType.StringList,
+                AllowCustom = false,
+                Choices =
+                [
+                    new OptionChoice("1", lang.OptionValueThumbfastQualityFast),
+                    new OptionChoice("2", lang.OptionValueThumbfastQualityBalanced),
+                    new OptionChoice("3", lang.OptionValueThumbfastQualityHighest),
+                ],
+                Getter = () => AppContext.AppSetting.ThumbfastQuality.ToString(),
                 Setter = v =>
                 {
-                    AppContext.AppSetting.ThumbfastQuality = Convert.ToInt32(v);
+                    AppContext.AppSetting.ThumbfastQuality = int.TryParse((string)v!, out var q) ? q : 2;
                     AppContext.WritePluginConfigs();
                 }
             },
@@ -2531,14 +2534,18 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsThumbfastPrecise,
                 Category = gpuRenderer,
                 Description = lang.SettingsHelpThumbfastPrecise,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 2,
-                Step = 1,
-                Getter = () => (double)AppContext.AppSetting.ThumbfastPrecise,
+                Type = OptionType.StringList,
+                AllowCustom = false,
+                Choices =
+                [
+                    new OptionChoice("0", lang.OptionValueThumbfastPreciseAuto),
+                    new OptionChoice("1", lang.OptionValueThumbfastPreciseKeyframes),
+                    new OptionChoice("2", lang.OptionValueThumbfastPreciseAlways),
+                ],
+                Getter = () => AppContext.AppSetting.ThumbfastPrecise.ToString(),
                 Setter = v =>
                 {
-                    AppContext.AppSetting.ThumbfastPrecise = Convert.ToInt32(v);
+                    AppContext.AppSetting.ThumbfastPrecise = int.TryParse((string)v!, out var p) ? p : 0;
                     AppContext.WritePluginConfigs();
                 }
             },
@@ -2721,6 +2728,10 @@ public sealed partial class SettingsPage : Page
             if (RedundantDescriptions.Contains(option.Key))
             {
                 option.Description = null;
+            }
+            if (NoCustomOptions.Contains(option.Key))
+            {
+                option.AllowCustom = false;
             }
         }
 
@@ -3222,9 +3233,9 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.Panscan)] = sVideoImage,
             [nameof(AppSettings.VideoUnscaled)] = sVideoImage,
             [nameof(AppSettings.VideoOutputLevels)] = sVideoImage,
-            [nameof(AppSettings.HdrAutoMode)] = sVideoHdr,
-            [nameof(AppSettings.HdrAutoLog)] = sVideoHdr,
-            [nameof(AppSettings.VsrAutoEnabled)] = sVideoUpscaling,
+            [nameof(AppSettings.HdrAutoMode)] = sVideoFilters,
+            [nameof(AppSettings.HdrAutoLog)] = sVideoFilters,
+            [nameof(AppSettings.VsrAutoEnabled)] = sVideoFilters,
             // audio
             [nameof(AppSettings.AudioDevice)] = sAudioOutput,
             [nameof(AppSettings.AudioExclusive)] = sAudioOutput,
@@ -3421,9 +3432,45 @@ public sealed partial class SettingsPage : Page
         return options;
     }
 
+    /// <summary>Options whose presets cover every legal value; the list control must not add a "Custom" entry.</summary>
+    private static readonly System.Collections.Generic.HashSet<string> NoCustomOptions = new(StringComparer.Ordinal)
+    {
+        nameof(AppContext.AppSetting.ThemeType),
+        nameof(AppContext.AppSetting.BackdropType),
+        nameof(AppContext.AppSetting.KeepOpen),
+        nameof(AppContext.AppSetting.LoopPlaylist),
+        nameof(AppContext.AppSetting.CacheEnabled),
+        nameof(AppContext.AppSetting.DirectoryMode),
+        nameof(AppContext.AppSetting.Deinterlace),
+        nameof(AppContext.AppSetting.VideoDecodeDirect),
+        nameof(AppContext.AppSetting.VideoUnscaled),
+        nameof(AppContext.AppSetting.VideoRotate),
+        nameof(AppContext.AppSetting.VideoOutputLevels),
+        nameof(AppContext.AppSetting.DitherDepth),
+        nameof(AppContext.AppSetting.AudioFileAuto),
+        nameof(AppContext.AppSetting.AudioGapless),
+        nameof(AppContext.AppSetting.AudioDisplay),
+        nameof(AppContext.AppSetting.SubAuto),
+        nameof(AppContext.AppSetting.SubAssOverride),
+        nameof(AppContext.AppSetting.SubAssUseVideoData),
+        nameof(AppContext.AppSetting.SubAssVsfilterColorCompat),
+        nameof(AppContext.AppSetting.BlendSubtitles),
+        nameof(AppContext.AppSetting.SubFallback),
+        nameof(AppContext.AppSetting.ScreenshotFormat),
+        nameof(AppContext.AppSetting.D3d11OutputCsp),
+        nameof(AppContext.AppSetting.TargetColorspaceHint),
+        nameof(AppContext.AppSetting.TargetColorspaceHintMode),
+        nameof(AppContext.AppSetting.OsdOnSeek),
+        nameof(AppContext.AppSetting.HdrAutoMode),
+        nameof(AppContext.AppSetting.ThumbfastQuality),
+        nameof(AppContext.AppSetting.ThumbfastPrecise),
+    };
+
     /// <summary>Options whose help text only restates the title (Windows Settings style: no redundant description).</summary>
     private static readonly System.Collections.Generic.HashSet<string> RedundantDescriptions = new(StringComparer.Ordinal)
     {
+        nameof(AppContext.AppSetting.AudioLanguage),
+        nameof(AppContext.AppSetting.SubtitleLanguage),
         nameof(AppContext.AppSetting.KeepOpen),
         nameof(AppContext.AppSetting.LoopFile),
         nameof(AppContext.AppSetting.LoopPlaylist),

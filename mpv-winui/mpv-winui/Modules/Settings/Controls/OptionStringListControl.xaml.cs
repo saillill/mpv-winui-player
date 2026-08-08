@@ -44,7 +44,10 @@ public sealed partial class OptionStringListControl : OptionControlBase
             {
                 _choices = newValue.Options.Select(o => new OptionChoice(o, o)).ToList();
             }
-            _choices.Add(new OptionChoice(CustomKey, mpv_winui.AppContext.AppLang.OptionValueCustom));
+            if (newValue.AllowCustom)
+            {
+                _choices.Add(new OptionChoice(CustomKey, mpv_winui.AppContext.AppLang.OptionValueCustom));
+            }
 
             Combo.Items.Clear();
             foreach (var choice in _choices)
@@ -62,6 +65,12 @@ public sealed partial class OptionStringListControl : OptionControlBase
                 }
                 else
                 {
+                    if (!newValue.AllowCustom)
+                    {
+                        Combo.SelectedIndex = _choices.Count > 0 ? 0 : -1;
+                        CustomRow.Visibility = Visibility.Collapsed;
+                        return;
+                    }
                     _lastCustom = current;
                     SelectCustom(showAndFocus: false);
                     CustomInput.Text = current;
@@ -102,13 +111,19 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
     private void SelectCustom(bool showAndFocus)
     {
+        var hasCustom = false;
         for (var i = 0; i < _choices.Count; i++)
         {
             if (_choices[i].Value == CustomKey)
             {
+                hasCustom = true;
                 Combo.SelectedIndex = i;
                 break;
             }
+        }
+        if (!hasCustom)
+        {
+            return;
         }
         CustomRow.Visibility = Visibility.Visible;
         if (showAndFocus)

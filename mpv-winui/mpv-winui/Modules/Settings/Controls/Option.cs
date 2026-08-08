@@ -45,6 +45,12 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Whether the list control adds a "Custom" entry for arbitrary values. Disabled when the presets cover every legal value.</summary>
+    public bool AllowCustom
+    {
+        get; set;
+    } = true;
+
     /// <summary>Show a "Browse..." button that opens the system folder picker.</summary>
     public bool PickFolder
     {

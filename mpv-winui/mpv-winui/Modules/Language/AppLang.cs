@@ -163,6 +163,7 @@ namespace mpv_winui.Modules.Language
         public string SectionVideoDecode { get; set; } = "Decoding";
         public string SectionVideoImage { get; set; } = "Image";
         public string SectionVideoHdr { get; set; } = "HDR & color";
+        public string SectionVideoFilters { get; set; } = "NVIDIA filters";
         public string SectionVideoUpscaling { get; set; } = "Upscaling";
         public string SectionAudioOutput { get; set; } = "Output";
         public string SectionAudioVolume { get; set; } = "Volume";
@@ -531,11 +532,9 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpDeband { get; set; } = "Remove color banding.";
         public string SettingsHelpToneMapping { get; set; } = "Algorithm used to map HDR content to SDR. BT.2390 is recommended; Clip preserves details but cuts highlights.";
         public string SettingsHelpHrSeek { get; set; } = "High-resolution seeking. On can be slower but more accurate.";
-        public string SettingsHelpAudioLanguage { get; set; } = "Preferred audio language codes (e.g. eng, chi, jpn). Empty means system default.";
         public string SettingsHelpAudioDevice { get; set; } = "Audio output device name returned by mpv (e.g. auto or wasapi/...).";
         public string SettingsHelpAudioDelay { get; set; } = "Audio delay in seconds. Negative values make audio earlier.";
         public string SettingsHelpAudioExclusive { get; set; } = "WASAPI exclusive mode. Can reduce latency but blocks other apps from the device.";
-        public string SettingsHelpSubtitleLanguage { get; set; } = "Preferred subtitle language codes (e.g. chi, eng). Empty means system default.";
         public string SettingsHelpSubAssOverride { get; set; } = "How strongly ASS/SSA subtitle styles are overridden. Scale (recommended) keeps layout; Strip removes styles and Force may break styled effects.";
         public string SettingsHelpSubEmbeddedFonts { get; set; } = "Use fonts embedded in the media container (e.g. MKV).";
         public string SettingsHelpSubUseMargins { get; set; } = "Render text subtitles in the black margins when available.";
@@ -607,6 +606,12 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpWatchLaterOptions { get; set; } = "Comma-separated properties saved with the playback position, e.g. start,vid,aid,sid.";
         public string SettingsHelpThumbfastNetwork { get; set; } = "Generate preview thumbnails for network streams. Takes effect on the next start.";
         public string SettingsHelpThumbfastPrecise { get; set; } = "Thumbnail seeking precision: 0 auto, 1 keyframes only, 2 always precise. Takes effect on the next start.";
+        public string OptionValueThumbfastQualityFast { get; set; } = "Fastest";
+        public string OptionValueThumbfastQualityBalanced { get; set; } = "Balanced";
+        public string OptionValueThumbfastQualityHighest { get; set; } = "Highest (slower)";
+        public string OptionValueThumbfastPreciseAuto { get; set; } = "Auto";
+        public string OptionValueThumbfastPreciseKeyframes { get; set; } = "Keyframes only";
+        public string OptionValueThumbfastPreciseAlways { get; set; } = "Always precise";
         public string SettingsHelpMetadataOsdShowChapter { get; set; } = "Show the current chapter number in the metadata OSD. Takes effect on the next start.";
         public string SettingsHelpCoverArtAlwaysScan { get; set; } = "Scan for cover art for any file type, not only audio files. Takes effect on the next start.";
         public string SettingsHelpIccProfile { get; set; } = "Load a specific ICC profile file. Leave empty to keep auto color management.";

@@ -34,7 +34,7 @@ assert len(keys) == 184, len(keys)
 #                sPlayback sPlaybackSeeking sPlaybackSeekPreview
 #                sTrackLanguage sTrackFallback
 #                sWatchLaterResume sWatchLaterStorage
-#                sVideoDecode sVideoImage sVideoHdr sVideoUpscaling
+#                sVideoDecode sVideoImage sVideoHdr sVideoFilters sVideoUpscaling
 #                sAudioOutput sAudioVolume sAudioExternal sAudioCoverArt
 #                sSubtitleText sSubtitleAss sSubtitleImage
 #                sWindow sDemuxerPlaylist sDemuxerBuffering sCache sInput
@@ -88,9 +88,9 @@ MAP = {
     "Panscan": ("video", "sVideoImage"),
     "VideoUnscaled": ("video", "sVideoImage"),
     "VideoOutputLevels": ("video", "sVideoImage"),
-    "HdrAutoMode": ("video", "sVideoHdr"),
-    "HdrAutoLog": ("video", "sVideoHdr"),
-    "VsrAutoEnabled": ("video", "sVideoUpscaling"),
+    "HdrAutoMode": ("video", "sVideoFilters"),
+    "HdrAutoLog": ("video", "sVideoFilters"),
+    "VsrAutoEnabled": ("video", "sVideoFilters"),
     # Audio
     "AudioDevice": ("audio", "sAudioOutput"),
     "AudioExclusive": ("audio", "sAudioOutput"),
