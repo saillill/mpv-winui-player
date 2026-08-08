@@ -35,6 +35,7 @@ namespace winrt::mpv_winrt::implementation
         Shuffle = 12,
         MenuData = 41,
         Playlist = 42,
+        Preview = 43,
         VoConfigured = 50,
 
         // donot change
@@ -165,6 +166,8 @@ namespace winrt::mpv_winrt::implementation
         void ShuffleChanged(winrt::event_token const& token) noexcept;
         winrt::event_token PlaylistChanged(winrt::mpv_winrt::PlaylistChangedEventHandler const& handler);
         void PlaylistChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token PreviewChanged(winrt::mpv_winrt::PreviewChangedEventHandler const& handler);
+        void PreviewChanged(winrt::event_token const& token) noexcept;
 
     private:
         static mpv_node* FindMapField(mpv_node* map, const char* key);
@@ -212,6 +215,7 @@ namespace winrt::mpv_winrt::implementation
         winrt::event<winrt::mpv_winrt::LoopPlaylistChangedEventHandler> m_loopPlaylistChangedEvent;
         winrt::event<winrt::mpv_winrt::ShuffleChangedEventHandler> m_shuffleChangedEvent;
         winrt::event<winrt::mpv_winrt::PlaylistChangedEventHandler> m_playlistChangedEvent;
+        winrt::event<winrt::mpv_winrt::PreviewChangedEventHandler> m_previewChangedEvent;
     };
 }
 

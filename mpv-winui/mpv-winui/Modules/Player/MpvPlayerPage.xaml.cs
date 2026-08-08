@@ -5,9 +5,11 @@ using Microsoft.UI.Xaml.Navigation;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.FileSystem;
+using mpv_winui.Modules.Settings;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace mpv_winui.Modules.Player
@@ -64,7 +66,21 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.StartListen();
 
+                AppContext.RunMpvCommand = cmd => _mediaPlayer.RunCommandAsync(cmd).FireAndForget(OnException);
+                AppContext.GetAudioDevices = () => _mediaPlayer.AudioDevices();
+                var lang = AppContext.AppSetting.CurrentLanguage;
+                if (string.IsNullOrWhiteSpace(lang)) lang = "en-US";
+                AppContext.SendMpvCommand($"set user-data/mpvw/language {lang}");
+                var mpvCli = Path.Combine(System.AppContext.BaseDirectory, "mpv.exe");
+                if (File.Exists(mpvCli))
+                {
+                    AppContext.SendMpvCommand($"set user-data/mpvw/mpv-exe \"{mpvCli}\"");
+                }
+                MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
+
                 SetupKeyboardInput();
+                AppContext.SettingChanged += AppContext_SettingChanged;
+                AppContext.LanguageChanged += AppContext_LanguageChanged;
                 SetupPreview();
 
                 OpenPendingPath().FireAndForget(OnException);
@@ -77,6 +93,12 @@ namespace mpv_winui.Modules.Player
 
         private void MpvPlayerPage_Unloaded(object sender, RoutedEventArgs e)
         {
+            AppContext.RunMpvCommand = null;
+            AppContext.GetAudioDevices = null;
+            _sleepTimer?.Stop();
+            _sleepTimer = null;
+            AppContext.SettingChanged -= AppContext_SettingChanged;
+            AppContext.LanguageChanged -= AppContext_LanguageChanged;
             CleanupDisplayInfo();
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
@@ -88,6 +110,35 @@ namespace mpv_winui.Modules.Player
             CleanupKeyboardInput();
             CleanupPreview();
             _mediaPlayer.Close();
+        }
+
+        private void AppContext_SettingChanged(string key, object? value)
+        {
+            if (key == nameof(AppContext.AppSetting.EnableVideoPreview))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    var enabled = value is bool b && b;
+                    PlayerControl.EnablePreviewEvents(enabled);
+                    if (enabled)
+                    {
+                        SetupPreview();
+                    }
+                    else
+                    {
+                        CleanupPreview();
+                    }
+                });
+            }
+        }
+
+        private void AppContext_LanguageChanged()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                ApplyLocalizedStrings();
+                PlayerControl.ApplyLocalizedStrings();
+            });
         }
 
         private async Task CreateAsync()

@@ -6,6 +6,8 @@ namespace mpv_winui.Modules.Settings.Controls;
 
 public sealed partial class OptionBooleanControl : OptionControlBase
 {
+    private bool _loading;
+
     public OptionBooleanControl()
     {
         InitializeComponent();
@@ -16,25 +18,36 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
+            UpdateDescription(DescriptionText);
+            ToggleSwitch.OnContent = mpv_winui.AppContext.AppLang.OptionValueOn;
+            ToggleSwitch.OffContent = mpv_winui.AppContext.AppLang.OptionValueOff;
+            ToggleSwitch.IsEnabled = newValue.IsEnabled;
 
-            if (newValue.Getter is Func<object?> func)
+            _loading = true;
+            try
             {
-                if (func() is bool value)
+                if (newValue.Getter is Func<object?> func)
                 {
-                    ToggleSwitch.IsOn = value;
+                    ToggleSwitch.IsOn = func() is bool value && value;
                 }
-                else
-                {
-                    ToggleSwitch.IsOn = false;
-                }
+            }
+            finally
+            {
+                _loading = false;
             }
         }
     }
     public override (bool IsValid, string? ErrorMessage) Validate() => (true, null);
 
+    protected override void OnOptionStateChanged()
+    {
+        UpdateWarning(WarningText);
+        ToggleSwitch.IsEnabled = Setting?.IsEnabled ?? true;
+    }
+
     private void OnToggled(object sender, RoutedEventArgs e)
     {
-        if (Setting?.Setter is not null)
+        if (!_loading && Setting?.Setter is not null)
         {
             Setting?.Setter?.Invoke(ToggleSwitch.IsOn);
         }

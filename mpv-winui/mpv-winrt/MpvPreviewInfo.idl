@@ -1,0 +1,9 @@
+namespace mpv_winrt
+{
+	runtimeclass MpvPreviewInfo
+	{
+		Int32 Width { get; };
+		Int32 Height { get; };
+		String Path { get; };
+	};
+}

@@ -5,6 +5,7 @@ namespace mpv_winui.Modules.Settings.Controls;
 
 public partial class OptionTemplateSelector : DataTemplateSelector
 {
+    public DataTemplate SectionHeaderTemplate { get; set; } = null!;
     public DataTemplate BooleanTemplate { get; set; } = null!;
     public DataTemplate TextTemplate { get; set; } = null!;
     public DataTemplate IntegerTemplate { get; set; } = null!;
@@ -13,6 +14,10 @@ public partial class OptionTemplateSelector : DataTemplateSelector
 
     protected override DataTemplate SelectTemplateCore(object item)
     {
+        if (item is SectionHeaderItem)
+        {
+            return SectionHeaderTemplate;
+        }
         if (item is Option option)
         {
             return option.Type switch
