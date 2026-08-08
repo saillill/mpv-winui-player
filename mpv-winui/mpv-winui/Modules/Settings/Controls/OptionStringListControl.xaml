@@ -11,8 +11,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid
             Grid.Row="0"
@@ -21,16 +19,32 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="260" />
             </Grid.ColumnDefinitions>
-            <TextBlock
-                x:Name="LabelText"
+            <StackPanel
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Style="{StaticResource BodyTextBlockStyle}"
-                TextWrapping="Wrap" />
+                Spacing="2">
+                <TextBlock
+                    x:Name="LabelText"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="DescriptionText"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed" />
+                <TextBlock
+                    x:Name="WarningText"
+                    Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed" />
+            </StackPanel>
             <ComboBox
                 x:Name="Combo"
                 Grid.Column="1"
                 HorizontalAlignment="Stretch"
+                VerticalAlignment="Center"
                 SelectionChanged="OnSelectionChanged" />
         </Grid>
         <Grid
@@ -57,21 +71,5 @@
                 KeyDown="OnCustomKeyDown"
                 LostFocus="OnCustomLostFocus" />
         </Grid>
-        <TextBlock
-            x:Name="DescriptionText"
-            Grid.Row="2"
-            Margin="0,2,0,0"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
-        <TextBlock
-            x:Name="WarningText"
-            Grid.Row="3"
-            Margin="0,2,0,0"
-            Foreground="{ThemeResource SystemFillColorCautionBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
     </Grid>
 </local:OptionControlBase>

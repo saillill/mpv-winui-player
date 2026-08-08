@@ -9,55 +9,43 @@
     mc:Ignorable="d">
 
     <Grid VerticalAlignment="Center">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <Grid
-            Grid.Row="0"
-            ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="260" />
-            </Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="260" />
+        </Grid.ColumnDefinitions>
+        <StackPanel
+            Grid.Column="0"
+            VerticalAlignment="Center"
+            Spacing="2">
             <TextBlock
                 x:Name="LabelText"
-                Grid.Column="0"
-                VerticalAlignment="Center"
                 Style="{StaticResource BodyTextBlockStyle}"
                 TextWrapping="Wrap" />
-            <ws:NumberBox
-                x:Name="NumberBox"
-                Grid.Column="1"
-                HorizontalAlignment="Stretch"
-                LostFocus="OnLostFocus"
-                SpinButtonPlacementMode="Inline"
-                ValueChanged="OnValueChanged" />
-        </Grid>
-        <TextBlock
-            x:Name="DescriptionText"
-            Grid.Row="1"
-            Margin="0,2,0,0"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
-        <TextBlock
-            x:Name="ErrorText"
-            Grid.Row="2"
-            Margin="0,2,0,0"
-            Foreground="{ThemeResource SystemErrorTextColor}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            Visibility="Collapsed" />
-        <TextBlock
-            x:Name="WarningText"
-            Grid.Row="3"
-            Margin="0,2,0,0"
-            Foreground="{ThemeResource SystemFillColorCautionBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
+            <TextBlock
+                x:Name="DescriptionText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+            <TextBlock
+                x:Name="ErrorText"
+                Foreground="{ThemeResource SystemErrorTextColor}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Visibility="Collapsed" />
+            <TextBlock
+                x:Name="WarningText"
+                Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+        </StackPanel>
+        <ws:NumberBox
+            x:Name="NumberBox"
+            Grid.Column="1"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Center"
+            LostFocus="OnLostFocus"
+            SpinButtonPlacementMode="Inline"
+            ValueChanged="OnValueChanged" />
     </Grid>
 </local:OptionControlBase>

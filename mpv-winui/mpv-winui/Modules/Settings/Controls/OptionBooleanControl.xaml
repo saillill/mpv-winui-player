@@ -8,46 +8,37 @@
     mc:Ignorable="d">
 
     <Grid VerticalAlignment="Center">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <Grid
-            Grid.Row="0"
-            ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel
+            Grid.Column="0"
+            VerticalAlignment="Center"
+            Spacing="2">
             <TextBlock
                 x:Name="LabelText"
-                Grid.Column="0"
-                VerticalAlignment="Center"
                 Style="{StaticResource BodyTextBlockStyle}"
                 TextWrapping="Wrap" />
-            <ToggleSwitch
-                x:Name="ToggleSwitch"
-                Grid.Column="1"
-                HorizontalAlignment="Right"
-                FlowDirection="RightToLeft"
-                Toggled="OnToggled" />
-        </Grid>
-        <TextBlock
-            x:Name="DescriptionText"
-            Grid.Row="1"
-            Margin="0,2,0,0"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
-        <TextBlock
-            x:Name="WarningText"
-            Grid.Row="2"
-            Margin="0,2,0,0"
-            Foreground="{ThemeResource SystemFillColorCautionBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
+            <TextBlock
+                x:Name="DescriptionText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+            <TextBlock
+                x:Name="WarningText"
+                Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+        </StackPanel>
+        <ToggleSwitch
+            x:Name="ToggleSwitch"
+            Grid.Column="1"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+            FlowDirection="RightToLeft"
+            Toggled="OnToggled" />
     </Grid>
 </local:OptionControlBase>
