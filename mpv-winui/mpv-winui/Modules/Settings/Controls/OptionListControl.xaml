@@ -11,8 +11,8 @@
         <DataTemplate x:Key="BooleanTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,16"
-                Padding="16,8,16,12"
+                Margin="0,0,0,12"
+                Padding="16,12,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -25,8 +25,8 @@
         <DataTemplate x:Key="TextTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,16"
-                Padding="16,8,16,12"
+                Margin="0,0,0,12"
+                Padding="16,12,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -39,8 +39,8 @@
         <DataTemplate x:Key="IntegerTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,16"
-                Padding="16,8,16,12"
+                Margin="0,0,0,12"
+                Padding="16,12,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -53,8 +53,8 @@
         <DataTemplate x:Key="DoubleTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,16"
-                Padding="16,8,16,12"
+                Margin="0,0,0,12"
+                Padding="16,12,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -67,8 +67,8 @@
         <DataTemplate x:Key="TextListTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,16"
-                Padding="16,8,16,12"
+                Margin="0,0,0,12"
+                Padding="16,12,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
