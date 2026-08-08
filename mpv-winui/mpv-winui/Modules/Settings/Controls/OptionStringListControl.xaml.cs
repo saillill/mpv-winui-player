@@ -17,7 +17,7 @@ public sealed partial class OptionStringListControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
-            UpdateHelpButton(HelpButton);
+            UpdateDescription(DescriptionText);
 
             _loading = true;
             Combo.Items.Clear();

@@ -7,37 +7,37 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid ColumnSpacing="12">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid
+            Grid.Row="0"
+            ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                x:Name="LabelText"
+                VerticalAlignment="Center"
+                Style="{StaticResource BodyTextBlockStyle}"
+                TextWrapping="Wrap" />
+            <ToggleSwitch
+                x:Name="ToggleSwitch"
+                Grid.Column="1"
+                HorizontalAlignment="Right"
+                FlowDirection="RightToLeft"
+                Toggled="OnToggled" />
+        </Grid>
         <TextBlock
-            x:Name="LabelText"
-            VerticalAlignment="Center"
-            Style="{StaticResource BodyTextBlockStyle}"
-            TextWrapping="Wrap" />
-        <Button
-            x:Name="HelpButton"
-            Grid.Column="1"
-            Padding="6"
-            VerticalAlignment="Center"
-            AutomationProperties.Name="Help"
-            Background="Transparent"
-            BorderThickness="0"
-            ToolTipService.ToolTip=""
-            Visibility="Collapsed">
-            <FontIcon
-                FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                FontSize="14"
-                Glyph="&#xE946;" />
-        </Button>
-        <ToggleSwitch
-            x:Name="ToggleSwitch"
-            Grid.Column="2"
-            HorizontalAlignment="Right"
-            FlowDirection="RightToLeft"
-            Toggled="OnToggled" />
+            x:Name="DescriptionText"
+            Grid.Row="1"
+            Margin="0,2,0,0"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            TextWrapping="Wrap"
+            Visibility="Collapsed" />
     </Grid>
 </local:OptionControlBase>

@@ -7,10 +7,14 @@ namespace mpv_winui.Modules.Settings;
 
 public sealed partial class SettingsWindow : Window
 {
+    /// <summary>The currently open settings window (used to own folder/file pickers).</summary>
+    public static SettingsWindow? Instance { get; private set; }
+
     private WindowStyleManager? _styleManager;
 
     public SettingsWindow()
     {
+        Instance = this;
         InitializeComponent();
         SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
 
@@ -26,6 +30,10 @@ public sealed partial class SettingsWindow : Window
 
     private void SettingsWindow_Closed(object sender, WindowEventArgs args)
     {
+        if (ReferenceEquals(Instance, this))
+        {
+            Instance = null;
+        }
         Closed -= SettingsWindow_Closed;
         _styleManager?.Dispose();
         _styleManager = null;
