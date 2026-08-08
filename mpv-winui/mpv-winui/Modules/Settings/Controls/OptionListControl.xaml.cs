@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,31 +29,6 @@ public sealed partial class OptionListControl : UserControl
                 self.ApplyItemsSource();
             }
         }));
-
-    private void OnContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
-    {
-        if (args.InRecycleQueue)
-        {
-            return;
-        }
-
-        if (args.Item is SectionHeaderItem)
-        {
-            args.Handled = true;
-            return;
-        }
-
-        if (args.Item is not Option option)
-        {
-            return;
-        }
-
-        if (args.ItemContainer.ContentTemplateRoot is OptionControlBase control)
-        {
-            control.Setting = option;
-        }
-        args.Handled = true;
-    }
 
     public List<Option> OptionList
     {
