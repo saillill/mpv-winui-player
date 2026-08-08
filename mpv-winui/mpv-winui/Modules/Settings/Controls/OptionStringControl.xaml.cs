@@ -3,6 +3,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.Storage.Pickers;
 using System;
+using System.IO;
+using Windows.System;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
@@ -24,6 +26,8 @@ public sealed partial class OptionStringControl : OptionControlBase
 
             BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
             BrowseButton.Visibility = newValue.PickFolder ? Visibility.Visible : Visibility.Collapsed;
+            OpenButton.Content = mpv_winui.AppContext.AppLang.Open;
+            OpenButton.Visibility = newValue.OpenFolder ? Visibility.Visible : Visibility.Collapsed;
 
             _loading = true;
             try
@@ -106,6 +110,28 @@ public sealed partial class OptionStringControl : OptionControlBase
         catch (Exception ex)
         {
             mpv_winui.AppContext.AppLogger.Error(ex, "Failed to pick folder");
+        }
+    }
+
+    private async void OnOpenFolderClick(object sender, RoutedEventArgs e)
+    {
+        var path = InputBox.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        try
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            await Launcher.LaunchFolderPathAsync(path);
+        }
+        catch (Exception ex)
+        {
+            mpv_winui.AppContext.AppLogger.Error(ex, "Failed to open folder");
         }
     }
 }

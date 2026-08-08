@@ -11,8 +11,13 @@ hdr_auto.lua），输出分辨率随之在 源尺寸 与 滤镜后尺寸 之间�
 
 local saved = nil
 local release_timer = nil
+local enabled = true
 
 local function release_hold()
+	if release_timer then
+		release_timer:kill()
+		release_timer = nil
+	end
 	release_timer = nil
 	if saved ~= nil then
 		mp.set_property("auto-window-resize", saved)
@@ -35,6 +40,9 @@ local function hold()
 end
 
 local function update()
+	if not enabled then
+		return
+	end
 	local seeking = mp.get_property("seeking") == "yes"
 	local paused = mp.get_property("pause") == "yes"
 
@@ -46,6 +54,14 @@ local function update()
 	release_timer = mp.add_timeout(1.5, release_hold)
 	end
 end
+
+-- 设置窗口“Seek 时保持窗口大小”开关：应用写入 user-data/mpvw/seek-hold
+mp.observe_property("user-data/mpvw/seek-hold", "native", function(_, val)
+	enabled = val ~= false
+	if not enabled then
+		release_hold()
+	end
+end)
 
 mp.observe_property("seeking", "native", update)
 mp.observe_property("pause", "native", update)

@@ -19,8 +19,8 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            ToggleSwitch.OnContent = mpv_winui.AppContext.AppLang.Yes;
-            ToggleSwitch.OffContent = mpv_winui.AppContext.AppLang.No;
+            ToggleSwitch.OnContent = mpv_winui.AppContext.AppLang.OptionValueOn;
+            ToggleSwitch.OffContent = mpv_winui.AppContext.AppLang.OptionValueOff;
 
             _loading = true;
             try

@@ -25,6 +25,7 @@ end
 
 local updating = false
 local seek_suspended = false
+local enabled = true
 
 local function vf_list()
 	return mp.get_property_native("vf") or {}
@@ -78,6 +79,14 @@ local function sync_vsr()
 
 	local vf = vf_list()
 	local has = has_vsr(vf)
+	if not enabled then
+		if has then
+			mp.commandv("vf", "remove", "@vsr")
+			msg.verbose("VSR 已被设置禁用，已移除 @vsr")
+		end
+		updating = false
+		return
+	end
 	if has_other_filters(vf) then
 		if has then
 			mp.commandv("vf", "remove", "@vsr")
@@ -104,6 +113,13 @@ mp.observe_property("video-params", "native", sync_vsr)
 mp.observe_property("current-tracks/video/albumart", "native", sync_vsr)
 mp.observe_property("current-tracks/video/image", "native", sync_vsr)
 mp.register_event("file-loaded", sync_vsr)
+
+-- 设置窗口“自动 VSR”开关：应用写入 user-data/mpvw/vsr-auto
+mp.observe_property("user-data/mpvw/vsr-auto", "native", function(_, val)
+	enabled = val ~= false
+	msg.verbose("VSR auto enabled = " .. tostring(enabled))
+	sync_vsr()
+end)
 
 -- 跳转/拖拽期间临时摘掉 @vsr：精确 seek 不再被 VSR 拖慢，恢复播放时挂回
 mp.observe_property("seeking", "native", function(_, val)

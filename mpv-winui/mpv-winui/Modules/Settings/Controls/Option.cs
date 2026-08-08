@@ -50,6 +50,12 @@ public sealed class Option
         get; set;
     }
 
+    /// <summary>Show an "Open" button that opens the folder in File Explorer.</summary>
+    public bool OpenFolder
+    {
+        get; set;
+    }
+
     public OptionType Type
     {
         get; set;

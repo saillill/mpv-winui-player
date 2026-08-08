@@ -27,7 +27,7 @@ mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com
 | `script-opts/` | 脚本选项（`dyn_menu.conf` 控制菜单数据通道与标题长度上限） |
 | `shaders/` | 可选着色器，许可证见各文件头 |
 | `vs/` | 可选 VapourSynth 脚本（需自行安装 VapourSynth 运行库） |
-| `fonts/` | OSD 菜单字体（Source Han Sans / LXGW WenKai） |
+| `fonts/` | 随包可选字体（Source Han Sans / LXGW WenKai）；OSD 与字幕默认使用系统 `sans-serif`，可在设置中切换 |
 | `MediaInfo.exe` | MediaInfo CLI v26.05（BSD-2-Clause，`工具 > MediaInfo` 用） |
 | `licenses/` | 随包第三方许可证全文（MediaInfo BSD-2-Clause） |
 

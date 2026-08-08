@@ -37,6 +37,13 @@
                     KeyDown="OnKeyDown"
                     TextChanged="InputBox_TextChanged" />
                 <Button
+                    x:Name="OpenButton"
+                    MinWidth="96"
+                    VerticalAlignment="Center"
+                    Click="OnOpenFolderClick"
+                    Content="Open"
+                    Visibility="Collapsed" />
+                <Button
                     x:Name="BrowseButton"
                     MinWidth="96"
                     VerticalAlignment="Center"
