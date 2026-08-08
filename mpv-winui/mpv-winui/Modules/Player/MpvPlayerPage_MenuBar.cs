@@ -85,6 +85,9 @@ namespace mpv_winui.Modules.Player
                         case "about":
                             await ShowAboutDialogAsync();
                             break;
+                        case "mpv-docs":
+                            await Launcher.LaunchUriAsync(new Uri("https://mpv.io/manual/master/"));
+                            break;
                         case "quit":
                             AppQuit();
                             break;

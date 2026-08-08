@@ -46,6 +46,67 @@ local options = {
 }
 mp.options.read_options(options)
 
+-- ===== OSD 提示本地化（跟随 App 界面语言） =====
+local osd_i18n = {
+    ["en-US"] = {
+        ["thumbfast 子进程创建失败！"] = "thumbfast: failed to create child process!",
+        ["缩略图功能已重启"] = "Thumbnail function restarted",
+        ["缩略图功能已临时禁用"] = "Thumbnail function temporarily disabled",
+        ["缩略图功能已临时启用"] = "Thumbnail function temporarily enabled",
+        ["缩略图已变更首选解码API："] = "Thumbnail preferred decode API changed to: ",
+    },
+    ["ja-JP"] = {
+        ["thumbfast 子进程创建失败！"] = "thumbfast：子プロセスの作成に失敗しました！",
+        ["缩略图功能已重启"] = "サムネイル機能を再起動しました",
+        ["缩略图功能已临时禁用"] = "サムネイル機能を一時的に無効化しました",
+        ["缩略图功能已临时启用"] = "サムネイル機能を一時的に有効化しました",
+        ["缩略图已变更首选解码API："] = "サムネイルの優先デコードAPIを変更：",
+    },
+    ["ko-KR"] = {
+        ["thumbfast 子进程创建失败！"] = "thumbfast: 하위 프로세스를 만들지 못했습니다!",
+        ["缩略图功能已重启"] = "썸네일 기능을 다시 시작했습니다",
+        ["缩略图功能已临时禁用"] = "썸네일 기능을 일시적으로 비활성화했습니다",
+        ["缩略图功能已临时启用"] = "썸네일 기능을 일시적으로 활성화했습니다",
+        ["缩略图已变更首选解码API："] = "썸네일 기본 디코딩 API 변경: ",
+    },
+    ["de-DE"] = {
+        ["thumbfast 子进程创建失败！"] = "thumbfast: Erstellen des Unterprozesses fehlgeschlagen!",
+        ["缩略图功能已重启"] = "Miniaturfunktion neu gestartet",
+        ["缩略图功能已临时禁用"] = "Miniaturfunktion vorübergehend deaktiviert",
+        ["缩略图功能已临时启用"] = "Miniaturfunktion vorübergehend aktiviert",
+        ["缩略图已变更首选解码API："] = "Bevorzugte Dekodier-API der Miniaturen geändert: ",
+    },
+    ["fr-FR"] = {
+        ["thumbfast 子进程创建失败！"] = "thumbfast : échec de la création du sous-processus !",
+        ["缩略图功能已重启"] = "Fonction de miniatures redémarrée",
+        ["缩略图功能已临时禁用"] = "Fonction de miniatures temporairement désactivée",
+        ["缩略图功能已临时启用"] = "Fonction de miniatures temporairement activée",
+        ["缩略图已变更首选解码API："] = "API de décodage préférée des miniatures modifiée : ",
+    },
+    ["es-ES"] = {
+        ["thumbfast 子进程创建失败！"] = "thumbfast: error al crear el subproceso.",
+        ["缩略图功能已重启"] = "Función de miniaturas reiniciada",
+        ["缩略图功能已临时禁用"] = "Función de miniaturas desactivada temporalmente",
+        ["缩略图功能已临时启用"] = "Función de miniaturas activada temporalmente",
+        ["缩略图已变更首选解码API："] = "API de decodificación preferida cambiada a: ",
+    },
+    ["ru-RU"] = {
+        ["thumbfast 子进程创建失败！"] = "thumbfast: не удалось создать дочерний процесс!",
+        ["缩略图功能已重启"] = "Функция миниатюр перезапущена",
+        ["缩略图功能已临时禁用"] = "Функция миниатюр временно отключена",
+        ["缩略图功能已临时启用"] = "Функция миниатюр временно включена",
+        ["缩略图已变更首选解码API："] = "Предпочтительный API декодирования изменён: ",
+    },
+}
+
+local function _(s)
+    local t = osd_i18n[mp.get_property_native("user-data/mpvw/language") or "en-US"]
+    if t and t[s] then
+        return t[s]
+    end
+    return s
+end
+
 if options.load == false then
     mp.msg.info("脚本已被初始化禁用")
     return
@@ -239,6 +300,13 @@ if mpv_path == "default" or mpv_path == "bundle" then
     end
 end
 
+-- WinUI 把应用目录下的 mpv.exe 写入 user-data/mpvw/mpv-exe，优先使用它
+mp.observe_property("user-data/mpvw/mpv-exe", "native", function(_, val)
+    if type(val) == "string" and val ~= "" then
+        mpv_path = val
+    end
+end)
+
 local function auto_ui_scale()
     local display_w, display_h = mp.get_property_number('display-width', 0), mp.get_property_number('display-height', 0)
     local display_aspect = display_w / display_h or 0
@@ -426,7 +494,7 @@ local function spawn(time)
                 spawn_waiting = false
                 mp.msg.error("mpv subprocess create failed")
                 if not spawn_working then -- notify users of required configuration
-                    mp.commandv("show-text", "thumbfast 子进程创建失败！", 5)
+                    mp.commandv("show-text", _("thumbfast 子进程创建失败！"), 5)
                 end
             elseif success == true and result.status == 0 then
                 spawn_working = true
@@ -775,6 +843,42 @@ mp.observe_property("edition", "native", sync_changes)
 mp.register_script_message("thumb", thumb)
 mp.register_script_message("clear", clear)
 
+-- WinUI 进度条预览：应用把悬停时间写入 user-data/osc/hover-sec，
+-- 把预览区域写入 user-data/osc/draw-preview，这里转交给 thumbfast 绘制。
+local hover_sec_cur = nil
+local draw_preview_cur = nil
+
+local function preview_update()
+    mp.msg.verbose("preview_update: disabled=" .. tostring(disabled) .. " hover=" .. tostring(hover_sec_cur) .. " draw=" .. tostring(draw_preview_cur ~= nil))
+    if disabled then
+        return
+    end
+    if hover_sec_cur ~= nil and draw_preview_cur ~= nil then
+        mp.commandv("script-message-to", "thumbfast", "thumb",
+            tostring(hover_sec_cur),
+            tostring(draw_preview_cur.x),
+            tostring(draw_preview_cur.y))
+    else
+        clear()
+    end
+end
+
+mp.observe_property("user-data/osc/hover-sec", "native", function(_, val)
+    hover_sec_cur = val
+    mp.msg.verbose("hover-sec = " .. tostring(val))
+    preview_update()
+end)
+
+mp.observe_property("user-data/osc/draw-preview", "native", function(_, val)
+    mp.msg.verbose("draw-preview changed")
+    if type(val) == "table" then
+        draw_preview_cur = val
+    else
+        draw_preview_cur = nil
+    end
+    preview_update()
+end)
+
 mp.register_event("file-loaded", file_load)
 mp.register_event("shutdown", shutdown)
 
@@ -783,7 +887,7 @@ mp.add_key_binding(nil, "thumb_rerun", function()
     shutdown()
     auto_run = true
     file_load()
-    mp.osd_message("缩略图功能已重启", 2)
+    mp.osd_message(_("缩略图功能已重启"), 2)
     mp.msg.info("缩略图功能已重启")
 end)
 mp.add_key_binding(nil, "thumb_toggle", function()
@@ -792,12 +896,12 @@ mp.add_key_binding(nil, "thumb_toggle", function()
         clear()
         shutdown()
         file_load()
-        mp.osd_message("缩略图功能已临时禁用", 2)
+        mp.osd_message(_("缩略图功能已临时禁用"), 2)
         mp.msg.info("缩略图功能已临时禁用")
     else
         auto_run = true
         file_load()
-        mp.osd_message("缩略图功能已临时启用", 2)
+        mp.osd_message(_("缩略图功能已临时启用"), 2)
         mp.msg.info("缩略图功能已临时启用")
     end
 end)
@@ -812,7 +916,7 @@ mp.register_script_message("thumb_hwdec", function(hwdec_api)
         end
     end
     options.hwdec = hwdec_api
-    mp.osd_message("缩略图已变更首选解码API：" .. hwdec_api, 2)
+    mp.osd_message(_("缩略图已变更首选解码API：") .. hwdec_api, 2)
     mp.msg.info("缩略图已变更首选解码API：" .. hwdec_api)
     clear()
     shutdown()

@@ -1,8 +1,10 @@
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Language;
 using mpv_winui.Modules.Settings;
+using mpv_winrt;
 using NLog;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,6 +23,9 @@ namespace mpv_winui
 
         /// <summary>由播放页在 mpv 初始化后挂接，用于把设置即时下发到 mpv。</summary>
         public static Action<string>? RunMpvCommand { get; set; }
+
+        /// <summary>由播放页挂接，用于设置页动态枚举 mpv 音频输出设备。</summary>
+        public static Func<IReadOnlyList<MpvAudioDevice>>? GetAudioDevices { get; set; }
 
         public static void SendMpvCommand(string cmd) => RunMpvCommand?.Invoke(cmd);
 

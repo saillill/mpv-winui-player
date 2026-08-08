@@ -391,6 +391,7 @@ namespace mpv_winui.Modules.Player
                             "conf-folder" => AppContext.AppLang.ViewConfFolder,
                             "mpv-folder" => AppContext.AppLang.ViewMpvFolder,
                             "about" => AppContext.AppLang.HelpAbout,
+                            "mpv-docs" => AppContext.AppLang.HelpMpvDocs,
                             _ => mi.Text,
                         };
                     }
