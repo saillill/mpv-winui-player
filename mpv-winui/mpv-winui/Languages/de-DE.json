@@ -527,5 +527,12 @@
   "SettingsHelpDirectoryFilterTypes": "Dateitypen für die Wiedergabeliste beim Öffnen eines Ordners: video,audio,image,archive,playlist.",
   "SettingsHelpVideoExts": "Erkannte Videoerweiterungen für die Wiedergabeliste, kommasepariert.",
   "SettingsHelpThumbfastSpawnFirst": "Thumbnails direkt nach dem Laden erzeugen. Wirkt beim nächsten Start.",
-  "SettingsHelpThumbfastThreads": "Software-Decoder-Threads für Thumbnails. Wirkt beim nächsten Start."
+  "SettingsHelpThumbfastThreads": "Software-Decoder-Threads für Thumbnails. Wirkt beim nächsten Start.",
+  "SettingsD3d11Adapter": "D3D11-Adapter",
+  "SettingsImageExts": "Bilderweiterungen",
+  "SettingsAudioExts": "Audioerweiterungen",
+  "SettingsOsdOutlineColor": "OSD-Konturfarbe",
+  "SettingsGlslShadersAppend": "Zusätzliche GLSL-Shader",
+  "SettingsHelpD3d11Adapter": "GPU im D3D11-Modus, z. B. NVIDIA GeForce RTX 4070 Ti Super. Leer = Systemstandard.",
+  "SettingsHelpGlslShadersAppend": "Zusätzliche GLSL-Shader beim Start, durch Semikolons getrennt."
 }

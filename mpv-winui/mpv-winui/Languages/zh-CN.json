@@ -527,5 +527,12 @@
   "SettingsHelpDirectoryFilterTypes": "打开文件夹时收集进播放列表的文件类型：video,audio,image,archive,playlist。",
   "SettingsHelpVideoExts": "收集播放列表时识别的视频扩展名，逗号分隔。",
   "SettingsHelpThumbfastSpawnFirst": "文件加载后立即开始生成缩略图，下次启动生效。",
-  "SettingsHelpThumbfastThreads": "缩略图使用的软解线程数，下次启动生效。"
+  "SettingsHelpThumbfastThreads": "缩略图使用的软解线程数，下次启动生效。",
+  "SettingsD3d11Adapter": "D3D11 显卡",
+  "SettingsImageExts": "图片扩展名",
+  "SettingsAudioExts": "音频扩展名",
+  "SettingsOsdOutlineColor": "OSD 描边颜色",
+  "SettingsGlslShadersAppend": "附加 GLSL 着色器",
+  "SettingsHelpD3d11Adapter": "D3D11 模式下使用的显卡，例如 NVIDIA GeForce RTX 4070 Ti Super；留空使用系统默认。",
+  "SettingsHelpGlslShadersAppend": "启动时额外加载的 GLSL 着色器文件，用分号分隔。"
 }

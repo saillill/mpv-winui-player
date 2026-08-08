@@ -527,5 +527,12 @@
   "SettingsHelpDirectoryFilterTypes": "Types de fichiers collectés dans la liste : video,audio,image,archive,playlist.",
   "SettingsHelpVideoExts": "Extensions vidéo reconnues pour la liste, séparées par des virgules.",
   "SettingsHelpThumbfastSpawnFirst": "Génère les vignettes dès le chargement. Effectif au prochain démarrage.",
-  "SettingsHelpThumbfastThreads": "Threads de décodage logiciel pour les vignettes. Effectif au prochain démarrage."
+  "SettingsHelpThumbfastThreads": "Threads de décodage logiciel pour les vignettes. Effectif au prochain démarrage.",
+  "SettingsD3d11Adapter": "Adaptateur D3D11",
+  "SettingsImageExts": "Extensions d'image",
+  "SettingsAudioExts": "Extensions audio",
+  "SettingsOsdOutlineColor": "Couleur du contour OSD",
+  "SettingsGlslShadersAppend": "Shaders GLSL supplémentaires",
+  "SettingsHelpD3d11Adapter": "GPU utilisée en mode D3D11, ex. NVIDIA GeForce RTX 4070 Ti Super. Vide = défaut système.",
+  "SettingsHelpGlslShadersAppend": "Fichiers shaders GLSL supplémentaires au démarrage, séparés par des points-virgules."
 }

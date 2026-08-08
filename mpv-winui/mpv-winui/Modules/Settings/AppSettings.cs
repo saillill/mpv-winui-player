@@ -1051,5 +1051,35 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(ThumbfastFrequency), 0.15);
             set => _dataSetting.GetValue(nameof(ThumbfastFrequency), value);
         }
+
+        public string D3d11Adapter
+        {
+            get => _dataSetting.GetValue(nameof(D3d11Adapter), string.Empty);
+            set => _dataSetting.GetValue(nameof(D3d11Adapter), value);
+        }
+
+        public string ImageExts
+        {
+            get => _dataSetting.GetValue(nameof(ImageExts), "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,svg,tga,tif,tiff,webp");
+            set => _dataSetting.GetValue(nameof(ImageExts), value);
+        }
+
+        public string AudioExts
+        {
+            get => _dataSetting.GetValue(nameof(AudioExts), "aac,ac3,aiff,ape,au,dts,eac3,flac,m4a,mka,mp3,oga,ogg,ogm,opus,thd,wav,wma,wv");
+            set => _dataSetting.GetValue(nameof(AudioExts), value);
+        }
+
+        public string OsdOutlineColor
+        {
+            get => _dataSetting.GetValue(nameof(OsdOutlineColor), string.Empty);
+            set => _dataSetting.GetValue(nameof(OsdOutlineColor), value);
+        }
+
+        public string GlslShadersAppend
+        {
+            get => _dataSetting.GetValue(nameof(GlslShadersAppend), string.Empty);
+            set => _dataSetting.GetValue(nameof(GlslShadersAppend), value);
+        }
     }
 }

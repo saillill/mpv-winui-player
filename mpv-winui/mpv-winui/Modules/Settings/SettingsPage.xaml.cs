@@ -427,6 +427,28 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.ImageExts),
+                Label = lang.SettingsImageExts,
+                Category = playback,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.ImageExts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ImageExts), AppContext.AppSetting.ImageExts = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioExts),
+                Label = lang.SettingsAudioExts,
+                Category = playback,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.AudioExts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioExts), AppContext.AppSetting.AudioExts = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.WatchLaterOptions),
                 Label = lang.SettingsWatchLaterOptions,
                 Category = playback,
@@ -1681,6 +1703,18 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.D3d11Adapter),
+                Label = lang.SettingsD3d11Adapter,
+                Category = advanced,
+                Description = lang.SettingsHelpD3d11Adapter,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.D3d11Adapter,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11Adapter), AppContext.AppSetting.D3d11Adapter = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.VideoDecodeDirect),
                 Label = lang.SettingsVideoDecodeDirect,
                 Category = advanced,
@@ -1919,6 +1953,18 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.GlslShadersAppend),
+                Label = lang.SettingsGlslShadersAppend,
+                Category = advanced,
+                Description = lang.SettingsHelpGlslShadersAppend,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.GlslShadersAppend,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GlslShadersAppend), AppContext.AppSetting.GlslShadersAppend = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.DemuxerMaxBackBytes),
                 Label = lang.SettingsDemuxerMaxBackBytes,
                 Category = advanced,
@@ -2102,6 +2148,17 @@ public sealed partial class SettingsPage : Page
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.OsdColor,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdColor), AppContext.AppSetting.OsdColor = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdOutlineColor),
+                Label = lang.SettingsOsdOutlineColor,
+                Category = advanced,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.OsdOutlineColor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdOutlineColor), AppContext.AppSetting.OsdOutlineColor = (string)v!)
             },
 
             new Option

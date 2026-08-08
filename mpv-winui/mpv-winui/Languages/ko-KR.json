@@ -527,5 +527,12 @@
   "SettingsHelpDirectoryFilterTypes": "폴더를 열 때 재생 목록에 수집할 파일 유형: video,audio,image,archive,playlist.",
   "SettingsHelpVideoExts": "재생 목록 수집 시 인식할 동영상 확장자입니다. 쉼표로 구분.",
   "SettingsHelpThumbfastSpawnFirst": "파일 로드 직후 썸네일 생성을 시작합니다. 다음 시작 시 적용.",
-  "SettingsHelpThumbfastThreads": "썸네일용 소프트웨어 디코더 스레드 수입니다. 다음 시작 시 적용."
+  "SettingsHelpThumbfastThreads": "썸네일용 소프트웨어 디코더 스레드 수입니다. 다음 시작 시 적용.",
+  "SettingsD3d11Adapter": "D3D11 어댑터",
+  "SettingsImageExts": "이미지 확장자",
+  "SettingsAudioExts": "오디오 확장자",
+  "SettingsOsdOutlineColor": "OSD 테두리 색상",
+  "SettingsGlslShadersAppend": "추가 GLSL 셰이더",
+  "SettingsHelpD3d11Adapter": "D3D11 모드에서 사용할 GPU입니다(예: NVIDIA GeForce RTX 4070 Ti Super). 비워 두면 시스템 기본값.",
+  "SettingsHelpGlslShadersAppend": "시작 시 추가로 로드할 GLSL 셰이더 파일 목록입니다. 세미콜론으로 구분."
 }

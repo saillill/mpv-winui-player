@@ -527,5 +527,12 @@
   "SettingsHelpDirectoryFilterTypes": "フォルダーを開いたときに収集するファイル種別：video,audio,image,archive,playlist。",
   "SettingsHelpVideoExts": "再生リスト収集時に認識する動画拡張子。カンマ区切り。",
   "SettingsHelpThumbfastSpawnFirst": "ファイル読み込み直後にサムネイル生成を開始します。次回起動時に有効。",
-  "SettingsHelpThumbfastThreads": "サムネイル用ソフトウェアデコードのスレッド数。次回起動時に有効。"
+  "SettingsHelpThumbfastThreads": "サムネイル用ソフトウェアデコードのスレッド数。次回起動時に有効。",
+  "SettingsD3d11Adapter": "D3D11 アダプター",
+  "SettingsImageExts": "画像拡張子",
+  "SettingsAudioExts": "音声拡張子",
+  "SettingsOsdOutlineColor": "OSD アウトライン色",
+  "SettingsGlslShadersAppend": "追加 GLSL シェーダー",
+  "SettingsHelpD3d11Adapter": "D3D11 モードで使う GPU。例：NVIDIA GeForce RTX 4070 Ti Super。空はシステム既定。",
+  "SettingsHelpGlslShadersAppend": "起動時に読み込む追加 GLSL シェーダーファイル。セミコロン区切り。"
 }

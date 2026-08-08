@@ -187,6 +187,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsDirectoryMode { get; set; } = "Folder open mode";
         public string SettingsDirectoryFilterTypes { get; set; } = "Playlist file types";
         public string SettingsVideoExts { get; set; } = "Video extensions";
+        public string SettingsImageExts { get; set; } = "Image extensions";
+        public string SettingsAudioExts { get; set; } = "Audio extensions";
         public string SettingsInputIpcServer { get; set; } = "mpv IPC server";
         public string SettingsCacheOnDisk { get; set; } = "Cache stream to disk";
         public string SettingsVideoOutputLevels { get; set; } = "Video output levels";
@@ -210,6 +212,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsOsdOutlineSize { get; set; } = "OSD outline size";
         public string SettingsOsdFractions { get; set; } = "OSD fractional timestamps";
         public string SettingsOsdColor { get; set; } = "OSD text color";
+        public string SettingsOsdOutlineColor { get; set; } = "OSD outline color";
         public string SettingsOsdOnSeek { get; set; } = "OSD on seek";
         public string SettingsOsdDuration { get; set; } = "OSD duration (ms)";
         public string SettingsTargetColorspaceHint { get; set; } = "Auto target colorspace";
@@ -222,8 +225,10 @@ namespace mpv_winui.Modules.Language
         public string SettingsD3d11OutputCsp { get; set; } = "D3D11 output colorspace";
         public string SettingsD3d11ExclusiveFs { get; set; } = "D3D11 exclusive fullscreen";
         public string SettingsD3d11Flip { get; set; } = "D3D11 flip presentation";
+        public string SettingsD3d11Adapter { get; set; } = "D3D11 adapter";
         public string SettingsIccCache { get; set; } = "Cache ICC conversions";
         public string SettingsGpuShaderCache { get; set; } = "Cache compiled shaders";
+        public string SettingsGlslShadersAppend { get; set; } = "Extra GLSL shaders";
         public string SettingsDemuxerMaxBackBytes { get; set; } = "Backward demuxer cache (MiB)";
         public string SettingsHdrAutoLog { get; set; } = "RTX HDR diagnostic log";
         public string SettingsMetadataOsdEnabled { get; set; } = "Metadata OSD on start";
@@ -551,6 +556,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpVideoExts { get; set; } = "Video extensions recognized when collecting playlist files, comma-separated.";
         public string SettingsHelpThumbfastSpawnFirst { get; set; } = "Start generating thumbnails as soon as a file loads. Takes effect on the next start.";
         public string SettingsHelpThumbfastThreads { get; set; } = "Software decoder threads used for thumbnails. Takes effect on the next start.";
+        public string SettingsHelpD3d11Adapter { get; set; } = "GPU adapter used in D3D11 mode, e.g. NVIDIA GeForce RTX 4070 Ti Super. Empty keeps the system default.";
+        public string SettingsHelpGlslShadersAppend { get; set; } = "Additional GLSL shader files loaded at startup, separated by semicolons.";
 
         /// <summary>Native (autonym) name of an app UI language, e.g. zh-CN → 中文.</summary>
         public static string NativeLanguageName(string code)

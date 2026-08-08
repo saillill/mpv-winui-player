@@ -527,5 +527,12 @@
   "SettingsHelpDirectoryFilterTypes": "File types collected for the playlist when a folder is opened: video,audio,image,archive,playlist.",
   "SettingsHelpVideoExts": "Video extensions recognized when collecting playlist files, comma-separated.",
   "SettingsHelpThumbfastSpawnFirst": "Start generating thumbnails as soon as a file loads. Takes effect on the next start.",
-  "SettingsHelpThumbfastThreads": "Software decoder threads used for thumbnails. Takes effect on the next start."
+  "SettingsHelpThumbfastThreads": "Software decoder threads used for thumbnails. Takes effect on the next start.",
+  "SettingsD3d11Adapter": "D3D11 adapter",
+  "SettingsImageExts": "Image extensions",
+  "SettingsAudioExts": "Audio extensions",
+  "SettingsOsdOutlineColor": "OSD outline color",
+  "SettingsGlslShadersAppend": "Extra GLSL shaders",
+  "SettingsHelpD3d11Adapter": "GPU adapter used in D3D11 mode, e.g. NVIDIA GeForce RTX 4070 Ti Super. Empty keeps the system default.",
+  "SettingsHelpGlslShadersAppend": "Additional GLSL shader files loaded at startup, separated by semicolons."
 }

@@ -527,5 +527,12 @@
   "SettingsHelpDirectoryFilterTypes": "Tipos de archivo recogidos en la lista al abrir una carpeta: video,audio,image,archive,playlist.",
   "SettingsHelpVideoExts": "Extensiones de vídeo reconocidas para la lista, separadas por comas.",
   "SettingsHelpThumbfastSpawnFirst": "Genera miniaturas en cuanto carga un archivo. Efectivo en el próximo inicio.",
-  "SettingsHelpThumbfastThreads": "Hilos de decodificación por software para miniaturas. Efectivo en el próximo inicio."
+  "SettingsHelpThumbfastThreads": "Hilos de decodificación por software para miniaturas. Efectivo en el próximo inicio.",
+  "SettingsD3d11Adapter": "Adaptador D3D11",
+  "SettingsImageExts": "Extensiones de imagen",
+  "SettingsAudioExts": "Extensiones de audio",
+  "SettingsOsdOutlineColor": "Color del contorno OSD",
+  "SettingsGlslShadersAppend": "Shaders GLSL adicionales",
+  "SettingsHelpD3d11Adapter": "GPU usado en modo D3D11, p. ej. NVIDIA GeForce RTX 4070 Ti Super. Vacío usa el predeterminado.",
+  "SettingsHelpGlslShadersAppend": "Shaders GLSL adicionales al iniciar, separados por punto y coma."
 }

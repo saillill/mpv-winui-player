@@ -527,5 +527,12 @@
   "SettingsHelpDirectoryFilterTypes": "Типы файлов для списка при открытии папки: video,audio,image,archive,playlist.",
   "SettingsHelpVideoExts": "Распознаваемые расширения видео для списка, через запятую.",
   "SettingsHelpThumbfastSpawnFirst": "Начинает создавать миниатюры сразу после загрузки. Действует со следующего запуска.",
-  "SettingsHelpThumbfastThreads": "Потоки программного декодирования миниатюр. Действует со следующего запуска."
+  "SettingsHelpThumbfastThreads": "Потоки программного декодирования миниатюр. Действует со следующего запуска.",
+  "SettingsD3d11Adapter": "Адаптер D3D11",
+  "SettingsImageExts": "Расширения изображений",
+  "SettingsAudioExts": "Расширения аудио",
+  "SettingsOsdOutlineColor": "Цвет контура OSD",
+  "SettingsGlslShadersAppend": "Дополнительные GLSL-шейдеры",
+  "SettingsHelpD3d11Adapter": "GPU в режиме D3D11, напр. NVIDIA GeForce RTX 4070 Ti Super. Пусто — системный выбор.",
+  "SettingsHelpGlslShadersAppend": "Дополнительные GLSL-шейдеры при запуске, через точку с запятой."
 }
