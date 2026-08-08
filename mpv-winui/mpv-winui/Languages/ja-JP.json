@@ -347,5 +347,6 @@
   "SettingsIccCacheDir": "ICC キャッシュフォルダー",
   "SettingsHelpIccCacheDir": "ICC プロファイルから 3D LUT への変換キャッシュの保存先。空の場合は既定の場所を使います。",
   "SettingsGpuShaderCacheDir": "シェーダーキャッシュフォルダー",
-  "SettingsHelpGpuShaderCacheDir": "コンパイル済み GLSL シェーダーキャッシュの保存先。空の場合は既定の場所を使います。"
+  "SettingsHelpGpuShaderCacheDir": "コンパイル済み GLSL シェーダーキャッシュの保存先。空の場合は既定の場所を使います。",
+  "OptionValueCustom": "????"
 }

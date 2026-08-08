@@ -195,6 +195,7 @@ namespace mpv_winui.Modules.Language
         public string OptionValueAuto { get; set; } = "Auto";
         public string OptionValueYes { get; set; } = "Yes";
         public string OptionValueNo { get; set; } = "No";
+        public string OptionValueCustom { get; set; } = "Custom";
         public string OptionValueOn { get; set; } = "On";
         public string OptionValueOff { get; set; } = "Off";
         public string OptionValueAlways { get; set; } = "Always";

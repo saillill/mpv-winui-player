@@ -347,5 +347,6 @@
   "SettingsIccCacheDir": "ICC-Cacheordner",
   "SettingsHelpIccCacheDir": "Ordner für die Umwandlung von ICC-Profilen in 3D-LUTs. Leer lassen für den Standardordner.",
   "SettingsGpuShaderCacheDir": "Shader-Cacheordner",
-  "SettingsHelpGpuShaderCacheDir": "Ordner für kompilierte GLSL-Shader-Caches. Leer lassen für den Standardordner."
+  "SettingsHelpGpuShaderCacheDir": "Ordner für kompilierte GLSL-Shader-Caches. Leer lassen für den Standardordner.",
+  "OptionValueCustom": "Benutzerdefiniert"
 }

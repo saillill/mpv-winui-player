@@ -1,15 +1,20 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Windows.System;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
 public sealed partial class OptionStringListControl : OptionControlBase
 {
+    private const string CustomKey = "__custom__";
+
     private bool _loading;
     private List<OptionChoice> _choices = [];
+    private string _lastCustom = string.Empty;
 
     public OptionStringListControl()
     {
@@ -18,33 +23,54 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)
     {
-        if (newValue is not null)
+        if (newValue is null)
         {
-            LabelText.Text = newValue.Label;
-            UpdateDescription(DescriptionText);
-            InputBox.IsEnabled = newValue.IsEnabled;
+            return;
+        }
 
-            _loading = true;
-            try
+        LabelText.Text = newValue.Label;
+        UpdateDescription(DescriptionText);
+        Combo.IsEnabled = newValue.IsEnabled;
+        CustomLabel.Text = mpv_winui.AppContext.AppLang.OptionValueCustom;
+        CustomInput.PlaceholderText = mpv_winui.AppContext.AppLang.OptionValueCustom;
+
+        _loading = true;
+        try
+        {
+            _choices = newValue.ChoicesProvider?.Invoke()?.ToList()
+                       ?? newValue.Choices?.ToList()
+                       ?? [];
+            if (_choices.Count == 0 && newValue.Options is not null)
             {
-                _choices = newValue.ChoicesProvider?.Invoke()?.ToList()
-                           ?? newValue.Choices?.ToList()
-                           ?? [];
-                if (_choices.Count == 0 && newValue.Options is not null)
-                {
-                    _choices = newValue.Options.Select(o => new OptionChoice(o, o)).ToList();
-                }
+                _choices = newValue.Options.Select(o => new OptionChoice(o, o)).ToList();
+            }
+            _choices.Add(new OptionChoice(CustomKey, mpv_winui.AppContext.AppLang.OptionValueCustom));
 
-                InputBox.ItemsSource = _choices;
-                if (newValue.Getter is Func<object?> func && func() is string current)
+            Combo.Items.Clear();
+            foreach (var choice in _choices)
+            {
+                Combo.Items.Add(new ComboBoxItem { Content = choice.Label, Tag = choice.Value });
+            }
+
+            if (newValue.Getter is Func<object?> func && func() is string current)
+            {
+                var index = FindPresetIndex(current);
+                if (index >= 0)
                 {
-                    InputBox.Text = DisplayText(current);
+                    Combo.SelectedIndex = index;
+                    CustomRow.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    _lastCustom = current;
+                    SelectCustom(showAndFocus: false);
+                    CustomInput.Text = current;
                 }
             }
-            finally
-            {
-                _loading = false;
-            }
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 
@@ -53,73 +79,86 @@ public sealed partial class OptionStringListControl : OptionControlBase
     protected override void OnOptionStateChanged()
     {
         UpdateWarning(WarningText);
-        InputBox.IsEnabled = Setting?.IsEnabled ?? true;
+        var enabled = Setting?.IsEnabled ?? true;
+        Combo.IsEnabled = enabled;
+        CustomInput.IsEnabled = enabled;
     }
 
-    private void OnTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    private int FindPresetIndex(string value)
     {
-        if (_loading || args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
+        for (var i = 0; i < _choices.Count; i++)
+        {
+            if (_choices[i].Value == CustomKey)
+            {
+                continue;
+            }
+            if (string.Equals(_choices[i].Value, value, StringComparison.Ordinal))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void SelectCustom(bool showAndFocus)
+    {
+        for (var i = 0; i < _choices.Count; i++)
+        {
+            if (_choices[i].Value == CustomKey)
+            {
+                Combo.SelectedIndex = i;
+                break;
+            }
+        }
+        CustomRow.Visibility = Visibility.Visible;
+        if (showAndFocus)
+        {
+            CustomInput.Focus(FocusState.Programmatic);
+        }
+    }
+
+    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || Combo.SelectedItem is not ComboBoxItem { Tag: string val })
         {
             return;
         }
 
-        var text = sender.Text?.Trim() ?? string.Empty;
-        sender.ItemsSource = _choices
-            .Where(c => c.Label.Contains(text, StringComparison.OrdinalIgnoreCase)
-                        || c.Value.Contains(text, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-    }
-
-    private void OnSuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
-    {
-        if (args.SelectedItem is OptionChoice choice)
+        if (val == CustomKey)
         {
-            _loading = true;
-            try
-            {
-                sender.Text = choice.Label;
-            }
-            finally
-            {
-                _loading = false;
-            }
-            Commit(choice.Value);
-        }
-    }
-
-    private void OnQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-    {
-        if (args.ChosenSuggestion is OptionChoice choice)
-        {
-            Commit(choice.Value);
+            CustomRow.Visibility = Visibility.Visible;
+            CustomInput.Text = _lastCustom;
+            CustomInput.Focus(FocusState.Programmatic);
         }
         else
         {
-            Commit(sender.Text?.Trim() ?? string.Empty);
+            CustomRow.Visibility = Visibility.Collapsed;
+            Setting?.Setter?.Invoke(val);
         }
     }
 
-    private void OnLostFocus(object sender, RoutedEventArgs e)
+    private void OnCustomKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        Commit(((AutoSuggestBox)sender).Text?.Trim() ?? string.Empty);
+        if (e.Key == VirtualKey.Enter)
+        {
+            CommitCustom();
+        }
     }
 
-    private string DisplayText(string value)
+    private void OnCustomLostFocus(object sender, RoutedEventArgs e)
     {
-        var choice = _choices.FirstOrDefault(c => string.Equals(c.Value, value, StringComparison.Ordinal))
-                  ?? _choices.FirstOrDefault(c => string.Equals(c.Label, value, StringComparison.OrdinalIgnoreCase));
-        return choice?.Label ?? value;
+        CommitCustom();
     }
 
-    private void Commit(string raw)
+    private void CommitCustom()
     {
-        if (string.IsNullOrWhiteSpace(raw))
+        var text = CustomInput.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(text))
         {
             return;
         }
 
-        var choice = _choices.FirstOrDefault(c => string.Equals(c.Label, raw, StringComparison.OrdinalIgnoreCase))
-                  ?? _choices.FirstOrDefault(c => string.Equals(c.Value, raw, StringComparison.OrdinalIgnoreCase));
-        Setting?.Setter?.Invoke(choice?.Value ?? raw);
+        _lastCustom = text;
+        Setting?.Setter?.Invoke(text);
     }
 }
