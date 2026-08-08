@@ -1,10 +1,15 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.Storage.Pickers;
 using System;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
 public sealed partial class OptionStringControl : OptionControlBase
 {
+    private bool _loading;
+
     public OptionStringControl()
     {
         InitializeComponent();
@@ -15,10 +20,15 @@ public sealed partial class OptionStringControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
+            UpdateHelpButton(HelpButton);
 
-            if (newValue.Getter is Func<object?> func)
+            BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
+            BrowseButton.Visibility = newValue.PickFolder ? Visibility.Visible : Visibility.Collapsed;
+
+            _loading = true;
+            try
             {
-                if (func() is string value)
+                if (newValue.Getter is Func<object?> func && func() is string value)
                 {
                     InputBox.Text = value;
                 }
@@ -26,6 +36,10 @@ public sealed partial class OptionStringControl : OptionControlBase
                 {
                     InputBox.Text = string.Empty;
                 }
+            }
+            finally
+            {
+                _loading = false;
             }
         }
     }
@@ -56,11 +70,40 @@ public sealed partial class OptionStringControl : OptionControlBase
 
     private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        TryCommit();
+        if (!_loading)
+        {
+            ErrorText.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void OnLostFocus(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         TryCommit();
+    }
+
+    private void OnKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter)
+        {
+            TryCommit();
+        }
+    }
+
+    private async void OnBrowseClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var picker = new FolderPicker(mpv_winui.App.Window!.AppWindow.Id);
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder?.Path is string path && !string.IsNullOrEmpty(path))
+            {
+                InputBox.Text = path;
+                TryCommit();
+            }
+        }
+        catch (Exception ex)
+        {
+            mpv_winui.AppContext.AppLogger.Error(ex, "Failed to pick folder");
+        }
     }
 }

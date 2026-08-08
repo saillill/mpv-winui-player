@@ -5,6 +5,8 @@ namespace mpv_winui.Modules.Settings.Controls;
 
 public sealed partial class OptionStringListControl : OptionControlBase
 {
+    private bool _loading;
+
     public OptionStringListControl()
     {
         InitializeComponent();
@@ -15,26 +17,42 @@ public sealed partial class OptionStringListControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
+            UpdateHelpButton(HelpButton);
 
+            _loading = true;
             Combo.Items.Clear();
-            if (newValue.Options is not null)
+            try
             {
-                foreach (var opt in newValue.Options)
+                if (newValue.Choices is { Count: > 0 })
                 {
-                    Combo.Items.Add(opt);
-                }
-            }
-
-            if (newValue.Getter is Func<object?> func)
-            {
-                if (func() is string current && !string.IsNullOrEmpty(current))
-                {
-                    var index = Combo.Items.IndexOf(current);
-                    if (index >= 0)
+                    foreach (var choice in newValue.Choices)
                     {
-                        Combo.SelectedIndex = index;
+                        Combo.Items.Add(new ComboBoxItem { Content = choice.Label, Tag = choice.Value });
                     }
                 }
+                else if (newValue.Options is not null)
+                {
+                    foreach (var opt in newValue.Options)
+                    {
+                        Combo.Items.Add(new ComboBoxItem { Content = opt, Tag = opt });
+                    }
+                }
+
+                if (newValue.Getter is Func<object?> func && func() is string current)
+                {
+                    for (var i = 0; i < Combo.Items.Count; i++)
+                    {
+                        if (Combo.Items[i] is ComboBoxItem item && string.Equals(item.Tag?.ToString(), current, StringComparison.Ordinal))
+                        {
+                            Combo.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                _loading = false;
             }
         }
     }
@@ -43,7 +61,7 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (Setting?.Setter is not null && Combo.SelectedItem is string val)
+        if (!_loading && Setting?.Setter is not null && Combo.SelectedItem is ComboBoxItem { Tag: string val })
         {
             Setting?.Setter?.Invoke(val);
         }

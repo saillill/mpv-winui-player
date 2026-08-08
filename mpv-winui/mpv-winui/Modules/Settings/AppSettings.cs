@@ -96,10 +96,28 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(KeepOpen), value);
         }
 
+        public string LoopPlaylist
+        {
+            get => _dataSetting.GetValue(nameof(LoopPlaylist), "yes");
+            set => _dataSetting.SetValue(nameof(LoopPlaylist), value);
+        }
+
         public bool LoopFile
         {
             get => _dataSetting.GetValue(nameof(LoopFile), false);
             set => _dataSetting.SetValue(nameof(LoopFile), value);
+        }
+
+        public int Volume
+        {
+            get => _dataSetting.GetValue(nameof(Volume), 100);
+            set => _dataSetting.SetValue(nameof(Volume), value);
+        }
+
+        public string CacheDirectory
+        {
+            get => _dataSetting.GetValue(nameof(CacheDirectory), string.Empty);
+            set => _dataSetting.SetValue(nameof(CacheDirectory), value);
         }
 
         public string Deinterlace
@@ -212,10 +230,88 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(CorrectDownscaling), value);
         }
 
+        public string Scale
+        {
+            get => _dataSetting.GetValue(nameof(Scale), "lanczos");
+            set => _dataSetting.SetValue(nameof(Scale), value);
+        }
+
+        public string DScale
+        {
+            get => _dataSetting.GetValue(nameof(DScale), "bicubic");
+            set => _dataSetting.SetValue(nameof(DScale), value);
+        }
+
+        public string VideoRotate
+        {
+            get => _dataSetting.GetValue(nameof(VideoRotate), "no");
+            set => _dataSetting.SetValue(nameof(VideoRotate), value);
+        }
+
+        public bool Deband
+        {
+            get => _dataSetting.GetValue(nameof(Deband), false);
+            set => _dataSetting.SetValue(nameof(Deband), value);
+        }
+
+        public bool LinearDownscaling
+        {
+            get => _dataSetting.GetValue(nameof(LinearDownscaling), true);
+            set => _dataSetting.SetValue(nameof(LinearDownscaling), value);
+        }
+
+        public bool SigmoidUpscaling
+        {
+            get => _dataSetting.GetValue(nameof(SigmoidUpscaling), true);
+            set => _dataSetting.SetValue(nameof(SigmoidUpscaling), value);
+        }
+
+        public string ToneMapping
+        {
+            get => _dataSetting.GetValue(nameof(ToneMapping), "bt.2390");
+            set => _dataSetting.SetValue(nameof(ToneMapping), value);
+        }
+
+        public string DitherDepth
+        {
+            get => _dataSetting.GetValue(nameof(DitherDepth), "no");
+            set => _dataSetting.SetValue(nameof(DitherDepth), value);
+        }
+
+        public bool HrSeek
+        {
+            get => _dataSetting.GetValue(nameof(HrSeek), true);
+            set => _dataSetting.SetValue(nameof(HrSeek), value);
+        }
+
         public string AudioChannels
         {
             get => _dataSetting.GetValue(nameof(AudioChannels), "auto");
             set => _dataSetting.SetValue(nameof(AudioChannels), value);
+        }
+
+        public bool AudioExclusive
+        {
+            get => _dataSetting.GetValue(nameof(AudioExclusive), false);
+            set => _dataSetting.SetValue(nameof(AudioExclusive), value);
+        }
+
+        public bool AudioPitchCorrection
+        {
+            get => _dataSetting.GetValue(nameof(AudioPitchCorrection), true);
+            set => _dataSetting.SetValue(nameof(AudioPitchCorrection), value);
+        }
+
+        public bool AudioNormalizeDownmix
+        {
+            get => _dataSetting.GetValue(nameof(AudioNormalizeDownmix), false);
+            set => _dataSetting.SetValue(nameof(AudioNormalizeDownmix), value);
+        }
+
+        public string AudioFileAuto
+        {
+            get => _dataSetting.GetValue(nameof(AudioFileAuto), "fuzzy");
+            set => _dataSetting.SetValue(nameof(AudioFileAuto), value);
         }
 
         public double AudioDelay
@@ -236,10 +332,76 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(SubBlur), value);
         }
 
+        public string SubAuto
+        {
+            get => _dataSetting.GetValue(nameof(SubAuto), "fuzzy");
+            set => _dataSetting.SetValue(nameof(SubAuto), value);
+        }
+
+        public string SubFont
+        {
+            get => _dataSetting.GetValue(nameof(SubFont), "Source Han Sans SC");
+            set => _dataSetting.SetValue(nameof(SubFont), value);
+        }
+
+        public string SubCodePage
+        {
+            get => _dataSetting.GetValue(nameof(SubCodePage), "GB18030");
+            set => _dataSetting.SetValue(nameof(SubCodePage), value);
+        }
+
+        public double SubOutlineSize
+        {
+            get => _dataSetting.GetValue(nameof(SubOutlineSize), 1.5);
+            set => _dataSetting.SetValue(nameof(SubOutlineSize), value);
+        }
+
+        public double SubShadowOffset
+        {
+            get => _dataSetting.GetValue(nameof(SubShadowOffset), 2.0);
+            set => _dataSetting.SetValue(nameof(SubShadowOffset), value);
+        }
+
+        public bool SubEmbeddedFonts
+        {
+            get => _dataSetting.GetValue(nameof(SubEmbeddedFonts), true);
+            set => _dataSetting.SetValue(nameof(SubEmbeddedFonts), value);
+        }
+
+        public bool SubUseMargins
+        {
+            get => _dataSetting.GetValue(nameof(SubUseMargins), true);
+            set => _dataSetting.SetValue(nameof(SubUseMargins), value);
+        }
+
         public int CacheSecs
         {
             get => _dataSetting.GetValue(nameof(CacheSecs), 0);
             set => _dataSetting.SetValue(nameof(CacheSecs), value);
+        }
+
+        public int ScreenshotPngCompression
+        {
+            get => _dataSetting.GetValue(nameof(ScreenshotPngCompression), 4);
+            set => _dataSetting.SetValue(nameof(ScreenshotPngCompression), value);
+        }
+
+        public int ScreenshotWebpQuality
+        {
+            get => _dataSetting.GetValue(nameof(ScreenshotWebpQuality), 100);
+            set => _dataSetting.SetValue(nameof(ScreenshotWebpQuality), value);
+        }
+
+        public bool ScreenshotHighBitDepth
+        {
+            get => _dataSetting.GetValue(nameof(ScreenshotHighBitDepth), false);
+            set => _dataSetting.SetValue(nameof(ScreenshotHighBitDepth), value);
+        }
+
+        public bool ScreenshotTagColorspace
+        {
+            get => _dataSetting.GetValue(nameof(ScreenshotTagColorspace), true);
+            set => _dataSetting.SetValue(nameof(ScreenshotTagColorspace), value);
         }
     }
 }

@@ -11,15 +11,31 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <TextBlock
             x:Name="LabelText"
             VerticalAlignment="Center"
             Style="{StaticResource BodyTextBlockStyle}"
             TextWrapping="Wrap" />
+        <Button
+            x:Name="HelpButton"
+            Grid.Column="1"
+            Padding="6"
+            VerticalAlignment="Center"
+            AutomationProperties.Name="Help"
+            Background="Transparent"
+            BorderThickness="0"
+            ToolTipService.ToolTip=""
+            Visibility="Collapsed">
+            <FontIcon
+                FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                FontSize="14"
+                Glyph="&#xE946;" />
+        </Button>
         <ComboBox
             x:Name="Combo"
-            Grid.Column="1"
+            Grid.Column="2"
             MinWidth="160"
             HorizontalAlignment="Right"
             SelectionChanged="OnSelectionChanged" />

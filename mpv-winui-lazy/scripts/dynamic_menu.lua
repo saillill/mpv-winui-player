@@ -3,15 +3,59 @@ local msg = require 'mp.msg'
 
 -- ===== 菜单本地化 =====
 local menu_lang = mp.get_property('user-data/mpvw/language') or 'en-US'
+-- BEGIN MENU_I18N
 local menu_i18n = {
     ['en-US'] = {
-        ['自动（SDR 片源 + 屏幕 HDR）'] = 'Auto (SDR source + HDR screen)',
-        ['强制开启（仅 SDR 片源）'] = 'Force on (SDR source only)',
         ['关闭'] = 'Off',
         ['关闭 VSR'] = 'Disable VSR',
+        ['强制开启（仅 SDR 片源）'] = 'Force on (SDR source only)',
         ['清空所有脚本'] = 'Clear all scripts',
+        ['自动（SDR 片源 + 屏幕 HDR）'] = 'Auto (SDR source + HDR screen)',
+    },
+    ['ja-JP'] = {
+        ['关闭'] = 'オフ',
+        ['关闭 VSR'] = 'VSRを無効化',
+        ['强制开启（仅 SDR 片源）'] = '強制オン（SDRソースのみ）',
+        ['清空所有脚本'] = '全スクリプトをクリア',
+        ['自动（SDR 片源 + 屏幕 HDR）'] = '自動（SDRソース＋HDR画面）',
+    },
+    ['ko-KR'] = {
+        ['关闭'] = '끄기',
+        ['关闭 VSR'] = 'VSR 비활성화',
+        ['强制开启（仅 SDR 片源）'] = '강제 켜기(SDR 소스만)',
+        ['清空所有脚本'] = '모든 스크립트 지우기',
+        ['自动（SDR 片源 + 屏幕 HDR）'] = '자동(SDR 소스 + HDR 화면)',
+    },
+    ['de-DE'] = {
+        ['关闭'] = 'Aus',
+        ['关闭 VSR'] = 'VSR deaktivieren',
+        ['强制开启（仅 SDR 片源）'] = 'Erzwingen (nur SDR-Quelle)',
+        ['清空所有脚本'] = 'Alle Skripte löschen',
+        ['自动（SDR 片源 + 屏幕 HDR）'] = 'Automatisch (SDR-Quelle + HDR-Bildschirm)',
+    },
+    ['fr-FR'] = {
+        ['关闭'] = 'Désactivé',
+        ['关闭 VSR'] = 'Désactiver VSR',
+        ['强制开启（仅 SDR 片源）'] = 'Forcer (source SDR uniquement)',
+        ['清空所有脚本'] = 'Effacer tous les scripts',
+        ['自动（SDR 片源 + 屏幕 HDR）'] = 'Auto (source SDR + écran HDR)',
+    },
+    ['es-ES'] = {
+        ['关闭'] = 'Apagado',
+        ['关闭 VSR'] = 'Desactivar VSR',
+        ['强制开启（仅 SDR 片源）'] = 'Forzar (solo fuente SDR)',
+        ['清空所有脚本'] = 'Limpiar todos los scripts',
+        ['自动（SDR 片源 + 屏幕 HDR）'] = 'Auto (fuente SDR + pantalla HDR)',
+    },
+    ['ru-RU'] = {
+        ['关闭'] = 'Выкл',
+        ['关闭 VSR'] = 'Отключить VSR',
+        ['强制开启（仅 SDR 片源）'] = 'Принудительно (только SDR-источник)',
+        ['清空所有脚本'] = 'Очистить все скрипты',
+        ['自动（SDR 片源 + 屏幕 HDR）'] = 'Авто (SDR-источник + HDR-экран)',
     },
 }
+-- END MENU_I18N
 
 local function localize_title(title)
     if not title or title == '' then return title end

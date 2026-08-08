@@ -28,8 +28,8 @@ Related projects:
 - **Menu bar**: File (open file/folder/URL/clipboard, DVD/BD, watch history, watch later, add subtitle, screenshots, restart, quit), View (playlist, fullscreen/full-window, options, open config/mpv folders), Help (about).
 - **Player controls**: play/pause, skip, shuffle, repeat, playback rate, audio/video track switching, zoom, full window/full screen, volume, seek bar with thumbnails.
 - **Playlist panel**: context menu (play, move, remove, copy title/path, open file location), watch history and watch later.
-- **Right-click menu**: mpv data menus (153 items, tsl0922/mpv-menu layout) plus fixed File/Window items; filters are shown directly under "滤镜与增强" (no extra submenu level). Menu titles follow the app language (English by default; Chinese/other languages switch automatically via `user-data/mpvw/language`).
-- **Settings window**: two-pane layout (left categories, right options) with General / Playback / Video / Audio / Subtitle / Paths, theme, backdrop, 8 languages, debug log, and PotPlayer-style options: hardware decoding, max volume, after-playback, loop, default speed, deinterlace, aspect ratio, subtitle size/position/delay, preferred audio/subtitle languages, audio device, screenshot folder & filename template, cache folder. Changes apply to mpv live; language changes show a restart prompt.
+- **Right-click menu**: mpv data menus (153 items, tsl0922/mpv-menu layout) plus fixed File/Window items; filters are shown directly under "Filters & Enhance" (no extra submenu level). Menu titles and dynamic items are fully translated in all 8 languages via `dyn_menu.lua` / `dynamic_menu.lua`, switched automatically by `user-data/mpvw/language`.
+- **Settings window**: two-pane layout (left categories, right options) with General / Playback / Video / Audio / Subtitle / Screenshot / Paths. It ships ~30 PotPlayer-style options — every option uses a selectable list with localized labels (never raw mpv values), boolean switches show localized Yes/No, the language list shows each language in its own name (中文 / 日本語 / 한국어 ...), path options have a native Windows folder-picker "Browse" button, and uncommon options show an info (i) button with an explanation. Changes apply to mpv live; restart-required settings (e.g. language) show a restart prompt.
 
 ## What's New vs. Upstream
 
@@ -37,7 +37,7 @@ Related projects:
 |---|---|---|
 | HDR/WCG output | SDR-only example workaround; HDR washed out in composition mode | Auto profiles `mpvw-sdr/wcg/hdr`; WCG→`bt.2020` (invalid `display-p3` fixed); HDR→`target-trc=pq` + `target-prim=bt.2020` + `target-peak=1000`; `target-colorspace-hint=yes` while RTX HDR is active |
 | Localization | English-only hardcoded strings, no switch | `AppLang` + `Languages/*.json`, 8 languages (en-US / zh-CN / ja-JP / ko-KR / de-DE / fr-FR / es-ES / ru-RU), switch in Settings (restart) |
-| Player settings | Minimal | Categorized PotPlayer-style options (hwdec, volume-max, keep-open, loop, speed, deinterlace, aspect, subtitle size/position/delay, alang/slang, audio device, screenshot folder/template, cache dir) applied live and on startup; restart prompt for restart-required settings |
+| Player settings | Minimal | ~30 categorized options applied live and on startup: hwdec, volume/volume-max, keep-open, loop file/playlist, speed, deinterlace, aspect, scaling/downscaling algorithms, rotation, deband, video sync, interpolation, HR seek, tone mapping, dithering, audio language/device/channels/delay/exclusive mode/pitch/downmix, subtitle size/position/delay/language/ASS override/blur/font/codepage, screenshot directory/template/format/JPEG/PNG/WebP/bit depth, cache folder; localized values, folder picker and help icons |
 | MediaInfo | Not bundled | Official MediaInfo CLI v26.05 (BSD-2-Clause) bundled |
 | Opening files | Protocol/CLI activation broken in unpackaged mode | Command line and `mpv-winui://` both fixed and verified |
 | Logging | mpv logs verbose by default | Off by default (`log-file` commented, `hdr_auto` `log=no`) |
@@ -99,13 +99,13 @@ Wheel: volume/seek · `` ` ``: console · `F6/F7`: playlist/track info · `TAB`:
 
 ### Localization / MediaInfo / logs
 
-- Language: Settings page, or edit `Languages\<lang>.json` (keys are `AppLang` property names).
+- Language: Settings page (each language is shown in its own name) or edit `Languages\<lang>.json` (keys are `AppLang` property names). Right-click menus use the same language through `user-data/mpvw/language`; all 8 languages are fully covered in `dyn_menu.lua` and `dynamic_menu.lua`.
 - MediaInfo: `script-opts/stats_mediainfo.conf` → `mediainfo_path=~~/MediaInfo.exe`.
 - Troubleshooting: uncomment `log-file` in `mpv.conf` and set `msg-level=all=v`; set `log=yes` in `hdr_auto.conf`.
 
 ### Player settings (Settings window)
 
-Hardware decoding (`hwdec`), max volume (`volume-max`), after-playback behavior (`keep-open`), loop file (`loop-file`), default speed, deinterlace, aspect ratio, subtitle font size / position / delay, preferred audio/subtitle languages (`alang`/`slang`), audio device, screenshot folder & filename template, cache folder, video preview thumbnails. Changes are sent to mpv immediately and applied on startup; restart-required settings (e.g. language) show a dialog with "Restart now".
+Hardware decoding (`hwdec`), max/startup volume (`volume-max`/`volume`), after-playback behavior (`keep-open`), loop file/playlist (`loop-file`/`loop-playlist`), default speed, deinterlace, aspect ratio, scaling/downscaling algorithms (`scale`/`dscale`), rotation, deband, linear downscaling, sigmoid upscaling, video sync, interpolation, HR seek, HDR tone mapping, dither depth, preferred audio/subtitle languages (`alang`/`slang`), audio device, channels, delay, exclusive mode, pitch correction, downmix normalization, auto-loaded audio files, subtitle font size / position / delay / font / codepage / outline / shadow / ASS override / blur / embedded fonts / margins, screenshot folder (with folder picker) & filename template / format / JPEG quality / PNG compression / WebP quality / bit depth / colorspace tag, cache folder, video preview thumbnails. Every value is displayed with a localized label, and uncommon options have an info (i) explanation. Changes are sent to mpv immediately and applied on startup; restart-required settings (e.g. language) show a dialog with "Restart now".
 
 ### Help / About
 
