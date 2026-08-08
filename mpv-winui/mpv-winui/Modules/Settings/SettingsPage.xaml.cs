@@ -3520,11 +3520,11 @@ public sealed partial class SettingsPage : Page
         switch (AppContext.AppSetting.CurrentLanguage)
         {
             case "zh-CN":
-                Add("Microsoft YaHei", "Microsoft YaHei（微软雅黑）");
-                Add("SimSun", "SimSun（宋体）");
-                Add("DengXian", "DengXian（等线）");
-                Add("SimHei", "SimHei（黑体）");
-                Add("KaiTi", "KaiTi（楷体）");
+                Add("Microsoft YaHei", "微软雅黑");
+                Add("SimSun", "宋体");
+                Add("DengXian", "等线");
+                Add("SimHei", "黑体");
+                Add("KaiTi", "楷体");
                 break;
             case "ja-JP":
                 Add("Yu Gothic UI", "Yu Gothic UI");
@@ -3534,10 +3534,10 @@ public sealed partial class SettingsPage : Page
                 Add("MS PGothic", "MS PGothic");
                 break;
             case "ko-KR":
-                Add("Malgun Gothic", "Malgun Gothic（맑은 고딕）");
-                Add("Gulim", "Gulim（굴림）");
-                Add("Batang", "Batang（바탕）");
-                Add("Dotum", "Dotum（돋움）");
+                Add("Malgun Gothic", "맑은 고딕");
+                Add("Gulim", "굴림");
+                Add("Batang", "바탕");
+                Add("Dotum", "돋움");
                 break;
             case "ru-RU":
                 Add("Segoe UI", "Segoe UI");
