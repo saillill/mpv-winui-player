@@ -29,17 +29,5 @@ namespace mpv_winui
 
             _settingsWindow?.UpdateCurrentTheme();
         }
-
-        private void MainWindow_SettingChanged(string key, object? value)
-        {
-            if (key == nameof(AppContext.AppSetting.BackdropType))
-            {
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    _styleManager?.UpdateBackdrop();
-                    _settingsWindow?.UpdateBackdrop();
-                });
-            }
-        }
     }
 }

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
@@ -21,11 +19,12 @@ public sealed class OptionChoice
     public string Label { get; }
 }
 
-public sealed class Option : INotifyPropertyChanged
+public sealed class Option
 {
     public string Key { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
     public string Category { get; set; } = "General";
+    public bool RequiresRestart { get; set; }
 
     /// <summary>Explanatory text shown behind the info (i) button.</summary>
     public string? Description
@@ -50,40 +49,6 @@ public sealed class Option : INotifyPropertyChanged
     {
         get; set;
     }
-
-    /// <summary>Show an "Open" button that opens the folder in File Explorer.</summary>
-    public bool OpenFolder
-    {
-        get; set;
-    }
-
-    /// <summary>Optional section caption used to split a category into topic groups.</summary>
-    public string? Section
-    {
-        get; set;
-    }
-
-    /// <summary>Marks the first option of a section; the list renders a separate section caption row above it.</summary>
-    public bool ShowSectionHeader
-    {
-        get; set;
-    }
-
-    /// <summary>Localized warning shown in yellow when the option may be ineffective in the current state.</summary>
-    public string? Warning
-    {
-        get => _warning;
-        set => Set(ref _warning, value);
-    }
-    private string? _warning;
-
-    /// <summary>Whether the option can be changed in the current state (mutually exclusive options).</summary>
-    public bool IsEnabled
-    {
-        get => _isEnabled;
-        set => Set(ref _isEnabled, value);
-    }
-    private bool _isEnabled = true;
 
     public OptionType Type
     {
@@ -121,16 +86,5 @@ public sealed class Option : INotifyPropertyChanged
     public Action<object>? Setter
     {
         get; set;
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
-    {
-        if (!EqualityComparer<T>.Default.Equals(field, value))
-        {
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
     }
 }

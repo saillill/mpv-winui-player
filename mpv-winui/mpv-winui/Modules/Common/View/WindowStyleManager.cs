@@ -39,27 +39,6 @@ public sealed partial class WindowStyleManager : IDisposable
             IsInputActive = true
         };
 
-        ApplyBackdrop();
-
-        UpdateBackdropTheme(_theme);
-
-        _uiSettings.ColorValuesChanged += OnColorValuesChanged;
-    }
-
-    /// <summary>Re-applies the backdrop material from the current setting (live toggle support).</summary>
-    public void UpdateBackdrop()
-    {
-        ApplyBackdrop();
-        UpdateBackdropTheme(_theme);
-    }
-
-    private void ApplyBackdrop()
-    {
-        _acrylicController?.Dispose();
-        _acrylicController = null;
-        _micaController?.Dispose();
-        _micaController = null;
-
         switch (AppContext.AppSetting.BackdropType)
         {
             case AppSettings.BackdropType_Mica:
@@ -83,6 +62,10 @@ public sealed partial class WindowStyleManager : IDisposable
                 break;
             }
         }
+
+        UpdateBackdropTheme(_theme);
+
+        _uiSettings.ColorValuesChanged += OnColorValuesChanged;
     }
 
     public ElementTheme GetThemeType()

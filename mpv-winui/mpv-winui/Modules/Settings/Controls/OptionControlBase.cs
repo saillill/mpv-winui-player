@@ -1,52 +1,33 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System.ComponentModel;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
 public abstract class OptionControlBase : UserControl
 {
-    /// <summary>Shows the option description below the title (Windows Settings style).</summary>
-    protected void UpdateDescription(TextBlock? block)
+    /// <summary>Shows or updates the info (i) button used to explain uncommon options.</summary>
+    protected void UpdateHelpButton(Button? button)
     {
-        if (block is null)
+        if (button is null)
         {
             return;
         }
 
         if (string.IsNullOrWhiteSpace(Setting?.Description))
         {
-            block.Text = string.Empty;
-            block.Visibility = Visibility.Collapsed;
+            button.Visibility = Visibility.Collapsed;
             return;
         }
 
-        block.Text = Setting.Description;
-        block.Visibility = Visibility.Visible;
-    }
-
-    /// <summary>Shows the yellow "may be ineffective" warning below the description.</summary>
-    protected void UpdateWarning(TextBlock? block)
-    {
-        if (block is null)
+        button.Visibility = Visibility.Visible;
+        var tip = new TextBlock
         {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(Setting?.Warning))
-        {
-            block.Text = string.Empty;
-            block.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        block.Text = Setting.Warning;
-        block.Visibility = Visibility.Visible;
-    }
-
-    /// <summary>Called when the option's Warning or IsEnabled changes; derived controls refresh their state.</summary>
-    protected virtual void OnOptionStateChanged()
-    {
+            Text = Setting.Description,
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = 380
+        };
+        ToolTipService.SetToolTip(button, tip);
     }
 
     public Option? Setting
@@ -63,39 +44,12 @@ public abstract class OptionControlBase : UserControl
     {
         if (d is OptionControlBase control)
         {
-            control.DetachOption((Option?)e.OldValue);
-            control.AttachOption((Option?)e.NewValue);
             control.OnSettingChanged((Option?)e.OldValue, (Option?)e.NewValue);
-            control.OnOptionStateChanged();
         }
     }
 
     protected virtual void OnSettingChanged(Option? oldValue, Option? newValue)
     {
-    }
-
-    private void AttachOption(Option? option)
-    {
-        if (option is not null)
-        {
-            option.PropertyChanged += OnOptionPropertyChanged;
-        }
-    }
-
-    private void DetachOption(Option? option)
-    {
-        if (option is not null)
-        {
-            option.PropertyChanged -= OnOptionPropertyChanged;
-        }
-    }
-
-    private void OnOptionPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(Option.Warning) || e.PropertyName == nameof(Option.IsEnabled))
-        {
-            OnOptionStateChanged();
-        }
     }
 
     public virtual (bool IsValid, string? ErrorMessage) Validate() => (true, null);

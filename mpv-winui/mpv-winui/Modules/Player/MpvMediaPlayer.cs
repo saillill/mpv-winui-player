@@ -100,10 +100,6 @@ namespace mpv_winui.Modules.Player
         {
             get; set;
         }
-        public Action<MpvMediaPlayer, MpvPreviewInfo?>? PreviewChanged
-        {
-            get; set;
-        }
         public Action<MpvMediaPlayer, object?>? Seeked
         {
             get; set;
@@ -283,7 +279,6 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.LoopPlaylistChanged += MpvPlayer_LoopPlaylistChanged;
             _mpvPlayer.ShuffleChanged += MpvPlayer_ShuffleChanged;
             _mpvPlayer.PlaylistChanged += MpvPlayer_PlaylistChanged;
-            _mpvPlayer.PreviewChanged += MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged += MpvPlayer_WindowChanged;
         }
 
@@ -303,7 +298,6 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.LoopPlaylistChanged -= MpvPlayer_LoopPlaylistChanged;
             _mpvPlayer.ShuffleChanged -= MpvPlayer_ShuffleChanged;
             _mpvPlayer.PlaylistChanged -= MpvPlayer_PlaylistChanged;
-            _mpvPlayer.PreviewChanged -= MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged -= MpvPlayer_WindowChanged;
         }
 
@@ -340,11 +334,6 @@ namespace mpv_winui.Modules.Player
         private void MpvPlayer_PlaylistChanged()
         {
             PlaylistChanged?.Invoke(this, null);
-        }
-
-        private void MpvPlayer_PreviewChanged(MpvPreviewInfo args)
-        {
-            PreviewChanged?.Invoke(this, args);
         }
 
         private void MpvPlayer_Seeked()

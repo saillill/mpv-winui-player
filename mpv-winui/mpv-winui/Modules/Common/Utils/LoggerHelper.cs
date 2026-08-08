@@ -8,12 +8,6 @@ namespace mpv_winui.Modules.Common.Utils
     {
         public static void SetupLogger()
         {
-            ApplyLogLevel();
-        }
-
-        /// <summary>Re-applies the log level from the current setting (live toggle support).</summary>
-        public static void ApplyLogLevel()
-        {
             LogManager.Setup().LoadConfiguration(builder =>
             {
 #if DEBUG

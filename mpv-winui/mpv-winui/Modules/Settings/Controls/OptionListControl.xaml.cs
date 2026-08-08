@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,6 +31,25 @@ public sealed partial class OptionListControl : UserControl
             }
         }));
 
+    private void OnContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+    {
+        if (args.InRecycleQueue)
+        {
+            return;
+        }
+
+        if (args.Item is not Option option)
+        {
+            return;
+        }
+
+        if (args.ItemContainer.ContentTemplateRoot is OptionControlBase control)
+        {
+            control.Setting = option;
+        }
+        args.Handled = true;
+    }
+
     public List<Option> OptionList
     {
         get => (List<Option>)GetValue(SettingProperty);
@@ -53,17 +73,26 @@ public sealed partial class OptionListControl : UserControl
 
     private void ApplyItemsSource()
     {
-        // Sections are rendered as separate list rows (SectionHeaderItem),
-        // so the caption keeps its own typography and is not merged into a card.
-        var items = new List<object>(OptionList.Count + 8);
-        foreach (var option in OptionList)
+        if (OptionList is { Count: > 0 } options && ShowHeaders)
         {
-            if (option.ShowSectionHeader)
+            var groups = new List<OptionGroup>();
+            foreach (var option in options)
             {
-                items.Add(new SectionHeaderItem { Caption = option.Section ?? string.Empty });
+                var group = groups.FirstOrDefault(g => g.Key == option.Category);
+                if (group is null)
+                {
+                    group = new OptionGroup { Key = option.Category };
+                    groups.Add(group);
+                }
+                group.Add(option);
             }
-            items.Add(option);
+
+            var viewSource = new CollectionViewSource { IsSourceGrouped = true, Source = groups };
+            OptionListView.ItemsSource = viewSource.View;
         }
-        OptionListView.ItemsSource = items;
+        else
+        {
+            OptionListView.ItemsSource = OptionList;
+        }
     }
 }

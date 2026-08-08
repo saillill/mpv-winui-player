@@ -32,7 +32,6 @@ namespace mpv_winui
 
             Activated += Window_Activated;
             Closed += Window_Closed;
-            AppContext.SettingChanged += MainWindow_SettingChanged;
         }
 
         public async void Open()
@@ -126,7 +125,6 @@ namespace mpv_winui
         private void Window_Closed(object sender, WindowEventArgs args)
         {
             Activated -= Window_Activated;
-            AppContext.SettingChanged -= MainWindow_SettingChanged;
             _settingsWindow?.Close();
             CleanupStyle();
         }

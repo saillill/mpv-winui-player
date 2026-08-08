@@ -18,10 +18,9 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
-            UpdateDescription(DescriptionText);
-            ToggleSwitch.OnContent = mpv_winui.AppContext.AppLang.OptionValueOn;
-            ToggleSwitch.OffContent = mpv_winui.AppContext.AppLang.OptionValueOff;
-            ToggleSwitch.IsEnabled = newValue.IsEnabled;
+            UpdateHelpButton(HelpButton);
+            ToggleSwitch.OnContent = mpv_winui.AppContext.AppLang.Yes;
+            ToggleSwitch.OffContent = mpv_winui.AppContext.AppLang.No;
 
             _loading = true;
             try
@@ -38,12 +37,6 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         }
     }
     public override (bool IsValid, string? ErrorMessage) Validate() => (true, null);
-
-    protected override void OnOptionStateChanged()
-    {
-        UpdateWarning(WarningText);
-        ToggleSwitch.IsEnabled = Setting?.IsEnabled ?? true;
-    }
 
     private void OnToggled(object sender, RoutedEventArgs e)
     {

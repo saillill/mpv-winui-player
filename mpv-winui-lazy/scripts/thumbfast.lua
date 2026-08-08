@@ -100,7 +100,7 @@ local osd_i18n = {
 }
 
 local function _(s)
-    local t = osd_i18n[mp.get_property_native("user-data/mpvw/language") or "en-US"]
+    local t = osd_i18n[mp.get_property("user-data/mpvw/language") or "en-US"]
     if t and t[s] then
         return t[s]
     end
@@ -299,13 +299,6 @@ if mpv_path == "default" or mpv_path == "bundle" then
         mpv_path = "mpv"
     end
 end
-
--- WinUI 把应用目录下的 mpv.exe 写入 user-data/mpvw/mpv-exe，优先使用它
-mp.observe_property("user-data/mpvw/mpv-exe", "native", function(_, val)
-    if type(val) == "string" and val ~= "" then
-        mpv_path = val
-    end
-end)
 
 local function auto_ui_scale()
     local display_w, display_h = mp.get_property_number('display-width', 0), mp.get_property_number('display-height', 0)
@@ -842,61 +835,6 @@ mp.observe_property("edition", "native", sync_changes)
 
 mp.register_script_message("thumb", thumb)
 mp.register_script_message("clear", clear)
-
--- WinUI 进度条预览：应用把悬停时间写入 user-data/osc/hover-sec，
--- 把预览区域写入 user-data/osc/draw-preview，这里转交给 thumbfast 绘制。
-local hover_sec_cur = nil
-local draw_preview_cur = nil
-
-local function preview_update()
-    mp.msg.verbose("preview_update: disabled=" .. tostring(disabled) .. " hover=" .. tostring(hover_sec_cur) .. " draw=" .. tostring(draw_preview_cur ~= nil))
-    if disabled then
-        return
-    end
-    if hover_sec_cur ~= nil and draw_preview_cur ~= nil then
-        -- 不传坐标：thumbfast 不再用 overlay 绘制，而是把渲染结果回传给本脚本
-        mp.commandv("script-message-to", "thumbfast", "thumb",
-            tostring(hover_sec_cur),
-            "",
-            "",
-            "thumbfast")
-    else
-        pcall(mp.del_property, "user-data/mpvw/preview")
-        clear()
-    end
-end
-
-mp.observe_property("user-data/osc/hover-sec", "native", function(_, val)
-    hover_sec_cur = val
-    mp.msg.verbose("hover-sec = " .. tostring(val))
-    preview_update()
-end)
-
-mp.observe_property("user-data/osc/draw-preview", "native", function(_, val)
-    mp.msg.verbose("draw-preview changed")
-    if type(val) == "table" then
-        draw_preview_cur = val
-    else
-        draw_preview_cur = nil
-    end
-    preview_update()
-end)
-
--- thumbfast 渲染完成：把缩略图信息转发给应用（WinUI 层绘制）
-local preview_seq = 0
-mp.register_script_message("thumbfast-render", function(json)
-    local data = mp.utils.parse_json(json)
-    if type(data) ~= "table" or not data.width or not data.height or not data.tnpath then
-        return
-    end
-    preview_seq = preview_seq + 1
-    mp.set_property_native("user-data/mpvw/preview", {
-        w = data.width,
-        h = data.height,
-        path = data.tnpath .. ".bgra",
-        seq = preview_seq,
-    })
-end)
 
 mp.register_event("file-loaded", file_load)
 mp.register_event("shutdown", shutdown)
