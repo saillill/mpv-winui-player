@@ -122,7 +122,7 @@
         <ListView
             x:Name="OptionListView"
             Grid.Row="1"
-            Padding="8,0,24,0"
+            Padding="8,0,48,0"
             IsItemClickEnabled="False"
             ItemContainerStyle="{StaticResource OptionListViewItemStyle}"
             ItemTemplateSelector="{StaticResource TemplateSelector}"
