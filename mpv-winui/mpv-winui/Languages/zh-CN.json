@@ -612,5 +612,8 @@
   "OptionValueThumbfastPreciseAuto": "自动",
   "OptionValueThumbfastPreciseKeyframes": "仅关键帧",
   "OptionValueThumbfastPreciseAlways": "始终精确",
-  "SectionVideoFilters": "NVIDIA 滤镜"
+  "SectionVideoFilters": "NVIDIA 滤镜",
+  "OptionValueCodePageAuto": "自动检测（推荐）",
+  "SettingsSubFontFile": "字幕字体文件",
+  "SettingsHelpSubFontFile": "选择 TTF/OTF 字体文件，mpv 会扫描其所在目录；随后在“字幕字体”里选择该字体族。下次启动生效。"
 }

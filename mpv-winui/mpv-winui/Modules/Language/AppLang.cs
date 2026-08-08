@@ -454,6 +454,7 @@ namespace mpv_winui.Modules.Language
         public string OptionValueCodePageShiftJis { get; set; } = "Shift-JIS (Japanese)";
         public string OptionValueCodePageEucKr { get; set; } = "EUC-KR (Korean)";
         public string OptionValueCodePageCp1251 { get; set; } = "CP1251 (Cyrillic)";
+        public string OptionValueCodePageAuto { get; set; } = "Auto-detect (recommended)";
 
         // ===== Additional option labels =====
         public string SettingsLoopPlaylist { get; set; } = "Loop playlist";
@@ -488,6 +489,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsSubAuto { get; set; } = "Auto-load subtitles";
         public string SettingsSubFont { get; set; } = "Subtitle font";
         public string SettingsSubFontProvider { get; set; } = "Subtitle font provider";
+        public string SettingsSubFontFile { get; set; } = "Subtitle font file";
         public string SettingsSubCodePage { get; set; } = "Subtitle codepage";
         public string SettingsSubOutlineSize { get; set; } = "Subtitle outline";
         public string SettingsSubShadowOffset { get; set; } = "Subtitle shadow";
@@ -546,6 +548,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpHrSeekFramedrop { get; set; } = "Allow dropping video frames while seeking for faster response.";
         public string SettingsHelpResumePlayback { get; set; } = "Restore the last playback position on startup.";
         public string SettingsHelpSubFontProvider { get; set; } = "Font provider used for subtitle fonts. Auto is recommended; Fontconfig enables system font fallback.";
+        public string SettingsHelpSubFontFile { get; set; } = "Pick a TTF/OTF font file; mpv scans its folder, then choose the font family in Subtitle font. Takes effect on the next start.";
         public string SettingsHelpSubAssForceMargins { get; set; } = "Force ASS subtitles into the black margins when available.";
         public string SettingsHelpStretchImageSubsToScreen { get; set; } = "Stretch image subtitles (e.g. PGS) to the screen resolution so they can render in the black margins.";
         public string SettingsHelpOsdFont { get; set; } = "Font used for on-screen messages. Defaults to the system font.";

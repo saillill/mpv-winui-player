@@ -612,5 +612,8 @@
   "OptionValueThumbfastPreciseAuto": "自動",
   "OptionValueThumbfastPreciseKeyframes": "キーフレームのみ",
   "OptionValueThumbfastPreciseAlways": "常に正確",
-  "SectionVideoFilters": "NVIDIA フィルター"
+  "SectionVideoFilters": "NVIDIA フィルター",
+  "OptionValueCodePageAuto": "自動検出（推奨）",
+  "SettingsSubFontFile": "字幕フォントファイル",
+  "SettingsHelpSubFontFile": "TTF/OTF フォントファイルを選択すると mpv がそのフォルダーをスキャンします。その後「字幕フォント」でフォントファミリーを選んでください。次回起動時に有効です。"
 }

@@ -612,5 +612,8 @@
   "OptionValueThumbfastPreciseAuto": "Auto",
   "OptionValueThumbfastPreciseKeyframes": "Keyframes only",
   "OptionValueThumbfastPreciseAlways": "Always precise",
-  "SectionVideoFilters": "NVIDIA filters"
+  "SectionVideoFilters": "NVIDIA filters",
+  "OptionValueCodePageAuto": "Auto-detect (recommended)",
+  "SettingsSubFontFile": "Subtitle font file",
+  "SettingsHelpSubFontFile": "Pick a TTF/OTF font file; mpv scans its folder, then choose the font family in Subtitle font. Takes effect on the next start."
 }

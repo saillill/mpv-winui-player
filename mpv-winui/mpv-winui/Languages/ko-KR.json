@@ -612,5 +612,8 @@
   "OptionValueThumbfastPreciseAuto": "자동",
   "OptionValueThumbfastPreciseKeyframes": "키프레임만",
   "OptionValueThumbfastPreciseAlways": "항상 정밀",
-  "SectionVideoFilters": "NVIDIA 필터"
+  "SectionVideoFilters": "NVIDIA 필터",
+  "OptionValueCodePageAuto": "자동 감지(권장)",
+  "SettingsSubFontFile": "자막 글꼴 파일",
+  "SettingsHelpSubFontFile": "TTF/OTF 글꼴 파일을 선택하면 mpv가 해당 폴더를 검색합니다. 그런 다음 '자막 글꼴'에서 글꼴 패밀리를 선택하세요. 다음 시작 시 적용됩니다."
 }

@@ -25,7 +25,7 @@ SRC = REPO / "mpv-winui" / "mpv-winui" / "Modules" / "Settings" / "SettingsPage.
 
 src = SRC.read_text(encoding="utf-8")
 keys = re.findall(r"Key = nameof\(AppContext\.AppSetting\.(\w+)\)", src)
-assert len(keys) == 184, len(keys)
+assert len(keys) == 185, len(keys)
 
 # key -> (category var, section var)
 # Category vars: program playback trackSelection watchLater video audio subtitles
@@ -116,6 +116,7 @@ MAP = {
     # Subtitles
     "SubFontSize": ("subtitles", "sSubtitleText"),
     "SubFont": ("subtitles", "sSubtitleText"),
+    "SubFontFile": ("subtitles", "sSubtitleText"),
     "SubFontProvider": ("subtitles", "sSubtitleText"),
     "SubCodePage": ("subtitles", "sSubtitleText"),
     "SubColor": ("subtitles", "sSubtitleText"),

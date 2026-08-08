@@ -612,5 +612,8 @@
   "OptionValueThumbfastPreciseAuto": "Automatique",
   "OptionValueThumbfastPreciseKeyframes": "Images clés uniquement",
   "OptionValueThumbfastPreciseAlways": "Toujours précis",
-  "SectionVideoFilters": "Filtres NVIDIA"
+  "SectionVideoFilters": "Filtres NVIDIA",
+  "OptionValueCodePageAuto": "Détection automatique (recommandée)",
+  "SettingsSubFontFile": "Fichier de police des sous-titres",
+  "SettingsHelpSubFontFile": "Choisissez un fichier de police TTF/OTF ; mpv analyse son dossier, puis choisissez la famille dans Police des sous-titres. Effectif au prochain démarrage."
 }

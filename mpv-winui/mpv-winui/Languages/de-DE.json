@@ -612,5 +612,8 @@
   "OptionValueThumbfastPreciseAuto": "Automatisch",
   "OptionValueThumbfastPreciseKeyframes": "Nur Keyframes",
   "OptionValueThumbfastPreciseAlways": "Immer präzise",
-  "SectionVideoFilters": "NVIDIA-Filter"
+  "SectionVideoFilters": "NVIDIA-Filter",
+  "OptionValueCodePageAuto": "Automatisch erkennen (empfohlen)",
+  "SettingsSubFontFile": "Untertitel-Schriftdatei",
+  "SettingsHelpSubFontFile": "Wählen Sie eine TTF/OTF-Schriftdatei; mpv durchsucht deren Ordner. Wählen Sie danach die Schriftfamilie unter Untertitel-Schrift. Wirkt beim nächsten Start."
 }

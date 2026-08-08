@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -129,6 +130,9 @@ public static class MpvSettings
             nameof(AppSettings.SubAuto) => $"set sub-auto {(string)value}",
             nameof(AppSettings.SubFont) => string.IsNullOrWhiteSpace((string)value) ? null : $"set sub-font {Q((string)value)}",
             nameof(AppSettings.SubFontProvider) => $"set sub-font-provider {(string)value}",
+            nameof(AppSettings.SubFontFile) => value is string fontFile && !string.IsNullOrWhiteSpace(fontFile)
+                ? $"set sub-fonts-dir {Q(Path.GetDirectoryName(fontFile) ?? fontFile)}"
+                : null,
             nameof(AppSettings.SubAssScaleWithWindow) => $"set sub-ass-scale-with-window {(value is true ? "yes" : "no")}",
             nameof(AppSettings.BlendSubtitles) => $"set blend-subtitles {(string)value}",
             nameof(AppSettings.SubFallback) => $"set subs-fallback {(string)value}",
@@ -291,6 +295,7 @@ public static class MpvSettings
             (nameof(AppSettings.SubAuto), s.SubAuto),
             (nameof(AppSettings.SubFont), s.SubFont),
             (nameof(AppSettings.SubFontProvider), s.SubFontProvider),
+            (nameof(AppSettings.SubFontFile), s.SubFontFile),
             (nameof(AppSettings.SubAssScaleWithWindow), s.SubAssScaleWithWindow),
             (nameof(AppSettings.BlendSubtitles), s.BlendSubtitles),
             (nameof(AppSettings.SubFallback), s.SubFallback),

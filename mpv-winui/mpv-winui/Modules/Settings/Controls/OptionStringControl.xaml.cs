@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.Storage.Pickers;
+using mpv_winui.Modules.FileSystem;
 using System;
 using System.IO;
 using Windows.System;
@@ -25,10 +26,10 @@ public sealed partial class OptionStringControl : OptionControlBase
             UpdateDescription(DescriptionText);
 
             BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
-            BrowseButton.Visibility = newValue.PickFolder ? Visibility.Visible : Visibility.Collapsed;
+            BrowseButton.Visibility = newValue.PickFolder || newValue.PickFile ? Visibility.Visible : Visibility.Collapsed;
             OpenButton.Content = mpv_winui.AppContext.AppLang.Open;
             OpenButton.Visibility = newValue.OpenFolder ? Visibility.Visible : Visibility.Collapsed;
-            InputColumn.Width = newValue.PickFolder || newValue.OpenFolder
+            InputColumn.Width = newValue.PickFolder || newValue.PickFile || newValue.OpenFolder
                 ? new GridLength(2, GridUnitType.Star)
                 : new GridLength(260);
             InputBox.IsEnabled = newValue.IsEnabled;
@@ -114,6 +115,22 @@ public sealed partial class OptionStringControl : OptionControlBase
         {
             var owner = mpv_winui.Modules.Settings.SettingsWindow.Instance?.AppWindow.Id
                         ?? mpv_winui.App.Window!.AppWindow.Id;
+            if (Setting?.PickFile == true)
+            {
+                var file = await FilePickerHelper.PickSingleFileAsync(picker =>
+                {
+                    picker.FileTypeFilter.Add(".ttf");
+                    picker.FileTypeFilter.Add(".otf");
+                    picker.FileTypeFilter.Add(".ttc");
+                });
+                if (file?.Path is string filePath && !string.IsNullOrEmpty(filePath))
+                {
+                    InputBox.Text = filePath;
+                    TryCommit();
+                }
+                return;
+            }
+
             var picker = new FolderPicker(owner);
             var folder = await picker.PickSingleFolderAsync();
             if (folder?.Path is string path && !string.IsNullOrEmpty(path))
@@ -131,6 +148,22 @@ public sealed partial class OptionStringControl : OptionControlBase
     private async void OnOpenFolderClick(object sender, RoutedEventArgs e)
     {
         var path = InputBox.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            if (Setting?.PickFile == true)
+            {
+                path = AppData.Current.ResolveLocalData(Path.Combine("mpv", "fonts"));
+            }
+            else
+            {
+                return;
+            }
+        }
+        else if (Setting?.PickFile == true && File.Exists(path))
+        {
+            path = Path.GetDirectoryName(path) ?? path;
+        }
+
         if (string.IsNullOrWhiteSpace(path))
         {
             return;

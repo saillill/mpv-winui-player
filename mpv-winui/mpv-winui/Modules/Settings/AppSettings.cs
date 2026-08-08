@@ -32,6 +32,16 @@ namespace mpv_winui.Modules.Settings
                 _dataSetting.SetValue(nameof(SubFont), string.Empty);
             }
             _dataSetting.SetValue(migratedKey, true);
+
+            const string codePageKey = "SubCodePageAutoMigrated";
+            if (!_dataSetting.GetValue(codePageKey, false))
+            {
+                if (string.Equals(_dataSetting.GetValue(nameof(SubCodePage), string.Empty), "GB18030", StringComparison.Ordinal))
+                {
+                    _dataSetting.SetValue(nameof(SubCodePage), string.Empty);
+                }
+                _dataSetting.SetValue(codePageKey, true);
+            }
         }
 
         public const string ThemeType_Auto = "Auto";
@@ -460,8 +470,14 @@ namespace mpv_winui.Modules.Settings
 
         public string SubCodePage
         {
-            get => _dataSetting.GetValue(nameof(SubCodePage), "GB18030");
+            get => _dataSetting.GetValue(nameof(SubCodePage), "auto");
             set => _dataSetting.SetValue(nameof(SubCodePage), value);
+        }
+
+        public string SubFontFile
+        {
+            get => _dataSetting.GetValue(nameof(SubFontFile), string.Empty);
+            set => _dataSetting.SetValue(nameof(SubFontFile), value);
         }
 
         public bool SubAssScaleWithWindow

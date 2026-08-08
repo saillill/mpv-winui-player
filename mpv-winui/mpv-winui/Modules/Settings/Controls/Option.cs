@@ -57,6 +57,12 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Show a "Browse..." button that opens the system file picker (fonts, etc.).</summary>
+    public bool PickFile
+    {
+        get; set;
+    }
+
     /// <summary>Show an "Open" button that opens the folder in File Explorer.</summary>
     public bool OpenFolder
     {

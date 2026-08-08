@@ -612,5 +612,8 @@
   "OptionValueThumbfastPreciseAuto": "Automática",
   "OptionValueThumbfastPreciseKeyframes": "Solo fotogramas clave",
   "OptionValueThumbfastPreciseAlways": "Siempre precisa",
-  "SectionVideoFilters": "Filtros NVIDIA"
+  "SectionVideoFilters": "Filtros NVIDIA",
+  "OptionValueCodePageAuto": "Detección automática (recomendada)",
+  "SettingsSubFontFile": "Archivo de fuente de subtítulos",
+  "SettingsHelpSubFontFile": "Elija un archivo de fuente TTF/OTF; mpv escanea su carpeta y luego seleccione la familia en Fuente de subtítulos. Efectivo en el próximo inicio."
 }

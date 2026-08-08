@@ -612,5 +612,8 @@
   "OptionValueThumbfastPreciseAuto": "Авто",
   "OptionValueThumbfastPreciseKeyframes": "Только ключевые кадры",
   "OptionValueThumbfastPreciseAlways": "Всегда точно",
-  "SectionVideoFilters": "Фильтры NVIDIA"
+  "SectionVideoFilters": "Фильтры NVIDIA",
+  "OptionValueCodePageAuto": "Автоопределение (рекомендуется)",
+  "SettingsSubFontFile": "Файл шрифта субтитров",
+  "SettingsHelpSubFontFile": "Выберите файл шрифта TTF/OTF; mpv просканирует его папку, затем укажите семейство в «Шрифте субтитров». Действует со следующего запуска."
 }
