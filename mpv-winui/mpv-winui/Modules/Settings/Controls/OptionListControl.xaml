@@ -12,7 +12,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,12"
-                Padding="16,14,16,14"
+                Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -26,7 +26,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,12"
-                Padding="16,14,16,14"
+                Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -40,7 +40,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,12"
-                Padding="16,14,16,14"
+                Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -54,7 +54,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,12"
-                Padding="16,14,16,14"
+                Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -68,7 +68,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,12"
-                Padding="16,14,16,14"
+                Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -122,7 +122,7 @@
         <ListView
             x:Name="OptionListView"
             Grid.Row="1"
-            Padding="8,0,8,0"
+            Padding="8,0,24,0"
             IsItemClickEnabled="False"
             ItemContainerStyle="{StaticResource OptionListViewItemStyle}"
             ItemTemplateSelector="{StaticResource TemplateSelector}"
