@@ -55,7 +55,7 @@ local function update()
 	end
 end
 
--- 设置窗口“Seek 时保持窗口大小”开关：应用写入 user-data/mpvw/seek-hold
+-- 读取设置窗口的开关：user-data/mpvw/seek-hold
 mp.observe_property("user-data/mpvw/seek-hold", "native", function(_, val)
 	enabled = val ~= false
 	if not enabled then

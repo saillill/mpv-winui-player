@@ -11,19 +11,51 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid
+        <StackPanel
+            x:Name="GroupHeader"
             Grid.Row="0"
+            Margin="0,10,0,6"
+            Visibility="Collapsed">
+            <TextBlock
+                x:Name="GroupHeaderText"
+                FontSize="13"
+                FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Border
+                Height="1"
+                Margin="0,6,0,0"
+                Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+        </StackPanel>
+        <Grid
+            Grid.Row="1"
             ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock
-                x:Name="LabelText"
-                VerticalAlignment="Center"
-                Style="{StaticResource BodyTextBlockStyle}"
-                TextWrapping="Wrap" />
+            <StackPanel
+                Grid.Column="0"
+                Orientation="Horizontal"
+                Spacing="8">
+                <TextBlock
+                    x:Name="LabelText"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    TextWrapping="Wrap" />
+                <Border
+                    Padding="6,1"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    CornerRadius="4">
+                    <TextBlock
+                        x:Name="SourceBadgeText"
+                        FontSize="11"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </Border>
+            </StackPanel>
             <ToggleSwitch
                 x:Name="ToggleSwitch"
                 Grid.Column="1"
@@ -33,9 +65,17 @@
         </Grid>
         <TextBlock
             x:Name="DescriptionText"
-            Grid.Row="1"
+            Grid.Row="2"
             Margin="0,2,0,0"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            TextWrapping="Wrap"
+            Visibility="Collapsed" />
+        <TextBlock
+            x:Name="WarningText"
+            Grid.Row="3"
+            Margin="0,2,0,0"
+            Foreground="{ThemeResource SystemFillColorCautionBrush}"
             Style="{StaticResource CaptionTextBlockStyle}"
             TextWrapping="Wrap"
             Visibility="Collapsed" />

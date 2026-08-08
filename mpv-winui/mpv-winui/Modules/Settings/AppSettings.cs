@@ -200,6 +200,12 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(SavePositionOnQuit), value);
         }
 
+        public bool ResumePlayback
+        {
+            get => _dataSetting.GetValue(nameof(ResumePlayback), true);
+            set => _dataSetting.SetValue(nameof(ResumePlayback), value);
+        }
+
         public string ScreenshotFormat
         {
             get => _dataSetting.GetValue(nameof(ScreenshotFormat), "png");
@@ -282,6 +288,12 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(HrSeek), true);
             set => _dataSetting.SetValue(nameof(HrSeek), value);
+        }
+
+        public bool HrSeekFramedrop
+        {
+            get => _dataSetting.GetValue(nameof(HrSeekFramedrop), false);
+            set => _dataSetting.SetValue(nameof(HrSeekFramedrop), value);
         }
 
         public bool CacheOnDisk
@@ -374,6 +386,12 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(SubFont), value);
         }
 
+        public string SubFontProvider
+        {
+            get => _dataSetting.GetValue(nameof(SubFontProvider), "auto");
+            set => _dataSetting.SetValue(nameof(SubFontProvider), value);
+        }
+
         public string SubCodePage
         {
             get => _dataSetting.GetValue(nameof(SubCodePage), "GB18030");
@@ -422,10 +440,34 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(SubUseMargins), value);
         }
 
+        public bool SubAssForceMargins
+        {
+            get => _dataSetting.GetValue(nameof(SubAssForceMargins), true);
+            set => _dataSetting.SetValue(nameof(SubAssForceMargins), value);
+        }
+
+        public bool StretchImageSubsToScreen
+        {
+            get => _dataSetting.GetValue(nameof(StretchImageSubsToScreen), true);
+            set => _dataSetting.SetValue(nameof(StretchImageSubsToScreen), value);
+        }
+
         public int OsdFontSize
         {
             get => _dataSetting.GetValue(nameof(OsdFontSize), 20);
             set => _dataSetting.SetValue(nameof(OsdFontSize), value);
+        }
+
+        public string OsdFont
+        {
+            get => _dataSetting.GetValue(nameof(OsdFont), "sans-serif");
+            set => _dataSetting.SetValue(nameof(OsdFont), value);
+        }
+
+        public string OsdOnSeek
+        {
+            get => _dataSetting.GetValue(nameof(OsdOnSeek), "msg");
+            set => _dataSetting.SetValue(nameof(OsdOnSeek), value);
         }
 
         public int OsdDuration
@@ -480,6 +522,12 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(ScreenshotTagColorspace), true);
             set => _dataSetting.SetValue(nameof(ScreenshotTagColorspace), value);
+        }
+
+        public bool ScreenshotSw
+        {
+            get => _dataSetting.GetValue(nameof(ScreenshotSw), false);
+            set => _dataSetting.SetValue(nameof(ScreenshotSw), value);
         }
     }
 }

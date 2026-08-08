@@ -114,10 +114,10 @@ mp.observe_property("current-tracks/video/albumart", "native", sync_vsr)
 mp.observe_property("current-tracks/video/image", "native", sync_vsr)
 mp.register_event("file-loaded", sync_vsr)
 
--- 设置窗口“自动 VSR”开关：应用写入 user-data/mpvw/vsr-auto
+-- 读取设置窗口的开关：user-data/mpvw/vsr-auto
 mp.observe_property("user-data/mpvw/vsr-auto", "native", function(_, val)
 	enabled = val ~= false
-	msg.verbose("VSR auto enabled = " .. tostring(enabled))
+	msg.verbose("vsr auto = " .. tostring(enabled))
 	sync_vsr()
 end)
 

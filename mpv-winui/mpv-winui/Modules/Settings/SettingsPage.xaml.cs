@@ -24,6 +24,7 @@ public sealed partial class SettingsPage : Page
         CategoryList.ItemsSource = Categories;
         CategoryList.SelectedIndex = 0;
         UpdateOptions();
+        RefreshWarningsAndEnabled();
     }
 
     private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateOptions();
@@ -47,6 +48,7 @@ public sealed partial class SettingsPage : Page
         var paths = AppContext.AppLang.SettingsCategoryPaths;
         var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var lang = AppContext.AppLang;
+        var pluginGroup = lang.OptionGroupPlugin;
 
         var options = new List<Option>
         {
@@ -57,6 +59,7 @@ public sealed partial class SettingsPage : Page
                 Label = lang.AppSettingTheme,
                 Category = general,
                 Description = lang.SettingsHelpTheme,
+                Source = OptionSource.App,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -78,6 +81,7 @@ public sealed partial class SettingsPage : Page
                 Label = lang.Backdrop,
                 Category = general,
                 Description = lang.SettingsHelpBackdrop,
+                Source = OptionSource.App,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -94,6 +98,7 @@ public sealed partial class SettingsPage : Page
                 Label = lang.DebugLog,
                 Category = general,
                 Description = lang.SettingsHelpDebugLog,
+                Source = OptionSource.App,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableDebugLog,
                 Setter = v => AppContext.AppSetting.EnableDebugLog = (bool)v!
@@ -106,6 +111,7 @@ public sealed partial class SettingsPage : Page
                 Category = general,
                 Description = lang.SettingsHelpLanguage,
                 RequiresRestart = true,
+                Source = OptionSource.Hybrid,
                 Type = OptionType.StringList,
                 Choices = AppContext.AvailableLanguages()
                     .Select(code => new OptionChoice(code, AppLang.NativeLanguageName(code)))
@@ -252,13 +258,13 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.EnableVideoPreview),
-                Label = lang.SettingsVideoPreview,
+                Key = nameof(AppContext.AppSetting.ResumePlayback),
+                Label = lang.SettingsResumePlayback,
                 Category = playback,
-                Description = lang.SettingsHelpVideoPreview,
+                Description = lang.SettingsHelpResumePlayback,
                 Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.EnableVideoPreview,
-                Setter = v => AppContext.AppSetting.EnableVideoPreview = (bool)v!
+                Getter = () => AppContext.AppSetting.ResumePlayback,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ResumePlayback), AppContext.AppSetting.ResumePlayback = (bool)v!)
             },
 
             new Option
@@ -273,6 +279,19 @@ public sealed partial class SettingsPage : Page
                 Step = 10,
                 Getter = () => (double)AppContext.AppSetting.CacheSecs,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CacheSecs), AppContext.AppSetting.CacheSecs = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.EnableVideoPreview),
+                Label = lang.SettingsVideoPreview,
+                Category = playback,
+                Description = lang.SettingsHelpVideoPreview,
+                Source = OptionSource.Plugin,
+                Group = pluginGroup,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.EnableVideoPreview,
+                Setter = v => AppContext.AppSetting.EnableVideoPreview = (bool)v!
             },
 
             // ===== Video / 视频 =====
@@ -475,6 +494,17 @@ public sealed partial class SettingsPage : Page
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.HrSeek,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HrSeek), AppContext.AppSetting.HrSeek = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HrSeekFramedrop),
+                Label = lang.SettingsHrSeekFramedrop,
+                Category = video,
+                Description = lang.SettingsHelpHrSeekFramedrop,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.HrSeekFramedrop,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HrSeekFramedrop), AppContext.AppSetting.HrSeekFramedrop = (bool)v!)
             },
 
             // ===== Audio / 音频 =====
@@ -688,19 +718,26 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsSubFont,
                 Category = subtitle,
                 Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("sans-serif", lang.OptionValueFontDefault),
-                    new OptionChoice("Segoe UI", "Segoe UI"),
-                    new OptionChoice("Microsoft YaHei", "Microsoft YaHei"),
-                    new OptionChoice("Arial", "Arial"),
-                    new OptionChoice("Times New Roman", "Times New Roman"),
-                    new OptionChoice("Consolas", "Consolas"),
-                    new OptionChoice("Source Han Sans SC", "Source Han Sans SC"),
-                    new OptionChoice("LXGW WenKai Mono Lite", "LXGW WenKai Mono Lite"),
-                ],
+                Choices = SubtitleFontChoices(lang),
                 Getter = () => AppContext.AppSetting.SubFont,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFont), AppContext.AppSetting.SubFont = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubFontProvider),
+                Label = lang.SettingsSubFontProvider,
+                Category = subtitle,
+                Description = lang.SettingsHelpSubFontProvider,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueFontProviderAuto),
+                    new OptionChoice("none", lang.OptionValueFontProviderNone),
+                    new OptionChoice("fontconfig", lang.OptionValueFontProviderFontconfig),
+                ],
+                Getter = () => AppContext.AppSetting.SubFontProvider,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFontProvider), AppContext.AppSetting.SubFontProvider = (string)v!)
             },
 
             new Option
@@ -769,6 +806,28 @@ public sealed partial class SettingsPage : Page
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SubUseMargins,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubUseMargins), AppContext.AppSetting.SubUseMargins = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAssForceMargins),
+                Label = lang.SettingsSubAssForceMargins,
+                Category = subtitle,
+                Description = lang.SettingsHelpSubAssForceMargins,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubAssForceMargins,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssForceMargins), AppContext.AppSetting.SubAssForceMargins = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.StretchImageSubsToScreen),
+                Label = lang.SettingsStretchImageSubsToScreen,
+                Category = subtitle,
+                Description = lang.SettingsHelpStretchImageSubsToScreen,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.StretchImageSubsToScreen,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.StretchImageSubsToScreen), AppContext.AppSetting.StretchImageSubsToScreen = (bool)v!)
             },
 
             // ===== Screenshot / 截屏 =====
@@ -883,6 +942,17 @@ public sealed partial class SettingsPage : Page
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ScreenshotTagColorspace,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotTagColorspace), AppContext.AppSetting.ScreenshotTagColorspace = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ScreenshotSw),
+                Label = lang.SettingsScreenshotSw,
+                Category = screenshot,
+                Description = lang.SettingsHelpScreenshotSw,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.ScreenshotSw,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotSw), AppContext.AppSetting.ScreenshotSw = (bool)v!)
             },
 
             // ===== Advanced / 高级 =====
@@ -1020,6 +1090,36 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.OsdFont),
+                Label = lang.SettingsOsdFont,
+                Category = advanced,
+                Description = lang.SettingsHelpOsdFont,
+                Type = OptionType.StringList,
+                Choices = SubtitleFontChoices(lang),
+                Getter = () => AppContext.AppSetting.OsdFont,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdFont), AppContext.AppSetting.OsdFont = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdOnSeek),
+                Label = lang.SettingsOsdOnSeek,
+                Category = advanced,
+                Description = lang.SettingsHelpOsdOnSeek,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("bar", lang.OptionValueOsdOnSeekBar),
+                    new OptionChoice("msg", lang.OptionValueOsdOnSeekMsg),
+                    new OptionChoice("msg-bar", lang.OptionValueOsdOnSeekMsgBar),
+                    new OptionChoice("no", lang.OptionValueOsdOnSeekNo),
+                ],
+                Getter = () => AppContext.AppSetting.OsdOnSeek,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdOnSeek), AppContext.AppSetting.OsdOnSeek = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.OsdDuration),
                 Label = lang.SettingsOsdDuration,
                 Category = advanced,
@@ -1038,6 +1138,8 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsVsrAuto,
                 Category = advanced,
                 Description = lang.SettingsHelpVsrAuto,
+                Source = OptionSource.Plugin,
+                Group = pluginGroup,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.VsrAutoEnabled,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VsrAutoEnabled), AppContext.AppSetting.VsrAutoEnabled = (bool)v!)
@@ -1049,6 +1151,8 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsHdrAutoMode,
                 Category = advanced,
                 Description = lang.SettingsHelpHdrAutoMode,
+                Source = OptionSource.Plugin,
+                Group = pluginGroup,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -1066,6 +1170,8 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsSeekHold,
                 Category = advanced,
                 Description = lang.SettingsHelpSeekHold,
+                Source = OptionSource.Plugin,
+                Group = pluginGroup,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SeekHoldEnabled,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SeekHoldEnabled), AppContext.AppSetting.SeekHoldEnabled = (bool)v!)
@@ -1092,6 +1198,15 @@ public sealed partial class SettingsPage : Page
             if (RedundantDescriptions.Contains(option.Key))
             {
                 option.Description = null;
+            }
+        }
+
+        var seenPluginGroup = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var option in options)
+        {
+            if (!string.IsNullOrEmpty(option.Group) && seenPluginGroup.Add(option.Category))
+            {
+                option.ShowGroupHeader = true;
             }
         }
 
@@ -1129,6 +1244,21 @@ public sealed partial class SettingsPage : Page
         nameof(AppContext.AppSetting.ScreenshotFormat),
         nameof(AppContext.AppSetting.ScreenshotTagColorspace),
     };
+
+    private static List<OptionChoice> SubtitleFontChoices(AppLang lang)
+    {
+        return
+        [
+            new OptionChoice("sans-serif", lang.OptionValueFontDefault),
+            new OptionChoice("Segoe UI", "Segoe UI"),
+            new OptionChoice("Microsoft YaHei", "Microsoft YaHei"),
+            new OptionChoice("Arial", "Arial"),
+            new OptionChoice("Times New Roman", "Times New Roman"),
+            new OptionChoice("Consolas", "Consolas"),
+            new OptionChoice("Source Han Sans SC", "Source Han Sans SC"),
+            new OptionChoice("LXGW WenKai Mono Lite", "LXGW WenKai Mono Lite"),
+        ];
+    }
 
     private static List<OptionChoice> LanguageChoices(bool includeAuto)
     {
@@ -1175,12 +1305,55 @@ public sealed partial class SettingsPage : Page
         return choices;
     }
 
-    private static void ApplyMpv(string key, object value)
+    private void ApplyMpv(string key, object value)
     {
         if (MpvSettings.ToCommand(key, value) is { } cmd)
         {
             AppContext.SendMpvCommand(cmd);
         }
+        RefreshWarningsAndEnabled();
+    }
+
+    /// <summary>Re-evaluates yellow warnings and disabled states after any option changes.</summary>
+    private void RefreshWarningsAndEnabled()
+    {
+        var s = AppContext.AppSetting;
+        foreach (var option in Settings)
+        {
+            option.Warning = ComputeWarning(option, s);
+            option.IsEnabled = ComputeEnabled(option, s);
+        }
+    }
+
+    private static string? ComputeWarning(Option option, AppSettings s)
+    {
+        var lang = AppContext.AppLang;
+        return option.Key switch
+        {
+            nameof(AppSettings.Interpolation) when s.VideoSync != "display-resample" => lang.WarningInterpolationVideoSync,
+            nameof(AppSettings.HrSeekFramedrop) when s.Interpolation => lang.WarningHrSeekFramedrop,
+            nameof(AppSettings.Deband) when s.Hwdec != "no" => lang.WarningDebandHwdec,
+            nameof(AppSettings.SavePositionOnQuit) when !s.ResumePlayback => lang.WarningSaveWithoutResume,
+            nameof(AppSettings.SubUseMargins) when s.BlendSubtitles != "no" => lang.WarningBlendSubtitlesMargins,
+            nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => lang.WarningBlendSubtitlesMargins,
+            nameof(AppSettings.SubFallback) when string.IsNullOrWhiteSpace(s.SubtitleLanguage) => lang.WarningSubFallbackNoLanguage,
+            nameof(AppSettings.ScreenshotJpegQuality) when s.ScreenshotFormat != "jpg" => lang.WarningFormatJpeg,
+            nameof(AppSettings.ScreenshotPngCompression) when s.ScreenshotFormat != "png" => lang.WarningFormatPng,
+            nameof(AppSettings.ScreenshotWebpQuality) when s.ScreenshotFormat != "webp" => lang.WarningFormatWebp,
+            nameof(AppSettings.ScreenshotHighBitDepth) when s.ScreenshotFormat is not ("png" or "webp") => lang.WarningHighBitDepthFormat,
+            nameof(AppSettings.SeekHoldEnabled) when !s.VsrAutoEnabled && s.HdrAutoMode == "off" => lang.WarningSeekHoldInactive,
+            _ => null,
+        };
+    }
+
+    private static bool ComputeEnabled(Option option, AppSettings s)
+    {
+        return option.Key switch
+        {
+            // mpv: sub-ass-force-margins is ignored when blend-subtitles=yes/video.
+            nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => false,
+            _ => true,
+        };
     }
 
     private async void PromptRestartIfNeeded(string settingLabel)
