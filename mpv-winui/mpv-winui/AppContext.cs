@@ -33,6 +33,12 @@ namespace mpv_winui
 
         public static void SendMpvCommand(string cmd) => RunMpvCommand?.Invoke(cmd);
 
+        /// <summary>Writes settings-managed plugin options into script-opts/*.conf (next mpv start).</summary>
+        public static void WritePluginConfigs()
+        {
+            _ = PluginConfigWriter.WriteAllAsync();
+        }
+
         public static void NotifySettingChanged(string key, object? value)
         {
             SettingChanged?.Invoke(key, value);
@@ -64,6 +70,7 @@ namespace mpv_winui
             SettingChanged += OnSettingChanged;
             _task = Task.WhenAll([
                 Task.Run(LoggerHelper.SetupLogger),
+                Task.Run(PluginConfigWriter.WriteAllAsync),
                 AppBootstrap.RunAsync()
             ]);
         }

@@ -559,5 +559,185 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(ScreenshotSw), false);
             set => _dataSetting.SetValue(nameof(ScreenshotSw), value);
         }
+
+        public bool AlwaysOnTop
+        {
+            get => _dataSetting.GetValue(nameof(AlwaysOnTop), false);
+            set => _dataSetting.SetValue(nameof(AlwaysOnTop), value);
+        }
+
+        public string CacheEnabled
+        {
+            get => _dataSetting.GetValue(nameof(CacheEnabled), "auto");
+            set => _dataSetting.SetValue(nameof(CacheEnabled), value);
+        }
+
+        public double DemuxerReadahead
+        {
+            get => _dataSetting.GetValue(nameof(DemuxerReadahead), 2.0);
+            set => _dataSetting.SetValue(nameof(DemuxerReadahead), value);
+        }
+
+        public bool Ytdl
+        {
+            get => _dataSetting.GetValue(nameof(Ytdl), true);
+            set => _dataSetting.SetValue(nameof(Ytdl), value);
+        }
+
+        public string AutoCreatePlaylist
+        {
+            get => _dataSetting.GetValue(nameof(AutoCreatePlaylist), "same");
+            set => _dataSetting.SetValue(nameof(AutoCreatePlaylist), value);
+        }
+
+        public string DirectoryMode
+        {
+            get => _dataSetting.GetValue(nameof(DirectoryMode), "ignore");
+            set => _dataSetting.SetValue(nameof(DirectoryMode), value);
+        }
+
+        public string Cscale
+        {
+            get => _dataSetting.GetValue(nameof(Cscale), "lanczos");
+            set => _dataSetting.SetValue(nameof(Cscale), value);
+        }
+
+        public string Tscale
+        {
+            get => _dataSetting.GetValue(nameof(Tscale), "oversample");
+            set => _dataSetting.SetValue(nameof(Tscale), value);
+        }
+
+        public bool LinearUpscaling
+        {
+            get => _dataSetting.GetValue(nameof(LinearUpscaling), false);
+            set => _dataSetting.SetValue(nameof(LinearUpscaling), value);
+        }
+
+        public string Dither
+        {
+            get => _dataSetting.GetValue(nameof(Dither), "fruit");
+            set => _dataSetting.SetValue(nameof(Dither), value);
+        }
+
+        public double Panscan
+        {
+            get => _dataSetting.GetValue(nameof(Panscan), 0.0);
+            set => _dataSetting.SetValue(nameof(Panscan), value);
+        }
+
+        public string SubFilePaths
+        {
+            get => _dataSetting.GetValue(nameof(SubFilePaths), "sub;Subs;subtitles");
+            set => _dataSetting.SetValue(nameof(SubFilePaths), value);
+        }
+
+        public int SubHdrPeak
+        {
+            get => _dataSetting.GetValue(nameof(SubHdrPeak), 100);
+            set => _dataSetting.SetValue(nameof(SubHdrPeak), value);
+        }
+
+        public int ImageSubsHdrPeak
+        {
+            get => _dataSetting.GetValue(nameof(ImageSubsHdrPeak), 10000);
+            set => _dataSetting.SetValue(nameof(ImageSubsHdrPeak), value);
+        }
+
+        public string SubAssStyleOverrides
+        {
+            get => _dataSetting.GetValue(nameof(SubAssStyleOverrides), string.Empty);
+            set => _dataSetting.SetValue(nameof(SubAssStyleOverrides), value);
+        }
+
+        public string OsdPlayingMsg
+        {
+            get => _dataSetting.GetValue(nameof(OsdPlayingMsg), "${filename}");
+            set => _dataSetting.SetValue(nameof(OsdPlayingMsg), value);
+        }
+
+        public int OsdPlayingMsgDuration
+        {
+            get => _dataSetting.GetValue(nameof(OsdPlayingMsgDuration), 3000);
+            set => _dataSetting.SetValue(nameof(OsdPlayingMsgDuration), value);
+        }
+
+        public int OsdBarWidth
+        {
+            get => _dataSetting.GetValue(nameof(OsdBarWidth), 100);
+            set => _dataSetting.SetValue(nameof(OsdBarWidth), value);
+        }
+
+        public string TargetColorspaceHint
+        {
+            get => _dataSetting.GetValue(nameof(TargetColorspaceHint), "yes");
+            set => _dataSetting.SetValue(nameof(TargetColorspaceHint), value);
+        }
+
+        public string TargetPrim
+        {
+            get => _dataSetting.GetValue(nameof(TargetPrim), string.Empty);
+            set => _dataSetting.SetValue(nameof(TargetPrim), value);
+        }
+
+        public string TargetTrc
+        {
+            get => _dataSetting.GetValue(nameof(TargetTrc), string.Empty);
+            set => _dataSetting.SetValue(nameof(TargetTrc), value);
+        }
+
+        public int TargetPeak
+        {
+            get => _dataSetting.GetValue(nameof(TargetPeak), 0);
+            set => _dataSetting.SetValue(nameof(TargetPeak), value);
+        }
+
+        public bool IccCache
+        {
+            get => _dataSetting.GetValue(nameof(IccCache), true);
+            set => _dataSetting.SetValue(nameof(IccCache), value);
+        }
+
+        public bool GpuShaderCache
+        {
+            get => _dataSetting.GetValue(nameof(GpuShaderCache), true);
+            set => _dataSetting.SetValue(nameof(GpuShaderCache), value);
+        }
+
+        public int DemuxerMaxBackBytes
+        {
+            get => _dataSetting.GetValue(nameof(DemuxerMaxBackBytes), 512);
+            set => _dataSetting.SetValue(nameof(DemuxerMaxBackBytes), value);
+        }
+
+        public bool HdrAutoLog
+        {
+            get => _dataSetting.GetValue(nameof(HdrAutoLog), false);
+            set => _dataSetting.SetValue(nameof(HdrAutoLog), value);
+        }
+
+        public bool MetadataOsdEnabled
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdEnabled), true);
+            set => _dataSetting.SetValue(nameof(MetadataOsdEnabled), value);
+        }
+
+        public int MetadataOsdAutohideTimeout
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideTimeout), 5);
+            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideTimeout), value);
+        }
+
+        public bool CoverArtPreferEmbedded
+        {
+            get => _dataSetting.GetValue(nameof(CoverArtPreferEmbedded), false);
+            set => _dataSetting.SetValue(nameof(CoverArtPreferEmbedded), value);
+        }
+
+        public int ThumbfastQuality
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastQuality), 1);
+            set => _dataSetting.SetValue(nameof(ThumbfastQuality), value);
+        }
     }
 }
