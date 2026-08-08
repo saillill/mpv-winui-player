@@ -30,6 +30,11 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
         LabelText.Text = newValue.Label;
         UpdateDescription(DescriptionText);
+        SectionHeader.Visibility = newValue.ShowSectionHeader ? Visibility.Visible : Visibility.Collapsed;
+        if (newValue.ShowSectionHeader)
+        {
+            SectionHeaderText.Text = newValue.Section ?? string.Empty;
+        }
         Combo.IsEnabled = newValue.IsEnabled;
         CustomLabel.Text = mpv_winui.AppContext.AppLang.OptionValueCustom;
         CustomInput.PlaceholderText = mpv_winui.AppContext.AppLang.OptionValueCustom;

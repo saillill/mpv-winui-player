@@ -73,27 +73,8 @@ public sealed partial class OptionListControl : UserControl
 
     private void ApplyItemsSource()
     {
-        if (OptionList is { Count: > 0 } options && (ShowHeaders || options.Any(o => !string.IsNullOrEmpty(o.Section))))
-        {
-            var groups = new List<OptionGroup>();
-            foreach (var option in options)
-            {
-                var key = ShowHeaders ? option.Category : option.Section ?? string.Empty;
-                var group = groups.FirstOrDefault(g => g.Key == key);
-                if (group is null)
-                {
-                    group = new OptionGroup { Key = key };
-                    groups.Add(group);
-                }
-                group.Add(option);
-            }
-
-            var viewSource = new CollectionViewSource { IsSourceGrouped = true, Source = groups };
-            OptionListView.ItemsSource = viewSource.View;
-        }
-        else
-        {
-            OptionListView.ItemsSource = OptionList;
-        }
+        // Sections are rendered as in-control captions (Option.ShowSectionHeader),
+        // which is more reliable than ListView grouping for mixed empty/named groups.
+        OptionListView.ItemsSource = OptionList;
     }
 }

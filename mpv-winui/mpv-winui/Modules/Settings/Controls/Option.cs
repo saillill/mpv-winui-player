@@ -63,6 +63,12 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Renders a section caption above this option (first option of a section).</summary>
+    public bool ShowSectionHeader
+    {
+        get; set;
+    }
+
     /// <summary>Localized warning shown in yellow when the option may be ineffective in the current state.</summary>
     public string? Warning
     {
