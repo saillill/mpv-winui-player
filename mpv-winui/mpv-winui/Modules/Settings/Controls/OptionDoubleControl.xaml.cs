@@ -19,6 +19,8 @@ public sealed partial class OptionDoubleControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
+            UpdateSourceBadge(SourceBadgeText);
+            NumberBox.IsEnabled = newValue.IsEnabled;
 
             _loading = true;
             try
@@ -74,6 +76,12 @@ public sealed partial class OptionDoubleControl : OptionControlBase
             }
         }
         return (true, null);
+    }
+
+    protected override void OnOptionStateChanged()
+    {
+        UpdateWarning(WarningText);
+        NumberBox.IsEnabled = Setting?.IsEnabled ?? true;
     }
 
     private bool TryCommit()

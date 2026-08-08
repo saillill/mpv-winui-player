@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 
@@ -18,6 +19,13 @@ public sealed partial class OptionStringListControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
+            UpdateSourceBadge(SourceBadgeText);
+            GroupHeader.Visibility = newValue.ShowGroupHeader ? Visibility.Visible : Visibility.Collapsed;
+            if (newValue.ShowGroupHeader)
+            {
+                GroupHeaderText.Text = newValue.Group ?? string.Empty;
+            }
+            Combo.IsEnabled = newValue.IsEnabled;
 
             _loading = true;
             Combo.Items.Clear();
@@ -59,6 +67,12 @@ public sealed partial class OptionStringListControl : OptionControlBase
     }
 
     public override (bool IsValid, string? ErrorMessage) Validate() => (true, null);
+
+    protected override void OnOptionStateChanged()
+    {
+        UpdateWarning(WarningText);
+        Combo.IsEnabled = Setting?.IsEnabled ?? true;
+    }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
