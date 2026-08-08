@@ -290,5 +290,10 @@
   "SettingsHelpScreenshotWebpQuality": "Качество WebP (0-100). Только для формата WebP.",
   "SettingsHelpScreenshotHighBitDepth": "Сохранять высокую битность. Файлы могут быть очень большими.",
   "SettingsHelpScreenshotTagColorspace": "Помечать снимки корректными метаданными цветового пространства.",
-  "SettingsHelpCacheDirectory": "Папка для файлов кэша mpv. Пусто = встроенное значение."
+  "SettingsHelpCacheDirectory": "Папка для файлов кэша mpv. Пусто = встроенное значение.",
+  "SettingsScreenshotTemplateDefault": "По умолчанию (mpv.conf)",
+  "SettingsScreenshotTemplateMpv": "Стиль MPV (время + счётчик)",
+  "SettingsScreenshotTemplateFileTime": "Имя файла + время",
+  "SettingsScreenshotTemplateFileTimeCounter": "Имя файла + время + счётчик",
+  "SettingsScreenshotTemplateTimeCounter": "Время + счётчик"
 }

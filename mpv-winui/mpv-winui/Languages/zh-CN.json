@@ -290,5 +290,10 @@
   "SettingsHelpScreenshotWebpQuality": "WebP 质量（0-100），仅 WebP 格式时生效。",
   "SettingsHelpScreenshotHighBitDepth": "截图保留高色深，文件可能非常大。",
   "SettingsHelpScreenshotTagColorspace": "为截图写入正确的色彩空间元数据。",
-  "SettingsHelpCacheDirectory": "mpv 缓存文件目录，留空使用内置默认值。"
+  "SettingsHelpCacheDirectory": "mpv 缓存文件目录，留空使用内置默认值。",
+  "SettingsScreenshotTemplateDefault": "默认（mpv.conf）",
+  "SettingsScreenshotTemplateMpv": "MPV 风格（时间+序号）",
+  "SettingsScreenshotTemplateFileTime": "文件名+时间",
+  "SettingsScreenshotTemplateFileTimeCounter": "文件名+时间+序号",
+  "SettingsScreenshotTemplateTimeCounter": "时间+序号"
 }

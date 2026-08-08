@@ -506,7 +506,8 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsAudioDevice,
                 Category = audio,
                 Description = lang.SettingsHelpAudioDevice,
-                Type = OptionType.String,
+                Type = OptionType.StringList,
+                ChoicesProvider = BuildAudioDeviceChoices,
                 Getter = () => AppContext.AppSetting.AudioDevice,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioDevice), AppContext.AppSetting.AudioDevice = (string)v!)
             },
@@ -811,8 +812,15 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsScreenshotTemplate,
                 Category = screenshot,
                 Description = lang.SettingsHelpScreenshotTemplate,
-                Type = OptionType.String,
-                AllowEmpty = true,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.SettingsScreenshotTemplateDefault),
+                    new OptionChoice("MPV-%P-N%n", lang.SettingsScreenshotTemplateMpv),
+                    new OptionChoice("%F-%P", lang.SettingsScreenshotTemplateFileTime),
+                    new OptionChoice("%F-%P-%n", lang.SettingsScreenshotTemplateFileTimeCounter),
+                    new OptionChoice("%P-%n", lang.SettingsScreenshotTemplateTimeCounter),
+                ],
                 Getter = () => AppContext.AppSetting.ScreenshotTemplate,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotTemplate), AppContext.AppSetting.ScreenshotTemplate = (string)v!)
             },
@@ -932,6 +940,33 @@ public sealed partial class SettingsPage : Page
         }
         list.AddRange(codes.Select(code => new OptionChoice(code, AppLang.LanguageCodeName(code))));
         return list;
+    }
+
+    private static List<OptionChoice> BuildAudioDeviceChoices()
+    {
+        var choices = new List<OptionChoice>
+        {
+            new("auto", AppContext.AppLang.OptionValueAuto),
+        };
+
+        try
+        {
+            var devices = AppContext.GetAudioDevices?.Invoke();
+            if (devices is not null)
+            {
+                foreach (var device in devices)
+                {
+                    var label = string.IsNullOrWhiteSpace(device.Description) ? device.Name : device.Description;
+                    choices.Add(new OptionChoice(device.Name, label));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Warn(ex, "Failed to enumerate audio devices");
+        }
+
+        return choices;
     }
 
     private static void ApplyMpv(string key, object value)

@@ -290,5 +290,10 @@
   "SettingsHelpScreenshotWebpQuality": "WebP 품질(0-100)입니다. WebP 형식일 때만 사용됩니다.",
   "SettingsHelpScreenshotHighBitDepth": "높은 비트 심도로 저장합니다. 파일이 매우 커질 수 있습니다.",
   "SettingsHelpScreenshotTagColorspace": "스크린샷에 올바른 색공간 메타데이터를 태그합니다.",
-  "SettingsHelpCacheDirectory": "mpv가 캐시 파일에 사용하는 폴더입니다. 비우면 기본값을 사용합니다."
+  "SettingsHelpCacheDirectory": "mpv가 캐시 파일에 사용하는 폴더입니다. 비우면 기본값을 사용합니다.",
+  "SettingsScreenshotTemplateDefault": "기본값(mpv.conf)",
+  "SettingsScreenshotTemplateMpv": "MPV 스타일(시간 + 번호)",
+  "SettingsScreenshotTemplateFileTime": "파일명 + 시간",
+  "SettingsScreenshotTemplateFileTimeCounter": "파일명 + 시간 + 번호",
+  "SettingsScreenshotTemplateTimeCounter": "시간 + 번호"
 }

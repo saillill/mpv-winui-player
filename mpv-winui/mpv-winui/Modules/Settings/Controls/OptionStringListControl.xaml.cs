@@ -23,9 +23,10 @@ public sealed partial class OptionStringListControl : OptionControlBase
             Combo.Items.Clear();
             try
             {
-                if (newValue.Choices is { Count: > 0 })
+                var choices = newValue.ChoicesProvider?.Invoke() ?? newValue.Choices;
+                if (choices is { Count: > 0 })
                 {
-                    foreach (var choice in newValue.Choices)
+                    foreach (var choice in choices)
                     {
                         Combo.Items.Add(new ComboBoxItem { Content = choice.Label, Tag = choice.Value });
                     }

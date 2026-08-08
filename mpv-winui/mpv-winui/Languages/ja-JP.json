@@ -290,5 +290,10 @@
   "SettingsHelpScreenshotWebpQuality": "WebP品質（0-100）。WebP形式のときのみ使用。",
   "SettingsHelpScreenshotHighBitDepth": "高ビット深度で保存します。ファイルが非常に大きくなる場合があります。",
   "SettingsHelpScreenshotTagColorspace": "スクリーンショットに正しい色空間メタデータを付与します。",
-  "SettingsHelpCacheDirectory": "mpvがキャッシュファイルに使うフォルダ。空欄で組み込み既定。"
+  "SettingsHelpCacheDirectory": "mpvがキャッシュファイルに使うフォルダ。空欄で組み込み既定。",
+  "SettingsScreenshotTemplateDefault": "既定（mpv.conf）",
+  "SettingsScreenshotTemplateMpv": "MPV スタイル（時間＋連番）",
+  "SettingsScreenshotTemplateFileTime": "ファイル名＋時間",
+  "SettingsScreenshotTemplateFileTimeCounter": "ファイル名＋時間＋連番",
+  "SettingsScreenshotTemplateTimeCounter": "時間＋連番"
 }

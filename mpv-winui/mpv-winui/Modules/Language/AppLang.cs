@@ -252,6 +252,11 @@ namespace mpv_winui.Modules.Language
         public string SettingsScreenshotWebpQuality { get; set; } = "WebP quality";
         public string SettingsScreenshotHighBitDepth { get; set; } = "High bit depth screenshots";
         public string SettingsScreenshotTagColorspace { get; set; } = "Tag screenshot colorspace";
+        public string SettingsScreenshotTemplateDefault { get; set; } = "Default (mpv.conf)";
+        public string SettingsScreenshotTemplateMpv { get; set; } = "MPV style (time + counter)";
+        public string SettingsScreenshotTemplateFileTime { get; set; } = "Filename + time";
+        public string SettingsScreenshotTemplateFileTimeCounter { get; set; } = "Filename + time + counter";
+        public string SettingsScreenshotTemplateTimeCounter { get; set; } = "Time + counter";
 
         // ===== Help texts (shown behind the info button) =====
         public string SettingsHelpTheme { get; set; } = "Choose the color theme. Auto follows the Windows app mode.";

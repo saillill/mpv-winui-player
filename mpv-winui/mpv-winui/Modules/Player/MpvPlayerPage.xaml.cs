@@ -66,6 +66,7 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer.StartListen();
 
                 AppContext.RunMpvCommand = cmd => _mediaPlayer.RunCommandAsync(cmd).FireAndForget(OnException);
+                AppContext.GetAudioDevices = () => _mediaPlayer.AudioDevices();
                 var lang = AppContext.AppSetting.CurrentLanguage;
                 if (string.IsNullOrWhiteSpace(lang)) lang = "en-US";
                 AppContext.SendMpvCommand($"set user-data/mpvw/language {lang}");
@@ -85,6 +86,7 @@ namespace mpv_winui.Modules.Player
         private void MpvPlayerPage_Unloaded(object sender, RoutedEventArgs e)
         {
             AppContext.RunMpvCommand = null;
+            AppContext.GetAudioDevices = null;
             CleanupDisplayInfo();
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;

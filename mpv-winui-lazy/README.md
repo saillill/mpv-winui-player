@@ -9,6 +9,8 @@ mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com
 - `input_plus.lua` 已移除（F3-F5 临时清滤镜/着色器、`,`/`.` 按住倍速、Ctrl+←/→ 流媒体式跳转等绑定随之删除）；
 - `dyn_menu.lua` / `dynamic_menu.lua` 内置 8 语言菜单翻译表（en-US / zh-CN / ja-JP / ko-KR /
   de-DE / fr-FR / es-ES / ru-RU），App 通过 `user-data/mpvw/language` 写入界面语言后自动重解析；
+- `select.lua`（轨道/章节/版本/音频设备/按键绑定/历史/稍后观看/属性选择菜单）同样内置 8 语言表；
+  `hdr_auto.lua` / `save_global_props.lua` / `thumbfast.lua` 的 OSD 提示也已按界面语言本地化；
 - 针对 WinUI composition 模式（`d3d11-output-mode=composition`）修正 HDR/WCG 输出：
   `profiles.conf` 的 `[mpvw-sdr|mpvw-wcg|mpvw-hdr]` 按 App 写入的
   `user-data/mpvw/color-kind` 自动切换；

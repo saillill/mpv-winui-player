@@ -290,5 +290,10 @@
   "SettingsHelpScreenshotWebpQuality": "Qualité WebP (0-100). Utilisée uniquement en format WebP.",
   "SettingsHelpScreenshotHighBitDepth": "Conserver la haute profondeur de bits. Fichiers potentiellement très volumineux.",
   "SettingsHelpScreenshotTagColorspace": "Marquer les captures avec les métadonnées d'espace colorimétrique.",
-  "SettingsHelpCacheDirectory": "Dossier utilisé par mpv pour les fichiers de cache. Vide = valeur intégrée."
+  "SettingsHelpCacheDirectory": "Dossier utilisé par mpv pour les fichiers de cache. Vide = valeur intégrée.",
+  "SettingsScreenshotTemplateDefault": "Par défaut (mpv.conf)",
+  "SettingsScreenshotTemplateMpv": "Style MPV (temps + compteur)",
+  "SettingsScreenshotTemplateFileTime": "Nom du fichier + heure",
+  "SettingsScreenshotTemplateFileTimeCounter": "Nom du fichier + heure + compteur",
+  "SettingsScreenshotTemplateTimeCounter": "Heure + compteur"
 }

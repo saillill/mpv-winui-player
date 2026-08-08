@@ -28,6 +28,26 @@ if opt.load == false then
 	mp.msg.info("脚本已被初始化禁用")
 	return
 end
+
+-- ===== OSD 提示本地化（跟随 App 界面语言） =====
+local osd_i18n = {
+	["en-US"] = { ["已清理记录的属性\n建议重启mpv"] = "Cleared saved properties\nRestart mpv recommended" },
+	["ja-JP"] = { ["已清理记录的属性\n建议重启mpv"] = "保存済みプロパティをクリアしました\nmpvの再起動を推奨" },
+	["ko-KR"] = { ["已清理记录的属性\n建议重启mpv"] = "저장된 속성을 지웠습니다\nmpv 재시작 권장" },
+	["de-DE"] = { ["已清理记录的属性\n建议重启mpv"] = "Gespeicherte Eigenschaften gelöscht\nmpv-Neustart empfohlen" },
+	["fr-FR"] = { ["已清理记录的属性\n建议重启mpv"] = "Propriétés enregistrées effacées\nRedémarrage de mpv recommandé" },
+	["es-ES"] = { ["已清理记录的属性\n建议重启mpv"] = "Propiedades guardadas borradas\nSe recomienda reiniciar mpv" },
+	["ru-RU"] = { ["已清理记录的属性\n建议重启mpv"] = "Сохранённые свойства очищены\nРекомендуется перезапустить mpv" },
+}
+
+local function _(s)
+	local t = osd_i18n[mp.get_property("user-data/mpvw/language") or "en-US"]
+	if t and t[s] then
+		return t[s]
+	end
+	return s
+end
+
 -- 原因：首个添加 --watch-later-options 选项的版本
 local min_major = 0
 local min_minor = 34
@@ -133,7 +153,7 @@ local function clean_data_file()
 	file:close()
 	cleaned = true
 	mp.msg.info("全局属性保存恢复 已清理缓存")
-	mp.osd_message("已清理记录的属性\n建议重启mpv", 2)
+	mp.osd_message(_("已清理记录的属性\n建议重启mpv"), 2)
 end
 
 local function init()

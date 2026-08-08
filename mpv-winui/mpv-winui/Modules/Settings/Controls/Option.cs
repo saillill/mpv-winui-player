@@ -38,6 +38,12 @@ public sealed class Option
         get; set;
     }
 
+    /// <summary>Lazily builds localized choices (e.g. runtime audio devices). Called when the control is (re)bound.</summary>
+    public Func<IList<OptionChoice>>? ChoicesProvider
+    {
+        get; set;
+    }
+
     /// <summary>Show a "Browse..." button that opens the system folder picker.</summary>
     public bool PickFolder
     {

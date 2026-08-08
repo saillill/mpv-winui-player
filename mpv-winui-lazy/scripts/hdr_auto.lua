@@ -34,6 +34,81 @@ if user_opt.load == false then
 	return
 end
 
+-- ===== OSD 提示本地化（跟随 App 界面语言） =====
+local hdr_i18n = {
+	["en-US"] = {
+		["RTX HDR：HDR 片源自动跳过（避免二次转换）"] = "RTX HDR: HDR source skipped automatically (avoid double conversion)",
+		["RTX HDR 自动：屏幕检测 "] = "RTX HDR auto: display detected: ",
+		["未知"] = "Unknown",
+		["RTX HDR：自动（屏幕检测 %s）"] = "RTX HDR: auto (display detected: %s)",
+		["RTX HDR：强制开启（当前屏幕非 HDR，可能显示异常）"] = "RTX HDR: force on (current display is not HDR, output may look wrong)",
+		["RTX HDR：强制开启（仅 SDR 片源）"] = "RTX HDR: force on (SDR source only)",
+		["RTX HDR：关闭"] = "RTX HDR: off",
+	},
+	["ja-JP"] = {
+		["RTX HDR：HDR 片源自动跳过（避免二次转换）"] = "RTX HDR：HDRソースは自動スキップ（二重変換を回避）",
+		["RTX HDR 自动：屏幕检测 "] = "RTX HDR 自動：画面検出 ",
+		["未知"] = "不明",
+		["RTX HDR：自动（屏幕检测 %s）"] = "RTX HDR：自動（画面検出 %s）",
+		["RTX HDR：强制开启（当前屏幕非 HDR，可能显示异常）"] = "RTX HDR：強制オン（現在の画面はHDRではありません。表示が乱れる可能性があります）",
+		["RTX HDR：强制开启（仅 SDR 片源）"] = "RTX HDR：強制オン（SDRソースのみ）",
+		["RTX HDR：关闭"] = "RTX HDR：オフ",
+	},
+	["ko-KR"] = {
+		["RTX HDR：HDR 片源自动跳过（避免二次转换）"] = "RTX HDR: HDR 소스 자동 건너뜀(이중 변환 방지)",
+		["RTX HDR 自动：屏幕检测 "] = "RTX HDR 자동: 화면 감지 ",
+		["未知"] = "알 수 없음",
+		["RTX HDR：自动（屏幕检测 %s）"] = "RTX HDR: 자동(화면 감지: %s)",
+		["RTX HDR：强制开启（当前屏幕非 HDR，可能显示异常）"] = "RTX HDR: 강제 켜기(현재 화면이 HDR이 아님. 출력이 비정상일 수 있음)",
+		["RTX HDR：强制开启（仅 SDR 片源）"] = "RTX HDR: 강제 켜기(SDR 소스만)",
+		["RTX HDR：关闭"] = "RTX HDR: 끄기",
+	},
+	["de-DE"] = {
+		["RTX HDR：HDR 片源自动跳过（避免二次转换）"] = "RTX HDR: HDR-Quelle automatisch übersprungen (Doppelkonvertierung vermeiden)",
+		["RTX HDR 自动：屏幕检测 "] = "RTX HDR automatisch: Anzeige erkannt: ",
+		["未知"] = "Unbekannt",
+		["RTX HDR：自动（屏幕检测 %s）"] = "RTX HDR: automatisch (Anzeige erkannt: %s)",
+		["RTX HDR：强制开启（当前屏幕非 HDR，可能显示异常）"] = "RTX HDR: erzwingen (Anzeige ist nicht HDR, Ausgabe kann fehlerhaft sein)",
+		["RTX HDR：强制开启（仅 SDR 片源）"] = "RTX HDR: erzwingen (nur SDR-Quelle)",
+		["RTX HDR：关闭"] = "RTX HDR: aus",
+	},
+	["fr-FR"] = {
+		["RTX HDR：HDR 片源自动跳过（避免二次转换）"] = "RTX HDR : source HDR ignorée automatiquement (éviter la double conversion)",
+		["RTX HDR 自动：屏幕检测 "] = "RTX HDR auto : écran détecté : ",
+		["未知"] = "Inconnu",
+		["RTX HDR：自动（屏幕检测 %s）"] = "RTX HDR : auto (écran détecté : %s)",
+		["RTX HDR：强制开启（当前屏幕非 HDR，可能显示异常）"] = "RTX HDR : forcer (l'écran n'est pas HDR, l'affichage peut être anormal)",
+		["RTX HDR：强制开启（仅 SDR 片源）"] = "RTX HDR : forcer (source SDR uniquement)",
+		["RTX HDR：关闭"] = "RTX HDR : désactivé",
+	},
+	["es-ES"] = {
+		["RTX HDR：HDR 片源自动跳过（避免二次转换）"] = "RTX HDR: fuente HDR omitida automáticamente (evita doble conversión)",
+		["RTX HDR 自动：屏幕检测 "] = "RTX HDR auto: pantalla detectada: ",
+		["未知"] = "Desconocido",
+		["RTX HDR：自动（屏幕检测 %s）"] = "RTX HDR: automático (pantalla detectada: %s)",
+		["RTX HDR：强制开启（当前屏幕非 HDR，可能显示异常）"] = "RTX HDR: forzar (la pantalla no es HDR, puede verse mal)",
+		["RTX HDR：强制开启（仅 SDR 片源）"] = "RTX HDR: forzar (solo fuente SDR)",
+		["RTX HDR：关闭"] = "RTX HDR: apagado",
+	},
+	["ru-RU"] = {
+		["RTX HDR：HDR 片源自动跳过（避免二次转换）"] = "RTX HDR: HDR-источник автоматически пропущен (избегаем двойного преобразования)",
+		["RTX HDR 自动：屏幕检测 "] = "RTX HDR авто: обнаружен экран: ",
+		["未知"] = "Неизвестно",
+		["RTX HDR：自动（屏幕检测 %s）"] = "RTX HDR: авто (обнаружен экран: %s)",
+		["RTX HDR：强制开启（当前屏幕非 HDR，可能显示异常）"] = "RTX HDR: принудительно (экран не HDR, вывод может быть некорректным)",
+		["RTX HDR：强制开启（仅 SDR 片源）"] = "RTX HDR: принудительно (только SDR-источник)",
+		["RTX HDR：关闭"] = "RTX HDR: выкл",
+	},
+}
+
+local function _(s)
+	local t = hdr_i18n[mp.get_property("user-data/mpvw/language") or "en-US"]
+	if t and t[s] then
+		return t[s]
+	end
+	return s
+end
+
 local mode = user_opt.mode
 if mode ~= "auto" and mode ~= "on" and mode ~= "off" then
 	mode = "auto"
@@ -199,7 +274,7 @@ local function sync_hdr()
 	-- HDR 片源跳过提示（每个文件只提示一次）
 	if src_hdr == true and mode ~= "off" and not hdr_source_notified then
 		hdr_source_notified = true
-		mp.commandv("show-text", "RTX HDR：HDR 片源自动跳过（避免二次转换）", 2000)
+		mp.commandv("show-text", _("RTX HDR：HDR 片源自动跳过（避免二次转换）"), 2000)
 	elseif src_hdr ~= true then
 		hdr_source_notified = false
 	end
@@ -210,7 +285,7 @@ end
 mp.observe_property("video-target-params", "native", sync_hdr)
 mp.observe_property("user-data/mpvw/color-kind", "native", function(_, val)
 	if mode == "auto" then
-		mp.commandv("show-text", "RTX HDR 自动：屏幕检测 " .. tostring(val), 1500)
+		mp.commandv("show-text", _("RTX HDR 自动：屏幕检测 ") .. tostring(val), 1500)
 	end
 	sync_hdr()
 end)
@@ -247,16 +322,16 @@ mp.register_script_message("mode", function(new_mode)
 	set_mode_prop()
 	sync_hdr()
 	if mode == "auto" then
-		local kind = mp.get_property("user-data/mpvw/color-kind") or "未知"
-		mp.commandv("show-text", "RTX HDR：自动（屏幕检测 " .. tostring(kind) .. "）", 2000)
+		local kind = mp.get_property("user-data/mpvw/color-kind") or _("未知")
+		mp.commandv("show-text", string.format(_("RTX HDR：自动（屏幕检测 %s）"), tostring(kind)), 2000)
 	elseif mode == "on" then
 		if not display_hdr() then
-			mp.commandv("show-text", "RTX HDR：强制开启（当前屏幕非 HDR，可能显示异常）", 2500)
+			mp.commandv("show-text", _("RTX HDR：强制开启（当前屏幕非 HDR，可能显示异常）"), 2500)
 		else
-			mp.commandv("show-text", "RTX HDR：强制开启（仅 SDR 片源）", 1500)
+			mp.commandv("show-text", _("RTX HDR：强制开启（仅 SDR 片源）"), 1500)
 		end
 	else
-		mp.commandv("show-text", "RTX HDR：关闭", 1500)
+		mp.commandv("show-text", _("RTX HDR：关闭"), 1500)
 	end
 end)
 
