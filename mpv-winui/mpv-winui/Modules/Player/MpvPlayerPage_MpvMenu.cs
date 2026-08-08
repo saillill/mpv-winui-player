@@ -362,6 +362,7 @@ namespace mpv_winui.Modules.Player
                     "file" => AppContext.AppLang.MenuFile,
                     "view" => AppContext.AppLang.MenuView,
                     "help" => AppContext.AppLang.MenuHelp,
+                    "sleep" => AppContext.AppLang.SleepTimer,
                     _ => barItem.Title,
                 };
 
@@ -392,6 +393,12 @@ namespace mpv_winui.Modules.Player
                             "mpv-folder" => AppContext.AppLang.ViewMpvFolder,
                             "about" => AppContext.AppLang.HelpAbout,
                             "mpv-docs" => AppContext.AppLang.HelpMpvDocs,
+                            "sleep-off" => AppContext.AppLang.SleepTimerOff,
+                            "sleep-15" => string.Format(AppContext.AppLang.SleepTimerMinutes, 15),
+                            "sleep-30" => string.Format(AppContext.AppLang.SleepTimerMinutes, 30),
+                            "sleep-45" => string.Format(AppContext.AppLang.SleepTimerMinutes, 45),
+                            "sleep-60" => string.Format(AppContext.AppLang.SleepTimerMinutes, 60),
+                            "sleep-90" => string.Format(AppContext.AppLang.SleepTimerMinutes, 90),
                             _ => mi.Text,
                         };
                     }

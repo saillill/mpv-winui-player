@@ -9,9 +9,11 @@ using AppInstance = Microsoft.Windows.AppLifecycle.AppInstance;
 
 namespace mpv_winui.Modules.Player
 {
-    public sealed partial class MpvPlayerPage
-    {
-        private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+public sealed partial class MpvPlayerPage
+{
+    private Microsoft.UI.Xaml.DispatcherTimer? _sleepTimer;
+
+    private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -100,6 +102,24 @@ namespace mpv_winui.Modules.Player
                         case "options":
                             ShowSettingsWindow();
                             break;
+                        case "sleep-off":
+                            SetSleepTimer(0);
+                            break;
+                        case "sleep-15":
+                            SetSleepTimer(15);
+                            break;
+                        case "sleep-30":
+                            SetSleepTimer(30);
+                            break;
+                        case "sleep-45":
+                            SetSleepTimer(45);
+                            break;
+                        case "sleep-60":
+                            SetSleepTimer(60);
+                            break;
+                        case "sleep-90":
+                            SetSleepTimer(90);
+                            break;
                     }
                 }
             }
@@ -108,6 +128,34 @@ namespace mpv_winui.Modules.Player
                 OnException(ex);
             }
         }
+
+        private void SetSleepTimer(int minutes)
+        {
+            _sleepTimer?.Stop();
+            _sleepTimer = null;
+
+            if (minutes <= 0)
+            {
+                AppContext.SendMpvCommand($"show-text {QuoteForMpv(AppContext.AppLang.SleepTimerCanceled)}");
+                return;
+            }
+
+            _sleepTimer = new Microsoft.UI.Xaml.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMinutes(minutes)
+            };
+            _sleepTimer.Tick += (_, _) =>
+            {
+                _sleepTimer?.Stop();
+                _mediaPlayer.Pause();
+                AppContext.SendMpvCommand($"show-text {QuoteForMpv(AppContext.AppLang.SleepTimerFinished)}");
+            };
+            _sleepTimer.Start();
+            AppContext.SendMpvCommand(
+                $"show-text {QuoteForMpv(string.Format(AppContext.AppLang.SleepTimerSetMessage, minutes))}");
+        }
+
+        private static string QuoteForMpv(string value) => $"\"{value.Replace("\"", "\\\"")}\"";
 
         private void ShowSettingsWindow()
         {

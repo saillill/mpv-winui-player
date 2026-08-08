@@ -22,14 +22,19 @@ public static class PluginConfigWriter
         {
             ["enable_on_start"] = "yes",
             ["autohide_timeout_sec"] = "5",
+            ["show_chapternumber"] = "no",
         },
         ["coverart.conf"] = new()
         {
             ["prefer_embedded"] = "no",
+            ["always_scan_coverart"] = "no",
         },
         ["thumbfast.conf"] = new()
         {
             ["quality"] = "1",
+            ["network"] = "no",
+            ["min_duration"] = "0",
+            ["precise"] = "0",
         },
     };
 
@@ -39,8 +44,13 @@ public static class PluginConfigWriter
         Managed["hdr_auto.conf"]["log"] = s.HdrAutoLog ? "yes" : "no";
         Managed["metadata_osd.conf"]["enable_on_start"] = s.MetadataOsdEnabled ? "yes" : "no";
         Managed["metadata_osd.conf"]["autohide_timeout_sec"] = s.MetadataOsdAutohideTimeout.ToString();
+        Managed["metadata_osd.conf"]["show_chapternumber"] = s.MetadataOsdShowChapter ? "yes" : "no";
         Managed["coverart.conf"]["prefer_embedded"] = s.CoverArtPreferEmbedded ? "yes" : "no";
+        Managed["coverart.conf"]["always_scan_coverart"] = s.CoverArtAlwaysScan ? "yes" : "no";
         Managed["thumbfast.conf"]["quality"] = s.ThumbfastQuality.ToString();
+        Managed["thumbfast.conf"]["network"] = s.ThumbfastNetwork ? "yes" : "no";
+        Managed["thumbfast.conf"]["min_duration"] = s.ThumbfastMinDuration.ToString();
+        Managed["thumbfast.conf"]["precise"] = s.ThumbfastPrecise.ToString();
 
         var dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

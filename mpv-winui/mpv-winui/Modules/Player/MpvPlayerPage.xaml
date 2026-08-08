@@ -220,6 +220,36 @@
                     Tag="mpv-docs"
                     Text="mpv Official Manual" />
             </MenuBarItem>
+
+            <MenuBarItem
+                Title="Sleep timer"
+                Tag="sleep"
+                IsTabStop="False">
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-off"
+                    Text="Off" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-15"
+                    Text="15 min" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-30"
+                    Text="30 min" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-45"
+                    Text="45 min" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-60"
+                    Text="60 min" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-90"
+                    Text="90 min" />
+            </MenuBarItem>
         </MenuBar>
 
         <Grid

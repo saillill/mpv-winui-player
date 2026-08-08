@@ -95,6 +95,8 @@ namespace mpv_winui.Modules.Player
         {
             AppContext.RunMpvCommand = null;
             AppContext.GetAudioDevices = null;
+            _sleepTimer?.Stop();
+            _sleepTimer = null;
             AppContext.SettingChanged -= AppContext_SettingChanged;
             AppContext.LanguageChanged -= AppContext_LanguageChanged;
             CleanupDisplayInfo();
