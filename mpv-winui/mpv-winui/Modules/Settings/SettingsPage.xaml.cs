@@ -144,16 +144,7 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsThemeAccentColor,
                 Category = program,
                 Description = lang.SettingsHelpThemeAccentColor,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("", lang.OptionValueThemeAccentAuto),
-                    new OptionChoice("#0078D4", lang.OptionValueColorBlue),
-                    new OptionChoice("#107C10", lang.OptionValueColorGreen),
-                    new OptionChoice("#E81123", lang.OptionValueColorRed),
-                    new OptionChoice("#8764B8", lang.OptionValueColorPurple),
-                    new OptionChoice("#CA5010", lang.OptionValueColorOrange),
-                ],
+                Type = OptionType.Color,
                 Getter = () => AppContext.AppSetting.ThemeAccentColor,
                 Setter = v =>
                 {

@@ -11,6 +11,7 @@ public partial class OptionTemplateSelector : DataTemplateSelector
     public DataTemplate IntegerTemplate { get; set; } = null!;
     public DataTemplate DoubleTemplate { get; set; } = null!;
     public DataTemplate TextListTemplate { get; set; } = null!;
+    public DataTemplate ColorTemplate { get; set; } = null!;
 
     protected override DataTemplate SelectTemplateCore(object item)
     {
@@ -27,6 +28,7 @@ public partial class OptionTemplateSelector : DataTemplateSelector
                 OptionType.Integer => IntegerTemplate,
                 OptionType.Double => DoubleTemplate,
                 OptionType.StringList => TextListTemplate,
+                OptionType.Color => ColorTemplate,
                 _ => base.SelectTemplateCore(item)
             };
         }

@@ -7,4 +7,5 @@ public enum OptionType
     String,
     StringList,
     Boolean,
+    Color,
 }

@@ -75,6 +75,13 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ThemeOpacity), value);
         }
 
+        /// <summary>Recently picked theme colors, semicolon-separated hex values.</summary>
+        public string ThemeRecentColors
+        {
+            get => _dataSetting.GetValue(nameof(ThemeRecentColors), string.Empty);
+            set => _dataSetting.SetValue(nameof(ThemeRecentColors), value);
+        }
+
         public bool EnableDebugLog
         {
             get => _dataSetting.GetValue(nameof(EnableDebugLog), false);

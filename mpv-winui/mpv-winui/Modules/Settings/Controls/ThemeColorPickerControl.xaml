@@ -1,0 +1,144 @@
+<UserControl
+    x:Class="mpv_winui.Modules.Settings.Controls.ThemeColorPickerControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer
+        MaxHeight="560"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            MinWidth="360"
+            MaxWidth="460"
+            Spacing="12">
+
+            <TextBlock
+                FontWeight="SemiBold"
+                Text="{x:Bind RecentColorsLabel}" />
+            <Grid
+                x:Name="RecentGrid"
+                ColumnSpacing="8"
+                RowSpacing="8" />
+
+            <TextBlock
+                FontWeight="SemiBold"
+                Text="{x:Bind WindowsColorsLabel}" />
+            <Grid
+                x:Name="WindowsGrid"
+                ColumnSpacing="8"
+                RowSpacing="8" />
+
+            <Expander
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch">
+                <Expander.Header>
+                    <TextBlock FontWeight="SemiBold" Text="{x:Bind CustomColorsLabel}" />
+                </Expander.Header>
+                <StackPanel Spacing="12">
+                    <Border
+                        x:Name="PreviewBox"
+                        Height="40"
+                        HorizontalAlignment="Stretch"
+                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4" />
+
+                    <TextBox
+                        x:Name="HexInput"
+                        Header="#RRGGBB"
+                        TextChanged="OnHexChanged" />
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind RedLabel}" />
+                        <Slider
+                            x:Name="RedSlider"
+                            Grid.Column="1"
+                            Maximum="255"
+                            Minimum="0"
+                            ValueChanged="OnRgbChanged" />
+                        <TextBlock
+                            x:Name="RedValue"
+                            Grid.Column="2"
+                            MinWidth="28"
+                            VerticalAlignment="Center"
+                            TextAlignment="Right" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind GreenLabel}" />
+                        <Slider
+                            x:Name="GreenSlider"
+                            Grid.Column="1"
+                            Maximum="255"
+                            Minimum="0"
+                            ValueChanged="OnRgbChanged" />
+                        <TextBlock
+                            x:Name="GreenValue"
+                            Grid.Column="2"
+                            MinWidth="28"
+                            VerticalAlignment="Center"
+                            TextAlignment="Right" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind BlueLabel}" />
+                        <Slider
+                            x:Name="BlueSlider"
+                            Grid.Column="1"
+                            Maximum="255"
+                            Minimum="0"
+                            ValueChanged="OnRgbChanged" />
+                        <TextBlock
+                            x:Name="BlueValue"
+                            Grid.Column="2"
+                            MinWidth="28"
+                            VerticalAlignment="Center"
+                            TextAlignment="Right" />
+                    </Grid>
+
+                    <StackPanel
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <Button
+                            MinWidth="96"
+                            Click="OnCancelClick"
+                            Content="{x:Bind CancelLabel}" />
+                        <Button
+                            MinWidth="96"
+                            Click="OnDoneClick"
+                            Content="{x:Bind DoneLabel}"
+                            Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
