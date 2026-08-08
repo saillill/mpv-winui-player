@@ -338,6 +338,23 @@
                 Tapped="PlayerView_Tapped">
                 <Border Background="Transparent" />
             </SwapChainPanel>
+            <Border
+                x:Name="PreviewCard"
+                Padding="4"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                IsHitTestVisible="False"
+                Visibility="Collapsed">
+                <Image
+                    x:Name="PreviewImage"
+                    Width="240"
+                    Height="135"
+                    Stretch="Fill" />
+            </Border>
         </Grid>
 
         <local:PlayerControl

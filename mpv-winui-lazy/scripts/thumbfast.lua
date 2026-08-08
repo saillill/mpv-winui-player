@@ -854,11 +854,14 @@ local function preview_update()
         return
     end
     if hover_sec_cur ~= nil and draw_preview_cur ~= nil then
+        -- 不传坐标：thumbfast 不再用 overlay 绘制，而是把渲染结果回传给本脚本
         mp.commandv("script-message-to", "thumbfast", "thumb",
             tostring(hover_sec_cur),
-            tostring(draw_preview_cur.x),
-            tostring(draw_preview_cur.y))
+            "",
+            "",
+            "thumbfast")
     else
+        pcall(mp.del_property, "user-data/mpvw/preview")
         clear()
     end
 end
@@ -877,6 +880,19 @@ mp.observe_property("user-data/osc/draw-preview", "native", function(_, val)
         draw_preview_cur = nil
     end
     preview_update()
+end)
+
+-- thumbfast 渲染完成：把缩略图信息转发给应用（WinUI 层绘制）
+mp.register_script_message("thumbfast-render", function(json)
+    local data = mp.utils.parse_json(json)
+    if type(data) ~= "table" or not data.width or not data.height or not data.tnpath then
+        return
+    end
+    mp.set_property_native("user-data/mpvw/preview", {
+        w = data.width,
+        h = data.height,
+        path = data.tnpath .. ".bgra",
+    })
 end)
 
 mp.register_event("file-loaded", file_load)
