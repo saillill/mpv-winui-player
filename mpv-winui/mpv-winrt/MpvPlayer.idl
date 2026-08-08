@@ -6,6 +6,7 @@ import "MpvAudioDevice.idl";
 import "MpvProfile.idl";
 import "MpvMenuItem.idl";
 import "MpvTrack.idl";
+import "MpvPreviewInfo.idl";
 import "PlaybackStateChangedEventArgs.idl";
 import "VolumeChangedEventArgs.idl";
 import "PositionChangedEventArgs.idl";
@@ -40,6 +41,7 @@ namespace mpv_winrt
     delegate void LoopPlaylistChangedEventHandler();
     delegate void ShuffleChangedEventHandler();
     delegate void PlaylistChangedEventHandler();
+    delegate void PreviewChangedEventHandler(MpvPreviewInfo args);
 
     runtimeclass MpvPlayer
     {
@@ -139,5 +141,6 @@ namespace mpv_winrt
         event LoopPlaylistChangedEventHandler LoopPlaylistChanged;
         event ShuffleChangedEventHandler ShuffleChanged;
         event PlaylistChangedEventHandler PlaylistChanged;
+        event PreviewChangedEventHandler PreviewChanged;
     };
 }

@@ -75,7 +75,7 @@ namespace mpv_winui.Modules.Player
             _positionUpdateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         }
 
-        private void ApplyLocalizedStrings()
+        public void ApplyLocalizedStrings()
         {
             MoreSkipBackward.Text = AppContext.AppLang.MoreSkipBackward;
             MoreSkipForward.Text = AppContext.AppLang.MoreSkipForward;
@@ -210,6 +210,8 @@ namespace mpv_winui.Modules.Player
             TimeElapsedElement.Text = "00:00";
             TimeRemainingElement.Text = "00:00";
             ProgressSlider.ValueChanged += OnPositionSliderValueChanged;
+            ProgressSlider.PointerPressed += ProgressSlider_PointerPressed;
+            ProgressSlider.PointerReleased += ProgressSlider_PointerReleased;
             if (AppContext.AppSetting.EnableVideoPreview)
             {
                 ProgressSlider.PointerEntered += ProgressSlider_PointerEntered;
@@ -281,6 +283,8 @@ namespace mpv_winui.Modules.Player
             }
 
             ProgressSlider.ValueChanged -= OnPositionSliderValueChanged;
+            ProgressSlider.PointerPressed -= ProgressSlider_PointerPressed;
+            ProgressSlider.PointerReleased -= ProgressSlider_PointerReleased;
             ProgressSlider.PointerEntered -= ProgressSlider_PointerEntered;
             ProgressSlider.PointerMoved -= ProgressSlider_PointerMoved;
             ProgressSlider.PointerExited -= ProgressSlider_PointerExited;
@@ -739,6 +743,10 @@ namespace mpv_winui.Modules.Player
             if (!_isInScrubMode)
             {
                 MediaPlayer?.Position = e.NewValue;
+                if (AppContext.AppSetting.EnableVideoPreview && ProgressSlider.Maximum > 0)
+                {
+                    UpdatePreview(e.NewValue / ProgressSlider.Maximum);
+                }
             }
         }
 
@@ -978,6 +986,20 @@ namespace mpv_winui.Modules.Player
             _isDragging = true;
         }
 
+        private void ProgressSlider_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            _isDragging = true;
+            if (AppContext.AppSetting.EnableVideoPreview && ProgressSlider.Maximum > 0)
+            {
+                UpdatePreview(ProgressSlider.Value / ProgressSlider.Maximum);
+            }
+        }
+
+        private void ProgressSlider_PointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            _isDragging = false;
+        }
+
         private void ProgressSlider_PointerMoved(object sender, PointerRoutedEventArgs e)
         {
             if (_isDragging)
@@ -1000,10 +1022,19 @@ namespace mpv_winui.Modules.Player
             }
 
             var point = e.GetCurrentPoint(ProgressSlider);
-            var fraction = point.Position.X / ProgressSlider.ActualWidth;
-            var hoverSec = Math.Max(0, fraction * MediaPlayer.Duration);
+            UpdatePreview(point.Position.X / ProgressSlider.ActualWidth);
+        }
 
-            var controlPoint = ProgressSlider.TransformToVisual(this).TransformPoint(new Point(point.Position.X, 0));
+        private void UpdatePreview(double fraction)
+        {
+            if (MediaPlayer == null || MediaPlayer.Duration <= 0)
+            {
+                return;
+            }
+
+            fraction = Math.Clamp(fraction, 0, 1);
+            var hoverSec = fraction * MediaPlayer.Duration;
+            var controlPoint = ProgressSlider.TransformToVisual(this).TransformPoint(new Point(fraction * ProgressSlider.ActualWidth, 0));
 
             PreviewUpdateRequested?.Invoke(this, (hoverSec, controlPoint.X, controlPoint.Y));
         }
@@ -1011,6 +1042,25 @@ namespace mpv_winui.Modules.Player
         private void ClearPreview()
         {
             PreviewClearRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>Attaches or detaches the progress-bar preview hooks (live toggle support).</summary>
+        public void EnablePreviewEvents(bool enabled)
+        {
+            if (enabled)
+            {
+                ProgressSlider.PointerEntered += ProgressSlider_PointerEntered;
+                ProgressSlider.PointerMoved += ProgressSlider_PointerMoved;
+                ProgressSlider.PointerExited += ProgressSlider_PointerExited;
+            }
+            else
+            {
+                ProgressSlider.PointerEntered -= ProgressSlider_PointerEntered;
+                ProgressSlider.PointerMoved -= ProgressSlider_PointerMoved;
+                ProgressSlider.PointerExited -= ProgressSlider_PointerExited;
+                _isDragging = false;
+                ClearPreview();
+            }
         }
 
         private void VolumeMuteButton_PointerWheelChanged(object sender, PointerRoutedEventArgs e)

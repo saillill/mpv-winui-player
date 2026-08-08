@@ -19,6 +19,7 @@ public sealed partial class SettingsWindow : Window
         SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
 
         Closed += SettingsWindow_Closed;
+        AppContext.LanguageChanged += SettingsWindow_LanguageChanged;
 
         AppWindow.Title = "Settings";
         AppWindow.SetIcon("App.ico");
@@ -35,6 +36,7 @@ public sealed partial class SettingsWindow : Window
             Instance = null;
         }
         Closed -= SettingsWindow_Closed;
+        AppContext.LanguageChanged -= SettingsWindow_LanguageChanged;
         _styleManager?.Dispose();
         _styleManager = null;
     }
@@ -52,5 +54,19 @@ public sealed partial class SettingsWindow : Window
     public void UpdateCurrentTheme()
     {
         _styleManager?.UpdateTheme(_styleManager.GetThemeType());
+    }
+
+    public void UpdateBackdrop()
+    {
+        _styleManager?.UpdateBackdrop();
+    }
+
+    private void SettingsWindow_LanguageChanged()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
+            PageFrame.Navigate(typeof(SettingsPage));
+        });
     }
 }

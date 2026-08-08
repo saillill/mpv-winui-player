@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml;
 using System.Collections.Generic;
 
 namespace mpv_winui.Modules.Settings.Controls;
@@ -6,4 +7,7 @@ namespace mpv_winui.Modules.Settings.Controls;
 public sealed class OptionGroup : List<Option>
 {
     public string Key { get; set; } = string.Empty;
+
+    /// <summary>Empty groups (plain category content) do not render a header.</summary>
+    public Visibility HeaderVisibility => string.IsNullOrEmpty(Key) ? Visibility.Collapsed : Visibility.Visible;
 }

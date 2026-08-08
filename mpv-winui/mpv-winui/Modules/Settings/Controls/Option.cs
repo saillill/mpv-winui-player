@@ -26,7 +26,6 @@ public sealed class Option : INotifyPropertyChanged
     public string Key { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
     public string Category { get; set; } = "General";
-    public bool RequiresRestart { get; set; }
 
     /// <summary>Explanatory text shown behind the info (i) button.</summary>
     public string? Description
@@ -58,14 +57,14 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
-    /// <summary>Optional sub-group label shown as a group header (e.g. "Plugin options").</summary>
-    public string? Group
+    /// <summary>Optional section caption used to split a category into topic groups.</summary>
+    public string? Section
     {
         get; set;
     }
 
-    /// <summary>Shows a section caption (e.g. "Plugin options") above the first option of a sub-group.</summary>
-    public bool ShowGroupHeader
+    /// <summary>Renders a section caption above this option (first option of a section).</summary>
+    public bool ShowSectionHeader
     {
         get; set;
     }

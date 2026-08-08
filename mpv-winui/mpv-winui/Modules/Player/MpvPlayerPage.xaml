@@ -195,7 +195,15 @@
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
                     Tag="options"
-                Text="Options" />
+                    Text="Options" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="mpv-command"
+                    Text="Run mpv command" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="shortcut-search"
+                    Text="Search shortcuts" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Click="MenuFlyoutItem_Click"
@@ -219,6 +227,36 @@
                     Click="MenuFlyoutItem_Click"
                     Tag="mpv-docs"
                     Text="mpv Official Manual" />
+            </MenuBarItem>
+
+            <MenuBarItem
+                Title="Sleep timer"
+                Tag="sleep"
+                IsTabStop="False">
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-off"
+                    Text="Off" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-15"
+                    Text="15 min" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-30"
+                    Text="30 min" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-45"
+                    Text="45 min" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-60"
+                    Text="60 min" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="sleep-90"
+                    Text="90 min" />
             </MenuBarItem>
         </MenuBar>
 
@@ -338,6 +376,25 @@
                 Tapped="PlayerView_Tapped">
                 <Border Background="Transparent" />
             </SwapChainPanel>
+            <Border
+                x:Name="PreviewCard"
+                AutomationProperties.Name="Video preview"
+                AutomationProperties.AutomationId="PreviewCard"
+                Padding="4"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                IsHitTestVisible="False"
+                Visibility="Collapsed">
+                <Image
+                    x:Name="PreviewImage"
+                    Width="240"
+                    Height="135"
+                    Stretch="Fill" />
+            </Border>
         </Grid>
 
         <local:PlayerControl

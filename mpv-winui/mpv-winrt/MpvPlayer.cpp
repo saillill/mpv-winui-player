@@ -7,6 +7,7 @@
 #include "MpvEdition.h"
 #include "MpvMenuItem.h"
 #include "MpvPlaylistItem.h"
+#include "MpvPreviewInfo.h"
 #include "MpvProfile.h"
 #include "MpvTrack.h"
 #include "NetworkInfoChangedEventArgs.h"
@@ -111,6 +112,7 @@ namespace winrt::mpv_winrt::implementation
         mpv_observe_property(m_mpv, MpvObserveId::LoopPlaylist, "loop-playlist", MPV_FORMAT_STRING);
         mpv_observe_property(m_mpv, MpvObserveId::Shuffle, "shuffle", MPV_FORMAT_STRING);
         mpv_observe_property(m_mpv, MpvObserveId::Playlist, "playlist", MPV_FORMAT_NODE);
+        mpv_observe_property(m_mpv, MpvObserveId::Preview, "user-data/mpvw/preview", MPV_FORMAT_NODE);
 
         // mpv_observe_property(m_mpv, MpvObserveId::CacheSpeed, "cache-speed", MPV_FORMAT_INT64);
         mpv_observe_property(m_mpv, MpvObserveId::Speed, "speed", MPV_FORMAT_DOUBLE);
@@ -341,6 +343,37 @@ namespace winrt::mpv_winrt::implementation
                         case MpvObserveId::Playlist:
                             {
                                 m_playlistChangedEvent();
+                                break;
+                            }
+
+                        case MpvObserveId::Preview:
+                            {
+                                if (prop->format == MPV_FORMAT_NODE && prop->data)
+                                {
+                                    auto* root = static_cast<mpv_node*>(prop->data);
+                                    auto* wField = root->format == MPV_FORMAT_NODE_MAP ? FindMapField(root, "w") : nullptr;
+                                    auto* hField = root->format == MPV_FORMAT_NODE_MAP ? FindMapField(root, "h") : nullptr;
+                                    auto* pathField = root->format == MPV_FORMAT_NODE_MAP ? FindMapField(root, "path") : nullptr;
+                                    if (wField && hField && pathField &&
+                                        wField->format == MPV_FORMAT_INT64 &&
+                                        hField->format == MPV_FORMAT_INT64 &&
+                                        pathField->format == MPV_FORMAT_STRING && pathField->u.string)
+                                    {
+                                        auto args = winrt::make<implementation::MpvPreviewInfo>(
+                                            static_cast<int32_t>(wField->u.int64),
+                                            static_cast<int32_t>(hField->u.int64),
+                                            winrt::to_hstring(pathField->u.string));
+                                        m_previewChangedEvent(args);
+                                    }
+                                    else
+                                    {
+                                        m_previewChangedEvent(nullptr);
+                                    }
+                                }
+                                else
+                                {
+                                    m_previewChangedEvent(nullptr);
+                                }
                                 break;
                             }
 
@@ -609,6 +642,16 @@ namespace winrt::mpv_winrt::implementation
     void MpvPlayer::PlaylistChanged(winrt::event_token const& token) noexcept
     {
         m_playlistChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::PreviewChanged(winrt::mpv_winrt::PreviewChangedEventHandler const& handler)
+    {
+        return m_previewChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::PreviewChanged(winrt::event_token const& token) noexcept
+    {
+        m_previewChangedEvent.remove(token);
     }
 
     void MpvPlayer::UpdateSize(uint32_t width, uint32_t height)

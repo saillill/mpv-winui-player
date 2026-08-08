@@ -19,10 +19,10 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            GroupHeader.Visibility = newValue.ShowGroupHeader ? Visibility.Visible : Visibility.Collapsed;
-            if (newValue.ShowGroupHeader)
+            SectionHeader.Visibility = newValue.ShowSectionHeader ? Visibility.Visible : Visibility.Collapsed;
+            if (newValue.ShowSectionHeader)
             {
-                GroupHeaderText.Text = newValue.Group ?? string.Empty;
+                SectionHeaderText.Text = newValue.Section ?? string.Empty;
             }
             ToggleSwitch.OnContent = mpv_winui.AppContext.AppLang.OptionValueOn;
             ToggleSwitch.OffContent = mpv_winui.AppContext.AppLang.OptionValueOff;

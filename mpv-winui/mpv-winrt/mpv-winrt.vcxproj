@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClInclude Include="MpvPlayer.h" />
     <ClInclude Include="MpvPlaylistItem.h" />
+    <ClInclude Include="MpvPreviewInfo.h" />
     <ClInclude Include="MpvChapter.h" />
     <ClInclude Include="MpvEdition.h" />
     <ClInclude Include="MpvAudioDevice.h" />
@@ -159,6 +160,7 @@
     <Midl Include="DisplayColorKind.idl" />
     <Midl Include="TrackType.idl" />
     <Midl Include="MpvPlaylistItem.idl" />
+    <Midl Include="MpvPreviewInfo.idl" />
     <Midl Include="MpvChapter.idl" />
     <Midl Include="MpvEdition.idl" />
     <Midl Include="MpvAudioDevice.idl" />

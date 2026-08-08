@@ -67,7 +67,8 @@
                                 FontSize="15"
                                 FontWeight="SemiBold"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="{x:Bind Key}" />
+                                Text="{x:Bind Key}"
+                                Visibility="{x:Bind HeaderVisibility}" />
                         </DataTemplate>
                     </GroupStyle.HeaderTemplate>
                 </GroupStyle>
