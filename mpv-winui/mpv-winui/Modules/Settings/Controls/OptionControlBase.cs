@@ -1,33 +1,27 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
 public abstract class OptionControlBase : UserControl
 {
-    /// <summary>Shows or updates the info (i) button used to explain uncommon options.</summary>
-    protected void UpdateHelpButton(Button? button)
+    /// <summary>Shows the option description below the title (Windows Settings style).</summary>
+    protected void UpdateDescription(TextBlock? block)
     {
-        if (button is null)
+        if (block is null)
         {
             return;
         }
 
         if (string.IsNullOrWhiteSpace(Setting?.Description))
         {
-            button.Visibility = Visibility.Collapsed;
+            block.Text = string.Empty;
+            block.Visibility = Visibility.Collapsed;
             return;
         }
 
-        button.Visibility = Visibility.Visible;
-        var tip = new TextBlock
-        {
-            Text = Setting.Description,
-            TextWrapping = TextWrapping.Wrap,
-            MaxWidth = 380
-        };
-        ToolTipService.SetToolTip(button, tip);
+        block.Text = Setting.Description;
+        block.Visibility = Visibility.Visible;
     }
 
     public Option? Setting

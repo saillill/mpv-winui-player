@@ -20,7 +20,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
-            UpdateHelpButton(HelpButton);
+            UpdateDescription(DescriptionText);
 
             BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
             BrowseButton.Visibility = newValue.PickFolder ? Visibility.Visible : Visibility.Collapsed;
@@ -93,7 +93,9 @@ public sealed partial class OptionStringControl : OptionControlBase
     {
         try
         {
-            var picker = new FolderPicker(mpv_winui.App.Window!.AppWindow.Id);
+            var owner = mpv_winui.Modules.Settings.SettingsWindow.Instance?.AppWindow.Id
+                        ?? mpv_winui.App.Window!.AppWindow.Id;
+            var picker = new FolderPicker(owner);
             var folder = await picker.PickSingleFolderAsync();
             if (folder?.Path is string path && !string.IsNullOrEmpty(path))
             {

@@ -18,7 +18,7 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
-            UpdateHelpButton(HelpButton);
+            UpdateDescription(DescriptionText);
             ToggleSwitch.OnContent = mpv_winui.AppContext.AppLang.Yes;
             ToggleSwitch.OffContent = mpv_winui.AppContext.AppLang.No;
 

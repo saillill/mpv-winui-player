@@ -18,7 +18,7 @@ public sealed partial class OptionDoubleControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
-            UpdateHelpButton(HelpButton);
+            UpdateDescription(DescriptionText);
 
             _loading = true;
             try

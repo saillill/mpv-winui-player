@@ -2,7 +2,7 @@ local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
 -- ===== 菜单本地化 =====
-local menu_lang = mp.get_property('user-data/mpvw/language') or 'en-US'
+local menu_lang = mp.get_property_native('user-data/mpvw/language') or 'en-US'
 -- BEGIN MENU_I18N
 local menu_i18n = {
     ['en-US'] = {
@@ -207,6 +207,6 @@ mp.observe_property("glsl-shaders", "native", update_menus)
 mp.observe_property("vf", "native", update_menus)
 mp.observe_property("user-data/hdr-auto/mode", "native", update_menus)
 mp.observe_property('user-data/mpvw/language', 'string', function()
-    menu_lang = mp.get_property('user-data/mpvw/language') or 'en-US'
+    menu_lang = mp.get_property_native('user-data/mpvw/language') or 'en-US'
     update_menus()
 end)

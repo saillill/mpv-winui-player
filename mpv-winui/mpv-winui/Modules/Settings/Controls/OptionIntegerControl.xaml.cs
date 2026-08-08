@@ -21,7 +21,7 @@ public sealed partial class OptionIntegerControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
-            UpdateHelpButton(HelpButton);
+            UpdateDescription(DescriptionText);
 
             _loading = true;
             try

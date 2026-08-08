@@ -102,7 +102,7 @@ local hdr_i18n = {
 }
 
 local function _(s)
-	local t = hdr_i18n[mp.get_property("user-data/mpvw/language") or "en-US"]
+	local t = hdr_i18n[mp.get_property_native("user-data/mpvw/language") or "en-US"]
 	if t and t[s] then
 		return t[s]
 	end
