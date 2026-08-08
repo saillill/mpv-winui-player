@@ -1,18 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace mpv_winui.Modules.Settings.Controls;
-
-/// <summary>Where an option belongs: mpv core, a bundled Lua script, the app itself, or a mix.</summary>
-public enum OptionSource
-{
-    Mpv,
-    Plugin,
-    App,
-    Hybrid,
-}
 
 /// <summary>
 /// A selectable option value: <see cref="Value"/> is the value stored/sent to mpv,
@@ -30,7 +19,7 @@ public sealed class OptionChoice
     public string Label { get; }
 }
 
-public sealed class Option : INotifyPropertyChanged
+public sealed class Option
 {
     public string Key { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
@@ -49,57 +38,11 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
-    /// <summary>Lazily builds localized choices (e.g. runtime audio devices). Called when the control is (re)bound.</summary>
-    public Func<IList<OptionChoice>>? ChoicesProvider
-    {
-        get; set;
-    }
-
     /// <summary>Show a "Browse..." button that opens the system folder picker.</summary>
     public bool PickFolder
     {
         get; set;
     }
-
-    /// <summary>Show an "Open" button that opens the folder in File Explorer.</summary>
-    public bool OpenFolder
-    {
-        get; set;
-    }
-
-    /// <summary>Option owner: mpv core, bundled script, app UI, or hybrid. Shown as a badge.</summary>
-    public OptionSource Source
-    {
-        get; set;
-    } = OptionSource.Mpv;
-
-    /// <summary>Optional sub-group label shown as a group header (e.g. "Plugin options").</summary>
-    public string? Group
-    {
-        get; set;
-    }
-
-    /// <summary>Shows a section caption (e.g. "Plugin options") above the first option of a sub-group.</summary>
-    public bool ShowGroupHeader
-    {
-        get; set;
-    }
-
-    /// <summary>Localized warning shown in yellow when the option may be ineffective in the current state.</summary>
-    public string? Warning
-    {
-        get => _warning;
-        set => Set(ref _warning, value);
-    }
-    private string? _warning;
-
-    /// <summary>Whether the option can be changed in the current state (mutually exclusive options).</summary>
-    public bool IsEnabled
-    {
-        get => _isEnabled;
-        set => Set(ref _isEnabled, value);
-    }
-    private bool _isEnabled = true;
 
     public OptionType Type
     {
@@ -137,16 +80,5 @@ public sealed class Option : INotifyPropertyChanged
     public Action<object>? Setter
     {
         get; set;
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
-    {
-        if (!EqualityComparer<T>.Default.Equals(field, value))
-        {
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
     }
 }

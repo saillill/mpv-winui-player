@@ -3,8 +3,6 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.Storage.Pickers;
 using System;
-using System.IO;
-using Windows.System;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
@@ -22,16 +20,10 @@ public sealed partial class OptionStringControl : OptionControlBase
         if (newValue is not null)
         {
             LabelText.Text = newValue.Label;
-            UpdateDescription(DescriptionText);
-            UpdateSourceBadge(SourceBadgeText);
+            UpdateHelpButton(HelpButton);
 
             BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
             BrowseButton.Visibility = newValue.PickFolder ? Visibility.Visible : Visibility.Collapsed;
-            OpenButton.Content = mpv_winui.AppContext.AppLang.Open;
-            OpenButton.Visibility = newValue.OpenFolder ? Visibility.Visible : Visibility.Collapsed;
-            InputBox.IsEnabled = newValue.IsEnabled;
-            BrowseButton.IsEnabled = newValue.IsEnabled;
-            OpenButton.IsEnabled = newValue.IsEnabled;
 
             _loading = true;
             try
@@ -60,15 +52,6 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
 
         return (true, null);
-    }
-
-    protected override void OnOptionStateChanged()
-    {
-        UpdateWarning(WarningText);
-        var enabled = Setting?.IsEnabled ?? true;
-        InputBox.IsEnabled = enabled;
-        BrowseButton.IsEnabled = enabled;
-        OpenButton.IsEnabled = enabled;
     }
 
     private bool TryCommit()
@@ -110,9 +93,7 @@ public sealed partial class OptionStringControl : OptionControlBase
     {
         try
         {
-            var owner = mpv_winui.Modules.Settings.SettingsWindow.Instance?.AppWindow.Id
-                        ?? mpv_winui.App.Window!.AppWindow.Id;
-            var picker = new FolderPicker(owner);
+            var picker = new FolderPicker(mpv_winui.App.Window!.AppWindow.Id);
             var folder = await picker.PickSingleFolderAsync();
             if (folder?.Path is string path && !string.IsNullOrEmpty(path))
             {
@@ -123,28 +104,6 @@ public sealed partial class OptionStringControl : OptionControlBase
         catch (Exception ex)
         {
             mpv_winui.AppContext.AppLogger.Error(ex, "Failed to pick folder");
-        }
-    }
-
-    private async void OnOpenFolderClick(object sender, RoutedEventArgs e)
-    {
-        var path = InputBox.Text?.Trim();
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return;
-        }
-
-        try
-        {
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-            await Launcher.LaunchFolderPathAsync(path);
-        }
-        catch (Exception ex)
-        {
-            mpv_winui.AppContext.AppLogger.Error(ex, "Failed to open folder");
         }
     }
 }
