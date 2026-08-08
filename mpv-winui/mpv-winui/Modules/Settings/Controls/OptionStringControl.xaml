@@ -41,24 +41,20 @@
         <Grid
             Grid.Column="1"
             VerticalAlignment="Center">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <TextBox
                 x:Name="InputBox"
-                Grid.Row="0"
+                Grid.Column="0"
                 HorizontalAlignment="Stretch"
                 LostFocus="OnLostFocus"
                 KeyDown="OnKeyDown"
                 TextChanged="InputBox_TextChanged" />
             <StackPanel
-                x:Name="ButtonRow"
-                Grid.Row="1"
-                Margin="0,8,0,0"
-                HorizontalAlignment="Right"
+                Grid.Column="1"
                 Orientation="Horizontal"
-                Visibility="Collapsed"
                 Spacing="8">
                 <Button
                     x:Name="OpenButton"
