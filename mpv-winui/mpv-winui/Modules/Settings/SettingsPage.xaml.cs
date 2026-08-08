@@ -3502,17 +3502,63 @@ public sealed partial class SettingsPage : Page
 
     private static List<OptionChoice> SubtitleFontChoices(AppLang lang)
     {
-        return
-        [
-            new OptionChoice("sans-serif", lang.OptionValueFontDefault),
-            new OptionChoice("Segoe UI", "Segoe UI"),
-            new OptionChoice("Microsoft YaHei", "Microsoft YaHei"),
-            new OptionChoice("Arial", "Arial"),
-            new OptionChoice("Times New Roman", "Times New Roman"),
-            new OptionChoice("Consolas", "Consolas"),
-            new OptionChoice("Source Han Sans SC", "Source Han Sans SC"),
-            new OptionChoice("LXGW WenKai Mono Lite", "LXGW WenKai Mono Lite"),
-        ];
+        var list = new List<OptionChoice>
+        {
+            new("sans-serif", lang.OptionValueFontDefault),
+        };
+
+        void Add(string value, string label)
+        {
+            if (!list.Any(c => c.Value == value))
+            {
+                list.Add(new OptionChoice(value, label));
+            }
+        }
+
+        // Lead with the common fonts of the current UI language, so each
+        // language gets its own familiar font set (and default).
+        switch (AppContext.AppSetting.CurrentLanguage)
+        {
+            case "zh-CN":
+                Add("Microsoft YaHei", "Microsoft YaHei（微软雅黑）");
+                Add("SimSun", "SimSun（宋体）");
+                Add("DengXian", "DengXian（等线）");
+                Add("SimHei", "SimHei（黑体）");
+                Add("KaiTi", "KaiTi（楷体）");
+                break;
+            case "ja-JP":
+                Add("Yu Gothic UI", "Yu Gothic UI");
+                Add("Yu Gothic", "Yu Gothic");
+                Add("Meiryo", "Meiryo");
+                Add("MS Gothic", "MS Gothic");
+                Add("MS PGothic", "MS PGothic");
+                break;
+            case "ko-KR":
+                Add("Malgun Gothic", "Malgun Gothic（맑은 고딕）");
+                Add("Gulim", "Gulim（굴림）");
+                Add("Batang", "Batang（바탕）");
+                Add("Dotum", "Dotum（돋움）");
+                break;
+            case "ru-RU":
+                Add("Segoe UI", "Segoe UI");
+                Add("Arial", "Arial");
+                Add("Times New Roman", "Times New Roman");
+                Add("Georgia", "Georgia");
+                break;
+            default:
+                Add("Segoe UI", "Segoe UI");
+                Add("Arial", "Arial");
+                Add("Calibri", "Calibri");
+                Add("Times New Roman", "Times New Roman");
+                Add("Verdana", "Verdana");
+                Add("Georgia", "Georgia");
+                break;
+        }
+
+        Add("Consolas", "Consolas");
+        Add("Source Han Sans SC", "Source Han Sans SC");
+        Add("LXGW WenKai Mono Lite", "LXGW WenKai Mono Lite");
+        return list;
     }
 
     private static List<OptionChoice> LanguageChoices(bool includeAuto)

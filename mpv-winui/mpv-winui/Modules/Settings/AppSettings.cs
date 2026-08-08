@@ -11,6 +11,27 @@ namespace mpv_winui.Modules.Settings
         public AppSettings()
         {
             _dataSetting = PackageHelper.IsPackaged ? new AppDataSetting("app-settings") : new UnpackageAppDataSetting("app");
+            MigrateLegacyDefaults();
+        }
+
+        /// <summary>
+        /// The old subtitle-font default stored "sans-serif"; treat that value
+        /// as unset once so each UI language gets its own default font.
+        /// An explicit "System default" choice made later is kept.
+        /// </summary>
+        private void MigrateLegacyDefaults()
+        {
+            const string migratedKey = "SubFontLanguageDefaultMigrated";
+            if (_dataSetting.GetValue(migratedKey, false))
+            {
+                return;
+            }
+
+            if (string.Equals(_dataSetting.GetValue(nameof(SubFont), string.Empty), "sans-serif", StringComparison.Ordinal))
+            {
+                _dataSetting.SetValue(nameof(SubFont), string.Empty);
+            }
+            _dataSetting.SetValue(migratedKey, true);
         }
 
         public const string ThemeType_Auto = "Auto";
@@ -412,8 +433,23 @@ namespace mpv_winui.Modules.Settings
 
         public string SubFont
         {
-            get => _dataSetting.GetValue(nameof(SubFont), "sans-serif");
+            get
+            {
+                var stored = _dataSetting.GetValue(nameof(SubFont), string.Empty);
+                return string.IsNullOrEmpty(stored) ? LanguageDefaultSubtitleFont() : stored;
+            }
             set => _dataSetting.SetValue(nameof(SubFont), value);
+        }
+
+        private static string LanguageDefaultSubtitleFont()
+        {
+            return AppContext.AppSetting.CurrentLanguage switch
+            {
+                "zh-CN" => "Microsoft YaHei",
+                "ja-JP" => "Yu Gothic UI",
+                "ko-KR" => "Malgun Gothic",
+                _ => "Segoe UI",
+            };
         }
 
         public string SubFontProvider
