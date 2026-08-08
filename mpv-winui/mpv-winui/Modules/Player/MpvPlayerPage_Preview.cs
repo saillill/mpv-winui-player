@@ -71,7 +71,23 @@ namespace mpv_winui.Modules.Player
         {
             try
             {
-                var bytes = await File.ReadAllBytesAsync(info.Path);
+                byte[]? bytes = null;
+                for (var attempt = 0; attempt < 3 && bytes is null; attempt++)
+                {
+                    try
+                    {
+                        bytes = await File.ReadAllBytesAsync(info.Path);
+                    }
+                    catch (IOException)
+                    {
+                        // thumbfast replaces the frame file while rendering; retry briefly.
+                        await Task.Delay(40);
+                    }
+                }
+                if (bytes is null)
+                {
+                    return;
+                }
                 if (bytes.Length < info.Width * info.Height * 4)
                 {
                     return;

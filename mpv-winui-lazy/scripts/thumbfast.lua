@@ -883,15 +883,18 @@ mp.observe_property("user-data/osc/draw-preview", "native", function(_, val)
 end)
 
 -- thumbfast 渲染完成：把缩略图信息转发给应用（WinUI 层绘制）
+local preview_seq = 0
 mp.register_script_message("thumbfast-render", function(json)
     local data = mp.utils.parse_json(json)
     if type(data) ~= "table" or not data.width or not data.height or not data.tnpath then
         return
     end
+    preview_seq = preview_seq + 1
     mp.set_property_native("user-data/mpvw/preview", {
         w = data.width,
         h = data.height,
         path = data.tnpath .. ".bgra",
+        seq = preview_seq,
     })
 end)
 
