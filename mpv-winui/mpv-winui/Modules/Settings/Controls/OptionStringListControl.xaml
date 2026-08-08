@@ -8,16 +8,10 @@
     mc:Ignorable="d">
 
     <Grid VerticalAlignment="Center">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <Grid
-            Grid.Row="0"
-            ColumnSpacing="12">
+        <Grid ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="260" />
+                <ColumnDefinition x:Name="InputColumn" Width="260" />
             </Grid.ColumnDefinitions>
             <StackPanel
                 Grid.Column="0"
@@ -40,36 +34,33 @@
                     TextWrapping="Wrap"
                     Visibility="Collapsed" />
             </StackPanel>
-            <ComboBox
-                x:Name="Combo"
+            <Grid
                 Grid.Column="1"
-                HorizontalAlignment="Stretch"
                 VerticalAlignment="Center"
-                SelectionChanged="OnSelectionChanged" />
-        </Grid>
-        <Grid
-            x:Name="CustomRow"
-            Grid.Row="1"
-            Margin="0,4,0,0"
-            ColumnSpacing="12"
-            Visibility="Collapsed">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="260" />
-            </Grid.ColumnDefinitions>
-            <TextBlock
-                x:Name="CustomLabel"
-                Grid.Column="0"
-                VerticalAlignment="Center"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                TextWrapping="Wrap" />
-            <TextBox
-                x:Name="CustomInput"
-                Grid.Column="1"
                 HorizontalAlignment="Stretch"
-                KeyDown="OnCustomKeyDown"
-                LostFocus="OnCustomLostFocus" />
+                ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox
+                    x:Name="Combo"
+                    Grid.Column="0"
+                    MinWidth="140"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    SelectionChanged="OnSelectionChanged" />
+                <TextBox
+                    x:Name="CustomInput"
+                    Grid.Column="1"
+                    MinWidth="260"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    PlaceholderText="Custom"
+                    Visibility="Collapsed"
+                    KeyDown="OnCustomKeyDown"
+                    LostFocus="OnCustomLostFocus" />
+            </Grid>
         </Grid>
     </Grid>
 </local:OptionControlBase>

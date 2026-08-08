@@ -31,7 +31,6 @@ public sealed partial class OptionStringListControl : OptionControlBase
         LabelText.Text = newValue.Label;
         UpdateDescription(DescriptionText);
         Combo.IsEnabled = newValue.IsEnabled;
-        CustomLabel.Text = mpv_winui.AppContext.AppLang.OptionValueCustom;
         CustomInput.PlaceholderText = mpv_winui.AppContext.AppLang.OptionValueCustom;
 
         _loading = true;
@@ -61,14 +60,16 @@ public sealed partial class OptionStringListControl : OptionControlBase
                 if (index >= 0)
                 {
                     Combo.SelectedIndex = index;
-                    CustomRow.Visibility = Visibility.Collapsed;
+                    CustomInput.Visibility = Visibility.Collapsed;
+                    InputColumn.Width = new GridLength(260);
                 }
                 else
                 {
                     if (!newValue.AllowCustom)
                     {
                         Combo.SelectedIndex = _choices.Count > 0 ? 0 : -1;
-                        CustomRow.Visibility = Visibility.Collapsed;
+                        CustomInput.Visibility = Visibility.Collapsed;
+                        InputColumn.Width = new GridLength(260);
                         return;
                     }
                     _lastCustom = current;
@@ -125,7 +126,8 @@ public sealed partial class OptionStringListControl : OptionControlBase
         {
             return;
         }
-        CustomRow.Visibility = Visibility.Visible;
+        CustomInput.Visibility = Visibility.Visible;
+        InputColumn.Width = new GridLength(2, GridUnitType.Star);
         if (showAndFocus)
         {
             CustomInput.Focus(FocusState.Programmatic);
@@ -141,13 +143,15 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
         if (val == CustomKey)
         {
-            CustomRow.Visibility = Visibility.Visible;
+            CustomInput.Visibility = Visibility.Visible;
+            InputColumn.Width = new GridLength(2, GridUnitType.Star);
             CustomInput.Text = _lastCustom;
             CustomInput.Focus(FocusState.Programmatic);
         }
         else
         {
-            CustomRow.Visibility = Visibility.Collapsed;
+            CustomInput.Visibility = Visibility.Collapsed;
+            InputColumn.Width = new GridLength(260);
             Setting?.Setter?.Invoke(val);
         }
     }

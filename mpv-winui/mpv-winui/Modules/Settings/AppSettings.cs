@@ -96,6 +96,34 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.GetValue(nameof(UiFont), value);
         }
 
+        /// <summary>Whether to show the playback-start OSD message.</summary>
+        public bool ShowOsdPlayingMsg
+        {
+            get => _dataSetting.GetValue(nameof(ShowOsdPlayingMsg), false);
+            set => _dataSetting.GetValue(nameof(ShowOsdPlayingMsg), value);
+        }
+
+        /// <summary>Log every mpv command sent by the app (testing).</summary>
+        public bool TestMpvCommandLog
+        {
+            get => _dataSetting.GetValue(nameof(TestMpvCommandLog), false);
+            set => _dataSetting.GetValue(nameof(TestMpvCommandLog), value);
+        }
+
+        /// <summary>Test signal to play: off / testsrc2 / sine.</summary>
+        public string TestSignal
+        {
+            get => _dataSetting.GetValue(nameof(TestSignal), "off");
+            set => _dataSetting.GetValue(nameof(TestSignal), value);
+        }
+
+        /// <summary>Ephemeral test OSD trigger; always reads as false.</summary>
+        public bool TestOsdMessage
+        {
+            get => false;
+            set => _ = value;
+        }
+
         public bool EnableDebugLog
         {
             get => _dataSetting.GetValue(nameof(EnableDebugLog), false);
@@ -739,7 +767,7 @@ namespace mpv_winui.Modules.Settings
 
         public string OsdPlayingMsg
         {
-            get => _dataSetting.GetValue(nameof(OsdPlayingMsg), string.Empty);
+            get => _dataSetting.GetValue(nameof(OsdPlayingMsg), "${filename}");
             set => _dataSetting.SetValue(nameof(OsdPlayingMsg), value);
         }
 

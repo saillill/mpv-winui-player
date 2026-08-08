@@ -25,12 +25,12 @@ SRC = REPO / "mpv-winui" / "mpv-winui" / "Modules" / "Settings" / "SettingsPage.
 
 src = SRC.read_text(encoding="utf-8")
 keys = re.findall(r"Key = nameof\(AppContext\.AppSetting\.(\w+)\)", src)
-assert len(keys) == 189, len(keys)
+assert len(keys) == 193, len(keys)
 
 # key -> (category var, section var)
 # Category vars: program playback trackSelection watchLater video audio subtitles
 #                window demuxer cache input osd screenshot gpuRenderer videoSync
-# Section vars:  sProgramInterface sProgramLanguageLog sProgramNetwork
+# Section vars:  sProgramInterface sProgramLanguageLog sProgramNetwork sProgramTesting
 #                sPlayback sPlaybackSeeking sPlaybackSeekPreview
 #                sTrackLanguage sTrackFallback
 #                sWatchLaterResume sWatchLaterStorage
@@ -50,6 +50,9 @@ MAP = {
     "ThemeOpacity": ("program", "sProgramInterface"),
     "ThemeLuminosity": ("program", "sProgramInterface"),
     "UiFont": ("program", "sProgramInterface"),
+    "TestMpvCommandLog": ("program", "sProgramTesting"),
+    "TestOsdMessage": ("program", "sProgramTesting"),
+    "TestSignal": ("program", "sProgramTesting"),
     "CurrentLanguage": ("program", "sProgramLanguageLog"),
     "EnableDebugLog": ("program", "sProgramLanguageLog"),
     "Ytdl": ("program", "sProgramNetwork"),
@@ -182,6 +185,7 @@ MAP = {
     "OsdBlur": ("osd", "sOsd"),
     "OsdOutlineSize": ("osd", "sOsd"),
     "OsdFractions": ("osd", "sOsd"),
+    "ShowOsdPlayingMsg": ("osd", "sOsd"),
     "MetadataOsdEnabled": ("osd", "sOsdMetadata"),
     "MetadataOsdAutohideTimeout": ("osd", "sOsdMetadata"),
     "MetadataOsdShowChapter": ("osd", "sOsdMetadata"),

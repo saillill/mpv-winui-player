@@ -58,6 +58,10 @@ public sealed partial class OptionListControl : UserControl
         var items = new List<object>(OptionList.Count + 8);
         foreach (var option in OptionList)
         {
+            if (!option.IsVisible)
+            {
+                continue;
+            }
             if (option.ShowSectionHeader)
             {
                 items.Add(new SectionHeaderItem { Caption = option.Section ?? string.Empty });
@@ -65,5 +69,11 @@ public sealed partial class OptionListControl : UserControl
             items.Add(option);
         }
         OptionListView.ItemsSource = items;
+    }
+
+    /// <summary>Rebuilds the list (e.g. after an option becomes visible/hidden).</summary>
+    public void Refresh()
+    {
+        ApplyItemsSource();
     }
 }

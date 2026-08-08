@@ -12,6 +12,7 @@ namespace mpv_winui.Modules.Settings.Controls;
 public sealed partial class OptionStringControl : OptionControlBase
 {
     private bool _loading;
+    private bool _pathMode;
 
     public OptionStringControl()
     {
@@ -25,6 +26,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
             InputBox.PlaceholderText = newValue.Placeholder ?? string.Empty;
+            _pathMode = newValue.PickFolder || newValue.PickFile || newValue.OpenFolder;
 
             BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
             BrowseButton.Visibility = newValue.PickFolder || newValue.PickFile ? Visibility.Visible : Visibility.Collapsed;
@@ -48,6 +50,7 @@ public sealed partial class OptionStringControl : OptionControlBase
                 {
                     InputBox.Text = string.Empty;
                 }
+                UpdatePathDisplay();
             }
             finally
             {
@@ -86,7 +89,28 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
         ErrorText.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
         Setting?.Setter?.Invoke(InputBox.Text);
+        UpdatePathDisplay();
         return true;
+    }
+
+    private void UpdatePathDisplay()
+    {
+        if (!_pathMode)
+        {
+            return;
+        }
+
+        var text = InputBox.Text;
+        DisplayText.Text = string.IsNullOrEmpty(text) ? InputBox.PlaceholderText : text;
+        DisplayText.Visibility = Visibility.Visible;
+        InputBox.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnDisplayTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        InputBox.Visibility = Visibility.Visible;
+        DisplayText.Visibility = Visibility.Collapsed;
+        InputBox.Focus(FocusState.Programmatic);
     }
 
     private void InputBox_TextChanged(object sender, TextChangedEventArgs e)

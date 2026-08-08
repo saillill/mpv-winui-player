@@ -31,7 +31,14 @@ namespace mpv_winui
 
         public static event Action? LanguageChanged;
 
-        public static void SendMpvCommand(string cmd) => RunMpvCommand?.Invoke(cmd);
+        public static void SendMpvCommand(string cmd)
+        {
+            if (AppSetting?.TestMpvCommandLog == true)
+            {
+                AppLogger.Info("mpv: " + cmd);
+            }
+            RunMpvCommand?.Invoke(cmd);
+        }
 
         /// <summary>Writes settings-managed plugin options into script-opts/*.conf (next mpv start).</summary>
         public static void WritePluginConfigs()

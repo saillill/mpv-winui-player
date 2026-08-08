@@ -53,6 +53,17 @@
                 LostFocus="OnLostFocus"
                 KeyDown="OnKeyDown"
                 TextChanged="InputBox_TextChanged" />
+            <TextBlock
+                x:Name="DisplayText"
+                Grid.Column="0"
+                MaxWidth="340"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Style="{StaticResource BodyTextBlockStyle}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap"
+                Visibility="Collapsed"
+                Tapped="OnDisplayTapped" />
             <StackPanel
                 Grid.Column="1"
                 Orientation="Horizontal"

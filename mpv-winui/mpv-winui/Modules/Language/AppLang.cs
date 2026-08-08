@@ -168,6 +168,7 @@ namespace mpv_winui.Modules.Language
         public string SectionProgramInterface { get; set; } = "Interface";
         public string SectionProgramLanguageLog { get; set; } = "Language & logging";
         public string SectionProgramNetwork { get; set; } = "Network integration";
+        public string SectionProgramTesting { get; set; } = "Testing";
         public string SectionPlayback { get; set; } = "Playback";
         public string SectionPlaybackSeeking { get; set; } = "Seeking";
         public string SectionPlaybackSeekPreview { get; set; } = "Seek preview";
@@ -183,7 +184,7 @@ namespace mpv_winui.Modules.Language
         public string SectionAudioOutput { get; set; } = "Output";
         public string SectionAudioVolume { get; set; } = "Volume";
         public string SectionAudioExternal { get; set; } = "External audio";
-        public string SectionAudioCoverArt { get; set; } = "Cover art";
+        public string SectionAudioCoverArt { get; set; } = "Music cover art";
         public string SectionSubtitleText { get; set; } = "Text subtitles";
         public string SectionSubtitleAss { get; set; } = "ASS subtitles";
         public string SectionSubtitleImage { get; set; } = "Image subtitles";
@@ -342,10 +343,16 @@ namespace mpv_winui.Modules.Language
         public string WarningSaveWithoutResume { get; set; } = "Playback resume is disabled, so saved positions will not be restored.";
         public string WarningBlendSubtitlesMargins { get; set; } = "Ignored while subtitles are blended into the video frame.";
         public string WarningSubFallbackNoLanguage { get; set; } = "No preferred subtitle language is set, so fallback has no effect.";
-        public string WarningFormatJpeg { get; set; } = "Current screenshot format is not JPEG; this option has no effect.";
-        public string WarningFormatPng { get; set; } = "Current screenshot format is not PNG; this option has no effect.";
-        public string WarningFormatWebp { get; set; } = "Current screenshot format is not WebP; this option has no effect.";
-        public string WarningHighBitDepthFormat { get; set; } = "High bit depth is only supported for PNG and WebP screenshots.";
+        public string SettingsShowOsdPlayingMsg { get; set; } = "Show playback-start OSD message";
+        public string SettingsHelpShowOsdPlayingMsg { get; set; } = "Show a message on the OSD when a file starts playing. Off hides it.";
+        public string SettingsTestMpvCommandLog { get; set; } = "Log mpv commands";
+        public string SettingsHelpTestMpvCommandLog { get; set; } = "Write every command sent to mpv to the app log for troubleshooting.";
+        public string SettingsTestOsdMessage { get; set; } = "Send test OSD message";
+        public string SettingsHelpTestOsdMessage { get; set; } = "Turn on to display a test OSD message; it resets immediately.";
+        public string SettingsTestSignal { get; set; } = "Test signal";
+        public string OptionValueTestSignalOff { get; set; } = "Off";
+        public string OptionValueTestSignalVideo { get; set; } = "Test video (test pattern)";
+        public string OptionValueTestSignalAudio { get; set; } = "Test audio (1 kHz)";
         public string WarningSeekHoldInactive { get; set; } = "Both auto VSR and RTX Video HDR are off; this option has no effect.";
 
         // ===== Localized option values (raw mpv values stay machine-readable) =====
@@ -400,7 +407,7 @@ namespace mpv_winui.Modules.Language
         public string OptionValueVsfilterForce601 { get; set; } = "Force BT.601";
         public string OptionValueAudioGaplessNo { get; set; } = "No";
         public string OptionValueAudioGaplessYes { get; set; } = "Yes";
-        public string OptionValueAudioGaplessWeak { get; set; } = "Weak";
+        public string OptionValueAudioGaplessWeak { get; set; } = "Weak (audio files only)";
         public string OptionValueAssOverrideNo { get; set; } = "No (keep original styles)";
         public string OptionValueAssOverrideYes { get; set; } = "Yes (override styles)";
         public string OptionValueAssOverrideForce { get; set; } = "Force (full override)";
@@ -524,11 +531,11 @@ namespace mpv_winui.Modules.Language
         public string SettingsScreenshotHighBitDepth { get; set; } = "High bit depth screenshots";
         public string SettingsScreenshotTagColorspace { get; set; } = "Tag screenshot colorspace";
         public string SettingsScreenshotSw { get; set; } = "Software screenshots";
-        public string SettingsScreenshotTemplateDefault { get; set; } = "Default (mpv.conf)";
-        public string SettingsScreenshotTemplateMpv { get; set; } = "MPV style (time + counter)";
+        public string SettingsScreenshotTemplateDefault { get; set; } = "Default (MPV-%P-N%n)";
+        public string SettingsScreenshotTemplateMpv { get; set; } = "Time + counter";
         public string SettingsScreenshotTemplateFileTime { get; set; } = "Filename + time";
         public string SettingsScreenshotTemplateFileTimeCounter { get; set; } = "Filename + time + counter";
-        public string SettingsScreenshotTemplateTimeCounter { get; set; } = "Time + counter";
+        public string SettingsScreenshotTemplateTimeCounter { get; set; } = "Time + counter (no prefix)";
 
         // ===== Help texts (shown behind the info button) =====
         public string SettingsHelpTheme { get; set; } = "Choose the color theme. Auto follows the Windows app mode.";
@@ -585,12 +592,11 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpSubAssScaleWithWindow { get; set; } = "Scale ASS subtitles with the window size instead of the video size.";
         public string SettingsHelpOsdDuration { get; set; } = "How long on-screen messages stay visible (milliseconds).";
         public string SettingsHelpVsrAuto { get; set; } = "Automatically upscale low-resolution video with NVIDIA VSR when the GPU supports it. Recommended on NVIDIA GPUs; works with RTX Video HDR and is suspended while other filters are active.";
-        public string SettingsHelpHdrAutoMode { get; set; } = "RTX Video HDR (NVIDIA only). Auto is recommended and follows the display state; Force on always enables it (SDR sources only); Off disables it.";
+        public string SettingsHelpHdrAutoMode { get; set; } = "RTX Video HDR (NVIDIA only).";
         public string SettingsHelpSeekHold { get; set; } = "Keep the window size fixed while seeking so filter reattachment does not resize the window.";
         public string SettingsHelpDemuxerReadahead { get; set; } = "Seconds of data the demuxer reads ahead. Larger values help network streams but use more memory.";
         public string SettingsHelpYtdl { get; set; } = "Resolve http(s) URLs with yt-dlp before playback.";
-        public string SettingsHelpAutoCreatePlaylist { get; set; } = "Add sibling files in the same folder to the playlist when opening a file. Same adds files of the same type only.";
-        public string SettingsHelpDirectoryMode { get; set; } = "How a folder opened from the UI is handled: ignore, lazy, or recursive file collection.";
+        public string SettingsHelpAutoCreatePlaylist { get; set; } = "Automatically add files from the same folder to the playlist when opening a file.";
         public string SettingsHelpTscale { get; set; } = "Temporal interpolation algorithm used when frame interpolation is enabled.";
         public string SettingsHelpLinearUpscaling { get; set; } = "Upscale in linear light for better color accuracy. Not compatible with sigmoid upscaling.";
         public string SettingsHelpPanscan { get; set; } = "Crop/zoom amount used to fill the screen and remove black bars (0-1).";
@@ -637,7 +643,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpVideoUnscaled { get; set; } = "Render the video at its original pixel size instead of scaling it to the window.";
         public string SettingsHelpSubAssUseVideoData { get; set; } = "Video stream information passed to libass. All matches VSFilter behavior.";
         public string SettingsHelpSubAssVsfilterColorCompat { get; set; } = "How ASS subtitle colors are converted for compatibility with VSFilter.";
-        public string SettingsHelpAudioGapless { get; set; } = "Keep the audio output open between files for gapless playback. Weak only for audio files.";
+        public string SettingsHelpAudioGapless { get; set; } = "Keep the audio output open between files for gapless playback; Weak only keeps it between audio files.";
         public string SettingsHelpYtdlRawOptionsAppend { get; set; } = "Extra options passed to yt-dlp, e.g. sub-langs=-danmaku.";
         public string SettingsHelpInputIpcServer { get; set; } = "Named pipe for external programs to control mpv. Leave empty to disable.";
         public string SettingsHelpDirectoryFilterTypes { get; set; } = "File types collected for the playlist when a folder is opened: video,audio,image,archive,playlist.";

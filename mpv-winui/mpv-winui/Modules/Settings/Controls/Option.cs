@@ -103,6 +103,14 @@ public sealed class Option : INotifyPropertyChanged
     }
     private bool _isEnabled = true;
 
+    /// <summary>Whether the option is shown at all (ineffective options are hidden, not just disabled).</summary>
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set => Set(ref _isVisible, value);
+    }
+    private bool _isVisible = true;
+
     public OptionType Type
     {
         get; set;

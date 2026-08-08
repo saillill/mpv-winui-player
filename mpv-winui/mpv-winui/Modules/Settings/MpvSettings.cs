@@ -147,7 +147,9 @@ public static class MpvSettings
             nameof(AppSettings.OsdFont) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-font {Q((string)value)}",
             nameof(AppSettings.OsdColor) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-color {Q((string)value)}",
             nameof(AppSettings.OsdOutlineColor) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-outline-color {Q((string)value)}",
-            nameof(AppSettings.OsdPlayingMsg) => $"set osd-playing-msg {Q((string)value)}",
+            nameof(AppSettings.OsdPlayingMsg) => AppContext.AppSetting.ShowOsdPlayingMsg
+                ? (string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-playing-msg {Q((string)value)}")
+                : "set osd-playing-msg \"\"",
             nameof(AppSettings.OsdPlayingMsgDuration) => $"set osd-playing-msg-duration {(int)value}",
             nameof(AppSettings.OsdBarWidth) => $"set osd-bar-w {(int)value}",
             nameof(AppSettings.OsdBarHeight) => $"set osd-bar-h {(double)value}",
