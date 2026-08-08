@@ -300,6 +300,13 @@ if mpv_path == "default" or mpv_path == "bundle" then
     end
 end
 
+-- WinUI 把应用目录下的 mpv.exe 写入 user-data/mpvw/mpv-exe，优先使用它
+mp.observe_property("user-data/mpvw/mpv-exe", "native", function(_, val)
+    if type(val) == "string" and val ~= "" then
+        mpv_path = val
+    end
+end)
+
 local function auto_ui_scale()
     local display_w, display_h = mp.get_property_number('display-width', 0), mp.get_property_number('display-height', 0)
     local display_aspect = display_w / display_h or 0
@@ -835,6 +842,42 @@ mp.observe_property("edition", "native", sync_changes)
 
 mp.register_script_message("thumb", thumb)
 mp.register_script_message("clear", clear)
+
+-- WinUI 进度条预览：应用把悬停时间写入 user-data/osc/hover-sec，
+-- 把预览区域写入 user-data/osc/draw-preview，这里转交给 thumbfast 绘制。
+local hover_sec_cur = nil
+local draw_preview_cur = nil
+
+local function preview_update()
+    mp.msg.verbose("preview_update: disabled=" .. tostring(disabled) .. " hover=" .. tostring(hover_sec_cur) .. " draw=" .. tostring(draw_preview_cur ~= nil))
+    if disabled then
+        return
+    end
+    if hover_sec_cur ~= nil and draw_preview_cur ~= nil then
+        mp.commandv("script-message-to", "thumbfast", "thumb",
+            tostring(hover_sec_cur),
+            tostring(draw_preview_cur.x),
+            tostring(draw_preview_cur.y))
+    else
+        clear()
+    end
+end
+
+mp.observe_property("user-data/osc/hover-sec", "native", function(_, val)
+    hover_sec_cur = val
+    mp.msg.verbose("hover-sec = " .. tostring(val))
+    preview_update()
+end)
+
+mp.observe_property("user-data/osc/draw-preview", "native", function(_, val)
+    mp.msg.verbose("draw-preview changed")
+    if type(val) == "table" then
+        draw_preview_cur = val
+    else
+        draw_preview_cur = nil
+    end
+    preview_update()
+end)
 
 mp.register_event("file-loaded", file_load)
 mp.register_event("shutdown", shutdown)

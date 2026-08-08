@@ -5,15 +5,6 @@ using System.Runtime.CompilerServices;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
-/// <summary>Where an option belongs: mpv core, a bundled Lua script, the app itself, or a mix.</summary>
-public enum OptionSource
-{
-    Mpv,
-    Plugin,
-    App,
-    Hybrid,
-}
-
 /// <summary>
 /// A selectable option value: <see cref="Value"/> is the value stored/sent to mpv,
 /// <see cref="Label"/> is the localized text shown in the settings UI.
@@ -66,12 +57,6 @@ public sealed class Option : INotifyPropertyChanged
     {
         get; set;
     }
-
-    /// <summary>Option owner: mpv core, bundled script, app UI, or hybrid. Shown as a badge.</summary>
-    public OptionSource Source
-    {
-        get; set;
-    } = OptionSource.Mpv;
 
     /// <summary>Optional sub-group label shown as a group header (e.g. "Plugin options").</summary>
     public string? Group

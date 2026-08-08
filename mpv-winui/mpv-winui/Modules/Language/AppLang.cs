@@ -179,11 +179,6 @@ namespace mpv_winui.Modules.Language
         public string No { get; set; } = "No";
         public string Browse { get; set; } = "Browse...";
 
-        // ===== Option source badges (mpv core / bundled scripts / app) =====
-        public string OptionSourceMpv { get; set; } = "MPV";
-        public string OptionSourcePlugin { get; set; } = "Plugin";
-        public string OptionSourceApp { get; set; } = "App";
-        public string OptionSourceHybrid { get; set; } = "Hybrid";
         public string OptionGroupPlugin { get; set; } = "Plugin options";
 
         // ===== Yellow "may be ineffective" warnings =====

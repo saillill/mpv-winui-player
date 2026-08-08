@@ -6,24 +6,6 @@ namespace mpv_winui.Modules.Settings.Controls;
 
 public abstract class OptionControlBase : UserControl
 {
-    /// <summary>Localized badge text for the option source (MPV / plugin / app / hybrid).</summary>
-    protected void UpdateSourceBadge(TextBlock? badgeText)
-    {
-        if (badgeText is null)
-        {
-            return;
-        }
-
-        var text = Setting?.Source switch
-        {
-            OptionSource.Plugin => mpv_winui.AppContext.AppLang.OptionSourcePlugin,
-            OptionSource.App => mpv_winui.AppContext.AppLang.OptionSourceApp,
-            OptionSource.Hybrid => mpv_winui.AppContext.AppLang.OptionSourceHybrid,
-            _ => mpv_winui.AppContext.AppLang.OptionSourceMpv,
-        };
-        badgeText.Text = text;
-    }
-
     /// <summary>Shows the option description below the title (Windows Settings style).</summary>
     protected void UpdateDescription(TextBlock? block)
     {

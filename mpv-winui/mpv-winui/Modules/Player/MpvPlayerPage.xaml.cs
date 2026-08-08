@@ -9,6 +9,7 @@ using mpv_winui.Modules.Settings;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace mpv_winui.Modules.Player
@@ -70,6 +71,11 @@ namespace mpv_winui.Modules.Player
                 var lang = AppContext.AppSetting.CurrentLanguage;
                 if (string.IsNullOrWhiteSpace(lang)) lang = "en-US";
                 AppContext.SendMpvCommand($"set user-data/mpvw/language {lang}");
+                var mpvCli = Path.Combine(System.AppContext.BaseDirectory, "mpv.exe");
+                if (File.Exists(mpvCli))
+                {
+                    AppContext.SendMpvCommand($"set user-data/mpvw/mpv-exe \"{mpvCli}\"");
+                }
                 MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
 
                 SetupKeyboardInput();

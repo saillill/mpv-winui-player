@@ -23,7 +23,6 @@ public sealed partial class OptionStringControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            UpdateSourceBadge(SourceBadgeText);
 
             BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
             BrowseButton.Visibility = newValue.PickFolder ? Visibility.Visible : Visibility.Collapsed;

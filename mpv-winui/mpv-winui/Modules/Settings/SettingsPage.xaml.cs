@@ -59,7 +59,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.AppSettingTheme,
                 Category = general,
                 Description = lang.SettingsHelpTheme,
-                Source = OptionSource.App,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -81,7 +80,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.Backdrop,
                 Category = general,
                 Description = lang.SettingsHelpBackdrop,
-                Source = OptionSource.App,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -98,7 +96,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.DebugLog,
                 Category = general,
                 Description = lang.SettingsHelpDebugLog,
-                Source = OptionSource.App,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableDebugLog,
                 Setter = v => AppContext.AppSetting.EnableDebugLog = (bool)v!
@@ -111,7 +108,6 @@ public sealed partial class SettingsPage : Page
                 Category = general,
                 Description = lang.SettingsHelpLanguage,
                 RequiresRestart = true,
-                Source = OptionSource.Hybrid,
                 Type = OptionType.StringList,
                 Choices = AppContext.AvailableLanguages()
                     .Select(code => new OptionChoice(code, AppLang.NativeLanguageName(code)))
@@ -287,7 +283,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsVideoPreview,
                 Category = playback,
                 Description = lang.SettingsHelpVideoPreview,
-                Source = OptionSource.Plugin,
                 Group = pluginGroup,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableVideoPreview,
@@ -1138,7 +1133,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsVsrAuto,
                 Category = advanced,
                 Description = lang.SettingsHelpVsrAuto,
-                Source = OptionSource.Plugin,
                 Group = pluginGroup,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.VsrAutoEnabled,
@@ -1151,7 +1145,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsHdrAutoMode,
                 Category = advanced,
                 Description = lang.SettingsHelpHdrAutoMode,
-                Source = OptionSource.Plugin,
                 Group = pluginGroup,
                 Type = OptionType.StringList,
                 Choices =
@@ -1170,7 +1163,6 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsSeekHold,
                 Category = advanced,
                 Description = lang.SettingsHelpSeekHold,
-                Source = OptionSource.Plugin,
                 Group = pluginGroup,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SeekHoldEnabled,

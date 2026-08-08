@@ -13,6 +13,7 @@
 | `fonts/SourceHanSansSC-Regular-2.otf` | [Adobe/Source Han Sans](https://github.com/adobe-fonts/source-han-sans) | SIL OFL-1.1（全文见 `fonts/OFL-1.1.txt`） |
 | `fonts/LXGWWenKaiMonoLite-Regular.ttf` | [lxgw/LxgwWenKai](https://github.com/lxgw/LxgwWenKai) | SIL OFL-1.1（全文见 `fonts/OFL-1.1.txt`） |
 | `MediaInfo.exe` | [MediaArea/MediaInfo](https://mediaarea.net/en/MediaInfo) v26.05 | BSD-2-Clause（全文见 `licenses/MediaInfo-BSD-2-Clause.txt`；SHA-256 `30F2828A45A1895B033C3CD7784581033327E7B393033C55F4A03BB15CAB0D89`） |
+| `mpv.exe`（发布包随附，供 thumbfast 子进程使用） | [shinchiro/mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake) 20260808（mpv v0.41.0-920 / FFmpeg N-125994） | GPL-2.0+（mpv/FFmpeg 构建产物，见上游仓库） |
 | `shaders/*` | 见各文件头（Anime4K/FSRCNNX/nnedi3/NVIDIA 等） | 以文件头为准 |
 | `vs/*.vpy` | mpv-lazy 维基（VapourSynth 脚本模板） | 见 mpv-lazy 维基 |
 | 配置文件（`mpv.conf`/`profiles.conf`/`input.conf`/`script-opts.conf` 等） | [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit) | 该项目 LICENSE.MD 未列出者默认 UNLICENSED，保留来源声明 |

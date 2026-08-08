@@ -19,7 +19,6 @@ public sealed partial class OptionStringListControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            UpdateSourceBadge(SourceBadgeText);
             GroupHeader.Visibility = newValue.ShowGroupHeader ? Visibility.Visible : Visibility.Collapsed;
             if (newValue.ShowGroupHeader)
             {

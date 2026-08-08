@@ -36,26 +36,12 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <StackPanel
+            <TextBlock
+                x:Name="LabelText"
                 Grid.Column="0"
-                Orientation="Horizontal"
-                Spacing="8">
-                <TextBlock
-                    x:Name="LabelText"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource BodyTextBlockStyle}"
-                    TextWrapping="Wrap" />
-                <Border
-                    Padding="6,1"
-                    VerticalAlignment="Center"
-                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                    CornerRadius="4">
-                    <TextBlock
-                        x:Name="SourceBadgeText"
-                        FontSize="11"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </Border>
-            </StackPanel>
+                VerticalAlignment="Center"
+                Style="{StaticResource BodyTextBlockStyle}"
+                TextWrapping="Wrap" />
             <ComboBox
                 x:Name="Combo"
                 Grid.Column="1"
