@@ -12,7 +12,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,8"
-                Padding="16,8"
+                Padding="16,6,16,10"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -26,7 +26,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,8"
-                Padding="16,8"
+                Padding="16,6,16,10"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -40,7 +40,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,8"
-                Padding="16,8"
+                Padding="16,6,16,10"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -54,7 +54,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,8"
-                Padding="16,8"
+                Padding="16,6,16,10"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -68,7 +68,7 @@
             <Border
                 MinHeight="60"
                 Margin="0,0,0,8"
-                Padding="16,8"
+                Padding="16,6,16,10"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
@@ -111,6 +111,7 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="IsTabStop" Value="False" />
