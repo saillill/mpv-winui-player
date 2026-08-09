@@ -19,11 +19,6 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            SectionHeader.Visibility = newValue.ShowSectionHeader ? Visibility.Visible : Visibility.Collapsed;
-            if (newValue.ShowSectionHeader)
-            {
-                SectionHeaderText.Text = newValue.Section ?? string.Empty;
-            }
             ToggleSwitch.OnContent = mpv_winui.AppContext.AppLang.OptionValueOn;
             ToggleSwitch.OffContent = mpv_winui.AppContext.AppLang.OptionValueOff;
             ToggleSwitch.IsEnabled = newValue.IsEnabled;
@@ -55,6 +50,7 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         if (!_loading && Setting?.Setter is not null)
         {
             Setting?.Setter?.Invoke(ToggleSwitch.IsOn);
+            Setting?.NotifyChanged();
         }
     }
 }

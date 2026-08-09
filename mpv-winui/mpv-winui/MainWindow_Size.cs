@@ -22,23 +22,26 @@ namespace mpv_winui
             var lastRect = string.Empty;
             try
             {
-                lastRect = AppContext.AppSetting.WindowPositionAndSize;
-                if (!string.IsNullOrEmpty(lastRect))
+                if (AppContext.AppSetting.WindowRememberSize)
                 {
-                    int[] v = Array.ConvertAll(lastRect.Split(','), int.Parse);
-                    if (v.Length == 4)
+                    lastRect = AppContext.AppSetting.WindowPositionAndSize;
+                    if (!string.IsNullOrEmpty(lastRect))
                     {
-                        _x = v[0];
-                        _y = v[1];
-                        _w = v[2];
-                        _h = v[3];
-                        if (_x > 0 && _y > 0 && _w > 0 && _h > 0)
+                        int[] v = Array.ConvertAll(lastRect.Split(','), int.Parse);
+                        if (v.Length == 4)
                         {
-                            AppWindow.MoveAndResize(new RectInt32(_x, _y, Math.Max(100, _w), Math.Max(100, _h)));
-                        }
-                        else if (_w > 0 && _h > 0)
-                        {
-                            AppWindow.Resize(new SizeInt32(Math.Max(100, _w), Math.Max(100, _h)));
+                            _x = v[0];
+                            _y = v[1];
+                            _w = v[2];
+                            _h = v[3];
+                            if (_x > 0 && _y > 0 && _w > 0 && _h > 0)
+                            {
+                                AppWindow.MoveAndResize(new RectInt32(_x, _y, Math.Max(100, _w), Math.Max(100, _h)));
+                            }
+                            else if (_w > 0 && _h > 0)
+                            {
+                                AppWindow.Resize(new SizeInt32(Math.Max(100, _w), Math.Max(100, _h)));
+                            }
                         }
                     }
                 }
@@ -48,6 +51,7 @@ namespace mpv_winui
                 AppContext.AppLogger.Error(ex, "restore window position and size failed, saved={}", lastRect);
             }
 
+            this.Body.Loaded += PiP_Body_Loaded;
             this.Body.Loaded += Body_Loaded;
             this.Body.Unloaded += Body_Unloaded;
 
@@ -97,11 +101,26 @@ namespace mpv_winui
             SaveWindowPositionAndSize();
         }
 
+        private void PiP_Body_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (AppContext.AppSetting.WindowStartMaximized
+                && string.IsNullOrEmpty(AppContext.AppSetting.WindowPositionAndSize)
+                && AppWindow.Presenter is OverlappedPresenter presenter)
+            {
+                presenter.Maximize();
+            }
+
+            ApplyPiP();
+        }
+
         public void SaveWindowPositionAndSize()
         {
             try
             {
-                AppContext.AppSetting.WindowPositionAndSize = $"{_x},{_y},{_w},{_h}";
+                if (AppContext.AppSetting.WindowRememberSize && !AppContext.AppSetting.WindowPiP)
+                {
+                    AppContext.AppSetting.WindowPositionAndSize = $"{_x},{_y},{_w},{_h}";
+                }
                 if (AppContext.AppLogger.IsTraceEnabled)
                 {
                     AppContext.AppLogger.Debug("save window position and size: x={},y={},w={},h={}.", _x, _y, _w, _h);

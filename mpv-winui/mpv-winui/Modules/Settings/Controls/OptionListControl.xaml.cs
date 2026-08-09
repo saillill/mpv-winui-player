@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -31,25 +30,6 @@ public sealed partial class OptionListControl : UserControl
             }
         }));
 
-    private void OnContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
-    {
-        if (args.InRecycleQueue)
-        {
-            return;
-        }
-
-        if (args.Item is not Option option)
-        {
-            return;
-        }
-
-        if (args.ItemContainer.ContentTemplateRoot is OptionControlBase control)
-        {
-            control.Setting = option;
-        }
-        args.Handled = true;
-    }
-
     public List<Option> OptionList
     {
         get => (List<Option>)GetValue(SettingProperty);
@@ -73,8 +53,27 @@ public sealed partial class OptionListControl : UserControl
 
     private void ApplyItemsSource()
     {
-        // Sections are rendered as in-control captions (Option.ShowSectionHeader),
-        // which is more reliable than ListView grouping for mixed empty/named groups.
-        OptionListView.ItemsSource = OptionList;
+        // Sections are rendered as separate list rows (SectionHeaderItem),
+        // so the caption keeps its own typography and is not merged into a card.
+        var items = new List<object>(OptionList.Count + 8);
+        foreach (var option in OptionList)
+        {
+            if (!option.IsVisible)
+            {
+                continue;
+            }
+            if (option.ShowSectionHeader)
+            {
+                items.Add(new SectionHeaderItem { Caption = option.Section ?? string.Empty });
+            }
+            items.Add(option);
+        }
+        OptionListView.ItemsSource = items;
+    }
+
+    /// <summary>Rebuilds the list (e.g. after an option becomes visible/hidden).</summary>
+    public void Refresh()
+    {
+        ApplyItemsSource();
     }
 }

@@ -7,4 +7,8 @@ public enum OptionType
     String,
     StringList,
     Boolean,
+    Color,
+    Action,
+    CheckList,
+    Layout,
 }

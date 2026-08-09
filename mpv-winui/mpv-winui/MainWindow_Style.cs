@@ -32,12 +32,28 @@ namespace mpv_winui
 
         private void MainWindow_SettingChanged(string key, object? value)
         {
-            if (key == nameof(AppContext.AppSetting.BackdropType))
+            if (key == nameof(AppContext.AppSetting.BackdropType)
+                || key == nameof(AppContext.AppSetting.ThemeAccentColor)
+                || key == nameof(AppContext.AppSetting.ThemeOpacity)
+                || key == nameof(AppContext.AppSetting.ThemeLuminosity))
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     _styleManager?.UpdateBackdrop();
                     _settingsWindow?.UpdateBackdrop();
+                });
+            }
+            else if (key == nameof(AppContext.AppSetting.WindowPiP)
+                || key == nameof(AppContext.AppSetting.WindowPiPSize))
+            {
+                DispatcherQueue.TryEnqueue(() => ApplyPiP());
+            }
+            else if (key == nameof(AppContext.AppSetting.UiFont))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    _styleManager?.UpdateUiFont();
+                    _settingsWindow?.UpdateUiFont();
                 });
             }
         }

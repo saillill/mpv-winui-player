@@ -31,12 +31,25 @@ namespace mpv_winui
 
         public static event Action? LanguageChanged;
 
-        public static void SendMpvCommand(string cmd) => RunMpvCommand?.Invoke(cmd);
+        public static void SendMpvCommand(string cmd)
+        {
+            if (AppSetting?.TestMpvCommandLog == true)
+            {
+                AppLogger.Info("mpv: " + cmd);
+            }
+            RunMpvCommand?.Invoke(cmd);
+        }
 
         /// <summary>Writes settings-managed plugin options into script-opts/*.conf (next mpv start).</summary>
         public static void WritePluginConfigs()
         {
             _ = PluginConfigWriter.WriteAllAsync();
+        }
+
+        /// <summary>Writes config-only options (ytdl_hook script options) into the deployed mpv.conf.</summary>
+        public static void WriteManagedMpvConfig()
+        {
+            _ = ManagedMpvConfig.WriteAsync();
         }
 
         public static void NotifySettingChanged(string key, object? value)
@@ -71,6 +84,7 @@ namespace mpv_winui
             _task = Task.WhenAll([
                 Task.Run(LoggerHelper.SetupLogger),
                 Task.Run(PluginConfigWriter.WriteAllAsync),
+                Task.Run(ManagedMpvConfig.WriteAsync),
                 AppBootstrap.RunAsync()
             ]);
         }

@@ -8,31 +8,158 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <DataTemplate x:Key="BooleanTemplate">
-            <ctl:OptionBooleanControl Margin="0,0,0,2" />
+        <DataTemplate x:Key="BooleanTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionBooleanControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
         </DataTemplate>
 
-        <DataTemplate x:Key="TextTemplate">
-            <ctl:OptionStringControl Margin="0,0,0,2" />
+        <DataTemplate x:Key="TextTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionStringControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
         </DataTemplate>
 
-        <DataTemplate x:Key="IntegerTemplate">
-            <ctl:OptionIntegerControl Margin="0,0,0,2" />
+        <DataTemplate x:Key="IntegerTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionIntegerControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
         </DataTemplate>
 
-        <DataTemplate x:Key="DoubleTemplate">
-            <ctl:OptionDoubleControl Margin="0,0,0,2" />
+        <DataTemplate x:Key="DoubleTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionDoubleControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
         </DataTemplate>
 
-        <DataTemplate x:Key="TextListTemplate">
-            <ctl:OptionStringListControl Margin="0,0,0,2" />
+        <DataTemplate x:Key="TextListTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionStringListControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ColorTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionColorControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ActionTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionActionControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="CheckListTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionCheckListControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="LayoutTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionLayoutControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="SectionHeaderTemplate" x:DataType="ctl:SectionHeaderItem">
+            <Grid Margin="4,12,4,8">
+                <StackPanel>
+                    <TextBlock
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind Caption}" />
+                    <Border
+                        Height="1"
+                        Margin="0,8,0,0"
+                        Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                </StackPanel>
+            </Grid>
         </DataTemplate>
 
         <ctl:OptionTemplateSelector
             x:Key="TemplateSelector"
+            ActionTemplate="{StaticResource ActionTemplate}"
             BooleanTemplate="{StaticResource BooleanTemplate}"
+            CheckListTemplate="{StaticResource CheckListTemplate}"
+            ColorTemplate="{StaticResource ColorTemplate}"
             DoubleTemplate="{StaticResource DoubleTemplate}"
             IntegerTemplate="{StaticResource IntegerTemplate}"
+            LayoutTemplate="{StaticResource LayoutTemplate}"
+            SectionHeaderTemplate="{StaticResource SectionHeaderTemplate}"
             TextListTemplate="{StaticResource TextListTemplate}"
             TextTemplate="{StaticResource TextTemplate}" />
 
@@ -40,10 +167,13 @@
             x:Key="OptionListViewItemStyle"
             BasedOn="{StaticResource DefaultListViewItemStyle}"
             TargetType="ListViewItem">
-            <Setter Property="Margin" Value="0,0,0,8" />
-            <Setter Property="MinHeight" Value="60" />
-            <Setter Property="Padding" Value="16,8" />
-            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="IsTabStop" Value="False" />
         </Style>
     </UserControl.Resources>
@@ -52,27 +182,10 @@
         <ListView
             x:Name="OptionListView"
             Grid.Row="1"
-            Padding="8,0,8,0"
-            ContainerContentChanging="OnContainerContentChanging"
+            Padding="8,0,32,0"
             IsItemClickEnabled="False"
             ItemContainerStyle="{StaticResource OptionListViewItemStyle}"
             ItemTemplateSelector="{StaticResource TemplateSelector}"
-            SelectionMode="None">
-            <ListView.GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.HeaderTemplate>
-                        <DataTemplate x:DataType="ctl:OptionGroup">
-                            <TextBlock
-                                Margin="0,14,0,6"
-                                FontSize="15"
-                                FontWeight="SemiBold"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="{x:Bind Key}"
-                                Visibility="{x:Bind HeaderVisibility}" />
-                        </DataTemplate>
-                    </GroupStyle.HeaderTemplate>
-                </GroupStyle>
-            </ListView.GroupStyle>
-        </ListView>
+            SelectionMode="None" />
     </Grid>
 </UserControl>

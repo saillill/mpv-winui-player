@@ -22,11 +22,6 @@ public sealed partial class OptionIntegerControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            SectionHeader.Visibility = newValue.ShowSectionHeader ? Visibility.Visible : Visibility.Collapsed;
-            if (newValue.ShowSectionHeader)
-            {
-                SectionHeaderText.Text = newValue.Section ?? string.Empty;
-            }
             NumberBox.IsEnabled = newValue.IsEnabled;
 
             _loading = true;
@@ -98,6 +93,7 @@ public sealed partial class OptionIntegerControl : OptionControlBase
         }
         ErrorText.Visibility = Visibility.Collapsed;
         Setting?.Setter?.Invoke((int)NumberBox.Value);
+        Setting?.NotifyChanged();
         return true;
     }
 

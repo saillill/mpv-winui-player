@@ -30,14 +30,7 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
         LabelText.Text = newValue.Label;
         UpdateDescription(DescriptionText);
-        SectionHeader.Visibility = newValue.ShowSectionHeader ? Visibility.Visible : Visibility.Collapsed;
-        if (newValue.ShowSectionHeader)
-        {
-            SectionHeaderText.Text = newValue.Section ?? string.Empty;
-        }
         Combo.IsEnabled = newValue.IsEnabled;
-        CustomLabel.Text = mpv_winui.AppContext.AppLang.OptionValueCustom;
-        CustomInput.PlaceholderText = mpv_winui.AppContext.AppLang.OptionValueCustom;
 
         _loading = true;
         try
@@ -49,7 +42,10 @@ public sealed partial class OptionStringListControl : OptionControlBase
             {
                 _choices = newValue.Options.Select(o => new OptionChoice(o, o)).ToList();
             }
-            _choices.Add(new OptionChoice(CustomKey, mpv_winui.AppContext.AppLang.OptionValueCustom));
+            if (newValue.AllowCustom)
+            {
+                _choices.Add(new OptionChoice(CustomKey, mpv_winui.AppContext.AppLang.OptionValueCustom));
+            }
 
             Combo.Items.Clear();
             foreach (var choice in _choices)
@@ -63,10 +59,18 @@ public sealed partial class OptionStringListControl : OptionControlBase
                 if (index >= 0)
                 {
                     Combo.SelectedIndex = index;
-                    CustomRow.Visibility = Visibility.Collapsed;
+                    CustomInput.Visibility = Visibility.Collapsed;
+                    InputColumn.Width = new GridLength(260);
                 }
                 else
                 {
+                    if (!newValue.AllowCustom)
+                    {
+                        Combo.SelectedIndex = _choices.Count > 0 ? 0 : -1;
+                        CustomInput.Visibility = Visibility.Collapsed;
+                        InputColumn.Width = new GridLength(260);
+                        return;
+                    }
                     _lastCustom = current;
                     SelectCustom(showAndFocus: false);
                     CustomInput.Text = current;
@@ -107,15 +111,22 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
     private void SelectCustom(bool showAndFocus)
     {
+        var hasCustom = false;
         for (var i = 0; i < _choices.Count; i++)
         {
             if (_choices[i].Value == CustomKey)
             {
+                hasCustom = true;
                 Combo.SelectedIndex = i;
                 break;
             }
         }
-        CustomRow.Visibility = Visibility.Visible;
+        if (!hasCustom)
+        {
+            return;
+        }
+        CustomInput.Visibility = Visibility.Visible;
+        InputColumn.Width = new GridLength(2, GridUnitType.Star);
         if (showAndFocus)
         {
             CustomInput.Focus(FocusState.Programmatic);
@@ -131,14 +142,17 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
         if (val == CustomKey)
         {
-            CustomRow.Visibility = Visibility.Visible;
+            CustomInput.Visibility = Visibility.Visible;
+            InputColumn.Width = new GridLength(2, GridUnitType.Star);
             CustomInput.Text = _lastCustom;
             CustomInput.Focus(FocusState.Programmatic);
         }
         else
         {
-            CustomRow.Visibility = Visibility.Collapsed;
+            CustomInput.Visibility = Visibility.Collapsed;
+            InputColumn.Width = new GridLength(260);
             Setting?.Setter?.Invoke(val);
+            Setting?.NotifyChanged();
         }
     }
 
@@ -165,5 +179,6 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
         _lastCustom = text;
         Setting?.Setter?.Invoke(text);
+        Setting?.NotifyChanged();
     }
 }

@@ -3,9 +3,11 @@ using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Settings;
 using System;
+using Windows.UI;
 using Windows.UI.ViewManagement;
 using WinRT;
 
@@ -32,6 +34,7 @@ public sealed partial class WindowStyleManager : IDisposable
         _theme = GetThemeType();
         UpdateTitleBarColors(_theme);
         UpdateContentTheme(_theme);
+        UpdateUiFont();
 
         _window.DispatcherQueue.EnsureSystemDispatcherQueue();
         _configurationSource = new SystemBackdropConfiguration
@@ -51,6 +54,20 @@ public sealed partial class WindowStyleManager : IDisposable
     {
         ApplyBackdrop();
         UpdateBackdropTheme(_theme);
+    }
+
+    /// <summary>Applies the user-selected UI font to the window content.</summary>
+    public void UpdateUiFont()
+    {
+        var font = AppContext.AppSetting.UiFont;
+        if (string.IsNullOrWhiteSpace(font))
+        {
+            Application.Current.Resources.Remove("ContentControlThemeFontFamily");
+        }
+        else
+        {
+            Application.Current.Resources["ContentControlThemeFontFamily"] = new FontFamily(font);
+        }
     }
 
     private void ApplyBackdrop()
@@ -129,7 +146,7 @@ public sealed partial class WindowStyleManager : IDisposable
             }
             else
             {
-                _acrylicController?.TintColor = sender.GetColorValue(UIColorType.AccentLight1);
+                UpdateBackdropTheme(_theme);
             }
         });
     }
@@ -150,17 +167,63 @@ public sealed partial class WindowStyleManager : IDisposable
         if (theme == ElementTheme.Dark)
         {
             _acrylicController?.Kind = DesktopAcrylicKind.Thin;
-            _acrylicController?.TintOpacity = 0.2F;
-            _acrylicController?.TintColor = _uiSettings.GetColorValue(UIColorType.AccentLight1);
-            _acrylicController?.LuminosityOpacity = 0.1F;
+            _acrylicController?.TintOpacity = GetBackdropTintOpacity();
+            _acrylicController?.TintColor = GetBackdropTintColor(theme);
+            _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
         }
         else
         {
             _acrylicController?.Kind = DesktopAcrylicKind.Thin;
-            _acrylicController?.TintOpacity = 0.2F;
-            _acrylicController?.TintColor = Colors.White;
-            _acrylicController?.LuminosityOpacity = 0.8F;
+            _acrylicController?.TintOpacity = GetBackdropTintOpacity();
+            _acrylicController?.TintColor = GetBackdropTintColor(theme);
+            _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
         }
+    }
+
+    private Color GetBackdropTintColor(ElementTheme theme)
+    {
+        if (TryParseColor(AppContext.AppSetting.ThemeAccentColor) is { } custom)
+        {
+            return custom;
+        }
+
+        return theme == ElementTheme.Dark
+            ? Color.FromArgb(255, 0x2C, 0x2C, 0x2C)
+            : Colors.White;
+    }
+
+    private float GetBackdropTintOpacity()
+    {
+        var opacity = Math.Clamp(AppContext.AppSetting.ThemeOpacity, 0, 100);
+        return 1f - opacity / 100f;
+    }
+
+    private float GetBackdropLuminosityOpacity()
+    {
+        return Math.Clamp(AppContext.AppSetting.ThemeLuminosity, 0, 100) / 100f;
+    }
+
+    private static Color? TryParseColor(string? hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex))
+        {
+            return null;
+        }
+
+        var value = hex.Trim().TrimStart('#');
+        if (value.Length == 6
+            && uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var rgb))
+        {
+            return Color.FromArgb(255, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
+        }
+
+        if (value.Length == 8
+            && uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var argb))
+        {
+            return Color.FromArgb((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
+        }
+
+        return null;
     }
 
     private void UpdateTitleBarColors(ElementTheme theme)

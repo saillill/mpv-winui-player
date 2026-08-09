@@ -21,11 +21,56 @@ public sealed class OptionChoice
     public string Label { get; }
 }
 
+public enum OptionActionKind
+{
+    None,
+    Button,
+    KeyCapture,
+}
+
+/// <summary>A checkbox entry used by <see cref="OptionType.CheckList"/> options.</summary>
+public sealed class OptionCheckItem
+{
+    public OptionCheckItem(string value, string label, bool isChecked, string? glyph = null)
+    {
+        Value = value;
+        Label = label;
+        IsChecked = isChecked;
+        Glyph = glyph;
+    }
+
+    public string Value { get; }
+    public string Label { get; }
+    public bool IsChecked { get; }
+    public string? Glyph { get; }
+}
+
+/// <summary>A selectable layout preview shown by <see cref="OptionType.Layout"/> options.</summary>
+public sealed class OptionLayoutChoice
+{
+    public OptionLayoutChoice(string value, string label, string? description = null)
+    {
+        Value = value;
+        Label = label;
+        Description = description;
+    }
+
+    public string Value { get; }
+    public string Label { get; }
+    public string? Description { get; }
+}
+
 public sealed class Option : INotifyPropertyChanged
 {
     public string Key { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
     public string Category { get; set; } = "General";
+
+    /// <summary>Placeholder text shown when the value is empty (e.g. the built-in default path).</summary>
+    public string? Placeholder
+    {
+        get; set;
+    }
 
     /// <summary>Explanatory text shown behind the info (i) button.</summary>
     public string? Description
@@ -45,8 +90,20 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Whether the list control adds a "Custom" entry for arbitrary values. Disabled when the presets cover every legal value.</summary>
+    public bool AllowCustom
+    {
+        get; set;
+    } = true;
+
     /// <summary>Show a "Browse..." button that opens the system folder picker.</summary>
     public bool PickFolder
+    {
+        get; set;
+    }
+
+    /// <summary>Show a "Browse..." button that opens the system file picker (fonts, etc.).</summary>
+    public bool PickFile
     {
         get; set;
     }
@@ -63,7 +120,7 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
-    /// <summary>Renders a section caption above this option (first option of a section).</summary>
+    /// <summary>Marks the first option of a section; the list renders a separate section caption row above it.</summary>
     public bool ShowSectionHeader
     {
         get; set;
@@ -84,6 +141,109 @@ public sealed class Option : INotifyPropertyChanged
         set => Set(ref _isEnabled, value);
     }
     private bool _isEnabled = true;
+
+    /// <summary>Whether the option is shown at all (ineffective options are hidden, not just disabled).</summary>
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set => Set(ref _isVisible, value);
+    }
+    private bool _isVisible = true;
+
+    /// <summary>Read-only display (e.g. shortcut bindings); the value can still be selected and copied.</summary>
+    public bool ReadOnly
+    {
+        get; set;
+    }
+
+    /// <summary>Clicking the read-only value starts key capture and rebinds the shortcut.</summary>
+    public bool KeyCaptureEditable
+    {
+        get; set;
+    }
+
+    /// <summary>Default key from the bundled input.conf, used by the per-row reset.</summary>
+    public string? KeyCaptureDefault
+    {
+        get; set;
+    }
+
+    /// <summary>Called after a new key is captured (option, new key).</summary>
+    public Action<Option, string>? KeyCaptureReplaced
+    {
+        get; set;
+    }
+
+    /// <summary>Restores this binding to its default key.</summary>
+    public Action<Option>? KeyCaptureReset
+    {
+        get; set;
+    }
+
+    /// <summary>Extra row behavior for <see cref="OptionType.Action"/> options.</summary>
+    public OptionActionKind ActionKind
+    {
+        get; set;
+    }
+
+    /// <summary>Localized text for the action button.</summary>
+    public string? ActionLabel
+    {
+        get; set;
+    }
+
+    /// <summary>Invoked when the action button is pressed.</summary>
+    public Action<Option>? ActionHandler
+    {
+        get; set;
+    }
+
+    /// <summary>Live status text for the action row (captured key, operation result).</summary>
+    public Func<string>? ActionStatus
+    {
+        get; set;
+    }
+
+    /// <summary>Checkbox entries for <see cref="OptionType.CheckList"/> options.</summary>
+    public IList<OptionCheckItem>? CheckItems
+    {
+        get; set;
+    }
+
+    /// <summary>Layout presets for <see cref="OptionType.Layout"/> options.</summary>
+    public IList<OptionLayoutChoice>? LayoutChoices
+    {
+        get; set;
+    }
+
+    /// <summary>Raised when a checklist entry is toggled (option, value, checked).</summary>
+    public Action<Option, string, bool>? CheckChanged
+    {
+        get; set;
+    }
+
+    /// <summary>Localized text for the optional Apply button shown inside the expanded panel.</summary>
+    public string? CheckApplyLabel
+    {
+        get; set;
+    }
+
+    /// <summary>Invoked when the expanded panel's Apply button is pressed.</summary>
+    public Action<Option>? CheckApplyHandler
+    {
+        get; set;
+    }
+
+    /// <summary>Localized expand/collapse button text for checklist rows.</summary>
+    public string? CheckExpandLabel
+    {
+        get; set;
+    }
+
+    public string? CheckCollapseLabel
+    {
+        get; set;
+    }
 
     public OptionType Type
     {
@@ -121,6 +281,14 @@ public sealed class Option : INotifyPropertyChanged
     public Action<object>? Setter
     {
         get; set;
+    }
+
+    /// <summary>Raised after a control commits a new value through <see cref="Setter"/>.</summary>
+    public event Action<Option>? Changed;
+
+    public void NotifyChanged()
+    {
+        Changed?.Invoke(this);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

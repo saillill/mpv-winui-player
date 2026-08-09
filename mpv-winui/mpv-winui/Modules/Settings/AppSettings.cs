@@ -1,5 +1,6 @@
 using mpv_winui.Modules.AppModel;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace mpv_winui.Modules.Settings
@@ -11,6 +12,58 @@ namespace mpv_winui.Modules.Settings
         public AppSettings()
         {
             _dataSetting = PackageHelper.IsPackaged ? new AppDataSetting("app-settings") : new UnpackageAppDataSetting("app");
+            MigrateLegacyDefaults();
+        }
+
+        /// <summary>
+        /// The old subtitle-font default stored "sans-serif"; treat that value
+        /// as unset once so each UI language gets its own default font.
+        /// An explicit "System default" choice made later is kept.
+        /// </summary>
+        private void MigrateLegacyDefaults()
+        {
+            const string migratedKey = "SubFontLanguageDefaultMigrated";
+            if (_dataSetting.GetValue(migratedKey, false))
+            {
+                return;
+            }
+
+            if (string.Equals(_dataSetting.GetValue(nameof(SubFont), string.Empty), "sans-serif", StringComparison.Ordinal))
+            {
+                _dataSetting.SetValue(nameof(SubFont), string.Empty);
+            }
+            _dataSetting.SetValue(migratedKey, true);
+
+            const string codePageKey = "SubCodePageAutoMigrated";
+            if (!_dataSetting.GetValue(codePageKey, false))
+            {
+                if (string.Equals(_dataSetting.GetValue(nameof(SubCodePage), string.Empty), "GB18030", StringComparison.Ordinal))
+                {
+                    _dataSetting.SetValue(nameof(SubCodePage), string.Empty);
+                }
+                _dataSetting.SetValue(codePageKey, true);
+            }
+        }
+
+        /// <summary>Clears every stored setting; defaults apply on the next read.</summary>
+        public void ResetAll()
+        {
+            _dataSetting.ResetAll();
+        }
+
+        public void ResetKeys(IEnumerable<string> keys)
+        {
+            _dataSetting.ResetKeys(keys);
+        }
+
+        public IReadOnlyDictionary<string, object> ExportAll()
+        {
+            return _dataSetting.ExportAll();
+        }
+
+        public void ImportAll(IReadOnlyDictionary<string, object> values)
+        {
+            _dataSetting.ImportAll(values);
         }
 
         public const string ThemeType_Auto = "Auto";
@@ -28,6 +81,69 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(BackdropType), BackdropType_Acrylic);
             set => _dataSetting.SetValue(nameof(BackdropType), value);
+        }
+
+        /// <summary>Accent tint color for the window backdrop (#RRGGBB / #AARRGGBB). Empty follows the system accent.</summary>
+        public string ThemeAccentColor
+        {
+            get => _dataSetting.GetValue(nameof(ThemeAccentColor), string.Empty);
+            set => _dataSetting.SetValue(nameof(ThemeAccentColor), value);
+        }
+
+        /// <summary>Backdrop transparency, 0 (opaque) to 100 (fully transparent).</summary>
+        public int ThemeOpacity
+        {
+            get => _dataSetting.GetValue(nameof(ThemeOpacity), 80);
+            set => _dataSetting.SetValue(nameof(ThemeOpacity), value);
+        }
+
+        /// <summary>Recently picked theme colors, semicolon-separated hex values.</summary>
+        public string ThemeRecentColors
+        {
+            get => _dataSetting.GetValue(nameof(ThemeRecentColors), string.Empty);
+            set => _dataSetting.SetValue(nameof(ThemeRecentColors), value);
+        }
+
+        /// <summary>Backdrop luminosity/brightness, 0 (dark) to 100 (bright).</summary>
+        public int ThemeLuminosity
+        {
+            get => _dataSetting.GetValue(nameof(ThemeLuminosity), 40);
+            set => _dataSetting.GetValue(nameof(ThemeLuminosity), value);
+        }
+
+        /// <summary>UI font family for the app interface. Empty follows the system font.</summary>
+        public string UiFont
+        {
+            get => _dataSetting.GetValue(nameof(UiFont), string.Empty);
+            set => _dataSetting.GetValue(nameof(UiFont), value);
+        }
+
+        /// <summary>Whether to show the playback-start OSD message.</summary>
+        public bool ShowOsdPlayingMsg
+        {
+            get => _dataSetting.GetValue(nameof(ShowOsdPlayingMsg), false);
+            set => _dataSetting.GetValue(nameof(ShowOsdPlayingMsg), value);
+        }
+
+        /// <summary>Log every mpv command sent by the app (testing).</summary>
+        public bool TestMpvCommandLog
+        {
+            get => _dataSetting.GetValue(nameof(TestMpvCommandLog), false);
+            set => _dataSetting.GetValue(nameof(TestMpvCommandLog), value);
+        }
+
+        /// <summary>Test signal to play: off / testsrc2 / sine.</summary>
+        public string TestSignal
+        {
+            get => _dataSetting.GetValue(nameof(TestSignal), "off");
+            set => _dataSetting.GetValue(nameof(TestSignal), value);
+        }
+
+        /// <summary>Ephemeral test OSD trigger; always reads as false.</summary>
+        public bool TestOsdMessage
+        {
+            get => false;
+            set => _ = value;
         }
 
         public bool EnableDebugLog
@@ -412,8 +528,23 @@ namespace mpv_winui.Modules.Settings
 
         public string SubFont
         {
-            get => _dataSetting.GetValue(nameof(SubFont), "sans-serif");
+            get
+            {
+                var stored = _dataSetting.GetValue(nameof(SubFont), string.Empty);
+                return string.IsNullOrEmpty(stored) ? LanguageDefaultSubtitleFont() : stored;
+            }
             set => _dataSetting.SetValue(nameof(SubFont), value);
+        }
+
+        private static string LanguageDefaultSubtitleFont()
+        {
+            return AppContext.AppSetting.CurrentLanguage switch
+            {
+                "zh-CN" => "Microsoft YaHei",
+                "ja-JP" => "Yu Gothic UI",
+                "ko-KR" => "Malgun Gothic",
+                _ => "Segoe UI",
+            };
         }
 
         public string SubFontProvider
@@ -424,8 +555,14 @@ namespace mpv_winui.Modules.Settings
 
         public string SubCodePage
         {
-            get => _dataSetting.GetValue(nameof(SubCodePage), "GB18030");
+            get => _dataSetting.GetValue(nameof(SubCodePage), "auto");
             set => _dataSetting.SetValue(nameof(SubCodePage), value);
+        }
+
+        public string SubFontFile
+        {
+            get => _dataSetting.GetValue(nameof(SubFontFile), string.Empty);
+            set => _dataSetting.SetValue(nameof(SubFontFile), value);
         }
 
         public bool SubAssScaleWithWindow
@@ -1002,6 +1139,164 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(YtdlRawOptionsAppend), string.Empty);
             set => _dataSetting.GetValue(nameof(YtdlRawOptionsAppend), value);
+        }
+
+        public string YtdlFormat
+        {
+            get => _dataSetting.GetValue(nameof(YtdlFormat), string.Empty);
+            set => _dataSetting.SetValue(nameof(YtdlFormat), value);
+        }
+
+        public string YtdlPath
+        {
+            get => _dataSetting.GetValue(nameof(YtdlPath), string.Empty);
+            set => _dataSetting.SetValue(nameof(YtdlPath), value);
+        }
+
+        public bool YtdlTryFirst
+        {
+            get => _dataSetting.GetValue(nameof(YtdlTryFirst), false);
+            set => _dataSetting.SetValue(nameof(YtdlTryFirst), value);
+        }
+
+        public bool YtdlAllFormats
+        {
+            get => _dataSetting.GetValue(nameof(YtdlAllFormats), true);
+            set => _dataSetting.SetValue(nameof(YtdlAllFormats), value);
+        }
+
+        public bool YtdlUseManifests
+        {
+            get => _dataSetting.GetValue(nameof(YtdlUseManifests), false);
+            set => _dataSetting.SetValue(nameof(YtdlUseManifests), value);
+        }
+
+        public string YtdlThumbnails
+        {
+            get => _dataSetting.GetValue(nameof(YtdlThumbnails), "none");
+            set => _dataSetting.SetValue(nameof(YtdlThumbnails), value);
+        }
+
+        public string YtdlExclude
+        {
+            get => _dataSetting.GetValue(nameof(YtdlExclude), string.Empty);
+            set => _dataSetting.SetValue(nameof(YtdlExclude), value);
+        }
+
+        public string UserAgent
+        {
+            get => _dataSetting.GetValue(nameof(UserAgent), string.Empty);
+            set => _dataSetting.SetValue(nameof(UserAgent), value);
+        }
+
+        public string Referrer
+        {
+            get => _dataSetting.GetValue(nameof(Referrer), string.Empty);
+            set => _dataSetting.SetValue(nameof(Referrer), value);
+        }
+
+        public string HttpHeaderFields
+        {
+            get => _dataSetting.GetValue(nameof(HttpHeaderFields), string.Empty);
+            set => _dataSetting.SetValue(nameof(HttpHeaderFields), value);
+        }
+
+        public string HttpProxy
+        {
+            get => _dataSetting.GetValue(nameof(HttpProxy), string.Empty);
+            set => _dataSetting.SetValue(nameof(HttpProxy), value);
+        }
+
+        public string CookiesFile
+        {
+            get => _dataSetting.GetValue(nameof(CookiesFile), string.Empty);
+            set => _dataSetting.SetValue(nameof(CookiesFile), value);
+        }
+
+        public bool TlsVerify
+        {
+            get => _dataSetting.GetValue(nameof(TlsVerify), true);
+            set => _dataSetting.SetValue(nameof(TlsVerify), value);
+        }
+
+        public int NetworkTimeout
+        {
+            get => _dataSetting.GetValue(nameof(NetworkTimeout), 60);
+            set => _dataSetting.SetValue(nameof(NetworkTimeout), value);
+        }
+
+        public int CurlMaxRedirects
+        {
+            get => _dataSetting.GetValue(nameof(CurlMaxRedirects), 16);
+            set => _dataSetting.SetValue(nameof(CurlMaxRedirects), value);
+        }
+
+        public int CurlMaxRetries
+        {
+            get => _dataSetting.GetValue(nameof(CurlMaxRetries), 5);
+            set => _dataSetting.SetValue(nameof(CurlMaxRetries), value);
+        }
+
+        public int CurlConnectTimeout
+        {
+            get => _dataSetting.GetValue(nameof(CurlConnectTimeout), 30);
+            set => _dataSetting.SetValue(nameof(CurlConnectTimeout), value);
+        }
+
+        public int CurlBufferSize
+        {
+            get => _dataSetting.GetValue(nameof(CurlBufferSize), 4 * 1024 * 1024);
+            set => _dataSetting.SetValue(nameof(CurlBufferSize), value);
+        }
+
+        public int CurlMaxRequestSize
+        {
+            get => _dataSetting.GetValue(nameof(CurlMaxRequestSize), 0);
+            set => _dataSetting.SetValue(nameof(CurlMaxRequestSize), value);
+        }
+
+        public bool WindowPiP
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiP), false);
+            set => _dataSetting.SetValue(nameof(WindowPiP), value);
+        }
+
+        public string WindowPiPSize
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPSize), "480x270");
+            set => _dataSetting.SetValue(nameof(WindowPiPSize), value);
+        }
+
+        public bool WindowStartMaximized
+        {
+            get => _dataSetting.GetValue(nameof(WindowStartMaximized), false);
+            set => _dataSetting.SetValue(nameof(WindowStartMaximized), value);
+        }
+
+        public bool WindowRememberSize
+        {
+            get => _dataSetting.GetValue(nameof(WindowRememberSize), true);
+            set => _dataSetting.SetValue(nameof(WindowRememberSize), value);
+        }
+
+        public string FileAssociationExts
+        {
+            get => _dataSetting.GetValue(
+                nameof(FileAssociationExts),
+                ".mp4;.mkv;.avi;.mov;.wmv;.flv;.webm;.m4v;.mpg;.mpeg;.ts;.m2ts;.3gp;.ogv;.rm;.rmvb;.mp3;.flac;.wav;.aac;.m4a;.ogg;.opus;.wma");
+            set => _dataSetting.SetValue(nameof(FileAssociationExts), value);
+        }
+
+        public string ControlBarLayout
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarLayout), "classic");
+            set => _dataSetting.SetValue(nameof(ControlBarLayout), value);
+        }
+
+        public string ControlBarHiddenIcons
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarHiddenIcons), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarHiddenIcons), value);
         }
 
         public string InputIpcServer

@@ -414,6 +414,18 @@
                         </AppBarButton.Flyout>
                     </AppBarButton>
 
+                    <AppBarToggleButton
+                        x:Name="PiPButton"
+                        Grid.Column="16"
+                        IsTabStop="False"
+                        Style="{StaticResource AppBarToggleButtonStyle}"
+                        ToolTipService.ToolTip="Picture-in-picture"
+                        Visibility="Visible">
+                        <AppBarToggleButton.Icon>
+                            <FontIcon Glyph="&#xE7C9;" />
+                        </AppBarToggleButton.Icon>
+                    </AppBarToggleButton>
+
                     <AppBarButton
                         x:Name="FullWindowButton"
                         Grid.Column="18"
@@ -560,6 +572,14 @@
                                         Text="16:10" />
                                 </MenuFlyoutSubItem>
                                 <MenuFlyoutItem
+                                    x:Name="MorePiP"
+                                    Click="OnPiPClick"
+                                    Text="Picture-in-picture">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE7C9;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem
                                     x:Name="MoreFullWindow"
                 Text="Full Window">
                                     <MenuFlyoutItem.Icon>
@@ -584,6 +604,35 @@
                     <CommandBar.SecondaryCommands />
                 </CommandBar>
             </Grid>
+        </Grid>
+        <Grid
+            x:Name="PiPBar"
+            Padding="8,4"
+            VerticalAlignment="Bottom"
+            Background="{ThemeResource MpvPlayControlBackground}"
+            Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <AppBarButton
+                    x:Name="PiPPlayPauseButton"
+                    IsTabStop="False"
+                    Style="{StaticResource AppBarButtonStyle}"
+                    ToolTipService.ToolTip="Play/Pause">
+                    <AppBarButton.Icon>
+                        <FontIcon
+                            x:Name="PiPPlayPauseSymbol"
+                            Glyph="&#xF5B0;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarButton
+                    x:Name="PiPCloseButton"
+                    IsTabStop="False"
+                    Style="{StaticResource AppBarButtonStyle}"
+                    ToolTipService.ToolTip="Close">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE711;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+            </StackPanel>
         </Grid>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="MediaStates">
@@ -706,22 +755,8 @@
                 </VisualState>
             </VisualStateGroup>
             <VisualStateGroup x:Name="ControlPanelVisibilityStates">
-                <VisualState x:Name="ControlPanelFadeIn">
-                    <VisualState.Setters>
-                        <Setter Target="ControlPanelGrid.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                    <Storyboard>
-                        <FadeInThemeAnimation TargetName="ControlPanelGrid" />
-                    </Storyboard>
-                </VisualState>
-                <VisualState x:Name="ControlPanelFadeOut">
-                    <Storyboard>
-                        <FadeOutThemeAnimation TargetName="ControlPanelGrid" />
-                    </Storyboard>
-                    <VisualState.Setters>
-                        <Setter Target="ControlPanelGrid.Visibility" Value="Collapsed" />
-                    </VisualState.Setters>
-                </VisualState>
+                <VisualState x:Name="ControlPanelFadeIn" />
+                <VisualState x:Name="ControlPanelFadeOut" />
             </VisualStateGroup>
 
             <VisualStateGroup x:Name="WidthAdaptiveStates">
