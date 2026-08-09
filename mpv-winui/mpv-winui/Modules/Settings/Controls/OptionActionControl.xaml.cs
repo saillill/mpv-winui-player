@@ -104,7 +104,12 @@ public sealed partial class OptionActionControl : OptionControlBase
             return;
         }
 
-        CaptureText.Text = FormatKey(e.Key);
+        var key = FormatKey(e.Key);
+        if (key is null)
+        {
+            return;
+        }
+        CaptureText.Text = key;
         StopListening();
     }
 
@@ -144,8 +149,26 @@ public sealed partial class OptionActionControl : OptionControlBase
         StopListening();
     }
 
-    private static string FormatKey(VirtualKey key)
+    private static string? FormatKey(VirtualKey key)
     {
+        if (key is VirtualKey.Shift
+            or VirtualKey.Control
+            or VirtualKey.Menu
+            or VirtualKey.LeftWindows
+            or VirtualKey.RightWindows
+            or VirtualKey.CapitalLock
+            or VirtualKey.NumberKeyLock
+            or VirtualKey.Scroll
+            or VirtualKey.LeftShift
+            or VirtualKey.RightShift
+            or VirtualKey.LeftControl
+            or VirtualKey.RightControl
+            or VirtualKey.LeftMenu
+            or VirtualKey.RightMenu)
+        {
+            return null;
+        }
+
         return key switch
         {
             VirtualKey.Space => "Space",

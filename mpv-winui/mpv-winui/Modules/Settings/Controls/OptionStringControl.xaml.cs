@@ -14,12 +14,15 @@ public sealed partial class OptionStringControl : OptionControlBase
     private bool _loading;
     private bool _pathMode;
     private bool _capturing;
+    private static OptionStringControl? _activeCapture;
 
     public OptionStringControl()
     {
         InitializeComponent();
-        InputBox.Tapped += OnInputTapped;
-        InputBox.PointerPressed += OnInputPointerPressed;
+        InputBox.GotFocus += OnInputGotFocus;
+        InputBox.LostFocus += OnInputLostFocus;
+        Loaded += (_, _) => AttachRootHandlers();
+        Unloaded += (_, _) => DetachRootHandlers();
     }
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)
@@ -142,7 +145,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
     }
 
-    private void OnInputTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    private void OnInputGotFocus(object sender, RoutedEventArgs e)
     {
         if (Setting?.KeyCaptureEditable == true)
         {
@@ -150,43 +153,46 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
     }
 
-    private void OnInputPointerPressed(object sender, PointerRoutedEventArgs e)
+    private void OnInputLostFocus(object sender, RoutedEventArgs e)
     {
-        if (Setting?.KeyCaptureEditable == true)
+        if (_capturing)
         {
-            StartKeyCapture();
+            StopKeyCapture();
         }
     }
 
     private void OnResetBindingClick(object sender, RoutedEventArgs e)
     {
-        Setting?.KeyCaptureReset?.Invoke(Setting);
+        if (Setting is { } option)
+        {
+            option.KeyCaptureReset?.Invoke(option);
+            if (option.Getter is Func<object?> func && func() is string value)
+            {
+                InputBox.Text = value;
+            }
+        }
     }
 
     private void StartKeyCapture()
     {
-        if (_capturing || XamlRoot?.Content is not UIElement root)
+        if (_capturing)
         {
             return;
         }
 
         _capturing = true;
-        root.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(OnCapturedKey), true);
-        root.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnCapturedPointer), true);
+        _activeCapture?.StopKeyCapture();
+        _activeCapture = this;
         InputBox.PlaceholderText = mpv_winui.AppContext.AppLang.KeyCapturePlaceholder;
     }
 
     private void StopKeyCapture()
     {
-        if (XamlRoot?.Content is not UIElement root)
-        {
-            _capturing = false;
-            return;
-        }
-
-        root.RemoveHandler(UIElement.KeyDownEvent, new KeyEventHandler(OnCapturedKey));
-        root.RemoveHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnCapturedPointer));
         _capturing = false;
+        if (ReferenceEquals(_activeCapture, this))
+        {
+            _activeCapture = null;
+        }
         if (Setting?.Placeholder is { } placeholder)
         {
             InputBox.PlaceholderText = placeholder;
@@ -197,20 +203,48 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
     }
 
+    private void AttachRootHandlers()
+    {
+        if (XamlRoot?.Content is UIElement root)
+        {
+            root.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(OnCapturedKey), true);
+            root.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnCapturedPointer), true);
+        }
+    }
+
+    private void DetachRootHandlers()
+    {
+        if (XamlRoot?.Content is UIElement root)
+        {
+            root.RemoveHandler(UIElement.KeyDownEvent, new KeyEventHandler(OnCapturedKey));
+            root.RemoveHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnCapturedPointer));
+        }
+    }
+
     private void OnCapturedKey(object sender, KeyRoutedEventArgs e)
     {
-        if (!_capturing)
+        if (!_capturing || Setting?.KeyCaptureEditable != true)
         {
             return;
         }
 
         var newKey = FormatKey(e.Key);
+        if (newKey is null)
+        {
+            return;
+        }
         ApplyCapturedKey(newKey);
     }
 
     private void OnCapturedPointer(object sender, PointerRoutedEventArgs e)
     {
-        if (!_capturing)
+        if (!_capturing || Setting?.KeyCaptureEditable != true)
+        {
+            return;
+        }
+
+        // The click that gave the input box focus must not be captured itself.
+        if (e.OriginalSource is DependencyObject source && IsDescendantOf(source, InputBox))
         {
             return;
         }
@@ -244,6 +278,19 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
     }
 
+    private static bool IsDescendantOf(DependencyObject? node, DependencyObject? ancestor)
+    {
+        while (node is not null)
+        {
+            if (ReferenceEquals(node, ancestor))
+            {
+                return true;
+            }
+            node = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(node);
+        }
+        return false;
+    }
+
     private void ApplyCapturedKey(string newKey)
     {
         StopKeyCapture();
@@ -254,8 +301,26 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
     }
 
-    private static string FormatKey(VirtualKey key)
+    private static string? FormatKey(VirtualKey key)
     {
+        if (key is VirtualKey.Shift
+            or VirtualKey.Control
+            or VirtualKey.Menu
+            or VirtualKey.LeftWindows
+            or VirtualKey.RightWindows
+            or VirtualKey.CapitalLock
+            or VirtualKey.NumberKeyLock
+            or VirtualKey.Scroll
+            or VirtualKey.LeftShift
+            or VirtualKey.RightShift
+            or VirtualKey.LeftControl
+            or VirtualKey.RightControl
+            or VirtualKey.LeftMenu
+            or VirtualKey.RightMenu)
+        {
+            return null;
+        }
+
         return key switch
         {
             VirtualKey.Space => "SPACE",

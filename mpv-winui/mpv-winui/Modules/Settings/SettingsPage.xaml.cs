@@ -4560,44 +4560,55 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        binding.Key = newKey;
-        var path = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "mpv-winui",
-            "mpv",
-            "input.conf");
-        if (!File.Exists(path))
+        try
         {
-            return;
-        }
+            binding.Key = newKey;
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "mpv-winui",
+                "mpv",
+                "input.conf");
+            if (!File.Exists(path))
+            {
+                return;
+            }
 
-        var lines = File.ReadAllLines(path);
-        for (var i = 0; i < lines.Length; i++)
+            var lines = File.ReadAllLines(path);
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var trimmed = lines[i].Trim();
+                if (trimmed.Length == 0 || trimmed.StartsWith('#'))
+                {
+                    continue;
+                }
+
+                var hash = trimmed.IndexOf('#');
+                var bindingText = (hash >= 0 ? trimmed[..hash] : trimmed).Trim();
+                var parts = bindingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 2)
+                {
+                    continue;
+                }
+
+                var command = string.Join(' ', parts.Skip(1));
+                if (string.Equals(command, binding.Command, StringComparison.Ordinal))
+                {
+                    var firstToken = parts[0];
+                    var tokenIndex = lines[i].IndexOf(firstToken, StringComparison.Ordinal);
+                    if (tokenIndex >= 0)
+                    {
+                        lines[i] = lines[i][..tokenIndex] + newKey + lines[i][(tokenIndex + firstToken.Length)..];
+                    }
+                    break;
+                }
+            }
+
+            File.WriteAllLines(path, lines);
+        }
+        catch (Exception ex)
         {
-            var trimmed = lines[i].Trim();
-            if (trimmed.Length == 0 || trimmed.StartsWith('#'))
-            {
-                continue;
-            }
-
-            var hash = trimmed.IndexOf('#');
-            var bindingText = (hash >= 0 ? trimmed[..hash] : trimmed).Trim();
-            var parts = bindingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 2)
-            {
-                continue;
-            }
-
-            var command = string.Join(' ', parts.Skip(1));
-            if (string.Equals(command, binding.Command, StringComparison.Ordinal))
-            {
-                var indent = lines[i].Length - lines[i].TrimStart().Length;
-                lines[i] = new string(' ', indent) + newKey + bindingText[parts[0].Length..];
-                break;
-            }
+            AppContext.AppLogger.Error(ex, "RebindShortcut failed");
         }
-
-        File.WriteAllLines(path, lines);
     }
 
     private static List<OptionChoice> LanguageChoices(bool includeAuto)
