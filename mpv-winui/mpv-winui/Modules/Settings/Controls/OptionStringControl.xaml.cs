@@ -21,6 +21,7 @@ public sealed partial class OptionStringControl : OptionControlBase
     public OptionStringControl()
     {
         InitializeComponent();
+        Tapped += OnRowTapped;
         Loaded += (_, _) => AttachRootHandlers();
         Unloaded += (_, _) => DetachRootHandlers();
     }
@@ -53,6 +54,7 @@ public sealed partial class OptionStringControl : OptionControlBase
                 InputBox.Visibility = Visibility.Collapsed;
                 DisplayText.Visibility = Visibility.Visible;
                 DisplayText.MaxWidth = 220;
+                DisplayText.IsTextSelectionEnabled = false;
                 DisplayText.Text = newValue.Getter is Func<object?> keyFunc && keyFunc() is string keyValue
                     ? keyValue
                     : string.Empty;
@@ -141,6 +143,15 @@ public sealed partial class OptionStringControl : OptionControlBase
             InputBox.Visibility = Visibility.Visible;
             DisplayText.Visibility = Visibility.Collapsed;
             InputBox.Focus(FocusState.Programmatic);
+        }
+    }
+
+    private void OnRowTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        if (Setting?.KeyCaptureEditable == true
+            && !(e.OriginalSource is DependencyObject source && IsDescendantOf(source, ResetButton)))
+        {
+            StartKeyCapture();
         }
     }
 
