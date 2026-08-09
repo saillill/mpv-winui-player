@@ -51,11 +51,6 @@ namespace mpv_winui.Modules.Settings
             _dataSetting.ResetAll();
         }
 
-        public void ResetKeys(IEnumerable<string> keys)
-        {
-            _dataSetting.ResetKeys(keys);
-        }
-
         public IReadOnlyDictionary<string, object> ExportAll()
         {
             return _dataSetting.ExportAll();
@@ -1277,26 +1272,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(WindowRememberSize), true);
             set => _dataSetting.SetValue(nameof(WindowRememberSize), value);
-        }
-
-        public string FileAssociationExts
-        {
-            get => _dataSetting.GetValue(
-                nameof(FileAssociationExts),
-                ".mp4;.mkv;.avi;.mov;.wmv;.flv;.webm;.m4v;.mpg;.mpeg;.ts;.m2ts;.3gp;.ogv;.rm;.rmvb;.mp3;.flac;.wav;.aac;.m4a;.ogg;.opus;.wma");
-            set => _dataSetting.SetValue(nameof(FileAssociationExts), value);
-        }
-
-        public string ControlBarLayout
-        {
-            get => _dataSetting.GetValue(nameof(ControlBarLayout), "classic");
-            set => _dataSetting.SetValue(nameof(ControlBarLayout), value);
-        }
-
-        public string ControlBarHiddenIcons
-        {
-            get => _dataSetting.GetValue(nameof(ControlBarHiddenIcons), string.Empty);
-            set => _dataSetting.SetValue(nameof(ControlBarHiddenIcons), value);
         }
 
         public string InputIpcServer

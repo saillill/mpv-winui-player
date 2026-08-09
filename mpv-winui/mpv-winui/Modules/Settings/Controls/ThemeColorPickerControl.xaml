@@ -15,32 +15,9 @@
             Padding="0,0,16,0"
             Spacing="12">
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    FontSize="14"
-                    FontWeight="SemiBold"
-                    Text="{x:Bind RecentColorsLabel}" />
-                <Button
-                    x:Name="CloseButton"
-                    Grid.Column="1"
-                    Width="32"
-                    Height="32"
-                    Padding="0"
-                    VerticalAlignment="Center"
-                    Click="OnCloseClick"
-                    ToolTipService.ToolTip="{x:Bind CancelLabel}">
-                    <FontIcon
-                        FontSize="12"
-                        Glyph="&#xE711;" />
-                </Button>
-            </Grid>
-
+            <TextBlock
+                FontWeight="SemiBold"
+                Text="{x:Bind RecentColorsLabel}" />
             <Grid
                 x:Name="RecentGrid"
                 ColumnSpacing="8"
@@ -54,23 +31,13 @@
                 ColumnSpacing="8"
                 RowSpacing="8" />
 
-            <Button
-                x:Name="CustomToggleButton"
+            <Expander
                 HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Left"
-                Click="OnCustomToggleClick">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon
-                        x:Name="CustomToggleIcon"
-                        FontSize="12"
-                        Glyph="&#xE70D;" />
+                HorizontalContentAlignment="Stretch"
+                IsExpanded="True">
+                <Expander.Header>
                     <TextBlock FontWeight="SemiBold" Text="{x:Bind CustomColorsLabel}" />
-                </StackPanel>
-            </Button>
-            <StackPanel
-                x:Name="CustomPanel"
-                Spacing="12"
-                Visibility="Collapsed">
+                </Expander.Header>
                 <StackPanel Spacing="12">
                     <Border
                         x:Name="PreviewBox"
@@ -85,78 +52,6 @@
                         x:Name="HexInput"
                         Header="#RRGGBB"
                         TextChanged="OnHexChanged" />
-
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind HueLabel}" />
-                        <Slider
-                            x:Name="HueSlider"
-                            Grid.Column="1"
-                            Maximum="360"
-                            Minimum="0"
-                            ValueChanged="OnHslChanged" />
-                        <TextBlock
-                            x:Name="HueValue"
-                            Grid.Column="2"
-                            MinWidth="28"
-                            VerticalAlignment="Center"
-                            TextAlignment="Right" />
-                    </Grid>
-
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind SaturationLabel}" />
-                        <Slider
-                            x:Name="SaturationSlider"
-                            Grid.Column="1"
-                            Maximum="100"
-                            Minimum="0"
-                            ValueChanged="OnHslChanged" />
-                        <TextBlock
-                            x:Name="SaturationValue"
-                            Grid.Column="2"
-                            MinWidth="28"
-                            VerticalAlignment="Center"
-                            TextAlignment="Right" />
-                    </Grid>
-
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind LightnessLabel}" />
-                        <Slider
-                            x:Name="LightnessSlider"
-                            Grid.Column="1"
-                            Maximum="100"
-                            Minimum="0"
-                            ValueChanged="OnHslChanged" />
-                        <TextBlock
-                            x:Name="LightnessValue"
-                            Grid.Column="2"
-                            MinWidth="28"
-                            VerticalAlignment="Center"
-                            TextAlignment="Right" />
-                    </Grid>
 
                     <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
@@ -229,15 +124,24 @@
                             VerticalAlignment="Center"
                             TextAlignment="Right" />
                     </Grid>
-                </StackPanel>
-            </StackPanel>
 
-            <Button
-                MinWidth="96"
+                </StackPanel>
+            </Expander>
+
+            <StackPanel
                 HorizontalAlignment="Right"
-                Click="OnDoneClick"
-                Content="{x:Bind DoneLabel}"
-                Style="{StaticResource AccentButtonStyle}" />
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    MinWidth="96"
+                    Click="OnCancelClick"
+                    Content="{x:Bind CancelLabel}" />
+                <Button
+                    MinWidth="96"
+                    Click="OnDoneClick"
+                    Content="{x:Bind DoneLabel}"
+                    Style="{StaticResource AccentButtonStyle}" />
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
