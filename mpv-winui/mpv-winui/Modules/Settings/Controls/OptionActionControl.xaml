@@ -37,23 +37,6 @@
             Grid.Column="1"
             VerticalAlignment="Center"
             Spacing="6">
-            <Border
-                x:Name="CaptureDisplay"
-                MinWidth="150"
-                Padding="12,6"
-                HorizontalAlignment="Right"
-                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4"
-                Visibility="Collapsed">
-                <TextBlock
-                    x:Name="CaptureText"
-                    HorizontalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text=""
-                    TextAlignment="Center" />
-            </Border>
             <Button
                 x:Name="ActionButton"
                 MinWidth="120"

@@ -22,7 +22,6 @@ public sealed partial class OptionCheckListControl : OptionControlBase
 
         LabelText.Text = newValue.Label;
         UpdateDescription(DescriptionText);
-        ToolTipService.SetToolTip(ExpandButton, newValue.CheckExpandLabel ?? mpv_winui.AppContext.AppLang.Expand);
         ApplyButton.Content = newValue.CheckApplyLabel ?? mpv_winui.AppContext.AppLang.Apply;
         ApplyButton.Visibility = newValue.CheckApplyHandler is null ? Visibility.Collapsed : Visibility.Visible;
         BuildCheckList();
@@ -31,11 +30,16 @@ public sealed partial class OptionCheckListControl : OptionControlBase
     protected override void OnOptionStateChanged()
     {
         UpdateWarning(WarningText);
-        ExpandButton.IsEnabled = Setting?.IsEnabled ?? true;
     }
 
-    private void OnExpandClick(object sender, RoutedEventArgs e)
+    /// <summary>The whole card toggles the panel, matching the layout cards.</summary>
+    private void OnCardTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
+        if (Setting?.IsEnabled == false)
+        {
+            return;
+        }
+
         _expanded = !_expanded;
         ExpandedPanel.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         ExpandIcon.Glyph = _expanded ? "\uE70E" : "\uE70D";
@@ -44,7 +48,10 @@ public sealed partial class OptionCheckListControl : OptionControlBase
     private void BuildCheckList()
     {
         CheckItemsControl.Items.Clear();
-        if (Setting?.CheckItems is not { } items)
+        var items = Setting?.CheckItemsProvider?.Invoke()
+            ?? Setting?.CheckItems
+            ?? [];
+        if (items.Count == 0)
         {
             return;
         }
@@ -55,7 +62,7 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             var box = new CheckBox
             {
                 IsChecked = item.IsChecked,
-                Tag = item.Value,
+                Tag = item,
                 MinWidth = 132,
             };
             if (string.IsNullOrEmpty(item.Glyph))
@@ -82,9 +89,10 @@ public sealed partial class OptionCheckListControl : OptionControlBase
 
     private void OnItemChecked(object sender, RoutedEventArgs e)
     {
-        if (sender is CheckBox box && Setting is { } option && box.Tag is string value)
+        if (sender is CheckBox box && Setting is { } option && box.Tag is OptionCheckItem item)
         {
-            option.CheckChanged?.Invoke(option, value, box.IsChecked == true);
+            item.IsChecked = box.IsChecked == true;
+            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked);
         }
     }
 

@@ -132,6 +132,7 @@
                 </Grid.ColumnDefinitions>
 
                 <CommandBar
+                    x:Name="LeftCommandBar"
                     Grid.Column="0"
                     Margin="-3,0"
                     Padding="0"
@@ -263,6 +264,7 @@
                 </CommandBar>
 
                 <CommandBar
+                    x:Name="RightCommandBar"
                     Grid.Column="2"
                     HorizontalAlignment="Right"
                     DefaultLabelPosition="Collapsed"

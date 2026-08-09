@@ -112,41 +112,48 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         panel.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         if (expand)
         {
-            panel.Children.Clear();
-            if (Setting?.CheckItems is { } items)
+            BuildIconChecklist(panel);
+        }
+    }
+
+    /// <summary>Rebuilds the expanded icon checklist for the current layout style.</summary>
+    private void BuildIconChecklist(StackPanel panel)
+    {
+        panel.Children.Clear();
+        var items = Setting?.CheckItemsProvider?.Invoke()
+            ?? Setting?.CheckItems
+            ?? [];
+        foreach (var item in items)
+        {
+            var box = new CheckBox
             {
-                foreach (var item in items)
-                {
-                    var box = new CheckBox
-                    {
-                        IsChecked = item.IsChecked,
-                        Tag = item.Value,
-                        MinWidth = 150,
-                    };
-                    if (string.IsNullOrEmpty(item.Glyph))
-                    {
-                        box.Content = item.Label;
-                    }
-                    else
-                    {
-                        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-                        row.Children.Add(new FontIcon { Glyph = item.Glyph, FontSize = 14 });
-                        row.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
-                        box.Content = row;
-                    }
-                    box.Checked += OnIconToggled;
-                    box.Unchecked += OnIconToggled;
-                    panel.Children.Add(box);
-                }
+                IsChecked = item.IsChecked,
+                Tag = item,
+                MinWidth = 150,
+            };
+            if (string.IsNullOrEmpty(item.Glyph))
+            {
+                box.Content = item.Label;
             }
+            else
+            {
+                var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+                row.Children.Add(new FontIcon { Glyph = item.Glyph, FontSize = 14 });
+                row.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
+                box.Content = row;
+            }
+            box.Checked += OnIconToggled;
+            box.Unchecked += OnIconToggled;
+            panel.Children.Add(box);
         }
     }
 
     private void OnIconToggled(object sender, RoutedEventArgs e)
     {
-        if (sender is CheckBox box && Setting is { } option && box.Tag is string value)
+        if (sender is CheckBox box && Setting is { } option && box.Tag is OptionCheckItem item)
         {
-            option.CheckChanged?.Invoke(option, value, box.IsChecked == true);
+            item.IsChecked = box.IsChecked == true;
+            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked);
         }
     }
 
@@ -177,6 +184,25 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 }
             }
         }
+
+        // The expanded checklist belongs to one style, so refresh it when
+        // the selected style changes (each style stores its own hidden icons).
+        if (!string.IsNullOrEmpty(_expandedValue))
+        {
+            _expandedValue = value;
+            foreach (var item in StyleCards.Items)
+            {
+                if (item is Border card
+                    && string.Equals(card.Tag as string, value, StringComparison.Ordinal)
+                    && card.Child is StackPanel panel
+                    && panel.Children.Count >= 3
+                    && panel.Children[2] is StackPanel expanded)
+                {
+                    BuildIconChecklist(expanded);
+                    break;
+                }
+            }
+        }
     }
 
     private void UpdateCardBorder(Border card)
@@ -196,9 +222,27 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             CornerRadius = new CornerRadius(4),
             Padding = new Thickness(6, 0, 6, 0),
         };
+        // 原版 follows the upstream control bar order; 居中 follows the
+        // ModernX layout (tracks/volume left, transport centered, extras right).
         var icons = value == "modernx"
-            ? new[] { "\uE76B", "\uE8BB", "\uE768", "\uE8BB", "\uE76C", "\uE767", "\uE7C9", "\uE740", "\uE10C" }
-            : new[] { "\uE768", "\uE76B", "\uE8BB", "\uE76C", "\uE8D6", "\uE767", "\uE7C9", "\uE740", "\uE10C" };
+            ? new[]
+            {
+                "\uED1F", "\uE995",              // tracks, volume
+                "\uF8AC", "\uED3C", "\uE627",    // previous, skip back, rewind
+                "\uF5B0",                        // play/pause
+                "\uE628", "\uED3D", "\uF8AD",    // fast forward, skip forward, next
+                "\uE10C", "\uE8EE", "\uE7C9",    // more, loop, picture-in-picture
+                "\uF16B", "\uE740",              // full window, full screen
+            }
+            : new[]
+            {
+                "\uF5B0", "\uED3C", "\uED3D",    // play, skip back, skip forward
+                "\uF8AC", "\uF8AD",              // previous, next
+                "\uE8AC", "\uE8EE",              // shuffle, repeat
+                "\uE995", "\uEC57", "\uED1F",    // volume, speed, tracks
+                "\uE799", "\uE7C9", "\uF16B",    // zoom, picture-in-picture, full window
+                "\uE740", "\uE10C",              // full screen, more
+            };
         var row = new StackPanel
         {
             Orientation = Orientation.Horizontal,

@@ -6,6 +6,7 @@ using mpv_winui.Modules.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Windows.System;
 
 namespace mpv_winui.Modules.Settings.Controls;
@@ -17,13 +18,21 @@ public sealed partial class OptionStringControl : OptionControlBase
     private bool _capturing;
     private static OptionStringControl? _activeCapture;
     private readonly HashSet<string> _pendingModifiers = new(StringComparer.OrdinalIgnoreCase);
+    private nint _imeContext;
 
     public OptionStringControl()
     {
         InitializeComponent();
         Tapped += OnRowTapped;
         Loaded += (_, _) => AttachRootHandlers();
-        Unloaded += (_, _) => DetachRootHandlers();
+        Unloaded += (_, _) =>
+        {
+            DetachRootHandlers();
+            if (_capturing)
+            {
+                StopKeyCapture();
+            }
+        };
     }
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)
@@ -200,6 +209,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         _activeCapture = this;
         _pendingModifiers.Clear();
         DisplayText.Text = mpv_winui.AppContext.AppLang.KeyCapturePlaceholder;
+        DisableIme(true);
     }
 
     private void StopKeyCapture()
@@ -212,7 +222,48 @@ public sealed partial class OptionStringControl : OptionControlBase
         DisplayText.Text = Setting?.Getter is Func<object?> func && func() is string value
             ? value
             : string.Empty;
+        DisableIme(false);
     }
+
+    /// <summary>
+    /// Temporarily detaches the IME context while capturing, so keyboard
+    /// input such as "j"/"k" is reported as a plain key and never converted
+    /// into Chinese/Japanese text. The previous context is restored on stop.
+    /// </summary>
+    private void DisableIme(bool disable)
+    {
+        try
+        {
+            var windowId = mpv_winui.Modules.Settings.SettingsWindow.Instance?.AppWindow.Id
+                ?? mpv_winui.App.Window!.AppWindow.Id;
+            var raw = Microsoft.UI.Win32Interop.GetWindowFromWindowId(windowId);
+            if (raw == 0)
+            {
+                return;
+            }
+
+            if (disable)
+            {
+                _imeContext = ImmGetContext(raw);
+                ImmAssociateContext(raw, 0);
+            }
+            else if (_imeContext != 0)
+            {
+                ImmAssociateContext(raw, _imeContext);
+                _imeContext = 0;
+            }
+        }
+        catch
+        {
+            // IME toggling is best-effort; capture still works without it.
+        }
+    }
+
+    [DllImport("imm32.dll", ExactSpelling = true)]
+    private static extern nint ImmGetContext(nint hWnd);
+
+    [DllImport("imm32.dll", ExactSpelling = true)]
+    private static extern nint ImmAssociateContext(nint hWnd, nint hImc);
 
     private void AttachRootHandlers()
     {

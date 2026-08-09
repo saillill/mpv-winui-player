@@ -96,9 +96,9 @@ namespace mpv_winui.Modules.Language
 
         // Control bar
         public string SettingsControlBarLayout { get; set; } = "Control bar layout";
-        public string SettingsHelpControlBarLayout { get; set; } = "Choose how the playback controls are arranged in the control bar.";
+        public string SettingsHelpControlBarLayout { get; set; } = "Choose a control bar style: the original layout or the centered layout. Expand the selected card to choose which icons are shown.";
         public string OptionValueControlBarClassic { get; set; } = "Classic";
-        public string OptionValueControlBarModernX { get; set; } = "ModernX";
+        public string OptionValueControlBarModernX { get; set; } = "Centered";
         public string OptionValueControlBarCompact { get; set; } = "Compact";
         public string OptionValueControlBarLeft { get; set; } = "Left";
         public string OptionValueControlBarCenter { get; set; } = "Centered";
@@ -132,12 +132,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsConfigImported { get; set; } = "Settings imported. Some options take effect on the next launch.";
 
         // Shortcuts
-        public string SectionShortcutsCapture { get; set; } = "Key capture";
         public string SectionShortcutsReset { get; set; } = "Reset";
-        public string SettingsKeyCapture { get; set; } = "Capture a key";
-        public string SettingsHelpKeyCapture { get; set; } = "Start listening, then press a keyboard or mouse button to see it above.";
-        public string KeyCaptureStart { get; set; } = "Start listening";
-        public string KeyCaptureStop { get; set; } = "Stop listening";
         public string KeyCapturePlaceholder { get; set; } = "Press any key...";
         public string SettingsResetShortcuts { get; set; } = "Reset shortcuts";
         public string SettingsHelpResetShortcuts { get; set; } = "Restore the bundled default input.conf. Takes effect on the next launch.";
@@ -256,6 +251,18 @@ namespace mpv_winui.Modules.Language
         public string ShortcutSearchTitle { get; set; } = "Search shortcuts";
         public string ShortcutSearchPlaceholder { get; set; } = "Search key bindings…";
         public string ShortcutSearchEmpty { get; set; } = "No matching key bindings.";
+        public string ShortcutSectionPlayback { get; set; } = "Playback";
+        public string ShortcutSectionNavigation { get; set; } = "Navigation";
+        public string ShortcutSectionVideo { get; set; } = "Video";
+        public string ShortcutSectionAudio { get; set; } = "Audio";
+        public string ShortcutSectionSubtitle { get; set; } = "Subtitles";
+        public string ShortcutSectionSpeed { get; set; } = "Playback speed";
+        public string ShortcutSectionVolume { get; set; } = "Volume";
+        public string ShortcutSectionFilters { get; set; } = "Filters";
+        public string ShortcutSectionTools { get; set; } = "Tools";
+        public string ShortcutSectionView { get; set; } = "View";
+        public string ShortcutSectionScreenshot { get; set; } = "Screenshot";
+        public string ShortcutSectionOther { get; set; } = "Other";
         public string ViewPlaylist { get; set; } = "Playlist";
         public string SettingsHwdec { get; set; } = "Hardware decoding";
         public string SettingsHwdecCodecs { get; set; } = "Hardware decoding codecs";

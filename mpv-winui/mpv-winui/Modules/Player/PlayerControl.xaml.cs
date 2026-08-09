@@ -121,7 +121,8 @@ namespace mpv_winui.Modules.Player
                 });
             }
             else if (key == nameof(AppContext.AppSetting.ControlBarLayout)
-                || key == nameof(AppContext.AppSetting.ControlBarHiddenIcons))
+                || key == nameof(AppContext.AppSetting.ControlBarHiddenIconsClassic)
+                || key == nameof(AppContext.AppSetting.ControlBarHiddenIconsModernX))
             {
                 DispatcherQueue.TryEnqueue(ApplyControlBarStyle);
             }
@@ -170,10 +171,13 @@ namespace mpv_winui.Modules.Player
                 _ => HorizontalAlignment.Left,
             };
 
+            ApplyControlBarOrder(layout);
+
+            var hiddenValue = layout == "modernx"
+                ? AppContext.AppSetting.ControlBarHiddenIconsModernX
+                : AppContext.AppSetting.ControlBarHiddenIconsClassic;
             var hidden = new HashSet<string>(
-                AppContext.AppSetting.ControlBarHiddenIcons?.Split(
-                    [',', ';'],
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
+                hiddenValue?.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
                 StringComparer.OrdinalIgnoreCase);
 
             SetHidden(hidden.Contains("playback"), PlayPauseButton, SkipBackwardButton, SkipForwardButton, PreviousTrackButton, NextTrackButton, StopButton);
@@ -184,6 +188,88 @@ namespace mpv_winui.Modules.Player
             SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
             SetHidden(hidden.Contains("pip"), PiPButton);
             SetHidden(hidden.Contains("more"), MoreButton);
+        }
+
+        private string? _lastBarOrder;
+
+        /// <summary>
+        /// 原版 keeps the upstream control order. 居中 reorders the buttons to
+        /// match ModernX: tracks and volume on the left, previous/skip/play/
+        /// skip/next centered, window controls on the right.
+        /// </summary>
+        private void ApplyControlBarOrder(string layout)
+        {
+            if (string.Equals(_lastBarOrder, layout, StringComparison.Ordinal))
+            {
+                return;
+            }
+            _lastBarOrder = layout;
+
+            var left = new ICommandBarElement[]
+            {
+                TrackSelectionButton, VolumeMuteButton, VolumeSliderContainer,
+                PreviousTrackButton, SkipBackwardButton, RewindButton,
+                PlayPauseButton, FastForwardButton, SkipForwardButton,
+                NextTrackButton, StopButton, ShuffleButton, RepeatButton,
+                PlaybackRateButton, ZoomButton,
+            };
+            var right = new ICommandBarElement[]
+            {
+                MoreButton, PiPButton, FullWindowButton, FullScreenButton,
+            };
+
+            if (layout != "modernx")
+            {
+                left = new ICommandBarElement[]
+                {
+                    PlayPauseButton, RewindButton, FastForwardButton,
+                    PreviousTrackButton, NextTrackButton, SkipBackwardButton,
+                    SkipForwardButton, StopButton, ShuffleButton, RepeatButton,
+                };
+                right = new ICommandBarElement[]
+                {
+                    VolumeMuteButton, VolumeSliderContainer, PlaybackRateButton,
+                    TrackSelectionButton, ZoomButton, PiPButton,
+                    FullWindowButton, FullScreenButton, MoreButton,
+                };
+            }
+
+            ApplyBarOrders(LeftCommandBar, RightCommandBar, left, right);
+        }
+
+        private static void ApplyBarOrders(
+            CommandBar left,
+            CommandBar right,
+            ICommandBarElement[] leftDesired,
+            ICommandBarElement[] rightDesired)
+        {
+            var available = new HashSet<ICommandBarElement>(ReferenceEqualityComparer.Instance);
+            foreach (var element in left.PrimaryCommands)
+            {
+                available.Add(element);
+            }
+            foreach (var element in right.PrimaryCommands)
+            {
+                available.Add(element);
+            }
+
+            left.PrimaryCommands.Clear();
+            right.PrimaryCommands.Clear();
+
+            foreach (var element in leftDesired)
+            {
+                if (available.Remove(element))
+                {
+                    left.PrimaryCommands.Add(element);
+                }
+            }
+            foreach (var element in rightDesired)
+            {
+                if (available.Remove(element))
+                {
+                    right.PrimaryCommands.Add(element);
+                }
+            }
         }
 
         private static string NormalizeControlBarLayout(string? value)

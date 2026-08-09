@@ -25,7 +25,6 @@ public enum OptionActionKind
 {
     None,
     Button,
-    KeyCapture,
 }
 
 /// <summary>A checkbox entry used by <see cref="OptionType.CheckList"/> options.</summary>
@@ -41,7 +40,7 @@ public sealed class OptionCheckItem
 
     public string Value { get; }
     public string Label { get; }
-    public bool IsChecked { get; }
+    public bool IsChecked { get; set; }
     public string? Glyph { get; }
 }
 
@@ -206,6 +205,12 @@ public sealed class Option : INotifyPropertyChanged
 
     /// <summary>Checkbox entries for <see cref="OptionType.CheckList"/> options.</summary>
     public IList<OptionCheckItem>? CheckItems
+    {
+        get; set;
+    }
+
+    /// <summary>Lazily rebuilds checklist entries (e.g. per selected layout style).</summary>
+    public Func<IList<OptionCheckItem>>? CheckItemsProvider
     {
         get; set;
     }
