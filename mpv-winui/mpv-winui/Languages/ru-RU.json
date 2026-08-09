@@ -728,7 +728,7 @@
   "Collapse": "Свернуть",
   "SettingsHelpFileAssociations": "Выберите форматы, которые будут открываться этим плеером. Изменения применяются сразу.",
   "SettingsControlBarLayout": "Раскладка панели управления",
-  "SettingsHelpControlBarLayout": "Выберите раскладку: классическая, ModernX по центру или компактная.",
+  "SettingsHelpControlBarLayout": "Выберите стиль панели: оригинальная раскладка или плагин ModernX. Разверните карточку, чтобы выбрать видимые значки.",
   "OptionValueControlBarLeft": "Слева",
   "OptionValueControlBarCenter": "По центру",
   "OptionValueControlBarRight": "Справа",
@@ -748,7 +748,7 @@
   "ThemeColorHue": "Тон",
   "ThemeColorSaturation": "Насыщенность",
   "ThemeColorLightness": "Яркость",
-  "OptionValueControlBarClassic": "Классика",
-  "OptionValueControlBarModernX": "ModernX по центру",
+  "OptionValueControlBarClassic": "Оригинал",
+  "OptionValueControlBarModernX": "Плагин",
   "OptionValueControlBarCompact": "Компактный"
 }

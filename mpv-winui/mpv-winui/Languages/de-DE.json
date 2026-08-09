@@ -728,7 +728,7 @@
   "Collapse": "Einklappen",
   "SettingsHelpFileAssociations": "Wählen Sie, welche Formate mit diesem Player geöffnet werden sollen. Änderungen gelten sofort.",
   "SettingsControlBarLayout": "Layout der Steuerleiste",
-  "SettingsHelpControlBarLayout": "Layout der Steuerleiste wählen: klassisch, ModernX-zentriert oder kompakt.",
+  "SettingsHelpControlBarLayout": "Wählen Sie einen Stil für die Steuerleiste: Original oder ModernX-Plugin. Erweitern Sie die Karte, um die sichtbaren Symbole zu wählen.",
   "OptionValueControlBarLeft": "Links",
   "OptionValueControlBarCenter": "Mittig",
   "OptionValueControlBarRight": "Rechts",
@@ -748,7 +748,7 @@
   "ThemeColorHue": "Farbton",
   "ThemeColorSaturation": "Sättigung",
   "ThemeColorLightness": "Helligkeit",
-  "OptionValueControlBarClassic": "Klassisch",
-  "OptionValueControlBarModernX": "ModernX zentriert",
+  "OptionValueControlBarClassic": "Original",
+  "OptionValueControlBarModernX": "Plugin",
   "OptionValueControlBarCompact": "Kompakt"
 }

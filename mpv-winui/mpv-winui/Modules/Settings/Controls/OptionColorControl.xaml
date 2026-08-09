@@ -10,52 +10,90 @@
     <Grid
         VerticalAlignment="Center"
         Background="Transparent">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <StackPanel
-            Grid.Column="0"
-            VerticalAlignment="Center"
-            Spacing="2">
-            <TextBlock
-                x:Name="LabelText"
-                Style="{StaticResource BodyTextBlockStyle}"
-                TextWrapping="Wrap" />
-            <TextBlock
-                x:Name="DescriptionText"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                TextWrapping="Wrap"
-                Visibility="Collapsed" />
-            <TextBlock
-                x:Name="WarningText"
-                Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                TextWrapping="Wrap"
-                Visibility="Collapsed" />
-        </StackPanel>
-        <StackPanel
-            Grid.Column="1"
-            Orientation="Horizontal"
-            VerticalAlignment="Center"
-            Spacing="8">
-            <Border
-                x:Name="ColorSwatch"
-                Width="32"
-                Height="32"
-                HorizontalAlignment="Right"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid
+            x:Name="HeaderGrid"
+            Grid.Row="0"
+            Tapped="OnHeaderTapped">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel
+                Grid.Column="0"
                 VerticalAlignment="Center"
-                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4"
-                AutomationProperties.Name="ColorSwatch">
+                Spacing="2">
+                <TextBlock
+                    x:Name="LabelText"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="DescriptionText"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed" />
+                <TextBlock
+                    x:Name="WarningText"
+                    Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed" />
+            </StackPanel>
+            <StackPanel
+                Grid.Column="1"
+                Orientation="Horizontal"
+                VerticalAlignment="Center"
+                Spacing="8">
+                <Border
+                    x:Name="ColorSwatch"
+                    Width="32"
+                    Height="32"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    AutomationProperties.Name="ColorSwatch" />
                 <FontIcon
-                    FontSize="10"
+                    x:Name="ExpandIcon"
+                    FontSize="12"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Glyph="&#xE70D;" />
-            </Border>
+            </StackPanel>
+        </Grid>
+        <StackPanel
+            x:Name="ExpandedPanel"
+            Grid.Row="1"
+            Margin="0,12,0,0"
+            Spacing="8"
+            Visibility="Collapsed">
+            <TextBlock
+                x:Name="RecentLabel"
+                FontWeight="SemiBold"
+                Text="Recent colors" />
+            <Grid
+                x:Name="RecentGrid"
+                ColumnSpacing="8"
+                RowSpacing="8" />
+            <TextBlock
+                x:Name="WindowsLabel"
+                FontWeight="SemiBold"
+                Text="Windows colors" />
+            <Grid
+                x:Name="WindowsGrid"
+                ColumnSpacing="8"
+                RowSpacing="8" />
+            <Button
+                x:Name="CustomButton"
+                MinWidth="120"
+                HorizontalAlignment="Right"
+                Click="OnCustomClick"
+                Content="Custom color" />
         </StackPanel>
     </Grid>
 </local:OptionControlBase>

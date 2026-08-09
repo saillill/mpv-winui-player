@@ -728,7 +728,7 @@
   "Collapse": "收起",
   "SettingsHelpFileAssociations": "勾选要用本播放器打开的文件格式，改动立即生效。",
   "SettingsControlBarLayout": "状态栏排版",
-  "SettingsHelpControlBarLayout": "选择状态栏排版：经典、ModernX 居中或简洁。",
+  "SettingsHelpControlBarLayout": "选择状态栏风格：原版布局或 ModernX 插件布局。展开选中的卡片可勾选要显示的图标。",
   "OptionValueControlBarLeft": "居左",
   "OptionValueControlBarCenter": "居中",
   "OptionValueControlBarRight": "居右",
@@ -748,7 +748,7 @@
   "ThemeColorHue": "色相",
   "ThemeColorSaturation": "饱和度",
   "ThemeColorLightness": "明度",
-  "OptionValueControlBarClassic": "经典",
-  "OptionValueControlBarModernX": "ModernX 居中",
+  "OptionValueControlBarClassic": "原版",
+  "OptionValueControlBarModernX": "插件",
   "OptionValueControlBarCompact": "简洁"
 }

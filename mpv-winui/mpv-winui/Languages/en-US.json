@@ -728,7 +728,7 @@
   "Collapse": "Collapse",
   "SettingsHelpFileAssociations": "Choose which formats should open with this player. Changes apply immediately.",
   "SettingsControlBarLayout": "Control bar layout",
-  "SettingsHelpControlBarLayout": "Choose a control bar layout: classic, ModernX-centered or compact.",
+  "SettingsHelpControlBarLayout": "Choose a control bar style: the original layout or the ModernX plugin layout. Expand the selected card to choose which icons are shown.",
   "OptionValueControlBarLeft": "Left",
   "OptionValueControlBarCenter": "Centered",
   "OptionValueControlBarRight": "Right",
@@ -748,7 +748,7 @@
   "ThemeColorHue": "Hue",
   "ThemeColorSaturation": "Saturation",
   "ThemeColorLightness": "Lightness",
-  "OptionValueControlBarClassic": "Classic",
-  "OptionValueControlBarModernX": "ModernX",
+  "OptionValueControlBarClassic": "Original",
+  "OptionValueControlBarModernX": "Plugin",
   "OptionValueControlBarCompact": "Compact"
 }

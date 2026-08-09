@@ -167,27 +167,8 @@ namespace mpv_winui.Modules.Player
             MediaControlsCommandBar.HorizontalAlignment = layout switch
             {
                 "modernx" => HorizontalAlignment.Center,
-                "compact" => HorizontalAlignment.Right,
                 _ => HorizontalAlignment.Left,
             };
-
-            if (layout == "modernx")
-            {
-                SetHidden(false, SkipBackwardButton, SkipForwardButton, PlayPauseButton, VolumeMuteButton, VolumeSliderContainer, PiPButton, FullScreenButton, MoreButton);
-                SetHidden(true, PreviousTrackButton, NextTrackButton, StopButton, ShuffleButton, RepeatButton, PlaybackRateButton, TrackSelectionButton, ZoomButton, FullWindowButton);
-            }
-            else if (layout == "compact")
-            {
-                SetHidden(false, PlayPauseButton, VolumeMuteButton, VolumeSliderContainer, PiPButton, FullScreenButton, MoreButton);
-                SetHidden(true, SkipBackwardButton, SkipForwardButton, PreviousTrackButton, NextTrackButton, StopButton, ShuffleButton, RepeatButton, PlaybackRateButton, TrackSelectionButton, ZoomButton, FullWindowButton);
-            }
-            else
-            {
-                SetHidden(false,
-                    PlayPauseButton, SkipBackwardButton, SkipForwardButton, PreviousTrackButton, NextTrackButton,
-                    StopButton, ShuffleButton, RepeatButton, PlaybackRateButton, TrackSelectionButton, ZoomButton,
-                    FullWindowButton, VolumeMuteButton, VolumeSliderContainer, PiPButton, FullScreenButton, MoreButton);
-            }
 
             var hidden = new HashSet<string>(
                 AppContext.AppSetting.ControlBarHiddenIcons?.Split(
@@ -209,9 +190,7 @@ namespace mpv_winui.Modules.Player
         {
             return value switch
             {
-                "classic" or "left" => "classic",
                 "modernx" or "center" or "right" => "modernx",
-                "compact" => "compact",
                 _ => "classic",
             };
         }

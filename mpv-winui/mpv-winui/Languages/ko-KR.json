@@ -728,7 +728,7 @@
   "Collapse": "접기",
   "SettingsHelpFileAssociations": "이 플레이어로 열 파일 형식을 선택합니다. 변경은 즉시 적용됩니다.",
   "SettingsControlBarLayout": "컨트롤 바 레이아웃",
-  "SettingsHelpControlBarLayout": "컨트롤 바 레이아웃 선택: 클래식, ModernX 가운데 또는 간결.",
+  "SettingsHelpControlBarLayout": "컨트롤 바 스타일 선택: 원본 레이아웃 또는 ModernX 플러그인 레이아웃. 선택한 카드를 펼쳐 표시할 아이콘을 선택합니다.",
   "OptionValueControlBarLeft": "왼쪽",
   "OptionValueControlBarCenter": "가운데",
   "OptionValueControlBarRight": "오른쪽",
@@ -748,7 +748,7 @@
   "ThemeColorHue": "색상",
   "ThemeColorSaturation": "채도",
   "ThemeColorLightness": "명도",
-  "OptionValueControlBarClassic": "클래식",
-  "OptionValueControlBarModernX": "ModernX 가운데",
+  "OptionValueControlBarClassic": "원본",
+  "OptionValueControlBarModernX": "플러그인",
   "OptionValueControlBarCompact": "간결"
 }

@@ -24,11 +24,14 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <TextBox
+            <AutoSuggestBox
                 x:Name="SearchBox"
                 Grid.Row="0"
                 Margin="8,10,8,4"
                 PlaceholderText="Search"
+                QueryIcon="Find"
+                QuerySubmitted="SearchBox_QuerySubmitted"
+                SuggestionChosen="SearchBox_SuggestionChosen"
                 TextChanged="SearchBox_TextChanged" />
             <ListView
                 x:Name="CategoryList"

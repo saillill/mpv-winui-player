@@ -728,7 +728,7 @@
   "Collapse": "折りたたむ",
   "SettingsHelpFileAssociations": "このプレイヤーで開くフォーマットを選択します。変更はすぐに反映されます。",
   "SettingsControlBarLayout": "コントロールバーのレイアウト",
-  "SettingsHelpControlBarLayout": "コントロールバーのレイアウトを選択: クラシック、ModernX中央、コンパクト。",
+  "SettingsHelpControlBarLayout": "コントロールバーのスタイルを選択: オリジナルまたは ModernX プラグイン。選択したカードを展開して表示するアイコンを選択します。",
   "OptionValueControlBarLeft": "左",
   "OptionValueControlBarCenter": "中央",
   "OptionValueControlBarRight": "右",
@@ -748,7 +748,7 @@
   "ThemeColorHue": "色相",
   "ThemeColorSaturation": "彩度",
   "ThemeColorLightness": "明度",
-  "OptionValueControlBarClassic": "クラシック",
-  "OptionValueControlBarModernX": "ModernX 中央",
+  "OptionValueControlBarClassic": "オリジナル",
+  "OptionValueControlBarModernX": "プラグイン",
   "OptionValueControlBarCompact": "コンパクト"
 }

@@ -1,4 +1,3 @@
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -11,6 +10,7 @@ namespace mpv_winui.Modules.Settings.Controls;
 public sealed partial class OptionLayoutControl : OptionControlBase
 {
     private string _current = string.Empty;
+    private string? _expandedValue;
 
     public OptionLayoutControl()
     {
@@ -30,86 +30,129 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         {
             _current = value;
         }
-        BuildLayouts(newValue.LayoutChoices ?? []);
+        BuildCards(newValue.LayoutChoices ?? []);
     }
 
     protected override void OnOptionStateChanged()
     {
-        // Nothing to disable; previews stay visible.
     }
 
-    private void BuildLayouts(IList<OptionLayoutChoice> choices)
+    private void BuildCards(IList<OptionLayoutChoice> choices)
     {
-        LayoutItems.Items.Clear();
+        StyleCards.Items.Clear();
         foreach (var choice in choices)
         {
-            var card = new Border
-            {
-                Width = 120,
-                Height = 84,
-                Margin = new Thickness(0, 0, 12, 0),
-                Padding = new Thickness(8),
-                CornerRadius = new CornerRadius(6),
-                Background = (Brush)Application.Current.Resources["CardBackgroundFillColorSecondaryBrush"],
-                Tag = choice.Value,
-            };
-
-            var panel = new StackPanel { Spacing = 4 };
-            panel.Children.Add(new TextBlock
-            {
-                Text = choice.Label,
-                FontSize = 12,
-                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                TextAlignment = TextAlignment.Center,
-            });
-            panel.Children.Add(BuildPreview(choice.Value));
-            card.Child = panel;
-
-            card.PointerPressed += (_, _) => Select(choice.Value);
-            LayoutItems.Items.Add(card);
-            UpdateCardSelection(card);
+            StyleCards.Items.Add(BuildCard(choice));
         }
     }
 
-    private static FrameworkElement BuildPreview(string value)
+    private FrameworkElement BuildCard(OptionLayoutChoice choice)
     {
-        var bar = new Border
+        var card = new Border
         {
-            Height = 30,
-            Background = (Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"],
-            CornerRadius = new CornerRadius(3),
-            Padding = new Thickness(4),
+            Padding = new Thickness(12),
+            CornerRadius = new CornerRadius(6),
+            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorSecondaryBrush"],
+            BorderThickness = new Thickness(2),
+            Tag = choice.Value,
         };
 
-        var icons = value switch
+        var panel = new StackPanel { Spacing = 8 };
+        var header = new Grid { ColumnSpacing = 8 };
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var radio = new RadioButton
         {
-            "modernx" => new[] { "\uE76B", "\uE8BB", "\uE768", "\uE8BB", "\uE76C" },
-            "compact" => new[] { "\uE768", "\uE7C9", "\uE740" },
-            _ => new[] { "\uE76B", "\uE8BB", "\uE768", "\uE76C", "\uE8D6", "\uE740" },
+            GroupName = "BarStyle",
+            IsChecked = string.Equals(choice.Value, _current, StringComparison.Ordinal),
+            VerticalAlignment = VerticalAlignment.Center,
+            Tag = choice.Value,
         };
+        radio.Checked += (_, _) => Select(choice.Value);
+        Grid.SetColumn(radio, 0);
+        header.Children.Add(radio);
 
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, HorizontalAlignment = HorizontalAlignment.Center };
-        foreach (var glyph in icons)
+        var label = new TextBlock
         {
-            row.Children.Add(new FontIcon { Glyph = glyph, FontSize = 10 });
-        }
+            Text = choice.Label,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        Grid.SetColumn(label, 1);
+        header.Children.Add(label);
 
-        if (value == "compact")
+        var expandIcon = new FontIcon
         {
-            row.HorizontalAlignment = HorizontalAlignment.Right;
-        }
-        else if (value == "classic")
-        {
-            row.HorizontalAlignment = HorizontalAlignment.Left;
-        }
+            Glyph = "\uE70D",
+            FontSize = 12,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        Grid.SetColumn(expandIcon, 2);
+        header.Children.Add(expandIcon);
 
-        bar.Child = row;
-        return bar;
+        panel.Children.Add(header);
+        panel.Children.Add(BuildPreview(choice.Value));
+
+        var expandedPanel = new StackPanel { Visibility = Visibility.Collapsed, Spacing = 6 };
+        panel.Children.Add(expandedPanel);
+
+        card.Child = panel;
+        card.Tapped += (_, _) => ToggleExpand(card, expandIcon, expandedPanel, choice.Value);
+        UpdateCardBorder(card);
+        return card;
+    }
+
+    private void ToggleExpand(Border card, FontIcon icon, StackPanel panel, string value)
+    {
+        var expand = !string.Equals(_expandedValue, value, StringComparison.Ordinal);
+        _expandedValue = expand ? value : null;
+        icon.Glyph = expand ? "\uE70E" : "\uE70D";
+        panel.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+        if (expand)
+        {
+            panel.Children.Clear();
+            if (Setting?.CheckItems is { } items)
+            {
+                foreach (var item in items)
+                {
+                    var box = new CheckBox
+                    {
+                        IsChecked = item.IsChecked,
+                        Tag = item.Value,
+                        MinWidth = 150,
+                    };
+                    if (string.IsNullOrEmpty(item.Glyph))
+                    {
+                        box.Content = item.Label;
+                    }
+                    else
+                    {
+                        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+                        row.Children.Add(new FontIcon { Glyph = item.Glyph, FontSize = 14 });
+                        row.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
+                        box.Content = row;
+                    }
+                    box.Checked += OnIconToggled;
+                    box.Unchecked += OnIconToggled;
+                    panel.Children.Add(box);
+                }
+            }
+        }
+    }
+
+    private void OnIconToggled(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox box && Setting is { } option && box.Tag is string value)
+        {
+            option.CheckChanged?.Invoke(option, value, box.IsChecked == true);
+        }
     }
 
     private void Select(string value)
     {
-        if (value == _current || Setting?.Setter is not { } setter)
+        if (Setting?.Setter is not { } setter || string.Equals(value, _current, StringComparison.Ordinal))
         {
             return;
         }
@@ -117,21 +160,57 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         _current = value;
         setter(value);
         Setting?.NotifyChanged();
-        foreach (var item in LayoutItems.Items)
+        foreach (var item in StyleCards.Items)
         {
             if (item is Border card)
             {
-                UpdateCardSelection(card);
+                UpdateCardBorder(card);
+                if (card.Child is StackPanel panel && panel.Children[0] is Grid header)
+                {
+                    foreach (var child in header.Children)
+                    {
+                        if (child is RadioButton radio)
+                        {
+                            radio.IsChecked = string.Equals(radio.Tag as string, value, StringComparison.Ordinal);
+                        }
+                    }
+                }
             }
         }
     }
 
-    private void UpdateCardSelection(Border card)
+    private void UpdateCardBorder(Border card)
     {
         var selected = string.Equals(card.Tag as string, _current, StringComparison.Ordinal);
-        card.BorderThickness = new Thickness(selected ? 2 : 1);
         card.BorderBrush = selected
             ? new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
             : (Brush)Application.Current.Resources["ControlStrokeColorDefaultBrush"];
+    }
+
+    private static FrameworkElement BuildPreview(string value)
+    {
+        var bar = new Border
+        {
+            Height = 38,
+            Background = (Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"],
+            CornerRadius = new CornerRadius(4),
+            Padding = new Thickness(6, 0, 6, 0),
+        };
+        var icons = value == "modernx"
+            ? new[] { "\uE76B", "\uE8BB", "\uE768", "\uE8BB", "\uE76C", "\uE767", "\uE7C9", "\uE740", "\uE10C" }
+            : new[] { "\uE768", "\uE76B", "\uE8BB", "\uE76C", "\uE8D6", "\uE767", "\uE7C9", "\uE740", "\uE10C" };
+        var row = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = value == "modernx" ? HorizontalAlignment.Center : HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        foreach (var glyph in icons)
+        {
+            row.Children.Add(new FontIcon { Glyph = glyph, FontSize = 14 });
+        }
+        bar.Child = row;
+        return bar;
     }
 }

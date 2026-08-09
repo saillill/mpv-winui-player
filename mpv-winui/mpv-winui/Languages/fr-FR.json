@@ -728,7 +728,7 @@
   "Collapse": "Replier",
   "SettingsHelpFileAssociations": "Choisissez les formats à ouvrir avec ce lecteur. Les changements s'appliquent immédiatement.",
   "SettingsControlBarLayout": "Disposition de la barre de contrôle",
-  "SettingsHelpControlBarLayout": "Choisissez une disposition : classique, centrée ModernX ou compacte.",
+  "SettingsHelpControlBarLayout": "Choisissez un style de barre : original ou plugin ModernX. Dépliez la carte pour choisir les icônes affichées.",
   "OptionValueControlBarLeft": "Gauche",
   "OptionValueControlBarCenter": "Centré",
   "OptionValueControlBarRight": "Droite",
@@ -748,7 +748,7 @@
   "ThemeColorHue": "Teinte",
   "ThemeColorSaturation": "Saturation",
   "ThemeColorLightness": "Luminosité",
-  "OptionValueControlBarClassic": "Classique",
-  "OptionValueControlBarModernX": "ModernX centré",
+  "OptionValueControlBarClassic": "Original",
+  "OptionValueControlBarModernX": "Plugiciel",
   "OptionValueControlBarCompact": "Compact"
 }

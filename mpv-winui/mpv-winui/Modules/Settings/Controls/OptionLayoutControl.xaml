@@ -7,7 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid VerticalAlignment="Center">
+    <Grid
+        VerticalAlignment="Center"
+        Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -27,15 +29,12 @@
                 Visibility="Collapsed" />
         </StackPanel>
         <ItemsControl
-            x:Name="LayoutItems"
+            x:Name="StyleCards"
             Grid.Row="1"
             Margin="0,12,0,0">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <ItemsWrapGrid
-                        ItemHeight="96"
-                        ItemWidth="132"
-                        Orientation="Horizontal" />
+                    <StackPanel Spacing="10" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ItemsControl>

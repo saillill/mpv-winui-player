@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Windows.Storage;
+using Microsoft.Windows.Storage.Pickers;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -172,23 +173,55 @@ public sealed partial class SettingsPage : Page
 
     private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateOptions();
 
-    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
+        if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            return;
+        }
+
         var query = SearchBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(query))
         {
             CategoryList.ItemsSource = Categories;
+            SearchBox.ItemsSource = null;
         }
         else
         {
-            CategoryList.ItemsSource = Categories
+            var matches = Categories
                 .Where(c => FuzzyMatch(query, c))
                 .ToList();
+            CategoryList.ItemsSource = matches;
+            SearchBox.ItemsSource = matches.Count > 0 ? matches : null;
         }
 
         if (CategoryList.Items.Count > 0)
         {
             CategoryList.SelectedIndex = 0;
+        }
+    }
+
+    private void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    {
+        if (args.SelectedItem is string category && Categories.Contains(category))
+        {
+            CategoryList.SelectedItem = category;
+        }
+    }
+
+    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        if (args.ChosenSuggestion is string suggested && Categories.Contains(suggested))
+        {
+            CategoryList.SelectedItem = suggested;
+            return;
+        }
+
+        var query = sender.Text?.Trim() ?? string.Empty;
+        var match = Categories.FirstOrDefault(c => FuzzyMatch(query, c));
+        if (match is not null)
+        {
+            CategoryList.SelectedItem = match;
         }
     }
 
@@ -421,25 +454,13 @@ public sealed partial class SettingsPage : Page
                 [
                     new OptionLayoutChoice("classic", lang.OptionValueControlBarClassic),
                     new OptionLayoutChoice("modernx", lang.OptionValueControlBarModernX),
-                    new OptionLayoutChoice("compact", lang.OptionValueControlBarCompact),
                 ],
                 Getter = () => NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout),
                 Setter = v =>
                 {
                     AppContext.AppSetting.ControlBarLayout = (string)v!;
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarLayout), v);
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ControlBarHiddenIcons),
-                Label = lang.SettingsControlBarIcons,
-                Category = program,
-                Description = lang.SettingsHelpControlBarIcons,
-                Type = OptionType.CheckList,
-                CheckExpandLabel = lang.Expand,
-                CheckCollapseLabel = lang.Collapse,
+                },
                 CheckItems = BuildControlBarIconItems(),
                 CheckChanged = (_, value, isChecked) => ApplyControlBarIcon(value, isChecked),
             },
@@ -4967,9 +4988,7 @@ public sealed partial class SettingsPage : Page
     {
         return value switch
         {
-            "classic" or "left" => "classic",
             "modernx" or "center" or "right" => "modernx",
-            "compact" => "compact",
             _ => "classic",
         };
     }
@@ -4988,11 +5007,13 @@ public sealed partial class SettingsPage : Page
     {
         try
         {
-            var file = await FilePickerHelper.PickSaveFileAsync(picker =>
+            var owner = SettingsWindow.Instance?.AppWindow.Id ?? App.Window!.AppWindow.Id;
+            var filePicker = new FileSavePicker(owner)
             {
-                picker.SuggestedFileName = "mpv-winui-settings.conf";
-                picker.FileTypeChoices["Settings"] = new List<string> { ".conf" };
-            });
+                SuggestedFileName = "mpv-winui-settings.conf",
+            };
+            filePicker.FileTypeChoices["Settings"] = new List<string> { ".conf" };
+            var file = await filePicker.PickSaveFileAsync();
             if (file is null)
             {
                 return;
@@ -5018,11 +5039,11 @@ public sealed partial class SettingsPage : Page
     {
         try
         {
-            var file = await FilePickerHelper.PickSingleFileAsync(picker =>
-            {
-                picker.FileTypeFilter.Add(".conf");
-                picker.FileTypeFilter.Add("*");
-            });
+            var owner = SettingsWindow.Instance?.AppWindow.Id ?? App.Window!.AppWindow.Id;
+            var filePicker = new FileOpenPicker(owner);
+            filePicker.FileTypeFilter.Add(".conf");
+            filePicker.FileTypeFilter.Add("*");
+            var file = await filePicker.PickSingleFileAsync();
             if (file is null)
             {
                 return;
