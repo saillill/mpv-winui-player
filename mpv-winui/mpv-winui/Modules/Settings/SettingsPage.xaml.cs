@@ -3853,6 +3853,17 @@ public sealed partial class SettingsPage : Page
                 continue;
             }
 
+            var label = comment;
+            if (label.StartsWith("menu:", StringComparison.OrdinalIgnoreCase))
+            {
+                label = label["menu:".Length..].Trim();
+                var stateHash = label.IndexOf('#');
+                if (stateHash >= 0)
+                {
+                    label = label[..stateHash].Trim();
+                }
+            }
+
             var key = parts[0];
             if (!seen.Add(key))
             {
@@ -3863,7 +3874,7 @@ public sealed partial class SettingsPage : Page
             options.Add(new Option
             {
                 Key = $"Shortcut:{index++}",
-                Label = string.IsNullOrEmpty(comment) ? command : comment,
+                Label = string.IsNullOrEmpty(label) ? command : label,
                 Category = shortcutsCategory,
                 Type = OptionType.String,
                 ReadOnly = true,
