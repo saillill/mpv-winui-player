@@ -49,7 +49,8 @@
                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
-                CornerRadius="4">
+                CornerRadius="4"
+                AutomationProperties.Name="ColorSwatch">
                 <FontIcon
                     FontSize="10"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
