@@ -50,7 +50,7 @@
             <TextBox
                 x:Name="InputBox"
                 Grid.Column="0"
-                MaxWidth="340"
+                MaxWidth="260"
                 HorizontalAlignment="Right"
                 LostFocus="OnLostFocus"
                 KeyDown="OnKeyDown"
@@ -58,7 +58,7 @@
             <TextBlock
                 x:Name="DisplayText"
                 Grid.Column="0"
-                MaxWidth="340"
+                MaxWidth="260"
                 HorizontalAlignment="Right"
                 IsTextSelectionEnabled="True"
                 VerticalAlignment="Center"

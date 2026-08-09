@@ -26,6 +26,7 @@ namespace mpv_winui.Modules.Language
         public string AppSettingStyle { get; set; } = "Appearance";
         public string SettingsAlwaysOnTop { get; set; } = "Always on top";
         public string ThemeDarkName { get; set; } = "Dark";
+        public string ThemeCustomName { get; set; } = "Custom";
         public string ThemeLightName { get; set; } = "Light";
         public string SettingsThemeAccentColor { get; set; } = "Accent color";
         public string SettingsHelpThemeAccentColor { get; set; } = "Tint color for the window backdrop. Leave empty to follow the system accent.";
@@ -56,6 +57,11 @@ namespace mpv_winui.Modules.Language
         public string Close { get; set; } = "Close";
         public string Search { get; set; } = "Search";
         public string SettingsResetConfirm { get; set; } = "Reset all settings to their defaults?";
+        public string ResetCurrentCategory { get; set; } = "Reset current category";
+        public string ResetAllSettings { get; set; } = "Reset all settings";
+        public string SettingsResetAllConfirm { get; set; } = "Reset all settings to their defaults? This cannot be undone.";
+        public string SettingsResetDone { get; set; } = "Category reset";
+        public string SettingsResetAllDone { get; set; } = "All settings reset";
         public string Test { get; set; } = "Test";
         public string Open { get; set; } = "Open";
         public string Reset { get; set; } = "Reset";
@@ -108,6 +114,8 @@ namespace mpv_winui.Modules.Language
         public string ControlBarIconPlayback { get; set; } = "Playback controls";
         public string ControlBarIconVolume { get; set; } = "Volume";
         public string ControlBarIconTracks { get; set; } = "Tracks";
+        public string ControlBarIconRandom { get; set; } = "Random";
+        public string ControlBarIconSpeed { get; set; } = "Speed";
         public string ControlBarIconAspect { get; set; } = "Aspect ratio";
         public string ControlBarIconFullWindow { get; set; } = "Full window";
         public string ControlBarIconFullScreen { get; set; } = "Full screen";

@@ -86,6 +86,7 @@ public sealed partial class WindowStyleManager : IDisposable
                     _micaController = new MicaController();
                     _micaController?.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
                     _micaController?.SetSystemBackdropConfiguration(_configurationSource);
+                    ApplyMicaTint();
                 }
                 break;
             }
@@ -178,6 +179,20 @@ public sealed partial class WindowStyleManager : IDisposable
             _acrylicController?.TintColor = GetBackdropTintColor(theme);
             _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
         }
+
+        ApplyMicaTint();
+    }
+
+    private void ApplyMicaTint()
+    {
+        if (_micaController is null)
+        {
+            return;
+        }
+
+        _micaController.TintColor = GetBackdropTintColor(_theme);
+        _micaController.TintOpacity = GetBackdropTintOpacity();
+        _micaController.LuminosityOpacity = GetBackdropLuminosityOpacity();
     }
 
     private Color GetBackdropTintColor(ElementTheme theme)

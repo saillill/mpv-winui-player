@@ -86,25 +86,6 @@ namespace mpv_winui.Modules.Player
 
         public void ApplyLocalizedStrings()
         {
-            MoreSkipBackward.Text = AppContext.AppLang.MoreSkipBackward;
-            MoreSkipForward.Text = AppContext.AppLang.MoreSkipForward;
-            MoreShuffle.Text = AppContext.AppLang.MoreShuffle;
-            MoreRepeat.Text = AppContext.AppLang.MoreRepeat;
-            MorePlaybackRate.Text = AppContext.AppLang.MorePlaybackRate;
-            MorePreviousTrack.Text = AppContext.AppLang.MorePreviousTrack;
-            MoreNextTrack.Text = AppContext.AppLang.MoreNextTrack;
-            MoreZoom.Text = AppContext.AppLang.MoreZoom;
-            foreach (var zoomItem in MoreZoom.Items)
-            {
-                if (zoomItem is MenuFlyoutItem { Tag: "no" } zoomAuto)
-                {
-                    zoomAuto.Text = AppContext.AppLang.MoreZoomAuto;
-                    break;
-                }
-            }
-            MoreFullWindow.Text = AppContext.AppLang.MoreFullWindow;
-            MoreFullScreen.Text = AppContext.AppLang.MoreFullScreen;
-            MorePiP.Text = AppContext.AppLang.SettingsPiP;
             ToolTipService.SetToolTip(PiPButton, AppContext.AppLang.SettingsPiP);
             ToolTipService.SetToolTip(PiPPlayPauseButton, AppContext.AppLang.Play);
             ToolTipService.SetToolTip(PiPCloseButton, AppContext.AppLang.Close);
@@ -174,14 +155,15 @@ namespace mpv_winui.Modules.Player
                 hiddenValue?.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
                 StringComparer.OrdinalIgnoreCase);
 
-            SetHidden(hidden.Contains("playback"), PlayPauseButton, SkipBackwardButton, SkipForwardButton, PreviousTrackButton, NextTrackButton, StopButton);
+            // Playback controls are always shown and cannot be hidden.
             SetHidden(hidden.Contains("volume"), VolumeMuteButton, VolumeSliderContainer);
             SetHidden(hidden.Contains("tracks"), TrackSelectionButton);
+            SetHidden(hidden.Contains("random"), ShuffleButton);
+            SetHidden(hidden.Contains("speed"), PlaybackRateButton);
             SetHidden(hidden.Contains("aspect"), ZoomButton);
             SetHidden(hidden.Contains("fullwindow"), FullWindowButton);
             SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
             SetHidden(hidden.Contains("pip"), PiPButton);
-            SetHidden(hidden.Contains("more"), MoreButton);
         }
 
         private string? _lastBarOrder;
@@ -206,18 +188,18 @@ namespace mpv_winui.Modules.Player
             {
                 left =
                 [
-                    TrackSelectionButton, VolumeMuteButton, VolumeSliderContainer,
+                    TrackSelectionButton, ShuffleButton, PlaybackRateButton,
+                    VolumeMuteButton, VolumeSliderContainer,
                 ];
                 middle =
                 [
                     PreviousTrackButton, SkipBackwardButton, RewindButton,
                     PlayPauseButton, FastForwardButton, SkipForwardButton,
-                    NextTrackButton, StopButton, ShuffleButton, RepeatButton,
-                    PlaybackRateButton, ZoomButton,
+                    NextTrackButton, StopButton,
                 ];
                 right =
                 [
-                    MoreButton, PiPButton, FullWindowButton, FullScreenButton,
+                    RepeatButton, ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
                 ];
             }
             else
@@ -233,7 +215,7 @@ namespace mpv_winui.Modules.Player
                 [
                     VolumeMuteButton, VolumeSliderContainer, PlaybackRateButton,
                     TrackSelectionButton, ZoomButton, PiPButton,
-                    FullWindowButton, FullScreenButton, MoreButton,
+                    FullWindowButton, FullScreenButton,
                 ];
             }
 
@@ -436,29 +418,6 @@ namespace mpv_winui.Modules.Player
             _positionUpdateTimer.Tick += OnPositionUpdateTimerTick;
             _positionUpdateTimer.Start();
 
-            MoreSkipBackward.Click += SkipBackwardButton_Click;
-            MoreSkipForward.Click += SkipForwardButton_Click;
-            MoreShuffle.Click += OnShuffleClick;
-            MoreRepeat.Click += OnRepeatClick;
-            foreach (var item in MorePlaybackRate.Items)
-            {
-                if (item is MenuFlyoutItem mfi)
-                {
-                    mfi.Click += PlaybackRateFlyout_MenuFlyoutItem_Click;
-                }
-            }
-            MorePreviousTrack.Click += PreviousTrackButton_Click;
-            MoreNextTrack.Click += NextTrackButton_Click;
-            foreach (var item in MoreZoom.Items)
-            {
-                if (item is MenuFlyoutItem mfi)
-                {
-                    mfi.Click += ZoomSelectionMenu_Click;
-                }
-            }
-            MoreFullWindow.Click += FullWindowButton_Click;
-            MoreFullScreen.Click += OnFullScreenClick;
-
             UpdateToolbarVisibility(ActualWidth);
             //UpdatePlaybackStatusUI(false);
             //UpdatePlayPauseUI(false);
@@ -508,29 +467,6 @@ namespace mpv_winui.Modules.Player
             VolumeSlider.ValueChanged2 -= OnVolumeSliderValueChanged;
 
             SizeChanged -= PlayerControl_SizeChanged;
-            MoreSkipBackward.Click -= SkipBackwardButton_Click;
-            MoreSkipForward.Click -= SkipForwardButton_Click;
-            MoreShuffle.Click -= OnShuffleClick;
-            MoreRepeat.Click -= OnRepeatClick;
-            foreach (var item in MorePlaybackRate.Items)
-            {
-                if (item is MenuFlyoutItem mfi)
-                {
-                    mfi.Click -= PlaybackRateFlyout_MenuFlyoutItem_Click;
-                }
-            }
-            MorePreviousTrack.Click -= PreviousTrackButton_Click;
-            MoreNextTrack.Click -= NextTrackButton_Click;
-            foreach (var item in MoreZoom.Items)
-            {
-                if (item is MenuFlyoutItem mfi)
-                {
-                    mfi.Click -= ZoomSelectionMenu_Click;
-                }
-            }
-            MoreFullWindow.Click -= FullWindowButton_Click;
-            MoreFullScreen.Click -= OnFullScreenClick;
-
             _positionUpdateTimer.Stop();
             _positionUpdateTimer.Tick -= OnPositionUpdateTimerTick;
 
@@ -599,7 +535,7 @@ namespace mpv_winui.Modules.Player
 
             if (sender is MenuFlyoutItem)
             {
-                ZoomSelectionFlyout.ShowAt(MoreButton);
+                ZoomSelectionFlyout.ShowAt(ZoomButton);
             }
         }
 

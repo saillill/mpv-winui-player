@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
@@ -19,65 +20,50 @@ public sealed partial class SettingsPage : Page
     public List<Option> Settings { get; } = [];
     public List<string> Categories { get; } = [];
     public List<string> CategoryOrder { get; } = [];
-    private bool _isDirty;
-    private readonly Dictionary<string, object?> _baseline = new(StringComparer.Ordinal);
     private static string _actionStatus = string.Empty;
 
-    public bool IsDirty => _isDirty;
+    /// <summary>Navigation state used to keep the selected category and scroll position after a reset or language switch.</summary>
+    public sealed record NavigationState(string? Category, double Offset);
 
     public SettingsPage()
     {
         InitializeComponent();
         var options = BuildSettings();
         Settings.AddRange(options);
-        foreach (var option in Settings)
-        {
-            if (option.Getter is not null)
-            {
-                try
-                {
-                    _baseline[option.Key] = option.Getter();
-                }
-                catch (Exception)
-                {
-                }
-            }
-            option.Changed += _ => RefreshDirtyState();
-        }
         Categories.AddRange(CategoryOrder.Where(c => Settings.Any(o => o.Category == c)));
         CategoryList.ItemsSource = Categories;
         CategoryList.SelectedIndex = 0;
-        SaveButton.Content = AppContext.AppLang.Save;
-        ResetButton.Content = AppContext.AppLang.Reset;
+        ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
+        ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
         SearchBox.PlaceholderText = AppContext.AppLang.Search;
         UpdateOptions();
         RefreshWarningsAndEnabled();
     }
 
-    private void OnSaveClick(object sender, RoutedEventArgs e)
-    {
-        Save();
-    }
+    /// <summary>The currently selected category (used before navigating away).</summary>
+    public string? CurrentCategory => CategoryList.SelectedItem as string;
 
-    /// <summary>Re-applies every mpv option from the current settings and clears the dirty flag.</summary>
-    public void Save()
+    /// <summary>The current vertical scroll offset of the options list.</summary>
+    public double CurrentScrollOffset => OptionsControl.GetScrollOffset();
+
+    protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
-        if (App.Window is MainWindow mainWindow)
+        base.OnNavigatedTo(e);
+        if (e.Parameter is not NavigationState state)
         {
-            mainWindow.UpdateCurrentTheme();
+            return;
         }
-        _isDirty = false;
-        RefreshBaseline();
-        SaveStatusText.Text = AppContext.AppLang.SettingsSaved;
-        SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
-        _ = ClearSaveStatusAsync();
-    }
 
-    private async System.Threading.Tasks.Task ClearSaveStatusAsync()
-    {
-        await System.Threading.Tasks.Task.Delay(2000);
-        DispatcherQueue.TryEnqueue(() => SaveStatusText.Text = string.Empty);
+        if (!string.IsNullOrEmpty(state.Category) && Categories.Contains(state.Category))
+        {
+            CategoryList.SelectedItem = state.Category;
+        }
+
+        if (state.Offset > 0)
+        {
+            var offset = state.Offset;
+            DispatcherQueue.TryEnqueue(() => OptionsControl.SetScrollOffset(offset));
+        }
     }
 
     private async void OnResetClick(object sender, RoutedEventArgs e)
@@ -96,7 +82,7 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        var category = CategoryList.SelectedItem as string;
+        var category = CurrentCategory;
         var keys = Settings
             .Where(o => o.Category == category)
             .Select(o => o.Key)
@@ -106,69 +92,59 @@ public sealed partial class SettingsPage : Page
                     or "ActionExportConfig" or "ActionImportConfig"))
             .ToList();
         AppContext.AppSetting.ResetKeys(keys);
+        ApplyAfterReset();
+        ShowResetStatus(AppContext.AppLang.SettingsResetDone);
+        Frame?.Navigate(typeof(SettingsPage), new NavigationState(category, CurrentScrollOffset));
+    }
+
+    private async void OnResetAllClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = AppContext.AppLang.ResetAllSettings,
+            Content = AppContext.AppLang.SettingsResetAllConfirm,
+            XamlRoot = XamlRoot,
+            PrimaryButtonText = AppContext.AppLang.Reset,
+            CloseButtonText = AppContext.AppLang.Cancel,
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        var category = CurrentCategory;
+        var offset = CurrentScrollOffset;
+        AppContext.AppSetting.ResetAll();
+        ResetShortcuts();
+        UnassociateFiles();
+        ApplyAfterReset();
+        ShowResetStatus(AppContext.AppLang.SettingsResetAllDone);
+        Frame?.Navigate(typeof(SettingsPage), new NavigationState(category, offset));
+    }
+
+    private void ApplyAfterReset()
+    {
+        MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
         if (App.Window is MainWindow mainWindow)
         {
             mainWindow.UpdateCurrentTheme();
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), AppContext.AppSetting.BackdropType);
-        }
-        Frame?.Navigate(typeof(SettingsPage));
-    }
-
-    private void RefreshDirtyState()
-    {
-        var dirty = false;
-        foreach (var option in Settings)
-        {
-            if (option.Getter is null || !_baseline.TryGetValue(option.Key, out var baseline))
-            {
-                continue;
-            }
-
-            object? current;
-            try
-            {
-                current = option.Getter();
-            }
-            catch (Exception)
-            {
-                continue;
-            }
-
-            if (!Equals(baseline, current))
-            {
-                dirty = true;
-                break;
-            }
-        }
-
-        _isDirty = dirty;
-        if (dirty)
-        {
-            SaveStatusText.Text = AppContext.AppLang.SettingsUnsaved;
-            SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCautionBrush"];
-        }
-        else
-        {
-            SaveStatusText.Text = string.Empty;
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.EnableDebugLog), AppContext.AppSetting.EnableDebugLog);
         }
     }
 
-    private void RefreshBaseline()
+    private void ShowResetStatus(string text)
     {
-        _baseline.Clear();
-        foreach (var option in Settings)
-        {
-            if (option.Getter is not null)
-            {
-                try
-                {
-                    _baseline[option.Key] = option.Getter();
-                }
-                catch (Exception)
-                {
-                }
-            }
-        }
+        SaveStatusText.Text = text;
+        SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+        _ = ClearResetStatusAsync();
+    }
+
+    private async System.Threading.Tasks.Task ClearResetStatusAsync()
+    {
+        await System.Threading.Tasks.Task.Delay(3000);
+        DispatcherQueue.TryEnqueue(() => SaveStatusText.Text = string.Empty);
     }
 
     private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateOptions();
@@ -485,12 +461,14 @@ public sealed partial class SettingsPage : Page
                     new OptionChoice(AppSettings.ThemeType_Auto, lang.ThemeAuto),
                     new OptionChoice(AppSettings.ThemeType_Light, lang.ThemeLightName),
                     new OptionChoice(AppSettings.ThemeType_Dark, lang.ThemeDarkName),
+                    new OptionChoice(AppSettings.ThemeType_Custom, lang.ThemeCustomName),
                 ],
                 Getter = () => AppContext.AppSetting.ThemeType,
                 Setter = v =>
                 {
                     AppContext.AppSetting.ThemeType = (string)v;
                     UpdateTheme((string)v);
+                    RefreshWarningsAndEnabled();
                 }
             },
 
@@ -3716,7 +3694,7 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.ThemeLuminosity)] = program,
             [nameof(AppSettings.UiFont)] = program,
             [nameof(AppSettings.CurrentLanguage)] = program,
-            [nameof(AppSettings.EnableDebugLog)] = program,
+            [nameof(AppSettings.EnableDebugLog)] = testing,
             // playback
             [nameof(AppSettings.LoopFile)] = playback,
             [nameof(AppSettings.LoopPlaylist)] = playback,
@@ -3961,7 +3939,7 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.TestOsdMessage)] = 7,
             [nameof(AppSettings.TestSignal)] = 8,
             [nameof(AppSettings.CurrentLanguage)] = 9,
-            [nameof(AppSettings.EnableDebugLog)] = 10,
+            [nameof(AppSettings.EnableDebugLog)] = 9,
             [nameof(AppSettings.Ytdl)] = 11,
             [nameof(AppSettings.YtdlRawOptionsAppend)] = 12,
             [nameof(AppSettings.LoopFile)] = 13,
@@ -4241,7 +4219,7 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.ThemeLuminosity)] = sProgramInterface,
             [nameof(AppSettings.UiFont)] = sProgramInterface,
             [nameof(AppSettings.CurrentLanguage)] = sProgramLanguageLog,
-            [nameof(AppSettings.EnableDebugLog)] = sProgramLanguageLog,
+            [nameof(AppSettings.EnableDebugLog)] = sProgramTesting,
             // playback
             [nameof(AppSettings.LoopFile)] = sPlayback,
             [nameof(AppSettings.LoopPlaylist)] = sPlayback,
@@ -4950,13 +4928,23 @@ public sealed partial class SettingsPage : Page
     private void RefreshWarningsAndEnabled()
     {
         var s = AppContext.AppSetting;
+        var changed = false;
         foreach (var option in Settings)
         {
-            option.Warning = ComputeWarning(option, s);
-            option.IsEnabled = ComputeEnabled(option, s);
-            option.IsVisible = ComputeVisible(option, s);
+            var warning = ComputeWarning(option, s);
+            var enabled = ComputeEnabled(option, s);
+            var visible = ComputeVisible(option, s);
+            changed |= option.Warning != warning;
+            changed |= option.IsEnabled != enabled;
+            changed |= option.IsVisible != visible;
+            option.Warning = warning;
+            option.IsEnabled = enabled;
+            option.IsVisible = visible;
         }
-        OptionsControl.Refresh();
+        if (changed)
+        {
+            OptionsControl.Refresh();
+        }
     }
 
     private static string? ComputeWarning(Option option, AppSettings s)
@@ -4982,10 +4970,10 @@ public sealed partial class SettingsPage : Page
     {
         return option.Key switch
         {
-            // Backdrop tint/transparency/brightness only apply to Acrylic.
-            nameof(AppSettings.ThemeAccentColor) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
-            nameof(AppSettings.ThemeOpacity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
-            nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
+            // Backdrop tint/transparency/brightness only apply in Custom theme mode.
+            nameof(AppSettings.ThemeAccentColor) when s.ThemeType != AppSettings.ThemeType_Custom => false,
+            nameof(AppSettings.ThemeOpacity) when s.ThemeType != AppSettings.ThemeType_Custom => false,
+            nameof(AppSettings.ThemeLuminosity) when s.ThemeType != AppSettings.ThemeType_Custom => false,
             // PiP size only applies while the mini player is enabled.
             nameof(AppSettings.WindowPiPSize) when !s.WindowPiP => false,
             // Format-specific screenshot options only appear for the active format.
@@ -5164,14 +5152,14 @@ public sealed partial class SettingsPage : Page
         var hidden = ParseTokenList(hiddenValue).ToHashSet(StringComparer.OrdinalIgnoreCase);
         (string Value, string Label, string Glyph)[] items =
         [
-            ("playback", lang.ControlBarIconPlayback, "\uF5B0"),
             ("volume", lang.ControlBarIconVolume, "\uE767"),
             ("tracks", lang.ControlBarIconTracks, "\uED1F"),
+            ("random", lang.ControlBarIconRandom, "\uE8AC"),
+            ("speed", lang.ControlBarIconSpeed, "\uEC57"),
             ("aspect", lang.ControlBarIconAspect, "\uE799"),
             ("fullwindow", lang.ControlBarIconFullWindow, "\uF16B"),
             ("fullscreen", lang.ControlBarIconFullScreen, "\uE740"),
             ("pip", lang.ControlBarIconPiP, "\uE7C9"),
-            ("more", lang.ControlBarIconMore, "\uE10C"),
         ];
         // A checked box means "show this button"; an unchecked box hides it.
         return items

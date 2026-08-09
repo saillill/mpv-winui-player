@@ -92,6 +92,7 @@ namespace mpv_winui.Modules.Settings
         public const string ThemeType_Auto = "Auto";
         public const string ThemeType_Light = "Light";
         public const string ThemeType_Dark = "Dark";
+        public const string ThemeType_Custom = "Custom";
         public string ThemeType
         {
             get => _dataSetting.GetValue(nameof(ThemeType), ThemeType_Auto);

@@ -52,7 +52,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             ResetButton.Visibility = newValue.KeyCaptureEditable ? Visibility.Visible : Visibility.Collapsed;
             InputColumn.Width = newValue.PickFolder || newValue.PickFile || newValue.OpenFolder
                 ? new GridLength(2, GridUnitType.Star)
-                : new GridLength(newValue.ReadOnly ? 220 : 340);
+                : new GridLength(260);
             InputBox.IsEnabled = newValue.IsEnabled;
             InputBox.IsReadOnly = newValue.ReadOnly;
             BrowseButton.IsEnabled = newValue.IsEnabled;
@@ -62,7 +62,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             {
                 InputBox.Visibility = Visibility.Collapsed;
                 DisplayText.Visibility = Visibility.Visible;
-                DisplayText.MaxWidth = 220;
+                DisplayText.MaxWidth = 260;
                 DisplayText.IsTextSelectionEnabled = false;
                 DisplayText.Text = newValue.Getter is Func<object?> keyFunc && keyFunc() is string keyValue
                     ? keyValue

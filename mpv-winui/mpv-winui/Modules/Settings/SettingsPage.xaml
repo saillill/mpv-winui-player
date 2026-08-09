@@ -79,11 +79,10 @@
                     MinWidth="96"
                     Click="OnResetClick" />
                 <Button
-                    x:Name="SaveButton"
+                    x:Name="ResetAllButton"
                     Grid.Column="2"
                     MinWidth="96"
-                    Click="OnSaveClick"
-                    Style="{StaticResource AccentButtonStyle}" />
+                    Click="OnResetAllClick" />
             </Grid>
         </Border>
     </Grid>

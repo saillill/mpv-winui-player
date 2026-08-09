@@ -261,15 +261,15 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         {
             var left = BuildIconCluster(
                 HorizontalAlignment.Left,
-                "\uED1F", "\uE995");                              // tracks, volume
+                "\uED1F", "\uE8AC", "\uEC57", "\uE995");          // tracks, random, speed, volume
             var center = BuildIconCluster(
                 HorizontalAlignment.Center,
-                "\uF8AC", "\uED3C", "\uE627",                      // previous, skip back, rewind
+                "\uF8AC", "\uE627",                                // previous, skip back
                 "\uF5B0",                                          // play/pause
-                "\uE628", "\uED3D", "\uF8AD");                     // fast forward, skip forward, next
+                "\uE628", "\uF8AD");                               // skip forward, next
             var right = BuildIconCluster(
                 HorizontalAlignment.Right,
-                "\uE10C", "\uE8EE", "\uE7C9",                      // more, loop, picture-in-picture
+                "\uE8EE", "\uE799", "\uE7C9",                      // repeat, aspect, picture-in-picture
                 "\uF16B", "\uE740");                               // full window, full screen
             Grid.SetColumn(left, 0);
             Grid.SetColumn(center, 1);
@@ -282,14 +282,14 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         {
             var left = BuildIconCluster(
                 HorizontalAlignment.Left,
-                "\uF5B0", "\uED3C", "\uED3D",                      // play, skip back, skip forward
+                "\uF5B0", "\uE627", "\uE628",                      // play, skip back, skip forward
                 "\uF8AC", "\uF8AD",                                // previous, next
                 "\uE72A", "\uE8AC", "\uE8EE");                     // stop, shuffle, repeat
             var right = BuildIconCluster(
                 HorizontalAlignment.Right,
                 "\uE995", "\uEC57", "\uED1F",                      // volume, speed, tracks
                 "\uE799", "\uE7C9", "\uF16B",                      // zoom, picture-in-picture, full window
-                "\uE740", "\uE10C");                               // full screen, more
+                "\uE740");                                         // full screen
             Grid.SetColumn(left, 0);
             Grid.SetColumn(right, 2);
             grid.Children.Add(left);

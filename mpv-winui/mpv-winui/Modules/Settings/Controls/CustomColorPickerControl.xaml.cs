@@ -146,6 +146,7 @@ public sealed partial class CustomColorPickerControl : UserControl
     private void ColorField_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         _dragging = true;
+        AttachRootPointerHandlers();
         TryUpdateFromPointer(e);
     }
 
@@ -159,12 +160,13 @@ public sealed partial class CustomColorPickerControl : UserControl
 
     private void ColorField_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        _dragging = false;
+        EndDrag();
     }
 
     private void ColorField_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-        _dragging = false;
+        // Keep dragging while the button is held; root-level handlers follow
+        // the pointer outside the color field and stop on release.
     }
 
     /// <summary>
@@ -180,8 +182,75 @@ public sealed partial class CustomColorPickerControl : UserControl
         }
         catch
         {
-            _dragging = false;
+            EndDrag();
         }
+    }
+
+    private UIElement? _pointerRoot;
+
+    private void AttachRootPointerHandlers()
+    {
+        if (_pointerRoot is not null)
+        {
+            return;
+        }
+
+        _pointerRoot = XamlRoot?.Content as UIElement;
+        if (_pointerRoot is null)
+        {
+            return;
+        }
+
+        _pointerRoot.AddHandler(UIElement.PointerMovedEvent, new PointerEventHandler(OnRootPointerMoved), true);
+        _pointerRoot.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(OnRootPointerReleased), true);
+        _pointerRoot.AddHandler(UIElement.PointerCanceledEvent, new PointerEventHandler(OnRootPointerReleased), true);
+        _pointerRoot.AddHandler(UIElement.PointerCaptureLostEvent, new PointerEventHandler(OnRootPointerReleased), true);
+        Unloaded += OnPickerUnloaded;
+    }
+
+    private void OnRootPointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if (_dragging)
+        {
+            TryUpdateFromPointer(e);
+        }
+    }
+
+    private void OnRootPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        EndDrag();
+    }
+
+    private void EndDrag()
+    {
+        if (!_dragging)
+        {
+            return;
+        }
+
+        _dragging = false;
+        DetachRootPointerHandlers();
+    }
+
+    private void DetachRootPointerHandlers()
+    {
+        if (_pointerRoot is null)
+        {
+            return;
+        }
+
+        _pointerRoot.RemoveHandler(UIElement.PointerMovedEvent, new PointerEventHandler(OnRootPointerMoved));
+        _pointerRoot.RemoveHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(OnRootPointerReleased));
+        _pointerRoot.RemoveHandler(UIElement.PointerCanceledEvent, new PointerEventHandler(OnRootPointerReleased));
+        _pointerRoot.RemoveHandler(UIElement.PointerCaptureLostEvent, new PointerEventHandler(OnRootPointerReleased));
+        Unloaded -= OnPickerUnloaded;
+        _pointerRoot = null;
+    }
+
+    private void OnPickerUnloaded(object sender, RoutedEventArgs e)
+    {
+        _dragging = false;
+        DetachRootPointerHandlers();
     }
 
     private void UpdateFromPointer(PointerRoutedEventArgs e)

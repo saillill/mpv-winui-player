@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Windows.UI;
 
 namespace mpv_winui.Modules.Settings.Controls;
@@ -101,34 +102,55 @@ public sealed partial class OptionColorControl : OptionControlBase
         grid.RowDefinitions.Clear();
         for (var c = 0; c < columns; c++)
         {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
         }
 
         var rowCount = (colors.Count + columns - 1) / columns;
         for (var r = 0; r < rowCount; r++)
         {
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(40) });
         }
 
         for (var i = 0; i < colors.Count; i++)
         {
             var hex = colors[i];
+            var cell = new Grid();
             var button = new Button
             {
+                Width = 32,
                 Height = 32,
+                MinWidth = 0,
+                MinHeight = 0,
+                Margin = new Thickness(4),
                 Padding = new Thickness(0),
                 CornerRadius = new CornerRadius(4),
-                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
                 Background = new SolidColorBrush(TryParse(hex) ?? Colors.Transparent),
                 BorderThickness = new Thickness(1),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(64, 0, 0, 0)),
                 Tag = hex,
             };
+            var overlay = new Border
+            {
+                Width = 32,
+                Height = 32,
+                Margin = new Thickness(4),
+                CornerRadius = new CornerRadius(4),
+                Background = new SolidColorBrush(Color.FromArgb(96, 0, 0, 0)),
+                IsHitTestVisible = false,
+                Visibility = Visibility.Collapsed,
+                Tag = hex,
+            };
             button.Click += (_, _) => ApplyColor(hex);
-            Grid.SetRow(button, i / columns);
-            Grid.SetColumn(button, i % columns);
-            grid.Children.Add(button);
+            cell.Children.Add(button);
+            cell.Children.Add(overlay);
+            Grid.SetRow(cell, i / columns);
+            Grid.SetColumn(cell, i % columns);
+            grid.Children.Add(cell);
         }
+
+        HighlightSelected();
     }
 
     private void ApplyColor(string hex)
@@ -142,6 +164,30 @@ public sealed partial class OptionColorControl : OptionControlBase
         option.NotifyChanged();
         ColorSwatch.Background = new SolidColorBrush(TryParse(hex) ?? Colors.Transparent);
         SaveRecent(hex);
+        BuildRecentGrid();
+        BuildWindowsGrid();
+    }
+
+    private void HighlightSelected()
+    {
+        var selected = Setting?.Getter?.Invoke() as string ?? string.Empty;
+        foreach (var cell in RecentGrid.Children.Concat(WindowsGrid.Children))
+        {
+            if (cell is not Grid grid)
+            {
+                continue;
+            }
+
+            foreach (var child in grid.Children)
+            {
+                if (child is Border { Tag: string hex } overlay)
+                {
+                    overlay.Visibility = string.Equals(hex, selected, StringComparison.OrdinalIgnoreCase)
+                        ? Visibility.Visible
+                        : Visibility.Collapsed;
+                }
+            }
+        }
     }
 
     private async void OnCustomClick(object sender, RoutedEventArgs e)

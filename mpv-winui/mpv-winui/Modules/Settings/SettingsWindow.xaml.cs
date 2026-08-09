@@ -70,35 +70,9 @@ public sealed partial class SettingsWindow : Window
         _styleManager?.UpdateUiFont();
     }
 
-    private async void AppWindow_Closing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
+    // Settings are applied immediately, so closing never needs a save prompt.
+    private void AppWindow_Closing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
     {
-        if (PageFrame.Content is not SettingsPage page || !page.IsDirty)
-        {
-            return;
-        }
-
-        args.Cancel = true;
-        var dialog = new ContentDialog
-        {
-            Title = AppContext.AppLang.SettingsUnsaved,
-            Content = AppContext.AppLang.SettingsUnsavedConfirm,
-            XamlRoot = RootGrid.XamlRoot,
-            PrimaryButtonText = AppContext.AppLang.Save,
-            SecondaryButtonText = AppContext.AppLang.Discard,
-            CloseButtonText = AppContext.AppLang.Cancel,
-            DefaultButton = ContentDialogButton.Primary,
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
-        {
-            page.Save();
-            Close();
-        }
-        else if (result == ContentDialogResult.Secondary)
-        {
-            Close();
-        }
     }
 
     private void SettingsWindow_LanguageChanged()
@@ -106,7 +80,10 @@ public sealed partial class SettingsWindow : Window
         DispatcherQueue.TryEnqueue(() =>
         {
             SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
-            PageFrame.Navigate(typeof(SettingsPage));
+            var state = PageFrame.Content is SettingsPage page
+                ? new SettingsPage.NavigationState(page.CurrentCategory, page.CurrentScrollOffset)
+                : null;
+            PageFrame.Navigate(typeof(SettingsPage), state);
         });
     }
 }
