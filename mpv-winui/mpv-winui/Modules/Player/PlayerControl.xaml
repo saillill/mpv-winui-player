@@ -333,7 +333,7 @@
                         Visibility="Visible">
 
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xEB90;" />
+                            <FontIcon Glyph="&#xEC57;" />
                         </AppBarButton.Icon>
 
                         <AppBarButton.Flyout>

@@ -263,7 +263,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         {
             var left = BuildIconCluster(
                 HorizontalAlignment.Left,
-                "\uED1F", ControlBarIcons.Shuffle, "\uE8EE", "\uEB90", "\uE995"); // tracks, random, repeat, speed, volume
+                "\uED1F", ControlBarIcons.Shuffle, "\uE8EE", "\uEC57", "\uE995"); // tracks, random, repeat, speed, volume
             var center = BuildIconCluster(
                 HorizontalAlignment.Center,
                 "\uF8AC", "\uE627",                                // previous, skip back
@@ -289,7 +289,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 "\uE72A", ControlBarIcons.Shuffle, "\uE8EE");      // stop, shuffle, repeat
             var right = BuildIconCluster(
                 HorizontalAlignment.Right,
-                "\uE995", "\uEB90", "\uED1F",                      // volume, speed, tracks
+                "\uE995", "\uEC57", "\uED1F",                      // volume, speed, tracks
                 "\uE799", "\uE7C9", "\uF16B",                      // zoom, picture-in-picture, full window
                 "\uE740");                                         // full screen
             Grid.SetColumn(left, 0);
@@ -319,10 +319,18 @@ public sealed partial class OptionLayoutControl : OptionControlBase
     }
 
     /// <summary>Renders a FontIcon glyph, or a PathIcon when the string is path data.</summary>
-    private static IconElement CreateIcon(string value)
+    private static UIElement CreateIcon(string value)
     {
         return value.StartsWith("F1 ", StringComparison.Ordinal)
-            ? new PathIcon { Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), value), Width = 14, Height = 14 }
+            ? new Viewbox
+            {
+                Width = 14,
+                Height = 14,
+                Child = new PathIcon
+                {
+                    Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), value),
+                },
+            }
             : new FontIcon { Glyph = value, FontSize = 14 };
     }
 }

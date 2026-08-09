@@ -117,11 +117,14 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             {
                 var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
                 panel.Children.Add(item.Glyph.StartsWith("F1 ", StringComparison.Ordinal)
-                    ? new PathIcon
+                    ? new Viewbox
                     {
-                        Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), item.Glyph),
                         Width = 14,
                         Height = 14,
+                        Child = new PathIcon
+                        {
+                            Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), item.Glyph),
+                        },
                     }
                     : new FontIcon { Glyph = item.Glyph, FontSize = 14 });
                 panel.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });

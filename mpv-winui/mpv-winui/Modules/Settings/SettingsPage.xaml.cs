@@ -5159,7 +5159,7 @@ public sealed partial class SettingsPage : Page
             ("volume", lang.ControlBarIconVolume, "\uE767"),
             ("tracks", lang.ControlBarIconTracks, "\uED1F"),
             ("random", lang.ControlBarIconRandom, ControlBarIcons.Shuffle),
-            ("speed", lang.ControlBarIconSpeed, "\uEB90"),
+            ("speed", lang.ControlBarIconSpeed, "\uEC57"),
             ("aspect", lang.ControlBarIconAspect, "\uE799"),
             ("fullwindow", lang.ControlBarIconFullWindow, "\uF16B"),
             ("fullscreen", lang.ControlBarIconFullScreen, "\uE740"),
