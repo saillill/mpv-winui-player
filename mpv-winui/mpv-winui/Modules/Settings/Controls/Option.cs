@@ -30,18 +30,26 @@ public enum OptionActionKind
 /// <summary>A checkbox entry used by <see cref="OptionType.CheckList"/> options.</summary>
 public sealed class OptionCheckItem
 {
-    public OptionCheckItem(string value, string label, bool isChecked, string? glyph = null)
+    public OptionCheckItem(string value, string label, bool isChecked, string? glyph = null, string? group = null, string? target = null)
     {
         Value = value;
         Label = label;
         IsChecked = isChecked;
         Glyph = glyph;
+        Group = group;
+        Target = target;
     }
 
     public string Value { get; }
     public string Label { get; }
     public bool IsChecked { get; set; }
     public string? Glyph { get; }
+
+    /// <summary>Optional localized caption shown above the first item of a group.</summary>
+    public string? Group { get; }
+
+    /// <summary>Optional target key the item writes to (e.g. a per-style setting).</summary>
+    public string? Target { get; set; }
 }
 
 /// <summary>A selectable layout preview shown by <see cref="OptionType.Layout"/> options.</summary>
@@ -215,14 +223,21 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Rebuilds checklist entries for an explicitly named variant
+    /// (layout cards pass the selected style so each card edits its own data).</summary>
+    public Func<string, IList<OptionCheckItem>>? CheckItemsProviderForStyle
+    {
+        get; set;
+    }
+
     /// <summary>Layout presets for <see cref="OptionType.Layout"/> options.</summary>
     public IList<OptionLayoutChoice>? LayoutChoices
     {
         get; set;
     }
 
-    /// <summary>Raised when a checklist entry is toggled (option, value, checked).</summary>
-    public Action<Option, string, bool>? CheckChanged
+    /// <summary>Raised when a checklist entry is toggled (option, value, checked, target key).</summary>
+    public Action<Option, string, bool, string?>? CheckChanged
     {
         get; set;
     }

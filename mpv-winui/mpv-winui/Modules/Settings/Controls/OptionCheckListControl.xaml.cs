@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Collections.Generic;
 
 namespace mpv_winui.Modules.Settings.Controls;
@@ -40,9 +41,30 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             return;
         }
 
+        // Clicks inside the expanded panel (checkboxes, Apply) must not
+        // collapse the card again.
+        if (e.OriginalSource is Microsoft.UI.Xaml.DependencyObject source
+            && IsDescendantOf(source, ExpandedPanel))
+        {
+            return;
+        }
+
         _expanded = !_expanded;
         ExpandedPanel.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         ExpandIcon.Glyph = _expanded ? "\uE70E" : "\uE70D";
+    }
+
+    private static bool IsDescendantOf(Microsoft.UI.Xaml.DependencyObject? node, Microsoft.UI.Xaml.DependencyObject? ancestor)
+    {
+        while (node is not null)
+        {
+            if (ReferenceEquals(node, ancestor))
+            {
+                return true;
+            }
+            node = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(node);
+        }
+        return false;
     }
 
     private void BuildCheckList()
@@ -57,8 +79,24 @@ public sealed partial class OptionCheckListControl : OptionControlBase
         }
 
         var boxes = new List<CheckBox>();
+        string? lastGroup = null;
         foreach (var item in items)
         {
+            if (!string.Equals(item.Group, lastGroup, StringComparison.Ordinal))
+            {
+                lastGroup = item.Group;
+                if (!string.IsNullOrEmpty(item.Group))
+                {
+                    CheckItemsControl.Items.Add(new TextBlock
+                    {
+                        Text = item.Group,
+                        Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                        Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                        Margin = new Thickness(0, 10, 0, 0),
+                    });
+                }
+            }
+
             var box = new CheckBox
             {
                 IsChecked = item.IsChecked,
@@ -92,7 +130,7 @@ public sealed partial class OptionCheckListControl : OptionControlBase
         if (sender is CheckBox box && Setting is { } option && box.Tag is OptionCheckItem item)
         {
             item.IsChecked = box.IsChecked == true;
-            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked);
+            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked, item.Target);
         }
     }
 

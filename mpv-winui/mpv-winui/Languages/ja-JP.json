@@ -757,5 +757,7 @@
   "ThemeColorLightness": "明度",
   "OptionValueControlBarClassic": "オリジナル",
   "OptionValueControlBarModernX": "中央",
-  "OptionValueControlBarCompact": "コンパクト"
+  "OptionValueControlBarCompact": "コンパクト",
+  "FileAssociationGroupVideo": "動画形式",
+  "FileAssociationGroupAudio": "音声形式"
 }

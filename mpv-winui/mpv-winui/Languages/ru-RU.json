@@ -757,5 +757,7 @@
   "ThemeColorLightness": "Яркость",
   "OptionValueControlBarClassic": "Оригинал",
   "OptionValueControlBarModernX": "По центру",
-  "OptionValueControlBarCompact": "Компактный"
+  "OptionValueControlBarCompact": "Компактный",
+  "FileAssociationGroupVideo": "Видеоформаты",
+  "FileAssociationGroupAudio": "Аудиоформаты"
 }

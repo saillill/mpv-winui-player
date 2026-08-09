@@ -119,6 +119,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsAssociateFiles { get; set; } = "Associate media files";
         public string SettingsHelpAssociateFiles { get; set; } = "Register common video and audio extensions to open with this player.";
         public string SettingsHelpFileAssociations { get; set; } = "Choose which formats should open with this player. Changes apply immediately.";
+        public string FileAssociationGroupVideo { get; set; } = "Video formats";
+        public string FileAssociationGroupAudio { get; set; } = "Audio formats";
         public string SettingsUnassociateFiles { get; set; } = "Remove file associations";
         public string SettingsHelpUnassociateFiles { get; set; } = "Remove the media file associations registered by this player.";
         public string SettingsAssociateDone { get; set; } = "File associations created.";

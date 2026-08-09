@@ -757,5 +757,7 @@
   "ThemeColorLightness": "明度",
   "OptionValueControlBarClassic": "原版",
   "OptionValueControlBarModernX": "居中",
-  "OptionValueControlBarCompact": "简洁"
+  "OptionValueControlBarCompact": "简洁",
+  "FileAssociationGroupVideo": "视频格式",
+  "FileAssociationGroupAudio": "音频格式"
 }

@@ -757,5 +757,7 @@
   "ThemeColorLightness": "명도",
   "OptionValueControlBarClassic": "원본",
   "OptionValueControlBarModernX": "가운데",
-  "OptionValueControlBarCompact": "간결"
+  "OptionValueControlBarCompact": "간결",
+  "FileAssociationGroupVideo": "비디오 형식",
+  "FileAssociationGroupAudio": "오디오 형식"
 }

@@ -757,5 +757,7 @@
   "ThemeColorLightness": "Helligkeit",
   "OptionValueControlBarClassic": "Original",
   "OptionValueControlBarModernX": "Zentriert",
-  "OptionValueControlBarCompact": "Kompakt"
+  "OptionValueControlBarCompact": "Kompakt",
+  "FileAssociationGroupVideo": "Videoformate",
+  "FileAssociationGroupAudio": "Audioformate"
 }

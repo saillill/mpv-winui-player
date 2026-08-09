@@ -85,9 +85,9 @@ public sealed partial class CustomColorPickerControl : UserControl
             return;
         }
 
-        _hue = HueSlider.Value;
-        _saturation = SaturationSlider.Value / 100.0;
-        _value = LightnessSlider.Value / 100.0;
+        _hue = Normalize(HueSlider.Value, 0, 360);
+        _saturation = Normalize(SaturationSlider.Value, 0, 100) / 100.0;
+        _value = Normalize(LightnessSlider.Value, 0, 100) / 100.0;
         _updating = true;
         try
         {
@@ -163,9 +163,15 @@ public sealed partial class CustomColorPickerControl : UserControl
 
     private void UpdateFromPointer(PointerRoutedEventArgs e)
     {
+        if (!SafeSize(ColorField.ActualWidth, out var width)
+            || !SafeSize(ColorField.ActualHeight, out var height))
+        {
+            return;
+        }
+
         var point = e.GetCurrentPoint(ColorField);
-        _saturation = Math.Clamp(point.Position.X / ColorField.ActualWidth, 0, 1);
-        _value = 1 - Math.Clamp(point.Position.Y / ColorField.ActualHeight, 0, 1);
+        _saturation = Math.Clamp(point.Position.X / width, 0, 1);
+        _value = 1 - Math.Clamp(point.Position.Y / height, 0, 1);
         _updating = true;
         try
         {
@@ -187,12 +193,32 @@ public sealed partial class CustomColorPickerControl : UserControl
     private void UpdateField()
     {
         HueBase.Background = new SolidColorBrush(HsvToRgb(_hue, 1, 1));
+        SafeSize(ColorField.ActualWidth, out var width);
+        SafeSize(ColorField.ActualHeight, out var height);
         FieldThumb.Margin = new Thickness(
-            _saturation * Math.Max(0, ColorField.ActualWidth - 14),
-            (1 - _value) * Math.Max(0, ColorField.ActualHeight - 14),
+            _saturation * Math.Max(0, width - 14),
+            (1 - _value) * Math.Max(0, height - 14),
             0,
             0);
         PreviewBox.Background = new SolidColorBrush(HsvToRgb(_hue, _saturation, _value));
+    }
+
+    /// <summary>Clamps a value into [min, max], mapping NaN/Infinity to the midpoint.</summary>
+    private static double Normalize(double value, double min, double max)
+    {
+        if (double.IsNaN(value) || double.IsInfinity(value))
+        {
+            return (min + max) / 2.0;
+        }
+        return Math.Clamp(value, min, max);
+    }
+
+    /// <summary>Treats NaN/Infinity/zero layout sizes as 1 so no division or
+    /// margin ever receives a non-finite value.</summary>
+    private static bool SafeSize(double value, out double size)
+    {
+        size = double.IsNaN(value) || double.IsInfinity(value) || value <= 0 ? 1 : value;
+        return true;
     }
 
     private void OnDoneClick(object sender, RoutedEventArgs e)

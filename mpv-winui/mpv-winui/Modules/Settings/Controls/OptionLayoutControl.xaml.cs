@@ -99,9 +99,30 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         panel.Children.Add(expandedPanel);
 
         card.Child = panel;
-        card.Tapped += (_, _) => ToggleExpand(card, expandIcon, expandedPanel, choice.Value);
+        card.Tapped += (_, e) =>
+        {
+            // Toggling an icon checkbox must not collapse the card again.
+            if (e.OriginalSource is DependencyObject source && IsDescendantOf(source, expandedPanel))
+            {
+                return;
+            }
+            ToggleExpand(card, expandIcon, expandedPanel, choice.Value);
+        };
         UpdateCardBorder(card);
         return card;
+    }
+
+    private static bool IsDescendantOf(DependencyObject? node, DependencyObject? ancestor)
+    {
+        while (node is not null)
+        {
+            if (ReferenceEquals(node, ancestor))
+            {
+                return true;
+            }
+            node = VisualTreeHelper.GetParent(node);
+        }
+        return false;
     }
 
     private void ToggleExpand(Border card, FontIcon icon, StackPanel panel, string value)
@@ -112,15 +133,16 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         panel.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         if (expand)
         {
-            BuildIconChecklist(panel);
+            BuildIconChecklist(panel, value);
         }
     }
 
     /// <summary>Rebuilds the expanded icon checklist for the current layout style.</summary>
-    private void BuildIconChecklist(StackPanel panel)
+    private void BuildIconChecklist(StackPanel panel, string style)
     {
         panel.Children.Clear();
-        var items = Setting?.CheckItemsProvider?.Invoke()
+        var items = Setting?.CheckItemsProviderForStyle?.Invoke(style)
+            ?? Setting?.CheckItemsProvider?.Invoke()
             ?? Setting?.CheckItems
             ?? [];
         foreach (var item in items)
@@ -153,7 +175,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         if (sender is CheckBox box && Setting is { } option && box.Tag is OptionCheckItem item)
         {
             item.IsChecked = box.IsChecked == true;
-            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked);
+            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked, item.Target);
         }
     }
 
@@ -198,7 +220,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                     && panel.Children.Count >= 3
                     && panel.Children[2] is StackPanel expanded)
                 {
-                    BuildIconChecklist(expanded);
+                    BuildIconChecklist(expanded, value);
                     break;
                 }
             }
@@ -222,39 +244,75 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             CornerRadius = new CornerRadius(4),
             Padding = new Thickness(6, 0, 6, 0),
         };
-        // 原版 follows the upstream control bar order; 居中 follows the
-        // ModernX layout (tracks/volume left, transport centered, extras right).
-        var icons = value == "modernx"
-            ? new[]
-            {
-                "\uED1F", "\uE995",              // tracks, volume
-                "\uF8AC", "\uED3C", "\uE627",    // previous, skip back, rewind
-                "\uF5B0",                        // play/pause
-                "\uE628", "\uED3D", "\uF8AD",    // fast forward, skip forward, next
-                "\uE10C", "\uE8EE", "\uE7C9",    // more, loop, picture-in-picture
-                "\uF16B", "\uE740",              // full window, full screen
-            }
-            : new[]
-            {
-                "\uF5B0", "\uED3C", "\uED3D",    // play, skip back, skip forward
-                "\uF8AC", "\uF8AD",              // previous, next
-                "\uE8AC", "\uE8EE",              // shuffle, repeat
-                "\uE995", "\uEC57", "\uED1F",    // volume, speed, tracks
-                "\uE799", "\uE7C9", "\uF16B",    // zoom, picture-in-picture, full window
-                "\uE740", "\uE10C",              // full screen, more
-            };
+
+        // 原版 keeps the upstream two-sided layout (transport on the left,
+        // volume/rate/tracks/zoom/pip/window controls on the right). 居中
+        // follows ModernX: tracks and volume on the left, the transport
+        // cluster centered, window controls on the right.
+        var grid = new Grid
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+        if (value == "modernx")
+        {
+            var left = BuildIconCluster(
+                HorizontalAlignment.Left,
+                "\uED1F", "\uE995");                              // tracks, volume
+            var center = BuildIconCluster(
+                HorizontalAlignment.Center,
+                "\uF8AC", "\uED3C", "\uE627",                      // previous, skip back, rewind
+                "\uF5B0",                                          // play/pause
+                "\uE628", "\uED3D", "\uF8AD");                     // fast forward, skip forward, next
+            var right = BuildIconCluster(
+                HorizontalAlignment.Right,
+                "\uE10C", "\uE8EE", "\uE7C9",                      // more, loop, picture-in-picture
+                "\uF16B", "\uE740");                               // full window, full screen
+            Grid.SetColumn(left, 0);
+            Grid.SetColumn(center, 1);
+            Grid.SetColumn(right, 2);
+            grid.Children.Add(left);
+            grid.Children.Add(center);
+            grid.Children.Add(right);
+        }
+        else
+        {
+            var left = BuildIconCluster(
+                HorizontalAlignment.Left,
+                "\uF5B0", "\uED3C", "\uED3D",                      // play, skip back, skip forward
+                "\uF8AC", "\uF8AD",                                // previous, next
+                "\uE72A", "\uE8AC", "\uE8EE");                     // stop, shuffle, repeat
+            var right = BuildIconCluster(
+                HorizontalAlignment.Right,
+                "\uE995", "\uEC57", "\uED1F",                      // volume, speed, tracks
+                "\uE799", "\uE7C9", "\uF16B",                      // zoom, picture-in-picture, full window
+                "\uE740", "\uE10C");                               // full screen, more
+            Grid.SetColumn(left, 0);
+            Grid.SetColumn(right, 2);
+            grid.Children.Add(left);
+            grid.Children.Add(right);
+        }
+
+        bar.Child = grid;
+        return bar;
+    }
+
+    private static StackPanel BuildIconCluster(HorizontalAlignment alignment, params string[] glyphs)
+    {
         var row = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             Spacing = 8,
-            HorizontalAlignment = value == "modernx" ? HorizontalAlignment.Center : HorizontalAlignment.Left,
+            HorizontalAlignment = alignment,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        foreach (var glyph in icons)
+        foreach (var glyph in glyphs)
         {
             row.Children.Add(new FontIcon { Glyph = glyph, FontSize = 14 });
         }
-        bar.Child = row;
-        return bar;
+        return row;
     }
 }

@@ -599,8 +599,11 @@ public sealed partial class SettingsPage : Page
                     AppContext.AppSetting.ControlBarLayout = (string)v!;
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarLayout), v);
                 },
-                CheckItemsProvider = () => BuildControlBarIconItems(),
-                CheckChanged = (_, value, isChecked) => ApplyControlBarIcon(value, isChecked),
+                CheckItemsProviderForStyle = style => BuildControlBarIconItems(
+                    style == "modernx"
+                        ? nameof(AppSettings.ControlBarHiddenIconsModernX)
+                        : nameof(AppSettings.ControlBarHiddenIconsClassic)),
+                CheckChanged = (_, value, isChecked, target) => ApplyControlBarIcon(value, isChecked, target),
             },
 
             new Option
@@ -687,7 +690,7 @@ public sealed partial class SettingsPage : Page
                 CheckCollapseLabel = lang.Collapse,
                 CheckApplyLabel = lang.Apply,
                 CheckItems = BuildAssociationItems(),
-                CheckChanged = (_, value, isChecked) => UpdateAssociationSelection(value, isChecked),
+                CheckChanged = (_, value, isChecked, _) => UpdateAssociationSelection(value, isChecked),
                 CheckApplyHandler = _ => ApplyAssociations(),
             },
 
@@ -5041,12 +5044,14 @@ public sealed partial class SettingsPage : Page
     private static List<OptionCheckItem> BuildAssociationItems()
     {
         var selected = ParseTokenList(AppContext.AppSetting.FileAssociationExts);
+        var lang = AppContext.AppLang;
         return AssociationExtensions
             .Select(ext => new OptionCheckItem(
                 ext,
                 ext,
                 selected.Contains(ext, StringComparer.OrdinalIgnoreCase),
-                VideoExtensions.Contains(ext) ? "\uE714" : "\uE8D6"))
+                VideoExtensions.Contains(ext) ? "\uE714" : "\uE8D6",
+                VideoExtensions.Contains(ext) ? lang.FileAssociationGroupVideo : lang.FileAssociationGroupAudio))
             .ToList();
     }
 
@@ -5150,10 +5155,13 @@ public sealed partial class SettingsPage : Page
             .Where(x => x.Length > 0);
     }
 
-    private static List<OptionCheckItem> BuildControlBarIconItems()
+    private static List<OptionCheckItem> BuildControlBarIconItems(string settingKey)
     {
         var lang = AppContext.AppLang;
-        var hidden = ParseTokenList(CurrentControlBarHiddenIcons()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var hiddenValue = settingKey == nameof(AppSettings.ControlBarHiddenIconsModernX)
+            ? AppContext.AppSetting.ControlBarHiddenIconsModernX
+            : AppContext.AppSetting.ControlBarHiddenIconsClassic;
+        var hidden = ParseTokenList(hiddenValue).ToHashSet(StringComparer.OrdinalIgnoreCase);
         (string Value, string Label, string Glyph)[] items =
         [
             ("playback", lang.ControlBarIconPlayback, "\uF5B0"),
@@ -5165,45 +5173,44 @@ public sealed partial class SettingsPage : Page
             ("pip", lang.ControlBarIconPiP, "\uE7C9"),
             ("more", lang.ControlBarIconMore, "\uE10C"),
         ];
+        // A checked box means "show this button"; an unchecked box hides it.
         return items
-            .Select(x => new OptionCheckItem(x.Value, x.Label, hidden.Contains(x.Value), x.Item3))
+            .Select(x => new OptionCheckItem(x.Value, x.Label, !hidden.Contains(x.Value), x.Item3, target: settingKey))
             .ToList();
     }
 
-    private static void ApplyControlBarIcon(string value, bool isChecked)
+    private static void ApplyControlBarIcon(string value, bool isChecked, string? targetKey)
     {
-        var list = ParseTokenList(CurrentControlBarHiddenIcons()).ToList();
+        var key = targetKey ?? (NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout) == "modernx"
+            ? nameof(AppSettings.ControlBarHiddenIconsModernX)
+            : nameof(AppSettings.ControlBarHiddenIconsClassic));
+        var current = key == nameof(AppSettings.ControlBarHiddenIconsModernX)
+            ? AppContext.AppSetting.ControlBarHiddenIconsModernX
+            : AppContext.AppSetting.ControlBarHiddenIconsClassic;
+        var list = ParseTokenList(current).ToList();
         if (isChecked)
+        {
+            list.RemoveAll(x => string.Equals(x, value, StringComparison.OrdinalIgnoreCase));
+        }
+        else
         {
             if (!list.Contains(value, StringComparer.OrdinalIgnoreCase))
             {
                 list.Add(value);
             }
         }
-        else
-        {
-            list.RemoveAll(x => string.Equals(x, value, StringComparison.OrdinalIgnoreCase));
-        }
 
         var joined = string.Join(',', list);
-        if (NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout) == "modernx")
+        if (key == nameof(AppSettings.ControlBarHiddenIconsModernX))
         {
             AppContext.AppSetting.ControlBarHiddenIconsModernX = joined;
-            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarHiddenIconsModernX), joined);
+            AppContext.NotifySettingChanged(key, joined);
         }
         else
         {
             AppContext.AppSetting.ControlBarHiddenIconsClassic = joined;
-            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarHiddenIconsClassic), joined);
+            AppContext.NotifySettingChanged(key, joined);
         }
-    }
-
-    /// <summary>Hidden-icon value that belongs to the currently selected bar style.</summary>
-    private static string CurrentControlBarHiddenIcons()
-    {
-        return NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout) == "modernx"
-            ? AppContext.AppSetting.ControlBarHiddenIconsModernX
-            : AppContext.AppSetting.ControlBarHiddenIconsClassic;
     }
 
     private static string NormalizeControlBarLayout(string? value)
