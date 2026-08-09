@@ -8,4 +8,5 @@ public enum OptionType
     StringList,
     Boolean,
     Color,
+    Action,
 }

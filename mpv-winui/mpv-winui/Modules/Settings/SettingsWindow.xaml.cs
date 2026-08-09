@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using mpv_winui.Modules.Common.View;
 using mpv_winui;
+using System;
 using Windows.Graphics;
 
 namespace mpv_winui.Modules.Settings;
@@ -19,6 +21,7 @@ public sealed partial class SettingsWindow : Window
         SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
 
         Closed += SettingsWindow_Closed;
+        AppWindow.Closing += AppWindow_Closing;
         AppContext.LanguageChanged += SettingsWindow_LanguageChanged;
 
         AppWindow.Title = "Settings";
@@ -36,6 +39,7 @@ public sealed partial class SettingsWindow : Window
             Instance = null;
         }
         Closed -= SettingsWindow_Closed;
+        AppWindow.Closing -= AppWindow_Closing;
         AppContext.LanguageChanged -= SettingsWindow_LanguageChanged;
         _styleManager?.Dispose();
         _styleManager = null;
@@ -64,6 +68,37 @@ public sealed partial class SettingsWindow : Window
     public void UpdateUiFont()
     {
         _styleManager?.UpdateUiFont();
+    }
+
+    private async void AppWindow_Closing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
+    {
+        if (PageFrame.Content is not SettingsPage page || !page.IsDirty)
+        {
+            return;
+        }
+
+        args.Cancel = true;
+        var dialog = new ContentDialog
+        {
+            Title = AppContext.AppLang.SettingsUnsaved,
+            Content = AppContext.AppLang.SettingsUnsavedConfirm,
+            XamlRoot = RootGrid.XamlRoot,
+            PrimaryButtonText = AppContext.AppLang.Save,
+            SecondaryButtonText = AppContext.AppLang.Discard,
+            CloseButtonText = AppContext.AppLang.Cancel,
+            DefaultButton = ContentDialogButton.Primary,
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            page.Save();
+            Close();
+        }
+        else if (result == ContentDialogResult.Secondary)
+        {
+            Close();
+        }
     }
 
     private void SettingsWindow_LanguageChanged()

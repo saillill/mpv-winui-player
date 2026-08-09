@@ -552,6 +552,8 @@ namespace mpv_winui.Modules.Player
             {
                 _isBuffering = false;
                 UpdatePlaybackStatusUI(true);
+                TimeElapsedElement.Text = FormatTime(sender?.Position ?? 0);
+                TimeRemainingElement.Text = FormatTime(sender?.Duration ?? 0);
             });
         }
 
@@ -743,6 +745,8 @@ namespace mpv_winui.Modules.Player
             if (!_isInScrubMode)
             {
                 MediaPlayer?.Position = e.NewValue;
+                TimeElapsedElement.Text = FormatTime(e.NewValue);
+                TimeRemainingElement.Text = FormatTime(MediaPlayer?.Duration ?? 0);
                 if (AppContext.AppSetting.EnableVideoPreview && ProgressSlider.Maximum > 0)
                 {
                     UpdatePreview(e.NewValue / ProgressSlider.Maximum);
@@ -813,6 +817,8 @@ namespace mpv_winui.Modules.Player
         {
             if (!_controlPanelIsVisible)
             {
+                ControlPanelGrid.Opacity = 1;
+                ControlPanelGrid.Visibility = Visibility.Visible;
                 VisualStateManager.GoToState(this, "ControlPanelFadeIn", true);
                 _controlPanelIsVisible = true;
             }
@@ -820,7 +826,7 @@ namespace mpv_winui.Modules.Player
             OnPanelVisibleChanged?.Invoke(false);
         }
 
-        public void HideControlPanel()
+        public async void HideControlPanel()
         {
             if (_controlPanelIsVisible)
             {
@@ -829,6 +835,15 @@ namespace mpv_winui.Modules.Player
             }
 
             OnPanelVisibleChanged?.Invoke(true);
+            await System.Threading.Tasks.Task.Delay(180);
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (!_controlPanelIsVisible)
+                {
+                    ControlPanelGrid.Visibility = Visibility.Collapsed;
+                    ControlPanelGrid.Opacity = 1;
+                }
+            });
         }
 
         private void AppBarElementContainer_GotFocus(object sender, RoutedEventArgs e)

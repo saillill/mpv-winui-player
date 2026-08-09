@@ -21,6 +21,13 @@ public sealed class OptionChoice
     public string Label { get; }
 }
 
+public enum OptionActionKind
+{
+    None,
+    Button,
+    KeyCapture,
+}
+
 public sealed class Option : INotifyPropertyChanged
 {
     public string Key { get; set; } = string.Empty;
@@ -117,6 +124,30 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Extra row behavior for <see cref="OptionType.Action"/> options.</summary>
+    public OptionActionKind ActionKind
+    {
+        get; set;
+    }
+
+    /// <summary>Localized text for the action button.</summary>
+    public string? ActionLabel
+    {
+        get; set;
+    }
+
+    /// <summary>Invoked when the action button is pressed.</summary>
+    public Action<Option>? ActionHandler
+    {
+        get; set;
+    }
+
+    /// <summary>Live status text for the action row (captured key, operation result).</summary>
+    public Func<string>? ActionStatus
+    {
+        get; set;
+    }
+
     public OptionType Type
     {
         get; set;
@@ -153,6 +184,14 @@ public sealed class Option : INotifyPropertyChanged
     public Action<object>? Setter
     {
         get; set;
+    }
+
+    /// <summary>Raised after a control commits a new value through <see cref="Setter"/>.</summary>
+    public event Action<Option>? Changed;
+
+    public void NotifyChanged()
+    {
+        Changed?.Invoke(this);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

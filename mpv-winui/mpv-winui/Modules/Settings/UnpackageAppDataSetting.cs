@@ -1,5 +1,7 @@
 using Microsoft.Windows.Storage;
 using mpv_winui.Modules.FileSystem;
+using System;
+using System.Collections.Generic;
 
 namespace mpv_winui.Modules.Settings
 {
@@ -76,6 +78,25 @@ namespace mpv_winui.Modules.Settings
         public void ResetAll()
         {
             _container.Values.Clear();
+        }
+
+        public IReadOnlyDictionary<string, object> ExportAll()
+        {
+            var values = new Dictionary<string, object>();
+            foreach (var item in _container.Values)
+            {
+                values[item.Key] = item.Value;
+            }
+            return values;
+        }
+
+        public void ImportAll(IReadOnlyDictionary<string, object> values)
+        {
+            _container.Values.Clear();
+            foreach (var item in values)
+            {
+                _container.Values[item.Key] = item.Value;
+            }
         }
     }
 }

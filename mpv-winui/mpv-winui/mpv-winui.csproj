@@ -98,6 +98,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Content Include="..\..\mpv-winui-lazy\input.conf">
+            <Link>Config\input.conf</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
         <Content Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Include="..\libs\bin\mpv-2.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

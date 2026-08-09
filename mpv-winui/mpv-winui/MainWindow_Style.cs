@@ -43,6 +43,11 @@ namespace mpv_winui
                     _settingsWindow?.UpdateBackdrop();
                 });
             }
+            else if (key == nameof(AppContext.AppSetting.WindowPiP)
+                || key == nameof(AppContext.AppSetting.WindowPiPSize))
+            {
+                DispatcherQueue.TryEnqueue(() => ApplyPiP());
+            }
             else if (key == nameof(AppContext.AppSetting.UiFont))
             {
                 DispatcherQueue.TryEnqueue(() =>

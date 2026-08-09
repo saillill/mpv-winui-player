@@ -70,6 +70,7 @@ public sealed partial class OptionColorControl : OptionControlBase
         if (picker.Result is string hex)
         {
             Setting.Setter?.Invoke(hex);
+            Setting.NotifyChanged();
             UpdateSwatch();
         }
     }

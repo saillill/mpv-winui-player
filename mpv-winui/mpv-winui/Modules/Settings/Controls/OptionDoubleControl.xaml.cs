@@ -94,6 +94,7 @@ public sealed partial class OptionDoubleControl : OptionControlBase
         }
         ErrorText.Visibility = Visibility.Collapsed;
         Setting?.Setter?.Invoke(NumberBox.Value);
+        Setting?.NotifyChanged();
         return true;
     }
 

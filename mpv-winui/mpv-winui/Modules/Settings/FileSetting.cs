@@ -2,6 +2,7 @@ using mpv_winui.Modules.FileSystem;
 using NLog;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -63,6 +64,29 @@ namespace mpv_winui.Modules.Settings
         public void ResetAll()
         {
             _entries.Clear();
+            _ = SaveAsync();
+        }
+
+        public IReadOnlyDictionary<string, object> ExportAll()
+        {
+            var values = new Dictionary<string, object>(StringComparer.Ordinal);
+            foreach (var entry in _entries)
+            {
+                values[entry.Key] = entry.Value;
+            }
+            return values;
+        }
+
+        public void ImportAll(IReadOnlyDictionary<string, object> values)
+        {
+            _entries.Clear();
+            foreach (var entry in values)
+            {
+                if (TryConvert(entry.Value, out string? serialized) && serialized is not null)
+                {
+                    _entries[entry.Key] = serialized;
+                }
+            }
             _ = SaveAsync();
         }
 

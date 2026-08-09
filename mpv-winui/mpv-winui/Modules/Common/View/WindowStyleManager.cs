@@ -188,7 +188,7 @@ public sealed partial class WindowStyleManager : IDisposable
         }
 
         return theme == ElementTheme.Dark
-            ? _uiSettings.GetColorValue(UIColorType.AccentLight1)
+            ? Color.FromArgb(255, 0x2C, 0x2C, 0x2C)
             : Colors.White;
     }
 

@@ -90,6 +90,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
         ErrorText.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
         Setting?.Setter?.Invoke(InputBox.Text);
+        Setting?.NotifyChanged();
         UpdatePathDisplay();
         return true;
     }

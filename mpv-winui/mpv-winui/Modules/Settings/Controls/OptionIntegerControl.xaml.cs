@@ -93,6 +93,7 @@ public sealed partial class OptionIntegerControl : OptionControlBase
         }
         ErrorText.Visibility = Visibility.Collapsed;
         Setting?.Setter?.Invoke((int)NumberBox.Value);
+        Setting?.NotifyChanged();
         return true;
     }
 

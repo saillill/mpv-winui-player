@@ -46,6 +46,12 @@ namespace mpv_winui
             _ = PluginConfigWriter.WriteAllAsync();
         }
 
+        /// <summary>Writes config-only options (ytdl_hook script options) into the deployed mpv.conf.</summary>
+        public static void WriteManagedMpvConfig()
+        {
+            _ = ManagedMpvConfig.WriteAsync();
+        }
+
         public static void NotifySettingChanged(string key, object? value)
         {
             SettingChanged?.Invoke(key, value);
@@ -78,6 +84,7 @@ namespace mpv_winui
             _task = Task.WhenAll([
                 Task.Run(LoggerHelper.SetupLogger),
                 Task.Run(PluginConfigWriter.WriteAllAsync),
+                Task.Run(ManagedMpvConfig.WriteAsync),
                 AppBootstrap.RunAsync()
             ]);
         }

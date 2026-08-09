@@ -92,6 +92,20 @@
             </Border>
         </DataTemplate>
 
+        <DataTemplate x:Key="ActionTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionActionControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
+        </DataTemplate>
+
         <DataTemplate x:Key="SectionHeaderTemplate" x:DataType="ctl:SectionHeaderItem">
             <Grid Margin="4,12,4,8">
                 <StackPanel>
@@ -110,6 +124,7 @@
 
         <ctl:OptionTemplateSelector
             x:Key="TemplateSelector"
+            ActionTemplate="{StaticResource ActionTemplate}"
             BooleanTemplate="{StaticResource BooleanTemplate}"
             ColorTemplate="{StaticResource ColorTemplate}"
             DoubleTemplate="{StaticResource DoubleTemplate}"

@@ -44,6 +44,9 @@ namespace mpv_winui.Modules.Language
         public string ThemeColorDone { get; set; } = "Done";
         public string Save { get; set; } = "Save";
         public string SettingsSaved { get; set; } = "Saved";
+        public string SettingsUnsaved { get; set; } = "Unsaved changes";
+        public string SettingsUnsavedConfirm { get; set; } = "You have unsaved changes. Save them before closing?";
+        public string Discard { get; set; } = "Discard";
         public string SettingsResetConfirm { get; set; } = "Reset all settings to their defaults?";
         public string Test { get; set; } = "Test";
         public string Open { get; set; } = "Open";
@@ -69,6 +72,93 @@ namespace mpv_winui.Modules.Language
         public string SettingLanguagesImportTip { get; set; } = "Import language";
         public string SettingLanguagesFolderOpenTip { get; set; } = "Open languages folder";
         public string Subtitles { get; set; } = "Subtitles";
+
+        // Window / mini player
+        public string SettingsPiP { get; set; } = "Picture-in-picture (mini player)";
+        public string SettingsHelpPiP { get; set; } = "Switch the window to a compact always-on-top mini player.";
+        public string SettingsPiPSize { get; set; } = "Mini player size";
+        public string SectionWindowPiP { get; set; } = "Picture-in-picture";
+        public string OptionValuePiPSmall { get; set; } = "Small (320x180)";
+        public string OptionValuePiPMedium { get; set; } = "Medium (480x270)";
+        public string OptionValuePiPLarge { get; set; } = "Large (640x360)";
+        public string SettingsStartMaximized { get; set; } = "Start maximized";
+        public string SettingsHelpStartMaximized { get; set; } = "Open the window maximized on launch.";
+        public string SettingsRememberWindowSize { get; set; } = "Remember window size and position";
+        public string SettingsHelpRememberWindowSize { get; set; } = "Save the window size and position on exit and restore them on the next launch.";
+
+        // File associations / config profiles
+        public string SectionProgramAssociations { get; set; } = "File associations";
+        public string SettingsAssociateFiles { get; set; } = "Associate media files";
+        public string SettingsHelpAssociateFiles { get; set; } = "Register common video and audio extensions to open with this player.";
+        public string SettingsUnassociateFiles { get; set; } = "Remove file associations";
+        public string SettingsHelpUnassociateFiles { get; set; } = "Remove the media file associations registered by this player.";
+        public string SettingsAssociateDone { get; set; } = "File associations created.";
+        public string SettingsUnassociateDone { get; set; } = "File associations removed.";
+        public string SectionProgramConfig { get; set; } = "Configuration";
+        public string SettingsExportConfig { get; set; } = "Export settings";
+        public string SettingsHelpExportConfig { get; set; } = "Save all settings to a settings file.";
+        public string SettingsImportConfig { get; set; } = "Import settings";
+        public string SettingsHelpImportConfig { get; set; } = "Restore settings from a settings file.";
+        public string SettingsConfigExported { get; set; } = "Settings exported.";
+        public string SettingsConfigImported { get; set; } = "Settings imported. Some options take effect on the next launch.";
+
+        // Shortcuts
+        public string SectionShortcutsCapture { get; set; } = "Key capture";
+        public string SectionShortcutsReset { get; set; } = "Reset";
+        public string SettingsKeyCapture { get; set; } = "Capture a key";
+        public string SettingsHelpKeyCapture { get; set; } = "Start listening, then press a keyboard or mouse button to see it above.";
+        public string KeyCaptureStart { get; set; } = "Start listening";
+        public string KeyCaptureStop { get; set; } = "Stop listening";
+        public string KeyCapturePlaceholder { get; set; } = "Press any key...";
+        public string SettingsResetShortcuts { get; set; } = "Reset shortcuts";
+        public string SettingsHelpResetShortcuts { get; set; } = "Restore the bundled default input.conf. Takes effect on the next launch.";
+        public string ResetShortcutsDone { get; set; } = "Shortcuts reset. Takes effect on the next launch.";
+        public string ResetShortcutsMissing { get; set; } = "Bundled input.conf not found.";
+
+        // Network
+        public string SectionNetworkYtdlp { get; set; } = "yt-dlp (YouTube / Bilibili)";
+        public string SectionNetworkHttp { get; set; } = "HTTP";
+        public string SectionNetworkCurl { get; set; } = "libcurl backend";
+        public string SettingsYtdlFormat { get; set; } = "yt-dlp format";
+        public string SettingsHelpYtdlFormat { get; set; } = "Format string passed to yt-dlp, e.g. bestvideo+bestaudio/best, mp4, webm. Leave empty for yt-dlp defaults.";
+        public string SettingsYtdlPath { get; set; } = "yt-dlp executable";
+        public string SettingsHelpYtdlPath { get; set; } = "Path(s) to yt-dlp (semicolon separated). Leave empty to search PATH.";
+        public string SettingsYtdlTryFirst { get; set; } = "Try yt-dlp first";
+        public string SettingsHelpYtdlTryFirst { get; set; } = "Parse URLs with yt-dlp before letting mpv open them directly.";
+        public string SettingsYtdlAllFormats { get; set; } = "List all formats as tracks";
+        public string SettingsHelpYtdlAllFormats { get; set; } = "Add every format reported by yt-dlp as a switchable track.";
+        public string SettingsYtdlUseManifests { get; set; } = "Use master manifest (HLS/DASH)";
+        public string SettingsHelpYtdlUseManifests { get; set; } = "Use the master manifest URL when available so audio/video can be switched at runtime.";
+        public string SettingsYtdlThumbnails { get; set; } = "yt-dlp thumbnails";
+        public string SettingsHelpYtdlThumbnails { get; set; } = "Add video thumbnails as tracks: none, best, or all.";
+        public string OptionValueYtdlThumbnailBest { get; set; } = "Best";
+        public string OptionValueYtdlThumbnailAll { get; set; } = "All";
+        public string SettingsYtdlExclude { get; set; } = "Excluded URLs";
+        public string SettingsHelpYtdlExclude { get; set; } = "URL patterns that should not be sent to yt-dlp, separated by |.";
+        public string SettingsUserAgent { get; set; } = "User-Agent";
+        public string SettingsHelpUserAgent { get; set; } = "User agent used for HTTP streaming. Leave empty for the default.";
+        public string SettingsReferrer { get; set; } = "Referrer";
+        public string SettingsHelpReferrer { get; set; } = "Referrer path or URL for HTTP requests. Leave empty to send none.";
+        public string SettingsHttpHeaderFields { get; set; } = "Custom HTTP headers";
+        public string SettingsHelpHttpHeaderFields { get; set; } = "Comma-separated HTTP header fields, e.g. 'Field1: value1','Field2: value2'.";
+        public string SettingsHttpProxy { get; set; } = "HTTP proxy";
+        public string SettingsHelpHttpProxy { get; set; } = "HTTP/HTTPS proxy URL. Must start with http://; not used for https URLs.";
+        public string SettingsCookiesFile { get; set; } = "Cookies file";
+        public string SettingsHelpCookiesFile { get; set; } = "Netscape-format cookies file for sites that require login.";
+        public string SettingsTlsVerify { get; set; } = "Verify TLS certificates";
+        public string SettingsHelpTlsVerify { get; set; } = "Verify HTTPS peer certificates. Only disable for known-good reasons such as corporate proxies.";
+        public string SettingsNetworkTimeout { get; set; } = "Network timeout (seconds)";
+        public string SettingsHelpNetworkTimeout { get; set; } = "Network request timeout in seconds; 0 uses FFmpeg defaults (default 60).";
+        public string SettingsCurlMaxRedirects { get; set; } = "Max redirects";
+        public string SettingsHelpCurlMaxRedirects { get; set; } = "Maximum HTTP redirects to follow before reporting an error (default 16).";
+        public string SettingsCurlMaxRetries { get; set; } = "Max retries";
+        public string SettingsHelpCurlMaxRetries { get; set; } = "Transparent retry count for seekable transfers after recoverable errors (default 5).";
+        public string SettingsCurlConnectTimeout { get; set; } = "Connect timeout (seconds)";
+        public string SettingsHelpCurlConnectTimeout { get; set; } = "TCP/TLS connect timeout; 0 uses libcurl defaults (default 30).";
+        public string SettingsCurlBufferSize { get; set; } = "Network buffer (bytes)";
+        public string SettingsHelpCurlBufferSize { get; set; } = "Producer-side ring buffer size that decouples the network thread (default 4 MiB).";
+        public string SettingsCurlMaxRequestSize { get; set; } = "Max range request size (bytes)";
+        public string SettingsHelpCurlMaxRequestSize { get; set; } = "Split seekable transfers into range requests of at most this size; 0 keeps one request.";
         public string AudioTracks { get; set; } = "Audio Tracks";
         public string VideoTracks { get; set; } = "Video Tracks";
         public string SecondSubtitle { get; set; } = "Secondary Subtitle";

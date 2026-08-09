@@ -50,6 +50,7 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         if (!_loading && Setting?.Setter is not null)
         {
             Setting?.Setter?.Invoke(ToggleSwitch.IsOn);
+            Setting?.NotifyChanged();
         }
     }
 }

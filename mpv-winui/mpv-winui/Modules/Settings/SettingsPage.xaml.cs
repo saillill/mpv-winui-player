@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Windows.Storage;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -16,12 +18,31 @@ public sealed partial class SettingsPage : Page
     public List<Option> Settings { get; } = [];
     public List<string> Categories { get; } = [];
     public List<string> CategoryOrder { get; } = [];
+    private bool _isDirty;
+    private readonly Dictionary<string, object?> _baseline = new(StringComparer.Ordinal);
+    private static string _actionStatus = string.Empty;
+
+    public bool IsDirty => _isDirty;
 
     public SettingsPage()
     {
         InitializeComponent();
         var options = BuildSettings();
         Settings.AddRange(options);
+        foreach (var option in Settings)
+        {
+            if (option.Getter is not null)
+            {
+                try
+                {
+                    _baseline[option.Key] = option.Getter();
+                }
+                catch (Exception)
+                {
+                }
+            }
+            option.Changed += _ => RefreshDirtyState();
+        }
         Categories.AddRange(CategoryOrder.Where(c => Settings.Any(o => o.Category == c)));
         CategoryList.ItemsSource = Categories;
         CategoryList.SelectedIndex = 0;
@@ -33,12 +54,21 @@ public sealed partial class SettingsPage : Page
 
     private void OnSaveClick(object sender, RoutedEventArgs e)
     {
+        Save();
+    }
+
+    /// <summary>Re-applies every mpv option from the current settings and clears the dirty flag.</summary>
+    public void Save()
+    {
         MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
         if (App.Window is MainWindow mainWindow)
         {
             mainWindow.UpdateCurrentTheme();
         }
+        _isDirty = false;
+        RefreshBaseline();
         SaveStatusText.Text = AppContext.AppLang.SettingsSaved;
+        SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
         _ = ClearSaveStatusAsync();
     }
 
@@ -71,6 +101,63 @@ public sealed partial class SettingsPage : Page
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), AppContext.AppSetting.BackdropType);
         }
         Frame?.Navigate(typeof(SettingsPage));
+    }
+
+    private void RefreshDirtyState()
+    {
+        var dirty = false;
+        foreach (var option in Settings)
+        {
+            if (option.Getter is null || !_baseline.TryGetValue(option.Key, out var baseline))
+            {
+                continue;
+            }
+
+            object? current;
+            try
+            {
+                current = option.Getter();
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+
+            if (!Equals(baseline, current))
+            {
+                dirty = true;
+                break;
+            }
+        }
+
+        _isDirty = dirty;
+        if (dirty)
+        {
+            SaveStatusText.Text = AppContext.AppLang.SettingsUnsaved;
+            SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCautionBrush"];
+        }
+        else
+        {
+            SaveStatusText.Text = string.Empty;
+        }
+    }
+
+    private void RefreshBaseline()
+    {
+        _baseline.Clear();
+        foreach (var option in Settings)
+        {
+            if (option.Getter is not null)
+            {
+                try
+                {
+                    _baseline[option.Key] = option.Getter();
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
     }
 
     private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateOptions();
@@ -107,6 +194,15 @@ public sealed partial class SettingsPage : Page
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramNetwork = AppContext.AppLang.SectionProgramNetwork;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
+        var sProgramAssociations = AppContext.AppLang.SectionProgramAssociations;
+        var sProgramConfig = AppContext.AppLang.SectionProgramConfig;
+        var sPlaybackFiles = AppContext.AppLang.SectionDemuxerPlaylist;
+        var sWindowPiP = AppContext.AppLang.SectionWindowPiP;
+        var sNetworkYtdlp = AppContext.AppLang.SectionNetworkYtdlp;
+        var sNetworkHttp = AppContext.AppLang.SectionNetworkHttp;
+        var sNetworkCurl = AppContext.AppLang.SectionNetworkCurl;
+        var sShortcutsCapture = AppContext.AppLang.SectionShortcutsCapture;
+        var sShortcutsReset = AppContext.AppLang.SectionShortcutsReset;
         var sPlayback = AppContext.AppLang.SectionPlayback;
         var sPlaybackSeeking = AppContext.AppLang.SectionPlaybackSeeking;
         var sPlaybackSeekPreview = AppContext.AppLang.SectionPlaybackSeekPreview;
@@ -185,6 +281,7 @@ public sealed partial class SettingsPage : Page
                 {
                     AppContext.AppSetting.BackdropType = (string)v;
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), v);
+                    RefreshWarningsAndEnabled();
                 }
             },
 
@@ -329,6 +426,58 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = "ActionAssociateFiles",
+                Label = lang.SettingsAssociateFiles,
+                Category = program,
+                Description = lang.SettingsHelpAssociateFiles,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.SettingsAssociateFiles,
+                ActionHandler = _ => AssociateFiles(),
+                ActionStatus = () => _actionStatus,
+            },
+
+            new Option
+            {
+                Key = "ActionUnassociateFiles",
+                Label = lang.SettingsUnassociateFiles,
+                Category = program,
+                Description = lang.SettingsHelpUnassociateFiles,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.SettingsUnassociateFiles,
+                ActionHandler = _ => UnassociateFiles(),
+                ActionStatus = () => _actionStatus,
+            },
+
+            new Option
+            {
+                Key = "ActionExportConfig",
+                Label = lang.SettingsExportConfig,
+                Category = program,
+                Description = lang.SettingsHelpExportConfig,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.SettingsExportConfig,
+                ActionHandler = _ => FireAndForgetExport(),
+                ActionStatus = () => _actionStatus,
+            },
+
+            new Option
+            {
+                Key = "ActionImportConfig",
+                Label = lang.SettingsImportConfig,
+                Category = program,
+                Description = lang.SettingsHelpImportConfig,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.SettingsImportConfig,
+                ActionHandler = _ => FireAndForgetImport(),
+                ActionStatus = () => _actionStatus,
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.AlwaysOnTop),
                 Label = lang.SettingsAlwaysOnTop,
                 Category = program,
@@ -432,6 +581,64 @@ public sealed partial class SettingsPage : Page
                 ],
                 Getter = () => AppContext.AppSetting.KeepOpen,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.KeepOpen), AppContext.AppSetting.KeepOpen = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiP),
+                Label = lang.SettingsPiP,
+                Category = window,
+                Description = lang.SettingsHelpPiP,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiP,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiP = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiP), v);
+                    RefreshWarningsAndEnabled();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPSize),
+                Label = lang.SettingsPiPSize,
+                Category = window,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("320x180", lang.OptionValuePiPSmall),
+                    new OptionChoice("480x270", lang.OptionValuePiPMedium),
+                    new OptionChoice("640x360", lang.OptionValuePiPLarge),
+                ],
+                Getter = () => AppContext.AppSetting.WindowPiPSize,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiPSize = (string)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPSize), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowStartMaximized),
+                Label = lang.SettingsStartMaximized,
+                Category = window,
+                Description = lang.SettingsHelpStartMaximized,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowStartMaximized,
+                Setter = v => AppContext.AppSetting.WindowStartMaximized = (bool)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowRememberSize),
+                Label = lang.SettingsRememberWindowSize,
+                Category = window,
+                Description = lang.SettingsHelpRememberWindowSize,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowRememberSize,
+                Setter = v => AppContext.AppSetting.WindowRememberSize = (bool)v!
             },
 
             new Option
@@ -584,6 +791,271 @@ public sealed partial class SettingsPage : Page
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.YtdlRawOptionsAppend,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.YtdlRawOptionsAppend), AppContext.AppSetting.YtdlRawOptionsAppend = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.YtdlFormat),
+                Label = lang.SettingsYtdlFormat,
+                Category = network,
+                Description = lang.SettingsHelpYtdlFormat,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.YtdlFormat,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.YtdlFormat), AppContext.AppSetting.YtdlFormat = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.YtdlPath),
+                Label = lang.SettingsYtdlPath,
+                Category = network,
+                Description = lang.SettingsHelpYtdlPath,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.YtdlPath,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.YtdlPath = (string)v!;
+                    AppContext.WriteManagedMpvConfig();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.YtdlTryFirst),
+                Label = lang.SettingsYtdlTryFirst,
+                Category = network,
+                Description = lang.SettingsHelpYtdlTryFirst,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.YtdlTryFirst,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.YtdlTryFirst = (bool)v!;
+                    AppContext.WriteManagedMpvConfig();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.YtdlAllFormats),
+                Label = lang.SettingsYtdlAllFormats,
+                Category = network,
+                Description = lang.SettingsHelpYtdlAllFormats,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.YtdlAllFormats,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.YtdlAllFormats = (bool)v!;
+                    AppContext.WriteManagedMpvConfig();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.YtdlUseManifests),
+                Label = lang.SettingsYtdlUseManifests,
+                Category = network,
+                Description = lang.SettingsHelpYtdlUseManifests,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.YtdlUseManifests,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.YtdlUseManifests = (bool)v!;
+                    AppContext.WriteManagedMpvConfig();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.YtdlThumbnails),
+                Label = lang.SettingsYtdlThumbnails,
+                Category = network,
+                Description = lang.SettingsHelpYtdlThumbnails,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("none", lang.OptionValueNo),
+                    new OptionChoice("best", lang.OptionValueYtdlThumbnailBest),
+                    new OptionChoice("all", lang.OptionValueYtdlThumbnailAll),
+                ],
+                Getter = () => AppContext.AppSetting.YtdlThumbnails,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.YtdlThumbnails = (string)v!;
+                    AppContext.WriteManagedMpvConfig();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.YtdlExclude),
+                Label = lang.SettingsYtdlExclude,
+                Category = network,
+                Description = lang.SettingsHelpYtdlExclude,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.YtdlExclude,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.YtdlExclude = (string)v!;
+                    AppContext.WriteManagedMpvConfig();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.UserAgent),
+                Label = lang.SettingsUserAgent,
+                Category = network,
+                Description = lang.SettingsHelpUserAgent,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.UserAgent,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.UserAgent), AppContext.AppSetting.UserAgent = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.Referrer),
+                Label = lang.SettingsReferrer,
+                Category = network,
+                Description = lang.SettingsHelpReferrer,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Referrer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Referrer), AppContext.AppSetting.Referrer = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HttpHeaderFields),
+                Label = lang.SettingsHttpHeaderFields,
+                Category = network,
+                Description = lang.SettingsHelpHttpHeaderFields,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.HttpHeaderFields,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HttpHeaderFields), AppContext.AppSetting.HttpHeaderFields = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HttpProxy),
+                Label = lang.SettingsHttpProxy,
+                Category = network,
+                Description = lang.SettingsHelpHttpProxy,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.HttpProxy,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HttpProxy), AppContext.AppSetting.HttpProxy = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CookiesFile),
+                Label = lang.SettingsCookiesFile,
+                Category = network,
+                Description = lang.SettingsHelpCookiesFile,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.CookiesFile,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CookiesFile), AppContext.AppSetting.CookiesFile = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.TlsVerify),
+                Label = lang.SettingsTlsVerify,
+                Category = network,
+                Description = lang.SettingsHelpTlsVerify,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.TlsVerify,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.TlsVerify), AppContext.AppSetting.TlsVerify = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.NetworkTimeout),
+                Label = lang.SettingsNetworkTimeout,
+                Category = network,
+                Description = lang.SettingsHelpNetworkTimeout,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 600,
+                Step = 5,
+                Getter = () => (double)AppContext.AppSetting.NetworkTimeout,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.NetworkTimeout), AppContext.AppSetting.NetworkTimeout = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlMaxRedirects),
+                Label = lang.SettingsCurlMaxRedirects,
+                Category = network,
+                Description = lang.SettingsHelpCurlMaxRedirects,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 100,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.CurlMaxRedirects,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlMaxRedirects), AppContext.AppSetting.CurlMaxRedirects = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlMaxRetries),
+                Label = lang.SettingsCurlMaxRetries,
+                Category = network,
+                Description = lang.SettingsHelpCurlMaxRetries,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 100,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.CurlMaxRetries,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlMaxRetries), AppContext.AppSetting.CurlMaxRetries = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlConnectTimeout),
+                Label = lang.SettingsCurlConnectTimeout,
+                Category = network,
+                Description = lang.SettingsHelpCurlConnectTimeout,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 600,
+                Step = 5,
+                Getter = () => (double)AppContext.AppSetting.CurlConnectTimeout,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlConnectTimeout), AppContext.AppSetting.CurlConnectTimeout = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlBufferSize),
+                Label = lang.SettingsCurlBufferSize,
+                Category = network,
+                Description = lang.SettingsHelpCurlBufferSize,
+                Type = OptionType.Integer,
+                Min = 32768,
+                Max = 64 * 1024 * 1024,
+                Step = 1024 * 1024,
+                Getter = () => (double)AppContext.AppSetting.CurlBufferSize,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlBufferSize), AppContext.AppSetting.CurlBufferSize = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlMaxRequestSize),
+                Label = lang.SettingsCurlMaxRequestSize,
+                Category = network,
+                Description = lang.SettingsHelpCurlMaxRequestSize,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 1024 * 1024 * 1024,
+                Step = 1024 * 1024,
+                Getter = () => (double)AppContext.AppSetting.CurlMaxRequestSize,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlMaxRequestSize), AppContext.AppSetting.CurlMaxRequestSize = Convert.ToInt32(v))
             },
 
             new Option
@@ -2934,6 +3406,31 @@ public sealed partial class SettingsPage : Page
 
         options.AddRange(BuildShortcutOptions(shortcuts));
 
+        options.Add(new Option
+        {
+            Key = "ShortcutCapture",
+            Label = lang.SettingsKeyCapture,
+            Category = shortcuts,
+            Description = lang.SettingsHelpKeyCapture,
+            Type = OptionType.Action,
+            ActionKind = OptionActionKind.KeyCapture,
+            ActionLabel = lang.KeyCaptureStart,
+            ActionStatus = () => _actionStatus,
+        });
+
+        options.Add(new Option
+        {
+            Key = "ShortcutReset",
+            Label = lang.SettingsResetShortcuts,
+            Category = shortcuts,
+            Description = lang.SettingsHelpResetShortcuts,
+            Type = OptionType.Action,
+            ActionKind = OptionActionKind.Button,
+            ActionLabel = lang.SettingsResetShortcuts,
+            ActionHandler = _ => ResetShortcuts(),
+            ActionStatus = () => _actionStatus,
+        });
+
         foreach (var option in options)
         {
             if (RedundantDescriptions.Contains(option.Key))
@@ -2955,7 +3452,6 @@ public sealed partial class SettingsPage : Page
             audio,
             subtitles,
             window,
-            demuxer,
             cache,
             network,
             input,
@@ -3067,6 +3563,7 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.AudioExts)] = audio,
             [nameof(AppSettings.AudioFilePaths)] = audio,
             [nameof(AppSettings.AudioDisplay)] = audio,
+            [nameof(AppSettings.AudioLanguage)] = audio,
             [nameof(AppSettings.CoverArtPreferEmbedded)] = audio,
             [nameof(AppSettings.CoverArtAlwaysScan)] = audio,
             [nameof(AppSettings.CoverArtLoadFromFilesystem)] = audio,
@@ -3074,7 +3571,6 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.CoverArtNames)] = audio,
             [nameof(AppSettings.CoverArtImageExts)] = audio,
             // subtitles
-            [nameof(AppSettings.AudioLanguage)] = subtitles,
             [nameof(AppSettings.SubtitleLanguage)] = subtitles,
             [nameof(AppSettings.SubFallback)] = subtitles,
             [nameof(AppSettings.SubFontSize)] = subtitles,
@@ -3110,15 +3606,19 @@ public sealed partial class SettingsPage : Page
             // window
             [nameof(AppSettings.AlwaysOnTop)] = window,
             [nameof(AppSettings.KeepOpen)] = window,
+            [nameof(AppSettings.WindowPiP)] = window,
+            [nameof(AppSettings.WindowPiPSize)] = window,
+            [nameof(AppSettings.WindowStartMaximized)] = window,
+            [nameof(AppSettings.WindowRememberSize)] = window,
             // demuxer
-            [nameof(AppSettings.AutoCreatePlaylist)] = demuxer,
-            [nameof(AppSettings.DirectoryMode)] = demuxer,
-            [nameof(AppSettings.DirectoryFilterTypes)] = demuxer,
-            [nameof(AppSettings.VideoExts)] = demuxer,
-            [nameof(AppSettings.ImageExts)] = demuxer,
-            [nameof(AppSettings.DemuxerMaxBytes)] = demuxer,
-            [nameof(AppSettings.DemuxerMaxBackBytes)] = demuxer,
-            [nameof(AppSettings.DemuxerReadahead)] = demuxer,
+            [nameof(AppSettings.AutoCreatePlaylist)] = playback,
+            [nameof(AppSettings.DirectoryMode)] = playback,
+            [nameof(AppSettings.DirectoryFilterTypes)] = playback,
+            [nameof(AppSettings.VideoExts)] = playback,
+            [nameof(AppSettings.ImageExts)] = playback,
+            [nameof(AppSettings.DemuxerMaxBytes)] = cache,
+            [nameof(AppSettings.DemuxerMaxBackBytes)] = cache,
+            [nameof(AppSettings.DemuxerReadahead)] = cache,
             // cache
             [nameof(AppSettings.CacheEnabled)] = cache,
             [nameof(AppSettings.CacheSecs)] = cache,
@@ -3127,10 +3627,36 @@ public sealed partial class SettingsPage : Page
             // network
             [nameof(AppSettings.Ytdl)] = network,
             [nameof(AppSettings.YtdlRawOptionsAppend)] = network,
+            [nameof(AppSettings.YtdlFormat)] = network,
+            [nameof(AppSettings.YtdlPath)] = network,
+            [nameof(AppSettings.YtdlTryFirst)] = network,
+            [nameof(AppSettings.YtdlAllFormats)] = network,
+            [nameof(AppSettings.YtdlUseManifests)] = network,
+            [nameof(AppSettings.YtdlThumbnails)] = network,
+            [nameof(AppSettings.YtdlExclude)] = network,
+            [nameof(AppSettings.UserAgent)] = network,
+            [nameof(AppSettings.Referrer)] = network,
+            [nameof(AppSettings.HttpHeaderFields)] = network,
+            [nameof(AppSettings.HttpProxy)] = network,
+            [nameof(AppSettings.CookiesFile)] = network,
+            [nameof(AppSettings.TlsVerify)] = network,
+            [nameof(AppSettings.NetworkTimeout)] = network,
+            [nameof(AppSettings.CurlMaxRedirects)] = network,
+            [nameof(AppSettings.CurlMaxRetries)] = network,
+            [nameof(AppSettings.CurlConnectTimeout)] = network,
+            [nameof(AppSettings.CurlBufferSize)] = network,
+            [nameof(AppSettings.CurlMaxRequestSize)] = network,
             // input
             [nameof(AppSettings.InputIme)] = input,
             [nameof(AppSettings.InputIpcServer)] = input,
             // shortcuts
+            ["ShortcutCapture"] = shortcuts,
+            ["ShortcutReset"] = shortcuts,
+            // program actions
+            ["ActionAssociateFiles"] = program,
+            ["ActionUnassociateFiles"] = program,
+            ["ActionExportConfig"] = program,
+            ["ActionImportConfig"] = program,
             // osd
             [nameof(AppSettings.OsdFontSize)] = osd,
             [nameof(AppSettings.OsdFont)] = osd,
@@ -3372,7 +3898,43 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.GlslShadersAppend)] = 190,
             [nameof(AppSettings.VideoSync)] = 191,
             [nameof(AppSettings.VideoSyncMaxVideoChange)] = 192,
+            [nameof(AppSettings.WindowPiP)] = 193,
+            [nameof(AppSettings.WindowPiPSize)] = 194,
+            [nameof(AppSettings.WindowStartMaximized)] = 195,
+            [nameof(AppSettings.WindowRememberSize)] = 196,
+            [nameof(AppSettings.YtdlFormat)] = 197,
+            [nameof(AppSettings.YtdlPath)] = 198,
+            [nameof(AppSettings.YtdlTryFirst)] = 199,
+            [nameof(AppSettings.YtdlAllFormats)] = 200,
+            [nameof(AppSettings.YtdlUseManifests)] = 201,
+            [nameof(AppSettings.YtdlThumbnails)] = 202,
+            [nameof(AppSettings.YtdlExclude)] = 203,
+            [nameof(AppSettings.UserAgent)] = 204,
+            [nameof(AppSettings.Referrer)] = 205,
+            [nameof(AppSettings.HttpHeaderFields)] = 206,
+            [nameof(AppSettings.HttpProxy)] = 207,
+            [nameof(AppSettings.CookiesFile)] = 208,
+            [nameof(AppSettings.TlsVerify)] = 209,
+            [nameof(AppSettings.NetworkTimeout)] = 210,
+            [nameof(AppSettings.CurlMaxRedirects)] = 211,
+            [nameof(AppSettings.CurlMaxRetries)] = 212,
+            [nameof(AppSettings.CurlConnectTimeout)] = 213,
+            [nameof(AppSettings.CurlBufferSize)] = 214,
+            [nameof(AppSettings.CurlMaxRequestSize)] = 215,
+            ["ActionAssociateFiles"] = 216,
+            ["ActionUnassociateFiles"] = 217,
+            ["ActionExportConfig"] = 218,
+            ["ActionImportConfig"] = 219,
+            ["ShortcutCapture"] = 900,
+            ["ShortcutReset"] = 2000,
         };
+
+        // Parsed input.conf bindings keep their original order after the capture row.
+        var shortcutOrder = 1000;
+        foreach (var o in options.Where(o => o.Key.StartsWith("Shortcut:", StringComparison.Ordinal)))
+        {
+            optionOrder[o.Key] = shortcutOrder++;
+        }
 
         var sectionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
         {
@@ -3413,6 +3975,14 @@ public sealed partial class SettingsPage : Page
             [sScreenshotLocation] = 34,
             [sScreenshotQuality] = 35,
             [sProgramTesting] = 36,
+            [sShortcutsCapture] = 37,
+            [sShortcutsReset] = 38,
+            [sNetworkYtdlp] = 39,
+            [sNetworkHttp] = 40,
+            [sNetworkCurl] = 41,
+            [sWindowPiP] = 42,
+            [sProgramAssociations] = 43,
+            [sProgramConfig] = 44,
         };
 
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -3560,15 +4130,19 @@ public sealed partial class SettingsPage : Page
             // window
             [nameof(AppSettings.AlwaysOnTop)] = sWindow,
             [nameof(AppSettings.KeepOpen)] = sWindow,
+            [nameof(AppSettings.WindowPiP)] = sWindowPiP,
+            [nameof(AppSettings.WindowPiPSize)] = sWindowPiP,
+            [nameof(AppSettings.WindowStartMaximized)] = sWindow,
+            [nameof(AppSettings.WindowRememberSize)] = sWindow,
             // demuxer
             [nameof(AppSettings.AutoCreatePlaylist)] = sDemuxerPlaylist,
             [nameof(AppSettings.DirectoryMode)] = sDemuxerPlaylist,
             [nameof(AppSettings.DirectoryFilterTypes)] = sDemuxerPlaylist,
             [nameof(AppSettings.VideoExts)] = sDemuxerPlaylist,
             [nameof(AppSettings.ImageExts)] = sDemuxerPlaylist,
-            [nameof(AppSettings.DemuxerMaxBytes)] = sDemuxerBuffering,
-            [nameof(AppSettings.DemuxerMaxBackBytes)] = sDemuxerBuffering,
-            [nameof(AppSettings.DemuxerReadahead)] = sDemuxerBuffering,
+            [nameof(AppSettings.DemuxerMaxBytes)] = sCache,
+            [nameof(AppSettings.DemuxerMaxBackBytes)] = sCache,
+            [nameof(AppSettings.DemuxerReadahead)] = sCache,
             // cache
             [nameof(AppSettings.CacheEnabled)] = sCache,
             [nameof(AppSettings.CacheSecs)] = sCache,
@@ -3577,10 +4151,36 @@ public sealed partial class SettingsPage : Page
             // network
             [nameof(AppSettings.Ytdl)] = sProgramNetwork,
             [nameof(AppSettings.YtdlRawOptionsAppend)] = sProgramNetwork,
+            [nameof(AppSettings.YtdlFormat)] = sNetworkYtdlp,
+            [nameof(AppSettings.YtdlPath)] = sNetworkYtdlp,
+            [nameof(AppSettings.YtdlTryFirst)] = sNetworkYtdlp,
+            [nameof(AppSettings.YtdlAllFormats)] = sNetworkYtdlp,
+            [nameof(AppSettings.YtdlUseManifests)] = sNetworkYtdlp,
+            [nameof(AppSettings.YtdlThumbnails)] = sNetworkYtdlp,
+            [nameof(AppSettings.YtdlExclude)] = sNetworkYtdlp,
+            [nameof(AppSettings.UserAgent)] = sNetworkHttp,
+            [nameof(AppSettings.Referrer)] = sNetworkHttp,
+            [nameof(AppSettings.HttpHeaderFields)] = sNetworkHttp,
+            [nameof(AppSettings.HttpProxy)] = sNetworkHttp,
+            [nameof(AppSettings.CookiesFile)] = sNetworkHttp,
+            [nameof(AppSettings.TlsVerify)] = sNetworkHttp,
+            [nameof(AppSettings.NetworkTimeout)] = sNetworkHttp,
+            [nameof(AppSettings.CurlMaxRedirects)] = sNetworkCurl,
+            [nameof(AppSettings.CurlMaxRetries)] = sNetworkCurl,
+            [nameof(AppSettings.CurlConnectTimeout)] = sNetworkCurl,
+            [nameof(AppSettings.CurlBufferSize)] = sNetworkCurl,
+            [nameof(AppSettings.CurlMaxRequestSize)] = sNetworkCurl,
             // input
             [nameof(AppSettings.InputIme)] = sInput,
             [nameof(AppSettings.InputIpcServer)] = sInput,
             // shortcuts
+            ["ShortcutCapture"] = sShortcutsCapture,
+            ["ShortcutReset"] = sShortcutsReset,
+            // program actions
+            ["ActionAssociateFiles"] = sProgramAssociations,
+            ["ActionUnassociateFiles"] = sProgramAssociations,
+            ["ActionExportConfig"] = sProgramConfig,
+            ["ActionImportConfig"] = sProgramConfig,
             // osd
             [nameof(AppSettings.OsdFontSize)] = sOsd,
             [nameof(AppSettings.OsdFont)] = sOsd,
@@ -3702,6 +4302,8 @@ public sealed partial class SettingsPage : Page
         nameof(AppContext.AppSetting.HdrAutoMode),
         nameof(AppContext.AppSetting.ThumbfastQuality),
         nameof(AppContext.AppSetting.ThumbfastPrecise),
+        nameof(AppContext.AppSetting.YtdlThumbnails),
+        nameof(AppContext.AppSetting.WindowPiPSize),
     };
 
     /// <summary>Options whose help text only restates the title (Windows Settings style: no redundant description).</summary>
@@ -3984,6 +4586,8 @@ public sealed partial class SettingsPage : Page
             nameof(AppSettings.ThemeAccentColor) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
             nameof(AppSettings.ThemeOpacity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
             nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
+            // PiP size only applies while the mini player is enabled.
+            nameof(AppSettings.WindowPiPSize) when !s.WindowPiP => false,
             // Format-specific screenshot options only appear for the active format.
             nameof(AppSettings.ScreenshotJpegQuality) when s.ScreenshotFormat != "jpg" => false,
             nameof(AppSettings.ScreenshotJpegSourceChroma) when s.ScreenshotFormat != "jpg" => false,
@@ -4005,7 +4609,6 @@ public sealed partial class SettingsPage : Page
     {
         return option.Key switch
         {
-            nameof(AppSettings.OsdPlayingMsg) when !s.ShowOsdPlayingMsg => false,
             // mpv: sub-ass-force-margins is ignored when blend-subtitles=yes/video.
             nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => false,
             // mpv: linear-upscaling and sigmoid-upscaling are mutually exclusive.
@@ -4023,5 +4626,164 @@ public sealed partial class SettingsPage : Page
                 mainWindow.UpdateCurrentTheme();
             }
         });
+    }
+
+    private static readonly string[] AssociationExtensions =
+    [
+        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v",
+        ".mpg", ".mpeg", ".ts", ".m2ts", ".3gp", ".ogv", ".rm", ".rmvb",
+        ".mp3", ".flac", ".wav", ".aac", ".m4a", ".ogg", ".opus", ".wma",
+    ];
+
+    private static void AssociateFiles()
+    {
+        var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+        if (string.IsNullOrEmpty(exe))
+        {
+            return;
+        }
+
+        using (var command = Registry.CurrentUser.CreateSubKey(@"Software\Classes\mpv-winui.media\shell\open\command"))
+        {
+            command.SetValue(string.Empty, $"\"{exe}\" \"%1\"");
+        }
+
+        using (var icon = Registry.CurrentUser.CreateSubKey(@"Software\Classes\mpv-winui.media\DefaultIcon"))
+        {
+            icon.SetValue(string.Empty, $"\"{exe}\",0");
+        }
+
+        foreach (var extension in AssociationExtensions)
+        {
+            using var key = Registry.CurrentUser.CreateSubKey(@"Software\Classes\" + extension);
+            key.SetValue(string.Empty, "mpv-winui.media");
+        }
+
+        _actionStatus = AppContext.AppLang.SettingsAssociateDone;
+    }
+
+    private static void UnassociateFiles()
+    {
+        foreach (var extension in AssociationExtensions)
+        {
+            try
+            {
+                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + extension, throwOnMissingSubKey: false);
+            }
+            catch (System.Exception)
+            {
+                // Some extensions may be owned by another application; keep going.
+            }
+        }
+
+        try
+        {
+            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\mpv-winui.media", throwOnMissingSubKey: false);
+        }
+        catch (System.Exception)
+        {
+        }
+
+        _actionStatus = AppContext.AppLang.SettingsUnassociateDone;
+    }
+
+    private static void FireAndForgetExport()
+    {
+        _ = ExportConfigAsync();
+    }
+
+    private void FireAndForgetImport()
+    {
+        _ = ImportConfigAsync();
+    }
+
+    private static async System.Threading.Tasks.Task ExportConfigAsync()
+    {
+        try
+        {
+            var file = await FilePickerHelper.PickSaveFileAsync(picker =>
+            {
+                picker.SuggestedFileName = "mpv-winui-settings.conf";
+                picker.FileTypeChoices["Settings"] = new List<string> { ".conf" };
+            });
+            if (file is null)
+            {
+                return;
+            }
+
+            var builder = new System.Text.StringBuilder();
+            foreach (var entry in AppContext.AppSetting.ExportAll())
+            {
+                builder.Append(entry.Key)
+                    .Append('=')
+                    .AppendLine(entry.Value?.ToString() ?? string.Empty);
+            }
+            await File.WriteAllTextAsync(file.Path, builder.ToString());
+            _actionStatus = AppContext.AppLang.SettingsConfigExported;
+        }
+        catch (System.Exception ex)
+        {
+            AppContext.AppLogger.Error(ex, "Export config failed");
+        }
+    }
+
+    private async System.Threading.Tasks.Task ImportConfigAsync()
+    {
+        try
+        {
+            var file = await FilePickerHelper.PickSingleFileAsync(picker =>
+            {
+                picker.FileTypeFilter.Add(".conf");
+                picker.FileTypeFilter.Add("*");
+            });
+            if (file is null)
+            {
+                return;
+            }
+
+            var values = new Dictionary<string, object>(StringComparer.Ordinal);
+            foreach (var line in await File.ReadAllLinesAsync(file.Path))
+            {
+                var trimmed = line.Trim();
+                if (trimmed.Length == 0 || trimmed[0] == '#')
+                {
+                    continue;
+                }
+
+                var equals = trimmed.IndexOf('=');
+                if (equals <= 0)
+                {
+                    continue;
+                }
+
+                values[trimmed[..equals].Trim()] = trimmed[(equals + 1)..];
+            }
+
+            AppContext.AppSetting.ImportAll(values);
+            _actionStatus = AppContext.AppLang.SettingsConfigImported;
+            Frame?.Navigate(typeof(SettingsPage));
+        }
+        catch (System.Exception ex)
+        {
+            AppContext.AppLogger.Error(ex, "Import config failed");
+        }
+    }
+
+    private static void ResetShortcuts()
+    {
+        var bundled = Path.Combine(System.AppContext.BaseDirectory, "Config", "input.conf");
+        var target = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "mpv-winui",
+            "mpv",
+            "input.conf");
+        if (!File.Exists(bundled))
+        {
+            _actionStatus = AppContext.AppLang.ResetShortcutsMissing;
+            return;
+        }
+
+        File.Copy(bundled, target, overwrite: true);
+        _actionStatus = AppContext.AppLang.ResetShortcutsDone;
     }
 }

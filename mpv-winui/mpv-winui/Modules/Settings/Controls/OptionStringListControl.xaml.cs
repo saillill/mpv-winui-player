@@ -152,6 +152,7 @@ public sealed partial class OptionStringListControl : OptionControlBase
             CustomInput.Visibility = Visibility.Collapsed;
             InputColumn.Width = new GridLength(260);
             Setting?.Setter?.Invoke(val);
+            Setting?.NotifyChanged();
         }
     }
 
@@ -178,5 +179,6 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
         _lastCustom = text;
         Setting?.Setter?.Invoke(text);
+        Setting?.NotifyChanged();
     }
 }

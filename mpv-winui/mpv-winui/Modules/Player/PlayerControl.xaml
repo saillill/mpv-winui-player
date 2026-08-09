@@ -37,7 +37,13 @@
             Background="{ThemeResource MpvPlayControlBackground}"
             RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
-                <TranslateTransform x:Name="TranslateVertical" />
+                <TransformGroup>
+                    <ScaleTransform
+                        x:Name="ScalePanel"
+                        ScaleX="1"
+                        ScaleY="1" />
+                    <TranslateTransform x:Name="TranslateVertical" />
+                </TransformGroup>
             </Grid.RenderTransform>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -712,15 +718,46 @@
                     </VisualState.Setters>
                     <Storyboard>
                         <FadeInThemeAnimation TargetName="ControlPanelGrid" />
+                        <DoubleAnimation
+                            Storyboard.TargetName="ScalePanel"
+                            Storyboard.TargetProperty="ScaleX"
+                            From="0.96"
+                            To="1"
+                            Duration="0:0:0.16">
+                            <DoubleAnimation.EasingFunction>
+                                <CubicEase EasingMode="EaseOut" />
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation
+                            Storyboard.TargetName="ScalePanel"
+                            Storyboard.TargetProperty="ScaleY"
+                            From="0.96"
+                            To="1"
+                            Duration="0:0:0.16">
+                            <DoubleAnimation.EasingFunction>
+                                <CubicEase EasingMode="EaseOut" />
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
                     </Storyboard>
                 </VisualState>
                 <VisualState x:Name="ControlPanelFadeOut">
                     <Storyboard>
-                        <FadeOutThemeAnimation TargetName="ControlPanelGrid" />
+                        <DoubleAnimation
+                            Storyboard.TargetName="ControlPanelGrid"
+                            Storyboard.TargetProperty="Opacity"
+                            To="0"
+                            Duration="0:0:0.15" />
+                        <DoubleAnimation
+                            Storyboard.TargetName="ScalePanel"
+                            Storyboard.TargetProperty="ScaleX"
+                            To="0.96"
+                            Duration="0:0:0.15" />
+                        <DoubleAnimation
+                            Storyboard.TargetName="ScalePanel"
+                            Storyboard.TargetProperty="ScaleY"
+                            To="0.96"
+                            Duration="0:0:0.15" />
                     </Storyboard>
-                    <VisualState.Setters>
-                        <Setter Target="ControlPanelGrid.Visibility" Value="Collapsed" />
-                    </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
 
