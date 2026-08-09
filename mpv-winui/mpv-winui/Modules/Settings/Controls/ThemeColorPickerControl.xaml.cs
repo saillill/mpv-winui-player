@@ -15,6 +15,7 @@ public sealed partial class ThemeColorPickerControl : UserControl
     private const int RecentColorCount = 10;
     private bool _updating;
     private Color _color = Colors.Transparent;
+    private readonly List<Button> _swatches = [];
 
     public ThemeColorPickerControl()
     {
@@ -69,6 +70,7 @@ public sealed partial class ThemeColorPickerControl : UserControl
         {
             _color = OptionColorControl.TryParse(CurrentColor) ?? Colors.Transparent;
             UpdatePreview();
+            HighlightSelected();
         }
         finally
         {
@@ -147,6 +149,7 @@ public sealed partial class ThemeColorPickerControl : UserControl
             Grid.SetRow(button, i / columns);
             Grid.SetColumn(button, i % columns);
             grid.Children.Add(button);
+            _swatches.Add(button);
         }
     }
 
@@ -156,11 +159,13 @@ public sealed partial class ThemeColorPickerControl : UserControl
         try
         {
             _color = OptionColorControl.TryParse(hex) ?? _color;
+            _currentColor = hex;
             HexInput.Text = hex.TrimStart('#');
             RedSlider.Value = _color.R;
             GreenSlider.Value = _color.G;
             BlueSlider.Value = _color.B;
             UpdatePreview();
+            HighlightSelected();
         }
         finally
         {
@@ -232,6 +237,29 @@ public sealed partial class ThemeColorPickerControl : UserControl
         BlueValue.Text = _color.B.ToString(CultureInfo.InvariantCulture);
     }
 
+    private void HighlightSelected()
+    {
+        var accent = Colors.Transparent;
+        try
+        {
+            if (Application.Current.Resources.TryGetValue("SystemAccentColor", out var value) && value is Color color)
+            {
+                accent = color;
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        foreach (var swatch in _swatches)
+        {
+            var isSelected = swatch.Tag is string hex
+                && string.Equals(hex, CurrentColor, StringComparison.OrdinalIgnoreCase);
+            swatch.BorderThickness = new Thickness(isSelected ? 2 : 1);
+            swatch.BorderBrush = new SolidColorBrush(isSelected ? accent : Color.FromArgb(64, 0, 0, 0));
+        }
+    }
+
     private void OnDoneClick(object sender, RoutedEventArgs e)
     {
         var hex = $"#{_color.R:X2}{_color.G:X2}{_color.B:X2}";
@@ -240,7 +268,7 @@ public sealed partial class ThemeColorPickerControl : UserControl
         Applied?.Invoke();
     }
 
-    private void OnCancelClick(object sender, RoutedEventArgs e)
+    private void OnCloseClick(object sender, RoutedEventArgs e)
     {
         Result = null;
         Applied?.Invoke();

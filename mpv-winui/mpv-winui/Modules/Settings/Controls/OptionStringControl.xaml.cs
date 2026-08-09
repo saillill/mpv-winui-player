@@ -13,10 +13,13 @@ public sealed partial class OptionStringControl : OptionControlBase
 {
     private bool _loading;
     private bool _pathMode;
+    private bool _capturing;
 
     public OptionStringControl()
     {
         InitializeComponent();
+        InputBox.Tapped += OnInputTapped;
+        InputBox.PointerPressed += OnInputPointerPressed;
     }
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)
@@ -32,6 +35,8 @@ public sealed partial class OptionStringControl : OptionControlBase
             BrowseButton.Visibility = newValue.PickFolder || newValue.PickFile ? Visibility.Visible : Visibility.Collapsed;
             OpenButton.Content = mpv_winui.AppContext.AppLang.Open;
             OpenButton.Visibility = newValue.OpenFolder ? Visibility.Visible : Visibility.Collapsed;
+            ResetButton.Content = mpv_winui.AppContext.AppLang.Reset;
+            ResetButton.Visibility = newValue.KeyCaptureEditable ? Visibility.Visible : Visibility.Collapsed;
             InputColumn.Width = newValue.PickFolder || newValue.PickFile || newValue.OpenFolder
                 ? new GridLength(2, GridUnitType.Star)
                 : new GridLength(newValue.ReadOnly ? 220 : 340);
@@ -39,6 +44,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             InputBox.IsReadOnly = newValue.ReadOnly;
             BrowseButton.IsEnabled = newValue.IsEnabled;
             OpenButton.IsEnabled = newValue.IsEnabled;
+            ResetButton.IsEnabled = newValue.IsEnabled;
 
             _loading = true;
             try
@@ -134,6 +140,131 @@ public sealed partial class OptionStringControl : OptionControlBase
         {
             TryCommit();
         }
+    }
+
+    private void OnInputTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        if (Setting?.KeyCaptureEditable == true)
+        {
+            StartKeyCapture();
+        }
+    }
+
+    private void OnInputPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (Setting?.KeyCaptureEditable == true)
+        {
+            StartKeyCapture();
+        }
+    }
+
+    private void OnResetBindingClick(object sender, RoutedEventArgs e)
+    {
+        Setting?.KeyCaptureReset?.Invoke(Setting);
+    }
+
+    private void StartKeyCapture()
+    {
+        if (_capturing || XamlRoot?.Content is not UIElement root)
+        {
+            return;
+        }
+
+        _capturing = true;
+        root.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(OnCapturedKey), true);
+        root.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnCapturedPointer), true);
+        InputBox.PlaceholderText = mpv_winui.AppContext.AppLang.KeyCapturePlaceholder;
+    }
+
+    private void StopKeyCapture()
+    {
+        if (XamlRoot?.Content is not UIElement root)
+        {
+            _capturing = false;
+            return;
+        }
+
+        root.RemoveHandler(UIElement.KeyDownEvent, new KeyEventHandler(OnCapturedKey));
+        root.RemoveHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnCapturedPointer));
+        _capturing = false;
+        if (Setting?.Placeholder is { } placeholder)
+        {
+            InputBox.PlaceholderText = placeholder;
+        }
+        else
+        {
+            InputBox.PlaceholderText = string.Empty;
+        }
+    }
+
+    private void OnCapturedKey(object sender, KeyRoutedEventArgs e)
+    {
+        if (!_capturing)
+        {
+            return;
+        }
+
+        var newKey = FormatKey(e.Key);
+        ApplyCapturedKey(newKey);
+    }
+
+    private void OnCapturedPointer(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_capturing)
+        {
+            return;
+        }
+
+        var properties = e.GetCurrentPoint(this).Properties;
+        string? newKey = null;
+        if (properties.IsLeftButtonPressed)
+        {
+            newKey = "MBTN_LEFT";
+        }
+        else if (properties.IsRightButtonPressed)
+        {
+            newKey = "MBTN_RIGHT";
+        }
+        else if (properties.IsMiddleButtonPressed)
+        {
+            newKey = "MBTN_MID";
+        }
+        else if (properties.IsXButton1Pressed)
+        {
+            newKey = "MBTN_BACK";
+        }
+        else if (properties.IsXButton2Pressed)
+        {
+            newKey = "MBTN_FORWARD";
+        }
+
+        if (newKey is not null)
+        {
+            ApplyCapturedKey(newKey);
+        }
+    }
+
+    private void ApplyCapturedKey(string newKey)
+    {
+        StopKeyCapture();
+        if (Setting is { } option && string.IsNullOrEmpty(newKey) == false)
+        {
+            InputBox.Text = newKey;
+            option.KeyCaptureReplaced?.Invoke(option, newKey);
+        }
+    }
+
+    private static string FormatKey(VirtualKey key)
+    {
+        return key switch
+        {
+            VirtualKey.Space => "SPACE",
+            VirtualKey.Left => "LEFT",
+            VirtualKey.Right => "RIGHT",
+            VirtualKey.Up => "UP",
+            VirtualKey.Down => "DOWN",
+            _ => key.ToString().ToUpperInvariant(),
+        };
     }
 
     private async void OnBrowseClick(object sender, RoutedEventArgs e)

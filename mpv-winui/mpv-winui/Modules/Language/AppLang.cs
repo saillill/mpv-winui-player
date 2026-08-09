@@ -47,6 +47,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsUnsaved { get; set; } = "Unsaved changes";
         public string SettingsUnsavedConfirm { get; set; } = "You have unsaved changes. Save them before closing?";
         public string Discard { get; set; } = "Discard";
+        public string Expand { get; set; } = "Expand";
+        public string Collapse { get; set; } = "Collapse";
         public string SettingsResetConfirm { get; set; } = "Reset all settings to their defaults?";
         public string Test { get; set; } = "Test";
         public string Open { get; set; } = "Open";
@@ -86,10 +88,28 @@ namespace mpv_winui.Modules.Language
         public string SettingsRememberWindowSize { get; set; } = "Remember window size and position";
         public string SettingsHelpRememberWindowSize { get; set; } = "Save the window size and position on exit and restore them on the next launch.";
 
+        // Control bar
+        public string SettingsControlBarLayout { get; set; } = "Control bar layout";
+        public string SettingsHelpControlBarLayout { get; set; } = "Choose how the playback controls are arranged in the control bar.";
+        public string OptionValueControlBarLeft { get; set; } = "Left";
+        public string OptionValueControlBarCenter { get; set; } = "Centered";
+        public string OptionValueControlBarRight { get; set; } = "Right";
+        public string SettingsControlBarIcons { get; set; } = "Control bar icons";
+        public string SettingsHelpControlBarIcons { get; set; } = "Hide icons you do not use. Changes apply immediately.";
+        public string ControlBarIconPlayback { get; set; } = "Playback controls";
+        public string ControlBarIconVolume { get; set; } = "Volume";
+        public string ControlBarIconTracks { get; set; } = "Tracks";
+        public string ControlBarIconAspect { get; set; } = "Aspect ratio";
+        public string ControlBarIconFullWindow { get; set; } = "Full window";
+        public string ControlBarIconFullScreen { get; set; } = "Full screen";
+        public string ControlBarIconMore { get; set; } = "More";
+        public string ControlBarIconPiP { get; set; } = "Picture-in-picture";
+
         // File associations / config profiles
         public string SectionProgramAssociations { get; set; } = "File associations";
         public string SettingsAssociateFiles { get; set; } = "Associate media files";
         public string SettingsHelpAssociateFiles { get; set; } = "Register common video and audio extensions to open with this player.";
+        public string SettingsHelpFileAssociations { get; set; } = "Choose which formats should open with this player. Changes apply immediately.";
         public string SettingsUnassociateFiles { get; set; } = "Remove file associations";
         public string SettingsHelpUnassociateFiles { get; set; } = "Remove the media file associations registered by this player.";
         public string SettingsAssociateDone { get; set; } = "File associations created.";

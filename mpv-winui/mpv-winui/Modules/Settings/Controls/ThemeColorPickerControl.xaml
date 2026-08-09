@@ -15,9 +15,32 @@
             Padding="0,0,16,0"
             Spacing="12">
 
-            <TextBlock
-                FontWeight="SemiBold"
-                Text="{x:Bind RecentColorsLabel}" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    FontWeight="SemiBold"
+                    Text="{x:Bind RecentColorsLabel}" />
+                <Button
+                    x:Name="CloseButton"
+                    Grid.Column="1"
+                    Width="32"
+                    Height="32"
+                    Padding="0"
+                    VerticalAlignment="Center"
+                    Click="OnCloseClick"
+                    ToolTipService.ToolTip="{x:Bind CancelLabel}">
+                    <FontIcon
+                        FontSize="12"
+                        Glyph="&#xE711;" />
+                </Button>
+            </Grid>
+
             <Grid
                 x:Name="RecentGrid"
                 ColumnSpacing="8"
@@ -128,20 +151,12 @@
                 </StackPanel>
             </Expander>
 
-            <StackPanel
+            <Button
+                MinWidth="96"
                 HorizontalAlignment="Right"
-                Orientation="Horizontal"
-                Spacing="8">
-                <Button
-                    MinWidth="96"
-                    Click="OnCancelClick"
-                    Content="{x:Bind CancelLabel}" />
-                <Button
-                    MinWidth="96"
-                    Click="OnDoneClick"
-                    Content="{x:Bind DoneLabel}"
-                    Style="{StaticResource AccentButtonStyle}" />
-            </StackPanel>
+                Click="OnDoneClick"
+                Content="{x:Bind DoneLabel}"
+                Style="{StaticResource AccentButtonStyle}" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>

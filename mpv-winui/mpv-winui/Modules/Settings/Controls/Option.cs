@@ -28,6 +28,21 @@ public enum OptionActionKind
     KeyCapture,
 }
 
+/// <summary>A checkbox entry used by <see cref="OptionType.CheckList"/> options.</summary>
+public sealed class OptionCheckItem
+{
+    public OptionCheckItem(string value, string label, bool isChecked)
+    {
+        Value = value;
+        Label = label;
+        IsChecked = isChecked;
+    }
+
+    public string Value { get; }
+    public string Label { get; }
+    public bool IsChecked { get; }
+}
+
 public sealed class Option : INotifyPropertyChanged
 {
     public string Key { get; set; } = string.Empty;
@@ -124,6 +139,30 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Clicking the read-only value starts key capture and rebinds the shortcut.</summary>
+    public bool KeyCaptureEditable
+    {
+        get; set;
+    }
+
+    /// <summary>Default key from the bundled input.conf, used by the per-row reset.</summary>
+    public string? KeyCaptureDefault
+    {
+        get; set;
+    }
+
+    /// <summary>Called after a new key is captured (option, new key).</summary>
+    public Action<Option, string>? KeyCaptureReplaced
+    {
+        get; set;
+    }
+
+    /// <summary>Restores this binding to its default key.</summary>
+    public Action<Option>? KeyCaptureReset
+    {
+        get; set;
+    }
+
     /// <summary>Extra row behavior for <see cref="OptionType.Action"/> options.</summary>
     public OptionActionKind ActionKind
     {
@@ -144,6 +183,29 @@ public sealed class Option : INotifyPropertyChanged
 
     /// <summary>Live status text for the action row (captured key, operation result).</summary>
     public Func<string>? ActionStatus
+    {
+        get; set;
+    }
+
+    /// <summary>Checkbox entries for <see cref="OptionType.CheckList"/> options.</summary>
+    public IList<OptionCheckItem>? CheckItems
+    {
+        get; set;
+    }
+
+    /// <summary>Raised when a checklist entry is toggled (option, value, checked).</summary>
+    public Action<Option, string, bool>? CheckChanged
+    {
+        get; set;
+    }
+
+    /// <summary>Localized expand/collapse button text for checklist rows.</summary>
+    public string? CheckExpandLabel
+    {
+        get; set;
+    }
+
+    public string? CheckCollapseLabel
     {
         get; set;
     }

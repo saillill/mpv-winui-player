@@ -62,7 +62,6 @@ public sealed partial class OptionColorControl : OptionControlBase
             Title = mpv_winui.AppContext.AppLang.SettingsThemeAccentColor,
             Content = picker,
             XamlRoot = XamlRoot,
-            CloseButtonText = mpv_winui.AppContext.AppLang.Cancel,
         };
         picker.Applied += () => dialog.Hide();
         await dialog.ShowAsync();

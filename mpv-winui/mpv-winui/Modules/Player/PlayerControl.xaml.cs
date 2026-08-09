@@ -2,9 +2,12 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using mpv_winui.Modules.Common.Utils;
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using Windows.Foundation;
 
 namespace mpv_winui.Modules.Player
@@ -69,6 +72,9 @@ namespace mpv_winui.Modules.Player
         {
             this.InitializeComponent();
             ApplyLocalizedStrings();
+            PiPButton.Click += OnPiPClick;
+            AppContext.SettingChanged += OnAppSettingChanged;
+            ApplyControlBarStyle();
             this.Loaded += PlayerControl_Loaded;
             this.Unloaded += PlayerControl_Unloaded;
 
@@ -95,6 +101,70 @@ namespace mpv_winui.Modules.Player
             }
             MoreFullWindow.Text = AppContext.AppLang.MoreFullWindow;
             MoreFullScreen.Text = AppContext.AppLang.MoreFullScreen;
+            MorePiP.Text = AppContext.AppLang.SettingsPiP;
+            ToolTipService.SetToolTip(PiPButton, AppContext.AppLang.SettingsPiP);
+        }
+
+        private void OnAppSettingChanged(string key, object? value)
+        {
+            if (key == nameof(AppContext.AppSetting.WindowPiP))
+            {
+                DispatcherQueue.TryEnqueue(UpdatePiPButton);
+            }
+            else if (key == nameof(AppContext.AppSetting.ControlBarLayout)
+                || key == nameof(AppContext.AppSetting.ControlBarHiddenIcons))
+            {
+                DispatcherQueue.TryEnqueue(ApplyControlBarStyle);
+            }
+        }
+
+        private void OnPiPClick(object sender, RoutedEventArgs e)
+        {
+            AppContext.AppSetting.WindowPiP = !AppContext.AppSetting.WindowPiP;
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiP), AppContext.AppSetting.WindowPiP);
+            UpdatePiPButton();
+        }
+
+        private void UpdatePiPButton()
+        {
+            PiPButton.IsChecked = AppContext.AppSetting.WindowPiP;
+        }
+
+        /// <summary>Applies control-bar layout and hidden-icon preferences from the settings.</summary>
+        public void ApplyControlBarStyle()
+        {
+            MediaControlsCommandBar.HorizontalAlignment = AppContext.AppSetting.ControlBarLayout switch
+            {
+                "center" => HorizontalAlignment.Center,
+                "right" => HorizontalAlignment.Right,
+                _ => HorizontalAlignment.Left,
+            };
+
+            var hidden = new HashSet<string>(
+                AppContext.AppSetting.ControlBarHiddenIcons?.Split(
+                    [',', ';'],
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
+                StringComparer.OrdinalIgnoreCase);
+
+            SetHidden(hidden.Contains("playback"), PlayPauseButton, SkipBackwardButton, SkipForwardButton, PreviousTrackButton, NextTrackButton, StopButton);
+            SetHidden(hidden.Contains("volume"), VolumeMuteButton, VolumeSliderContainer);
+            SetHidden(hidden.Contains("tracks"), TrackSelectionButton);
+            SetHidden(hidden.Contains("aspect"), ZoomButton);
+            SetHidden(hidden.Contains("fullwindow"), FullWindowButton);
+            SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
+            SetHidden(hidden.Contains("pip"), PiPButton);
+            SetHidden(hidden.Contains("more"), MoreButton);
+        }
+
+        private static void SetHidden(bool hide, params FrameworkElement[] elements)
+        {
+            foreach (var element in elements)
+            {
+                if (element is not null)
+                {
+                    element.Visibility = hide ? Visibility.Collapsed : Visibility.Visible;
+                }
+            }
         }
 
         public MpvMediaPlayer? MediaPlayer
@@ -265,6 +335,8 @@ namespace mpv_winui.Modules.Player
 
         private void PlayerControl_Unloaded(object sender, RoutedEventArgs e)
         {
+            PiPButton.Click -= OnPiPClick;
+            AppContext.SettingChanged -= OnAppSettingChanged;
             PlayPauseButton.Click -= OnPlayPauseClick;
             SkipBackwardButton.Click -= SkipBackwardButton_Click;
             SkipForwardButton.Click -= SkipForwardButton_Click;
@@ -365,7 +437,7 @@ namespace mpv_winui.Modules.Player
         {
             ZoomSelectionFlyout.Items.Clear();
 
-            var item = new MenuFlyoutItem() { Text = "Auto", Tag = "no", };
+            var item = new MenuFlyoutItem() { Text = AppContext.AppLang.MoreZoomAuto, Tag = "no", };
             item.Click += ZoomSelectionMenu_Click;
             ZoomSelectionFlyout.Items.Add(item);
 
@@ -416,7 +488,7 @@ namespace mpv_winui.Modules.Player
             try
             {
                 TrackSelectorControl.SubtitleTrackSelected -= TrackSelectorControl_SubtitleTrackSelected;
-                TrackSelectorControl.LoadSubtitleTracks(_mediaPlayer?.SubtitleTracks() ?? [], "Off");
+                TrackSelectorControl.LoadSubtitleTracks(_mediaPlayer?.SubtitleTracks() ?? [], AppContext.AppLang.Off);
                 TrackSelectorControl.SubtitleTrackSelected += TrackSelectorControl_SubtitleTrackSelected;
             }
             catch (Exception ex)
@@ -817,33 +889,83 @@ namespace mpv_winui.Modules.Player
         {
             if (!_controlPanelIsVisible)
             {
-                ControlPanelGrid.Opacity = 1;
+                StopPanelAnimations();
+                ControlPanelGrid.Opacity = 0;
+                TranslateVertical.Y = 48;
                 ControlPanelGrid.Visibility = Visibility.Visible;
-                VisualStateManager.GoToState(this, "ControlPanelFadeIn", true);
                 _controlPanelIsVisible = true;
+
+                var storyboard = new Storyboard
+                {
+                    Duration = TimeSpan.FromMilliseconds(180),
+                };
+                AddPanelAnimation(storyboard, "Opacity", 0, 1, 180);
+                AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", 48, 0, 180);
+                storyboard.Begin();
+                _showStoryboard = storyboard;
             }
 
             OnPanelVisibleChanged?.Invoke(false);
         }
 
-        public async void HideControlPanel()
+        public void HideControlPanel()
         {
             if (_controlPanelIsVisible)
             {
-                VisualStateManager.GoToState(this, "ControlPanelFadeOut", true);
+                StopPanelAnimations();
                 _controlPanelIsVisible = false;
+
+                var storyboard = new Storyboard
+                {
+                    Duration = TimeSpan.FromMilliseconds(150),
+                };
+                AddPanelAnimation(storyboard, "Opacity", 1, 0, 150);
+                AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", 0, 48, 150);
+                storyboard.Completed += (_, _) =>
+                {
+                    if (!_controlPanelIsVisible)
+                    {
+                        ControlPanelGrid.Visibility = Visibility.Collapsed;
+                        ControlPanelGrid.Opacity = 1;
+                        TranslateVertical.Y = 0;
+                    }
+                    _hideStoryboard = null;
+                };
+                storyboard.Begin();
+                _hideStoryboard = storyboard;
             }
 
             OnPanelVisibleChanged?.Invoke(true);
-            await System.Threading.Tasks.Task.Delay(180);
-            DispatcherQueue.TryEnqueue(() =>
+        }
+
+        private Storyboard? _showStoryboard;
+        private Storyboard? _hideStoryboard;
+
+        private void StopPanelAnimations()
+        {
+            _showStoryboard?.Stop();
+            _showStoryboard = null;
+            _hideStoryboard?.Stop();
+            _hideStoryboard = null;
+        }
+
+        private void AddPanelAnimation(
+            Storyboard storyboard,
+            string property,
+            double from,
+            double to,
+            double milliseconds)
+        {
+            var animation = new DoubleAnimation
             {
-                if (!_controlPanelIsVisible)
-                {
-                    ControlPanelGrid.Visibility = Visibility.Collapsed;
-                    ControlPanelGrid.Opacity = 1;
-                }
-            });
+                From = from,
+                To = to,
+                Duration = TimeSpan.FromMilliseconds(milliseconds),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+            };
+            Storyboard.SetTarget(animation, ControlPanelGrid);
+            Storyboard.SetTargetProperty(animation, property);
+            storyboard.Children.Add(animation);
         }
 
         private void AppBarElementContainer_GotFocus(object sender, RoutedEventArgs e)

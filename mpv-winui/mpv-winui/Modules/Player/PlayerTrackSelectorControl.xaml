@@ -31,10 +31,9 @@
                             FontSize="16"
                             Glyph="&#xED1E;" />
                         <TextBlock
+                            x:Name="SubtitleHeaderText"
                             VerticalAlignment="Center"
-                            FontSize="12">
-                            Subtile
-                        </TextBlock>
+                            FontSize="12" />
                         <TextBlock
                             VerticalAlignment="Center"
                             FontSize="10"
@@ -72,10 +71,9 @@
                             FontSize="16"
                             Glyph="&#xED1E;" />
                         <TextBlock
+                            x:Name="SecondSubHeaderText"
                             VerticalAlignment="Center"
-                            FontSize="12">
-                            Subtile Sec
-                        </TextBlock>
+                            FontSize="12" />
                         <TextBlock
                             VerticalAlignment="Center"
                             FontSize="10"
@@ -113,10 +111,9 @@
                             FontSize="16"
                             Glyph="&#xE8B2;" />
                         <TextBlock
+                            x:Name="VideoHeaderText"
                             VerticalAlignment="Center"
-                            FontSize="12">
-                            Video
-                        </TextBlock>
+                            FontSize="12" />
                         <TextBlock
                             VerticalAlignment="Center"
                             FontSize="10"
@@ -154,10 +151,9 @@
                             FontSize="16"
                             Glyph="&#xE8D6;" />
                         <TextBlock
+                            x:Name="AudioHeaderText"
                             VerticalAlignment="Center"
-                            FontSize="12">
-                            Audio
-                        </TextBlock>
+                            FontSize="12" />
                         <TextBlock
                             VerticalAlignment="Center"
                             FontSize="10"

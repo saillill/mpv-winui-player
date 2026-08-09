@@ -70,6 +70,14 @@
                 Orientation="Horizontal"
                 Spacing="8">
                 <Button
+                    x:Name="ResetButton"
+                    MinWidth="64"
+                    Margin="8,0,0,0"
+                    VerticalAlignment="Center"
+                    Click="OnResetBindingClick"
+                    Content="Reset"
+                    Visibility="Collapsed" />
+                <Button
                     x:Name="OpenButton"
                     MinWidth="96"
                     Margin="8,0,0,0"

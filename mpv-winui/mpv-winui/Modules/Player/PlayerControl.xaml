@@ -37,13 +37,7 @@
             Background="{ThemeResource MpvPlayControlBackground}"
             RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform
-                        x:Name="ScalePanel"
-                        ScaleX="1"
-                        ScaleY="1" />
-                    <TranslateTransform x:Name="TranslateVertical" />
-                </TransformGroup>
+                <TranslateTransform x:Name="TranslateVertical" />
             </Grid.RenderTransform>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -420,6 +414,18 @@
                         </AppBarButton.Flyout>
                     </AppBarButton>
 
+                    <AppBarToggleButton
+                        x:Name="PiPButton"
+                        Grid.Column="16"
+                        IsTabStop="False"
+                        Style="{StaticResource AppBarToggleButtonStyle}"
+                        ToolTipService.ToolTip="Picture-in-picture"
+                        Visibility="Visible">
+                        <AppBarToggleButton.Icon>
+                            <FontIcon Glyph="&#xE7C9;" />
+                        </AppBarToggleButton.Icon>
+                    </AppBarToggleButton>
+
                     <AppBarButton
                         x:Name="FullWindowButton"
                         Grid.Column="18"
@@ -565,6 +571,14 @@
                                         Tag="16:10"
                                         Text="16:10" />
                                 </MenuFlyoutSubItem>
+                                <MenuFlyoutItem
+                                    x:Name="MorePiP"
+                                    Click="OnPiPClick"
+                                    Text="Picture-in-picture">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE7C9;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     x:Name="MoreFullWindow"
                 Text="Full Window">
@@ -712,53 +726,8 @@
                 </VisualState>
             </VisualStateGroup>
             <VisualStateGroup x:Name="ControlPanelVisibilityStates">
-                <VisualState x:Name="ControlPanelFadeIn">
-                    <VisualState.Setters>
-                        <Setter Target="ControlPanelGrid.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                    <Storyboard>
-                        <FadeInThemeAnimation TargetName="ControlPanelGrid" />
-                        <DoubleAnimation
-                            Storyboard.TargetName="ScalePanel"
-                            Storyboard.TargetProperty="ScaleX"
-                            From="0.96"
-                            To="1"
-                            Duration="0:0:0.16">
-                            <DoubleAnimation.EasingFunction>
-                                <CubicEase EasingMode="EaseOut" />
-                            </DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                        <DoubleAnimation
-                            Storyboard.TargetName="ScalePanel"
-                            Storyboard.TargetProperty="ScaleY"
-                            From="0.96"
-                            To="1"
-                            Duration="0:0:0.16">
-                            <DoubleAnimation.EasingFunction>
-                                <CubicEase EasingMode="EaseOut" />
-                            </DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                    </Storyboard>
-                </VisualState>
-                <VisualState x:Name="ControlPanelFadeOut">
-                    <Storyboard>
-                        <DoubleAnimation
-                            Storyboard.TargetName="ControlPanelGrid"
-                            Storyboard.TargetProperty="Opacity"
-                            To="0"
-                            Duration="0:0:0.15" />
-                        <DoubleAnimation
-                            Storyboard.TargetName="ScalePanel"
-                            Storyboard.TargetProperty="ScaleX"
-                            To="0.96"
-                            Duration="0:0:0.15" />
-                        <DoubleAnimation
-                            Storyboard.TargetName="ScalePanel"
-                            Storyboard.TargetProperty="ScaleY"
-                            To="0.96"
-                            Duration="0:0:0.15" />
-                    </Storyboard>
-                </VisualState>
+                <VisualState x:Name="ControlPanelFadeIn" />
+                <VisualState x:Name="ControlPanelFadeOut" />
             </VisualStateGroup>
 
             <VisualStateGroup x:Name="WidthAdaptiveStates">

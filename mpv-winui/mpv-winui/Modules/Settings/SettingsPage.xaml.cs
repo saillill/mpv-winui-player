@@ -94,7 +94,16 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        AppContext.AppSetting.ResetAll();
+        var category = CategoryList.SelectedItem as string;
+        var keys = Settings
+            .Where(o => o.Category == category)
+            .Select(o => o.Key)
+            .Where(k => !k.StartsWith("Shortcut:", StringComparison.Ordinal)
+                && k is not ("ShortcutCapture" or "ShortcutReset"
+                    or "FileAssociationCheckList" or "ActionUnassociateFiles"
+                    or "ActionExportConfig" or "ActionImportConfig"))
+            .ToList();
+        AppContext.AppSetting.ResetKeys(keys);
         if (App.Window is MainWindow mainWindow)
         {
             mainWindow.UpdateCurrentTheme();
@@ -353,6 +362,40 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.ControlBarLayout),
+                Label = lang.SettingsControlBarLayout,
+                Category = program,
+                Description = lang.SettingsHelpControlBarLayout,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("left", lang.OptionValueControlBarLeft),
+                    new OptionChoice("center", lang.OptionValueControlBarCenter),
+                    new OptionChoice("right", lang.OptionValueControlBarRight),
+                ],
+                Getter = () => AppContext.AppSetting.ControlBarLayout,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ControlBarLayout = (string)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarLayout), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ControlBarHiddenIcons),
+                Label = lang.SettingsControlBarIcons,
+                Category = program,
+                Description = lang.SettingsHelpControlBarIcons,
+                Type = OptionType.CheckList,
+                CheckExpandLabel = lang.Expand,
+                CheckCollapseLabel = lang.Collapse,
+                CheckItems = BuildControlBarIconItems(),
+                CheckChanged = (_, value, isChecked) => ApplyControlBarIcon(value, isChecked),
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.TestMpvCommandLog),
                 Label = lang.SettingsTestMpvCommandLog,
                 Category = program,
@@ -426,15 +469,15 @@ public sealed partial class SettingsPage : Page
 
             new Option
             {
-                Key = "ActionAssociateFiles",
+                Key = "FileAssociationCheckList",
                 Label = lang.SettingsAssociateFiles,
                 Category = program,
-                Description = lang.SettingsHelpAssociateFiles,
-                Type = OptionType.Action,
-                ActionKind = OptionActionKind.Button,
-                ActionLabel = lang.SettingsAssociateFiles,
-                ActionHandler = _ => AssociateFiles(),
-                ActionStatus = () => _actionStatus,
+                Description = lang.SettingsHelpFileAssociations,
+                Type = OptionType.CheckList,
+                CheckExpandLabel = lang.Expand,
+                CheckCollapseLabel = lang.Collapse,
+                CheckItems = BuildAssociationItems(),
+                CheckChanged = (_, value, isChecked) => ApplyAssociation(value, isChecked),
             },
 
             new Option
@@ -3653,10 +3696,12 @@ public sealed partial class SettingsPage : Page
             ["ShortcutCapture"] = shortcuts,
             ["ShortcutReset"] = shortcuts,
             // program actions
-            ["ActionAssociateFiles"] = program,
+            ["FileAssociationCheckList"] = program,
             ["ActionUnassociateFiles"] = program,
             ["ActionExportConfig"] = program,
             ["ActionImportConfig"] = program,
+            [nameof(AppSettings.ControlBarLayout)] = program,
+            [nameof(AppSettings.ControlBarHiddenIcons)] = program,
             // osd
             [nameof(AppSettings.OsdFontSize)] = osd,
             [nameof(AppSettings.OsdFont)] = osd,
@@ -3921,10 +3966,12 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.CurlConnectTimeout)] = 213,
             [nameof(AppSettings.CurlBufferSize)] = 214,
             [nameof(AppSettings.CurlMaxRequestSize)] = 215,
-            ["ActionAssociateFiles"] = 216,
+            ["FileAssociationCheckList"] = 216,
             ["ActionUnassociateFiles"] = 217,
             ["ActionExportConfig"] = 218,
             ["ActionImportConfig"] = 219,
+            [nameof(AppSettings.ControlBarLayout)] = 220,
+            [nameof(AppSettings.ControlBarHiddenIcons)] = 221,
             ["ShortcutCapture"] = 900,
             ["ShortcutReset"] = 2000,
         };
@@ -4177,10 +4224,12 @@ public sealed partial class SettingsPage : Page
             ["ShortcutCapture"] = sShortcutsCapture,
             ["ShortcutReset"] = sShortcutsReset,
             // program actions
-            ["ActionAssociateFiles"] = sProgramAssociations,
+            ["FileAssociationCheckList"] = sProgramAssociations,
             ["ActionUnassociateFiles"] = sProgramAssociations,
             ["ActionExportConfig"] = sProgramConfig,
             ["ActionImportConfig"] = sProgramConfig,
+            [nameof(AppSettings.ControlBarLayout)] = sProgramInterface,
+            [nameof(AppSettings.ControlBarHiddenIcons)] = sProgramInterface,
             // osd
             [nameof(AppSettings.OsdFontSize)] = sOsd,
             [nameof(AppSettings.OsdFont)] = sOsd,
@@ -4304,6 +4353,7 @@ public sealed partial class SettingsPage : Page
         nameof(AppContext.AppSetting.ThumbfastPrecise),
         nameof(AppContext.AppSetting.YtdlThumbnails),
         nameof(AppContext.AppSetting.WindowPiPSize),
+        nameof(AppContext.AppSetting.ControlBarLayout),
     };
 
     /// <summary>Options whose help text only restates the title (Windows Settings style: no redundant description).</summary>
@@ -4473,6 +4523,7 @@ public sealed partial class SettingsPage : Page
             }
 
             var command = string.Join(' ', parts.Skip(1));
+            var shortcutBinding = new ShortcutBinding { Key = key, Command = command };
             options.Add(new Option
             {
                 Key = $"Shortcut:{index++}",
@@ -4480,8 +4531,12 @@ public sealed partial class SettingsPage : Page
                 Category = shortcutsCategory,
                 Type = OptionType.String,
                 ReadOnly = true,
-                Getter = () => key,
+                KeyCaptureEditable = true,
+                KeyCaptureDefault = key,
+                Getter = () => shortcutBinding.Key,
                 Setter = _ => { },
+                KeyCaptureReplaced = (_, newKey) => RebindShortcut(shortcutBinding, newKey),
+                KeyCaptureReset = option => RebindShortcut(shortcutBinding, option.KeyCaptureDefault ?? shortcutBinding.Key),
             });
 
             if (options.Count >= 240)
@@ -4490,6 +4545,59 @@ public sealed partial class SettingsPage : Page
             }
         }
         return options;
+    }
+
+    private sealed class ShortcutBinding
+    {
+        public string Key = string.Empty;
+        public string Command = string.Empty;
+    }
+
+    private static void RebindShortcut(ShortcutBinding binding, string newKey)
+    {
+        if (string.IsNullOrWhiteSpace(newKey) || newKey == binding.Key)
+        {
+            return;
+        }
+
+        binding.Key = newKey;
+        var path = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "mpv-winui",
+            "mpv",
+            "input.conf");
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        var lines = File.ReadAllLines(path);
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var trimmed = lines[i].Trim();
+            if (trimmed.Length == 0 || trimmed.StartsWith('#'))
+            {
+                continue;
+            }
+
+            var hash = trimmed.IndexOf('#');
+            var bindingText = (hash >= 0 ? trimmed[..hash] : trimmed).Trim();
+            var parts = bindingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
+            {
+                continue;
+            }
+
+            var command = string.Join(' ', parts.Skip(1));
+            if (string.Equals(command, binding.Command, StringComparison.Ordinal))
+            {
+                var indent = lines[i].Length - lines[i].TrimStart().Length;
+                lines[i] = new string(' ', indent) + newKey + bindingText[parts[0].Length..];
+                break;
+            }
+        }
+
+        File.WriteAllLines(path, lines);
     }
 
     private static List<OptionChoice> LanguageChoices(bool includeAuto)
@@ -4635,7 +4743,42 @@ public sealed partial class SettingsPage : Page
         ".mp3", ".flac", ".wav", ".aac", ".m4a", ".ogg", ".opus", ".wma",
     ];
 
-    private static void AssociateFiles()
+    private static List<OptionCheckItem> BuildAssociationItems()
+    {
+        var selected = ParseTokenList(AppContext.AppSetting.FileAssociationExts);
+        return AssociationExtensions
+            .Select(ext => new OptionCheckItem(ext, ext, selected.Contains(ext, StringComparer.OrdinalIgnoreCase)))
+            .ToList();
+    }
+
+    private static void ApplyAssociation(string extension, bool isChecked)
+    {
+        var list = ParseTokenList(AppContext.AppSetting.FileAssociationExts).ToList();
+        if (isChecked)
+        {
+            if (!list.Contains(extension, StringComparer.OrdinalIgnoreCase))
+            {
+                list.Add(extension);
+            }
+        }
+        else
+        {
+            list.RemoveAll(x => string.Equals(x, extension, StringComparison.OrdinalIgnoreCase));
+        }
+
+        AppContext.AppSetting.FileAssociationExts = string.Join(';', list);
+        if (isChecked)
+        {
+            RegisterExtension(extension);
+        }
+        else
+        {
+            UnregisterExtension(extension);
+        }
+        _actionStatus = isChecked ? AppContext.AppLang.SettingsAssociateDone : AppContext.AppLang.SettingsUnassociateDone;
+    }
+
+    private static void RegisterExtension(string extension)
     {
         var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
         if (string.IsNullOrEmpty(exe))
@@ -4653,27 +4796,15 @@ public sealed partial class SettingsPage : Page
             icon.SetValue(string.Empty, $"\"{exe}\",0");
         }
 
-        foreach (var extension in AssociationExtensions)
-        {
-            using var key = Registry.CurrentUser.CreateSubKey(@"Software\Classes\" + extension);
-            key.SetValue(string.Empty, "mpv-winui.media");
-        }
-
-        _actionStatus = AppContext.AppLang.SettingsAssociateDone;
+        using var key = Registry.CurrentUser.CreateSubKey(@"Software\Classes\" + extension);
+        key.SetValue(string.Empty, "mpv-winui.media");
     }
 
     private static void UnassociateFiles()
     {
-        foreach (var extension in AssociationExtensions)
+        foreach (var extension in ParseTokenList(AppContext.AppSetting.FileAssociationExts))
         {
-            try
-            {
-                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + extension, throwOnMissingSubKey: false);
-            }
-            catch (System.Exception)
-            {
-                // Some extensions may be owned by another application; keep going.
-            }
+            UnregisterExtension(extension);
         }
 
         try
@@ -4685,6 +4816,69 @@ public sealed partial class SettingsPage : Page
         }
 
         _actionStatus = AppContext.AppLang.SettingsUnassociateDone;
+    }
+
+    private static void UnregisterExtension(string extension)
+    {
+        try
+        {
+            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + extension, throwOnMissingSubKey: false);
+        }
+        catch (System.Exception)
+        {
+            // Some extensions may be owned by another application; keep going.
+        }
+    }
+
+    private static IEnumerable<string> ParseTokenList(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return [];
+        }
+
+        return value
+            .Split([';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(x => x.Length > 0);
+    }
+
+    private static List<OptionCheckItem> BuildControlBarIconItems()
+    {
+        var lang = AppContext.AppLang;
+        var hidden = ParseTokenList(AppContext.AppSetting.ControlBarHiddenIcons).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        (string Value, string Label)[] items =
+        [
+            ("playback", lang.ControlBarIconPlayback),
+            ("volume", lang.ControlBarIconVolume),
+            ("tracks", lang.ControlBarIconTracks),
+            ("aspect", lang.ControlBarIconAspect),
+            ("fullwindow", lang.ControlBarIconFullWindow),
+            ("fullscreen", lang.ControlBarIconFullScreen),
+            ("pip", lang.ControlBarIconPiP),
+            ("more", lang.ControlBarIconMore),
+        ];
+        return items
+            .Select(x => new OptionCheckItem(x.Value, x.Label, hidden.Contains(x.Value)))
+            .ToList();
+    }
+
+    private static void ApplyControlBarIcon(string value, bool isChecked)
+    {
+        var list = ParseTokenList(AppContext.AppSetting.ControlBarHiddenIcons).ToList();
+        if (isChecked)
+        {
+            if (!list.Contains(value, StringComparer.OrdinalIgnoreCase))
+            {
+                list.Add(value);
+            }
+        }
+        else
+        {
+            list.RemoveAll(x => string.Equals(x, value, StringComparison.OrdinalIgnoreCase));
+        }
+
+        AppContext.AppSetting.ControlBarHiddenIcons = string.Join(',', list);
+        AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarHiddenIcons), list);
     }
 
     private static void FireAndForgetExport()
