@@ -26,6 +26,9 @@ public sealed partial class ThemeColorPickerControl : UserControl
         RedLabel = mpv_winui.AppContext.AppLang.ThemeColorRed;
         GreenLabel = mpv_winui.AppContext.AppLang.ThemeColorGreen;
         BlueLabel = mpv_winui.AppContext.AppLang.ThemeColorBlue;
+        HueLabel = mpv_winui.AppContext.AppLang.ThemeColorHue;
+        SaturationLabel = mpv_winui.AppContext.AppLang.ThemeColorSaturation;
+        LightnessLabel = mpv_winui.AppContext.AppLang.ThemeColorLightness;
         CancelLabel = mpv_winui.AppContext.AppLang.Cancel;
         DoneLabel = mpv_winui.AppContext.AppLang.ThemeColorDone;
         BuildRecentGrid();
@@ -39,6 +42,9 @@ public sealed partial class ThemeColorPickerControl : UserControl
     public string RedLabel { get; }
     public string GreenLabel { get; }
     public string BlueLabel { get; }
+    public string HueLabel { get; }
+    public string SaturationLabel { get; }
+    public string LightnessLabel { get; }
     public string CancelLabel { get; }
     public string DoneLabel { get; }
 
@@ -69,6 +75,7 @@ public sealed partial class ThemeColorPickerControl : UserControl
         try
         {
             _color = OptionColorControl.TryParse(CurrentColor) ?? Colors.Transparent;
+            UpdateHslFromColor();
             UpdatePreview();
             HighlightSelected();
         }
@@ -164,6 +171,7 @@ public sealed partial class ThemeColorPickerControl : UserControl
             RedSlider.Value = _color.R;
             GreenSlider.Value = _color.G;
             BlueSlider.Value = _color.B;
+            UpdateHslFromColor();
             UpdatePreview();
             HighlightSelected();
         }
@@ -194,6 +202,7 @@ public sealed partial class ThemeColorPickerControl : UserControl
             RedSlider.Value = _color.R;
             GreenSlider.Value = _color.G;
             BlueSlider.Value = _color.B;
+            UpdateHslFromColor();
             UpdatePreview();
         }
         finally
@@ -217,6 +226,7 @@ public sealed partial class ThemeColorPickerControl : UserControl
             RedValue.Text = ((int)RedSlider.Value).ToString(CultureInfo.InvariantCulture);
             GreenValue.Text = ((int)GreenSlider.Value).ToString(CultureInfo.InvariantCulture);
             BlueValue.Text = ((int)BlueSlider.Value).ToString(CultureInfo.InvariantCulture);
+            UpdateHslFromColor();
             UpdatePreview();
         }
         finally
@@ -235,6 +245,145 @@ public sealed partial class ThemeColorPickerControl : UserControl
         RedValue.Text = _color.R.ToString(CultureInfo.InvariantCulture);
         GreenValue.Text = _color.G.ToString(CultureInfo.InvariantCulture);
         BlueValue.Text = _color.B.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private void OnCustomToggleClick(object sender, RoutedEventArgs e)
+    {
+        var expanded = CustomPanel.Visibility != Visibility.Visible;
+        CustomPanel.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+        CustomToggleIcon.Glyph = expanded ? "\uE70E" : "\uE70D";
+    }
+
+    private void OnHslChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (_updating)
+        {
+            return;
+        }
+
+        _color = HslToRgb(HueSlider.Value, SaturationSlider.Value / 100.0, LightnessSlider.Value / 100.0);
+        _updating = true;
+        try
+        {
+            HexInput.Text = $"{_color.R:X2}{_color.G:X2}{_color.B:X2}";
+            RedSlider.Value = _color.R;
+            GreenSlider.Value = _color.G;
+            BlueSlider.Value = _color.B;
+            RedValue.Text = _color.R.ToString(CultureInfo.InvariantCulture);
+            GreenValue.Text = _color.G.ToString(CultureInfo.InvariantCulture);
+            BlueValue.Text = _color.B.ToString(CultureInfo.InvariantCulture);
+            HueValue.Text = ((int)HueSlider.Value).ToString(CultureInfo.InvariantCulture);
+            SaturationValue.Text = ((int)SaturationSlider.Value).ToString(CultureInfo.InvariantCulture);
+            LightnessValue.Text = ((int)LightnessSlider.Value).ToString(CultureInfo.InvariantCulture);
+            UpdatePreview();
+        }
+        finally
+        {
+            _updating = false;
+        }
+    }
+
+    private void UpdateHslFromColor()
+    {
+        _updating = true;
+        try
+        {
+            var (hue, sat, light) = RgbToHsl(_color);
+            HueSlider.Value = hue;
+            SaturationSlider.Value = sat * 100.0;
+            LightnessSlider.Value = light * 100.0;
+            HueValue.Text = ((int)hue).ToString(CultureInfo.InvariantCulture);
+            SaturationValue.Text = ((int)(sat * 100.0)).ToString(CultureInfo.InvariantCulture);
+            LightnessValue.Text = ((int)(light * 100.0)).ToString(CultureInfo.InvariantCulture);
+        }
+        finally
+        {
+            _updating = false;
+        }
+    }
+
+    private static (double Hue, double Saturation, double Lightness) RgbToHsl(Color color)
+    {
+        var r = color.R / 255.0;
+        var g = color.G / 255.0;
+        var b = color.B / 255.0;
+        var max = Math.Max(r, Math.Max(g, b));
+        var min = Math.Min(r, Math.Min(g, b));
+        var l = (max + min) / 2.0;
+        if (Math.Abs(max - min) < 0.0001)
+        {
+            return (0, 0, l);
+        }
+
+        var d = max - min;
+        var s = l > 0.5 ? d / (2.0 - max - min) : d / (max + min);
+        double h;
+        if (Math.Abs(max - r) < 0.0001)
+        {
+            h = (g - b) / d + (g < b ? 6.0 : 0.0);
+        }
+        else if (Math.Abs(max - g) < 0.0001)
+        {
+            h = (b - r) / d + 2.0;
+        }
+        else
+        {
+            h = (r - g) / d + 4.0;
+        }
+
+        return (h * 60.0, s, l);
+    }
+
+    private static Color HslToRgb(double hue, double saturation, double lightness)
+    {
+        var h = ((hue % 360.0) + 360.0) % 360.0 / 360.0;
+        var s = Math.Clamp(saturation, 0, 1);
+        var l = Math.Clamp(lightness, 0, 1);
+
+        double r, g, b;
+        if (Math.Abs(s) < 0.0001)
+        {
+            r = g = b = l;
+        }
+        else
+        {
+            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            var p = 2 * l - q;
+            r = HueToRgb(p, q, h + 1.0 / 3.0);
+            g = HueToRgb(p, q, h);
+            b = HueToRgb(p, q, h - 1.0 / 3.0);
+        }
+
+        return Color.FromArgb(
+            255,
+            (byte)Math.Round(r * 255.0),
+            (byte)Math.Round(g * 255.0),
+            (byte)Math.Round(b * 255.0));
+    }
+
+    private static double HueToRgb(double p, double q, double t)
+    {
+        if (t < 0)
+        {
+            t += 1;
+        }
+        if (t > 1)
+        {
+            t -= 1;
+        }
+        if (t < 1.0 / 6.0)
+        {
+            return p + (q - p) * 6 * t;
+        }
+        if (t < 1.0 / 2.0)
+        {
+            return q;
+        }
+        if (t < 2.0 / 3.0)
+        {
+            return p + (q - p) * (2.0 / 3.0 - t) * 6;
+        }
+        return p;
     }
 
     private void HighlightSelected()

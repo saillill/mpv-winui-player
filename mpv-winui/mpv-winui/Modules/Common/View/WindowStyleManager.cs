@@ -86,6 +86,7 @@ public sealed partial class WindowStyleManager : IDisposable
                     _micaController = new MicaController();
                     _micaController?.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
                     _micaController?.SetSystemBackdropConfiguration(_configurationSource);
+                    ApplyMicaTint();
                 }
                 break;
             }
@@ -103,6 +104,12 @@ public sealed partial class WindowStyleManager : IDisposable
     }
 
     public ElementTheme GetThemeType()
+    {
+        return ResolveTheme();
+    }
+
+    /// <summary>Resolves the effective element theme from the current setting.</summary>
+    public static ElementTheme ResolveTheme()
     {
         return AppContext.AppSetting.ThemeType switch
         {
@@ -178,6 +185,30 @@ public sealed partial class WindowStyleManager : IDisposable
             _acrylicController?.TintColor = GetBackdropTintColor(theme);
             _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
         }
+
+        ApplyMicaTint();
+    }
+
+    private void ApplyMicaTint()
+    {
+        if (_micaController is null)
+        {
+            return;
+        }
+
+        // Outside Custom theme mode the tint options are hidden, so Mica keeps
+        // the stock Windows look (subtle wallpaper tint) instead of applying
+        // leftover custom colors.
+        if (AppContext.AppSetting.ThemeType != AppSettings.ThemeType_Custom)
+        {
+            _micaController.TintColor = Colors.Transparent;
+            _micaController.TintOpacity = 1f;
+            _micaController.LuminosityOpacity = 1f;
+            return;
+        }
+
+        _micaController.TintColor = GetBackdropTintColor(_theme);
+        _micaController.TintOpacity = GetBackdropTintOpacity();
     }
 
     private Color GetBackdropTintColor(ElementTheme theme)

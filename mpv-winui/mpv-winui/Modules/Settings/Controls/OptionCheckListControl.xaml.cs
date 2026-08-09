@@ -1,5 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Markup;
+using System;
 using System.Collections.Generic;
 
 namespace mpv_winui.Modules.Settings.Controls;
@@ -22,59 +24,126 @@ public sealed partial class OptionCheckListControl : OptionControlBase
 
         LabelText.Text = newValue.Label;
         UpdateDescription(DescriptionText);
-        ExpandButton.Content = newValue.CheckExpandLabel ?? mpv_winui.AppContext.AppLang.Expand;
+        ApplyButton.Content = newValue.CheckApplyLabel ?? mpv_winui.AppContext.AppLang.Apply;
+        ApplyButton.Visibility = newValue.CheckApplyHandler is null ? Visibility.Collapsed : Visibility.Visible;
         BuildCheckList();
     }
 
     protected override void OnOptionStateChanged()
     {
         UpdateWarning(WarningText);
-        ExpandButton.IsEnabled = Setting?.IsEnabled ?? true;
     }
 
-    private void OnExpandClick(object sender, RoutedEventArgs e)
+    /// <summary>The whole card toggles the panel, matching the layout cards.</summary>
+    private void OnCardTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
-        _expanded = !_expanded;
-        CheckItemsControl.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
-        ExpandButton.Content = _expanded
-            ? (Setting?.CheckCollapseLabel ?? mpv_winui.AppContext.AppLang.Collapse)
-            : (Setting?.CheckExpandLabel ?? mpv_winui.AppContext.AppLang.Expand);
-    }
-
-    private void BuildCheckList()
-    {
-        CheckItemsControl.Items.Clear();
-        if (Setting?.CheckItems is not { } items)
+        if (Setting?.IsEnabled == false)
         {
             return;
         }
 
-        var boxes = new List<CheckBox>();
-        foreach (var item in items)
+        // Clicks inside the expanded panel (checkboxes, Apply) must not
+        // collapse the card again.
+        if (e.OriginalSource is Microsoft.UI.Xaml.DependencyObject source
+            && IsDescendantOf(source, ExpandedPanel))
         {
-            var box = new CheckBox
-            {
-                Content = item.Label,
-                IsChecked = item.IsChecked,
-                Tag = item.Value,
-                MinWidth = 132,
-            };
-            box.Checked += OnItemChecked;
-            box.Unchecked += OnItemChecked;
-            boxes.Add(box);
+            return;
         }
 
-        foreach (var box in boxes)
+        _expanded = !_expanded;
+        ExpandedPanel.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
+        ExpandIcon.Glyph = _expanded ? "\uE70E" : "\uE70D";
+    }
+
+    private static bool IsDescendantOf(Microsoft.UI.Xaml.DependencyObject? node, Microsoft.UI.Xaml.DependencyObject? ancestor)
+    {
+        while (node is not null)
         {
-            CheckItemsControl.Items.Add(box);
+            if (ReferenceEquals(node, ancestor))
+            {
+                return true;
+            }
+            node = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(node);
+        }
+        return false;
+    }
+
+    private void BuildCheckList()
+    {
+        CheckItemsControl.Children.Clear();
+        var items = Setting?.CheckItemsProvider?.Invoke()
+            ?? Setting?.CheckItems
+            ?? [];
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        string? lastGroup = null;
+        ItemsControl? groupWrap = null;
+        foreach (var item in items)
+        {
+            if (!string.Equals(item.Group, lastGroup, StringComparison.Ordinal))
+            {
+                lastGroup = item.Group;
+                if (!string.IsNullOrEmpty(item.Group))
+                {
+                    CheckItemsControl.Children.Add(new TextBlock
+                    {
+                        Text = item.Group,
+                        Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                        Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                        Margin = new Thickness(0, 6, 0, 2),
+                    });
+                }
+                groupWrap = new ItemsControl
+                {
+                    ItemsPanel = (ItemsPanelTemplate)Resources["CheckWrapPanel"],
+                };
+                CheckItemsControl.Children.Add(groupWrap);
+            }
+
+            var box = new CheckBox
+            {
+                IsChecked = item.IsChecked,
+                Tag = item,
+                MinWidth = 132,
+            };
+            if (string.IsNullOrEmpty(item.Glyph))
+            {
+                box.Content = item.Label;
+            }
+            else
+            {
+                var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+                panel.Children.Add(item.Glyph.StartsWith("F1 ", StringComparison.Ordinal)
+                    ? new PathIcon
+                    {
+                        Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), item.Glyph),
+                        Width = 14,
+                        Height = 14,
+                    }
+                    : new FontIcon { Glyph = item.Glyph, FontSize = 14 });
+                panel.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
+                box.Content = panel;
+            }
+            box.Checked += OnItemChecked;
+            box.Unchecked += OnItemChecked;
+            groupWrap?.Items.Add(box);
         }
     }
 
     private void OnItemChecked(object sender, RoutedEventArgs e)
     {
-        if (sender is CheckBox box && Setting is { } option && box.Tag is string value)
+        if (sender is CheckBox box && Setting is { } option && box.Tag is OptionCheckItem item)
         {
-            option.CheckChanged?.Invoke(option, value, box.IsChecked == true);
+            item.IsChecked = box.IsChecked == true;
+            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked, item.Target);
         }
+    }
+
+    private void OnApplyClick(object sender, RoutedEventArgs e)
+    {
+        Setting?.CheckApplyHandler?.Invoke(Setting);
     }
 }

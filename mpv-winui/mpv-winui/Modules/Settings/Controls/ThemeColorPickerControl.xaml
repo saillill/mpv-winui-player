@@ -54,13 +54,23 @@
                 ColumnSpacing="8"
                 RowSpacing="8" />
 
-            <Expander
+            <Button
+                x:Name="CustomToggleButton"
                 HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Stretch"
-                IsExpanded="True">
-                <Expander.Header>
+                HorizontalContentAlignment="Left"
+                Click="OnCustomToggleClick">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon
+                        x:Name="CustomToggleIcon"
+                        FontSize="12"
+                        Glyph="&#xE70D;" />
                     <TextBlock FontWeight="SemiBold" Text="{x:Bind CustomColorsLabel}" />
-                </Expander.Header>
+                </StackPanel>
+            </Button>
+            <StackPanel
+                x:Name="CustomPanel"
+                Spacing="12"
+                Visibility="Collapsed">
                 <StackPanel Spacing="12">
                     <Border
                         x:Name="PreviewBox"
@@ -75,6 +85,78 @@
                         x:Name="HexInput"
                         Header="#RRGGBB"
                         TextChanged="OnHexChanged" />
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind HueLabel}" />
+                        <Slider
+                            x:Name="HueSlider"
+                            Grid.Column="1"
+                            Maximum="360"
+                            Minimum="0"
+                            ValueChanged="OnHslChanged" />
+                        <TextBlock
+                            x:Name="HueValue"
+                            Grid.Column="2"
+                            MinWidth="28"
+                            VerticalAlignment="Center"
+                            TextAlignment="Right" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind SaturationLabel}" />
+                        <Slider
+                            x:Name="SaturationSlider"
+                            Grid.Column="1"
+                            Maximum="100"
+                            Minimum="0"
+                            ValueChanged="OnHslChanged" />
+                        <TextBlock
+                            x:Name="SaturationValue"
+                            Grid.Column="2"
+                            MinWidth="28"
+                            VerticalAlignment="Center"
+                            TextAlignment="Right" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind LightnessLabel}" />
+                        <Slider
+                            x:Name="LightnessSlider"
+                            Grid.Column="1"
+                            Maximum="100"
+                            Minimum="0"
+                            ValueChanged="OnHslChanged" />
+                        <TextBlock
+                            x:Name="LightnessValue"
+                            Grid.Column="2"
+                            MinWidth="28"
+                            VerticalAlignment="Center"
+                            TextAlignment="Right" />
+                    </Grid>
 
                     <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
@@ -147,9 +229,8 @@
                             VerticalAlignment="Center"
                             TextAlignment="Right" />
                     </Grid>
-
                 </StackPanel>
-            </Expander>
+            </StackPanel>
 
             <Button
                 MinWidth="96"

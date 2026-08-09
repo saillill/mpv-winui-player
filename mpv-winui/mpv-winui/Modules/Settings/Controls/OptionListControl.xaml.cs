@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -74,6 +75,44 @@ public sealed partial class OptionListControl : UserControl
     /// <summary>Rebuilds the list (e.g. after an option becomes visible/hidden).</summary>
     public void Refresh()
     {
+        var offset = GetScrollOffset();
         ApplyItemsSource();
+        if (offset > 0)
+        {
+            DispatcherQueue.TryEnqueue(() => SetScrollOffset(offset));
+        }
+    }
+
+    /// <summary>Returns the current vertical offset of the options list.</summary>
+    public double GetScrollOffset()
+    {
+        return FindScrollViewer(OptionListView)?.VerticalOffset ?? 0;
+    }
+
+    /// <summary>Restores the vertical offset after the list is rebuilt.</summary>
+    public void SetScrollOffset(double offset)
+    {
+        var viewer = FindScrollViewer(OptionListView);
+        if (viewer is not null && offset > 0)
+        {
+            viewer.ChangeView(null, offset, null, disableAnimation: true);
+        }
+    }
+
+    private static ScrollViewer? FindScrollViewer(DependencyObject root)
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is ScrollViewer viewer)
+            {
+                return viewer;
+            }
+            if (FindScrollViewer(child) is { } nested)
+            {
+                return nested;
+            }
+        }
+        return null;
     }
 }
