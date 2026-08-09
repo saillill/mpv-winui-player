@@ -7,7 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid VerticalAlignment="Center">
+    <Grid
+        VerticalAlignment="Center"
+        Background="Transparent">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
@@ -47,8 +49,7 @@
                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
-                CornerRadius="4"
-                Tapped="OnSwatchTapped">
+                CornerRadius="4">
                 <FontIcon
                     FontSize="10"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"

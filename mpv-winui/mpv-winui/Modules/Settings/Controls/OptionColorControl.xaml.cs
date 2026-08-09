@@ -13,6 +13,7 @@ public sealed partial class OptionColorControl : OptionControlBase
     public OptionColorControl()
     {
         InitializeComponent();
+        Tapped += OnSwatchTapped;
     }
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)
