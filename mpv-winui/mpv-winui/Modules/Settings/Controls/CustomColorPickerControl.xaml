@@ -6,10 +6,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel
-        MinWidth="320"
-        MaxWidth="420"
-        Spacing="12">
+    <ScrollViewer
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            MinWidth="320"
+            MaxWidth="420"
+            Padding="0,4,8,4"
+            Spacing="12">
         <Border
             x:Name="PreviewBox"
             Width="300"
@@ -163,5 +167,6 @@
                 Content="{x:Bind DoneLabel}"
                 Style="{StaticResource AccentButtonStyle}" />
         </StackPanel>
-    </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

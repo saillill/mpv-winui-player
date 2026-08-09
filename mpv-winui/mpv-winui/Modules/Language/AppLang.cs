@@ -495,6 +495,7 @@ namespace mpv_winui.Modules.Language
         public string OptionValueTestSignalVideo { get; set; } = "Test video (test pattern)";
         public string OptionValueTestSignalAudio { get; set; } = "Test audio (1 kHz)";
         public string WarningSeekHoldInactive { get; set; } = "Both auto VSR and RTX Video HDR are off; this option has no effect.";
+        public string WarningThemeLuminosityMica { get; set; } = "Brightness only applies to the Acrylic backdrop.";
 
         // ===== Localized option values (raw mpv values stay machine-readable) =====
         public string OptionValueAuto { get; set; } = "Auto";

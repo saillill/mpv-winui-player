@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Markup;
 using System;
 using System.Collections.Generic;
 
@@ -115,7 +116,14 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             else
             {
                 var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-                panel.Children.Add(new FontIcon { Glyph = item.Glyph, FontSize = 14 });
+                panel.Children.Add(item.Glyph.StartsWith("F1 ", StringComparison.Ordinal)
+                    ? new PathIcon
+                    {
+                        Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), item.Glyph),
+                        Width = 14,
+                        Height = 14,
+                    }
+                    : new FontIcon { Glyph = item.Glyph, FontSize = 14 });
                 panel.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
                 box.Content = panel;
             }

@@ -324,6 +324,7 @@
   "WarningBlendSubtitlesMargins": "Ignored while subtitles are blended into the video frame.",
   "WarningSubFallbackNoLanguage": "No preferred subtitle language is set, so fallback has no effect.",
   "WarningSeekHoldInactive": "Both auto VSR and RTX Video HDR are off; this option has no effect.",
+  "WarningThemeLuminosityMica": "Brightness only applies to the Acrylic backdrop.",
   "SettingsHelpHrSeekFramedrop": "Allow dropping video frames while seeking for faster response.",
   "SettingsHelpResumePlayback": "Restore the last playback position on startup.",
   "SettingsHelpSubFontProvider": "Font provider used for subtitle fonts. Auto is recommended; Fontconfig enables system font fallback.",

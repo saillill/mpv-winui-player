@@ -324,6 +324,7 @@
   "WarningBlendSubtitlesMargins": "Se ignora mientras los subtítulos se mezclan en el vídeo.",
   "WarningSubFallbackNoLanguage": "No hay idioma preferido definido; el respaldo no tiene efecto.",
   "WarningSeekHoldInactive": "Auto VSR y RTX Video HDR están desactivados; esta opción no tiene efecto.",
+  "WarningThemeLuminosityMica": "El brillo solo se aplica al fondo Acrílico.",
   "SettingsHelpHrSeekFramedrop": "Permite descartar fotogramas de vídeo al buscar para responder más rápido.",
   "SettingsHelpResumePlayback": "Restaura la última posición de reproducción al iniciar.",
   "SettingsHelpSubFontProvider": "Proveedor de fuentes para subtítulos. Automático es recomendado; Fontconfig activa el respaldo de fuentes del sistema.",

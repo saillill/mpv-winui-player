@@ -324,6 +324,7 @@
   "WarningBlendSubtitlesMargins": "Игнорируется при встраивании субтитров в видео.",
   "WarningSubFallbackNoLanguage": "Предпочитаемый язык не задан, резерв не действует.",
   "WarningSeekHoldInactive": "Авто VSR и RTX Video HDR выключены; параметр не действует.",
+  "WarningThemeLuminosityMica": "Яркость применяется только к фону Acrylic.",
   "SettingsHelpHrSeekFramedrop": "Разрешает пропускать кадры при перемотке для более быстрого отклика.",
   "SettingsHelpResumePlayback": "Восстанавливает последнюю позицию воспроизведения при запуске.",
   "SettingsHelpSubFontProvider": "Поставщик шрифтов субтитров. Рекомендуется Авто; Fontconfig включает подстановку системных шрифтов.",

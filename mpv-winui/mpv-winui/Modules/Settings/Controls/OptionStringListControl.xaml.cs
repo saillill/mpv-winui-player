@@ -126,7 +126,7 @@ public sealed partial class OptionStringListControl : OptionControlBase
             return;
         }
         CustomInput.Visibility = Visibility.Visible;
-        InputColumn.Width = new GridLength(2, GridUnitType.Star);
+        InputColumn.Width = new GridLength(260);
         if (showAndFocus)
         {
             CustomInput.Focus(FocusState.Programmatic);
@@ -143,7 +143,7 @@ public sealed partial class OptionStringListControl : OptionControlBase
         if (val == CustomKey)
         {
             CustomInput.Visibility = Visibility.Visible;
-            InputColumn.Width = new GridLength(2, GridUnitType.Star);
+            InputColumn.Width = new GridLength(260);
             CustomInput.Text = _lastCustom;
             CustomInput.Focus(FocusState.Programmatic);
         }

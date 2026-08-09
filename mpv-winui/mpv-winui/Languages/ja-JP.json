@@ -324,6 +324,7 @@
   "WarningBlendSubtitlesMargins": "字幕を映像に合成している間は無視されます。",
   "WarningSubFallbackNoLanguage": "優先字幕言語が未設定のため、フォールバックは機能しません。",
   "WarningSeekHoldInactive": "自動VSRとRTX Video HDRが両方オフのため、このオプションは効果がありません。",
+  "WarningThemeLuminosityMica": "明るさは Acrylic 背景でのみ有効です。",
   "SettingsHelpHrSeekFramedrop": "シーク中にフレームを落とすことを許可し、応答を速くします。",
   "SettingsHelpResumePlayback": "起動時に最後の再生位置を復元します。",
   "SettingsHelpSubFontProvider": "字幕フォントに使うプロバイダー。自動を推奨。Fontconfig はシステムフォントのフォールバックを有効にします。",

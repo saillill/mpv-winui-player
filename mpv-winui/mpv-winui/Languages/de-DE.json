@@ -324,6 +324,7 @@
   "WarningBlendSubtitlesMargins": "Wird ignoriert, solange Untertitel ins Video eingebettet sind.",
   "WarningSubFallbackNoLanguage": "Keine bevorzugte Untertitelsprache gesetzt; Fallback hat keine Wirkung.",
   "WarningSeekHoldInactive": "Auto-VSR und RTX Video HDR sind beide aus; die Option hat keine Wirkung.",
+  "WarningThemeLuminosityMica": "Die Helligkeit wirkt nur beim Acrylic-Hintergrund.",
   "SettingsHelpHrSeekFramedrop": "Erlaubt das Verwerfen von Videoframes beim Suchen für schnellere Reaktion.",
   "SettingsHelpResumePlayback": "Stellt beim Start die letzte Wiedergabeposition wieder her.",
   "SettingsHelpSubFontProvider": "Schriftanbieter für Untertitel. Automatisch wird empfohlen; Fontconfig aktiviert Systemschrift-Fallback.",

@@ -50,9 +50,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             OpenButton.Visibility = newValue.OpenFolder ? Visibility.Visible : Visibility.Collapsed;
             ResetButton.Content = mpv_winui.AppContext.AppLang.Reset;
             ResetButton.Visibility = newValue.KeyCaptureEditable ? Visibility.Visible : Visibility.Collapsed;
-            InputColumn.Width = newValue.PickFolder || newValue.PickFile || newValue.OpenFolder
-                ? new GridLength(2, GridUnitType.Star)
-                : new GridLength(260);
+            InputColumn.Width = new GridLength(260);
             InputBox.IsEnabled = newValue.IsEnabled;
             InputBox.IsReadOnly = newValue.ReadOnly;
             BrowseButton.IsEnabled = newValue.IsEnabled;

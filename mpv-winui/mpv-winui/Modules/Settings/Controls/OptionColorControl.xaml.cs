@@ -192,25 +192,15 @@ public sealed partial class OptionColorControl : OptionControlBase
 
     private async void OnCustomClick(object sender, RoutedEventArgs e)
     {
-        if (Setting is null || XamlRoot is null)
+        if (Setting is null)
         {
             return;
         }
 
-        var picker = new CustomColorPickerControl
-        {
-            CurrentColor = Setting.Getter?.Invoke() as string ?? string.Empty,
-        };
-        var dialog = new ContentDialog
-        {
-            Title = mpv_winui.AppContext.AppLang.ThemeColorCustomColors,
-            Content = picker,
-            XamlRoot = XamlRoot,
-        };
-        picker.Applied += () => dialog.Hide();
-        await dialog.ShowAsync();
-
-        if (picker.Result is string hex)
+        var window = new mpv_winui.Modules.Settings.ColorPickerWindow(
+            Setting.Getter?.Invoke() as string ?? string.Empty);
+        var hex = await window.PickAsync();
+        if (!string.IsNullOrEmpty(hex))
         {
             ApplyColor(hex);
         }

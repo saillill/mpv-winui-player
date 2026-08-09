@@ -210,10 +210,7 @@
                         Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <PathIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Data="F1 M 13,2 L 13,14 L 5,8 Z M 2,2 L 4,2 L 4,14 L 2,14 Z" />
+                            <FontIcon Glyph="&#xE627;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -224,10 +221,7 @@
                         Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <PathIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Data="F1 M 3,2 L 11,8 L 3,14 Z M 12,2 L 14,2 L 14,14 L 12,14 Z" />
+                            <FontIcon Glyph="&#xE628;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -339,7 +333,7 @@
                         Visibility="Visible">
 
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xEC57;" />
+                            <FontIcon Glyph="&#xEB90;" />
                         </AppBarButton.Icon>
 
                         <AppBarButton.Flyout>

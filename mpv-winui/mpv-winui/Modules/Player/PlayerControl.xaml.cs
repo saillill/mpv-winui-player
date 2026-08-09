@@ -188,7 +188,7 @@ namespace mpv_winui.Modules.Player
             {
                 left =
                 [
-                    TrackSelectionButton, ShuffleButton, PlaybackRateButton,
+                    TrackSelectionButton, ShuffleButton, RepeatButton, PlaybackRateButton,
                     VolumeMuteButton, VolumeSliderContainer,
                 ];
                 middle =
@@ -199,7 +199,7 @@ namespace mpv_winui.Modules.Player
                 ];
                 right =
                 [
-                    RepeatButton, ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
+                    ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
                 ];
             }
             else

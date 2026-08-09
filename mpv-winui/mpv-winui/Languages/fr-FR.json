@@ -324,6 +324,7 @@
   "WarningBlendSubtitlesMargins": "Ignoré tant que les sous-titres sont fusionnés dans la vidéo.",
   "WarningSubFallbackNoLanguage": "Aucune langue préférée définie, le repli n'a aucun effet.",
   "WarningSeekHoldInactive": "Auto VSR et RTX Video HDR sont désactivés ; cette option est sans effet.",
+  "WarningThemeLuminosityMica": "La luminosité ne s'applique qu'au fond Acrylique.",
   "SettingsHelpHrSeekFramedrop": "Autorise l'abandon de trames vidéo pendant la recherche pour répondre plus vite.",
   "SettingsHelpResumePlayback": "Restaure la dernière position de lecture au démarrage.",
   "SettingsHelpSubFontProvider": "Fournisseur de police pour les sous-titres. Automatique est recommandé ; Fontconfig active le repli sur les polices système.",

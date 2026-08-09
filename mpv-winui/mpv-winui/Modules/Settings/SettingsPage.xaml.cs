@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
+using mpv_winui.Modules.Player;
 using mpv_winui.Modules.Settings.Controls;
 using System;
 using System.Collections.Generic;
@@ -3960,7 +3961,7 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.ThumbfastFrequency)] = 28,
             [nameof(AppSettings.ThumbfastDirectIo)] = 29,
             [nameof(AppSettings.ThumbfastQuitAfterInactivity)] = 30,
-            [nameof(AppSettings.AudioLanguage)] = 31,
+            [nameof(AppSettings.AudioLanguage)] = 49,
             [nameof(AppSettings.SubtitleLanguage)] = 32,
             [nameof(AppSettings.SubFallback)] = 33,
             [nameof(AppSettings.SavePositionOnQuit)] = 34,
@@ -4318,7 +4319,7 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.CoverArtNames)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtImageExts)] = sAudioCoverArt,
             // subtitles
-            [nameof(AppSettings.AudioLanguage)] = sTrackLanguage,
+            [nameof(AppSettings.AudioLanguage)] = sAudioOutput,
             [nameof(AppSettings.SubtitleLanguage)] = sTrackLanguage,
             [nameof(AppSettings.SubFallback)] = sTrackFallback,
             [nameof(AppSettings.SubFontSize)] = sSubtitleText,
@@ -4962,6 +4963,7 @@ public sealed partial class SettingsPage : Page
             nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => lang.WarningBlendSubtitlesMargins,
             nameof(AppSettings.SubFallback) when string.IsNullOrWhiteSpace(s.SubtitleLanguage) => lang.WarningSubFallbackNoLanguage,
             nameof(AppSettings.SeekHoldEnabled) when !s.VsrAutoEnabled && s.HdrAutoMode == "off" => lang.WarningSeekHoldInactive,
+            nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => lang.WarningThemeLuminosityMica,
             _ => null,
         };
     }
@@ -5001,6 +5003,8 @@ public sealed partial class SettingsPage : Page
             nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => false,
             // mpv: linear-upscaling and sigmoid-upscaling are mutually exclusive.
             nameof(AppSettings.LinearUpscaling) when s.SigmoidUpscaling => false,
+            // MicaController ignores luminosity, so brightness only applies to Acrylic.
+            nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
             _ => true,
         };
     }
@@ -5154,8 +5158,8 @@ public sealed partial class SettingsPage : Page
         [
             ("volume", lang.ControlBarIconVolume, "\uE767"),
             ("tracks", lang.ControlBarIconTracks, "\uED1F"),
-            ("random", lang.ControlBarIconRandom, "\uE8AC"),
-            ("speed", lang.ControlBarIconSpeed, "\uEC57"),
+            ("random", lang.ControlBarIconRandom, ControlBarIcons.Shuffle),
+            ("speed", lang.ControlBarIconSpeed, "\uEB90"),
             ("aspect", lang.ControlBarIconAspect, "\uE799"),
             ("fullwindow", lang.ControlBarIconFullWindow, "\uF16B"),
             ("fullscreen", lang.ControlBarIconFullScreen, "\uE740"),

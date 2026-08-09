@@ -324,6 +324,7 @@
   "WarningBlendSubtitlesMargins": "启用字幕混合后此选项无效。",
   "WarningSubFallbackNoLanguage": "未设置首选字幕语言，回退逻辑不生效。",
   "WarningSeekHoldInactive": "自动 VSR 与 RTX Video HDR 均已关闭，此选项无实际效果。",
+  "WarningThemeLuminosityMica": "背景亮度仅对亚克力背景生效。",
   "SettingsHelpHrSeekFramedrop": "跳转时允许丢弃视频帧以获得更快响应。",
   "SettingsHelpResumePlayback": "启动时恢复上次的播放位置。",
   "SettingsHelpSubFontProvider": "字幕字体使用的字体提供程序。推荐自动；Fontconfig 可启用系统字体回退。",

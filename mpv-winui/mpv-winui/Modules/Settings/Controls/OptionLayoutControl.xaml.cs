@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
+using mpv_winui.Modules.Player;
 using System;
 using System.Collections.Generic;
 using Windows.UI;
@@ -261,7 +263,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         {
             var left = BuildIconCluster(
                 HorizontalAlignment.Left,
-                "\uED1F", "\uE8AC", "\uEC57", "\uE995");          // tracks, random, speed, volume
+                "\uED1F", ControlBarIcons.Shuffle, "\uE8EE", "\uEB90", "\uE995"); // tracks, random, repeat, speed, volume
             var center = BuildIconCluster(
                 HorizontalAlignment.Center,
                 "\uF8AC", "\uE627",                                // previous, skip back
@@ -269,7 +271,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 "\uE628", "\uF8AD");                               // skip forward, next
             var right = BuildIconCluster(
                 HorizontalAlignment.Right,
-                "\uE8EE", "\uE799", "\uE7C9",                      // repeat, aspect, picture-in-picture
+                "\uE799", "\uE7C9",                                // aspect, picture-in-picture
                 "\uF16B", "\uE740");                               // full window, full screen
             Grid.SetColumn(left, 0);
             Grid.SetColumn(center, 1);
@@ -284,10 +286,10 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 HorizontalAlignment.Left,
                 "\uF5B0", "\uE627", "\uE628",                      // play, skip back, skip forward
                 "\uF8AC", "\uF8AD",                                // previous, next
-                "\uE72A", "\uE8AC", "\uE8EE");                     // stop, shuffle, repeat
+                "\uE72A", ControlBarIcons.Shuffle, "\uE8EE");      // stop, shuffle, repeat
             var right = BuildIconCluster(
                 HorizontalAlignment.Right,
-                "\uE995", "\uEC57", "\uED1F",                      // volume, speed, tracks
+                "\uE995", "\uEB90", "\uED1F",                      // volume, speed, tracks
                 "\uE799", "\uE7C9", "\uF16B",                      // zoom, picture-in-picture, full window
                 "\uE740");                                         // full screen
             Grid.SetColumn(left, 0);
@@ -311,8 +313,16 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         };
         foreach (var glyph in glyphs)
         {
-            row.Children.Add(new FontIcon { Glyph = glyph, FontSize = 14 });
+            row.Children.Add(CreateIcon(glyph));
         }
         return row;
+    }
+
+    /// <summary>Renders a FontIcon glyph, or a PathIcon when the string is path data.</summary>
+    private static IconElement CreateIcon(string value)
+    {
+        return value.StartsWith("F1 ", StringComparison.Ordinal)
+            ? new PathIcon { Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), value), Width = 14, Height = 14 }
+            : new FontIcon { Glyph = value, FontSize = 14 };
     }
 }
