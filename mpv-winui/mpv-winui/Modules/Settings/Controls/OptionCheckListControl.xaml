@@ -41,24 +41,46 @@
             <Button
                 x:Name="ExpandButton"
                 Grid.Column="1"
-                MinWidth="88"
+                MinWidth="40"
                 Margin="12,0,0,0"
                 VerticalAlignment="Center"
-                Click="OnExpandClick" />
+                Click="OnExpandClick">
+                <FontIcon
+                    x:Name="ExpandIcon"
+                    FontSize="12"
+                    Glyph="&#xE70D;" />
+            </Button>
         </Grid>
-        <ItemsControl
-            x:Name="CheckItemsControl"
+        <Grid
+            x:Name="ExpandedPanel"
             Grid.Row="1"
             Margin="0,12,0,0"
             Visibility="Collapsed">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <ItemsWrapGrid
-                        ItemHeight="36"
-                        ItemWidth="150"
-                        Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <ItemsControl
+                x:Name="CheckItemsControl"
+                Grid.Row="0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsWrapGrid
+                            ItemHeight="36"
+                            ItemWidth="170"
+                            Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+            <Button
+                x:Name="ApplyButton"
+                Grid.Row="1"
+                MinWidth="88"
+                Margin="0,10,0,0"
+                HorizontalAlignment="Right"
+                Click="OnApplyClick"
+                Style="{StaticResource AccentButtonStyle}"
+                Visibility="Collapsed" />
+        </Grid>
     </Grid>
 </local:OptionControlBase>

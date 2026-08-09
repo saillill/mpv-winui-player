@@ -31,16 +31,33 @@ public enum OptionActionKind
 /// <summary>A checkbox entry used by <see cref="OptionType.CheckList"/> options.</summary>
 public sealed class OptionCheckItem
 {
-    public OptionCheckItem(string value, string label, bool isChecked)
+    public OptionCheckItem(string value, string label, bool isChecked, string? glyph = null)
     {
         Value = value;
         Label = label;
         IsChecked = isChecked;
+        Glyph = glyph;
     }
 
     public string Value { get; }
     public string Label { get; }
     public bool IsChecked { get; }
+    public string? Glyph { get; }
+}
+
+/// <summary>A selectable layout preview shown by <see cref="OptionType.Layout"/> options.</summary>
+public sealed class OptionLayoutChoice
+{
+    public OptionLayoutChoice(string value, string label, string? description = null)
+    {
+        Value = value;
+        Label = label;
+        Description = description;
+    }
+
+    public string Value { get; }
+    public string Label { get; }
+    public string? Description { get; }
 }
 
 public sealed class Option : INotifyPropertyChanged
@@ -193,8 +210,26 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Layout presets for <see cref="OptionType.Layout"/> options.</summary>
+    public IList<OptionLayoutChoice>? LayoutChoices
+    {
+        get; set;
+    }
+
     /// <summary>Raised when a checklist entry is toggled (option, value, checked).</summary>
     public Action<Option, string, bool>? CheckChanged
+    {
+        get; set;
+    }
+
+    /// <summary>Localized text for the optional Apply button shown inside the expanded panel.</summary>
+    public string? CheckApplyLabel
+    {
+        get; set;
+    }
+
+    /// <summary>Invoked when the expanded panel's Apply button is pressed.</summary>
+    public Action<Option>? CheckApplyHandler
     {
         get; set;
     }

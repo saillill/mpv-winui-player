@@ -728,7 +728,7 @@
   "Collapse": "Replier",
   "SettingsHelpFileAssociations": "Choisissez les formats à ouvrir avec ce lecteur. Les changements s'appliquent immédiatement.",
   "SettingsControlBarLayout": "Disposition de la barre de contrôle",
-  "SettingsHelpControlBarLayout": "Choisissez la disposition des contrôles de lecture dans la barre.",
+  "SettingsHelpControlBarLayout": "Choisissez une disposition : classique, centrée ModernX ou compacte.",
   "OptionValueControlBarLeft": "Gauche",
   "OptionValueControlBarCenter": "Centré",
   "OptionValueControlBarRight": "Droite",
@@ -741,5 +741,14 @@
   "ControlBarIconFullWindow": "Pleine fenêtre",
   "ControlBarIconFullScreen": "Plein écran",
   "ControlBarIconMore": "Plus",
-  "ControlBarIconPiP": "Incrustation"
+  "ControlBarIconPiP": "Incrustation",
+  "Apply": "Appliquer",
+  "Close": "Fermer",
+  "Search": "Rechercher",
+  "ThemeColorHue": "Teinte",
+  "ThemeColorSaturation": "Saturation",
+  "ThemeColorLightness": "Luminosité",
+  "OptionValueControlBarClassic": "Classique",
+  "OptionValueControlBarModernX": "ModernX centré",
+  "OptionValueControlBarCompact": "Compact"
 }

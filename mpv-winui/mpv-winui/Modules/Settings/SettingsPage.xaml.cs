@@ -48,6 +48,7 @@ public sealed partial class SettingsPage : Page
         CategoryList.SelectedIndex = 0;
         SaveButton.Content = AppContext.AppLang.Save;
         ResetButton.Content = AppContext.AppLang.Reset;
+        SearchBox.PlaceholderText = AppContext.AppLang.Search;
         UpdateOptions();
         RefreshWarningsAndEnabled();
     }
@@ -170,6 +171,55 @@ public sealed partial class SettingsPage : Page
     }
 
     private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateOptions();
+
+    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        var query = SearchBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(query))
+        {
+            CategoryList.ItemsSource = Categories;
+        }
+        else
+        {
+            CategoryList.ItemsSource = Categories
+                .Where(c => FuzzyMatch(query, c))
+                .ToList();
+        }
+
+        if (CategoryList.Items.Count > 0)
+        {
+            CategoryList.SelectedIndex = 0;
+        }
+    }
+
+    private static bool FuzzyMatch(string query, string target)
+    {
+        if (target.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var targetIndex = 0;
+        foreach (var queryChar in query)
+        {
+            var matched = false;
+            while (targetIndex < target.Length)
+            {
+                if (char.ToLowerInvariant(target[targetIndex]) == char.ToLowerInvariant(queryChar))
+                {
+                    targetIndex++;
+                    matched = true;
+                    break;
+                }
+                targetIndex++;
+            }
+            if (!matched)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 
     private void UpdateOptions()
     {
@@ -366,14 +416,14 @@ public sealed partial class SettingsPage : Page
                 Label = lang.SettingsControlBarLayout,
                 Category = program,
                 Description = lang.SettingsHelpControlBarLayout,
-                Type = OptionType.StringList,
-                Choices =
+                Type = OptionType.Layout,
+                LayoutChoices =
                 [
-                    new OptionChoice("left", lang.OptionValueControlBarLeft),
-                    new OptionChoice("center", lang.OptionValueControlBarCenter),
-                    new OptionChoice("right", lang.OptionValueControlBarRight),
+                    new OptionLayoutChoice("classic", lang.OptionValueControlBarClassic),
+                    new OptionLayoutChoice("modernx", lang.OptionValueControlBarModernX),
+                    new OptionLayoutChoice("compact", lang.OptionValueControlBarCompact),
                 ],
-                Getter = () => AppContext.AppSetting.ControlBarLayout,
+                Getter = () => NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout),
                 Setter = v =>
                 {
                     AppContext.AppSetting.ControlBarLayout = (string)v!;
@@ -476,8 +526,10 @@ public sealed partial class SettingsPage : Page
                 Type = OptionType.CheckList,
                 CheckExpandLabel = lang.Expand,
                 CheckCollapseLabel = lang.Collapse,
+                CheckApplyLabel = lang.Apply,
                 CheckItems = BuildAssociationItems(),
-                CheckChanged = (_, value, isChecked) => ApplyAssociation(value, isChecked),
+                CheckChanged = (_, value, isChecked) => UpdateAssociationSelection(value, isChecked),
+                CheckApplyHandler = _ => ApplyAssociations(),
             },
 
             new Option
@@ -4754,15 +4806,25 @@ public sealed partial class SettingsPage : Page
         ".mp3", ".flac", ".wav", ".aac", ".m4a", ".ogg", ".opus", ".wma",
     ];
 
+    private static readonly HashSet<string> VideoExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v",
+        ".mpg", ".mpeg", ".ts", ".m2ts", ".3gp", ".ogv", ".rm", ".rmvb",
+    };
+
     private static List<OptionCheckItem> BuildAssociationItems()
     {
         var selected = ParseTokenList(AppContext.AppSetting.FileAssociationExts);
         return AssociationExtensions
-            .Select(ext => new OptionCheckItem(ext, ext, selected.Contains(ext, StringComparer.OrdinalIgnoreCase)))
+            .Select(ext => new OptionCheckItem(
+                ext,
+                ext,
+                selected.Contains(ext, StringComparer.OrdinalIgnoreCase),
+                VideoExtensions.Contains(ext) ? "\uE714" : "\uE8D6"))
             .ToList();
     }
 
-    private static void ApplyAssociation(string extension, bool isChecked)
+    private static void UpdateAssociationSelection(string extension, bool isChecked)
     {
         var list = ParseTokenList(AppContext.AppSetting.FileAssociationExts).ToList();
         if (isChecked)
@@ -4778,15 +4840,23 @@ public sealed partial class SettingsPage : Page
         }
 
         AppContext.AppSetting.FileAssociationExts = string.Join(';', list);
-        if (isChecked)
+    }
+
+    private static void ApplyAssociations()
+    {
+        var selected = ParseTokenList(AppContext.AppSetting.FileAssociationExts).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var extension in AssociationExtensions)
         {
-            RegisterExtension(extension);
+            if (selected.Contains(extension))
+            {
+                RegisterExtension(extension);
+            }
+            else
+            {
+                UnregisterExtension(extension);
+            }
         }
-        else
-        {
-            UnregisterExtension(extension);
-        }
-        _actionStatus = isChecked ? AppContext.AppLang.SettingsAssociateDone : AppContext.AppLang.SettingsUnassociateDone;
+        _actionStatus = AppContext.AppLang.SettingsAssociateDone;
     }
 
     private static void RegisterExtension(string extension)
@@ -4826,6 +4896,7 @@ public sealed partial class SettingsPage : Page
         {
         }
 
+        AppContext.AppSetting.FileAssociationExts = string.Empty;
         _actionStatus = AppContext.AppLang.SettingsUnassociateDone;
     }
 
@@ -4857,19 +4928,19 @@ public sealed partial class SettingsPage : Page
     {
         var lang = AppContext.AppLang;
         var hidden = ParseTokenList(AppContext.AppSetting.ControlBarHiddenIcons).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        (string Value, string Label)[] items =
+        (string Value, string Label, string Glyph)[] items =
         [
-            ("playback", lang.ControlBarIconPlayback),
-            ("volume", lang.ControlBarIconVolume),
-            ("tracks", lang.ControlBarIconTracks),
-            ("aspect", lang.ControlBarIconAspect),
-            ("fullwindow", lang.ControlBarIconFullWindow),
-            ("fullscreen", lang.ControlBarIconFullScreen),
-            ("pip", lang.ControlBarIconPiP),
-            ("more", lang.ControlBarIconMore),
+            ("playback", lang.ControlBarIconPlayback, "\uF5B0"),
+            ("volume", lang.ControlBarIconVolume, "\uE767"),
+            ("tracks", lang.ControlBarIconTracks, "\uED1F"),
+            ("aspect", lang.ControlBarIconAspect, "\uE799"),
+            ("fullwindow", lang.ControlBarIconFullWindow, "\uF16B"),
+            ("fullscreen", lang.ControlBarIconFullScreen, "\uE740"),
+            ("pip", lang.ControlBarIconPiP, "\uE7C9"),
+            ("more", lang.ControlBarIconMore, "\uE10C"),
         ];
         return items
-            .Select(x => new OptionCheckItem(x.Value, x.Label, hidden.Contains(x.Value)))
+            .Select(x => new OptionCheckItem(x.Value, x.Label, hidden.Contains(x.Value), x.Item3))
             .ToList();
     }
 
@@ -4890,6 +4961,17 @@ public sealed partial class SettingsPage : Page
 
         AppContext.AppSetting.ControlBarHiddenIcons = string.Join(',', list);
         AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarHiddenIcons), list);
+    }
+
+    private static string NormalizeControlBarLayout(string? value)
+    {
+        return value switch
+        {
+            "classic" or "left" => "classic",
+            "modernx" or "center" or "right" => "modernx",
+            "compact" => "compact",
+            _ => "classic",
+        };
     }
 
     private static void FireAndForgetExport()

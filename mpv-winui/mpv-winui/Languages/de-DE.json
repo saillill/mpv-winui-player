@@ -728,7 +728,7 @@
   "Collapse": "Einklappen",
   "SettingsHelpFileAssociations": "Wählen Sie, welche Formate mit diesem Player geöffnet werden sollen. Änderungen gelten sofort.",
   "SettingsControlBarLayout": "Layout der Steuerleiste",
-  "SettingsHelpControlBarLayout": "Wählen Sie die Anordnung der Wiedergabesteuerung in der Steuerleiste.",
+  "SettingsHelpControlBarLayout": "Layout der Steuerleiste wählen: klassisch, ModernX-zentriert oder kompakt.",
   "OptionValueControlBarLeft": "Links",
   "OptionValueControlBarCenter": "Mittig",
   "OptionValueControlBarRight": "Rechts",
@@ -741,5 +741,14 @@
   "ControlBarIconFullWindow": "Volles Fenster",
   "ControlBarIconFullScreen": "Vollbild",
   "ControlBarIconMore": "Mehr",
-  "ControlBarIconPiP": "Bild-in-Bild"
+  "ControlBarIconPiP": "Bild-in-Bild",
+  "Apply": "Anwenden",
+  "Close": "Schließen",
+  "Search": "Suchen",
+  "ThemeColorHue": "Farbton",
+  "ThemeColorSaturation": "Sättigung",
+  "ThemeColorLightness": "Helligkeit",
+  "OptionValueControlBarClassic": "Klassisch",
+  "OptionValueControlBarModernX": "ModernX zentriert",
+  "OptionValueControlBarCompact": "Kompakt"
 }

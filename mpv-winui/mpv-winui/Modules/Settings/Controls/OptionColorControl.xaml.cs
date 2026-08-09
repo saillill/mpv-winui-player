@@ -1,6 +1,7 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using System;
 using Windows.UI;
@@ -23,15 +24,12 @@ public sealed partial class OptionColorControl : OptionControlBase
 
         LabelText.Text = newValue.Label;
         UpdateDescription(DescriptionText);
-        PickButton.Content = mpv_winui.AppContext.AppLang.SettingsChooseThemeColor;
-        PickButton.IsEnabled = newValue.IsEnabled;
         UpdateSwatch();
     }
 
     protected override void OnOptionStateChanged()
     {
         UpdateWarning(WarningText);
-        PickButton.IsEnabled = Setting?.IsEnabled ?? true;
     }
 
     private void UpdateSwatch()
@@ -46,9 +44,9 @@ public sealed partial class OptionColorControl : OptionControlBase
         }
     }
 
-    private async void OnPickClick(object sender, RoutedEventArgs e)
+    private void OnSwatchTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
-        if (Setting is null || XamlRoot is null)
+        if (Setting is null)
         {
             return;
         }
@@ -57,21 +55,22 @@ public sealed partial class OptionColorControl : OptionControlBase
         {
             CurrentColor = Setting.Getter?.Invoke() as string ?? string.Empty,
         };
-        var dialog = new ContentDialog
+        var flyout = new Flyout
         {
-            Title = mpv_winui.AppContext.AppLang.SettingsThemeAccentColor,
             Content = picker,
-            XamlRoot = XamlRoot,
+            Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
         };
-        picker.Applied += () => dialog.Hide();
-        await dialog.ShowAsync();
-
-        if (picker.Result is string hex)
+        flyout.Closed += (_, _) =>
         {
-            Setting.Setter?.Invoke(hex);
-            Setting.NotifyChanged();
-            UpdateSwatch();
-        }
+            if (picker.Result is string hex)
+            {
+                Setting.Setter?.Invoke(hex);
+                Setting.NotifyChanged();
+                UpdateSwatch();
+            }
+        };
+        picker.Applied += () => flyout.Hide();
+        flyout.ShowAt(ColorSwatch);
     }
 
     internal static Color? TryParse(string? hex)

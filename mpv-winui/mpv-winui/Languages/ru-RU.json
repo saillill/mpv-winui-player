@@ -728,7 +728,7 @@
   "Collapse": "Свернуть",
   "SettingsHelpFileAssociations": "Выберите форматы, которые будут открываться этим плеером. Изменения применяются сразу.",
   "SettingsControlBarLayout": "Раскладка панели управления",
-  "SettingsHelpControlBarLayout": "Выберите расположение элементов управления в панели.",
+  "SettingsHelpControlBarLayout": "Выберите раскладку: классическая, ModernX по центру или компактная.",
   "OptionValueControlBarLeft": "Слева",
   "OptionValueControlBarCenter": "По центру",
   "OptionValueControlBarRight": "Справа",
@@ -741,5 +741,14 @@
   "ControlBarIconFullWindow": "Полное окно",
   "ControlBarIconFullScreen": "Полный экран",
   "ControlBarIconMore": "Ещё",
-  "ControlBarIconPiP": "Картинка в картинке"
+  "ControlBarIconPiP": "Картинка в картинке",
+  "Apply": "Применить",
+  "Close": "Закрыть",
+  "Search": "Поиск",
+  "ThemeColorHue": "Тон",
+  "ThemeColorSaturation": "Насыщенность",
+  "ThemeColorLightness": "Яркость",
+  "OptionValueControlBarClassic": "Классика",
+  "OptionValueControlBarModernX": "ModernX по центру",
+  "OptionValueControlBarCompact": "Компактный"
 }

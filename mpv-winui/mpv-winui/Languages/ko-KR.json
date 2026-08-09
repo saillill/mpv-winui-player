@@ -728,7 +728,7 @@
   "Collapse": "접기",
   "SettingsHelpFileAssociations": "이 플레이어로 열 파일 형식을 선택합니다. 변경은 즉시 적용됩니다.",
   "SettingsControlBarLayout": "컨트롤 바 레이아웃",
-  "SettingsHelpControlBarLayout": "컨트롤 바에서 재생 컨트롤의 배치를 선택합니다.",
+  "SettingsHelpControlBarLayout": "컨트롤 바 레이아웃 선택: 클래식, ModernX 가운데 또는 간결.",
   "OptionValueControlBarLeft": "왼쪽",
   "OptionValueControlBarCenter": "가운데",
   "OptionValueControlBarRight": "오른쪽",
@@ -741,5 +741,14 @@
   "ControlBarIconFullWindow": "전체 창",
   "ControlBarIconFullScreen": "전체 화면",
   "ControlBarIconMore": "더 보기",
-  "ControlBarIconPiP": "PIP"
+  "ControlBarIconPiP": "PIP",
+  "Apply": "적용",
+  "Close": "닫기",
+  "Search": "검색",
+  "ThemeColorHue": "색상",
+  "ThemeColorSaturation": "채도",
+  "ThemeColorLightness": "명도",
+  "OptionValueControlBarClassic": "클래식",
+  "OptionValueControlBarModernX": "ModernX 가운데",
+  "OptionValueControlBarCompact": "간결"
 }

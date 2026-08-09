@@ -728,7 +728,7 @@
   "Collapse": "Collapse",
   "SettingsHelpFileAssociations": "Choose which formats should open with this player. Changes apply immediately.",
   "SettingsControlBarLayout": "Control bar layout",
-  "SettingsHelpControlBarLayout": "Choose how the playback controls are arranged in the control bar.",
+  "SettingsHelpControlBarLayout": "Choose a control bar layout: classic, ModernX-centered or compact.",
   "OptionValueControlBarLeft": "Left",
   "OptionValueControlBarCenter": "Centered",
   "OptionValueControlBarRight": "Right",
@@ -741,5 +741,14 @@
   "ControlBarIconFullWindow": "Full window",
   "ControlBarIconFullScreen": "Full screen",
   "ControlBarIconMore": "More",
-  "ControlBarIconPiP": "Picture-in-picture"
+  "ControlBarIconPiP": "Picture-in-picture",
+  "Apply": "Apply",
+  "Close": "Close",
+  "Search": "Search",
+  "ThemeColorHue": "Hue",
+  "ThemeColorSaturation": "Saturation",
+  "ThemeColorLightness": "Lightness",
+  "OptionValueControlBarClassic": "Classic",
+  "OptionValueControlBarModernX": "ModernX",
+  "OptionValueControlBarCompact": "Compact"
 }

@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.Storage.Pickers;
 using mpv_winui.Modules.FileSystem;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Windows.System;
 
@@ -15,12 +16,11 @@ public sealed partial class OptionStringControl : OptionControlBase
     private bool _pathMode;
     private bool _capturing;
     private static OptionStringControl? _activeCapture;
+    private readonly HashSet<string> _pendingModifiers = new(StringComparer.OrdinalIgnoreCase);
 
     public OptionStringControl()
     {
         InitializeComponent();
-        InputBox.GotFocus += OnInputGotFocus;
-        InputBox.LostFocus += OnInputLostFocus;
         Loaded += (_, _) => AttachRootHandlers();
         Unloaded += (_, _) => DetachRootHandlers();
     }
@@ -48,6 +48,19 @@ public sealed partial class OptionStringControl : OptionControlBase
             BrowseButton.IsEnabled = newValue.IsEnabled;
             OpenButton.IsEnabled = newValue.IsEnabled;
             ResetButton.IsEnabled = newValue.IsEnabled;
+            if (newValue.KeyCaptureEditable)
+            {
+                InputBox.Visibility = Visibility.Collapsed;
+                DisplayText.Visibility = Visibility.Visible;
+                DisplayText.MaxWidth = 220;
+                DisplayText.Text = newValue.Getter is Func<object?> keyFunc && keyFunc() is string keyValue
+                    ? keyValue
+                    : string.Empty;
+            }
+            else
+            {
+                InputBox.Visibility = Visibility.Visible;
+            }
 
             _loading = true;
             try
@@ -119,9 +132,16 @@ public sealed partial class OptionStringControl : OptionControlBase
 
     private void OnDisplayTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
-        InputBox.Visibility = Visibility.Visible;
-        DisplayText.Visibility = Visibility.Collapsed;
-        InputBox.Focus(FocusState.Programmatic);
+        if (Setting?.KeyCaptureEditable == true)
+        {
+            StartKeyCapture();
+        }
+        else
+        {
+            InputBox.Visibility = Visibility.Visible;
+            DisplayText.Visibility = Visibility.Collapsed;
+            InputBox.Focus(FocusState.Programmatic);
+        }
     }
 
     private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -145,22 +165,6 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
     }
 
-    private void OnInputGotFocus(object sender, RoutedEventArgs e)
-    {
-        if (Setting?.KeyCaptureEditable == true)
-        {
-            StartKeyCapture();
-        }
-    }
-
-    private void OnInputLostFocus(object sender, RoutedEventArgs e)
-    {
-        if (_capturing)
-        {
-            StopKeyCapture();
-        }
-    }
-
     private void OnResetBindingClick(object sender, RoutedEventArgs e)
     {
         if (Setting is { } option)
@@ -168,7 +172,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             option.KeyCaptureReset?.Invoke(option);
             if (option.Getter is Func<object?> func && func() is string value)
             {
-                InputBox.Text = value;
+                DisplayText.Text = value;
             }
         }
     }
@@ -183,7 +187,8 @@ public sealed partial class OptionStringControl : OptionControlBase
         _capturing = true;
         _activeCapture?.StopKeyCapture();
         _activeCapture = this;
-        InputBox.PlaceholderText = mpv_winui.AppContext.AppLang.KeyCapturePlaceholder;
+        _pendingModifiers.Clear();
+        DisplayText.Text = mpv_winui.AppContext.AppLang.KeyCapturePlaceholder;
     }
 
     private void StopKeyCapture()
@@ -193,14 +198,9 @@ public sealed partial class OptionStringControl : OptionControlBase
         {
             _activeCapture = null;
         }
-        if (Setting?.Placeholder is { } placeholder)
-        {
-            InputBox.PlaceholderText = placeholder;
-        }
-        else
-        {
-            InputBox.PlaceholderText = string.Empty;
-        }
+        DisplayText.Text = Setting?.Getter is Func<object?> func && func() is string value
+            ? value
+            : string.Empty;
     }
 
     private void AttachRootHandlers()
@@ -228,12 +228,23 @@ public sealed partial class OptionStringControl : OptionControlBase
             return;
         }
 
+        var modifier = ModifierName(e.Key);
+        if (modifier is not null)
+        {
+            if (!_pendingModifiers.Add(modifier))
+            {
+                _pendingModifiers.Remove(modifier);
+            }
+            DisplayText.Text = BuildCombo(_pendingModifiers, null);
+            return;
+        }
+
         var newKey = FormatKey(e.Key);
         if (newKey is null)
         {
             return;
         }
-        ApplyCapturedKey(newKey);
+        ApplyCapturedKey(BuildCombo(_pendingModifiers, newKey));
     }
 
     private void OnCapturedPointer(object sender, PointerRoutedEventArgs e)
@@ -243,8 +254,9 @@ public sealed partial class OptionStringControl : OptionControlBase
             return;
         }
 
-        // The click that gave the input box focus must not be captured itself.
-        if (e.OriginalSource is DependencyObject source && IsDescendantOf(source, InputBox))
+        // The click that started the capture must not be captured itself.
+        if (e.OriginalSource is DependencyObject source
+            && (IsDescendantOf(source, InputBox) || IsDescendantOf(source, DisplayText)))
         {
             return;
         }
@@ -296,9 +308,38 @@ public sealed partial class OptionStringControl : OptionControlBase
         StopKeyCapture();
         if (Setting is { } option && string.IsNullOrEmpty(newKey) == false)
         {
-            InputBox.Text = newKey;
+            DisplayText.Text = newKey;
             option.KeyCaptureReplaced?.Invoke(option, newKey);
         }
+    }
+
+    private static string? ModifierName(VirtualKey key)
+    {
+        return key switch
+        {
+            VirtualKey.Control or VirtualKey.LeftControl or VirtualKey.RightControl => "Ctrl",
+            VirtualKey.Shift or VirtualKey.LeftShift or VirtualKey.RightShift => "Shift",
+            VirtualKey.Menu or VirtualKey.LeftMenu or VirtualKey.RightMenu => "Alt",
+            VirtualKey.LeftWindows or VirtualKey.RightWindows => "Win",
+            _ => null,
+        };
+    }
+
+    private static string BuildCombo(IEnumerable<string> modifiers, string? key)
+    {
+        var parts = new List<string>();
+        foreach (var modifier in modifiers)
+        {
+            if (!parts.Contains(modifier))
+            {
+                parts.Add(modifier);
+            }
+        }
+        if (key is not null)
+        {
+            parts.Add(key);
+        }
+        return string.Join("+", parts).ToLowerInvariant();
     }
 
     private static string? FormatKey(VirtualKey key)

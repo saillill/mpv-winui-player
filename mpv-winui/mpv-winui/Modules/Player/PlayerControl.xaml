@@ -605,6 +605,35 @@
                 </CommandBar>
             </Grid>
         </Grid>
+        <Grid
+            x:Name="PiPBar"
+            Padding="8,4"
+            VerticalAlignment="Bottom"
+            Background="{ThemeResource MpvPlayControlBackground}"
+            Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <AppBarButton
+                    x:Name="PiPPlayPauseButton"
+                    IsTabStop="False"
+                    Style="{StaticResource AppBarButtonStyle}"
+                    ToolTipService.ToolTip="Play/Pause">
+                    <AppBarButton.Icon>
+                        <FontIcon
+                            x:Name="PiPPlayPauseSymbol"
+                            Glyph="&#xF5B0;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarButton
+                    x:Name="PiPCloseButton"
+                    IsTabStop="False"
+                    Style="{StaticResource AppBarButtonStyle}"
+                    ToolTipService.ToolTip="Close">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE711;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+            </StackPanel>
+        </Grid>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="MediaStates">
                 <VisualState x:Name="Normal" />

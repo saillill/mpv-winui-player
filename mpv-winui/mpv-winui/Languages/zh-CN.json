@@ -728,7 +728,7 @@
   "Collapse": "收起",
   "SettingsHelpFileAssociations": "勾选要用本播放器打开的文件格式，改动立即生效。",
   "SettingsControlBarLayout": "状态栏排版",
-  "SettingsHelpControlBarLayout": "选择状态栏播放控件在底部的排列方式。",
+  "SettingsHelpControlBarLayout": "选择状态栏排版：经典、ModernX 居中或简洁。",
   "OptionValueControlBarLeft": "居左",
   "OptionValueControlBarCenter": "居中",
   "OptionValueControlBarRight": "居右",
@@ -741,5 +741,14 @@
   "ControlBarIconFullWindow": "全窗",
   "ControlBarIconFullScreen": "全屏",
   "ControlBarIconMore": "更多",
-  "ControlBarIconPiP": "画中画"
+  "ControlBarIconPiP": "画中画",
+  "Apply": "应用",
+  "Close": "关闭",
+  "Search": "搜索",
+  "ThemeColorHue": "色相",
+  "ThemeColorSaturation": "饱和度",
+  "ThemeColorLightness": "明度",
+  "OptionValueControlBarClassic": "经典",
+  "OptionValueControlBarModernX": "ModernX 居中",
+  "OptionValueControlBarCompact": "简洁"
 }

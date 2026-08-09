@@ -47,13 +47,13 @@
                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
-                CornerRadius="4" />
-            <Button
-                x:Name="PickButton"
-                MinWidth="96"
-                VerticalAlignment="Center"
-                Click="OnPickClick"
-                Content="Choose color..." />
+                CornerRadius="4"
+                Tapped="OnSwatchTapped">
+                <FontIcon
+                    FontSize="10"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Glyph="&#xE70D;" />
+            </Border>
         </StackPanel>
     </Grid>
 </local:OptionControlBase>

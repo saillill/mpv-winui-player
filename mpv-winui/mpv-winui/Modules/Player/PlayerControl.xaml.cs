@@ -73,8 +73,11 @@ namespace mpv_winui.Modules.Player
             this.InitializeComponent();
             ApplyLocalizedStrings();
             PiPButton.Click += OnPiPClick;
+            PiPPlayPauseButton.Click += OnPlayPauseClick;
+            PiPCloseButton.Click += OnPiPCloseClick;
             AppContext.SettingChanged += OnAppSettingChanged;
             ApplyControlBarStyle();
+            UpdatePiPBar();
             this.Loaded += PlayerControl_Loaded;
             this.Unloaded += PlayerControl_Unloaded;
 
@@ -103,13 +106,19 @@ namespace mpv_winui.Modules.Player
             MoreFullScreen.Text = AppContext.AppLang.MoreFullScreen;
             MorePiP.Text = AppContext.AppLang.SettingsPiP;
             ToolTipService.SetToolTip(PiPButton, AppContext.AppLang.SettingsPiP);
+            ToolTipService.SetToolTip(PiPPlayPauseButton, AppContext.AppLang.Play);
+            ToolTipService.SetToolTip(PiPCloseButton, AppContext.AppLang.Close);
         }
 
         private void OnAppSettingChanged(string key, object? value)
         {
             if (key == nameof(AppContext.AppSetting.WindowPiP))
             {
-                DispatcherQueue.TryEnqueue(UpdatePiPButton);
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    UpdatePiPButton();
+                    UpdatePiPBar();
+                });
             }
             else if (key == nameof(AppContext.AppSetting.ControlBarLayout)
                 || key == nameof(AppContext.AppSetting.ControlBarHiddenIcons))
@@ -130,15 +139,55 @@ namespace mpv_winui.Modules.Player
             PiPButton.IsChecked = AppContext.AppSetting.WindowPiP;
         }
 
+        private void OnPiPCloseClick(object sender, RoutedEventArgs e)
+        {
+            AppContext.AppSetting.WindowPiP = false;
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiP), false);
+            UpdatePiPButton();
+            UpdatePiPBar();
+        }
+
+        /// <summary>Switches between the normal control bar and the minimal PiP bar.</summary>
+        public void UpdatePiPBar()
+        {
+            var pip = AppContext.AppSetting.WindowPiP;
+            PiPBar.Visibility = pip ? Visibility.Visible : Visibility.Collapsed;
+            if (pip)
+            {
+                StopPanelAnimations();
+                ControlPanelGrid.Visibility = Visibility.Collapsed;
+                _controlPanelIsVisible = false;
+            }
+        }
+
         /// <summary>Applies control-bar layout and hidden-icon preferences from the settings.</summary>
         public void ApplyControlBarStyle()
         {
-            MediaControlsCommandBar.HorizontalAlignment = AppContext.AppSetting.ControlBarLayout switch
+            var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
+            MediaControlsCommandBar.HorizontalAlignment = layout switch
             {
-                "center" => HorizontalAlignment.Center,
-                "right" => HorizontalAlignment.Right,
+                "modernx" => HorizontalAlignment.Center,
+                "compact" => HorizontalAlignment.Right,
                 _ => HorizontalAlignment.Left,
             };
+
+            if (layout == "modernx")
+            {
+                SetHidden(false, SkipBackwardButton, SkipForwardButton, PlayPauseButton, VolumeMuteButton, VolumeSliderContainer, PiPButton, FullScreenButton, MoreButton);
+                SetHidden(true, PreviousTrackButton, NextTrackButton, StopButton, ShuffleButton, RepeatButton, PlaybackRateButton, TrackSelectionButton, ZoomButton, FullWindowButton);
+            }
+            else if (layout == "compact")
+            {
+                SetHidden(false, PlayPauseButton, VolumeMuteButton, VolumeSliderContainer, PiPButton, FullScreenButton, MoreButton);
+                SetHidden(true, SkipBackwardButton, SkipForwardButton, PreviousTrackButton, NextTrackButton, StopButton, ShuffleButton, RepeatButton, PlaybackRateButton, TrackSelectionButton, ZoomButton, FullWindowButton);
+            }
+            else
+            {
+                SetHidden(false,
+                    PlayPauseButton, SkipBackwardButton, SkipForwardButton, PreviousTrackButton, NextTrackButton,
+                    StopButton, ShuffleButton, RepeatButton, PlaybackRateButton, TrackSelectionButton, ZoomButton,
+                    FullWindowButton, VolumeMuteButton, VolumeSliderContainer, PiPButton, FullScreenButton, MoreButton);
+            }
 
             var hidden = new HashSet<string>(
                 AppContext.AppSetting.ControlBarHiddenIcons?.Split(
@@ -154,6 +203,17 @@ namespace mpv_winui.Modules.Player
             SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
             SetHidden(hidden.Contains("pip"), PiPButton);
             SetHidden(hidden.Contains("more"), MoreButton);
+        }
+
+        private static string NormalizeControlBarLayout(string? value)
+        {
+            return value switch
+            {
+                "classic" or "left" => "classic",
+                "modernx" or "center" or "right" => "modernx",
+                "compact" => "compact",
+                _ => "classic",
+            };
         }
 
         private static void SetHidden(bool hide, params FrameworkElement[] elements)
@@ -336,6 +396,8 @@ namespace mpv_winui.Modules.Player
         private void PlayerControl_Unloaded(object sender, RoutedEventArgs e)
         {
             PiPButton.Click -= OnPiPClick;
+            PiPPlayPauseButton.Click -= OnPlayPauseClick;
+            PiPCloseButton.Click -= OnPiPCloseClick;
             AppContext.SettingChanged -= OnAppSettingChanged;
             PlayPauseButton.Click -= OnPlayPauseClick;
             SkipBackwardButton.Click -= SkipBackwardButton_Click;
@@ -1063,6 +1125,7 @@ namespace mpv_winui.Modules.Player
             {
                 VisualStateManager.GoToState(this, "PauseState", useTransitions);
             }
+            PiPPlayPauseSymbol.Glyph = isPaused ? "\uF5B0" : "\uF8AE";
         }
 
         private void UpdateVolumeUI(bool useTransitions)

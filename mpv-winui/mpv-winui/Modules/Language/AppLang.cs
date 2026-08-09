@@ -41,6 +41,9 @@ namespace mpv_winui.Modules.Language
         public string ThemeColorRed { get; set; } = "Red";
         public string ThemeColorGreen { get; set; } = "Green";
         public string ThemeColorBlue { get; set; } = "Blue";
+        public string ThemeColorHue { get; set; } = "Hue";
+        public string ThemeColorSaturation { get; set; } = "Saturation";
+        public string ThemeColorLightness { get; set; } = "Lightness";
         public string ThemeColorDone { get; set; } = "Done";
         public string Save { get; set; } = "Save";
         public string SettingsSaved { get; set; } = "Saved";
@@ -49,6 +52,9 @@ namespace mpv_winui.Modules.Language
         public string Discard { get; set; } = "Discard";
         public string Expand { get; set; } = "Expand";
         public string Collapse { get; set; } = "Collapse";
+        public string Apply { get; set; } = "Apply";
+        public string Close { get; set; } = "Close";
+        public string Search { get; set; } = "Search";
         public string SettingsResetConfirm { get; set; } = "Reset all settings to their defaults?";
         public string Test { get; set; } = "Test";
         public string Open { get; set; } = "Open";
@@ -91,6 +97,9 @@ namespace mpv_winui.Modules.Language
         // Control bar
         public string SettingsControlBarLayout { get; set; } = "Control bar layout";
         public string SettingsHelpControlBarLayout { get; set; } = "Choose how the playback controls are arranged in the control bar.";
+        public string OptionValueControlBarClassic { get; set; } = "Classic";
+        public string OptionValueControlBarModernX { get; set; } = "ModernX";
+        public string OptionValueControlBarCompact { get; set; } = "Compact";
         public string OptionValueControlBarLeft { get; set; } = "Left";
         public string OptionValueControlBarCenter { get; set; } = "Centered";
         public string OptionValueControlBarRight { get; set; } = "Right";

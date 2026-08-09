@@ -17,21 +17,35 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <ListView
-            x:Name="CategoryList"
+        <Grid
             Grid.Row="0"
-            Padding="8,12,4,12"
-            SelectionChanged="CategoryList_SelectionChanged"
-            SelectionMode="Single">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="x:String">
-                    <TextBlock
-                        Padding="8,6"
-                        Style="{StaticResource BodyTextBlockStyle}"
-                        Text="{x:Bind}" />
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBox
+                x:Name="SearchBox"
+                Grid.Row="0"
+                Margin="8,10,8,4"
+                PlaceholderText="Search"
+                TextChanged="SearchBox_TextChanged" />
+            <ListView
+                x:Name="CategoryList"
+                Grid.Row="1"
+                Padding="8,4,4,12"
+                SelectionChanged="CategoryList_SelectionChanged"
+                SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock
+                            Padding="8,6"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            Text="{x:Bind}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
 
         <ctl:OptionListControl
             x:Name="OptionsControl"

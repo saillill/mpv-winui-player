@@ -22,7 +22,9 @@ public sealed partial class OptionCheckListControl : OptionControlBase
 
         LabelText.Text = newValue.Label;
         UpdateDescription(DescriptionText);
-        ExpandButton.Content = newValue.CheckExpandLabel ?? mpv_winui.AppContext.AppLang.Expand;
+        ToolTipService.SetToolTip(ExpandButton, newValue.CheckExpandLabel ?? mpv_winui.AppContext.AppLang.Expand);
+        ApplyButton.Content = newValue.CheckApplyLabel ?? mpv_winui.AppContext.AppLang.Apply;
+        ApplyButton.Visibility = newValue.CheckApplyHandler is null ? Visibility.Collapsed : Visibility.Visible;
         BuildCheckList();
     }
 
@@ -35,10 +37,8 @@ public sealed partial class OptionCheckListControl : OptionControlBase
     private void OnExpandClick(object sender, RoutedEventArgs e)
     {
         _expanded = !_expanded;
-        CheckItemsControl.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
-        ExpandButton.Content = _expanded
-            ? (Setting?.CheckCollapseLabel ?? mpv_winui.AppContext.AppLang.Collapse)
-            : (Setting?.CheckExpandLabel ?? mpv_winui.AppContext.AppLang.Expand);
+        ExpandedPanel.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
+        ExpandIcon.Glyph = _expanded ? "\uE70E" : "\uE70D";
     }
 
     private void BuildCheckList()
@@ -54,11 +54,21 @@ public sealed partial class OptionCheckListControl : OptionControlBase
         {
             var box = new CheckBox
             {
-                Content = item.Label,
                 IsChecked = item.IsChecked,
                 Tag = item.Value,
                 MinWidth = 132,
             };
+            if (string.IsNullOrEmpty(item.Glyph))
+            {
+                box.Content = item.Label;
+            }
+            else
+            {
+                var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+                panel.Children.Add(new FontIcon { Glyph = item.Glyph, FontSize = 14 });
+                panel.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
+                box.Content = panel;
+            }
             box.Checked += OnItemChecked;
             box.Unchecked += OnItemChecked;
             boxes.Add(box);
@@ -76,5 +86,10 @@ public sealed partial class OptionCheckListControl : OptionControlBase
         {
             option.CheckChanged?.Invoke(option, value, box.IsChecked == true);
         }
+    }
+
+    private void OnApplyClick(object sender, RoutedEventArgs e)
+    {
+        Setting?.CheckApplyHandler?.Invoke(Setting);
     }
 }

@@ -1289,7 +1289,7 @@ namespace mpv_winui.Modules.Settings
 
         public string ControlBarLayout
         {
-            get => _dataSetting.GetValue(nameof(ControlBarLayout), "left");
+            get => _dataSetting.GetValue(nameof(ControlBarLayout), "classic");
             set => _dataSetting.SetValue(nameof(ControlBarLayout), value);
         }
 

@@ -728,7 +728,7 @@
   "Collapse": "Contraer",
   "SettingsHelpFileAssociations": "Elija los formatos que se abrirán con este reproductor. Los cambios se aplican de inmediato.",
   "SettingsControlBarLayout": "Diseño de la barra de control",
-  "SettingsHelpControlBarLayout": "Elija cómo se organizan los controles de reproducción en la barra.",
+  "SettingsHelpControlBarLayout": "Elija una disposición: clásica, ModernX centrada o compacta.",
   "OptionValueControlBarLeft": "Izquierda",
   "OptionValueControlBarCenter": "Centrado",
   "OptionValueControlBarRight": "Derecha",
@@ -741,5 +741,14 @@
   "ControlBarIconFullWindow": "Ventana completa",
   "ControlBarIconFullScreen": "Pantalla completa",
   "ControlBarIconMore": "Más",
-  "ControlBarIconPiP": "Imagen en imagen"
+  "ControlBarIconPiP": "Imagen en imagen",
+  "Apply": "Aplicar",
+  "Close": "Cerrar",
+  "Search": "Buscar",
+  "ThemeColorHue": "Tono",
+  "ThemeColorSaturation": "Saturación",
+  "ThemeColorLightness": "Luminosidad",
+  "OptionValueControlBarClassic": "Clásico",
+  "OptionValueControlBarModernX": "ModernX centrado",
+  "OptionValueControlBarCompact": "Compacto"
 }
