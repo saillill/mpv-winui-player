@@ -69,7 +69,7 @@ public sealed partial class OptionCheckListControl : OptionControlBase
 
     private void BuildCheckList()
     {
-        CheckItemsControl.Items.Clear();
+        CheckItemsControl.Children.Clear();
         var items = Setting?.CheckItemsProvider?.Invoke()
             ?? Setting?.CheckItems
             ?? [];
@@ -78,8 +78,8 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             return;
         }
 
-        var boxes = new List<CheckBox>();
         string? lastGroup = null;
+        ItemsControl? groupWrap = null;
         foreach (var item in items)
         {
             if (!string.Equals(item.Group, lastGroup, StringComparison.Ordinal))
@@ -87,14 +87,19 @@ public sealed partial class OptionCheckListControl : OptionControlBase
                 lastGroup = item.Group;
                 if (!string.IsNullOrEmpty(item.Group))
                 {
-                    CheckItemsControl.Items.Add(new TextBlock
+                    CheckItemsControl.Children.Add(new TextBlock
                     {
                         Text = item.Group,
                         Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
                         Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-                        Margin = new Thickness(0, 10, 0, 0),
+                        Margin = new Thickness(0, 6, 0, 2),
                     });
                 }
+                groupWrap = new ItemsControl
+                {
+                    ItemsPanel = (ItemsPanelTemplate)Resources["CheckWrapPanel"],
+                };
+                CheckItemsControl.Children.Add(groupWrap);
             }
 
             var box = new CheckBox
@@ -116,12 +121,7 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             }
             box.Checked += OnItemChecked;
             box.Unchecked += OnItemChecked;
-            boxes.Add(box);
-        }
-
-        foreach (var box in boxes)
-        {
-            CheckItemsControl.Items.Add(box);
+            groupWrap?.Items.Add(box);
         }
     }
 

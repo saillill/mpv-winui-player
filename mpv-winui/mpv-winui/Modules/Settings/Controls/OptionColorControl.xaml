@@ -17,6 +17,7 @@
         <Grid
             x:Name="HeaderGrid"
             Grid.Row="0"
+            Background="Transparent"
             Tapped="OnHeaderTapped">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

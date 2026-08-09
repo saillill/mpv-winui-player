@@ -126,8 +126,8 @@
                     <x:Double x:Key="AppBarMoreButtonColumnMinWidth">0</x:Double>
                 </Grid.Resources>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="0" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
@@ -261,6 +261,22 @@
                         </AppBarButton.Icon>
                     </AppBarButton>
 
+                </CommandBar>
+
+                <CommandBar
+                    x:Name="MiddleCommandBar"
+                    Grid.Column="1"
+                    Padding="0"
+                    HorizontalAlignment="Center"
+                    DefaultLabelPosition="Collapsed"
+                    IsDynamicOverflowEnabled="False"
+                    Style="{StaticResource CommandBarWithoutRevealStyle}">
+                    <CommandBar.Resources>
+                        <Thickness x:Key="AppBarButtonInnerBorderMargin">5</Thickness>
+                        <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,12</Thickness>
+                        <x:Double x:Key="AppBarThemeCompactHeight">40</x:Double>
+                        <x:Double x:Key="AppBarMoreButtonColumnMinWidth">0</x:Double>
+                    </CommandBar.Resources>
                 </CommandBar>
 
                 <CommandBar

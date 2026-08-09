@@ -16,6 +16,7 @@ public sealed partial class CustomColorPickerControl : UserControl
     private double _hue;
     private double _saturation = 1;
     private double _value = 1;
+    private bool _dragging;
 
     public CustomColorPickerControl()
     {
@@ -144,21 +145,43 @@ public sealed partial class CustomColorPickerControl : UserControl
 
     private void ColorField_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        ColorField.CapturePointer(e.Pointer);
-        UpdateFromPointer(e);
+        _dragging = true;
+        TryUpdateFromPointer(e);
     }
 
     private void ColorField_PointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (ColorField.PointerCaptures.Count > 0)
+        if (_dragging)
         {
-            UpdateFromPointer(e);
+            TryUpdateFromPointer(e);
         }
     }
 
     private void ColorField_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        ColorField.ReleasePointerCapture(e.Pointer);
+        _dragging = false;
+    }
+
+    private void ColorField_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        _dragging = false;
+    }
+
+    /// <summary>
+    /// Pointer capture is deliberately not used here: capturing a pointer
+    /// inside a dialog can raise a WinRT E_POINTER failure on some input
+    /// paths, so the drag state is tracked with a simple flag instead.
+    /// </summary>
+    private void TryUpdateFromPointer(PointerRoutedEventArgs e)
+    {
+        try
+        {
+            UpdateFromPointer(e);
+        }
+        catch
+        {
+            _dragging = false;
+        }
     }
 
     private void UpdateFromPointer(PointerRoutedEventArgs e)

@@ -165,12 +165,6 @@ namespace mpv_winui.Modules.Player
         public void ApplyControlBarStyle()
         {
             var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
-            MediaControlsCommandBar.HorizontalAlignment = layout switch
-            {
-                "modernx" => HorizontalAlignment.Center,
-                _ => HorizontalAlignment.Left,
-            };
-
             ApplyControlBarOrder(layout);
 
             var hiddenValue = layout == "modernx"
@@ -194,8 +188,10 @@ namespace mpv_winui.Modules.Player
 
         /// <summary>
         /// 原版 keeps the upstream control order. 居中 reorders the buttons to
-        /// match ModernX: tracks and volume on the left, previous/skip/play/
-        /// skip/next centered, window controls on the right.
+        /// match ModernX: tracks and volume on the left edge, previous/skip/
+        /// play/skip/next centered, window controls on the right edge. The
+        /// command bars sit in star columns so the middle cluster is centered
+        /// between the two edges.
         /// </summary>
         private void ApplyControlBarOrder(string layout)
         {
@@ -205,46 +201,59 @@ namespace mpv_winui.Modules.Player
             }
             _lastBarOrder = layout;
 
-            var left = new ICommandBarElement[]
+            ICommandBarElement[] left, middle, right;
+            if (layout == "modernx")
             {
-                TrackSelectionButton, VolumeMuteButton, VolumeSliderContainer,
-                PreviousTrackButton, SkipBackwardButton, RewindButton,
-                PlayPauseButton, FastForwardButton, SkipForwardButton,
-                NextTrackButton, StopButton, ShuffleButton, RepeatButton,
-                PlaybackRateButton, ZoomButton,
-            };
-            var right = new ICommandBarElement[]
+                left =
+                [
+                    TrackSelectionButton, VolumeMuteButton, VolumeSliderContainer,
+                ];
+                middle =
+                [
+                    PreviousTrackButton, SkipBackwardButton, RewindButton,
+                    PlayPauseButton, FastForwardButton, SkipForwardButton,
+                    NextTrackButton, StopButton, ShuffleButton, RepeatButton,
+                    PlaybackRateButton, ZoomButton,
+                ];
+                right =
+                [
+                    MoreButton, PiPButton, FullWindowButton, FullScreenButton,
+                ];
+            }
+            else
             {
-                MoreButton, PiPButton, FullWindowButton, FullScreenButton,
-            };
-
-            if (layout != "modernx")
-            {
-                left = new ICommandBarElement[]
-                {
+                left =
+                [
                     PlayPauseButton, RewindButton, FastForwardButton,
                     PreviousTrackButton, NextTrackButton, SkipBackwardButton,
                     SkipForwardButton, StopButton, ShuffleButton, RepeatButton,
-                };
-                right = new ICommandBarElement[]
-                {
+                ];
+                middle = [];
+                right =
+                [
                     VolumeMuteButton, VolumeSliderContainer, PlaybackRateButton,
                     TrackSelectionButton, ZoomButton, PiPButton,
                     FullWindowButton, FullScreenButton, MoreButton,
-                };
+                ];
             }
 
-            ApplyBarOrders(LeftCommandBar, RightCommandBar, left, right);
+            ApplyBarOrders(LeftCommandBar, MiddleCommandBar, RightCommandBar, left, middle, right);
         }
 
         private static void ApplyBarOrders(
             CommandBar left,
+            CommandBar middle,
             CommandBar right,
             ICommandBarElement[] leftDesired,
+            ICommandBarElement[] middleDesired,
             ICommandBarElement[] rightDesired)
         {
             var available = new HashSet<ICommandBarElement>(ReferenceEqualityComparer.Instance);
             foreach (var element in left.PrimaryCommands)
+            {
+                available.Add(element);
+            }
+            foreach (var element in middle.PrimaryCommands)
             {
                 available.Add(element);
             }
@@ -254,6 +263,7 @@ namespace mpv_winui.Modules.Player
             }
 
             left.PrimaryCommands.Clear();
+            middle.PrimaryCommands.Clear();
             right.PrimaryCommands.Clear();
 
             foreach (var element in leftDesired)
@@ -261,6 +271,13 @@ namespace mpv_winui.Modules.Player
                 if (available.Remove(element))
                 {
                     left.PrimaryCommands.Add(element);
+                }
+            }
+            foreach (var element in middleDesired)
+            {
+                if (available.Remove(element))
+                {
+                    middle.PrimaryCommands.Add(element);
                 }
             }
             foreach (var element in rightDesired)

@@ -29,7 +29,8 @@
             CornerRadius="4"
             PointerMoved="ColorField_PointerMoved"
             PointerPressed="ColorField_PointerPressed"
-            PointerReleased="ColorField_PointerReleased">
+            PointerReleased="ColorField_PointerReleased"
+            PointerExited="ColorField_PointerExited">
             <Border
                 x:Name="HueBase"
                 CornerRadius="3" />
