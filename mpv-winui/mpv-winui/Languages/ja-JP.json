@@ -92,8 +92,8 @@
   "SettingsSubFontSize": "字幕フォントサイズ",
   "SettingsSubDelay": "字幕遅延（秒）",
   "SettingsVideoPreview": "ビデオプレビューサムネイル",
-  "SettingsCategoryProgram": "プログラム動作",
-  "SettingsCategoryPlayback": "再生制御",
+  "SettingsCategoryProgram": "デスクトップ",
+  "SettingsCategoryPlayback": "再生",
   "SettingsCategoryVideo": "映像",
   "SettingsCategoryAudio": "音声",
   "SettingsCategorySubtitles": "字幕",
@@ -636,5 +636,10 @@
   "SettingsTestSignal": "テスト信号",
   "OptionValueTestSignalOff": "なし",
   "OptionValueTestSignalVideo": "テスト映像（テストパターン）",
-  "OptionValueTestSignalAudio": "テスト音声（1 kHz）"
+  "OptionValueTestSignalAudio": "テスト音声（1 kHz）",
+  "SettingsCategoryNetwork": "ネットワーク",
+  "SettingsCategoryTesting": "テスト",
+  "SettingsCategoryShortcuts": "ショートカット",
+  "SettingsSaved": "保存しました",
+  "SettingsResetConfirm": "すべての設定を既定値にリセットしますか？"
 }

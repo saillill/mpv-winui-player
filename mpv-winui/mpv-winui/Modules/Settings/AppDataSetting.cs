@@ -38,5 +38,10 @@ namespace mpv_winui.Modules.Settings
             _container.Values[propertyName] = value;
             return true;
         }
+
+        public void ResetAll()
+        {
+            _container.Values.Clear();
+        }
     }
 }

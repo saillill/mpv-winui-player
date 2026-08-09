@@ -92,8 +92,8 @@
   "SettingsSubFontSize": "Untertitel-Schriftgröße",
   "SettingsSubDelay": "Untertitel-Verzögerung (s)",
   "SettingsVideoPreview": "Video-Vorschau-Thumbnails",
-  "SettingsCategoryProgram": "Programmverhalten",
-  "SettingsCategoryPlayback": "Wiedergabesteuerung",
+  "SettingsCategoryProgram": "Desktop",
+  "SettingsCategoryPlayback": "Wiedergabe",
   "SettingsCategoryVideo": "Video",
   "SettingsCategoryAudio": "Audio",
   "SettingsCategorySubtitles": "Untertitel",
@@ -636,5 +636,10 @@
   "SettingsTestSignal": "Testsignal",
   "OptionValueTestSignalOff": "Aus",
   "OptionValueTestSignalVideo": "Testvideo (Testmuster)",
-  "OptionValueTestSignalAudio": "Testaudio (1 kHz)"
+  "OptionValueTestSignalAudio": "Testaudio (1 kHz)",
+  "SettingsCategoryNetwork": "Netzwerk",
+  "SettingsCategoryTesting": "Testen",
+  "SettingsCategoryShortcuts": "Tastenkürzel",
+  "SettingsSaved": "Gespeichert",
+  "SettingsResetConfirm": "Alle Einstellungen zurücksetzen?"
 }

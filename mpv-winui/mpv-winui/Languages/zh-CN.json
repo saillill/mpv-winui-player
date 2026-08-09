@@ -52,8 +52,8 @@
   "SettingsSubFontSize": "字幕字号",
   "SettingsSubDelay": "字幕延迟（秒）",
   "SettingsVideoPreview": "视频预览缩略图",
-  "SettingsCategoryProgram": "程序行为",
-  "SettingsCategoryPlayback": "播放控制",
+  "SettingsCategoryProgram": "桌面",
+  "SettingsCategoryPlayback": "播放",
   "SettingsCategoryVideo": "视频",
   "SettingsCategoryAudio": "音频",
   "SettingsCategorySubtitles": "字幕",
@@ -636,5 +636,10 @@
   "SettingsTestSignal": "测试信号",
   "OptionValueTestSignalOff": "无",
   "OptionValueTestSignalVideo": "测试画面（测试图）",
-  "OptionValueTestSignalAudio": "测试音频（1 kHz）"
+  "OptionValueTestSignalAudio": "测试音频（1 kHz）",
+  "SettingsCategoryNetwork": "网络",
+  "SettingsCategoryTesting": "测试",
+  "SettingsCategoryShortcuts": "快捷键",
+  "SettingsSaved": "已保存",
+  "SettingsResetConfirm": "把所有设置重置为默认值？"
 }

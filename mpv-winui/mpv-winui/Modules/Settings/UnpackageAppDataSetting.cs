@@ -72,5 +72,10 @@ namespace mpv_winui.Modules.Settings
 
             return true;
         }
+
+        public void ResetAll()
+        {
+            _container.Values.Clear();
+        }
     }
 }

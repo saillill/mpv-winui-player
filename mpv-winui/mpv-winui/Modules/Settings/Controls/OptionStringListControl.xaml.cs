@@ -31,7 +31,6 @@ public sealed partial class OptionStringListControl : OptionControlBase
         LabelText.Text = newValue.Label;
         UpdateDescription(DescriptionText);
         Combo.IsEnabled = newValue.IsEnabled;
-        CustomInput.PlaceholderText = mpv_winui.AppContext.AppLang.OptionValueCustom;
 
         _loading = true;
         try

@@ -28,8 +28,8 @@ keys = re.findall(r"Key = nameof\(AppContext\.AppSetting\.(\w+)\)", src)
 assert len(keys) == 193, len(keys)
 
 # key -> (category var, section var)
-# Category vars: program playback trackSelection watchLater video audio subtitles
-#                window demuxer cache input osd screenshot gpuRenderer videoSync
+# Category vars: program playback watchLater video audio subtitles window demuxer
+#                cache network input shortcuts osd screenshot testing
 # Section vars:  sProgramInterface sProgramLanguageLog sProgramNetwork sProgramTesting
 #                sPlayback sPlaybackSeeking sPlaybackSeekPreview
 #                sTrackLanguage sTrackFallback
@@ -50,13 +50,13 @@ MAP = {
     "ThemeOpacity": ("program", "sProgramInterface"),
     "ThemeLuminosity": ("program", "sProgramInterface"),
     "UiFont": ("program", "sProgramInterface"),
-    "TestMpvCommandLog": ("program", "sProgramTesting"),
-    "TestOsdMessage": ("program", "sProgramTesting"),
-    "TestSignal": ("program", "sProgramTesting"),
+    "TestMpvCommandLog": ("testing", "sProgramTesting"),
+    "TestOsdMessage": ("testing", "sProgramTesting"),
+    "TestSignal": ("testing", "sProgramTesting"),
     "CurrentLanguage": ("program", "sProgramLanguageLog"),
     "EnableDebugLog": ("program", "sProgramLanguageLog"),
-    "Ytdl": ("program", "sProgramNetwork"),
-    "YtdlRawOptionsAppend": ("program", "sProgramNetwork"),
+    "Ytdl": ("network", "sProgramNetwork"),
+    "YtdlRawOptionsAppend": ("network", "sProgramNetwork"),
     # Playback Control
     "LoopFile": ("playback", "sPlayback"),
     "LoopPlaylist": ("playback", "sPlayback"),
@@ -77,9 +77,9 @@ MAP = {
     "ThumbfastDirectIo": ("playback", "sPlaybackSeekPreview"),
     "ThumbfastQuitAfterInactivity": ("playback", "sPlaybackSeekPreview"),
     # Track Selection
-    "AudioLanguage": ("trackSelection", "sTrackLanguage"),
-    "SubtitleLanguage": ("trackSelection", "sTrackLanguage"),
-    "SubFallback": ("trackSelection", "sTrackFallback"),
+    "AudioLanguage": ("subtitles", "sTrackLanguage"),
+    "SubtitleLanguage": ("subtitles", "sTrackLanguage"),
+    "SubFallback": ("subtitles", "sTrackFallback"),
     # Watch Later
     "SavePositionOnQuit": ("watchLater", "sWatchLaterResume"),
     "ResumePlayback": ("watchLater", "sWatchLaterResume"),
@@ -212,45 +212,45 @@ MAP = {
     "ScreenshotTagColorspace": ("screenshot", "sScreenshotQuality"),
     "ScreenshotSw": ("screenshot", "sScreenshotQuality"),
     # GPU renderer options
-    "Scale": ("gpuRenderer", "sGpuScaling"),
-    "DScale": ("gpuRenderer", "sGpuScaling"),
-    "Cscale": ("gpuRenderer", "sGpuScaling"),
-    "Tscale": ("gpuRenderer", "sGpuScaling"),
-    "LinearUpscaling": ("gpuRenderer", "sGpuScaling"),
-    "SigmoidUpscaling": ("gpuRenderer", "sGpuScaling"),
-    "LinearDownscaling": ("gpuRenderer", "sGpuScaling"),
-    "CorrectDownscaling": ("gpuRenderer", "sGpuScaling"),
-    "Deband": ("gpuRenderer", "sGpuScaling"),
-    "Dither": ("gpuRenderer", "sGpuScaling"),
-    "DitherDepth": ("gpuRenderer", "sGpuScaling"),
-    "ToneMapping": ("gpuRenderer", "sGpuColor"),
-    "TargetColorspaceHint": ("gpuRenderer", "sGpuColor"),
-    "TargetColorspaceHintMode": ("gpuRenderer", "sGpuColor"),
-    "TargetColorspaceHintStrict": ("gpuRenderer", "sGpuColor"),
-    "TargetPrim": ("gpuRenderer", "sGpuColor"),
-    "TargetTrc": ("gpuRenderer", "sGpuColor"),
-    "TargetPeak": ("gpuRenderer", "sGpuColor"),
-    "GamutMappingMode": ("gpuRenderer", "sGpuColor"),
-    "IccProfileAuto": ("gpuRenderer", "sGpuColor"),
-    "IccProfile": ("gpuRenderer", "sGpuColor"),
-    "IccForceContrast": ("gpuRenderer", "sGpuColor"),
-    "Icc3dlutSize": ("gpuRenderer", "sGpuColor"),
-    "IccCache": ("gpuRenderer", "sGpuColor"),
-    "IccCacheDir": ("gpuRenderer", "sGpuColor"),
-    "D3d11OutputCsp": ("gpuRenderer", "sGpuColor"),
-    "Interpolation": ("gpuRenderer", "sGpuInterpolation"),
-    "BackgroundTileColor0": ("gpuRenderer", "sGpuBackground"),
-    "BackgroundTileColor1": ("gpuRenderer", "sGpuBackground"),
-    "BackgroundTileSize": ("gpuRenderer", "sGpuBackground"),
-    "D3d11ExclusiveFs": ("gpuRenderer", "sGpuD3d11"),
-    "D3d11Flip": ("gpuRenderer", "sGpuD3d11"),
-    "D3d11Adapter": ("gpuRenderer", "sGpuD3d11"),
-    "GpuShaderCache": ("gpuRenderer", "sGpuShaders"),
-    "GpuShaderCacheDir": ("gpuRenderer", "sGpuShaders"),
-    "GlslShadersAppend": ("gpuRenderer", "sGpuShaders"),
+    "Scale": ("video", "sGpuScaling"),
+    "DScale": ("video", "sGpuScaling"),
+    "Cscale": ("video", "sGpuScaling"),
+    "Tscale": ("video", "sGpuScaling"),
+    "LinearUpscaling": ("video", "sGpuScaling"),
+    "SigmoidUpscaling": ("video", "sGpuScaling"),
+    "LinearDownscaling": ("video", "sGpuScaling"),
+    "CorrectDownscaling": ("video", "sGpuScaling"),
+    "Deband": ("video", "sGpuScaling"),
+    "Dither": ("video", "sGpuScaling"),
+    "DitherDepth": ("video", "sGpuScaling"),
+    "ToneMapping": ("video", "sGpuColor"),
+    "TargetColorspaceHint": ("video", "sGpuColor"),
+    "TargetColorspaceHintMode": ("video", "sGpuColor"),
+    "TargetColorspaceHintStrict": ("video", "sGpuColor"),
+    "TargetPrim": ("video", "sGpuColor"),
+    "TargetTrc": ("video", "sGpuColor"),
+    "TargetPeak": ("video", "sGpuColor"),
+    "GamutMappingMode": ("video", "sGpuColor"),
+    "IccProfileAuto": ("video", "sGpuColor"),
+    "IccProfile": ("video", "sGpuColor"),
+    "IccForceContrast": ("video", "sGpuColor"),
+    "Icc3dlutSize": ("video", "sGpuColor"),
+    "IccCache": ("video", "sGpuColor"),
+    "IccCacheDir": ("video", "sGpuColor"),
+    "D3d11OutputCsp": ("video", "sGpuColor"),
+    "Interpolation": ("video", "sGpuInterpolation"),
+    "BackgroundTileColor0": ("video", "sGpuBackground"),
+    "BackgroundTileColor1": ("video", "sGpuBackground"),
+    "BackgroundTileSize": ("video", "sGpuBackground"),
+    "D3d11ExclusiveFs": ("video", "sGpuD3d11"),
+    "D3d11Flip": ("video", "sGpuD3d11"),
+    "D3d11Adapter": ("video", "sGpuD3d11"),
+    "GpuShaderCache": ("video", "sGpuShaders"),
+    "GpuShaderCacheDir": ("video", "sGpuShaders"),
+    "GlslShadersAppend": ("video", "sGpuShaders"),
     # Video Sync
-    "VideoSync": ("videoSync", "sVideoSync"),
-    "VideoSyncMaxVideoChange": ("videoSync", "sVideoSync"),
+    "VideoSync": ("video", "sVideoSync"),
+    "VideoSyncMaxVideoChange": ("video", "sVideoSync"),
 }
 
 missing = [k for k in keys if k not in MAP]
@@ -259,9 +259,9 @@ assert not missing, f"missing: {missing}"
 assert not extra, f"extra: {extra}"
 assert len(MAP) == len(keys), (len(MAP), len(keys))
 
-CAT_ORDER = ["program", "playback", "trackSelection", "watchLater", "video",
-             "audio", "subtitles", "window", "demuxer", "cache", "input",
-             "osd", "screenshot", "gpuRenderer", "videoSync"]
+CAT_ORDER = ["program", "playback", "watchLater", "video", "audio", "subtitles",
+             "window", "demuxer", "cache", "network", "input", "shortcuts",
+             "osd", "screenshot", "testing"]
 
 
 def emit_map():
@@ -279,7 +279,7 @@ def emit_map():
         by_cat.setdefault(c, []).append(k)
     for c in CAT_ORDER:
         out.append(f"            // {c}")
-        for k in by_cat[c]:
+        for k in by_cat.get(c, []):
             out.append(f"            [nameof(AppSettings.{k})] = {c},")
     out.append("        };")
     out.append("")
@@ -294,7 +294,7 @@ def emit_map():
     seen = {}
     order = 0
     for c in CAT_ORDER:
-        for k in by_cat[c]:
+        for k in by_cat.get(c, []):
             s = MAP[k][1]
             if s not in seen:
                 seen[s] = order
@@ -313,7 +313,7 @@ def emit_map():
         for (cc, s) in sorted(by_sec, key=lambda t: (CAT_ORDER.index(t[0]), list(by_sec).index(t))):
             if cc != c:
                 continue
-            for k in by_sec[(c, s)]:
+            for k in by_sec.get((c, s), []):
                 out.append(f"            [nameof(AppSettings.{k})] = {s},")
     out.append("        };")
     return "\n".join(out)

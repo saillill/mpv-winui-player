@@ -8,6 +8,10 @@
     mc:Ignorable="d">
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220" />
             <ColumnDefinition Width="*" />
@@ -15,6 +19,7 @@
 
         <ListView
             x:Name="CategoryList"
+            Grid.Row="0"
             Padding="8,12,4,12"
             SelectionChanged="CategoryList_SelectionChanged"
             SelectionMode="Single">
@@ -30,7 +35,39 @@
 
         <ctl:OptionListControl
             x:Name="OptionsControl"
+            Grid.Row="0"
             Grid.Column="1"
             ShowHeaders="False" />
+
+        <Border
+            Grid.Row="1"
+            Grid.ColumnSpan="2"
+            Padding="16,10"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    x:Name="SaveStatusText"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                <Button
+                    x:Name="ResetButton"
+                    Grid.Column="1"
+                    MinWidth="96"
+                    Click="OnResetClick" />
+                <Button
+                    x:Name="SaveButton"
+                    Grid.Column="2"
+                    MinWidth="96"
+                    Click="OnSaveClick"
+                    Style="{StaticResource AccentButtonStyle}" />
+            </Grid>
+        </Border>
     </Grid>
 </Page>

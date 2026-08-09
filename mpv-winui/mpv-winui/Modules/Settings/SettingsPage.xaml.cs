@@ -25,8 +25,52 @@ public sealed partial class SettingsPage : Page
         Categories.AddRange(CategoryOrder.Where(c => Settings.Any(o => o.Category == c)));
         CategoryList.ItemsSource = Categories;
         CategoryList.SelectedIndex = 0;
+        SaveButton.Content = AppContext.AppLang.Save;
+        ResetButton.Content = AppContext.AppLang.Reset;
         UpdateOptions();
         RefreshWarningsAndEnabled();
+    }
+
+    private void OnSaveClick(object sender, RoutedEventArgs e)
+    {
+        MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
+        if (App.Window is MainWindow mainWindow)
+        {
+            mainWindow.UpdateCurrentTheme();
+        }
+        SaveStatusText.Text = AppContext.AppLang.SettingsSaved;
+        _ = ClearSaveStatusAsync();
+    }
+
+    private async System.Threading.Tasks.Task ClearSaveStatusAsync()
+    {
+        await System.Threading.Tasks.Task.Delay(2000);
+        DispatcherQueue.TryEnqueue(() => SaveStatusText.Text = string.Empty);
+    }
+
+    private async void OnResetClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = AppContext.AppLang.Reset,
+            Content = AppContext.AppLang.SettingsResetConfirm,
+            XamlRoot = XamlRoot,
+            PrimaryButtonText = AppContext.AppLang.Reset,
+            CloseButtonText = AppContext.AppLang.Cancel,
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        AppContext.AppSetting.ResetAll();
+        if (App.Window is MainWindow mainWindow)
+        {
+            mainWindow.UpdateCurrentTheme();
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), AppContext.AppSetting.BackdropType);
+        }
+        Frame?.Navigate(typeof(SettingsPage));
     }
 
     private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateOptions();
@@ -51,9 +95,12 @@ public sealed partial class SettingsPage : Page
         var window = AppContext.AppLang.SettingsCategoryWindow;
         var demuxer = AppContext.AppLang.SettingsCategoryDemuxer;
         var cache = AppContext.AppLang.SettingsCategoryCache;
+        var network = AppContext.AppLang.SettingsCategoryNetwork;
         var input = AppContext.AppLang.SettingsCategoryInput;
+        var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
         var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
+        var testing = AppContext.AppLang.SettingsCategoryTesting;
         var gpuRenderer = AppContext.AppLang.SettingsCategoryGpuRenderer;
         var videoSync = AppContext.AppLang.SettingsCategoryVideoSync;
         var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
@@ -867,7 +914,7 @@ public sealed partial class SettingsPage : Page
                 Key = nameof(AppContext.AppSetting.BackgroundTileColor0),
                 Label = lang.SettingsBackgroundTileColor0,
                 Category = video,
-                Type = OptionType.String,
+                Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.BackgroundTileColor0,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.BackgroundTileColor0), AppContext.AppSetting.BackgroundTileColor0 = (string)v!)
@@ -878,7 +925,7 @@ public sealed partial class SettingsPage : Page
                 Key = nameof(AppContext.AppSetting.BackgroundTileColor1),
                 Label = lang.SettingsBackgroundTileColor1,
                 Category = video,
-                Type = OptionType.String,
+                Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.BackgroundTileColor1,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.BackgroundTileColor1), AppContext.AppSetting.BackgroundTileColor1 = (string)v!)
@@ -2433,7 +2480,7 @@ public sealed partial class SettingsPage : Page
                 Key = nameof(AppContext.AppSetting.OsdColor),
                 Label = lang.SettingsOsdColor,
                 Category = gpuRenderer,
-                Type = OptionType.String,
+                Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.OsdColor,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdColor), AppContext.AppSetting.OsdColor = (string)v!)
@@ -2444,7 +2491,7 @@ public sealed partial class SettingsPage : Page
                 Key = nameof(AppContext.AppSetting.OsdOutlineColor),
                 Label = lang.SettingsOsdOutlineColor,
                 Category = gpuRenderer,
-                Type = OptionType.String,
+                Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.OsdOutlineColor,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdOutlineColor), AppContext.AppSetting.OsdOutlineColor = (string)v!)
@@ -2885,6 +2932,8 @@ public sealed partial class SettingsPage : Page
             },
         };
 
+        options.AddRange(BuildShortcutOptions(shortcuts));
+
         foreach (var option in options)
         {
             if (RedundantDescriptions.Contains(option.Key))
@@ -2897,11 +2946,10 @@ public sealed partial class SettingsPage : Page
             }
         }
 
-                        var categoryOrder = new[]
+                                var categoryOrder = new[]
         {
             program,
             playback,
-            trackSelection,
             watchLater,
             video,
             audio,
@@ -2909,11 +2957,12 @@ public sealed partial class SettingsPage : Page
             window,
             demuxer,
             cache,
+            network,
             input,
+            shortcuts,
             osd,
             screenshot,
-            gpuRenderer,
-            videoSync,
+            testing,
         };
 
         var categoryMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -2925,13 +2974,8 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.ThemeOpacity)] = program,
             [nameof(AppSettings.ThemeLuminosity)] = program,
             [nameof(AppSettings.UiFont)] = program,
-            [nameof(AppSettings.TestMpvCommandLog)] = program,
-            [nameof(AppSettings.TestOsdMessage)] = program,
-            [nameof(AppSettings.TestSignal)] = program,
             [nameof(AppSettings.CurrentLanguage)] = program,
             [nameof(AppSettings.EnableDebugLog)] = program,
-            [nameof(AppSettings.Ytdl)] = program,
-            [nameof(AppSettings.YtdlRawOptionsAppend)] = program,
             // playback
             [nameof(AppSettings.LoopFile)] = playback,
             [nameof(AppSettings.LoopPlaylist)] = playback,
@@ -2951,10 +2995,6 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.ThumbfastFrequency)] = playback,
             [nameof(AppSettings.ThumbfastDirectIo)] = playback,
             [nameof(AppSettings.ThumbfastQuitAfterInactivity)] = playback,
-            // trackSelection
-            [nameof(AppSettings.AudioLanguage)] = trackSelection,
-            [nameof(AppSettings.SubtitleLanguage)] = trackSelection,
-            [nameof(AppSettings.SubFallback)] = trackSelection,
             // watchLater
             [nameof(AppSettings.SavePositionOnQuit)] = watchLater,
             [nameof(AppSettings.ResumePlayback)] = watchLater,
@@ -2973,6 +3013,44 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.HdrAutoMode)] = video,
             [nameof(AppSettings.HdrAutoLog)] = video,
             [nameof(AppSettings.VsrAutoEnabled)] = video,
+            [nameof(AppSettings.Scale)] = video,
+            [nameof(AppSettings.DScale)] = video,
+            [nameof(AppSettings.Cscale)] = video,
+            [nameof(AppSettings.Tscale)] = video,
+            [nameof(AppSettings.LinearUpscaling)] = video,
+            [nameof(AppSettings.SigmoidUpscaling)] = video,
+            [nameof(AppSettings.LinearDownscaling)] = video,
+            [nameof(AppSettings.CorrectDownscaling)] = video,
+            [nameof(AppSettings.Deband)] = video,
+            [nameof(AppSettings.Dither)] = video,
+            [nameof(AppSettings.DitherDepth)] = video,
+            [nameof(AppSettings.ToneMapping)] = video,
+            [nameof(AppSettings.TargetColorspaceHint)] = video,
+            [nameof(AppSettings.TargetColorspaceHintMode)] = video,
+            [nameof(AppSettings.TargetColorspaceHintStrict)] = video,
+            [nameof(AppSettings.TargetPrim)] = video,
+            [nameof(AppSettings.TargetTrc)] = video,
+            [nameof(AppSettings.TargetPeak)] = video,
+            [nameof(AppSettings.GamutMappingMode)] = video,
+            [nameof(AppSettings.IccProfileAuto)] = video,
+            [nameof(AppSettings.IccProfile)] = video,
+            [nameof(AppSettings.IccForceContrast)] = video,
+            [nameof(AppSettings.Icc3dlutSize)] = video,
+            [nameof(AppSettings.IccCache)] = video,
+            [nameof(AppSettings.IccCacheDir)] = video,
+            [nameof(AppSettings.D3d11OutputCsp)] = video,
+            [nameof(AppSettings.Interpolation)] = video,
+            [nameof(AppSettings.BackgroundTileColor0)] = video,
+            [nameof(AppSettings.BackgroundTileColor1)] = video,
+            [nameof(AppSettings.BackgroundTileSize)] = video,
+            [nameof(AppSettings.D3d11ExclusiveFs)] = video,
+            [nameof(AppSettings.D3d11Flip)] = video,
+            [nameof(AppSettings.D3d11Adapter)] = video,
+            [nameof(AppSettings.GpuShaderCache)] = video,
+            [nameof(AppSettings.GpuShaderCacheDir)] = video,
+            [nameof(AppSettings.GlslShadersAppend)] = video,
+            [nameof(AppSettings.VideoSync)] = video,
+            [nameof(AppSettings.VideoSyncMaxVideoChange)] = video,
             // audio
             [nameof(AppSettings.AudioDevice)] = audio,
             [nameof(AppSettings.AudioExclusive)] = audio,
@@ -2996,6 +3074,9 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.CoverArtNames)] = audio,
             [nameof(AppSettings.CoverArtImageExts)] = audio,
             // subtitles
+            [nameof(AppSettings.AudioLanguage)] = subtitles,
+            [nameof(AppSettings.SubtitleLanguage)] = subtitles,
+            [nameof(AppSettings.SubFallback)] = subtitles,
             [nameof(AppSettings.SubFontSize)] = subtitles,
             [nameof(AppSettings.SubFont)] = subtitles,
             [nameof(AppSettings.SubFontFile)] = subtitles,
@@ -3043,9 +3124,13 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.CacheSecs)] = cache,
             [nameof(AppSettings.CacheOnDisk)] = cache,
             [nameof(AppSettings.CacheDirectory)] = cache,
+            // network
+            [nameof(AppSettings.Ytdl)] = network,
+            [nameof(AppSettings.YtdlRawOptionsAppend)] = network,
             // input
             [nameof(AppSettings.InputIme)] = input,
             [nameof(AppSettings.InputIpcServer)] = input,
+            // shortcuts
             // osd
             [nameof(AppSettings.OsdFontSize)] = osd,
             [nameof(AppSettings.OsdFont)] = osd,
@@ -3086,46 +3171,10 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.ScreenshotHighBitDepth)] = screenshot,
             [nameof(AppSettings.ScreenshotTagColorspace)] = screenshot,
             [nameof(AppSettings.ScreenshotSw)] = screenshot,
-            // gpuRenderer
-            [nameof(AppSettings.Scale)] = gpuRenderer,
-            [nameof(AppSettings.DScale)] = gpuRenderer,
-            [nameof(AppSettings.Cscale)] = gpuRenderer,
-            [nameof(AppSettings.Tscale)] = gpuRenderer,
-            [nameof(AppSettings.LinearUpscaling)] = gpuRenderer,
-            [nameof(AppSettings.SigmoidUpscaling)] = gpuRenderer,
-            [nameof(AppSettings.LinearDownscaling)] = gpuRenderer,
-            [nameof(AppSettings.CorrectDownscaling)] = gpuRenderer,
-            [nameof(AppSettings.Deband)] = gpuRenderer,
-            [nameof(AppSettings.Dither)] = gpuRenderer,
-            [nameof(AppSettings.DitherDepth)] = gpuRenderer,
-            [nameof(AppSettings.ToneMapping)] = gpuRenderer,
-            [nameof(AppSettings.TargetColorspaceHint)] = gpuRenderer,
-            [nameof(AppSettings.TargetColorspaceHintMode)] = gpuRenderer,
-            [nameof(AppSettings.TargetColorspaceHintStrict)] = gpuRenderer,
-            [nameof(AppSettings.TargetPrim)] = gpuRenderer,
-            [nameof(AppSettings.TargetTrc)] = gpuRenderer,
-            [nameof(AppSettings.TargetPeak)] = gpuRenderer,
-            [nameof(AppSettings.GamutMappingMode)] = gpuRenderer,
-            [nameof(AppSettings.IccProfileAuto)] = gpuRenderer,
-            [nameof(AppSettings.IccProfile)] = gpuRenderer,
-            [nameof(AppSettings.IccForceContrast)] = gpuRenderer,
-            [nameof(AppSettings.Icc3dlutSize)] = gpuRenderer,
-            [nameof(AppSettings.IccCache)] = gpuRenderer,
-            [nameof(AppSettings.IccCacheDir)] = gpuRenderer,
-            [nameof(AppSettings.D3d11OutputCsp)] = gpuRenderer,
-            [nameof(AppSettings.Interpolation)] = gpuRenderer,
-            [nameof(AppSettings.BackgroundTileColor0)] = gpuRenderer,
-            [nameof(AppSettings.BackgroundTileColor1)] = gpuRenderer,
-            [nameof(AppSettings.BackgroundTileSize)] = gpuRenderer,
-            [nameof(AppSettings.D3d11ExclusiveFs)] = gpuRenderer,
-            [nameof(AppSettings.D3d11Flip)] = gpuRenderer,
-            [nameof(AppSettings.D3d11Adapter)] = gpuRenderer,
-            [nameof(AppSettings.GpuShaderCache)] = gpuRenderer,
-            [nameof(AppSettings.GpuShaderCacheDir)] = gpuRenderer,
-            [nameof(AppSettings.GlslShadersAppend)] = gpuRenderer,
-            // videoSync
-            [nameof(AppSettings.VideoSync)] = videoSync,
-            [nameof(AppSettings.VideoSyncMaxVideoChange)] = videoSync,
+            // testing
+            [nameof(AppSettings.TestMpvCommandLog)] = testing,
+            [nameof(AppSettings.TestOsdMessage)] = testing,
+            [nameof(AppSettings.TestSignal)] = testing,
         };
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
@@ -3328,42 +3377,42 @@ public sealed partial class SettingsPage : Page
         var sectionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
         {
             [sProgramInterface] = 0,
-            [sProgramTesting] = 1,
-            [sProgramLanguageLog] = 2,
-            [sProgramNetwork] = 3,
-            [sPlayback] = 4,
-            [sPlaybackSeeking] = 5,
-            [sPlaybackSeekPreview] = 6,
-            [sTrackLanguage] = 7,
-            [sTrackFallback] = 8,
-            [sWatchLaterResume] = 9,
-            [sWatchLaterStorage] = 10,
-            [sVideoDecode] = 11,
-            [sVideoImage] = 12,
-            [sVideoFilters] = 13,
-            [sAudioOutput] = 14,
-            [sAudioVolume] = 15,
-            [sAudioExternal] = 16,
-            [sAudioCoverArt] = 17,
-            [sSubtitleText] = 18,
-            [sSubtitleAss] = 19,
-            [sSubtitleImage] = 20,
-            [sWindow] = 21,
-            [sDemuxerPlaylist] = 22,
-            [sDemuxerBuffering] = 23,
-            [sCache] = 24,
-            [sInput] = 25,
-            [sOsd] = 26,
-            [sOsdMetadata] = 27,
-            [sScreenshotLocation] = 28,
-            [sScreenshotQuality] = 29,
-            [sGpuScaling] = 30,
-            [sGpuColor] = 31,
-            [sGpuInterpolation] = 32,
-            [sGpuBackground] = 33,
-            [sGpuD3d11] = 34,
-            [sGpuShaders] = 35,
-            [sVideoSync] = 36,
+            [sProgramLanguageLog] = 1,
+            [sPlayback] = 2,
+            [sPlaybackSeeking] = 3,
+            [sPlaybackSeekPreview] = 4,
+            [sWatchLaterResume] = 5,
+            [sWatchLaterStorage] = 6,
+            [sVideoDecode] = 7,
+            [sVideoImage] = 8,
+            [sVideoFilters] = 9,
+            [sGpuScaling] = 10,
+            [sGpuColor] = 11,
+            [sGpuInterpolation] = 12,
+            [sGpuBackground] = 13,
+            [sGpuD3d11] = 14,
+            [sGpuShaders] = 15,
+            [sVideoSync] = 16,
+            [sAudioOutput] = 17,
+            [sAudioVolume] = 18,
+            [sAudioExternal] = 19,
+            [sAudioCoverArt] = 20,
+            [sTrackLanguage] = 21,
+            [sTrackFallback] = 22,
+            [sSubtitleText] = 23,
+            [sSubtitleAss] = 24,
+            [sSubtitleImage] = 25,
+            [sWindow] = 26,
+            [sDemuxerPlaylist] = 27,
+            [sDemuxerBuffering] = 28,
+            [sCache] = 29,
+            [sProgramNetwork] = 30,
+            [sInput] = 31,
+            [sOsd] = 32,
+            [sOsdMetadata] = 33,
+            [sScreenshotLocation] = 34,
+            [sScreenshotQuality] = 35,
+            [sProgramTesting] = 36,
         };
 
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -3375,13 +3424,8 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.ThemeOpacity)] = sProgramInterface,
             [nameof(AppSettings.ThemeLuminosity)] = sProgramInterface,
             [nameof(AppSettings.UiFont)] = sProgramInterface,
-            [nameof(AppSettings.TestMpvCommandLog)] = sProgramTesting,
-            [nameof(AppSettings.TestOsdMessage)] = sProgramTesting,
-            [nameof(AppSettings.TestSignal)] = sProgramTesting,
             [nameof(AppSettings.CurrentLanguage)] = sProgramLanguageLog,
             [nameof(AppSettings.EnableDebugLog)] = sProgramLanguageLog,
-            [nameof(AppSettings.Ytdl)] = sProgramNetwork,
-            [nameof(AppSettings.YtdlRawOptionsAppend)] = sProgramNetwork,
             // playback
             [nameof(AppSettings.LoopFile)] = sPlayback,
             [nameof(AppSettings.LoopPlaylist)] = sPlayback,
@@ -3401,10 +3445,6 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.ThumbfastFrequency)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastDirectIo)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastQuitAfterInactivity)] = sPlaybackSeekPreview,
-            // trackSelection
-            [nameof(AppSettings.AudioLanguage)] = sTrackLanguage,
-            [nameof(AppSettings.SubtitleLanguage)] = sTrackLanguage,
-            [nameof(AppSettings.SubFallback)] = sTrackFallback,
             // watchLater
             [nameof(AppSettings.SavePositionOnQuit)] = sWatchLaterResume,
             [nameof(AppSettings.ResumePlayback)] = sWatchLaterResume,
@@ -3423,6 +3463,44 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.HdrAutoMode)] = sVideoFilters,
             [nameof(AppSettings.HdrAutoLog)] = sVideoFilters,
             [nameof(AppSettings.VsrAutoEnabled)] = sVideoFilters,
+            [nameof(AppSettings.Scale)] = sGpuScaling,
+            [nameof(AppSettings.DScale)] = sGpuScaling,
+            [nameof(AppSettings.Cscale)] = sGpuScaling,
+            [nameof(AppSettings.Tscale)] = sGpuScaling,
+            [nameof(AppSettings.LinearUpscaling)] = sGpuScaling,
+            [nameof(AppSettings.SigmoidUpscaling)] = sGpuScaling,
+            [nameof(AppSettings.LinearDownscaling)] = sGpuScaling,
+            [nameof(AppSettings.CorrectDownscaling)] = sGpuScaling,
+            [nameof(AppSettings.Deband)] = sGpuScaling,
+            [nameof(AppSettings.Dither)] = sGpuScaling,
+            [nameof(AppSettings.DitherDepth)] = sGpuScaling,
+            [nameof(AppSettings.ToneMapping)] = sGpuColor,
+            [nameof(AppSettings.TargetColorspaceHint)] = sGpuColor,
+            [nameof(AppSettings.TargetColorspaceHintMode)] = sGpuColor,
+            [nameof(AppSettings.TargetColorspaceHintStrict)] = sGpuColor,
+            [nameof(AppSettings.TargetPrim)] = sGpuColor,
+            [nameof(AppSettings.TargetTrc)] = sGpuColor,
+            [nameof(AppSettings.TargetPeak)] = sGpuColor,
+            [nameof(AppSettings.GamutMappingMode)] = sGpuColor,
+            [nameof(AppSettings.IccProfileAuto)] = sGpuColor,
+            [nameof(AppSettings.IccProfile)] = sGpuColor,
+            [nameof(AppSettings.IccForceContrast)] = sGpuColor,
+            [nameof(AppSettings.Icc3dlutSize)] = sGpuColor,
+            [nameof(AppSettings.IccCache)] = sGpuColor,
+            [nameof(AppSettings.IccCacheDir)] = sGpuColor,
+            [nameof(AppSettings.D3d11OutputCsp)] = sGpuColor,
+            [nameof(AppSettings.Interpolation)] = sGpuInterpolation,
+            [nameof(AppSettings.BackgroundTileColor0)] = sGpuBackground,
+            [nameof(AppSettings.BackgroundTileColor1)] = sGpuBackground,
+            [nameof(AppSettings.BackgroundTileSize)] = sGpuBackground,
+            [nameof(AppSettings.D3d11ExclusiveFs)] = sGpuD3d11,
+            [nameof(AppSettings.D3d11Flip)] = sGpuD3d11,
+            [nameof(AppSettings.D3d11Adapter)] = sGpuD3d11,
+            [nameof(AppSettings.GpuShaderCache)] = sGpuShaders,
+            [nameof(AppSettings.GpuShaderCacheDir)] = sGpuShaders,
+            [nameof(AppSettings.GlslShadersAppend)] = sGpuShaders,
+            [nameof(AppSettings.VideoSync)] = sVideoSync,
+            [nameof(AppSettings.VideoSyncMaxVideoChange)] = sVideoSync,
             // audio
             [nameof(AppSettings.AudioDevice)] = sAudioOutput,
             [nameof(AppSettings.AudioExclusive)] = sAudioOutput,
@@ -3446,6 +3524,9 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.CoverArtNames)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtImageExts)] = sAudioCoverArt,
             // subtitles
+            [nameof(AppSettings.AudioLanguage)] = sTrackLanguage,
+            [nameof(AppSettings.SubtitleLanguage)] = sTrackLanguage,
+            [nameof(AppSettings.SubFallback)] = sTrackFallback,
             [nameof(AppSettings.SubFontSize)] = sSubtitleText,
             [nameof(AppSettings.SubFont)] = sSubtitleText,
             [nameof(AppSettings.SubFontFile)] = sSubtitleText,
@@ -3493,9 +3574,13 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.CacheSecs)] = sCache,
             [nameof(AppSettings.CacheOnDisk)] = sCache,
             [nameof(AppSettings.CacheDirectory)] = sCache,
+            // network
+            [nameof(AppSettings.Ytdl)] = sProgramNetwork,
+            [nameof(AppSettings.YtdlRawOptionsAppend)] = sProgramNetwork,
             // input
             [nameof(AppSettings.InputIme)] = sInput,
             [nameof(AppSettings.InputIpcServer)] = sInput,
+            // shortcuts
             // osd
             [nameof(AppSettings.OsdFontSize)] = sOsd,
             [nameof(AppSettings.OsdFont)] = sOsd,
@@ -3536,46 +3621,10 @@ public sealed partial class SettingsPage : Page
             [nameof(AppSettings.ScreenshotHighBitDepth)] = sScreenshotQuality,
             [nameof(AppSettings.ScreenshotTagColorspace)] = sScreenshotQuality,
             [nameof(AppSettings.ScreenshotSw)] = sScreenshotQuality,
-            // gpuRenderer
-            [nameof(AppSettings.Scale)] = sGpuScaling,
-            [nameof(AppSettings.DScale)] = sGpuScaling,
-            [nameof(AppSettings.Cscale)] = sGpuScaling,
-            [nameof(AppSettings.Tscale)] = sGpuScaling,
-            [nameof(AppSettings.LinearUpscaling)] = sGpuScaling,
-            [nameof(AppSettings.SigmoidUpscaling)] = sGpuScaling,
-            [nameof(AppSettings.LinearDownscaling)] = sGpuScaling,
-            [nameof(AppSettings.CorrectDownscaling)] = sGpuScaling,
-            [nameof(AppSettings.Deband)] = sGpuScaling,
-            [nameof(AppSettings.Dither)] = sGpuScaling,
-            [nameof(AppSettings.DitherDepth)] = sGpuScaling,
-            [nameof(AppSettings.ToneMapping)] = sGpuColor,
-            [nameof(AppSettings.TargetColorspaceHint)] = sGpuColor,
-            [nameof(AppSettings.TargetColorspaceHintMode)] = sGpuColor,
-            [nameof(AppSettings.TargetColorspaceHintStrict)] = sGpuColor,
-            [nameof(AppSettings.TargetPrim)] = sGpuColor,
-            [nameof(AppSettings.TargetTrc)] = sGpuColor,
-            [nameof(AppSettings.TargetPeak)] = sGpuColor,
-            [nameof(AppSettings.GamutMappingMode)] = sGpuColor,
-            [nameof(AppSettings.IccProfileAuto)] = sGpuColor,
-            [nameof(AppSettings.IccProfile)] = sGpuColor,
-            [nameof(AppSettings.IccForceContrast)] = sGpuColor,
-            [nameof(AppSettings.Icc3dlutSize)] = sGpuColor,
-            [nameof(AppSettings.IccCache)] = sGpuColor,
-            [nameof(AppSettings.IccCacheDir)] = sGpuColor,
-            [nameof(AppSettings.D3d11OutputCsp)] = sGpuColor,
-            [nameof(AppSettings.Interpolation)] = sGpuInterpolation,
-            [nameof(AppSettings.BackgroundTileColor0)] = sGpuBackground,
-            [nameof(AppSettings.BackgroundTileColor1)] = sGpuBackground,
-            [nameof(AppSettings.BackgroundTileSize)] = sGpuBackground,
-            [nameof(AppSettings.D3d11ExclusiveFs)] = sGpuD3d11,
-            [nameof(AppSettings.D3d11Flip)] = sGpuD3d11,
-            [nameof(AppSettings.D3d11Adapter)] = sGpuD3d11,
-            [nameof(AppSettings.GpuShaderCache)] = sGpuShaders,
-            [nameof(AppSettings.GpuShaderCacheDir)] = sGpuShaders,
-            [nameof(AppSettings.GlslShadersAppend)] = sGpuShaders,
-            // videoSync
-            [nameof(AppSettings.VideoSync)] = sVideoSync,
-            [nameof(AppSettings.VideoSyncMaxVideoChange)] = sVideoSync,
+            // testing
+            [nameof(AppSettings.TestMpvCommandLog)] = sProgramTesting,
+            [nameof(AppSettings.TestOsdMessage)] = sProgramTesting,
+            [nameof(AppSettings.TestSignal)] = sProgramTesting,
         };
 
         foreach (var option in options)
@@ -3775,6 +3824,61 @@ public sealed partial class SettingsPage : Page
         return list;
     }
 
+    /// <summary>Builds a read-only shortcut list from the deployed input.conf.</summary>
+    private static List<Option> BuildShortcutOptions(string shortcutsCategory)
+    {
+        var options = new List<Option>();
+        var path = AppData.Current.ResolveLocalData(Path.Combine("mpv", "input.conf"));
+        if (!File.Exists(path))
+        {
+            return options;
+        }
+
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var index = 0;
+        foreach (var raw in File.ReadAllLines(path))
+        {
+            var line = raw.Trim();
+            if (line.Length == 0 || line.StartsWith('#'))
+            {
+                continue;
+            }
+
+            var hash = line.IndexOf('#');
+            var binding = (hash >= 0 ? line[..hash] : line).Trim();
+            var comment = hash >= 0 ? line[hash..].TrimStart('#').Trim() : string.Empty;
+            var parts = binding.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2 || parts[0].Contains('='))
+            {
+                continue;
+            }
+
+            var key = parts[0];
+            if (!seen.Add(key))
+            {
+                continue;
+            }
+
+            var command = string.Join(' ', parts.Skip(1));
+            options.Add(new Option
+            {
+                Key = $"Shortcut:{index++}",
+                Label = string.IsNullOrEmpty(comment) ? command : comment,
+                Category = shortcutsCategory,
+                Type = OptionType.String,
+                ReadOnly = true,
+                Getter = () => key,
+                Setter = _ => { },
+            });
+
+            if (options.Count >= 240)
+            {
+                break;
+            }
+        }
+        return options;
+    }
+
     private static List<OptionChoice> LanguageChoices(bool includeAuto)
     {
         var codes = new[]
@@ -3865,6 +3969,10 @@ public sealed partial class SettingsPage : Page
     {
         return option.Key switch
         {
+            // Backdrop tint/transparency/brightness only apply to Acrylic.
+            nameof(AppSettings.ThemeAccentColor) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
+            nameof(AppSettings.ThemeOpacity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
+            nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
             // Format-specific screenshot options only appear for the active format.
             nameof(AppSettings.ScreenshotJpegQuality) when s.ScreenshotFormat != "jpg" => false,
             nameof(AppSettings.ScreenshotJpegSourceChroma) when s.ScreenshotFormat != "jpg" => false,
@@ -3886,10 +3994,6 @@ public sealed partial class SettingsPage : Page
     {
         return option.Key switch
         {
-            // Backdrop tint/transparency/luminosity only apply to the Acrylic material.
-            nameof(AppSettings.ThemeAccentColor) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
-            nameof(AppSettings.ThemeOpacity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
-            nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
             nameof(AppSettings.OsdPlayingMsg) when !s.ShowOsdPlayingMsg => false,
             // mpv: sub-ass-force-margins is ignored when blend-subtitles=yes/video.
             nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => false,

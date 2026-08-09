@@ -60,6 +60,12 @@ namespace mpv_winui.Modules.Settings
             return true;
         }
 
+        public void ResetAll()
+        {
+            _entries.Clear();
+            _ = SaveAsync();
+        }
+
         private void Load()
         {
             if (!File.Exists(_filePath))

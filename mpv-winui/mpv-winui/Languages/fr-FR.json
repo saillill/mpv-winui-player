@@ -92,8 +92,8 @@
   "SettingsSubFontSize": "Taille de police des sous-titres",
   "SettingsSubDelay": "Délai des sous-titres (s)",
   "SettingsVideoPreview": "Aperçu vidéo (vignettes)",
-  "SettingsCategoryProgram": "Comportement du programme",
-  "SettingsCategoryPlayback": "Contrôle de la lecture",
+  "SettingsCategoryProgram": "Bureau",
+  "SettingsCategoryPlayback": "Lecture",
   "SettingsCategoryVideo": "Vidéo",
   "SettingsCategoryAudio": "Audio",
   "SettingsCategorySubtitles": "Sous-titres",
@@ -636,5 +636,10 @@
   "SettingsTestSignal": "Signal de test",
   "OptionValueTestSignalOff": "Désactivé",
   "OptionValueTestSignalVideo": "Vidéo de test (mire)",
-  "OptionValueTestSignalAudio": "Audio de test (1 kHz)"
+  "OptionValueTestSignalAudio": "Audio de test (1 kHz)",
+  "SettingsCategoryNetwork": "Réseau",
+  "SettingsCategoryTesting": "Tests",
+  "SettingsCategoryShortcuts": "Raccourcis",
+  "SettingsSaved": "Enregistré",
+  "SettingsResetConfirm": "Réinitialiser tous les paramètres ?"
 }

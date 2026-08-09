@@ -43,6 +43,8 @@ namespace mpv_winui.Modules.Language
         public string ThemeColorBlue { get; set; } = "Blue";
         public string ThemeColorDone { get; set; } = "Done";
         public string Save { get; set; } = "Save";
+        public string SettingsSaved { get; set; } = "Saved";
+        public string SettingsResetConfirm { get; set; } = "Reset all settings to their defaults?";
         public string Test { get; set; } = "Test";
         public string Open { get; set; } = "Open";
         public string Reset { get; set; } = "Reset";
@@ -148,8 +150,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsSubDelay { get; set; } = "Subtitle delay (s)";
         public string SettingsVideoPreview { get; set; } = "Video preview thumbnails";
         // Settings categories follow the layout of the mpv manual (DOCS/man/options.rst).
-        public string SettingsCategoryProgram { get; set; } = "Program Behavior";
-        public string SettingsCategoryPlayback { get; set; } = "Playback Control";
+        public string SettingsCategoryProgram { get; set; } = "Desktop";
+        public string SettingsCategoryPlayback { get; set; } = "Playback";
         public string SettingsCategoryTrackSelection { get; set; } = "Track Selection";
         public string SettingsCategoryWatchLater { get; set; } = "Watch Later";
         public string SettingsCategoryVideo { get; set; } = "Video";
@@ -158,9 +160,12 @@ namespace mpv_winui.Modules.Language
         public string SettingsCategoryWindow { get; set; } = "Window";
         public string SettingsCategoryDemuxer { get; set; } = "Demuxer";
         public string SettingsCategoryCache { get; set; } = "Cache";
+        public string SettingsCategoryNetwork { get; set; } = "Network";
         public string SettingsCategoryInput { get; set; } = "Input";
+        public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
         public string SettingsCategoryOsd { get; set; } = "OSD";
         public string SettingsCategoryScreenshot { get; set; } = "Screenshot";
+        public string SettingsCategoryTesting { get; set; } = "Testing";
         public string SettingsCategoryGpuRenderer { get; set; } = "GPU renderer options";
         public string SettingsCategoryVideoSync { get; set; } = "Video Sync";
 

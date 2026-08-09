@@ -4,5 +4,6 @@
     {
         T GetValue<T>(string propertyName, T defaultValue);
         bool SetValue<T>(string propertyName, T value);
+        void ResetAll();
     }
 }

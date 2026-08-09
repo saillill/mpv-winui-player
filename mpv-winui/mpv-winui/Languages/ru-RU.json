@@ -92,8 +92,8 @@
   "SettingsSubFontSize": "Размер шрифта субтитров",
   "SettingsSubDelay": "Задержка субтитров (с)",
   "SettingsVideoPreview": "Миниатюры предпросмотра видео",
-  "SettingsCategoryProgram": "Поведение программы",
-  "SettingsCategoryPlayback": "Управление воспроизведением",
+  "SettingsCategoryProgram": "Рабочий стол",
+  "SettingsCategoryPlayback": "Воспроизведение",
   "SettingsCategoryVideo": "Видео",
   "SettingsCategoryAudio": "Аудио",
   "SettingsCategorySubtitles": "Субтитры",
@@ -636,5 +636,10 @@
   "SettingsTestSignal": "Тестовый сигнал",
   "OptionValueTestSignalOff": "Выкл.",
   "OptionValueTestSignalVideo": "Тестовое видео (таблица)",
-  "OptionValueTestSignalAudio": "Тестовое аудио (1 кГц)"
+  "OptionValueTestSignalAudio": "Тестовое аудио (1 кГц)",
+  "SettingsCategoryNetwork": "Сеть",
+  "SettingsCategoryTesting": "Тестирование",
+  "SettingsCategoryShortcuts": "Горячие клавиши",
+  "SettingsSaved": "Сохранено",
+  "SettingsResetConfirm": "Сбросить все настройки?"
 }

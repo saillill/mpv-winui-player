@@ -92,8 +92,8 @@
   "SettingsSubFontSize": "Tamaño de fuente de subtítulos",
   "SettingsSubDelay": "Retraso de subtítulos (s)",
   "SettingsVideoPreview": "Miniaturas de vista previa",
-  "SettingsCategoryProgram": "Comportamiento del programa",
-  "SettingsCategoryPlayback": "Control de reproducción",
+  "SettingsCategoryProgram": "Escritorio",
+  "SettingsCategoryPlayback": "Reproducción",
   "SettingsCategoryVideo": "Vídeo",
   "SettingsCategoryAudio": "Audio",
   "SettingsCategorySubtitles": "Subtítulos",
@@ -636,5 +636,10 @@
   "SettingsTestSignal": "Señal de prueba",
   "OptionValueTestSignalOff": "Desactivado",
   "OptionValueTestSignalVideo": "Vídeo de prueba (patrón)",
-  "OptionValueTestSignalAudio": "Audio de prueba (1 kHz)"
+  "OptionValueTestSignalAudio": "Audio de prueba (1 kHz)",
+  "SettingsCategoryNetwork": "Red",
+  "SettingsCategoryTesting": "Pruebas",
+  "SettingsCategoryShortcuts": "Atajos",
+  "SettingsSaved": "Guardado",
+  "SettingsResetConfirm": "¿Restablecer todos los ajustes?"
 }

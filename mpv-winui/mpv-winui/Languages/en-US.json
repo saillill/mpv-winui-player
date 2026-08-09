@@ -52,8 +52,8 @@
   "SettingsSubFontSize": "Subtitle font size",
   "SettingsSubDelay": "Subtitle delay (s)",
   "SettingsVideoPreview": "Video preview thumbnails",
-  "SettingsCategoryProgram": "Program Behavior",
-  "SettingsCategoryPlayback": "Playback Control",
+  "SettingsCategoryProgram": "Desktop",
+  "SettingsCategoryPlayback": "Playback",
   "SettingsCategoryVideo": "Video",
   "SettingsCategoryAudio": "Audio",
   "SettingsCategorySubtitles": "Subtitles",
@@ -636,5 +636,10 @@
   "SettingsTestSignal": "Test signal",
   "OptionValueTestSignalOff": "Off",
   "OptionValueTestSignalVideo": "Test video (test pattern)",
-  "OptionValueTestSignalAudio": "Test audio (1 kHz)"
+  "OptionValueTestSignalAudio": "Test audio (1 kHz)",
+  "SettingsCategoryNetwork": "Network",
+  "SettingsCategoryTesting": "Testing",
+  "SettingsCategoryShortcuts": "Shortcuts",
+  "SettingsSaved": "Saved",
+  "SettingsResetConfirm": "Reset all settings to their defaults?"
 }

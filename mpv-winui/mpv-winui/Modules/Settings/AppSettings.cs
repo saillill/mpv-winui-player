@@ -44,6 +44,12 @@ namespace mpv_winui.Modules.Settings
             }
         }
 
+        /// <summary>Clears every stored setting; defaults apply on the next read.</summary>
+        public void ResetAll()
+        {
+            _dataSetting.ResetAll();
+        }
+
         public const string ThemeType_Auto = "Auto";
         public const string ThemeType_Light = "Light";
         public const string ThemeType_Dark = "Dark";

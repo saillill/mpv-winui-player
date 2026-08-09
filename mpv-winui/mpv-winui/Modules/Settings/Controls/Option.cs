@@ -111,6 +111,12 @@ public sealed class Option : INotifyPropertyChanged
     }
     private bool _isVisible = true;
 
+    /// <summary>Read-only display (e.g. shortcut bindings); the value can still be selected and copied.</summary>
+    public bool ReadOnly
+    {
+        get; set;
+    }
+
     public OptionType Type
     {
         get; set;
