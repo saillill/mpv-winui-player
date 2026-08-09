@@ -22,6 +22,29 @@ namespace mpv_winui.Modules.Settings
         /// </summary>
         private void MigrateLegacyDefaults()
         {
+            // The control bar icon checklist used to be stored in a single
+            // value shared by every layout style. Keep the old value for
+            // existing users and copy it to both per-style keys once.
+            // This must run before the early return below so already-migrated
+            // installs still receive the per-style split.
+            const string barIconsMigratedKey = "ControlBarIconsStyleMigrated";
+            if (!_dataSetting.GetValue(barIconsMigratedKey, false))
+            {
+                var legacy = _dataSetting.GetValue(nameof(ControlBarHiddenIcons), string.Empty);
+                if (!string.IsNullOrEmpty(legacy))
+                {
+                    if (string.IsNullOrEmpty(_dataSetting.GetValue(nameof(ControlBarHiddenIconsClassic), string.Empty)))
+                    {
+                        _dataSetting.SetValue(nameof(ControlBarHiddenIconsClassic), legacy);
+                    }
+                    if (string.IsNullOrEmpty(_dataSetting.GetValue(nameof(ControlBarHiddenIconsModernX), string.Empty)))
+                    {
+                        _dataSetting.SetValue(nameof(ControlBarHiddenIconsModernX), legacy);
+                    }
+                }
+                _dataSetting.SetValue(barIconsMigratedKey, true);
+            }
+
             const string migratedKey = "SubFontLanguageDefaultMigrated";
             if (_dataSetting.GetValue(migratedKey, false))
             {
@@ -49,6 +72,11 @@ namespace mpv_winui.Modules.Settings
         public void ResetAll()
         {
             _dataSetting.ResetAll();
+        }
+
+        public void ResetKeys(IEnumerable<string> keys)
+        {
+            _dataSetting.ResetKeys(keys);
         }
 
         public IReadOnlyDictionary<string, object> ExportAll()
@@ -1272,6 +1300,38 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(WindowRememberSize), true);
             set => _dataSetting.SetValue(nameof(WindowRememberSize), value);
+        }
+
+        public string FileAssociationExts
+        {
+            get => _dataSetting.GetValue(
+                nameof(FileAssociationExts),
+                ".mp4;.mkv;.avi;.mov;.wmv;.flv;.webm;.m4v;.mpg;.mpeg;.ts;.m2ts;.3gp;.ogv;.rm;.rmvb;.mp3;.flac;.wav;.aac;.m4a;.ogg;.opus;.wma");
+            set => _dataSetting.SetValue(nameof(FileAssociationExts), value);
+        }
+
+        public string ControlBarLayout
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarLayout), "classic");
+            set => _dataSetting.SetValue(nameof(ControlBarLayout), value);
+        }
+
+        public string ControlBarHiddenIcons
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarHiddenIcons), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarHiddenIcons), value);
+        }
+
+        public string ControlBarHiddenIconsClassic
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarHiddenIconsClassic), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarHiddenIconsClassic), value);
+        }
+
+        public string ControlBarHiddenIconsModernX
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarHiddenIconsModernX), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarHiddenIconsModernX), value);
         }
 
         public string InputIpcServer

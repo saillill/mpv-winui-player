@@ -13,6 +13,8 @@ public partial class OptionTemplateSelector : DataTemplateSelector
     public DataTemplate TextListTemplate { get; set; } = null!;
     public DataTemplate ColorTemplate { get; set; } = null!;
     public DataTemplate ActionTemplate { get; set; } = null!;
+    public DataTemplate CheckListTemplate { get; set; } = null!;
+    public DataTemplate LayoutTemplate { get; set; } = null!;
 
     protected override DataTemplate SelectTemplateCore(object item)
     {
@@ -31,6 +33,8 @@ public partial class OptionTemplateSelector : DataTemplateSelector
                 OptionType.StringList => TextListTemplate,
                 OptionType.Color => ColorTemplate,
                 OptionType.Action => ActionTemplate,
+                OptionType.CheckList => CheckListTemplate,
+                OptionType.Layout => LayoutTemplate,
                 _ => base.SelectTemplateCore(item)
             };
         }

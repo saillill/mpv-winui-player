@@ -7,7 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid VerticalAlignment="Center">
+    <Grid
+        VerticalAlignment="Center"
+        Background="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition x:Name="InputColumn" Width="260" />
@@ -69,6 +71,14 @@
                 Grid.Column="1"
                 Orientation="Horizontal"
                 Spacing="8">
+                <Button
+                    x:Name="ResetButton"
+                    MinWidth="64"
+                    Margin="8,0,0,0"
+                    VerticalAlignment="Center"
+                    Click="OnResetBindingClick"
+                    Content="Reset"
+                    Visibility="Collapsed" />
                 <Button
                     x:Name="OpenButton"
                     MinWidth="96"

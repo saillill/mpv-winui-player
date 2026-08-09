@@ -9,4 +9,6 @@ public enum OptionType
     Boolean,
     Color,
     Action,
+    CheckList,
+    Layout,
 }

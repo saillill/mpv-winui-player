@@ -67,6 +67,18 @@ namespace mpv_winui.Modules.Settings
             _ = SaveAsync();
         }
 
+        public void ResetKeys(IEnumerable<string> keys)
+        {
+            foreach (var key in keys)
+            {
+                if (!string.IsNullOrEmpty(key))
+                {
+                    _entries.TryRemove(key, out _);
+                }
+            }
+            _ = SaveAsync();
+        }
+
         public IReadOnlyDictionary<string, object> ExportAll()
         {
             var values = new Dictionary<string, object>(StringComparer.Ordinal);

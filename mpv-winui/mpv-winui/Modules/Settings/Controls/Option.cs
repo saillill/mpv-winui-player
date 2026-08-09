@@ -25,7 +25,46 @@ public enum OptionActionKind
 {
     None,
     Button,
-    KeyCapture,
+}
+
+/// <summary>A checkbox entry used by <see cref="OptionType.CheckList"/> options.</summary>
+public sealed class OptionCheckItem
+{
+    public OptionCheckItem(string value, string label, bool isChecked, string? glyph = null, string? group = null, string? target = null)
+    {
+        Value = value;
+        Label = label;
+        IsChecked = isChecked;
+        Glyph = glyph;
+        Group = group;
+        Target = target;
+    }
+
+    public string Value { get; }
+    public string Label { get; }
+    public bool IsChecked { get; set; }
+    public string? Glyph { get; }
+
+    /// <summary>Optional localized caption shown above the first item of a group.</summary>
+    public string? Group { get; }
+
+    /// <summary>Optional target key the item writes to (e.g. a per-style setting).</summary>
+    public string? Target { get; set; }
+}
+
+/// <summary>A selectable layout preview shown by <see cref="OptionType.Layout"/> options.</summary>
+public sealed class OptionLayoutChoice
+{
+    public OptionLayoutChoice(string value, string label, string? description = null)
+    {
+        Value = value;
+        Label = label;
+        Description = description;
+    }
+
+    public string Value { get; }
+    public string Label { get; }
+    public string? Description { get; }
 }
 
 public sealed class Option : INotifyPropertyChanged
@@ -124,6 +163,30 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Clicking the read-only value starts key capture and rebinds the shortcut.</summary>
+    public bool KeyCaptureEditable
+    {
+        get; set;
+    }
+
+    /// <summary>Default key from the bundled input.conf, used by the per-row reset.</summary>
+    public string? KeyCaptureDefault
+    {
+        get; set;
+    }
+
+    /// <summary>Called after a new key is captured (option, new key).</summary>
+    public Action<Option, string>? KeyCaptureReplaced
+    {
+        get; set;
+    }
+
+    /// <summary>Restores this binding to its default key.</summary>
+    public Action<Option>? KeyCaptureReset
+    {
+        get; set;
+    }
+
     /// <summary>Extra row behavior for <see cref="OptionType.Action"/> options.</summary>
     public OptionActionKind ActionKind
     {
@@ -144,6 +207,60 @@ public sealed class Option : INotifyPropertyChanged
 
     /// <summary>Live status text for the action row (captured key, operation result).</summary>
     public Func<string>? ActionStatus
+    {
+        get; set;
+    }
+
+    /// <summary>Checkbox entries for <see cref="OptionType.CheckList"/> options.</summary>
+    public IList<OptionCheckItem>? CheckItems
+    {
+        get; set;
+    }
+
+    /// <summary>Lazily rebuilds checklist entries (e.g. per selected layout style).</summary>
+    public Func<IList<OptionCheckItem>>? CheckItemsProvider
+    {
+        get; set;
+    }
+
+    /// <summary>Rebuilds checklist entries for an explicitly named variant
+    /// (layout cards pass the selected style so each card edits its own data).</summary>
+    public Func<string, IList<OptionCheckItem>>? CheckItemsProviderForStyle
+    {
+        get; set;
+    }
+
+    /// <summary>Layout presets for <see cref="OptionType.Layout"/> options.</summary>
+    public IList<OptionLayoutChoice>? LayoutChoices
+    {
+        get; set;
+    }
+
+    /// <summary>Raised when a checklist entry is toggled (option, value, checked, target key).</summary>
+    public Action<Option, string, bool, string?>? CheckChanged
+    {
+        get; set;
+    }
+
+    /// <summary>Localized text for the optional Apply button shown inside the expanded panel.</summary>
+    public string? CheckApplyLabel
+    {
+        get; set;
+    }
+
+    /// <summary>Invoked when the expanded panel's Apply button is pressed.</summary>
+    public Action<Option>? CheckApplyHandler
+    {
+        get; set;
+    }
+
+    /// <summary>Localized expand/collapse button text for checklist rows.</summary>
+    public string? CheckExpandLabel
+    {
+        get; set;
+    }
+
+    public string? CheckCollapseLabel
     {
         get; set;
     }
