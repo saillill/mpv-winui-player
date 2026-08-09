@@ -41,9 +41,6 @@ namespace mpv_winui.Modules.Language
         public string ThemeColorRed { get; set; } = "Red";
         public string ThemeColorGreen { get; set; } = "Green";
         public string ThemeColorBlue { get; set; } = "Blue";
-        public string ThemeColorHue { get; set; } = "Hue";
-        public string ThemeColorSaturation { get; set; } = "Saturation";
-        public string ThemeColorLightness { get; set; } = "Lightness";
         public string ThemeColorDone { get; set; } = "Done";
         public string Save { get; set; } = "Save";
         public string SettingsSaved { get; set; } = "Saved";
@@ -52,9 +49,6 @@ namespace mpv_winui.Modules.Language
         public string Discard { get; set; } = "Discard";
         public string Expand { get; set; } = "Expand";
         public string Collapse { get; set; } = "Collapse";
-        public string Apply { get; set; } = "Apply";
-        public string Close { get; set; } = "Close";
-        public string Search { get; set; } = "Search";
         public string SettingsResetConfirm { get; set; } = "Reset all settings to their defaults?";
         public string Test { get; set; } = "Test";
         public string Open { get; set; } = "Open";
@@ -96,10 +90,7 @@ namespace mpv_winui.Modules.Language
 
         // Control bar
         public string SettingsControlBarLayout { get; set; } = "Control bar layout";
-        public string SettingsHelpControlBarLayout { get; set; } = "Choose a control bar style: the original layout or the centered layout. Expand the selected card to choose which icons are shown.";
-        public string OptionValueControlBarClassic { get; set; } = "Classic";
-        public string OptionValueControlBarModernX { get; set; } = "Centered";
-        public string OptionValueControlBarCompact { get; set; } = "Compact";
+        public string SettingsHelpControlBarLayout { get; set; } = "Choose how the playback controls are arranged in the control bar.";
         public string OptionValueControlBarLeft { get; set; } = "Left";
         public string OptionValueControlBarCenter { get; set; } = "Centered";
         public string OptionValueControlBarRight { get; set; } = "Right";
@@ -119,8 +110,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsAssociateFiles { get; set; } = "Associate media files";
         public string SettingsHelpAssociateFiles { get; set; } = "Register common video and audio extensions to open with this player.";
         public string SettingsHelpFileAssociations { get; set; } = "Choose which formats should open with this player. Changes apply immediately.";
-        public string FileAssociationGroupVideo { get; set; } = "Video formats";
-        public string FileAssociationGroupAudio { get; set; } = "Audio formats";
         public string SettingsUnassociateFiles { get; set; } = "Remove file associations";
         public string SettingsHelpUnassociateFiles { get; set; } = "Remove the media file associations registered by this player.";
         public string SettingsAssociateDone { get; set; } = "File associations created.";
@@ -134,7 +123,12 @@ namespace mpv_winui.Modules.Language
         public string SettingsConfigImported { get; set; } = "Settings imported. Some options take effect on the next launch.";
 
         // Shortcuts
+        public string SectionShortcutsCapture { get; set; } = "Key capture";
         public string SectionShortcutsReset { get; set; } = "Reset";
+        public string SettingsKeyCapture { get; set; } = "Capture a key";
+        public string SettingsHelpKeyCapture { get; set; } = "Start listening, then press a keyboard or mouse button to see it above.";
+        public string KeyCaptureStart { get; set; } = "Start listening";
+        public string KeyCaptureStop { get; set; } = "Stop listening";
         public string KeyCapturePlaceholder { get; set; } = "Press any key...";
         public string SettingsResetShortcuts { get; set; } = "Reset shortcuts";
         public string SettingsHelpResetShortcuts { get; set; } = "Restore the bundled default input.conf. Takes effect on the next launch.";
@@ -253,18 +247,6 @@ namespace mpv_winui.Modules.Language
         public string ShortcutSearchTitle { get; set; } = "Search shortcuts";
         public string ShortcutSearchPlaceholder { get; set; } = "Search key bindings…";
         public string ShortcutSearchEmpty { get; set; } = "No matching key bindings.";
-        public string ShortcutSectionPlayback { get; set; } = "Playback";
-        public string ShortcutSectionNavigation { get; set; } = "Navigation";
-        public string ShortcutSectionVideo { get; set; } = "Video";
-        public string ShortcutSectionAudio { get; set; } = "Audio";
-        public string ShortcutSectionSubtitle { get; set; } = "Subtitles";
-        public string ShortcutSectionSpeed { get; set; } = "Playback speed";
-        public string ShortcutSectionVolume { get; set; } = "Volume";
-        public string ShortcutSectionFilters { get; set; } = "Filters";
-        public string ShortcutSectionTools { get; set; } = "Tools";
-        public string ShortcutSectionView { get; set; } = "View";
-        public string ShortcutSectionScreenshot { get; set; } = "Screenshot";
-        public string ShortcutSectionOther { get; set; } = "Other";
         public string ViewPlaylist { get; set; } = "Playlist";
         public string SettingsHwdec { get; set; } = "Hardware decoding";
         public string SettingsHwdecCodecs { get; set; } = "Hardware decoding codecs";

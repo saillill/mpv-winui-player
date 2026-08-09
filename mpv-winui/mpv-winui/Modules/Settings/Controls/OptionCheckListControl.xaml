@@ -7,9 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid
-        VerticalAlignment="Center"
-        Tapped="OnCardTapped">
+    <Grid VerticalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -40,44 +38,27 @@
                     TextWrapping="Wrap"
                     Visibility="Collapsed" />
             </StackPanel>
-            <FontIcon
-                x:Name="ExpandIcon"
+            <Button
+                x:Name="ExpandButton"
                 Grid.Column="1"
+                MinWidth="88"
                 Margin="12,0,0,0"
                 VerticalAlignment="Center"
-                FontSize="12"
-                Glyph="&#xE70D;" />
+                Click="OnExpandClick" />
         </Grid>
-        <Grid
-            x:Name="ExpandedPanel"
+        <ItemsControl
+            x:Name="CheckItemsControl"
             Grid.Row="1"
             Margin="0,12,0,0"
             Visibility="Collapsed">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <ItemsControl
-                x:Name="CheckItemsControl"
-                Grid.Row="0">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ItemsWrapGrid
-                            ItemHeight="36"
-                            ItemWidth="170"
-                            Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
-            <Button
-                x:Name="ApplyButton"
-                Grid.Row="1"
-                MinWidth="88"
-                Margin="0,10,0,0"
-                HorizontalAlignment="Right"
-                Click="OnApplyClick"
-                Style="{StaticResource AccentButtonStyle}"
-                Visibility="Collapsed" />
-        </Grid>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsWrapGrid
+                        ItemHeight="36"
+                        ItemWidth="150"
+                        Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
     </Grid>
 </local:OptionControlBase>
