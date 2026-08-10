@@ -5163,7 +5163,7 @@ public sealed partial class SettingsPage : Page
             ("aspect", lang.ControlBarIconAspect, "\uE799"),
             ("fullwindow", lang.ControlBarIconFullWindow, "\uF16B"),
             ("fullscreen", lang.ControlBarIconFullScreen, "\uE740"),
-            ("pip", lang.ControlBarIconPiP, "\uE7C9"),
+            ("pip", lang.ControlBarIconPiP, ControlBarIcons.PictureInPicture),
         ];
         // A checked box means "show this button"; an unchecked box hides it.
         return items
