@@ -82,7 +82,7 @@ namespace mpv_winui.Modules.Player
         public PlayerControl()
         {
             this.InitializeComponent();
-            RootGrid.PointerMoved += (_, e) => { };
+            RootGrid.PointerMoved += RootGrid_PointerMoved;
             ApplyLocalizedStrings();
             PiPButton.Click += OnPiPClick;
             PiPPlayPauseButton.Click += OnPlayPauseClick;
@@ -261,6 +261,12 @@ namespace mpv_winui.Modules.Player
             if (overlay)
             {
                 _controlPanelDefaultBackground ??= ControlPanelGrid.Background;
+                // The gradient is black, so the panel needs its own dark
+                // translucent background and a dark element theme; otherwise
+                // light-theme glyphs stay black and the whole bar is
+                // invisible on the gradient.
+                ControlPanelGrid.Background = new SolidColorBrush(Color.FromArgb(0x99, 0, 0, 0));
+                ControlPanelGrid.RequestedTheme = ElementTheme.Dark;
                 ControlPanelGradient.Background = new LinearGradientBrush
                 {
                     StartPoint = new Point(0, 0),
@@ -271,12 +277,6 @@ namespace mpv_winui.Modules.Player
                         new GradientStop { Offset = 1, Color = Color.FromArgb(217, 0, 0, 0) },
                     },
                 };
-                // The gradient is black, so the panel needs its own dark
-                // translucent background and a dark element theme; otherwise
-                // light-theme glyphs stay black and the whole bar is
-                // invisible on the gradient.
-                ControlPanelGrid.Background = new SolidColorBrush(Color.FromArgb(0x99, 0, 0, 0));
-                ControlPanelGrid.RequestedTheme = ElementTheme.Dark;
                 ControlPanelGradient.Opacity = 1;
                 ControlPanelGrid.Opacity = 1;
                 TranslateVertical.Y = 0;
@@ -291,6 +291,30 @@ namespace mpv_winui.Modules.Player
                 ControlPanelGrid.RequestedTheme = ElementTheme.Default;
             }
             ShowControlPanel();
+        }
+
+        /// <summary>
+        /// Hover show/hide for overlay (fullscreen / full-window / PiP). The
+        /// pointer events on the video area alone cannot drive this: the mask
+        /// and the bar sit on top of the video, so moves over them never reach
+        /// the video Grid. Handling RootGrid covers the mask and the bar.
+        /// </summary>
+        private void RootGrid_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_overlayMode)
+            {
+                return;
+            }
+
+            var position = e.GetCurrentPoint(RootGrid).Position;
+            if (position.Y >= RootGrid.ActualHeight - 120)
+            {
+                ShowControlPanel();
+            }
+            else
+            {
+                HideControlPanel();
+            }
         }
 
         private void HideDelayTimer_Tick(object? sender, object e)
@@ -606,6 +630,7 @@ namespace mpv_winui.Modules.Player
             PiPButton.Click -= OnPiPClick;
             PiPPlayPauseButton.Click -= OnPlayPauseClick;
             PiPCloseButton.Click -= OnPiPCloseClick;
+            RootGrid.PointerMoved -= RootGrid_PointerMoved;
             AppContext.SettingChanged -= OnAppSettingChanged;
             PlayPauseButton.Click -= OnPlayPauseClick;
             SkipBackwardButton.Click -= SkipBackwardButton_Click;
@@ -1145,6 +1170,7 @@ namespace mpv_winui.Modules.Player
             if (!_controlPanelIsVisible)
             {
                 StopPanelAnimations();
+                ControlPanelGradient.Visibility = Visibility.Visible;
                 ControlPanelGrid.Opacity = 0;
                 TranslateVertical.Y = 48;
                 ControlPanelGrid.Visibility = Visibility.Visible;
@@ -1190,6 +1216,11 @@ namespace mpv_winui.Modules.Player
                 {
                     if (!_controlPanelIsVisible)
                     {
+                        // Collapse the whole 120px host border, not just the
+                        // grid: the Auto-sized page row would otherwise keep a
+                        // white (window background) strip below the video
+                        // after the bar hides.
+                        ControlPanelGradient.Visibility = Visibility.Collapsed;
                         ControlPanelGrid.Visibility = Visibility.Collapsed;
                         ControlPanelGrid.Opacity = 1;
                         TranslateVertical.Y = 0;
