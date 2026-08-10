@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -8,6 +10,7 @@ using mpv_winui.Modules.Common.Utils;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Numerics;
 using Windows.Foundation;
 using Windows.UI;
 
@@ -33,14 +36,15 @@ namespace mpv_winui.Modules.Player
         private bool _compactMode;
         private bool _isPiPHost;
         private bool _overlayMode;
-        private readonly DispatcherTimer _panelAnimationTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
         private readonly DispatcherTimer _hideDelayTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
         private readonly DispatcherTimer _overlayIdleTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
         private Point _lastOverlayActivity = new(double.NaN, double.NaN);
         private const double OverlayMoveThreshold = 5.0;
-        private long _panelAnimationStart;
         private bool _panelAnimationShow;
         private bool _panelAnimating;
+        private Compositor? _panelCompositor;
+        private Visual? _panelGridVisual;
+        private Visual? _panelGradientVisual;
 
         private readonly DispatcherTimer _positionUpdateTimer;
         private bool _hasError = false;
@@ -1257,17 +1261,29 @@ namespace mpv_winui.Modules.Player
 
         private void StopPanelAnimations()
         {
-            _panelAnimationTimer.Stop();
+            _panelGridVisual?.StopAnimation("Opacity");
+            _panelGridVisual?.StopAnimation("Offset");
+            _panelGradientVisual?.StopAnimation("Opacity");
+            if (_panelGridVisual is not null)
+            {
+                _panelGridVisual.Opacity = 1f;
+                _panelGridVisual.Offset = Vector3.Zero;
+            }
+            if (_panelGradientVisual is not null)
+            {
+                _panelGradientVisual.Opacity = 1f;
+            }
             _showStoryboard?.Stop();
             _showStoryboard = null;
             _hideStoryboard?.Stop();
             _hideStoryboard = null;
+            _panelAnimating = false;
         }
 
         /// <summary>
-        /// Manual tween for overlay mode (fullscreen/PiP). A Storyboard in a
-        /// second top-level window crashes the XAML compositor, so the slide
-        /// and fade are driven by a dispatcher timer instead.
+        /// Composition tween for overlay mode (fullscreen/PiP). A XAML
+        /// Storyboard in a second top-level window crashes the compositor, so
+        /// the slide and fade are driven by composition animations instead.
         /// </summary>
         private void StartPanelAnimation(bool show)
         {
@@ -1278,58 +1294,101 @@ namespace mpv_winui.Modules.Player
 
             _panelAnimating = true;
             _panelAnimationShow = show;
-            _panelAnimationStart = Environment.TickCount64;
-            _panelAnimationTimer.Tick -= PanelAnimationTick;
-            _panelAnimationTimer.Tick += PanelAnimationTick;
+
+            EnsurePanelVisuals();
+            if (_panelCompositor is null || _panelGridVisual is null || _panelGradientVisual is null)
+            {
+                // Composition unavailable: snap to the target state.
+                PanelAnimationCompleted(show);
+                return;
+            }
+
             if (show)
             {
                 ControlPanelGrid.Visibility = Visibility.Visible;
             }
-            _panelAnimationTimer.Start();
+
+            // Composition opacity multiplies the XAML opacity, so reset the
+            // XAML base values before animating the composition values.
+            ControlPanelGradient.Opacity = 1;
+            ControlPanelGrid.Opacity = 1;
+            TranslateVertical.Y = 0;
+
+            _panelGridVisual.StopAnimation("Opacity");
+            _panelGridVisual.StopAnimation("Offset");
+            _panelGradientVisual.StopAnimation("Opacity");
+
+            var ease = _panelCompositor.CreateCubicBezierEasingFunction(
+                new Vector2(0.215f, 0.61f),
+                new Vector2(0.355f, 1f));
+            var duration = TimeSpan.FromMilliseconds(180);
+
+            var gridOpacity = _panelCompositor.CreateScalarKeyFrameAnimation();
+            gridOpacity.Duration = duration;
+            gridOpacity.InsertKeyFrame(0f, show ? 0f : 1f);
+            gridOpacity.InsertKeyFrame(1f, show ? 1f : 0f, ease);
+
+            var gradientOpacity = _panelCompositor.CreateScalarKeyFrameAnimation();
+            gradientOpacity.Duration = duration;
+            gradientOpacity.InsertKeyFrame(0f, show ? 0f : 1f);
+            gradientOpacity.InsertKeyFrame(1f, show ? 1f : 0f, ease);
+
+            var offset = _panelCompositor.CreateVector3KeyFrameAnimation();
+            offset.Duration = duration;
+            offset.InsertKeyFrame(0f, new Vector3(0, show ? 48f : 0f, 0));
+            offset.InsertKeyFrame(1f, new Vector3(0, show ? 0f : 48f, 0), ease);
+
+            var batch = _panelCompositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+            _panelGridVisual.StartAnimation("Opacity", gridOpacity);
+            _panelGridVisual.StartAnimation("Offset", offset);
+            _panelGradientVisual.StartAnimation("Opacity", gradientOpacity);
+            batch.Completed += (_, _) => PanelAnimationCompleted(show);
+            batch.End();
         }
 
-        private void PanelAnimationTick(object? sender, object e)
+        private void EnsurePanelVisuals()
         {
-            const double durationMs = 180;
-            var elapsed = Environment.TickCount64 - _panelAnimationStart;
-            var t = Math.Clamp(elapsed / durationMs, 0, 1);
-            var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
-
-            if (_panelAnimationShow)
+            if (_panelGridVisual is null)
             {
-                ControlPanelGradient.Opacity = eased;
-                ControlPanelGrid.Opacity = eased;
-                TranslateVertical.Y = 48 * (1 - eased);
+                _panelGridVisual = ElementCompositionPreview.GetElementVisual(ControlPanelGrid);
+                _panelGradientVisual = ElementCompositionPreview.GetElementVisual(ControlPanelGradient);
+                _panelCompositor = _panelGridVisual.Compositor;
+            }
+        }
+
+        private void PanelAnimationCompleted(bool show)
+        {
+            _panelAnimating = false;
+            _panelGridVisual?.StopAnimation("Opacity");
+            _panelGridVisual?.StopAnimation("Offset");
+            _panelGradientVisual?.StopAnimation("Opacity");
+            if (_panelGridVisual is not null)
+            {
+                _panelGridVisual.Opacity = 1f;
+                _panelGridVisual.Offset = Vector3.Zero;
+            }
+            if (_panelGradientVisual is not null)
+            {
+                _panelGradientVisual.Opacity = 1f;
+            }
+
+            if (show)
+            {
+                ControlPanelGradient.Opacity = 1;
+                ControlPanelGrid.Opacity = 1;
+                TranslateVertical.Y = 0;
+                _controlPanelIsVisible = true;
             }
             else
             {
-                ControlPanelGradient.Opacity = 1 - eased;
-                ControlPanelGrid.Opacity = 1 - eased;
-                TranslateVertical.Y = 48 * eased;
-            }
-
-            if (t >= 1)
-            {
-                _panelAnimationTimer.Stop();
-                _panelAnimating = false;
-                if (_panelAnimationShow)
-                {
-                    ControlPanelGradient.Opacity = 1;
-                    ControlPanelGrid.Opacity = 1;
-                    TranslateVertical.Y = 0;
-                    _controlPanelIsVisible = true;
-                }
-                else
-                {
-                    ControlPanelGrid.Visibility = Visibility.Collapsed;
-                    ControlPanelGrid.Opacity = 1;
-                    TranslateVertical.Y = 0;
-                    // Keep the gradient mounted and hit-testable. WinUI skips
-                    // hit-testing for elements at exactly zero opacity, so
-                    // leave a barely visible floor value.
-                    ControlPanelGradient.Opacity = 0.01;
-                    _controlPanelIsVisible = false;
-                }
+                ControlPanelGrid.Visibility = Visibility.Collapsed;
+                ControlPanelGrid.Opacity = 1;
+                TranslateVertical.Y = 0;
+                // Keep the gradient mounted and hit-testable. WinUI skips
+                // hit-testing for elements at exactly zero opacity, so
+                // leave a barely visible floor value.
+                ControlPanelGradient.Opacity = 0.01;
+                _controlPanelIsVisible = false;
             }
         }
 

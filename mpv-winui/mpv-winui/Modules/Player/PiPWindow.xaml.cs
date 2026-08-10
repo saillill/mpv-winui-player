@@ -1,7 +1,10 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml.Hosting;
 using System;
+using System.Numerics;
 using Windows.Graphics;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -24,9 +27,10 @@ public sealed partial class PiPWindow : Window
 
     private MpvMediaPlayer? _player;
     private bool _closing;
-    private readonly DispatcherTimer _topButtonsTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
-    private long _topButtonsStart;
     private bool _topButtonsShow;
+    private Compositor? _topButtonsCompositor;
+    private Visual? _topButtonsVisual;
+    private Visual? _topButtonsVisual2;
 
     public PiPWindow()
     {
@@ -253,23 +257,66 @@ public sealed partial class PiPWindow : Window
     private void StartTopButtonsAnimation(bool show)
     {
         _topButtonsShow = show;
-        _topButtonsStart = Environment.TickCount64;
-        _topButtonsTimer.Tick -= TopButtonsTick;
-        _topButtonsTimer.Tick += TopButtonsTick;
-        _topButtonsTimer.Start();
+        EnsureTopButtonsVisuals();
+        if (_topButtonsCompositor is null || _topButtonsVisual is null || _topButtonsVisual2 is null)
+        {
+            PiPBackButton.Opacity = show ? 1 : 0;
+            PiPExitButton.Opacity = show ? 1 : 0;
+            return;
+        }
+
+        _topButtonsVisual.StopAnimation("Opacity");
+        _topButtonsVisual2.StopAnimation("Opacity");
+
+        var ease = _topButtonsCompositor.CreateCubicBezierEasingFunction(
+            new Vector2(0.215f, 0.61f),
+            new Vector2(0.355f, 1f));
+        var duration = TimeSpan.FromMilliseconds(180);
+
+        var backAnim = _topButtonsCompositor.CreateScalarKeyFrameAnimation();
+        backAnim.Duration = duration;
+        backAnim.InsertKeyFrame(0f, show ? 0f : 1f);
+        backAnim.InsertKeyFrame(1f, show ? 1f : 0f, ease);
+
+        var exitAnim = _topButtonsCompositor.CreateScalarKeyFrameAnimation();
+        exitAnim.Duration = duration;
+        exitAnim.InsertKeyFrame(0f, show ? 0f : 1f);
+        exitAnim.InsertKeyFrame(1f, show ? 1f : 0f, ease);
+
+        var batch = _topButtonsCompositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+        _topButtonsVisual.StartAnimation("Opacity", backAnim);
+        _topButtonsVisual2.StartAnimation("Opacity", exitAnim);
+        batch.Completed += (_, _) =>
+        {
+            _topButtonsVisual.StopAnimation("Opacity");
+            _topButtonsVisual2.StopAnimation("Opacity");
+            _topButtonsVisual.Opacity = 1f;
+            _topButtonsVisual2.Opacity = 1f;
+        };
+        batch.End();
     }
 
-    private void TopButtonsTick(object? sender, object e)
+    private void EnsureTopButtonsVisuals()
     {
-        const double durationMs = 180;
-        var t = Math.Clamp((Environment.TickCount64 - _topButtonsStart) / durationMs, 0, 1);
-        var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
-        var opacity = _topButtonsShow ? eased : 1 - eased;
-        PiPBackButton.Opacity = opacity;
-        PiPExitButton.Opacity = opacity;
-        if (t >= 1)
+        if (_topButtonsVisual is null)
         {
-            _topButtonsTimer.Stop();
+            _topButtonsVisual = ElementCompositionPreview.GetElementVisual(PiPBackButton);
+            _topButtonsVisual2 = ElementCompositionPreview.GetElementVisual(PiPExitButton);
+            _topButtonsCompositor = _topButtonsVisual.Compositor;
+        }
+    }
+
+    private void StopTopButtonsAnimation()
+    {
+        _topButtonsVisual?.StopAnimation("Opacity");
+        _topButtonsVisual2?.StopAnimation("Opacity");
+        if (_topButtonsVisual is not null)
+        {
+            _topButtonsVisual.Opacity = 1f;
+        }
+        if (_topButtonsVisual2 is not null)
+        {
+            _topButtonsVisual2.Opacity = 1f;
         }
     }
 
@@ -298,7 +345,7 @@ public sealed partial class PiPWindow : Window
         }
         _closing = true;
 
-        _topButtonsTimer.Stop();
+        StopTopButtonsAnimation();
         Detach();
         if (ReferenceEquals(Instance, this))
         {
