@@ -92,6 +92,11 @@ namespace mpv_winui.Modules.Player
             });
         }
 
+        private void PlayerControl_OnPlaylistRequest()
+        {
+            TogglePlaylist(true);
+        }
+
         private void TogglePlaylist(bool refresh = false)
         {
             if (PlaylistContainer.Visibility == Visibility.Collapsed)

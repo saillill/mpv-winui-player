@@ -45,27 +45,30 @@ namespace mpv_winui.Modules.Player
 
         private bool PlayerControl_OnFullWindowRequest()
         {
-            bool isFullWindow = _isFullWindow;
-
-            if (isFullWindow)
+            // Track the state ourselves: GoToState's return value only reports
+            // whether the state changed, so re-entering an already-active state
+            // used to flip _isFullWindow the wrong way and left the overlay
+            // (or the windowed bar) in a broken half state.
+            if (_isFullWindow)
             {
-                isFullWindow = !VisualStateManager.GoToState(this, "NormalWindow", true);
+                VisualStateManager.GoToState(this, "NormalWindow", true);
+                _isFullWindow = false;
             }
             else
             {
-                isFullWindow = VisualStateManager.GoToState(this, "FullWindow", true);
+                VisualStateManager.GoToState(this, "FullWindow", true);
+                _isFullWindow = true;
             }
 
-            //TODO 
             if (App.Window is MainWindow window)
             {
-                window.ChangeFullWindow(isFullWindow);
+                window.ChangeFullWindow(_isFullWindow);
             }
 
-            _isFullWindow = isFullWindow;
-            PlayerControl.SetOverlayMode(isFullWindow);
+            PlayerControl.SetOverlayMode(_isFullWindow);
+            PlayerControl.RefreshAdaptiveState();
 
-            return isFullWindow;
+            return _isFullWindow;
         }
     }
 }

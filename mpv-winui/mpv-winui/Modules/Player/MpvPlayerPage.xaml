@@ -409,6 +409,7 @@
             NextTrackButtonVisibility="Visible"
             OnFullScreenRequest="PlayerControl_OnFullScreenRequest"
             OnFullWindowRequest="PlayerControl_OnFullWindowRequest"
+            OnPlaylistRequest="PlayerControl_OnPlaylistRequest"
             PreviousTrackButtonVisibility="Visible" />
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>

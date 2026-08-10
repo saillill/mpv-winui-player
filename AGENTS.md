@@ -95,6 +95,15 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   It must be `Height=120` only in overlay mode and `Auto` (NaN) in windowed
   mode, otherwise a tall transparent strip remains between the video and the
   bar (the "background box" behind the controls).
+- **Full-window state**: `PlayerControl_OnFullWindowRequest` tracks
+  `_isFullWindow` explicitly — never derive it from `GoToState`'s return value
+  (it only reports whether the state changed, which flips the flag when the
+  state is already active). After every mode switch call
+  `PlayerControl.RefreshAdaptiveState()` so the width-adaptive state cannot
+  leave the buttons collapsed.
+- **Control-bar buttons**: `PlaylistButton` (E8FD, toggles the sidebar) lives
+  in both layouts; `TrackSelectionButton` uses the solid `E8AB` glyph (the
+  outline `ED1F` glyph read as a translucent icon).
 
 ### License guardrails
 

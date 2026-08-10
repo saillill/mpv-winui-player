@@ -18,11 +18,13 @@ namespace mpv_winui.Modules.Player
 
         public delegate bool FullScreenRequestHandler();
         public delegate bool FullWindowRequestHandler();
+        public delegate void PlaylistRequestHandler();
         public delegate void OnPanelVisibleChangedHandler(bool hide);
         public delegate void OnPositionChangedHandler();
 
         public event FullScreenRequestHandler? OnFullScreenRequest;
         public event FullWindowRequestHandler? OnFullWindowRequest;
+        public event PlaylistRequestHandler? OnPlaylistRequest;
         public event OnPanelVisibleChangedHandler? OnPanelVisibleChanged;
         public event OnPositionChangedHandler? OnPositionChanged;
 
@@ -103,6 +105,7 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(PiPButton, AppContext.AppLang.SettingsPiP);
             ToolTipService.SetToolTip(PiPPlayPauseButton, AppContext.AppLang.Play);
             ToolTipService.SetToolTip(PiPCloseButton, AppContext.AppLang.Close);
+            ToolTipService.SetToolTip(PlaylistButton, AppContext.AppLang.TogglePlaylist);
         }
 
         private void OnAppSettingChanged(string key, object? value)
@@ -189,7 +192,7 @@ namespace mpv_winui.Modules.Player
                     [VolumeMuteButton, VolumeSliderContainer]);
                 SetHidden(true, PreviousTrackButton, RewindButton, FastForwardButton,
                            NextTrackButton, StopButton, RepeatButton,
-                           TrackSelectionButton, ShuffleButton, PlaybackRateButton,
+                           TrackSelectionButton, ShuffleButton, PlaybackRateButton, PlaylistButton,
                            ZoomButton, PiPButton, FullWindowButton, FullScreenButton);
                 TimeTextGrid.Visibility = Visibility.Collapsed;
                 CompactTimeText.Visibility = Visibility.Visible;
@@ -421,7 +424,7 @@ namespace mpv_winui.Modules.Player
             {
                 left =
                 [
-                    TrackSelectionButton, ShuffleButton, RepeatButton, PlaybackRateButton,
+                    TrackSelectionButton, PlaylistButton, ShuffleButton, RepeatButton, PlaybackRateButton,
                     VolumeMuteButton, VolumeSliderContainer,
                 ];
                 middle =
@@ -442,6 +445,7 @@ namespace mpv_winui.Modules.Player
                     PlayPauseButton, RewindButton, FastForwardButton,
                     PreviousTrackButton, NextTrackButton, SkipBackwardButton,
                     SkipForwardButton, StopButton, ShuffleButton, RepeatButton,
+                    PlaylistButton,
                 ];
                 middle = [];
                 right =
@@ -620,6 +624,7 @@ namespace mpv_winui.Modules.Player
         private void PlayerControl_Loaded(object sender, RoutedEventArgs e)
         {
             PlayPauseButton.Click += OnPlayPauseClick;
+            PlaylistButton.Click += PlaylistButton_Click;
             SkipBackwardButton.Click += SkipBackwardButton_Click;
             SkipForwardButton.Click += SkipForwardButton_Click;
             VolumeMuteButton.Click += OnMuteClick;
@@ -686,6 +691,7 @@ namespace mpv_winui.Modules.Player
             RootGrid.PointerMoved -= RootGrid_PointerMoved;
             AppContext.SettingChanged -= OnAppSettingChanged;
             PlayPauseButton.Click -= OnPlayPauseClick;
+            PlaylistButton.Click -= PlaylistButton_Click;
             SkipBackwardButton.Click -= SkipBackwardButton_Click;
             SkipForwardButton.Click -= SkipForwardButton_Click;
             VolumeMuteButton.Click -= OnMuteClick;
@@ -1030,6 +1036,11 @@ namespace mpv_winui.Modules.Player
         private void OnPlayPauseClick(object sender, RoutedEventArgs e)
         {
             TogglePlay();
+        }
+
+        private void PlaylistButton_Click(object sender, RoutedEventArgs e)
+        {
+            OnPlaylistRequest?.Invoke();
         }
 
         public void TogglePlay()
@@ -1538,6 +1549,12 @@ namespace mpv_winui.Modules.Player
                 _ => "Narrow"
             };
             VisualStateManager.GoToState(this, name, false);
+        }
+
+        /// <summary>Re-applies the width-adaptive state after a layout mode change.</summary>
+        public void RefreshAdaptiveState()
+        {
+            UpdateToolbarVisibility(ActualWidth);
         }
 
         private void ProgressSlider_PointerEntered(object sender, PointerRoutedEventArgs e)

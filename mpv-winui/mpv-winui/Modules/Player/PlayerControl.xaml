@@ -282,6 +282,17 @@
                         </AppBarButton.Icon>
                     </AppBarButton>
 
+                    <AppBarButton
+                        x:Name="PlaylistButton"
+                        Grid.Column="11"
+                        IsTabStop="False"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8FD;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
                 </CommandBar>
 
                 <CommandBar
@@ -405,9 +416,7 @@
                         IsTabStop="False"
                         Style="{StaticResource AppBarButtonStyle}">
                         <AppBarButton.Icon>
-                            <FontIcon
-                                FontFamily="Segoe Fluent Icons"
-                                Glyph="&#xED1F;" />
+                            <FontIcon Glyph="&#xE8AB;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <Flyout
