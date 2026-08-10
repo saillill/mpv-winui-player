@@ -1,52 +1,33 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using mpv_winui.Modules.Player;
 using Windows.Graphics;
 
 namespace mpv_winui;
 
 public sealed partial class MainWindow : Window
 {
-    private RectInt32? _prePiPRect;
-
-    /// <summary>Applies the picture-in-picture (mini player) mode from the current settings.</summary>
+    /// <summary>
+    /// Applies picture-in-picture mode. The video moves to a dedicated PiP
+    /// window and the main window is hidden until PiP is left.
+    /// </summary>
     public void ApplyPiP()
     {
-        if (AppContext.AppSetting.WindowPiP)
+        if (ShellFrame?.Content is MpvPlayerPage page)
         {
-            if (_prePiPRect is null)
-            {
-                _prePiPRect = new RectInt32(_x, _y, _w, _h);
-            }
-
-            if (AppWindow.Presenter is OverlappedPresenter presenter)
-            {
-                presenter.IsAlwaysOnTop = true;
-            }
-
-            var parts = AppContext.AppSetting.WindowPiPSize.Split('x');
-            if (parts.Length == 2
-                && int.TryParse(parts[0], out var width)
-                && int.TryParse(parts[1], out var height))
-            {
-                AppWindow.MoveAndResize(new RectInt32(_prePiPRect?.X ?? _x, _prePiPRect?.Y ?? _y, width, height));
-            }
-
-            ChangeFullWindow(true);
+            page.ApplyPiP();
         }
-        else
-        {
-            if (AppWindow.Presenter is OverlappedPresenter presenter)
-            {
-                presenter.IsAlwaysOnTop = AppContext.AppSetting.AlwaysOnTop;
-            }
+    }
 
-            if (_prePiPRect is { } rect)
-            {
-                AppWindow.MoveAndResize(rect);
-                _prePiPRect = null;
-            }
+    /// <summary>Hides the main window while the PiP window is shown.</summary>
+    public void HideForPiP()
+    {
+        AppWindow.Hide();
+    }
 
-            ChangeFullWindow(false);
-        }
+    /// <summary>Shows the main window again after leaving picture-in-picture.</summary>
+    public void RestoreFromPiP()
+    {
+        AppWindow.Show();
     }
 }

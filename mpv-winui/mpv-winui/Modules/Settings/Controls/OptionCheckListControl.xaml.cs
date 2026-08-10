@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
+using mpv_winui.Modules.Common.View;
 using System;
 using System.Collections.Generic;
 
@@ -92,7 +93,7 @@ public sealed partial class OptionCheckListControl : OptionControlBase
                     {
                         Text = item.Group,
                         Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
-                        Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                        Foreground = ThemeResource.Brush(this, "TextFillColorSecondaryBrush"),
                         Margin = new Thickness(0, 6, 0, 2),
                     });
                 }
@@ -117,11 +118,14 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             {
                 var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
                 panel.Children.Add(item.Glyph.StartsWith("F1 ", StringComparison.Ordinal)
-                    ? new PathIcon
+                    ? new Viewbox
                     {
-                        Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), item.Glyph),
                         Width = 14,
                         Height = 14,
+                        Child = new PathIcon
+                        {
+                            Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), item.Glyph),
+                        },
                     }
                     : new FontIcon { Glyph = item.Glyph, FontSize = 14 });
                 panel.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });

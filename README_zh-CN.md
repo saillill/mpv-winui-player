@@ -6,63 +6,79 @@
 
 [English](README.md)
 
-> WinUI 3 + libmpv 的 Windows 播放器（C++/WinRT 组件），配置层基于 mpv-lazy 裁剪。重点解决嵌入模式下的 HDR/WCG 正确输出、8 种语言界面，开箱即用。
+> 基于 libmpv 的 WinUI 3 媒体播放器，内置基于 mpv-lazy 裁剪的配置层。重点解决
+> 内嵌合成模式下的 HDR/WCG 正确输出、PotPlayer 式设置界面（约 184 项即时生效）、
+> 8 语言本地化，以及一套完整的画中画窗口。
 
-## 简要介绍
+## 截图
 
-[mpv-winui-player](https://github.com/saillill/mpv-winui-player) 通过 C++/WinRT 组件（`mpv_winrt`）把 [libmpv](https://github.com/mpv-player/mpv) 嵌进 WinUI 3 原生界面。mpv 配置由独立配置层 `mpv-winui-lazy/` 提供，基于 [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)（mpv-lazy）裁剪，无需额外折腾：
+| 亮色 | 暗色 |
+|---|---|
+| ![主界面](screenshot/main.jpg) | ![主界面（暗色）](screenshot/main-dark.jpg) |
+| ![设置](screenshot/settings.png) | ![设置（暗色）](screenshot/settings-dark.png) |
 
-- 渲染：`vo=gpu-next` + `d3d11-output-mode=composition`（无边框闪烁，WinUI 原生覆盖层）。
-- 显示检测：应用读 `DisplayInformation`，把 `user-data/mpvw/color-kind`（`SDR`/`WCG`/`HDR`）与 `user-data/mpvw/refresh-rate` 写给 mpv，`profiles.conf` 自动切换输出参数。
-- 形态：unpackaged，一个 zip 解压即用；`deploy-config.ps1` 把配置层同步到 `%LOCALAPPDATA%\mpv-winui\mpv`。
+![画中画](screenshot/pip.png)
 
-相关项目：
+![右键菜单](screenshot/menu.jpg)
 
-- 上游应用：[ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player)
-- 配置来源：[hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)
-- 播放核心：[mpv](https://github.com/mpv-player/mpv) · [libplacebo](https://github.com/haasn/libplacebo)
-- Windows libmpv 构建：[ikas-mc/mpv-windows-builder](https://github.com/ikas-mc/mpv-windows-builder)
+## 功能亮点
 
-## UI 功能
+- **引擎**：通过 `mpv_winrt` C++/WinRT 组件内嵌 libmpv，`vo=gpu-next` +
+  `d3d11-output-mode=composition` 渲染——无窗口边框闪烁、原生 WinUI 叠加层、
+  硬解（d3d11va）。
+- **HDR / WCG**：应用读取 `DisplayInformation`，把
+  `user-data/mpvw/color-kind`（`SDR` / `WCG` / `HDR`）和刷新率写入 mpv，
+  `profiles.conf` 自动切换输出参数，修复上游在合成模式下 HDR 发灰的问题。
+- **设置**：PotPlayer 式双栏窗口（左侧分类、右侧选项卡片），约 184 项选项。
+  所有选项即改即生效；冲突项置灰、无效项黄色提示；列表选项显示本地化预设
+  （不暴露原始 mpv 键值）；路径选项带文件夹选择器和“打开目录”按钮。
+- **本地化**：8 种语言（en-US、zh-CN、ja-JP、ko-KR、de-DE、fr-FR、es-ES、
+  ru-RU），覆盖应用界面、菜单栏和 153 项 mpv 右键菜单
+  （通过 `user-data/mpvw/language` 联动）。
+- **画中画**：独立无边框置顶窗口，DWM 圆角、固定尺寸、视频区任意拖动，
+  复用全屏紧凑控制栏（时间、播放、音量、进度）。
+- **视频预览**：thumbfast 通过随附的独立 `mpv.exe` 渲染缩略图，应用以圆角
+  WinUI 卡片画在进度条上方。
+- **鼠标输入**：视频区滚轮控制音量/跳转，鼠标按键遵循 `input.conf`
+  （左键播放/暂停、双击全屏、X1/X2 播放列表上一首/下一首），与 mpv-lazy
+  文档一致。
 
-- **菜单栏**：文件（打开文件/文件夹/URL/剪贴板、DVD/蓝光、观看历史、稍后观看、加载字幕、截屏、重启、退出）、查看（播放列表、全屏/全窗口、选项、打开配置/mpv 目录）、帮助（关于）、睡眠定时器（关闭/15/30/45/60/90 分钟）。
-- **播放控制**：播放/暂停、跳转、随机、循环、倍速、音视频轨道切换、缩放、全窗口/全屏、音量、带缩略图的进度条。
-- **播放列表**：右键菜单（播放、移动、移除、复制标题/路径、打开文件位置）、观看历史、稍后观看。
-- **右键菜单**：mpv 数据菜单（153 项，tsl0922/mpv-menu 排版）+ 固定文件/窗口项；“滤镜与增强”下直接显示 Nvidia VSR / RTX Video HDR / 清空所有脚本；菜单标题、动态项以及 mpv `select` 子菜单（轨道/章节/版本/音频设备/按键绑定/历史/稍后观看/属性）都在 8 种语言下全量翻译（`dyn_menu.lua` / `dynamic_menu.lua` / `select.lua` 内置翻译表），经 `user-data/mpvw/language` 自动切换；RTX HDR 模式、清除属性、缩略图开关等 OSD 反馈也已本地化。
-- **设置窗口**：左侧分类、右侧内容双栏排版，分类对照 [mpv 官方手册](https://mpv.io/manual/master/) 的选项章节：程序行为/播放控制/轨道选择/记忆播放/视频/音频/字幕/窗口/解封装/缓存/输入/OSD/截屏/GPU 渲染器选项/视频同步，共约 184 项 PotPlayer 式选项。列表类选项显示本地化预设（不再只显示原始键值），并附一个“自定义”选项，选中后才出现录入框；音频设备为从 mpv 实时枚举的列表，截图文件名模板提供预设；开关显示本地化的开/关；语言下拉按各语言母语名称显示（中文 / 日本語 / 한국어…）；路径类选项（截图目录、缓存目录、稍后观看数据目录、ICC 缓存、着色器缓存）带由设置窗口自己拥有的系统文件夹选择“浏览”按钮，并有“打开”按钮直接跳转文件管理器；每个大分类内部再用分隔栏划分功能分区（如程序行为：界面/语言与日志/网络集成；视频：解码/画面/HDR 与色彩/放大；音频：输出/音量/外部音频/封面；字幕：文本字幕/ASS 字幕/图形字幕；GPU 渲染器选项：缩放与抖动/色彩与 HDR/动态插帧/背景/Direct3D 11/着色器与缓存）；说明以 Windows 设置风格显示在标题下方，仅在能补充信息时显示、不与黄色警告重复，并给出推荐值与已知冲突。会冲突的选项直接置灰不可选（如线性光与 S 形上采样互斥、字幕混合后 ASS 黑边无效），可能无效的选项显示黄色提示（如帧插值需配合特定同步模式、截图质量项与当前格式不符）。改动即时下发 mpv，语言、背景、调试日志与视频预览等应用级设置也即时生效，无需重启。
+## 相对上游的改进
 
-## 相比原版的改进
+上游应用：[ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player)
 
-| 方面 | 上游 ikas-mc/mpv-winui-player | 本项目 |
+| 方面 | 上游 | 本项目 |
 |---|---|---|
-| HDR/WCG 输出 | 只有 SDR 示例；composition 模式下 HDR 发白 | `mpvw-sdr/wcg/hdr` 自动配置；WCG→`bt.2020`（修复非法的 `display-p3`）；HDR→`target-trc=pq`+`target-prim=bt.2020`+`target-peak=1000`；RTX HDR 期间固定 `target-colorspace-hint=yes` |
-| 本地化 | 英文硬编码，无切换 | `AppLang` + `Languages/*.json`，8 种语言（en-US/zh-CN/ja-JP/ko-KR/de-DE/fr-FR/es-ES/ru-RU），设置页切换（即时生效，无需重启） |
-| 播放器设置 | 选项较少 | 约 184 项分类选项，即时下发并在启动时应用：硬解及编解码器列表、音量/最大音量、keep-open、循环文件/播放列表、速度、保存/恢复播放进度、反交错、画面比例、放大/缩小/色度上采样/帧插值算法、旋转、去色带、视频同步（含最大速率变化）、帧插值、HR seek（含丢帧）、色调映射、抖动、panscan、原始尺寸显示、背景棋盘格、网络缓存与预读、yt-dlp 解析与附加参数、自动播放列表/文件夹模式及文件类型/扩展名、音频语言/设备（实时列表）/声道/延迟/独占/音调/降混/无缝/等待打开/缓冲/音频文件显示与目录/封面、字幕字号/位置/延迟/语言/外挂目录/HDR 峰值/颜色/符号缩放/ASS 覆盖与样式覆盖/视频数据/VSFilter 颜色兼容/模糊/字体（系统默认 + 微软字体）/字体提供程序/编码/回退/混合/随窗口缩放/ASS 黑边/图形字幕拉伸与分辨率、OSD 字体/字号/跳转显示/时长/播放消息/进度条宽高/模糊/描边/小数时间/文字与描边颜色、目标色彩空间提示（含模式/严格）/基色/传递曲线/峰值、色域映射、D3D11 输出色彩空间/独占全屏/翻转/显卡、ICC 自动校色/配置文件/强制对比度/3D LUT 及缓存、视频输出电平、解码直接输出到显存（`vd-lavc-dr`）、解复用器前向/后向缓存、磁盘缓存、截图目录/模板（预设）/格式/JPEG（质量+源色度）/PNG（压缩+过滤器）/WebP（质量+无损+压缩）/JXL（距离+压缩等级）/AVIF 编码器/色深/软件截图、缓存目录、稍后观看数据目录与保存属性、ICC 缓存目录、着色器缓存目录、GLSL 着色器列表、IPC 服务、NVIDIA VSR / RTX Video HDR / 拖动保持窗口开关，以及 script-opts 插件选项（自动播放列表、元数据 OSD、封面、thumbfast、RTX HDR 日志）和菜单栏“运行 mpv 命令 / 搜索快捷键”对话框；选项值全部本地化，预设 + 自定义选项，冲突项禁用，可能无效项黄色提示，路径带文件夹选择与打开按钮，说明去重且含推荐 |
-| MediaInfo | 未随包 | 随包官方 CLI v26.05（BSD-2-Clause） |
-| 开文件 | unpackaged 下协议/命令行失效 | 命令行与 `mpv-winui://` 均已修复并实测 |
-| 日志 | mpv 默认 verbose | 默认关闭（`log-file` 注释、`hdr_auto` `log=no`） |
-| 配置层 | 未随项目发布 | `mpv-winui-lazy/`：HDR/WCG 配置、RTX HDR/VSR 脚本、干净快捷键、MediaInfo 配置 |
-| 构建发布 | 手动 | `build.ps1`/`package.ps1`；Actions 免证书直接产出 Release zip |
+| HDR/WCG 输出 | 仅 SDR 方案；合成模式 HDR 发灰 | 自动 `mpvw-sdr/wcg/hdr` 配置；WCG → bt.2020（修复非法 `display-p3`）；HDR → `target-trc=pq` + `target-prim=bt.2020` + `target-peak=1000`；RTX HDR 期间开启 `target-colorspace-hint=yes` |
+| 本地化 | 仅英文硬编码 | `AppLang` + JSON，8 种语言，即时切换 |
+| 播放器设置 | 极少 | 约 184 项分类选项，即时生效 + 启动应用 |
+| MediaInfo | 未内置 | 内置官方 MediaInfo CLI v26.05（BSD-2-Clause） |
+| 命令行 / 协议 | unpackaged 下失效 | 命令行与 `mpv-winui://` 激活均已修复并验证 |
+| 日志 | mpv 默认全量 verbose | 默认关闭（`log-file` 注释、`hdr_auto` `log=no`） |
+| 配置层 | 不随包发布 | `mpv-winui-lazy/`（基于 mpv-lazy）：HDR/WCG 配置、RTX HDR/VSR 脚本、干净按键绑定、MediaInfo 配置 |
+| 构建发布 | 手工 | `build.ps1` / `package.ps1`；GitHub Actions 免证书产出 unpackaged + Release zip |
 
 ## 快速开始
 
-1. 从 [Releases](https://github.com/saillill/mpv-winui-player/releases) 下载 `mpv-winui-win-x64-Release.zip` 并解压（Windows 10/11 x64）。
-2. 首次运行前部署配置层：
+1. 从 [Releases 页面](https://github.com/saillill/mpv-winui-player/releases)
+   下载 `mpv-winui-win-x64-Release.zip`。
+2. 解压到任意目录（Windows 10/11 x64）。
+3. 首次运行前部署配置层：
 
-```powershell
-powershell -File mpv-winui-lazy\deploy-config.ps1
-```
+   ```powershell
+   powershell -File mpv-winui-lazy\deploy-config.ps1
+   ```
 
-3. 运行 `mpv-winui.exe`。开文件支持菜单、拖拽、命令行和协议：
+4. 运行 `mpv-winui.exe`。可通过菜单、拖放、命令行或 URL 协议打开文件：
 
-```powershell
-mpv-winui.exe "D:\Videos\movie.mkv"
-mpv-winui://?file=D%3A%5CVideos%5Cmovie.mkv
-```
+   ```powershell
+   mpv-winui.exe "D:\Videos\movie.mkv"
+   mpv-winui://?file=D%3A%5CVideos%5Cmovie.mkv
+   ```
 
-## 配置说明
+## 配置
 
-### HDR / WCG 自动切换（`mpv-winui-lazy/profiles.conf`）
+### HDR / WCG 自动配置（`mpv-winui-lazy/profiles.conf`）
 
 ```ini
 [mpvw-sdr]
@@ -85,59 +101,111 @@ target-prim=bt.2020
 target-peak=1000
 ```
 
-注意：`d3d11-output-csp=display-p3` 是非法值；HDR 必须带三个 `target-*`，否则交换链虽是 PQ、渲染仍按 SDR 走，驱动不会真正进入 HDR。
+注意：`d3d11-output-csp=display-p3` 是非法值；HDR 必须同时设置三个
+`target-*` 选项，否则交换链是 PQ 而渲染管线仍是 SDR，驱动不会切换 HDR。
 
-### RTX Video HDR / NVIDIA VSR（`mpv-winui-lazy/script-opts/`）
+### RTX Video HDR / NVIDIA VSR
 
-- `hdr_auto.conf`：默认 `log=no`；`mode=auto|on|off`。
-- `mpvw_hdr_override.conf`：`mode=` 留空=跟随 App；`HDR`/`SDR` 强制覆盖。
+- `script-opts/hdr_auto.conf`：默认 `log=no`；`mode=auto|on|off`。
+- `script-opts/mpvw_hdr_override.conf`：`mode=` 留空 = 跟随应用；
+  `HDR` / `SDR` 强制覆盖。
+- `script-opts/vsr_auto.conf`、`script-opts/seek_hold.conf`：自动 NVIDIA VSR
+  与拖动进度条时的窗口防抖。
 
-### 快捷键（`mpv-winui-lazy/input.conf`）
+### 按键绑定（`mpv-winui-lazy/input.conf`）
 
-滚轮：音量/跳转 · `` ` ``：控制台 · `F6/F7`：播放列表/轨道信息 · `TAB`：统计 · `Alt+i`：MediaInfo · `Ctrl+1..0`：调色 · `w/W`：去黑边 · `[ ] { }`：速度。（`input_plus.lua` 有意不随包。）
+视频区滚轮：音量（上下）/ 跳转（左右）· 左键：播放/暂停 · 双击：全屏 ·
+X1/X2：播放列表上一首/下一首 · `` ` ``：控制台 · F6/F7：播放列表/轨道信息 ·
+TAB：统计 · Alt+i：MediaInfo · Ctrl+1..0：调色 · w/W：画面缩放 ·
+`[ ] { }`：倍速。
 
 ### 本地化 / MediaInfo / 日志
 
-- 语言：设置页切换（下拉按各语言母语显示），或编辑 `Languages\<lang>.json`（键为 `AppLang` 属性名）。右键菜单经 `user-data/mpvw/language` 同步，8 种语言在 `dyn_menu.lua` / `dynamic_menu.lua` 中全量覆盖。
+- 语言：设置页切换，或编辑 `Languages\<lang>.json`（键为 `AppLang` 属性名）。
+  右键菜单通过 `user-data/mpvw/language` 跟随界面语言；8 种语言在
+  `dyn_menu.lua` / `dynamic_menu.lua` 中全覆盖。
 - MediaInfo：`script-opts/stats_mediainfo.conf` → `mediainfo_path=~~/MediaInfo.exe`。
-- 排障：`mpv.conf` 取消 `log-file` 注释并设 `msg-level=all=v`；`hdr_auto.conf` 设 `log=yes`。
+- 排障：取消 `mpv.conf` 中 `log-file` 注释并设 `msg-level=all=v`；
+  `hdr_auto.conf` 设 `log=yes`。
 
-### 播放器设置（设置窗口）
+### 设置窗口
 
-硬解（`hwdec`）、启动音量/最大音量（`volume`/`volume-max`）、播放结束动作（`keep-open`）、循环文件/播放列表（`loop-file`/`loop-playlist`）、默认速度、保存/恢复播放进度（`save-position-on-quit`/`resume-playback`）、反交错、画面比例、放大/缩小算法（`scale`/`dscale`）、旋转、去色带、线性缩小、S 形放大、视频同步、帧插值、HR seek（`hr-seek`）与跳转丢帧（`hr-seek-framedrop`）、HDR 色调映射、抖动深度、首选音频/字幕语言（`alang`/`slang`）、音频设备、声道、延迟、独占模式、音调校正、降混标准化、自动加载外挂音频、音频文件显示（`audio-display`）、字幕字号/位置/延迟/字体（系统默认、Segoe UI、微软雅黑、Arial、Times New Roman、Consolas、随包思源黑体/LXGW WenKai）/字体提供程序（`sub-font-provider`）/编码/描边/阴影/ASS 覆盖/模糊/内嵌字体/黑边/ASS 黑边（`sub-ass-force-margins`）/图形字幕拉伸（`stretch-image-subs-to-screen`）/回退（`subs-fallback`）/混合模式（`blend-subtitles`）/随窗口缩放、OSD 字体/字号/跳转显示（`osd-on-seek`）/显示时长、ICC 自动校色与 3D LUT 大小、视频输出电平、解码直接输出到显存（`vd-lavc-dr`）、解复用器缓存（`demuxer-max-bytes`）、磁盘缓存、截图目录（系统文件夹选择 + 打开资源管理器）与文件名模板/格式/JPEG 质量/PNG 压缩/WebP 质量/高色深/色彩空间标记/软件截图（`screenshot-sw`）、缓存目录、视频预览缩略图。列表类选项提供本地化预设，需要非预设值时选择“自定义”再输入。视频预览由 thumbfast 配合应用进度条实现：Lua 桥接把悬停/拖动位置交给 thumbfast，thumbfast 用随包独立 `mpv.exe`（`package.ps1` 自动获取）渲染帧，应用再把缩略图以圆角 WinUI 卡片绘制在进度条上方（不再使用 mpv overlay），卡片会跟随悬停位置与进度条拖动手柄。分类与 mpv 官方手册一致：程序行为（界面、语言与日志、网络集成）、播放控制（播放、跳转、进度预览）、轨道选择（首选语言、回退）、记忆播放（续播、存储）、视频（解码、画面、HDR 与色彩、放大）、音频（输出、音量、外部音频、封面）、字幕（文本/ASS/图形字幕）、窗口、解封装（播放列表与目录、缓冲）、缓存、输入、OSD（OSD、元数据覆盖层）、截屏（位置与命名、格式与质量）、GPU 渲染器选项（缩放与抖动、色彩与 HDR、动态插帧、背景、Direct3D 11、着色器与缓存）、视频同步。底层色彩/流/脚本选项（ICC、`target-*`、D3D11、着色器缓存、GLSL 着色器）归入 GPU 渲染器选项，缓存/解封装目录归入缓存/解封装，稍后观看目录归入记忆播放，OSD 样式归入 OSD。ASS/高级字幕选项（ASS 覆盖、ASS 黑边、ASS 随窗口缩放、内嵌字体、字幕混合）位于字幕分类的“ASS 字幕”分区，字幕回退（`subs-fallback`）按官方手册归入轨道选择。另覆盖网络缓存/预读（`cache`/`demuxer-readahead-secs`）、yt-dlp 解析（`ytdl`）、自动播放列表与文件夹模式、色度上采样（`cscale`）、帧插值算法（`tscale`）、线性光上采样、抖动算法、panscan、外挂字幕目录（`sub-file-paths`）与字幕 HDR 峰值、ASS 样式覆盖（`sub-ass-style-overrides`）、OSD 播放消息与进度条宽度、目标色彩空间/基色/传递曲线/峰值（`target-*`）、ICC 与着色器缓存、向后解复用缓存（`demuxer-max-back-bytes`）；script-opts 插件选项（自动播放列表、元数据 OSD、封面、thumbfast、RTX HDR 日志）由设置写入配置目录，下次启动生效。说明仅在补充信息时显示、不与黄色警告重复并给出推荐值；冲突项置灰（如线性光与 S 形上采样互斥、启用字幕混合后 ASS 黑边无效），可能无效项以黄色提示。改动即时下发 mpv，启动时自动应用；语言、背景、调试日志与视频预览等应用级设置即时生效，无需重启。左侧分类搜索支持拼音、日文罗马字和韩文罗马音；快捷键按功能分栏（播放、导航、视频、音频、字幕、速度、音量、滤镜、工具、查看、截屏），点击任意一行即可捕获新键盘或鼠标绑定（捕获期间自动禁用输入法），重绑时保留原注释写回 `input.conf`。状态栏提供“原版”与“居中”两种风格：原版保持上游按钮顺序，居中按 ModernX 顺序排列（轨道/音量在左、上一曲/后退/播放/前进/下一曲居中、窗口控制靠右），每种风格独立保存图标显隐勾选。
+分类：桌面（界面/背景/字体/状态栏排版/语言日志/文件关联）、播放、记忆播放、
+视频、音频、字幕、窗口、缓存、网络、输入、快捷键、OSD、截屏、测试。
+所有选项即改即生效；底部有“重置当前分类 / 重置所有设置”。左侧搜索支持
+拼音、日文罗马音和韩文罗马化匹配。
 
-### 帮助 / 关于
+## 构建与发布
 
-帮助菜单新增独立“mpv 官方手册”项（<https://mpv.io/manual/master/>）；关于对话框提供 mpv GitHub 与本项目（<https://github.com/saillill/mpv-winui-player>）链接。
-
-## 构建
-
-### 环境
-
-| 要求 | 说明 |
+| 依赖 | 说明 |
 |---|---|
 | Windows 10/11 x64 | 目标平台 |
-| [.NET 10 SDK](https://dotnet.microsoft.com/) | 编译 C# WinUI 3 应用 |
-| Visual Studio Build Tools（C++ 工作负载） | 编译 `mpv_winrt`（`VCTargetsPath` 属 VS 组件） |
+| [.NET 10 SDK](https://dotnet.microsoft.com/) | 构建 C# WinUI 3 应用 |
+| Visual Studio Build Tools（C++ 工作负载） | 构建 `mpv_winrt`（依赖 `VCTargetsPath`） |
 | Windows App SDK 2.3.x | NuGet 还原 |
 | `mpv-2.dll` | 从 [ikas-mc/mpv-windows-builder](https://github.com/ikas-mc/mpv-windows-builder) 下载到 `mpv-winui\libs\` |
 
-### 构建与打包
-
 ```powershell
 .\build.ps1 -Configuration Release -Platform x64
-.\package.ps1 -Configuration Release -Platform x64   # 产出 dist\mpv-winui-win-x64-Release.zip
+.\package.ps1 -Configuration Release -Platform x64   # -> dist\mpv-winui-win-x64-Release.zip
 ```
 
-CI（`.github/workflows/build.yml`，手动 `workflow_dispatch`）与本地一致；未配证书 secrets 时自动跳过 MSIX，产出 unpackaged 目录 + Release zip。
+CI（`.github/workflows/build.yml`，手动 `workflow_dispatch`）使用相同流程；
+未配置签名证书时跳过 MSIX，上传 unpackaged 输出与 Release zip。
 
-### 引用项目
+## 上游参考与库调用
 
-- 运行时：mpv（LGPL-2.1+/GPL-2.0+）、libplacebo（LGPL-2.1+）、Windows App SDK / WinUI 3（MIT）、CsWinRT / CsWin32（MIT）、NLog（BSD-3）、MediaInfo（BSD-2）、.NET（MIT）、NUnit（MIT）。
-- 配置层：hooke007/mpv_PlayKit（基线，未列出文件默认 UNLICENSED）、tsl0922/mpv-menu（GPL-2.0-only）、coverart / recent-menu / metadata-osd（MIT）、thumbfast（MPL-2.0）、mpv 自带 console/select/stats、思源黑体 / LXGW WenKai（OFL-1.1）、着色器（以文件头为准）。
-- 完整清单与许可证全文：[mpv-winui-lazy/THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md)。
+### 项目来源
 
-## 许可证
+| 项目 | 用途 |
+|---|---|
+| [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player) | 上游应用基线（WinUI 外壳 + `mpv_winrt` 组件） |
+| [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)（mpv-lazy） | 配置层基线：`mpv.conf`、`profiles.conf`、`input.conf`、脚本、着色器 |
+| [mpv-player/mpv](https://github.com/mpv-player/mpv) | 核心播放引擎（libmpv + thumbfast 用独立 CLI） |
+| [haasn/libplacebo](https://github.com/haasn/libplacebo) | mpv `gpu-next` VO 内部渲染 |
+| [ikas-mc/mpv-windows-builder](https://github.com/ikas-mc/mpv-windows-builder) | Windows `mpv-2.dll` 构建 |
+| [shinchiro/mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake) | thumbfast 随附的独立 `mpv.exe` |
+| [tsl0922/mpv-menu-plugin](https://github.com/tsl0922/mpv-menu-plugin) | `dyn_menu.lua` / `dialog.lua`（mpv 右键菜单数据） |
+| [po5/thumbfast](https://github.com/po5/thumbfast) | 缩略图预览引擎 |
+| [CogentRedTester/mpv-coverart](https://github.com/CogentRedTester/mpv-coverart) | 封面加载 |
+| [natural-harmonia-gropius/recent-menu](https://github.com/natural-harmonia-gropius/recent-menu) | 最近打开菜单 |
+| [vc-01/metadata-osd](https://github.com/vc-01/metadata-osd) | 元数据 OSD |
+| [MediaArea/MediaInfo](https://mediaarea.net/en/MediaInfo) | MediaInfo CLI（工具菜单） |
+| [apades/dmMiniPlayer](https://github.com/apades/dmMiniPlayer) | 画中画交互参考（documentPictureInPicture） |
+
+### 应用使用的运行时库
+
+| 库 | 许可 | 用途 |
+|---|---|---|
+| Windows App SDK / WinUI 3 | MIT | UI 框架 |
+| CsWinRT / CsWin32 | MIT | C#/WinRT 互操作与 Win32 P/Invoke 生成 |
+| NLog | BSD-3 | 日志 |
+| .NET | MIT | 托管运行时 |
+| libmpv / libplacebo | LGPL-2.1+ | 播放与渲染 |
+| MediaInfo CLI | BSD-2-Clause | 文件元数据 |
+| 思源黑体 / LXGW WenKai Mono Lite | SIL OFL-1.1 | 随附可选字体 |
+| 着色器（Anime4K、FSRCNNX、nnedi3、NVIDIA 等） | 见文件头 / THIRD_PARTY_NOTICES | 可选放大/增强 |
+| VapourSynth 模板（`vs/*.vpy`） | mpv-lazy 维护 | 可选 VapourSynth 工作流 |
+
+## 开源协议合规
 
 - 应用代码：**LGPL-2.1**（[LICENSE.txt](LICENSE.txt)，与上游一致）。
-- 配置层自创内容：**LGPL-2.1-or-later**；第三方组件以各自许可证为准（见 [THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md)）。
+- 配置层自有部分：**LGPL-2.1-or-later**；第三方组件保留各自许可。
+- `dyn_menu.lua` 与 `dialog.lua` 为 **GPL-2.0-only** 源码脚本，随源码保留来源
+  声明（已移除随附的 `menu.dll` GPL 二进制——自带 mpv 走原生 `menu-data` 路径）。
+- 随附 `mpv.exe` 为 **GPL-2.0+**（thumbfast 调用的独立程序），源码见上游仓库。
+- 配置层基于 mpv-lazy；其 `LICENSE.MD` 将未列出的文件视为 UNLICENSED，
+  因此对直接复制的文件保留来源声明。
+- 完整组件清单与许可文本：
+  [mpv-winui-lazy/THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md)、
+  [fonts/OFL-1.1.txt](mpv-winui-lazy/fonts/OFL-1.1.txt)、
+  [licenses/MediaInfo-BSD-2-Clause.txt](mpv-winui-lazy/licenses/MediaInfo-BSD-2-Clause.txt)。
+
+## 已知限制
+
+- `display-info.log` 中显示器名称字段在多显示器环境下可能为空
+  （HDR 类型与刷新率仍会正常跟踪）。
+- `keep-open=always` 按设计在文件播完后暂停；恢复播放后 `loop-playlist`
+  再继续循环。
+- unpackaged 模式首次运行需执行 `deploy-config.ps1`，把配置层同步到
+  `%LOCALAPPDATA%\mpv-winui\mpv`。

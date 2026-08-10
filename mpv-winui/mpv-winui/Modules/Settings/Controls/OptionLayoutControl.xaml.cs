@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
+using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.Player;
 using System;
 using System.Collections.Generic;
@@ -54,13 +55,13 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         {
             Padding = new Thickness(12),
             CornerRadius = new CornerRadius(6),
-            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorSecondaryBrush"],
+            Background = ThemeResource.Brush(this, "CardBackgroundFillColorSecondaryBrush"),
             BorderThickness = new Thickness(2),
             Tag = choice.Value,
         };
 
         var panel = new StackPanel { Spacing = 8 };
-        var header = new Grid { ColumnSpacing = 8 };
+        var header = new Grid { ColumnSpacing = 2 };
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -108,6 +109,22 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             {
                 return;
             }
+
+            // A tap on the radio itself only changes the selection; the
+            // Checked handler already applied it, so never expand here.
+            if (e.OriginalSource is DependencyObject tapped && IsDescendantOf(tapped, radio))
+            {
+                return;
+            }
+
+            // Selecting a card must not expand it; expand only happens when
+            // tapping an already selected card.
+            if (!string.Equals(choice.Value, _current, StringComparison.Ordinal))
+            {
+                Select(choice.Value);
+                return;
+            }
+
             ToggleExpand(card, expandIcon, expandedPanel, choice.Value);
         };
         UpdateCardBorder(card);
@@ -162,7 +179,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             else
             {
                 var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-                row.Children.Add(new FontIcon { Glyph = item.Glyph, FontSize = 14 });
+                row.Children.Add(CreateIcon(item.Glyph));
                 row.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
                 box.Content = row;
             }
@@ -191,6 +208,29 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         _current = value;
         setter(value);
         Setting?.NotifyChanged();
+
+        // Selecting a style switches the hidden-icon list to that style, so
+        // collapse any card that was expanded before (selection never expands).
+        _expandedValue = null;
+        foreach (var item in StyleCards.Items)
+        {
+            if (item is Border card
+                && card.Child is StackPanel panel
+                && panel.Children.Count >= 3)
+            {
+                if (panel.Children[2] is StackPanel expanded)
+                {
+                    expanded.Visibility = Visibility.Collapsed;
+                }
+                if (panel.Children[0] is Grid header
+                    && header.Children.Count == 3
+                    && header.Children[2] is FontIcon icon)
+                {
+                    icon.Glyph = "\uE70D";
+                }
+            }
+        }
+
         foreach (var item in StyleCards.Items)
         {
             if (item is Border card)
@@ -208,25 +248,6 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 }
             }
         }
-
-        // The expanded checklist belongs to one style, so refresh it when
-        // the selected style changes (each style stores its own hidden icons).
-        if (!string.IsNullOrEmpty(_expandedValue))
-        {
-            _expandedValue = value;
-            foreach (var item in StyleCards.Items)
-            {
-                if (item is Border card
-                    && string.Equals(card.Tag as string, value, StringComparison.Ordinal)
-                    && card.Child is StackPanel panel
-                    && panel.Children.Count >= 3
-                    && panel.Children[2] is StackPanel expanded)
-                {
-                    BuildIconChecklist(expanded, value);
-                    break;
-                }
-            }
-        }
     }
 
     private void UpdateCardBorder(Border card)
@@ -234,15 +255,15 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         var selected = string.Equals(card.Tag as string, _current, StringComparison.Ordinal);
         card.BorderBrush = selected
             ? new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
-            : (Brush)Application.Current.Resources["ControlStrokeColorDefaultBrush"];
+            : ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush");
     }
 
-    private static FrameworkElement BuildPreview(string value)
+    private FrameworkElement BuildPreview(string value)
     {
         var bar = new Border
         {
             Height = 38,
-            Background = (Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"],
+            Background = ThemeResource.Brush(this, "ControlFillColorSecondaryBrush"),
             CornerRadius = new CornerRadius(4),
             Padding = new Thickness(6, 0, 6, 0),
         };
@@ -263,7 +284,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         {
             var left = BuildIconCluster(
                 HorizontalAlignment.Left,
-                "\uED1F", ControlBarIcons.Shuffle, "\uE8EE", "\uEB90", "\uE995"); // tracks, random, repeat, speed, volume
+                "\uED1F", ControlBarIcons.Shuffle, "\uE8EE", "\uEC57", "\uE995"); // tracks, random, repeat, speed, volume
             var center = BuildIconCluster(
                 HorizontalAlignment.Center,
                 "\uF8AC", "\uE627",                                // previous, skip back
@@ -271,7 +292,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 "\uE628", "\uF8AD");                               // skip forward, next
             var right = BuildIconCluster(
                 HorizontalAlignment.Right,
-                "\uE799", "\uE7C9",                                // aspect, picture-in-picture
+                "\uE799", ControlBarIcons.PictureInPicture,        // aspect, picture-in-picture
                 "\uF16B", "\uE740");                               // full window, full screen
             Grid.SetColumn(left, 0);
             Grid.SetColumn(center, 1);
@@ -289,8 +310,8 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 "\uE72A", ControlBarIcons.Shuffle, "\uE8EE");      // stop, shuffle, repeat
             var right = BuildIconCluster(
                 HorizontalAlignment.Right,
-                "\uE995", "\uEB90", "\uED1F",                      // volume, speed, tracks
-                "\uE799", "\uE7C9", "\uF16B",                      // zoom, picture-in-picture, full window
+                "\uE995", "\uEC57", "\uED1F",                      // volume, speed, tracks
+                "\uE799", ControlBarIcons.PictureInPicture, "\uF16B", // zoom, picture-in-picture, full window
                 "\uE740");                                         // full screen
             Grid.SetColumn(left, 0);
             Grid.SetColumn(right, 2);
@@ -302,7 +323,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         return bar;
     }
 
-    private static StackPanel BuildIconCluster(HorizontalAlignment alignment, params string[] glyphs)
+    private StackPanel BuildIconCluster(HorizontalAlignment alignment, params string[] glyphs)
     {
         var row = new StackPanel
         {
@@ -318,11 +339,19 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         return row;
     }
 
-    /// <summary>Renders a FontIcon glyph, or a PathIcon when the string is path data.</summary>
-    private static IconElement CreateIcon(string value)
+    /// <summary>Renders a FontIcon glyph, or a PathIcon for "F1 M ..." path data.</summary>
+    private UIElement CreateIcon(string value)
     {
         return value.StartsWith("F1 ", StringComparison.Ordinal)
-            ? new PathIcon { Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), value), Width = 14, Height = 14 }
+            ? new Viewbox
+            {
+                Width = 14,
+                Height = 14,
+                Child = new PathIcon
+                {
+                    Data = (Geometry)XamlBindingHelper.ConvertValue(typeof(Geometry), value),
+                },
+            }
             : new FontIcon { Glyph = value, FontSize = 14 };
     }
 }

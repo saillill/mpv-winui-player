@@ -22,6 +22,7 @@ public sealed partial class WindowStyleManager : IDisposable
     private DesktopAcrylicController? _acrylicController;
     private MicaController? _micaController;
     private ElementTheme _theme;
+    private bool _micaHasCustomTint;
 
     public WindowStyleManager(Window window)
     {
@@ -76,6 +77,7 @@ public sealed partial class WindowStyleManager : IDisposable
         _acrylicController = null;
         _micaController?.Dispose();
         _micaController = null;
+        _micaHasCustomTint = false;
 
         switch (AppContext.AppSetting.BackdropType)
         {
@@ -198,17 +200,34 @@ public sealed partial class WindowStyleManager : IDisposable
 
         // Outside Custom theme mode the tint options are hidden, so Mica keeps
         // the stock Windows look (subtle wallpaper tint) instead of applying
-        // leftover custom colors.
+        // leftover custom colors. Recreate the controller so the system
+        // default color is truly restored rather than overwritten.
         if (AppContext.AppSetting.ThemeType != AppSettings.ThemeType_Custom)
         {
-            _micaController.TintColor = Colors.Transparent;
-            _micaController.TintOpacity = 1f;
-            _micaController.LuminosityOpacity = 1f;
+            if (_micaHasCustomTint)
+            {
+                RecreateMica();
+            }
             return;
         }
 
         _micaController.TintColor = GetBackdropTintColor(_theme);
         _micaController.TintOpacity = GetBackdropTintOpacity();
+        _micaHasCustomTint = true;
+    }
+
+    private void RecreateMica()
+    {
+        _micaController?.Dispose();
+        _micaController = null;
+        _micaHasCustomTint = false;
+
+        if (MicaController.IsSupported())
+        {
+            _micaController = new MicaController();
+            _micaController?.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
+            _micaController?.SetSystemBackdropConfiguration(_configurationSource);
+        }
     }
 
     private Color GetBackdropTintColor(ElementTheme theme)

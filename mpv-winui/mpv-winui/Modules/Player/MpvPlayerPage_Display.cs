@@ -134,6 +134,15 @@ namespace mpv_winui.Modules.Player
                 _lastColorKind = newKind;
                 _mediaPlayer?.UpdateDisplayColorInfo(newKind);
             }
+
+            // The 3s timer is a safety net for display events that WinRT may
+            // miss (cross-monitor / HDR switches); also re-check refresh rate.
+            var rate = ReadRefreshRate();
+            if (rate != _lastRefreshRate)
+            {
+                _lastRefreshRate = rate;
+                _mediaPlayer?.UpdateDisplayRefreshRate(rate);
+            }
         }
 
         private void TryLogDisplayInfo(mpv_winrt.DisplayColorKind kind, DisplayAdvancedColorInfo? colorInfo)
@@ -227,10 +236,7 @@ namespace mpv_winui.Modules.Player
                 }
 
                 var rate = ReadRefreshRate();
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.Trace("display update, last monitor={},,lastRefreshRate={}, new monitor={}, newRefreshRates={}", monitor.ToString(), _lastRefreshRate, monitor.ToString(), rate);
-                }
+                _logger.Debug("display update, last monitor={}, lastRefreshRate={}, new monitor={}, newRefreshRate={}", monitor.ToString(), _lastRefreshRate, monitor.ToString(), rate);
                 if (rate != _lastRefreshRate)
                 {
                     _lastRefreshRate = rate;
@@ -284,6 +290,27 @@ namespace mpv_winui.Modules.Player
                     if (_selfWeakReference?.TryGetTarget(out var self) == true)
                     {
                         self?._displayInfoDebouncer?.OnEvent(1);
+                    }
+                    break;
+                }
+
+                case 0x020B: // WM_XBUTTONDOWN
+                {
+                    // input.conf: MBTN_BACK / MBTN_FORWARD -> playlist prev/next
+                    if (_selfWeakReference?.TryGetTarget(out var self) == true)
+                    {
+                        var xButton = (int)(((ulong)wParam.Value >> 16) & 0xFFFF);
+                        var keyName = xButton switch
+                        {
+                            0x0001 => "MBTN_BACK",
+                            0x0002 => "MBTN_FORWARD",
+                            _ => null,
+                        };
+                        if (keyName is not null)
+                        {
+                            self?._mediaPlayer?.Command(["keydown", keyName]);
+                            self?._mediaPlayer?.Command(["keyup", keyName]);
+                        }
                     }
                     break;
                 }

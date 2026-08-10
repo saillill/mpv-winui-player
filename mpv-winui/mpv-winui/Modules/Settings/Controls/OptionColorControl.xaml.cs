@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using mpv_winui.Modules.Common.View;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -192,15 +193,26 @@ public sealed partial class OptionColorControl : OptionControlBase
 
     private async void OnCustomClick(object sender, RoutedEventArgs e)
     {
-        if (Setting is null)
+        if (Setting is null || XamlRoot is null)
         {
             return;
         }
 
-        var window = new mpv_winui.Modules.Settings.ColorPickerWindow(
-            Setting.Getter?.Invoke() as string ?? string.Empty);
-        var hex = await window.PickAsync();
-        if (!string.IsNullOrEmpty(hex))
+        var picker = new CustomColorPickerControl
+        {
+            CurrentColor = Setting.Getter?.Invoke() as string ?? string.Empty,
+        };
+        var dialog = new ContentDialog
+        {
+            Title = mpv_winui.AppContext.AppLang.ThemeColorCustomColors,
+            Content = picker,
+            XamlRoot = XamlRoot,
+            RequestedTheme = WindowStyleManager.ResolveTheme(),
+        };
+        picker.Applied += () => dialog.Hide();
+        await dialog.ShowAsync();
+
+        if (picker.Result is string hex)
         {
             ApplyColor(hex);
         }

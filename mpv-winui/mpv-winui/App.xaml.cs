@@ -17,6 +17,10 @@ namespace mpv_winui
         {
             InitializeComponent();
             AppContext.Init();
+            UnhandledException += (_, e) =>
+            {
+                _logger.Error(e.Exception, "Unhandled XAML exception");
+            };
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
