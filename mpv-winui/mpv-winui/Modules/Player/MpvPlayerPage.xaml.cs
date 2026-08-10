@@ -165,7 +165,6 @@ namespace mpv_winui.Modules.Player
 
         private void PlayerView_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
         {
-            PlayerControl.ToggleControlPanel();
             // input.conf: MBTN_LEFT cycle pause
             SendMouseButton("MBTN_LEFT");
         }

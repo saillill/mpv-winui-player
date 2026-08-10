@@ -37,7 +37,7 @@ namespace mpv_winui.Modules.Player
         private readonly DispatcherTimer _hideDelayTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
         private readonly DispatcherTimer _overlayIdleTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
         private Point _lastOverlayActivity = new(double.NaN, double.NaN);
-        private const double OverlayMoveThreshold = 3.0;
+        private const double OverlayMoveThreshold = 5.0;
         private long _panelAnimationStart;
         private bool _panelAnimationShow;
         private bool _panelAnimating;
@@ -266,11 +266,10 @@ namespace mpv_winui.Modules.Player
                 // Fullscreen mask: the gradient shell extends 120px above the
                 // bar so the video fades into the controls.
                 ControlPanelGradient.Height = 120;
-                // The gradient is black, so the panel needs its own dark
-                // translucent background and a dark element theme; otherwise
-                // light-theme glyphs stay black and the whole bar is
-                // invisible on the gradient.
-                ControlPanelGrid.Background = new SolidColorBrush(Color.FromArgb(0x99, 0, 0, 0));
+                // PiP-style overlay: no solid panel box, only the gradient
+                // fade. The dark element theme keeps glyphs white so they
+                // stay readable on the gradient without a visible border.
+                ControlPanelGrid.Background = null;
                 ControlPanelGrid.RequestedTheme = ElementTheme.Dark;
                 ControlPanelGradient.Background = new LinearGradientBrush
                 {
@@ -299,12 +298,19 @@ namespace mpv_winui.Modules.Player
                 ControlPanelGradient.Height = double.NaN;
                 ControlPanelGradient.Background = null;
                 ControlPanelGradient.Opacity = 1;
-                // Windowed mode: no background box on the bar (light or dark
-                // theme). The bar is transparent; only the overlay keeps the
-                // dark translucent panel for readability.
                 ControlPanelGrid.Background = null;
                 ControlPanelGrid.RequestedTheme = ElementTheme.Default;
                 _overlayIdleTimer.Stop();
+                // Reset any mid-animation state: leaving overlay while the
+                // bar was fading out used to leave it at partial opacity or
+                // collapsed, which the user saw as an incompletely expanded
+                // windowed bar after double-click fullscreen.
+                StopPanelAnimations();
+                ControlPanelGradient.Visibility = Visibility.Visible;
+                ControlPanelGrid.Opacity = 1;
+                TranslateVertical.Y = 0;
+                ControlPanelGrid.Visibility = Visibility.Visible;
+                _controlPanelIsVisible = true;
                 ShowControlPanel();
             }
         }
@@ -1189,18 +1195,6 @@ namespace mpv_winui.Modules.Player
         public bool IsVisible()
         {
             return _controlPanelIsVisible;
-        }
-
-        public void ToggleControlPanel()
-        {
-            if (_controlPanelIsVisible)
-            {
-                HideControlPanel();
-            }
-            else
-            {
-                ShowControlPanel();
-            }
         }
 
         public void ShowControlPanel()

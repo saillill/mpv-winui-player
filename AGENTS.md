@@ -71,9 +71,11 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   applies the presenter, full-window page state and overlay; the app button
   only sends `set fullscreen yes/no`). Keep it state-based, never toggle-based,
   or ESC ("set fullscreen no") cannot leave fullscreen.
-- **Overlay readability**: in overlay mode `ControlPanelGrid` uses a dark
-  translucent background plus `RequestedTheme=Dark`; restoring the saved
-  background and `ElementTheme.Default` on exit is load-bearing.
+- **Overlay look**: in overlay mode `ControlPanelGrid` is transparent (PiP
+  style: only the gradient mask fades the video into the bar) with
+  `RequestedTheme=Dark` so glyphs stay white. No solid panel box; on exit
+  reset opacity/translate/visibility fully (a mid-fade exit used to leave
+  the windowed bar partially expanded).
 - **Fullscreen + PiP**: hiding and re-showing a FullScreen-presenter window can
   leave the XAML overlay stale (video renders, control bar does not). On PiP
   exit, cycle the presenter Default → FullScreen when `_isFullScreen`, and do
