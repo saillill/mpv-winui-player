@@ -1,7 +1,6 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
@@ -10,38 +9,32 @@ using WinRT.Interop;
 namespace mpv_winui.Modules.Player;
 
 /// <summary>
-/// Dedicated picture-in-picture window: a borderless always-on-top window with
-/// rounded corners, the video swap chain, and a fullscreen-style control bar
-/// (volume, seek, play/pause) with a progress line. The main window is hidden
-/// while PiP is active; PiP can only be left by restoring the main window.
+/// Dedicated picture-in-picture window: a fixed-size borderless always-on-top
+/// window with rounded corners and the video swap chain. It reuses the
+/// fullscreen PlayerControl in centered compact mode. The main window is
+/// hidden while PiP is active; PiP can only be left by restoring the main
+/// window (top-left back, top-right close, or Alt+F4).
 /// </summary>
 public sealed partial class PiPWindow : Window
 {
     public static PiPWindow? Instance { get; private set; }
 
     private MpvMediaPlayer? _player;
-    private readonly DispatcherTimer _positionTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
-    private readonly DispatcherTimer _hideControlsTimer = new() { Interval = TimeSpan.FromSeconds(3) };
+    private bool _dragging;
+    private Windows.Foundation.Point _dragStart;
     private bool _closing;
 
     public PiPWindow()
     {
         Instance = this;
         InitializeComponent();
+        RootGrid.RequestedTheme = ElementTheme.Dark;
         ConfigureWindow();
         ApplyLocalizedStrings();
 
-        PiPView.PointerMoved += (_, _) => ShowControlsTemporarily();
-        PiPView.PointerPressed += (_, _) => ShowControlsTemporarily();
-        RootGrid.PointerMoved += (_, _) => ShowControlsTemporarily();
-        DragArea.PointerPressed += DragArea_PointerPressed;
-
-        _positionTimer.Tick += (_, _) => UpdateProgress();
-        _hideControlsTimer.Tick += (_, _) =>
-        {
-            _hideControlsTimer.Stop();
-            ControlsPanel.Visibility = Visibility.Collapsed;
-        };
+        PiPView.PointerPressed += PiPView_PointerPressed;
+        PiPView.PointerMoved += PiPView_PointerMoved;
+        PiPView.PointerReleased += PiPView_PointerReleased;
 
         AppWindow.Closing += AppWindow_Closing;
         Closed += PiPWindow_Closed;
@@ -53,39 +46,28 @@ public sealed partial class PiPWindow : Window
     public void Attach(MpvMediaPlayer player)
     {
         _player = player;
-        _player.PlaybackStateChanged += OnPlaybackStateChanged;
-        _player.VolumeChangedChanged += OnVolumeChanged;
-        UpdatePlayButton();
-        UpdateVolumeButton();
+        PiPControls.MediaPlayer = player;
+        PiPControls.IsPiPHost = true;
     }
 
     public void Detach()
     {
-        if (_player is { } player)
+        if (_player is not null)
         {
-            player.PlaybackStateChanged -= OnPlaybackStateChanged;
-            player.VolumeChangedChanged -= OnVolumeChanged;
+            PiPControls.MediaPlayer = null;
             _player = null;
         }
     }
 
     public void ShowPiP(int width, int height)
     {
-        AppWindow.MoveAndResize(new RectInt32(
-            Math.Max(0, AppWindow.Position.X),
-            Math.Max(0, AppWindow.Position.Y),
-            Math.Max(160, width),
-            Math.Max(90, height)));
+        PositionAtBottomRight(width, height);
         AppWindow.Show();
-        ShowControlsTemporarily();
-        _positionTimer.Start();
-        UpdateProgress();
+        PiPControls.ShowControlPanel();
     }
 
     public void HidePiP()
     {
-        _positionTimer.Stop();
-        _hideControlsTimer.Stop();
         AppWindow.Hide();
     }
 
@@ -96,7 +78,9 @@ public sealed partial class PiPWindow : Window
             presenter.IsAlwaysOnTop = true;
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
-            presenter.IsResizable = true;
+            // Fixed size: a resizable borderless window leaves a transparent
+            // top frame through which the desktop shows as a white strip.
+            presenter.IsResizable = false;
             presenter.SetBorderAndTitleBar(false, false);
         }
 
@@ -104,6 +88,30 @@ public sealed partial class PiPWindow : Window
         AppWindow.SetIcon("App.ico");
 
         ApplyRoundedCorners();
+        MakeFrameless();
+    }
+
+    private void PositionAtBottomRight(int width, int height)
+    {
+        try
+        {
+            var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary);
+            var work = area.WorkArea;
+            var x = work.X + work.Width - width - 16;
+            var y = work.Y + work.Height - height - 16;
+            AppWindow.MoveAndResize(new RectInt32(Math.Max(work.X, x), Math.Max(work.Y, y), width, height));
+        }
+        catch (Exception)
+        {
+            AppWindow.MoveAndResize(new RectInt32(
+                Math.Max(0, AppWindow.Position.X),
+                Math.Max(0, AppWindow.Position.Y),
+                width,
+                height));
+        }
+        // The presenter may re-apply a non-client frame when the window is
+        // moved/resized; strip it again so the content fills the whole window.
+        MakeFrameless();
     }
 
     private void ApplyRoundedCorners()
@@ -115,6 +123,11 @@ public sealed partial class PiPWindow : Window
             unsafe
             {
                 _ = DwmSetWindowAttribute(hwnd, 33, &preference, sizeof(int));
+                var borderColor = 0x000000; // black BGR, hides the light top border
+                _ = DwmSetWindowAttribute(hwnd, 34, &borderColor, sizeof(int)); // DWMWA_BORDER_COLOR
+                _ = DwmSetWindowAttribute(hwnd, 35, &borderColor, sizeof(int)); // DWMWA_CAPTION_COLOR
+                var ncPolicy = 2; // DWMNCRP_DISABLED: content fills the whole window
+                _ = DwmSetWindowAttribute(hwnd, 2, &ncPolicy, sizeof(int));    // DWMWA_NCRENDERING_POLICY
             }
         }
         catch (Exception)
@@ -123,21 +136,41 @@ public sealed partial class PiPWindow : Window
         }
     }
 
-    private void DragArea_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    /// <summary>
+    /// Removes the DWM non-client frame (resize border) that otherwise leaves
+    /// a thin transparent strip around the window, showing the desktop as a
+    /// white line on light backgrounds.
+    /// </summary>
+    private void MakeFrameless()
     {
-        if (e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Mouse)
-        {
-            return;
-        }
-
         try
         {
             var hwnd = WindowNative.GetWindowHandle(this);
-            _ = SendMessage(hwnd, 0x00A1, new IntPtr(2), IntPtr.Zero); // WM_NCLBUTTONDOWN, HTCAPTION
+            const int GWL_STYLE = -16;
+            const int WS_BORDER = 0x00800000;
+            const int WS_DLGFRAME = 0x00400000;
+            const int WS_THICKFRAME = 0x00040000;
+            const uint SWP_NOSIZE = 0x0001;
+            const uint SWP_NOMOVE = 0x0002;
+            const uint SWP_NOZORDER = 0x0004;
+            const uint SWP_NOACTIVATE = 0x0010;
+            const uint SWP_FRAMECHANGED = 0x0020;
+
+            var style = GetWindowLong(hwnd, GWL_STYLE);
+            style &= ~(WS_BORDER | WS_DLGFRAME | WS_THICKFRAME);
+            _ = SetWindowLong(hwnd, GWL_STYLE, style);
+            _ = SetWindowPos(
+                hwnd,
+                IntPtr.Zero,
+                0,
+                0,
+                0,
+                0,
+                SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
         }
         catch (Exception)
         {
-            // Drag is optional; ignore failures on exotic input.
+            // Frameless styling is cosmetic; keep the default frame on failure.
         }
     }
 
@@ -145,117 +178,72 @@ public sealed partial class PiPWindow : Window
     {
         ToolTipService.SetToolTip(PiPBackButton, AppContext.AppLang.PiPBackToPlayer);
         ToolTipService.SetToolTip(PiPExitButton, AppContext.AppLang.PiPExit);
-        ToolTipService.SetToolTip(PiPVolumeButton, AppContext.AppLang.PiPMute);
-        ToolTipService.SetToolTip(PiPBackwardButton, AppContext.AppLang.PiPBackward);
-        ToolTipService.SetToolTip(PiPPlayPauseButton, AppContext.AppLang.Play);
-        ToolTipService.SetToolTip(PiPForwardButton, AppContext.AppLang.PiPForward);
     }
 
-    private void ShowControlsTemporarily()
+    private void PiPView_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        ControlsPanel.Visibility = Visibility.Visible;
-        _hideControlsTimer.Stop();
-        _hideControlsTimer.Start();
-    }
-
-    private void UpdateProgress()
-    {
-        if (_player is not { } player)
+        if (e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Mouse)
         {
             return;
         }
 
-        var duration = player.Duration;
-        if (duration > 0)
+        _dragging = false;
+        _dragStart = e.GetCurrentPoint(PiPView).Position;
+        PiPView.CapturePointer(e.Pointer);
+    }
+
+    private void PiPView_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (_dragging)
         {
-            PiPProgressBar.Value = Math.Clamp(player.Position / duration, 0, 1);
+            return;
         }
-        else
+
+        var position = e.GetCurrentPoint(PiPView).Position;
+        if (Math.Abs(position.X - _dragStart.X) < 8 && Math.Abs(position.Y - _dragStart.Y) < 8)
         {
-            PiPProgressBar.Value = 0;
+            return;
+        }
+
+        // Pass the move to the system caption so the whole video area drags
+        // the window, like browser picture-in-picture.
+        _dragging = true;
+        PiPView.ReleasePointerCapture(e.Pointer);
+        try
+        {
+            var hwnd = WindowNative.GetWindowHandle(this);
+            _ = SendMessage(hwnd, 0x00A1, new IntPtr(2), IntPtr.Zero); // WM_NCLBUTTONDOWN, HTCAPTION
+        }
+        catch (Exception)
+        {
+            _dragging = false;
         }
     }
 
-    private void OnPlaybackStateChanged(MpvMediaPlayer player, bool isPaused)
+    private void PiPView_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        DispatcherQueue.TryEnqueue(UpdatePlayButton);
-    }
-
-    private void OnVolumeChanged(MpvMediaPlayer player, int volume)
-    {
-        DispatcherQueue.TryEnqueue(UpdateVolumeButton);
-    }
-
-    private void UpdatePlayButton()
-    {
-        PiPPlayPauseSymbol.Glyph = _player is { Playing: true } ? "\uF8AE" : "\uF5B0";
-    }
-
-    private void UpdateVolumeButton()
-    {
-        PiPVolumeSymbol.Glyph = _player is { Volume: <= 0 } ? "\uE74F" : "\uE995";
+        PiPView.ReleasePointerCapture(e.Pointer);
+        _dragging = false;
     }
 
     private void PiPView_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
-        TogglePlayPause();
-    }
-
-    private void PiPPlayPauseButton_Click(object sender, RoutedEventArgs e)
-    {
-        TogglePlayPause();
-    }
-
-    private void TogglePlayPause()
-    {
-        if (_player is not { } player)
+        if (_dragging)
         {
             return;
         }
 
-        if (player.Playing)
-        {
-            player.Pause();
-        }
-        else
-        {
-            player.Play();
-        }
-        ShowControlsTemporarily();
-    }
-
-    private void PiPBackwardButton_Click(object sender, RoutedEventArgs e)
-    {
         if (_player is { } player)
         {
-            player.Position = Math.Max(0, player.Position - 10);
+            if (player.Playing)
+            {
+                player.Pause();
+            }
+            else
+            {
+                player.Play();
+            }
         }
-        ShowControlsTemporarily();
-    }
-
-    private void PiPForwardButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_player is { } player)
-        {
-            player.Position += 10;
-        }
-        ShowControlsTemporarily();
-    }
-
-    private void PiPVolumeButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_player is not { } player)
-        {
-            return;
-        }
-
-        var flyout = new Flyout
-        {
-            Content = new VolumeFlyoutControl(player),
-            Placement = FlyoutPlacementMode.TopEdgeAlignedLeft,
-        };
-        flyout.ShowAt(PiPVolumeButton);
-        ShowControlsTemporarily();
     }
 
     private void PiPBackButton_Click(object sender, RoutedEventArgs e)
@@ -293,8 +281,6 @@ public sealed partial class PiPWindow : Window
         }
         _closing = true;
 
-        _positionTimer.Stop();
-        _hideControlsTimer.Stop();
         Detach();
         if (ReferenceEquals(Instance, this))
         {
@@ -308,4 +294,13 @@ public sealed partial class PiPWindow : Window
 
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern int GetWindowLong(IntPtr hwnd, int index);
+
+    [DllImport("user32.dll")]
+    private static extern int SetWindowLong(IntPtr hwnd, int index, int value);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetWindowPos(IntPtr hwnd, IntPtr insertAfter, int x, int y, int cx, int cy, uint flags);
 }

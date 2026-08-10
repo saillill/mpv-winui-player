@@ -28,6 +28,8 @@ namespace mpv_winui.Modules.Player
         public event EventHandler? PreviewClearRequested;
 
         private bool _controlPanelIsVisible = true;
+        private bool _compactMode;
+        private bool _isPiPHost;
 
         private readonly DispatcherTimer _positionUpdateTimer;
         private bool _hasError = false;
@@ -138,6 +140,15 @@ namespace mpv_winui.Modules.Player
         {
             var pip = AppContext.AppSetting.WindowPiP;
             PiPBar.Visibility = Visibility.Collapsed;
+            if (_isPiPHost)
+            {
+                // The PiP window hosts this control bar, so it stays visible
+                // even while WindowPiP is enabled.
+                StopPanelAnimations();
+                ControlPanelGrid.Visibility = Visibility.Visible;
+                _controlPanelIsVisible = true;
+                return;
+            }
             if (pip)
             {
                 StopPanelAnimations();
@@ -149,8 +160,22 @@ namespace mpv_winui.Modules.Player
         /// <summary>Applies control-bar layout and hidden-icon preferences from the settings.</summary>
         public void ApplyControlBarStyle()
         {
-            var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
+            var layout = _compactMode ? "modernx" : NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
             ApplyControlBarOrder(layout);
+
+            if (_compactMode)
+            {
+                // PiP: centered transport plus volume only.
+                _currentSegment = 0;
+                VisualStateManager.GoToState(this, "Wide", false);
+                SetHidden(false, VolumeMuteButton, VolumeSliderContainer);
+                SetHidden(false, SkipBackwardButton, PlayPauseButton, SkipForwardButton);
+                SetHidden(true, PreviousTrackButton, RewindButton, FastForwardButton,
+                           NextTrackButton, StopButton, RepeatButton,
+                           TrackSelectionButton, ShuffleButton, PlaybackRateButton,
+                           ZoomButton, PiPButton, FullWindowButton, FullScreenButton);
+                return;
+            }
 
             var hiddenValue = layout == "modernx"
                 ? AppContext.AppSetting.ControlBarHiddenIconsModernX
@@ -168,6 +193,27 @@ namespace mpv_winui.Modules.Player
             SetHidden(hidden.Contains("fullwindow"), FullWindowButton);
             SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
             SetHidden(hidden.Contains("pip"), PiPButton);
+        }
+
+        /// <summary>
+        /// True when this control is hosted in the dedicated PiP window. The
+        /// bar switches to the centered layout and shows only volume plus the
+        /// transport buttons.
+        /// </summary>
+        public bool IsPiPHost
+        {
+            get => _isPiPHost;
+            set
+            {
+                if (_isPiPHost == value)
+                {
+                    return;
+                }
+                _isPiPHost = value;
+                _compactMode = value;
+                ApplyControlBarStyle();
+                UpdatePiPBar();
+            }
         }
 
         private string? _lastBarOrder;
@@ -1185,6 +1231,18 @@ namespace mpv_winui.Modules.Player
 
         private void UpdateToolbarVisibility(double w)
         {
+            if (_isPiPHost)
+            {
+                // PiP hosts the compact centered bar; the adaptive states would
+                // collapse the transport buttons at small widths.
+                if (_currentSegment != 0)
+                {
+                    _currentSegment = 0;
+                    VisualStateManager.GoToState(this, "Wide", false);
+                }
+                return;
+            }
+
             int newSegment = w >= 700 ? 0 : w >= 500 ? 1 : w >= 280 ? 2 : 3;
             if (newSegment == _currentSegment)
             {

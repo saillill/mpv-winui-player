@@ -1,7 +1,8 @@
 <Window
     x:Class="mpv_winui.Modules.Player.PiPWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:mpv_winui.Modules.Player">
 
     <Grid x:Name="RootGrid" Background="Black">
         <SwapChainPanel
@@ -43,104 +44,13 @@
         </Button>
 
         <!--
-            Bottom control bar in the same style as the fullscreen control
-            bar: progress on top, transport and volume below. It auto-hides
-            while idle and reappears on pointer movement.
+            The fullscreen control bar, in centered (居中) compact mode:
+            volume on the left, skip back / play / skip forward centered,
+            progress slider and time labels included. Everything else is
+            hidden.
         -->
-        <Border
-            x:Name="ControlsPanel"
-            Padding="8,6"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Bottom"
-            Background="#B3000000"
-            BorderBrush="#33FFFFFF"
-            BorderThickness="1"
-            CornerRadius="8"
-            Visibility="Collapsed">
-            <StackPanel Spacing="4">
-                <ProgressBar
-                    x:Name="PiPProgressBar"
-                    Height="3"
-                    Background="Transparent"
-                    Foreground="White"
-                    IsHitTestVisible="False"
-                    Maximum="1" />
-                <StackPanel
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="4">
-                    <Button
-                        x:Name="PiPVolumeButton"
-                        Width="40"
-                        Height="40"
-                        Padding="0"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Click="PiPVolumeButton_Click">
-                        <FontIcon
-                            x:Name="PiPVolumeSymbol"
-                            FontSize="16"
-                            Glyph="&#xE995;" />
-                    </Button>
-                    <Button
-                        x:Name="PiPBackwardButton"
-                        Width="52"
-                        Height="40"
-                        Padding="0"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Click="PiPBackwardButton_Click">
-                        <StackPanel Spacing="0">
-                            <FontIcon
-                                FontSize="16"
-                                Glyph="&#xE627;" />
-                            <TextBlock
-                                FontSize="9"
-                                HorizontalAlignment="Center"
-                                Text="10" />
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        x:Name="PiPPlayPauseButton"
-                        Width="40"
-                        Height="40"
-                        Padding="0"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Click="PiPPlayPauseButton_Click">
-                        <FontIcon
-                            x:Name="PiPPlayPauseSymbol"
-                            FontSize="18"
-                            Glyph="&#xF5B0;" />
-                    </Button>
-                    <Button
-                        x:Name="PiPForwardButton"
-                        Width="52"
-                        Height="40"
-                        Padding="0"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Click="PiPForwardButton_Click">
-                        <StackPanel Spacing="0">
-                            <FontIcon
-                                FontSize="16"
-                                Glyph="&#xE628;" />
-                            <TextBlock
-                                FontSize="9"
-                                HorizontalAlignment="Center"
-                                Text="10" />
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-
-        <!-- Drag handle across the top of the window. -->
-        <Border
-            x:Name="DragArea"
-            Height="40"
-            VerticalAlignment="Top"
-            Background="Transparent"
-            IsHitTestVisible="True" />
+        <local:PlayerControl
+            x:Name="PiPControls"
+            VerticalAlignment="Bottom" />
     </Grid>
 </Window>
