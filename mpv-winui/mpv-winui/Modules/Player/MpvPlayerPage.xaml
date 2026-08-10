@@ -10,6 +10,17 @@
     mc:Ignorable="d">
 
     <Page.Resources>
+        <Style
+            x:Key="TopBarIconButtonStyle"
+            BasedOn="{StaticResource DefaultButtonStyle}"
+            TargetType="Button">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
         <MenuFlyout x:Key="PlaylistContextMenu">
             <MenuFlyoutItem
                 Click="PlaylistMenu_Click"
@@ -110,7 +121,8 @@
         <MenuBar
             x:Name="MainMenuBar"
             Grid.Row="0"
-            Grid.ColumnSpan="1">
+            Grid.ColumnSpan="1"
+            HorizontalAlignment="Left">
             <MenuBarItem
                 Title="File"
                 Tag="file"
@@ -259,20 +271,35 @@
                     Text="90 min" />
             </MenuBarItem>
 
-            <MenuBarItem
-                Title="Toggle Playlist"
-                Tag="playlist-top"
-                IsTabStop="False">
-                <MenuFlyoutItem
-                    Click="MenuFlyoutItem_Click"
-                    Tag="playlist"
-                    Text="Toggle Playlist">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xE8FD;" />
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-            </MenuBarItem>
         </MenuBar>
+
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            Margin="8,0,10,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="4">
+            <Button
+                x:Name="TopBarOntopButton"
+                Click="TopBarOntop_Click"
+                Style="{StaticResource TopBarIconButtonStyle}">
+                <FontIcon FontSize="14" Glyph="&#xE718;" />
+            </Button>
+            <Button
+                x:Name="TopBarScreenshotButton"
+                Click="TopBarScreenshot_Click"
+                Style="{StaticResource TopBarIconButtonStyle}">
+                <FontIcon FontSize="14" Glyph="&#xE722;" />
+            </Button>
+            <Button
+                x:Name="TopBarPlaylistButton"
+                Click="TopBarPlaylist_Click"
+                Style="{StaticResource TopBarIconButtonStyle}">
+                <FontIcon FontSize="14" Glyph="&#xE8FD;" />
+            </Button>
+        </StackPanel>
 
         <Grid
             x:Name="PlaylistContainer"

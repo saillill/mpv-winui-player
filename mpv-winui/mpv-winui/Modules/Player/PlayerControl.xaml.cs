@@ -187,8 +187,7 @@ namespace mpv_winui.Modules.Player
                     [],
                     [SkipBackwardButton, PlayPauseButton, SkipForwardButton],
                     [VolumeMuteButton, VolumeSliderContainer]);
-                SetHidden(true, PreviousTrackButton, RewindButton, FastForwardButton,
-                           NextTrackButton, StopButton, RepeatButton,
+                SetHidden(true, PreviousTrackButton, NextTrackButton, RepeatButton,
                            TrackSelectionButton, ShuffleButton, PlaybackRateButton,
                            ZoomButton, PiPButton, FullWindowButton, FullScreenButton);
                 TimeTextGrid.Visibility = Visibility.Collapsed;
@@ -272,9 +271,10 @@ namespace mpv_winui.Modules.Player
             if (overlay)
             {
                 _lastOverlayActivity = new(double.NaN, double.NaN);
-                // Fullscreen mask: the gradient shell extends 120px above the
-                // bar so the video fades into the controls.
-                ControlPanelGradient.Height = 120;
+                // Fullscreen mask: the gradient shell extends above the bar so
+                // the video fades into the controls, matching the mpv-lazy /
+                // ModernX bottom fade (140px, ~90% black at the base).
+                ControlPanelGradient.Height = 140;
                 // PiP-style overlay: no solid panel box, only the gradient
                 // fade. The dark element theme keeps glyphs white so they
                 // stay readable on the gradient without a visible border.
@@ -287,7 +287,7 @@ namespace mpv_winui.Modules.Player
                     GradientStops =
                     {
                         new GradientStop { Offset = 0, Color = Color.FromArgb(0, 0, 0, 0) },
-                        new GradientStop { Offset = 1, Color = Color.FromArgb(217, 0, 0, 0) },
+                        new GradientStop { Offset = 1, Color = Color.FromArgb(230, 0, 0, 0) },
                     },
                 };
                 ControlPanelGradient.Opacity = 1;
@@ -427,9 +427,9 @@ namespace mpv_winui.Modules.Player
                 ];
                 middle =
                 [
-                    PreviousTrackButton, SkipBackwardButton, RewindButton,
-                    PlayPauseButton, FastForwardButton, SkipForwardButton,
-                    NextTrackButton, StopButton,
+                    PreviousTrackButton, SkipBackwardButton,
+                    PlayPauseButton, SkipForwardButton,
+                    NextTrackButton,
                 ];
                 right =
                 [
@@ -440,9 +440,8 @@ namespace mpv_winui.Modules.Player
             {
                 left =
                 [
-                    PlayPauseButton, RewindButton, FastForwardButton,
-                    PreviousTrackButton, NextTrackButton, SkipBackwardButton,
-                    SkipForwardButton, StopButton, ShuffleButton, RepeatButton,
+                    PlayPauseButton, PreviousTrackButton, NextTrackButton, SkipBackwardButton,
+                    SkipForwardButton, ShuffleButton, RepeatButton,
                 ];
                 middle = [];
                 right =
@@ -610,7 +609,6 @@ namespace mpv_winui.Modules.Player
             FullWindowButton.Click += FullWindowButton_Click;
             RepeatButton.Click += OnRepeatClick;
             ShuffleButton.Click += OnShuffleClick;
-            StopButton.Click += StopButton_Click;
             TrackSelectionButton.Click += TrackSelectionButton_Click;
             ZoomButton.Click += ZoomButton_Click;
             PreviousTrackButton.Click += PreviousTrackButton_Click;
@@ -676,7 +674,6 @@ namespace mpv_winui.Modules.Player
             FullWindowButton.Click -= FullWindowButton_Click;
             RepeatButton.Click -= OnRepeatClick;
             ShuffleButton.Click -= OnShuffleClick;
-            StopButton.Click -= StopButton_Click;
             foreach (var item in PlaybackRateFlyout.Items)
             {
                 if (item is MenuFlyoutItem menuFlyoutItem)
@@ -848,11 +845,6 @@ namespace mpv_winui.Modules.Player
         private void TrackSelectorControl_SecondSubTrackSelected(object? sender, int trackIndex)
         {
             _mediaPlayer?.CurrentSecondSubtitleTrack = trackIndex;
-        }
-
-        private void StopButton_Click(object sender, RoutedEventArgs e)
-        {
-            _mediaPlayer?.Stop();
         }
 
         private void PlaybackRateFlyout_MenuFlyoutItem_Click(object sender, RoutedEventArgs e)

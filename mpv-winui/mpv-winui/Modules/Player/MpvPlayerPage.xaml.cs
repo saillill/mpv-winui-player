@@ -169,6 +169,21 @@ namespace mpv_winui.Modules.Player
             SendMouseButton("MBTN_LEFT");
         }
 
+        private void TopBarOntop_Click(object sender, RoutedEventArgs e)
+        {
+            AppContext.SendMpvCommand("cycle ontop");
+        }
+
+        private void TopBarScreenshot_Click(object sender, RoutedEventArgs e)
+        {
+            AppContext.SendMpvCommand("screenshot");
+        }
+
+        private void TopBarPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            TogglePlaylist(true);
+        }
+
         private void AppQuit()
         {
             Application.Current.Exit();

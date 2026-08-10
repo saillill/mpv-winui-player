@@ -363,7 +363,6 @@ namespace mpv_winui.Modules.Player
                     "view" => AppContext.AppLang.MenuView,
                     "help" => AppContext.AppLang.MenuHelp,
                     "sleep" => AppContext.AppLang.SleepTimer,
-                    "playlist-top" => AppContext.AppLang.TogglePlaylist,
                     _ => barItem.Title,
                 };
 
@@ -407,6 +406,10 @@ namespace mpv_winui.Modules.Player
                     }
                 }
             }
+
+            ToolTipService.SetToolTip(TopBarOntopButton, AppContext.AppLang.SettingsAlwaysOnTop);
+            ToolTipService.SetToolTip(TopBarScreenshotButton, AppContext.AppLang.FileScreenshot);
+            ToolTipService.SetToolTip(TopBarPlaylistButton, AppContext.AppLang.TogglePlaylist);
         }
     }
 }

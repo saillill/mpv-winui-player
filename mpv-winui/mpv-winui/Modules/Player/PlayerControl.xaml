@@ -181,28 +181,6 @@
                     </AppBarButton>
 
                     <AppBarButton
-                        x:Name="RewindButton"
-                        Grid.Column="4"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
-                        Visibility="Collapsed">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE627;" />
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-
-                    <AppBarButton
-                        x:Name="FastForwardButton"
-                        Grid.Column="5"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
-                        Visibility="Collapsed">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE628;" />
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-
-                    <AppBarButton
                         x:Name="PreviousTrackButton"
                         Grid.Column="6"
                         IsTabStop="False"
@@ -245,14 +223,6 @@
                             <FontIcon Glyph="&#xE628;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
-
-                    <AppBarButton
-                        x:Name="StopButton"
-                        Grid.Column="8"
-                        Icon="Stop"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
-                        Visibility="Collapsed" />
 
                     <AppBarButton
                         x:Name="ShuffleButton"

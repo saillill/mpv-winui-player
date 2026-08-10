@@ -105,15 +105,20 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   CommandBars from canonical lists on every apply — never filter through the
   currently present items, or a partial/PiP pass permanently drops buttons
   (the bar ends up with only the progress bar and times). `ApplyControlBarStyle`
-  also restores the PiP-hidden button set on every non-compact apply; Rewind,
-  FastForward and Stop stay Collapsed by XAML design.
-- **Playlist toggle** lives in the top menu bar as the rightmost `MenuBarItem`
-  (Tag `playlist-top`, single flyout item Tag `playlist`); do not put it in
-  the control bar.
+  also restores the PiP-hidden button set on every non-compact apply. Rewind,
+  FastForward and Stop were removed entirely (they were only Collapsed by
+  design before).
+- **Top bar buttons**: the top menu row has three real icon buttons at the
+  right edge — always-on-top (`cycle ontop`, E718), screenshot (`screenshot`,
+  E722) and playlist toggle (E8FD, rightmost). Keep them as Buttons, not
+  MenuBarItems.
 - **Track flyout style**: `TrackSelectionButton` keeps the `ED1F` glyph; its
   `FlyoutPresenter` uses `AcrylicInAppFillColorDefaultBrush` +
   `CardStrokeColorDefaultBrush` (Mica/Acrylic look) instead of the translucent
   `MpvControlBackground`.
+- **Overlay gradient**: the fullscreen/borderless mask shell is 140px with a
+  ~90%-black base stop (mpv-lazy/ModernX style); windowed mode keeps the bar
+  backgroundless.
 
 ### License guardrails
 
