@@ -85,8 +85,14 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   of fullscreen.
 - **Overlay bar visibility is activity-based**: any pointer move over the
   video, mask or bar calls `NotifyOverlayPointerActivity()` (show + restart
-  the 2.5s idle timer); the idle timer retracts the bar. Do not reintroduce
-  position-only show/hide — the mask and bar consume moves over themselves.
+  the 1.5s idle timer); the idle timer retracts the bar. Only moves >= 3px
+  count as activity, otherwise sub-pixel jitter keeps the bar visible for
+  many seconds after the mouse stopped. Do not reintroduce position-only
+  show/hide — the mask and bar consume moves over themselves.
+- **Control-bar shell**: `ControlPanelGradient` is the fullscreen mask shell.
+  It must be `Height=120` only in overlay mode and `Auto` (NaN) in windowed
+  mode, otherwise a tall transparent strip remains between the video and the
+  bar (the "background box" behind the controls).
 
 ### License guardrails
 

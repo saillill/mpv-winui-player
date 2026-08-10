@@ -39,7 +39,6 @@
         </Grid.Resources>
         <Border
             x:Name="ControlPanelGradient"
-            Height="120"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Bottom"
             Background="Transparent">

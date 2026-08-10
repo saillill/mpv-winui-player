@@ -35,9 +35,9 @@ namespace mpv_winui.Modules.Player
         private bool _overlayMode;
         private readonly DispatcherTimer _panelAnimationTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
         private readonly DispatcherTimer _hideDelayTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
-        private readonly DispatcherTimer _overlayIdleTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
+        private readonly DispatcherTimer _overlayIdleTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
         private Point _lastOverlayActivity = new(double.NaN, double.NaN);
-        private const double OverlayMoveThreshold = 2.0;
+        private const double OverlayMoveThreshold = 3.0;
         private long _panelAnimationStart;
         private bool _panelAnimationShow;
         private bool _panelAnimating;
@@ -263,6 +263,9 @@ namespace mpv_winui.Modules.Player
             if (overlay)
             {
                 _lastOverlayActivity = new(double.NaN, double.NaN);
+                // Fullscreen mask: the gradient shell extends 120px above the
+                // bar so the video fades into the controls.
+                ControlPanelGradient.Height = 120;
                 // The gradient is black, so the panel needs its own dark
                 // translucent background and a dark element theme; otherwise
                 // light-theme glyphs stay black and the whole bar is
@@ -290,6 +293,10 @@ namespace mpv_winui.Modules.Player
             else
             {
                 _lastOverlayActivity = new(double.NaN, double.NaN);
+                // Windowed mode: the shell hugs the bar content (Auto) so no
+                // extra background strip remains between the video and the
+                // controls.
+                ControlPanelGradient.Height = double.NaN;
                 ControlPanelGradient.Background = null;
                 ControlPanelGradient.Opacity = 1;
                 // Windowed mode: no background box on the bar (light or dark
@@ -349,7 +356,11 @@ namespace mpv_winui.Modules.Player
         private void OverlayIdleTimer_Tick(object? sender, object e)
         {
             _overlayIdleTimer.Stop();
-            HideControlPanel();
+            if (_overlayMode && _controlPanelIsVisible)
+            {
+                StartPanelAnimation(false);
+                OnPanelVisibleChanged?.Invoke(true);
+            }
         }
 
         private void HideDelayTimer_Tick(object? sender, object e)
