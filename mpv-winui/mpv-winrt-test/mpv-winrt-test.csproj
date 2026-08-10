@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
         <RootNamespace>mpv_winrt_test</RootNamespace>
@@ -6,6 +6,11 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
+        <PlatformTarget>x64</PlatformTarget>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <NativeArch Condition="'$(NativeArch)' == ''">x64</NativeArch>
+        <CsWinRTIncludes>mpv_winrt</CsWinRTIncludes>
+        <WindowsAppSdkSelfContained>true</WindowsAppSdkSelfContained>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,10 +19,28 @@
         <PackageReference Include="NUnit" Version="4.3.2" />
         <PackageReference Include="NUnit.Analyzers" Version="4.7.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.3.1" />
+        <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.2">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
     </ItemGroup>
 
-    <ItemGroup>
+    <!--
+      Local (default): reference the mpv_winrt winmd built by build.ps1, so
+      `dotnet test` works without a full Visual Studio install (dotnet cannot
+      build the C++ project).
+      CI: pass /p:BuildMpvWinrtWithReference=true to build the C++/projection
+      chain as ProjectReferences (matches upstream GitHub Actions / msbuild).
+    -->
+    <ItemGroup Condition="'$(BuildMpvWinrtWithReference)' == 'true'">
         <ProjectReference Include="..\mpv-winrt-projection\mpv-winrt-projection.csproj" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(BuildMpvWinrtWithReference)' != 'true'">
+        <Reference Include="mpv_winrt.winmd">
+            <HintPath>..\bin\$(NativeArch)\$(Configuration)\mpv_winrt\mpv_winrt.winmd</HintPath>
+        </Reference>
+        <Content Include="..\bin\$(NativeArch)\$(Configuration)\mpv_winrt\mpv_winrt.dll" Link="mpv_winrt.dll" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="..\libs\bin\mpv-2.dll" Link="mpv-2.dll" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <ItemGroup>
@@ -25,14 +48,4 @@
         <Using Include="System.Text.RegularExpressions" />
         <Using Include="System.Threading.Tasks" />
     </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="..\libs\bin\mpv-2.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="..\x64\Debug\mpv-winrt\mpv_winrt.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-
 </Project>
