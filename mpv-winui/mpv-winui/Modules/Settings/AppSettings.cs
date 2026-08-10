@@ -55,7 +55,7 @@ namespace mpv_winui.Modules.Settings
             {
                 if (_dataSetting.GetValue(nameof(ThumbfastQuitAfterInactivity), 0) == 0)
                 {
-                    _dataSetting.ResetKeys([nameof(ThumbfastQuitAfterInactivity)]);
+                    _dataSetting.ResetKeys((string[])[nameof(ThumbfastQuitAfterInactivity)]);
                 }
                 _dataSetting.SetValue(thumbfastQuitMigratedKey, true);
             }

@@ -67,6 +67,18 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   keep the `target-*` triplet for HDR.
 - **thumbfast**: spawns a standalone `mpv.exe` for previews; keep
   `quit_after_inactivity` non-zero so abrupt app exits do not orphan it.
+- **Fullscreen is driven by mpv's `fullscreen` property** (`HandleFullscreenProperty`
+  applies the presenter, full-window page state and overlay; the app button
+  only sends `set fullscreen yes/no`). Keep it state-based, never toggle-based,
+  or ESC ("set fullscreen no") cannot leave fullscreen.
+- **Overlay readability**: in overlay mode `ControlPanelGrid` uses a dark
+  translucent background plus `RequestedTheme=Dark`; restoring the saved
+  background and `ElementTheme.Default` on exit is load-bearing.
+- **Fullscreen + PiP**: hiding and re-showing a FullScreen-presenter window can
+  leave the XAML overlay stale (video renders, control bar does not). On PiP
+  exit, cycle the presenter Default → FullScreen when `_isFullScreen`, and do
+  not call `ExitPiP` when `_pipWindow` is null (startup `ApplyPiP()` with
+  `WindowPiP=false` used to re-attach the swap chain before mpv init and crash).
 
 ### License guardrails
 

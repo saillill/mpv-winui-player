@@ -271,7 +271,12 @@ namespace mpv_winui.Modules.Player
                         new GradientStop { Offset = 1, Color = Color.FromArgb(217, 0, 0, 0) },
                     },
                 };
-                ControlPanelGrid.Background = null;
+                // The gradient is black, so the panel needs its own dark
+                // translucent background and a dark element theme; otherwise
+                // light-theme glyphs stay black and the whole bar is
+                // invisible on the gradient.
+                ControlPanelGrid.Background = new SolidColorBrush(Color.FromArgb(0x99, 0, 0, 0));
+                ControlPanelGrid.RequestedTheme = ElementTheme.Dark;
                 ControlPanelGradient.Opacity = 1;
                 ControlPanelGrid.Opacity = 1;
                 TranslateVertical.Y = 0;
@@ -283,6 +288,7 @@ namespace mpv_winui.Modules.Player
                 ControlPanelGradient.Background = null;
                 ControlPanelGradient.Opacity = 1;
                 ControlPanelGrid.Background = _controlPanelDefaultBackground;
+                ControlPanelGrid.RequestedTheme = ElementTheme.Default;
             }
             ShowControlPanel();
         }

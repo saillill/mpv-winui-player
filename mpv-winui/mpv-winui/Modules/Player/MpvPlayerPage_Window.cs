@@ -43,8 +43,38 @@ namespace mpv_winui.Modules.Player
 
         private void HandleFullscreenProperty(bool fullscreen)
         {
-            //TODO force
-            PlayerControl.ToggleFullScreen();
+            // State-based (not toggle-based): the mpv "fullscreen" property is
+            // the source of truth, so "set fullscreen no" (ESC) and repeated
+            // property events converge instead of flipping the presenter back.
+            if (fullscreen == _isFullScreen)
+            {
+                return;
+            }
+
+            _isFullScreen = fullscreen;
+            if (fullscreen)
+            {
+                if (_appWindow.Presenter.Kind != AppWindowPresenterKind.FullScreen)
+                {
+                    _appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+                }
+                if (!_isFullWindow)
+                {
+                    PlayerControl.ToggleFullWindow();
+                }
+            }
+            else
+            {
+                if (_appWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen)
+                {
+                    _appWindow.SetPresenter(AppWindowPresenterKind.Default);
+                }
+                if (_isFullWindow)
+                {
+                    PlayerControl.ToggleFullWindow();
+                }
+            }
+            PlayerControl.UpdateFullScreen(fullscreen);
         }
 
         private void HandleOnTopProperty(bool enable)
@@ -87,8 +117,12 @@ namespace mpv_winui.Modules.Player
 
         private void HandleTitleBarProperty(bool showTitleBar)
         {
-            //TODO force
-            PlayerControl.ToggleFullWindow();
+            // mpv's title-bar property maps to the app's full-window state;
+            // apply the requested state instead of blindly toggling.
+            if (showTitleBar == _isFullWindow)
+            {
+                PlayerControl.ToggleFullWindow();
+            }
         }
 
         private void HandleBorderProperty(bool hasBorder)

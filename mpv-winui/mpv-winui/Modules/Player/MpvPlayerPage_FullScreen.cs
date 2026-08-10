@@ -35,38 +35,13 @@ namespace mpv_winui.Modules.Player
 
         private bool PlayerControl_OnFullScreenRequest()
         {
-            bool isFullScreen;
-
-            if (_appWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen)
-            {
-                _appWindow.SetPresenter(AppWindowPresenterKind.Default);
-            }
-            else
-            {
-                _appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
-            }
-
-            isFullScreen = _appWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen;
-
-            if (isFullScreen)
-            {
-                if (!_isFullWindow)
-                {
-                    PlayerControl.ToggleFullWindow();
-                }
-            }
-            else
-            {
-                if (_isFullWindow)
-                {
-                    PlayerControl.ToggleFullWindow();
-                }
-            }
-
-            _isFullScreen = isFullScreen;
-            PlayerControl.UpdateFullScreen(isFullScreen);
-
-            return isFullScreen;
+            // mpv's "fullscreen" property is the single source of truth: the
+            // property change event (MpvPlayerPage_WindowChanged) applies the
+            // presenter, the full-window page state and the overlay. Keeping
+            // the app's button on this path also makes the ESC binding in
+            // input.conf ("set fullscreen no") able to leave fullscreen.
+            AppContext.SendMpvCommand(_isFullScreen ? "set fullscreen no" : "set fullscreen yes");
+            return _isFullScreen;
         }
 
         private bool PlayerControl_OnFullWindowRequest()
