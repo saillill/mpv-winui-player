@@ -109,6 +109,7 @@ namespace mpv_winui.Modules.Player
             TeardownPlayerView();
             CleanupKeyboardInput();
             CleanupPreview();
+            ClosePiPWindow();
             _mediaPlayer.Close();
         }
 

@@ -73,6 +73,11 @@ namespace mpv_winui.Modules.Language
         public string EnableMica { get; set; } = "Mica background";
         public string EnableUISound { get; set; } = "Enable UI Sound";
         public string Play { get; set; } = "Play";
+        public string PiPBackToPlayer { get; set; } = "Back to player";
+        public string PiPExit { get; set; } = "Exit picture-in-picture";
+        public string PiPMute { get; set; } = "Mute";
+        public string PiPBackward { get; set; } = "Back 10 seconds";
+        public string PiPForward { get; set; } = "Forward 10 seconds";
         public string Stop { get; set; } = "Stop";
         public string Version { get; set; } = "Version";
         public string ClearTempFolder { get; set; } = "Delete temp files";

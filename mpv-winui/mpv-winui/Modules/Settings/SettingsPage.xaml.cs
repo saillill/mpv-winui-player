@@ -4963,7 +4963,6 @@ public sealed partial class SettingsPage : Page
             nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => lang.WarningBlendSubtitlesMargins,
             nameof(AppSettings.SubFallback) when string.IsNullOrWhiteSpace(s.SubtitleLanguage) => lang.WarningSubFallbackNoLanguage,
             nameof(AppSettings.SeekHoldEnabled) when !s.VsrAutoEnabled && s.HdrAutoMode == "off" => lang.WarningSeekHoldInactive,
-            nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => lang.WarningThemeLuminosityMica,
             _ => null,
         };
     }
@@ -4976,6 +4975,8 @@ public sealed partial class SettingsPage : Page
             nameof(AppSettings.ThemeAccentColor) when s.ThemeType != AppSettings.ThemeType_Custom => false,
             nameof(AppSettings.ThemeOpacity) when s.ThemeType != AppSettings.ThemeType_Custom => false,
             nameof(AppSettings.ThemeLuminosity) when s.ThemeType != AppSettings.ThemeType_Custom => false,
+            // MicaController ignores luminosity, so brightness only shows for Acrylic.
+            nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
             // PiP size only applies while the mini player is enabled.
             nameof(AppSettings.WindowPiPSize) when !s.WindowPiP => false,
             // Format-specific screenshot options only appear for the active format.

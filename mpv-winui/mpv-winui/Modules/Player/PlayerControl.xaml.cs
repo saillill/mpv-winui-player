@@ -129,11 +129,15 @@ namespace mpv_winui.Modules.Player
             UpdatePiPBar();
         }
 
-        /// <summary>Switches between the normal control bar and the minimal PiP bar.</summary>
+        /// <summary>
+        /// Hides the main control bar while the dedicated PiP window is shown.
+        /// The in-window PiP bar is kept for compatibility but never displayed;
+        /// the PiP window has its own compact controls.
+        /// </summary>
         public void UpdatePiPBar()
         {
             var pip = AppContext.AppSetting.WindowPiP;
-            PiPBar.Visibility = pip ? Visibility.Visible : Visibility.Collapsed;
+            PiPBar.Visibility = Visibility.Collapsed;
             if (pip)
             {
                 StopPanelAnimations();

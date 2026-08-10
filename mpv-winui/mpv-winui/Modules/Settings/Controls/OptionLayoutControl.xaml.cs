@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
+using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.Player;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         {
             Padding = new Thickness(12),
             CornerRadius = new CornerRadius(6),
-            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorSecondaryBrush"],
+            Background = ThemeResource.Brush(this, "CardBackgroundFillColorSecondaryBrush"),
             BorderThickness = new Thickness(2),
             Tag = choice.Value,
         };
@@ -254,7 +255,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         var selected = string.Equals(card.Tag as string, _current, StringComparison.Ordinal);
         card.BorderBrush = selected
             ? new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
-            : (Brush)Application.Current.Resources["ControlStrokeColorDefaultBrush"];
+            : ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush");
     }
 
     private FrameworkElement BuildPreview(string value)
@@ -262,7 +263,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         var bar = new Border
         {
             Height = 38,
-            Background = (Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"],
+            Background = ThemeResource.Brush(this, "ControlFillColorSecondaryBrush"),
             CornerRadius = new CornerRadius(4),
             Padding = new Thickness(6, 0, 6, 0),
         };

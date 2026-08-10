@@ -117,7 +117,7 @@ namespace mpv_winui.Modules.Settings
         /// <summary>Backdrop transparency, 0 (opaque) to 100 (fully transparent).</summary>
         public int ThemeOpacity
         {
-            get => _dataSetting.GetValue(nameof(ThemeOpacity), 80);
+            get => _dataSetting.GetValue(nameof(ThemeOpacity), 30);
             set => _dataSetting.SetValue(nameof(ThemeOpacity), value);
         }
 

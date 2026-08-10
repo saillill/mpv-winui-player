@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
+using mpv_winui.Modules.Common.View;
 using System;
 using System.Collections.Generic;
 
@@ -92,7 +93,7 @@ public sealed partial class OptionCheckListControl : OptionControlBase
                     {
                         Text = item.Group,
                         Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
-                        Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                        Foreground = ThemeResource.Brush(this, "TextFillColorSecondaryBrush"),
                         Margin = new Thickness(0, 6, 0, 2),
                     });
                 }
