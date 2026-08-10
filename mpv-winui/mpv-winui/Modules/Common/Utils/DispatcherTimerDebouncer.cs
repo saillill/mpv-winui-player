@@ -80,10 +80,5 @@ namespace mpv_winui.Modules.Common.Utils
 
             _isDisposed = true;
         }
-
-        ~DispatcherTimerDebouncer()
-        {
-            Dispose(disposing: false);
-        }
     }
 }

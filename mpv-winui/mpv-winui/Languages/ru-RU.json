@@ -1,4 +1,11 @@
 {
+  "WatchHistoryDialogTitle": "История воспроизведения",
+  "WatchLaterDialogTitle": "Смотреть позже",
+  "WatchHistoryEmpty": "Файл истории пуст.",
+  "WatchHistoryDisabled": "Включите --save-watch-history, чтобы переходить к недавно воспроизведённым файлам.",
+  "WatchHistoryNoEntries": "Записей нет.",
+  "WatchLaterEmpty": "Файлы «смотреть позже» не найдены.",
+  "WatchLaterDisabled": "Включите --write-filename-in-watch-later-config, чтобы выбирать недавние файлы.",
   "About": "О программе",
   "Add": "Добавить",
   "AppHelpAndFeedBack": "Обратная связь",

@@ -307,7 +307,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 HorizontalAlignment.Left,
                 "\uF5B0", "\uE627", "\uE628",                      // play, skip back, skip forward
                 "\uF8AC", "\uF8AD",                                // previous, next
-                "\uE72A", ControlBarIcons.Shuffle, "\uE8EE");      // stop, shuffle, repeat
+                ControlBarIcons.Shuffle, "\uE8EE");                // shuffle, repeat
             var right = BuildIconCluster(
                 HorizontalAlignment.Right,
                 "\uE995", "\uEC57", "\uED1F",                      // volume, speed, tracks

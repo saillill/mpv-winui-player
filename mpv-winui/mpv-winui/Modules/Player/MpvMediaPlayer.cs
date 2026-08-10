@@ -64,10 +64,6 @@ namespace mpv_winui.Modules.Player
         {
             get; set;
         }
-        public Action<MpvMediaPlayer, object?>? MediaEnded
-        {
-            get; set;
-        }
         public Action<MpvMediaPlayer, bool>? PlaybackStateChanged
         {
             get; set;
@@ -270,12 +266,9 @@ namespace mpv_winui.Modules.Player
         public void StartListen()
         {
             _mpvPlayer.MediaLoaded += MpvPlayer_MediaLoaded;
-            _mpvPlayer.PlaybackEnded += MpvPlayer_PlaybackEnded;
             _mpvPlayer.PlaybackFailed += MpvPlayer_PlaybackFailed;
             _mpvPlayer.FileLoaded += MpvPlayer_FileLoaded;
             _mpvPlayer.PlaybackStateChanged += MpvPlayer_PlaybackStateChanged;
-            _mpvPlayer.PositionChanged += MpvPlayer_PositionChanged;
-            _mpvPlayer.SpeedChanged += MpvPlayer_SpeedChanged;
             _mpvPlayer.VolumeChanged += MpvPlayer_VolumeChanged;
             _mpvPlayer.Seeked += MpvPlayer_Seeked;
             _mpvPlayer.MediaInfoChanged += MpvPlayer_MediaInfoChanged;
@@ -290,12 +283,9 @@ namespace mpv_winui.Modules.Player
         public void StopListen()
         {
             _mpvPlayer.MediaLoaded -= MpvPlayer_MediaLoaded;
-            _mpvPlayer.PlaybackEnded -= MpvPlayer_PlaybackEnded;
             _mpvPlayer.PlaybackFailed -= MpvPlayer_PlaybackFailed;
             _mpvPlayer.FileLoaded -= MpvPlayer_FileLoaded;
             _mpvPlayer.PlaybackStateChanged -= MpvPlayer_PlaybackStateChanged;
-            _mpvPlayer.PositionChanged -= MpvPlayer_PositionChanged;
-            _mpvPlayer.SpeedChanged -= MpvPlayer_SpeedChanged;
             _mpvPlayer.VolumeChanged -= MpvPlayer_VolumeChanged;
             _mpvPlayer.Seeked -= MpvPlayer_Seeked;
             _mpvPlayer.MediaInfoChanged -= MpvPlayer_MediaInfoChanged;
@@ -358,14 +348,6 @@ namespace mpv_winui.Modules.Player
             VolumeChangedChanged?.Invoke(this, (int)args.Volume);
         }
 
-        private void MpvPlayer_SpeedChanged(SpeedChangedEventArgs args)
-        {
-        }
-
-        private void MpvPlayer_PositionChanged(PositionChangedEventArgs args)
-        {
-        }
-
         private void MpvPlayer_PlaybackStateChanged(PlaybackStateChangedEventArgs args)
         {
             PlaybackStateChanged?.Invoke(this, args.IsPaused);
@@ -376,11 +358,6 @@ namespace mpv_winui.Modules.Player
             var isPaused = _mpvPlayer.IsPaused();
             PlaybackStateChanged?.Invoke(this, isPaused);
             MediaOpened?.Invoke(this, null);
-        }
-
-        private void MpvPlayer_PlaybackEnded()
-        {
-            MediaEnded?.Invoke(this, null);
         }
 
         private void MpvPlayer_PlaybackFailed(PlaybackFailedEventArgs args)
@@ -395,8 +372,6 @@ namespace mpv_winui.Modules.Player
 
         public void Pause() => _mpvPlayer.Pause();
         public void Play() => _mpvPlayer.Play();
-
-        public void Stop() => _mpvPlayer.Stop();
 
         public void Command(IList<string> args)
         {

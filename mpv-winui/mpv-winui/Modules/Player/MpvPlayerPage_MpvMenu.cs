@@ -280,36 +280,6 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer.RunCommandAsync(cmd).FireAndForget(OnException);
         }
 
-        private List<string> TokenizeCommand(string cmd)
-        {
-            var args = new List<string>();
-            var i = 0;
-            while (i < cmd.Length)
-            {
-                if (char.IsWhiteSpace(cmd[i]))
-                {
-                    i++;
-                    continue;
-                }
-
-                if (cmd[i] == '"')
-                {
-                    i++;
-                    var end = cmd.IndexOf('"', i);
-                    args.Add(end < 0 ? cmd[i..] : cmd[i..end]);
-                    i = end < 0 ? cmd.Length : end + 1;
-                }
-                else
-                {
-                    var end = cmd.IndexOfAny([' ', '\t'], i);
-                    args.Add(end < 0 ? cmd[i..] : cmd[i..end]);
-                    i = end < 0 ? cmd.Length : end + 1;
-                }
-            }
-
-            return args;
-        }
-
         private void PlayerView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
         {
             var menuItems = _mediaPlayer.MenuData();

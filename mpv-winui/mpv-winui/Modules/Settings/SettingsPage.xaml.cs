@@ -21,7 +21,8 @@ public sealed partial class SettingsPage : Page
     public List<Option> Settings { get; } = [];
     public List<string> Categories { get; } = [];
     public List<string> CategoryOrder { get; } = [];
-    private static string _actionStatus = string.Empty;
+    private string _actionStatus = string.Empty;
+    private int _resetStatusGeneration;
 
     /// <summary>Navigation state used to keep the selected category and scroll position after a reset or language switch.</summary>
     public sealed record NavigationState(string? Category, double Offset);
@@ -141,13 +142,20 @@ public sealed partial class SettingsPage : Page
     {
         SaveStatusText.Text = text;
         SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
-        _ = ClearResetStatusAsync();
+        var generation = ++_resetStatusGeneration;
+        _ = ClearResetStatusAsync(generation);
     }
 
-    private async System.Threading.Tasks.Task ClearResetStatusAsync()
+    private async System.Threading.Tasks.Task ClearResetStatusAsync(int generation)
     {
         await System.Threading.Tasks.Task.Delay(3000);
-        DispatcherQueue.TryEnqueue(() => SaveStatusText.Text = string.Empty);
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (generation == _resetStatusGeneration)
+            {
+                SaveStatusText.Text = string.Empty;
+            }
+        });
     }
 
     private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateOptions();
@@ -5068,7 +5076,7 @@ public sealed partial class SettingsPage : Page
         AppContext.AppSetting.FileAssociationExts = string.Join(';', list);
     }
 
-    private static void ApplyAssociations()
+    private void ApplyAssociations()
     {
         var selected = ParseTokenList(AppContext.AppSetting.FileAssociationExts).ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var extension in AssociationExtensions)
@@ -5103,11 +5111,24 @@ public sealed partial class SettingsPage : Page
             icon.SetValue(string.Empty, $"\"{exe}\",0");
         }
 
-        using var key = Registry.CurrentUser.CreateSubKey(@"Software\Classes\" + extension);
-        key.SetValue(string.Empty, "mpv-winui.media");
+        using var extKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\" + extension);
+        // Never overwrite an association owned by another application (a
+        // foreign legacy default value or a Windows-managed UserChoice).
+        // Advertise through OpenWithProgids instead, which is the
+        // non-destructive way to appear in "Open with" without stealing the
+        // user's current default app.
+        var currentDefault = extKey.GetValue(string.Empty) as string;
+        if (string.IsNullOrEmpty(currentDefault)
+            || string.Equals(currentDefault, "mpv-winui.media", StringComparison.OrdinalIgnoreCase))
+        {
+            extKey.SetValue(string.Empty, "mpv-winui.media");
+        }
+
+        using var openWith = extKey.CreateSubKey("OpenWithProgids");
+        openWith.SetValue("mpv-winui.media", Array.Empty<byte>());
     }
 
-    private static void UnassociateFiles()
+    private void UnassociateFiles()
     {
         foreach (var extension in ParseTokenList(AppContext.AppSetting.FileAssociationExts))
         {
@@ -5128,9 +5149,54 @@ public sealed partial class SettingsPage : Page
 
     private static void UnregisterExtension(string extension)
     {
+        const string progId = "mpv-winui.media";
         try
         {
-            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + extension, throwOnMissingSubKey: false);
+            using var extKey = Registry.CurrentUser.OpenSubKey(@"Software\Classes\" + extension, writable: true);
+            if (extKey is null)
+            {
+                return;
+            }
+
+            // Remove our ProgID from the shared "Open with" list; the list
+            // belongs to every registered application, so only our value.
+            using (var openWith = extKey.OpenSubKey("OpenWithProgids", writable: true))
+            {
+                openWith?.DeleteValue(progId, throwOnMissingValue: false);
+            }
+
+            // If the legacy default is not ours, leave everything else alone
+            // (another application owns the association).
+            var currentDefault = extKey.GetValue(string.Empty) as string;
+            if (!string.Equals(currentDefault, progId, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            extKey.DeleteValue(string.Empty, throwOnMissingValue: false);
+
+            var subKeys = extKey.GetSubKeyNames();
+            var hasUserChoice = subKeys.Any(k => string.Equals(k, "UserChoice", StringComparison.OrdinalIgnoreCase));
+            if (hasUserChoice)
+            {
+                // UserChoice is owned by Windows (per-user default app); never
+                // delete it, even when it currently points at this app.
+                return;
+            }
+
+            var emptyOpenWith = subKeys.Contains("OpenWithProgids", StringComparer.OrdinalIgnoreCase)
+                && extKey.OpenSubKey("OpenWithProgids")?.GetValueNames().Length == 0;
+            if (emptyOpenWith == true)
+            {
+                extKey.DeleteSubKeyTree("OpenWithProgids", throwOnMissingSubKey: false);
+                subKeys = extKey.GetSubKeyNames();
+            }
+
+            if (extKey.GetValueNames().Length == 0 && subKeys.Length == 0)
+            {
+                extKey.Close();
+                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + extension, throwOnMissingSubKey: false);
+            }
         }
         catch (System.Exception)
         {
@@ -5217,7 +5283,7 @@ public sealed partial class SettingsPage : Page
         };
     }
 
-    private static void FireAndForgetExport()
+    private void FireAndForgetExport()
     {
         _ = ExportConfigAsync();
     }
@@ -5227,7 +5293,7 @@ public sealed partial class SettingsPage : Page
         _ = ImportConfigAsync();
     }
 
-    private static async System.Threading.Tasks.Task ExportConfigAsync()
+    private async System.Threading.Tasks.Task ExportConfigAsync()
     {
         try
         {
@@ -5302,7 +5368,7 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private static void ResetShortcuts()
+    private void ResetShortcuts()
     {
         var bundled = Path.Combine(System.AppContext.BaseDirectory, "Config", "input.conf");
         var target = Path.Combine(

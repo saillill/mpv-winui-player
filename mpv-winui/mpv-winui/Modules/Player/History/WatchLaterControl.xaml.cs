@@ -66,11 +66,11 @@ namespace mpv_winui.Modules.Player.History
 
                 if (string.IsNullOrEmpty(_directory) || !System.IO.Directory.Exists(_directory))
                 {
-                    EmptyTextBlock.Text = "No watch later files found.";
+                    EmptyTextBlock.Text = mpv_winui.AppContext.AppLang.WatchLaterEmpty;
                 }
                 else
                 {
-                    EmptyTextBlock.Text = "Enable --write-filename-in-watch-later-config to select recent files.";
+                    EmptyTextBlock.Text = mpv_winui.AppContext.AppLang.WatchLaterDisabled;
                 }
             }
             else

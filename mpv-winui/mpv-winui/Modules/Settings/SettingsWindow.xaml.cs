@@ -21,10 +21,9 @@ public sealed partial class SettingsWindow : Window
         SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
 
         Closed += SettingsWindow_Closed;
-        AppWindow.Closing += AppWindow_Closing;
         AppContext.LanguageChanged += SettingsWindow_LanguageChanged;
 
-        AppWindow.Title = "Settings";
+        AppWindow.Title = AppContext.AppLang.SettingsTitle;
         AppWindow.SetIcon("App.ico");
         AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
 
@@ -39,7 +38,6 @@ public sealed partial class SettingsWindow : Window
             Instance = null;
         }
         Closed -= SettingsWindow_Closed;
-        AppWindow.Closing -= AppWindow_Closing;
         AppContext.LanguageChanged -= SettingsWindow_LanguageChanged;
         _styleManager?.Dispose();
         _styleManager = null;
@@ -68,11 +66,6 @@ public sealed partial class SettingsWindow : Window
     public void UpdateUiFont()
     {
         _styleManager?.UpdateUiFont();
-    }
-
-    // Settings are applied immediately, so closing never needs a save prompt.
-    private void AppWindow_Closing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
-    {
     }
 
     private void SettingsWindow_LanguageChanged()

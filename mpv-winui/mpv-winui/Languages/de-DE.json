@@ -1,4 +1,11 @@
 {
+  "WatchHistoryDialogTitle": "Wiedergabeverlauf",
+  "WatchLaterDialogTitle": "Später ansehen",
+  "WatchHistoryEmpty": "Die Verlaufsdatei ist leer.",
+  "WatchHistoryDisabled": "Aktivieren Sie --save-watch-history, um zu kürzlich wiedergegebenen Dateien zu springen.",
+  "WatchHistoryNoEntries": "Keine Einträge.",
+  "WatchLaterEmpty": "Keine Dateien für „Später ansehen“ gefunden.",
+  "WatchLaterDisabled": "Aktivieren Sie --write-filename-in-watch-later-config, um kürzliche Dateien auszuwählen.",
   "About": "Info",
   "Add": "Hinzufügen",
   "AppHelpAndFeedBack": "Feedback",

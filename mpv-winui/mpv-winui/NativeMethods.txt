@@ -28,3 +28,10 @@ WM_ACTIVATE
 RemoveWindowSubclass
 SetWindowSubclass
 WINDOWPOS
+DwmSetWindowAttribute
+SendMessage
+GetWindowLong
+SetWindowLong
+SetWindowPos
+ImmGetContext
+ImmAssociateContext

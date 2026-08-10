@@ -84,12 +84,7 @@ namespace mpv_winui.Modules.Player
         public PlayerControl()
         {
             this.InitializeComponent();
-            RootGrid.PointerMoved += RootGrid_PointerMoved;
             ApplyLocalizedStrings();
-            PiPButton.Click += OnPiPClick;
-            PiPPlayPauseButton.Click += OnPlayPauseClick;
-            PiPCloseButton.Click += OnPiPCloseClick;
-            AppContext.SettingChanged += OnAppSettingChanged;
             ApplyControlBarStyle();
             UpdatePiPBar();
             this.Loaded += PlayerControl_Loaded;
@@ -208,9 +203,7 @@ namespace mpv_winui.Modules.Player
                 hiddenValue?.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
                 StringComparer.OrdinalIgnoreCase);
 
-            // Restore the buttons the PiP compact pass collapses. Rewind,
-            // FastForward and Stop stay Collapsed by design (their XAML
-            // default), so they are intentionally not in this list.
+            // Restore the buttons the PiP compact pass collapses.
             SetHidden(false,
                 PreviousTrackButton, NextTrackButton, RepeatButton,
                 TrackSelectionButton, ShuffleButton, PlaybackRateButton,
@@ -603,6 +596,11 @@ namespace mpv_winui.Modules.Player
 
         private void PlayerControl_Loaded(object sender, RoutedEventArgs e)
         {
+            RootGrid.PointerMoved += RootGrid_PointerMoved;
+            PiPButton.Click += OnPiPClick;
+            PiPPlayPauseButton.Click += OnPlayPauseClick;
+            PiPCloseButton.Click += OnPiPCloseClick;
+            AppContext.SettingChanged += OnAppSettingChanged;
             PlayPauseButton.Click += OnPlayPauseClick;
             SkipBackwardButton.Click += SkipBackwardButton_Click;
             SkipForwardButton.Click += SkipForwardButton_Click;

@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winrt;
@@ -18,6 +19,8 @@ namespace mpv_winui.Modules.Player
 
         private Point _lastPreviewPoint;
         private int _previewGeneration;
+        private DispatcherQueueTimer? _previewThrottleTimer;
+        private (double HoverSec, double RelativeX, double RelativeY)? _pendingPreview;
 
         private void SetupPreview()
         {
@@ -26,11 +29,21 @@ namespace mpv_winui.Modules.Player
                 PlayerControl.PreviewUpdateRequested += PlayerControl_PreviewUpdateRequested;
                 PlayerControl.PreviewClearRequested += PlayerControl_PreviewClearRequested;
                 _mediaPlayer.PreviewChanged += MediaPlayer_PreviewChanged;
+                _previewThrottleTimer = DispatcherQueue.CreateTimer();
+                _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(40);
+                _previewThrottleTimer.Tick += PreviewThrottleTick;
             }
         }
 
         private void CleanupPreview()
         {
+            _pendingPreview = null;
+            if (_previewThrottleTimer is { } timer)
+            {
+                timer.Stop();
+                timer.Tick -= PreviewThrottleTick;
+                _previewThrottleTimer = null;
+            }
             PlayerControl.PreviewUpdateRequested -= PlayerControl_PreviewUpdateRequested;
             PlayerControl.PreviewClearRequested -= PlayerControl_PreviewClearRequested;
             _mediaPlayer.PreviewChanged -= MediaPlayer_PreviewChanged;
@@ -40,8 +53,11 @@ namespace mpv_winui.Modules.Player
         private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double RelativeX, double RelativeY) args)
         {
             _lastPreviewPoint = PlayerControl.TransformToVisual(PlayerView).TransformPoint(new Point(args.RelativeX, args.RelativeY));
-            _mediaPlayer.SetHoverSec(args.HoverSec);
-            _mediaPlayer.SetDrawPreview(0, 0, 0, 0);
+            // Coalesce the high-frequency pointer stream: thumbfast re-renders
+            // on every hover-sec change, so only the latest position is sent
+            // to mpv (max ~25 updates/second while scrubbing).
+            _pendingPreview = args;
+            _previewThrottleTimer?.Start();
 
             if (PreviewCard.Visibility == Visibility.Visible)
             {
@@ -51,8 +67,23 @@ namespace mpv_winui.Modules.Player
 
         private void PlayerControl_PreviewClearRequested(object? sender, EventArgs e)
         {
+            _pendingPreview = null;
+            _previewThrottleTimer?.Stop();
             _mediaPlayer.ClearPreview();
             HidePreview();
+        }
+
+        private void PreviewThrottleTick(DispatcherQueueTimer sender, object args)
+        {
+            sender.Stop();
+            if (_pendingPreview is not { } preview)
+            {
+                return;
+            }
+
+            _pendingPreview = null;
+            _mediaPlayer.SetHoverSec(preview.HoverSec);
+            _mediaPlayer.SetDrawPreview(0, 0, 0, 0);
         }
 
         private void MediaPlayer_PreviewChanged(MpvMediaPlayer sender, MpvPreviewInfo? info)

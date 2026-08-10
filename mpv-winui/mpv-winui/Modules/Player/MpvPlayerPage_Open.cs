@@ -158,13 +158,13 @@ namespace mpv_winui.Modules.Player
         private async ValueTask PlayFiles(IReadOnlyList<string> files, OpenMode openMode)
         {
             var items = files.Select(file => new FileItem(file, FileType.File)).ToList();
-            await _mediaPlayer.OpenAsync(items, OpenMode.Replace);
+            await _mediaPlayer.OpenAsync(items, openMode);
         }
 
         private async ValueTask PlayFolders(IReadOnlyList<string> folders, OpenMode openMode)
         {
             var items = folders.Select(file => new FileItem(file, FileType.Folder)).ToList();
-            await _mediaPlayer.OpenAsync(items, OpenMode.Replace);
+            await _mediaPlayer.OpenAsync(items, openMode);
         }
 
         private async ValueTask PlayUrl(string url, OpenMode openMode)
