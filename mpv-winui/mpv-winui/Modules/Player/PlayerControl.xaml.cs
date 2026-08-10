@@ -36,6 +36,7 @@ namespace mpv_winui.Modules.Player
         private Brush? _controlPanelDefaultBackground;
         private readonly DispatcherTimer _panelAnimationTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
         private readonly DispatcherTimer _hideDelayTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
+        private readonly DispatcherTimer _overlayIdleTimer = new() { Interval = TimeSpan.FromMilliseconds(2500) };
         private long _panelAnimationStart;
         private bool _panelAnimationShow;
         private bool _panelAnimating;
@@ -282,6 +283,8 @@ namespace mpv_winui.Modules.Player
                 TranslateVertical.Y = 0;
                 ControlPanelGrid.Visibility = Visibility.Visible;
                 _controlPanelIsVisible = true;
+                ShowControlPanel();
+                RestartOverlayIdleTimer();
             }
             else
             {
@@ -289,15 +292,15 @@ namespace mpv_winui.Modules.Player
                 ControlPanelGradient.Opacity = 1;
                 ControlPanelGrid.Background = _controlPanelDefaultBackground;
                 ControlPanelGrid.RequestedTheme = ElementTheme.Default;
+                _overlayIdleTimer.Stop();
+                ShowControlPanel();
             }
-            ShowControlPanel();
         }
 
         /// <summary>
-        /// Hover show/hide for overlay (fullscreen / full-window / PiP). The
-        /// pointer events on the video area alone cannot drive this: the mask
-        /// and the bar sit on top of the video, so moves over them never reach
-        /// the video Grid. Handling RootGrid covers the mask and the bar.
+        /// Activity-based overlay bar: any pointer movement over the player
+        /// (video, mask or bar) expands the bar and restarts the idle timer;
+        /// when the mouse stops moving, the bar retracts.
         /// </summary>
         private void RootGrid_PointerMoved(object sender, PointerRoutedEventArgs e)
         {
@@ -306,15 +309,31 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
-            var position = e.GetCurrentPoint(RootGrid).Position;
-            if (position.Y >= RootGrid.ActualHeight - 120)
+            NotifyOverlayPointerActivity();
+        }
+
+        /// <summary>Called on pointer activity from the video area as well.</summary>
+        public void NotifyOverlayPointerActivity()
+        {
+            if (!_overlayMode)
             {
-                ShowControlPanel();
+                return;
             }
-            else
-            {
-                HideControlPanel();
-            }
+
+            ShowControlPanel();
+            RestartOverlayIdleTimer();
+        }
+
+        private void RestartOverlayIdleTimer()
+        {
+            _overlayIdleTimer.Stop();
+            _overlayIdleTimer.Start();
+        }
+
+        private void OverlayIdleTimer_Tick(object? sender, object e)
+        {
+            _overlayIdleTimer.Stop();
+            HideControlPanel();
         }
 
         private void HideDelayTimer_Tick(object? sender, object e)
@@ -606,6 +625,7 @@ namespace mpv_winui.Modules.Player
 
             _positionUpdateTimer.Tick += OnPositionUpdateTimerTick;
             _positionUpdateTimer.Start();
+            _overlayIdleTimer.Tick += OverlayIdleTimer_Tick;
 
             UpdateToolbarVisibility(ActualWidth);
             //UpdatePlaybackStatusUI(false);
@@ -661,6 +681,8 @@ namespace mpv_winui.Modules.Player
             SizeChanged -= PlayerControl_SizeChanged;
             _positionUpdateTimer.Stop();
             _positionUpdateTimer.Tick -= OnPositionUpdateTimerTick;
+            _overlayIdleTimer.Stop();
+            _overlayIdleTimer.Tick -= OverlayIdleTimer_Tick;
 
             RemoveEventListeners();
         }

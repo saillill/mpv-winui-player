@@ -19,18 +19,10 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
-            if (sender is FrameworkElement area)
-            {
-                var position = e.GetCurrentPoint(area).Position;
-                if (position.Y >= area.ActualHeight - 120)
-                {
-                    PlayerControl.ShowControlPanel();
-                }
-                else
-                {
-                    PlayerControl.HideControlPanel();
-                }
-            }
+            // Activity-based: any movement over the video area expands the
+            // overlay bar (the bar itself handles moves over the mask/bar via
+            // RootGrid_PointerMoved), and the idle timer retracts it.
+            PlayerControl.NotifyOverlayPointerActivity();
         }
 
         private bool PlayerControl_OnFullScreenRequest()

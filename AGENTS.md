@@ -79,6 +79,14 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   exit, cycle the presenter Default → FullScreen when `_isFullScreen`, and do
   not call `ExitPiP` when `_pipWindow` is null (startup `ApplyPiP()` with
   `WindowPiP=false` used to re-attach the swap chain before mpv init and crash).
+- **Swap chain sizing**: `UpdatePlayerViewSize` must use `Ceiling`, not
+  `Floor`. At fractional DPI (e.g. 175%) logical width × scale lands just
+  below the physical size, and flooring leaves a 1px seam on the right edge
+  of fullscreen.
+- **Overlay bar visibility is activity-based**: any pointer move over the
+  video, mask or bar calls `NotifyOverlayPointerActivity()` (show + restart
+  the 2.5s idle timer); the idle timer retracts the bar. Do not reintroduce
+  position-only show/hide — the mask and bar consume moves over themselves.
 
 ### License guardrails
 

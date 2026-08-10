@@ -61,8 +61,13 @@ namespace mpv_winui.Modules.Player
 
         private void UpdatePlayerViewSize(ViewSize size)
         {
-            var width = (uint)Math.Floor(size.Width * size.WidthScale);
-            var height = (uint)Math.Floor(size.Height * size.HidthScale);
+            // Ceil, never floor: at fractional DPI (e.g. 175%) the logical
+            // width * scale lands a fraction below the physical size (3839.99
+            // vs 3840), and flooring leaves a 1px seam on the right edge of
+            // fullscreen. The swap chain is clipped by the panel, so a 1px
+            // overshoot is invisible while undershoot shows the background.
+            var width = (uint)Math.Ceiling(size.Width * size.WidthScale);
+            var height = (uint)Math.Ceiling(size.Height * size.HidthScale);
             if (width <= 0)
             {
                 width = 1;
