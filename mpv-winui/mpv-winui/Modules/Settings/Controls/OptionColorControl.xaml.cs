@@ -198,9 +198,16 @@ public sealed partial class OptionColorControl : OptionControlBase
             return;
         }
 
-        var picker = new CustomColorPickerControl
+        var picker = new ColorPicker
         {
-            CurrentColor = Setting.Getter?.Invoke() as string ?? string.Empty,
+            Color = TryParse(Setting.Getter?.Invoke() as string) ?? Colors.White,
+            IsAlphaEnabled = false,
+            IsColorSliderVisible = true,
+            IsColorChannelTextInputVisible = true,
+            IsHexInputVisible = true,
+            IsMoreButtonVisible = false,
+            ColorSpectrumShape = ColorSpectrumShape.Box,
+            MinWidth = 320,
         };
         var dialog = new ContentDialog
         {
@@ -208,13 +215,15 @@ public sealed partial class OptionColorControl : OptionControlBase
             Content = picker,
             XamlRoot = XamlRoot,
             RequestedTheme = WindowStyleManager.ResolveTheme(),
+            PrimaryButtonText = mpv_winui.AppContext.AppLang.ThemeColorDone,
+            CloseButtonText = mpv_winui.AppContext.AppLang.Cancel,
+            DefaultButton = ContentDialogButton.Primary,
         };
-        picker.Applied += () => dialog.Hide();
-        await dialog.ShowAsync();
 
-        if (picker.Result is string hex)
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
         {
-            ApplyColor(hex);
+            var color = picker.Color;
+            ApplyColor($"#{color.R:X2}{color.G:X2}{color.B:X2}");
         }
     }
 

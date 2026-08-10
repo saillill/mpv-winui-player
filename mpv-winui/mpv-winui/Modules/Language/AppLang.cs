@@ -210,6 +210,13 @@ namespace mpv_winui.Modules.Language
         public string OpenFromClipboard { get; set; } = "Open from Clipboard";
         public string OpenWatchHistory { get; set; } = "Open Watch History";
         public string OpenWatchLater { get; set; } = "Open Watch Later";
+        public string WatchHistoryDialogTitle { get; set; } = "Watch History";
+        public string WatchLaterDialogTitle { get; set; } = "Watch Later";
+        public string WatchHistoryEmpty { get; set; } = "The watch history file is empty.";
+        public string WatchHistoryDisabled { get; set; } = "Enable --save-watch-history to jump to recently played files.";
+        public string WatchHistoryNoEntries { get; set; } = "No history entries.";
+        public string WatchLaterEmpty { get; set; } = "No watch later files found.";
+        public string WatchLaterDisabled { get; set; } = "Enable --write-filename-in-watch-later-config to select recent files.";
         public string Playlist { get; set; } = "Playlist";
         public string Window { get; set; } = "Window";
         public string TogglePlaylist { get; set; } = "Toggle Playlist";

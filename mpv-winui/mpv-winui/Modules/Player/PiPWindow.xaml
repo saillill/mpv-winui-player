@@ -23,7 +23,7 @@
             Click="PiPBackButton_Click">
             <FontIcon
                 FontSize="14"
-                Glyph="&#xE72B;" />
+                Glyph="&#xE840;" />
         </Button>
 
         <!-- Top-right: exit picture-in-picture and restore the main window. -->

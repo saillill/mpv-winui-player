@@ -153,15 +153,24 @@ namespace mpv_winui.Modules.Player
                 var logDir = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "mpv-winui", "logs");
-                System.IO.Directory.CreateDirectory(logDir);
-                System.IO.File.AppendAllText(
-                    System.IO.Path.Combine(logDir, "display-info.log"),
-                    $"{DateTime.Now:HH:mm:ss.fff} kind={kind} " +
-                    $"advanced={colorInfo.CurrentAdvancedColorKind} " +
-                    $"sdrWhite={colorInfo.SdrWhiteLevelInNits:0.0} " +
-                    $"maxLuma={colorInfo.MaxLuminanceInNits:0.0} " +
-                    $"minLuma={colorInfo.MinLuminanceInNits:0.0} " +
-                    $"monitor={_lastMonitor} windowId={_appWindow.Id.Value}\n");
+                var logPath = System.IO.Path.Combine(logDir, "display-info.log");
+                var line = $"{DateTime.Now:HH:mm:ss.fff} kind={kind} " +
+                           $"advanced={colorInfo.CurrentAdvancedColorKind} " +
+                           $"sdrWhite={colorInfo.SdrWhiteLevelInNits:0.0} " +
+                           $"maxLuma={colorInfo.MaxLuminanceInNits:0.0} " +
+                           $"minLuma={colorInfo.MinLuminanceInNits:0.0} " +
+                           $"monitor={_lastMonitor} windowId={_appWindow.Id.Value}\n";
+                _ = System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        System.IO.Directory.CreateDirectory(logDir);
+                        System.IO.File.AppendAllText(logPath, line);
+                    }
+                    catch
+                    {
+                    }
+                });
             }
             catch
             {

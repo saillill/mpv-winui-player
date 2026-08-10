@@ -19,6 +19,8 @@ public static class IconMap
 
     private static readonly Lazy<Dictionary<string, string>> _userExact = new(LoadUserExact);
     private static readonly Lazy<List<KeyValuePair<string, string>>> _userPrefixes = new(LoadUserPrefixes);
+    private static Dictionary<string, string>? _exactMap;
+    private static KeyValuePair<string, string>[]? _builtInPrefixes;
 
     /// <summary>
     /// 可选用户覆盖文件 icon-map.json（放在程序目录）：
@@ -75,7 +77,7 @@ public static class IconMap
         if (string.IsNullOrEmpty(title)) return null;
         var t = title.Trim();
         if (_userExact.Value.TryGetValue(t, out var ug)) return ug;
-        var exact = new Dictionary<string, string>(StringComparer.Ordinal)
+        var exact = _exactMap ??= new Dictionary<string, string>(StringComparer.Ordinal)
         {
             // 根/一级
             ["打开"] = "\uE8E5", ["播放"] = "\uE768", ["暂停"] = "\uE769", ["停止"] = "\uE71A",
@@ -154,7 +156,7 @@ public static class IconMap
         {
             if (t.StartsWith(kv.Key, StringComparison.Ordinal)) return kv.Value;
         }
-        foreach (var kv in new[]
+        foreach (var kv in _builtInPrefixes ??= new[]
         {
             // 前缀兜底：仅用于语义稳定、不会误伤的条目
             KeyValuePair.Create("预设", "\uE945"), KeyValuePair.Create("前进", "\uE72A"),

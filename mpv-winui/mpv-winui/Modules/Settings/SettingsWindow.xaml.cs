@@ -21,10 +21,9 @@ public sealed partial class SettingsWindow : Window
         SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
 
         Closed += SettingsWindow_Closed;
-        AppWindow.Closing += AppWindow_Closing;
         AppContext.LanguageChanged += SettingsWindow_LanguageChanged;
 
-        AppWindow.Title = "Settings";
+        AppWindow.Title = AppContext.AppLang.SettingsTitle;
         AppWindow.SetIcon("App.ico");
         AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
 
@@ -39,7 +38,6 @@ public sealed partial class SettingsWindow : Window
             Instance = null;
         }
         Closed -= SettingsWindow_Closed;
-        AppWindow.Closing -= AppWindow_Closing;
         AppContext.LanguageChanged -= SettingsWindow_LanguageChanged;
         _styleManager?.Dispose();
         _styleManager = null;
@@ -70,11 +68,6 @@ public sealed partial class SettingsWindow : Window
         _styleManager?.UpdateUiFont();
     }
 
-    // Settings are applied immediately, so closing never needs a save prompt.
-    private void AppWindow_Closing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
-    {
-    }
-
     private void SettingsWindow_LanguageChanged()
     {
         DispatcherQueue.TryEnqueue(() =>
@@ -83,6 +76,9 @@ public sealed partial class SettingsWindow : Window
             var state = PageFrame.Content is SettingsPage page
                 ? new SettingsPage.NavigationState(page.CurrentCategory, page.CurrentScrollOffset)
                 : null;
+            // Language switches rebuild the page; keep the frame from growing
+            // an unbounded back stack across repeated switches.
+            PageFrame.BackStack.Clear();
             PageFrame.Navigate(typeof(SettingsPage), state);
         });
     }

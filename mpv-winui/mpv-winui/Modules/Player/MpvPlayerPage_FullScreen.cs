@@ -19,79 +19,56 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
+            // Activity-based: any movement over the video area expands the
+            // overlay bar (the bar itself handles moves over the mask/bar via
+            // RootGrid_PointerMoved), and the idle timer retracts it.
             if (sender is FrameworkElement area)
             {
-                var position = e.GetCurrentPoint(area).Position;
-                if (position.Y >= area.ActualHeight - 120)
-                {
-                    PlayerControl.ShowControlPanel();
-                }
-                else
-                {
-                    PlayerControl.HideControlPanel();
-                }
+                PlayerControl.NotifyOverlayPointerActivity(e.GetCurrentPoint(area).Position);
+            }
+            else
+            {
+                PlayerControl.NotifyOverlayPointerActivity(default);
             }
         }
 
         private bool PlayerControl_OnFullScreenRequest()
         {
-            bool isFullScreen;
-
-            if (_appWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen)
-            {
-                _appWindow.SetPresenter(AppWindowPresenterKind.Default);
-            }
-            else
-            {
-                _appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
-            }
-
-            isFullScreen = _appWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen;
-
-            if (isFullScreen)
-            {
-                if (!_isFullWindow)
-                {
-                    PlayerControl.ToggleFullWindow();
-                }
-            }
-            else
-            {
-                if (_isFullWindow)
-                {
-                    PlayerControl.ToggleFullWindow();
-                }
-            }
-
-            _isFullScreen = isFullScreen;
-            PlayerControl.UpdateFullScreen(isFullScreen);
-
-            return isFullScreen;
+            // mpv's "fullscreen" property is the single source of truth: the
+            // property change event (MpvPlayerPage_WindowChanged) applies the
+            // presenter, the full-window page state and the overlay. Keeping
+            // the app's button on this path also makes the ESC binding in
+            // input.conf ("set fullscreen no") able to leave fullscreen.
+            AppContext.SendMpvCommand(_isFullScreen ? "set fullscreen no" : "set fullscreen yes");
+            return _isFullScreen;
         }
 
         private bool PlayerControl_OnFullWindowRequest()
         {
-            bool isFullWindow = _isFullWindow;
-
-            if (isFullWindow)
+            // Track the state ourselves: GoToState's return value only reports
+            // whether the state changed, so re-entering an already-active state
+            // used to flip _isFullWindow the wrong way and left the overlay
+            // (or the windowed bar) in a broken half state.
+            if (_isFullWindow)
             {
-                isFullWindow = !VisualStateManager.GoToState(this, "NormalWindow", true);
+                VisualStateManager.GoToState(this, "NormalWindow", true);
+                _isFullWindow = false;
             }
             else
             {
-                isFullWindow = VisualStateManager.GoToState(this, "FullWindow", true);
+                VisualStateManager.GoToState(this, "FullWindow", true);
+                _isFullWindow = true;
             }
 
-            //TODO 
             if (App.Window is MainWindow window)
             {
-                window.ChangeFullWindow(isFullWindow);
+                window.ChangeFullWindow(_isFullWindow);
             }
 
-            _isFullWindow = isFullWindow;
-            PlayerControl.SetOverlayMode(isFullWindow);
+            PlayerControl.SetOverlayMode(_isFullWindow);
+            PlayerControl.RefreshAdaptiveState();
 
-            return isFullWindow;
+            return _isFullWindow;
         }
     }
 }

@@ -33,9 +33,11 @@ namespace mpv_winui.Modules.Player
         private bool _compactMode;
         private bool _isPiPHost;
         private bool _overlayMode;
-        private Brush? _controlPanelDefaultBackground;
         private readonly DispatcherTimer _panelAnimationTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
         private readonly DispatcherTimer _hideDelayTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
+        private readonly DispatcherTimer _overlayIdleTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
+        private Point _lastOverlayActivity = new(double.NaN, double.NaN);
+        private const double OverlayMoveThreshold = 5.0;
         private long _panelAnimationStart;
         private bool _panelAnimationShow;
         private bool _panelAnimating;
@@ -82,12 +84,7 @@ namespace mpv_winui.Modules.Player
         public PlayerControl()
         {
             this.InitializeComponent();
-            RootGrid.PointerMoved += (_, e) => { };
             ApplyLocalizedStrings();
-            PiPButton.Click += OnPiPClick;
-            PiPPlayPauseButton.Click += OnPlayPauseClick;
-            PiPCloseButton.Click += OnPiPCloseClick;
-            AppContext.SettingChanged += OnAppSettingChanged;
             ApplyControlBarStyle();
             UpdatePiPBar();
             this.Loaded += PlayerControl_Loaded;
@@ -131,6 +128,8 @@ namespace mpv_winui.Modules.Player
         private void UpdatePiPButton()
         {
             PiPButton.IsChecked = AppContext.AppSetting.WindowPiP;
+            // Two-state pin (ModernX style): E718 = unpinned, E840 = pinned.
+            PiPSymbol.Glyph = AppContext.AppSetting.WindowPiP ? "\uE840" : "\uE718";
         }
 
         private void OnPiPCloseClick(object sender, RoutedEventArgs e)
@@ -185,8 +184,7 @@ namespace mpv_winui.Modules.Player
                     [],
                     [SkipBackwardButton, PlayPauseButton, SkipForwardButton],
                     [VolumeMuteButton, VolumeSliderContainer]);
-                SetHidden(true, PreviousTrackButton, RewindButton, FastForwardButton,
-                           NextTrackButton, StopButton, RepeatButton,
+                SetHidden(true, PreviousTrackButton, NextTrackButton, RepeatButton,
                            TrackSelectionButton, ShuffleButton, PlaybackRateButton,
                            ZoomButton, PiPButton, FullWindowButton, FullScreenButton);
                 TimeTextGrid.Visibility = Visibility.Collapsed;
@@ -204,6 +202,13 @@ namespace mpv_winui.Modules.Player
             var hidden = new HashSet<string>(
                 hiddenValue?.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
                 StringComparer.OrdinalIgnoreCase);
+
+            // Restore the buttons the PiP compact pass collapses.
+            SetHidden(false,
+                PreviousTrackButton, NextTrackButton, RepeatButton,
+                TrackSelectionButton, ShuffleButton, PlaybackRateButton,
+                ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
+                VolumeMuteButton, VolumeSliderContainer);
 
             // Playback controls are always shown and cannot be hidden.
             SetHidden(hidden.Contains("volume"), VolumeMuteButton, VolumeSliderContainer);
@@ -260,7 +265,16 @@ namespace mpv_winui.Modules.Player
 
             if (overlay)
             {
-                _controlPanelDefaultBackground ??= ControlPanelGrid.Background;
+                _lastOverlayActivity = new(double.NaN, double.NaN);
+                // Fullscreen mask: the gradient shell extends above the bar so
+                // the video fades into the controls, matching the mpv-lazy /
+                // ModernX bottom fade (140px, ~90% black at the base).
+                ControlPanelGradient.Height = 140;
+                // PiP-style overlay: no solid panel box, only the gradient
+                // fade. The dark element theme keeps glyphs white so they
+                // stay readable on the gradient without a visible border.
+                ControlPanelGrid.Background = null;
+                ControlPanelGrid.RequestedTheme = ElementTheme.Dark;
                 ControlPanelGradient.Background = new LinearGradientBrush
                 {
                     StartPoint = new Point(0, 0),
@@ -268,23 +282,95 @@ namespace mpv_winui.Modules.Player
                     GradientStops =
                     {
                         new GradientStop { Offset = 0, Color = Color.FromArgb(0, 0, 0, 0) },
-                        new GradientStop { Offset = 1, Color = Color.FromArgb(217, 0, 0, 0) },
+                        new GradientStop { Offset = 1, Color = Color.FromArgb(230, 0, 0, 0) },
                     },
                 };
-                ControlPanelGrid.Background = null;
                 ControlPanelGradient.Opacity = 1;
                 ControlPanelGrid.Opacity = 1;
                 TranslateVertical.Y = 0;
                 ControlPanelGrid.Visibility = Visibility.Visible;
                 _controlPanelIsVisible = true;
+                ShowControlPanel();
+                RestartOverlayIdleTimer();
             }
             else
             {
+                _lastOverlayActivity = new(double.NaN, double.NaN);
+                // Windowed mode: the shell hugs the bar content (Auto) so no
+                // extra background strip remains between the video and the
+                // controls.
+                ControlPanelGradient.Height = double.NaN;
                 ControlPanelGradient.Background = null;
                 ControlPanelGradient.Opacity = 1;
-                ControlPanelGrid.Background = _controlPanelDefaultBackground;
+                ControlPanelGrid.Background = null;
+                ControlPanelGrid.RequestedTheme = ElementTheme.Default;
+                _overlayIdleTimer.Stop();
+                // Reset any mid-animation state: leaving overlay while the
+                // bar was fading out used to leave it at partial opacity or
+                // collapsed, which the user saw as an incompletely expanded
+                // windowed bar after double-click fullscreen.
+                StopPanelAnimations();
+                ControlPanelGradient.Visibility = Visibility.Visible;
+                ControlPanelGrid.Opacity = 1;
+                TranslateVertical.Y = 0;
+                ControlPanelGrid.Visibility = Visibility.Visible;
+                _controlPanelIsVisible = true;
+                ShowControlPanel();
             }
+        }
+
+        /// <summary>
+        /// Activity-based overlay bar: any pointer movement over the player
+        /// (video, mask or bar) expands the bar and restarts the idle timer;
+        /// when the mouse stops moving, the bar retracts.
+        /// </summary>
+        private void RootGrid_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_overlayMode)
+            {
+                return;
+            }
+
+            NotifyOverlayPointerActivity(e.GetCurrentPoint(RootGrid).Position);
+        }
+
+        /// <summary>Called on pointer activity from the video area as well.</summary>
+        public void NotifyOverlayPointerActivity(Point position)
+        {
+            if (!_overlayMode)
+            {
+                return;
+            }
+
+            // Ignore sub-threshold jitter / duplicate events: they used to
+            // restart the idle timer repeatedly, so the bar stayed visible for
+            // many seconds after the mouse actually stopped moving.
+            if (!double.IsNaN(_lastOverlayActivity.X)
+                && Math.Abs(position.X - _lastOverlayActivity.X) < OverlayMoveThreshold
+                && Math.Abs(position.Y - _lastOverlayActivity.Y) < OverlayMoveThreshold)
+            {
+                return;
+            }
+
+            _lastOverlayActivity = position;
             ShowControlPanel();
+            RestartOverlayIdleTimer();
+        }
+
+        private void RestartOverlayIdleTimer()
+        {
+            _overlayIdleTimer.Stop();
+            _overlayIdleTimer.Start();
+        }
+
+        private void OverlayIdleTimer_Tick(object? sender, object e)
+        {
+            _overlayIdleTimer.Stop();
+            if (_overlayMode && _controlPanelIsVisible)
+            {
+                StartPanelAnimation(false);
+                OnPanelVisibleChanged?.Invoke(true);
+            }
         }
 
         private void HideDelayTimer_Tick(object? sender, object e)
@@ -317,8 +403,6 @@ namespace mpv_winui.Modules.Player
                 : $"{ts.Minutes:D2}.{ts.Seconds:D2}";
         }
 
-        private string? _lastBarOrder;
-
         /// <summary>
         /// 鍘熺増 keeps the upstream control order. 灞呬腑 reorders the buttons to
         /// match ModernX: tracks and volume on the left edge, previous/skip/
@@ -328,12 +412,6 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private void ApplyControlBarOrder(string layout)
         {
-            if (string.Equals(_lastBarOrder, layout, StringComparison.Ordinal))
-            {
-                return;
-            }
-            _lastBarOrder = layout;
-
             ICommandBarElement[] left, middle, right;
             if (layout == "modernx")
             {
@@ -344,9 +422,9 @@ namespace mpv_winui.Modules.Player
                 ];
                 middle =
                 [
-                    PreviousTrackButton, SkipBackwardButton, RewindButton,
-                    PlayPauseButton, FastForwardButton, SkipForwardButton,
-                    NextTrackButton, StopButton,
+                    PreviousTrackButton, SkipBackwardButton,
+                    PlayPauseButton, SkipForwardButton,
+                    NextTrackButton,
                 ];
                 right =
                 [
@@ -357,9 +435,8 @@ namespace mpv_winui.Modules.Player
             {
                 left =
                 [
-                    PlayPauseButton, RewindButton, FastForwardButton,
-                    PreviousTrackButton, NextTrackButton, SkipBackwardButton,
-                    SkipForwardButton, StopButton, ShuffleButton, RepeatButton,
+                    PlayPauseButton, PreviousTrackButton, NextTrackButton, SkipBackwardButton,
+                    SkipForwardButton, ShuffleButton, RepeatButton,
                 ];
                 middle = [];
                 right =
@@ -381,44 +458,26 @@ namespace mpv_winui.Modules.Player
             ICommandBarElement[] middleDesired,
             ICommandBarElement[] rightDesired)
         {
-            var available = new HashSet<ICommandBarElement>(ReferenceEqualityComparer.Instance);
-            foreach (var element in left.PrimaryCommands)
-            {
-                available.Add(element);
-            }
-            foreach (var element in middle.PrimaryCommands)
-            {
-                available.Add(element);
-            }
-            foreach (var element in right.PrimaryCommands)
-            {
-                available.Add(element);
-            }
-
+            // Rebuild from the canonical lists on every apply. The previous
+            // implementation only re-added elements that were already present
+            // in the bars, so after the PiP compact pass stripped a subset of
+            // buttons, later applies silently dropped the missing buttons and
+            // the control bar could end up empty (progress bar + times only).
             left.PrimaryCommands.Clear();
             middle.PrimaryCommands.Clear();
             right.PrimaryCommands.Clear();
 
             foreach (var element in leftDesired)
             {
-                if (available.Remove(element))
-                {
-                    left.PrimaryCommands.Add(element);
-                }
+                left.PrimaryCommands.Add(element);
             }
             foreach (var element in middleDesired)
             {
-                if (available.Remove(element))
-                {
-                    middle.PrimaryCommands.Add(element);
-                }
+                middle.PrimaryCommands.Add(element);
             }
             foreach (var element in rightDesired)
             {
-                if (available.Remove(element))
-                {
-                    right.PrimaryCommands.Add(element);
-                }
+                right.PrimaryCommands.Add(element);
             }
         }
 
@@ -537,6 +596,11 @@ namespace mpv_winui.Modules.Player
 
         private void PlayerControl_Loaded(object sender, RoutedEventArgs e)
         {
+            RootGrid.PointerMoved += RootGrid_PointerMoved;
+            PiPButton.Click += OnPiPClick;
+            PiPPlayPauseButton.Click += OnPlayPauseClick;
+            PiPCloseButton.Click += OnPiPCloseClick;
+            AppContext.SettingChanged += OnAppSettingChanged;
             PlayPauseButton.Click += OnPlayPauseClick;
             SkipBackwardButton.Click += SkipBackwardButton_Click;
             SkipForwardButton.Click += SkipForwardButton_Click;
@@ -545,7 +609,6 @@ namespace mpv_winui.Modules.Player
             FullWindowButton.Click += FullWindowButton_Click;
             RepeatButton.Click += OnRepeatClick;
             ShuffleButton.Click += OnShuffleClick;
-            StopButton.Click += StopButton_Click;
             TrackSelectionButton.Click += TrackSelectionButton_Click;
             ZoomButton.Click += ZoomButton_Click;
             PreviousTrackButton.Click += PreviousTrackButton_Click;
@@ -576,6 +639,7 @@ namespace mpv_winui.Modules.Player
 
             _positionUpdateTimer.Tick += OnPositionUpdateTimerTick;
             _positionUpdateTimer.Start();
+            _overlayIdleTimer.Tick += OverlayIdleTimer_Tick;
 
             UpdateToolbarVisibility(ActualWidth);
             //UpdatePlaybackStatusUI(false);
@@ -600,6 +664,7 @@ namespace mpv_winui.Modules.Player
             PiPButton.Click -= OnPiPClick;
             PiPPlayPauseButton.Click -= OnPlayPauseClick;
             PiPCloseButton.Click -= OnPiPCloseClick;
+            RootGrid.PointerMoved -= RootGrid_PointerMoved;
             AppContext.SettingChanged -= OnAppSettingChanged;
             PlayPauseButton.Click -= OnPlayPauseClick;
             SkipBackwardButton.Click -= SkipBackwardButton_Click;
@@ -609,7 +674,6 @@ namespace mpv_winui.Modules.Player
             FullWindowButton.Click -= FullWindowButton_Click;
             RepeatButton.Click -= OnRepeatClick;
             ShuffleButton.Click -= OnShuffleClick;
-            StopButton.Click -= StopButton_Click;
             foreach (var item in PlaybackRateFlyout.Items)
             {
                 if (item is MenuFlyoutItem menuFlyoutItem)
@@ -630,6 +694,8 @@ namespace mpv_winui.Modules.Player
             SizeChanged -= PlayerControl_SizeChanged;
             _positionUpdateTimer.Stop();
             _positionUpdateTimer.Tick -= OnPositionUpdateTimerTick;
+            _overlayIdleTimer.Stop();
+            _overlayIdleTimer.Tick -= OverlayIdleTimer_Tick;
 
             RemoveEventListeners();
         }
@@ -781,11 +847,6 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.CurrentSecondSubtitleTrack = trackIndex;
         }
 
-        private void StopButton_Click(object sender, RoutedEventArgs e)
-        {
-            _mediaPlayer?.Stop();
-        }
-
         private void PlaybackRateFlyout_MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
             if (_mediaPlayer != null && sender is MenuFlyoutItem item && double.TryParse(item.Tag.ToString(), out double speed))
@@ -807,7 +868,7 @@ namespace mpv_winui.Modules.Player
 
         public void Forward()
         {
-            _mediaPlayer?.Position += 30;
+            _mediaPlayer?.Position += 10;
         }
 
         public void Backward()
@@ -1111,18 +1172,6 @@ namespace mpv_winui.Modules.Player
             return _controlPanelIsVisible;
         }
 
-        public void ToggleControlPanel()
-        {
-            if (_controlPanelIsVisible)
-            {
-                HideControlPanel();
-            }
-            else
-            {
-                ShowControlPanel();
-            }
-        }
-
         public void ShowControlPanel()
         {
             if (_overlayMode)
@@ -1139,6 +1188,7 @@ namespace mpv_winui.Modules.Player
             if (!_controlPanelIsVisible)
             {
                 StopPanelAnimations();
+                ControlPanelGradient.Visibility = Visibility.Visible;
                 ControlPanelGrid.Opacity = 0;
                 TranslateVertical.Y = 48;
                 ControlPanelGrid.Visibility = Visibility.Visible;
@@ -1184,6 +1234,11 @@ namespace mpv_winui.Modules.Player
                 {
                     if (!_controlPanelIsVisible)
                     {
+                        // Collapse the whole 120px host border, not just the
+                        // grid: the Auto-sized page row would otherwise keep a
+                        // white (window background) strip below the video
+                        // after the bar hides.
+                        ControlPanelGradient.Visibility = Visibility.Collapsed;
                         ControlPanelGrid.Visibility = Visibility.Collapsed;
                         ControlPanelGrid.Opacity = 1;
                         TranslateVertical.Y = 0;
@@ -1458,6 +1513,12 @@ namespace mpv_winui.Modules.Player
                 _ => "Narrow"
             };
             VisualStateManager.GoToState(this, name, false);
+        }
+
+        /// <summary>Re-applies the width-adaptive state after a layout mode change.</summary>
+        public void RefreshAdaptiveState()
+        {
+            UpdateToolbarVisibility(ActualWidth);
         }
 
         private void ProgressSlider_PointerEntered(object sender, PointerRoutedEventArgs e)

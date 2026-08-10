@@ -341,7 +341,7 @@ public sealed partial class MpvPlayerPage
             stack.Children.Add(mpvLink);
             var mpvDocsLink = new HyperlinkButton
             {
-                Content = "mpv.io/manual/master (官方文档)",
+                Content = AppContext.AppLang.HelpMpvDocs,
                 NavigateUri = new Uri("https://mpv.io/manual/master/"),
                 HorizontalAlignment = HorizontalAlignment.Left
             };

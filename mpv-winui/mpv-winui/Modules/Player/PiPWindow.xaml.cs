@@ -2,8 +2,11 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
-using System.Runtime.InteropServices;
 using Windows.Graphics;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Dwm;
+using Windows.Win32.UI.WindowsAndMessaging;
 using WinRT.Interop;
 
 namespace mpv_winui.Modules.Player;
@@ -120,16 +123,16 @@ public sealed partial class PiPWindow : Window
     {
         try
         {
-            var hwnd = WindowNative.GetWindowHandle(this);
+            var hwnd = new HWND(WindowNative.GetWindowHandle(this));
             var preference = 2; // DWMWCP_ROUND
             unsafe
             {
-                _ = DwmSetWindowAttribute(hwnd, 33, &preference, sizeof(int));
+                _ = PInvoke.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &preference, (uint)sizeof(int));
                 var borderColor = 0x000000; // black BGR, hides the light top border
-                _ = DwmSetWindowAttribute(hwnd, 34, &borderColor, sizeof(int)); // DWMWA_BORDER_COLOR
-                _ = DwmSetWindowAttribute(hwnd, 35, &borderColor, sizeof(int)); // DWMWA_CAPTION_COLOR
+                _ = PInvoke.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_BORDER_COLOR, &borderColor, (uint)sizeof(int));
+                _ = PInvoke.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_CAPTION_COLOR, &borderColor, (uint)sizeof(int));
                 var ncPolicy = 2; // DWMNCRP_DISABLED: content fills the whole window
-                _ = DwmSetWindowAttribute(hwnd, 2, &ncPolicy, sizeof(int));    // DWMWA_NCRENDERING_POLICY
+                _ = PInvoke.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_NCRENDERING_POLICY, &ncPolicy, (uint)sizeof(int));
             }
         }
         catch (Exception)
@@ -147,28 +150,24 @@ public sealed partial class PiPWindow : Window
     {
         try
         {
-            var hwnd = WindowNative.GetWindowHandle(this);
-            const int GWL_STYLE = -16;
+            var hwnd = new HWND(WindowNative.GetWindowHandle(this));
             const int WS_BORDER = 0x00800000;
             const int WS_DLGFRAME = 0x00400000;
             const int WS_THICKFRAME = 0x00040000;
-            const uint SWP_NOSIZE = 0x0001;
-            const uint SWP_NOMOVE = 0x0002;
-            const uint SWP_NOZORDER = 0x0004;
-            const uint SWP_NOACTIVATE = 0x0010;
-            const uint SWP_FRAMECHANGED = 0x0020;
 
-            var style = GetWindowLong(hwnd, GWL_STYLE);
+            var style = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE);
             style &= ~(WS_BORDER | WS_DLGFRAME | WS_THICKFRAME);
-            _ = SetWindowLong(hwnd, GWL_STYLE, style);
-            _ = SetWindowPos(
+            _ = PInvoke.SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE, style);
+            _ = PInvoke.SetWindowPos(
                 hwnd,
-                IntPtr.Zero,
+                HWND.Null,
                 0,
                 0,
                 0,
                 0,
-                SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+                SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED | SET_WINDOW_POS_FLAGS.SWP_NOMOVE
+                | SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOZORDER
+                | SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
         }
         catch (Exception)
         {
@@ -194,8 +193,8 @@ public sealed partial class PiPWindow : Window
         // cursor. This makes the whole video area draggable like browser PiP.
         try
         {
-            var hwnd = WindowNative.GetWindowHandle(this);
-            _ = SendMessage(hwnd, 0x00A1, new IntPtr(2), IntPtr.Zero); // WM_NCLBUTTONDOWN, HTCAPTION
+            var hwnd = new HWND(WindowNative.GetWindowHandle(this));
+            _ = PInvoke.SendMessage(hwnd, 0x00A1, new WPARAM(2u), default); // WM_NCLBUTTONDOWN, HTCAPTION
         }
         catch (Exception)
         {
@@ -240,8 +239,9 @@ public sealed partial class PiPWindow : Window
 
     private void PiPExitButton_Click(object sender, RoutedEventArgs e)
     {
-        // The top-right close ends the application directly.
-        Application.Current.Exit();
+        // The top-right close leaves PiP and restores the main window,
+        // matching the back button and Alt+F4 behavior.
+        RestoreMainWindow();
     }
 
     /// <summary>Fades the top-left back and top-right close buttons with the control bar.</summary>
@@ -307,18 +307,4 @@ public sealed partial class PiPWindow : Window
         Closed -= PiPWindow_Closed;
     }
 
-    [DllImport("dwmapi.dll")]
-    private static extern unsafe int DwmSetWindowAttribute(IntPtr hwnd, int attribute, int* value, int size);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SendMessage(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam);
-
-    [DllImport("user32.dll")]
-    private static extern int GetWindowLong(IntPtr hwnd, int index);
-
-    [DllImport("user32.dll")]
-    private static extern int SetWindowLong(IntPtr hwnd, int index, int value);
-
-    [DllImport("user32.dll")]
-    private static extern bool SetWindowPos(IntPtr hwnd, IntPtr insertAfter, int x, int y, int cx, int cy, uint flags);
 }

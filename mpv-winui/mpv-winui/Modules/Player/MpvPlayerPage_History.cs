@@ -19,9 +19,9 @@ namespace mpv_winui.Modules.Player
 
             var dialog = new ContentDialog
             {
-                Title = "Watch History",
+                Title = AppContext.AppLang.WatchHistoryDialogTitle,
                 Content = control,
-                CloseButtonText = "Close",
+                CloseButtonText = AppContext.AppLang.Close,
                 XamlRoot = XamlRoot
             };
             _watchHistoryDialog = new WeakReference<ContentDialog>(dialog);
@@ -37,9 +37,9 @@ namespace mpv_winui.Modules.Player
             control.ItemClick += WatchLaterControl_ItemClick;
             var dialog = new ContentDialog
             {
-                Title = "Watch Later",
+                Title = AppContext.AppLang.WatchLaterDialogTitle,
                 Content = control,
-                CloseButtonText = "Close",
+                CloseButtonText = AppContext.AppLang.Close,
                 XamlRoot = XamlRoot
             };
             _watchLaterDialog = new WeakReference<ContentDialog>(dialog);

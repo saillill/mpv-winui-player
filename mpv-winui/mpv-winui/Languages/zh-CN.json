@@ -1,4 +1,11 @@
 {
+  "WatchHistoryDialogTitle": "观看历史",
+  "WatchLaterDialogTitle": "稍后观看",
+  "WatchHistoryEmpty": "观看历史文件为空。",
+  "WatchHistoryDisabled": "启用 --save-watch-history 以跳转到最近播放的文件。",
+  "WatchHistoryNoEntries": "暂无历史记录。",
+  "WatchLaterEmpty": "未找到稍后观看文件。",
+  "WatchLaterDisabled": "启用 --write-filename-in-watch-later-config 以选择最近的文件。",
   "SettingsTitle": "设置",
   "FileLoadSubtitle": "添加字幕",
   "FileOpen": "打开文件",

@@ -1,4 +1,11 @@
 {
+  "WatchHistoryDialogTitle": "視聴履歴",
+  "WatchLaterDialogTitle": "後で見る",
+  "WatchHistoryEmpty": "視聴履歴ファイルは空です。",
+  "WatchHistoryDisabled": "--save-watch-history を有効にすると、最近再生したファイルへ移動できます。",
+  "WatchHistoryNoEntries": "履歴はありません。",
+  "WatchLaterEmpty": "後で見るファイルが見つかりません。",
+  "WatchLaterDisabled": "--write-filename-in-watch-later-config を有効にすると、最近のファイルを選択できます。",
   "About": "バージョン情報",
   "Add": "追加",
   "AppHelpAndFeedBack": "フィードバック",

@@ -1,3 +1,4 @@
+using Microsoft.UI.Windowing;
 using System;
 
 namespace mpv_winui.Modules.Player;
@@ -51,6 +52,15 @@ public sealed partial class MpvPlayerPage
 
     private void ExitPiP()
     {
+        // ApplyPiP() is also called on startup when WindowPiP is false; if we
+        // never entered PiP there is nothing to tear down, and re-attaching
+        // the swap chain here races mpv initialization (crash in
+        // AttachSwapChain when mpv is not created yet).
+        if (_pipWindow is null)
+        {
+            return;
+        }
+
         if (_pipWindow is { } pipWindow)
         {
             _pipWindow.VideoPanel.CompositionScaleChanged -= PiPView_CompositionScaleChanged;
@@ -70,6 +80,19 @@ public sealed partial class MpvPlayerPage
             mainWindow.RestoreFromPiP();
         }
 
+        // WinUI 3: hiding and re-showing a window that is in the FullScreen
+        // presenter leaves the XAML content island stale - the video swap
+        // chain keeps rendering, but the overlay (control bar) stops painting
+        // and stops receiving pointer events. Cycling the presenter forces
+        // the content island to rebuild, which restores the overlay.
+        if (_isFullScreen)
+        {
+            _appWindow.SetPresenter(AppWindowPresenterKind.Default);
+            _appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+        }
+
+        PlayerControl.SetOverlayMode(_isFullWindow || _isFullScreen);
+        PlayerControl.ShowControlPanel();
         PlayerControl.UpdatePiPBar();
     }
 

@@ -1,4 +1,11 @@
 {
+  "WatchHistoryDialogTitle": "Historial de reproducción",
+  "WatchLaterDialogTitle": "Ver más tarde",
+  "WatchHistoryEmpty": "El archivo de historial está vacío.",
+  "WatchHistoryDisabled": "Habilita --save-watch-history para saltar a archivos reproducidos recientemente.",
+  "WatchHistoryNoEntries": "Sin entradas.",
+  "WatchLaterEmpty": "No se encontraron archivos para ver más tarde.",
+  "WatchLaterDisabled": "Habilita --write-filename-in-watch-later-config para seleccionar archivos recientes.",
   "About": "Acerca de",
   "Add": "Agregar",
   "AppHelpAndFeedBack": "Comentarios",

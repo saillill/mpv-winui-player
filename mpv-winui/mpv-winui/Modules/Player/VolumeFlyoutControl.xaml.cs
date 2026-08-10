@@ -1,7 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using mpv_winui.Modules.Common.Utils;
 using System;
 
 namespace mpv_winui.Modules.Player
@@ -41,18 +40,15 @@ namespace mpv_winui.Modules.Player
         //TODO use state
         private void UpdateVolumeIcon(bool isMuted, double volume)
         {
-            DispatcherQueue.RunAsync(() =>
+            if (isMuted)
             {
-                if (isMuted)
-                {
-                    VolumeIcon.Glyph = "\uE74F";
-                }
-                else
-                {
-                    var vol = volume;
-                    VolumeIcon.Glyph = vol < 1 ? "\uE992" : vol < 34 ? "\uE993" : vol < 67 ? "\uE994" : "\uE995";
-                }
-            });
+                VolumeIcon.Glyph = "\uE74F";
+            }
+            else
+            {
+                var vol = volume;
+                VolumeIcon.Glyph = vol < 1 ? "\uE992" : vol < 34 ? "\uE993" : vol < 67 ? "\uE994" : "\uE995";
+            }
         }
     }
 }

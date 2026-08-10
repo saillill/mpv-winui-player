@@ -84,8 +84,7 @@ namespace mpv_winui
             _task = Task.WhenAll([
                 Task.Run(LoggerHelper.SetupLogger),
                 Task.Run(PluginConfigWriter.WriteAllAsync),
-                Task.Run(ManagedMpvConfig.WriteAsync),
-                AppBootstrap.RunAsync()
+                Task.Run(ManagedMpvConfig.WriteAsync)
             ]);
         }
 
@@ -148,13 +147,5 @@ namespace mpv_winui
             _task = null;
         }
 
-    }
-
-    public static class AppBootstrap
-    {
-        public static async Task RunAsync()
-        {
-            await Task.Run(() => { });
-        }
     }
 }

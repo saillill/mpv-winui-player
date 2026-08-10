@@ -173,20 +173,10 @@ public sealed partial class WindowStyleManager : IDisposable
             _ => SystemBackdropTheme.Light
         };
 
-        if (theme == ElementTheme.Dark)
-        {
-            _acrylicController?.Kind = DesktopAcrylicKind.Thin;
-            _acrylicController?.TintOpacity = GetBackdropTintOpacity();
-            _acrylicController?.TintColor = GetBackdropTintColor(theme);
-            _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
-        }
-        else
-        {
-            _acrylicController?.Kind = DesktopAcrylicKind.Thin;
-            _acrylicController?.TintOpacity = GetBackdropTintOpacity();
-            _acrylicController?.TintColor = GetBackdropTintColor(theme);
-            _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
-        }
+        _acrylicController?.Kind = DesktopAcrylicKind.Thin;
+        _acrylicController?.TintOpacity = GetBackdropTintOpacity();
+        _acrylicController?.TintColor = GetBackdropTintColor(theme);
+        _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
 
         ApplyMicaTint();
     }

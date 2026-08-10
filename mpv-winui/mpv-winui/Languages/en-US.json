@@ -1,4 +1,11 @@
 {
+  "WatchHistoryDialogTitle": "Watch History",
+  "WatchLaterDialogTitle": "Watch Later",
+  "WatchHistoryEmpty": "The watch history file is empty.",
+  "WatchHistoryDisabled": "Enable --save-watch-history to jump to recently played files.",
+  "WatchHistoryNoEntries": "No history entries.",
+  "WatchLaterEmpty": "No watch later files found.",
+  "WatchLaterDisabled": "Enable --write-filename-in-watch-later-config to select recent files.",
   "SettingsTitle": "Settings",
   "FileLoadSubtitle": "Add Subtitle",
   "FileOpen": "Open File",

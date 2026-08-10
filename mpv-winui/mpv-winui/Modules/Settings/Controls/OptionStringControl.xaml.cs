@@ -6,8 +6,10 @@ using mpv_winui.Modules.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using Windows.System;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.Input.Ime;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
@@ -18,7 +20,7 @@ public sealed partial class OptionStringControl : OptionControlBase
     private bool _capturing;
     private static OptionStringControl? _activeCapture;
     private readonly HashSet<string> _pendingModifiers = new(StringComparer.OrdinalIgnoreCase);
-    private nint _imeContext;
+    private HIMC _imeContext;
 
     public OptionStringControl()
     {
@@ -234,21 +236,21 @@ public sealed partial class OptionStringControl : OptionControlBase
         {
             var windowId = mpv_winui.Modules.Settings.SettingsWindow.Instance?.AppWindow.Id
                 ?? mpv_winui.App.Window!.AppWindow.Id;
-            var raw = Microsoft.UI.Win32Interop.GetWindowFromWindowId(windowId);
-            if (raw == 0)
+            var hwnd = new HWND(Microsoft.UI.Win32Interop.GetWindowFromWindowId(windowId));
+            if (hwnd == HWND.Null)
             {
                 return;
             }
 
             if (disable)
             {
-                _imeContext = ImmGetContext(raw);
-                ImmAssociateContext(raw, 0);
+                _imeContext = PInvoke.ImmGetContext(hwnd);
+                PInvoke.ImmAssociateContext(hwnd, HIMC.Null);
             }
-            else if (_imeContext != 0)
+            else if (_imeContext != HIMC.Null)
             {
-                ImmAssociateContext(raw, _imeContext);
-                _imeContext = 0;
+                PInvoke.ImmAssociateContext(hwnd, _imeContext);
+                _imeContext = HIMC.Null;
             }
         }
         catch
@@ -256,12 +258,6 @@ public sealed partial class OptionStringControl : OptionControlBase
             // IME toggling is best-effort; capture still works without it.
         }
     }
-
-    [DllImport("imm32.dll", ExactSpelling = true)]
-    private static extern nint ImmGetContext(nint hWnd);
-
-    [DllImport("imm32.dll", ExactSpelling = true)]
-    private static extern nint ImmAssociateContext(nint hWnd, nint hImc);
 
     private void AttachRootHandlers()
     {

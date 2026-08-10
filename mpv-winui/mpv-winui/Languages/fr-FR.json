@@ -1,4 +1,11 @@
 {
+  "WatchHistoryDialogTitle": "Historique de lecture",
+  "WatchLaterDialogTitle": "Regarder plus tard",
+  "WatchHistoryEmpty": "Le fichier d'historique est vide.",
+  "WatchHistoryDisabled": "Activez --save-watch-history pour accéder aux fichiers récemment lus.",
+  "WatchHistoryNoEntries": "Aucune entrée.",
+  "WatchLaterEmpty": "Aucun fichier à regarder plus tard trouvé.",
+  "WatchLaterDisabled": "Activez --write-filename-in-watch-later-config pour sélectionner les fichiers récents.",
   "About": "À propos",
   "Add": "Ajouter",
   "AppHelpAndFeedBack": "Retour d'information",

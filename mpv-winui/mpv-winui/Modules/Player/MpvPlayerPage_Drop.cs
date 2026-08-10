@@ -71,7 +71,7 @@ namespace mpv_winui.Modules.Player
             if (items.Count > 0)
             {
                 var openMode = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down) ? OpenMode.Append : OpenMode.Replace;
-                PlayStorageItems(items, openMode).FireAndForget();
+                PlayStorageItems(items, openMode).FireAndForget(OnException);
             }
         }
 
