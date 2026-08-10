@@ -45,6 +45,21 @@ namespace mpv_winui.Modules.Settings
                 _dataSetting.SetValue(barIconsMigratedKey, true);
             }
 
+            // Older builds defaulted thumbfast's inactivity quit to 0, which
+            // left orphaned mpv.exe preview processes after abrupt app exits.
+            // The new default is 30 seconds; treat a stored 0 as "unset" once
+            // so existing installs pick up the new default (users can still
+            // set 0 explicitly afterwards).
+            const string thumbfastQuitMigratedKey = "ThumbfastQuitInactivityMigrated";
+            if (!_dataSetting.GetValue(thumbfastQuitMigratedKey, false))
+            {
+                if (_dataSetting.GetValue(nameof(ThumbfastQuitAfterInactivity), 0) == 0)
+                {
+                    _dataSetting.ResetKeys([nameof(ThumbfastQuitAfterInactivity)]);
+                }
+                _dataSetting.SetValue(thumbfastQuitMigratedKey, true);
+            }
+
             const string migratedKey = "SubFontLanguageDefaultMigrated";
             if (_dataSetting.GetValue(migratedKey, false))
             {
@@ -1478,7 +1493,7 @@ namespace mpv_winui.Modules.Settings
 
         public int ThumbfastQuitAfterInactivity
         {
-            get => _dataSetting.GetValue(nameof(ThumbfastQuitAfterInactivity), 0);
+            get => _dataSetting.GetValue(nameof(ThumbfastQuitAfterInactivity), 30);
             set => _dataSetting.GetValue(nameof(ThumbfastQuitAfterInactivity), value);
         }
 

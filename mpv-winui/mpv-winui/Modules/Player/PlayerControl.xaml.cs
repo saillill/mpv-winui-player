@@ -807,7 +807,7 @@ namespace mpv_winui.Modules.Player
 
         public void Forward()
         {
-            _mediaPlayer?.Position += 30;
+            _mediaPlayer?.Position += 10;
         }
 
         public void Backward()

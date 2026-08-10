@@ -95,6 +95,7 @@ public sealed partial class SettingsPage : Page
         AppContext.AppSetting.ResetKeys(keys);
         ApplyAfterReset();
         ShowResetStatus(AppContext.AppLang.SettingsResetDone);
+        Frame?.BackStack.Clear();
         Frame?.Navigate(typeof(SettingsPage), new NavigationState(category, CurrentScrollOffset));
     }
 
@@ -121,6 +122,7 @@ public sealed partial class SettingsPage : Page
         UnassociateFiles();
         ApplyAfterReset();
         ShowResetStatus(AppContext.AppLang.SettingsResetAllDone);
+        Frame?.BackStack.Clear();
         Frame?.Navigate(typeof(SettingsPage), new NavigationState(category, offset));
     }
 
@@ -374,7 +376,7 @@ public sealed partial class SettingsPage : Page
     {
         var selected = CategoryList.SelectedItem as string;
         OptionsControl.OptionList = selected is null
-            ? Settings
+            ? string.IsNullOrWhiteSpace(SearchBox.Text) ? Settings : []
             : Settings.Where(o => o.Category == selected).ToList();
     }
 
@@ -5291,6 +5293,7 @@ public sealed partial class SettingsPage : Page
 
             AppContext.AppSetting.ImportAll(values);
             _actionStatus = AppContext.AppLang.SettingsConfigImported;
+            Frame?.BackStack.Clear();
             Frame?.Navigate(typeof(SettingsPage));
         }
         catch (System.Exception ex)

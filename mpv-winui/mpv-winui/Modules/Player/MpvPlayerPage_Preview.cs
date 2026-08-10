@@ -17,6 +17,7 @@ namespace mpv_winui.Modules.Player
         private const double PreviewCardHeight = 143;
 
         private Point _lastPreviewPoint;
+        private int _previewGeneration;
 
         private void SetupPreview()
         {
@@ -70,6 +71,7 @@ namespace mpv_winui.Modules.Player
 
         private async Task LoadPreviewAsync(MpvPreviewInfo info)
         {
+            var generation = _previewGeneration;
             try
             {
                 byte[]? bytes = null;
@@ -103,6 +105,13 @@ namespace mpv_winui.Modules.Player
                 var source = new SoftwareBitmapSource();
                 await source.SetBitmapAsync(bitmap);
 
+                // The preview may have been hidden while the frame was being
+                // decoded; ignore stale loads so the card does not pop back in.
+                if (generation != _previewGeneration)
+                {
+                    return;
+                }
+
                 PreviewImage.Source = source;
                 PreviewCard.Visibility = Visibility.Visible;
                 UpdatePreviewCardPosition();
@@ -131,6 +140,7 @@ namespace mpv_winui.Modules.Player
 
         private void HidePreview()
         {
+            _previewGeneration++;
             PreviewImage.Source = null;
             PreviewCard.Visibility = Visibility.Collapsed;
         }

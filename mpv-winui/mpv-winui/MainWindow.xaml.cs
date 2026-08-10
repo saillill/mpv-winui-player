@@ -30,7 +30,6 @@ namespace mpv_winui
 
             SetupWindowSize();
 
-            Activated += Window_Activated;
             Closed += Window_Closed;
             AppContext.SettingChanged += MainWindow_SettingChanged;
         }
@@ -119,13 +118,8 @@ namespace mpv_winui
             _settingsWindow = null;
         }
 
-        private void Window_Activated(object sender, WindowActivatedEventArgs args)
-        {
-        }
-
         private void Window_Closed(object sender, WindowEventArgs args)
         {
-            Activated -= Window_Activated;
             AppContext.SettingChanged -= MainWindow_SettingChanged;
             _settingsWindow?.Close();
             CleanupStyle();

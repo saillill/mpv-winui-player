@@ -12,6 +12,8 @@ namespace mpv_winui.Modules.Settings;
 /// </summary>
 public static class PluginConfigWriter
 {
+    private const string ManagedMarker = "# Managed by mpv-winui settings (edited from the settings window)";
+
     private static readonly Dictionary<string, Dictionary<string, string>> Managed = new()
     {
         ["hdr_auto.conf"] = new()
@@ -101,10 +103,10 @@ public static class PluginConfigWriter
     {
         var lines = File.Exists(path) ? await File.ReadAllLinesAsync(path) : [];
         var kept = lines
-            .Where(line => !TryParseKey(line, out var key) || !entries.ContainsKey(key))
+            .Where(line => line != ManagedMarker && (!TryParseKey(line, out var key) || !entries.ContainsKey(key)))
             .ToList();
 
-        kept.Add("# Managed by mpv-winui settings (edited from the settings window)");
+        kept.Add(ManagedMarker);
         kept.AddRange(entries.Select(kv => $"{kv.Key}={kv.Value}"));
 
         await File.WriteAllLinesAsync(path, kept);

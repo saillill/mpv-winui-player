@@ -34,7 +34,7 @@ namespace mpv_winui
                             _y = v[1];
                             _w = v[2];
                             _h = v[3];
-                            if (_x > 0 && _y > 0 && _w > 0 && _h > 0)
+                            if (_w > 0 && _h > 0)
                             {
                                 var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
                                 var width = Math.Min(Math.Max(100, _w), Math.Max(100, workArea.Width - 40));
@@ -42,13 +42,6 @@ namespace mpv_winui
                                 var x = Math.Clamp(_x, workArea.X, workArea.X + workArea.Width - width);
                                 var y = Math.Clamp(_y, workArea.Y, workArea.Y + workArea.Height - height);
                                 AppWindow.MoveAndResize(new RectInt32(x, y, width, height));
-                            }
-                            else if (_w > 0 && _h > 0)
-                            {
-                                var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
-                                var width = Math.Min(Math.Max(100, _w), Math.Max(100, workArea.Width - 40));
-                                var height = Math.Min(Math.Max(100, _h), Math.Max(100, workArea.Height - 40));
-                                AppWindow.Resize(new SizeInt32(width, height));
                             }
                         }
                     }
@@ -81,14 +74,8 @@ namespace mpv_winui
                 {
                     if (overlappedPresenter.State is OverlappedPresenterState.Restored)
                     {
-                        if (sender.Position.X > 0)
-                        {
-                            _x = sender.Position.X;
-                        }
-                        if (sender.Position.Y > 0)
-                        {
-                            _y = sender.Position.Y;
-                        }
+                        _x = sender.Position.X;
+                        _y = sender.Position.Y;
                         _w = sender.Size.Width;
                         _h = sender.Size.Height;
                     }

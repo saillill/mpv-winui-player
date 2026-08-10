@@ -83,6 +83,9 @@ public sealed partial class SettingsWindow : Window
             var state = PageFrame.Content is SettingsPage page
                 ? new SettingsPage.NavigationState(page.CurrentCategory, page.CurrentScrollOffset)
                 : null;
+            // Language switches rebuild the page; keep the frame from growing
+            // an unbounded back stack across repeated switches.
+            PageFrame.BackStack.Clear();
             PageFrame.Navigate(typeof(SettingsPage), state);
         });
     }

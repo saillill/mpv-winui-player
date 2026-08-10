@@ -45,6 +45,32 @@ namespace mpv_winui.Modules.Settings
                         return (T)(object)(bytes[0] != 0);
                     }
                 }
+                if (value is string text)
+                {
+                    // Imported config files store every value as a string; the
+                    // registry then holds REG_SZ instead of the original type,
+                    // so numeric properties need string -> number conversion.
+                    if (typeof(T) == typeof(int) && int.TryParse(text, out var i))
+                    {
+                        return (T)(object)i;
+                    }
+                    if (typeof(T) == typeof(double) && double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d))
+                    {
+                        return (T)(object)d;
+                    }
+                    if (typeof(T) == typeof(float) && float.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var f))
+                    {
+                        return (T)(object)f;
+                    }
+                    if (typeof(T) == typeof(long) && long.TryParse(text, out var l))
+                    {
+                        return (T)(object)l;
+                    }
+                    if (typeof(T) == typeof(uint) && uint.TryParse(text, out var u))
+                    {
+                        return (T)(object)u;
+                    }
+                }
             }
             catch (System.Exception)
             {
