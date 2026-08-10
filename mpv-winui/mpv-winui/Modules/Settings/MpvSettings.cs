@@ -8,8 +8,14 @@ namespace mpv_winui.Modules.Settings;
 /// </summary>
 public static class MpvSettings
 {
-    /// <summary>Quote a value for mpv's command string parser (paths may contain spaces).</summary>
-    private static string Q(string value) => $"\"{value.Replace("\"", "\\\"")}\"";
+    /// <summary>
+    /// Quote a value for mpv's command string parser. mpv_command_string uses
+    /// C-style escapes inside quotes, so Windows paths must have their
+    /// backslashes doubled, otherwise "C:\Users\..." fails to parse and the
+    /// option silently keeps its previous value.
+    /// </summary>
+    private static string Q(string value) =>
+        $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
 
     public static string? ToCommand(string key, object value)
     {

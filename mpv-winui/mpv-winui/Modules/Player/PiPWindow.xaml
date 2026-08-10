@@ -6,7 +6,8 @@
 
     <Grid x:Name="RootGrid" Background="Black">
         <SwapChainPanel
-            x:Name="PiPView" />
+            x:Name="PiPView"
+            PointerWheelChanged="PiPView_PointerWheelChanged" />
 
         <!-- Top-left: return to the main player window. -->
         <Button

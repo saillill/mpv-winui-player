@@ -370,10 +370,12 @@
             DragEnter="OnDragEnter"
             DragOver="OnDragOver"
             Drop="OnDrop"
-            PointerMoved="VideoArea_PointerMoved">
+            PointerMoved="VideoArea_PointerMoved"
+            PointerWheelChanged="VideoArea_PointerWheelChanged">
             <SwapChainPanel
                 x:Name="PlayerView"
                 ContextRequested="PlayerView_ContextRequested"
+                DoubleTapped="PlayerView_DoubleTapped"
                 Tapped="PlayerView_Tapped">
                 <Border Background="Transparent" />
             </SwapChainPanel>

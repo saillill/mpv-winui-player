@@ -463,6 +463,13 @@ namespace mpv_winui.Modules.Player
                         UpdateShuffleButtonUI();
                         UpdateRepeatButtonUI();
                         VolumeSlider.Value2 = _mediaPlayer?.Volume ?? 50; //TODO
+
+                        // Initialize time/progress from the current media state.
+                        // The position timer only refreshes while playing, so a
+                        // control created while paused (e.g. the PiP window)
+                        // would otherwise keep the placeholder "00.00/00.00".
+                        UpdateProgressSliderValue(value.Position, value.Duration);
+                        UpdateTimeTexts(value.Position, value.Duration);
                     }
                 }
             }
@@ -583,6 +590,8 @@ namespace mpv_winui.Modules.Player
             if (_mediaPlayer is { } player)
             {
                 VolumeSlider.Value2 = player.Volume;
+                UpdateProgressSliderValue(player.Position, player.Duration);
+                UpdateTimeTexts(player.Position, player.Duration);
             }
         }
 

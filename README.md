@@ -6,60 +6,81 @@
 
 [简体中文](README_zh-CN.md)
 
-> A WinUI 3 media player powered by libmpv (C++/WinRT), with a curated config layer trimmed from mpv-lazy. Focused on correct HDR/WCG output in embedded mode, multilingual UI (8 languages), and a clean out-of-the-box experience.
+> A WinUI 3 media player powered by libmpv, with a curated config layer based on
+> mpv-lazy. It focuses on correct HDR/WCG output in embedded composition mode,
+> a PotPlayer-style settings window with ~184 live-applied options, 8-language
+> localization, and a polished picture-in-picture window.
 
-## Brief Introduction
+## Screenshots
 
-[mpv-winui-player](https://github.com/saillill/mpv-winui-player) embeds [libmpv](https://github.com/mpv-player/mpv) into a native WinUI 3 shell through a C++/WinRT component (`mpv_winrt`). The mpv configuration is provided by a dedicated config layer (`mpv-winui-lazy/`) based on [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit) (mpv-lazy), so the player works without extra setup:
+| Light | Dark |
+|---|---|
+| ![Main player](screenshot/main.jpg) | ![Main player (dark)](screenshot/main-dark.jpg) |
+| ![Settings](screenshot/settings.png) | ![Settings (dark)](screenshot/settings-dark.png) |
 
-- Rendering: `vo=gpu-next` + `d3d11-output-mode=composition` (no window border flicker, native WinUI overlay).
-- Display detection: the app reads `DisplayInformation` and exposes `user-data/mpvw/color-kind` (`SDR` / `WCG` / `HDR`) and `user-data/mpvw/refresh-rate` to mpv; `profiles.conf` switches output parameters automatically.
-- Deployment: unpackaged build, one zip, `deploy-config.ps1` syncs the config layer to `%LOCALAPPDATA%\mpv-winui\mpv`.
+![Picture in picture](screenshot/pip.png)
 
-Related projects:
+![Right-click menu](screenshot/menu.jpg)
 
-- Upstream app: [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player)
-- Config base: [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)
-- Core engine: [mpv-player/mpv](https://github.com/mpv-player/mpv) · [haasn/libplacebo](https://github.com/haasn/libplacebo)
-- Windows libmpv builds: [ikas-mc/mpv-windows-builder](https://github.com/ikas-mc/mpv-windows-builder)
+## Highlights
 
-## UI Features
+- **Engine**: libmpv embedded through the `mpv_winrt` C++/WinRT component,
+  rendered with `vo=gpu-next` + `d3d11-output-mode=composition` — no window
+  border flicker, native WinUI overlay, hardware decoding (d3d11va).
+- **HDR / WCG**: the app reads `DisplayInformation` and writes
+  `user-data/mpvw/color-kind` (`SDR` / `WCG` / `HDR`) plus the refresh rate to
+  mpv; `profiles.conf` switches output parameters automatically. This fixes
+  the washed-out HDR that upstream had in composition mode.
+- **Settings**: a PotPlayer-style two-pane window (left categories, right
+  option cards) with ~184 options. Every option applies to mpv immediately,
+  conflicts are greyed out, ineffective options show yellow notes, list options
+  show localized presets (never raw mpv keys), and paths get a folder picker
+  plus an "open in Explorer" button.
+- **Localization**: 8 languages (en-US, zh-CN, ja-JP, ko-KR, de-DE, fr-FR,
+  es-ES, ru-RU) covering the app UI, the menu bar, and the 153-item mpv
+  right-click menu (translated through `user-data/mpvw/language`).
+- **Picture-in-picture**: a dedicated borderless always-on-top window with DWM
+  rounded corners, fixed size, drag-anywhere moving, and the fullscreen compact
+  control bar (time, transport, volume, progress).
+- **Video preview**: thumbfast renders thumbnails through a bundled standalone
+  `mpv.exe`; the app draws them as a rounded WinUI card above the progress bar.
+- **Mouse input**: wheel over the video controls volume/seek and the mouse
+  buttons follow `input.conf` (left = play/pause, double-click = fullscreen,
+  X1/X2 = playlist prev/next), matching the documented mpv-lazy bindings.
 
-- **Menu bar**: File (open file/folder/URL/clipboard, DVD/BD, watch history, watch later, add subtitle, screenshots, restart, quit), View (playlist, fullscreen/full-window, options, open config/mpv folders), Help (about), Sleep timer (off / 15 / 30 / 45 / 60 / 90 minutes).
-- **Player controls**: play/pause, skip, shuffle, repeat, playback rate, audio/video track switching, zoom, full window/full screen, volume, seek bar with thumbnails.
-- **Playlist panel**: context menu (play, move, remove, copy title/path, open file location), watch history and watch later.
-- **Right-click menu**: mpv data menus (153 items, tsl0922/mpv-menu layout) plus fixed File/Window items; filters are shown directly under "Filters & Enhance" (no extra submenu level). Menu titles, dynamic items and the mpv `select` sub-menus (track/chapter/edition/audio device/key bindings/history/watch later/properties) are fully translated in all 8 languages via `dyn_menu.lua` / `dynamic_menu.lua` / `select.lua`, switched automatically by `user-data/mpvw/language`. Related OSD feedback (RTX HDR modes, cleared saved properties, thumbnail toggles) is localized as well.
-- **Settings window**: two-pane layout (left categories, right options) that follows the option layout of the [mpv manual](https://mpv.io/manual/master/): Program Behavior / Playback Control / Track Selection / Watch Later / Video / Audio / Subtitles / Window / Demuxer / Cache / Input / OSD / Screenshot / GPU renderer options / Video Sync. It ships ~184 PotPlayer-style options — list options show localized presets (never raw mpv keys) plus a "Custom" entry that reveals an input box only when selected, including a runtime audio-device list populated from mpv and screenshot filename-template presets; boolean switches show localized On/Off, the language list shows each language in its own name (中文 / 日本語 / 한국어 ...), path options (screenshot folder, cache folder, watch-later folder, ICC cache, shader cache) have a native Windows folder-picker "Browse" button plus an "Open" button that opens the folder in File Explorer, and explanations appear as a caption under the title (Windows Settings style) only when they add information and never repeat the yellow warning text. Each category is divided into functional sections with caption separators (e.g. Program Behavior: Interface / Language & logging / Network integration; Video: Decoding / Image / HDR & color / Upscaling; Audio: Output / Volume / External audio / Cover art; Subtitles: Text subtitles / ASS subtitles / Image subtitles; GPU renderer options: Scaling & dithering / Color & HDR / Motion interpolation / Background / Direct3D 11 / Shaders & cache). Options that conflict are disabled (e.g. linear-light vs sigmoid upscaling, ASS-to-margins while subtitles are blended), and options that may become ineffective show a yellow note (e.g. interpolation without display-resample sync, per-format screenshot settings). Descriptions include recommended values and known conflicts. Changes apply to mpv live, and app-level settings (language, backdrop, debug logging, video preview) also take effect immediately without restarting. The left-category search also matches pinyin (Chinese), romaji (Japanese) and romanized Korean spellings. The control bar offers two styles — the original upstream order or the centered ModernX order — each with its own icon-visibility checklist. Key bindings are listed under Shortcuts and grouped by function (playback, navigation, video, audio, subtitles, speed, volume, filters, tools, view, screenshot); clicking any row captures a new keyboard or mouse binding (IME is disabled while capturing) and rewrites `input.conf` while preserving comments.
+## What's new vs. upstream
 
-## What's New vs. Upstream
+Upstream app: [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player)
 
-| Area | Upstream `ikas-mc/mpv-winui-player` | This project |
+| Area | Upstream | This project |
 |---|---|---|
-| HDR/WCG output | SDR-only example workaround; HDR washed out in composition mode | Auto profiles `mpvw-sdr/wcg/hdr`; WCG→`bt.2020` (invalid `display-p3` fixed); HDR→`target-trc=pq` + `target-prim=bt.2020` + `target-peak=1000`; `target-colorspace-hint=yes` while RTX HDR is active |
-| Localization | English-only hardcoded strings, no switch | `AppLang` + `Languages/*.json`, 8 languages (en-US / zh-CN / ja-JP / ko-KR / de-DE / fr-FR / es-ES / ru-RU), switch in Settings (immediate, no restart) |
-| Player settings | Minimal | ~184 categorized options applied live and on startup: hwdec + codec list, volume/volume-max, keep-open, loop file/playlist, speed, save/resume playback position, deinterlace, aspect, scaling/downscaling/chroma algorithms, frame-interpolation algorithm, rotation, deband, video sync (+max rate change), interpolation, HR seek (+framedrop), tone mapping, dithering, panscan, video unscaled, background tiles, network cache/read-ahead, yt-dlp URL resolution + extra options, auto playlist/folder mode + file types/extensions, audio language/device (live list)/channels/delay/exclusive mode/pitch/downmix/gapless/wait-open/buffer/audio-file display+folders/cover art, subtitle size/position/delay/language/external folders/HDR peaks/colors/scale signs/ASS override+styles+video data+VSFilter color compat+blur/font (system-default + Microsoft fonts)/font provider/codepage/fallback/blend/scale-with-window/ASS margins/image-sub stretching+resolution, OSD font/size/on-seek/duration/playing message/bar width+height/blur/outline/fractions/colors, target colorspace hint (+mode/strict)/primaries/transfer/peak, gamut mapping, D3D11 output colorspace/exclusive fullscreen/flip/adapter, ICC auto profile + file + forced contrast + 3D LUT + cache, video output levels, direct GPU decode (`vd-lavc-dr`), demuxer forward/backward cache, disk cache, screenshot directory/template (presets)/format/JPEG (quality+chroma)/PNG (compression+filter)/WebP (quality+lossless+compression)/JXL (distance+effort)/AVIF encoder/bit depth/software capture, cache folder, watch-later folder + saved properties, ICC cache folder, shader cache folder, GLSL shader list, IPC server, NVIDIA VSR / RTX Video HDR / seek window-hold toggles, plus plugin options (autocreate-playlist, metadata OSD, cover art, thumbfast, RTX HDR log) persisted to script-opts, and "Run mpv command" / "Search shortcuts" dialogs from the menu bar; localized values, editable presets with custom input, conflict-aware disabling, yellow ineffectiveness warnings, folder picker + open-folder buttons, non-redundant descriptions with recommendations |
+| HDR/WCG output | SDR-only workaround; HDR washed out in composition mode | Auto `mpvw-sdr/wcg/hdr` profiles; WCG → bt.2020 (invalid `display-p3` fixed); HDR → `target-trc=pq` + `target-prim=bt.2020` + `target-peak=1000`; `target-colorspace-hint=yes` while RTX HDR is active |
+| Localization | English-only hardcoded strings | `AppLang` + JSON, 8 languages, immediate switch |
+| Player settings | Minimal | ~184 categorized options, live-applied + applied at startup |
 | MediaInfo | Not bundled | Official MediaInfo CLI v26.05 (BSD-2-Clause) bundled |
-| Opening files | Protocol/CLI activation broken in unpackaged mode | Command line and `mpv-winui://` both fixed and verified |
-| Logging | mpv logs verbose by default | Off by default (`log-file` commented, `hdr_auto` `log=no`) |
+| CLI / protocol | Broken in unpackaged mode | Command line and `mpv-winui://` activation fixed and verified |
+| Logging | mpv verbose by default | Off by default (`log-file` commented, `hdr_auto` `log=no`) |
 | Config layer | Not shipped | `mpv-winui-lazy/` (mpv-lazy based): HDR/WCG profiles, RTX HDR/VSR scripts, clean key bindings, MediaInfo config |
-| Build & release | Manual | `build.ps1` / `package.ps1`; GitHub Actions produces the Release zip without a signing certificate |
+| Build & release | Manual | `build.ps1` / `package.ps1`; GitHub Actions produces unpackaged + Release zip without a signing certificate |
 
-## Quick Start
+## Quick start
 
-1. Download `mpv-winui-win-x64-Release.zip` from the [Releases page](https://github.com/saillill/mpv-winui-player/releases).
+1. Download `mpv-winui-win-x64-Release.zip` from the
+   [Releases page](https://github.com/saillill/mpv-winui-player/releases).
 2. Extract it anywhere (Windows 10/11 x64).
-3. Deploy the config layer (first run):
+3. Deploy the config layer once:
 
-```powershell
-powershell -File mpv-winui-lazy\deploy-config.ps1
-```
+   ```powershell
+   powershell -File mpv-winui-lazy\deploy-config.ps1
+   ```
 
-4. Run `mpv-winui.exe`. Open files from the menu, drag & drop, the command line, or the URL protocol:
+4. Run `mpv-winui.exe`. Open files from the menu, drag & drop, the command
+   line, or the URL protocol:
 
-```powershell
-mpv-winui.exe "D:\Videos\movie.mkv"
-mpv-winui://?file=D%3A%5CVideos%5Cmovie.mkv
-```
+   ```powershell
+   mpv-winui.exe "D:\Videos\movie.mkv"
+   mpv-winui://?file=D%3A%5CVideos%5Cmovie.mkv
+   ```
 
 ## Configuration
 
@@ -86,34 +107,45 @@ target-prim=bt.2020
 target-peak=1000
 ```
 
-Notes: `d3d11-output-csp=display-p3` is not a valid value; HDR needs all three `target-*` options, otherwise the swap chain is PQ but the render pipeline stays SDR and the driver never switches to HDR.
+Notes: `d3d11-output-csp=display-p3` is not a valid value; HDR needs all three
+`target-*` options or the swap chain is PQ while the render pipeline stays SDR
+and the driver never switches to HDR.
 
-### RTX Video HDR / NVIDIA VSR (`mpv-winui-lazy/script-opts/`)
+### RTX Video HDR / NVIDIA VSR
 
-- `hdr_auto.conf`: `log=no` by default; `mode=auto|on|off`.
-- `mpvw_hdr_override.conf`: `mode=` empty = follow the app; `HDR` / `SDR` force an override.
+- `script-opts/hdr_auto.conf`: `log=no` by default; `mode=auto|on|off`.
+- `script-opts/mpvw_hdr_override.conf`: `mode=` empty = follow the app;
+  `HDR` / `SDR` force an override.
+- `script-opts/vsr_auto.conf` and `script-opts/seek_hold.conf`: automatic
+  NVIDIA VSR and seek-hold behavior.
 
 ### Key bindings (`mpv-winui-lazy/input.conf`)
 
-Wheel: volume/seek · `` ` ``: console · `F6/F7`: playlist/track info · `TAB`: stats · `Alt+i`: MediaInfo · `Ctrl+1..0`: color adjust · `w/W`: panscan · `[ ] { }`: speed. (`input_plus.lua` is intentionally not shipped.)
+Mouse wheel over the video: volume (up/down) and seek (left/right) · left click:
+play/pause · double-click: fullscreen · X1/X2: playlist prev/next · `` ` ``:
+console · F6/F7: playlist/track info · TAB: stats · Alt+i: MediaInfo ·
+Ctrl+1..0: color adjust · w/W: panscan · `[ ] { }`: speed.
 
 ### Localization / MediaInfo / logs
 
-- Language: Settings page (each language is shown in its own name) or edit `Languages\<lang>.json` (keys are `AppLang` property names). Right-click menus use the same language through `user-data/mpvw/language`; all 8 languages are fully covered in `dyn_menu.lua` and `dynamic_menu.lua`.
+- Language: Settings page, or edit `Languages\<lang>.json` (keys are `AppLang`
+  property names). Right-click menus use the same language via
+  `user-data/mpvw/language`; all 8 languages are covered in `dyn_menu.lua` /
+  `dynamic_menu.lua`.
 - MediaInfo: `script-opts/stats_mediainfo.conf` → `mediainfo_path=~~/MediaInfo.exe`.
-- Troubleshooting: uncomment `log-file` in `mpv.conf` and set `msg-level=all=v`; set `log=yes` in `hdr_auto.conf`.
+- Troubleshooting: uncomment `log-file` in `mpv.conf` and set
+  `msg-level=all=v`; set `log=yes` in `hdr_auto.conf`.
 
-### Player settings (Settings window)
+### Settings window
 
-Hardware decoding (`hwdec`), max/startup volume (`volume-max`/`volume`), after-playback behavior (`keep-open`), loop file/playlist (`loop-file`/`loop-playlist`), default speed, save/resume playback position (`save-position-on-quit`/`resume-playback`), deinterlace, aspect ratio, scaling/downscaling algorithms (`scale`/`dscale`), chroma scaling (`cscale`), frame-interpolation algorithm (`tscale`), rotation, deband, linear downscaling, sigmoid upscaling, video sync, interpolation, HR seek (`hr-seek`) and seek framedrop (`hr-seek-framedrop`), HDR tone mapping, dither depth, panscan, network cache mode and demuxer read-ahead, yt-dlp URL resolution (`ytdl`), auto playlist/folder mode, preferred audio/subtitle languages (`alang`/`slang`), audio device, channels, delay, exclusive mode, pitch correction, downmix normalization, auto-loaded audio files, audio-file display (`audio-display`), cover-art preference, subtitle font size / position / delay / external subtitle folders / HDR peaks / font (system default, Segoe UI, Microsoft YaHei, Arial, Times New Roman, Consolas, bundled Source Han Sans SC / LXGW WenKai) / font provider (`sub-font-provider`) / codepage / outline / shadow / ASS override + style overrides / blur / embedded fonts / margins / ASS margins (`sub-ass-force-margins`) / image-sub stretching (`stretch-image-subs-to-screen`) / fallback (`subs-fallback`) / blend mode (`blend-subtitles`) / scale-with-window, OSD font / font size / on-seek display (`osd-on-seek`) / duration / playing message / bar width, target colorspace hint / primaries / transfer / peak, ICC auto profile and 3D LUT size + cache, video output levels, direct GPU decode (`vd-lavc-dr`), demuxer forward/backward cache, disk cache, screenshot folder (folder picker + open in Explorer) & filename template / format / JPEG quality / PNG compression / WebP quality / bit depth / colorspace tag / software capture (`screenshot-sw`), cache folder, video preview thumbnails. List options offer localized presets plus a "Custom" entry that reveals an input box when selected. Video previews are driven by thumbfast through the app's progress bar: the Lua bridge forwards the hover/drag position to thumbfast, thumbfast renders frames with a bundled standalone `mpv.exe` (fetched by `package.ps1`), and the app draws the thumbnail as a rounded WinUI overlay card above the progress bar (no mpv overlay); the card follows both hover and thumb dragging. The categories mirror the mpv manual: Program Behavior (interface, language/logging, yt-dlp), Playback Control (playback, seeking, seek preview), Track Selection (preferred languages, fallback), Watch Later (resume, storage), Video (decoding, image, HDR & color, upscaling), Audio (output, volume, external audio, cover art), Subtitles (text / ASS / image subtitles), Window, Demuxer (playlist & directories, buffering), Cache, Input, OSD (OSD, metadata overlay), Screenshot (location & naming, format & quality), GPU renderer options (scaling & dithering, color & HDR, motion interpolation, background, Direct3D 11, shaders & cache) and Video Sync. Low-level color/stream/script options (ICC, `target-*`, D3D11, shader cache, GLSL shaders) live under GPU renderer options, cache/demuxer folders under Cache/Demuxer, watch-later folder under Watch Later, and OSD styling under OSD. ASS/advanced subtitle options (ASS override, ASS margins, ASS scale-with-window, embedded fonts, blend subtitles) live in the Subtitles category under their own "ASS subtitles" section, while subtitle fallback (`subs-fallback`) sits in Track Selection, matching the manual. Plugin options that live in `script-opts/*.conf` (autocreate-playlist, metadata OSD, cover art, thumbfast quality, RTX HDR log) are written into the app config folder on startup and take effect on the next start. Every value is displayed with a localized label; explanations appear under the title only when they add information, never repeating the yellow warning text, and mention recommended values; options that conflict are disabled and options that may be ineffective show a yellow note. Changes are sent to mpv immediately and applied on startup; app-level settings (language, backdrop, debug logging, video preview) apply immediately without restarting.
+Categories: Desktop (interface / background / fonts / control-bar layout /
+language & logging / file associations), Playback, Resume, Video, Audio,
+Subtitles, Window, Cache, Network, Input, Shortcuts, OSD, Screenshot, Test.
+Everything applies live; "Reset current category" and "Reset all settings" are
+at the bottom. The left search box supports pinyin (Chinese), romaji
+(Japanese) and romanized Korean matching.
 
-### Help / About
-
-The Help menu has a dedicated "mpv Official Manual" item (<https://mpv.io/manual/master/>); the About dialog links the mpv GitHub repository and this project (<https://github.com/saillill/mpv-winui-player>).
-
-## Build
-
-### Environment
+## Build & release
 
 | Requirement | Notes |
 |---|---|
@@ -123,22 +155,71 @@ The Help menu has a dedicated "mpv Official Manual" item (<https://mpv.io/manual
 | Windows App SDK 2.3.x | restored via NuGet |
 | `mpv-2.dll` | downloaded from [ikas-mc/mpv-windows-builder](https://github.com/ikas-mc/mpv-windows-builder) into `mpv-winui\libs\` |
 
-### Build & package
-
 ```powershell
 .\build.ps1 -Configuration Release -Platform x64
 .\package.ps1 -Configuration Release -Platform x64   # -> dist\mpv-winui-win-x64-Release.zip
 ```
 
-CI (`.github/workflows/build.yml`, manual `workflow_dispatch`) builds the same way; without certificate secrets it skips MSIX and uploads the unpackaged output plus the Release zip.
+CI (`.github/workflows/build.yml`, manual `workflow_dispatch`) builds the same
+way; without certificate secrets it skips MSIX and uploads the unpackaged
+output plus the Release zip.
 
-### References
+## Upstream references & library usage
 
-- Runtime: mpv (LGPL-2.1+ / GPL-2.0+), libplacebo (LGPL-2.1+), Windows App SDK / WinUI 3 (MIT), CsWinRT / CsWin32 (MIT), NLog (BSD-3), MediaInfo (BSD-2), .NET (MIT), NUnit (MIT).
-- Config layer: hooke007/mpv_PlayKit (baseline; unlisted files default UNLICENSED per its LICENSE.MD), tsl0922/mpv-menu (GPL-2.0-only), coverart / recent-menu / metadata-osd (MIT), thumbfast (MPL-2.0), mpv's console/select/stats scripts, Source Han Sans / LXGW WenKai fonts (OFL-1.1), shaders (see file headers).
-- Full list and license texts: [mpv-winui-lazy/THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md).
+### Project sources
 
-## License
+| Project | Used for |
+|---|---|
+| [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player) | Upstream app baseline (WinUI shell + `mpv_winrt` component) |
+| [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit) (mpv-lazy) | Config layer baseline: `mpv.conf`, `profiles.conf`, `input.conf`, scripts, shaders |
+| [mpv-player/mpv](https://github.com/mpv-player/mpv) | Core playback engine (libmpv + bundled CLI for thumbfast) |
+| [haasn/libplacebo](https://github.com/haasn/libplacebo) | Rendering inside mpv's `gpu-next` VO |
+| [ikas-mc/mpv-windows-builder](https://github.com/ikas-mc/mpv-windows-builder) | Windows `mpv-2.dll` builds |
+| [shinchiro/mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake) | Standalone `mpv.exe` bundled for thumbfast |
+| [tsl0922/mpv-menu-plugin](https://github.com/tsl0922/mpv-menu-plugin) | `dyn_menu.lua` / `dialog.lua` (mpv right-click menu data) |
+| [po5/thumbfast](https://github.com/po5/thumbfast) | Thumbnail preview engine |
+| [CogentRedTester/mpv-coverart](https://github.com/CogentRedTester/mpv-coverart) | Cover art loading |
+| [natural-harmonia-gropius/recent-menu](https://github.com/natural-harmonia-gropius/recent-menu) | Recent files menu |
+| [vc-01/metadata-osd](https://github.com/vc-01/metadata-osd) | Metadata OSD |
+| [MediaArea/MediaInfo](https://mediaarea.net/en/MediaInfo) | MediaInfo CLI (tool menu) |
+| [apades/dmMiniPlayer](https://github.com/apades/dmMiniPlayer) | PiP UX reference (documentPictureInPicture) |
+
+### Runtime libraries used by the app
+
+| Library | License | Purpose |
+|---|---|---|
+| Windows App SDK / WinUI 3 | MIT | UI framework |
+| CsWinRT / CsWin32 | MIT | C#/WinRT interop and Win32 P/Invoke generation |
+| NLog | BSD-3 | Logging |
+| .NET | MIT | Managed runtime |
+| libmpv / libplacebo | LGPL-2.1+ | Playback and rendering |
+| MediaInfo CLI | BSD-2-Clause | File metadata |
+| Source Han Sans / LXGW WenKai Mono Lite | SIL OFL-1.1 | Bundled fonts (optional) |
+| Shaders (Anime4K, FSRCNNX, nnedi3, NVIDIA, etc.) | See file headers / THIRD_PARTY_NOTICES | Optional upscaling/enhancement |
+| VapourSynth templates (`vs/*.vpy`) | mpv-lazy maintained | Optional VapourSynth workflows |
+
+## License compliance
 
 - App code: **LGPL-2.1** ([LICENSE.txt](LICENSE.txt), same as upstream).
-- Config layer, project-written parts: **LGPL-2.1-or-later**; third-party components keep their own licenses (see [THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md)).
+- Config layer project-written parts: **LGPL-2.1-or-later**; third-party
+  components keep their own licenses.
+- `dyn_menu.lua` and `dialog.lua` are **GPL-2.0-only** source scripts; they are
+  distributed as source with provenance (the previously bundled `menu.dll`
+  GPL binary was removed — the shipped mpv uses its native `menu-data` path).
+- The bundled `mpv.exe` is **GPL-2.0+** (a separate program used by thumbfast);
+  source is available from the upstream repositories.
+- The config layer is derived from mpv-lazy; its `LICENSE.MD` treats files it
+  does not list as UNLICENSED, so provenance is preserved for copied files.
+- Full component list and license texts:
+  [mpv-winui-lazy/THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md),
+  [fonts/OFL-1.1.txt](mpv-winui-lazy/fonts/OFL-1.1.txt),
+  [licenses/MediaInfo-BSD-2-Clause.txt](mpv-winui-lazy/licenses/MediaInfo-BSD-2-Clause.txt).
+
+## Known limitations
+
+- The display monitor name field in `display-info.log` can be empty on some
+  multi-monitor setups (the HDR kind and refresh rate are still tracked).
+- `keep-open=always` pauses at the end of a file by design; loop-playlist then
+  advances when playback resumes.
+- Unpackaged mode requires `deploy-config.ps1` once so the config layer lands in
+  `%LOCALAPPDATA%\mpv-winui\mpv`.

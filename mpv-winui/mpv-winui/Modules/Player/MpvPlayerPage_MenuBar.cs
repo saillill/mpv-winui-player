@@ -164,7 +164,8 @@ public sealed partial class MpvPlayerPage
                 $"show-text {QuoteForMpv(string.Format(AppContext.AppLang.SleepTimerSetMessage, minutes))}");
         }
 
-        private static string QuoteForMpv(string value) => $"\"{value.Replace("\"", "\\\"")}\"";
+        private static string QuoteForMpv(string value) =>
+            $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
 
         private async Task ShowMpvCommandDialogAsync()
         {

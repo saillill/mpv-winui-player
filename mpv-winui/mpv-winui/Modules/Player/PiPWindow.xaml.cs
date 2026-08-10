@@ -217,6 +217,22 @@ public sealed partial class PiPWindow : Window
         }
     }
 
+    private void PiPView_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        // Wheel over the PiP video is forwarded to mpv (input.conf volume/seek),
+        // matching the main window behavior. Left press stays reserved for
+        // dragging the PiP window.
+        var point = e.GetCurrentPoint(PiPView);
+        var props = point.Properties;
+        var key = props.IsHorizontalMouseWheel
+            ? (props.MouseWheelDelta > 0 ? "WHEEL_LEFT" : "WHEEL_RIGHT")
+            : (props.MouseWheelDelta > 0 ? "WHEEL_UP" : "WHEEL_DOWN");
+
+        _player?.Command(["keydown", key]);
+        _player?.Command(["keyup", key]);
+        e.Handled = true;
+    }
+
     private void PiPBackButton_Click(object sender, RoutedEventArgs e)
     {
         RestoreMainWindow();
