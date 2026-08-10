@@ -6,8 +6,7 @@
 
     <Grid x:Name="RootGrid" Background="Black">
         <SwapChainPanel
-            x:Name="PiPView"
-            Tapped="PiPView_Tapped" />
+            x:Name="PiPView" />
 
         <!-- Top-left: return to the main player window. -->
         <Button

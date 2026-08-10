@@ -20,9 +20,10 @@ public sealed partial class PiPWindow : Window
     public static PiPWindow? Instance { get; private set; }
 
     private MpvMediaPlayer? _player;
-    private bool _dragging;
-    private Windows.Foundation.Point _dragStart;
     private bool _closing;
+    private readonly DispatcherTimer _topButtonsTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
+    private long _topButtonsStart;
+    private bool _topButtonsShow;
 
     public PiPWindow()
     {
@@ -33,8 +34,7 @@ public sealed partial class PiPWindow : Window
         ApplyLocalizedStrings();
 
         PiPView.PointerPressed += PiPView_PointerPressed;
-        PiPView.PointerMoved += PiPView_PointerMoved;
-        PiPView.PointerReleased += PiPView_PointerReleased;
+        RootGrid.PointerMoved += RootGrid_PointerMoved;
 
         AppWindow.Closing += AppWindow_Closing;
         Closed += PiPWindow_Closed;
@@ -48,12 +48,14 @@ public sealed partial class PiPWindow : Window
         _player = player;
         PiPControls.MediaPlayer = player;
         PiPControls.IsPiPHost = true;
+        PiPControls.OnPanelVisibleChanged += PiPControls_OnPanelVisibleChanged;
     }
 
     public void Detach()
     {
         if (_player is not null)
         {
+            PiPControls.OnPanelVisibleChanged -= PiPControls_OnPanelVisibleChanged;
             PiPControls.MediaPlayer = null;
             _player = null;
         }
@@ -187,28 +189,9 @@ public sealed partial class PiPWindow : Window
             return;
         }
 
-        _dragging = false;
-        _dragStart = e.GetCurrentPoint(PiPView).Position;
-        PiPView.CapturePointer(e.Pointer);
-    }
-
-    private void PiPView_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        if (_dragging)
-        {
-            return;
-        }
-
-        var position = e.GetCurrentPoint(PiPView).Position;
-        if (Math.Abs(position.X - _dragStart.X) < 8 && Math.Abs(position.Y - _dragStart.Y) < 8)
-        {
-            return;
-        }
-
-        // Pass the move to the system caption so the whole video area drags
-        // the window, like browser picture-in-picture.
-        _dragging = true;
-        PiPView.ReleasePointerCapture(e.Pointer);
+        // Hand the press to the system caption: the modal move loop starts
+        // immediately and ends on release, so the window never sticks to the
+        // cursor. This makes the whole video area draggable like browser PiP.
         try
         {
             var hwnd = WindowNative.GetWindowHandle(this);
@@ -216,33 +199,21 @@ public sealed partial class PiPWindow : Window
         }
         catch (Exception)
         {
-            _dragging = false;
+            // Drag is optional; ignore failures on exotic input.
         }
     }
 
-    private void PiPView_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    private void RootGrid_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        PiPView.ReleasePointerCapture(e.Pointer);
-        _dragging = false;
-    }
-
-    private void PiPView_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
-    {
-        if (_dragging)
+        var position = e.GetCurrentPoint(RootGrid).Position;
+        var inMask = position.Y >= RootGrid.ActualHeight - 120;
+        if (inMask)
         {
-            return;
+            PiPControls.ShowControlPanel();
         }
-
-        if (_player is { } player)
+        else
         {
-            if (player.Playing)
-            {
-                player.Pause();
-            }
-            else
-            {
-                player.Play();
-            }
+            PiPControls.HideControlPanel();
         }
     }
 
@@ -253,7 +224,37 @@ public sealed partial class PiPWindow : Window
 
     private void PiPExitButton_Click(object sender, RoutedEventArgs e)
     {
-        RestoreMainWindow();
+        // The top-right close ends the application directly.
+        Application.Current.Exit();
+    }
+
+    /// <summary>Fades the top-left back and top-right close buttons with the control bar.</summary>
+    private void PiPControls_OnPanelVisibleChanged(bool hide)
+    {
+        DispatcherQueue.TryEnqueue(() => StartTopButtonsAnimation(!hide));
+    }
+
+    private void StartTopButtonsAnimation(bool show)
+    {
+        _topButtonsShow = show;
+        _topButtonsStart = Environment.TickCount64;
+        _topButtonsTimer.Tick -= TopButtonsTick;
+        _topButtonsTimer.Tick += TopButtonsTick;
+        _topButtonsTimer.Start();
+    }
+
+    private void TopButtonsTick(object? sender, object e)
+    {
+        const double durationMs = 180;
+        var t = Math.Clamp((Environment.TickCount64 - _topButtonsStart) / durationMs, 0, 1);
+        var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
+        var opacity = _topButtonsShow ? eased : 1 - eased;
+        PiPBackButton.Opacity = opacity;
+        PiPExitButton.Opacity = opacity;
+        if (t >= 1)
+        {
+            _topButtonsTimer.Stop();
+        }
     }
 
     /// <summary>Leaves PiP by restoring the hidden main window; PiP never quits the app directly.</summary>
@@ -281,6 +282,7 @@ public sealed partial class PiPWindow : Window
         }
         _closing = true;
 
+        _topButtonsTimer.Stop();
         Detach();
         if (ReferenceEquals(Instance, this))
         {

@@ -9,11 +9,13 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Windows.Foundation;
+using Windows.UI;
 
 namespace mpv_winui.Modules.Player
 {
     public sealed partial class PlayerControl : UserControl
     {
+
         public delegate bool FullScreenRequestHandler();
         public delegate bool FullWindowRequestHandler();
         public delegate void OnPanelVisibleChangedHandler(bool hide);
@@ -30,6 +32,13 @@ namespace mpv_winui.Modules.Player
         private bool _controlPanelIsVisible = true;
         private bool _compactMode;
         private bool _isPiPHost;
+        private bool _overlayMode;
+        private Brush? _controlPanelDefaultBackground;
+        private readonly DispatcherTimer _panelAnimationTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
+        private readonly DispatcherTimer _hideDelayTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
+        private long _panelAnimationStart;
+        private bool _panelAnimationShow;
+        private bool _panelAnimating;
 
         private readonly DispatcherTimer _positionUpdateTimer;
         private bool _hasError = false;
@@ -73,6 +82,7 @@ namespace mpv_winui.Modules.Player
         public PlayerControl()
         {
             this.InitializeComponent();
+            RootGrid.PointerMoved += (_, e) => { };
             ApplyLocalizedStrings();
             PiPButton.Click += OnPiPClick;
             PiPPlayPauseButton.Click += OnPlayPauseClick;
@@ -165,17 +175,28 @@ namespace mpv_winui.Modules.Player
 
             if (_compactMode)
             {
-                // PiP: centered transport plus volume only.
+                // PiP: time on the left, transport centered, volume on the right.
                 _currentSegment = 0;
                 VisualStateManager.GoToState(this, "Wide", false);
-                SetHidden(false, VolumeMuteButton, VolumeSliderContainer);
-                SetHidden(false, SkipBackwardButton, PlayPauseButton, SkipForwardButton);
+                ApplyBarOrders(
+                    LeftCommandBar,
+                    MiddleCommandBar,
+                    RightCommandBar,
+                    [],
+                    [SkipBackwardButton, PlayPauseButton, SkipForwardButton],
+                    [VolumeMuteButton, VolumeSliderContainer]);
                 SetHidden(true, PreviousTrackButton, RewindButton, FastForwardButton,
                            NextTrackButton, StopButton, RepeatButton,
                            TrackSelectionButton, ShuffleButton, PlaybackRateButton,
                            ZoomButton, PiPButton, FullWindowButton, FullScreenButton);
+                TimeTextGrid.Visibility = Visibility.Collapsed;
+                CompactTimeText.Visibility = Visibility.Visible;
+                UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
                 return;
             }
+
+            TimeTextGrid.Visibility = Visibility.Visible;
+            CompactTimeText.Visibility = Visibility.Collapsed;
 
             var hiddenValue = layout == "modernx"
                 ? AppContext.AppSetting.ControlBarHiddenIconsModernX
@@ -213,13 +234,93 @@ namespace mpv_winui.Modules.Player
                 _compactMode = value;
                 ApplyControlBarStyle();
                 UpdatePiPBar();
+                if (value)
+                {
+                    DispatcherQueue.TryEnqueue(() => SetOverlayMode(true));
+                }
+                else
+                {
+                    SetOverlayMode(false);
+                }
             }
+        }
+
+        /// <summary>
+        /// Enables the gradient mask behind the control bar (fullscreen and
+        /// PiP overlay). While active, the bar appears when the pointer is
+        /// over the mask and retracts when it leaves.
+        /// </summary>
+        public void SetOverlayMode(bool overlay)
+        {
+            if (_overlayMode == overlay)
+            {
+                return;
+            }
+            _overlayMode = overlay;
+
+            if (overlay)
+            {
+                _controlPanelDefaultBackground ??= ControlPanelGrid.Background;
+                ControlPanelGradient.Background = new LinearGradientBrush
+                {
+                    StartPoint = new Point(0, 0),
+                    EndPoint = new Point(0, 1),
+                    GradientStops =
+                    {
+                        new GradientStop { Offset = 0, Color = Color.FromArgb(0, 0, 0, 0) },
+                        new GradientStop { Offset = 1, Color = Color.FromArgb(217, 0, 0, 0) },
+                    },
+                };
+                ControlPanelGrid.Background = null;
+                ControlPanelGradient.Opacity = 1;
+                ControlPanelGrid.Opacity = 1;
+                TranslateVertical.Y = 0;
+                ControlPanelGrid.Visibility = Visibility.Visible;
+                _controlPanelIsVisible = true;
+            }
+            else
+            {
+                ControlPanelGradient.Background = null;
+                ControlPanelGradient.Opacity = 1;
+                ControlPanelGrid.Background = _controlPanelDefaultBackground;
+            }
+            ShowControlPanel();
+        }
+
+        private void HideDelayTimer_Tick(object? sender, object e)
+        {
+            _hideDelayTimer.Stop();
+            if (_overlayMode && _controlPanelIsVisible)
+            {
+                StartPanelAnimation(false);
+                OnPanelVisibleChanged?.Invoke(true);
+            }
+        }
+
+        private void UpdateTimeTexts(double position, double duration)
+        {
+            TimeElapsedElement.Text = FormatTime(position);
+            TimeRemainingElement.Text = FormatTime(duration);
+            CompactTimeText.Text = $"{FormatCompactTime(position)}/{FormatCompactTime(duration)}";
+        }
+
+        private static string FormatCompactTime(double seconds)
+        {
+            if (seconds < 0)
+            {
+                seconds = 0;
+            }
+
+            var ts = TimeSpan.FromSeconds(seconds);
+            return ts.TotalHours >= 1
+                ? $"{(int)ts.TotalHours:D2}.{ts.Minutes:D2}.{ts.Seconds:D2}"
+                : $"{ts.Minutes:D2}.{ts.Seconds:D2}";
         }
 
         private string? _lastBarOrder;
 
         /// <summary>
-        /// 原版 keeps the upstream control order. 居中 reorders the buttons to
+        /// 鍘熺増 keeps the upstream control order. 灞呬腑 reorders the buttons to
         /// match ModernX: tracks and volume on the left edge, previous/skip/
         /// play/skip/next centered, window controls on the right edge. The
         /// command bars sit in star columns so the middle cluster is centered
@@ -453,6 +554,7 @@ namespace mpv_winui.Modules.Player
 
             TimeElapsedElement.Text = "00:00";
             TimeRemainingElement.Text = "00:00";
+            CompactTimeText.Text = "00.00/00.00";
             ProgressSlider.ValueChanged += OnPositionSliderValueChanged;
             ProgressSlider.PointerPressed += ProgressSlider_PointerPressed;
             ProgressSlider.PointerReleased += ProgressSlider_PointerReleased;
@@ -754,8 +856,7 @@ namespace mpv_winui.Modules.Player
             {
                 _isBuffering = false;
                 UpdatePlaybackStatusUI(true);
-                TimeElapsedElement.Text = FormatTime(sender?.Position ?? 0);
-                TimeRemainingElement.Text = FormatTime(sender?.Duration ?? 0);
+                UpdateTimeTexts(sender?.Position ?? 0, sender?.Duration ?? 0);
             });
         }
 
@@ -947,8 +1048,7 @@ namespace mpv_winui.Modules.Player
             if (!_isInScrubMode)
             {
                 MediaPlayer?.Position = e.NewValue;
-                TimeElapsedElement.Text = FormatTime(e.NewValue);
-                TimeRemainingElement.Text = FormatTime(MediaPlayer?.Duration ?? 0);
+                UpdateTimeTexts(e.NewValue, MediaPlayer?.Duration ?? 0);
                 if (AppContext.AppSetting.EnableVideoPreview && ProgressSlider.Maximum > 0)
                 {
                     UpdatePreview(e.NewValue / ProgressSlider.Maximum);
@@ -966,8 +1066,7 @@ namespace mpv_winui.Modules.Player
             if (MediaPlayer?.Playing == true)
             {
                 UpdateProgressSliderValue(MediaPlayer?.Position);
-                TimeElapsedElement.Text = FormatTime(MediaPlayer?.Position ?? 0);
-                TimeRemainingElement.Text = FormatTime(MediaPlayer?.Duration ?? 0);
+                UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
                 OnPositionChanged?.Invoke();
             }
         }
@@ -1017,6 +1116,17 @@ namespace mpv_winui.Modules.Player
 
         public void ShowControlPanel()
         {
+            if (_overlayMode)
+            {
+                _hideDelayTimer.Stop();
+                if (!_controlPanelIsVisible)
+                {
+                    StartPanelAnimation(true);
+                    OnPanelVisibleChanged?.Invoke(false);
+                }
+                return;
+            }
+
             if (!_controlPanelIsVisible)
             {
                 StopPanelAnimations();
@@ -1040,6 +1150,16 @@ namespace mpv_winui.Modules.Player
 
         public void HideControlPanel()
         {
+            if (_overlayMode)
+            {
+                // Debounce: a transient exit (pointer on the mask edge) must
+                // not start and restart the retract animation repeatedly.
+                _hideDelayTimer.Tick -= HideDelayTimer_Tick;
+                _hideDelayTimer.Tick += HideDelayTimer_Tick;
+                _hideDelayTimer.Start();
+                return;
+            }
+
             if (_controlPanelIsVisible)
             {
                 StopPanelAnimations();
@@ -1073,10 +1193,80 @@ namespace mpv_winui.Modules.Player
 
         private void StopPanelAnimations()
         {
+            _panelAnimationTimer.Stop();
             _showStoryboard?.Stop();
             _showStoryboard = null;
             _hideStoryboard?.Stop();
             _hideStoryboard = null;
+        }
+
+        /// <summary>
+        /// Manual tween for overlay mode (fullscreen/PiP). A Storyboard in a
+        /// second top-level window crashes the XAML compositor, so the slide
+        /// and fade are driven by a dispatcher timer instead.
+        /// </summary>
+        private void StartPanelAnimation(bool show)
+        {
+            if (_panelAnimating && _panelAnimationShow == show)
+            {
+                return;
+            }
+
+            _panelAnimating = true;
+            _panelAnimationShow = show;
+            _panelAnimationStart = Environment.TickCount64;
+            _panelAnimationTimer.Tick -= PanelAnimationTick;
+            _panelAnimationTimer.Tick += PanelAnimationTick;
+            if (show)
+            {
+                ControlPanelGrid.Visibility = Visibility.Visible;
+            }
+            _panelAnimationTimer.Start();
+        }
+
+        private void PanelAnimationTick(object? sender, object e)
+        {
+            const double durationMs = 180;
+            var elapsed = Environment.TickCount64 - _panelAnimationStart;
+            var t = Math.Clamp(elapsed / durationMs, 0, 1);
+            var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
+
+            if (_panelAnimationShow)
+            {
+                ControlPanelGradient.Opacity = eased;
+                ControlPanelGrid.Opacity = eased;
+                TranslateVertical.Y = 48 * (1 - eased);
+            }
+            else
+            {
+                ControlPanelGradient.Opacity = 1 - eased;
+                ControlPanelGrid.Opacity = 1 - eased;
+                TranslateVertical.Y = 48 * eased;
+            }
+
+            if (t >= 1)
+            {
+                _panelAnimationTimer.Stop();
+                _panelAnimating = false;
+                if (_panelAnimationShow)
+                {
+                    ControlPanelGradient.Opacity = 1;
+                    ControlPanelGrid.Opacity = 1;
+                    TranslateVertical.Y = 0;
+                    _controlPanelIsVisible = true;
+                }
+                else
+                {
+                    ControlPanelGrid.Visibility = Visibility.Collapsed;
+                    ControlPanelGrid.Opacity = 1;
+                    TranslateVertical.Y = 0;
+                    // Keep the gradient mounted and hit-testable. WinUI skips
+                    // hit-testing for elements at exactly zero opacity, so
+                    // leave a barely visible floor value.
+                    ControlPanelGradient.Opacity = 0.01;
+                    _controlPanelIsVisible = false;
+                }
+            }
         }
 
         private void AddPanelAnimation(

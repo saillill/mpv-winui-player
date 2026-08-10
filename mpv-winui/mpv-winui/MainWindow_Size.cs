@@ -36,11 +36,19 @@ namespace mpv_winui
                             _h = v[3];
                             if (_x > 0 && _y > 0 && _w > 0 && _h > 0)
                             {
-                                AppWindow.MoveAndResize(new RectInt32(_x, _y, Math.Max(100, _w), Math.Max(100, _h)));
+                                var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+                                var width = Math.Min(Math.Max(100, _w), Math.Max(100, workArea.Width - 40));
+                                var height = Math.Min(Math.Max(100, _h), Math.Max(100, workArea.Height - 40));
+                                var x = Math.Clamp(_x, workArea.X, workArea.X + workArea.Width - width);
+                                var y = Math.Clamp(_y, workArea.Y, workArea.Y + workArea.Height - height);
+                                AppWindow.MoveAndResize(new RectInt32(x, y, width, height));
                             }
                             else if (_w > 0 && _h > 0)
                             {
-                                AppWindow.Resize(new SizeInt32(Math.Max(100, _w), Math.Max(100, _h)));
+                                var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+                                var width = Math.Min(Math.Max(100, _w), Math.Max(100, workArea.Width - 40));
+                                var height = Math.Min(Math.Max(100, _h), Math.Max(100, workArea.Height - 40));
+                                AppWindow.Resize(new SizeInt32(width, height));
                             }
                         }
                     }
@@ -117,7 +125,7 @@ namespace mpv_winui
         {
             try
             {
-                if (AppContext.AppSetting.WindowRememberSize && !AppContext.AppSetting.WindowPiP)
+                if (AppContext.AppSetting.WindowRememberSize)
                 {
                     AppContext.AppSetting.WindowPositionAndSize = $"{_x},{_y},{_w},{_h}";
                 }

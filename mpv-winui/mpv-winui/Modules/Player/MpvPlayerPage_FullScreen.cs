@@ -1,5 +1,6 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
 
 namespace mpv_winui.Modules.Player
 {
@@ -7,6 +8,30 @@ namespace mpv_winui.Modules.Player
     {
         private bool _isFullScreen;
         private bool _isFullWindow;
+
+        private void VideoArea_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            // In fullscreen/full-window the control bar overlays the video with
+            // a gradient mask: the bar pops out while the pointer is inside the
+            // mask and retracts when it leaves.
+            if (!_isFullWindow && !_isFullScreen)
+            {
+                return;
+            }
+
+            if (sender is FrameworkElement area)
+            {
+                var position = e.GetCurrentPoint(area).Position;
+                if (position.Y >= area.ActualHeight - 120)
+                {
+                    PlayerControl.ShowControlPanel();
+                }
+                else
+                {
+                    PlayerControl.HideControlPanel();
+                }
+            }
+        }
 
         private bool PlayerControl_OnFullScreenRequest()
         {
@@ -64,6 +89,7 @@ namespace mpv_winui.Modules.Player
             }
 
             _isFullWindow = isFullWindow;
+            PlayerControl.SetOverlayMode(isFullWindow);
 
             return isFullWindow;
         }

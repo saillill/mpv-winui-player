@@ -1279,10 +1279,13 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(CurlMaxRequestSize), value);
         }
 
+        // Picture-in-picture is a session state: it must never be persisted,
+        // so the app always starts in the normal window.
+        private bool _windowPiP;
         public bool WindowPiP
         {
-            get => _dataSetting.GetValue(nameof(WindowPiP), false);
-            set => _dataSetting.SetValue(nameof(WindowPiP), value);
+            get => _windowPiP;
+            set => _windowPiP = value;
         }
 
         public string WindowPiPSize

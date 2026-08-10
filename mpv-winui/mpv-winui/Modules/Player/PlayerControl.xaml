@@ -13,6 +13,13 @@
 
     <Grid x:Name="RootGrid">
         <Grid.Resources>
+            <LinearGradientBrush
+                x:Key="PiPControlGradientBrush"
+                StartPoint="0,0"
+                EndPoint="0,1">
+                <GradientStop Offset="0" Color="#00000000" />
+                <GradientStop Offset="1" Color="#D9000000" />
+            </LinearGradientBrush>
             <Style
                 x:Key="AppBarButtonStyle"
                 BasedOn="{StaticResource DefaultAppBarButtonStyle}"
@@ -30,15 +37,21 @@
                 <Setter Property="AllowFocusOnInteraction" Value="True" />
             </Style>
         </Grid.Resources>
-        <Grid
-            x:Name="ControlPanelGrid"
-            Padding="4,0"
+        <Border
+            x:Name="ControlPanelGradient"
+            Height="120"
+            HorizontalAlignment="Stretch"
             VerticalAlignment="Bottom"
-            Background="{ThemeResource MpvPlayControlBackground}"
-            RenderTransformOrigin="0.5,0.5">
-            <Grid.RenderTransform>
-                <TranslateTransform x:Name="TranslateVertical" />
-            </Grid.RenderTransform>
+            Background="Transparent">
+            <Grid
+                x:Name="ControlPanelGrid"
+                Padding="4,0"
+                VerticalAlignment="Bottom"
+                Background="{ThemeResource MpvPlayControlBackground}"
+                RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <TranslateTransform x:Name="TranslateVertical" />
+                </Grid.RenderTransform>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -130,6 +143,15 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
+
+                <TextBlock
+                    x:Name="CompactTimeText"
+                    Grid.Column="0"
+                    Margin="12,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontSize="13"
+                    Visibility="Collapsed" />
 
                 <CommandBar
                     x:Name="LeftCommandBar"
@@ -474,8 +496,9 @@
 
                     <CommandBar.SecondaryCommands />
                 </CommandBar>
+                </Grid>
             </Grid>
-        </Grid>
+        </Border>
         <Grid
             x:Name="PiPBar"
             Padding="8,4"

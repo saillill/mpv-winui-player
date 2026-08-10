@@ -369,7 +369,8 @@
             Background="#22000000"
             DragEnter="OnDragEnter"
             DragOver="OnDragOver"
-            Drop="OnDrop">
+            Drop="OnDrop"
+            PointerMoved="VideoArea_PointerMoved">
             <SwapChainPanel
                 x:Name="PlayerView"
                 ContextRequested="PlayerView_ContextRequested"
