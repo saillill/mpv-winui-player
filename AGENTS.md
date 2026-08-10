@@ -1,0 +1,89 @@
+# AGENTS.md
+
+WinUI 3 player embedding libmpv. Three parts: the C# WinUI app
+(`mpv-winui/mpv-winui/`), the C++/WinRT component (`mpv-winui/mpv-winrt/`),
+and the config layer (`mpv-winui-lazy/`). User-facing docs live in
+`README.md`; this file is for agents changing the code.
+
+## Work loop
+
+1. **Build** — run `.\build.ps1 -Debug x64` from the repo root (VS MSBuild for
+   the C++ component, then `dotnet build` for the app).
+   Done when: exit code 0, no error lines, and the exe exists at
+   `mpv-winui\mpv-winui\bin\x64\Debug\net10.0-windows10.0.26100.0\win-x64\mpv-winui.exe`.
+2. **Run** — launch the exe with a test file and wait for the window.
+   Done when: UIA finds a window with that process id within ~5 seconds.
+3. **Test the change** — before fixing a bug, build a *tight*, red-capable
+   loop (see the diagnosing-bugs skill): one command that fails on the exact
+   symptom and passes after the fix. Drive the app through the mpv IPC pipe
+   and UIA/Win32 from PowerShell; verify by property change or screenshot,
+   not by "it builds".
+4. **Finish** — remove debug instrumentation (grep `\[DBG-`), stage only repo
+   files (never `bin/`, `obj/`, `dist/`, `libs/`), commit with the hypothesis
+   that was correct, and push to `github main`.
+
+## Reference
+
+### Test facts
+
+- IPC: `NamedPipeClientStream('.', 'mpvpipe')`; send JSON
+  `{"command":[...],"request_id":N}`, read lines until the matching
+  `request_id` (mpv events interleave with responses).
+- `mouse_click.ps1` in the session work folder sends **left** clicks only.
+  Right-click needs `mouse_event(0x0008/0x0010)` (RIGHTDOWN/UP).
+- `PrintWindow` misses WinUI popups (menus, flyouts). Capture menus with a
+  full-screen `CopyFromScreen` instead.
+- `keep-open=always` pauses at the end of a file. A 6-second test file is
+  already paused when you finish setting up; send `set pause no` + `seek 0
+  absolute` over IPC first, or use a 30-second file.
+- Right-click menu is a WinUI `MenuFlyout` built from mpv `menu-data`; the PiP
+  window title is `Picture in picture`.
+- Logs: `%LOCALAPPDATA%\mpv-winui\logs\mpv-winui.<date>.log.txt`, plus
+  `display-info.log` in the same folder.
+- Config runs from `%LOCALAPPDATA%\mpv-winui\mpv` (synced by
+  `mpv-winui-lazy\deploy-config.ps1` via robocopy `/MIR`; runtime data like
+  `_cache/`, `recent.json`, and logs are excluded).
+- Settings are in registry
+  `HKCU\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app`;
+  booleans are stored as `"true"` / `"false"`. Defaults live in
+  `AppSettings.cs`; the live mpv mapping is `MpvSettings.ToCommand`.
+
+### Architecture gotchas
+
+- **Mouse input**: libmpv never sees Win32 mouse input in composition mode.
+  The app forwards it: wheel/left/double-click in `MpvPlayerPage_Mouse.cs`,
+  PiP wheel in `PiPWindow.xaml.cs`, X1/X2 via the window subclass in
+  `MpvPlayerPage_Display.cs`. `input.conf` is the source of truth for what
+  each gesture does.
+- **Command strings**: `mpv_command_string` parses C-style escapes. Windows
+  paths need doubled backslashes inside quotes (`Q()` in `MpvSettings.cs`);
+  a raw `C:\Users\...` silently keeps the old option value.
+- **PiP**: a dedicated borderless always-on-top window reusing `PlayerControl`
+  in centered compact mode; the main window is hidden and Alt+F4 restores it.
+  Left-press on the PiP video drags the window — do not bind left-click pause
+  there.
+- **HDR**: the app writes `user-data/mpvw/color-kind` and the refresh rate;
+  `profiles.conf` switches output. `d3d11-output-csp=display-p3` is invalid —
+  keep the `target-*` triplet for HDR.
+- **thumbfast**: spawns a standalone `mpv.exe` for previews; keep
+  `quit_after_inactivity` non-zero so abrupt app exits do not orphan it.
+
+### License guardrails
+
+- App code: LGPL-2.1. Project-written config-layer files:
+  LGPL-2.1-or-later.
+- `dyn_menu.lua` / `dialog.lua` are GPL-2.0-only source. No GPL binaries in
+  the repo (`menu.dll` was removed); do not re-add binaries without a license
+  text.
+- mpv-lazy config files are UNLICENSED per upstream; preserve provenance and
+  prefer rewriting over copying.
+- Update `mpv-winui-lazy/THIRD_PARTY_NOTICES.md` whenever third-party
+  components are added.
+
+## Pointers
+
+- Editing menus / `input.conf`: read `docs/menu-audit-20260807.md` first
+  (provenance and history of the 153-item menu).
+- Touching the config layer: read `mpv-winui-lazy/README.md`.
+- Adding components or checking licenses: read
+  `mpv-winui-lazy/THIRD_PARTY_NOTICES.md`.
