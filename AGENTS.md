@@ -108,10 +108,14 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   also restores the PiP-hidden button set on every non-compact apply. Rewind,
   FastForward and Stop were removed entirely (they were only Collapsed by
   design before).
-- **Top bar buttons**: the top menu row has three real icon buttons at the
-  right edge — always-on-top (`cycle ontop`, E718), screenshot (`screenshot`,
-  E722) and playlist toggle (E8FD, rightmost). Keep them as Buttons, not
-  MenuBarItems.
+- **Top bar buttons**: the top menu row has three icon buttons at the right
+  edge, in order: playlist toggle (E8F1 side-panel icon, expands and closes
+  the sidebar), screenshot (E722, sends `screenshot`) and always-on-top
+  (two-state pin E718/E840, sends `cycle ontop`; the glyph is driven by the
+  mpv `ontop` property). Buttons are backgroundless (no mask/fill).
+- **PiP pin glyphs**: the control-bar PiP toggle and the PiP window's
+  top-left restore button use the two-state pin icon (E718 unpinned /
+  E840 pinned); the PiP window button always shows the pinned state.
 - **Track flyout style**: `TrackSelectionButton` keeps the `ED1F` glyph; its
   `FlyoutPresenter` uses `AcrylicInAppFillColorDefaultBrush` +
   `CardStrokeColorDefaultBrush` (Mica/Acrylic look) instead of the translucent

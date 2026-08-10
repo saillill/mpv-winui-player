@@ -17,8 +17,6 @@
             <Setter Property="Width" Value="36" />
             <Setter Property="Height" Value="30" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
         </Style>
         <MenuFlyout x:Key="PlaylistContextMenu">
@@ -282,10 +280,10 @@
             Orientation="Horizontal"
             Spacing="4">
             <Button
-                x:Name="TopBarOntopButton"
-                Click="TopBarOntop_Click"
+                x:Name="TopBarPlaylistButton"
+                Click="TopBarPlaylist_Click"
                 Style="{StaticResource TopBarIconButtonStyle}">
-                <FontIcon FontSize="14" Glyph="&#xE718;" />
+                <FontIcon FontSize="14" Glyph="&#xE8F1;" />
             </Button>
             <Button
                 x:Name="TopBarScreenshotButton"
@@ -294,10 +292,10 @@
                 <FontIcon FontSize="14" Glyph="&#xE722;" />
             </Button>
             <Button
-                x:Name="TopBarPlaylistButton"
-                Click="TopBarPlaylist_Click"
+                x:Name="TopBarOntopButton"
+                Click="TopBarOntop_Click"
                 Style="{StaticResource TopBarIconButtonStyle}">
-                <FontIcon FontSize="14" Glyph="&#xE8FD;" />
+                <FontIcon x:Name="TopBarOntopIcon" FontSize="14" Glyph="&#xE718;" />
             </Button>
         </StackPanel>
 

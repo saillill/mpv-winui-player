@@ -83,6 +83,11 @@ namespace mpv_winui.Modules.Player
             {
                 presenter.IsAlwaysOnTop = enable;
             }
+            if (TopBarOntopIcon is not null)
+            {
+                // Two-state pin (ModernX style): E718 = unpinned, E840 = pinned.
+                TopBarOntopIcon.Glyph = enable ? "\uE840" : "\uE718";
+            }
         }
 
         private void HandleWindowMinimizedProperty(bool minimized)
