@@ -258,6 +258,20 @@
                     Tag="sleep-90"
                     Text="90 min" />
             </MenuBarItem>
+
+            <MenuBarItem
+                Title="Toggle Playlist"
+                Tag="playlist-top"
+                IsTabStop="False">
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="playlist"
+                    Text="Toggle Playlist">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE8FD;" />
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+            </MenuBarItem>
         </MenuBar>
 
         <Grid
@@ -409,7 +423,6 @@
             NextTrackButtonVisibility="Visible"
             OnFullScreenRequest="PlayerControl_OnFullScreenRequest"
             OnFullWindowRequest="PlayerControl_OnFullWindowRequest"
-            OnPlaylistRequest="PlayerControl_OnPlaylistRequest"
             PreviousTrackButtonVisibility="Visible" />
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>

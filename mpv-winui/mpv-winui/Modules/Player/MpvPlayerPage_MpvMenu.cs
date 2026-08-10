@@ -363,6 +363,7 @@ namespace mpv_winui.Modules.Player
                     "view" => AppContext.AppLang.MenuView,
                     "help" => AppContext.AppLang.MenuHelp,
                     "sleep" => AppContext.AppLang.SleepTimer,
+                    "playlist-top" => AppContext.AppLang.TogglePlaylist,
                     _ => barItem.Title,
                 };
 

@@ -101,9 +101,19 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   state is already active). After every mode switch call
   `PlayerControl.RefreshAdaptiveState()` so the width-adaptive state cannot
   leave the buttons collapsed.
-- **Control-bar buttons**: `PlaylistButton` (E8FD, toggles the sidebar) lives
-  in both layouts; `TrackSelectionButton` uses the solid `E8AB` glyph (the
-  outline `ED1F` glyph read as a translucent icon).
+- **Control-bar layout**: `ApplyBarOrders` clears and rebuilds the three
+  CommandBars from canonical lists on every apply — never filter through the
+  currently present items, or a partial/PiP pass permanently drops buttons
+  (the bar ends up with only the progress bar and times). `ApplyControlBarStyle`
+  also restores the PiP-hidden button set on every non-compact apply; Rewind,
+  FastForward and Stop stay Collapsed by XAML design.
+- **Playlist toggle** lives in the top menu bar as the rightmost `MenuBarItem`
+  (Tag `playlist-top`, single flyout item Tag `playlist`); do not put it in
+  the control bar.
+- **Track flyout style**: `TrackSelectionButton` keeps the `ED1F` glyph; its
+  `FlyoutPresenter` uses `AcrylicInAppFillColorDefaultBrush` +
+  `CardStrokeColorDefaultBrush` (Mica/Acrylic look) instead of the translucent
+  `MpvControlBackground`.
 
 ### License guardrails
 
