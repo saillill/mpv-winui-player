@@ -115,12 +115,6 @@ namespace mpv_winui.Modules.Player
             bool isSeparatorPre = false;
             foreach (var entry in items)
             {
-                //TODO
-                if (!CheckMpvMenu(entry))
-                {
-                    continue;
-                }
-
                 if (entry.IsHidden)
                 {
                     continue;
@@ -257,17 +251,6 @@ namespace mpv_winui.Modules.Player
                     OnException(ex);
                 }
             }
-        }
-
-        private bool CheckMpvMenu(MpvMenuItem mpvMenuItem)
-        {
-            //TODO remove&  check cmd ??
-            if (mpvMenuItem.Title == "Ope&n" || mpvMenuItem.Title == "&Stop" || mpvMenuItem.Title == "&Quit" || mpvMenuItem.Title == "Quit an&d save position")
-            {
-                return false;
-            }
-
-            return true;
         }
 
         private void MpvMenuItemClick(string cmd)
