@@ -22,7 +22,14 @@ namespace mpv_winui.Modules.Player
             // Activity-based: any movement over the video area expands the
             // overlay bar (the bar itself handles moves over the mask/bar via
             // RootGrid_PointerMoved), and the idle timer retracts it.
-            PlayerControl.NotifyOverlayPointerActivity();
+            if (sender is FrameworkElement area)
+            {
+                PlayerControl.NotifyOverlayPointerActivity(e.GetCurrentPoint(area).Position);
+            }
+            else
+            {
+                PlayerControl.NotifyOverlayPointerActivity(default);
+            }
         }
 
         private bool PlayerControl_OnFullScreenRequest()

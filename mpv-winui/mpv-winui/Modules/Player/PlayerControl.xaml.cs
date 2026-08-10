@@ -33,10 +33,11 @@ namespace mpv_winui.Modules.Player
         private bool _compactMode;
         private bool _isPiPHost;
         private bool _overlayMode;
-        private Brush? _controlPanelDefaultBackground;
         private readonly DispatcherTimer _panelAnimationTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
         private readonly DispatcherTimer _hideDelayTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
-        private readonly DispatcherTimer _overlayIdleTimer = new() { Interval = TimeSpan.FromMilliseconds(2500) };
+        private readonly DispatcherTimer _overlayIdleTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
+        private Point _lastOverlayActivity = new(double.NaN, double.NaN);
+        private const double OverlayMoveThreshold = 2.0;
         private long _panelAnimationStart;
         private bool _panelAnimationShow;
         private bool _panelAnimating;
@@ -261,7 +262,7 @@ namespace mpv_winui.Modules.Player
 
             if (overlay)
             {
-                _controlPanelDefaultBackground ??= ControlPanelGrid.Background;
+                _lastOverlayActivity = new(double.NaN, double.NaN);
                 // The gradient is black, so the panel needs its own dark
                 // translucent background and a dark element theme; otherwise
                 // light-theme glyphs stay black and the whole bar is
@@ -288,9 +289,13 @@ namespace mpv_winui.Modules.Player
             }
             else
             {
+                _lastOverlayActivity = new(double.NaN, double.NaN);
                 ControlPanelGradient.Background = null;
                 ControlPanelGradient.Opacity = 1;
-                ControlPanelGrid.Background = _controlPanelDefaultBackground;
+                // Windowed mode: no background box on the bar (light or dark
+                // theme). The bar is transparent; only the overlay keeps the
+                // dark translucent panel for readability.
+                ControlPanelGrid.Background = null;
                 ControlPanelGrid.RequestedTheme = ElementTheme.Default;
                 _overlayIdleTimer.Stop();
                 ShowControlPanel();
@@ -309,17 +314,28 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
-            NotifyOverlayPointerActivity();
+            NotifyOverlayPointerActivity(e.GetCurrentPoint(RootGrid).Position);
         }
 
         /// <summary>Called on pointer activity from the video area as well.</summary>
-        public void NotifyOverlayPointerActivity()
+        public void NotifyOverlayPointerActivity(Point position)
         {
             if (!_overlayMode)
             {
                 return;
             }
 
+            // Ignore sub-threshold jitter / duplicate events: they used to
+            // restart the idle timer repeatedly, so the bar stayed visible for
+            // many seconds after the mouse actually stopped moving.
+            if (!double.IsNaN(_lastOverlayActivity.X)
+                && Math.Abs(position.X - _lastOverlayActivity.X) < OverlayMoveThreshold
+                && Math.Abs(position.Y - _lastOverlayActivity.Y) < OverlayMoveThreshold)
+            {
+                return;
+            }
+
+            _lastOverlayActivity = position;
             ShowControlPanel();
             RestartOverlayIdleTimer();
         }
