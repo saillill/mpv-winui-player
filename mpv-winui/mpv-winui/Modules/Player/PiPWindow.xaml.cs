@@ -71,7 +71,11 @@ public sealed partial class PiPWindow : Window
     {
         PositionAtBottomRight(width, height);
         AppWindow.Show();
-        PiPControls.ShowControlPanel();
+        // Rebuild the compact bar deterministically on every entry (repeated
+        // PiP toggles could leave it partially assembled) and let the pointer
+        // mask decide visibility - showing the bar unconditionally here made
+        // it flash and disappear when the cursor was not over a mask.
+        PiPControls.ApplyControlBarStyle();
     }
 
     public void HidePiP()

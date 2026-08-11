@@ -144,10 +144,16 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   E981 exit PiP); the PiP window button always shows the exit glyph.
 - **PiP overlay**: the PiP top buttons react only to the top 90px mask and
   the status bar only to the bottom 120px mask; elsewhere both retract.
-  Both use the same 16ms DispatcherTimer tween on XAML values (no Storyboard
-  in the second window, no composition Offset/opacity). Hidden buttons are
-  set `Visibility=Collapsed` on fade-out so they stop hit-testing and cannot
-  show their tooltip.
+  The status bar fades via composition opacity key-frames (frame-aligned)
+  with a 16ms timer driving only the XAML TranslateTransform slide; the top
+  buttons use the timer tween on XAML opacity. No Storyboard in the second
+  window and no composition Offset (layout owns it). Hidden buttons are set
+  `Visibility=Collapsed` on fade-out so they stop hit-testing and cannot show
+  their tooltip.
+- **PiP video size**: the swap chain follows the PiP panel through
+  `VideoPanel.SizeChanged`/`CompositionScaleChanged` (`UpdatePiPPanelSize`);
+  without it the video keeps the main window's surface size after repeated
+  toggles and only a corner is visible.
 - **Control-bar icon set**: the transport icons use Segoe glyphs except the
   shuffle and PiP buttons, which use Fluent glyphs (`arrow_shuffle` EF37 on /
   EF3D off, PiP E97E/E981) at FontSize 20 so their optical size matches the
