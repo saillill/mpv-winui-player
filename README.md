@@ -41,7 +41,10 @@
   right-click menu (translated through `user-data/mpvw/language`).
 - **Picture-in-picture**: a dedicated borderless always-on-top window with DWM
   rounded corners, fixed size, drag-anywhere moving, and the fullscreen compact
-  control bar (time, transport, volume, progress).
+  control bar (time, transport, volume, progress). The official
+  `CompactOverlayPresenter` was prototyped but rejected: it draws a system
+  title bar that swallows the overlay buttons and blocks drag-anywhere moving
+  (see [WindowsAppSDK#1593](https://github.com/microsoft/WindowsAppSDK/issues/1593)).
 - **Video preview**: thumbfast renders thumbnails through a bundled standalone
   `mpv.exe`; the app draws them as a rounded WinUI card above the progress bar.
 - **Mouse input**: wheel over the video controls volume/seek and the mouse

@@ -20,6 +20,14 @@ namespace mpv_winui.Modules.Player;
 /// fullscreen PlayerControl in centered compact mode. The main window is
 /// hidden while PiP is active; PiP can only be left by restoring the main
 /// window (top-left back, top-right close, or Alt+F4).
+/// 
+/// The official Windows App SDK CompactOverlayPresenter was prototyped as a
+/// replacement for the Win32 frame hacks, but rejected: it adds a system
+/// title bar over the top overlay buttons (clicks land on the caption), and
+/// it swallows the HTCAPTION drag, so the video is no longer draggable.
+/// WindowsAppSDK#1593 also tracks that compact-overlay windows cannot be
+/// user-resized. Keep the custom always-on-top frameless window until those
+/// are resolved.
 /// </summary>
 public sealed partial class PiPWindow : Window
 {
