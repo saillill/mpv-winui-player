@@ -60,6 +60,14 @@ public sealed partial class PiPWindow : Window
 
     public void Attach(MpvMediaPlayer player)
     {
+        if (_player == player)
+        {
+            return;
+        }
+        if (_player is not null)
+        {
+            _player.MediaOpened -= PiPPlayer_MediaLoaded;
+        }
         _player = player;
         _player.MediaOpened += PiPPlayer_MediaLoaded;
         PiPControls.MediaPlayer = player;
@@ -76,15 +84,17 @@ public sealed partial class PiPWindow : Window
         }
     }
 
-    public void ShowPiP(int width, int height)
+    public void ShowPiP(int width, int height, bool reposition = true)
     {
-        PositionAtBottomRight(width, height);
+        if (reposition)
+        {
+            // Only first entry / a freshly created window should claim the
+            // bottom-right corner. Re-applying the PiP size setting must not
+            // undo the position the user dragged the window to.
+            PositionAtBottomRight(width, height);
+            PiPControls.ApplyControlBarStyle();
+        }
         AppWindow.Show();
-        // Rebuild the compact bar deterministically on every entry (repeated
-        // PiP toggles could leave it partially assembled) and let the pointer
-        // mask decide visibility - showing the bar unconditionally here made
-        // it flash and disappear when the cursor was not over a mask.
-        PiPControls.ApplyControlBarStyle();
         RefreshVideoAspect();
         ApplyPiPSize(width, height);
         ScheduleVideoSizeUpdate();
@@ -317,7 +327,7 @@ public sealed partial class PiPWindow : Window
     /// Resizes the PiP window to the video aspect ratio, clamped between one
     /// twelfth and one half of the display work area.
     /// </summary>
-    private void ApplyPiPSize(double width, double height)
+    private SizeInt32 ApplyPiPSize(double width, double height)
     {
         try
         {
@@ -343,11 +353,14 @@ public sealed partial class PiPWindow : Window
             w = Math.Clamp(w, minW, maxW);
             h = Math.Clamp(h, minH, maxH);
 
-            AppWindow.Resize(new SizeInt32((int)Math.Round(w), (int)Math.Round(h)));
+            var size = new SizeInt32((int)Math.Round(w), (int)Math.Round(h));
+            AppWindow.Resize(size);
+            return size;
         }
         catch (Exception)
         {
             // Resizing is optional; ignore failures on exotic displays.
+            return AppWindow.Size;
         }
     }
 
@@ -373,12 +386,22 @@ public sealed partial class PiPWindow : Window
         }
 
         var position = e.GetCurrentPoint(RootGrid).Position;
-        var deltaX = position.X - _resizeStartPointer.X;
-        var deltaY = position.Y - _resizeStartPointer.Y;
-        ApplyPiPSize(
+        // AppWindow.Size is physical pixels while PointerPoint.Position is in
+        // DIPs; without the raster scale the drag lags the cursor at
+        // fractional DPI.
+        var scale = RootGrid.XamlRoot?.RasterizationScale ?? 1.0;
+        var deltaX = (position.X - _resizeStartPointer.X) * scale;
+        var deltaY = (position.Y - _resizeStartPointer.Y) * scale;
+        var size = ApplyPiPSize(
             _resizeStartSize.Width + deltaX,
             _resizeStartSize.Height + deltaY);
-        UpdateVideoSize();
+        if (_player is not null && size.Width > 0 && size.Height > 0)
+        {
+            // Use the computed physical target directly: reading
+            // PiPView.ActualWidth right after AppWindow.Resize can return the
+            // pre-layout size, and no SizeChanged subscription is safe here.
+            _player.UpdateSize((uint)size.Width, (uint)size.Height);
+        }
         e.Handled = true;
     }
 
@@ -386,6 +409,9 @@ public sealed partial class PiPWindow : Window
     {
         _resizing = false;
         PiPResizeGrip.ReleasePointerCapture(e.Pointer);
+        // Safety net: the final layout pass may still differ from the target
+        // size used during the drag, so re-assert once after it settles.
+        ScheduleVideoSizeUpdate();
         e.Handled = true;
     }
 

@@ -29,24 +29,29 @@ public sealed partial class MpvPlayerPage
             return;
         }
 
-        if (_pipWindow is null)
+        var firstShow = _pipWindow is null;
+        if (firstShow)
         {
             _pipWindow = new PiPWindow();
-            _pipWindow.Attach(_mediaPlayer);
+            _pipWindow!.Attach(_mediaPlayer);
             _pipWindow.VideoPanel.CompositionScaleChanged += PiPView_CompositionScaleChanged;
         }
         else
         {
-            _pipWindow.Attach(_mediaPlayer);
+            // Re-attach after an exit detached the window. Attach is idempotent
+            // when the same player is already attached (e.g. a WindowPiPSize
+            // change while PiP is active), so the event cannot stack.
+            _pipWindow!.Attach(_mediaPlayer);
         }
 
         var (width, height) = ParsePiPSize(AppContext.AppSetting.WindowPiPSize);
+        var pipWindow = _pipWindow!;
 
         // Move the existing composition swap chain into the PiP window; libmpv
         // keeps rendering to it, so no second render context is needed.
-        _mediaPlayer.UpdatePanel(_pipWindow.VideoPanel);
+        _mediaPlayer.UpdatePanel(pipWindow.VideoPanel);
         _mediaPlayer.UpdateSize((uint)width, (uint)height);
-        _pipWindow.ShowPiP(width, height);
+        pipWindow.ShowPiP(width, height, firstShow);
         UpdatePiPPanelScale();
 
         if (App.Window is MainWindow mainWindow)
