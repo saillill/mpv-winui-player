@@ -26,6 +26,10 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 
 ### Test facts
 
+- `dotnet test mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj -c Debug` runs
+  the mpv-winrt tests from the dotnet CLI (the test project references the
+  built `.winmd` directly). VS MSBuild is only needed to rebuild `mpv_winrt`
+  itself; `build.ps1` does that first.
 - IPC: `NamedPipeClientStream('.', 'mpvpipe')`; send JSON
   `{"command":[...],"request_id":N}`, read lines until the matching
   `request_id` (mpv events interleave with responses).
@@ -92,9 +96,17 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   many seconds after the mouse stopped. Do not reintroduce position-only
   show/hide — the mask and bar consume moves over themselves.
 - **Control-bar shell**: `ControlPanelGradient` is the fullscreen mask shell.
-  It must be `Height=120` only in overlay mode and `Auto` (NaN) in windowed
+  It must be `Height=140` only in overlay mode and `Auto` (NaN) in windowed
   mode, otherwise a tall transparent strip remains between the video and the
   bar (the "background box" behind the controls).
+- **Overlay slide**: the main-window pop-out slide animates the XAML
+  `TranslateVertical` (TranslateTransform.Y) with a Storyboard - render
+  transforms are layout-independent, so a resize/zoom while the bar is hidden
+  cannot strand it above the bottom edge. PiP (a second top-level window)
+  keeps the composition `Offset` animation because Storyboards crash the
+  compositor there. Never write `Visual.Offset` manually (layout owns it),
+  and never use `CompositionPropertySet` keys like `Translation.Y` (not
+  animatable in WinUI 3 desktop; throws in the batch-completed callback).
 - **Full-window state**: `PlayerControl_OnFullWindowRequest` tracks
   `_isFullWindow` explicitly — never derive it from `GoToState`'s return value
   (it only reports whether the state changed, which flips the flag when the
@@ -108,11 +120,20 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   also restores the PiP-hidden button set on every non-compact apply. Rewind,
   FastForward and Stop were removed entirely (they were only Collapsed by
   design before).
-- **Top bar buttons**: the top menu row has three icon buttons at the right
-  edge, in order: playlist toggle (E8F1 side-panel icon, expands and closes
-  the sidebar), screenshot (E722, sends `screenshot`) and always-on-top
-  (two-state pin E718/E840, sends `cycle ontop`; the glyph is driven by the
-  mpv `ontop` property). Buttons are backgroundless (no mask/fill).
+- **Top bar buttons**: the top menu row keeps three icon buttons at the far
+  right even when the playlist is collapsed, in order: always-on-top
+  (ModernX pin E97E unpinned / E981 pinned, sends `cycle ontop`; glyph driven
+  by the mpv `ontop` property), screenshot (Fluent camera F255, sends
+  `screenshot`), playlist toggle (Fluent panel-right-contract E8C3, opens and
+  closes the sidebar; this is the merged playlist/collapse button) and refresh
+  (Fluent arrow-clockwise F13E). When the playlist panel is open the same
+  buttons move into `PlaylistToolBar` next to refresh (ontop, screenshot,
+  close, refresh); the `ShowPlaylist` / `HidePlaylist` states toggle
+  `TopBarButtons.Visibility` accordingly. All four glyphs come from the
+  bundled `FluentSystemIcons-Regular.ttf` (Microsoft, MIT) so their optical
+  size and baseline match - Segoe Fluent Icons maps E97E/E981 to different
+  glyphs and lacks F255. Keep these codepoints with the bundled font when
+  touching these buttons.
 - **PiP pin glyphs**: the control-bar PiP toggle and the PiP window's
   top-left restore button use the two-state pin icon (E718 unpinned /
   E840 pinned); the PiP window button always shows the pinned state.
@@ -123,6 +144,12 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 - **Overlay gradient**: the fullscreen/borderless mask shell is 140px with a
   ~90%-black base stop (mpv-lazy/ModernX style); windowed mode keeps the bar
   backgroundless.
+- **Settings layout**: `SettingsPage.xaml.cs` is the page shell (wiring and
+  events), `SettingsPage.Options.cs` defines the option tree, the
+  `SettingsPage.Options.*.cs` partials hold one category each (Audio, Video,
+  Subtitles, Playback, Program, Advanced, Screenshot, PathFolders) and
+  `SettingsPage.Actions.cs` holds settings actions. Add new options in the
+  matching category partial, not in the page shell.
 
 ### License guardrails
 

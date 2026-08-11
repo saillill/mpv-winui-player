@@ -363,6 +363,9 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(TopBarOntopButton, AppContext.AppLang.SettingsAlwaysOnTop);
             ToolTipService.SetToolTip(TopBarScreenshotButton, AppContext.AppLang.FileScreenshot);
             ToolTipService.SetToolTip(TopBarPlaylistButton, AppContext.AppLang.TogglePlaylist);
+            ToolTipService.SetToolTip(PlaylistOntopButton, AppContext.AppLang.SettingsAlwaysOnTop);
+            ToolTipService.SetToolTip(PlaylistScreenshotButton, AppContext.AppLang.FileScreenshot);
+            ToolTipService.SetToolTip(PlaylistCloseButton, AppContext.AppLang.TogglePlaylist);
         }
     }
 }

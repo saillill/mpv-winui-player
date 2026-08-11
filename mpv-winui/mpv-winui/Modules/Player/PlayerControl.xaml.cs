@@ -1267,7 +1267,6 @@ namespace mpv_winui.Modules.Player
             if (_panelGridVisual is not null)
             {
                 _panelGridVisual.Opacity = 1f;
-                _panelGridVisual.Offset = Vector3.Zero;
             }
             if (_panelGradientVisual is not null)
             {
@@ -1281,9 +1280,9 @@ namespace mpv_winui.Modules.Player
         }
 
         /// <summary>
-        /// Composition tween for overlay mode (fullscreen/PiP). A XAML
-        /// Storyboard in a second top-level window crashes the compositor, so
-        /// the slide and fade are driven by composition animations instead.
+        /// Overlay tween for the main window uses a XAML Storyboard on the
+        /// render transform; PiP (a second top-level window) must use the
+        /// composition path because a Storyboard there crashes the compositor.
         /// </summary>
         private void StartPanelAnimation(bool show)
         {
@@ -1295,6 +1294,56 @@ namespace mpv_winui.Modules.Player
             _panelAnimating = true;
             _panelAnimationShow = show;
 
+            if (!_isPiPHost)
+            {
+                StartMainWindowPanelAnimation(show);
+                return;
+            }
+
+            StartCompositionPanelAnimation(show);
+        }
+
+        /// <summary>
+        /// Main-window overlay tween: XAML Storyboard on the render transform.
+        /// TranslateTransform is layout-independent, so a resize/zoom while the
+        /// bar is hidden cannot leave it stranded above the bottom edge (the
+        /// composition Visual.Offset path snaps back to a stale layout value
+        /// when the grid is Collapsed).
+        /// </summary>
+        private void StartMainWindowPanelAnimation(bool show)
+        {
+            StopPanelAnimations();
+            if (show)
+            {
+                ControlPanelGrid.Visibility = Visibility.Visible;
+            }
+
+            ControlPanelGradient.Opacity = 1;
+            ControlPanelGrid.Opacity = 1;
+            TranslateVertical.Y = 0;
+
+            var storyboard = new Storyboard
+            {
+                Duration = TimeSpan.FromMilliseconds(180),
+            };
+            AddPanelAnimation(storyboard, "Opacity", show ? 0 : 1, show ? 1 : 0, 180, ControlPanelGrid);
+            AddPanelAnimation(storyboard, "Opacity", show ? 0 : 1, show ? 1 : 0, 180, ControlPanelGradient);
+            AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", show ? 48 : 0, show ? 0 : 48, 180, ControlPanelGrid);
+            storyboard.Completed += (_, _) => PanelAnimationCompleted(show);
+            storyboard.Begin();
+
+            if (show)
+            {
+                _showStoryboard = storyboard;
+            }
+            else
+            {
+                _hideStoryboard = storyboard;
+            }
+        }
+
+        private void StartCompositionPanelAnimation(bool show)
+        {
             EnsurePanelVisuals();
             if (_panelCompositor is null || _panelGridVisual is null || _panelGradientVisual is null)
             {
@@ -1365,7 +1414,6 @@ namespace mpv_winui.Modules.Player
             if (_panelGridVisual is not null)
             {
                 _panelGridVisual.Opacity = 1f;
-                _panelGridVisual.Offset = Vector3.Zero;
             }
             if (_panelGradientVisual is not null)
             {
@@ -1397,7 +1445,8 @@ namespace mpv_winui.Modules.Player
             string property,
             double from,
             double to,
-            double milliseconds)
+            double milliseconds,
+            FrameworkElement? target = null)
         {
             var animation = new DoubleAnimation
             {
@@ -1406,7 +1455,7 @@ namespace mpv_winui.Modules.Player
                 Duration = TimeSpan.FromMilliseconds(milliseconds),
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
             };
-            Storyboard.SetTarget(animation, ControlPanelGrid);
+            Storyboard.SetTarget(animation, target ?? ControlPanelGrid);
             Storyboard.SetTargetProperty(animation, property);
             storyboard.Children.Add(animation);
         }

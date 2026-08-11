@@ -12,12 +12,23 @@
     <Page.Resources>
         <Style
             x:Key="TopBarIconButtonStyle"
-            BasedOn="{StaticResource DefaultButtonStyle}"
             TargetType="Button">
             <Setter Property="Width" Value="36" />
             <Setter Property="Height" Value="30" />
             <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="{TemplateBinding Foreground}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <MenuFlyout x:Key="PlaylistContextMenu">
             <MenuFlyoutItem
@@ -272,6 +283,7 @@
         </MenuBar>
 
         <StackPanel
+            x:Name="TopBarButtons"
             Grid.Row="0"
             Grid.Column="0"
             Margin="8,0,10,0"
@@ -280,22 +292,32 @@
             Orientation="Horizontal"
             Spacing="4">
             <Button
-                x:Name="TopBarPlaylistButton"
-                Click="TopBarPlaylist_Click"
+                x:Name="TopBarOntopButton"
+                Click="TopBarOntop_Click"
                 Style="{StaticResource TopBarIconButtonStyle}">
-                <FontIcon FontSize="14" Glyph="&#xE8F1;" />
+                <FontIcon
+                    x:Name="TopBarOntopIcon"
+                    FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                    FontSize="18"
+                    Glyph="&#xE97E;" />
             </Button>
             <Button
                 x:Name="TopBarScreenshotButton"
                 Click="TopBarScreenshot_Click"
                 Style="{StaticResource TopBarIconButtonStyle}">
-                <FontIcon FontSize="14" Glyph="&#xE722;" />
+                <FontIcon
+                    FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                    FontSize="18"
+                    Glyph="&#xF255;" />
             </Button>
             <Button
-                x:Name="TopBarOntopButton"
-                Click="TopBarOntop_Click"
+                x:Name="TopBarPlaylistButton"
+                Click="TopBarPlaylist_Click"
                 Style="{StaticResource TopBarIconButtonStyle}">
-                <FontIcon x:Name="TopBarOntopIcon" FontSize="14" Glyph="&#xE718;" />
+                <FontIcon
+                    FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                    FontSize="18"
+                    Glyph="&#xE8C3;" />
             </Button>
         </StackPanel>
 
@@ -310,25 +332,57 @@
                 <RowDefinition Height="44" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <CommandBar
+            <StackPanel
                 x:Name="PlaylistToolBar"
                 Grid.Row="0"
                 Height="44"
                 Margin="8,0"
                 HorizontalAlignment="Right"
-                DefaultLabelPosition="Collapsed"
-                IsDynamicOverflowEnabled="False">
-                <AppBarButton
-                    Grid.Column="1"
-                    Width="40"
+                VerticalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="4">
+                <Button
+                    x:Name="PlaylistOntopButton"
+                    Click="TopBarOntop_Click"
+                    Style="{StaticResource TopBarIconButtonStyle}"
+                    ToolTipService.ToolTip="Always on top">
+                    <FontIcon
+                        x:Name="PlaylistOntopIcon"
+                        FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                        FontSize="18"
+                        Glyph="&#xE97E;" />
+                </Button>
+                <Button
+                    x:Name="PlaylistScreenshotButton"
+                    Click="TopBarScreenshot_Click"
+                    Style="{StaticResource TopBarIconButtonStyle}"
+                    ToolTipService.ToolTip="Screenshot">
+                    <FontIcon
+                        FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                        FontSize="18"
+                        Glyph="&#xF255;" />
+                </Button>
+                <Button
+                    x:Name="PlaylistCloseButton"
                     Click="ClosePlaylist_Click"
-                    Icon="ClosePane" />
-                <AppBarButton
-                    Grid.Column="1"
-                    Width="40"
+                    Style="{StaticResource TopBarIconButtonStyle}"
+                    ToolTipService.ToolTip="Toggle Playlist">
+                    <FontIcon
+                        FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                        FontSize="18"
+                        Glyph="&#xE8C3;" />
+                </Button>
+                <Button
+                    x:Name="PlaylistRefreshButton"
                     Click="RefreshPlaylist_Click"
-                    Icon="Refresh" />
-            </CommandBar>
+                    Style="{StaticResource TopBarIconButtonStyle}"
+                    ToolTipService.ToolTip="Refresh">
+                    <FontIcon
+                        FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                        FontSize="18"
+                        Glyph="&#xF13E;" />
+                </Button>
+            </StackPanel>
 
             <ListView
                 x:Name="PlaylistView"
@@ -452,11 +506,14 @@
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState x:Name="HidePlaylist">
-                    <VisualState.Setters />
+                    <VisualState.Setters>
+                        <Setter Target="TopBarButtons.Visibility" Value="Visible" />
+                    </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="ShowPlaylist">
                     <VisualState.Setters>
                         <Setter Target="PlaylistContainer.Visibility" Value="Visible" />
+                        <Setter Target="TopBarButtons.Visibility" Value="Collapsed" />
                         <Setter Target="PlaylistColumn.Width" Value="1*" />
                     </VisualState.Setters>
                 </VisualState>

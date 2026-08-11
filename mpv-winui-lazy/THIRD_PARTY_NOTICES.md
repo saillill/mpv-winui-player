@@ -31,6 +31,19 @@ summarized below. Full license texts for fonts and MediaInfo ship in
 | `fonts/SourceHanSansSC-Regular-2.otf` | [Adobe/Source Han Sans](https://github.com/adobe-fonts/source-han-sans) | SIL OFL-1.1 (full text in `fonts/OFL-1.1.txt`) |
 | `fonts/LXGWWenKaiMonoLite-Regular.ttf` | [lxgw/LxgwWenKai](https://github.com/lxgw/LxgwWenKai) | SIL OFL-1.1 (full text in `fonts/OFL-1.1.txt`) |
 
+## App project fonts (`mpv-winui/mpv-winui/Assets/`)
+
+| Component | Source | License |
+|---|---|---|
+| `FluentSystemIcons-Regular.ttf` | [microsoft/fluentui-system-icons](https://github.com/microsoft/fluentui-system-icons) | MIT (c) 2020 Microsoft Corporation |
+
+The top-bar/toolbar glyphs use ModernX's pin codepoints (U+E97E / U+E981)
+plus Fluent camera (U+F255), panel-right-contract (U+E8C3) and
+arrow-clockwise (U+F13E) glyphs from
+[zydezu/ModernX](https://github.com/zydezu/ModernX). ModernX publishes no
+LICENSE file, so the app bundles the official MIT-licensed Microsoft font
+that contains the same outlines instead of ModernX's repackaged copy.
+
 ## Shaders (`shaders/`)
 
 Licenses are declared in each file header:
