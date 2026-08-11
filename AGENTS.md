@@ -107,6 +107,10 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   compositor there. Never write `Visual.Offset` manually (layout owns it),
   and never use `CompositionPropertySet` keys like `Translation.Y` (not
   animatable in WinUI 3 desktop; throws in the batch-completed callback).
+  When starting a new overlay animation, stop only the in-flight Storyboard;
+  do not call `StopPanelAnimations()` (it clears `_panelAnimating`, which
+  defeats the same-direction re-entry guard and makes every pointer move
+  restart the pop-out animation - the bar twitches).
 - **Full-window state**: `PlayerControl_OnFullWindowRequest` tracks
   `_isFullWindow` explicitly — never derive it from `GoToState`'s return value
   (it only reports whether the state changed, which flips the flag when the

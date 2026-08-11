@@ -1312,7 +1312,16 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private void StartMainWindowPanelAnimation(bool show)
         {
-            StopPanelAnimations();
+            // Stop only the in-flight storyboard. Do not call
+            // StopPanelAnimations() here: it clears _panelAnimating, which
+            // defeats the same-direction re-entry guard in StartPanelAnimation
+            // and lets every pointer move restart the pop-out animation
+            // (the bar visibly twitches).
+            _showStoryboard?.Stop();
+            _showStoryboard = null;
+            _hideStoryboard?.Stop();
+            _hideStoryboard = null;
+
             if (show)
             {
                 ControlPanelGrid.Visibility = Visibility.Visible;
