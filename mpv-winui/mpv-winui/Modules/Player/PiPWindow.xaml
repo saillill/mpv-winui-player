@@ -47,6 +47,7 @@
         <!-- Bottom-right resize grip: drag to scale the PiP window. -->
         <Border
             x:Name="PiPResizeGrip"
+            Canvas.ZIndex="10"
             Width="22"
             Height="22"
             Margin="0,0,3,3"

@@ -31,6 +31,7 @@ public sealed partial class PiPWindow : Window
     private bool _topButtonsAnimationShow;
     private long _topButtonsAnimationStart;
     private readonly DispatcherTimer _topButtonsTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
+    private readonly DispatcherTimer _sizeUpdateTimer = new() { Interval = TimeSpan.FromMilliseconds(300) };
     private const double TopMaskHeight = 90;
     private const double BottomMaskHeight = 120;
     private double _videoAspect = 16.0 / 9.0;
@@ -86,10 +87,20 @@ public sealed partial class PiPWindow : Window
         PiPControls.ApplyControlBarStyle();
         RefreshVideoAspect();
         ApplyPiPSize(width, height);
-        // The panel has no real size before the window is shown; re-assert
-        // the swap chain size once it is laid out (a single delayed update
-        // avoids racing the swap-chain attach on every SizeChanged).
-        DispatcherQueue.TryEnqueue(UpdateVideoSize);
+        ScheduleVideoSizeUpdate();
+    }
+
+    private void ScheduleVideoSizeUpdate()
+    {
+        _sizeUpdateTimer.Tick -= SizeUpdateTimer_Tick;
+        _sizeUpdateTimer.Tick += SizeUpdateTimer_Tick;
+        _sizeUpdateTimer.Start();
+    }
+
+    private void SizeUpdateTimer_Tick(object? sender, object e)
+    {
+        _sizeUpdateTimer.Stop();
+        UpdateVideoSize();
     }
 
     private void UpdateVideoSize()
@@ -289,6 +300,7 @@ public sealed partial class PiPWindow : Window
         {
             RefreshVideoAspect();
             ApplyPiPSize(AppWindow.Size.Width, AppWindow.Size.Height);
+            ScheduleVideoSizeUpdate();
         });
     }
 
@@ -457,6 +469,8 @@ public sealed partial class PiPWindow : Window
     {
         _topButtonsTimer.Stop();
         _topButtonsTimer.Tick -= TopButtonsAnimationTick;
+        _sizeUpdateTimer.Stop();
+        _sizeUpdateTimer.Tick -= SizeUpdateTimer_Tick;
         _topButtonsAnimating = false;
         PiPBackButton.Visibility = Visibility.Visible;
         PiPExitButton.Visibility = Visibility.Visible;

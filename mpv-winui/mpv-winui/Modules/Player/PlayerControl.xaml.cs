@@ -52,6 +52,7 @@ namespace mpv_winui.Modules.Player
         private bool _isBuffering = false;
         private bool _isInScrubMode = false;
         private bool _isDragging = false;
+        private long _suppressBufferingUntil;
         private bool _sourceLoaded = false;
 
         private MpvMediaPlayer? _mediaPlayer;
@@ -958,6 +959,12 @@ namespace mpv_winui.Modules.Player
 
         private async void PlaybackSession_BufferingStarted(MpvMediaPlayer sender, object? args)
         {
+            // Local files briefly enter mpv's buffering state when seeking;
+            // do not flash the loading strip for user-initiated scrubs.
+            if (_isDragging || Environment.TickCount64 < _suppressBufferingUntil)
+            {
+                return;
+            }
             _isBuffering = true;
             DispatcherQueue.RunAsync(() => { UpdatePlaybackStatusUI(true); });
         }
@@ -1646,6 +1653,7 @@ namespace mpv_winui.Modules.Player
         private void ProgressSlider_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             _isDragging = true;
+            _suppressBufferingUntil = Environment.TickCount64 + 2000;
             if (AppContext.AppSetting.EnableVideoPreview && ProgressSlider.Maximum > 0)
             {
                 UpdatePreview(ProgressSlider.Value / ProgressSlider.Maximum);
@@ -1655,6 +1663,7 @@ namespace mpv_winui.Modules.Player
         private void ProgressSlider_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
             _isDragging = false;
+            _suppressBufferingUntil = Environment.TickCount64 + 500;
         }
 
         private void ProgressSlider_PointerMoved(object sender, PointerRoutedEventArgs e)
