@@ -51,6 +51,10 @@ namespace mpv_winui.Modules.Settings
                 {
                     return (T)(object)l;
                 }
+                if (typeof(T) == typeof(ulong) && ulong.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var ul))
+                {
+                    return (T)(object)ul;
+                }
             }
 
             return defaultValue;

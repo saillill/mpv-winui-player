@@ -6,15 +6,30 @@
 
 [简体中文](README_zh-CN.md)
 
-> A modern Windows player for mpv, forked from
-> [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player). It
-> keeps the real mpv playback engine and wraps it in a clean WinUI 3 interface
-> — no command line required, and the things you use every day are one click
-> away.
+> This is a fork of
+> [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player), a
+> graphical mpv player for Windows. It keeps the real mpv playback engine and
+> wraps it in a clean WinUI 3 interface — no command line required, and the
+> things you use every day are one click away.
 
-## Screenshots
+## Features
 
-Coming soon.
+(Screenshots coming soon)
+
+- Multiple UI languages: English, 简体中文, 日本語, 한국어, Deutsch, Français,
+  Español, Русский — switching takes effect immediately.
+- Control bar: play/pause, progress, volume, speed and track switching in one
+  bar; hover the progress bar to see video preview thumbnails.
+- Settings: the most commonly used mpv options are available as a graphical
+  page, clearly categorized and searchable, and changes apply immediately —
+  no need to memorize commands and parameters.
+- Right-click menu: the full mpv command menu, translated into 8 languages.
+- Picture-in-picture: a small always-on-top window that opens at the
+  bottom-right of your screen; move it, resize it, and closing it quits the
+  player.
+- Filters: ships with mpv-lazy preset shaders and frame-interpolation,
+  upscaling and denoising scripts, and you can add your own filters and
+  scripts.
 
 ## What it can do
 
@@ -31,21 +46,17 @@ Coming soon.
 - Resume: remembers where you stopped, plus watch history and “watch later”.
 - Playlist sidebar with drag-and-drop reordering.
 - Video preview thumbnails above the progress bar while hovering or seeking.
-- Right-click menu with the full mpv command menu, translated into 8
-  languages.
 - Sleep timer, screenshots, MediaInfo file details, shortcut search.
-- PotPlayer-style settings window: about 190 options, categorized,
-  searchable, applied immediately.
 - Picture-in-picture: a small always-on-top window that opens at the
-  bottom-right of your screen. Drag anywhere on the video to move it, drag the
-  edges to resize (the aspect ratio is kept), and click × to quit the player.
-- Interface languages: English, 简体中文, 日本語, 한국어, Deutsch, Français,
-  Español, Русский.
+  bottom-right of your screen. Drag anywhere on the video to move it, drag any
+  edge or corner to resize (the aspect ratio is kept), and click × to quit
+  the player.
 
 ## How it compares to the original mpv
 
-mpv is a command-line player. This project keeps the same playback engine but
-replaces most of the command-line experience with a graphical interface.
+mpv itself is a command-line player, and its settings are hard to discover.
+This project keeps the same playback engine but replaces most of the
+command-line experience with a graphical interface.
 
 What the interface already covers:
 
@@ -74,33 +85,73 @@ What is genuinely missing (needs code, not a setting):
 - On some multi-monitor setups the monitor name in the display log can be
   empty (HDR type and refresh rate are still tracked).
 
-mpv plugins (scripts) compatibility:
+## What we inherited from upstream
+
+This project inherits the base framework from
+[ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player): the
+WinUI 3 window and interface style, the embedded libmpv playback core, the
+control bar, the settings window, the playlist, the right-click menu data
+mechanism, and the idea of automatic HDR/WCG adaptation.
+
+Changes on top of upstream:
+
+- Right-click menu: trimmed from 195 entries to 160, removing window, quit and
+  zoom commands that do not work in embedded mode, plus entries duplicated
+  with the UI. (Why: the menu was designed for a standalone mpv window, and
+  many commands are useless once mpv is embedded. Reference: mpv embedding
+  constraints and the mpv-lazy menu structure.)
+- HDR/WCG: fixed true HDR output and washed-out colors in composition mode.
+  (Why: embedded mpv cannot query display information, so setting the color
+  space alone never really enters HDR. Reference: the mpv manual and
+  display-info.log measurements.)
+- Menu bar and UI strings: now config-driven with 8 language JSON files, and
+  language switching takes effect immediately. (Why: the original menu bar was
+  hard-coded in English. Reference: the Windows App SDK MenuBar.)
+- Picture-in-picture: completely reworked — see below.
+- Cleanup: removed the ModernZ persistent progress bar, the k7f_zen script and
+  other stale scripts and invalid configuration.
+- Fixes: startup OSD popup, track selection, audio device quoting, and
+  settings/CLI consistency issues.
+
+## What is new
+
+- Picture-in-picture: a small always-on-top window that opens at the
+  bottom-right of your screen; drag anywhere on the video to move it, drag any
+  edge or corner to resize while keeping the aspect ratio, and click × in the
+  top-right to quit the player. (Reference: native Windows window behavior.
+  WinUI CompactOverlay was evaluated but has a fixed-size limitation
+  [WindowsAppSDK#1593](https://github.com/microsoft/WindowsAppSDK/issues/1593),
+  so the native window border approach was kept.)
+- Preview thumbnails: hover or scrub the progress bar to see video previews.
+  (Reference: thumbfast.)
+- Menu bar framework and full UI localization: the menu structure is generated
+  from a configuration file and all labels come from 8 language JSON files.
+  You can reorder menu items, hide entries, add icons, and add your own mpv
+  commands.
+- Sleep timer, shortcut search, and MediaInfo file details.
+- Bundled plugin ecosystem: thumbfast (thumbnails), dyn_menu (right-click
+  menu), coverart (album art), metadata_osd (metadata display), recentmenu
+  (recent files), stats (statistics), console (built-in console), select
+  (menu selection) and more.
+
+Custom plugins, filters and scripts:
 
 - Most plain Lua scripts can be dropped into the `scripts` folder of the
   config directory and will work, because they run inside the same mpv engine.
-  Several are already bundled: thumbfast (preview thumbnails), dyn_menu
-  (right-click menu), coverart (album art), metadata_osd (metadata display),
-  recent-menu (recent files), stats (playback statistics) and console.
-- Scripts that depend on mpv’s original on-screen controller skin, window
+- Scripts that depend on mpv's original on-screen controller skin, window
   decorations, terminal interaction, or that draw their own external window
   may not work or need modification.
-- Plugins that need an external program or runtime (for example some
-  VapourSynth workflows) must be installed separately.
+- Preset shaders (Anime4K, FSRCNNX, ESRGAN, NVIDIA sharpen, etc.) and
+  VapourSynth scripts (RIFE interpolation, BM3D denoising, upscaling, etc.)
+  are included; parts that depend on external programs or runtimes must be
+  installed separately.
 - GPL-licensed plugins must be used in accordance with their license.
-
-## Quick start
-
-1. Download `mpv-winui-win-x64-Release.zip` from the
-   [Releases page](https://github.com/saillill/mpv-winui-player/releases).
-2. Extract it anywhere (Windows 10/11 x64).
-3. On first run, deploy the config files once:
-   `powershell -File mpv-winui-lazy\deploy-config.ps1`
-4. Run `mpv-winui.exe` and open a file from the menu, drag & drop, command
-   line, or link protocol.
 
 ## Projects it is based on
 
 - [mpv](https://github.com/mpv-player/mpv) — the playback engine
+- [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player) —
+  the upstream project this fork is based on
 - [mpv-lazy](https://github.com/hooke007/mpv_PlayKit) — the preset config and
   scripts
 - [WinUI 3 / Windows App SDK](https://github.com/microsoft/microsoft-ui-xaml)
@@ -109,20 +160,9 @@ mpv plugins (scripts) compatibility:
 - [dyn_menu / mpv-menu-plugin](https://github.com/tsl0922/mpv-menu-plugin) —
   the right-click menu data
 - [MediaInfo](https://mediaarea.net/en/MediaInfo) — file details
-- [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player) —
-  the upstream project this fork is based on (still actively maintained)
 
-## Known limitations
+## License
 
-- The player pauses when a file finishes (keep-open behavior); the playlist
-  continues when playback resumes.
-- The portable version needs the one-time config deploy step above.
-- On some multi-monitor setups the monitor name in the display log can be
-  empty.
-
-## For developers and licensing
-
-- Build: `.\build.ps1 -Release x64` (or `-Debug`).
 - The app code is LGPL-2.1; see [LICENSE.txt](LICENSE.txt).
 - Third-party components and licenses:
   [mpv-winui-lazy/THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md).
