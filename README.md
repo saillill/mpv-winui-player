@@ -6,9 +6,11 @@
 
 [简体中文](README_zh-CN.md)
 
-> A modern Windows player for mpv. It keeps the real mpv playback engine and
-> wraps it in a clean WinUI 3 interface — no command line required, and the
-> things you use every day are one click away.
+> A modern Windows player for mpv, forked from
+> [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player). It
+> keeps the real mpv playback engine and wraps it in a clean WinUI 3 interface
+> — no command line required, and the things you use every day are one click
+> away.
 
 ## Screenshots
 
@@ -108,7 +110,7 @@ mpv plugins (scripts) compatibility:
   the right-click menu data
 - [MediaInfo](https://mediaarea.net/en/MediaInfo) — file details
 - [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player) —
-  the upstream project this is forked from
+  the upstream project this fork is based on (still actively maintained)
 
 ## Known limitations
 

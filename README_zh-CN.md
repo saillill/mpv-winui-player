@@ -6,8 +6,9 @@
 
 [English](README.md)
 
-> 一款 Windows 上的 mpv 图形播放器。内核还是真正的 mpv，界面换成了清爽的
-> WinUI 3——不用命令行，常用操作点一下就行。
+> 本项目是 [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player)
+> 的复刻版，一款 Windows 上的 mpv 图形播放器。内核还是真正的 mpv，界面换成
+> 了清爽的 WinUI 3——不用命令行，常用操作点一下就行。
 
 ## 截图
 
@@ -93,7 +94,7 @@ mpv 插件（脚本）兼容性：
   —— 右键菜单数据
 - [MediaInfo](https://mediaarea.net/en/MediaInfo) —— 文件信息
 - [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player)
-  —— 本项目的上游
+  —— 原版上游项目，本作是它的复刻版（上游仍在持续更新）
 
 ## 已知限制
 
