@@ -22,15 +22,15 @@ namespace mpv_winui.Modules.Player;
 
 /// <summary>
 /// Dedicated picture-in-picture window: a borderless always-on-top window
-/// with rounded corners, native edge resize that is aspect-locked through
-/// WM_SIZING and a WM_NCHITTEST resize border (the OS shows the size cursors
-/// and runs the border drag without drawing a visible frame), drag-anywhere
-/// moving, and the video swap chain. It reuses the fullscreen PlayerControl
-/// in centered compact mode. Entering PiP always claims the bottom-right
-/// corner of the main window's display and the default size is a proportion
-/// of that display's work area. The main window is hidden while PiP is
-/// active; the top-left button restores it, the top-right button quits the
-/// whole player, and Alt+F4 restores the main window.
+/// with rounded corners. Native edge resize (OS size cursors + border drag)
+/// is kept, but WM_NCCALCSIZE hides the frame so no border is drawn, and
+/// WM_SIZING locks the video aspect while anchoring the window at its
+/// bottom-right corner. Drag-anywhere moving and the video swap chain
+/// complete the window. Entering PiP always claims the bottom-right corner
+/// of the main window's display and the default size is a proportion of that
+/// display's work area. The main window is hidden while PiP is active; the
+/// top-left button restores it, the top-right button quits the whole player,
+/// and Alt+F4 restores the main window.
 /// 
 /// The official Windows App SDK CompactOverlayPresenter was prototyped as a
 /// replacement for the Win32 frame hacks, but rejected: it adds a system
@@ -59,14 +59,38 @@ public sealed partial class PiPWindow : Window
     private readonly DispatcherTimer _sizeUpdateTimer = new() { Interval = TimeSpan.FromMilliseconds(300) };
     private const double TopMaskHeight = 90;
     private const double BottomMaskHeight = 120;
+    private const double ResizeBorderDips = 8;
+    private const int ResizeBorder = 8;
+    private const int HTLEFT = 10;
+    private const int HTRIGHT = 11;
+    private const int HTTOP = 12;
+    private const int HTTOPLEFT = 13;
+    private const int HTTOPRIGHT = 14;
+    private const int HTBOTTOM = 15;
+    private const int HTBOTTOMLEFT = 16;
+    private const int HTBOTTOMRIGHT = 17;
     private double _videoAspect = 16.0 / 9.0;
     private double _resizeMinW = 320;
     private double _resizeMinH = 180;
     private double _resizeMaxW = 960;
     private double _resizeMaxH = 540;
+    [Flags]
+    private enum ResizeZone
+    {
+        None = 0,
+        Left = 1,
+        Right = 2,
+        Top = 4,
+        Bottom = 8,
+    }
+    private bool _resizing;
+    private ResizeZone _resizeZone;
+    private PointInt32 _resizeStartCursor;
+    private RectInt32 _resizeStartRect;
     private bool _draggingWindow;
     private PointInt32 _dragStartCursor;
     private PointInt32 _dragStartPosition;
+    private RECT _sizingAnchorRect;
     private static WeakReference<PiPWindow>? _selfWeakReference;
 
     public PiPWindow()
@@ -169,9 +193,10 @@ public sealed partial class PiPWindow : Window
             presenter.IsAlwaysOnTop = true;
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
-            // Native border resize: WM_NCHITTEST returns border hit codes for
-            // the outer client pixels, so the OS shows the size cursors and
-            // runs the border drag without drawing any visible frame.
+            // The window must be reported as resizable so the OS shows the
+            // size cursors and accepts the native SC_SIZE loop. The frame is
+            // then hidden with WM_NCCALCSIZE (client = whole window) and the
+            // border drag is anchored bottom-right by WM_SIZING.
             presenter.IsResizable = true;
             presenter.SetBorderAndTitleBar(false, false);
         }
@@ -182,14 +207,139 @@ public sealed partial class PiPWindow : Window
         ApplyRoundedCorners();
         MakeFrameless();
 
-        // Native resize with aspect lock: WM_SIZING adjusts the proposed drag
-        // rectangle so the window always keeps the video aspect while the OS
-        // still provides the resize borders and size cursors.
+        // WM_NCHITTEST only: the OS shows the standard size cursors over the
+        // 8px edge zones. The actual resize is handled by the XAML pointer
+        // handlers (bottom-right anchored, aspect locked), which keeps the
+        // window fully frameless and WinUI input intact.
         unsafe
         {
             var hwnd = new HWND(WindowNative.GetWindowHandle(this));
             PInvoke.SetWindowSubclass(hwnd, &PiPSubclassProc, 52121, 0);
         }
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
+    private static LRESULT PiPSubclassProc(
+        HWND hWnd,
+        uint uMsg,
+        WPARAM wParam,
+        LPARAM lParam,
+        nuint uIdSubclass,
+        nuint dwRefData)
+    {
+        const int WM_NCHITTEST = 0x0084;
+        const int WM_NCCALCSIZE = 0x0083;
+        const int WM_ENTERSIZEMOVE = 0x0231;
+        const int WM_SIZING = 0x0214;
+
+        if (uMsg == WM_NCCALCSIZE && wParam.Value != 0)
+        {
+            // Client area = whole window: hides the DWM resize frame that
+            // would otherwise draw the black border while keeping the window
+            // resizable for the OS.
+            return (LRESULT)0;
+        }
+
+        if (uMsg == WM_ENTERSIZEMOVE
+            && _selfWeakReference?.TryGetTarget(out var sizingSelf) == true)
+        {
+            PInvoke.GetWindowRect(hWnd, out sizingSelf._sizingAnchorRect);
+        }
+
+        if (uMsg == WM_SIZING
+            && _selfWeakReference?.TryGetTarget(out var self) == true)
+        {
+            var rect = Marshal.PtrToStructure<RECT>((nint)lParam.Value);
+            if (self is not null && self.AdjustSizingRect((int)wParam.Value, ref rect))
+            {
+                Marshal.StructureToPtr(rect, (nint)lParam.Value, false);
+                return (LRESULT)1;
+            }
+        }
+
+        if (uMsg == WM_NCHITTEST
+            && PInvoke.GetWindowRect(hWnd, out var windowRect))
+        {
+            var x = (short)((int)lParam.Value & 0xFFFF);
+            var y = (short)(((int)lParam.Value >> 16) & 0xFFFF);
+            var nearLeft = x >= windowRect.left && x < windowRect.left + ResizeBorder;
+            var nearRight = x >= windowRect.right - ResizeBorder && x < windowRect.right;
+            var nearTop = y >= windowRect.top && y < windowRect.top + ResizeBorder;
+            var nearBottom = y >= windowRect.bottom - ResizeBorder && y < windowRect.bottom;
+
+            if (nearTop && nearLeft) return (LRESULT)HTTOPLEFT;
+            if (nearTop && nearRight) return (LRESULT)HTTOPRIGHT;
+            if (nearBottom && nearLeft) return (LRESULT)HTBOTTOMLEFT;
+            if (nearBottom && nearRight) return (LRESULT)HTBOTTOMRIGHT;
+            if (nearLeft) return (LRESULT)HTLEFT;
+            if (nearRight) return (LRESULT)HTRIGHT;
+            if (nearTop) return (LRESULT)HTTOP;
+            if (nearBottom) return (LRESULT)HTBOTTOM;
+        }
+
+        return PInvoke.DefSubclassProc(hWnd, uMsg, wParam, lParam);
+    }
+
+    /// <summary>
+    /// Adjusts the native WM_SIZING drag rectangle: the video aspect is kept
+    /// and the window's bottom-right corner (recorded at WM_ENTERSIZEMOVE)
+    /// stays fixed, so the PiP scales from the top-left while remaining
+    /// docked at its bottom-right position.
+    /// </summary>
+    private bool AdjustSizingRect(int edge, ref RECT rect)
+    {
+        const int WMSZ_TOP = 3;
+        const int WMSZ_BOTTOM = 6;
+
+        var aspect = _videoAspect > 0 ? _videoAspect : 16.0 / 9.0;
+        var width = rect.right - rect.left;
+        var height = rect.bottom - rect.top;
+
+        double w;
+        double h;
+        if (edge is WMSZ_TOP or WMSZ_BOTTOM)
+        {
+            h = Math.Clamp(height, _resizeMinH, _resizeMaxH);
+            w = h * aspect;
+            if (w > _resizeMaxW)
+            {
+                w = _resizeMaxW;
+                h = w / aspect;
+            }
+            if (w < _resizeMinW)
+            {
+                w = _resizeMinW;
+                h = w / aspect;
+            }
+        }
+        else
+        {
+            w = Math.Clamp(width, _resizeMinW, _resizeMaxW);
+            h = w / aspect;
+            if (h > _resizeMaxH)
+            {
+                h = _resizeMaxH;
+                w = h * aspect;
+            }
+            if (h < _resizeMinH)
+            {
+                h = _resizeMinH;
+                w = h * aspect;
+            }
+        }
+
+        var newW = (int)Math.Round(w);
+        var newH = (int)Math.Round(h);
+        if (newW == width && newH == height)
+        {
+            return false;
+        }
+
+        rect.right = _sizingAnchorRect.right;
+        rect.bottom = _sizingAnchorRect.bottom;
+        rect.left = rect.right - newW;
+        rect.top = rect.bottom - newH;
+        return true;
     }
 
     private DisplayArea GetPiPDisplayArea()
@@ -217,180 +367,6 @@ public sealed partial class PiPWindow : Window
             // on every change and fires 300ms after the drag ends).
             ScheduleVideoSizeUpdate();
         }
-    }
-
-    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
-    private static LRESULT PiPSubclassProc(
-        HWND hWnd,
-        uint uMsg,
-        WPARAM wParam,
-        LPARAM lParam,
-        nuint uIdSubclass,
-        nuint dwRefData)
-    {
-        const int WM_SIZING = 0x0214;
-        const int WM_NCHITTEST = 0x0084;
-        const int HTLEFT = 10;
-        const int HTRIGHT = 11;
-        const int HTTOP = 12;
-        const int HTTOPLEFT = 13;
-        const int HTTOPRIGHT = 14;
-        const int HTBOTTOM = 15;
-        const int HTBOTTOMLEFT = 16;
-        const int HTBOTTOMRIGHT = 17;
-        const int ResizeBorder = 8;
-
-        if (uMsg == WM_NCHITTEST
-            && PInvoke.GetWindowRect(hWnd, out var windowRect))
-        {
-            var x = (short)((int)lParam.Value & 0xFFFF);
-            var y = (short)(((int)lParam.Value >> 16) & 0xFFFF);
-            var nearLeft = x >= windowRect.left && x < windowRect.left + ResizeBorder;
-            var nearRight = x >= windowRect.right - ResizeBorder && x < windowRect.right;
-            var nearTop = y >= windowRect.top && y < windowRect.top + ResizeBorder;
-            var nearBottom = y >= windowRect.bottom - ResizeBorder && y < windowRect.bottom;
-
-            if (nearTop && nearLeft)
-            {
-                return (LRESULT)HTTOPLEFT;
-            }
-            if (nearTop && nearRight)
-            {
-                return (LRESULT)HTTOPRIGHT;
-            }
-            if (nearBottom && nearLeft)
-            {
-                return (LRESULT)HTBOTTOMLEFT;
-            }
-            if (nearBottom && nearRight)
-            {
-                return (LRESULT)HTBOTTOMRIGHT;
-            }
-            if (nearLeft)
-            {
-                return (LRESULT)HTLEFT;
-            }
-            if (nearRight)
-            {
-                return (LRESULT)HTRIGHT;
-            }
-            if (nearTop)
-            {
-                return (LRESULT)HTTOP;
-            }
-            if (nearBottom)
-            {
-                return (LRESULT)HTBOTTOM;
-            }
-        }
-
-        if (uMsg == WM_SIZING
-            && _selfWeakReference?.TryGetTarget(out var self) == true)
-        {
-            var rect = Marshal.PtrToStructure<RECT>((nint)lParam.Value);
-            if (self is not null && self.AdjustSizingRect((int)wParam.Value, ref rect))
-            {
-                Marshal.StructureToPtr(rect, (nint)lParam.Value, false);
-                return (LRESULT)1;
-            }
-        }
-        return PInvoke.DefSubclassProc(hWnd, uMsg, wParam, lParam);
-    }
-
-    /// <summary>
-    /// Aspect-locks the native border resize: adjusts the WM_SIZING drag
-    /// rectangle so the window always keeps <see cref="_videoAspect"/> while
-    /// the OS still runs the resize loop with the standard size cursors.
-    /// </summary>
-    private bool AdjustSizingRect(int edge, ref RECT rect)
-    {
-        const int WMSZ_LEFT = 1;
-        const int WMSZ_RIGHT = 2;
-        const int WMSZ_TOP = 3;
-        const int WMSZ_BOTTOM = 6;
-
-        var aspect = _videoAspect > 0 ? _videoAspect : 16.0 / 9.0;
-        var width = rect.right - rect.left;
-        var height = rect.bottom - rect.top;
-
-        double w;
-        double h;
-        if (edge is WMSZ_TOP or WMSZ_BOTTOM)
-        {
-            // Height-driven edges (top/bottom): height is the drag axis.
-            h = Math.Clamp(height, _resizeMinH, _resizeMaxH);
-            w = h * aspect;
-            if (w > _resizeMaxW)
-            {
-                w = _resizeMaxW;
-                h = w / aspect;
-            }
-            if (w < _resizeMinW)
-            {
-                w = _resizeMinW;
-                h = w / aspect;
-            }
-        }
-        else
-        {
-            // Width-driven edges and all corners: width is the drag axis.
-            w = Math.Clamp(width, _resizeMinW, _resizeMaxW);
-            h = w / aspect;
-            if (h > _resizeMaxH)
-            {
-                h = _resizeMaxH;
-                w = h * aspect;
-            }
-            if (h < _resizeMinH)
-            {
-                h = _resizeMinH;
-                w = h * aspect;
-            }
-        }
-
-        var newW = (int)Math.Round(w);
-        var newH = (int)Math.Round(h);
-        if (newW == width && newH == height)
-        {
-            return false;
-        }
-
-        switch (edge)
-        {
-            case WMSZ_LEFT:
-                rect.left = rect.right - newW;
-                rect.bottom = rect.top + newH;
-                break;
-            case WMSZ_RIGHT:
-                rect.right = rect.left + newW;
-                rect.bottom = rect.top + newH;
-                break;
-            case WMSZ_TOP:
-                rect.top = rect.bottom - newH;
-                rect.right = rect.left + newW;
-                break;
-            case WMSZ_BOTTOM:
-                rect.bottom = rect.top + newH;
-                rect.right = rect.left + newW;
-                break;
-            case 4: // WMSZ_TOPLEFT
-                rect.left = rect.right - newW;
-                rect.top = rect.bottom - newH;
-                break;
-            case 5: // WMSZ_TOPRIGHT
-                rect.right = rect.left + newW;
-                rect.top = rect.bottom - newH;
-                break;
-            case 7: // WMSZ_BOTTOMLEFT
-                rect.left = rect.right - newW;
-                rect.bottom = rect.top + newH;
-                break;
-            case 8: // WMSZ_BOTTOMRIGHT
-                rect.right = rect.left + newW;
-                rect.bottom = rect.top + newH;
-                break;
-        }
-        return true;
     }
 
     private void PositionAtBottomRight(int width, int height)
@@ -450,13 +426,13 @@ public sealed partial class PiPWindow : Window
             var hwnd = new HWND(WindowNative.GetWindowHandle(this));
             const int WS_BORDER = 0x00800000;
             const int WS_DLGFRAME = 0x00400000;
-            const int WS_THICKFRAME = 0x00040000;
 
             var style = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE);
-            // Remove the whole frame so DWM does not draw the thick black
-            // resize border. Native edge resize still works: the WM_NCHITTEST
-            // subclass returns HTLEFT/HTRIGHT/... for the outer client pixels.
-            style &= ~(WS_BORDER | WS_DLGFRAME | WS_THICKFRAME);
+            // Keep WS_THICKFRAME (intentionally not cleared) so the OS
+            // (0x00040000) accepts the native resize loop and shows the size
+            // cursors; drop only the visible frame styles. WM_NCCALCSIZE then
+            // hides the frame entirely by making the client cover the window.
+            style &= ~(WS_BORDER | WS_DLGFRAME);
             _ = PInvoke.SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE, style);
             _ = PInvoke.SetWindowPos(
                 hwnd,
@@ -501,9 +477,24 @@ public sealed partial class PiPWindow : Window
             // are reserved for mpv bindings and the context menu.
             return;
         }
-
         if (!PInvoke.GetCursorPos(out var cursor))
         {
+            return;
+        }
+
+        var zone = GetResizeZone(point.Position, PiPView.ActualWidth, PiPView.ActualHeight);
+        if (zone != ResizeZone.None)
+        {
+            // Edge/corner press: start the XAML resize loop (bottom-right
+            // anchored, aspect locked). WM_NCHITTEST only provides the cursor.
+            _resizing = true;
+            _resizeZone = zone;
+            _resizeStartCursor = new PointInt32(cursor.X, cursor.Y);
+            _resizeStartRect = new RectInt32(
+                AppWindow.Position.X, AppWindow.Position.Y,
+                AppWindow.Size.Width, AppWindow.Size.Height);
+            PiPView.CapturePointer(e.Pointer);
+            e.Handled = true;
             return;
         }
 
@@ -526,6 +517,13 @@ public sealed partial class PiPWindow : Window
             return;
         }
 
+        if (_resizing)
+        {
+            ApplyResize(cursor.X - _resizeStartCursor.X, cursor.Y - _resizeStartCursor.Y);
+            e.Handled = true;
+            return;
+        }
+
         if (!_draggingWindow)
         {
             return;
@@ -544,18 +542,100 @@ public sealed partial class PiPWindow : Window
 
     private void PiPView_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        if (!_draggingWindow)
+        if (!_resizing && !_draggingWindow)
         {
             return;
         }
+        var wasResizing = _resizing;
+        _resizing = false;
         _draggingWindow = false;
         PiPView.ReleasePointerCapture(e.Pointer);
+        if (wasResizing)
+        {
+            // Safety net: re-assert the swap chain size once layout settles.
+            ScheduleVideoSizeUpdate();
+        }
         e.Handled = true;
     }
 
     private void PiPView_PointerCaptureLost(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
+        _resizing = false;
         _draggingWindow = false;
+    }
+
+    private ResizeZone GetResizeZone(Point position, double width, double height)
+    {
+        var zone = ResizeZone.None;
+        if (position.X <= ResizeBorderDips)
+        {
+            zone |= ResizeZone.Left;
+        }
+        if (position.X >= width - ResizeBorderDips)
+        {
+            zone |= ResizeZone.Right;
+        }
+        if (position.Y <= ResizeBorderDips)
+        {
+            zone |= ResizeZone.Top;
+        }
+        if (position.Y >= height - ResizeBorderDips)
+        {
+            zone |= ResizeZone.Bottom;
+        }
+        return zone;
+    }
+
+    /// <summary>
+    /// Edge/corner resize anchored at the bottom-right corner: the window
+    /// scales from the top-left while its bottom-right corner stays fixed and
+    /// the size keeps <see cref="_videoAspect"/>.
+    /// </summary>
+    private void ApplyResize(double deltaX, double deltaY)
+    {
+        try
+        {
+            var start = _resizeStartRect;
+            var aspect = _videoAspect > 0 ? _videoAspect : 16.0 / 9.0;
+
+            double w;
+            if ((_resizeZone & (ResizeZone.Left | ResizeZone.Right)) != 0)
+            {
+                w = start.Width + ((_resizeZone & ResizeZone.Right) != 0 ? deltaX : -deltaX);
+            }
+            else
+            {
+                var height = start.Height + ((_resizeZone & ResizeZone.Bottom) != 0 ? deltaY : -deltaY);
+                w = height * aspect;
+            }
+
+            w = Math.Clamp(w, _resizeMinW, _resizeMaxW);
+            var h = w / aspect;
+            if (h > _resizeMaxH)
+            {
+                h = _resizeMaxH;
+                w = h * aspect;
+            }
+            if (h < _resizeMinH)
+            {
+                h = _resizeMinH;
+                w = h * aspect;
+            }
+            w = Math.Clamp(w, _resizeMinW, _resizeMaxW);
+            h = Math.Clamp(h, _resizeMinH, _resizeMaxH);
+
+            var newW = (int)Math.Round(w);
+            var newH = (int)Math.Round(h);
+            var newLeft = start.X + start.Width - newW;
+            var newTop = start.Y + start.Height - newH;
+
+            AppWindow.MoveAndResize(new RectInt32(newLeft, newTop, newW, newH));
+            _player?.UpdateSize((uint)newW, (uint)newH);
+        }
+        catch (Exception)
+        {
+            // Resizing is optional; ignore failures on exotic displays.
+        }
     }
 
 
