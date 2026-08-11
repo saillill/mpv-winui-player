@@ -1,4 +1,5 @@
 using Microsoft.UI.Composition;
+using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -19,6 +20,32 @@ using Windows.Win32.UI.WindowsAndMessaging;
 using WinRT.Interop;
 
 namespace mpv_winui.Modules.Player;
+
+/// <summary>
+/// Video surface that can switch its cursor from outside the element.
+/// UIElement.ProtectedCursor is protected, so a tiny wrapper exposes the
+/// resize cursors for the edge zones (WinUI 3 owns cursor input, which is why
+/// WM_NCHITTEST/WM_SETCURSOR alone never showed the arrows reliably).
+/// </summary>
+public sealed partial class PiPCursorSurface : SwapChainPanel
+{
+    private InputCursor? _sizeWE;
+    private InputCursor? _sizeNS;
+    private InputCursor? _sizeNWSE;
+    private InputCursor? _sizeNESW;
+
+    public void SetResizeCursor(InputSystemCursorShape? shape)
+    {
+        ProtectedCursor = shape switch
+        {
+            InputSystemCursorShape.SizeWestEast => _sizeWE ??= InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast),
+            InputSystemCursorShape.SizeNorthSouth => _sizeNS ??= InputSystemCursor.Create(InputSystemCursorShape.SizeNorthSouth),
+            InputSystemCursorShape.SizeNorthwestSoutheast => _sizeNWSE ??= InputSystemCursor.Create(InputSystemCursorShape.SizeNorthwestSoutheast),
+            InputSystemCursorShape.SizeNortheastSouthwest => _sizeNESW ??= InputSystemCursor.Create(InputSystemCursorShape.SizeNortheastSouthwest),
+            _ => null,
+        };
+    }
+}
 
 /// <summary>
 /// Dedicated picture-in-picture window: a borderless always-on-top window
@@ -579,6 +606,7 @@ public sealed partial class PiPWindow : Window
 
         if (!_draggingWindow)
         {
+            UpdateResizeCursor(e.GetCurrentPoint(PiPView).Position);
             return;
         }
 
@@ -603,6 +631,7 @@ public sealed partial class PiPWindow : Window
         _resizing = false;
         _draggingWindow = false;
         PiPView.ReleasePointerCapture(e.Pointer);
+        PiPView.SetResizeCursor(null);
         if (wasResizing)
         {
             // Safety net: re-assert the swap chain size once layout settles.
@@ -615,6 +644,20 @@ public sealed partial class PiPWindow : Window
     {
         _resizing = false;
         _draggingWindow = false;
+        PiPView.SetResizeCursor(null);
+    }
+
+    private void UpdateResizeCursor(Point position)
+    {
+        var zone = GetResizeZone(position, PiPView.ActualWidth, PiPView.ActualHeight);
+        PiPView.SetResizeCursor(zone switch
+        {
+            ResizeZone.Left or ResizeZone.Right => InputSystemCursorShape.SizeWestEast,
+            ResizeZone.Top or ResizeZone.Bottom => InputSystemCursorShape.SizeNorthSouth,
+            ResizeZone.Top | ResizeZone.Left or ResizeZone.Bottom | ResizeZone.Right => InputSystemCursorShape.SizeNorthwestSoutheast,
+            ResizeZone.Top | ResizeZone.Right or ResizeZone.Bottom | ResizeZone.Left => InputSystemCursorShape.SizeNortheastSouthwest,
+            _ => (InputSystemCursorShape?)null,
+        });
     }
 
     private ResizeZone GetResizeZone(Point position, double width, double height)
@@ -717,6 +760,7 @@ public sealed partial class PiPWindow : Window
         // Leaving the window must retract everything: the status bar has its
         // idle timer, but the top buttons previously stayed visible until the
         // pointer re-entered and moved to a non-top zone.
+        PiPView.SetResizeCursor(null);
         SetTopButtonsVisible(false);
         PiPControls.HideControlPanel();
     }

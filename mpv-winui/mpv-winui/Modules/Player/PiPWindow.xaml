@@ -5,7 +5,7 @@
     xmlns:local="using:mpv_winui.Modules.Player">
 
     <Grid x:Name="RootGrid" Background="Black">
-        <SwapChainPanel
+        <local:PiPCursorSurface
             x:Name="PiPView"
             PointerCaptureLost="PiPView_PointerCaptureLost"
             PointerMoved="PiPView_PointerMoved"
