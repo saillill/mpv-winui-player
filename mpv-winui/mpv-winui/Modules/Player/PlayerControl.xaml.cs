@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -33,7 +35,7 @@ namespace mpv_winui.Modules.Player
         private bool _compactMode;
         private bool _isPiPHost;
         private bool _overlayMode;
-        private readonly DispatcherTimer _hideDelayTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
+        private readonly DispatcherTimer _hideDelayTimer = new() { Interval = TimeSpan.FromMilliseconds(80) };
         private readonly DispatcherTimer _overlayIdleTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
         private Point _lastOverlayActivity = new(double.NaN, double.NaN);
         private const double OverlayMoveThreshold = 5.0;
@@ -41,6 +43,9 @@ namespace mpv_winui.Modules.Player
         private bool _panelAnimating;
         private readonly DispatcherTimer _panelAnimationTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
         private long _panelAnimationStart;
+        private Compositor? _panelCompositor;
+        private Visual? _panelGridVisual;
+        private Visual? _panelGradientVisual;
 
         private readonly DispatcherTimer _positionUpdateTimer;
         private bool _hasError = false;
@@ -1252,6 +1257,16 @@ namespace mpv_winui.Modules.Player
 
         private void StopPanelAnimations()
         {
+            _panelGridVisual?.StopAnimation("Opacity");
+            _panelGradientVisual?.StopAnimation("Opacity");
+            if (_panelGridVisual is not null)
+            {
+                _panelGridVisual.Opacity = 1f;
+            }
+            if (_panelGradientVisual is not null)
+            {
+                _panelGradientVisual.Opacity = 1f;
+            }
             _panelAnimationTimer.Stop();
             _panelAnimationTimer.Tick -= PanelAnimationTick;
             _showStoryboard?.Stop();
@@ -1340,18 +1355,32 @@ namespace mpv_winui.Modules.Player
             if (show)
             {
                 ControlPanelGrid.Visibility = Visibility.Visible;
-                // Start from the tween's initial values so the first tick does
-                // not flash the fully-shown bar for one frame (which read as a
-                // double pop on the second expand).
-                ControlPanelGradient.Opacity = 0;
-                ControlPanelGrid.Opacity = 0;
-                TranslateVertical.Y = 48;
             }
-            else
+
+            // Composition opacity multiplies the XAML opacity, so keep the
+            // XAML base at 1 and animate only the composition value; the 16ms
+            // timer drives just the slide (TranslateTransform), which is
+            // layout-independent. This is smoother than tweening three XAML
+            // properties per timer tick.
+            ControlPanelGradient.Opacity = 1;
+            ControlPanelGrid.Opacity = 1;
+            TranslateVertical.Y = show ? 48 : 0;
+
+            EnsurePanelVisuals();
+            if (_panelCompositor is not null && _panelGridVisual is not null && _panelGradientVisual is not null)
             {
-                ControlPanelGradient.Opacity = 1;
-                ControlPanelGrid.Opacity = 1;
-                TranslateVertical.Y = 0;
+                _panelGridVisual.StopAnimation("Opacity");
+                _panelGradientVisual.StopAnimation("Opacity");
+
+                var ease = _panelCompositor.CreateCubicBezierEasingFunction(
+                    new System.Numerics.Vector2(0.215f, 0.61f),
+                    new System.Numerics.Vector2(0.355f, 1f));
+                var opacity = _panelCompositor.CreateScalarKeyFrameAnimation();
+                opacity.Duration = TimeSpan.FromMilliseconds(180);
+                opacity.InsertKeyFrame(0f, show ? 0f : 1f);
+                opacity.InsertKeyFrame(1f, show ? 1f : 0f, ease);
+                _panelGridVisual.StartAnimation("Opacity", opacity);
+                _panelGradientVisual.StartAnimation("Opacity", opacity);
             }
 
             _panelAnimationStart = Environment.TickCount64;
@@ -1367,18 +1396,7 @@ namespace mpv_winui.Modules.Player
             var t = Math.Clamp(elapsed / durationMs, 0, 1);
             var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
 
-            if (_panelAnimationShow)
-            {
-                ControlPanelGradient.Opacity = eased;
-                ControlPanelGrid.Opacity = eased;
-                TranslateVertical.Y = 48 * (1 - eased);
-            }
-            else
-            {
-                ControlPanelGradient.Opacity = 1 - eased;
-                ControlPanelGrid.Opacity = 1 - eased;
-                TranslateVertical.Y = 48 * eased;
-            }
+            TranslateVertical.Y = _panelAnimationShow ? 48 * (1 - eased) : 48 * eased;
 
             if (t >= 1)
             {
@@ -1387,9 +1405,29 @@ namespace mpv_winui.Modules.Player
             }
         }
 
+        private void EnsurePanelVisuals()
+        {
+            if (_panelGridVisual is null)
+            {
+                _panelGridVisual = ElementCompositionPreview.GetElementVisual(ControlPanelGrid);
+                _panelGradientVisual = ElementCompositionPreview.GetElementVisual(ControlPanelGradient);
+                _panelCompositor = _panelGridVisual.Compositor;
+            }
+        }
+
         private void PanelAnimationCompleted(bool show)
         {
             _panelAnimating = false;
+            _panelGridVisual?.StopAnimation("Opacity");
+            _panelGradientVisual?.StopAnimation("Opacity");
+            if (_panelGridVisual is not null)
+            {
+                _panelGridVisual.Opacity = 1f;
+            }
+            if (_panelGradientVisual is not null)
+            {
+                _panelGradientVisual.Opacity = 1f;
+            }
 
             if (show)
             {
