@@ -697,6 +697,8 @@ namespace mpv_winui.Modules.Player
             _panelAnimationTimer.Tick -= PanelAnimationTick;
             _overlayIdleTimer.Stop();
             _overlayIdleTimer.Tick -= OverlayIdleTimer_Tick;
+            _hideDelayTimer.Stop();
+            _hideDelayTimer.Tick -= HideDelayTimer_Tick;
 
             RemoveEventListeners();
         }
