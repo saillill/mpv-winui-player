@@ -30,8 +30,11 @@ namespace mpv_winui.Modules.Player;
 /// title bar over the top overlay buttons (clicks land on the caption), and
 /// it swallows the HTCAPTION drag, so the video is no longer draggable.
 /// WindowsAppSDK#1593 also tracks that compact-overlay windows cannot be
-/// user-resized. Keep the custom always-on-top frameless window until those
-/// are resolved.
+/// user-resized. AppWindowTitleBar.SetDragRectangles was prototyped as the
+/// official drag-move replacement, but the OS ignores the drag regions on a
+/// fully frameless window, so drag-anywhere still uses the
+/// WM_NCLBUTTONDOWN/HTCAPTION caption message. Keep the custom always-on-top
+/// frameless window until those are resolved.
 /// </summary>
 public sealed partial class PiPWindow : Window
 {
@@ -278,6 +281,9 @@ public sealed partial class PiPWindow : Window
         // Hand the press to the system caption: the modal move loop starts
         // immediately and ends on release, so the window never sticks to the
         // cursor. This makes the whole video area draggable like browser PiP.
+        // AppWindowTitleBar.SetDragRectangles was prototyped as the official
+        // replacement but does not work on this fully frameless window (the
+        // OS ignores the drag regions), so the caption message stays.
         try
         {
             var hwnd = new HWND(WindowNative.GetWindowHandle(this));
