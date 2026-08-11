@@ -42,6 +42,7 @@ public sealed partial class PiPWindow : Window
 
         PiPView.PointerPressed += PiPView_PointerPressed;
         RootGrid.PointerMoved += RootGrid_PointerMoved;
+        RootGrid.PointerExited += RootGrid_PointerExited;
 
         AppWindow.Closing += AppWindow_Closing;
         Closed += PiPWindow_Closed;
@@ -224,6 +225,15 @@ public sealed partial class PiPWindow : Window
         }
     }
 
+    private void RootGrid_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        // Leaving the window must retract everything: the status bar has its
+        // idle timer, but the top buttons previously stayed visible until the
+        // pointer re-entered and moved to a non-top zone.
+        SetTopButtonsVisible(false);
+        PiPControls.HideControlPanel();
+    }
+
     private void PiPView_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         // Wheel over the PiP video is forwarded to mpv (input.conf volume/seek),
@@ -276,6 +286,8 @@ public sealed partial class PiPWindow : Window
         {
             PiPBackButton.Visibility = Visibility.Visible;
             PiPExitButton.Visibility = Visibility.Visible;
+            PiPBackButton.Opacity = 0;
+            PiPExitButton.Opacity = 0;
         }
         _topButtonsTimer.Tick -= TopButtonsAnimationTick;
         _topButtonsTimer.Tick += TopButtonsAnimationTick;

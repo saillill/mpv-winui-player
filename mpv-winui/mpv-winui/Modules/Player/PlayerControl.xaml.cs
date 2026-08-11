@@ -712,7 +712,6 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.NaturalDurationChanged += PlaybackSession_NaturalDurationChanged;
             _mediaPlayer?.VolumeChangedChanged += PlaybackSession_VolumeChangedChanged;
             _mediaPlayer?.Seeked += MediaPlayer_Seeked;
-            _mediaPlayer?.SeekingStarted += MediaPlayer_SeekingStarted;
             _mediaPlayer?.RepeatStateChanged += MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged += MediaPlayer_ShuffleEnabledChanged;
         }
@@ -727,7 +726,6 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.NaturalDurationChanged -= PlaybackSession_NaturalDurationChanged;
             _mediaPlayer?.VolumeChangedChanged -= PlaybackSession_VolumeChangedChanged;
             _mediaPlayer?.Seeked -= MediaPlayer_Seeked;
-            _mediaPlayer?.SeekingStarted -= MediaPlayer_SeekingStarted;
             _mediaPlayer?.RepeatStateChanged -= MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged -= MediaPlayer_ShuffleEnabledChanged;
         }
@@ -910,15 +908,6 @@ namespace mpv_winui.Modules.Player
                 UpdatePlaybackStatusUI(false);
                 //UpdatePlayPauseUI(false);
                 UpdateVolumeUI(false);
-            });
-        }
-
-        private async void MediaPlayer_SeekingStarted(MpvMediaPlayer sender, object? args)
-        {
-            DispatcherQueue.RunAsync(() =>
-            {
-                _isBuffering = true;
-                UpdatePlaybackStatusUI(true);
             });
         }
 
@@ -1351,11 +1340,19 @@ namespace mpv_winui.Modules.Player
             if (show)
             {
                 ControlPanelGrid.Visibility = Visibility.Visible;
+                // Start from the tween's initial values so the first tick does
+                // not flash the fully-shown bar for one frame (which read as a
+                // double pop on the second expand).
+                ControlPanelGradient.Opacity = 0;
+                ControlPanelGrid.Opacity = 0;
+                TranslateVertical.Y = 48;
             }
-
-            ControlPanelGradient.Opacity = 1;
-            ControlPanelGrid.Opacity = 1;
-            TranslateVertical.Y = 0;
+            else
+            {
+                ControlPanelGradient.Opacity = 1;
+                ControlPanelGrid.Opacity = 1;
+                TranslateVertical.Y = 0;
+            }
 
             _panelAnimationStart = Environment.TickCount64;
             _panelAnimationTimer.Tick -= PanelAnimationTick;
