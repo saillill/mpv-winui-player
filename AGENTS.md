@@ -194,6 +194,8 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 
 - Editing menus / `input.conf`: read `docs/menu-audit-20260807.md` first
   (provenance and history of the 153-item menu).
+- Localization & menu bar convention: read `docs/localization.md` before
+  adding UI strings or menu items.
 - Touching the config layer: read `mpv-winui-lazy/README.md`.
 - Adding components or checking licenses: read
   `mpv-winui-lazy/THIRD_PARTY_NOTICES.md`.

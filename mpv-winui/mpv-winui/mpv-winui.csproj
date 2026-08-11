@@ -108,6 +108,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Content Include="Menus\menus.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
         <Content Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Include="..\libs\bin\mpv-2.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

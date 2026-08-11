@@ -81,6 +81,7 @@ namespace mpv_winui.Modules.Player
                 SetupKeyboardInput();
                 AppContext.SettingChanged += AppContext_SettingChanged;
                 AppContext.LanguageChanged += AppContext_LanguageChanged;
+                BuildMainMenuBar();
                 SetupPreview();
 
                 OpenPendingPath().FireAndForget(OnException);
@@ -147,6 +148,7 @@ namespace mpv_winui.Modules.Player
             {
                 ApplyLocalizedStrings();
                 PlayerControl.ApplyLocalizedStrings();
+                BuildMainMenuBar();
             });
         }
 

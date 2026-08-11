@@ -4,7 +4,8 @@
 # The C# project references the C++ outputs from mpv-winui\bin\<Platform>\<Configuration>\mpv_winrt\.
 param(
     [ValidateSet('Debug', 'Release')] [string]$Configuration = 'Debug',
-    [ValidateSet('x64', 'ARM64')] [string]$Platform = 'x64'
+    [ValidateSet('x64', 'ARM64')] [string]$Platform = 'x64',
+    [switch]$CheckLocalization
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -30,4 +31,9 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "==> Building mpv-winui (C# WinUI 3) [$Configuration|$Platform]"
 dotnet build "$root\mpv-winui\mpv-winui\mpv-winui.csproj" -c $Configuration -p:Platform=$Platform -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -v:m
+if ($CheckLocalization) {
+    Write-Host "==> Checking localization consistency"
+    & python "$root\tools\check-localization.py"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
 exit $LASTEXITCODE
