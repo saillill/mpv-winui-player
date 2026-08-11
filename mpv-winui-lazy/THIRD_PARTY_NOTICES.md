@@ -37,12 +37,12 @@ summarized below. Full license texts for fonts and MediaInfo ship in
 |---|---|---|
 | `FluentSystemIcons-Regular.ttf` | [microsoft/fluentui-system-icons](https://github.com/microsoft/fluentui-system-icons) | MIT (c) 2020 Microsoft Corporation |
 
-The top-bar/toolbar glyphs use ModernX's pin codepoints (U+E97E / U+E981)
-plus Fluent camera (U+F255), panel-right-contract (U+E8C3) and
-arrow-clockwise (U+F13E) glyphs from
-[zydezu/ModernX](https://github.com/zydezu/ModernX). ModernX publishes no
-LICENSE file, so the app bundles the official MIT-licensed Microsoft font
-that contains the same outlines instead of ModernX's repackaged copy.
+The top-bar/toolbar glyphs use Fluent pin (U+F602 / U+F604), PiP enter/exit
+(U+E97E / U+E981), camera (U+F255), panel-right-contract (U+E8C3),
+arrow-clockwise (U+F13E) and arrow-shuffle (U+EF37 / U+EF3D) glyphs, with the
+pin codepoints matching zydezu/ModernX's usage. ModernX publishes no LICENSE
+file, so the app bundles the official MIT-licensed Microsoft font that
+contains the same outlines instead of ModernX's repackaged copy.
 
 ## Shaders (`shaders/`)
 

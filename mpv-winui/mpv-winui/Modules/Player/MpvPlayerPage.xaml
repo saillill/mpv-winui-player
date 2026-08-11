@@ -299,7 +299,7 @@
                     x:Name="TopBarOntopIcon"
                     FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
                     FontSize="18"
-                    Glyph="&#xE97E;" />
+                    Glyph="&#xF602;" />
             </Button>
             <Button
                 x:Name="TopBarScreenshotButton"
@@ -350,7 +350,7 @@
                         x:Name="PlaylistOntopIcon"
                         FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
                         FontSize="18"
-                        Glyph="&#xE97E;" />
+                        Glyph="&#xF602;" />
                 </Button>
                 <Button
                     x:Name="PlaylistScreenshotButton"

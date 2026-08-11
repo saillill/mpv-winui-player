@@ -85,13 +85,12 @@ namespace mpv_winui.Modules.Player
             }
             if (TopBarOntopIcon is not null)
             {
-                // ModernX pin glyphs (Fluent System Icons): E97E = pin on
-                // (unpinned), E981 = pin off (pinned).
-                TopBarOntopIcon.Glyph = enable ? "\uE981" : "\uE97E";
+                // Fluent pin glyphs: F602 = pin (unpinned), F604 = pin off (pinned).
+                TopBarOntopIcon.Glyph = enable ? "\uF604" : "\uF602";
             }
             if (PlaylistOntopIcon is not null)
             {
-                PlaylistOntopIcon.Glyph = enable ? "\uE981" : "\uE97E";
+                PlaylistOntopIcon.Glyph = enable ? "\uF604" : "\uF602";
             }
         }
 

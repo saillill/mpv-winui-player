@@ -22,8 +22,9 @@
             BorderThickness="0"
             Click="PiPBackButton_Click">
             <FontIcon
-                FontSize="14"
-                Glyph="&#xE840;" />
+                FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                FontSize="16"
+                Glyph="&#xE981;" />
         </Button>
 
         <!-- Top-right: exit picture-in-picture and restore the main window. -->

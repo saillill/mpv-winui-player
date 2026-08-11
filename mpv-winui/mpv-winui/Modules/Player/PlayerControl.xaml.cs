@@ -132,8 +132,8 @@ namespace mpv_winui.Modules.Player
         private void UpdatePiPButton()
         {
             PiPButton.IsChecked = AppContext.AppSetting.WindowPiP;
-            // Two-state pin (ModernX style): E718 = unpinned, E840 = pinned.
-            PiPSymbol.Glyph = AppContext.AppSetting.WindowPiP ? "\uE840" : "\uE718";
+            // Fluent PiP glyphs: E97E = enter PiP, E981 = exit PiP.
+            PiPSymbol.Glyph = AppContext.AppSetting.WindowPiP ? "\uE981" : "\uE97E";
         }
 
         private void OnPiPCloseClick(object sender, RoutedEventArgs e)

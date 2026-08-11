@@ -126,21 +126,23 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   design before).
 - **Top bar buttons**: the top menu row keeps three icon buttons at the far
   right even when the playlist is collapsed, in order: always-on-top
-  (ModernX pin E97E unpinned / E981 pinned, sends `cycle ontop`; glyph driven
+  (Fluent pin F602 unpinned / F604 pinned, sends `cycle ontop`; glyph driven
   by the mpv `ontop` property), screenshot (Fluent camera F255, sends
   `screenshot`), playlist toggle (Fluent panel-right-contract E8C3, opens and
   closes the sidebar; this is the merged playlist/collapse button) and refresh
   (Fluent arrow-clockwise F13E). When the playlist panel is open the same
   buttons move into `PlaylistToolBar` next to refresh (ontop, screenshot,
   close, refresh); the `ShowPlaylist` / `HidePlaylist` states toggle
-  `TopBarButtons.Visibility` accordingly. All four glyphs come from the
-  bundled `FluentSystemIcons-Regular.ttf` (Microsoft, MIT) so their optical
-  size and baseline match - Segoe Fluent Icons maps E97E/E981 to different
-  glyphs and lacks F255. Keep these codepoints with the bundled font when
-  touching these buttons.
-- **PiP pin glyphs**: the control-bar PiP toggle and the PiP window's
-  top-left restore button use the two-state pin icon (E718 unpinned /
-  E840 pinned); the PiP window button always shows the pinned state.
+  `TopBarButtons.Visibility` accordingly. All glyphs come from the bundled
+  `FluentSystemIcons-Regular.ttf` (Microsoft, MIT) so their optical size and
+  baseline match. Keep these codepoints with the bundled font when touching
+  these buttons.
+- **PiP glyphs**: the control-bar PiP toggle and the PiP window's top-left
+  restore button use the Fluent PiP enter/exit glyphs (E97E enter PiP /
+  E981 exit PiP); the PiP window button always shows the exit glyph.
+- **Control-bar icon set**: the transport icons use Segoe glyphs except the
+  shuffle button, which uses Fluent `arrow_shuffle` (EF37 on / EF3D off) via
+  `ShuffleSymbol.Glyph` visual states.
 - **Track flyout style**: `TrackSelectionButton` keeps the `ED1F` glyph; its
   `FlyoutPresenter` uses `AcrylicInAppFillColorDefaultBrush` +
   `CardStrokeColorDefaultBrush` (Mica/Acrylic look) instead of the translucent
