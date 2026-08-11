@@ -111,8 +111,6 @@ MAP = {
     "AudioWaitOpen": ("audio", "sAudioOutput"),
     "AudioPitchCorrection": ("audio", "sAudioOutput"),
     "AudioNormalizeDownmix": ("audio", "sAudioOutput"),
-    "AudioGapless": ("audio", "sAudioOutput"),
-    "Volume": ("audio", "sAudioVolume"),
     "VolumeMax": ("audio", "sAudioVolume"),
     "AudioFileAuto": ("audio", "sAudioExternal"),
     "AudioExts": ("audio", "sAudioExternal"),
@@ -171,7 +169,6 @@ MAP = {
     "CacheEnabled": ("cache", "sCache"),
     "CacheSecs": ("cache", "sCache"),
     "CacheOnDisk": ("cache", "sCache"),
-    "CacheDirectory": ("cache", "sCache"),
     # Input
     "InputIme": ("input", "sInput"),
     "InputIpcServer": ("input", "sInput"),

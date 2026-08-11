@@ -21,6 +21,9 @@ public sealed partial class SettingsPage
     private List<Option> BuildProgramBehaviorOptions()
     {
         var program = AppContext.AppLang.SettingsCategoryProgram;
+        var input = AppContext.AppLang.SettingsCategoryInput;
+        var testing = AppContext.AppLang.SettingsCategoryTesting;
+        var window = AppContext.AppLang.SettingsCategoryWindow;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var lang = AppContext.AppLang;
 
@@ -166,7 +169,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestMpvCommandLog),
                 Label = lang.SettingsTestMpvCommandLog,
-                Category = program,
+                Category = testing,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestMpvCommandLog,
                 Type = OptionType.Boolean,
@@ -178,7 +181,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestOsdMessage),
                 Label = lang.SettingsTestOsdMessage,
-                Category = program,
+                Category = testing,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestOsdMessage,
                 // One-shot test: fire only when the toggle is turned on, so
@@ -198,7 +201,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestSignal),
                 Label = lang.SettingsTestSignal,
-                Category = program,
+                Category = testing,
                 Section = sProgramTesting,
                 Type = OptionType.StringList,
                 AllowCustom = false,
@@ -229,7 +232,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.EnableDebugLog),
                 Label = lang.DebugLog,
-                Category = program,
+                Category = testing,
                 Description = lang.SettingsHelpDebugLog,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableDebugLog,
@@ -298,7 +301,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.AlwaysOnTop),
                 Label = lang.SettingsAlwaysOnTop,
-                Category = program,
+                Category = window,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.AlwaysOnTop,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AlwaysOnTop), AppContext.AppSetting.AlwaysOnTop = (bool)v!)
@@ -308,7 +311,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.InputIme),
                 Label = lang.SettingsInputIme,
-                Category = program,
+                Category = input,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.InputIme,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InputIme), AppContext.AppSetting.InputIme = (bool)v!)

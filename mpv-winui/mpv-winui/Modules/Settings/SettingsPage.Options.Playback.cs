@@ -23,6 +23,10 @@ public sealed partial class SettingsPage
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var window = AppContext.AppLang.SettingsCategoryWindow;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
+        var audio = AppContext.AppLang.SettingsCategoryAudio;
+        var cache = AppContext.AppLang.SettingsCategoryCache;
+        var video = AppContext.AppLang.SettingsCategoryVideo;
+        var watchLater = AppContext.AppLang.SettingsCategoryWatchLater;
         var lang = AppContext.AppLang;
 
         return
@@ -32,7 +36,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.Hwdec),
                 Label = lang.SettingsHwdec,
-                Category = playback,
+                Category = video,
                 Description = lang.SettingsHelpHwdec,
                 Type = OptionType.StringList,
                 Choices =
@@ -51,7 +55,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.HwdecCodecs),
                 Label = lang.SettingsHwdecCodecs,
-                Category = playback,
+                Category = video,
                 Description = lang.SettingsHelpHwdecCodecs,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -63,7 +67,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.VolumeMax),
                 Label = lang.SettingsVolumeMax,
-                Category = playback,
+                Category = audio,
                 Description = lang.SettingsHelpVolumeMax,
                 Type = OptionType.Integer,
                 Min = 100,
@@ -77,7 +81,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.KeepOpen),
                 Label = lang.SettingsKeepOpen,
-                Category = playback,
+                Category = window,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -176,22 +180,9 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.Volume),
-                Label = lang.SettingsVolume,
-                Category = playback,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 130,
-                Step = 5,
-                Getter = () => (double)AppContext.AppSetting.Volume,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Volume), AppContext.AppSetting.Volume = Convert.ToInt32(v))
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.SavePositionOnQuit),
                 Label = lang.SettingsSavePositionOnQuit,
-                Category = playback,
+                Category = watchLater,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SavePositionOnQuit,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SavePositionOnQuit), AppContext.AppSetting.SavePositionOnQuit = (bool)v!)
@@ -214,7 +205,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.Interpolation),
                 Label = lang.SettingsInterpolation,
-                Category = playback,
+                Category = video,
                 Description = lang.SettingsHelpInterpolation,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Interpolation,
@@ -225,7 +216,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ResumePlayback),
                 Label = lang.SettingsResumePlayback,
-                Category = playback,
+                Category = watchLater,
                 Description = lang.SettingsHelpResumePlayback,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ResumePlayback,
@@ -236,7 +227,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.CacheSecs),
                 Label = lang.SettingsCacheSecs,
-                Category = playback,
+                Category = cache,
                 Description = lang.SettingsHelpCacheSecs,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -250,7 +241,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.CacheEnabled),
                 Label = lang.SettingsCacheEnabled,
-                Category = playback,
+                Category = cache,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -266,7 +257,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerReadahead),
                 Label = lang.SettingsDemuxerReadahead,
-                Category = playback,
+                Category = cache,
                 Description = lang.SettingsHelpDemuxerReadahead,
                 Type = OptionType.Double,
                 Min = 0,
@@ -280,7 +271,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.Ytdl),
                 Label = lang.SettingsYtdl,
-                Category = playback,
+                Category = network,
                 Description = lang.SettingsHelpYtdl,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Ytdl,
@@ -291,7 +282,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.YtdlRawOptionsAppend),
                 Label = lang.SettingsYtdlRawOptionsAppend,
-                Category = playback,
+                Category = network,
                 Description = lang.SettingsHelpYtdlRawOptionsAppend,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -637,7 +628,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.AudioExts),
                 Label = lang.SettingsAudioExts,
-                Category = playback,
+                Category = audio,
                 Type = OptionType.String,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.AudioExts,
@@ -648,7 +639,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.WatchLaterOptions),
                 Label = lang.SettingsWatchLaterOptions,
-                Category = playback,
+                Category = watchLater,
                 Description = lang.SettingsHelpWatchLaterOptions,
                 Type = OptionType.String,
                 AllowEmpty = true,

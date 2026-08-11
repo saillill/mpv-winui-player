@@ -78,6 +78,15 @@ namespace mpv_winui.Modules.Player
                 }
                 MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
 
+                // Playback speed is a persistent setting but is intentionally
+                // not part of ApplyAll (it would clobber the live session on a
+                // settings reset); apply it here once at startup so the saved
+                // value takes effect on launch.
+                if (AppContext.AppSetting.Speed is not 1.0)
+                {
+                    AppContext.SendMpvCommand($"no-osd set speed {AppContext.AppSetting.Speed}");
+                }
+
                 SetupKeyboardInput();
                 AppContext.SettingChanged += AppContext_SettingChanged;
                 AppContext.LanguageChanged += AppContext_LanguageChanged;
