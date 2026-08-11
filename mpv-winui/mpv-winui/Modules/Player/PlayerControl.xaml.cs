@@ -366,7 +366,7 @@ namespace mpv_winui.Modules.Player
         private void OverlayIdleTimer_Tick(object? sender, object e)
         {
             _overlayIdleTimer.Stop();
-            if (_overlayMode && _controlPanelIsVisible)
+            if (_overlayMode && (_controlPanelIsVisible || _panelAnimating))
             {
                 StartPanelAnimation(false);
                 OnPanelVisibleChanged?.Invoke(true);
@@ -376,7 +376,7 @@ namespace mpv_winui.Modules.Player
         private void HideDelayTimer_Tick(object? sender, object e)
         {
             _hideDelayTimer.Stop();
-            if (_overlayMode && _controlPanelIsVisible)
+            if (_overlayMode && (_controlPanelIsVisible || _panelAnimating))
             {
                 StartPanelAnimation(false);
                 OnPanelVisibleChanged?.Invoke(true);
@@ -1179,7 +1179,11 @@ namespace mpv_winui.Modules.Player
             if (_overlayMode)
             {
                 _hideDelayTimer.Stop();
-                if (!_controlPanelIsVisible)
+                // Re-show even while a hide animation is still running: the
+                // visible flag only flips when the animation completes, so
+                // checking it alone would swallow the re-show and make the bar
+                // pop out only after the hide finished (felt like flicker).
+                if (!_controlPanelIsVisible || (_panelAnimating && !_panelAnimationShow))
                 {
                     StartPanelAnimation(true);
                     OnPanelVisibleChanged?.Invoke(false);

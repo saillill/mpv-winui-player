@@ -1,10 +1,7 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Composition;
-using Microsoft.UI.Xaml.Hosting;
 using System;
-using System.Numerics;
 using Windows.Graphics;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -28,9 +25,12 @@ public sealed partial class PiPWindow : Window
     private MpvMediaPlayer? _player;
     private bool _closing;
     private bool _topButtonsShow;
-    private Compositor? _topButtonsCompositor;
-    private Visual? _topButtonsVisual;
-    private Visual? _topButtonsVisual2;
+    private bool _topButtonsAnimating;
+    private bool _topButtonsAnimationShow;
+    private long _topButtonsAnimationStart;
+    private readonly DispatcherTimer _topButtonsTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
+    private const double TopMaskHeight = 90;
+    private const double BottomMaskHeight = 120;
 
     public PiPWindow()
     {
@@ -55,14 +55,12 @@ public sealed partial class PiPWindow : Window
         _player = player;
         PiPControls.MediaPlayer = player;
         PiPControls.IsPiPHost = true;
-        PiPControls.OnPanelVisibleChanged += PiPControls_OnPanelVisibleChanged;
     }
 
     public void Detach()
     {
         if (_player is not null)
         {
-            PiPControls.OnPanelVisibleChanged -= PiPControls_OnPanelVisibleChanged;
             PiPControls.MediaPlayer = null;
             _player = null;
         }
@@ -209,8 +207,14 @@ public sealed partial class PiPWindow : Window
     private void RootGrid_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         var position = e.GetCurrentPoint(RootGrid).Position;
-        var inMask = position.Y >= RootGrid.ActualHeight - 120;
-        if (inMask)
+        var height = RootGrid.ActualHeight;
+        var inTopMask = position.Y <= TopMaskHeight;
+        var inBottomMask = position.Y >= height - BottomMaskHeight;
+
+        // The top buttons only react to the top mask, the status bar only to
+        // the bottom mask; everywhere else both retract.
+        SetTopButtonsVisible(inTopMask);
+        if (inBottomMask)
         {
             PiPControls.ShowControlPanel();
         }
@@ -248,76 +252,72 @@ public sealed partial class PiPWindow : Window
         RestoreMainWindow();
     }
 
-    /// <summary>Fades the top-left back and top-right close buttons with the control bar.</summary>
-    private void PiPControls_OnPanelVisibleChanged(bool hide)
+    private void SetTopButtonsVisible(bool show)
     {
-        DispatcherQueue.TryEnqueue(() => StartTopButtonsAnimation(!hide));
+        if (_topButtonsShow == show)
+        {
+            return;
+        }
+        _topButtonsShow = show;
+        StartTopButtonsAnimation(show);
     }
 
     private void StartTopButtonsAnimation(bool show)
     {
-        _topButtonsShow = show;
-        EnsureTopButtonsVisuals();
-        if (_topButtonsCompositor is null || _topButtonsVisual is null || _topButtonsVisual2 is null)
+        if (_topButtonsAnimating && _topButtonsAnimationShow == show)
         {
-            PiPBackButton.Opacity = show ? 1 : 0;
-            PiPExitButton.Opacity = show ? 1 : 0;
             return;
         }
 
-        _topButtonsVisual.StopAnimation("Opacity");
-        _topButtonsVisual2.StopAnimation("Opacity");
-
-        var ease = _topButtonsCompositor.CreateCubicBezierEasingFunction(
-            new Vector2(0.215f, 0.61f),
-            new Vector2(0.355f, 1f));
-        var duration = TimeSpan.FromMilliseconds(180);
-
-        var backAnim = _topButtonsCompositor.CreateScalarKeyFrameAnimation();
-        backAnim.Duration = duration;
-        backAnim.InsertKeyFrame(0f, show ? 0f : 1f);
-        backAnim.InsertKeyFrame(1f, show ? 1f : 0f, ease);
-
-        var exitAnim = _topButtonsCompositor.CreateScalarKeyFrameAnimation();
-        exitAnim.Duration = duration;
-        exitAnim.InsertKeyFrame(0f, show ? 0f : 1f);
-        exitAnim.InsertKeyFrame(1f, show ? 1f : 0f, ease);
-
-        var batch = _topButtonsCompositor.CreateScopedBatch(CompositionBatchTypes.Animation);
-        _topButtonsVisual.StartAnimation("Opacity", backAnim);
-        _topButtonsVisual2.StartAnimation("Opacity", exitAnim);
-        batch.Completed += (_, _) =>
+        _topButtonsAnimating = true;
+        _topButtonsAnimationShow = show;
+        _topButtonsAnimationStart = Environment.TickCount64;
+        if (show)
         {
-            _topButtonsVisual.StopAnimation("Opacity");
-            _topButtonsVisual2.StopAnimation("Opacity");
-            _topButtonsVisual.Opacity = 1f;
-            _topButtonsVisual2.Opacity = 1f;
-        };
-        batch.End();
+            PiPBackButton.Visibility = Visibility.Visible;
+            PiPExitButton.Visibility = Visibility.Visible;
+        }
+        _topButtonsTimer.Tick -= TopButtonsAnimationTick;
+        _topButtonsTimer.Tick += TopButtonsAnimationTick;
+        _topButtonsTimer.Start();
     }
 
-    private void EnsureTopButtonsVisuals()
+    private void TopButtonsAnimationTick(object? sender, object e)
     {
-        if (_topButtonsVisual is null)
+        const double durationMs = 180;
+        var elapsed = Environment.TickCount64 - _topButtonsAnimationStart;
+        var t = Math.Clamp(elapsed / durationMs, 0, 1);
+        var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
+
+        var opacity = _topButtonsAnimationShow ? eased : 1 - eased;
+        PiPBackButton.Opacity = opacity;
+        PiPExitButton.Opacity = opacity;
+
+        if (t >= 1)
         {
-            _topButtonsVisual = ElementCompositionPreview.GetElementVisual(PiPBackButton);
-            _topButtonsVisual2 = ElementCompositionPreview.GetElementVisual(PiPExitButton);
-            _topButtonsCompositor = _topButtonsVisual.Compositor;
+            _topButtonsTimer.Stop();
+            _topButtonsAnimating = false;
+            PiPBackButton.Opacity = _topButtonsAnimationShow ? 1 : 0;
+            PiPExitButton.Opacity = _topButtonsAnimationShow ? 1 : 0;
+            if (!_topButtonsAnimationShow)
+            {
+                // Fully hidden buttons must not stay hit-testable: an
+                // invisible button still shows its tooltip on hover.
+                PiPBackButton.Visibility = Visibility.Collapsed;
+                PiPExitButton.Visibility = Visibility.Collapsed;
+            }
         }
     }
 
     private void StopTopButtonsAnimation()
     {
-        _topButtonsVisual?.StopAnimation("Opacity");
-        _topButtonsVisual2?.StopAnimation("Opacity");
-        if (_topButtonsVisual is not null)
-        {
-            _topButtonsVisual.Opacity = 1f;
-        }
-        if (_topButtonsVisual2 is not null)
-        {
-            _topButtonsVisual2.Opacity = 1f;
-        }
+        _topButtonsTimer.Stop();
+        _topButtonsTimer.Tick -= TopButtonsAnimationTick;
+        _topButtonsAnimating = false;
+        PiPBackButton.Visibility = Visibility.Visible;
+        PiPExitButton.Visibility = Visibility.Visible;
+        PiPBackButton.Opacity = 1;
+        PiPExitButton.Opacity = 1;
     }
 
     /// <summary>Leaves PiP by restoring the hidden main window; PiP never quits the app directly.</summary>

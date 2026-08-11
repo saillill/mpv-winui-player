@@ -41,6 +41,14 @@ public sealed partial class MpvPlayerPage
         _mediaPlayer.UpdateSize((uint)width, (uint)height);
         _pipWindow.ShowPiP(width, height);
         UpdatePiPPanelScale();
+        // Re-assert the swap chain size against the laid-out panel: before
+        // ShowPiP the panel has no real size, so the first UpdateSize above
+        // may leave the video rendered at the previous surface size.
+        var panelScaleX = _pipWindow.VideoPanel.CompositionScaleX;
+        var panelScaleY = _pipWindow.VideoPanel.CompositionScaleY;
+        _mediaPlayer.UpdateSize(
+            (uint)Math.Ceiling(_pipWindow.VideoPanel.ActualWidth * panelScaleX),
+            (uint)Math.Ceiling(_pipWindow.VideoPanel.ActualHeight * panelScaleY));
 
         if (App.Window is MainWindow mainWindow)
         {
