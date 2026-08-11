@@ -40,7 +40,8 @@
   es-ES, ru-RU) covering the app UI, the menu bar, and the 153-item mpv
   right-click menu (translated through `user-data/mpvw/language`).
 - **Picture-in-picture**: a dedicated borderless always-on-top window with DWM
-  rounded corners, fixed size, drag-anywhere moving, and the fullscreen compact
+  rounded corners, native edge resize (OS size cursors + border drag via the
+  kept `WS_THICKFRAME`), drag-anywhere moving, and the fullscreen compact
   control bar (time, transport, volume, progress). The official
   `CompactOverlayPresenter` was prototyped but rejected: it draws a system
   title bar that swallows the overlay buttons and blocks drag-anywhere moving
@@ -49,8 +50,11 @@
   drag-move replacement, but the OS ignores drag regions on a fully frameless
   window. Drag-anywhere tracks the cursor with `GetCursorPos` and moves with
   the official `AppWindow.Move`; the earlier WM_NCLBUTTONDOWN/HTCAPTION modal
-  loop made the window stick to the cursor after release. Resize keeps
-  `AppWindow.Resize` + pointer input on the bottom-right grip.
+  loop made the window stick to the cursor after release. Resize is native:
+  `OverlappedPresenter.IsResizable=true` plus `WS_THICKFRAME` kept in
+  `MakeFrameless`, so the OS handles edge hit-testing, size cursors and the
+  border drag; the swap chain follows via `AppWindow.Changed` with the 300ms
+  debounced size re-assert.
 - **Video preview**: thumbfast renders thumbnails through a bundled standalone
   `mpv.exe`; the app draws them as a rounded WinUI card above the progress bar.
 - **Mouse input**: wheel over the video controls volume/seek and the mouse

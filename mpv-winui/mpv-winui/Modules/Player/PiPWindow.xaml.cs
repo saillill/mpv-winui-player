@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
-using mpv_winrt;
 using System;
 using System.Numerics;
 using Windows.Foundation;
@@ -19,11 +18,13 @@ using WinRT.Interop;
 namespace mpv_winui.Modules.Player;
 
 /// <summary>
-/// Dedicated picture-in-picture window: a fixed-size borderless always-on-top
-/// window with rounded corners and the video swap chain. It reuses the
-/// fullscreen PlayerControl in centered compact mode. The main window is
-/// hidden while PiP is active; PiP can only be left by restoring the main
-/// window (top-left back, top-right close, or Alt+F4).
+/// Dedicated picture-in-picture window: a borderless always-on-top window
+/// with rounded corners, native edge resize (WS_THICKFRAME kept so the OS
+/// draws the resize borders and size cursors), drag-anywhere moving, and the
+/// video swap chain. It reuses the fullscreen PlayerControl in centered
+/// compact mode. The main window is hidden while PiP is active; PiP can only
+/// be left by restoring the main window (top-left back, top-right close, or
+/// Alt+F4).
 /// 
 /// The official Windows App SDK CompactOverlayPresenter was prototyped as a
 /// replacement for the Win32 frame hacks, but rejected: it adds a system
@@ -53,9 +54,6 @@ public sealed partial class PiPWindow : Window
     private const double TopMaskHeight = 90;
     private const double BottomMaskHeight = 120;
     private double _videoAspect = 16.0 / 9.0;
-    private bool _resizing;
-    private Point _resizeStartPointer;
-    private SizeInt32 _resizeStartSize;
     private bool _draggingWindow;
     private PointInt32 _dragStartCursor;
     private PointInt32 _dragStartPosition;
@@ -72,6 +70,7 @@ public sealed partial class PiPWindow : Window
         RootGrid.PointerExited += RootGrid_PointerExited;
 
         AppWindow.Closing += AppWindow_Closing;
+        AppWindow.Changed += PiPAppWindow_Changed;
         Closed += PiPWindow_Closed;
     }
 
@@ -87,11 +86,9 @@ public sealed partial class PiPWindow : Window
         if (_player is not null)
         {
             _player.MediaOpened -= PiPPlayer_MediaLoaded;
-            _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
         }
         _player = player;
         _player.MediaOpened += PiPPlayer_MediaLoaded;
-        _player.MediaInfoChanged += PiPPlayer_MediaInfoChanged;
         PiPControls.MediaPlayer = player;
         PiPControls.IsPiPHost = true;
     }
@@ -101,7 +98,6 @@ public sealed partial class PiPWindow : Window
         if (_player is not null)
         {
             _player.MediaOpened -= PiPPlayer_MediaLoaded;
-            _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
             PiPControls.MediaPlayer = null;
             _player = null;
         }
@@ -118,7 +114,6 @@ public sealed partial class PiPWindow : Window
             PiPControls.ApplyControlBarStyle();
         }
         AppWindow.Show();
-        RefreshVideoAspect();
         ApplyPiPSize(width, height);
         ScheduleVideoSizeUpdate();
     }
@@ -163,9 +158,11 @@ public sealed partial class PiPWindow : Window
             presenter.IsAlwaysOnTop = true;
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
-            // Fixed size: a resizable borderless window leaves a transparent
-            // top frame through which the desktop shows as a white strip.
-            presenter.IsResizable = false;
+            // Native border resize: the OS provides the resize borders and
+            // size cursors on the window edges. The border is painted black
+            // (DWM) so the borderless look is kept while WS_THICKFRAME (kept
+            // in MakeFrameless) makes the edges resizable.
+            presenter.IsResizable = true;
             presenter.SetBorderAndTitleBar(false, false);
         }
 
@@ -174,6 +171,17 @@ public sealed partial class PiPWindow : Window
 
         ApplyRoundedCorners();
         MakeFrameless();
+    }
+
+    private void PiPAppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
+    {
+        if (args.DidSizeChange)
+        {
+            // Native edge resize changes the window continuously; re-assert
+            // the swap chain size once layout settles (the timer is restarted
+            // on every change and fires 300ms after the drag ends).
+            ScheduleVideoSizeUpdate();
+        }
     }
 
     private void PositionAtBottomRight(int width, int height)
@@ -233,10 +241,12 @@ public sealed partial class PiPWindow : Window
             var hwnd = new HWND(WindowNative.GetWindowHandle(this));
             const int WS_BORDER = 0x00800000;
             const int WS_DLGFRAME = 0x00400000;
-            const int WS_THICKFRAME = 0x00040000;
 
             var style = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE);
-            style &= ~(WS_BORDER | WS_DLGFRAME | WS_THICKFRAME);
+            // Keep WS_THICKFRAME so the OS still hit-tests the window edges
+            // for native resize (size cursors + border drag); only drop the
+            // visible frame styles.
+            style &= ~(WS_BORDER | WS_DLGFRAME);
             _ = PInvoke.SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE, style);
             _ = PInvoke.SetWindowPos(
                 hwnd,
@@ -261,7 +271,6 @@ public sealed partial class PiPWindow : Window
         ToolTipService.SetToolTip(PiPExitButton, AppContext.AppLang.PiPExit);
         AutomationProperties.SetName(PiPBackButton, AppContext.AppLang.PiPBackToPlayer);
         AutomationProperties.SetName(PiPExitButton, AppContext.AppLang.PiPExit);
-        AutomationProperties.SetName(PiPResizeGrip, "Resize");
     }
 
     private void PiPWindow_LanguageChanged()
@@ -283,15 +292,16 @@ public sealed partial class PiPWindow : Window
             return;
         }
 
+        if (!PInvoke.GetCursorPos(out var cursor))
+        {
+            return;
+        }
+
         // Official drag-move: track the pointer and move with AppWindow.Move.
         // The previous WM_NCLBUTTONDOWN/HTCAPTION caption message was
         // unreliable under WinUI 3: when the modal move loop started outside
         // the physical button press it kept tracking the cursor after
         // release, making the window stick to the mouse.
-        if (!PInvoke.GetCursorPos(out var cursor))
-        {
-            return;
-        }
         _draggingWindow = true;
         _dragStartCursor = new PointInt32(cursor.X, cursor.Y);
         _dragStartPosition = AppWindow.Position;
@@ -301,6 +311,11 @@ public sealed partial class PiPWindow : Window
 
     private void PiPView_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
+        if (!PInvoke.GetCursorPos(out var cursor))
+        {
+            return;
+        }
+
         if (!_draggingWindow)
         {
             return;
@@ -309,10 +324,6 @@ public sealed partial class PiPWindow : Window
         // Track the cursor in physical screen pixels. XAML pointer
         // coordinates are window-relative, so using them here would feed the
         // window's own movement back into the delta and make the drag jump.
-        if (!PInvoke.GetCursorPos(out var cursor))
-        {
-            return;
-        }
         var deltaX = cursor.X - _dragStartCursor.X;
         var deltaY = cursor.Y - _dragStartCursor.Y;
         AppWindow.Move(new PointInt32(
@@ -336,6 +347,7 @@ public sealed partial class PiPWindow : Window
     {
         _draggingWindow = false;
     }
+
 
     private void RootGrid_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
@@ -386,41 +398,11 @@ public sealed partial class PiPWindow : Window
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            RefreshVideoAspect();
-            ApplyPiPSize(AppWindow.Size.Width, AppWindow.Size.Height);
+            // Keep the user's current (possibly natively resized) window
+            // size; just re-assert the swap chain after the new video is
+            // configured.
             ScheduleVideoSizeUpdate();
         });
-    }
-
-    private void PiPPlayer_MediaInfoChanged(MpvMediaPlayer player, MediaInfoChangedEventArgs args)
-    {
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            // dwidth/dheight are only current once the video is reconfigured;
-            // FILE_LOADED (MediaOpened) can run with the previous file's
-            // values. Re-fit only when the aspect actually changed to avoid
-            // needless resizes on title/metadata updates.
-            if (args.VideoWidth <= 0 || args.VideoHeight <= 0)
-            {
-                return;
-            }
-            var aspect = args.VideoWidth / args.VideoHeight;
-            if (Math.Abs(aspect - _videoAspect) > 0.001)
-            {
-                _videoAspect = aspect;
-                ApplyPiPSize(AppWindow.Size.Width, AppWindow.Size.Height);
-                ScheduleVideoSizeUpdate();
-            }
-        });
-    }
-
-    private void RefreshVideoAspect()
-    {
-        var width = _player?.VideoWidth ?? 0;
-        var height = _player?.VideoHeight ?? 0;
-        _videoAspect = width > 0 && height > 0
-            ? width / height
-            : 16.0 / 9.0;
     }
 
     /// <summary>
@@ -462,62 +444,6 @@ public sealed partial class PiPWindow : Window
             // Resizing is optional; ignore failures on exotic displays.
             return AppWindow.Size;
         }
-    }
-
-    private void PiPResizeGrip_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        var point = e.GetCurrentPoint(RootGrid);
-        if (!point.Properties.IsLeftButtonPressed)
-        {
-            return;
-        }
-        _resizing = true;
-        _resizeStartPointer = point.Position;
-        _resizeStartSize = AppWindow.Size;
-        PiPResizeGrip.CapturePointer(e.Pointer);
-        e.Handled = true;
-    }
-
-    private void PiPResizeGrip_PointerMoved(object sender, PointerRoutedEventArgs e)
-    {
-        if (!_resizing)
-        {
-            return;
-        }
-
-        var position = e.GetCurrentPoint(RootGrid).Position;
-        // AppWindow.Size is physical pixels while PointerPoint.Position is in
-        // DIPs; without the raster scale the drag lags the cursor at
-        // fractional DPI.
-        var scale = RootGrid.XamlRoot?.RasterizationScale ?? 1.0;
-        var deltaX = (position.X - _resizeStartPointer.X) * scale;
-        var deltaY = (position.Y - _resizeStartPointer.Y) * scale;
-        var size = ApplyPiPSize(
-            _resizeStartSize.Width + deltaX,
-            _resizeStartSize.Height + deltaY);
-        if (_player is not null && size.Width > 0 && size.Height > 0)
-        {
-            // Use the computed physical target directly: reading
-            // PiPView.ActualWidth right after AppWindow.Resize can return the
-            // pre-layout size, and no SizeChanged subscription is safe here.
-            _player.UpdateSize((uint)size.Width, (uint)size.Height);
-        }
-        e.Handled = true;
-    }
-
-    private void PiPResizeGrip_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        _resizing = false;
-        PiPResizeGrip.ReleasePointerCapture(e.Pointer);
-        // Safety net: the final layout pass may still differ from the target
-        // size used during the drag, so re-assert once after it settles.
-        ScheduleVideoSizeUpdate();
-        e.Handled = true;
-    }
-
-    private void PiPResizeGrip_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
-    {
-        _resizing = false;
     }
 
     private void PiPBackButton_Click(object sender, RoutedEventArgs e)
@@ -678,6 +604,7 @@ public sealed partial class PiPWindow : Window
         _closing = true;
 
         AppContext.LanguageChanged -= PiPWindow_LanguageChanged;
+        AppWindow.Changed -= PiPAppWindow_Changed;
         StopTopButtonsAnimation();
         Detach();
         Closed -= PiPWindow_Closed;
