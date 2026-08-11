@@ -5,7 +5,10 @@ using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
+using mpv_winrt;
 using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Numerics;
 using Windows.Foundation;
 using Windows.Graphics;
@@ -19,12 +22,15 @@ namespace mpv_winui.Modules.Player;
 
 /// <summary>
 /// Dedicated picture-in-picture window: a borderless always-on-top window
-/// with rounded corners, native edge resize (WS_THICKFRAME kept so the OS
-/// draws the resize borders and size cursors), drag-anywhere moving, and the
-/// video swap chain. It reuses the fullscreen PlayerControl in centered
-/// compact mode. The main window is hidden while PiP is active; PiP can only
-/// be left by restoring the main window (top-left back, top-right close, or
-/// Alt+F4).
+/// with rounded corners, native edge resize that is aspect-locked through
+/// WM_SIZING (WS_THICKFRAME kept so the OS draws the resize borders and size
+/// cursors), drag-anywhere moving, and the video swap chain. It reuses the
+/// fullscreen PlayerControl in centered compact mode. Entering PiP always
+/// claims the bottom-right corner of the main window's display and the
+/// default size is a proportion of that display's work area. The main window
+/// is hidden while PiP is active; the top-left button restores it, the
+/// top-right button quits the whole player, and Alt+F4 restores the main
+/// window.
 /// 
 /// The official Windows App SDK CompactOverlayPresenter was prototyped as a
 /// replacement for the Win32 frame hacks, but rejected: it adds a system
@@ -54,12 +60,18 @@ public sealed partial class PiPWindow : Window
     private const double TopMaskHeight = 90;
     private const double BottomMaskHeight = 120;
     private double _videoAspect = 16.0 / 9.0;
+    private double _resizeMinW = 320;
+    private double _resizeMinH = 180;
+    private double _resizeMaxW = 960;
+    private double _resizeMaxH = 540;
     private bool _draggingWindow;
     private PointInt32 _dragStartCursor;
     private PointInt32 _dragStartPosition;
+    private static WeakReference<PiPWindow>? _selfWeakReference;
 
     public PiPWindow()
     {
+        _selfWeakReference = new(this);
         InitializeComponent();
         RootGrid.RequestedTheme = ElementTheme.Dark;
         ConfigureWindow();
@@ -86,9 +98,11 @@ public sealed partial class PiPWindow : Window
         if (_player is not null)
         {
             _player.MediaOpened -= PiPPlayer_MediaLoaded;
+            _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
         }
         _player = player;
         _player.MediaOpened += PiPPlayer_MediaLoaded;
+        _player.MediaInfoChanged += PiPPlayer_MediaInfoChanged;
         PiPControls.MediaPlayer = player;
         PiPControls.IsPiPHost = true;
     }
@@ -98,21 +112,18 @@ public sealed partial class PiPWindow : Window
         if (_player is not null)
         {
             _player.MediaOpened -= PiPPlayer_MediaLoaded;
+            _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
             PiPControls.MediaPlayer = null;
             _player = null;
         }
     }
 
-    public void ShowPiP(int width, int height, bool reposition = true)
+    public void ShowPiP(int width, int height)
     {
-        if (reposition)
-        {
-            // Only first entry / a freshly created window should claim the
-            // bottom-right corner. Re-applying the PiP size setting must not
-            // undo the position the user dragged the window to.
-            PositionAtBottomRight(width, height);
-            PiPControls.ApplyControlBarStyle();
-        }
+        // Always claim the bottom-right corner of the main window's display
+        // on entry; the user can drag the window afterwards.
+        PositionAtBottomRight(width, height);
+        PiPControls.ApplyControlBarStyle();
         AppWindow.Show();
         ApplyPiPSize(width, height);
         ScheduleVideoSizeUpdate();
@@ -171,6 +182,31 @@ public sealed partial class PiPWindow : Window
 
         ApplyRoundedCorners();
         MakeFrameless();
+
+        // Native resize with aspect lock: WM_SIZING adjusts the proposed drag
+        // rectangle so the window always keeps the video aspect while the OS
+        // still provides the resize borders and size cursors.
+        unsafe
+        {
+            var hwnd = new HWND(WindowNative.GetWindowHandle(this));
+            PInvoke.SetWindowSubclass(hwnd, &PiPSubclassProc, 52121, 0);
+        }
+    }
+
+    private DisplayArea GetPiPDisplayArea()
+    {
+        try
+        {
+            if (App.Window is MainWindow mainWindow)
+            {
+                return DisplayArea.GetFromWindowId(mainWindow.AppWindow.Id, DisplayAreaFallback.Nearest);
+            }
+        }
+        catch (Exception)
+        {
+            // Fall through to the PiP window's own display.
+        }
+        return DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest);
     }
 
     private void PiPAppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
@@ -184,11 +220,130 @@ public sealed partial class PiPWindow : Window
         }
     }
 
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
+    private static LRESULT PiPSubclassProc(
+        HWND hWnd,
+        uint uMsg,
+        WPARAM wParam,
+        LPARAM lParam,
+        nuint uIdSubclass,
+        nuint dwRefData)
+    {
+        const int WM_SIZING = 0x0214;
+        if (uMsg == WM_SIZING
+            && _selfWeakReference?.TryGetTarget(out var self) == true)
+        {
+            var rect = Marshal.PtrToStructure<RECT>((nint)lParam.Value);
+            if (self is not null && self.AdjustSizingRect((int)wParam.Value, ref rect))
+            {
+                Marshal.StructureToPtr(rect, (nint)lParam.Value, false);
+                return (LRESULT)1;
+            }
+        }
+        return PInvoke.DefSubclassProc(hWnd, uMsg, wParam, lParam);
+    }
+
+    /// <summary>
+    /// Aspect-locks the native border resize: adjusts the WM_SIZING drag
+    /// rectangle so the window always keeps <see cref="_videoAspect"/> while
+    /// the OS still runs the resize loop with the standard size cursors.
+    /// </summary>
+    private bool AdjustSizingRect(int edge, ref RECT rect)
+    {
+        const int WMSZ_LEFT = 1;
+        const int WMSZ_RIGHT = 2;
+        const int WMSZ_TOP = 3;
+        const int WMSZ_BOTTOM = 6;
+
+        var aspect = _videoAspect > 0 ? _videoAspect : 16.0 / 9.0;
+        var width = rect.right - rect.left;
+        var height = rect.bottom - rect.top;
+
+        double w;
+        double h;
+        if (edge is WMSZ_TOP or WMSZ_BOTTOM)
+        {
+            // Height-driven edges (top/bottom): height is the drag axis.
+            h = Math.Clamp(height, _resizeMinH, _resizeMaxH);
+            w = h * aspect;
+            if (w > _resizeMaxW)
+            {
+                w = _resizeMaxW;
+                h = w / aspect;
+            }
+            if (w < _resizeMinW)
+            {
+                w = _resizeMinW;
+                h = w / aspect;
+            }
+        }
+        else
+        {
+            // Width-driven edges and all corners: width is the drag axis.
+            w = Math.Clamp(width, _resizeMinW, _resizeMaxW);
+            h = w / aspect;
+            if (h > _resizeMaxH)
+            {
+                h = _resizeMaxH;
+                w = h * aspect;
+            }
+            if (h < _resizeMinH)
+            {
+                h = _resizeMinH;
+                w = h * aspect;
+            }
+        }
+
+        var newW = (int)Math.Round(w);
+        var newH = (int)Math.Round(h);
+        if (newW == width && newH == height)
+        {
+            return false;
+        }
+
+        switch (edge)
+        {
+            case WMSZ_LEFT:
+                rect.left = rect.right - newW;
+                rect.bottom = rect.top + newH;
+                break;
+            case WMSZ_RIGHT:
+                rect.right = rect.left + newW;
+                rect.bottom = rect.top + newH;
+                break;
+            case WMSZ_TOP:
+                rect.top = rect.bottom - newH;
+                rect.right = rect.left + newW;
+                break;
+            case WMSZ_BOTTOM:
+                rect.bottom = rect.top + newH;
+                rect.right = rect.left + newW;
+                break;
+            case 4: // WMSZ_TOPLEFT
+                rect.left = rect.right - newW;
+                rect.top = rect.bottom - newH;
+                break;
+            case 5: // WMSZ_TOPRIGHT
+                rect.right = rect.left + newW;
+                rect.top = rect.bottom - newH;
+                break;
+            case 7: // WMSZ_BOTTOMLEFT
+                rect.left = rect.right - newW;
+                rect.bottom = rect.top + newH;
+                break;
+            case 8: // WMSZ_BOTTOMRIGHT
+                rect.right = rect.left + newW;
+                rect.bottom = rect.top + newH;
+                break;
+        }
+        return true;
+    }
+
     private void PositionAtBottomRight(int width, int height)
     {
         try
         {
-            var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary);
+            var area = GetPiPDisplayArea();
             var work = area.WorkArea;
             var x = work.X + work.Width - width - 16;
             var y = work.Y + work.Height - height - 16;
@@ -405,6 +560,16 @@ public sealed partial class PiPWindow : Window
         });
     }
 
+    private void PiPPlayer_MediaInfoChanged(MpvMediaPlayer player, MediaInfoChangedEventArgs args)
+    {
+        // Keep the aspect lock in sync with the current video (dwidth/dheight
+        // are reported by mpv on VIDEO_RECONFIG).
+        if (args.VideoWidth > 0 && args.VideoHeight > 0)
+        {
+            _videoAspect = args.VideoWidth / args.VideoHeight;
+        }
+    }
+
     /// <summary>
     /// Resizes the PiP window to the video aspect ratio, clamped between one
     /// twelfth and one half of the display work area.
@@ -413,11 +578,15 @@ public sealed partial class PiPWindow : Window
     {
         try
         {
-            var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+            var area = GetPiPDisplayArea().WorkArea;
             var minW = Math.Max(120, area.Width / 12.0);
             var minH = Math.Max(68, area.Height / 12.0);
             var maxW = area.Width / 2.0;
             var maxH = area.Height / 2.0;
+            _resizeMinW = minW;
+            _resizeMinH = minH;
+            _resizeMaxW = maxW;
+            _resizeMaxH = maxH;
             var aspect = _videoAspect > 0 ? _videoAspect : 16.0 / 9.0;
 
             var w = Math.Clamp(width, minW, maxW);
@@ -453,9 +622,10 @@ public sealed partial class PiPWindow : Window
 
     private void PiPExitButton_Click(object sender, RoutedEventArgs e)
     {
-        // The top-right close leaves PiP and restores the main window,
-        // matching the back button and Alt+F4 behavior.
-        RestoreMainWindow();
+        // The top-right close exits the whole player (mpv + app). Persist the
+        // PiP state first so the next start opens the main window normally.
+        AppContext.AppSetting.WindowPiP = false;
+        Application.Current.Exit();
     }
 
     private void SetTopButtonsVisible(bool show)
@@ -605,6 +775,12 @@ public sealed partial class PiPWindow : Window
 
         AppContext.LanguageChanged -= PiPWindow_LanguageChanged;
         AppWindow.Changed -= PiPAppWindow_Changed;
+        unsafe
+        {
+            var hwnd = new HWND(WindowNative.GetWindowHandle(this));
+            PInvoke.RemoveWindowSubclass(hwnd, &PiPSubclassProc, 52121);
+        }
+        _selfWeakReference = null;
         StopTopButtonsAnimation();
         Detach();
         Closed -= PiPWindow_Closed;

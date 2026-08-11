@@ -40,9 +40,14 @@
   es-ES, ru-RU) covering the app UI, the menu bar, and the 153-item mpv
   right-click menu (translated through `user-data/mpvw/language`).
 - **Picture-in-picture**: a dedicated borderless always-on-top window with DWM
-  rounded corners, native edge resize (OS size cursors + border drag via the
-  kept `WS_THICKFRAME`), drag-anywhere moving, and the fullscreen compact
-  control bar (time, transport, volume, progress). The official
+  rounded corners, native edge resize that is aspect-locked through a
+  `WM_SIZING` window subclass (OS size cursors + border drag via the kept
+  `WS_THICKFRAME`), drag-anywhere moving, and the fullscreen compact control
+  bar (time, transport, volume, progress). Entering PiP always opens at the
+  bottom-right of the main window's display with a display-relative default
+  size (the size presets map to ~15% / 25% / 35% of the work-area width).
+  The top-left button restores the main window; the top-right button quits
+  the whole player. The official
   `CompactOverlayPresenter` was prototyped but rejected: it draws a system
   title bar that swallows the overlay buttons and blocks drag-anywhere moving
   (see [WindowsAppSDK#1593](https://github.com/microsoft/WindowsAppSDK/issues/1593)).
@@ -53,8 +58,9 @@
   loop made the window stick to the cursor after release. Resize is native:
   `OverlappedPresenter.IsResizable=true` plus `WS_THICKFRAME` kept in
   `MakeFrameless`, so the OS handles edge hit-testing, size cursors and the
-  border drag; the swap chain follows via `AppWindow.Changed` with the 300ms
-  debounced size re-assert.
+  border drag, while a `WM_SIZING` subclass keeps the video aspect locked;
+  the swap chain follows via `AppWindow.Changed` with the 300ms debounced
+  size re-assert.
 - **Video preview**: thumbfast renders thumbnails through a bundled standalone
   `mpv.exe`; the app draws them as a rounded WinUI card above the progress bar.
 - **Mouse input**: wheel over the video controls volume/seek and the mouse
