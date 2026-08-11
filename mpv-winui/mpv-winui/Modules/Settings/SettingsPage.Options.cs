@@ -658,8 +658,13 @@ private List<Option> BuildSettings()
         // sectionMap is the single source for sections (they are not declared
         // inline). A missing mapping must fail loudly: a silently dropped
         // option disappears from the settings tree without any trace.
+        // Shortcut:N keys are generated at runtime from input.conf and carry
+        // their own inline Category/Section, so the static sectionMap cannot
+        // (and must not) cover them.
         var missingCategory = options.Where(o => string.IsNullOrEmpty(o.Category)).Select(o => o.Key).ToList();
-        var missingSections = options.Where(o => !sectionMap.ContainsKey(o.Key)).Select(o => o.Key).ToList();
+        var missingSections = options
+            .Where(o => !o.Key.StartsWith("Shortcut:", StringComparison.Ordinal) && !sectionMap.ContainsKey(o.Key))
+            .Select(o => o.Key).ToList();
         if (missingCategory.Count > 0 || missingSections.Count > 0)
         {
             throw new InvalidOperationException(
