@@ -780,11 +780,5 @@
   "OptionValueControlBarModernX": "Centered",
   "OptionValueControlBarCompact": "Compact",
   "FileAssociationGroupVideo": "Video formats",
-  "FileAssociationGroupAudio": "Audio formats",
-  "ValidationMinValue": "Minimum value is {0}",
-  "ValidationMaxValue": "Maximum value is {0}",
-  "ValidationValueNotEmpty": "Value cannot be empty",
-  "WatchHistoryClearTitle": "Clear history",
-  "WatchHistoryClearConfirm": "Are you sure you want to clear the history?",
-  "Clear": "Clear"
+  "FileAssociationGroupAudio": "Audio formats"
 }

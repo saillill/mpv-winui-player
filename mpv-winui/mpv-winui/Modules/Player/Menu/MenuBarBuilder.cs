@@ -27,10 +27,6 @@ public static class MenuBarBuilder
         menuBar.Items.Clear();
         foreach (var top in menus)
         {
-            if (top is null)
-            {
-                continue;
-            }
             if (top.Children is not { Count: > 0 } children)
             {
                 continue;
@@ -56,26 +52,14 @@ public static class MenuBarBuilder
         IReadOnlySet<string> knownActions,
         RoutedEventHandler itemClick)
     {
-        // Drop leading separators, collapse consecutive ones and never leave a
-        // dangling divider (trailing, or before a skipped/empty item), so a
-        // user override cannot produce malformed menus.
-        var pendingSeparator = false;
         foreach (var entry in items)
         {
-            if (entry is null)
-            {
-                continue;
-            }
             if (entry.Separator)
             {
-                if (target.Count > 0)
-                {
-                    pendingSeparator = true;
-                }
+                target.Add(new MenuFlyoutSeparator());
                 continue;
             }
 
-            // Resolve what this entry renders to before touching the separator.
             if (entry.Children is { Count: > 0 } children)
             {
                 var sub = new MenuFlyoutSubItem
@@ -83,19 +67,10 @@ public static class MenuBarBuilder
                     Text = ResolveLabel(entry),
                 };
                 AddItems(sub.Items, children, knownActions, itemClick);
-                if (sub.Items.Count == 0)
+                if (sub.Items.Count > 0)
                 {
-                    // Empty submenu: drop it and any pending separator.
-                    pendingSeparator = false;
-                    continue;
+                    target.Add(sub);
                 }
-
-                if (pendingSeparator)
-                {
-                    target.Add(new MenuFlyoutSeparator());
-                    pendingSeparator = false;
-                }
-                target.Add(sub);
                 continue;
             }
 
@@ -108,12 +83,6 @@ public static class MenuBarBuilder
             {
                 _logger.Warn("menu item skipped, no action or command, id={}", entry.Id);
                 continue;
-            }
-
-            if (pendingSeparator)
-            {
-                target.Add(new MenuFlyoutSeparator());
-                pendingSeparator = false;
             }
 
             var item = new MenuFlyoutItem

@@ -70,18 +70,9 @@ namespace mpv_winui.Modules.Player
 
         private void PlaylistView_ItemClick(object sender, ItemClickEventArgs e)
         {
-            try
+            if (e.ClickedItem is PlaylistItem playlistItem)
             {
-                if (e.ClickedItem is PlaylistItem playlistItem)
-                {
-                    _mediaPlayer.PlaylistPlayIndex(playlistItem.Index);
-                }
-            }
-            catch (Exception ex)
-            {
-                // The playlist may have changed between render and click,
-                // leaving a stale index; surface instead of crashing.
-                OnException(ex);
+                _mediaPlayer.PlaylistPlayIndex(playlistItem.Index);
             }
         }
 

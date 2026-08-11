@@ -33,15 +33,9 @@ public static class MenuDefinitionSource
     public static IReadOnlyList<MenuDefinition>? TryLoad()
     {
         var user = TryRead(UserPath);
-        if (user is { Count: > 0 })
-        {
-            return user;
-        }
-        // A present-but-empty user override (e.g. hand-edited to "[]") must not
-        // wipe the menu bar; fall back to the bundled default and surface it.
         if (user is not null)
         {
-            _logger.Warn("user menu definition is empty, falling back to bundled, path={}", UserPath);
+            return user;
         }
         return TryRead(BundledPath);
     }

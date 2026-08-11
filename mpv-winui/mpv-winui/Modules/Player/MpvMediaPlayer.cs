@@ -420,9 +420,7 @@ namespace mpv_winui.Modules.Player
             for (var i = 0; i < tracks.Count; i++)
             {
                 var track = tracks[i];
-                // Id is mpv's global track id (what sid/aid/vid accept); Index is
-                // only the per-type position used for display numbering.
-                result.Add(new PlayerTrackItem(track.Id, $"{track.Index} {track.Title} {track.Lang}", track.Selected));
+                result.Add(new PlayerTrackItem(i + 1, $"{i + 1} {track.Title} {track.Lang}", track.Selected));
             }
 
             return result;
@@ -440,7 +438,7 @@ namespace mpv_winui.Modules.Player
             for (var i = 0; i < tracks.Count; i++)
             {
                 var track = tracks[i];
-                result.Add(new PlayerTrackItem(track.Id, $"{track.Index} {track.Title} {track.Codec}", track.Selected));
+                result.Add(new PlayerTrackItem(i + 1, $"{i + 1} {track.Title} {track.Codec}", track.Selected));
             }
 
             return result;
@@ -458,7 +456,7 @@ namespace mpv_winui.Modules.Player
             for (var i = 0; i < tracks.Count; i++)
             {
                 var track = tracks[i];
-                result.Add(new PlayerTrackItem(track.Id, $"{track.Index} {track.Title} {track.Codec}", track.Selected));
+                result.Add(new PlayerTrackItem(i + 1, $"{i + 1} {track.Title} {track.Codec}", track.Selected));
             }
 
             return result;
@@ -477,7 +475,8 @@ namespace mpv_winui.Modules.Player
             for (var i = 0; i < tracks.Count; i++)
             {
                 var track = tracks[i];
-                result.Add(new PlayerTrackItem(track.Id, $"{track.Index} {track.Title} {track.Lang}", track.Id == current));
+                var id = i + 1;
+                result.Add(new PlayerTrackItem(id, $"{id} {track.Title} {track.Lang}", id == current));
             }
 
             return result;

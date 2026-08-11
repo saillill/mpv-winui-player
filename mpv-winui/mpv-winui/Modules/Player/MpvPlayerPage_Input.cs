@@ -38,9 +38,7 @@ namespace mpv_winui.Modules.Player
                 UnhookWindowsHookEx(hHook);
             }
             _hHook = null;
-            // Note: do not null the shared _selfWeakReference here - it is also
-            // used by the window subclass (MpvPlayerPage_Display) and mouse
-            // forwarding (MpvPlayerPage_Mouse). It is released with the page.
+            _selfWeakReference = null;
         }
 
         private static void SendKeydown(string keyName)

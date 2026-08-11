@@ -780,11 +780,5 @@
   "OptionValueControlBarModernX": "По центру",
   "OptionValueControlBarCompact": "Компактный",
   "FileAssociationGroupVideo": "Видеоформаты",
-  "FileAssociationGroupAudio": "Аудиоформаты",
-  "ValidationMinValue": "Минимальное значение: {0}",
-  "ValidationMaxValue": "Максимальное значение: {0}",
-  "ValidationValueNotEmpty": "Значение не может быть пустым",
-  "WatchHistoryClearTitle": "Очистить историю",
-  "WatchHistoryClearConfirm": "Вы уверены, что хотите очистить историю?",
-  "Clear": "Очистить"
+  "FileAssociationGroupAudio": "Аудиоформаты"
 }
