@@ -19,7 +19,7 @@ public static class MpvSettings
 
     public static string? ToCommand(string key, object value)
     {
-        var cmd = key switch
+        return key switch
         {
             nameof(AppSettings.Hwdec) => $"set hwdec {value}",
             nameof(AppSettings.HwdecCodecs) => $"set hwdec-codecs {(string)value}",
@@ -194,15 +194,6 @@ public static class MpvSettings
             nameof(AppSettings.SeekHoldEnabled) => $"set user-data/mpvw/seek-hold {(value is true ? "yes" : "no")}",
             _ => null,
         };
-
-        // mpv shows an OSD for every property change made with "set" (e.g.
-        // "Hardware decoding: ...", "user-data/mpvw/seek-hold: yes").
-        // Batch/applying settings would spam the screen at startup and from
-        // the settings window; the app has its own UI feedback, so suppress
-        // mpv's built-in set OSD.
-        return cmd is { } c && c.StartsWith("set ", StringComparison.Ordinal)
-            ? "no-osd " + c
-            : cmd;
     }
 
     public static void ApplyAll(Action<string> run)

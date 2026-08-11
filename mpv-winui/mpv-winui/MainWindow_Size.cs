@@ -52,7 +52,7 @@ namespace mpv_winui
                 AppContext.AppLogger.Error(ex, "restore window position and size failed, saved={}", lastRect);
             }
 
-            this.Body.Loaded += Body_Startup_Loaded;
+            this.Body.Loaded += PiP_Body_Loaded;
             this.Body.Loaded += Body_Loaded;
             this.Body.Unloaded += Body_Unloaded;
 
@@ -96,7 +96,7 @@ namespace mpv_winui
             SaveWindowPositionAndSize();
         }
 
-        private void Body_Startup_Loaded(object sender, RoutedEventArgs e)
+        private void PiP_Body_Loaded(object sender, RoutedEventArgs e)
         {
             if (AppContext.AppSetting.WindowStartMaximized
                 && string.IsNullOrEmpty(AppContext.AppSetting.WindowPositionAndSize)
@@ -104,6 +104,8 @@ namespace mpv_winui
             {
                 presenter.Maximize();
             }
+
+            ApplyPiP();
         }
 
         public void SaveWindowPositionAndSize()

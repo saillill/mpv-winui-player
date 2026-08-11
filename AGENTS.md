@@ -150,16 +150,10 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   window and no composition Offset (layout owns it). Hidden buttons are set
   `Visibility=Collapsed` on fade-out so they stop hit-testing and cannot show
   their tooltip.
-- **PiP video size**: the swap chain size is re-asserted once after the PiP
-  panel is laid out (single delayed `UpdateVideoSize` in `ShowPiP`) and on
-  grip drags. Do not subscribe `VideoPanel.SizeChanged` for this - calling
-  `UpdateSize` during the swap-chain attach races the render context and
-  crashed natively. The video aspect for PiP sizing comes from
-  `MediaInfoChangedEventArgs.VideoWidth/Height` (dwidth/dheight), not a new
-  property-getter method.
-- **PiP resize**: the bottom-right grip (Fluent resize glyph F66C) drags the
-  window; `ApplyPiPSize` locks the video aspect and clamps between one
-  twelfth and one half of the display work area.
+- **PiP video size**: the swap chain follows the PiP panel through
+  `VideoPanel.SizeChanged`/`CompositionScaleChanged` (`UpdatePiPPanelSize`);
+  without it the video keeps the main window's surface size after repeated
+  toggles and only a corner is visible.
 - **Control-bar icon set**: the transport icons use Segoe glyphs except the
   shuffle and PiP buttons, which use Fluent glyphs (`arrow_shuffle` EF37 on /
   EF3D off, PiP E97E/E981) at FontSize 20 so their optical size matches the
@@ -194,8 +188,6 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 
 - Editing menus / `input.conf`: read `docs/menu-audit-20260807.md` first
   (provenance and history of the 153-item menu).
-- Localization & menu bar convention: read `docs/localization.md` before
-  adding UI strings or menu items.
 - Touching the config layer: read `mpv-winui-lazy/README.md`.
 - Adding components or checking licenses: read
   `mpv-winui-lazy/THIRD_PARTY_NOTICES.md`.

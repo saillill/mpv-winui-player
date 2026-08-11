@@ -52,7 +52,6 @@ namespace mpv_winui.Modules.Player
         private bool _isBuffering = false;
         private bool _isInScrubMode = false;
         private bool _isDragging = false;
-        private long _suppressBufferingUntil;
         private bool _sourceLoaded = false;
 
         private MpvMediaPlayer? _mediaPlayer;
@@ -102,6 +101,8 @@ namespace mpv_winui.Modules.Player
         public void ApplyLocalizedStrings()
         {
             ToolTipService.SetToolTip(PiPButton, AppContext.AppLang.SettingsPiP);
+            ToolTipService.SetToolTip(PiPPlayPauseButton, AppContext.AppLang.Play);
+            ToolTipService.SetToolTip(PiPCloseButton, AppContext.AppLang.Close);
         }
 
         private void OnAppSettingChanged(string key, object? value)
@@ -136,13 +137,23 @@ namespace mpv_winui.Modules.Player
             PiPSymbol.Glyph = AppContext.AppSetting.WindowPiP ? "\uE981" : "\uE97E";
         }
 
+        private void OnPiPCloseClick(object sender, RoutedEventArgs e)
+        {
+            AppContext.AppSetting.WindowPiP = false;
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiP), false);
+            UpdatePiPButton();
+            UpdatePiPBar();
+        }
+
         /// <summary>
         /// Hides the main control bar while the dedicated PiP window is shown.
-        /// The PiP window has its own compact controls.
+        /// The in-window PiP bar is kept for compatibility but never displayed;
+        /// the PiP window has its own compact controls.
         /// </summary>
         public void UpdatePiPBar()
         {
             var pip = AppContext.AppSetting.WindowPiP;
+            PiPBar.Visibility = Visibility.Collapsed;
             if (_isPiPHost)
             {
                 // The PiP window hosts this control bar, so it stays visible
@@ -592,6 +603,8 @@ namespace mpv_winui.Modules.Player
         {
             RootGrid.PointerMoved += RootGrid_PointerMoved;
             PiPButton.Click += OnPiPClick;
+            PiPPlayPauseButton.Click += OnPlayPauseClick;
+            PiPCloseButton.Click += OnPiPCloseClick;
             AppContext.SettingChanged += OnAppSettingChanged;
             PlayPauseButton.Click += OnPlayPauseClick;
             SkipBackwardButton.Click += SkipBackwardButton_Click;
@@ -654,6 +667,8 @@ namespace mpv_winui.Modules.Player
         private void PlayerControl_Unloaded(object sender, RoutedEventArgs e)
         {
             PiPButton.Click -= OnPiPClick;
+            PiPPlayPauseButton.Click -= OnPlayPauseClick;
+            PiPCloseButton.Click -= OnPiPCloseClick;
             RootGrid.PointerMoved -= RootGrid_PointerMoved;
             AppContext.SettingChanged -= OnAppSettingChanged;
             PlayPauseButton.Click -= OnPlayPauseClick;
@@ -943,12 +958,6 @@ namespace mpv_winui.Modules.Player
 
         private async void PlaybackSession_BufferingStarted(MpvMediaPlayer sender, object? args)
         {
-            // Local files briefly enter mpv's buffering state when seeking;
-            // do not flash the loading strip for user-initiated scrubs.
-            if (_isDragging || Environment.TickCount64 < _suppressBufferingUntil)
-            {
-                return;
-            }
             _isBuffering = true;
             DispatcherQueue.RunAsync(() => { UpdatePlaybackStatusUI(true); });
         }
@@ -1555,6 +1564,7 @@ namespace mpv_winui.Modules.Player
             {
                 VisualStateManager.GoToState(this, "PauseState", useTransitions);
             }
+            PiPPlayPauseSymbol.Glyph = isPaused ? "\uF5B0" : "\uF8AE";
         }
 
         private void UpdateVolumeUI(bool useTransitions)
@@ -1636,7 +1646,6 @@ namespace mpv_winui.Modules.Player
         private void ProgressSlider_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             _isDragging = true;
-            _suppressBufferingUntil = Environment.TickCount64 + 2000;
             if (AppContext.AppSetting.EnableVideoPreview && ProgressSlider.Maximum > 0)
             {
                 UpdatePreview(ProgressSlider.Value / ProgressSlider.Maximum);
@@ -1646,7 +1655,6 @@ namespace mpv_winui.Modules.Player
         private void ProgressSlider_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
             _isDragging = false;
-            _suppressBufferingUntil = Environment.TickCount64 + 500;
         }
 
         private void ProgressSlider_PointerMoved(object sender, PointerRoutedEventArgs e)

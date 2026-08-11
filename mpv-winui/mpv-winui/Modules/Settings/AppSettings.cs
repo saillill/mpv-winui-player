@@ -1296,13 +1296,11 @@ namespace mpv_winui.Modules.Settings
 
         // Picture-in-picture is a session state: it must never be persisted,
         // so the app always starts in the normal window.
+        private bool _windowPiP;
         public bool WindowPiP
         {
-            // Persisted like every other setting: the startup flow applies
-            // PiP only after mpv is initialized, so a stored "true" must
-            // survive restarts for that path to exist.
-            get => _dataSetting.GetValue(nameof(WindowPiP), false);
-            set => _dataSetting.SetValue(nameof(WindowPiP), value);
+            get => _windowPiP;
+            set => _windowPiP = value;
         }
 
         public string WindowPiPSize
