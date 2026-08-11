@@ -115,12 +115,6 @@ namespace mpv_winui.Modules.Player
             bool isSeparatorPre = false;
             foreach (var entry in items)
             {
-                //TODO
-                if (!CheckMpvMenu(entry))
-                {
-                    continue;
-                }
-
                 if (entry.IsHidden)
                 {
                     continue;
@@ -259,17 +253,6 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private bool CheckMpvMenu(MpvMenuItem mpvMenuItem)
-        {
-            //TODO remove&  check cmd ??
-            if (mpvMenuItem.Title == "Ope&n" || mpvMenuItem.Title == "&Stop" || mpvMenuItem.Title == "&Quit" || mpvMenuItem.Title == "Quit an&d save position")
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         private void MpvMenuItemClick(string cmd)
         {
             if (_logger.IsDebugEnabled)
@@ -380,6 +363,9 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(TopBarOntopButton, AppContext.AppLang.SettingsAlwaysOnTop);
             ToolTipService.SetToolTip(TopBarScreenshotButton, AppContext.AppLang.FileScreenshot);
             ToolTipService.SetToolTip(TopBarPlaylistButton, AppContext.AppLang.TogglePlaylist);
+            ToolTipService.SetToolTip(PlaylistOntopButton, AppContext.AppLang.SettingsAlwaysOnTop);
+            ToolTipService.SetToolTip(PlaylistScreenshotButton, AppContext.AppLang.FileScreenshot);
+            ToolTipService.SetToolTip(PlaylistCloseButton, AppContext.AppLang.TogglePlaylist);
         }
     }
 }

@@ -26,6 +26,33 @@ namespace mpv_winui.Modules.Settings
                 return t;
             }
 
+            // Imported config files store every value as a string (and the
+            // unpackaged backend persists bools as "true"/"false"); mirror the
+            // string -> T conversion so both backends round-trip identically.
+            if (value is string text)
+            {
+                if (typeof(T) == typeof(bool) && bool.TryParse(text, out var b))
+                {
+                    return (T)(object)b;
+                }
+                if (typeof(T) == typeof(int) && int.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var i))
+                {
+                    return (T)(object)i;
+                }
+                if (typeof(T) == typeof(double) && double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d))
+                {
+                    return (T)(object)d;
+                }
+                if (typeof(T) == typeof(float) && float.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var f))
+                {
+                    return (T)(object)f;
+                }
+                if (typeof(T) == typeof(long) && long.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var l))
+                {
+                    return (T)(object)l;
+                }
+            }
+
             return defaultValue;
         }
 

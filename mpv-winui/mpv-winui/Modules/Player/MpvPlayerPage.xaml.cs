@@ -70,20 +70,29 @@ namespace mpv_winui.Modules.Player
                 AppContext.GetAudioDevices = () => _mediaPlayer.AudioDevices();
                 var lang = AppContext.AppSetting.CurrentLanguage;
                 if (string.IsNullOrWhiteSpace(lang)) lang = "en-US";
-                AppContext.SendMpvCommand($"set user-data/mpvw/language {lang}");
+                AppContext.SendMpvCommand($"no-osd set user-data/mpvw/language {lang}");
                 var mpvCli = Path.Combine(System.AppContext.BaseDirectory, "mpv.exe");
                 if (File.Exists(mpvCli))
                 {
-                    AppContext.SendMpvCommand($"set user-data/mpvw/mpv-exe \"{mpvCli}\"");
+                    AppContext.SendMpvCommand($"no-osd set user-data/mpvw/mpv-exe \"{mpvCli}\"");
                 }
                 MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
 
                 SetupKeyboardInput();
                 AppContext.SettingChanged += AppContext_SettingChanged;
                 AppContext.LanguageChanged += AppContext_LanguageChanged;
+                BuildMainMenuBar();
                 SetupPreview();
 
                 OpenPendingPath().FireAndForget(OnException);
+
+                // Apply the persisted PiP setting only after mpv and the main
+                // swap chain are ready. Running this from the window's
+                // Body.Loaded raced CreateAsync: AttachSwapChain could run
+                // before mpv initialization (native crash), or SetupPlayerView
+                // would later move the swap chain back to the hidden main
+                // window, leaving the PiP window without video.
+                ApplyPiP();
             }
             else
             {
@@ -139,6 +148,7 @@ namespace mpv_winui.Modules.Player
             {
                 ApplyLocalizedStrings();
                 PlayerControl.ApplyLocalizedStrings();
+                BuildMainMenuBar();
             });
         }
 

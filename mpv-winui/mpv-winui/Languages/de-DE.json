@@ -780,5 +780,11 @@
   "OptionValueControlBarModernX": "Zentriert",
   "OptionValueControlBarCompact": "Kompakt",
   "FileAssociationGroupVideo": "Videoformate",
-  "FileAssociationGroupAudio": "Audioformate"
+  "FileAssociationGroupAudio": "Audioformate",
+  "ValidationMinValue": "Mindestwert ist {0}",
+  "ValidationMaxValue": "Höchstwert ist {0}",
+  "ValidationValueNotEmpty": "Wert darf nicht leer sein",
+  "WatchHistoryClearTitle": "Verlauf löschen",
+  "WatchHistoryClearConfirm": "Möchten Sie den Verlauf wirklich löschen?",
+  "Clear": "Löschen"
 }

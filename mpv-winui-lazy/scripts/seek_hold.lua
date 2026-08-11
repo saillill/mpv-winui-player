@@ -56,8 +56,10 @@ local function update()
 end
 
 -- 读取设置窗口的开关：user-data/mpvw/seek-hold
+-- App 写入 "yes"/"no" 字符串：val ~= false 会把 "no" 当成启用，设置关不掉。
+-- 兼容 string 与 boolean 两种形态。
 mp.observe_property("user-data/mpvw/seek-hold", "native", function(_, val)
-	enabled = val ~= false
+	enabled = (val == true) or (val == "yes")
 	if not enabled then
 		release_hold()
 	end

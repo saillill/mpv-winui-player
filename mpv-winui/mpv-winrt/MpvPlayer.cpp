@@ -251,6 +251,18 @@ namespace winrt::mpv_winrt::implementation
                         m_swapChain.store(swapChain);
                         m_voConfiguredEvent();
                     }
+                    // Video dimensions are only current at this point: the
+                    // media-title property change fires at start-file, before
+                    // the new video is configured, so the PiP window would
+                    // keep the previous file's aspect when only observing
+                    // media-title. Re-raise the info event here with the
+                    // current dwidth/dheight.
+                    auto args = winrt::make<implementation::MediaInfoChangedEventArgs>(
+                        GetHStringProperty("filename"),
+                        GetHStringProperty("media-title"),
+                        static_cast<float>(GetInt64Property("dwidth")),
+                        static_cast<float>(GetInt64Property("dheight")));
+                    m_mediaInfoChangedEvent(args);
                     break;
                 }
 
@@ -317,7 +329,11 @@ namespace winrt::mpv_winrt::implementation
                         case MpvObserveId::Filename:
                         case MpvObserveId::MediaTitle:
                             {
-                                auto args = winrt::make<implementation::MediaInfoChangedEventArgs>(GetHStringProperty("filename"), GetHStringProperty("media-title"));
+                                auto args = winrt::make<implementation::MediaInfoChangedEventArgs>(
+                                    GetHStringProperty("filename"),
+                                    GetHStringProperty("media-title"),
+                                    static_cast<float>(GetInt64Property("dwidth")),
+                                    static_cast<float>(GetInt64Property("dheight")));
                                 m_mediaInfoChangedEvent(args);
                                 break;
                             }
@@ -1094,6 +1110,10 @@ namespace winrt::mpv_winrt::implementation
 
     void MpvPlayer::SetHoverSec(double sec)
     {
+        if (!m_mpv)
+        {
+            return;
+        }
         SetDoubleProperty("user-data/osc/hover-sec", sec);
     }
 
@@ -1146,6 +1166,11 @@ namespace winrt::mpv_winrt::implementation
 
     void MpvPlayer::AttachSwapChain(SwapChainPanel const& panel)
     {
+        if (!m_mpv)
+        {
+            return;
+        }
+
         IDXGISwapChain* swapChain = nullptr;
         mpv_get_property(m_mpv, "display-swapchain", MPV_FORMAT_INT64, &swapChain);
 

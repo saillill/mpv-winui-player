@@ -65,12 +65,12 @@ public sealed partial class OptionIntegerControl : OptionControlBase
         {
             if (Setting.Min.HasValue && val < Setting.Min.Value)
             {
-                return (false, $"Minimum value is {Setting.Min.Value}");
+                return (false, string.Format(mpv_winui.AppContext.AppLang.ValidationMinValue, Setting.Min.Value));
             }
 
             if (Setting.Max.HasValue && val > Setting.Max.Value)
             {
-                return (false, $"Maximum value is {Setting.Max.Value}");
+                return (false, string.Format(mpv_winui.AppContext.AppLang.ValidationMaxValue, Setting.Max.Value));
             }
         }
         return (true, null);

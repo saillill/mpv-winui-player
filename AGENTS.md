@@ -26,6 +26,10 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 
 ### Test facts
 
+- `dotnet test mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj -c Debug` runs
+  the mpv-winrt tests from the dotnet CLI (the test project references the
+  built `.winmd` directly). VS MSBuild is only needed to rebuild `mpv_winrt`
+  itself; `build.ps1` does that first.
 - IPC: `NamedPipeClientStream('.', 'mpvpipe')`; send JSON
   `{"command":[...],"request_id":N}`, read lines until the matching
   `request_id` (mpv events interleave with responses).
@@ -42,7 +46,8 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   `display-info.log` in the same folder.
 - Config runs from `%LOCALAPPDATA%\mpv-winui\mpv` (synced by
   `mpv-winui-lazy\deploy-config.ps1` via robocopy `/MIR`; runtime data like
-  `_cache/`, `recent.json`, and logs are excluded).
+  `_cache/`, `recent.json`, logs, and the user-overridable `menus.json` are
+  excluded).
 - Settings are in registry
   `HKCU\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app`;
   booleans are stored as `"true"` / `"false"`. Defaults live in
@@ -95,6 +100,20 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   It must be `Height=120` only in overlay mode and `Auto` (NaN) in windowed
   mode, otherwise a tall transparent strip remains between the video and the
   bar (the "background box" behind the controls).
+- **Overlay slide**: the main-window pop-out slide animates the XAML
+  `TranslateVertical` (TranslateTransform.Y) with a Storyboard - render
+  transforms are layout-independent, so a resize/zoom while the bar is hidden
+  cannot strand it above the bottom edge. PiP (a second top-level window)
+  uses a 16ms `DispatcherTimer` tween on the same XAML values because a
+  Storyboard crashes the compositor there and the composition `Offset`
+  animation strands the bar after zoom (same stale-layout class of bug).
+  Never write `Visual.Offset` manually (layout owns it), and never use
+  `CompositionPropertySet` keys like `Translation.Y` (not animatable in WinUI
+  3 desktop; throws in the batch-completed callback).
+  When starting a new overlay animation, stop only the in-flight Storyboard;
+  do not call `StopPanelAnimations()` (it clears `_panelAnimating`, which
+  defeats the same-direction re-entry guard and makes every pointer move
+  restart the pop-out animation - the bar twitches).
 - **Full-window state**: `PlayerControl_OnFullWindowRequest` tracks
   `_isFullWindow` explicitly — never derive it from `GoToState`'s return value
   (it only reports whether the state changed, which flips the flag when the
@@ -108,21 +127,57 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   also restores the PiP-hidden button set on every non-compact apply. Rewind,
   FastForward and Stop were removed entirely (they were only Collapsed by
   design before).
-- **Top bar buttons**: the top menu row has three icon buttons at the right
-  edge, in order: playlist toggle (E8F1 side-panel icon, expands and closes
-  the sidebar), screenshot (E722, sends `screenshot`) and always-on-top
-  (two-state pin E718/E840, sends `cycle ontop`; the glyph is driven by the
-  mpv `ontop` property). Buttons are backgroundless (no mask/fill).
-- **PiP pin glyphs**: the control-bar PiP toggle and the PiP window's
-  top-left restore button use the two-state pin icon (E718 unpinned /
-  E840 pinned); the PiP window button always shows the pinned state.
+- **Top bar buttons**: the top menu row keeps three icon buttons at the far
+  right even when the playlist is collapsed, in order: always-on-top
+  (Fluent pin F602 unpinned / F604 pinned, sends `cycle ontop`; glyph driven
+  by the mpv `ontop` property), screenshot (Fluent camera F255, sends
+  `screenshot`), playlist toggle (Fluent panel-right-contract E8C3, opens and
+  closes the sidebar; this is the merged playlist/collapse button) and refresh
+  (Fluent arrow-clockwise F13E). When the playlist panel is open the same
+  buttons move into `PlaylistToolBar` next to refresh (ontop, screenshot,
+  close, refresh); the `ShowPlaylist` / `HidePlaylist` states toggle
+  `TopBarButtons.Visibility` accordingly. All glyphs come from the bundled
+  `FluentSystemIcons-Regular.ttf` (Microsoft, MIT) so their optical size and
+  baseline match. Keep these codepoints with the bundled font when touching
+  these buttons.
+- **PiP glyphs**: the control-bar PiP toggle and the PiP window's top-left
+  restore button use the Fluent PiP enter/exit glyphs (E97E enter PiP /
+  E981 exit PiP); the PiP window button always shows the exit glyph.
+- **PiP overlay**: the PiP top buttons react only to the top 90px mask and
+  the status bar only to the bottom 120px mask; elsewhere both retract.
+  The status bar fades via composition opacity key-frames (frame-aligned)
+  with a 16ms timer driving only the XAML TranslateTransform slide; the top
+  buttons use the timer tween on XAML opacity. No Storyboard in the second
+  window and no composition Offset (layout owns it). Hidden buttons are set
+  `Visibility=Collapsed` on fade-out so they stop hit-testing and cannot show
+  their tooltip.
+- **PiP video size**: the swap chain size is re-asserted once after the PiP
+  panel is laid out (single delayed `UpdateVideoSize` in `ShowPiP`) and on
+  grip drags. Do not subscribe `VideoPanel.SizeChanged` for this - calling
+  `UpdateSize` during the swap-chain attach races the render context and
+  crashed natively. The video aspect for PiP sizing comes from
+  `MediaInfoChangedEventArgs.VideoWidth/Height` (dwidth/dheight), not a new
+  property-getter method.
+- **PiP resize**: the bottom-right grip (Fluent resize glyph F66C) drags the
+  window; `ApplyPiPSize` locks the video aspect and clamps between one
+  twelfth and one half of the display work area.
+- **Control-bar icon set**: the transport icons use Segoe glyphs except the
+  shuffle and PiP buttons, which use Fluent glyphs (`arrow_shuffle` EF37 on /
+  EF3D off, PiP E97E/E981) at FontSize 20 so their optical size matches the
+  Segoe neighbors (Fluent 24-grid glyphs render smaller at the same size).
 - **Track flyout style**: `TrackSelectionButton` keeps the `ED1F` glyph; its
   `FlyoutPresenter` uses `AcrylicInAppFillColorDefaultBrush` +
   `CardStrokeColorDefaultBrush` (Mica/Acrylic look) instead of the translucent
   `MpvControlBackground`.
-- **Overlay gradient**: the fullscreen/borderless mask shell is 140px with a
+- **Overlay gradient**: the fullscreen/borderless mask shell is 120px with a
   ~90%-black base stop (mpv-lazy/ModernX style); windowed mode keeps the bar
   backgroundless.
+- **Settings layout**: `SettingsPage.xaml.cs` is the page shell (wiring and
+  events), `SettingsPage.Options.cs` defines the option tree, the
+  `SettingsPage.Options.*.cs` partials hold one category each (Audio, Video,
+  Subtitles, Playback, Program, Advanced, Screenshot, PathFolders) and
+  `SettingsPage.Actions.cs` holds settings actions. Add new options in the
+  matching category partial, not in the page shell.
 
 ### License guardrails
 
@@ -139,7 +194,9 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 ## Pointers
 
 - Editing menus / `input.conf`: read `docs/menu-audit-20260807.md` first
-  (provenance and history of the 153-item menu).
+  (provenance and history of the 149-item menu).
+- Localization & menu bar convention: read `docs/localization.md` before
+  adding UI strings or menu items.
 - Touching the config layer: read `mpv-winui-lazy/README.md`.
 - Adding components or checking licenses: read
   `mpv-winui-lazy/THIRD_PARTY_NOTICES.md`.

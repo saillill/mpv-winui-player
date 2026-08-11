@@ -1,0 +1,63 @@
+[
+  {
+    "id": "file",
+    "labelKey": "MenuFile",
+    "children": [
+      { "id": "open", "labelKey": "FileOpen", "action": "open" },
+      { "id": "open-folder", "labelKey": "FileOpenFolder", "action": "open-folder" },
+      { "id": "open-url", "labelKey": "FileOpenUrl", "action": "open-url" },
+      { "id": "open-clipboard", "labelKey": "FileOpenClipboard", "action": "open-clipboard" },
+      { "separator": true },
+      { "id": "open-dvd", "labelKey": "FileOpenDvd", "action": "open-dvd" },
+      { "id": "open-bd", "labelKey": "FileOpenBd", "action": "open-bd" },
+      { "separator": true },
+      { "id": "open-watch-history", "labelKey": "FileOpenWatchHistory", "action": "open-watch-history" },
+      { "id": "open-watch-later", "labelKey": "FileOpenWatchLater", "action": "open-watch-later" },
+      { "separator": true },
+      { "id": "load-subtitle", "labelKey": "FileLoadSubtitle", "action": "load-subtitle" },
+      { "separator": true },
+      { "id": "screenshot", "labelKey": "FileScreenshot", "action": "screenshot" },
+      { "id": "screenshot-no-sub", "labelKey": "FileScreenshotNoSub", "action": "screenshot-no-sub" },
+      { "separator": true },
+      { "id": "restart", "labelKey": "FileRestart", "action": "restart" },
+      { "id": "quit", "labelKey": "FileQuit", "action": "quit" }
+    ]
+  },
+  {
+    "id": "view",
+    "labelKey": "MenuView",
+    "children": [
+      { "id": "playlist", "labelKey": "ViewPlaylist", "action": "playlist" },
+      { "separator": true },
+      { "id": "fullwindow", "labelKey": "ViewFullWindow", "action": "fullwindow" },
+      { "id": "fullscreen", "labelKey": "ViewFullScreen", "action": "fullscreen" },
+      { "separator": true },
+      { "id": "options", "labelKey": "ViewOptions", "action": "options" },
+      { "id": "mpv-command", "labelKey": "SettingsCommandMenuItem", "action": "mpv-command" },
+      { "id": "shortcut-search", "labelKey": "ShortcutSearchTitle", "action": "shortcut-search" },
+      { "separator": true },
+      { "id": "conf-folder", "labelKey": "ViewConfFolder", "action": "conf-folder" },
+      { "id": "mpv-folder", "labelKey": "ViewMpvFolder", "action": "mpv-folder" }
+    ]
+  },
+  {
+    "id": "help",
+    "labelKey": "MenuHelp",
+    "children": [
+      { "id": "about", "labelKey": "HelpAbout", "action": "about" },
+      { "id": "mpv-docs", "labelKey": "HelpMpvDocs", "action": "mpv-docs" }
+    ]
+  },
+  {
+    "id": "sleep",
+    "labelKey": "SleepTimer",
+    "children": [
+      { "id": "sleep-off", "labelKey": "SleepTimerOff", "action": "sleep-off" },
+      { "id": "sleep-15", "labelKey": "SleepTimerMinutes", "labelArgs": ["15"], "action": "sleep-15" },
+      { "id": "sleep-30", "labelKey": "SleepTimerMinutes", "labelArgs": ["30"], "action": "sleep-30" },
+      { "id": "sleep-45", "labelKey": "SleepTimerMinutes", "labelArgs": ["45"], "action": "sleep-45" },
+      { "id": "sleep-60", "labelKey": "SleepTimerMinutes", "labelArgs": ["60"], "action": "sleep-60" },
+      { "id": "sleep-90", "labelKey": "SleepTimerMinutes", "labelArgs": ["90"], "action": "sleep-90" }
+    ]
+  }
+]

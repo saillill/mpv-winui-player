@@ -22,24 +22,35 @@ public sealed partial class MpvPlayerPage
 
     private void EnterPiP()
     {
+        // Startup ApplyPiP() can now only run after initialization, but keep
+        // the guard so any future early call path cannot race AttachSwapChain.
+        if (!_isPlayerInitialized)
+        {
+            return;
+        }
+
         if (_pipWindow is null)
         {
             _pipWindow = new PiPWindow();
-            _pipWindow.Attach(_mediaPlayer);
+            _pipWindow!.Attach(_mediaPlayer);
             _pipWindow.VideoPanel.CompositionScaleChanged += PiPView_CompositionScaleChanged;
         }
         else
         {
-            _pipWindow.Attach(_mediaPlayer);
+            // Re-attach after an exit detached the window. Attach is idempotent
+            // when the same player is already attached (e.g. a WindowPiPSize
+            // change while PiP is active), so the event cannot stack.
+            _pipWindow!.Attach(_mediaPlayer);
         }
 
-        var (width, height) = ParsePiPSize(AppContext.AppSetting.WindowPiPSize);
+        var (width, height) = ComputeDefaultPiPSize();
+        var pipWindow = _pipWindow!;
 
         // Move the existing composition swap chain into the PiP window; libmpv
         // keeps rendering to it, so no second render context is needed.
-        _mediaPlayer.UpdatePanel(_pipWindow.VideoPanel);
+        _mediaPlayer.UpdatePanel(pipWindow.VideoPanel);
         _mediaPlayer.UpdateSize((uint)width, (uint)height);
-        _pipWindow.ShowPiP(width, height);
+        pipWindow.ShowPiP(width, height);
         UpdatePiPPanelScale();
 
         if (App.Window is MainWindow mainWindow)
@@ -120,18 +131,42 @@ public sealed partial class MpvPlayerPage
             PlayerView.CompositionScaleY));
     }
 
-    private static (int Width, int Height) ParsePiPSize(string value)
+    /// <summary>
+    /// Default PiP size as a proportion of the main window's display work
+    /// area so it scales across different resolutions. The three presets map
+    /// to 15% / 25% / 35% of the work-area width; height follows 16:9 and the
+    /// window re-fits to the current video aspect on entry.
+    /// </summary>
+    private (int Width, int Height) ComputeDefaultPiPSize()
     {
-        var parts = value.Split('x');
-        if (parts.Length == 2
-            && int.TryParse(parts[0], out var width)
-            && int.TryParse(parts[1], out var height)
-            && width >= 160
-            && height >= 90)
+        var fraction = ParsePiPSizeFraction(AppContext.AppSetting.WindowPiPSize);
+        DisplayArea area;
+        try
         {
-            return (width, height);
+            area = DisplayArea.GetFromWindowId(
+                App.Window is MainWindow mainWindow ? mainWindow.AppWindow.Id : _appWindow.Id,
+                DisplayAreaFallback.Nearest);
         }
-        return (480, 270);
+        catch (Exception)
+        {
+            area = DisplayArea.GetFromWindowId(_appWindow.Id, DisplayAreaFallback.Primary);
+        }
+
+        var work = area.WorkArea;
+        var maxWidth = Math.Max(320, (int)(work.Width / 2.0));
+        var width = Math.Clamp((int)(work.Width * fraction), 320, maxWidth);
+        var height = Math.Max(180, (int)(width / (16.0 / 9.0)));
+        return (width, height);
+    }
+
+    private static double ParsePiPSizeFraction(string value)
+    {
+        return value switch
+        {
+            "320x180" => 0.15,
+            "640x360" => 0.35,
+            _ => 0.25,
+        };
     }
 
     private void ClosePiPWindow()
@@ -140,7 +175,7 @@ public sealed partial class MpvPlayerPage
         {
             pipWindow.VideoPanel.CompositionScaleChanged -= PiPView_CompositionScaleChanged;
             pipWindow.Detach();
-            pipWindow.Close();
+            pipWindow.CloseForTeardown();
             _pipWindow = null;
         }
     }

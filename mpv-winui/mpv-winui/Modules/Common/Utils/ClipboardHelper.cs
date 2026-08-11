@@ -12,9 +12,7 @@ namespace mpv_winui.Modules.Common.Utils
                 return;
             }
 
-            var data = new DataPackage { RequestedOperation = DataPackageOperation.Copy };
-            data.SetText(text);
-            Clipboard.SetContent(data);
+            SetContent(package => package.SetText(text));
         }
 
         public static void SetCopyUri(Uri? uri)
@@ -24,9 +22,25 @@ namespace mpv_winui.Modules.Common.Utils
                 return;
             }
 
-            var data = new DataPackage { RequestedOperation = DataPackageOperation.Copy };
-            data.SetUri(uri);
-            Clipboard.SetContent(data);
+            SetContent(package => package.SetUri(uri));
+        }
+
+        private static void SetContent(Action<DataPackage> fill)
+        {
+            try
+            {
+                var data = new DataPackage { RequestedOperation = DataPackageOperation.Copy };
+                fill(data);
+                Clipboard.SetContent(data);
+                // Without Flush the copied data is lost as soon as the app
+                // exits; media players copy URLs/paths for use elsewhere.
+                Clipboard.Flush();
+            }
+            catch (Exception)
+            {
+                // The clipboard can be transiently locked by another process;
+                // a failed copy is not worth crashing the player for.
+            }
         }
     }
 }
