@@ -32,9 +32,11 @@ namespace mpv_winui.Modules.Player;
 /// WindowsAppSDK#1593 also tracks that compact-overlay windows cannot be
 /// user-resized. AppWindowTitleBar.SetDragRectangles was prototyped as the
 /// official drag-move replacement, but the OS ignores the drag regions on a
-/// fully frameless window, so drag-anywhere still uses the
-/// WM_NCLBUTTONDOWN/HTCAPTION caption message. Keep the custom always-on-top
-/// frameless window until those are resolved.
+/// fully frameless window. Drag-anywhere therefore tracks the cursor with
+/// GetCursorPos (read-only) and moves with AppWindow.Move; the previous
+/// WM_NCLBUTTONDOWN/HTCAPTION modal loop was unreliable in WinUI 3 and made
+/// the window stick to the cursor after release. Keep the custom
+/// always-on-top frameless window until those are resolved.
 /// </summary>
 public sealed partial class PiPWindow : Window
 {
@@ -54,6 +56,9 @@ public sealed partial class PiPWindow : Window
     private bool _resizing;
     private Point _resizeStartPointer;
     private SizeInt32 _resizeStartSize;
+    private bool _draggingWindow;
+    private PointInt32 _dragStartCursor;
+    private PointInt32 _dragStartPosition;
 
     public PiPWindow()
     {
@@ -63,7 +68,6 @@ public sealed partial class PiPWindow : Window
         ApplyLocalizedStrings();
         AppContext.LanguageChanged += PiPWindow_LanguageChanged;
 
-        PiPView.PointerPressed += PiPView_PointerPressed;
         RootGrid.PointerMoved += RootGrid_PointerMoved;
         RootGrid.PointerExited += RootGrid_PointerExited;
 
@@ -271,28 +275,66 @@ public sealed partial class PiPWindow : Window
         {
             return;
         }
-        if (!e.GetCurrentPoint(PiPView).Properties.IsLeftButtonPressed)
+        var point = e.GetCurrentPoint(PiPView);
+        if (!point.Properties.IsLeftButtonPressed)
         {
             // Right/middle/X buttons must not start the caption drag; they
             // are reserved for mpv bindings and the context menu.
             return;
         }
 
-        // Hand the press to the system caption: the modal move loop starts
-        // immediately and ends on release, so the window never sticks to the
-        // cursor. This makes the whole video area draggable like browser PiP.
-        // AppWindowTitleBar.SetDragRectangles was prototyped as the official
-        // replacement but does not work on this fully frameless window (the
-        // OS ignores the drag regions), so the caption message stays.
-        try
+        // Official drag-move: track the pointer and move with AppWindow.Move.
+        // The previous WM_NCLBUTTONDOWN/HTCAPTION caption message was
+        // unreliable under WinUI 3: when the modal move loop started outside
+        // the physical button press it kept tracking the cursor after
+        // release, making the window stick to the mouse.
+        if (!PInvoke.GetCursorPos(out var cursor))
         {
-            var hwnd = new HWND(WindowNative.GetWindowHandle(this));
-            _ = PInvoke.SendMessage(hwnd, 0x00A1, new WPARAM(2u), default); // WM_NCLBUTTONDOWN, HTCAPTION
+            return;
         }
-        catch (Exception)
+        _draggingWindow = true;
+        _dragStartCursor = new PointInt32(cursor.X, cursor.Y);
+        _dragStartPosition = AppWindow.Position;
+        PiPView.CapturePointer(e.Pointer);
+        e.Handled = true;
+    }
+
+    private void PiPView_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_draggingWindow)
         {
-            // Drag is optional; ignore failures on exotic input.
+            return;
         }
+
+        // Track the cursor in physical screen pixels. XAML pointer
+        // coordinates are window-relative, so using them here would feed the
+        // window's own movement back into the delta and make the drag jump.
+        if (!PInvoke.GetCursorPos(out var cursor))
+        {
+            return;
+        }
+        var deltaX = cursor.X - _dragStartCursor.X;
+        var deltaY = cursor.Y - _dragStartCursor.Y;
+        AppWindow.Move(new PointInt32(
+            _dragStartPosition.X + deltaX,
+            _dragStartPosition.Y + deltaY));
+        e.Handled = true;
+    }
+
+    private void PiPView_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_draggingWindow)
+        {
+            return;
+        }
+        _draggingWindow = false;
+        PiPView.ReleasePointerCapture(e.Pointer);
+        e.Handled = true;
+    }
+
+    private void PiPView_PointerCaptureLost(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        _draggingWindow = false;
     }
 
     private void RootGrid_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)

@@ -30,6 +30,7 @@ SetWindowSubclass
 WINDOWPOS
 DwmSetWindowAttribute
 SendMessage
+GetCursorPos
 GetWindowLong
 SetWindowLong
 SetWindowPos

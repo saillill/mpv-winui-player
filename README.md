@@ -47,8 +47,10 @@
   (see [WindowsAppSDK#1593](https://github.com/microsoft/WindowsAppSDK/issues/1593)).
   `AppWindowTitleBar.SetDragRectangles` was also prototyped as the official
   drag-move replacement, but the OS ignores drag regions on a fully frameless
-  window; drag-anywhere therefore keeps the WM_NCLBUTTONDOWN/HTCAPTION caption
-  message, and resize keeps `AppWindow.Resize` + pointer input.
+  window. Drag-anywhere tracks the cursor with `GetCursorPos` and moves with
+  the official `AppWindow.Move`; the earlier WM_NCLBUTTONDOWN/HTCAPTION modal
+  loop made the window stick to the cursor after release. Resize keeps
+  `AppWindow.Resize` + pointer input on the bottom-right grip.
 - **Video preview**: thumbfast renders thumbnails through a bundled standalone
   `mpv.exe`; the app draws them as a rounded WinUI card above the progress bar.
 - **Mouse input**: wheel over the video controls volume/seek and the mouse

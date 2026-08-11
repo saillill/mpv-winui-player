@@ -7,6 +7,10 @@
     <Grid x:Name="RootGrid" Background="Black">
         <SwapChainPanel
             x:Name="PiPView"
+            PointerCaptureLost="PiPView_PointerCaptureLost"
+            PointerMoved="PiPView_PointerMoved"
+            PointerPressed="PiPView_PointerPressed"
+            PointerReleased="PiPView_PointerReleased"
             PointerWheelChanged="PiPView_PointerWheelChanged" />
 
         <!-- Top-left: return to the main player window. -->
