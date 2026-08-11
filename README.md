@@ -41,13 +41,13 @@
   right-click menu (translated through `user-data/mpvw/language`).
 - **Picture-in-picture**: a dedicated borderless always-on-top window with DWM
   rounded corners, native edge resize that is aspect-locked through a
-  `WM_SIZING` window subclass (OS size cursors + border drag via the kept
-  `WS_THICKFRAME`), drag-anywhere moving, and the fullscreen compact control
-  bar (time, transport, volume, progress). Entering PiP always opens at the
-  bottom-right of the main window's display with a display-relative default
-  size (the size presets map to ~15% / 25% / 35% of the work-area width).
-  The top-left button restores the main window; the top-right button quits
-  the whole player. The official
+  `WM_SIZING` window subclass and a `WM_NCHITTEST` resize border (OS size
+  cursors + border drag without any visible frame), drag-anywhere moving, and
+  the fullscreen compact control bar (time, transport, volume, progress).
+  Entering PiP always opens at the bottom-right of the main window's display
+  with a display-relative default size (the size presets map to ~15% / 25% /
+  35% of the work-area width). The top-left button restores the main window;
+  the top-right button quits the whole player. The official
   `CompactOverlayPresenter` was prototyped but rejected: it draws a system
   title bar that swallows the overlay buttons and blocks drag-anywhere moving
   (see [WindowsAppSDK#1593](https://github.com/microsoft/WindowsAppSDK/issues/1593)).
@@ -56,11 +56,12 @@
   window. Drag-anywhere tracks the cursor with `GetCursorPos` and moves with
   the official `AppWindow.Move`; the earlier WM_NCLBUTTONDOWN/HTCAPTION modal
   loop made the window stick to the cursor after release. Resize is native:
-  `OverlappedPresenter.IsResizable=true` plus `WS_THICKFRAME` kept in
-  `MakeFrameless`, so the OS handles edge hit-testing, size cursors and the
-  border drag, while a `WM_SIZING` subclass keeps the video aspect locked;
-  the swap chain follows via `AppWindow.Changed` with the 300ms debounced
-  size re-assert.
+  `OverlappedPresenter.IsResizable=true` plus `MakeFrameless` stripping the
+  whole frame, with a `WM_NCHITTEST` subclass returning border hit codes for
+  the outer client pixels, so the OS shows size cursors and runs the border
+  drag without a visible frame, while a `WM_SIZING` subclass keeps the video
+  aspect locked; the swap chain follows via `AppWindow.Changed` with the
+  300ms debounced size re-assert.
 - **Video preview**: thumbfast renders thumbnails through a bundled standalone
   `mpv.exe`; the app draws them as a rounded WinUI card above the progress bar.
 - **Mouse input**: wheel over the video controls volume/seek and the mouse

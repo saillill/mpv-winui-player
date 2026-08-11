@@ -23,14 +23,14 @@ namespace mpv_winui.Modules.Player;
 /// <summary>
 /// Dedicated picture-in-picture window: a borderless always-on-top window
 /// with rounded corners, native edge resize that is aspect-locked through
-/// WM_SIZING (WS_THICKFRAME kept so the OS draws the resize borders and size
-/// cursors), drag-anywhere moving, and the video swap chain. It reuses the
-/// fullscreen PlayerControl in centered compact mode. Entering PiP always
-/// claims the bottom-right corner of the main window's display and the
-/// default size is a proportion of that display's work area. The main window
-/// is hidden while PiP is active; the top-left button restores it, the
-/// top-right button quits the whole player, and Alt+F4 restores the main
-/// window.
+/// WM_SIZING and a WM_NCHITTEST resize border (the OS shows the size cursors
+/// and runs the border drag without drawing a visible frame), drag-anywhere
+/// moving, and the video swap chain. It reuses the fullscreen PlayerControl
+/// in centered compact mode. Entering PiP always claims the bottom-right
+/// corner of the main window's display and the default size is a proportion
+/// of that display's work area. The main window is hidden while PiP is
+/// active; the top-left button restores it, the top-right button quits the
+/// whole player, and Alt+F4 restores the main window.
 /// 
 /// The official Windows App SDK CompactOverlayPresenter was prototyped as a
 /// replacement for the Win32 frame hacks, but rejected: it adds a system
@@ -169,10 +169,9 @@ public sealed partial class PiPWindow : Window
             presenter.IsAlwaysOnTop = true;
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
-            // Native border resize: the OS provides the resize borders and
-            // size cursors on the window edges. The border is painted black
-            // (DWM) so the borderless look is kept while WS_THICKFRAME (kept
-            // in MakeFrameless) makes the edges resizable.
+            // Native border resize: WM_NCHITTEST returns border hit codes for
+            // the outer client pixels, so the OS shows the size cursors and
+            // runs the border drag without drawing any visible frame.
             presenter.IsResizable = true;
             presenter.SetBorderAndTitleBar(false, false);
         }
@@ -230,6 +229,61 @@ public sealed partial class PiPWindow : Window
         nuint dwRefData)
     {
         const int WM_SIZING = 0x0214;
+        const int WM_NCHITTEST = 0x0084;
+        const int HTLEFT = 10;
+        const int HTRIGHT = 11;
+        const int HTTOP = 12;
+        const int HTTOPLEFT = 13;
+        const int HTTOPRIGHT = 14;
+        const int HTBOTTOM = 15;
+        const int HTBOTTOMLEFT = 16;
+        const int HTBOTTOMRIGHT = 17;
+        const int ResizeBorder = 8;
+
+        if (uMsg == WM_NCHITTEST
+            && PInvoke.GetWindowRect(hWnd, out var windowRect))
+        {
+            var x = (short)((int)lParam.Value & 0xFFFF);
+            var y = (short)(((int)lParam.Value >> 16) & 0xFFFF);
+            var nearLeft = x >= windowRect.left && x < windowRect.left + ResizeBorder;
+            var nearRight = x >= windowRect.right - ResizeBorder && x < windowRect.right;
+            var nearTop = y >= windowRect.top && y < windowRect.top + ResizeBorder;
+            var nearBottom = y >= windowRect.bottom - ResizeBorder && y < windowRect.bottom;
+
+            if (nearTop && nearLeft)
+            {
+                return (LRESULT)HTTOPLEFT;
+            }
+            if (nearTop && nearRight)
+            {
+                return (LRESULT)HTTOPRIGHT;
+            }
+            if (nearBottom && nearLeft)
+            {
+                return (LRESULT)HTBOTTOMLEFT;
+            }
+            if (nearBottom && nearRight)
+            {
+                return (LRESULT)HTBOTTOMRIGHT;
+            }
+            if (nearLeft)
+            {
+                return (LRESULT)HTLEFT;
+            }
+            if (nearRight)
+            {
+                return (LRESULT)HTRIGHT;
+            }
+            if (nearTop)
+            {
+                return (LRESULT)HTTOP;
+            }
+            if (nearBottom)
+            {
+                return (LRESULT)HTBOTTOM;
+            }
+        }
+
         if (uMsg == WM_SIZING
             && _selfWeakReference?.TryGetTarget(out var self) == true)
         {
@@ -396,12 +450,13 @@ public sealed partial class PiPWindow : Window
             var hwnd = new HWND(WindowNative.GetWindowHandle(this));
             const int WS_BORDER = 0x00800000;
             const int WS_DLGFRAME = 0x00400000;
+            const int WS_THICKFRAME = 0x00040000;
 
             var style = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE);
-            // Keep WS_THICKFRAME so the OS still hit-tests the window edges
-            // for native resize (size cursors + border drag); only drop the
-            // visible frame styles.
-            style &= ~(WS_BORDER | WS_DLGFRAME);
+            // Remove the whole frame so DWM does not draw the thick black
+            // resize border. Native edge resize still works: the WM_NCHITTEST
+            // subclass returns HTLEFT/HTRIGHT/... for the outer client pixels.
+            style &= ~(WS_BORDER | WS_DLGFRAME | WS_THICKFRAME);
             _ = PInvoke.SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE, style);
             _ = PInvoke.SetWindowPos(
                 hwnd,
