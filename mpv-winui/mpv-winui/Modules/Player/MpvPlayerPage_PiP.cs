@@ -152,7 +152,7 @@ public sealed partial class MpvPlayerPage
         {
             pipWindow.VideoPanel.CompositionScaleChanged -= PiPView_CompositionScaleChanged;
             pipWindow.Detach();
-            pipWindow.Close();
+            pipWindow.CloseForTeardown();
             _pipWindow = null;
         }
     }

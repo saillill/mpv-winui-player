@@ -1,9 +1,13 @@
+using Microsoft.UI.Composition;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using mpv_winrt;
 using System;
+using System.Numerics;
 using Windows.Foundation;
 using Windows.Graphics;
 using Windows.Win32;
@@ -31,15 +35,15 @@ namespace mpv_winui.Modules.Player;
 /// </summary>
 public sealed partial class PiPWindow : Window
 {
-    public static PiPWindow? Instance { get; private set; }
-
     private MpvMediaPlayer? _player;
     private bool _closing;
+    private bool _tearingDown;
     private bool _topButtonsShow;
     private bool _topButtonsAnimating;
     private bool _topButtonsAnimationShow;
-    private long _topButtonsAnimationStart;
-    private readonly DispatcherTimer _topButtonsTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
+    private Compositor? _topButtonsCompositor;
+    private Visual? _topBackButtonVisual;
+    private Visual? _topExitButtonVisual;
     private readonly DispatcherTimer _sizeUpdateTimer = new() { Interval = TimeSpan.FromMilliseconds(300) };
     private const double TopMaskHeight = 90;
     private const double BottomMaskHeight = 120;
@@ -50,11 +54,11 @@ public sealed partial class PiPWindow : Window
 
     public PiPWindow()
     {
-        Instance = this;
         InitializeComponent();
         RootGrid.RequestedTheme = ElementTheme.Dark;
         ConfigureWindow();
         ApplyLocalizedStrings();
+        AppContext.LanguageChanged += PiPWindow_LanguageChanged;
 
         PiPView.PointerPressed += PiPView_PointerPressed;
         RootGrid.PointerMoved += RootGrid_PointerMoved;
@@ -248,6 +252,14 @@ public sealed partial class PiPWindow : Window
     {
         ToolTipService.SetToolTip(PiPBackButton, AppContext.AppLang.PiPBackToPlayer);
         ToolTipService.SetToolTip(PiPExitButton, AppContext.AppLang.PiPExit);
+        AutomationProperties.SetName(PiPBackButton, AppContext.AppLang.PiPBackToPlayer);
+        AutomationProperties.SetName(PiPExitButton, AppContext.AppLang.PiPExit);
+        AutomationProperties.SetName(PiPResizeGrip, "Resize");
+    }
+
+    private void PiPWindow_LanguageChanged()
+    {
+        ApplyLocalizedStrings();
     }
 
     private void PiPView_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -491,50 +503,80 @@ public sealed partial class PiPWindow : Window
 
         _topButtonsAnimating = true;
         _topButtonsAnimationShow = show;
-        _topButtonsAnimationStart = Environment.TickCount64;
         if (show)
         {
             PiPBackButton.Visibility = Visibility.Visible;
             PiPExitButton.Visibility = Visibility.Visible;
-            PiPBackButton.Opacity = 0;
-            PiPExitButton.Opacity = 0;
+            PiPBackButton.Opacity = 1;
+            PiPExitButton.Opacity = 1;
         }
-        _topButtonsTimer.Tick -= TopButtonsAnimationTick;
-        _topButtonsTimer.Tick += TopButtonsAnimationTick;
-        _topButtonsTimer.Start();
+
+        EnsureTopButtonVisuals();
+        if (_topButtonsCompositor is null || _topBackButtonVisual is null || _topExitButtonVisual is null)
+        {
+            // Composition unavailable: snap to the target state.
+            TopButtonsAnimationCompleted(show);
+            return;
+        }
+
+        _topBackButtonVisual.StopAnimation("Opacity");
+        _topExitButtonVisual.StopAnimation("Opacity");
+
+        var ease = _topButtonsCompositor.CreateCubicBezierEasingFunction(
+            new Vector2(0.215f, 0.61f),
+            new Vector2(0.355f, 1f));
+        var opacity = _topButtonsCompositor.CreateScalarKeyFrameAnimation();
+        opacity.Duration = TimeSpan.FromMilliseconds(180);
+        // Start from the current composition value when hiding so a mid-show
+        // reversal fades from where the buttons actually are.
+        opacity.InsertKeyFrame(0f, show ? 0f : _topBackButtonVisual.Opacity);
+        opacity.InsertKeyFrame(1f, show ? 1f : 0f, ease);
+
+        var batch = _topButtonsCompositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+        _topBackButtonVisual.StartAnimation("Opacity", opacity);
+        _topExitButtonVisual.StartAnimation("Opacity", opacity);
+        batch.Completed += (_, _) => TopButtonsAnimationCompleted(show);
+        batch.End();
     }
 
-    private void TopButtonsAnimationTick(object? sender, object e)
+    private void EnsureTopButtonVisuals()
     {
-        const double durationMs = 180;
-        var elapsed = Environment.TickCount64 - _topButtonsAnimationStart;
-        var t = Math.Clamp(elapsed / durationMs, 0, 1);
-        var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
-
-        var opacity = _topButtonsAnimationShow ? eased : 1 - eased;
-        PiPBackButton.Opacity = opacity;
-        PiPExitButton.Opacity = opacity;
-
-        if (t >= 1)
+        if (_topBackButtonVisual is null)
         {
-            _topButtonsTimer.Stop();
-            _topButtonsAnimating = false;
-            PiPBackButton.Opacity = _topButtonsAnimationShow ? 1 : 0;
-            PiPExitButton.Opacity = _topButtonsAnimationShow ? 1 : 0;
-            if (!_topButtonsAnimationShow)
-            {
-                // Fully hidden buttons must not stay hit-testable: an
-                // invisible button still shows its tooltip on hover.
-                PiPBackButton.Visibility = Visibility.Collapsed;
-                PiPExitButton.Visibility = Visibility.Collapsed;
-            }
+            _topBackButtonVisual = ElementCompositionPreview.GetElementVisual(PiPBackButton);
+            _topExitButtonVisual = ElementCompositionPreview.GetElementVisual(PiPExitButton);
+            _topButtonsCompositor = _topBackButtonVisual.Compositor;
+        }
+    }
+
+    private void TopButtonsAnimationCompleted(bool show)
+    {
+        _topButtonsAnimating = false;
+        _topBackButtonVisual?.StopAnimation("Opacity");
+        _topExitButtonVisual?.StopAnimation("Opacity");
+        if (_topBackButtonVisual is not null)
+        {
+            _topBackButtonVisual.Opacity = show ? 1f : 0f;
+        }
+        if (_topExitButtonVisual is not null)
+        {
+            _topExitButtonVisual.Opacity = show ? 1f : 0f;
+        }
+        PiPBackButton.Opacity = show ? 1 : 0;
+        PiPExitButton.Opacity = show ? 1 : 0;
+        if (!show)
+        {
+            // Fully hidden buttons must not stay hit-testable: an
+            // invisible button still shows its tooltip on hover.
+            PiPBackButton.Visibility = Visibility.Collapsed;
+            PiPExitButton.Visibility = Visibility.Collapsed;
         }
     }
 
     private void StopTopButtonsAnimation()
     {
-        _topButtonsTimer.Stop();
-        _topButtonsTimer.Tick -= TopButtonsAnimationTick;
+        _topBackButtonVisual?.StopAnimation("Opacity");
+        _topExitButtonVisual?.StopAnimation("Opacity");
         _sizeUpdateTimer.Stop();
         _sizeUpdateTimer.Tick -= SizeUpdateTimer_Tick;
         _topButtonsAnimating = false;
@@ -542,6 +584,14 @@ public sealed partial class PiPWindow : Window
         PiPExitButton.Visibility = Visibility.Visible;
         PiPBackButton.Opacity = 1;
         PiPExitButton.Opacity = 1;
+        if (_topBackButtonVisual is not null)
+        {
+            _topBackButtonVisual.Opacity = 1f;
+        }
+        if (_topExitButtonVisual is not null)
+        {
+            _topExitButtonVisual.Opacity = 1f;
+        }
     }
 
     /// <summary>Leaves PiP by restoring the hidden main window; PiP never quits the app directly.</summary>
@@ -554,11 +604,21 @@ public sealed partial class PiPWindow : Window
     private void AppWindow_Closing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
     {
         // Alt+F4 on the PiP window restores the main window instead of quitting.
-        if (AppContext.AppSetting.WindowPiP)
+        if (!_tearingDown && AppContext.AppSetting.WindowPiP)
         {
             args.Cancel = true;
             RestoreMainWindow();
         }
+    }
+
+    /// <summary>
+    /// Closes the window for app teardown, bypassing the Alt+F4 restore
+    /// behavior so ClosePiPWindow actually closes it.
+    /// </summary>
+    public void CloseForTeardown()
+    {
+        _tearingDown = true;
+        Close();
     }
 
     private void PiPWindow_Closed(object sender, WindowEventArgs args)
@@ -569,12 +629,9 @@ public sealed partial class PiPWindow : Window
         }
         _closing = true;
 
+        AppContext.LanguageChanged -= PiPWindow_LanguageChanged;
         StopTopButtonsAnimation();
         Detach();
-        if (ReferenceEquals(Instance, this))
-        {
-            Instance = null;
-        }
         Closed -= PiPWindow_Closed;
     }
 

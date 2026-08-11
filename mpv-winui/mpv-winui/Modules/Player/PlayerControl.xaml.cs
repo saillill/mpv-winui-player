@@ -102,8 +102,6 @@ namespace mpv_winui.Modules.Player
         public void ApplyLocalizedStrings()
         {
             ToolTipService.SetToolTip(PiPButton, AppContext.AppLang.SettingsPiP);
-            ToolTipService.SetToolTip(PiPPlayPauseButton, AppContext.AppLang.Play);
-            ToolTipService.SetToolTip(PiPCloseButton, AppContext.AppLang.Close);
         }
 
         private void OnAppSettingChanged(string key, object? value)
@@ -138,23 +136,13 @@ namespace mpv_winui.Modules.Player
             PiPSymbol.Glyph = AppContext.AppSetting.WindowPiP ? "\uE981" : "\uE97E";
         }
 
-        private void OnPiPCloseClick(object sender, RoutedEventArgs e)
-        {
-            AppContext.AppSetting.WindowPiP = false;
-            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiP), false);
-            UpdatePiPButton();
-            UpdatePiPBar();
-        }
-
         /// <summary>
         /// Hides the main control bar while the dedicated PiP window is shown.
-        /// The in-window PiP bar is kept for compatibility but never displayed;
-        /// the PiP window has its own compact controls.
+        /// The PiP window has its own compact controls.
         /// </summary>
         public void UpdatePiPBar()
         {
             var pip = AppContext.AppSetting.WindowPiP;
-            PiPBar.Visibility = Visibility.Collapsed;
             if (_isPiPHost)
             {
                 // The PiP window hosts this control bar, so it stays visible
@@ -604,8 +592,6 @@ namespace mpv_winui.Modules.Player
         {
             RootGrid.PointerMoved += RootGrid_PointerMoved;
             PiPButton.Click += OnPiPClick;
-            PiPPlayPauseButton.Click += OnPlayPauseClick;
-            PiPCloseButton.Click += OnPiPCloseClick;
             AppContext.SettingChanged += OnAppSettingChanged;
             PlayPauseButton.Click += OnPlayPauseClick;
             SkipBackwardButton.Click += SkipBackwardButton_Click;
@@ -668,8 +654,6 @@ namespace mpv_winui.Modules.Player
         private void PlayerControl_Unloaded(object sender, RoutedEventArgs e)
         {
             PiPButton.Click -= OnPiPClick;
-            PiPPlayPauseButton.Click -= OnPlayPauseClick;
-            PiPCloseButton.Click -= OnPiPCloseClick;
             RootGrid.PointerMoved -= RootGrid_PointerMoved;
             AppContext.SettingChanged -= OnAppSettingChanged;
             PlayPauseButton.Click -= OnPlayPauseClick;
@@ -1571,7 +1555,6 @@ namespace mpv_winui.Modules.Player
             {
                 VisualStateManager.GoToState(this, "PauseState", useTransitions);
             }
-            PiPPlayPauseSymbol.Glyph = isPaused ? "\uF5B0" : "\uF8AE";
         }
 
         private void UpdateVolumeUI(bool useTransitions)
