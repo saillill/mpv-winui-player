@@ -2,6 +2,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using mpv_winrt;
 using System;
 using Windows.Foundation;
 using Windows.Graphics;
@@ -67,9 +68,11 @@ public sealed partial class PiPWindow : Window
         if (_player is not null)
         {
             _player.MediaOpened -= PiPPlayer_MediaLoaded;
+            _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
         }
         _player = player;
         _player.MediaOpened += PiPPlayer_MediaLoaded;
+        _player.MediaInfoChanged += PiPPlayer_MediaInfoChanged;
         PiPControls.MediaPlayer = player;
         PiPControls.IsPiPHost = true;
     }
@@ -79,6 +82,7 @@ public sealed partial class PiPWindow : Window
         if (_player is not null)
         {
             _player.MediaOpened -= PiPPlayer_MediaLoaded;
+            _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
             PiPControls.MediaPlayer = null;
             _player = null;
         }
@@ -244,6 +248,12 @@ public sealed partial class PiPWindow : Window
         {
             return;
         }
+        if (!e.GetCurrentPoint(PiPView).Properties.IsLeftButtonPressed)
+        {
+            // Right/middle/X buttons must not start the caption drag; they
+            // are reserved for mpv bindings and the context menu.
+            return;
+        }
 
         // Hand the press to the system caption: the modal move loop starts
         // immediately and ends on release, so the window never sticks to the
@@ -311,6 +321,28 @@ public sealed partial class PiPWindow : Window
             RefreshVideoAspect();
             ApplyPiPSize(AppWindow.Size.Width, AppWindow.Size.Height);
             ScheduleVideoSizeUpdate();
+        });
+    }
+
+    private void PiPPlayer_MediaInfoChanged(MpvMediaPlayer player, MediaInfoChangedEventArgs args)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            // dwidth/dheight are only current once the video is reconfigured;
+            // FILE_LOADED (MediaOpened) can run with the previous file's
+            // values. Re-fit only when the aspect actually changed to avoid
+            // needless resizes on title/metadata updates.
+            if (args.VideoWidth <= 0 || args.VideoHeight <= 0)
+            {
+                return;
+            }
+            var aspect = args.VideoWidth / args.VideoHeight;
+            if (Math.Abs(aspect - _videoAspect) > 0.001)
+            {
+                _videoAspect = aspect;
+                ApplyPiPSize(AppWindow.Size.Width, AppWindow.Size.Height);
+                ScheduleVideoSizeUpdate();
+            }
         });
     }
 
