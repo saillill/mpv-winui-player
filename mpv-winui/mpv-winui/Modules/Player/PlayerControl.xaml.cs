@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Hosting;
@@ -102,6 +103,24 @@ namespace mpv_winui.Modules.Player
         public void ApplyLocalizedStrings()
         {
             ToolTipService.SetToolTip(PiPButton, AppContext.AppLang.SettingsPiP);
+
+            // Keyboard/screen-reader names (XAML holds English placeholders).
+            AutomationProperties.SetName(ProgressSlider, AppContext.AppLang.ControlBarIconPlayback);
+            AutomationProperties.SetName(PlayPauseButton, AppContext.AppLang.Play);
+            AutomationProperties.SetName(PreviousTrackButton, AppContext.AppLang.MorePreviousTrack);
+            AutomationProperties.SetName(NextTrackButton, AppContext.AppLang.MoreNextTrack);
+            AutomationProperties.SetName(SkipBackwardButton, AppContext.AppLang.MoreSkipBackward);
+            AutomationProperties.SetName(SkipForwardButton, AppContext.AppLang.MoreSkipForward);
+            AutomationProperties.SetName(ShuffleButton, AppContext.AppLang.MoreShuffle);
+            AutomationProperties.SetName(RepeatButton, AppContext.AppLang.MoreRepeat);
+            AutomationProperties.SetName(VolumeMuteButton, AppContext.AppLang.PiPMute);
+            AutomationProperties.SetName(VolumeSlider, AppContext.AppLang.ControlBarIconVolume);
+            AutomationProperties.SetName(PlaybackRateButton, AppContext.AppLang.MorePlaybackRate);
+            AutomationProperties.SetName(TrackSelectionButton, AppContext.AppLang.ControlBarIconTracks);
+            AutomationProperties.SetName(ZoomButton, AppContext.AppLang.MoreZoom);
+            AutomationProperties.SetName(PiPButton, AppContext.AppLang.SettingsPiP);
+            AutomationProperties.SetName(FullWindowButton, AppContext.AppLang.MoreFullWindow);
+            AutomationProperties.SetName(FullScreenButton, AppContext.AppLang.MoreFullScreen);
         }
 
         private void OnAppSettingChanged(string key, object? value)
@@ -377,6 +396,14 @@ namespace mpv_winui.Modules.Player
             }
         }
 
+        // While a slider owns focus its arrow keys are the slider's own input;
+        // the keyboard hook (MpvPlayerPage_Input) checks UiFocusInSlider to
+        // avoid forwarding them to mpv as well (double seek).
+        private void ProgressSlider_GotFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = true;
+        private void ProgressSlider_LostFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = false;
+        private void VolumeSlider_GotFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = true;
+        private void VolumeSlider_LostFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = false;
+
         private void UpdateTimeTexts(double position, double duration)
         {
             TimeElapsedElement.Text = FormatTime(position);
@@ -629,6 +656,10 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.ValueChanged += OnPositionSliderValueChanged;
             ProgressSlider.PointerPressed += ProgressSlider_PointerPressed;
             ProgressSlider.PointerReleased += ProgressSlider_PointerReleased;
+            ProgressSlider.GotFocus += ProgressSlider_GotFocus;
+            ProgressSlider.LostFocus += ProgressSlider_LostFocus;
+            VolumeSlider.GotFocus += VolumeSlider_GotFocus;
+            VolumeSlider.LostFocus += VolumeSlider_LostFocus;
             if (AppContext.AppSetting.EnableVideoPreview)
             {
                 ProgressSlider.PointerEntered += ProgressSlider_PointerEntered;
@@ -684,6 +715,10 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.ValueChanged -= OnPositionSliderValueChanged;
             ProgressSlider.PointerPressed -= ProgressSlider_PointerPressed;
             ProgressSlider.PointerReleased -= ProgressSlider_PointerReleased;
+            ProgressSlider.GotFocus -= ProgressSlider_GotFocus;
+            ProgressSlider.LostFocus -= ProgressSlider_LostFocus;
+            VolumeSlider.GotFocus -= VolumeSlider_GotFocus;
+            VolumeSlider.LostFocus -= VolumeSlider_LostFocus;
             ProgressSlider.PointerEntered -= ProgressSlider_PointerEntered;
             ProgressSlider.PointerMoved -= ProgressSlider_PointerMoved;
             ProgressSlider.PointerExited -= ProgressSlider_PointerExited;

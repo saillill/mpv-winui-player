@@ -1,10 +1,14 @@
 using mpv_winui.Modules.AppModel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace mpv_winui.Modules.Settings
 {
+    // MpvSettings.ApplyAll enumerates the properties reflectively; keep them
+    // available under trimming/AOT.
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     public class AppSettings
     {
         private readonly IDataSetting _dataSetting;

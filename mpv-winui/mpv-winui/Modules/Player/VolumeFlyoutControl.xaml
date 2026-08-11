@@ -5,21 +5,21 @@
     <StackPanel Spacing="4">
         <AppBarButton
             x:Name="MuteButton"
-            Width="40"
+                        AutomationProperties.Name="Mute"
+Width="40"
             HorizontalAlignment="Center"
             Click="MuteButton_Click"
-            IsTabStop="False"
-            LabelPosition="Collapsed">
+                        LabelPosition="Collapsed">
             <AppBarButton.Icon>
                 <FontIcon x:Name="VolumeIcon" />
             </AppBarButton.Icon>
         </AppBarButton>
         <Slider
             x:Name="VolumeSlider"
-            Height="100"
+                        AutomationProperties.Name="Volume"
+Height="100"
             HorizontalAlignment="Center"
-            IsTabStop="False"
-            Maximum="100"
+                        Maximum="100"
             Minimum="0"
             Orientation="Vertical" />
     </StackPanel>

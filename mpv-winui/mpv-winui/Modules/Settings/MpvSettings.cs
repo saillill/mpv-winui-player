@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -205,184 +206,43 @@ public static class MpvSettings
             : cmd;
     }
 
+    /// <summary>
+    /// Applies every AppSettings property that has an mpv mapping to the live
+    /// player. <see cref="ToCommand"/> is the single source of truth: this
+    /// method enumerates the properties reflectively, so adding a setting only
+    /// requires a new ToCommand case (no second table to keep in sync).
+    /// Read-only properties (e.g. AppVersion) and unmapped keys return null
+    /// from ToCommand and are skipped. Volume/Speed are intentionally not
+    /// mapped for apply-time: volume is passed at mpv Initialize and speed
+    /// defaults to 1.0, so a settings reset never clobbers the live session.
+    /// </summary>
     public static void ApplyAll(Action<string> run)
     {
-        var s = AppContext.AppSetting;
-        foreach (var (key, value) in new (string, object)[]
+        var settings = AppContext.AppSetting;
+        var props = typeof(AppSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        foreach (var prop in props)
         {
-            (nameof(AppSettings.Hwdec), s.Hwdec),
-            (nameof(AppSettings.HwdecCodecs), s.HwdecCodecs),
-            (nameof(AppSettings.AlwaysOnTop), s.AlwaysOnTop),
-            (nameof(AppSettings.InputIme), s.InputIme),
-            (nameof(AppSettings.D3d11OutputCsp), s.D3d11OutputCsp),
-            (nameof(AppSettings.D3d11ExclusiveFs), s.D3d11ExclusiveFs),
-            (nameof(AppSettings.D3d11Flip), s.D3d11Flip),
-            (nameof(AppSettings.D3d11Adapter), s.D3d11Adapter),
-            (nameof(AppSettings.VolumeMax), s.VolumeMax),
-            (nameof(AppSettings.KeepOpen), s.KeepOpen),
-            (nameof(AppSettings.LoopPlaylist), s.LoopPlaylist),
-            (nameof(AppSettings.LoopFile), s.LoopFile),
-            // Volume and Speed are intentionally NOT re-sent here: volume is
-            // applied at mpv initialization (MpvPlayer.Initialize) and speed
-            // defaults to 1.0. Re-sending them from a settings reset would
-            // clobber the live session state (e.g. resetting any category
-            // would force volume back to 100).
-            (nameof(AppSettings.CacheEnabled), s.CacheEnabled),
-            (nameof(AppSettings.DemuxerReadahead), s.DemuxerReadahead),
-            (nameof(AppSettings.Ytdl), s.Ytdl),
-            (nameof(AppSettings.YtdlRawOptionsAppend), s.YtdlRawOptionsAppend),
-            (nameof(AppSettings.YtdlFormat), s.YtdlFormat),
-            (nameof(AppSettings.UserAgent), s.UserAgent),
-            (nameof(AppSettings.Referrer), s.Referrer),
-            (nameof(AppSettings.HttpHeaderFields), s.HttpHeaderFields),
-            (nameof(AppSettings.HttpProxy), s.HttpProxy),
-            (nameof(AppSettings.CookiesFile), s.CookiesFile),
-            (nameof(AppSettings.TlsVerify), s.TlsVerify),
-            (nameof(AppSettings.NetworkTimeout), s.NetworkTimeout),
-            (nameof(AppSettings.CurlMaxRedirects), s.CurlMaxRedirects),
-            (nameof(AppSettings.CurlMaxRetries), s.CurlMaxRetries),
-            (nameof(AppSettings.CurlConnectTimeout), s.CurlConnectTimeout),
-            (nameof(AppSettings.CurlBufferSize), s.CurlBufferSize),
-            (nameof(AppSettings.CurlMaxRequestSize), s.CurlMaxRequestSize),
-            (nameof(AppSettings.AutoCreatePlaylist), s.AutoCreatePlaylist),
-            (nameof(AppSettings.DirectoryMode), s.DirectoryMode),
-            (nameof(AppSettings.DirectoryFilterTypes), s.DirectoryFilterTypes),
-            (nameof(AppSettings.VideoExts), s.VideoExts),
-            (nameof(AppSettings.ImageExts), s.ImageExts),
-            (nameof(AppSettings.AudioExts), s.AudioExts),
-            (nameof(AppSettings.InputIpcServer), s.InputIpcServer),
-            (nameof(AppSettings.CacheDirectory), s.CacheDirectory),
-            (nameof(AppSettings.WatchLaterDir), s.WatchLaterDir),
-            (nameof(AppSettings.WatchLaterOptions), s.WatchLaterOptions),
-            (nameof(AppSettings.IccCacheDir), s.IccCacheDir),
-            (nameof(AppSettings.GpuShaderCacheDir), s.GpuShaderCacheDir),
-            (nameof(AppSettings.Deinterlace), s.Deinterlace),
-            (nameof(AppSettings.AspectRatio), s.AspectRatio),
-            (nameof(AppSettings.Cscale), s.Cscale),
-            (nameof(AppSettings.Tscale), s.Tscale),
-            (nameof(AppSettings.LinearUpscaling), s.LinearUpscaling),
-            (nameof(AppSettings.Dither), s.Dither),
-            (nameof(AppSettings.Panscan), s.Panscan),
-            (nameof(AppSettings.VideoUnscaled), s.VideoUnscaled),
-            (nameof(AppSettings.BackgroundTileColor0), s.BackgroundTileColor0),
-            (nameof(AppSettings.BackgroundTileColor1), s.BackgroundTileColor1),
-            (nameof(AppSettings.BackgroundTileSize), s.BackgroundTileSize),
-            (nameof(AppSettings.SubFontSize), s.SubFontSize),
-            (nameof(AppSettings.SubDelay), s.SubDelay),
-            (nameof(AppSettings.SubPos), s.SubPos),
-            (nameof(AppSettings.AudioLanguage), s.AudioLanguage),
-            (nameof(AppSettings.SubtitleLanguage), s.SubtitleLanguage),
-            (nameof(AppSettings.SubFilePaths), s.SubFilePaths),
-            (nameof(AppSettings.SubHdrPeak), s.SubHdrPeak),
-            (nameof(AppSettings.ImageSubsHdrPeak), s.ImageSubsHdrPeak),
-            (nameof(AppSettings.ImageSubsVideoResolution), s.ImageSubsVideoResolution),
-            (nameof(AppSettings.SubAssStyleOverrides), s.SubAssStyleOverrides),
-            (nameof(AppSettings.SubColor), s.SubColor),
-            (nameof(AppSettings.SubBackColor), s.SubBackColor),
-            (nameof(AppSettings.SubBorderColor), s.SubBorderColor),
-            (nameof(AppSettings.SubScaleSigns), s.SubScaleSigns),
-            (nameof(AppSettings.SubAssUseVideoData), s.SubAssUseVideoData),
-            (nameof(AppSettings.SubAssVideoAspectOverride), s.SubAssVideoAspectOverride),
-            (nameof(AppSettings.SubAssVsfilterColorCompat), s.SubAssVsfilterColorCompat),
-            (nameof(AppSettings.AudioDevice), s.AudioDevice),
-            (nameof(AppSettings.ScreenshotDirectory), s.ScreenshotDirectory),
-            (nameof(AppSettings.ScreenshotTemplate), s.ScreenshotTemplate),
-            (nameof(AppSettings.SavePositionOnQuit), s.SavePositionOnQuit),
-            (nameof(AppSettings.ResumePlayback), s.ResumePlayback),
-            (nameof(AppSettings.ScreenshotFormat), s.ScreenshotFormat),
-            (nameof(AppSettings.ScreenshotJpegQuality), s.ScreenshotJpegQuality),
-            (nameof(AppSettings.ScreenshotJpegSourceChroma), s.ScreenshotJpegSourceChroma),
-            (nameof(AppSettings.VideoSync), s.VideoSync),
-            (nameof(AppSettings.VideoSyncMaxVideoChange), s.VideoSyncMaxVideoChange),
-            (nameof(AppSettings.Interpolation), s.Interpolation),
-            (nameof(AppSettings.CorrectDownscaling), s.CorrectDownscaling),
-            (nameof(AppSettings.Scale), s.Scale),
-            (nameof(AppSettings.DScale), s.DScale),
-            (nameof(AppSettings.VideoRotate), s.VideoRotate),
-            (nameof(AppSettings.Deband), s.Deband),
-            (nameof(AppSettings.LinearDownscaling), s.LinearDownscaling),
-            (nameof(AppSettings.SigmoidUpscaling), s.SigmoidUpscaling),
-            (nameof(AppSettings.ToneMapping), s.ToneMapping),
-            (nameof(AppSettings.DitherDepth), s.DitherDepth),
-            (nameof(AppSettings.HrSeek), s.HrSeek),
-            (nameof(AppSettings.HrSeekFramedrop), s.HrSeekFramedrop),
-            (nameof(AppSettings.CacheOnDisk), s.CacheOnDisk),
-            (nameof(AppSettings.TargetColorspaceHint), s.TargetColorspaceHint),
-            (nameof(AppSettings.TargetColorspaceHintMode), s.TargetColorspaceHintMode),
-            (nameof(AppSettings.TargetColorspaceHintStrict), s.TargetColorspaceHintStrict),
-            (nameof(AppSettings.TargetPrim), s.TargetPrim),
-            (nameof(AppSettings.TargetTrc), s.TargetTrc),
-            (nameof(AppSettings.TargetPeak), s.TargetPeak),
-            (nameof(AppSettings.GamutMappingMode), s.GamutMappingMode),
-            (nameof(AppSettings.VideoOutputLevels), s.VideoOutputLevels),
-            (nameof(AppSettings.VideoDecodeDirect), s.VideoDecodeDirect),
-            (nameof(AppSettings.IccProfileAuto), s.IccProfileAuto),
-            (nameof(AppSettings.IccProfile), s.IccProfile),
-            (nameof(AppSettings.IccForceContrast), s.IccForceContrast),
-            (nameof(AppSettings.IccCache), s.IccCache),
-            (nameof(AppSettings.Icc3dlutSize), s.Icc3dlutSize),
-            (nameof(AppSettings.DemuxerMaxBytes), s.DemuxerMaxBytes),
-            (nameof(AppSettings.DemuxerMaxBackBytes), s.DemuxerMaxBackBytes),
-            (nameof(AppSettings.GpuShaderCache), s.GpuShaderCache),
-            (nameof(AppSettings.GlslShadersAppend), s.GlslShadersAppend),
-            (nameof(AppSettings.AudioChannels), s.AudioChannels),
-            (nameof(AppSettings.AudioGapless), s.AudioGapless),
-            (nameof(AppSettings.AudioWaitOpen), s.AudioWaitOpen),
-            (nameof(AppSettings.AudioBuffer), s.AudioBuffer),
-            (nameof(AppSettings.AudioExclusive), s.AudioExclusive),
-            (nameof(AppSettings.AudioPitchCorrection), s.AudioPitchCorrection),
-            (nameof(AppSettings.AudioNormalizeDownmix), s.AudioNormalizeDownmix),
-            (nameof(AppSettings.AudioFileAuto), s.AudioFileAuto),
-            (nameof(AppSettings.AudioFilePaths), s.AudioFilePaths),
-            (nameof(AppSettings.AudioDisplay), s.AudioDisplay),
-            (nameof(AppSettings.AudioDelay), s.AudioDelay),
-            (nameof(AppSettings.SubAssOverride), s.SubAssOverride),
-            (nameof(AppSettings.SubBlur), s.SubBlur),
-            (nameof(AppSettings.SubAuto), s.SubAuto),
-            (nameof(AppSettings.SubFont), s.SubFont),
-            (nameof(AppSettings.SubFontProvider), s.SubFontProvider),
-            (nameof(AppSettings.SubFontFile), s.SubFontFile),
-            (nameof(AppSettings.SubAssScaleWithWindow), s.SubAssScaleWithWindow),
-            (nameof(AppSettings.BlendSubtitles), s.BlendSubtitles),
-            (nameof(AppSettings.SubFallback), s.SubFallback),
-            (nameof(AppSettings.SubCodePage), s.SubCodePage),
-            (nameof(AppSettings.SubOutlineSize), s.SubOutlineSize),
-            (nameof(AppSettings.SubShadowOffset), s.SubShadowOffset),
-            (nameof(AppSettings.SubEmbeddedFonts), s.SubEmbeddedFonts),
-            (nameof(AppSettings.SubUseMargins), s.SubUseMargins),
-            (nameof(AppSettings.SubAssForceMargins), s.SubAssForceMargins),
-            (nameof(AppSettings.StretchImageSubsToScreen), s.StretchImageSubsToScreen),
-            (nameof(AppSettings.OsdFontSize), s.OsdFontSize),
-            (nameof(AppSettings.OsdFont), s.OsdFont),
-            (nameof(AppSettings.OsdColor), s.OsdColor),
-            (nameof(AppSettings.OsdOutlineColor), s.OsdOutlineColor),
-            (nameof(AppSettings.OsdPlayingMsg), s.OsdPlayingMsg),
-            (nameof(AppSettings.OsdPlayingMsgDuration), s.OsdPlayingMsgDuration),
-            (nameof(AppSettings.OsdBarWidth), s.OsdBarWidth),
-            (nameof(AppSettings.OsdBarHeight), s.OsdBarHeight),
-            (nameof(AppSettings.OsdBlur), s.OsdBlur),
-            (nameof(AppSettings.OsdOutlineSize), s.OsdOutlineSize),
-            (nameof(AppSettings.OsdFractions), s.OsdFractions),
-            (nameof(AppSettings.OsdOnSeek), s.OsdOnSeek),
-            (nameof(AppSettings.OsdDuration), s.OsdDuration),
-            (nameof(AppSettings.CacheSecs), s.CacheSecs),
-            (nameof(AppSettings.ScreenshotPngCompression), s.ScreenshotPngCompression),
-            (nameof(AppSettings.ScreenshotPngFilter), s.ScreenshotPngFilter),
-            (nameof(AppSettings.ScreenshotWebpQuality), s.ScreenshotWebpQuality),
-            (nameof(AppSettings.ScreenshotWebpLossless), s.ScreenshotWebpLossless),
-            (nameof(AppSettings.ScreenshotWebpCompression), s.ScreenshotWebpCompression),
-            (nameof(AppSettings.ScreenshotJxlDistance), s.ScreenshotJxlDistance),
-            (nameof(AppSettings.ScreenshotJxlEffort), s.ScreenshotJxlEffort),
-            (nameof(AppSettings.ScreenshotAvifEncoder), s.ScreenshotAvifEncoder),
-            (nameof(AppSettings.ScreenshotHighBitDepth), s.ScreenshotHighBitDepth),
-            (nameof(AppSettings.ScreenshotTagColorspace), s.ScreenshotTagColorspace),
-            (nameof(AppSettings.ScreenshotSw), s.ScreenshotSw),
-            (nameof(AppSettings.VsrAutoEnabled), s.VsrAutoEnabled),
-            (nameof(AppSettings.HdrAutoMode), s.HdrAutoMode),
-            (nameof(AppSettings.SeekHoldEnabled), s.SeekHoldEnabled),
-        })
-        {
-            if (ToCommand(key, value) is { } cmd)
+            if (!prop.CanRead || !prop.CanWrite)
+            {
+                continue;
+            }
+
+            object? value;
+            try
+            {
+                value = prop.GetValue(settings);
+            }
+            catch
+            {
+                // A failing getter must not abort the whole apply pass.
+                continue;
+            }
+            if (value is null)
+            {
+                continue;
+            }
+
+            if (ToCommand(prop.Name, value) is { } cmd)
             {
                 run(cmd);
             }

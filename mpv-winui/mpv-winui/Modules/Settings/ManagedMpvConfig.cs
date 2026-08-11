@@ -19,6 +19,18 @@ public static class ManagedMpvConfig
 
     public static async Task WriteAsync()
     {
+        try
+        {
+            await WriteCoreAsync();
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Error(ex, "managed mpv.conf write failed");
+        }
+    }
+
+    private static async Task WriteCoreAsync()
+    {
         var s = AppContext.AppSetting;
         var lines = new List<string>
         {
@@ -39,6 +51,9 @@ public static class ManagedMpvConfig
             "mpv.conf");
         if (!File.Exists(path))
         {
+            // Config is normally deployed by deploy-config.ps1; without it the
+            // ytdl_hook options cannot take effect, so surface the condition.
+            AppContext.AppLogger.Warn("mpv.conf not found at {}, managed options skipped", path);
             return;
         }
 

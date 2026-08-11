@@ -22,13 +22,11 @@ private List<Option> BuildSettings()
     {
         var program = AppContext.AppLang.SettingsCategoryProgram;
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
-        var trackSelection = AppContext.AppLang.SettingsCategoryTrackSelection;
         var watchLater = AppContext.AppLang.SettingsCategoryWatchLater;
         var video = AppContext.AppLang.SettingsCategoryVideo;
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var subtitles = AppContext.AppLang.SettingsCategorySubtitles;
         var window = AppContext.AppLang.SettingsCategoryWindow;
-        var demuxer = AppContext.AppLang.SettingsCategoryDemuxer;
         var cache = AppContext.AppLang.SettingsCategoryCache;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var input = AppContext.AppLang.SettingsCategoryInput;
@@ -36,15 +34,12 @@ private List<Option> BuildSettings()
         var osd = AppContext.AppLang.SettingsCategoryOsd;
         var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
         var testing = AppContext.AppLang.SettingsCategoryTesting;
-        var gpuRenderer = AppContext.AppLang.SettingsCategoryGpuRenderer;
-        var videoSync = AppContext.AppLang.SettingsCategoryVideoSync;
         var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramNetwork = AppContext.AppLang.SectionProgramNetwork;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var sProgramAssociations = AppContext.AppLang.SectionProgramAssociations;
         var sProgramConfig = AppContext.AppLang.SectionProgramConfig;
-        var sPlaybackFiles = AppContext.AppLang.SectionDemuxerPlaylist;
         var sWindowPiP = AppContext.AppLang.SectionWindowPiP;
         var sNetworkYtdlp = AppContext.AppLang.SectionNetworkYtdlp;
         var sNetworkHttp = AppContext.AppLang.SectionNetworkHttp;
@@ -59,9 +54,7 @@ private List<Option> BuildSettings()
         var sWatchLaterStorage = AppContext.AppLang.SectionWatchLaterStorage;
         var sVideoDecode = AppContext.AppLang.SectionVideoDecode;
         var sVideoImage = AppContext.AppLang.SectionVideoImage;
-        var sVideoHdr = AppContext.AppLang.SectionVideoHdr;
         var sVideoFilters = AppContext.AppLang.SectionVideoFilters;
-        var sVideoUpscaling = AppContext.AppLang.SectionVideoUpscaling;
         var sAudioOutput = AppContext.AppLang.SectionAudioOutput;
         var sAudioVolume = AppContext.AppLang.SectionAudioVolume;
         var sAudioExternal = AppContext.AppLang.SectionAudioExternal;
@@ -140,249 +133,6 @@ private List<Option> BuildSettings()
             osd,
             screenshot,
             testing,
-        };
-
-        var categoryMap = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            // program
-            [nameof(AppSettings.ThemeType)] = program,
-            [nameof(AppSettings.BackdropType)] = program,
-            [nameof(AppSettings.ThemeAccentColor)] = program,
-            [nameof(AppSettings.ThemeOpacity)] = program,
-            [nameof(AppSettings.ThemeLuminosity)] = program,
-            [nameof(AppSettings.UiFont)] = program,
-            [nameof(AppSettings.CurrentLanguage)] = program,
-            [nameof(AppSettings.EnableDebugLog)] = testing,
-            // playback
-            [nameof(AppSettings.LoopFile)] = playback,
-            [nameof(AppSettings.LoopPlaylist)] = playback,
-            [nameof(AppSettings.Speed)] = playback,
-            [nameof(AppSettings.HrSeek)] = playback,
-            [nameof(AppSettings.HrSeekFramedrop)] = playback,
-            [nameof(AppSettings.SeekHoldEnabled)] = playback,
-            [nameof(AppSettings.EnableVideoPreview)] = playback,
-            [nameof(AppSettings.ThumbfastQuality)] = playback,
-            [nameof(AppSettings.ThumbfastNetwork)] = playback,
-            [nameof(AppSettings.ThumbfastMinDuration)] = playback,
-            [nameof(AppSettings.ThumbfastPrecise)] = playback,
-            [nameof(AppSettings.ThumbfastMaxWidth)] = playback,
-            [nameof(AppSettings.ThumbfastMaxHeight)] = playback,
-            [nameof(AppSettings.ThumbfastSpawnFirst)] = playback,
-            [nameof(AppSettings.ThumbfastThreads)] = playback,
-            [nameof(AppSettings.ThumbfastFrequency)] = playback,
-            [nameof(AppSettings.ThumbfastDirectIo)] = playback,
-            [nameof(AppSettings.ThumbfastQuitAfterInactivity)] = playback,
-            // watchLater
-            [nameof(AppSettings.SavePositionOnQuit)] = watchLater,
-            [nameof(AppSettings.ResumePlayback)] = watchLater,
-            [nameof(AppSettings.WatchLaterOptions)] = watchLater,
-            [nameof(AppSettings.WatchLaterDir)] = watchLater,
-            // video
-            [nameof(AppSettings.Hwdec)] = video,
-            [nameof(AppSettings.HwdecCodecs)] = video,
-            [nameof(AppSettings.VideoDecodeDirect)] = video,
-            [nameof(AppSettings.Deinterlace)] = video,
-            [nameof(AppSettings.VideoRotate)] = video,
-            [nameof(AppSettings.AspectRatio)] = video,
-            [nameof(AppSettings.Panscan)] = video,
-            [nameof(AppSettings.VideoUnscaled)] = video,
-            [nameof(AppSettings.VideoOutputLevels)] = video,
-            [nameof(AppSettings.HdrAutoMode)] = video,
-            [nameof(AppSettings.HdrAutoLog)] = video,
-            [nameof(AppSettings.VsrAutoEnabled)] = video,
-            [nameof(AppSettings.Scale)] = video,
-            [nameof(AppSettings.DScale)] = video,
-            [nameof(AppSettings.Cscale)] = video,
-            [nameof(AppSettings.Tscale)] = video,
-            [nameof(AppSettings.LinearUpscaling)] = video,
-            [nameof(AppSettings.SigmoidUpscaling)] = video,
-            [nameof(AppSettings.LinearDownscaling)] = video,
-            [nameof(AppSettings.CorrectDownscaling)] = video,
-            [nameof(AppSettings.Deband)] = video,
-            [nameof(AppSettings.Dither)] = video,
-            [nameof(AppSettings.DitherDepth)] = video,
-            [nameof(AppSettings.ToneMapping)] = video,
-            [nameof(AppSettings.TargetColorspaceHint)] = video,
-            [nameof(AppSettings.TargetColorspaceHintMode)] = video,
-            [nameof(AppSettings.TargetColorspaceHintStrict)] = video,
-            [nameof(AppSettings.TargetPrim)] = video,
-            [nameof(AppSettings.TargetTrc)] = video,
-            [nameof(AppSettings.TargetPeak)] = video,
-            [nameof(AppSettings.GamutMappingMode)] = video,
-            [nameof(AppSettings.IccProfileAuto)] = video,
-            [nameof(AppSettings.IccProfile)] = video,
-            [nameof(AppSettings.IccForceContrast)] = video,
-            [nameof(AppSettings.Icc3dlutSize)] = video,
-            [nameof(AppSettings.IccCache)] = video,
-            [nameof(AppSettings.IccCacheDir)] = video,
-            [nameof(AppSettings.D3d11OutputCsp)] = video,
-            [nameof(AppSettings.Interpolation)] = video,
-            [nameof(AppSettings.BackgroundTileColor0)] = video,
-            [nameof(AppSettings.BackgroundTileColor1)] = video,
-            [nameof(AppSettings.BackgroundTileSize)] = video,
-            [nameof(AppSettings.D3d11ExclusiveFs)] = video,
-            [nameof(AppSettings.D3d11Flip)] = video,
-            [nameof(AppSettings.D3d11Adapter)] = video,
-            [nameof(AppSettings.GpuShaderCache)] = video,
-            [nameof(AppSettings.GpuShaderCacheDir)] = video,
-            [nameof(AppSettings.GlslShadersAppend)] = video,
-            [nameof(AppSettings.VideoSync)] = video,
-            [nameof(AppSettings.VideoSyncMaxVideoChange)] = video,
-            // audio
-            [nameof(AppSettings.AudioDevice)] = audio,
-            [nameof(AppSettings.AudioExclusive)] = audio,
-            [nameof(AppSettings.AudioChannels)] = audio,
-            [nameof(AppSettings.AudioDelay)] = audio,
-            [nameof(AppSettings.AudioBuffer)] = audio,
-            [nameof(AppSettings.AudioWaitOpen)] = audio,
-            [nameof(AppSettings.AudioPitchCorrection)] = audio,
-            [nameof(AppSettings.AudioNormalizeDownmix)] = audio,
-            [nameof(AppSettings.AudioGapless)] = audio,
-            [nameof(AppSettings.Volume)] = audio,
-            [nameof(AppSettings.VolumeMax)] = audio,
-            [nameof(AppSettings.AudioFileAuto)] = audio,
-            [nameof(AppSettings.AudioExts)] = audio,
-            [nameof(AppSettings.AudioFilePaths)] = audio,
-            [nameof(AppSettings.AudioDisplay)] = audio,
-            [nameof(AppSettings.AudioLanguage)] = audio,
-            [nameof(AppSettings.CoverArtPreferEmbedded)] = audio,
-            [nameof(AppSettings.CoverArtAlwaysScan)] = audio,
-            [nameof(AppSettings.CoverArtLoadFromFilesystem)] = audio,
-            [nameof(AppSettings.CoverArtPreload)] = audio,
-            [nameof(AppSettings.CoverArtNames)] = audio,
-            [nameof(AppSettings.CoverArtImageExts)] = audio,
-            // subtitles
-            [nameof(AppSettings.SubtitleLanguage)] = subtitles,
-            [nameof(AppSettings.SubFallback)] = subtitles,
-            [nameof(AppSettings.SubFontSize)] = subtitles,
-            [nameof(AppSettings.SubFont)] = subtitles,
-            [nameof(AppSettings.SubFontFile)] = subtitles,
-            [nameof(AppSettings.SubFontProvider)] = subtitles,
-            [nameof(AppSettings.SubCodePage)] = subtitles,
-            [nameof(AppSettings.SubColor)] = subtitles,
-            [nameof(AppSettings.SubBackColor)] = subtitles,
-            [nameof(AppSettings.SubBorderColor)] = subtitles,
-            [nameof(AppSettings.SubOutlineSize)] = subtitles,
-            [nameof(AppSettings.SubShadowOffset)] = subtitles,
-            [nameof(AppSettings.SubBlur)] = subtitles,
-            [nameof(AppSettings.SubPos)] = subtitles,
-            [nameof(AppSettings.SubDelay)] = subtitles,
-            [nameof(AppSettings.SubScaleSigns)] = subtitles,
-            [nameof(AppSettings.SubUseMargins)] = subtitles,
-            [nameof(AppSettings.SubAuto)] = subtitles,
-            [nameof(AppSettings.SubFilePaths)] = subtitles,
-            [nameof(AppSettings.SubHdrPeak)] = subtitles,
-            [nameof(AppSettings.SubAssOverride)] = subtitles,
-            [nameof(AppSettings.SubAssStyleOverrides)] = subtitles,
-            [nameof(AppSettings.SubAssForceMargins)] = subtitles,
-            [nameof(AppSettings.SubAssScaleWithWindow)] = subtitles,
-            [nameof(AppSettings.SubAssUseVideoData)] = subtitles,
-            [nameof(AppSettings.SubAssVideoAspectOverride)] = subtitles,
-            [nameof(AppSettings.SubAssVsfilterColorCompat)] = subtitles,
-            [nameof(AppSettings.SubEmbeddedFonts)] = subtitles,
-            [nameof(AppSettings.BlendSubtitles)] = subtitles,
-            [nameof(AppSettings.StretchImageSubsToScreen)] = subtitles,
-            [nameof(AppSettings.ImageSubsVideoResolution)] = subtitles,
-            [nameof(AppSettings.ImageSubsHdrPeak)] = subtitles,
-            // window
-            [nameof(AppSettings.AlwaysOnTop)] = window,
-            [nameof(AppSettings.KeepOpen)] = window,
-            [nameof(AppSettings.WindowPiP)] = window,
-            [nameof(AppSettings.WindowPiPSize)] = window,
-            [nameof(AppSettings.WindowStartMaximized)] = window,
-            [nameof(AppSettings.WindowRememberSize)] = window,
-            // demuxer
-            [nameof(AppSettings.AutoCreatePlaylist)] = playback,
-            [nameof(AppSettings.DirectoryMode)] = playback,
-            [nameof(AppSettings.DirectoryFilterTypes)] = playback,
-            [nameof(AppSettings.VideoExts)] = playback,
-            [nameof(AppSettings.ImageExts)] = playback,
-            [nameof(AppSettings.DemuxerMaxBytes)] = cache,
-            [nameof(AppSettings.DemuxerMaxBackBytes)] = cache,
-            [nameof(AppSettings.DemuxerReadahead)] = cache,
-            // cache
-            [nameof(AppSettings.CacheEnabled)] = cache,
-            [nameof(AppSettings.CacheSecs)] = cache,
-            [nameof(AppSettings.CacheOnDisk)] = cache,
-            [nameof(AppSettings.CacheDirectory)] = cache,
-            // network
-            [nameof(AppSettings.Ytdl)] = network,
-            [nameof(AppSettings.YtdlRawOptionsAppend)] = network,
-            [nameof(AppSettings.YtdlFormat)] = network,
-            [nameof(AppSettings.YtdlPath)] = network,
-            [nameof(AppSettings.YtdlTryFirst)] = network,
-            [nameof(AppSettings.YtdlAllFormats)] = network,
-            [nameof(AppSettings.YtdlUseManifests)] = network,
-            [nameof(AppSettings.YtdlThumbnails)] = network,
-            [nameof(AppSettings.YtdlExclude)] = network,
-            [nameof(AppSettings.UserAgent)] = network,
-            [nameof(AppSettings.Referrer)] = network,
-            [nameof(AppSettings.HttpHeaderFields)] = network,
-            [nameof(AppSettings.HttpProxy)] = network,
-            [nameof(AppSettings.CookiesFile)] = network,
-            [nameof(AppSettings.TlsVerify)] = network,
-            [nameof(AppSettings.NetworkTimeout)] = network,
-            [nameof(AppSettings.CurlMaxRedirects)] = network,
-            [nameof(AppSettings.CurlMaxRetries)] = network,
-            [nameof(AppSettings.CurlConnectTimeout)] = network,
-            [nameof(AppSettings.CurlBufferSize)] = network,
-            [nameof(AppSettings.CurlMaxRequestSize)] = network,
-            // input
-            [nameof(AppSettings.InputIme)] = input,
-            [nameof(AppSettings.InputIpcServer)] = input,
-            // shortcuts
-            ["ShortcutReset"] = shortcuts,
-            // program actions
-            ["FileAssociationCheckList"] = program,
-            ["ActionUnassociateFiles"] = program,
-            ["ActionExportConfig"] = program,
-            ["ActionImportConfig"] = program,
-            [nameof(AppSettings.ControlBarLayout)] = program,
-            [nameof(AppSettings.ControlBarHiddenIcons)] = program,
-            // osd
-            [nameof(AppSettings.OsdFontSize)] = osd,
-            [nameof(AppSettings.OsdFont)] = osd,
-            [nameof(AppSettings.OsdColor)] = osd,
-            [nameof(AppSettings.OsdOutlineColor)] = osd,
-            [nameof(AppSettings.OsdOnSeek)] = osd,
-            [nameof(AppSettings.OsdDuration)] = osd,
-            [nameof(AppSettings.OsdPlayingMsg)] = osd,
-            [nameof(AppSettings.OsdPlayingMsgDuration)] = osd,
-            [nameof(AppSettings.OsdBarWidth)] = osd,
-            [nameof(AppSettings.OsdBarHeight)] = osd,
-            [nameof(AppSettings.OsdBlur)] = osd,
-            [nameof(AppSettings.OsdOutlineSize)] = osd,
-            [nameof(AppSettings.OsdFractions)] = osd,
-            [nameof(AppSettings.ShowOsdPlayingMsg)] = osd,
-            [nameof(AppSettings.MetadataOsdEnabled)] = osd,
-            [nameof(AppSettings.MetadataOsdAutohideTimeout)] = osd,
-            [nameof(AppSettings.MetadataOsdShowChapter)] = osd,
-            [nameof(AppSettings.MetadataOsdEnableForVideo)] = osd,
-            [nameof(AppSettings.MetadataOsdEnableForImage)] = osd,
-            [nameof(AppSettings.MetadataOsdAutohideStatusTimeout)] = osd,
-            [nameof(AppSettings.MetadataOsdShowAlbumTrack)] = osd,
-            [nameof(AppSettings.MetadataOsdMessageMaxLength)] = osd,
-            // screenshot
-            [nameof(AppSettings.ScreenshotDirectory)] = screenshot,
-            [nameof(AppSettings.ScreenshotTemplate)] = screenshot,
-            [nameof(AppSettings.ScreenshotFormat)] = screenshot,
-            [nameof(AppSettings.ScreenshotJpegQuality)] = screenshot,
-            [nameof(AppSettings.ScreenshotJpegSourceChroma)] = screenshot,
-            [nameof(AppSettings.ScreenshotPngCompression)] = screenshot,
-            [nameof(AppSettings.ScreenshotPngFilter)] = screenshot,
-            [nameof(AppSettings.ScreenshotWebpQuality)] = screenshot,
-            [nameof(AppSettings.ScreenshotWebpLossless)] = screenshot,
-            [nameof(AppSettings.ScreenshotWebpCompression)] = screenshot,
-            [nameof(AppSettings.ScreenshotJxlDistance)] = screenshot,
-            [nameof(AppSettings.ScreenshotJxlEffort)] = screenshot,
-            [nameof(AppSettings.ScreenshotAvifEncoder)] = screenshot,
-            [nameof(AppSettings.ScreenshotHighBitDepth)] = screenshot,
-            [nameof(AppSettings.ScreenshotTagColorspace)] = screenshot,
-            [nameof(AppSettings.ScreenshotSw)] = screenshot,
-            // testing
-            [nameof(AppSettings.TestMpvCommandLog)] = testing,
-            [nameof(AppSettings.TestOsdMessage)] = testing,
-            [nameof(AppSettings.TestSignal)] = testing,
         };
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
@@ -910,12 +660,21 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.TestSignal)] = sProgramTesting,
         };
 
+        // Category is set inline on each Option (single source of truth);
+        // sectionMap is the single source for sections (they are not declared
+        // inline). A missing mapping must fail loudly: a silently dropped
+        // option disappears from the settings tree without any trace.
+        var missingCategory = options.Where(o => string.IsNullOrEmpty(o.Category)).Select(o => o.Key).ToList();
+        var missingSections = options.Where(o => !sectionMap.ContainsKey(o.Key)).Select(o => o.Key).ToList();
+        if (missingCategory.Count > 0 || missingSections.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Settings tree broken: missing Category for [{string.Join(", ", missingCategory)}]; " +
+                $"missing sectionMap entry for [{string.Join(", ", missingSections)}]");
+        }
+
         foreach (var option in options)
         {
-            if (categoryMap.TryGetValue(option.Key, out var category))
-            {
-                option.Category = category;
-            }
             if (sectionMap.TryGetValue(option.Key, out var section))
             {
                 option.Section = section;

@@ -58,6 +58,20 @@ public static class PluginConfigWriter
 
     public static async Task WriteAllAsync()
     {
+        try
+        {
+            await WriteAllCoreAsync();
+        }
+        catch (Exception ex)
+        {
+            // A config write must never crash the app; log and keep the last
+            // known file intact (the marker-based merge is idempotent).
+            AppContext.AppLogger.Error(ex, "plugin config write failed");
+        }
+    }
+
+    private static async Task WriteAllCoreAsync()
+    {
         var s = AppContext.AppSetting;
         Managed["hdr_auto.conf"]["log"] = s.HdrAutoLog ? "yes" : "no";
         Managed["metadata_osd.conf"]["enable_on_start"] = s.MetadataOsdEnabled ? "yes" : "no";

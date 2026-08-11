@@ -156,6 +156,11 @@ namespace mpv_winui.Modules.Player
         {
             InitDisplayInfo();
 
+            // Ensure settings-managed config files (script-opts/*.conf, the
+            // managed mpv.conf block) are written before mpv reads the config
+            // dir at Initialize; AppContext.Init enqueues these asynchronously.
+            await AppContext.WaitAll();
+
             var configFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
             if (_logger.IsDebugEnabled)
             {

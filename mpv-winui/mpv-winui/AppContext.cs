@@ -21,8 +21,19 @@ namespace mpv_winui
 
         private static Task? _task;
 
+        /// <summary>Serializes config-file writes so concurrent setting changes cannot interleave.</summary>
+        private static readonly object _configWriteGate = new();
+        private static Task _configWriteTask = Task.CompletedTask;
+
         /// <summary>由播放页在 mpv 初始化后挂接，用于把设置即时下发到 mpv。</summary>
         public static Action<string>? RunMpvCommand { get; set; }
+
+        /// <summary>
+        /// True while a UI slider (progress/volume) owns keyboard focus. The
+        /// global keyboard hook must then NOT forward arrow keys to mpv, or a
+        /// single keypress would seek twice (WinUI slider + mpv binding).
+        /// </summary>
+        public static volatile bool UiFocusInSlider;
 
         /// <summary>由播放页挂接，用于设置页动态枚举 mpv 音频输出设备。</summary>
         public static Func<IReadOnlyList<MpvAudioDevice>>? GetAudioDevices { get; set; }
@@ -43,13 +54,39 @@ namespace mpv_winui
         /// <summary>Writes settings-managed plugin options into script-opts/*.conf (next mpv start).</summary>
         public static void WritePluginConfigs()
         {
-            _ = PluginConfigWriter.WriteAllAsync();
+            _ = EnqueueConfigWrite(PluginConfigWriter.WriteAllAsync);
         }
 
         /// <summary>Writes config-only options (ytdl_hook script options) into the deployed mpv.conf.</summary>
         public static void WriteManagedMpvConfig()
         {
-            _ = ManagedMpvConfig.WriteAsync();
+            _ = EnqueueConfigWrite(ManagedMpvConfig.WriteAsync);
+        }
+
+        /// <summary>
+        /// Chains a config write onto the shared serialized queue. Writes run
+        /// one at a time on the thread pool and never throw out of the queue
+        /// (errors are logged by the wrapper), so callers can fire-and-forget.
+        /// </summary>
+        private static Task EnqueueConfigWrite(Func<Task> write)
+        {
+            lock (_configWriteGate)
+            {
+                _configWriteTask = _configWriteTask.ContinueWith(
+                    async _ =>
+                    {
+                        try
+                        {
+                            await write();
+                        }
+                        catch (Exception ex)
+                        {
+                            AppLogger.Error(ex, "config write failed");
+                        }
+                    },
+                    TaskScheduler.Default).Unwrap();
+                return _configWriteTask;
+            }
         }
 
         public static void NotifySettingChanged(string key, object? value)
@@ -81,11 +118,13 @@ namespace mpv_winui
         {
             LoadLanguage();
             SettingChanged += OnSettingChanged;
-            _task = Task.WhenAll([
-                Task.Run(LoggerHelper.SetupLogger),
-                Task.Run(PluginConfigWriter.WriteAllAsync),
-                Task.Run(ManagedMpvConfig.WriteAsync)
-            ]);
+            var loggerTask = Task.Run(LoggerHelper.SetupLogger);
+            // Enqueue the config writes on the same serialized queue so the
+            // startup path can await them before mpv reads the config dir.
+            _task = Task.WhenAll(
+                loggerTask,
+                EnqueueConfigWrite(PluginConfigWriter.WriteAllAsync),
+                EnqueueConfigWrite(ManagedMpvConfig.WriteAsync));
         }
 
         private static void OnSettingChanged(string key, object? value)
@@ -139,12 +178,13 @@ namespace mpv_winui
 
         public static async Task WaitAll()
         {
-            if (_task != null)
+            // Capture the reference locally: the field may be read from
+            // several threads, and awaiting a completed task again is safe,
+            // so it is never nulled out here.
+            if (_task is { } task)
             {
-                await _task;
+                await task;
             }
-
-            _task = null;
         }
 
     }
