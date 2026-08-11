@@ -92,6 +92,18 @@ public sealed partial class PiPWindow : Window
     private PointInt32 _dragStartPosition;
     private RECT _sizingAnchorRect;
     private static WeakReference<PiPWindow>? _selfWeakReference;
+    private static readonly HCURSOR _cursorSizeWE = LoadSizeCursor(32644);    // IDC_SIZEWE
+    private static readonly HCURSOR _cursorSizeNS = LoadSizeCursor(32645);    // IDC_SIZENS
+    private static readonly HCURSOR _cursorSizeNWSE = LoadSizeCursor(32642);  // IDC_SIZENWSE
+    private static readonly HCURSOR _cursorSizeNESW = LoadSizeCursor(32643);  // IDC_SIZENESW
+
+    private static HCURSOR LoadSizeCursor(int id)
+    {
+        unsafe
+        {
+            return PInvoke.LoadCursor(HINSTANCE.Null, new PCWSTR((char*)(nint)id));
+        }
+    }
 
     public PiPWindow()
     {
@@ -228,9 +240,50 @@ public sealed partial class PiPWindow : Window
         nuint dwRefData)
     {
         const int WM_NCHITTEST = 0x0084;
+        const int WM_SETCURSOR = 0x0020;
         const int WM_NCCALCSIZE = 0x0083;
         const int WM_ENTERSIZEMOVE = 0x0231;
         const int WM_SIZING = 0x0214;
+
+        if (uMsg == WM_SETCURSOR
+            && PInvoke.GetCursorPos(out var cursor)
+            && PInvoke.GetWindowRect(hWnd, out var cursorRect))
+        {
+            // WinUI 3 does not go through the legacy WM_NCHITTEST hover path,
+            // so the OS never shows the resize cursors by itself. Set them
+            // explicitly here from the cursor position over the 8px edge
+            // zones; the native SC_SIZE drag still runs on button-down.
+            var x = cursor.X;
+            var y = cursor.Y;
+            var nearLeft = x >= cursorRect.left && x < cursorRect.left + ResizeBorder;
+            var nearRight = x >= cursorRect.right - ResizeBorder && x < cursorRect.right;
+            var nearTop = y >= cursorRect.top && y < cursorRect.top + ResizeBorder;
+            var nearBottom = y >= cursorRect.bottom - ResizeBorder && y < cursorRect.bottom;
+
+            HCURSOR? resizeCursor = null;
+            if (nearTop && nearLeft || nearBottom && nearRight)
+            {
+                resizeCursor = _cursorSizeNWSE;
+            }
+            else if (nearTop && nearRight || nearBottom && nearLeft)
+            {
+                resizeCursor = _cursorSizeNESW;
+            }
+            else if (nearLeft || nearRight)
+            {
+                resizeCursor = _cursorSizeWE;
+            }
+            else if (nearTop || nearBottom)
+            {
+                resizeCursor = _cursorSizeNS;
+            }
+
+            if (resizeCursor is { } handle)
+            {
+                _ = PInvoke.SetCursor(handle);
+                return (LRESULT)1;
+            }
+        }
 
         if (uMsg == WM_NCCALCSIZE && wParam.Value != 0)
         {

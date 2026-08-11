@@ -32,6 +32,8 @@ DwmSetWindowAttribute
 SendMessage
 GetCursorPos
 GetWindowRect
+LoadCursor
+SetCursor
 GetWindowLong
 SetWindowLong
 SetWindowPos
