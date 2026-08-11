@@ -47,6 +47,9 @@ powershell -File mpv-winui-lazy\deploy-config.ps1
 `*.log`、`recent.json`、`saved-props.json` 为运行数据，不部署、不删除；
 `menus.json` 同样被排除——目标目录中的 `menus.json` 是用户的菜单覆盖配置（App 优先读取），部署不得清除。
 
+> 安装版与便携版首次运行时会由 App 自动执行一次等效部署（`ConfigDeployer`，
+> 源为本程序目录 `mpv-winui-lazy\`），手动运行本脚本仅在需要强制重置配置时使用。
+
 ## 许可证
 
 自创内容以 LGPL-2.1-or-later 发布（与主程序一致）；第三方组件版权归原作者，

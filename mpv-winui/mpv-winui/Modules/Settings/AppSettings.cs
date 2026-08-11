@@ -553,7 +553,7 @@ namespace mpv_winui.Modules.Settings
 
         public string SubAssOverride
         {
-            get => _dataSetting.GetValue(nameof(SubAssOverride), "force");
+            get => _dataSetting.GetValue(nameof(SubAssOverride), "scale");
             set => _dataSetting.SetValue(nameof(SubAssOverride), value);
         }
 
@@ -688,7 +688,7 @@ namespace mpv_winui.Modules.Settings
 
         public bool VsrAutoEnabled
         {
-            get => _dataSetting.GetValue(nameof(VsrAutoEnabled), true);
+            get => _dataSetting.GetValue(nameof(VsrAutoEnabled), false);
             set => _dataSetting.SetValue(nameof(VsrAutoEnabled), value);
         }
 

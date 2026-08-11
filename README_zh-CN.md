@@ -10,6 +10,22 @@
 > 的复刻版，一款 Windows 上的 mpv 图形播放器。内核还是真正的 mpv，界面换成
 > 了清爽的 WinUI 3——不用命令行，常用操作点一下就行。
 
+## 安装
+
+两种方式，任选其一：
+
+- **安装版（MSI）**：`dist\mpv-winui-setup-x64-<版本>.msi`。按用户安装到
+  `%LocalAppData%\Programs\mpv-winui-player`（无需管理员权限），开始菜单自动
+  创建快捷方式。新版本 MSI 直接覆盖升级；卸载不会删除 `%LOCALAPPDATA%\mpv-winui`
+  中的播放数据、日志与配置。
+- **便携版（zip）**：`dist\mpv-winui-win-x64-Release.zip`，解压后直接运行
+  `mpv-winui.exe`。
+
+两种方式首次运行时都会自动把内置 mpv 配置（`mpv-winui-lazy\`）部署到
+`%LOCALAPPDATA%\mpv-winui\mpv`，无需手动步骤。之后对 mpv 配置、菜单
+（`menus.json` 用户覆盖）与键位的修改都在该目录进行，升级或重新部署不会覆盖
+你的改动。
+
 ## 功能介绍
 
 （界面截图待补充）

@@ -1,4 +1,5 @@
 using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
 using mpv_winui.Modules.Settings;
 using mpv_winrt;
@@ -118,6 +119,16 @@ namespace mpv_winui
         {
             LoadLanguage();
             SettingChanged += OnSettingChanged;
+
+            // First-run config deployment must finish BEFORE the config writers
+            // below start: they merge into mpv.conf (ManagedMpvConfig) and the
+            // script-opts files, so the bundled layer has to be on disk first.
+            // Synchronous and a fast no-op once mpv.conf exists.
+            var mpvDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "mpv-winui", "mpv");
+            ConfigDeployer.EnsureDeployed(mpvDir);
+
             var loggerTask = Task.Run(LoggerHelper.SetupLogger);
             // Enqueue the config writes on the same serialized queue so the
             // startup path can await them before mpv reads the config dir.

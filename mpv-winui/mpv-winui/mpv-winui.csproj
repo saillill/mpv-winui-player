@@ -113,6 +113,16 @@
         </Content>
     </ItemGroup>
 
+    <!-- Bundled mpv config layer: copied next to the exe so ConfigDeployer can
+         seed %LOCALAPPDATA%\mpv-winui\mpv on first run (portable zip + MSI).
+         Runtime dirs (cache) and the user-override menus.json are excluded. -->
+    <ItemGroup>
+        <Content Include="..\..\mpv-winui-lazy\**\*" Exclude="..\..\mpv-winui-lazy\cache\**;..\..\mpv-winui-lazy\_cache\**">
+            <Link>mpv-winui-lazy\%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
     <ItemGroup>
         <Content Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Include="..\libs\bin\mpv-2.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

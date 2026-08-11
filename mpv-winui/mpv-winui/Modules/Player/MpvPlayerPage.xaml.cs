@@ -165,16 +165,24 @@ namespace mpv_winui.Modules.Player
         {
             InitDisplayInfo();
 
-            // Ensure settings-managed config files (script-opts/*.conf, the
-            // managed mpv.conf block) are written before mpv reads the config
-            // dir at Initialize; AppContext.Init enqueues these asynchronously.
-            await AppContext.WaitAll();
-
             var configFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
             if (_logger.IsDebugEnabled)
             {
                 _logger.Debug("mpv config folder, path={}", configFolder.Path);
             }
+
+            // First run: copy the bundled config layer into the mpv config dir
+            // so the app works without a manual deploy-config.ps1 step. No-op
+            // once mpv.conf exists there (never overwrites user changes).
+            // This must run BEFORE WaitAll: the queued config writers (plugin
+            // script-opts, the managed mpv.conf block) expect mpv.conf to
+            // already exist and merge into it.
+            await ConfigDeployer.EnsureDeployedAsync(configFolder.Path);
+
+            // Ensure settings-managed config files (script-opts/*.conf, the
+            // managed mpv.conf block) are written before mpv reads the config
+            // dir at Initialize; AppContext.Init enqueues these asynchronously.
+            await AppContext.WaitAll();
 
             _mediaPlayer.SwapChainChanged += MpvPlayer_SwapChainChanged;
             await _mediaPlayer.InitializeAsync(configFolder.Path, AppContext.AppSetting.LastVideoVolume, _lastColorKind, (int)_lastRefreshRate);

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  mpv-winui-player MSI (WiX v5).
+
+  The app is unpackaged: all runtime data goes to %LOCALAPPDATA%\mpv-winui and
+  the registry, and the install directory is read-only. A per-user install
+  into %LocalAppData%\Programs (no elevation) is the natural fit; uninstall
+  leaves the user's data and settings untouched.
+
+  Preprocessor variables (set on the command line):
+    Version     - MSI product version, e.g. 1.0.0
+    UpgradeCode - fixed upgrade GUID for MajorUpgrade
+    SourceDir   - the publish output directory (harvested via <Files>)
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+      Name="mpv-winui-player"
+      Manufacturer="mpv-winui"
+      Version="$(var.Version)"
+      UpgradeCode="$(var.UpgradeCode)"
+      Scope="perUser"
+      Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of mpv-winui-player is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!--
+      Install into %LocalAppData%\Programs\mpv-winui-player (per-user, no
+      elevation). NOTE: the install directory must NOT be %LocalAppData%\mpv-winui
+      - that is the app's user-data root (logs, mpv config, languages).
+    -->
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="mpv-winui-player" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Harvest every published file (WiX v5: no separate heat step needed). -->
+    <ComponentGroup Id="FilesComponentGroup" Directory="INSTALLFOLDER">
+      <Files Include="$(var.SourceDir)\**\*" />
+    </ComponentGroup>
+
+    <!-- Start-menu shortcut with the app icon. -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut" Guid="*">
+        <Shortcut
+            Id="StartMenuMpvWinui"
+            Name="mpv-winui-player"
+            Description="mpv-winui-player - mpv 图形播放器"
+            Target="[INSTALLFOLDER]mpv-winui.exe"
+            WorkingDirectory="INSTALLFOLDER"
+            Icon="MpvWinuiIcon" />
+        <RemoveFolder Id="RemoveProgramMenuDir" Directory="ProgramMenuFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\mpv-winui-player" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <Feature Id="MainFeature" Title="mpv-winui-player" Level="1">
+      <ComponentGroupRef Id="FilesComponentGroup" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+
+    <Icon Id="MpvWinuiIcon" SourceFile="$(var.AppIcon)" />
+    <Property Id="ARPPRODUCTICON" Value="MpvWinuiIcon" />
+  </Package>
+</Wix>

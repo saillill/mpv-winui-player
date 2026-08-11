@@ -12,6 +12,7 @@ if ($SkipPublish) {
     Write-Host "==> Skipping publish, using existing output: $publishDir"
 } else {
     Write-Host "==> Publishing mpv-winui [$Configuration|$Platform]"
+    # mpv_winrt (C++) must be built with VS MSBuild first - see build.ps1.
     dotnet publish "$root\mpv-winui\mpv-winui\mpv-winui.csproj" `
         -c $Configuration -p:Platform=$Platform `
         -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false `
@@ -35,8 +36,9 @@ New-Item -ItemType Directory -Path $staging -Force | Out-Null
 
 # Publish output without PDBs (keeps the archive lean).
 robocopy $pub $staging /E /XF *.pdb /NFL /NDL /NJH /NJS /NP | Out-Null
-# Config layer: users deploy it to %LOCALAPPDATA%\mpv-winui\mpv with deploy-config.ps1.
-robocopy "$root\mpv-winui-lazy" "$staging\mpv-winui-lazy" /E /XD cache /NFL /NDL /NJH /NJS /NP | Out-Null
+# The mpv config layer (mpv-winui-lazy) is included in the publish output by the
+# csproj and is auto-deployed to %LOCALAPPDATA%\mpv-winui\mpv on first run
+# (ConfigDeployer), so no manual copy is needed here.
 
 New-Item -ItemType Directory -Path "$root\dist" -Force | Out-Null
 $zip = "$root\dist\mpv-winui-win-$Platform-$Configuration.zip"

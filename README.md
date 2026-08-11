@@ -12,6 +12,22 @@
 > wraps it in a clean WinUI 3 interface — no command line required, and the
 > things you use every day are one click away.
 
+## Installation
+
+Two options:
+
+- **MSI installer**: `dist\mpv-winui-setup-x64-<version>.msi`. Per-user install
+  into `%LocalAppData%\Programs\mpv-winui-player` (no admin rights), Start Menu
+  shortcut created automatically. Newer versions upgrade in place; uninstall
+  keeps your playback data, logs and config in `%LOCALAPPDATA%\mpv-winui`.
+- **Portable zip**: `dist\mpv-winui-win-x64-Release.zip` — extract and run
+  `mpv-winui.exe`.
+
+On first run both deploy the bundled mpv config (`mpv-winui-lazy\`) into
+`%LOCALAPPDATA%\mpv-winui\mpv` automatically. All later mpv config edits, menu
+overrides (`menus.json`) and key bindings live in that directory and survive
+upgrades/re-deploys.
+
 ## Features
 
 (Screenshots coming soon)
