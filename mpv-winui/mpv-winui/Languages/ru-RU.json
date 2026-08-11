@@ -786,21 +786,5 @@
   "ValidationValueNotEmpty": "Значение не может быть пустым",
   "WatchHistoryClearTitle": "Очистить историю",
   "WatchHistoryClearConfirm": "Вы уверены, что хотите очистить историю?",
-  "Clear": "Очистить",
-  "PlaylistImport": "Импорт плейлиста…",
-  "PlaylistExport": "Экспорт плейлиста…",
-  "PlaylistFilterPlaceholder": "Фильтр плейлиста…",
-  "MenuEditorTitle": "Редактор меню",
-  "CustomRate": "Своя скорость",
-  "DisplayInfo": "Информация о дисплее",
-  "SettingsCheckForUpdates": "Проверять обновления",
-  "SettingsCheckForUpdatesDescription": "Проверять страницу релизов GitHub при запуске.",
-  "UpdateAvailableTitle": "Доступно обновление",
-  "UpdateAvailableMessage": "Доступна новая версия:",
-  "UpdateAvailableOpen": "Открыть",
-  "UpdateAvailableLater": "Позже",
-  "SettingsControlBarFixedGroup": "Закреплено: воспроизведение, предыдущий, следующий, назад, вперёд",
-  "SettingsControlBarShown": "Показаны (перетащите, чтобы упорядочить, × скрыть)",
-  "SettingsControlBarAvailable": "Скрыты (перетащите на панель, чтобы показать)",
-  "SettingsControlBarCanvasHint": "Перетащите для порядка; за пределы панели — скрыть. Кнопки воспроизведения закреплены."
+  "Clear": "Очистить"
 }

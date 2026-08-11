@@ -1,17 +1,13 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Storage.Pickers;
 
 namespace mpv_winui.Modules.Player
 {
@@ -23,39 +19,11 @@ namespace mpv_winui.Modules.Player
         public readonly string Title => item.Title;
         public readonly string Path => item.Filename;
         public readonly string Filename => System.IO.Path.GetFileName(item.Filename);
-
-        /// <summary>Media duration in seconds, or &lt;= 0 when unknown.</summary>
-        public readonly double Duration => item.Duration;
-
-        /// <summary>Formatted "m:ss" / "h:mm:ss" for the playlist row, empty when unknown.</summary>
-        public readonly string DurationText
-        {
-            get
-            {
-                if (item.Duration <= 0)
-                {
-                    return string.Empty;
-                }
-                var total = (int)Math.Round(item.Duration);
-                var hours = total / 3600;
-                var minutes = (total % 3600) / 60;
-                var seconds = total % 60;
-                return hours > 0
-                    ? $"{hours}:{minutes:D2}:{seconds:D2}"
-                    : $"{minutes}:{seconds:D2}";
-            }
-        }
     };
 
     public sealed partial class MpvPlayerPage
     {
         public ObservableCollection<PlaylistItem> PlaylistItems { get; } = [];
-
-        /// <summary>Visible playlist rows (PlaylistItems filtered by <see cref="PlaylistFilterBox"/>).</summary>
-        public ObservableCollection<PlaylistItem> FilteredPlaylistItems { get; } = [];
-
-        private readonly List<PlaylistItem> _allPlaylistItems = [];
-        private string _playlistFilter = "";
 
         private void RefreshPlaylistAsync()
         {
@@ -66,59 +34,25 @@ namespace mpv_winui.Modules.Player
         {
             var items = await Task.Run(() => _mediaPlayer.Playlist().Select(x => new PlaylistItem(x)).ToList());
             PlaylistItems.Clear();
-            _allPlaylistItems.Clear();
             if (items?.Count > 0)
             {
                 foreach (var item in items)
                 {
                     PlaylistItems.Add(item);
-                    _allPlaylistItems.Add(item);
                 }
             }
 
-            ApplyPlaylistFilter();
-            SelectCurrentPlayListItem();
-            SetupPlaylistDrag();
-        }
-
-        private void ApplyPlaylistFilter()
-        {
-            var filter = _playlistFilter.Trim();
-            FilteredPlaylistItems.Clear();
-            if (filter.Length == 0)
-            {
-                foreach (var item in _allPlaylistItems)
-                {
-                    FilteredPlaylistItems.Add(item);
-                }
-                return;
-            }
-            foreach (var item in _allPlaylistItems)
-            {
-                if (item.Title.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                    || item.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                    || item.Path.Contains(filter, StringComparison.OrdinalIgnoreCase))
-                {
-                    FilteredPlaylistItems.Add(item);
-                }
-            }
-        }
-
-        private void PlaylistFilterBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            _playlistFilter = PlaylistFilterBox.Text;
-            ApplyPlaylistFilter();
             SelectCurrentPlayListItem();
         }
 
         private void SelectCurrentPlayListItem()
         {
-            for (int i = 0; i < FilteredPlaylistItems.Count; i++)
+            for (int i = 0; i < PlaylistItems.Count; i++)
             {
-                if (FilteredPlaylistItems[i].IsCurrent)
+                if (PlaylistItems[i].IsCurrent)
                 {
                     PlaylistView.SelectedIndex = i;
-                    PlaylistView.ScrollIntoView(FilteredPlaylistItems[i], ScrollIntoViewAlignment.Leading);
+                    PlaylistView.ScrollIntoView(PlaylistItems[i], ScrollIntoViewAlignment.Leading);
                     break;
                 }
             }
@@ -127,50 +61,6 @@ namespace mpv_winui.Modules.Player
         private void ClosePlaylist_Click(object sender, RoutedEventArgs e)
         {
             TogglePlaylist();
-        }
-
-        private async Task ImportPlaylistAsync()
-        {
-            var file = await FilePickerHelper.PickSingleFileAsync(picker =>
-            {
-                picker.SuggestedStartLocation = PickerLocationId.VideosLibrary;
-                picker.FileTypeFilter.Add(".m3u");
-                picker.FileTypeFilter.Add(".m3u8");
-            });
-            if (string.IsNullOrEmpty(file?.Path))
-            {
-                return;
-            }
-            // mpv's loadlist replaces the current playlist with the file's
-            // entries (relative paths resolve against the m3u's directory).
-            _mediaPlayer.Command(["osd-auto", "loadlist", file.Path]);
-            RefreshPlaylistAsync();
-        }
-
-        private async Task ExportPlaylistAsync()
-        {
-            if (PlaylistItems.Count == 0)
-            {
-                return;
-            }
-            var file = await FilePickerHelper.PickSaveFileAsync(picker =>
-            {
-                picker.SuggestedFileName = "playlist.m3u";
-                picker.FileTypeChoices.Add("M3U Playlist", [".m3u"]);
-            });
-            if (file is null)
-            {
-                return;
-            }
-            var builder = new System.Text.StringBuilder();
-            builder.AppendLine("#EXTM3U");
-            foreach (var item in PlaylistItems)
-            {
-                builder.AppendLine($"#EXTINF:-1,{item.Title}");
-                builder.AppendLine(item.Path);
-            }
-            await System.IO.File.WriteAllTextAsync(file.Path, builder.ToString());
-            AppContext.AppLogger.Info($"exported playlist ({PlaylistItems.Count} items): {file.Path}");
         }
 
         private async void RefreshPlaylist_Click(object sender, RoutedEventArgs e)
@@ -308,129 +198,10 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void MovePlaylistItem(int from, int visualTo)
+        private void MovePlaylistItem(int from, int to)
         {
-            // mpv's playlist-move(i, j) removes entry i first, then inserts it
-            // at j-1 when i < j (verified over the IPC pipe). To place the item
-            // at a visual row index we must compensate: when moving downward,
-            // ask for one position past the visual target.
-            int mpvTarget = visualTo + (from < visualTo ? 1 : 0);
-            _mediaPlayer.PlaylistMove(from, mpvTarget);
+            _mediaPlayer.PlaylistMove(from, to);
             RefreshPlaylistAsync();
-        }
-
-        // Manual drag-reorder. WinUI 3 ListView's built-in drag/reorder
-        // (CanDragItems/CanReorderItems) is unreliable for mouse in desktop
-        // mode, so the drag is driven from the pointer events below: a press
-        // on a row followed by a move past the threshold captures the pointer,
-        // and release moves the item to the row under the cursor (or to the
-        // end when dropped on empty space). A plain press+release stays a
-        // click and is handled by ItemClick.
-        private const double DRAG_THRESHOLD = 12.0;
-        private int _dragSourceIndex = -1;
-        private Point _dragStartPoint;
-        private bool _dragActive;
-        private bool _dragSetup;
-
-        private void SetupPlaylistDrag()
-        {
-            if (_dragSetup)
-            {
-                return;
-            }
-            _dragSetup = true;
-            // Handlers are attached to the container, not the ListView:
-            // ListViewItem captures the pointer on press, and captured
-            // pointer events are routed to the capturer's ancestor chain —
-            // they never reach a handler on the ListView itself. The
-            // container is on that chain, so move/release still arrive.
-            PlaylistContainer.AddHandler(PointerPressedEvent, new PointerEventHandler(PlaylistView_PointerPressed), true);
-            PlaylistContainer.AddHandler(PointerMovedEvent, new PointerEventHandler(PlaylistView_PointerMoved), true);
-            PlaylistContainer.AddHandler(PointerReleasedEvent, new PointerEventHandler(PlaylistView_PointerReleased), true);
-            PlaylistContainer.AddHandler(PointerCanceledEvent, new PointerEventHandler(PlaylistView_PointerReleased), true);
-            PlaylistContainer.AddHandler(PointerCaptureLostEvent, new PointerEventHandler(PlaylistView_PointerReleased), true);
-        }
-
-        private static PlaylistItem? FindPlaylistItem(DependencyObject? source)
-        {
-            while (source is not null)
-            {
-                if (source is FrameworkElement { DataContext: PlaylistItem item })
-                {
-                    return item;
-                }
-                source = VisualTreeHelper.GetParent(source);
-            }
-            return null;
-        }
-
-        private void PlaylistView_PointerPressed(object sender, PointerRoutedEventArgs e)
-        {
-            if (e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Mouse)
-            {
-                return;
-            }
-            var item = FindPlaylistItem(e.OriginalSource as DependencyObject);
-            if (item is null)
-            {
-                return;
-            }
-            _dragSourceIndex = item.Value.Index;
-            _dragStartPoint = e.GetCurrentPoint(PlaylistView).Position;
-            _dragActive = false;
-            PlaylistView.SelectedItem = item.Value;
-        }
-
-        private void PlaylistView_PointerMoved(object sender, PointerRoutedEventArgs e)
-        {
-            if (_dragSourceIndex < 0)
-            {
-                return;
-            }
-            var position = e.GetCurrentPoint(PlaylistView).Position;
-            if (!_dragActive)
-            {
-                var delta = new Point(position.X - _dragStartPoint.X, position.Y - _dragStartPoint.Y);
-                if (Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y) < DRAG_THRESHOLD)
-                {
-                    return;
-                }
-                _dragActive = true;
-                // No CapturePointer here: on WinUI 3 desktop capturing the
-                // pointer from an injected mouse stopped subsequent moves from
-                // reaching the view (observed via instrumentation). A short
-                // within-list drag does not need capture.
-            }
-        }
-
-        private void PlaylistView_PointerReleased(object sender, PointerRoutedEventArgs e)
-        {
-            if (_dragSourceIndex < 0)
-            {
-                return;
-            }
-            int from = _dragSourceIndex;
-            _dragSourceIndex = -1;
-            if (!_dragActive)
-            {
-                return; // a plain click; ItemClick handles it
-            }
-            _dragActive = false;
-            if (PlaylistView.PointerCaptures?.Count > 0)
-            {
-                PlaylistView.ReleasePointerCaptures();
-            }
-
-            var target = FindPlaylistItem(e.OriginalSource as DependencyObject);
-            int to = target is { } t ? t.Index : PlaylistItems.Count - 1;
-            if (from == to)
-            {
-                return;
-            }
-
-            // MovePlaylistItem applies mpv's downward-shift compensation; the
-            // visual row index is passed as-is.
-            MovePlaylistItem(from, to);
         }
     }
 }

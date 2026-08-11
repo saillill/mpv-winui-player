@@ -1,9 +1,0 @@
-namespace mpv_winrt
-{
-	runtimeclass MpvLogEventArgs
-	{
-		String Level { get; };
-		String Prefix { get; };
-		String Text { get; };
-	};
-}

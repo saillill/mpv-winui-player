@@ -786,21 +786,5 @@
   "ValidationValueNotEmpty": "La valeur ne peut pas être vide",
   "WatchHistoryClearTitle": "Effacer l'historique",
   "WatchHistoryClearConfirm": "Voulez-vous vraiment effacer l'historique ?",
-  "Clear": "Effacer",
-  "PlaylistImport": "Importer la liste de lecture…",
-  "PlaylistExport": "Exporter la liste de lecture…",
-  "PlaylistFilterPlaceholder": "Filtrer la liste de lecture…",
-  "MenuEditorTitle": "Éditeur de menus",
-  "CustomRate": "Vitesse personnalisée",
-  "DisplayInfo": "Infos d'affichage",
-  "SettingsCheckForUpdates": "Rechercher des mises à jour",
-  "SettingsCheckForUpdatesDescription": "Vérifier la page GitHub Releases au démarrage.",
-  "UpdateAvailableTitle": "Mise à jour disponible",
-  "UpdateAvailableMessage": "Une nouvelle version est disponible :",
-  "UpdateAvailableOpen": "Ouvrir",
-  "UpdateAvailableLater": "Plus tard",
-  "SettingsControlBarFixedGroup": "Fixe : lecture, précédent, suivant, recul, avance",
-  "SettingsControlBarShown": "Affichés (glisser pour réordonner, × pour masquer)",
-  "SettingsControlBarAvailable": "Masqués (glisser sur la barre pour afficher)",
-  "SettingsControlBarCanvasHint": "Glissez pour réordonner ; glissez hors de la barre pour masquer. Les contrôles de lecture sont fixes."
+  "Clear": "Effacer"
 }

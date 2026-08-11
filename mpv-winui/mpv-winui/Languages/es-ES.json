@@ -786,21 +786,5 @@
   "ValidationValueNotEmpty": "El valor no puede estar vacío",
   "WatchHistoryClearTitle": "Borrar historial",
   "WatchHistoryClearConfirm": "¿Seguro que desea borrar el historial?",
-  "Clear": "Borrar",
-  "PlaylistImport": "Importar lista de reproducción…",
-  "PlaylistExport": "Exportar lista de reproducción…",
-  "PlaylistFilterPlaceholder": "Filtrar lista de reproducción…",
-  "MenuEditorTitle": "Editor de menús",
-  "CustomRate": "Velocidad personalizada",
-  "DisplayInfo": "Información de pantalla",
-  "SettingsCheckForUpdates": "Buscar actualizaciones",
-  "SettingsCheckForUpdatesDescription": "Comprobar la página de lanzamientos de GitHub al inicio.",
-  "UpdateAvailableTitle": "Actualización disponible",
-  "UpdateAvailableMessage": "Hay una versión más reciente:",
-  "UpdateAvailableOpen": "Abrir",
-  "UpdateAvailableLater": "Más tarde",
-  "SettingsControlBarFixedGroup": "Fijos: reproducir, anterior, siguiente, retroceder, avanzar",
-  "SettingsControlBarShown": "Visibles (arrastra para ordenar, × para ocultar)",
-  "SettingsControlBarAvailable": "Ocultos (arrastra a la barra para mostrar)",
-  "SettingsControlBarCanvasHint": "Arrastra para ordenar; arrastra fuera de la barra para ocultar. Los controles de reproducción son fijos."
+  "Clear": "Borrar"
 }

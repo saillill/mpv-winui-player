@@ -786,21 +786,5 @@
   "ValidationValueNotEmpty": "Value cannot be empty",
   "WatchHistoryClearTitle": "Clear history",
   "WatchHistoryClearConfirm": "Are you sure you want to clear the history?",
-  "Clear": "Clear",
-  "PlaylistImport": "Import Playlist…",
-  "PlaylistExport": "Export Playlist…",
-  "PlaylistFilterPlaceholder": "Filter playlist…",
-  "MenuEditorTitle": "Menu Editor",
-  "CustomRate": "Custom speed",
-  "DisplayInfo": "Display info",
-  "SettingsCheckForUpdates": "Check for updates",
-  "SettingsCheckForUpdatesDescription": "Check the GitHub releases page for a newer version at startup.",
-  "UpdateAvailableTitle": "Update available",
-  "UpdateAvailableMessage": "A newer version is available:",
-  "UpdateAvailableOpen": "Open",
-  "UpdateAvailableLater": "Later",
-  "SettingsControlBarFixedGroup": "Fixed: play, previous, next, skip back, skip forward",
-  "SettingsControlBarShown": "Shown (drag to reorder, × to hide)",
-  "SettingsControlBarAvailable": "Hidden (drag onto the bar to show)",
-  "SettingsControlBarCanvasHint": "Drag the icons to reorder; drag off the bar to hide. The transport buttons are fixed."
+  "Clear": "Clear"
 }

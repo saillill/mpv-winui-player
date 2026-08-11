@@ -1,7 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
@@ -342,17 +340,6 @@ public sealed partial class SettingsPage
                     if (current == newLang) return; // 控件初始化回填不视为用户改动
                     AppContext.SwitchLanguage(newLang);
                 }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.CheckForUpdates),
-                Label = lang.SettingsCheckForUpdates,
-                Category = program,
-                Description = lang.SettingsCheckForUpdatesDescription,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.CheckForUpdates,
-                Setter = v => AppContext.AppSetting.CheckForUpdates = (bool)v!
             },
 
         ];

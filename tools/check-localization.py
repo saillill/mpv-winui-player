@@ -4,8 +4,6 @@
 * Every writable AppLang property must exist in each Languages/<lang>.json.
 * menus.json labelKey values must exist in AppLang; action values must be in
   the whitelist parsed from MpvPlayerPage_MenuBar.cs.
-* menus.json structure must match tools/menus.schema.json (validated inline,
-  without a jsonschema dependency).
 * Optional --xaml-audit prints hardcoded UI strings found in XAML.
 
 Exit code 1 on errors, 2 on internal failure.
@@ -33,9 +31,7 @@ def parse_applang_props(src: Path) -> set[str]:
 
 def parse_menu_actions(src: Path) -> set[str]:
     text = src.read_text(encoding="utf-8")
-    # Actions are registered via RegisterMenuAction("id", handler) in the
-    # static constructor (no more switch case list).
-    return set(re.findall(r'RegisterMenuAction\("([\w-]+)"', text))
+    return set(re.findall(r'case "([\w-]+)":', text))
 
 
 def walk_menus(items, props: set[str], actions: set[str], errors: list[str], path: str = "root"):
@@ -61,40 +57,6 @@ def walk_menus(items, props: set[str], actions: set[str], errors: list[str], pat
             errors.append(f"menus.json: item has neither action nor mpvCommand at {path}")
 
 
-def validate_menu_schema(items, errors: list[str], path: str = "root"):
-    """Structural validation mirroring tools/menus.schema.json.
-
-    Kept dependency-free (no jsonschema package): every item is either a
-    separator, a submenu (children), or a leaf with id + labelKey and one of
-    action/mpvCommand.
-    """
-    for index, item in enumerate(items):
-        item_path = f"{path}[{index}]"
-        if not isinstance(item, dict):
-            errors.append(f"menus.json: item at {item_path} is not an object")
-            continue
-        if item.get("separator") is True:
-            continue
-        if "children" in item:
-            if not isinstance(item["children"], list):
-                errors.append(f"menus.json: children at {item_path} is not an array")
-                continue
-            if not item.get("id"):
-                errors.append(f"menus.json: submenu at {item_path} has no id")
-            validate_menu_schema(
-                item["children"],
-                errors,
-                item_path + "/" + str(item.get("id", "?")),
-            )
-            continue
-        if not item.get("id"):
-            errors.append(f"menus.json: item at {item_path} has no id")
-        if not item.get("labelKey"):
-            errors.append(f"menus.json: item at {item_path} has no labelKey")
-        if not item.get("action") and not item.get("mpvCommand"):
-            errors.append(f"menus.json: item at {item_path} has neither action nor mpvCommand")
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -114,7 +76,6 @@ def main() -> int:
     warnings: list[str] = []
     lang_dir = ROOT / "mpv-winui" / "mpv-winui" / "Languages"
     lang_files = sorted(lang_dir.glob("*.json"))
-    en_data: dict[str, str] = {}
     for path in lang_files:
         data = json.loads(path.read_text(encoding="utf-8"))
         keys = set(data.keys())
@@ -126,28 +87,6 @@ def main() -> int:
             warnings.append(
                 f"{path.name}: extra keys (not AppLang props): {', '.join(sorted(extra))}"
             )
-        if path.name == "en-US.json":
-            en_data = data
-
-    # Translation completeness: a translated value is one that differs from
-    # the English source. Keys whose value still equals en-US are either
-    # intentional (proper nouns, identical spelling) or untranslated residue.
-    if en_data:
-        for path in lang_files:
-            if path.name == "en-US.json":
-                continue
-            data = json.loads(path.read_text(encoding="utf-8"))
-            untranslated = [
-                key for key in en_data
-                if key in data and data[key] == en_data[key] and key in props
-            ]
-            total = len(props)
-            translated = total - len(untranslated)
-            pct = translated / total * 100 if total else 100
-            print(
-                f"COMPLETENESS {path.stem}: {translated}/{total} ({pct:.0f}%); "
-                f"residue: {', '.join(sorted(untranslated)[:6])}{'…' if len(untranslated) > 6 else ''}"
-            )
 
     menus_path = ROOT / "mpv-winui" / "mpv-winui" / "Menus" / "menus.json"
     if menus_path.exists():
@@ -155,7 +94,6 @@ def main() -> int:
         actions = parse_menu_actions(
             ROOT / "mpv-winui" / "mpv-winui" / "Modules" / "Player" / "MpvPlayerPage_MenuBar.cs"
         )
-        validate_menu_schema(menus, errors)
         walk_menus(menus, props, actions, errors)
     else:
         warnings.append("menus.json not found (bundled default missing)")

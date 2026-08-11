@@ -158,7 +158,6 @@
   </ItemGroup>
   <ItemGroup>
     <Midl Include="DisplayColorKind.idl" />
-    <Midl Include="MpvLogEventArgs.idl" />
     <Midl Include="TrackType.idl" />
     <Midl Include="MpvPlaylistItem.idl" />
     <Midl Include="MpvPreviewInfo.idl" />

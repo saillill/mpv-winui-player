@@ -218,23 +218,6 @@ namespace mpv_winui.Modules.Language
         public string WatchLaterEmpty { get; set; } = "No watch later files found.";
         public string WatchLaterDisabled { get; set; } = "Enable --write-filename-in-watch-later-config to select recent files.";
         public string Playlist { get; set; } = "Playlist";
-        public string PlaylistImport { get; set; } = "Import Playlist…";
-        public string PlaylistExport { get; set; } = "Export Playlist…";
-        public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
-        public string CustomRate { get; set; } = "Custom speed";
-        public string DisplayInfo { get; set; } = "Display info";
-        public string SettingsControlBarFixedGroup { get; set; } = "Fixed: play, previous, next, skip back, skip forward";
-        public string SettingsControlBarShown { get; set; } = "Shown (drag to reorder, × to hide)";
-        public string SettingsControlBarAvailable { get; set; } = "Hidden (drag onto the bar to show)";
-        public string SettingsControlBarCanvasHint { get; set; } = "Drag the icons to reorder; drag off the bar to hide. The transport buttons are fixed.";
-        public string SettingsCheckForUpdates { get; set; } = "Check for updates";
-        public string SettingsCheckForUpdatesDescription { get; set; } = "Check the GitHub releases page for a newer version at startup.";
-        public string UpdateAvailableTitle { get; set; } = "Update available";
-        public string UpdateAvailableMessage { get; set; } = "A newer version is available:";
-        public string UpdateAvailableOpen { get; set; } = "Open";
-        public string UpdateAvailableLater { get; set; } = "Later";
-        public string MenuEditorTitle { get; set; } = "Menu Editor";
-
         public string Window { get; set; } = "Window";
         public string TogglePlaylist { get; set; } = "Toggle Playlist";
         public string ToggleFullScreen { get; set; } = "Toggle Full Screen";

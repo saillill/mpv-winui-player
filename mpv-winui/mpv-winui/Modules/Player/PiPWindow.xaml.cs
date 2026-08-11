@@ -4,7 +4,6 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using mpv_winrt;
@@ -184,70 +183,13 @@ public sealed partial class PiPWindow : Window
 
     public void ShowPiP(int width, int height)
     {
-        RootGrid.Opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
-        PiPOpacitySlider.Value = RootGrid.Opacity;
-        // H2: restore the saved position/size when present, otherwise claim
-        // the bottom-right corner of the main window's display on entry; the
-        // user can drag the window afterwards.
-        if (!RestoreSavedRect(width, height))
-        {
-            PositionAtBottomRight(width, height);
-        }
+        // Always claim the bottom-right corner of the main window's display
+        // on entry; the user can drag the window afterwards.
+        PositionAtBottomRight(width, height);
         PiPControls.ApplyControlBarStyle();
         AppWindow.Show();
         ApplyPiPSize(width, height);
         ScheduleVideoSizeUpdate();
-    }
-
-    /// <summary>Restores the persisted PiP rect; clamps it into the work area of its display.</summary>
-    private bool RestoreSavedRect(int defaultWidth, int defaultHeight)
-    {
-        var saved = AppContext.AppSetting.WindowPiPRect;
-        if (string.IsNullOrEmpty(saved))
-        {
-            return false;
-        }
-        try
-        {
-            var parts = saved.Split(',');
-            if (parts.Length != 4)
-            {
-                return false;
-            }
-            var rect = new RectInt32(
-                int.Parse(parts[0]), int.Parse(parts[1]),
-                int.Parse(parts[2]), int.Parse(parts[3]));
-            if (rect.Width <= 0 || rect.Height <= 0)
-            {
-                return false;
-            }
-            var work = GetPiPDisplayArea().WorkArea;
-            rect.Width = Math.Min(rect.Width, work.Width);
-            rect.Height = Math.Min(rect.Height, work.Height);
-            rect.X = Math.Clamp(rect.X, work.X, work.X + work.Width - rect.Width);
-            rect.Y = Math.Clamp(rect.Y, work.Y, work.Y + work.Height - rect.Height);
-            AppWindow.MoveAndResize(rect);
-            MakeFrameless();
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    /// <summary>Persists the current PiP window rect for the next entry.</summary>
-    private void SaveCurrentRect()
-    {
-        try
-        {
-            var p = AppWindow.Position;
-            var size = AppWindow.Size;
-            AppContext.AppSetting.WindowPiPRect = $"{p.X},{p.Y},{size.Width},{size.Height}";
-        }
-        catch (Exception)
-        {
-        }
     }
 
     private void ScheduleVideoSizeUpdate()
@@ -505,10 +447,6 @@ public sealed partial class PiPWindow : Window
             // on every change and fires 300ms after the drag ends).
             ScheduleVideoSizeUpdate();
         }
-        if (args.DidSizeChange || args.DidPositionChange)
-        {
-            SaveCurrentRect();
-        }
     }
 
     private void PositionAtBottomRight(int width, int height)
@@ -699,7 +637,6 @@ public sealed partial class PiPWindow : Window
             // Safety net: re-assert the swap chain size once layout settles.
             ScheduleVideoSizeUpdate();
         }
-        SaveCurrentRect();
         e.Handled = true;
     }
 
@@ -913,33 +850,6 @@ public sealed partial class PiPWindow : Window
     private void PiPBackButton_Click(object sender, RoutedEventArgs e)
     {
         RestoreMainWindow();
-    }
-
-    private void PiPOpacitySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
-    {
-        // H4: window opacity. RootGrid.Opacity fades the whole PiP content
-        // (video + controls); persisted so the choice survives restarts.
-        var value = Math.Round(e.NewValue, 2);
-        RootGrid.Opacity = value;
-        AppContext.AppSetting.WindowPiPOpacity = value;
-    }
-
-    private void PiPSubtitleToggle_Click(object sender, RoutedEventArgs e)
-    {
-        // H5: quick subtitle toggle on the PiP window.
-        _player?.Command(["no-osd", "cycle", "sub-visibility"]);
-        PiPSubtitleToggle.IsChecked = !PiPSubtitleToggle.IsChecked;
-    }
-
-    private void PiPView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
-    {
-        // Double-click anywhere on the PiP video restores the main window
-        // (equivalent to the top-left back button). Single-click stays a
-        // drag/mpv click; the double-tap only fires when no drag happened.
-        if (!_draggingWindow && !_resizing)
-        {
-            RestoreMainWindow();
-        }
     }
 
     private void PiPExitButton_Click(object sender, RoutedEventArgs e)

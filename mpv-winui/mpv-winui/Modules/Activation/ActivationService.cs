@@ -191,10 +191,6 @@ namespace mpv_winui.Modules.Activation
 
                 case ExtendedActivationKind.Launch:
                 {
-                    // Multiple command-line arguments (e.g. "mpv-winui a.mp4
-                    // b.mp4") must all be collected, not just the first that
-                    // exists — the caller builds the playlist from the list.
-                    var items = new List<FileItem>();
                     foreach (var candidate in CommandLineCandidates(activatedArgs))
                     {
                         var path = ParseMpvWinuiUri(candidate) ?? candidate;
@@ -220,10 +216,10 @@ namespace mpv_winui.Modules.Activation
 
                         if (item is not null)
                         {
-                            items.Add(item);
+                            return (FileItem[])[item];
                         }
                     }
-                    return items;
+                    break;
                 }
 
                 default:
