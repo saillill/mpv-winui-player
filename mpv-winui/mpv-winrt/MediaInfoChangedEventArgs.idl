@@ -4,5 +4,7 @@ namespace mpv_winrt
 	{
 		String Filename { get; };
 		String MediaTitle { get; };
+		Single VideoWidth { get; };
+		Single VideoHeight { get; };
 	};
 }

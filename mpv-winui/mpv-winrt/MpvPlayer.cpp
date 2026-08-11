@@ -317,7 +317,11 @@ namespace winrt::mpv_winrt::implementation
                         case MpvObserveId::Filename:
                         case MpvObserveId::MediaTitle:
                             {
-                                auto args = winrt::make<implementation::MediaInfoChangedEventArgs>(GetHStringProperty("filename"), GetHStringProperty("media-title"));
+                                auto args = winrt::make<implementation::MediaInfoChangedEventArgs>(
+                                    GetHStringProperty("filename"),
+                                    GetHStringProperty("media-title"),
+                                    static_cast<float>(GetInt64Property("dwidth")),
+                                    static_cast<float>(GetInt64Property("dheight")));
                                 m_mediaInfoChangedEvent(args);
                                 break;
                             }

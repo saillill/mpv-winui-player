@@ -309,6 +309,8 @@ namespace mpv_winui.Modules.Player
 
         private void MpvPlayer_MediaInfoChanged(MediaInfoChangedEventArgs args)
         {
+            VideoWidth = args.VideoWidth;
+            VideoHeight = args.VideoHeight;
             MediaInfoChanged?.Invoke(this, args);
         }
 
@@ -401,6 +403,10 @@ namespace mpv_winui.Modules.Player
         {
             _mpvPlayer?.UpdateSize(width, height);
         }
+
+        /// <summary>Current video display size in pixels (0 when no video).</summary>
+        public float VideoWidth { get; private set; }
+        public float VideoHeight { get; private set; }
 
         public IList<IPlayerTrackItem> SubtitleTracks()
         {

@@ -44,6 +44,26 @@
                 Glyph="&#xE711;" />
         </Button>
 
+        <!-- Bottom-right resize grip: drag to scale the PiP window. -->
+        <Border
+            x:Name="PiPResizeGrip"
+            Width="22"
+            Height="22"
+            Margin="0,0,3,3"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Background="Transparent"
+            PointerCaptureLost="PiPResizeGrip_PointerCaptureLost"
+            PointerMoved="PiPResizeGrip_PointerMoved"
+            PointerPressed="PiPResizeGrip_PointerPressed"
+            PointerReleased="PiPResizeGrip_PointerReleased">
+            <FontIcon
+                FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                FontSize="12"
+                Glyph="&#xF66C;"
+                Opacity="0.75" />
+        </Border>
+
         <!--
             The fullscreen control bar, in centered (居中) compact mode:
             volume on the left, skip back / play / skip forward centered,

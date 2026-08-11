@@ -1,7 +1,9 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using System;
+using Windows.Foundation;
 using Windows.Graphics;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -31,6 +33,10 @@ public sealed partial class PiPWindow : Window
     private readonly DispatcherTimer _topButtonsTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
     private const double TopMaskHeight = 90;
     private const double BottomMaskHeight = 120;
+    private double _videoAspect = 16.0 / 9.0;
+    private bool _resizing;
+    private Point _resizeStartPointer;
+    private SizeInt32 _resizeStartSize;
 
     public PiPWindow()
     {
@@ -54,6 +60,7 @@ public sealed partial class PiPWindow : Window
     public void Attach(MpvMediaPlayer player)
     {
         _player = player;
+        _player.MediaOpened += PiPPlayer_MediaLoaded;
         PiPControls.MediaPlayer = player;
         PiPControls.IsPiPHost = true;
     }
@@ -62,6 +69,7 @@ public sealed partial class PiPWindow : Window
     {
         if (_player is not null)
         {
+            _player.MediaOpened -= PiPPlayer_MediaLoaded;
             PiPControls.MediaPlayer = null;
             _player = null;
         }
@@ -76,6 +84,27 @@ public sealed partial class PiPWindow : Window
         // mask decide visibility - showing the bar unconditionally here made
         // it flash and disappear when the cursor was not over a mask.
         PiPControls.ApplyControlBarStyle();
+        RefreshVideoAspect();
+        ApplyPiPSize(width, height);
+        // The panel has no real size before the window is shown; re-assert
+        // the swap chain size once it is laid out (a single delayed update
+        // avoids racing the swap-chain attach on every SizeChanged).
+        DispatcherQueue.TryEnqueue(UpdateVideoSize);
+    }
+
+    private void UpdateVideoSize()
+    {
+        if (_player is null)
+        {
+            return;
+        }
+
+        var width = (uint)Math.Ceiling(PiPView.ActualWidth * PiPView.CompositionScaleX);
+        var height = (uint)Math.Ceiling(PiPView.ActualHeight * PiPView.CompositionScaleY);
+        if (width > 0 && height > 0)
+        {
+            _player.UpdateSize(width, height);
+        }
     }
 
     public void HidePiP()
@@ -252,6 +281,105 @@ public sealed partial class PiPWindow : Window
         _player?.Command(["keydown", key]);
         _player?.Command(["keyup", key]);
         e.Handled = true;
+    }
+
+    private void PiPPlayer_MediaLoaded(MpvMediaPlayer player, object? args)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            RefreshVideoAspect();
+            ApplyPiPSize(AppWindow.Size.Width, AppWindow.Size.Height);
+        });
+    }
+
+    private void RefreshVideoAspect()
+    {
+        var width = _player?.VideoWidth ?? 0;
+        var height = _player?.VideoHeight ?? 0;
+        _videoAspect = width > 0 && height > 0
+            ? width / height
+            : 16.0 / 9.0;
+    }
+
+    /// <summary>
+    /// Resizes the PiP window to the video aspect ratio, clamped between one
+    /// twelfth and one half of the display work area.
+    /// </summary>
+    private void ApplyPiPSize(double width, double height)
+    {
+        try
+        {
+            var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+            var minW = Math.Max(120, area.Width / 12.0);
+            var minH = Math.Max(68, area.Height / 12.0);
+            var maxW = area.Width / 2.0;
+            var maxH = area.Height / 2.0;
+            var aspect = _videoAspect > 0 ? _videoAspect : 16.0 / 9.0;
+
+            var w = Math.Clamp(width, minW, maxW);
+            var h = w / aspect;
+            if (h > maxH)
+            {
+                h = maxH;
+                w = h * aspect;
+            }
+            if (h < minH)
+            {
+                h = minH;
+                w = h * aspect;
+            }
+            w = Math.Clamp(w, minW, maxW);
+            h = Math.Clamp(h, minH, maxH);
+
+            AppWindow.Resize(new SizeInt32((int)Math.Round(w), (int)Math.Round(h)));
+        }
+        catch (Exception)
+        {
+            // Resizing is optional; ignore failures on exotic displays.
+        }
+    }
+
+    private void PiPResizeGrip_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var point = e.GetCurrentPoint(RootGrid);
+        if (!point.Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+        _resizing = true;
+        _resizeStartPointer = point.Position;
+        _resizeStartSize = AppWindow.Size;
+        PiPResizeGrip.CapturePointer(e.Pointer);
+        e.Handled = true;
+    }
+
+    private void PiPResizeGrip_PointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_resizing)
+        {
+            return;
+        }
+
+        var position = e.GetCurrentPoint(RootGrid).Position;
+        var deltaX = position.X - _resizeStartPointer.X;
+        var deltaY = position.Y - _resizeStartPointer.Y;
+        ApplyPiPSize(
+            _resizeStartSize.Width + deltaX,
+            _resizeStartSize.Height + deltaY);
+        UpdateVideoSize();
+        e.Handled = true;
+    }
+
+    private void PiPResizeGrip_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        _resizing = false;
+        PiPResizeGrip.ReleasePointerCapture(e.Pointer);
+        e.Handled = true;
+    }
+
+    private void PiPResizeGrip_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    {
+        _resizing = false;
     }
 
     private void PiPBackButton_Click(object sender, RoutedEventArgs e)
