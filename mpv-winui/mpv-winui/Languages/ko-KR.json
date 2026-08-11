@@ -780,5 +780,11 @@
   "OptionValueControlBarModernX": "가운데",
   "OptionValueControlBarCompact": "간결",
   "FileAssociationGroupVideo": "비디오 형식",
-  "FileAssociationGroupAudio": "오디오 형식"
+  "FileAssociationGroupAudio": "오디오 형식",
+  "ValidationMinValue": "최소값은 {0} 입니다",
+  "ValidationMaxValue": "최대값은 {0} 입니다",
+  "ValidationValueNotEmpty": "값을 비울 수 없습니다",
+  "WatchHistoryClearTitle": "기록 지우기",
+  "WatchHistoryClearConfirm": "기록을 지우시겠습니까?",
+  "Clear": "지우기"
 }

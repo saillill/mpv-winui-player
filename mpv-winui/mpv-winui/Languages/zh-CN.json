@@ -780,5 +780,11 @@
   "OptionValueControlBarModernX": "居中",
   "OptionValueControlBarCompact": "简洁",
   "FileAssociationGroupVideo": "视频格式",
-  "FileAssociationGroupAudio": "音频格式"
+  "FileAssociationGroupAudio": "音频格式",
+  "ValidationMinValue": "最小值是 {0}",
+  "ValidationMaxValue": "最大值是 {0}",
+  "ValidationValueNotEmpty": "值不能为空",
+  "WatchHistoryClearTitle": "清空观看历史",
+  "WatchHistoryClearConfirm": "确定要清空观看历史吗？",
+  "Clear": "清空"
 }

@@ -50,7 +50,9 @@ namespace mpv_winui.Modules.Settings
                     // Imported config files store every value as a string; the
                     // registry then holds REG_SZ instead of the original type,
                     // so numeric properties need string -> number conversion.
-                    if (typeof(T) == typeof(int) && int.TryParse(text, out var i))
+                    // InvariantCulture keeps round-trips stable across regions
+                    // (export/import must not depend on the user's number format).
+                    if (typeof(T) == typeof(int) && int.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var i))
                     {
                         return (T)(object)i;
                     }
@@ -62,11 +64,11 @@ namespace mpv_winui.Modules.Settings
                     {
                         return (T)(object)f;
                     }
-                    if (typeof(T) == typeof(long) && long.TryParse(text, out var l))
+                    if (typeof(T) == typeof(long) && long.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var l))
                     {
                         return (T)(object)l;
                     }
-                    if (typeof(T) == typeof(uint) && uint.TryParse(text, out var u))
+                    if (typeof(T) == typeof(uint) && uint.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var u))
                     {
                         return (T)(object)u;
                     }
@@ -74,8 +76,9 @@ namespace mpv_winui.Modules.Settings
             }
             catch (System.Exception)
             {
-                //error when no key 
-                _container.Values[propertyName] = defaultValue;
+                // A read must never write: falling back to the default is
+                // enough, and writing here could clobber user data or the
+                // migration marker with a default value on transient errors.
             }
 
             return defaultValue;

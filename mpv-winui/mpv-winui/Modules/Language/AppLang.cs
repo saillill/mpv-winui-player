@@ -873,6 +873,14 @@ namespace mpv_winui.Modules.Language
             };
         }
 
+        public string ValidationMinValue { get; set; } = "Minimum value is {0}";
+        public string ValidationMaxValue { get; set; } = "Maximum value is {0}";
+        public string ValidationValueNotEmpty { get; set; } = "Value cannot be empty";
+
+        public string WatchHistoryClearTitle { get; set; } = "Clear history";
+        public string WatchHistoryClearConfirm { get; set; } = "Are you sure you want to clear the history?";
+        public string Clear { get; set; } = "Clear";
+
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)
         {

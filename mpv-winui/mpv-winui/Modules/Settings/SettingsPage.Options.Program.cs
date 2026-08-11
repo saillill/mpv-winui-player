@@ -181,11 +181,16 @@ public sealed partial class SettingsPage
                 Category = program,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestOsdMessage,
+                // One-shot test: fire only when the toggle is turned on, so
+                // switching it off again does not re-trigger the OSD.
                 Type = OptionType.Boolean,
                 Getter = () => false,
-                Setter = _ =>
+                Setter = v =>
                 {
-                    AppContext.SendMpvCommand("show-text \"mpv-winui OSD test\"");
+                    if (v is true)
+                    {
+                        AppContext.SendMpvCommand("show-text \"mpv-winui OSD test\"");
+                    }
                 }
             },
 

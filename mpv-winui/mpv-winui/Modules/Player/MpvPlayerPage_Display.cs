@@ -121,13 +121,20 @@ namespace mpv_winui.Modules.Player
         // 定期重读一次，确保 color-kind 最终与当前显示器一致。
         private void OnDisplayInfoTimerTick(DispatcherQueueTimer sender, object args)
         {
-            CheckAndUpdateDisplayInfo(0);
-
             if (_displayInfo is null)
             {
                 return;
             }
 
+            var monitor = Win32WindowHelper.GetMonitor(App.Window!);
+            if (_lastMonitor != monitor)
+            {
+                // 换显示器：重建 DisplayInformation 并完整读取一次
+                CheckAndUpdateDisplayInfo(2);
+                return;
+            }
+
+            // 同显示器：轻量轮询一次即可（不再重复调用 CheckAndUpdateDisplayInfo）
             var newKind = ReadColorKind(false);
             if (newKind != _lastColorKind)
             {
@@ -135,8 +142,6 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer?.UpdateDisplayColorInfo(newKind);
             }
 
-            // The 3s timer is a safety net for display events that WinRT may
-            // miss (cross-monitor / HDR switches); also re-check refresh rate.
             var rate = ReadRefreshRate();
             if (rate != _lastRefreshRate)
             {

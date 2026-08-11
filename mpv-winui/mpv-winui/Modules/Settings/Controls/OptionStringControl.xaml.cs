@@ -97,7 +97,7 @@ public sealed partial class OptionStringControl : OptionControlBase
     {
         if (!(Setting?.AllowEmpty ?? false) && string.IsNullOrWhiteSpace(InputBox.Text))
         {
-            return (false, "Value cannot be empty");
+            return (false, mpv_winui.AppContext.AppLang.ValidationValueNotEmpty);
         }
 
         return (true, null);

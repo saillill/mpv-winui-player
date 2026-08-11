@@ -1110,6 +1110,10 @@ namespace winrt::mpv_winrt::implementation
 
     void MpvPlayer::SetHoverSec(double sec)
     {
+        if (!m_mpv)
+        {
+            return;
+        }
         SetDoubleProperty("user-data/osc/hover-sec", sec);
     }
 

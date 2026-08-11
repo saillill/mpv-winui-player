@@ -92,7 +92,7 @@ public static class MpvSettings
             nameof(AppSettings.SubAssUseVideoData) => string.IsNullOrWhiteSpace((string)value) ? null : $"set sub-ass-use-video-data {(string)value}",
             nameof(AppSettings.SubAssVideoAspectOverride) => string.IsNullOrWhiteSpace((string)value) ? null : $"set sub-ass-video-aspect-override {(string)value}",
             nameof(AppSettings.SubAssVsfilterColorCompat) => string.IsNullOrWhiteSpace((string)value) ? null : $"set sub-ass-vsfilter-color-compat {(string)value}",
-            nameof(AppSettings.AudioDevice) => string.IsNullOrWhiteSpace((string)value) ? null : $"set audio-device {(string)value}",
+            nameof(AppSettings.AudioDevice) => string.IsNullOrWhiteSpace((string)value) ? null : $"set audio-device {Q((string)value)}",
             nameof(AppSettings.ScreenshotDirectory) => string.IsNullOrWhiteSpace((string)value) ? null : $"set screenshot-directory {Q((string)value)}",
             nameof(AppSettings.ScreenshotTemplate) => string.IsNullOrWhiteSpace((string)value) ? null : $"set screenshot-template {(string)value}",
             nameof(AppSettings.SavePositionOnQuit) => $"set save-position-on-quit {(value is true ? "yes" : "no")}",
@@ -222,7 +222,11 @@ public static class MpvSettings
             (nameof(AppSettings.KeepOpen), s.KeepOpen),
             (nameof(AppSettings.LoopPlaylist), s.LoopPlaylist),
             (nameof(AppSettings.LoopFile), s.LoopFile),
-            (nameof(AppSettings.Volume), s.Volume),
+            // Volume and Speed are intentionally NOT re-sent here: volume is
+            // applied at mpv initialization (MpvPlayer.Initialize) and speed
+            // defaults to 1.0. Re-sending them from a settings reset would
+            // clobber the live session state (e.g. resetting any category
+            // would force volume back to 100).
             (nameof(AppSettings.CacheEnabled), s.CacheEnabled),
             (nameof(AppSettings.DemuxerReadahead), s.DemuxerReadahead),
             (nameof(AppSettings.Ytdl), s.Ytdl),
@@ -265,7 +269,6 @@ public static class MpvSettings
             (nameof(AppSettings.BackgroundTileSize), s.BackgroundTileSize),
             (nameof(AppSettings.SubFontSize), s.SubFontSize),
             (nameof(AppSettings.SubDelay), s.SubDelay),
-            (nameof(AppSettings.Speed), s.Speed),
             (nameof(AppSettings.SubPos), s.SubPos),
             (nameof(AppSettings.AudioLanguage), s.AudioLanguage),
             (nameof(AppSettings.SubtitleLanguage), s.SubtitleLanguage),

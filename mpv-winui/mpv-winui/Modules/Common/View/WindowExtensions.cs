@@ -9,8 +9,17 @@ namespace mpv_winui.Modules.Common.View
     {
         extension(Window window)
         {
+            /// <summary>
+            /// Shows the window (if hidden, e.g. after PiP hid the main window)
+            /// and brings it to the foreground. SetForegroundWindow alone does
+            /// not show a hidden window, which made re-activation a no-op.
+            /// </summary>
             public void ShowWindow()
             {
+                if (!window.AppWindow.IsVisible)
+                {
+                    window.AppWindow.Show();
+                }
                 Win32WindowHelper.SetForegroundWindow(window);
             }
 

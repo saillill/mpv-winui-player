@@ -780,5 +780,11 @@
   "OptionValueControlBarModernX": "中央",
   "OptionValueControlBarCompact": "コンパクト",
   "FileAssociationGroupVideo": "動画形式",
-  "FileAssociationGroupAudio": "音声形式"
+  "FileAssociationGroupAudio": "音声形式",
+  "ValidationMinValue": "最小値は {0} です",
+  "ValidationMaxValue": "最大値は {0} です",
+  "ValidationValueNotEmpty": "値を空にできません",
+  "WatchHistoryClearTitle": "履歴をクリア",
+  "WatchHistoryClearConfirm": "履歴をクリアしてもよろしいですか？",
+  "Clear": "クリア"
 }

@@ -46,7 +46,8 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   `display-info.log` in the same folder.
 - Config runs from `%LOCALAPPDATA%\mpv-winui\mpv` (synced by
   `mpv-winui-lazy\deploy-config.ps1` via robocopy `/MIR`; runtime data like
-  `_cache/`, `recent.json`, and logs are excluded).
+  `_cache/`, `recent.json`, logs, and the user-overridable `menus.json` are
+  excluded).
 - Settings are in registry
   `HKCU\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app`;
   booleans are stored as `"true"` / `"false"`. Defaults live in
@@ -193,7 +194,7 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 ## Pointers
 
 - Editing menus / `input.conf`: read `docs/menu-audit-20260807.md` first
-  (provenance and history of the 153-item menu).
+  (provenance and history of the 149-item menu).
 - Localization & menu bar convention: read `docs/localization.md` before
   adding UI strings or menu items.
 - Touching the config layer: read `mpv-winui-lazy/README.md`.

@@ -590,6 +590,15 @@ namespace mpv_winui.Modules.Player
 
         private void PlayerControl_Loaded(object sender, RoutedEventArgs e)
         {
+            // Re-hook media events on every load: Unloaded removes them, so a
+            // reload cycle (fullscreen presenter switch, window hide/restore,
+            // navigation) would otherwise leave the bar dead (volume/repeat/
+            // shuffle/duration/seek updates stop). Remove-then-add keeps the
+            // subscription exactly once even when the MediaPlayer setter has
+            // already subscribed.
+            RemoveEventListeners();
+            AddEventListeners();
+
             RootGrid.PointerMoved += RootGrid_PointerMoved;
             PiPButton.Click += OnPiPClick;
             AppContext.SettingChanged += OnAppSettingChanged;
