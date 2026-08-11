@@ -233,6 +233,7 @@
                             <FontIcon
                                 x:Name="ShuffleSymbol"
                                 FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                                FontSize="20"
                                 Glyph="&#xEF37;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
@@ -432,6 +433,7 @@
                             <FontIcon
                                 x:Name="PiPSymbol"
                                 FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                                FontSize="20"
                                 Glyph="&#xE97E;" />
                         </AppBarToggleButton.Icon>
                     </AppBarToggleButton>

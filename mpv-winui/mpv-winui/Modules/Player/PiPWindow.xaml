@@ -23,7 +23,7 @@
             Click="PiPBackButton_Click">
             <FontIcon
                 FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
-                FontSize="16"
+                FontSize="18"
                 Glyph="&#xE981;" />
         </Button>
 

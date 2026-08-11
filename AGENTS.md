@@ -96,17 +96,19 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   many seconds after the mouse stopped. Do not reintroduce position-only
   show/hide — the mask and bar consume moves over themselves.
 - **Control-bar shell**: `ControlPanelGradient` is the fullscreen mask shell.
-  It must be `Height=140` only in overlay mode and `Auto` (NaN) in windowed
+  It must be `Height=120` only in overlay mode and `Auto` (NaN) in windowed
   mode, otherwise a tall transparent strip remains between the video and the
   bar (the "background box" behind the controls).
 - **Overlay slide**: the main-window pop-out slide animates the XAML
   `TranslateVertical` (TranslateTransform.Y) with a Storyboard - render
   transforms are layout-independent, so a resize/zoom while the bar is hidden
   cannot strand it above the bottom edge. PiP (a second top-level window)
-  keeps the composition `Offset` animation because Storyboards crash the
-  compositor there. Never write `Visual.Offset` manually (layout owns it),
-  and never use `CompositionPropertySet` keys like `Translation.Y` (not
-  animatable in WinUI 3 desktop; throws in the batch-completed callback).
+  uses a 16ms `DispatcherTimer` tween on the same XAML values because a
+  Storyboard crashes the compositor there and the composition `Offset`
+  animation strands the bar after zoom (same stale-layout class of bug).
+  Never write `Visual.Offset` manually (layout owns it), and never use
+  `CompositionPropertySet` keys like `Translation.Y` (not animatable in WinUI
+  3 desktop; throws in the batch-completed callback).
   When starting a new overlay animation, stop only the in-flight Storyboard;
   do not call `StopPanelAnimations()` (it clears `_panelAnimating`, which
   defeats the same-direction re-entry guard and makes every pointer move
@@ -141,13 +143,14 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   restore button use the Fluent PiP enter/exit glyphs (E97E enter PiP /
   E981 exit PiP); the PiP window button always shows the exit glyph.
 - **Control-bar icon set**: the transport icons use Segoe glyphs except the
-  shuffle button, which uses Fluent `arrow_shuffle` (EF37 on / EF3D off) via
-  `ShuffleSymbol.Glyph` visual states.
+  shuffle and PiP buttons, which use Fluent glyphs (`arrow_shuffle` EF37 on /
+  EF3D off, PiP E97E/E981) at FontSize 20 so their optical size matches the
+  Segoe neighbors (Fluent 24-grid glyphs render smaller at the same size).
 - **Track flyout style**: `TrackSelectionButton` keeps the `ED1F` glyph; its
   `FlyoutPresenter` uses `AcrylicInAppFillColorDefaultBrush` +
   `CardStrokeColorDefaultBrush` (Mica/Acrylic look) instead of the translucent
   `MpvControlBackground`.
-- **Overlay gradient**: the fullscreen/borderless mask shell is 140px with a
+- **Overlay gradient**: the fullscreen/borderless mask shell is 120px with a
   ~90%-black base stop (mpv-lazy/ModernX style); windowed mode keeps the bar
   backgroundless.
 - **Settings layout**: `SettingsPage.xaml.cs` is the page shell (wiring and
