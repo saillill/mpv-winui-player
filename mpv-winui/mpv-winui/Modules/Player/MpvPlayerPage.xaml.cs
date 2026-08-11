@@ -84,6 +84,14 @@ namespace mpv_winui.Modules.Player
                 SetupPreview();
 
                 OpenPendingPath().FireAndForget(OnException);
+
+                // Apply the persisted PiP setting only after mpv and the main
+                // swap chain are ready. Running this from the window's
+                // Body.Loaded raced CreateAsync: AttachSwapChain could run
+                // before mpv initialization (native crash), or SetupPlayerView
+                // would later move the swap chain back to the hidden main
+                // window, leaving the PiP window without video.
+                ApplyPiP();
             }
             else
             {

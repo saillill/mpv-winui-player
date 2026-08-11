@@ -1150,6 +1150,11 @@ namespace winrt::mpv_winrt::implementation
 
     void MpvPlayer::AttachSwapChain(SwapChainPanel const& panel)
     {
+        if (!m_mpv)
+        {
+            return;
+        }
+
         IDXGISwapChain* swapChain = nullptr;
         mpv_get_property(m_mpv, "display-swapchain", MPV_FORMAT_INT64, &swapChain);
 

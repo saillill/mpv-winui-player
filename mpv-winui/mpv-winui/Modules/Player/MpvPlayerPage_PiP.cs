@@ -22,6 +22,13 @@ public sealed partial class MpvPlayerPage
 
     private void EnterPiP()
     {
+        // Startup ApplyPiP() can now only run after initialization, but keep
+        // the guard so any future early call path cannot race AttachSwapChain.
+        if (!_isPlayerInitialized)
+        {
+            return;
+        }
+
         if (_pipWindow is null)
         {
             _pipWindow = new PiPWindow();
