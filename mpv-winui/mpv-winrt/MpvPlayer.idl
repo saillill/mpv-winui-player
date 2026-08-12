@@ -86,6 +86,9 @@ namespace mpv_winrt
         void Position(Double value);
         Double Duration();
 
+        Double AbLoopA();
+        Double AbLoopB();
+
         Int32 CurrentVideoTrack();
         void CurrentVideoTrack(Int32 value);
         Int32 CurrentAudioTrack();

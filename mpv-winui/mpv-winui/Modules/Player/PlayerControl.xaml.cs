@@ -1219,6 +1219,45 @@ namespace mpv_winui.Modules.Player
             _isInScrubMode = false;
         }
 
+        private void AbLoopButton_Click(object sender, RoutedEventArgs e)
+        {
+            MediaPlayer?.ToggleAbLoop();
+            UpdateAbLoopMarks();
+        }
+
+        /// <summary>Positions the A/B markers on the progress bar from mpv's ab-loop properties.</summary>
+        private void UpdateAbLoopMarks()
+        {
+            var duration = MediaPlayer?.Duration ?? 0;
+            var a = MediaPlayer?.AbLoopA ?? -1;
+            var b = MediaPlayer?.AbLoopB ?? -1;
+            var width = ProgressSlider.ActualWidth;
+            if (width <= 0)
+            {
+                return;
+            }
+
+            if (a > 0 && duration > 0)
+            {
+                AbLoopMarkA.Visibility = Visibility.Visible;
+                Canvas.SetLeft(AbLoopMarkA, a / duration * width);
+            }
+            else
+            {
+                AbLoopMarkA.Visibility = Visibility.Collapsed;
+            }
+
+            if (b > 0 && duration > 0)
+            {
+                AbLoopMarkB.Visibility = Visibility.Visible;
+                Canvas.SetLeft(AbLoopMarkB, b / duration * width);
+            }
+            else
+            {
+                AbLoopMarkB.Visibility = Visibility.Collapsed;
+            }
+        }
+
         private string FormatTime(double second)
         {
             var ts = TimeSpan.FromSeconds(second);

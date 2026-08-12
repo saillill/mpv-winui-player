@@ -97,6 +97,29 @@ MinWidth="80"
                     Margin="7,2,7,1"
                     VerticalAlignment="Center"
                                         IsThumbToolTipEnabled="False" />
+                <Canvas
+                    x:Name="AbLoopMarksCanvas"
+                    Margin="7,2,7,1"
+                    IsHitTestVisible="False">
+                    <Border
+                        x:Name="AbLoopMarkA"
+                        Width="3"
+                        Height="14"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="#FFFF8C00"
+                        CornerRadius="1"
+                        Visibility="Collapsed" />
+                    <Border
+                        x:Name="AbLoopMarkB"
+                        Width="3"
+                        Height="14"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="#FF00BFFF"
+                        CornerRadius="1"
+                        Visibility="Collapsed" />
+                </Canvas>
                 <ProgressBar
                     x:Name="BufferingProgressBar"
                     Height="4"
@@ -248,6 +271,21 @@ Grid.Column="10"
                             <FontIcon
                                 x:Name="RepeatSymbol"
                                 Glyph="&#xE8EE;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="AbLoopButton"
+                                                AutomationProperties.Name="A-B loop"
+Grid.Column="11"
+                        Click="AbLoopButton_Click"
+                                                Style="{StaticResource AppBarButtonStyle}"
+                        ToolTipService.ToolTip="A-B loop"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon
+                                x:Name="AbLoopSymbol"
+                                Glyph="&#xE8B1;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
