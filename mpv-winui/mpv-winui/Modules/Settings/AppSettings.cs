@@ -1350,6 +1350,13 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPSize), value);
         }
 
+        /// <summary>Last PiP window position+size ("x,y,w,h"); empty restores the default bottom-right placement.</summary>
+        public string WindowPiPRect
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPRect), string.Empty);
+            set => _dataSetting.SetValue(nameof(WindowPiPRect), value);
+        }
+
         public bool WindowStartMaximized
         {
             get => _dataSetting.GetValue(nameof(WindowStartMaximized), false);
