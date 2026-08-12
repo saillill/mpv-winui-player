@@ -16,22 +16,9 @@
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-<ctl:OptionBooleanControl
+                <ctl:OptionBooleanControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-                    <Button
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="OnItemResetClick"
-                        Content="↺"
-                        ToolTipService.ToolTip="Reset this setting" />
-                </Grid>
             </Border>
         </DataTemplate>
 
@@ -43,22 +30,9 @@
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-<ctl:OptionStringControl
+                <ctl:OptionStringControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-                    <Button
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="OnItemResetClick"
-                        Content="↺"
-                        ToolTipService.ToolTip="Reset this setting" />
-                </Grid>
             </Border>
         </DataTemplate>
 
@@ -70,22 +44,9 @@
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-<ctl:OptionIntegerControl
+                <ctl:OptionIntegerControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-                    <Button
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="OnItemResetClick"
-                        Content="↺"
-                        ToolTipService.ToolTip="Reset this setting" />
-                </Grid>
             </Border>
         </DataTemplate>
 
@@ -97,22 +58,9 @@
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-<ctl:OptionDoubleControl
+                <ctl:OptionDoubleControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-                    <Button
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="OnItemResetClick"
-                        Content="↺"
-                        ToolTipService.ToolTip="Reset this setting" />
-                </Grid>
             </Border>
         </DataTemplate>
 
@@ -124,22 +72,9 @@
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-<ctl:OptionStringListControl
+                <ctl:OptionStringListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-                    <Button
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="OnItemResetClick"
-                        Content="↺"
-                        ToolTipService.ToolTip="Reset this setting" />
-                </Grid>
             </Border>
         </DataTemplate>
 
@@ -151,22 +86,9 @@
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-<ctl:OptionColorControl
+                <ctl:OptionColorControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-                    <Button
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="OnItemResetClick"
-                        Content="↺"
-                        ToolTipService.ToolTip="Reset this setting" />
-                </Grid>
             </Border>
         </DataTemplate>
 
@@ -192,22 +114,9 @@
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-<ctl:OptionCheckListControl
+                <ctl:OptionCheckListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-                    <Button
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="OnItemResetClick"
-                        Content="↺"
-                        ToolTipService.ToolTip="Reset this setting" />
-                </Grid>
             </Border>
         </DataTemplate>
 
@@ -219,22 +128,9 @@
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-<ctl:OptionLayoutControl
+                <ctl:OptionLayoutControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-                    <Button
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="OnItemResetClick"
-                        Content="↺"
-                        ToolTipService.ToolTip="Reset this setting" />
-                </Grid>
             </Border>
         </DataTemplate>
 

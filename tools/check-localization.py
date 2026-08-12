@@ -33,9 +33,7 @@ def parse_applang_props(src: Path) -> set[str]:
 
 def parse_menu_actions(src: Path) -> set[str]:
     text = src.read_text(encoding="utf-8")
-    # Actions are registered via RegisterMenuAction("id", handler) in the
-    # static constructor (no more switch case list).
-    return set(re.findall(r'RegisterMenuAction\("([\w-]+)"', text))
+    return set(re.findall(r'case "([\w-]+)":', text))
 
 
 def walk_menus(items, props: set[str], actions: set[str], errors: list[str], path: str = "root"):

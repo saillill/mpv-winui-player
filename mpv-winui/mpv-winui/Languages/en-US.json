@@ -789,11 +789,5 @@
   "Clear": "Clear",
   "PlaylistImport": "Import Playlist…",
   "PlaylistExport": "Export Playlist…",
-  "PlaylistFilterPlaceholder": "Filter playlist…",
-  "MenuEditorTitle": "Menu Editor",
-  "SettingsPreset": "Preset",
-  "SettingsPresetDescription": "Apply a built-in or user-saved preset; changes apply immediately.",
-  "SettingsPresetSave": "Save Current as Preset",
-  "SettingsPresetName": "Preset name",
-  "SettingsPresetSaved": "Preset saved."
+  "PlaylistFilterPlaceholder": "Filter playlist…"
 }
