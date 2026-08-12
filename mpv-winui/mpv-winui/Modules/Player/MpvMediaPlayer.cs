@@ -441,9 +441,26 @@ namespace mpv_winui.Modules.Player
             }
         }
 
+        /// <summary>Command convenience overload; allocates no intermediate list.</summary>
+        public void Command(params string[] args)
+        {
+            if (args?.Length > 0)
+            {
+                _mpvPlayer.Command(args);
+            }
+        }
+
         public async ValueTask RunCommandAsync(IList<string> args)
         {
             if (args?.Count > 0)
+            {
+                await Task.Run(() => _mpvPlayer.Command(args));
+            }
+        }
+
+        public async ValueTask RunCommandAsync(params string[] args)
+        {
+            if (args?.Length > 0)
             {
                 await Task.Run(() => _mpvPlayer.Command(args));
             }
