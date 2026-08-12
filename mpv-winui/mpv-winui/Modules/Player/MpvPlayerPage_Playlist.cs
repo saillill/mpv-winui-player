@@ -22,6 +22,28 @@ namespace mpv_winui.Modules.Player
         public readonly string Title => item.Title;
         public readonly string Path => item.Filename;
         public readonly string Filename => System.IO.Path.GetFileName(item.Filename);
+
+        /// <summary>Media duration in seconds, or &lt;= 0 when unknown.</summary>
+        public readonly double Duration => item.Duration;
+
+        /// <summary>Formatted "m:ss" / "h:mm:ss" for the playlist row, empty when unknown.</summary>
+        public readonly string DurationText
+        {
+            get
+            {
+                if (item.Duration <= 0)
+                {
+                    return string.Empty;
+                }
+                var total = (int)Math.Round(item.Duration);
+                var hours = total / 3600;
+                var minutes = (total % 3600) / 60;
+                var seconds = total % 60;
+                return hours > 0
+                    ? $"{hours}:{minutes:D2}:{seconds:D2}"
+                    : $"{minutes}:{seconds:D2}";
+            }
+        }
     };
 
     public sealed partial class MpvPlayerPage
