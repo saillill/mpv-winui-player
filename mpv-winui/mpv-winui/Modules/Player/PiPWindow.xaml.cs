@@ -4,6 +4,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using mpv_winrt;
@@ -183,6 +184,8 @@ public sealed partial class PiPWindow : Window
 
     public void ShowPiP(int width, int height)
     {
+        RootGrid.Opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
+        PiPOpacitySlider.Value = RootGrid.Opacity;
         // H2: restore the saved position/size when present, otherwise claim
         // the bottom-right corner of the main window's display on entry; the
         // user can drag the window afterwards.
@@ -910,6 +913,22 @@ public sealed partial class PiPWindow : Window
     private void PiPBackButton_Click(object sender, RoutedEventArgs e)
     {
         RestoreMainWindow();
+    }
+
+    private void PiPOpacitySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        // H4: window opacity. RootGrid.Opacity fades the whole PiP content
+        // (video + controls); persisted so the choice survives restarts.
+        var value = Math.Round(e.NewValue, 2);
+        RootGrid.Opacity = value;
+        AppContext.AppSetting.WindowPiPOpacity = value;
+    }
+
+    private void PiPSubtitleToggle_Click(object sender, RoutedEventArgs e)
+    {
+        // H5: quick subtitle toggle on the PiP window.
+        _player?.Command(["no-osd", "cycle", "sub-visibility"]);
+        PiPSubtitleToggle.IsChecked = !PiPSubtitleToggle.IsChecked;
     }
 
     private void PiPView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)

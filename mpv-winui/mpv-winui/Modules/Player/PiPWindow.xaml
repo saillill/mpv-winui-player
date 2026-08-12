@@ -49,6 +49,48 @@
                 Glyph="&#xE711;" />
         </Button>
 
+        <!-- Top-right (left of exit): quick settings — window opacity and subtitles. -->
+        <Button
+            x:Name="PiPSettingsButton"
+            Width="34"
+            Height="34"
+            Margin="0,8,50,0"
+            Padding="0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Background="#66000000"
+            BorderThickness="0">
+            <FontIcon
+                FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                FontSize="16"
+                Glyph="&#xE713;" />
+            <Button.Flyout>
+                <Flyout
+                    x:Name="PiPSettingsFlyout"
+                    Placement="Bottom">
+                    <StackPanel
+                        Width="280"
+                        Spacing="10">
+                        <TextBlock
+                            x:Name="PiPOpacityLabel"
+                            FontWeight="SemiBold"
+                            Text="Window opacity" />
+                        <Slider
+                            x:Name="PiPOpacitySlider"
+                            Minimum="0.2"
+                            Maximum="1"
+                            StepFrequency="0.05"
+                            Value="1"
+                            ValueChanged="PiPOpacitySlider_ValueChanged" />
+                        <ToggleButton
+                            x:Name="PiPSubtitleToggle"
+                            Click="PiPSubtitleToggle_Click"
+                            Content="Subtitles" />
+                    </StackPanel>
+                </Flyout>
+            </Button.Flyout>
+        </Button>
+
         <!--
             The fullscreen control bar, in centered (居中) compact mode:
             volume on the left, skip back / play / skip forward centered,

@@ -1357,6 +1357,13 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPRect), value);
         }
 
+        /// <summary>PiP window opacity (0.2..1), used for the quick-settings slider.</summary>
+        public double WindowPiPOpacity
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPOpacity), 1.0);
+            set => _dataSetting.SetValue(nameof(WindowPiPOpacity), value);
+        }
+
         public bool WindowStartMaximized
         {
             get => _dataSetting.GetValue(nameof(WindowStartMaximized), false);
