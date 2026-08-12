@@ -440,7 +440,7 @@ namespace mpv_winui.Modules.Player
                 left =
                 [
                     TrackSelectionButton, ShuffleButton, RepeatButton, PlaybackRateButton,
-                    EqualizerButton, VolumeMuteButton, VolumeSliderContainer,
+                    EqualizerButton, DelayButton, VolumeMuteButton, VolumeSliderContainer,
                 ];
                 middle =
                 [
@@ -464,7 +464,7 @@ namespace mpv_winui.Modules.Player
                 right =
                 [
                     VolumeMuteButton, VolumeSliderContainer, PlaybackRateButton,
-                    TrackSelectionButton, EqualizerButton, ZoomButton, PiPButton,
+                    TrackSelectionButton, EqualizerButton, DelayButton, ZoomButton, PiPButton,
                     FullWindowButton, FullScreenButton,
                 ];
             }
@@ -688,6 +688,7 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.PointerPressed += ProgressSlider_PointerPressed;
             ProgressSlider.PointerReleased += ProgressSlider_PointerReleased;
             ProgressSlider.Tapped += ProgressSlider_Tapped;
+            DelayFlyout.Opened += DelayFlyout_Opened;
             ProgressSlider.GotFocus += ProgressSlider_GotFocus;
             ProgressSlider.LostFocus += ProgressSlider_LostFocus;
             VolumeSlider.GotFocus += VolumeSlider_GotFocus;
@@ -748,6 +749,7 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.PointerPressed -= ProgressSlider_PointerPressed;
             ProgressSlider.PointerReleased -= ProgressSlider_PointerReleased;
             ProgressSlider.Tapped -= ProgressSlider_Tapped;
+            DelayFlyout.Opened -= DelayFlyout_Opened;
             ProgressSlider.GotFocus -= ProgressSlider_GotFocus;
             ProgressSlider.LostFocus -= ProgressSlider_LostFocus;
             VolumeSlider.GotFocus -= VolumeSlider_GotFocus;
@@ -1307,6 +1309,46 @@ namespace mpv_winui.Modules.Player
         private void EqualizerOff_Click(object sender, RoutedEventArgs e)
         {
             MediaPlayer?.Command(["set", "af", ""]);
+        }
+
+
+        // ===== Audio / subtitle delay =====
+        private bool _delaySliderUpdating;
+
+        private void DelayFlyout_Opened(object sender, object e)
+        {
+            _delaySliderUpdating = true;
+            AudioDelaySlider.Value = AppContext.AppSetting.AudioDelay;
+            SubDelaySlider.Value = AppContext.AppSetting.SubDelay;
+            _delaySliderUpdating = false;
+        }
+
+        private void AudioDelaySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (_delaySliderUpdating)
+            {
+                return;
+            }
+            var value = Math.Round(e.NewValue, 1);
+            AppContext.AppSetting.AudioDelay = value;
+            AppContext.SendMpvCommand($"no-osd set audio-delay {value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+
+        private void SubDelaySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (_delaySliderUpdating)
+            {
+                return;
+            }
+            var value = Math.Round(e.NewValue, 1);
+            AppContext.AppSetting.SubDelay = value;
+            AppContext.SendMpvCommand($"no-osd set sub-delay {value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+
+        private void DelayReset_Click(object sender, RoutedEventArgs e)
+        {
+            AudioDelaySlider.Value = 0;
+            SubDelaySlider.Value = 0;
         }
 
         // ===== Custom playback rate =====

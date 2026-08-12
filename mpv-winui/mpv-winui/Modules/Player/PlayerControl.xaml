@@ -461,6 +461,54 @@ Grid.Column="12"
                     </AppBarButton>
 
                     <AppBarButton
+                        x:Name="DelayButton"
+                                                AutomationProperties.Name="Audio/Subtitle delay"
+Grid.Column="12"
+                                                Style="{StaticResource AppBarButtonStyle}"
+                        ToolTipService.ToolTip="Audio / subtitle delay"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE916;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <Flyout
+                                x:Name="DelayFlyout"
+                                Placement="Top">
+                                <StackPanel
+                                    Width="360"
+                                    Spacing="10">
+                                    <TextBlock
+                                        x:Name="DelayTitle"
+                                        FontWeight="SemiBold"
+                                        Text="Audio / subtitle delay" />
+                                    <StackPanel Spacing="4">
+                                        <TextBlock x:Name="AudioDelayLabel" Text="Audio delay" />
+                                        <Slider
+                                            x:Name="AudioDelaySlider"
+                                            Minimum="-10"
+                                            Maximum="10"
+                                            StepFrequency="0.1"
+                                            ValueChanged="AudioDelaySlider_ValueChanged" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock x:Name="SubDelayLabel" Text="Subtitle delay" />
+                                        <Slider
+                                            x:Name="SubDelaySlider"
+                                            Minimum="-10"
+                                            Maximum="10"
+                                            StepFrequency="0.1"
+                                            ValueChanged="SubDelaySlider_ValueChanged" />
+                                    </StackPanel>
+                                    <Button
+                                        x:Name="DelayResetButton"
+                                        Click="DelayReset_Click"
+                                        Content="Reset" />
+                                </StackPanel>
+                            </Flyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+                    <AppBarButton
                         x:Name="TrackSelectionButton"
                                                 AutomationProperties.Name="Tracks"
 Grid.Column="13"
