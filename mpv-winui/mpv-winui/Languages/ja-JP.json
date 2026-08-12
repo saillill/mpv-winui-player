@@ -1,4 +1,4 @@
-{
+﻿{
   "WatchHistoryDialogTitle": "視聴履歴",
   "WatchLaterDialogTitle": "後で見る",
   "WatchHistoryEmpty": "視聴履歴ファイルは空です。",
@@ -802,5 +802,6 @@
   "SettingsControlBarFixedGroup": "固定: 再生・前・次・スキップ戻る・スキップ進む",
   "SettingsControlBarShown": "表示中（ドラッグで並べ替え、× で非表示）",
   "SettingsControlBarAvailable": "非表示（上にドラッグで表示）",
+  "SettingsControlBarCustomize": "カスタマイズ",
   "SettingsControlBarCanvasHint": "アイコンをドラッグして並べ替え、バーの外へドラッグで非表示。再生ボタンは固定。"
 }

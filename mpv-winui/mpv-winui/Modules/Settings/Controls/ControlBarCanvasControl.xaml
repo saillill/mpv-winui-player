@@ -19,10 +19,11 @@
             <!-- The card's bar strip, laid out in the real bar's forced zones:
                  原版 = left zone (transport + repeat/random) | right zone;
                  居中 = left zone | centered transport | right zone. Each zone
-                 is a designated frame (指定框) with a rounded border; hidden
-                 buttons are simply absent, so the row always compacts inside
-                 its frame. Cells are cached per id and RepositionThemeTransition
-                 makes hide/show/reorder slide smoothly. -->
+                 is a designated frame (指定框); 原版 has no center frame. Every
+                 movable frame keeps a "+" card placeholder at its end — the
+                 frame never collapses to a dot, and clicking the "+" pops up
+                 that frame's addable (hidden) buttons. Cells are cached per id
+                 and RepositionThemeTransition makes hide/show/reorder slide. -->
             <Grid x:Name="BarHost">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -31,6 +32,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Border
+                    x:Name="ZoneLeftFrame"
                     Grid.Column="0"
                     Padding="4"
                     CornerRadius="6"
@@ -52,6 +54,7 @@
                     </StackPanel>
                 </Border>
                 <Border
+                    x:Name="ZoneCenterFrame"
                     Grid.Column="1"
                     Padding="4"
                     CornerRadius="6"
@@ -73,6 +76,7 @@
                     </StackPanel>
                 </Border>
                 <Border
+                    x:Name="ZoneRightFrame"
                     Grid.Column="2"
                     Padding="4"
                     CornerRadius="6"
@@ -94,20 +98,6 @@
                     </StackPanel>
                 </Border>
             </Grid>
-
-            <!-- Candidate drawer (only visible when editing): one card per
-                 remaining hidden button (icon + localized label below, "+" in
-                 the top-right corner to add it straight to the bar). -->
-            <TextBlock
-                x:Name="AvailableCaption"
-                FontSize="12"
-                Visibility="Collapsed"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            <StackPanel
-                x:Name="AvailableBar"
-                Orientation="Horizontal"
-                Spacing="4"
-                Visibility="Collapsed" />
         </StackPanel>
 
         <!-- Floating drag ghost overlay (StackPanel ignores Canvas positions). -->

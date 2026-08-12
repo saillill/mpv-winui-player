@@ -1,4 +1,4 @@
-{
+﻿{
   "WatchHistoryDialogTitle": "История воспроизведения",
   "WatchLaterDialogTitle": "Смотреть позже",
   "WatchHistoryEmpty": "Файл истории пуст.",
@@ -802,5 +802,6 @@
   "SettingsControlBarFixedGroup": "Закреплено: воспроизведение, предыдущий, следующий, назад, вперёд",
   "SettingsControlBarShown": "Показаны (перетащите, чтобы упорядочить, × скрыть)",
   "SettingsControlBarAvailable": "Скрыты (перетащите на панель, чтобы показать)",
+  "SettingsControlBarCustomize": "Настроить",
   "SettingsControlBarCanvasHint": "Перетащите для порядка; за пределы панели — скрыть. Кнопки воспроизведения закреплены."
 }

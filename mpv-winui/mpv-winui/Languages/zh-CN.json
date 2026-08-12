@@ -1,4 +1,4 @@
-{
+﻿{
   "WatchHistoryDialogTitle": "观看历史",
   "WatchLaterDialogTitle": "稍后观看",
   "WatchHistoryEmpty": "观看历史文件为空。",
@@ -802,5 +802,6 @@
   "SettingsControlBarFixedGroup": "固定：播放、上一首、下一首、快退、快进",
   "SettingsControlBarShown": "显示中（拖拽调整顺序，点 × 隐藏）",
   "SettingsControlBarAvailable": "已隐藏（拖到上方显示栏即可显示）",
+  "SettingsControlBarCustomize": "自定义",
   "SettingsControlBarCanvasHint": "拖动图标调整顺序；拖出进度条即隐藏。播放控件固定不动。"
 }

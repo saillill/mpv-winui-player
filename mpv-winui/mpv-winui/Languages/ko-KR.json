@@ -1,4 +1,4 @@
-{
+﻿{
   "WatchHistoryDialogTitle": "시청 기록",
   "WatchLaterDialogTitle": "나중에 보기",
   "WatchHistoryEmpty": "시청 기록 파일이 비어 있습니다.",
@@ -802,5 +802,6 @@
   "SettingsControlBarFixedGroup": "고정: 재생, 이전, 다음, 뒤로, 앞으로",
   "SettingsControlBarShown": "표시 중 (드래그로 정렬, ×로 숨김)",
   "SettingsControlBarAvailable": "숨김 (위로 드래그하면 표시)",
+  "SettingsControlBarCustomize": "사용자 지정",
   "SettingsControlBarCanvasHint": "아이콘을 드래그하여 정렬하고, 바 밖으로 드래그하면 숨깁니다. 재생 버튼은 고정입니다."
 }

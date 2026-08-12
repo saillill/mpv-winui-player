@@ -1,4 +1,4 @@
-{
+﻿{
   "WatchHistoryDialogTitle": "Wiedergabeverlauf",
   "WatchLaterDialogTitle": "Später ansehen",
   "WatchHistoryEmpty": "Die Verlaufsdatei ist leer.",
@@ -802,5 +802,6 @@
   "SettingsControlBarFixedGroup": "Fix: Wiedergabe, Zurück, Weiter, Zurückspulen, Vorspulen",
   "SettingsControlBarShown": "Sichtbar (Ziehen zum Sortieren, × zum Ausblenden)",
   "SettingsControlBarAvailable": "Ausgeblendet (auf die Leiste ziehen)",
+  "SettingsControlBarCustomize": "Anpassen",
   "SettingsControlBarCanvasHint": "Icons zum Sortieren ziehen; vom Balken ziehen blendet aus. Die Transporttasten sind fix."
 }

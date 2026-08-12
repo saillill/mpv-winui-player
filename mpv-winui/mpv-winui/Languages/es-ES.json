@@ -1,4 +1,4 @@
-{
+﻿{
   "WatchHistoryDialogTitle": "Historial de reproducción",
   "WatchLaterDialogTitle": "Ver más tarde",
   "WatchHistoryEmpty": "El archivo de historial está vacío.",
@@ -802,5 +802,6 @@
   "SettingsControlBarFixedGroup": "Fijos: reproducir, anterior, siguiente, retroceder, avanzar",
   "SettingsControlBarShown": "Visibles (arrastra para ordenar, × para ocultar)",
   "SettingsControlBarAvailable": "Ocultos (arrastra a la barra para mostrar)",
+  "SettingsControlBarCustomize": "Personalizar",
   "SettingsControlBarCanvasHint": "Arrastra para ordenar; arrastra fuera de la barra para ocultar. Los controles de reproducción son fijos."
 }
