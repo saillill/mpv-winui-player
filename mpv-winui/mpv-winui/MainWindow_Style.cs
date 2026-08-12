@@ -56,6 +56,15 @@ namespace mpv_winui
                     _settingsWindow?.UpdateUiFont();
                 });
             }
+            else if (key == nameof(AppContext.AppSetting.ControlBarLayout))
+            {
+                // The centered layout needs a wider minimum; re-apply so the
+                // window cannot be squeezed below the bar's comfortable width.
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    this.SetWindowMinSize(GetMinLogicalWidth(), MIN_LOGICAL_HEIGHT);
+                });
+            }
         }
     }
 }

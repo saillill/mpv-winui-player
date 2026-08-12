@@ -12,6 +12,18 @@ namespace mpv_winui
         public const int MIN_LOGICAL_WIDTH = 250;
         public const int MIN_LOGICAL_HEIGHT = 250;
 
+        // The centered (modernx) control-bar layout needs more width than the
+        // classic bar before its button clusters start overlapping.
+        private const int MIN_LOGICAL_WIDTH_MODERNX = 400;
+
+        private static int GetMinLogicalWidth()
+        {
+            var layout = AppContext.AppSetting.ControlBarLayout;
+            return layout is "modernx" or "center" or "centered" or "right"
+                ? MIN_LOGICAL_WIDTH_MODERNX
+                : MIN_LOGICAL_WIDTH;
+        }
+
         private int _x;
         private int _y;
         private int _w;
@@ -130,7 +142,7 @@ namespace mpv_winui
             if (sender is FrameworkElement body)
             {
                 body.XamlRoot?.Changed += RootGridXamlRoot_Changed;
-                this.SetWindowMinSize(MIN_LOGICAL_WIDTH, MIN_LOGICAL_HEIGHT);
+                this.SetWindowMinSize(GetMinLogicalWidth(), MIN_LOGICAL_HEIGHT);
             }
         }
 
@@ -144,7 +156,7 @@ namespace mpv_winui
 
         private void RootGridXamlRoot_Changed(XamlRoot sender, XamlRootChangedEventArgs args)
         {
-            this.SetWindowMinSize(MIN_LOGICAL_WIDTH, MIN_LOGICAL_HEIGHT);
+            this.SetWindowMinSize(GetMinLogicalWidth(), MIN_LOGICAL_HEIGHT);
         }
     }
 }
