@@ -1,16 +1,26 @@
 using System.Collections.Generic;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
 /// <summary>
-/// Canonical control-bar icon catalog for the drag canvas. Glyphs match the
-/// real control bar (PlayerControl.xaml): Segoe glyphs for most buttons,
-/// Fluent glyphs for shuffle/pip. The partition table mirrors the real
-/// classic / modernx layouts so the canvas renders exactly like the bar.
+/// Canonical control-bar icon catalog for the drag canvas. Glyphs and zone
+/// partitions mirror the real control bar (PlayerControl.xaml +
+/// ApplyControlBarOrder): most buttons use Segoe glyphs, shuffle/pip only
+/// exist in the Fluent system icons font. 原版 (classic) splits the bar into
+/// a left transport zone and a right cluster; 居中 (modernx) forces three
+/// zones — left cluster, centered transport, right cluster.
 /// </summary>
 public static class ControlBarIconCatalog
 {
-    /// <summary>Fixed transport buttons, in order (never reorderable/hideable).</summary>
+    /// <summary>Font that contains the shuffle/pip glyphs (same as the real bar).</summary>
+    public const string FluentFont = "ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular";
+
+    /// <summary>True for ids whose glyph only exists in the Fluent font (shuffle, pip).</summary>
+    public static bool IsFluent(string id) => id is "random" or "pip";
+
+    /// <summary>Fixed transport buttons, in 原版 (classic) order.</summary>
     public static IReadOnlyList<(string Id, string Label, string Glyph)> FixedButtons { get; } =
     [
         ("play", "播放/暂停", "\uF5B0"),
@@ -43,17 +53,64 @@ public static class ControlBarIconCatalog
         "delay", "aspect", "pip", "fullwindow", "fullscreen",
     ];
 
-    /// <summary>ModernX partitions: which movable ids sit on the left / right of the bar.</summary>
-    public static IReadOnlyList<string> ModernXLeft { get; } =
-        ["tracks", "random", "repeat", "speed", "equalizer", "delay", "volume"];
+    /// <summary>Transport order for 原版: play, previous, next, skip-back, skip-forward.</summary>
+    public static IReadOnlyList<string> TransportClassic { get; } =
+        ["play", "previous", "next", "skip-back", "skip-forward"];
 
+    /// <summary>Transport order for 居中: previous, skip-back, play, skip-forward, next (real bar's middle cluster).</summary>
+    public static IReadOnlyList<string> TransportModernX { get; } =
+        ["previous", "skip-back", "play", "skip-forward", "next"];
+
+    /// <summary>居中 left zone: volume, tracks, random, speed (reorderable), then the fixed tail.</summary>
+    public static IReadOnlyList<string> ModernXLeft { get; } =
+        ["volume", "tracks", "random", "speed"];
+
+    /// <summary>居中 right zone: aspect, pip, fullwindow, fullscreen.</summary>
     public static IReadOnlyList<string> ModernXRight { get; } =
         ["aspect", "pip", "fullwindow", "fullscreen"];
 
-    /// <summary>Classic partitions: left holds the transport cluster + repeat/shuffle; right holds the rest.</summary>
+    /// <summary>原版 left zone (after the transport cluster): repeat, random.</summary>
     public static IReadOnlyList<string> ClassicLeft { get; } =
         ["repeat", "random"];
 
+    /// <summary>原版 right zone: volume, speed, tracks, aspect, pip, fullwindow, fullscreen, then the fixed tail.</summary>
     public static IReadOnlyList<string> ClassicRight { get; } =
-        ["volume", "speed", "tracks", "equalizer", "delay", "aspect", "pip", "fullwindow", "fullscreen"];
+        ["volume", "speed", "tracks", "aspect", "pip", "fullwindow", "fullscreen"];
+
+    /// <summary>Fixed tail appended after a layout's movable partition (equalizer, delay).</summary>
+    public static IReadOnlyList<string> FixedTail { get; } =
+        ["equalizer", "delay"];
+
+    /// <summary>Looks an id up in the movable then the fixed catalog.</summary>
+    public static (string Id, string Label, string Glyph) Find(string id)
+    {
+        foreach (var item in MovableButtons)
+        {
+            if (item.Id == id)
+            {
+                return item;
+            }
+        }
+        foreach (var item in FixedButtons)
+        {
+            if (item.Id == id)
+            {
+                return item;
+            }
+        }
+        return (id, id, "\uE7C3");
+    }
+
+    /// <summary>
+    /// Applies the Fluent font family to a FontIcon whose glyph only exists
+    /// there (shuffle/pip), so the canvas renders exactly like the real bar.
+    /// </summary>
+    public static FontIcon ApplyGlyphFont(FontIcon icon, string id)
+    {
+        if (IsFluent(id))
+        {
+            icon.FontFamily = new FontFamily(FluentFont);
+        }
+        return icon;
+    }
 }

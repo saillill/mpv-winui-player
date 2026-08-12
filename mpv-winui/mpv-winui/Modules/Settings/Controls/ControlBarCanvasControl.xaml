@@ -7,39 +7,65 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel x:Name="RootPanel" Spacing="8">
-        <TextBlock
-            x:Name="BarHint"
-            FontSize="12"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            TextWrapping="Wrap" />
+    <Grid x:Name="RootPanel">
+        <StackPanel Spacing="8">
+            <TextBlock
+                x:Name="BarHint"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextWrapping="Wrap" />
 
-        <!-- One horizontal row, like the real progress bar: fixed transport
-             cells + shown movable cells in the real layout order, with small
-             gaps where the real bar separates its groups. -->
-        <ScrollViewer
-            HorizontalScrollBarVisibility="Auto"
-            HorizontalScrollMode="Enabled"
-            VerticalScrollBarVisibility="Disabled"
-            VerticalScrollMode="Disabled">
+            <!-- The card's bar strip, laid out in the real bar's forced zones:
+                 原版 = left zone (transport + repeat/random) | right zone;
+                 居中 = left zone | centered transport | right zone. Hidden
+                 buttons render as empty slots inside their own zone. -->
+            <Grid x:Name="BarHost">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel
+                    x:Name="ZoneLeft"
+                    Grid.Column="0"
+                    Orientation="Horizontal"
+                    Spacing="3"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center" />
+                <StackPanel
+                    x:Name="ZoneCenter"
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="3"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+                <StackPanel
+                    x:Name="ZoneRight"
+                    Grid.Column="2"
+                    Orientation="Horizontal"
+                    Spacing="3"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center" />
+            </Grid>
+
+            <!-- Candidate drawer: one card per movable button, same size and
+                 style as the bar slots. Hidden buttons fill a card (icon +
+                 localized label below); empty cards stay as "+" frames. Drag
+                 a card's icon back onto the bar strip to show it. -->
+            <TextBlock
+                x:Name="AvailableCaption"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             <StackPanel
-                x:Name="BarPanel"
+                x:Name="AvailableBar"
                 Orientation="Horizontal"
-                Spacing="3"
-                VerticalAlignment="Center" />
-        </ScrollViewer>
+                Spacing="4" />
+        </StackPanel>
 
-        <!-- Candidate drawer: a fixed grid of grey rounded slots, one per
-             movable button. Hidden buttons fill a slot (icon + localized
-             label below); empty slots stay visible so the layout never
-             collapses. Drag a slot's icon back onto the bar to show it. -->
-        <TextBlock
-            x:Name="AvailableCaption"
-            FontSize="12"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        <StackPanel
-            x:Name="AvailableBar"
-            Orientation="Horizontal"
-            Spacing="4" />
-    </StackPanel>
+        <!-- Floating drag ghost overlay (StackPanel ignores Canvas positions). -->
+        <Canvas
+            x:Name="GhostOverlay"
+            IsHitTestVisible="False" />
+    </Grid>
 </local:OptionControlBase>
