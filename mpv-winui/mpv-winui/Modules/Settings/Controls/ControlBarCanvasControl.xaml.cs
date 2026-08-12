@@ -46,6 +46,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private readonly List<string> _hidden = [];  // movable ids hidden
     private readonly List<string> _custom = [];  // saved custom order
     private readonly List<(int Zone, bool Fixed, string Id)> _barOrder = [];
+    private readonly Dictionary<string, int> _zoneOf = []; // per-id zone (0/2); 1 is the fixed transport
 
     private string? _dragSourceId;
     private bool _dragActive;
@@ -125,6 +126,17 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         }
 
         BarHint.Text = AppContext.AppLang.SettingsControlBarCanvasHint;
+
+        // Default per-id zone follows the layout's partition table; the zone
+        // becomes dynamic after a cross-zone drop (see OnPointerReleased).
+        _zoneOf.Clear();
+        foreach (var id in ControlBarIconCatalog.MovableIds)
+        {
+            _zoneOf[id] = _style == "modernx"
+                ? ControlBarIconCatalog.ModernXRight.Contains(id) ? 2 : 0
+                : ControlBarIconCatalog.ClassicLeft.Contains(id) ? 0 : 2;
+        }
+
         BuildBarOrder();
 
         // Rebuild _shown to match the visual (zone) order exactly. Insertion
@@ -145,8 +157,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
     /// <summary>Re-reads the real bar state (used when another card changed it).</summary>
     public void Reload() => Load(_style);
-
-    /// <summary>Toggles edit mode: ✕ on movable cells and dragging only when editing.</summary>
     public void SetEditable(bool value)
     {
         _editable = value;
@@ -167,9 +177,10 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
               || ControlBarIconCatalog.FixedTail.Contains(id);
 
     /// <summary>
-    /// Builds the single-row zone order exactly like the real bar's command
-    /// bars: classic = left transport + repeat/random | right cluster;
-    /// modernx = left cluster | centered transport | right cluster. Hidden
+    /// Builds the single-row zone order: the fixed transport cluster sits in
+    /// its layout position (classic left / modernx center) and every shown
+    /// movable button follows the global _shown order in its current zone
+    /// (per-id _zoneOf, which becomes dynamic after a cross-zone drop). Hidden
     /// ids are left out, so the strip compacts.
     /// </summary>
     private void BuildBarOrder()
@@ -177,17 +188,39 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         _barOrder.Clear();
         if (_style == "modernx")
         {
-            AddMovableZone(0, ControlBarIconCatalog.ModernXLeft);
-            AddMovableZone(0, ControlBarIconCatalog.FixedTail);
+            foreach (var id in _shown)
+            {
+                if (_zoneOf[id] == 0)
+                {
+                    _barOrder.Add((0, false, id));
+                }
+            }
             AddFixedZone(1, ControlBarIconCatalog.TransportModernX);
-            AddMovableZone(2, ControlBarIconCatalog.ModernXRight);
+            foreach (var id in _shown)
+            {
+                if (_zoneOf[id] == 2)
+                {
+                    _barOrder.Add((2, false, id));
+                }
+            }
         }
         else
         {
             AddFixedZone(0, ControlBarIconCatalog.TransportClassic);
-            AddMovableZone(0, ControlBarIconCatalog.ClassicLeft);
-            AddMovableZone(2, ControlBarIconCatalog.ClassicRight);
-            AddMovableZone(2, ControlBarIconCatalog.FixedTail);
+            foreach (var id in _shown)
+            {
+                if (_zoneOf[id] == 0)
+                {
+                    _barOrder.Add((0, false, id));
+                }
+            }
+            foreach (var id in _shown)
+            {
+                if (_zoneOf[id] == 2)
+                {
+                    _barOrder.Add((2, false, id));
+                }
+            }
         }
     }
 
@@ -196,30 +229,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         foreach (var id in ids)
         {
             _barOrder.Add((zone, true, id));
-        }
-    }
-
-    /// <summary>
-    /// Places the partition's shown cells: custom-ordered ids first (relative
-    /// custom order within the partition), then the remaining ids in the
-    /// partition's default (real bar) order. Hidden ids are skipped.
-    /// </summary>
-    private void AddMovableZone(int zone, IReadOnlyList<string> partition)
-    {
-        var placed = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var id in _custom)
-        {
-            if (partition.Contains(id) && _shown.Contains(id) && placed.Add(id))
-            {
-                _barOrder.Add((zone, false, id));
-            }
-        }
-        foreach (var id in partition)
-        {
-            if (!placed.Contains(id) && _shown.Contains(id) && placed.Add(id))
-            {
-                _barOrder.Add((zone, false, id));
-            }
         }
     }
 
@@ -413,12 +422,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                 ? ControlBarIconCatalog.ClassicRight.Concat(ControlBarIconCatalog.FixedTail)
                 : ControlBarIconCatalog.ClassicLeft;
 
-    /// <summary>The zone (0 left, 1 center, 2 right) a movable id renders in.</summary>
-    private int ZoneOfId(string id) =>
-        _style == "modernx"
-            ? ControlBarIconCatalog.ModernXRight.Contains(id) ? 2 : 0
-            : ControlBarIconCatalog.ClassicLeft.Contains(id) ? 0 : 2;
-
     // ===== Actions =====
 
     /// <summary>Adds a hidden button to its zone, after the zone's other shown buttons.</summary>
@@ -429,12 +432,13 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             return;
         }
         _hidden.Remove(id);
+        _zoneOf[id] = zone;
         if (!_shown.Contains(id))
         {
             var insertAt = _shown.Count;
             for (var i = 0; i < _shown.Count; i++)
             {
-                if (ZoneOfId(_shown[i]) == zone)
+                if (_zoneOf[_shown[i]] == zone)
                 {
                     insertAt = i + 1;
                 }
@@ -772,14 +776,29 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         var position = e.GetCurrentPoint(RootPanel).Position;
 
         // Insert at the indicator position (neighbours compact left/right),
-        // or hide the button when it was dragged out of the strip.
+        // or hide the button when it was dragged out of the strip. Dropping
+        // into the other zone re-homes the button there, so every movable id
+        // (including the fixed-tail equalizer/delay) can move freely.
         var insertIndex = HitBarInsertIndex(position);
         if (insertIndex >= 0)
         {
+            _zoneOf[sourceId] = ZoneAt(position);
             MoveShown(sourceId, insertIndex);
             return;
         }
         HideButton(sourceId);
+    }
+
+    /// <summary>The zone under the pointer: 2 (right) when past the centered
+    /// transport's midpoint, else 0 (left). The transport cluster is fixed.</summary>
+    private int ZoneAt(Point position)
+    {
+        if (_style != "modernx")
+        {
+            return 2; // classic has no centered zone; right zone is the cluster
+        }
+        var transport = BoundsOf(ZoneCenter);
+        return position.X > transport.X + transport.Width / 2 ? 2 : 0;
     }
 
     /// <summary>
