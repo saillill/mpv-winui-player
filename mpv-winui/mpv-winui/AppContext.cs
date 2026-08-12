@@ -50,7 +50,7 @@ namespace mpv_winui
         /// <summary>Writes settings-managed plugin options into script-opts/*.conf (next mpv start).</summary>
         public static void WritePluginConfigs()
         {
-            _ = ConfigWriteQueue.Enqueue(PluginConfigWriter.WriteAllAsync);
+            _ = ConfigWriteQueue.EnqueueCoalescing(PluginConfigWriter.WriteAllAsync);
         }
 
         /// <summary>Writes config-only options (ytdl_hook script options) into the deployed mpv.conf.</summary>
@@ -89,7 +89,7 @@ namespace mpv_winui
             // startup path can await them before mpv reads the config dir.
             _task = Task.WhenAll(
                 loggerTask,
-                ConfigWriteQueue.Enqueue(PluginConfigWriter.WriteAllAsync),
+                ConfigWriteQueue.EnqueueCoalescing(PluginConfigWriter.WriteAllAsync),
                 ConfigWriteQueue.Enqueue(ManagedMpvConfig.WriteAsync));
         }
 

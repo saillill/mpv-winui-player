@@ -98,16 +98,28 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         nameof(AppContext.AppSetting.ScreenshotTagColorspace),
     };
 
+    private static readonly Dictionary<string, List<OptionChoice>> FontChoicesCache = new(StringComparer.Ordinal);
+
     private static List<OptionChoice> SubtitleFontChoices(AppLang lang)
     {
+        // The same list feeds the UI font, OSD font and subtitle font options
+        // on every settings build; scanning the font directory three times per
+        // navigation is wasted I/O. Cache per language + selected font file.
+        var cacheKey = AppContext.AppSetting.CurrentLanguage + "|" + (AppContext.AppSetting.SubFontFile ?? string.Empty);
+        if (FontChoicesCache.TryGetValue(cacheKey, out var cachedChoices))
+        {
+            return cachedChoices;
+        }
+
         var list = new List<OptionChoice>
         {
             new("sans-serif", lang.OptionValueFontDefault),
         };
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sans-serif" };
 
         void Add(string value, string label)
         {
-            if (!list.Any(c => c.Value == value))
+            if (seen.Add(value))
             {
                 list.Add(new OptionChoice(value, label));
             }
@@ -171,6 +183,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         Add("Consolas", "Consolas");
         Add("Source Han Sans SC", "Source Han Sans SC");
         Add("LXGW WenKai Mono Lite", "LXGW WenKai Mono Lite");
+        FontChoicesCache[cacheKey] = list;
         return list;
     }
 
