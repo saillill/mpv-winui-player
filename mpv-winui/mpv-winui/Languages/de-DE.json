@@ -791,6 +791,11 @@
   "PlaylistExport": "Wiedergabeliste exportieren…",
   "PlaylistFilterPlaceholder": "Wiedergabeliste filtern…",
   "MenuEditorTitle": "Menü-Editor",
+  "SettingsPreset": "Voreinstellung",
+  "SettingsPresetDescription": "Voreinstellung (integriert oder gespeichert) anwenden; Änderungen wirken sofort.",
+  "SettingsPresetSave": "Aktuelles als Voreinstellung speichern",
+  "SettingsPresetName": "Name der Voreinstellung",
+  "SettingsPresetSaved": "Voreinstellung gespeichert.",
   "CustomRate": "Benutzerdefinierte Geschwindigkeit",
   "DisplayInfo": "Anzeigeinformationen",
   "SettingsCheckForUpdates": "Nach Updates suchen",
@@ -798,9 +803,5 @@
   "UpdateAvailableTitle": "Update verfügbar",
   "UpdateAvailableMessage": "Eine neuere Version ist verfügbar:",
   "UpdateAvailableOpen": "Öffnen",
-  "UpdateAvailableLater": "Später",
-  "SettingsControlBarFixedGroup": "Fix: Wiedergabe, Zurück, Weiter, Zurückspulen, Vorspulen",
-  "SettingsControlBarShown": "Sichtbar (Ziehen zum Sortieren, × zum Ausblenden)",
-  "SettingsControlBarAvailable": "Ausgeblendet (auf die Leiste ziehen)",
-  "SettingsControlBarCanvasHint": "Icons zum Sortieren ziehen; vom Balken ziehen blendet aus. Die Transporttasten sind fix."
+  "UpdateAvailableLater": "Später"
 }

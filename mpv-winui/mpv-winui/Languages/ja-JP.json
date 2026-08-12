@@ -791,6 +791,11 @@
   "PlaylistExport": "プレイリストをエクスポート…",
   "PlaylistFilterPlaceholder": "プレイリストを絞り込む…",
   "MenuEditorTitle": "メニューエディタ",
+  "SettingsPreset": "プリセット",
+  "SettingsPresetDescription": "内蔵または保存済みプリセットを適用します（即時反映）。",
+  "SettingsPresetSave": "現在をプリセットとして保存",
+  "SettingsPresetName": "プリセット名",
+  "SettingsPresetSaved": "プリセットを保存しました。",
   "CustomRate": "カスタム速度",
   "DisplayInfo": "表示情報",
   "SettingsCheckForUpdates": "更新を確認",
@@ -798,9 +803,5 @@
   "UpdateAvailableTitle": "更新があります",
   "UpdateAvailableMessage": "新しいバージョンがあります：",
   "UpdateAvailableOpen": "開く",
-  "UpdateAvailableLater": "後で",
-  "SettingsControlBarFixedGroup": "固定: 再生・前・次・スキップ戻る・スキップ進む",
-  "SettingsControlBarShown": "表示中（ドラッグで並べ替え、× で非表示）",
-  "SettingsControlBarAvailable": "非表示（上にドラッグで表示）",
-  "SettingsControlBarCanvasHint": "アイコンをドラッグして並べ替え、バーの外へドラッグで非表示。再生ボタンは固定。"
+  "UpdateAvailableLater": "後で"
 }

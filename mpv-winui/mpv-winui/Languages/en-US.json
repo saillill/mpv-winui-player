@@ -791,6 +791,11 @@
   "PlaylistExport": "Export Playlist…",
   "PlaylistFilterPlaceholder": "Filter playlist…",
   "MenuEditorTitle": "Menu Editor",
+  "SettingsPreset": "Preset",
+  "SettingsPresetDescription": "Apply a built-in or user-saved preset; changes apply immediately.",
+  "SettingsPresetSave": "Save Current as Preset",
+  "SettingsPresetName": "Preset name",
+  "SettingsPresetSaved": "Preset saved.",
   "CustomRate": "Custom speed",
   "DisplayInfo": "Display info",
   "SettingsCheckForUpdates": "Check for updates",
@@ -798,9 +803,5 @@
   "UpdateAvailableTitle": "Update available",
   "UpdateAvailableMessage": "A newer version is available:",
   "UpdateAvailableOpen": "Open",
-  "UpdateAvailableLater": "Later",
-  "SettingsControlBarFixedGroup": "Fixed: play, previous, next, skip back, skip forward",
-  "SettingsControlBarShown": "Shown (drag to reorder, × to hide)",
-  "SettingsControlBarAvailable": "Hidden (drag onto the bar to show)",
-  "SettingsControlBarCanvasHint": "Drag the icons to reorder; drag off the bar to hide. The transport buttons are fixed."
+  "UpdateAvailableLater": "Later"
 }

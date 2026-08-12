@@ -223,10 +223,6 @@ namespace mpv_winui.Modules.Language
         public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
         public string CustomRate { get; set; } = "Custom speed";
         public string DisplayInfo { get; set; } = "Display info";
-        public string SettingsControlBarFixedGroup { get; set; } = "Fixed: play, previous, next, skip back, skip forward";
-        public string SettingsControlBarShown { get; set; } = "Shown (drag to reorder, × to hide)";
-        public string SettingsControlBarAvailable { get; set; } = "Hidden (drag onto the bar to show)";
-        public string SettingsControlBarCanvasHint { get; set; } = "Drag the icons to reorder; drag off the bar to hide. The transport buttons are fixed.";
         public string SettingsCheckForUpdates { get; set; } = "Check for updates";
         public string SettingsCheckForUpdatesDescription { get; set; } = "Check the GitHub releases page for a newer version at startup.";
         public string UpdateAvailableTitle { get; set; } = "Update available";
@@ -234,6 +230,11 @@ namespace mpv_winui.Modules.Language
         public string UpdateAvailableOpen { get; set; } = "Open";
         public string UpdateAvailableLater { get; set; } = "Later";
         public string MenuEditorTitle { get; set; } = "Menu Editor";
+        public string SettingsPreset { get; set; } = "Preset";
+        public string SettingsPresetDescription { get; set; } = "Apply a built-in or user-saved preset; changes apply immediately.";
+        public string SettingsPresetSave { get; set; } = "Save Current as Preset";
+        public string SettingsPresetName { get; set; } = "Preset name";
+        public string SettingsPresetSaved { get; set; } = "Preset saved.";
 
         public string Window { get; set; } = "Window";
         public string TogglePlaylist { get; set; } = "Toggle Playlist";

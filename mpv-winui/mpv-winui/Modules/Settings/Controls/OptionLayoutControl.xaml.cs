@@ -6,7 +6,6 @@ using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.Player;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Windows.UI;
 
 namespace mpv_winui.Modules.Settings.Controls;
@@ -19,29 +18,6 @@ public sealed partial class OptionLayoutControl : OptionControlBase
     public OptionLayoutControl()
     {
         InitializeComponent();
-        ControlBarCanvasControl.StateChanged += OnCanvasStateChanged;
-        Unloaded += (_, _) => ControlBarCanvasControl.StateChanged -= OnCanvasStateChanged;
-    }
-
-    /// <summary>Re-renders the card previews when the drag canvas changes the real bar state.</summary>
-    private void OnCanvasStateChanged()
-    {
-        RebuildPreviews();
-    }
-
-    private void RebuildPreviews()
-    {
-        foreach (var item in StyleCards.Items)
-        {
-            if (item is Border card && card.Child is StackPanel panel)
-            {
-                // panel[1] is the preview bar.
-                if (panel.Children.Count > 1 && panel.Children[1] is FrameworkElement old)
-                {
-                    panel.Children[1] = BuildPreview(card.Tag as string ?? "classic");
-                }
-            }
-        }
     }
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)
@@ -180,17 +156,46 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         }
     }
 
-    /// <summary>Rebuilds the expanded drag canvas for the current layout style.</summary>
+    /// <summary>Rebuilds the expanded icon checklist for the current layout style.</summary>
     private void BuildIconChecklist(StackPanel panel, string style)
     {
         panel.Children.Clear();
-        var canvas = new ControlBarCanvasControl
+        var items = Setting?.CheckItemsProviderForStyle?.Invoke(style)
+            ?? Setting?.CheckItemsProvider?.Invoke()
+            ?? Setting?.CheckItems
+            ?? [];
+        foreach (var item in items)
         {
-            Setting = Setting,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        canvas.Load(style);
-        panel.Children.Add(canvas);
+            var box = new CheckBox
+            {
+                IsChecked = item.IsChecked,
+                Tag = item,
+                MinWidth = 150,
+            };
+            if (string.IsNullOrEmpty(item.Glyph))
+            {
+                box.Content = item.Label;
+            }
+            else
+            {
+                var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+                row.Children.Add(CreateIcon(item.Glyph));
+                row.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
+                box.Content = row;
+            }
+            box.Checked += OnIconToggled;
+            box.Unchecked += OnIconToggled;
+            panel.Children.Add(box);
+        }
+    }
+
+    private void OnIconToggled(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox box && Setting is { } option && box.Tag is OptionCheckItem item)
+        {
+            item.IsChecked = box.IsChecked == true;
+            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked, item.Target);
+        }
     }
 
     private void Select(string value)
@@ -253,11 +258,6 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             : ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush");
     }
 
-    /// <summary>
-    /// Renders the card's mini progress bar from the REAL bar state: the
-    /// same partitions and glyphs as the actual classic / modernx layouts,
-    /// with hidden buttons omitted.
-    /// </summary>
     private FrameworkElement BuildPreview(string value)
     {
         var bar = new Border
@@ -268,34 +268,32 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             Padding = new Thickness(6, 0, 6, 0),
         };
 
-        var grid = new Grid { VerticalAlignment = VerticalAlignment.Center };
+        // 原版 keeps the upstream two-sided layout (transport on the left,
+        // volume/rate/tracks/zoom/pip/window controls on the right). 居中
+        // follows ModernX: tracks and volume on the left, the transport
+        // cluster centered, window controls on the right.
+        var grid = new Grid
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+        };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        string GlyphOf(string id)
-        {
-            foreach (var item in ControlBarIconCatalog.MovableButtons)
-            {
-                if (item.Id == id) return item.Glyph;
-            }
-            foreach (var item in ControlBarIconCatalog.FixedButtons)
-            {
-                if (item.Id == id) return item.Glyph;
-            }
-            return "";
-        }
-
-        bool HiddenOf(string id) => _hiddenOf(value).Contains(id, StringComparer.Ordinal);
-        var transport = ControlBarIconCatalog.FixedButtons.Select(b => b.Glyph).ToArray();
-
         if (value == "modernx")
         {
-            var left = BuildIconCluster(HorizontalAlignment.Left,
-                OrderGlyphs(ControlBarIconCatalog.ModernXLeft, _orderOf(value), GlyphOf, HiddenOf));
-            var center = BuildIconCluster(HorizontalAlignment.Center, transport);
-            var right = BuildIconCluster(HorizontalAlignment.Right,
-                OrderGlyphs(ControlBarIconCatalog.ModernXRight, _orderOf(value), GlyphOf, HiddenOf));
+            var left = BuildIconCluster(
+                HorizontalAlignment.Left,
+                "\uED1F", ControlBarIcons.Shuffle, "\uE8EE", "\uEC57", "\uE995"); // tracks, random, repeat, speed, volume
+            var center = BuildIconCluster(
+                HorizontalAlignment.Center,
+                "\uF8AC", "\uE627",                                // previous, skip back
+                "\uF5B0",                                          // play/pause
+                "\uE628", "\uF8AD");                               // skip forward, next
+            var right = BuildIconCluster(
+                HorizontalAlignment.Right,
+                "\uE799", ControlBarIcons.PictureInPicture,        // aspect, picture-in-picture
+                "\uF16B", "\uE740");                               // full window, full screen
             Grid.SetColumn(left, 0);
             Grid.SetColumn(center, 1);
             Grid.SetColumn(right, 2);
@@ -305,10 +303,16 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         }
         else
         {
-            var left = BuildIconCluster(HorizontalAlignment.Left,
-                transport.Concat(OrderGlyphs(ControlBarIconCatalog.ClassicLeft, _orderOf(value), GlyphOf, HiddenOf)).ToArray());
-            var right = BuildIconCluster(HorizontalAlignment.Right,
-                OrderGlyphs(ControlBarIconCatalog.ClassicRight, _orderOf(value), GlyphOf, HiddenOf));
+            var left = BuildIconCluster(
+                HorizontalAlignment.Left,
+                "\uF5B0", "\uE627", "\uE628",                      // play, skip back, skip forward
+                "\uF8AC", "\uF8AD",                                // previous, next
+                ControlBarIcons.Shuffle, "\uE8EE");                // shuffle, repeat
+            var right = BuildIconCluster(
+                HorizontalAlignment.Right,
+                "\uE995", "\uEC57", "\uED1F",                      // volume, speed, tracks
+                "\uE799", ControlBarIcons.PictureInPicture, "\uF16B", // zoom, picture-in-picture, full window
+                "\uE740");                                         // full screen
             Grid.SetColumn(left, 0);
             Grid.SetColumn(right, 2);
             grid.Children.Add(left);
@@ -317,42 +321,6 @@ public sealed partial class OptionLayoutControl : OptionControlBase
 
         bar.Child = grid;
         return bar;
-    }
-
-    private static HashSet<string> _hiddenOf(string value) =>
-        (value == "modernx"
-            ? AppContext.AppSetting.ControlBarHiddenIconsModernX
-            : AppContext.AppSetting.ControlBarHiddenIconsClassic)
-        ?.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .ToHashSet(StringComparer.OrdinalIgnoreCase)
-        ?? [];
-
-    private static List<string> _orderOf(string value) =>
-        AppContext.AppSetting.ControlBarCustomOrder
-        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .Where(ControlBarIconCatalog.MovableIds.Contains)
-        .ToList();
-
-    /// <summary>Returns the glyphs for the ids in custom order, skipping hidden ones; unreferenced ids keep default order.</summary>
-    private static string[] OrderGlyphs(IReadOnlyList<string> ids, List<string> order, Func<string, string> glyphOf, Func<string, bool> hiddenOf)
-    {
-        var result = new List<string>();
-        var placed = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var id in order)
-        {
-            if (ids.Contains(id) && !hiddenOf(id) && placed.Add(id))
-            {
-                result.Add(glyphOf(id));
-            }
-        }
-        foreach (var id in ids)
-        {
-            if (!hiddenOf(id) && placed.Add(id))
-            {
-                result.Add(glyphOf(id));
-            }
-        }
-        return result.ToArray();
     }
 
     private StackPanel BuildIconCluster(HorizontalAlignment alignment, params string[] glyphs)

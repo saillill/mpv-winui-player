@@ -426,6 +426,8 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CurrentLanguage)] = sProgramLanguageLog,
             [nameof(AppSettings.CheckForUpdates)] = sProgramInterface,
             // preset keys are option keys, not AppSettings properties
+            ["Preset"] = sProgramInterface,
+            ["PresetActions"] = sProgramInterface,
             [nameof(AppSettings.EnableDebugLog)] = sProgramTesting,
             // playback
             [nameof(AppSettings.LoopFile)] = sPlayback,

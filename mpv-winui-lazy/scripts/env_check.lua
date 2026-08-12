@@ -59,8 +59,7 @@ local function run()
     local vs_dir = mpv_dir .. '/vs'
 
     lines[#lines + 1] = '== 环境体检 =='
-    local ver = mp.get_property('mpv-version') or '?'
-    lines[#lines + 1] = 'mpv ' .. ver
+    lines[#lines + 1] = 'mpv ' .. (mp.get_version() or '?')
 
     -- VapourSynth (vs/*.vpy templates)
     lines[#lines + 1] = 'VapourSynth : ' .. check_vapoursynth()
