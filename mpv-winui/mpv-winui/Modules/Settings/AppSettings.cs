@@ -20,11 +20,39 @@ namespace mpv_winui.Modules.Settings
         }
 
         /// <summary>
-        /// The old subtitle-font default stored "sans-serif"; treat that value
-        /// as unset once so each UI language gets its own default font.
-        /// An explicit "System default" choice made later is kept.
+        /// Schema version of the stored settings. Migrations run once per
+        /// version: read the stored version, run every step above it, then
+        /// persist the new version. The per-feature "Migrated" flags inside
+        /// the steps keep them idempotent for installs upgraded before the
+        /// version key existed (they read version 0 and re-run the steps,
+        /// which no-op on the flags).
         /// </summary>
+        private const int CurrentSettingsSchemaVersion = 1;
+        private const string SettingsSchemaVersionKey = "SettingsSchemaVersion";
+
         private void MigrateLegacyDefaults()
+        {
+            var fromVersion = _dataSetting.GetValue(SettingsSchemaVersionKey, 0);
+            try
+            {
+                if (fromVersion >= CurrentSettingsSchemaVersion)
+                {
+                    return;
+                }
+                if (fromVersion < 1)
+                {
+                    MigrateToVersion1();
+                }
+            }
+            finally
+            {
+                // Persist the version even when a step early-returns, so the
+                // migration runs exactly once.
+                _dataSetting.SetValue(SettingsSchemaVersionKey, CurrentSettingsSchemaVersion);
+            }
+        }
+
+        private void MigrateToVersion1()
         {
             // The control bar icon checklist used to be stored in a single
             // value shared by every layout style. Keep the old value for
@@ -199,6 +227,13 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(CurrentLanguage), string.Empty);
             set => _dataSetting.SetValue(nameof(CurrentLanguage), value);
+        }
+
+        /// <summary>Comma-separated recent settings-search queries (most recent first).</summary>
+        public string SettingsSearchHistory
+        {
+            get => _dataSetting.GetValue(nameof(SettingsSearchHistory), string.Empty);
+            set => _dataSetting.SetValue(nameof(SettingsSearchHistory), value);
         }
 
         public ulong AppVersion
@@ -1315,6 +1350,27 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPSize), value);
         }
 
+        /// <summary>Last PiP window position+size ("x,y,w,h"); empty restores the default bottom-right placement.</summary>
+        public string WindowPiPRect
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPRect), string.Empty);
+            set => _dataSetting.SetValue(nameof(WindowPiPRect), value);
+        }
+
+        /// <summary>PiP window opacity (0.2..1), used for the quick-settings slider.</summary>
+        public double WindowPiPOpacity
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPOpacity), 1.0);
+            set => _dataSetting.SetValue(nameof(WindowPiPOpacity), value);
+        }
+
+        /// <summary>Checks the GitHub Releases API for updates at startup.</summary>
+        public bool CheckForUpdates
+        {
+            get => _dataSetting.GetValue(nameof(CheckForUpdates), true);
+            set => _dataSetting.SetValue(nameof(CheckForUpdates), value);
+        }
+
         public bool WindowStartMaximized
         {
             get => _dataSetting.GetValue(nameof(WindowStartMaximized), false);
@@ -1339,6 +1395,18 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(ControlBarLayout), "classic");
             set => _dataSetting.SetValue(nameof(ControlBarLayout), value);
+        }
+
+        /// <summary>
+        /// Comma-separated custom order of the reorderable control-bar buttons
+        /// (volume,tracks,random,speed,aspect,fullwindow,fullscreen,pip).
+        /// Empty = the layout's built-in order; the transport buttons
+        /// (play/prev/next/skips) are always fixed.
+        /// </summary>
+        public string ControlBarCustomOrder
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarCustomOrder), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarCustomOrder), value);
         }
 
         public string ControlBarHiddenIcons

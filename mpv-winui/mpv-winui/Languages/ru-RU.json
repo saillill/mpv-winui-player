@@ -789,5 +789,18 @@
   "Clear": "Очистить",
   "PlaylistImport": "Импорт плейлиста…",
   "PlaylistExport": "Экспорт плейлиста…",
-  "PlaylistFilterPlaceholder": "Фильтр плейлиста…"
+  "PlaylistFilterPlaceholder": "Фильтр плейлиста…",
+  "MenuEditorTitle": "Редактор меню",
+  "CustomRate": "Своя скорость",
+  "DisplayInfo": "Информация о дисплее",
+  "SettingsCheckForUpdates": "Проверять обновления",
+  "SettingsCheckForUpdatesDescription": "Проверять страницу релизов GitHub при запуске.",
+  "UpdateAvailableTitle": "Доступно обновление",
+  "UpdateAvailableMessage": "Доступна новая версия:",
+  "UpdateAvailableOpen": "Открыть",
+  "UpdateAvailableLater": "Позже",
+  "SettingsControlBarCustomOrder": "Свой порядок…",
+  "SettingsHelpControlBarCustomOrder": "Меняйте порядок кнопок стрелками. Кнопки воспроизведения закреплены.",
+  "SettingsControlBarFixedGroup": "Закреплено: воспроизведение, предыдущий, следующий, назад, вперёд",
+  "SettingsControlBarResetOrder": "Сбросить порядок"
 }

@@ -221,6 +221,20 @@ namespace mpv_winui.Modules.Language
         public string PlaylistImport { get; set; } = "Import Playlist…";
         public string PlaylistExport { get; set; } = "Export Playlist…";
         public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
+        public string CustomRate { get; set; } = "Custom speed";
+        public string DisplayInfo { get; set; } = "Display info";
+        public string SettingsControlBarCustomOrder { get; set; } = "Custom order…";
+        public string SettingsHelpControlBarCustomOrder { get; set; } = "Drag or use the arrows to reorder the bar buttons. The transport buttons (play / previous / next / skip) stay fixed.";
+        public string SettingsControlBarFixedGroup { get; set; } = "Fixed: play, previous, next, skip back, skip forward";
+        public string SettingsControlBarResetOrder { get; set; } = "Reset order";
+        public string SettingsCheckForUpdates { get; set; } = "Check for updates";
+        public string SettingsCheckForUpdatesDescription { get; set; } = "Check the GitHub releases page for a newer version at startup.";
+        public string UpdateAvailableTitle { get; set; } = "Update available";
+        public string UpdateAvailableMessage { get; set; } = "A newer version is available:";
+        public string UpdateAvailableOpen { get; set; } = "Open";
+        public string UpdateAvailableLater { get; set; } = "Later";
+        public string MenuEditorTitle { get; set; } = "Menu Editor";
+
         public string Window { get; set; } = "Window";
         public string TogglePlaylist { get; set; } = "Toggle Playlist";
         public string ToggleFullScreen { get; set; } = "Toggle Full Screen";

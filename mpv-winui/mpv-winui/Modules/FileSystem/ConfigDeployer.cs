@@ -20,7 +20,7 @@ namespace mpv_winui.Modules.FileSystem
         // Mirrors the exclusion list in mpv-winui-lazy/deploy-config.ps1 so the
         // runtime data dirs and user overrides are never clobbered.
         private static readonly string[] ExcludedDirs = { "cache", "_cache", "watch_later", "gpu_cache", "icc_cache" };
-        private static readonly string[] ExcludedFiles = { "saved-props.json", "recent.json", "menus.json", "deploy-config.ps1" };
+        private static readonly string[] ExcludedFiles = { "saved-props.json", "recent.json", "menus.json", "custom_menu.json", "deploy-config.ps1" };
 
         public static Task EnsureDeployedAsync(string targetMpvConfigDir)
         {

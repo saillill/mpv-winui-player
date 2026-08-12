@@ -789,5 +789,18 @@
   "Clear": "Effacer",
   "PlaylistImport": "Importer la liste de lecture…",
   "PlaylistExport": "Exporter la liste de lecture…",
-  "PlaylistFilterPlaceholder": "Filtrer la liste de lecture…"
+  "PlaylistFilterPlaceholder": "Filtrer la liste de lecture…",
+  "MenuEditorTitle": "Éditeur de menus",
+  "CustomRate": "Vitesse personnalisée",
+  "DisplayInfo": "Infos d'affichage",
+  "SettingsCheckForUpdates": "Rechercher des mises à jour",
+  "SettingsCheckForUpdatesDescription": "Vérifier la page GitHub Releases au démarrage.",
+  "UpdateAvailableTitle": "Mise à jour disponible",
+  "UpdateAvailableMessage": "Une nouvelle version est disponible :",
+  "UpdateAvailableOpen": "Ouvrir",
+  "UpdateAvailableLater": "Plus tard",
+  "SettingsControlBarCustomOrder": "Ordre personnalisé…",
+  "SettingsHelpControlBarCustomOrder": "Réorganisez les boutons avec les flèches. Les contrôles de lecture restent fixes.",
+  "SettingsControlBarFixedGroup": "Fixe : lecture, précédent, suivant, recul, avance",
+  "SettingsControlBarResetOrder": "Réinitialiser l'ordre"
 }

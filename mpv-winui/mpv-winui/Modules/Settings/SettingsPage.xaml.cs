@@ -39,8 +39,37 @@ public sealed partial class SettingsPage : Page
         ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
         ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
         SearchBox.PlaceholderText = AppContext.AppLang.Search;
+        LoadSearchHistory();
         UpdateOptions();
         RefreshWarningsAndEnabled();
+    }
+
+    private const int MaxSearchHistory = 8;
+
+    private void LoadSearchHistory()
+    {
+        var history = AppContext.AppSetting.SettingsSearchHistory
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Take(MaxSearchHistory)
+            .ToList();
+        if (history.Count > 0)
+        {
+            SearchBox.ItemsSource = history;
+        }
+    }
+
+    private void RememberSearchQuery(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return;
+        }
+        var history = AppContext.AppSetting.SettingsSearchHistory
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(x => !string.Equals(x, query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        history.Insert(0, query);
+        AppContext.AppSetting.SettingsSearchHistory = string.Join(",", history.Take(MaxSearchHistory));
     }
 
     /// <summary>The currently selected category (used before navigating away).</summary>
@@ -173,14 +202,39 @@ public sealed partial class SettingsPage : Page
         {
             CategoryList.ItemsSource = Categories;
             SearchBox.ItemsSource = null;
+            return;
+        }
+
+        // 1) Category-level match (with pinyin/alias spellings).
+        var categoryMatches = Categories
+            .Where(c => FuzzyMatch(query, c))
+            .ToList();
+        // 2) Option-level match: the query hits an option label (e.g. "音量",
+        //    "volume", "倍速"), which the category list alone never covered.
+        var optionMatches = Settings
+            .Where(o => FuzzyMatch(query, o.Label))
+            .Select(o => (o.Category, o.Key))
+            .ToList();
+
+        if (categoryMatches.Count > 0)
+        {
+            CategoryList.ItemsSource = categoryMatches;
+            SearchBox.ItemsSource = categoryMatches.Count > 0 ? categoryMatches : null;
+        }
+        else if (optionMatches.Count > 0)
+        {
+            // Jump to the category of the first hit and scroll to the option
+            // once the list rebuilds for that category.
+            var (category, key) = optionMatches[0];
+            CategoryList.ItemsSource = Categories.Where(c => c == category).ToList();
+            CategoryList.SelectedItem = category;
+            SearchBox.ItemsSource = optionMatches.Select(o => o.Category).Distinct().ToList();
+            DispatcherQueue.TryEnqueue(() => OptionsControl.ScrollToOption(key));
         }
         else
         {
-            var matches = Categories
-                .Where(c => FuzzyMatch(query, c))
-                .ToList();
-            CategoryList.ItemsSource = matches;
-            SearchBox.ItemsSource = matches.Count > 0 ? matches : null;
+            CategoryList.ItemsSource = new List<string>();
+            SearchBox.ItemsSource = null;
         }
 
         if (CategoryList.Items.Count > 0)
@@ -202,6 +256,7 @@ public sealed partial class SettingsPage : Page
         if (args.ChosenSuggestion is string suggested && Categories.Contains(suggested))
         {
             CategoryList.SelectedItem = suggested;
+            RememberSearchQuery(suggested);
             return;
         }
 
@@ -210,6 +265,17 @@ public sealed partial class SettingsPage : Page
         if (match is not null)
         {
             CategoryList.SelectedItem = match;
+            RememberSearchQuery(query);
+            return;
+        }
+
+        // Option-level query: jump to the category and scroll to the option.
+        var option = Settings.FirstOrDefault(o => FuzzyMatch(query, o.Label));
+        if (option is not null)
+        {
+            CategoryList.SelectedItem = option.Category;
+            RememberSearchQuery(query);
+            DispatcherQueue.TryEnqueue(() => OptionsControl.ScrollToOption(option.Key));
         }
     }
 

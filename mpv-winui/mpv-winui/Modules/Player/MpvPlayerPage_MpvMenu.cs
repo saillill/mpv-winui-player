@@ -18,6 +18,8 @@ namespace mpv_winui.Modules.Player
 
             AddOpenHeaderItems(flyout.Items);
 
+            AddCustomMenuItems(flyout.Items);
+
             if (items?.Count > 0)
             {
                 AddMenuDataItems(flyout.Items, items);
@@ -30,6 +32,36 @@ namespace mpv_winui.Modules.Player
             AddCustomFooterItems(flyout.Items);
 
             return flyout;
+        }
+
+        /// <summary>
+        /// Inserts the user's custom commands (custom_menu.json in the mpv
+        /// config directory) between the fixed header and the mpv menu-data.
+        /// </summary>
+        private void AddCustomMenuItems(IList<MenuFlyoutItemBase> target)
+        {
+            var custom = Menu.CustomMenuSource.TryLoad();
+            if (custom is not { Count: > 0 })
+            {
+                return;
+            }
+            target.Add(new MenuFlyoutSeparator());
+            foreach (var entry in custom)
+            {
+                if (entry.Separator)
+                {
+                    target.Add(new MenuFlyoutSeparator());
+                    continue;
+                }
+                if (string.IsNullOrEmpty(entry.Label) || string.IsNullOrEmpty(entry.MpvCommand))
+                {
+                    continue;
+                }
+                var item = new MenuFlyoutItem { Text = entry.Label };
+                var cmd = entry.MpvCommand;
+                item.Click += (_, _) => MpvMenuItemClick(cmd!);
+                target.Add(item);
+            }
         }
 
         private void AddOpenHeaderItems(IList<MenuFlyoutItemBase> target)

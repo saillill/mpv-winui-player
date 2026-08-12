@@ -102,6 +102,10 @@ namespace mpv_winui.Modules.Player
                 // would later move the swap chain back to the hidden main
                 // window, leaving the PiP window without video.
                 ApplyPiP();
+
+                // Silent background update check (GitHub Releases); never
+                // blocks startup and never surfaces network errors.
+                _ = UpdateChecker.CheckForUpdatesAsync(XamlRoot);
             }
             else
             {

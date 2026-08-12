@@ -789,5 +789,18 @@
   "Clear": "Borrar",
   "PlaylistImport": "Importar lista de reproducción…",
   "PlaylistExport": "Exportar lista de reproducción…",
-  "PlaylistFilterPlaceholder": "Filtrar lista de reproducción…"
+  "PlaylistFilterPlaceholder": "Filtrar lista de reproducción…",
+  "MenuEditorTitle": "Editor de menús",
+  "CustomRate": "Velocidad personalizada",
+  "DisplayInfo": "Información de pantalla",
+  "SettingsCheckForUpdates": "Buscar actualizaciones",
+  "SettingsCheckForUpdatesDescription": "Comprobar la página de lanzamientos de GitHub al inicio.",
+  "UpdateAvailableTitle": "Actualización disponible",
+  "UpdateAvailableMessage": "Hay una versión más reciente:",
+  "UpdateAvailableOpen": "Abrir",
+  "UpdateAvailableLater": "Más tarde",
+  "SettingsControlBarCustomOrder": "Orden personalizado…",
+  "SettingsHelpControlBarCustomOrder": "Reordena los botones con las flechas. Los controles de reproducción quedan fijos.",
+  "SettingsControlBarFixedGroup": "Fijos: reproducir, anterior, siguiente, retroceder, avanzar",
+  "SettingsControlBarResetOrder": "Restablecer orden"
 }

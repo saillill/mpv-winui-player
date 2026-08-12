@@ -1081,6 +1081,34 @@ namespace winrt::mpv_winrt::implementation
         return GetDoubleProperty("duration");
     }
 
+    double MpvPlayer::AbLoopA()
+    {
+        if (!m_mpv)
+        {
+            return -1.0;
+        }
+        double value = 0.0;
+        if (mpv_get_property(m_mpv, "ab-loop-a", MPV_FORMAT_DOUBLE, &value) < 0)
+        {
+            return -1.0; // not set
+        }
+        return value;
+    }
+
+    double MpvPlayer::AbLoopB()
+    {
+        if (!m_mpv)
+        {
+            return -1.0;
+        }
+        double value = 0.0;
+        if (mpv_get_property(m_mpv, "ab-loop-b", MPV_FORMAT_DOUBLE, &value) < 0)
+        {
+            return -1.0; // not set
+        }
+        return value;
+    }
+
     int32_t MpvPlayer::CurrentVideoTrack()
     {
         if (!m_mpv)

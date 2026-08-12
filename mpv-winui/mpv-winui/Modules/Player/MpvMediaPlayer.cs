@@ -146,6 +146,30 @@ namespace mpv_winui.Modules.Player
         public bool Playing => !_mpvPlayer.IsPaused();
         public double Duration => _mpvPlayer.Duration();
 
+        /// <summary>mpv ab-loop-a in seconds, or &lt;= 0 when not set.</summary>
+        public double AbLoopA => _mpvPlayer.AbLoopA();
+
+        /// <summary>mpv ab-loop-b in seconds, or &lt;= 0 when not set.</summary>
+        public double AbLoopB => _mpvPlayer.AbLoopB();
+
+        /// <summary>Cycles the A-B loop: set A, then B, then clear.</summary>
+        public void ToggleAbLoop()
+        {
+            if (AbLoopA <= 0)
+            {
+                _mpvPlayer.Command(["osd-auto", "ab-loop-a"]);
+            }
+            else if (AbLoopB <= 0)
+            {
+                _mpvPlayer.Command(["osd-auto", "ab-loop-b"]);
+            }
+            else
+            {
+                _mpvPlayer.Command(["osd-auto", "ab-loop-a", "no"]);
+                _mpvPlayer.Command(["osd-auto", "ab-loop-b", "no"]);
+            }
+        }
+
         public bool IsMuted
         {
             get => _mpvPlayer.IsMuted();

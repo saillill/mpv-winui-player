@@ -789,5 +789,18 @@
   "Clear": "Clear",
   "PlaylistImport": "Import Playlist…",
   "PlaylistExport": "Export Playlist…",
-  "PlaylistFilterPlaceholder": "Filter playlist…"
+  "PlaylistFilterPlaceholder": "Filter playlist…",
+  "MenuEditorTitle": "Menu Editor",
+  "CustomRate": "Custom speed",
+  "DisplayInfo": "Display info",
+  "SettingsCheckForUpdates": "Check for updates",
+  "SettingsCheckForUpdatesDescription": "Check the GitHub releases page for a newer version at startup.",
+  "UpdateAvailableTitle": "Update available",
+  "UpdateAvailableMessage": "A newer version is available:",
+  "UpdateAvailableOpen": "Open",
+  "UpdateAvailableLater": "Later",
+  "SettingsControlBarCustomOrder": "Custom order…",
+  "SettingsHelpControlBarCustomOrder": "Drag or use the arrows to reorder the bar buttons. The transport buttons (play / previous / next / skip) stay fixed.",
+  "SettingsControlBarFixedGroup": "Fixed: play, previous, next, skip back, skip forward",
+  "SettingsControlBarResetOrder": "Reset order"
 }

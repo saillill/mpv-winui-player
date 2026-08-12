@@ -109,7 +109,50 @@ public static class PluginConfigWriter
 
         foreach (var (file, entries) in Managed)
         {
-            await WriteFileAsync(Path.Combine(dir, file), entries);
+            var path = Path.Combine(dir, file);
+            await WriteFileAsync(path, entries);
+            await VerifyFileAsync(path, entries);
+        }
+    }
+
+    /// <summary>
+    /// Post-write readback: every managed key must be present with the exact
+    /// value we wrote. A mismatch (e.g. a concurrent writer or a path issue)
+    /// is logged as an error instead of silently leaving the plugin with the
+    /// previous values.
+    /// </summary>
+    private static async Task VerifyFileAsync(string path, Dictionary<string, string> entries)
+    {
+        try
+        {
+            if (!File.Exists(path))
+            {
+                AppContext.AppLogger.Error("plugin config missing after write: {}", path);
+                return;
+            }
+            var lines = await File.ReadAllLinesAsync(path);
+            var written = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var line in lines)
+            {
+                if (TryParseKey(line, out var key))
+                {
+                    var eq = line.IndexOf('=');
+                    written[key] = line[(eq + 1)..].Trim();
+                }
+            }
+            foreach (var (key, expected) in entries)
+            {
+                if (!written.TryGetValue(key, out var actual) || actual != expected)
+                {
+                    AppContext.AppLogger.Error(
+                        "plugin config readback mismatch: {} key={} expected={} actual={}",
+                        Path.GetFileName(path), key, expected, actual ?? "(missing)");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Error(ex, "plugin config readback failed: {}", path);
         }
     }
 

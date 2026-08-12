@@ -789,5 +789,18 @@
   "Clear": "清空",
   "PlaylistImport": "导入播放列表…",
   "PlaylistExport": "导出播放列表…",
-  "PlaylistFilterPlaceholder": "筛选播放列表…"
+  "PlaylistFilterPlaceholder": "筛选播放列表…",
+  "MenuEditorTitle": "菜单编辑器",
+  "CustomRate": "自定义倍速",
+  "DisplayInfo": "显示信息",
+  "SettingsCheckForUpdates": "检查更新",
+  "SettingsCheckForUpdatesDescription": "启动时检查 GitHub Releases 是否有新版本。",
+  "UpdateAvailableTitle": "发现新版本",
+  "UpdateAvailableMessage": "发现新版本：",
+  "UpdateAvailableOpen": "打开",
+  "UpdateAvailableLater": "稍后",
+  "SettingsControlBarCustomOrder": "自定义排序…",
+  "SettingsHelpControlBarCustomOrder": "拖拽或用箭头调整控制栏按钮顺序。播放控件（播放/上一首/下一首/快退/快进）固定不动。",
+  "SettingsControlBarFixedGroup": "固定：播放、上一首、下一首、快退、快进",
+  "SettingsControlBarResetOrder": "重置顺序"
 }
