@@ -641,14 +641,18 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         return null;
     }
 
-    /// <summary>All strip cells in visual order (fixed + movable), skipping indicators and placeholders.</summary>
+    /// <summary>
+    /// All strip cells in visual order (fixed + movable + the "+" placeholders),
+    /// skipping only the drag indicator. The "+" cards act as drop boundaries,
+    /// so a cell can be dropped into the gap right next to a "+".
+    /// </summary>
     private IEnumerable<(FrameworkElement Cell, StackPanel Zone)> BarCells()
     {
         foreach (var zone in new[] { ZoneLeft, ZoneCenter, ZoneRight })
         {
             foreach (var child in zone.Children)
             {
-                if (child is FrameworkElement fe && fe.Tag is not IndicatorTag && fe.Tag is not AddTag)
+                if (child is FrameworkElement fe && fe.Tag is not IndicatorTag)
                 {
                     yield return (fe, zone);
                 }
@@ -779,17 +783,34 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         HideButton(sourceId);
     }
 
-    /// <summary>The zone under the pointer: 2 (right) when past the centered
-    /// transport's midpoint, else 0 (left). The transport cluster is fixed.</summary>
+    /// <summary>
+    /// The zone a drop lands in: the zone of the cell that bounds the pointer
+    /// (a "+" placeholder bounds like any other cell, so drops beside a "+"
+    /// stay in that zone). The fixed center transport bounds both sides, so a
+    /// drop there is split by the pointer's side.
+    /// </summary>
     private int ZoneAt(Point position)
     {
-        if (_style != "modernx")
+        foreach (var (cell, panel) in BarCells())
         {
-            return 2; // classic has no centered zone; right zone is the cluster
+            var rect = BoundsOf(cell);
+            if (position.X <= rect.Right)
+            {
+                var zone = ZoneIndexOf(panel);
+                if (zone == 1)
+                {
+                    return position.X < rect.X + rect.Width / 2 ? 0 : 2;
+                }
+                return zone;
+            }
         }
-        var transport = BoundsOf(ZoneCenter);
-        return position.X > transport.X + transport.Width / 2 ? 2 : 0;
+        return 2;
     }
+
+    private int ZoneIndexOf(StackPanel panel) =>
+        ReferenceEquals(panel, ZoneCenter) ? 1
+        : ReferenceEquals(panel, ZoneRight) ? 2
+        : 0;
 
     /// <summary>
     /// Returns the _shown insertion index the drop point maps to by scanning
