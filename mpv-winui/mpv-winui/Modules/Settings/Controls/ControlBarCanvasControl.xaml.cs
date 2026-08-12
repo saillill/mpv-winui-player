@@ -255,15 +255,16 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
         // Every movable zone keeps a "+" placeholder card when editing and it
         // still has hidden buttons to add — the frame never collapses to a
-        // dot, and clicking the card pops up that zone's addable (hidden)
-        // buttons. The left frame's "+" sits at its right end, the right
-        // frame's at its left end (mirrored). Collapsed the strip shows only
-        // the frames and the plain icons, so the placeholders are edit-mode only.
-        if (_editable && _hidden.Any(id => ZonePartitions(_style, 0).Contains(id)))
+        // Every movable zone keeps a "+" placeholder card while hidden buttons
+        // remain — clicking it pops up ALL hidden buttons (no per-zone limit),
+        // added to this zone. The left frame's "+" sits at its right end, the
+        // right frame's at its left end (mirrored). Collapsed the strip shows
+        // only the frames and the plain icons, so the placeholders are edit-mode only.
+        if (_editable && _hidden.Count > 0)
         {
             ZoneOf(0).Children.Add(BuildAddPlaceholder(0));
         }
-        if (_editable && _hidden.Any(id => ZonePartitions(_style, 2).Contains(id)))
+        if (_editable && _hidden.Count > 0)
         {
             ZoneOf(2).Children.Insert(0, BuildAddPlaceholder(2));
         }
@@ -370,14 +371,13 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     }
 
     /// <summary>
-    /// Pops up the zone's addable (hidden) buttons as a MenuFlyout — the
+    /// Pops up ALL hidden buttons as a MenuFlyout (no per-zone limit) — the
     /// standard WinUI 3 menu (MenuFlyoutItem renders the icon + text with the
-    /// platform's hover/focus states); one click adds the button.
+    /// platform's hover/focus states); one click adds the button to this zone.
     /// </summary>
     private void ShowAddFlyout(Button anchor, int zone)
     {
         var items = _hidden
-            .Where(id => ZonePartitions(_style, zone).Contains(id))
             .OrderBy(id => Array.IndexOf(ControlBarIconCatalog.MovableIds.ToArray(), id))
             .ToList();
         // Standard WinUI 3 menu: MenuFlyoutItem renders icon + text with the
@@ -412,22 +412,12 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         }
     }
 
-    /// <summary>The partition list a zone's "+" popup offers.</summary>
-    private static IEnumerable<string> ZonePartitions(string style, int zone) =>
-        style == "modernx"
-            ? zone == 2
-                ? ControlBarIconCatalog.ModernXRight
-                : ControlBarIconCatalog.ModernXLeft.Concat(ControlBarIconCatalog.FixedTail)
-            : zone == 2
-                ? ControlBarIconCatalog.ClassicRight.Concat(ControlBarIconCatalog.FixedTail)
-                : ControlBarIconCatalog.ClassicLeft;
-
     // ===== Actions =====
 
-    /// <summary>Adds a hidden button to its zone, after the zone's other shown buttons.</summary>
+    /// <summary>Adds a hidden button (any id, no per-zone limit) to its zone, after the zone's other shown buttons.</summary>
     private void AddToZone(string id, int zone)
     {
-        if (!_hidden.Contains(id) || !ZonePartitions(_style, zone).Contains(id))
+        if (!_hidden.Contains(id))
         {
             return;
         }
