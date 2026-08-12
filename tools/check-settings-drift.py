@@ -84,6 +84,8 @@ UNMAPPED_OK = {
     # Special cases handled outside ToCommand
     "Volume",               # passed at mpv Initialize, not applied at runtime
     "ShowOsdPlayingMsg",    # merged into the OsdPlayingMsg case
+    "Speed",                # applied once at startup by MpvPlayerPage; deliberately
+                            # absent from ApplyAll so a reset never clobbers live speed
 }
 
 
