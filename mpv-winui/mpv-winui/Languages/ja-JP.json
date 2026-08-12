@@ -796,5 +796,6 @@
   "SettingsPresetSave": "現在をプリセットとして保存",
   "SettingsPresetName": "プリセット名",
   "SettingsPresetSaved": "プリセットを保存しました。",
-  "CustomRate": "カスタム速度"
+  "CustomRate": "カスタム速度",
+  "DisplayInfo": "表示情報"
 }

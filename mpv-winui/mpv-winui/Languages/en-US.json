@@ -796,5 +796,6 @@
   "SettingsPresetSave": "Save Current as Preset",
   "SettingsPresetName": "Preset name",
   "SettingsPresetSaved": "Preset saved.",
-  "CustomRate": "Custom speed"
+  "CustomRate": "Custom speed",
+  "DisplayInfo": "Display info"
 }

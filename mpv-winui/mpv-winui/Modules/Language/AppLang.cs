@@ -222,6 +222,7 @@ namespace mpv_winui.Modules.Language
         public string PlaylistExport { get; set; } = "Export Playlist…";
         public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
         public string CustomRate { get; set; } = "Custom speed";
+        public string DisplayInfo { get; set; } = "Display info";
         public string MenuEditorTitle { get; set; } = "Menu Editor";
         public string SettingsPreset { get; set; } = "Preset";
         public string SettingsPresetDescription { get; set; } = "Apply a built-in or user-saved preset; changes apply immediately.";

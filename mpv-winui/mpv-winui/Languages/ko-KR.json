@@ -796,5 +796,6 @@
   "SettingsPresetSave": "현재를 프리셋으로 저장",
   "SettingsPresetName": "프리셋 이름",
   "SettingsPresetSaved": "프리셋이 저장되었습니다.",
-  "CustomRate": "사용자 정의 속도"
+  "CustomRate": "사용자 정의 속도",
+  "DisplayInfo": "디스플레이 정보"
 }

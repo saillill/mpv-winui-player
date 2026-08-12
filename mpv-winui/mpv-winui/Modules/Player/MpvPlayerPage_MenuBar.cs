@@ -72,6 +72,7 @@ public sealed partial class MpvPlayerPage
             return Task.CompletedTask;
         });
         RegisterMenuAction("about", p => p.ShowAboutDialogAsync());
+        RegisterMenuAction("display-info", p => p.ShowDisplayInfoDialogAsync());
         RegisterMenuAction("mpv-docs", p =>
         {
             return Launcher.LaunchUriAsync(new Uri("https://mpv.io/manual/master/")).AsTask();

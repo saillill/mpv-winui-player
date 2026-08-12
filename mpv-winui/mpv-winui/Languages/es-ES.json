@@ -796,5 +796,6 @@
   "SettingsPresetSave": "Guardar actual como preestablecido",
   "SettingsPresetName": "Nombre del preestablecido",
   "SettingsPresetSaved": "Preestablecido guardado.",
-  "CustomRate": "Velocidad personalizada"
+  "CustomRate": "Velocidad personalizada",
+  "DisplayInfo": "Información de pantalla"
 }

@@ -796,5 +796,6 @@
   "SettingsPresetSave": "保存当前为方案",
   "SettingsPresetName": "方案名称",
   "SettingsPresetSaved": "方案已保存。",
-  "CustomRate": "自定义倍速"
+  "CustomRate": "自定义倍速",
+  "DisplayInfo": "显示信息"
 }

@@ -796,5 +796,6 @@
   "SettingsPresetSave": "Сохранить как пресет",
   "SettingsPresetName": "Имя пресета",
   "SettingsPresetSaved": "Пресет сохранён.",
-  "CustomRate": "Своя скорость"
+  "CustomRate": "Своя скорость",
+  "DisplayInfo": "Информация о дисплее"
 }
