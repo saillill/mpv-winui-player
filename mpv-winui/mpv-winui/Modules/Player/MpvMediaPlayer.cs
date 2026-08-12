@@ -121,6 +121,12 @@ namespace mpv_winui.Modules.Player
             get; set;
         }
 
+        /// <summary>Generic observed mpv properties (see <see cref="ObserveProperty"/>).</summary>
+        public Action<MpvMediaPlayer, string, string>? PropertyChanged
+        {
+            get; set;
+        }
+
         public Action<MpvMediaPlayer, object?>? SeekingStarted
         {
             get; set;
@@ -285,6 +291,7 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.PreviewChanged += MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged += MpvPlayer_WindowChanged;
             _mpvPlayer.LogMessage += MpvPlayer_LogMessage;
+            _mpvPlayer.PropertyChanged += MpvPlayer_PropertyChanged;
         }
 
         public void StopListen()
@@ -303,6 +310,7 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.PreviewChanged -= MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged -= MpvPlayer_WindowChanged;
             _mpvPlayer.LogMessage -= MpvPlayer_LogMessage;
+            _mpvPlayer.PropertyChanged -= MpvPlayer_PropertyChanged;
         }
 
         private void MpvPlayer_VoConfigured()
@@ -339,6 +347,22 @@ namespace mpv_winui.Modules.Player
         public void SetLogLevel(string level)
         {
             _mpvPlayer?.SetLogLevel(level);
+        }
+
+        private void MpvPlayer_PropertyChanged(string name, string value)
+        {
+            PropertyChanged?.Invoke(this, name, value);
+        }
+
+        /// <summary>Observes an arbitrary mpv property; changes raise <see cref="PropertyChanged"/>.</summary>
+        public void ObserveProperty(string name)
+        {
+            _mpvPlayer?.ObserveProperty(name);
+        }
+
+        public void UnobserveProperty(string name)
+        {
+            _mpvPlayer?.UnobserveProperty(name);
         }
 
         private void MpvPlayer_MediaInfoChanged(MediaInfoChangedEventArgs args)

@@ -44,6 +44,7 @@ namespace mpv_winrt
     delegate void PlaylistChangedEventHandler();
     delegate void PreviewChangedEventHandler(MpvPreviewInfo args);
     delegate void MpvLogEventHandler(MpvLogEventArgs args);
+    delegate void MpvPropertyChangedEventHandler(String name, String value);
 
     runtimeclass MpvPlayer
     {
@@ -68,6 +69,9 @@ namespace mpv_winrt
         void CommandString(String cmd);
 
         void SetLogLevel(String level);
+
+        void ObserveProperty(String name);
+        void UnobserveProperty(String name);
 
         String GetWatchHistoryPath();
         String GetWatchLaterFolderPath();
@@ -147,5 +151,6 @@ namespace mpv_winrt
         event PlaylistChangedEventHandler PlaylistChanged;
         event PreviewChangedEventHandler PreviewChanged;
         event MpvLogEventHandler LogMessage;
+        event MpvPropertyChangedEventHandler PropertyChanged;
     };
 }

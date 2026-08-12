@@ -296,6 +296,23 @@ namespace winrt::mpv_winrt::implementation
                         break;
                     }
 
+                    // Generic observations registered via ObserveProperty use
+                    // their own userdata id space; route them before the fixed
+                    // MpvObserveId dispatch below.
+                    if (event->reply_userdata >= CustomObserveBase)
+                    {
+                        std::lock_guard<std::mutex> guard(m_customObserveMutex);
+                        auto it = m_customObservations.find(event->reply_userdata);
+                        if (it != m_customObservations.end())
+                        {
+                            std::string value = prop->data
+                                ? NodeToString(*static_cast<mpv_node*>(prop->data))
+                                : std::string{};
+                            m_propertyChangedEvent(winrt::to_hstring(it->second), winrt::to_hstring(value));
+                        }
+                        break;
+                    }
+
                     switch (event->reply_userdata)
                     {
                         case MpvObserveId::CoreIdle:
@@ -840,6 +857,108 @@ namespace winrt::mpv_winrt::implementation
     void MpvPlayer::LogMessage(winrt::event_token const& token) noexcept
     {
         m_logMessageEvent.remove(token);
+    }
+
+    void MpvPlayer::ObserveProperty(hstring const& name)
+    {
+        if (!m_mpv || !m_initialized.load())
+        {
+            return;
+        }
+        std::string property = winrt::to_string(name);
+        std::lock_guard<std::mutex> guard(m_customObserveMutex);
+        for (auto const& [id, observed] : m_customObservations)
+        {
+            if (observed == property)
+            {
+                return; // already observed
+            }
+        }
+        int64_t id = m_customObserveNextId++;
+        mpv_observe_property(m_mpv, id, property.c_str(), MPV_FORMAT_NODE);
+        m_customObservations.emplace(id, std::move(property));
+    }
+
+    void MpvPlayer::UnobserveProperty(hstring const& name)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+        std::string property = winrt::to_string(name);
+        std::lock_guard<std::mutex> guard(m_customObserveMutex);
+        for (auto it = m_customObservations.begin(); it != m_customObservations.end(); ++it)
+        {
+            if (it->second == property)
+            {
+                mpv_unobserve_property(m_mpv, it->first);
+                m_customObservations.erase(it);
+                return;
+            }
+        }
+    }
+
+    winrt::event_token MpvPlayer::PropertyChanged(winrt::mpv_winrt::MpvPropertyChangedEventHandler const& handler)
+    {
+        return m_propertyChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::PropertyChanged(winrt::event_token const& token) noexcept
+    {
+        m_propertyChangedEvent.remove(token);
+    }
+
+    std::string MpvPlayer::NodeToString(mpv_node const& node)
+    {
+        switch (node.format)
+        {
+            case MPV_FORMAT_NONE:
+                return {};
+            case MPV_FORMAT_STRING:
+                return node.u.string ? node.u.string : std::string{};
+            case MPV_FORMAT_FLAG:
+                return node.u.flag ? "yes" : "no";
+            case MPV_FORMAT_INT64:
+                return std::to_string(node.u.int64);
+            case MPV_FORMAT_DOUBLE:
+                {
+                    std::ostringstream oss;
+                    oss << node.u.double_;
+                    return oss.str();
+                }
+            case MPV_FORMAT_NODE_ARRAY:
+                {
+                    std::string result = "[";
+                    for (int i = 0; i < node.u.list->num; ++i)
+                    {
+                        if (i > 0)
+                        {
+                            result += ",";
+                        }
+                        result += NodeToString(node.u.list->values[i]);
+                    }
+                    result += "]";
+                    return result;
+                }
+            case MPV_FORMAT_NODE_MAP:
+                {
+                    std::string result = "{";
+                    for (int i = 0; i < node.u.list->num; ++i)
+                    {
+                        if (i > 0)
+                        {
+                            result += ",";
+                        }
+                        result += node.u.list->keys[i];
+                        result += "=";
+                        result += NodeToString(node.u.list->values[i]);
+                    }
+                    result += "}";
+                    return result;
+                }
+            default:
+                return {};
+        }
     }
 
     winrt::hstring MpvPlayer::GetWatchHistoryPath()

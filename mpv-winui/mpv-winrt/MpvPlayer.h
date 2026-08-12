@@ -72,6 +72,9 @@ namespace winrt::mpv_winrt::implementation
         void CommandString(hstring const& cmd);
         void SetLogLevel(hstring const& level);
 
+        void ObserveProperty(hstring const& name);
+        void UnobserveProperty(hstring const& name);
+
         winrt::hstring GetWatchHistoryPath();
         winrt::hstring GetWatchLaterFolderPath();
         bool SaveWatchHistory();
@@ -171,6 +174,8 @@ namespace winrt::mpv_winrt::implementation
         void PreviewChanged(winrt::event_token const& token) noexcept;
         winrt::event_token LogMessage(winrt::mpv_winrt::MpvLogEventHandler const& handler);
         void LogMessage(winrt::event_token const& token) noexcept;
+        winrt::event_token PropertyChanged(winrt::mpv_winrt::MpvPropertyChangedEventHandler const& handler);
+        void PropertyChanged(winrt::event_token const& token) noexcept;
 
     private:
         static mpv_node* FindMapField(mpv_node* map, const char* key);
@@ -191,11 +196,21 @@ namespace winrt::mpv_winrt::implementation
         void SetInt64Property(const char* name, int64_t value);
         void SetStringProperty(const char* name, const std::string& value);
 
+        static std::string NodeToString(mpv_node const& node);
+
         mpv_handle* m_mpv{nullptr};
         std::atomic<IDXGISwapChain*> m_swapChain{nullptr};
         // True once mpv_initialize has succeeded; mpv_set_option_string is only
         // valid before that, runtime option changes must go through properties.
         std::atomic<bool> m_initialized{false};
+
+        // Generic property observations registered via ObserveProperty. The
+        // userdata ids start above the fixed MpvObserveId range so the two
+        // never collide in MPV_EVENT_PROPERTY_CHANGE dispatch.
+        static constexpr int64_t CustomObserveBase = 0x80000000;
+        int64_t m_customObserveNextId{CustomObserveBase};
+        std::map<int64_t, std::string> m_customObservations;
+        std::mutex m_customObserveMutex;
 
         std::thread m_eventThread;
         std::atomic<bool> m_eventThreadRunning{false};
@@ -223,6 +238,7 @@ namespace winrt::mpv_winrt::implementation
         winrt::event<winrt::mpv_winrt::PlaylistChangedEventHandler> m_playlistChangedEvent;
         winrt::event<winrt::mpv_winrt::PreviewChangedEventHandler> m_previewChangedEvent;
         winrt::event<winrt::mpv_winrt::MpvLogEventHandler> m_logMessageEvent;
+        winrt::event<winrt::mpv_winrt::MpvPropertyChangedEventHandler> m_propertyChangedEvent;
     };
 }
 
