@@ -101,6 +101,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Content Include="Presets\**\*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
         <Content Include="..\..\mpv-winui-lazy\input.conf">
             <Link>Config\input.conf</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

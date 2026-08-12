@@ -790,5 +790,10 @@
   "PlaylistImport": "Wiedergabeliste importieren…",
   "PlaylistExport": "Wiedergabeliste exportieren…",
   "PlaylistFilterPlaceholder": "Wiedergabeliste filtern…",
-  "MenuEditorTitle": "Menü-Editor"
+  "MenuEditorTitle": "Menü-Editor",
+  "SettingsPreset": "Voreinstellung",
+  "SettingsPresetDescription": "Voreinstellung (integriert oder gespeichert) anwenden; Änderungen wirken sofort.",
+  "SettingsPresetSave": "Aktuelles als Voreinstellung speichern",
+  "SettingsPresetName": "Name der Voreinstellung",
+  "SettingsPresetSaved": "Voreinstellung gespeichert."
 }

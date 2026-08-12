@@ -790,5 +790,10 @@
   "PlaylistImport": "Импорт плейлиста…",
   "PlaylistExport": "Экспорт плейлиста…",
   "PlaylistFilterPlaceholder": "Фильтр плейлиста…",
-  "MenuEditorTitle": "Редактор меню"
+  "MenuEditorTitle": "Редактор меню",
+  "SettingsPreset": "Пресет",
+  "SettingsPresetDescription": "Применить встроенный или сохранённый пресет; изменения применяются сразу.",
+  "SettingsPresetSave": "Сохранить как пресет",
+  "SettingsPresetName": "Имя пресета",
+  "SettingsPresetSaved": "Пресет сохранён."
 }

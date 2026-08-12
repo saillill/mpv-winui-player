@@ -1,0 +1,8 @@
+{
+  "name": "Anime",
+  "description": "Optimized for anime playback: debanding and sigmoid upscaling for clean lines.",
+  "values": {
+    "Deband": "true",
+    "SigmoidUpscaling": "true"
+  }
+}

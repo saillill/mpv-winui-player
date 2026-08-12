@@ -790,5 +790,10 @@
   "PlaylistImport": "Importer la liste de lecture…",
   "PlaylistExport": "Exporter la liste de lecture…",
   "PlaylistFilterPlaceholder": "Filtrer la liste de lecture…",
-  "MenuEditorTitle": "Éditeur de menus"
+  "MenuEditorTitle": "Éditeur de menus",
+  "SettingsPreset": "Préréglage",
+  "SettingsPresetDescription": "Appliquer un préréglage intégré ou enregistré ; les changements s'appliquent immédiatement.",
+  "SettingsPresetSave": "Enregistrer comme préréglage",
+  "SettingsPresetName": "Nom du préréglage",
+  "SettingsPresetSaved": "Préréglage enregistré."
 }

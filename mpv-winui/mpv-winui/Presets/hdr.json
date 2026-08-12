@@ -1,0 +1,10 @@
+{
+  "name": "HDR passthrough",
+  "description": "Explicit HDR output tuning (PQ/2020) for HDR displays.",
+  "values": {
+    "TargetColorspaceHint": "yes",
+    "TargetPrim": "bt.2020",
+    "TargetTrc": "pq",
+    "TargetPeak": "1000"
+  }
+}

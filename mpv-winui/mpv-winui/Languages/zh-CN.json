@@ -790,5 +790,10 @@
   "PlaylistImport": "导入播放列表…",
   "PlaylistExport": "导出播放列表…",
   "PlaylistFilterPlaceholder": "筛选播放列表…",
-  "MenuEditorTitle": "菜单编辑器"
+  "MenuEditorTitle": "菜单编辑器",
+  "SettingsPreset": "方案",
+  "SettingsPresetDescription": "应用内置或用户保存的方案，改动立即生效。",
+  "SettingsPresetSave": "保存当前为方案",
+  "SettingsPresetName": "方案名称",
+  "SettingsPresetSaved": "方案已保存。"
 }
