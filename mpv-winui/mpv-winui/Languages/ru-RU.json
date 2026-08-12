@@ -791,11 +791,6 @@
   "PlaylistExport": "Экспорт плейлиста…",
   "PlaylistFilterPlaceholder": "Фильтр плейлиста…",
   "MenuEditorTitle": "Редактор меню",
-  "SettingsPreset": "Пресет",
-  "SettingsPresetDescription": "Применить встроенный или сохранённый пресет; изменения применяются сразу.",
-  "SettingsPresetSave": "Сохранить как пресет",
-  "SettingsPresetName": "Имя пресета",
-  "SettingsPresetSaved": "Пресет сохранён.",
   "CustomRate": "Своя скорость",
   "DisplayInfo": "Информация о дисплее",
   "SettingsCheckForUpdates": "Проверять обновления",
@@ -803,5 +798,9 @@
   "UpdateAvailableTitle": "Доступно обновление",
   "UpdateAvailableMessage": "Доступна новая версия:",
   "UpdateAvailableOpen": "Открыть",
-  "UpdateAvailableLater": "Позже"
+  "UpdateAvailableLater": "Позже",
+  "SettingsControlBarCustomOrder": "Свой порядок…",
+  "SettingsHelpControlBarCustomOrder": "Меняйте порядок кнопок стрелками. Кнопки воспроизведения закреплены.",
+  "SettingsControlBarFixedGroup": "Закреплено: воспроизведение, предыдущий, следующий, назад, вперёд",
+  "SettingsControlBarResetOrder": "Сбросить порядок"
 }

@@ -434,13 +434,19 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private void ApplyControlBarOrder(string layout)
         {
+            // The settings "custom order" canvas reorders the movable (canvas)
+            // buttons within each command bar; the transport group stays fixed.
+            var custom = ParseCustomOrder();
+
             ICommandBarElement[] left, middle, right;
             if (layout == "modernx")
             {
                 left =
                 [
-                    TrackSelectionButton, ShuffleButton, RepeatButton, PlaybackRateButton,
-                    EqualizerButton, DelayButton, VolumeMuteButton, VolumeSliderContainer,
+                    .. ReorderMovable(
+                        [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("tracks", TrackSelectionButton), ("random", ShuffleButton), ("speed", PlaybackRateButton)],
+                        custom),
+                    EqualizerButton, DelayButton,
                 ];
                 middle =
                 [
@@ -450,7 +456,9 @@ namespace mpv_winui.Modules.Player
                 ];
                 right =
                 [
-                    ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
+                    .. ReorderMovable(
+                        [("aspect", ZoomButton), ("pip", PiPButton), ("fullwindow", FullWindowButton), ("fullscreen", FullScreenButton)],
+                        custom),
                 ];
             }
             else
@@ -458,18 +466,68 @@ namespace mpv_winui.Modules.Player
                 left =
                 [
                     PlayPauseButton, PreviousTrackButton, NextTrackButton, SkipBackwardButton,
-                    SkipForwardButton, ShuffleButton, RepeatButton,
+                    SkipForwardButton, RepeatButton,
+                    .. ReorderMovable(
+                        [("random", ShuffleButton)],
+                        custom),
                 ];
                 middle = [];
                 right =
                 [
-                    VolumeMuteButton, VolumeSliderContainer, PlaybackRateButton,
-                    TrackSelectionButton, EqualizerButton, DelayButton, ZoomButton, PiPButton,
-                    FullWindowButton, FullScreenButton,
+                    .. ReorderMovable(
+                        [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("speed", PlaybackRateButton),
+                         ("tracks", TrackSelectionButton), ("aspect", ZoomButton), ("pip", PiPButton),
+                         ("fullwindow", FullWindowButton), ("fullscreen", FullScreenButton)],
+                        custom),
+                    EqualizerButton, DelayButton,
                 ];
             }
 
             ApplyBarOrders(LeftCommandBar, MiddleCommandBar, RightCommandBar, left, middle, right);
+        }
+
+        /// <summary>Parses ControlBarCustomOrder into the allowed canvas ids.</summary>
+        private static List<string> ParseCustomOrder()
+        {
+            var allowed = new[] { "volume", "tracks", "random", "speed", "aspect", "fullwindow", "fullscreen", "pip" };
+            return AppContext.AppSetting.ControlBarCustomOrder
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(x => allowed.Contains(x, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        /// <summary>
+        /// Reorders a command bar's canvas buttons to the custom order. Only
+        /// ids present in this partition are affected; the rest keep their
+        /// default relative order. "volume" maps to two controls (mute + slider).
+        /// </summary>
+        private static ICommandBarElement[] ReorderMovable((string Id, ICommandBarElement Element)[] defaults, IReadOnlyList<string> custom)
+        {
+            var result = new List<ICommandBarElement>(defaults.Length);
+            var remaining = new HashSet<string>(defaults.Select(d => d.Id), StringComparer.OrdinalIgnoreCase);
+            foreach (var id in custom)
+            {
+                if (!remaining.Remove(id))
+                {
+                    continue;
+                }
+                foreach (var (did, el) in defaults)
+                {
+                    if (string.Equals(did, id, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Add(el);
+                    }
+                }
+            }
+            // ids not mentioned in the custom order keep their default position.
+            foreach (var (id, el) in defaults)
+            {
+                if (remaining.Contains(id))
+                {
+                    result.Add(el);
+                }
+            }
+            return result.ToArray();
         }
 
         private static void ApplyBarOrders(

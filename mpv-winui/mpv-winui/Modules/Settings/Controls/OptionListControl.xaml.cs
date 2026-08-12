@@ -99,6 +99,19 @@ public sealed partial class OptionListControl : UserControl
         }
     }
 
+    /// <summary>Scrolls the option with the given key into view (settings search).</summary>
+    public void ScrollToOption(string key)
+    {
+        foreach (var option in OptionList)
+        {
+            if (option.Key == key)
+            {
+                OptionListView.ScrollIntoView(option);
+                return;
+            }
+        }
+    }
+
     private static ScrollViewer? FindScrollViewer(DependencyObject root)
     {
         for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
@@ -114,30 +127,5 @@ public sealed partial class OptionListControl : UserControl
             }
         }
         return null;
-    }
-
-    /// <summary>Per-item reset (↺): clears the stored value, re-applies the default to mpv, refreshes the row.</summary>
-    private void OnItemResetClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { DataContext: Option option } || string.IsNullOrEmpty(option.Key))
-        {
-            return;
-        }
-        try
-        {
-            AppContext.AppSetting.ResetKeys([option.Key]);
-            if (option.Getter?.Invoke() is { } value)
-            {
-                if (mpv_winui.Modules.Settings.MpvSettings.ToCommand(option.Key, value) is { } cmd)
-                {
-                    AppContext.SendMpvCommand(cmd);
-                }
-            }
-            Refresh();
-        }
-        catch (System.Exception ex)
-        {
-            AppContext.AppLogger.Error(ex, "per-item reset failed for key={}", option.Key);
-        }
     }
 }

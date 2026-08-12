@@ -1,5 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
@@ -163,6 +165,18 @@ public sealed partial class SettingsPage
                         ? nameof(AppSettings.ControlBarHiddenIconsModernX)
                         : nameof(AppSettings.ControlBarHiddenIconsClassic)),
                 CheckChanged = (_, value, isChecked, target) => ApplyControlBarIcon(value, isChecked, target),
+            },
+
+            new Option
+            {
+                Key = "ControlBarCustomOrderAction",
+                Label = lang.SettingsControlBarCustomOrder,
+                Category = program,
+                Description = lang.SettingsHelpControlBarCustomOrder,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.SettingsControlBarCustomOrder,
+                ActionHandler = opt => { _ = ShowControlBarOrderDialogAsync(); },
             },
 
             new Option
@@ -342,38 +356,6 @@ public sealed partial class SettingsPage
                 }
             },
 
-            // ===== Presets =====
-            new Option
-            {
-                Key = "Preset",
-                Label = lang.SettingsPreset,
-                Category = program,
-                Description = lang.SettingsPresetDescription,
-                Type = OptionType.StringList,
-                Choices = PresetService.GetPresets()
-                    .Select(p => new OptionChoice(p.Name, p.Name))
-                    .ToList(),
-                Getter = () => "",
-                Setter = v =>
-                {
-                    var name = (string)v!;
-                    if (string.IsNullOrEmpty(name)) return;
-                    var preset = PresetService.GetPresets().FirstOrDefault(p => p.Name == name);
-                    if (preset is null) return;
-                    PresetService.Apply(preset);
-                }
-            },
-            new Option
-            {
-                Key = "PresetActions",
-                Label = lang.SettingsPresetSave,
-                Category = program,
-                Type = OptionType.Action,
-                ActionKind = OptionActionKind.Button,
-                ActionLabel = lang.SettingsPresetSave,
-                ActionHandler = opt => { _ = ShowSavePresetDialogAsync(); },
-            },
-
             new Option
             {
                 Key = nameof(AppContext.AppSetting.CheckForUpdates),
@@ -388,32 +370,105 @@ public sealed partial class SettingsPage
         ];
     }
 
-    private async System.Threading.Tasks.Task ShowSavePresetDialogAsync()
+    private async System.Threading.Tasks.Task ShowControlBarOrderDialogAsync()
     {
-        var input = new TextBox { PlaceholderText = AppContext.AppLang.SettingsPresetName };
+        // Reorderable buttons (ids from BuildControlBarIconItems). The
+        // transport group (play/prev/next/skips) is fixed and shown as
+        // locked cells at the top of the canvas.
+        var orderable = new List<string>
+        {
+            "volume", "tracks", "random", "speed", "aspect",
+            "fullwindow", "fullscreen", "pip",
+        };
+        var saved = AppContext.AppSetting.ControlBarCustomOrder
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(orderable.Contains)
+            .ToList();
+        // Keep any saved entries first, then append the rest in default order.
+        foreach (var id in orderable)
+        {
+            if (!saved.Contains(id, StringComparer.Ordinal))
+            {
+                saved.Add(id);
+            }
+        }
+
+        var lang = AppContext.AppLang;
+        var labels = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["volume"] = lang.ControlBarIconVolume,
+            ["tracks"] = lang.ControlBarIconTracks,
+            ["random"] = lang.ControlBarIconRandom,
+            ["speed"] = lang.ControlBarIconSpeed,
+            ["aspect"] = lang.ControlBarIconAspect,
+            ["fullwindow"] = lang.ControlBarIconFullWindow,
+            ["fullscreen"] = lang.ControlBarIconFullScreen,
+            ["pip"] = lang.ControlBarIconPiP,
+        };
+
+        var list = new ListBox { MinHeight = 240, MaxHeight = 280 };
+        void RefreshList()
+        {
+            list.Items.Clear();
+            for (var i = 0; i < saved.Count; i++)
+            {
+                list.Items.Add($"{i + 1}. {labels[saved[i]]}");
+            }
+        }
+        RefreshList();
+
+        var up = new Button { Content = "↑" };
+        var down = new Button { Content = "↓" };
+        up.Click += (_, _) => MoveOrderItem(-1);
+        down.Click += (_, _) => MoveOrderItem(1);
+        void MoveOrderItem(int delta)
+        {
+            var index = list.SelectedIndex;
+            var target = index + delta;
+            if (index < 0 || target < 0 || target >= saved.Count)
+            {
+                return;
+            }
+            (saved[target], saved[index]) = (saved[index], saved[target]);
+            RefreshList();
+            list.SelectedIndex = target;
+        }
+
+        var panel = new StackPanel { Spacing = 10 };
+        panel.Children.Add(new TextBlock { Text = lang.SettingsHelpControlBarCustomOrder, TextWrapping = TextWrapping.Wrap });
+        panel.Children.Add(new Border
+        {
+            Padding = new Thickness(10),
+            Background = new SolidColorBrush(Colors.Gray) { Opacity = 0.25 },
+            CornerRadius = new CornerRadius(4),
+            Child = new TextBlock { Text = lang.SettingsControlBarFixedGroup, TextWrapping = TextWrapping.Wrap },
+        });
+        panel.Children.Add(list);
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        buttons.Children.Add(up);
+        buttons.Children.Add(down);
+        var resetOrderButton = new Button { Content = lang.SettingsControlBarResetOrder };
+        resetOrderButton.Click += (_, _) =>
+        {
+            saved.Clear();
+            saved.AddRange(orderable);
+            RefreshList();
+        };
+        buttons.Children.Add(resetOrderButton);
+        panel.Children.Add(buttons);
+
         var dialog = new ContentDialog
         {
-            Title = AppContext.AppLang.SettingsPresetSave,
-            Content = input,
-            PrimaryButtonText = AppContext.AppLang.Save,
-            CloseButtonText = AppContext.AppLang.Cancel,
+            Title = lang.SettingsControlBarCustomOrder,
+            Content = panel,
+            PrimaryButtonText = lang.Save,
+            CloseButtonText = lang.Cancel,
             XamlRoot = XamlRoot,
         };
         if (await dialog.ShowAsync() == ContentDialogResult.Primary)
         {
-            var name = input.Text?.Trim();
-            if (!string.IsNullOrEmpty(name))
-            {
-                PresetService.SaveUserPreset(name);
-                var done = new ContentDialog
-                {
-                    Title = AppContext.AppLang.SettingsPresetSave,
-                    Content = AppContext.AppLang.SettingsPresetSaved,
-                    CloseButtonText = "OK",
-                    XamlRoot = XamlRoot,
-                };
-                await done.ShowAsync();
-            }
+            AppContext.AppSetting.ControlBarCustomOrder = string.Join(',', saved);
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarCustomOrder), string.Join(',', saved));
         }
     }
 }

@@ -1397,6 +1397,18 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ControlBarLayout), value);
         }
 
+        /// <summary>
+        /// Comma-separated custom order of the reorderable control-bar buttons
+        /// (volume,tracks,random,speed,aspect,fullwindow,fullscreen,pip).
+        /// Empty = the layout's built-in order; the transport buttons
+        /// (play/prev/next/skips) are always fixed.
+        /// </summary>
+        public string ControlBarCustomOrder
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarCustomOrder), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarCustomOrder), value);
+        }
+
         public string ControlBarHiddenIcons
         {
             get => _dataSetting.GetValue(nameof(ControlBarHiddenIcons), string.Empty);

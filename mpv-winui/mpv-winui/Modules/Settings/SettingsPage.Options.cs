@@ -425,9 +425,8 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.UiFont)] = sProgramInterface,
             [nameof(AppSettings.CurrentLanguage)] = sProgramLanguageLog,
             [nameof(AppSettings.CheckForUpdates)] = sProgramInterface,
+            ["ControlBarCustomOrderAction"] = sProgramInterface,
             // preset keys are option keys, not AppSettings properties
-            ["Preset"] = sProgramInterface,
-            ["PresetActions"] = sProgramInterface,
             [nameof(AppSettings.EnableDebugLog)] = sProgramTesting,
             // playback
             [nameof(AppSettings.LoopFile)] = sPlayback,

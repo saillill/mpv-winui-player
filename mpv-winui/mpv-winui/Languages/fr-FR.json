@@ -791,11 +791,6 @@
   "PlaylistExport": "Exporter la liste de lecture…",
   "PlaylistFilterPlaceholder": "Filtrer la liste de lecture…",
   "MenuEditorTitle": "Éditeur de menus",
-  "SettingsPreset": "Préréglage",
-  "SettingsPresetDescription": "Appliquer un préréglage intégré ou enregistré ; les changements s'appliquent immédiatement.",
-  "SettingsPresetSave": "Enregistrer comme préréglage",
-  "SettingsPresetName": "Nom du préréglage",
-  "SettingsPresetSaved": "Préréglage enregistré.",
   "CustomRate": "Vitesse personnalisée",
   "DisplayInfo": "Infos d'affichage",
   "SettingsCheckForUpdates": "Rechercher des mises à jour",
@@ -803,5 +798,9 @@
   "UpdateAvailableTitle": "Mise à jour disponible",
   "UpdateAvailableMessage": "Une nouvelle version est disponible :",
   "UpdateAvailableOpen": "Ouvrir",
-  "UpdateAvailableLater": "Plus tard"
+  "UpdateAvailableLater": "Plus tard",
+  "SettingsControlBarCustomOrder": "Ordre personnalisé…",
+  "SettingsHelpControlBarCustomOrder": "Réorganisez les boutons avec les flèches. Les contrôles de lecture restent fixes.",
+  "SettingsControlBarFixedGroup": "Fixe : lecture, précédent, suivant, recul, avance",
+  "SettingsControlBarResetOrder": "Réinitialiser l'ordre"
 }

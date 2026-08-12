@@ -1,9 +1,0 @@
-{
-  "name": "Movie",
-  "description": "Optimized for movies: debanding and display-refresh-synced playback.",
-  "values": {
-    "Deband": "true",
-    "VideoSync": "display-resample",
-    "Interpolation": "false"
-  }
-}

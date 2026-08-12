@@ -791,11 +791,6 @@
   "PlaylistExport": "プレイリストをエクスポート…",
   "PlaylistFilterPlaceholder": "プレイリストを絞り込む…",
   "MenuEditorTitle": "メニューエディタ",
-  "SettingsPreset": "プリセット",
-  "SettingsPresetDescription": "内蔵または保存済みプリセットを適用します（即時反映）。",
-  "SettingsPresetSave": "現在をプリセットとして保存",
-  "SettingsPresetName": "プリセット名",
-  "SettingsPresetSaved": "プリセットを保存しました。",
   "CustomRate": "カスタム速度",
   "DisplayInfo": "表示情報",
   "SettingsCheckForUpdates": "更新を確認",
@@ -803,5 +798,9 @@
   "UpdateAvailableTitle": "更新があります",
   "UpdateAvailableMessage": "新しいバージョンがあります：",
   "UpdateAvailableOpen": "開く",
-  "UpdateAvailableLater": "後で"
+  "UpdateAvailableLater": "後で",
+  "SettingsControlBarCustomOrder": "カスタム順序…",
+  "SettingsHelpControlBarCustomOrder": "矢印でバーのボタン順を並べ替えます。トランスポート（再生/前/次/スキップ）は固定です。",
+  "SettingsControlBarFixedGroup": "固定: 再生・前・次・スキップ戻る・スキップ進む",
+  "SettingsControlBarResetOrder": "順序をリセット"
 }
