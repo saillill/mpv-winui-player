@@ -788,5 +788,6 @@
   "WatchHistoryClearConfirm": "Вы уверены, что хотите очистить историю?",
   "Clear": "Очистить",
   "PlaylistImport": "Импорт плейлиста…",
-  "PlaylistExport": "Экспорт плейлиста…"
+  "PlaylistExport": "Экспорт плейлиста…",
+  "PlaylistFilterPlaceholder": "Фильтр плейлиста…"
 }

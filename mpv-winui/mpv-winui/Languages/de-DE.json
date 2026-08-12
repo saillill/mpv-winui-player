@@ -788,5 +788,6 @@
   "WatchHistoryClearConfirm": "Möchten Sie den Verlauf wirklich löschen?",
   "Clear": "Löschen",
   "PlaylistImport": "Wiedergabeliste importieren…",
-  "PlaylistExport": "Wiedergabeliste exportieren…"
+  "PlaylistExport": "Wiedergabeliste exportieren…",
+  "PlaylistFilterPlaceholder": "Wiedergabeliste filtern…"
 }

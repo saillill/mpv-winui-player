@@ -788,5 +788,6 @@
   "WatchHistoryClearConfirm": "Voulez-vous vraiment effacer l'historique ?",
   "Clear": "Effacer",
   "PlaylistImport": "Importer la liste de lecture…",
-  "PlaylistExport": "Exporter la liste de lecture…"
+  "PlaylistExport": "Exporter la liste de lecture…",
+  "PlaylistFilterPlaceholder": "Filtrer la liste de lecture…"
 }

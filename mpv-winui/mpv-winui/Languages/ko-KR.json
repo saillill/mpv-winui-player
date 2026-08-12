@@ -788,5 +788,6 @@
   "WatchHistoryClearConfirm": "기록을 지우시겠습니까?",
   "Clear": "지우기",
   "PlaylistImport": "재생 목록 가져오기…",
-  "PlaylistExport": "재생 목록 내보내기…"
+  "PlaylistExport": "재생 목록 내보내기…",
+  "PlaylistFilterPlaceholder": "재생 목록 필터링…"
 }

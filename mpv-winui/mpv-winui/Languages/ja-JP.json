@@ -788,5 +788,6 @@
   "WatchHistoryClearConfirm": "履歴をクリアしてもよろしいですか？",
   "Clear": "クリア",
   "PlaylistImport": "プレイリストをインポート…",
-  "PlaylistExport": "プレイリストをエクスポート…"
+  "PlaylistExport": "プレイリストをエクスポート…",
+  "PlaylistFilterPlaceholder": "プレイリストを絞り込む…"
 }

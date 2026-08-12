@@ -6,6 +6,7 @@ using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,6 +51,12 @@ namespace mpv_winui.Modules.Player
     {
         public ObservableCollection<PlaylistItem> PlaylistItems { get; } = [];
 
+        /// <summary>Visible playlist rows (PlaylistItems filtered by <see cref="PlaylistFilterBox"/>).</summary>
+        public ObservableCollection<PlaylistItem> FilteredPlaylistItems { get; } = [];
+
+        private readonly List<PlaylistItem> _allPlaylistItems = [];
+        private string _playlistFilter = "";
+
         private void RefreshPlaylistAsync()
         {
             GetPlaylistAsync().FireAndForget(OnException);
@@ -59,26 +66,59 @@ namespace mpv_winui.Modules.Player
         {
             var items = await Task.Run(() => _mediaPlayer.Playlist().Select(x => new PlaylistItem(x)).ToList());
             PlaylistItems.Clear();
+            _allPlaylistItems.Clear();
             if (items?.Count > 0)
             {
                 foreach (var item in items)
                 {
                     PlaylistItems.Add(item);
+                    _allPlaylistItems.Add(item);
                 }
             }
 
+            ApplyPlaylistFilter();
             SelectCurrentPlayListItem();
             SetupPlaylistDrag();
         }
 
+        private void ApplyPlaylistFilter()
+        {
+            var filter = _playlistFilter.Trim();
+            FilteredPlaylistItems.Clear();
+            if (filter.Length == 0)
+            {
+                foreach (var item in _allPlaylistItems)
+                {
+                    FilteredPlaylistItems.Add(item);
+                }
+                return;
+            }
+            foreach (var item in _allPlaylistItems)
+            {
+                if (item.Title.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                    || item.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                    || item.Path.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                {
+                    FilteredPlaylistItems.Add(item);
+                }
+            }
+        }
+
+        private void PlaylistFilterBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _playlistFilter = PlaylistFilterBox.Text;
+            ApplyPlaylistFilter();
+            SelectCurrentPlayListItem();
+        }
+
         private void SelectCurrentPlayListItem()
         {
-            for (int i = 0; i < PlaylistItems.Count; i++)
+            for (int i = 0; i < FilteredPlaylistItems.Count; i++)
             {
-                if (PlaylistItems[i].IsCurrent)
+                if (FilteredPlaylistItems[i].IsCurrent)
                 {
                     PlaylistView.SelectedIndex = i;
-                    PlaylistView.ScrollIntoView(PlaylistItems[i], ScrollIntoViewAlignment.Leading);
+                    PlaylistView.ScrollIntoView(FilteredPlaylistItems[i], ScrollIntoViewAlignment.Leading);
                     break;
                 }
             }

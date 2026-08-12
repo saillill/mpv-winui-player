@@ -788,5 +788,6 @@
   "WatchHistoryClearConfirm": "Are you sure you want to clear the history?",
   "Clear": "Clear",
   "PlaylistImport": "Import Playlist…",
-  "PlaylistExport": "Export Playlist…"
+  "PlaylistExport": "Export Playlist…",
+  "PlaylistFilterPlaceholder": "Filter playlist…"
 }
