@@ -799,8 +799,7 @@
   "UpdateAvailableMessage": "Eine neuere Version ist verfügbar:",
   "UpdateAvailableOpen": "Öffnen",
   "UpdateAvailableLater": "Später",
-  "SettingsControlBarCustomOrder": "Benutzerdefinierte Reihenfolge…",
-  "SettingsHelpControlBarCustomOrder": "Buttons per Pfeilen umsortieren. Die Transporttasten bleiben fix.",
   "SettingsControlBarFixedGroup": "Fix: Wiedergabe, Zurück, Weiter, Zurückspulen, Vorspulen",
-  "SettingsControlBarResetOrder": "Reihenfolge zurücksetzen"
+  "SettingsControlBarShown": "Sichtbar (Ziehen zum Sortieren, × zum Ausblenden)",
+  "SettingsControlBarAvailable": "Ausgeblendet (auf die Leiste ziehen)"
 }

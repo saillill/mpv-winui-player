@@ -799,8 +799,7 @@
   "UpdateAvailableMessage": "A newer version is available:",
   "UpdateAvailableOpen": "Open",
   "UpdateAvailableLater": "Later",
-  "SettingsControlBarCustomOrder": "Custom order…",
-  "SettingsHelpControlBarCustomOrder": "Drag or use the arrows to reorder the bar buttons. The transport buttons (play / previous / next / skip) stay fixed.",
   "SettingsControlBarFixedGroup": "Fixed: play, previous, next, skip back, skip forward",
-  "SettingsControlBarResetOrder": "Reset order"
+  "SettingsControlBarShown": "Shown (drag to reorder, × to hide)",
+  "SettingsControlBarAvailable": "Hidden (drag onto the bar to show)"
 }

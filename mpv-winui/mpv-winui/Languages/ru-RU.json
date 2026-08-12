@@ -799,8 +799,7 @@
   "UpdateAvailableMessage": "Доступна новая версия:",
   "UpdateAvailableOpen": "Открыть",
   "UpdateAvailableLater": "Позже",
-  "SettingsControlBarCustomOrder": "Свой порядок…",
-  "SettingsHelpControlBarCustomOrder": "Меняйте порядок кнопок стрелками. Кнопки воспроизведения закреплены.",
   "SettingsControlBarFixedGroup": "Закреплено: воспроизведение, предыдущий, следующий, назад, вперёд",
-  "SettingsControlBarResetOrder": "Сбросить порядок"
+  "SettingsControlBarShown": "Показаны (перетащите, чтобы упорядочить, × скрыть)",
+  "SettingsControlBarAvailable": "Скрыты (перетащите на панель, чтобы показать)"
 }

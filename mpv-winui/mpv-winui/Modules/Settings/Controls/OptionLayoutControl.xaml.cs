@@ -156,46 +156,17 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         }
     }
 
-    /// <summary>Rebuilds the expanded icon checklist for the current layout style.</summary>
+    /// <summary>Rebuilds the expanded drag canvas for the current layout style.</summary>
     private void BuildIconChecklist(StackPanel panel, string style)
     {
         panel.Children.Clear();
-        var items = Setting?.CheckItemsProviderForStyle?.Invoke(style)
-            ?? Setting?.CheckItemsProvider?.Invoke()
-            ?? Setting?.CheckItems
-            ?? [];
-        foreach (var item in items)
+        var canvas = new ControlBarCanvasControl
         {
-            var box = new CheckBox
-            {
-                IsChecked = item.IsChecked,
-                Tag = item,
-                MinWidth = 150,
-            };
-            if (string.IsNullOrEmpty(item.Glyph))
-            {
-                box.Content = item.Label;
-            }
-            else
-            {
-                var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-                row.Children.Add(CreateIcon(item.Glyph));
-                row.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
-                box.Content = row;
-            }
-            box.Checked += OnIconToggled;
-            box.Unchecked += OnIconToggled;
-            panel.Children.Add(box);
-        }
-    }
-
-    private void OnIconToggled(object sender, RoutedEventArgs e)
-    {
-        if (sender is CheckBox box && Setting is { } option && box.Tag is OptionCheckItem item)
-        {
-            item.IsChecked = box.IsChecked == true;
-            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked, item.Target);
-        }
+            Setting = Setting,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        canvas.Load(style);
+        panel.Children.Add(canvas);
     }
 
     private void Select(string value)

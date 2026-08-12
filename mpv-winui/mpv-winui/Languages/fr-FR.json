@@ -799,8 +799,7 @@
   "UpdateAvailableMessage": "Une nouvelle version est disponible :",
   "UpdateAvailableOpen": "Ouvrir",
   "UpdateAvailableLater": "Plus tard",
-  "SettingsControlBarCustomOrder": "Ordre personnalisé…",
-  "SettingsHelpControlBarCustomOrder": "Réorganisez les boutons avec les flèches. Les contrôles de lecture restent fixes.",
   "SettingsControlBarFixedGroup": "Fixe : lecture, précédent, suivant, recul, avance",
-  "SettingsControlBarResetOrder": "Réinitialiser l'ordre"
+  "SettingsControlBarShown": "Affichés (glisser pour réordonner, × pour masquer)",
+  "SettingsControlBarAvailable": "Masqués (glisser sur la barre pour afficher)"
 }

@@ -223,10 +223,9 @@ namespace mpv_winui.Modules.Language
         public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
         public string CustomRate { get; set; } = "Custom speed";
         public string DisplayInfo { get; set; } = "Display info";
-        public string SettingsControlBarCustomOrder { get; set; } = "Custom order…";
-        public string SettingsHelpControlBarCustomOrder { get; set; } = "Drag or use the arrows to reorder the bar buttons. The transport buttons (play / previous / next / skip) stay fixed.";
         public string SettingsControlBarFixedGroup { get; set; } = "Fixed: play, previous, next, skip back, skip forward";
-        public string SettingsControlBarResetOrder { get; set; } = "Reset order";
+        public string SettingsControlBarShown { get; set; } = "Shown (drag to reorder, × to hide)";
+        public string SettingsControlBarAvailable { get; set; } = "Hidden (drag onto the bar to show)";
         public string SettingsCheckForUpdates { get; set; } = "Check for updates";
         public string SettingsCheckForUpdatesDescription { get; set; } = "Check the GitHub releases page for a newer version at startup.";
         public string UpdateAvailableTitle { get; set; } = "Update available";

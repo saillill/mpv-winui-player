@@ -799,8 +799,7 @@
   "UpdateAvailableMessage": "Hay una versión más reciente:",
   "UpdateAvailableOpen": "Abrir",
   "UpdateAvailableLater": "Más tarde",
-  "SettingsControlBarCustomOrder": "Orden personalizado…",
-  "SettingsHelpControlBarCustomOrder": "Reordena los botones con las flechas. Los controles de reproducción quedan fijos.",
   "SettingsControlBarFixedGroup": "Fijos: reproducir, anterior, siguiente, retroceder, avanzar",
-  "SettingsControlBarResetOrder": "Restablecer orden"
+  "SettingsControlBarShown": "Visibles (arrastra para ordenar, × para ocultar)",
+  "SettingsControlBarAvailable": "Ocultos (arrastra a la barra para mostrar)"
 }

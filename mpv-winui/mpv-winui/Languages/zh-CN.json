@@ -799,8 +799,7 @@
   "UpdateAvailableMessage": "发现新版本：",
   "UpdateAvailableOpen": "打开",
   "UpdateAvailableLater": "稍后",
-  "SettingsControlBarCustomOrder": "自定义排序…",
-  "SettingsHelpControlBarCustomOrder": "拖拽或用箭头调整控制栏按钮顺序。播放控件（播放/上一首/下一首/快退/快进）固定不动。",
   "SettingsControlBarFixedGroup": "固定：播放、上一首、下一首、快退、快进",
-  "SettingsControlBarResetOrder": "重置顺序"
+  "SettingsControlBarShown": "显示中（拖拽调整顺序，点 × 隐藏）",
+  "SettingsControlBarAvailable": "已隐藏（拖到上方显示栏即可显示）"
 }

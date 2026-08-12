@@ -799,8 +799,7 @@
   "UpdateAvailableMessage": "새 버전이 있습니다:",
   "UpdateAvailableOpen": "열기",
   "UpdateAvailableLater": "나중에",
-  "SettingsControlBarCustomOrder": "사용자 정의 순서…",
-  "SettingsHelpControlBarCustomOrder": "화살표로 버튼 순서를 바꿉니다. 재생 컨트롤은 고정입니다.",
   "SettingsControlBarFixedGroup": "고정: 재생, 이전, 다음, 뒤로, 앞으로",
-  "SettingsControlBarResetOrder": "순서 초기화"
+  "SettingsControlBarShown": "표시 중 (드래그로 정렬, ×로 숨김)",
+  "SettingsControlBarAvailable": "숨김 (위로 드래그하면 표시)"
 }
