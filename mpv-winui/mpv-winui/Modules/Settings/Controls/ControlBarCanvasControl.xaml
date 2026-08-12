@@ -1,0 +1,45 @@
+<local:OptionControlBase
+    x:Class="mpv_winui.Modules.Settings.Controls.ControlBarCanvasControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:mpv_winui.Modules.Settings.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <StackPanel x:Name="RootPanel" Spacing="8">
+        <TextBlock
+            x:Name="BarHint"
+            FontSize="12"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            TextWrapping="Wrap" />
+
+        <!-- One horizontal row, like the real progress bar: fixed transport
+             cells + shown movable cells in the real layout order, with small
+             gaps where the real bar separates its groups. -->
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Auto"
+            HorizontalScrollMode="Enabled"
+            VerticalScrollBarVisibility="Disabled"
+            VerticalScrollMode="Disabled">
+            <StackPanel
+                x:Name="BarPanel"
+                Orientation="Horizontal"
+                Spacing="3"
+                VerticalAlignment="Center" />
+        </ScrollViewer>
+
+        <!-- Candidate drawer: a fixed grid of grey rounded slots, one per
+             movable button. Hidden buttons fill a slot (icon + localized
+             label below); empty slots stay visible so the layout never
+             collapses. Drag a slot's icon back onto the bar to show it. -->
+        <TextBlock
+            x:Name="AvailableCaption"
+            FontSize="12"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        <StackPanel
+            x:Name="AvailableBar"
+            Orientation="Horizontal"
+            Spacing="4" />
+    </StackPanel>
+</local:OptionControlBase>

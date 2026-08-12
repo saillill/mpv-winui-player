@@ -64,7 +64,8 @@ UNMAPPED_OK = {
     "ControlBarHiddenIconsClassic", "ControlBarHiddenIconsModernX",
     "CurrentLanguage", "WindowRememberSize", "WindowPositionAndSize", "WindowStartMaximized",
     "WindowPiP", "WindowPiPSize", "EnableDebugLog", "TestMpvCommandLog", "TestOsdMessage",
-    "TestSignal", "FileAssociationExts", "SettingsSearchHistory",
+    "TestSignal", "FileAssociationExts", "SettingsSearchHistory", "CheckForUpdates",
+    "ControlBarCustomOrder", "WindowPiPRect", "WindowPiPOpacity",
     "LastVideoVolume", "LastAudioVolume", "AudioVolume", "PatchVersion",
     "EnableVideoPreview",
     # PluginConfigWriter channel (script-opts/*.conf)
@@ -78,7 +79,7 @@ UNMAPPED_OK = {
     "ThumbfastFrequency", "ThumbfastDirectIo", "ThumbfastQuitAfterInactivity",
     "CoverArtExts", "MetadataOsdShowAlbum",
     # ManagedMpvConfig channel (ytdl_hook script options in mpv.conf)
-    "YtdlPath", "YtdlAllFormats", "YtdlThumbnails", "YtdlExclude",
+    "YtdlPath", "YtdlAllFormats", "YtdlThumbnails", "YtdlExclude", "YtdlTryFirst", "YtdlUseManifests",
     # Special cases handled outside ToCommand
     "Volume",               # passed at mpv Initialize, not applied at runtime
     "ShowOsdPlayingMsg",    # merged into the OsdPlayingMsg case
