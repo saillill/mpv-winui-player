@@ -57,10 +57,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private Border? _dropIndicator;
     private Panel? _dropIndicatorParent;
     private int _lastIndicatorIndex = -1;
-    private Border? _swapTarget;
-    private Border? _lastSwapCell;
-    private Brush? _swapTargetBrush;
-    private Thickness _swapTargetThickness;
 
     public ControlBarCanvasControl()
     {
@@ -130,6 +126,20 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
         BarHint.Text = AppContext.AppLang.SettingsControlBarCanvasHint;
         BuildBarOrder();
+
+        // Rebuild _shown to match the visual (zone) order exactly. Insertion
+        // indices are computed from the rendered order, so this keeps them in
+        // sync — dragging across several cells cannot land on the wrong slot.
+        var shownSet = new HashSet<string>(_shown, StringComparer.Ordinal);
+        _shown.Clear();
+        foreach (var (_, fixedCell, id) in _barOrder)
+        {
+            if (!fixedCell && shownSet.Contains(id))
+            {
+                _shown.Add(id);
+            }
+        }
+
         Render();
     }
 
@@ -466,21 +476,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         Render();
     }
 
-    /// <summary>Swaps two strip cells (对调).</summary>
-    private void SwapShown(string a, string b)
-    {
-        var ia = _shown.IndexOf(a);
-        var ib = _shown.IndexOf(b);
-        if (ia < 0 || ib < 0)
-        {
-            return;
-        }
-        (_shown[ia], _shown[ib]) = (_shown[ib], _shown[ia]);
-        Save();
-        BuildBarOrder();
-        Render();
-    }
-
     private void Save()
     {
         if (_style == "modernx")
@@ -593,23 +588,10 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             Canvas.SetTop(_ghost, p.Y - CellSize / 2);
         }
 
-        // Highlight the swap target under the pointer, or show the insertion
-        // indicator in a gap. Both update only when the hit changes.
-        var target = HitBarTargetCell(p);
-        if (target is not null)
-        {
-            if (!ReferenceEquals(target, _lastSwapCell))
-            {
-                ClearSwapTarget();
-                HighlightSwapTarget(target);
-            }
-            ClearDropIndicator();
-        }
-        else
-        {
-            ClearSwapTarget();
-            UpdateDropIndicator(p);
-        }
+        // Pure insertion drag: the blue indicator follows the pointer across
+        // every cell and zone, so dropping far away lands exactly where the
+        // indicator is — no swap targets, no off-by-a-few-cells jumps.
+        UpdateDropIndicator(p);
     }
 
     /// <summary>Starts the visual drag (ghost follows the pointer).</summary>
@@ -678,53 +660,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                 }
             }
         }
-    }
-
-    /// <summary>The movable cell under the pointer (excluding the dragged one), or null.</summary>
-    private Border? HitBarTargetCell(Point position)
-    {
-        foreach (var (cell, _) in BarCells())
-        {
-            if (!tagIsMovable(cell))
-            {
-                continue;
-            }
-            if (cell.Tag is string tag && tag == _dragSourceId)
-            {
-                continue;
-            }
-            var rect = BoundsOf(cell);
-            if (position.X >= rect.X - 4 && position.X <= rect.Right + 4
-                && position.Y >= rect.Y - 4 && position.Y <= rect.Bottom + 4)
-            {
-                return (Border)cell;
-            }
-        }
-        return null;
-    }
-
-    /// <summary>Accent-highlights a cell as the swap target (对调 preview).</summary>
-    private void HighlightSwapTarget(Border cell)
-    {
-        _swapTarget = cell;
-        _lastSwapCell = cell;
-        _swapTargetBrush = cell.BorderBrush;
-        _swapTargetThickness = cell.BorderThickness;
-        cell.BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x00, 0x9D, 0xFF));
-        cell.BorderThickness = new Thickness(2);
-    }
-
-    private void ClearSwapTarget()
-    {
-        if (_swapTarget is not null)
-        {
-            _swapTarget.BorderBrush = _swapTargetBrush
-                ?? ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush");
-            _swapTarget.BorderThickness = _swapTargetThickness;
-            _swapTarget = null;
-            _swapTargetBrush = null;
-        }
-        _lastSwapCell = null;
     }
 
     /// <summary>Shows a snap highlight at the insertion slot under the pointer (吸附效果).</summary>
@@ -828,7 +763,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             _dragSourceCell = null;
         }
         ClearDropIndicator();
-        ClearSwapTarget();
 
         if (!wasDrag)
         {
@@ -837,14 +771,8 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
         var position = e.GetCurrentPoint(RootPanel).Position;
 
-        // Swap with the cell under the pointer, insert into the gap, or hide
-        // when the button is dragged out of the strip.
-        var target = HitBarTargetCell(position);
-        if (target?.Tag is string targetId)
-        {
-            SwapShown(sourceId, targetId);
-            return;
-        }
+        // Insert at the indicator position (neighbours compact left/right),
+        // or hide the button when it was dragged out of the strip.
         var insertIndex = HitBarInsertIndex(position);
         if (insertIndex >= 0)
         {
