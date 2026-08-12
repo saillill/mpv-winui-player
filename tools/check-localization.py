@@ -114,6 +114,7 @@ def main() -> int:
     warnings: list[str] = []
     lang_dir = ROOT / "mpv-winui" / "mpv-winui" / "Languages"
     lang_files = sorted(lang_dir.glob("*.json"))
+    en_data: dict[str, str] = {}
     for path in lang_files:
         data = json.loads(path.read_text(encoding="utf-8"))
         keys = set(data.keys())
@@ -124,6 +125,28 @@ def main() -> int:
         if extra:
             warnings.append(
                 f"{path.name}: extra keys (not AppLang props): {', '.join(sorted(extra))}"
+            )
+        if path.name == "en-US.json":
+            en_data = data
+
+    # Translation completeness: a translated value is one that differs from
+    # the English source. Keys whose value still equals en-US are either
+    # intentional (proper nouns, identical spelling) or untranslated residue.
+    if en_data:
+        for path in lang_files:
+            if path.name == "en-US.json":
+                continue
+            data = json.loads(path.read_text(encoding="utf-8"))
+            untranslated = [
+                key for key in en_data
+                if key in data and data[key] == en_data[key] and key in props
+            ]
+            total = len(props)
+            translated = total - len(untranslated)
+            pct = translated / total * 100 if total else 100
+            print(
+                f"COMPLETENESS {path.stem}: {translated}/{total} ({pct:.0f}%); "
+                f"residue: {', '.join(sorted(untranslated)[:6])}{'…' if len(untranslated) > 6 else ''}"
             )
 
     menus_path = ROOT / "mpv-winui" / "mpv-winui" / "Menus" / "menus.json"
