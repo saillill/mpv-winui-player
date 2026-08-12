@@ -65,7 +65,8 @@ UNMAPPED_OK = {
     "CurrentLanguage", "WindowRememberSize", "WindowPositionAndSize", "WindowStartMaximized",
     "WindowPiP", "WindowPiPSize", "EnableDebugLog", "TestMpvCommandLog", "TestOsdMessage",
     "TestSignal", "FileAssociationExts", "SettingsSearchHistory", "CheckForUpdates",
-    "ControlBarCustomOrder", "WindowPiPRect", "WindowPiPOpacity",
+    "ControlBarCustomOrder", "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
+    "ControlBarOrderStyleMigrated", "WindowPiPRect", "WindowPiPOpacity",
     "LastVideoVolume", "LastAudioVolume", "AudioVolume", "PatchVersion",
     "EnableVideoPreview",
     # PluginConfigWriter channel (script-opts/*.conf)

@@ -35,6 +35,11 @@ namespace mpv_winui.Modules.Settings
             var fromVersion = _dataSetting.GetValue(SettingsSchemaVersionKey, 0);
             try
             {
+                // Runs on every launch regardless of the schema version, gated
+                // by its own flag, so already-migrated installs still receive
+                // the per-style split.
+                MigrateBarOrderPerStyle();
+
                 if (fromVersion >= CurrentSettingsSchemaVersion)
                 {
                     return;
@@ -49,6 +54,33 @@ namespace mpv_winui.Modules.Settings
                 // Persist the version even when a step early-returns, so the
                 // migration runs exactly once.
                 _dataSetting.SetValue(SettingsSchemaVersionKey, CurrentSettingsSchemaVersion);
+            }
+        }
+
+        /// <summary>
+        /// The custom order used to be a single value shared by every layout
+        /// style, which made editing one style reorder the other. Split it per
+        /// style; migrate the old value into both once. Runs on every launch
+        /// (before the schema-version gate) so existing installs get the split.
+        /// </summary>
+        private void MigrateBarOrderPerStyle()
+        {
+            const string barOrderMigratedKey = "ControlBarOrderStyleMigrated";
+            if (!_dataSetting.GetValue(barOrderMigratedKey, false))
+            {
+                var legacyOrder = _dataSetting.GetValue(nameof(ControlBarCustomOrder), string.Empty);
+                if (!string.IsNullOrEmpty(legacyOrder))
+                {
+                    if (string.IsNullOrEmpty(_dataSetting.GetValue(nameof(ControlBarCustomOrderClassic), string.Empty)))
+                    {
+                        _dataSetting.SetValue(nameof(ControlBarCustomOrderClassic), legacyOrder);
+                    }
+                    if (string.IsNullOrEmpty(_dataSetting.GetValue(nameof(ControlBarCustomOrderModernX), string.Empty)))
+                    {
+                        _dataSetting.SetValue(nameof(ControlBarCustomOrderModernX), legacyOrder);
+                    }
+                }
+                _dataSetting.SetValue(barOrderMigratedKey, true);
             }
         }
 
@@ -1407,6 +1439,21 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(ControlBarCustomOrder), string.Empty);
             set => _dataSetting.SetValue(nameof(ControlBarCustomOrder), value);
+        }
+
+        /// <summary>Custom order for the 原版 (classic) layout — separate from
+        /// the 居中 one so editing one style never reorders the other.</summary>
+        public string ControlBarCustomOrderClassic
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarCustomOrderClassic), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarCustomOrderClassic), value);
+        }
+
+        /// <summary>Custom order for the 居中 (modernx) layout.</summary>
+        public string ControlBarCustomOrderModernX
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarCustomOrderModernX), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarCustomOrderModernX), value);
         }
 
         public string ControlBarHiddenIcons

@@ -100,10 +100,17 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         _hidden.Clear();
         _hidden.AddRange(ParseTokens(hiddenSetting));
 
-        // Shown movable ids: custom order first (per partition), then catalog order.
+        // Shown movable ids: custom order first (per partition), then catalog
+        // order. The order is stored per layout style so editing 原版 never
+        // reorders 居中 and vice versa.
         _shown.Clear();
         _custom.Clear();
-        _custom.AddRange(AppContext.AppSetting.ControlBarCustomOrder
+        var orderKey = _style == "modernx"
+            ? nameof(AppSettings.ControlBarCustomOrderModernX)
+            : nameof(AppSettings.ControlBarCustomOrderClassic);
+        _custom.AddRange((orderKey == nameof(AppSettings.ControlBarCustomOrderModernX)
+                ? AppContext.AppSetting.ControlBarCustomOrderModernX
+                : AppContext.AppSetting.ControlBarCustomOrderClassic)
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(ControlBarIconCatalog.MovableIds.Contains));
         foreach (var id in _custom)
@@ -210,10 +217,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
     private void Render()
     {
-        // 原版 has no centered zone — hide its frame so it does not collapse
-        // into a tiny rounded dot.
-        ZoneCenterFrame.Visibility = _style == "classic" ? Visibility.Collapsed : Visibility.Visible;
-
         ZoneLeft.Children.Clear();
         ZoneCenter.Children.Clear();
         ZoneRight.Children.Clear();
@@ -234,16 +237,31 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         // Every movable zone keeps a "+" placeholder card when editing and it
         // still has hidden buttons to add — the frame never collapses to a
         // dot, and clicking the card pops up that zone's addable (hidden)
-        // buttons. Collapsed the strip shows only the frames and the plain
-        // icons, so the placeholders are edit-mode only.
+        // buttons. The left frame's "+" sits at its right end, the right
+        // frame's at its left end (mirrored). Collapsed the strip shows only
+        // the frames and the plain icons, so the placeholders are edit-mode only.
         if (_editable && _hidden.Any(id => ZonePartitions(_style, 0).Contains(id)))
         {
             ZoneOf(0).Children.Add(BuildAddPlaceholder(0));
         }
         if (_editable && _hidden.Any(id => ZonePartitions(_style, 2).Contains(id)))
         {
-            ZoneOf(2).Children.Add(BuildAddPlaceholder(2));
+            ZoneOf(2).Children.Insert(0, BuildAddPlaceholder(2));
         }
+
+        // Zone frames: 原版 has no centered zone. Outside edit mode a frame
+        // with no icons is hidden so it never collapses into a small circle;
+        // in edit mode every frame stays (a movable frame always carries its
+        // "+" placeholder or icons, and the transport frame is never empty).
+        ZoneLeftFrame.Visibility = !_editable && ZoneLeft.Children.Count == 0
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        ZoneCenterFrame.Visibility = _style == "classic" || (!_editable && ZoneCenter.Children.Count == 0)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        ZoneRightFrame.Visibility = !_editable && ZoneRight.Children.Count == 0
+            ? Visibility.Collapsed
+            : Visibility.Visible;
 
         // Layout changed: cached cell rects and the drop indicator state are stale.
         InvalidateBoundsCache();
@@ -346,58 +364,47 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         return button;
     }
 
-    /// <summary>Pops up the zone's addable (hidden) buttons; one click adds one.</summary>
+    /// <summary>
+    /// Pops up the zone's addable (hidden) buttons as a MenuFlyout — the
+    /// standard WinUI 3 menu (MenuFlyoutItem renders the icon + text with the
+    /// platform's hover/focus states); one click adds the button.
+    /// </summary>
     private void ShowAddFlyout(Button anchor, int zone)
     {
         var items = _hidden
             .Where(id => ZonePartitions(_style, zone).Contains(id))
             .OrderBy(id => Array.IndexOf(ControlBarIconCatalog.MovableIds.ToArray(), id))
             .ToList();
-        var stack = new StackPanel { Spacing = 2, MinWidth = 130 };
-        Flyout? flyout = null;
+        // Standard WinUI 3 menu: MenuFlyoutItem renders icon + text with the
+        // platform's hover/focus states, and the default MenuFlyoutPresenter
+        // already applies the in-app acrylic background with rounded corners —
+        // no custom style needed.
+        var flyout = new MenuFlyout
+        {
+            AreOpenCloseAnimationsEnabled = true,
+        };
         foreach (var id in items)
         {
             var (_, label, glyph) = ControlBarIconCatalog.Find(id);
             var icon = new FontIcon
             {
                 Glyph = glyph,
-                FontSize = 14,
-                VerticalAlignment = VerticalAlignment.Center,
+                FontSize = 16,
             };
             ControlBarIconCatalog.ApplyGlyphFont(icon, id);
-            var row = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 8,
-                Padding = new Thickness(4),
-            };
-            row.Children.Add(icon);
-            row.Children.Add(new TextBlock
+            var item = new MenuFlyoutItem
             {
                 Text = label,
-                VerticalAlignment = VerticalAlignment.Center,
-            });
-            var item = new Button
-            {
-                Content = row,
-                HorizontalContentAlignment = HorizontalAlignment.Left,
-                Background = null,
-                BorderThickness = new Thickness(0),
-                Padding = new Thickness(6, 2, 6, 2),
+                Icon = icon,
                 Tag = id,
             };
-            item.Click += (_, _) =>
-            {
-                AddToZone(id, zone);
-                flyout?.Hide();
-            };
-            stack.Children.Add(item);
+            item.Click += (_, _) => AddToZone(id, zone);
+            flyout.Items.Add(item);
         }
-        flyout = new Flyout
+        if (flyout.Items.Count > 0)
         {
-            Content = new ScrollViewer { MaxHeight = 220, Content = stack },
-        };
-        flyout.ShowAt(anchor);
+            flyout.ShowAt(anchor);
+        }
     }
 
     /// <summary>The partition list a zone's "+" popup offers.</summary>
@@ -493,14 +500,17 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         if (_style == "modernx")
         {
             AppContext.AppSetting.ControlBarHiddenIconsModernX = string.Join(',', _hidden);
+            AppContext.AppSetting.ControlBarCustomOrderModernX = string.Join(',', _shown);
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarHiddenIconsModernX), null);
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarCustomOrderModernX), string.Join(',', _shown));
         }
         else
         {
             AppContext.AppSetting.ControlBarHiddenIconsClassic = string.Join(',', _hidden);
+            AppContext.AppSetting.ControlBarCustomOrderClassic = string.Join(',', _shown);
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarHiddenIconsClassic), null);
+            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarCustomOrderClassic), string.Join(',', _shown));
         }
-        AppContext.AppSetting.ControlBarCustomOrder = string.Join(',', _shown);
-        AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarHiddenIconsModernX), null);
-        AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarCustomOrder), string.Join(',', _shown));
         StateChanged?.Invoke();
     }
 

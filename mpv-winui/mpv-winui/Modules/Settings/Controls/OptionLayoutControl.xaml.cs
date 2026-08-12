@@ -108,22 +108,19 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         Grid.SetColumn(label, 1);
         header.Children.Add(label);
 
-        // A "Customize" button in the header (standard WinUI button style,
-        // like every other button in the app): it toggles edit mode on the
-        // selected card — ✕/lock badges, the per-frame "+" popups and
-        // dragging only appear when editing. The collapsed strip shows just
-        // the zone frames and the plain icons.
+        // A "Customize" button that reuses the exact same style as the other
+        // setting action buttons (导出设置/导入设置/取消文件关联 render with
+        // MinWidth=120, right-aligned, default button template): nothing custom.
+        // It toggles edit mode on the selected card — ✕/lock badges, the
+        // per-frame "+" popups and dragging only appear when editing. The
+        // collapsed strip shows just the zone frames and the plain icons.
         var customize = new Button
         {
+            MinWidth = 120,
+            HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
-            Padding = new Thickness(10, 4, 10, 4),
             Tag = choice.Value,
-            Content = new TextBlock
-            {
-                Text = AppContext.AppLang.SettingsControlBarCustomize,
-                FontSize = 12,
-                VerticalAlignment = VerticalAlignment.Center,
-            },
+            Content = AppContext.AppLang.SettingsControlBarCustomize,
         };
         customize.Click += (_, _) => ToggleEdit(choice.Value);
         Grid.SetColumn(customize, 2);
@@ -168,19 +165,6 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 {
                     canvas.SetEditable(expand);
                 }
-                if (panel.Children[0] is Grid header
-                    && header.Children.Count == 3
-                    && header.Children[2] is Button button
-                    && button.Content is TextBlock text)
-                {
-                    // Editing state shows the customize label in accent + bold.
-                    text.FontWeight = expand
-                        ? Microsoft.UI.Text.FontWeights.SemiBold
-                        : Microsoft.UI.Text.FontWeights.Normal;
-                    text.Foreground = expand
-                        ? new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
-                        : null;
-                }
             }
         }
     }
@@ -197,7 +181,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         Setting?.NotifyChanged();
 
         // Selecting a style switches the hidden-icon list to that style, so
-        // collapse every card and reset the customize buttons (selection never edits).
+        // collapse every card (selection never edits).
         _expandedValue = null;
         foreach (var item in StyleCards.Items)
         {
@@ -206,14 +190,6 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 if (panel.Children.Count > 1 && panel.Children[1] is ControlBarCanvasControl canvas)
                 {
                     canvas.SetEditable(false);
-                }
-                if (panel.Children[0] is Grid header
-                    && header.Children.Count == 3
-                    && header.Children[2] is Button button
-                    && button.Content is TextBlock text)
-                {
-                    text.FontWeight = Microsoft.UI.Text.FontWeights.Normal;
-                    text.Foreground = null;
                 }
                 UpdateCardBorder(card);
                 if (panel.Children[0] is Grid h2)

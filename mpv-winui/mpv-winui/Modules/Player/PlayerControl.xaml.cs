@@ -486,11 +486,19 @@ namespace mpv_winui.Modules.Player
             ApplyBarOrders(LeftCommandBar, MiddleCommandBar, RightCommandBar, left, middle, right);
         }
 
-        /// <summary>Parses ControlBarCustomOrder into the allowed canvas ids.</summary>
+        /// <summary>
+        /// Parses the custom order of the active layout style into the allowed
+        /// canvas ids. 原版 and 居中 keep separate orders so editing one style
+        /// never reorders the other.
+        /// </summary>
         private static List<string> ParseCustomOrder()
         {
             var allowed = new[] { "volume", "tracks", "random", "speed", "aspect", "fullwindow", "fullscreen", "pip" };
-            return AppContext.AppSetting.ControlBarCustomOrder
+            var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
+            var order = layout == "modernx"
+                ? AppContext.AppSetting.ControlBarCustomOrderModernX
+                : AppContext.AppSetting.ControlBarCustomOrderClassic;
+            return order
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Where(x => allowed.Contains(x, StringComparer.OrdinalIgnoreCase))
                 .ToList();
