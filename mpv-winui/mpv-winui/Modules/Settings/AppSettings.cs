@@ -229,6 +229,13 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(CurrentLanguage), value);
         }
 
+        /// <summary>Comma-separated recent settings-search queries (most recent first).</summary>
+        public string SettingsSearchHistory
+        {
+            get => _dataSetting.GetValue(nameof(SettingsSearchHistory), string.Empty);
+            set => _dataSetting.SetValue(nameof(SettingsSearchHistory), value);
+        }
+
         public ulong AppVersion
         {
             get => _dataSetting.GetValue(nameof(AppVersion), (ulong)0);

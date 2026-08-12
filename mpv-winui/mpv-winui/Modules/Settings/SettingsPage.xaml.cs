@@ -39,8 +39,37 @@ public sealed partial class SettingsPage : Page
         ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
         ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
         SearchBox.PlaceholderText = AppContext.AppLang.Search;
+        LoadSearchHistory();
         UpdateOptions();
         RefreshWarningsAndEnabled();
+    }
+
+    private const int MaxSearchHistory = 8;
+
+    private void LoadSearchHistory()
+    {
+        var history = AppContext.AppSetting.SettingsSearchHistory
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Take(MaxSearchHistory)
+            .ToList();
+        if (history.Count > 0)
+        {
+            SearchBox.ItemsSource = history;
+        }
+    }
+
+    private void RememberSearchQuery(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return;
+        }
+        var history = AppContext.AppSetting.SettingsSearchHistory
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(x => !string.Equals(x, query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        history.Insert(0, query);
+        AppContext.AppSetting.SettingsSearchHistory = string.Join(",", history.Take(MaxSearchHistory));
     }
 
     /// <summary>The currently selected category (used before navigating away).</summary>
@@ -202,6 +231,7 @@ public sealed partial class SettingsPage : Page
         if (args.ChosenSuggestion is string suggested && Categories.Contains(suggested))
         {
             CategoryList.SelectedItem = suggested;
+            RememberSearchQuery(suggested);
             return;
         }
 
@@ -210,6 +240,7 @@ public sealed partial class SettingsPage : Page
         if (match is not null)
         {
             CategoryList.SelectedItem = match;
+            RememberSearchQuery(query);
         }
     }
 
