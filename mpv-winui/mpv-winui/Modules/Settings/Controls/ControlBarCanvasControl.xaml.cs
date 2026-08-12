@@ -37,6 +37,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
     private readonly DispatcherQueueTimer _holdTimer;
     private readonly Dictionary<string, Border> _cellCache = [];
+    private readonly Dictionary<FrameworkElement, Rect> _boundsCache = [];
     private bool _holdElapsed;
     private bool _editable;
 
@@ -56,7 +57,9 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private Border? _dragSourceCell;
     private Border? _dropIndicator;
     private Panel? _dropIndicatorParent;
+    private int _lastIndicatorIndex = -1;
     private Border? _swapTarget;
+    private Border? _lastSwapCell;
     private Brush? _swapTargetBrush;
     private Thickness _swapTargetThickness;
 
@@ -258,6 +261,26 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                 };
                 ControlBarIconCatalog.ApplyGlyphFont(icon, id);
 
+                // "+" in the card's top-right corner adds the button straight
+                // to its zone in the bar — no dragging needed.
+                var addButton = new Button
+                {
+                    Width = 11,
+                    Height = 11,
+                    Padding = new Thickness(0),
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Content = new FontIcon { Glyph = "\uE710", FontSize = 6 },
+                    Background = null,
+                    BorderThickness = new Thickness(0),
+                    Tag = id,
+                    Margin = new Thickness(0, 1, 1, 0),
+                };
+                addButton.Click += (_, _) => AddButton(id);
+                var cardContent = new Grid();
+                cardContent.Children.Add(icon);
+                cardContent.Children.Add(addButton);
+
                 var frame = new Border
                 {
                     Width = CellSize,
@@ -267,7 +290,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                     BorderBrush = ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
                     BorderThickness = new Thickness(1),
                     Tag = id,
-                    Child = icon,
+                    Child = cardContent,
                 };
 
                 var item = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Top };
@@ -295,7 +318,13 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                 AvailableBar.Children.Add(row);
             }
         }
+
+        // Layout changed: cached cell rects and the drop indicator state are stale.
+        InvalidateBoundsCache();
+        _lastIndicatorIndex = -1;
     }
+
+    private void InvalidateBoundsCache() => _boundsCache.Clear();
 
     private StackPanel ZoneOf(int zone) => zone switch
     {
@@ -391,6 +420,45 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         Render();
     }
 
+    /// <summary>Adds a hidden button straight to its zone (the drawer card's "+").</summary>
+    private void AddButton(string id)
+    {
+        if (!IsRenderable(_style, id))
+        {
+            return;
+        }
+        _hidden.Remove(id);
+        if (!_shown.Contains(id))
+        {
+            var partition = PartitionOf(_style, id);
+            var insertAt = 0;
+            for (var i = 0; i < _shown.Count; i++)
+            {
+                if (partition.Contains(_shown[i]))
+                {
+                    insertAt = i + 1;
+                }
+            }
+            _shown.Insert(insertAt, id);
+        }
+        Save();
+        BuildBarOrder();
+        Render();
+    }
+
+    private static IReadOnlyList<string> PartitionOf(string style, string id) =>
+        style == "modernx"
+            ? ControlBarIconCatalog.ModernXLeft.Contains(id)
+                ? ControlBarIconCatalog.ModernXLeft
+                : ControlBarIconCatalog.ModernXRight.Contains(id)
+                    ? ControlBarIconCatalog.ModernXRight
+                    : ControlBarIconCatalog.FixedTail
+            : ControlBarIconCatalog.ClassicLeft.Contains(id)
+                ? ControlBarIconCatalog.ClassicLeft
+                : ControlBarIconCatalog.ClassicRight.Contains(id)
+                    ? ControlBarIconCatalog.ClassicRight
+                    : ControlBarIconCatalog.FixedTail;
+
     /// <summary>Inserts a strip cell at the given index; neighbours compact.</summary>
     private void MoveShown(string id, int insertIndex)
     {
@@ -453,6 +521,11 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         }
         if (e.OriginalSource is FrameworkElement fe)
         {
+            // Presses on the card's "+" button add the button — never a drag.
+            if (IsWithinButton(fe))
+            {
+                return;
+            }
             var slot = FindSlot(fe);
             if (slot is null
                 || slot.Tag is not string id
@@ -580,20 +653,26 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
         // Strip drags highlight the swap target under the pointer; drawer
         // drags always show the insertion indicator (insert into the bar).
-        ClearSwapTarget();
-        ClearDropIndicator();
+        // Both are updated only when the hit changes, never on every move.
         if (_dragFromAvailable)
         {
+            ClearSwapTarget();
             UpdateDropIndicator(p);
             return;
         }
         var target = HitBarTargetCell(p);
         if (target is not null)
         {
-            HighlightSwapTarget(target);
+            if (!ReferenceEquals(target, _lastSwapCell))
+            {
+                ClearSwapTarget();
+                HighlightSwapTarget(target);
+            }
+            ClearDropIndicator();
         }
         else
         {
+            ClearSwapTarget();
             UpdateDropIndicator(p);
         }
     }
@@ -693,6 +772,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private void HighlightSwapTarget(Border cell)
     {
         _swapTarget = cell;
+        _lastSwapCell = cell;
         _swapTargetBrush = cell.BorderBrush;
         _swapTargetThickness = cell.BorderThickness;
         cell.BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x00, 0x9D, 0xFF));
@@ -709,12 +789,12 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             _swapTarget = null;
             _swapTargetBrush = null;
         }
+        _lastSwapCell = null;
     }
 
     /// <summary>Shows a snap highlight at the insertion slot under the pointer (吸附效果).</summary>
     private void UpdateDropIndicator(Point position)
     {
-        ClearDropIndicator();
         if (!_dragActive)
         {
             return;
@@ -722,8 +802,14 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         var insertIndex = HitBarInsertIndex(position);
         if (insertIndex < 0)
         {
+            ClearDropIndicator();
             return;
         }
+        if (insertIndex == _lastIndicatorIndex && _dropIndicator is not null)
+        {
+            return; // unchanged — keep the existing indicator in place
+        }
+        ClearDropIndicator();
 
         // Insert the indicator before the cell that currently sits at
         // insertIndex (fixed cells are skipped in the count but still bound
@@ -740,6 +826,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                 _dropIndicator = BuildIndicator();
                 _dropIndicatorParent = zone;
                 zone.Children.Insert(zone.Children.IndexOf(cell), _dropIndicator);
+                _lastIndicatorIndex = insertIndex;
                 return;
             }
             if (tagIsMovable(cell))
@@ -754,6 +841,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             _dropIndicator = BuildIndicator();
             _dropIndicatorParent = lastZone;
             lastZone.Children.Add(_dropIndicator);
+            _lastIndicatorIndex = insertIndex;
         }
     }
 
@@ -778,6 +866,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             _dropIndicator = null;
             _dropIndicatorParent = null;
         }
+        _lastIndicatorIndex = -1;
     }
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
@@ -885,11 +974,20 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
     private Rect BoundsOf(FrameworkElement element)
     {
+        // The strip and drawer do not move during a drag, so the transform
+        // result is cached — TransformToVisual per pointer move is the main
+        // drag cost.
+        if (_boundsCache.TryGetValue(element, out var cached))
+        {
+            return cached;
+        }
         try
         {
             var t = element.TransformToVisual(RootPanel);
             var origin = t.TransformPoint(new Point(0, 0));
-            return new Rect(origin.X, origin.Y, element.ActualWidth, element.ActualHeight);
+            var rect = new Rect(origin.X, origin.Y, element.ActualWidth, element.ActualHeight);
+            _boundsCache[element] = rect;
+            return rect;
         }
         catch (Exception)
         {

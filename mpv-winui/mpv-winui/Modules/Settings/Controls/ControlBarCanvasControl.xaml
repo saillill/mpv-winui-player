@@ -18,10 +18,11 @@
 
             <!-- The card's bar strip, laid out in the real bar's forced zones:
                  原版 = left zone (transport + repeat/random) | right zone;
-                 居中 = left zone | centered transport | right zone. Hidden
-                 buttons are simply absent, so the strip always compacts.
-                 Cells are cached per id and RepositionThemeTransition makes
-                 hide/show/reorder slide smoothly. -->
+                 居中 = left zone | centered transport | right zone. Each zone
+                 is a designated frame (指定框) with a rounded border; hidden
+                 buttons are simply absent, so the row always compacts inside
+                 its frame. Cells are cached per id and RepositionThemeTransition
+                 makes hide/show/reorder slide smoothly. -->
             <Grid x:Name="BarHost">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -29,51 +30,74 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <StackPanel
-                    x:Name="ZoneLeft"
+                <Border
                     Grid.Column="0"
-                    Orientation="Horizontal"
-                    Spacing="3"
+                    Padding="4"
+                    CornerRadius="6"
+                    VerticalAlignment="Center"
                     HorizontalAlignment="Left"
-                    VerticalAlignment="Center">
-                    <StackPanel.Transitions>
-                        <TransitionCollection>
-                            <RepositionThemeTransition />
-                        </TransitionCollection>
-                    </StackPanel.Transitions>
-                </StackPanel>
-                <StackPanel
-                    x:Name="ZoneCenter"
+                    Background="{ThemeResource ControlFillColorTertiaryBrush}"
+                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                    <StackPanel
+                        x:Name="ZoneLeft"
+                        Orientation="Horizontal"
+                        Spacing="3"
+                        VerticalAlignment="Center">
+                        <StackPanel.Transitions>
+                            <TransitionCollection>
+                                <RepositionThemeTransition />
+                            </TransitionCollection>
+                        </StackPanel.Transitions>
+                    </StackPanel>
+                </Border>
+                <Border
                     Grid.Column="1"
-                    Orientation="Horizontal"
-                    Spacing="3"
+                    Padding="4"
+                    CornerRadius="6"
+                    VerticalAlignment="Center"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-                    <StackPanel.Transitions>
-                        <TransitionCollection>
-                            <RepositionThemeTransition />
-                        </TransitionCollection>
-                    </StackPanel.Transitions>
-                </StackPanel>
-                <StackPanel
-                    x:Name="ZoneRight"
+                    Background="{ThemeResource ControlFillColorTertiaryBrush}"
+                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                    <StackPanel
+                        x:Name="ZoneCenter"
+                        Orientation="Horizontal"
+                        Spacing="3"
+                        VerticalAlignment="Center">
+                        <StackPanel.Transitions>
+                            <TransitionCollection>
+                                <RepositionThemeTransition />
+                            </TransitionCollection>
+                        </StackPanel.Transitions>
+                    </StackPanel>
+                </Border>
+                <Border
                     Grid.Column="2"
-                    Orientation="Horizontal"
-                    Spacing="3"
+                    Padding="4"
+                    CornerRadius="6"
+                    VerticalAlignment="Center"
                     HorizontalAlignment="Right"
-                    VerticalAlignment="Center">
-                    <StackPanel.Transitions>
-                        <TransitionCollection>
-                            <RepositionThemeTransition />
-                        </TransitionCollection>
-                    </StackPanel.Transitions>
-                </StackPanel>
+                    Background="{ThemeResource ControlFillColorTertiaryBrush}"
+                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                    <StackPanel
+                        x:Name="ZoneRight"
+                        Orientation="Horizontal"
+                        Spacing="3"
+                        VerticalAlignment="Center">
+                        <StackPanel.Transitions>
+                            <TransitionCollection>
+                                <RepositionThemeTransition />
+                            </TransitionCollection>
+                        </StackPanel.Transitions>
+                    </StackPanel>
+                </Border>
             </Grid>
 
             <!-- Candidate drawer (only visible when editing): one card per
-                 remaining hidden button (icon + localized label below). Drag a
-                 card onto the strip to insert it; drag a strip cell here to
-                 hide it. -->
+                 remaining hidden button (icon + localized label below, "+" in
+                 the top-right corner to add it straight to the bar). -->
             <TextBlock
                 x:Name="AvailableCaption"
                 FontSize="12"
