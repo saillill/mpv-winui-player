@@ -37,7 +37,6 @@ public static class MpvSettings
             nameof(AppSettings.LoopPlaylist) => $"set loop-playlist {value}",
             nameof(AppSettings.LoopFile) => $"set loop-file {(value is true ? "inf" : "no")}",
             nameof(AppSettings.CacheEnabled) => $"set cache {(string)value}",
-            nameof(AppSettings.CacheDirectory) => string.IsNullOrWhiteSpace((string)value) ? null : $"set cache-dir {Q((string)value)}",
             nameof(AppSettings.DemuxerReadahead) => $"set demuxer-readahead-secs {(double)value}",
             nameof(AppSettings.Ytdl) => $"set ytdl {(value is true ? "yes" : "no")}",
             nameof(AppSettings.YtdlRawOptionsAppend) => string.IsNullOrWhiteSpace((string)value) ? null : $"set ytdl-raw-options-append {Q((string)value)}",

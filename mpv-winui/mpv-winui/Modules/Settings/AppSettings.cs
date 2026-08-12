@@ -340,12 +340,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Volume), value);
         }
 
-        public string CacheDirectory
-        {
-            get => _dataSetting.GetValue(nameof(CacheDirectory), string.Empty);
-            set => _dataSetting.SetValue(nameof(CacheDirectory), value);
-        }
-
         public string WatchLaterDir
         {
             get => _dataSetting.GetValue(nameof(WatchLaterDir), string.Empty);
@@ -1554,7 +1548,7 @@ namespace mpv_winui.Modules.Settings
 
         public string ImageExts
         {
-            get => _dataSetting.GetValue(nameof(ImageExts), "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,svg,tga,tif,tiff,webp");
+            get => _dataSetting.GetValue(nameof(ImageExts), "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,tga,tif,tiff,webp");
             set => _dataSetting.SetValue(nameof(ImageExts), value);
         }
 
