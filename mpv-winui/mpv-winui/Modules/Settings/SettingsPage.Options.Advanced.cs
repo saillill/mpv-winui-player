@@ -707,6 +707,27 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.HdrOverrideMode),
+                Label = lang.SettingsHdrOverrideMode,
+                Category = video,
+                Description = lang.SettingsHelpHdrOverrideMode,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.OptionValueAuto),
+                    new OptionChoice("HDR", "HDR"),
+                    new OptionChoice("SDR", "SDR"),
+                ],
+                Getter = () => AppContext.AppSetting.HdrOverrideMode,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.HdrOverrideMode = (string)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.HdrAutoLog),
                 Label = lang.SettingsHdrAutoLog,
                 Category = video,
@@ -790,6 +811,66 @@ public sealed partial class SettingsPage
                 Setter = v =>
                 {
                     AppContext.AppSetting.MetadataOsdEnableForVideo = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.MetadataOsdEnableForAudio),
+                Label = lang.SettingsMetadataOsdEnableForAudio,
+                Category = osd,
+                Description = lang.SettingsHelpMetadataOsdEnableForAudio,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.MetadataOsdEnableForAudio,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.MetadataOsdEnableForAudio = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.MetadataOsdEnableForAudioWithAlbumArt),
+                Label = lang.SettingsMetadataOsdEnableForAudioWithAlbumArt,
+                Category = osd,
+                Description = lang.SettingsHelpMetadataOsdEnableForAudioWithAlbumArt,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.MetadataOsdEnableForAudioWithAlbumArt,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.MetadataOsdEnableForAudioWithAlbumArt = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.MetadataOsdAutohideForAudio),
+                Label = lang.SettingsMetadataOsdAutohideForAudio,
+                Category = osd,
+                Description = lang.SettingsHelpMetadataOsdAutohideForAudio,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.MetadataOsdAutohideForAudio,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.MetadataOsdAutohideForAudio = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.MetadataOsdAutohideForAudioWithAlbumArt),
+                Label = lang.SettingsMetadataOsdAutohideForAudioWithAlbumArt,
+                Category = osd,
+                Description = lang.SettingsHelpMetadataOsdAutohideForAudioWithAlbumArt,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.MetadataOsdAutohideForAudioWithAlbumArt,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.MetadataOsdAutohideForAudioWithAlbumArt = (bool)v!;
                     AppContext.WritePluginConfigs();
                 }
             },
@@ -893,6 +974,41 @@ public sealed partial class SettingsPage
                 Setter = v =>
                 {
                     AppContext.AppSetting.ThumbfastNetwork = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbfastAudio),
+                Label = lang.SettingsThumbfastAudio,
+                Category = playback,
+                Description = lang.SettingsHelpThumbfastAudio,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.ThumbfastAudio,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbfastAudio = (bool)v!;
+                    AppContext.WritePluginConfigs();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbfastHwdec),
+                Label = lang.SettingsThumbfastHwdec,
+                Category = playback,
+                Description = lang.SettingsHelpThumbfastHwdec,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("yes", lang.OptionValueYes),
+                    new OptionChoice("no", lang.OptionValueNo),
+                ],
+                Getter = () => AppContext.AppSetting.ThumbfastHwdec,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbfastHwdec = (string)v!;
                     AppContext.WritePluginConfigs();
                 }
             },

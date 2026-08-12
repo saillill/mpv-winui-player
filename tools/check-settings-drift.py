@@ -72,12 +72,16 @@ UNMAPPED_OK = {
     # PluginConfigWriter channel (script-opts/*.conf)
     "HdrAutoLog", "MetadataOsdEnabled", "MetadataOsdAutohideTimeout",
     "MetadataOsdShowChapter", "MetadataOsdEnableForVideo", "MetadataOsdEnableForImage",
+    "MetadataOsdEnableForAudio", "MetadataOsdEnableForAudioWithAlbumArt",
+    "MetadataOsdAutohideForAudio", "MetadataOsdAutohideForAudioWithAlbumArt",
     "MetadataOsdAutohideStatusTimeout", "MetadataOsdShowAlbumTrack",
     "MetadataOsdMessageMaxLength", "CoverArtPreferEmbedded", "CoverArtAlwaysScan",
     "CoverArtLoadFromFilesystem", "CoverArtPreload", "CoverArtNames", "CoverArtImageExts",
     "ThumbfastQuality", "ThumbfastNetwork", "ThumbfastMinDuration", "ThumbfastPrecise",
     "ThumbfastMaxWidth", "ThumbfastMaxHeight", "ThumbfastSpawnFirst", "ThumbfastThreads",
     "ThumbfastFrequency", "ThumbfastDirectIo", "ThumbfastQuitAfterInactivity",
+    "ThumbfastAudio", "ThumbfastHwdec",
+    "HdrOverrideMode",
     "CoverArtExts", "MetadataOsdShowAlbum",
     # ManagedMpvConfig channel (ytdl_hook script options in mpv.conf)
     "YtdlPath", "YtdlAllFormats", "YtdlThumbnails", "YtdlExclude", "YtdlTryFirst", "YtdlUseManifests",

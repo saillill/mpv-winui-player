@@ -1769,5 +1769,48 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(DemuxerCacheDir), string.Empty);
             set => _dataSetting.SetValue(nameof(DemuxerCacheDir), value);
         }
+
+        // ===== Plugin script options (script-opts/*.conf) =====
+        public bool MetadataOsdEnableForAudio
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForAudio), true);
+            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForAudio), value);
+        }
+
+        public bool MetadataOsdEnableForAudioWithAlbumArt
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForAudioWithAlbumArt), true);
+            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForAudioWithAlbumArt), value);
+        }
+
+        public bool MetadataOsdAutohideForAudio
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideForAudio), false);
+            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideForAudio), value);
+        }
+
+        public bool MetadataOsdAutohideForAudioWithAlbumArt
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), false);
+            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), value);
+        }
+
+        public bool ThumbfastAudio
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastAudio), false);
+            set => _dataSetting.SetValue(nameof(ThumbfastAudio), value);
+        }
+
+        public string ThumbfastHwdec
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastHwdec), "yes");
+            set => _dataSetting.SetValue(nameof(ThumbfastHwdec), value);
+        }
+
+        public string HdrOverrideMode
+        {
+            get => _dataSetting.GetValue(nameof(HdrOverrideMode), string.Empty);
+            set => _dataSetting.SetValue(nameof(HdrOverrideMode), value);
+        }
     }
 }

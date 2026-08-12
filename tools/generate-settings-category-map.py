@@ -81,6 +81,8 @@ MAP = {
     "ThumbfastFrequency": ("playback", "sPlaybackSeekPreview"),
     "ThumbfastDirectIo": ("playback", "sPlaybackSeekPreview"),
     "ThumbfastQuitAfterInactivity": ("playback", "sPlaybackSeekPreview"),
+    "ThumbfastAudio": ("playback", "sPlaybackSeekPreview"),
+    "ThumbfastHwdec": ("playback", "sPlaybackSeekPreview"),
     # Track Selection
     "AudioLanguage": ("subtitles", "sTrackLanguage"),
     "SubtitleLanguage": ("subtitles", "sTrackLanguage"),
@@ -101,6 +103,7 @@ MAP = {
     "VideoUnscaled": ("video", "sVideoImage"),
     "VideoOutputLevels": ("video", "sVideoImage"),
     "HdrAutoMode": ("video", "sVideoFilters"),
+    "HdrOverrideMode": ("video", "sVideoFilters"),
     "HdrAutoLog": ("video", "sVideoFilters"),
     "VsrAutoEnabled": ("video", "sVideoFilters"),
     # Audio
@@ -210,6 +213,10 @@ MAP = {
     "MetadataOsdAutohideTimeout": ("osd", "sOsdMetadata"),
     "MetadataOsdShowChapter": ("osd", "sOsdMetadata"),
     "MetadataOsdEnableForVideo": ("osd", "sOsdMetadata"),
+    "MetadataOsdEnableForAudio": ("osd", "sOsdMetadata"),
+    "MetadataOsdEnableForAudioWithAlbumArt": ("osd", "sOsdMetadata"),
+    "MetadataOsdAutohideForAudio": ("osd", "sOsdMetadata"),
+    "MetadataOsdAutohideForAudioWithAlbumArt": ("osd", "sOsdMetadata"),
     "MetadataOsdEnableForImage": ("osd", "sOsdMetadata"),
     "MetadataOsdAutohideStatusTimeout": ("osd", "sOsdMetadata"),
     "MetadataOsdShowAlbumTrack": ("osd", "sOsdMetadata"),

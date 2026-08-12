@@ -14,47 +14,63 @@ public static class PluginConfigWriter
 {
     private const string ManagedMarker = "# Managed by mpv-winui settings (edited from the settings window)";
 
-    private static readonly Dictionary<string, Dictionary<string, string>> Managed = new()
+    /// <summary>Builds the managed key map with defaults; each write starts from a fresh copy.</summary>
+    private static Dictionary<string, Dictionary<string, string>> CreateManaged()
     {
-        ["hdr_auto.conf"] = new()
+        return new Dictionary<string, Dictionary<string, string>>
         {
-            ["log"] = "no",
-        },
-        ["metadata_osd.conf"] = new()
-        {
-            ["enable_on_start"] = "yes",
-            ["autohide_timeout_sec"] = "5",
-            ["show_chapternumber"] = "no",
-            ["enable_for_video"] = "no",
-            ["enable_for_image"] = "no",
-            ["autohide_statusosd_timeout_sec"] = "5",
-            ["show_albumtracknumber"] = "no",
-            ["osd_message_maxlength"] = "96",
-        },
-        ["coverart.conf"] = new()
-        {
-            ["prefer_embedded"] = "no",
-            ["always_scan_coverart"] = "no",
-            ["load_from_filesystem"] = "yes",
-            ["preload"] = "no",
-            ["names"] = "cover;folder;album;front",
-            ["imageExts"] = "jpg;jpeg;png;bmp;gif;webp",
-        },
-        ["thumbfast.conf"] = new()
-        {
-            ["quality"] = "1",
-            ["network"] = "no",
-            ["min_duration"] = "0",
-            ["precise"] = "0",
-            ["max_width"] = "200",
-            ["max_height"] = "2000",
-            ["spawn_first"] = "no",
-            ["sw_threads"] = "6",
-            ["frequency"] = "0.15",
-            ["direct_io"] = "yes",
-            ["quit_after_inactivity"] = "0",
-        },
-    };
+            ["hdr_auto.conf"] = new()
+            {
+                ["log"] = "no",
+            },
+            ["metadata_osd.conf"] = new()
+            {
+                ["enable_on_start"] = "yes",
+                ["autohide_timeout_sec"] = "5",
+                ["show_chapternumber"] = "no",
+                ["enable_for_audio"] = "yes",
+                ["enable_for_audio_withalbumart"] = "yes",
+                ["enable_for_video"] = "no",
+                ["enable_for_image"] = "no",
+                ["autohide_for_audio"] = "no",
+                ["autohide_for_audio_withalbumart"] = "no",
+                ["autohide_for_video"] = "yes",
+                ["autohide_for_image"] = "yes",
+                ["autohide_statusosd_timeout_sec"] = "5",
+                ["show_albumtracknumber"] = "no",
+                ["osd_message_maxlength"] = "96",
+            },
+            ["coverart.conf"] = new()
+            {
+                ["prefer_embedded"] = "no",
+                ["always_scan_coverart"] = "no",
+                ["load_from_filesystem"] = "yes",
+                ["preload"] = "no",
+                ["names"] = "cover;folder;album;front",
+                ["imageExts"] = "jpg;jpeg;png;bmp;gif;webp",
+            },
+            ["thumbfast.conf"] = new()
+            {
+                ["quality"] = "1",
+                ["network"] = "no",
+                ["audio"] = "no",
+                ["hwdec"] = "yes",
+                ["min_duration"] = "0",
+                ["precise"] = "0",
+                ["max_width"] = "200",
+                ["max_height"] = "2000",
+                ["spawn_first"] = "no",
+                ["sw_threads"] = "6",
+                ["frequency"] = "0.15",
+                ["direct_io"] = "yes",
+                ["quit_after_inactivity"] = "0",
+            },
+            ["mpvw_hdr_override.conf"] = new()
+            {
+                ["mode"] = "",
+            },
+        };
+    }
 
     public static async Task WriteAllAsync()
     {
@@ -73,32 +89,40 @@ public static class PluginConfigWriter
     private static async Task WriteAllCoreAsync()
     {
         var s = AppContext.AppSetting;
-        Managed["hdr_auto.conf"]["log"] = s.HdrAutoLog ? "yes" : "no";
-        Managed["metadata_osd.conf"]["enable_on_start"] = s.MetadataOsdEnabled ? "yes" : "no";
-        Managed["metadata_osd.conf"]["autohide_timeout_sec"] = s.MetadataOsdAutohideTimeout.ToString();
-        Managed["metadata_osd.conf"]["show_chapternumber"] = s.MetadataOsdShowChapter ? "yes" : "no";
-        Managed["metadata_osd.conf"]["enable_for_video"] = s.MetadataOsdEnableForVideo ? "yes" : "no";
-        Managed["metadata_osd.conf"]["enable_for_image"] = s.MetadataOsdEnableForImage ? "yes" : "no";
-        Managed["metadata_osd.conf"]["autohide_statusosd_timeout_sec"] = s.MetadataOsdAutohideStatusTimeout.ToString();
-        Managed["metadata_osd.conf"]["show_albumtracknumber"] = s.MetadataOsdShowAlbumTrack ? "yes" : "no";
-        Managed["metadata_osd.conf"]["osd_message_maxlength"] = s.MetadataOsdMessageMaxLength.ToString();
-        Managed["coverart.conf"]["prefer_embedded"] = s.CoverArtPreferEmbedded ? "yes" : "no";
-        Managed["coverart.conf"]["always_scan_coverart"] = s.CoverArtAlwaysScan ? "yes" : "no";
-        Managed["coverart.conf"]["load_from_filesystem"] = s.CoverArtLoadFromFilesystem ? "yes" : "no";
-        Managed["coverart.conf"]["preload"] = s.CoverArtPreload ? "yes" : "no";
-        Managed["coverart.conf"]["names"] = s.CoverArtNames;
-        Managed["coverart.conf"]["imageExts"] = s.CoverArtImageExts;
-        Managed["thumbfast.conf"]["quality"] = s.ThumbfastQuality.ToString();
-        Managed["thumbfast.conf"]["network"] = s.ThumbfastNetwork ? "yes" : "no";
-        Managed["thumbfast.conf"]["min_duration"] = s.ThumbfastMinDuration.ToString();
-        Managed["thumbfast.conf"]["precise"] = s.ThumbfastPrecise.ToString();
-        Managed["thumbfast.conf"]["max_width"] = s.ThumbfastMaxWidth.ToString();
-        Managed["thumbfast.conf"]["max_height"] = s.ThumbfastMaxHeight.ToString();
-        Managed["thumbfast.conf"]["spawn_first"] = s.ThumbfastSpawnFirst ? "yes" : "no";
-        Managed["thumbfast.conf"]["sw_threads"] = s.ThumbfastThreads.ToString();
-        Managed["thumbfast.conf"]["frequency"] = s.ThumbfastFrequency.ToString("0.##");
-        Managed["thumbfast.conf"]["direct_io"] = s.ThumbfastDirectIo ? "yes" : "no";
-        Managed["thumbfast.conf"]["quit_after_inactivity"] = s.ThumbfastQuitAfterInactivity.ToString();
+        var managed = CreateManaged();
+        managed["hdr_auto.conf"]["log"] = s.HdrAutoLog ? "yes" : "no";
+        managed["metadata_osd.conf"]["enable_on_start"] = s.MetadataOsdEnabled ? "yes" : "no";
+        managed["metadata_osd.conf"]["autohide_timeout_sec"] = s.MetadataOsdAutohideTimeout.ToString();
+        managed["metadata_osd.conf"]["show_chapternumber"] = s.MetadataOsdShowChapter ? "yes" : "no";
+        managed["metadata_osd.conf"]["enable_for_audio"] = s.MetadataOsdEnableForAudio ? "yes" : "no";
+        managed["metadata_osd.conf"]["enable_for_audio_withalbumart"] = s.MetadataOsdEnableForAudioWithAlbumArt ? "yes" : "no";
+        managed["metadata_osd.conf"]["enable_for_video"] = s.MetadataOsdEnableForVideo ? "yes" : "no";
+        managed["metadata_osd.conf"]["enable_for_image"] = s.MetadataOsdEnableForImage ? "yes" : "no";
+        managed["metadata_osd.conf"]["autohide_for_audio"] = s.MetadataOsdAutohideForAudio ? "yes" : "no";
+        managed["metadata_osd.conf"]["autohide_for_audio_withalbumart"] = s.MetadataOsdAutohideForAudioWithAlbumArt ? "yes" : "no";
+        managed["metadata_osd.conf"]["autohide_statusosd_timeout_sec"] = s.MetadataOsdAutohideStatusTimeout.ToString();
+        managed["metadata_osd.conf"]["show_albumtracknumber"] = s.MetadataOsdShowAlbumTrack ? "yes" : "no";
+        managed["metadata_osd.conf"]["osd_message_maxlength"] = s.MetadataOsdMessageMaxLength.ToString();
+        managed["coverart.conf"]["prefer_embedded"] = s.CoverArtPreferEmbedded ? "yes" : "no";
+        managed["coverart.conf"]["always_scan_coverart"] = s.CoverArtAlwaysScan ? "yes" : "no";
+        managed["coverart.conf"]["load_from_filesystem"] = s.CoverArtLoadFromFilesystem ? "yes" : "no";
+        managed["coverart.conf"]["preload"] = s.CoverArtPreload ? "yes" : "no";
+        managed["coverart.conf"]["names"] = s.CoverArtNames;
+        managed["coverart.conf"]["imageExts"] = s.CoverArtImageExts;
+        managed["thumbfast.conf"]["quality"] = s.ThumbfastQuality.ToString();
+        managed["thumbfast.conf"]["network"] = s.ThumbfastNetwork ? "yes" : "no";
+        managed["thumbfast.conf"]["audio"] = s.ThumbfastAudio ? "yes" : "no";
+        managed["thumbfast.conf"]["hwdec"] = s.ThumbfastHwdec;
+        managed["thumbfast.conf"]["min_duration"] = s.ThumbfastMinDuration.ToString();
+        managed["thumbfast.conf"]["precise"] = s.ThumbfastPrecise.ToString();
+        managed["thumbfast.conf"]["max_width"] = s.ThumbfastMaxWidth.ToString();
+        managed["thumbfast.conf"]["max_height"] = s.ThumbfastMaxHeight.ToString();
+        managed["thumbfast.conf"]["spawn_first"] = s.ThumbfastSpawnFirst ? "yes" : "no";
+        managed["thumbfast.conf"]["sw_threads"] = s.ThumbfastThreads.ToString();
+        managed["thumbfast.conf"]["frequency"] = s.ThumbfastFrequency.ToString("0.##");
+        managed["thumbfast.conf"]["direct_io"] = s.ThumbfastDirectIo ? "yes" : "no";
+        managed["thumbfast.conf"]["quit_after_inactivity"] = s.ThumbfastQuitAfterInactivity.ToString();
+        managed["mpvw_hdr_override.conf"]["mode"] = s.HdrOverrideMode;
 
         var dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -107,7 +131,7 @@ public static class PluginConfigWriter
             "script-opts");
         Directory.CreateDirectory(dir);
 
-        foreach (var (file, entries) in Managed)
+        foreach (var (file, entries) in managed)
         {
             var path = Path.Combine(dir, file);
             await WriteFileAsync(path, entries);

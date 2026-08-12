@@ -947,6 +947,20 @@ namespace mpv_winui.Modules.Language
         public string OptionValueAlignRight { get; set; } = "Right";
         public string OptionValueAlignTop { get; set; } = "Top";
         public string OptionValueAlignBottom { get; set; } = "Bottom";
+        public string SettingsMetadataOsdEnableForAudio { get; set; } = "Show metadata OSD for audio";
+        public string SettingsHelpMetadataOsdEnableForAudio { get; set; } = "Show the metadata overlay for audio files.";
+        public string SettingsMetadataOsdEnableForAudioWithAlbumArt { get; set; } = "Show metadata OSD for album art audio";
+        public string SettingsHelpMetadataOsdEnableForAudioWithAlbumArt { get; set; } = "Show the metadata overlay for audio files displayed with album art.";
+        public string SettingsMetadataOsdAutohideForAudio { get; set; } = "Auto-hide metadata OSD for audio";
+        public string SettingsHelpMetadataOsdAutohideForAudio { get; set; } = "Automatically hide the metadata overlay after the timeout for audio files.";
+        public string SettingsMetadataOsdAutohideForAudioWithAlbumArt { get; set; } = "Auto-hide metadata OSD for album art audio";
+        public string SettingsHelpMetadataOsdAutohideForAudioWithAlbumArt { get; set; } = "Automatically hide the metadata overlay after the timeout for audio files displayed with album art.";
+        public string SettingsThumbfastAudio { get; set; } = "Generate previews for audio";
+        public string SettingsHelpThumbfastAudio { get; set; } = "Also generate seek previews for audio files. Takes effect on the next start.";
+        public string SettingsThumbfastHwdec { get; set; } = "Preview hardware decoding";
+        public string SettingsHelpThumbfastHwdec { get; set; } = "Use hardware decoding when generating seek previews. Takes effect on the next start.";
+        public string SettingsHdrOverrideMode { get; set; } = "Display HDR override";
+        public string SettingsHelpHdrOverrideMode { get; set; } = "Manually override the app's display HDR detection: leave Auto to follow the app, or force HDR/SDR output. Takes effect on the next start.";
 
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)
