@@ -169,18 +169,6 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = "ControlBarCustomOrderAction",
-                Label = lang.SettingsControlBarCustomOrder,
-                Category = program,
-                Description = lang.SettingsHelpControlBarCustomOrder,
-                Type = OptionType.Action,
-                ActionKind = OptionActionKind.Button,
-                ActionLabel = lang.SettingsControlBarCustomOrder,
-                ActionHandler = opt => { _ = ShowControlBarOrderDialogAsync(); },
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.TestMpvCommandLog),
                 Label = lang.SettingsTestMpvCommandLog,
                 Category = testing,
@@ -368,107 +356,5 @@ public sealed partial class SettingsPage
             },
 
         ];
-    }
-
-    private async System.Threading.Tasks.Task ShowControlBarOrderDialogAsync()
-    {
-        // Reorderable buttons (ids from BuildControlBarIconItems). The
-        // transport group (play/prev/next/skips) is fixed and shown as
-        // locked cells at the top of the canvas.
-        var orderable = new List<string>
-        {
-            "volume", "tracks", "random", "speed", "aspect",
-            "fullwindow", "fullscreen", "pip",
-        };
-        var saved = AppContext.AppSetting.ControlBarCustomOrder
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(orderable.Contains)
-            .ToList();
-        // Keep any saved entries first, then append the rest in default order.
-        foreach (var id in orderable)
-        {
-            if (!saved.Contains(id, StringComparer.Ordinal))
-            {
-                saved.Add(id);
-            }
-        }
-
-        var lang = AppContext.AppLang;
-        var labels = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["volume"] = lang.ControlBarIconVolume,
-            ["tracks"] = lang.ControlBarIconTracks,
-            ["random"] = lang.ControlBarIconRandom,
-            ["speed"] = lang.ControlBarIconSpeed,
-            ["aspect"] = lang.ControlBarIconAspect,
-            ["fullwindow"] = lang.ControlBarIconFullWindow,
-            ["fullscreen"] = lang.ControlBarIconFullScreen,
-            ["pip"] = lang.ControlBarIconPiP,
-        };
-
-        var list = new ListBox { MinHeight = 240, MaxHeight = 280 };
-        void RefreshList()
-        {
-            list.Items.Clear();
-            for (var i = 0; i < saved.Count; i++)
-            {
-                list.Items.Add($"{i + 1}. {labels[saved[i]]}");
-            }
-        }
-        RefreshList();
-
-        var up = new Button { Content = "↑" };
-        var down = new Button { Content = "↓" };
-        up.Click += (_, _) => MoveOrderItem(-1);
-        down.Click += (_, _) => MoveOrderItem(1);
-        void MoveOrderItem(int delta)
-        {
-            var index = list.SelectedIndex;
-            var target = index + delta;
-            if (index < 0 || target < 0 || target >= saved.Count)
-            {
-                return;
-            }
-            (saved[target], saved[index]) = (saved[index], saved[target]);
-            RefreshList();
-            list.SelectedIndex = target;
-        }
-
-        var panel = new StackPanel { Spacing = 10 };
-        panel.Children.Add(new TextBlock { Text = lang.SettingsHelpControlBarCustomOrder, TextWrapping = TextWrapping.Wrap });
-        panel.Children.Add(new Border
-        {
-            Padding = new Thickness(10),
-            Background = new SolidColorBrush(Colors.Gray) { Opacity = 0.25 },
-            CornerRadius = new CornerRadius(4),
-            Child = new TextBlock { Text = lang.SettingsControlBarFixedGroup, TextWrapping = TextWrapping.Wrap },
-        });
-        panel.Children.Add(list);
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        buttons.Children.Add(up);
-        buttons.Children.Add(down);
-        var resetOrderButton = new Button { Content = lang.SettingsControlBarResetOrder };
-        resetOrderButton.Click += (_, _) =>
-        {
-            saved.Clear();
-            saved.AddRange(orderable);
-            RefreshList();
-        };
-        buttons.Children.Add(resetOrderButton);
-        panel.Children.Add(buttons);
-
-        var dialog = new ContentDialog
-        {
-            Title = lang.SettingsControlBarCustomOrder,
-            Content = panel,
-            PrimaryButtonText = lang.Save,
-            CloseButtonText = lang.Cancel,
-            XamlRoot = XamlRoot,
-        };
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            AppContext.AppSetting.ControlBarCustomOrder = string.Join(',', saved);
-            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarCustomOrder), string.Join(',', saved));
-        }
     }
 }

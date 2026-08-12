@@ -801,5 +801,6 @@
   "UpdateAvailableLater": "Позже",
   "SettingsControlBarFixedGroup": "Закреплено: воспроизведение, предыдущий, следующий, назад, вперёд",
   "SettingsControlBarShown": "Показаны (перетащите, чтобы упорядочить, × скрыть)",
-  "SettingsControlBarAvailable": "Скрыты (перетащите на панель, чтобы показать)"
+  "SettingsControlBarAvailable": "Скрыты (перетащите на панель, чтобы показать)",
+  "SettingsControlBarCanvasHint": "Перетащите для порядка; за пределы панели — скрыть. Кнопки воспроизведения закреплены."
 }

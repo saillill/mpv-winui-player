@@ -7,36 +7,39 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel x:Name="RootPanel" Spacing="10">
-        <!-- Fixed transport group (locked, always visible) -->
+    <StackPanel x:Name="RootPanel" Spacing="8">
         <TextBlock
-            x:Name="FixedCaption"
+            x:Name="BarHint"
             FontSize="12"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        <StackPanel
-            x:Name="FixedBar"
-            Orientation="Horizontal"
-            Spacing="8" />
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            TextWrapping="Wrap" />
 
-        <!-- Shown (reorderable) buttons -->
-        <TextBlock
-            x:Name="ShownCaption"
-            FontSize="12"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        <StackPanel
-            x:Name="ShownBar"
-            Orientation="Horizontal"
-            Spacing="8" />
+        <!-- One horizontal row, like the real progress bar: fixed transport
+             cells + shown movable cells in the real layout order, with small
+             gaps where the real bar separates its groups. -->
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Auto"
+            HorizontalScrollMode="Enabled"
+            VerticalScrollBarVisibility="Disabled"
+            VerticalScrollMode="Disabled">
+            <StackPanel
+                x:Name="BarPanel"
+                Orientation="Horizontal"
+                Spacing="3"
+                VerticalAlignment="Center" />
+        </ScrollViewer>
 
-        <!-- Hidden (available) buttons — the "drawer", like Android launchers -->
+        <!-- Candidate drawer: hidden buttons, drag one back onto the bar to show it. -->
         <TextBlock
             x:Name="AvailableCaption"
             FontSize="12"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        <ItemsControl x:Name="AvailableBar" IsTabStop="False">
+        <ItemsControl
+            x:Name="AvailableBar"
+            IsTabStop="False">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <WrapGrid Orientation="Horizontal" ItemWidth="88" ItemHeight="88" />
+                    <WrapGrid Orientation="Horizontal" ItemWidth="48" ItemHeight="48" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ItemsControl>

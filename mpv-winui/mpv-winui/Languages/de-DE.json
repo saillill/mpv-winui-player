@@ -801,5 +801,6 @@
   "UpdateAvailableLater": "Später",
   "SettingsControlBarFixedGroup": "Fix: Wiedergabe, Zurück, Weiter, Zurückspulen, Vorspulen",
   "SettingsControlBarShown": "Sichtbar (Ziehen zum Sortieren, × zum Ausblenden)",
-  "SettingsControlBarAvailable": "Ausgeblendet (auf die Leiste ziehen)"
+  "SettingsControlBarAvailable": "Ausgeblendet (auf die Leiste ziehen)",
+  "SettingsControlBarCanvasHint": "Icons zum Sortieren ziehen; vom Balken ziehen blendet aus. Die Transporttasten sind fix."
 }

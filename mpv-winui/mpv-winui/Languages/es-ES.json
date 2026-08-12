@@ -801,5 +801,6 @@
   "UpdateAvailableLater": "Más tarde",
   "SettingsControlBarFixedGroup": "Fijos: reproducir, anterior, siguiente, retroceder, avanzar",
   "SettingsControlBarShown": "Visibles (arrastra para ordenar, × para ocultar)",
-  "SettingsControlBarAvailable": "Ocultos (arrastra a la barra para mostrar)"
+  "SettingsControlBarAvailable": "Ocultos (arrastra a la barra para mostrar)",
+  "SettingsControlBarCanvasHint": "Arrastra para ordenar; arrastra fuera de la barra para ocultar. Los controles de reproducción son fijos."
 }
