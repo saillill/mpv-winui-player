@@ -754,7 +754,7 @@
   "Collapse": "Свернуть",
   "SettingsHelpFileAssociations": "Выберите форматы, которые будут открываться этим плеером. Изменения применяются сразу.",
   "SettingsControlBarLayout": "Раскладка панели управления",
-  "SettingsHelpControlBarLayout": "Выберите стиль панели: оригинальная или по центру. Разверните карточку, чтобы выбрать видимые значки.",
+  "SettingsHelpControlBarLayout": "Выберите стиль панели управления: оригинальный или по центру. Нажмите «Настроить», чтобы переставить или скрыть значки, или «+», чтобы добавить.",
   "OptionValueControlBarLeft": "Слева",
   "OptionValueControlBarCenter": "По центру",
   "OptionValueControlBarRight": "Справа",

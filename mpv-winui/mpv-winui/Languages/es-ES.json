@@ -754,7 +754,7 @@
   "Collapse": "Contraer",
   "SettingsHelpFileAssociations": "Elija los formatos que se abrirán con este reproductor. Los cambios se aplican de inmediato.",
   "SettingsControlBarLayout": "Diseño de la barra de control",
-  "SettingsHelpControlBarLayout": "Elija un estilo de barra: diseño original o centrado. Expanda la tarjeta para elegir los iconos visibles.",
+  "SettingsHelpControlBarLayout": "Elija un estilo de barra de control: original o centrado. Pulse Personalizar para reordenar u ocultar iconos, o use + para añadirlos.",
   "OptionValueControlBarLeft": "Izquierda",
   "OptionValueControlBarCenter": "Centrado",
   "OptionValueControlBarRight": "Derecha",

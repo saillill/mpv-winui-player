@@ -754,7 +754,7 @@
   "Collapse": "접기",
   "SettingsHelpFileAssociations": "이 플레이어로 열 파일 형식을 선택합니다. 변경은 즉시 적용됩니다.",
   "SettingsControlBarLayout": "컨트롤 바 레이아웃",
-  "SettingsHelpControlBarLayout": "컨트롤 바 스타일 선택: 원본 레이아웃 또는 가운데 레이아웃. 선택한 카드를 펼쳐 표시할 아이콘을 선택합니다.",
+  "SettingsHelpControlBarLayout": "컨트롤 바 스타일을 선택하세요: 원본 또는 중앙. 사용자 지정에서 아이콘 순서를 바꾸거나 숨기고, +로 추가할 수 있습니다.",
   "OptionValueControlBarLeft": "왼쪽",
   "OptionValueControlBarCenter": "가운데",
   "OptionValueControlBarRight": "오른쪽",

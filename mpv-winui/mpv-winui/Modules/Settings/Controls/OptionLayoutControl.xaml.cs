@@ -93,6 +93,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             GroupName = "BarStyle",
             IsChecked = string.Equals(choice.Value, _current, StringComparison.Ordinal),
             VerticalAlignment = VerticalAlignment.Center,
+            MinWidth = 0, // WinUI defaults to 120px, which shoves the title far from the dot
             Tag = choice.Value,
         };
         radio.Checked += (_, _) => Select(choice.Value);

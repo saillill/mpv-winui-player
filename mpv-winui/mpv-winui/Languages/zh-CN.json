@@ -754,7 +754,7 @@
   "Collapse": "收起",
   "SettingsHelpFileAssociations": "勾选要用本播放器打开的文件格式，改动立即生效。",
   "SettingsControlBarLayout": "状态栏排版",
-  "SettingsHelpControlBarLayout": "选择状态栏风格：原版布局或居中布局。展开选中的卡片可勾选要显示的图标。",
+  "SettingsHelpControlBarLayout": "选择状态栏风格：原版布局或居中布局。点「自定义」可拖拽调整顺序、隐藏图标，或点「+」添加图标。",
   "OptionValueControlBarLeft": "居左",
   "OptionValueControlBarCenter": "居中",
   "OptionValueControlBarRight": "居右",

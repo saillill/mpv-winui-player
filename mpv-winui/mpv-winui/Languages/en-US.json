@@ -754,7 +754,7 @@
   "Collapse": "Collapse",
   "SettingsHelpFileAssociations": "Choose which formats should open with this player. Changes apply immediately.",
   "SettingsControlBarLayout": "Control bar layout",
-  "SettingsHelpControlBarLayout": "Choose a control bar style: the original layout or the centered layout. Expand the selected card to choose which icons are shown.",
+  "SettingsHelpControlBarLayout": "Choose a control bar style: original or centered. Click Customize to drag-reorder or hide icons, or use + to add them.",
   "OptionValueControlBarLeft": "Left",
   "OptionValueControlBarCenter": "Centered",
   "OptionValueControlBarRight": "Right",

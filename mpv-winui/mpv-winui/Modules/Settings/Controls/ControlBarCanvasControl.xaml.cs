@@ -288,7 +288,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         var cell = new Border
         {
             Width = CellSize,
-            Height = CellSize,
+            Height = CellHeight,
             CornerRadius = new CornerRadius(5),
             Background = ThemeResource.Brush(this, "ControlFillColorTertiaryBrush"),
             BorderBrush = ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
@@ -305,6 +305,28 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         };
         ControlBarIconCatalog.ApplyGlyphFont(icon, id);
         panel.Children.Add(icon);
+
+        // Edit mode shows the button's localized name under the icon, so each
+        // cell is taller; collapsed mode keeps the plain 30px icon cells.
+        if (_editable)
+        {
+            panel.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            Grid.SetRow(icon, 0);
+            var (_, label, _) = ControlBarIconCatalog.Find(id);
+            var text = new TextBlock
+            {
+                Text = label,
+                FontSize = 7,
+                TextAlignment = TextAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                MaxLines = 1,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Bottom,
+            };
+            Grid.SetRow(text, 1);
+            panel.Children.Add(text);
+        }
 
         if (fixed_)
         {
@@ -345,13 +367,16 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         return cell;
     }
 
+    /// <summary>Cell height: edit cells carry the icon's name label under the icon.</summary>
+    private double CellHeight => _editable ? CellSize + 12 : CellSize;
+
     /// <summary>The "+" placeholder card at the end of a movable zone frame.</summary>
     private Button BuildAddPlaceholder(int zone)
     {
         var button = new Button
         {
             Width = CellSize,
-            Height = CellSize,
+            Height = CellHeight,
             Padding = new Thickness(0),
             CornerRadius = new CornerRadius(5),
             Background = ThemeResource.Brush(this, "ControlFillColorSecondaryBrush"),
@@ -615,7 +640,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             _ghost = new Border
             {
                 Width = CellSize,
-                Height = CellSize,
+                Height = CellHeight,
                 CornerRadius = new CornerRadius(5),
                 Background = ThemeResource.Brush(this, "CardBackgroundFillColorSecondaryBrush"),
                 Child = icon,
@@ -718,7 +743,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         var indicator = new Border
         {
             Width = 3,
-            Height = CellSize,
+            Height = CellHeight,
             CornerRadius = new CornerRadius(2),
             Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x99, 0x00, 0x9D, 0xFF)),
             Tag = IndicatorTag,

@@ -107,7 +107,7 @@ namespace mpv_winui.Modules.Language
 
         // Control bar
         public string SettingsControlBarLayout { get; set; } = "Control bar layout";
-        public string SettingsHelpControlBarLayout { get; set; } = "Choose a control bar style: the original layout or the centered layout. Expand the selected card to choose which icons are shown.";
+        public string SettingsHelpControlBarLayout { get; set; } = "Choose a control bar style: original or centered. Click Customize to drag-reorder or hide icons, or use + to add them.";
         public string OptionValueControlBarClassic { get; set; } = "Classic";
         public string OptionValueControlBarModernX { get; set; } = "Centered";
         public string OptionValueControlBarCompact { get; set; } = "Compact";

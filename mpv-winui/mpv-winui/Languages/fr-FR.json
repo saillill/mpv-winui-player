@@ -754,7 +754,7 @@
   "Collapse": "Replier",
   "SettingsHelpFileAssociations": "Choisissez les formats à ouvrir avec ce lecteur. Les changements s'appliquent immédiatement.",
   "SettingsControlBarLayout": "Disposition de la barre de contrôle",
-  "SettingsHelpControlBarLayout": "Choisissez un style de barre : original ou centré. Dépliez la carte pour choisir les icônes affichées.",
+  "SettingsHelpControlBarLayout": "Choisissez un style de barre de contrôle : original ou centré. Cliquez sur Personnaliser pour réorganiser ou masquer des icônes, ou utilisez + pour en ajouter.",
   "OptionValueControlBarLeft": "Gauche",
   "OptionValueControlBarCenter": "Centré",
   "OptionValueControlBarRight": "Droite",
