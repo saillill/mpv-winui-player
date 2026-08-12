@@ -687,6 +687,7 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.ValueChanged += OnPositionSliderValueChanged;
             ProgressSlider.PointerPressed += ProgressSlider_PointerPressed;
             ProgressSlider.PointerReleased += ProgressSlider_PointerReleased;
+            ProgressSlider.Tapped += ProgressSlider_Tapped;
             ProgressSlider.GotFocus += ProgressSlider_GotFocus;
             ProgressSlider.LostFocus += ProgressSlider_LostFocus;
             VolumeSlider.GotFocus += VolumeSlider_GotFocus;
@@ -746,6 +747,7 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.ValueChanged -= OnPositionSliderValueChanged;
             ProgressSlider.PointerPressed -= ProgressSlider_PointerPressed;
             ProgressSlider.PointerReleased -= ProgressSlider_PointerReleased;
+            ProgressSlider.Tapped -= ProgressSlider_Tapped;
             ProgressSlider.GotFocus -= ProgressSlider_GotFocus;
             ProgressSlider.LostFocus -= ProgressSlider_LostFocus;
             VolumeSlider.GotFocus -= VolumeSlider_GotFocus;
@@ -1892,6 +1894,23 @@ namespace mpv_winui.Modules.Player
         {
             _isDragging = false;
             _suppressBufferingUntil = Environment.TickCount64 + 500;
+        }
+
+        private void ProgressSlider_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            // Click anywhere on the track to seek there (the thumb drag path
+            // sets the same value, so clicking the thumb is harmless).
+            if (ProgressSlider.Maximum <= 0)
+            {
+                return;
+            }
+            var point = e.GetPosition(ProgressSlider);
+            if (ProgressSlider.ActualWidth <= 0)
+            {
+                return;
+            }
+            var ratio = Math.Clamp(point.X / ProgressSlider.ActualWidth, 0, 1);
+            ProgressSlider.Value = ratio * ProgressSlider.Maximum;
         }
 
         private void ProgressSlider_PointerMoved(object sender, PointerRoutedEventArgs e)
