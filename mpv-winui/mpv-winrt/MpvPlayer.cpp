@@ -5,6 +5,7 @@
 #include "MpvAudioDevice.h"
 #include "MpvChapter.h"
 #include "MpvEdition.h"
+#include "MpvLogEventArgs.h"
 #include "MpvMenuItem.h"
 #include "MpvPlaylistItem.h"
 #include "MpvPreviewInfo.h"
@@ -63,6 +64,7 @@ namespace winrt::mpv_winrt::implementation
             m_mpv = nullptr;
         }
         m_swapChain.store(nullptr);
+        m_initialized.store(false);
     }
 
     void MpvPlayer::Initialize(hstring const& configPath, uint32_t width, uint32_t height, int32_t volume, winrt::mpv_winrt::DisplayColorKind colorKind, int32_t refreshRate)
@@ -98,6 +100,11 @@ namespace winrt::mpv_winrt::implementation
         {
             throw hresult_error(E_FAIL, L"Failed to initialize mpv");
         }
+        m_initialized.store(true);
+
+        // Forward mpv's own log messages (shader compile failures, config
+        // warnings, ...) to the app as a WinRT event.
+        mpv_request_log_messages(m_mpv, "info");
 
         UpdateDisplayColorInfo(colorKind);
         UpdateDisplayRefreshRate(refreshRate);
@@ -236,6 +243,21 @@ namespace winrt::mpv_winrt::implementation
                     break;
                 }
 
+            case MPV_EVENT_LOG_MESSAGE:
+                {
+                    auto log = static_cast<mpv_event_log_message*>(event->data);
+                    if (!log || !log->text)
+                    {
+                        break;
+                    }
+                    auto args = winrt::make<implementation::MpvLogEventArgs>(
+                        winrt::to_hstring(log->level),
+                        winrt::to_hstring(log->prefix),
+                        winrt::to_hstring(log->text));
+                    m_logMessageEvent(args);
+                    break;
+                }
+
             case MPV_EVENT_SEEK:
                 {
                     m_seekedEvent();
@@ -271,6 +293,23 @@ namespace winrt::mpv_winrt::implementation
                     auto prop = static_cast<mpv_event_property*>(event->data);
                     if (!prop)
                     {
+                        break;
+                    }
+
+                    // Generic observations registered via ObserveProperty use
+                    // their own userdata id space; route them before the fixed
+                    // MpvObserveId dispatch below.
+                    if (event->reply_userdata >= CustomObserveBase)
+                    {
+                        std::lock_guard<std::mutex> guard(m_customObserveMutex);
+                        auto it = m_customObservations.find(event->reply_userdata);
+                        if (it != m_customObservations.end())
+                        {
+                            std::string value = prop->data
+                                ? NodeToString(*static_cast<mpv_node*>(prop->data))
+                                : std::string{};
+                            m_propertyChangedEvent(winrt::to_hstring(it->second), winrt::to_hstring(value));
+                        }
                         break;
                     }
 
@@ -677,7 +716,16 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
         std::string size = std::to_string(width) + "x" + std::to_string(height);
-        mpv_set_option_string(m_mpv, "d3d11-composition-size", size.c_str());
+        if (m_initialized.load())
+        {
+            // After init mpv_set_option_string is a no-op (options are locked);
+            // the live size must go through the property instead.
+            mpv_set_property_string(m_mpv, "d3d11-composition-size", size.c_str());
+        }
+        else
+        {
+            mpv_set_option_string(m_mpv, "d3d11-composition-size", size.c_str());
+        }
     }
 
     void MpvPlayer::LoadFile(hstring const& url, double position)
@@ -790,6 +838,127 @@ namespace winrt::mpv_winrt::implementation
     {
         const auto args = winrt::to_string(cmd);
         mpv_command_string(m_mpv, args.c_str());
+    }
+
+    void MpvPlayer::SetLogLevel(hstring const& level)
+    {
+        if (!m_mpv || !m_initialized.load())
+        {
+            return;
+        }
+        mpv_request_log_messages(m_mpv, winrt::to_string(level).c_str());
+    }
+
+    winrt::event_token MpvPlayer::LogMessage(winrt::mpv_winrt::MpvLogEventHandler const& handler)
+    {
+        return m_logMessageEvent.add(handler);
+    }
+
+    void MpvPlayer::LogMessage(winrt::event_token const& token) noexcept
+    {
+        m_logMessageEvent.remove(token);
+    }
+
+    void MpvPlayer::ObserveProperty(hstring const& name)
+    {
+        if (!m_mpv || !m_initialized.load())
+        {
+            return;
+        }
+        std::string property = winrt::to_string(name);
+        std::lock_guard<std::mutex> guard(m_customObserveMutex);
+        for (auto const& [id, observed] : m_customObservations)
+        {
+            if (observed == property)
+            {
+                return; // already observed
+            }
+        }
+        int64_t id = m_customObserveNextId++;
+        mpv_observe_property(m_mpv, id, property.c_str(), MPV_FORMAT_NODE);
+        m_customObservations.emplace(id, std::move(property));
+    }
+
+    void MpvPlayer::UnobserveProperty(hstring const& name)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+        std::string property = winrt::to_string(name);
+        std::lock_guard<std::mutex> guard(m_customObserveMutex);
+        for (auto it = m_customObservations.begin(); it != m_customObservations.end(); ++it)
+        {
+            if (it->second == property)
+            {
+                mpv_unobserve_property(m_mpv, it->first);
+                m_customObservations.erase(it);
+                return;
+            }
+        }
+    }
+
+    winrt::event_token MpvPlayer::PropertyChanged(winrt::mpv_winrt::MpvPropertyChangedEventHandler const& handler)
+    {
+        return m_propertyChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::PropertyChanged(winrt::event_token const& token) noexcept
+    {
+        m_propertyChangedEvent.remove(token);
+    }
+
+    std::string MpvPlayer::NodeToString(mpv_node const& node)
+    {
+        switch (node.format)
+        {
+            case MPV_FORMAT_NONE:
+                return {};
+            case MPV_FORMAT_STRING:
+                return node.u.string ? node.u.string : std::string{};
+            case MPV_FORMAT_FLAG:
+                return node.u.flag ? "yes" : "no";
+            case MPV_FORMAT_INT64:
+                return std::to_string(node.u.int64);
+            case MPV_FORMAT_DOUBLE:
+                {
+                    std::ostringstream oss;
+                    oss << node.u.double_;
+                    return oss.str();
+                }
+            case MPV_FORMAT_NODE_ARRAY:
+                {
+                    std::string result = "[";
+                    for (int i = 0; i < node.u.list->num; ++i)
+                    {
+                        if (i > 0)
+                        {
+                            result += ",";
+                        }
+                        result += NodeToString(node.u.list->values[i]);
+                    }
+                    result += "]";
+                    return result;
+                }
+            case MPV_FORMAT_NODE_MAP:
+                {
+                    std::string result = "{";
+                    for (int i = 0; i < node.u.list->num; ++i)
+                    {
+                        if (i > 0)
+                        {
+                            result += ",";
+                        }
+                        result += node.u.list->keys[i];
+                        result += "=";
+                        result += NodeToString(node.u.list->values[i]);
+                    }
+                    result += "}";
+                    return result;
+                }
+            default:
+                return {};
+        }
     }
 
     winrt::hstring MpvPlayer::GetWatchHistoryPath()
@@ -1174,17 +1343,23 @@ namespace winrt::mpv_winrt::implementation
         IDXGISwapChain* swapChain = nullptr;
         mpv_get_property(m_mpv, "display-swapchain", MPV_FORMAT_INT64, &swapChain);
 
-        if (swapChain)
+        // Guard against attaching before the vo has produced a swap chain:
+        // SetSwapChain(nullptr) would detach a currently attached chain and
+        // leave the panel black. AttachSwapChain is re-driven by VoConfigured
+        // (raised when the chain appears/reappears), so skipping is safe here.
+        if (!swapChain)
         {
-            winrt::com_ptr<IDXGISwapChain2> swapChain2{nullptr};
-            if (S_OK == swapChain->QueryInterface(swapChain2.put()))
-            {
-                DXGI_MATRIX_3X2_F inverseScale{};
-                inverseScale._11 = 1.0f / panel.CompositionScaleX();
-                inverseScale._22 = 1.0f / panel.CompositionScaleY();
-                swapChain2->SetMatrixTransform(&inverseScale);
-            };
+            return;
         }
+
+        winrt::com_ptr<IDXGISwapChain2> swapChain2{nullptr};
+        if (S_OK == swapChain->QueryInterface(swapChain2.put()))
+        {
+            DXGI_MATRIX_3X2_F inverseScale{};
+            inverseScale._11 = 1.0f / panel.CompositionScaleX();
+            inverseScale._22 = 1.0f / panel.CompositionScaleY();
+            swapChain2->SetMatrixTransform(&inverseScale);
+        };
 
         winrt::com_ptr<ISwapChainPanelNative> nativePanel{nullptr};
         if (panel.try_as(nativePanel))
