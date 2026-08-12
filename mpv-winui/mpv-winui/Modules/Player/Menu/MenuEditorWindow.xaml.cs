@@ -135,9 +135,84 @@ public sealed partial class MenuEditorWindow : Window
         SeparatorBox.IsChecked = def.Separator;
         LabelKeyBox.Text = def.LabelKey ?? "";
         IconBox.Text = def.Icon ?? "";
+        UpdateIconPreview(def.Icon);
         ActionBox.SelectedItem = def.Action is { } a && MpvPlayerPage.KnownMenuActions.Contains(a) ? a : null;
         CommandBox.Text = def.MpvCommand ?? "";
         EditTitle.Text = def.Separator ? "Separator" : (ResolveLabel(def) ?? "(unlabeled item)");
+    }
+
+    private void UpdateIconPreview(string? glyph)
+    {
+        IconPreview.Glyph = string.IsNullOrWhiteSpace(glyph) ? "" : glyph;
+    }
+
+    private void IconBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        UpdateIconPreview(IconBox.Text);
+    }
+
+    // A small curated set of Fluent System Icons codepoints used by the app
+    // (matches the glyphs in the control bar and menus).
+    private static readonly (string Glyph, string Name)[] FluentIcons =
+    [
+        ("\uF602", "Pin (unpinned)"), ("\uF604", "Pin"),
+        ("\uF255", "Camera"), ("\uE8C3", "Panel right"), ("\uF13E", "Refresh"),
+        ("\uE97E", "PiP enter"), ("\uE981", "PiP exit"),
+        ("\uEF37", "Shuffle"), ("\uEF3D", "Shuffle off"),
+        ("\uF66C", "Resize"), ("\uE768", "Play"), ("\uE8B2", "Pause"),
+        ("\uE74D", "Folder"), ("\uE71B", "File"), ("\uE8A5", "Settings"),
+        ("\uE713", "Info"), ("\uE72D", "Search"), ("\uE8D2", "Home"),
+        ("\uE7C3", "Delete"), ("\uE8C7", "Link"), ("\uE73E", "Document"),
+    ];
+
+    private async void PickIcon_Click(object sender, RoutedEventArgs e)
+    {
+        var panel = new StackPanel { Spacing = 8 };
+        foreach (var (glyph, name) in FluentIcons)
+        {
+            var btn = new Button
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                HorizontalContentAlignment = HorizontalAlignment.Left,
+                Content = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 10,
+                    Children =
+                    {
+                        new FontIcon
+                        {
+                            Glyph = glyph,
+                            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"),
+                            FontSize = 16,
+                        },
+                        new TextBlock { Text = name, VerticalAlignment = VerticalAlignment.Center },
+                    },
+                },
+            };
+            btn.Click += (_, _) =>
+            {
+                IconBox.Text = glyph;
+                UpdateIconPreview(glyph);
+            };
+            panel.Children.Add(btn);
+        }
+
+        var scroll = new ScrollViewer
+        {
+            Content = panel,
+            MaxHeight = 420,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        };
+
+        var dialog = new ContentDialog
+        {
+            Title = "Pick icon",
+            Content = scroll,
+            CloseButtonText = "OK",
+            XamlRoot = RootGrid.XamlRoot,
+        };
+        await dialog.ShowAsync();
     }
 
     private void ItemList_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)

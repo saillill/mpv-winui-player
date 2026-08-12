@@ -77,7 +77,18 @@
                 <TextBlock Text="Label key" />
                 <TextBox x:Name="LabelKeyBox" />
                 <TextBlock Text="Icon (Fluent glyph)" />
-                <TextBox x:Name="IconBox" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBox
+                        x:Name="IconBox"
+                        MinWidth="120"
+                        TextChanged="IconBox_TextChanged" />
+                    <Button Click="PickIcon_Click" Content="Pick…" />
+                    <FontIcon
+                        x:Name="IconPreview"
+                        VerticalAlignment="Center"
+                        FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                        FontSize="16" />
+                </StackPanel>
                 <TextBlock Text="Action" />
                 <ComboBox x:Name="ActionBox" />
                 <TextBlock Text="mpv command" />
