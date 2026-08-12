@@ -797,5 +797,11 @@
   "SettingsPresetName": "Имя пресета",
   "SettingsPresetSaved": "Пресет сохранён.",
   "CustomRate": "Своя скорость",
-  "DisplayInfo": "Информация о дисплее"
+  "DisplayInfo": "Информация о дисплее",
+  "SettingsCheckForUpdates": "Проверять обновления",
+  "SettingsCheckForUpdatesDescription": "Проверять страницу релизов GitHub при запуске.",
+  "UpdateAvailableTitle": "Доступно обновление",
+  "UpdateAvailableMessage": "Доступна новая версия:",
+  "UpdateAvailableOpen": "Открыть",
+  "UpdateAvailableLater": "Позже"
 }

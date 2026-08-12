@@ -223,6 +223,12 @@ namespace mpv_winui.Modules.Language
         public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
         public string CustomRate { get; set; } = "Custom speed";
         public string DisplayInfo { get; set; } = "Display info";
+        public string SettingsCheckForUpdates { get; set; } = "Check for updates";
+        public string SettingsCheckForUpdatesDescription { get; set; } = "Check the GitHub releases page for a newer version at startup.";
+        public string UpdateAvailableTitle { get; set; } = "Update available";
+        public string UpdateAvailableMessage { get; set; } = "A newer version is available:";
+        public string UpdateAvailableOpen { get; set; } = "Open";
+        public string UpdateAvailableLater { get; set; } = "Later";
         public string MenuEditorTitle { get; set; } = "Menu Editor";
         public string SettingsPreset { get; set; } = "Preset";
         public string SettingsPresetDescription { get; set; } = "Apply a built-in or user-saved preset; changes apply immediately.";

@@ -797,5 +797,11 @@
   "SettingsPresetName": "Nom du préréglage",
   "SettingsPresetSaved": "Préréglage enregistré.",
   "CustomRate": "Vitesse personnalisée",
-  "DisplayInfo": "Infos d'affichage"
+  "DisplayInfo": "Infos d'affichage",
+  "SettingsCheckForUpdates": "Rechercher des mises à jour",
+  "SettingsCheckForUpdatesDescription": "Vérifier la page GitHub Releases au démarrage.",
+  "UpdateAvailableTitle": "Mise à jour disponible",
+  "UpdateAvailableMessage": "Une nouvelle version est disponible :",
+  "UpdateAvailableOpen": "Ouvrir",
+  "UpdateAvailableLater": "Plus tard"
 }

@@ -797,5 +797,11 @@
   "SettingsPresetName": "프리셋 이름",
   "SettingsPresetSaved": "프리셋이 저장되었습니다.",
   "CustomRate": "사용자 정의 속도",
-  "DisplayInfo": "디스플레이 정보"
+  "DisplayInfo": "디스플레이 정보",
+  "SettingsCheckForUpdates": "업데이트 확인",
+  "SettingsCheckForUpdatesDescription": "시작 시 GitHub Releases의 새 버전을 확인합니다.",
+  "UpdateAvailableTitle": "업데이트 있음",
+  "UpdateAvailableMessage": "새 버전이 있습니다:",
+  "UpdateAvailableOpen": "열기",
+  "UpdateAvailableLater": "나중에"
 }

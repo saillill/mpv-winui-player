@@ -374,6 +374,17 @@ public sealed partial class SettingsPage
                 ActionHandler = opt => { _ = ShowSavePresetDialogAsync(); },
             },
 
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CheckForUpdates),
+                Label = lang.SettingsCheckForUpdates,
+                Category = program,
+                Description = lang.SettingsCheckForUpdatesDescription,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CheckForUpdates,
+                Setter = v => AppContext.AppSetting.CheckForUpdates = (bool)v!
+            },
+
         ];
     }
 

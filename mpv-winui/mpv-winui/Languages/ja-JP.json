@@ -797,5 +797,11 @@
   "SettingsPresetName": "プリセット名",
   "SettingsPresetSaved": "プリセットを保存しました。",
   "CustomRate": "カスタム速度",
-  "DisplayInfo": "表示情報"
+  "DisplayInfo": "表示情報",
+  "SettingsCheckForUpdates": "更新を確認",
+  "SettingsCheckForUpdatesDescription": "起動時に GitHub Releases の新しいバージョンを確認します。",
+  "UpdateAvailableTitle": "更新があります",
+  "UpdateAvailableMessage": "新しいバージョンがあります：",
+  "UpdateAvailableOpen": "開く",
+  "UpdateAvailableLater": "後で"
 }

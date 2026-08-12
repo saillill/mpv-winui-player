@@ -797,5 +797,11 @@
   "SettingsPresetName": "方案名称",
   "SettingsPresetSaved": "方案已保存。",
   "CustomRate": "自定义倍速",
-  "DisplayInfo": "显示信息"
+  "DisplayInfo": "显示信息",
+  "SettingsCheckForUpdates": "检查更新",
+  "SettingsCheckForUpdatesDescription": "启动时检查 GitHub Releases 是否有新版本。",
+  "UpdateAvailableTitle": "发现新版本",
+  "UpdateAvailableMessage": "发现新版本：",
+  "UpdateAvailableOpen": "打开",
+  "UpdateAvailableLater": "稍后"
 }

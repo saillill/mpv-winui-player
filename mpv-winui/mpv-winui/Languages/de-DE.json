@@ -797,5 +797,11 @@
   "SettingsPresetName": "Name der Voreinstellung",
   "SettingsPresetSaved": "Voreinstellung gespeichert.",
   "CustomRate": "Benutzerdefinierte Geschwindigkeit",
-  "DisplayInfo": "Anzeigeinformationen"
+  "DisplayInfo": "Anzeigeinformationen",
+  "SettingsCheckForUpdates": "Nach Updates suchen",
+  "SettingsCheckForUpdatesDescription": "Beim Start nach neueren Versionen auf GitHub Releases suchen.",
+  "UpdateAvailableTitle": "Update verfügbar",
+  "UpdateAvailableMessage": "Eine neuere Version ist verfügbar:",
+  "UpdateAvailableOpen": "Öffnen",
+  "UpdateAvailableLater": "Später"
 }

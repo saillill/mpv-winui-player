@@ -1364,6 +1364,13 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPOpacity), value);
         }
 
+        /// <summary>Checks the GitHub Releases API for updates at startup.</summary>
+        public bool CheckForUpdates
+        {
+            get => _dataSetting.GetValue(nameof(CheckForUpdates), true);
+            set => _dataSetting.SetValue(nameof(CheckForUpdates), value);
+        }
+
         public bool WindowStartMaximized
         {
             get => _dataSetting.GetValue(nameof(WindowStartMaximized), false);

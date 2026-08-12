@@ -797,5 +797,11 @@
   "SettingsPresetName": "Nombre del preestablecido",
   "SettingsPresetSaved": "Preestablecido guardado.",
   "CustomRate": "Velocidad personalizada",
-  "DisplayInfo": "Información de pantalla"
+  "DisplayInfo": "Información de pantalla",
+  "SettingsCheckForUpdates": "Buscar actualizaciones",
+  "SettingsCheckForUpdatesDescription": "Comprobar la página de lanzamientos de GitHub al inicio.",
+  "UpdateAvailableTitle": "Actualización disponible",
+  "UpdateAvailableMessage": "Hay una versión más reciente:",
+  "UpdateAvailableOpen": "Abrir",
+  "UpdateAvailableLater": "Más tarde"
 }

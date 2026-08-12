@@ -797,5 +797,11 @@
   "SettingsPresetName": "Preset name",
   "SettingsPresetSaved": "Preset saved.",
   "CustomRate": "Custom speed",
-  "DisplayInfo": "Display info"
+  "DisplayInfo": "Display info",
+  "SettingsCheckForUpdates": "Check for updates",
+  "SettingsCheckForUpdatesDescription": "Check the GitHub releases page for a newer version at startup.",
+  "UpdateAvailableTitle": "Update available",
+  "UpdateAvailableMessage": "A newer version is available:",
+  "UpdateAvailableOpen": "Open",
+  "UpdateAvailableLater": "Later"
 }
