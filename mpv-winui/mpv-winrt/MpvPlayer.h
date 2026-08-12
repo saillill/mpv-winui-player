@@ -190,6 +190,9 @@ namespace winrt::mpv_winrt::implementation
 
         mpv_handle* m_mpv{nullptr};
         std::atomic<IDXGISwapChain*> m_swapChain{nullptr};
+        // True once mpv_initialize has succeeded; mpv_set_option_string is only
+        // valid before that, runtime option changes must go through properties.
+        std::atomic<bool> m_initialized{false};
 
         std::thread m_eventThread;
         std::atomic<bool> m_eventThreadRunning{false};

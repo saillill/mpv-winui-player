@@ -63,6 +63,7 @@ namespace winrt::mpv_winrt::implementation
             m_mpv = nullptr;
         }
         m_swapChain.store(nullptr);
+        m_initialized.store(false);
     }
 
     void MpvPlayer::Initialize(hstring const& configPath, uint32_t width, uint32_t height, int32_t volume, winrt::mpv_winrt::DisplayColorKind colorKind, int32_t refreshRate)
@@ -98,6 +99,7 @@ namespace winrt::mpv_winrt::implementation
         {
             throw hresult_error(E_FAIL, L"Failed to initialize mpv");
         }
+        m_initialized.store(true);
 
         UpdateDisplayColorInfo(colorKind);
         UpdateDisplayRefreshRate(refreshRate);
@@ -677,7 +679,16 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
         std::string size = std::to_string(width) + "x" + std::to_string(height);
-        mpv_set_option_string(m_mpv, "d3d11-composition-size", size.c_str());
+        if (m_initialized.load())
+        {
+            // After init mpv_set_option_string is a no-op (options are locked);
+            // the live size must go through the property instead.
+            mpv_set_property_string(m_mpv, "d3d11-composition-size", size.c_str());
+        }
+        else
+        {
+            mpv_set_option_string(m_mpv, "d3d11-composition-size", size.c_str());
+        }
     }
 
     void MpvPlayer::LoadFile(hstring const& url, double position)
@@ -1174,17 +1185,23 @@ namespace winrt::mpv_winrt::implementation
         IDXGISwapChain* swapChain = nullptr;
         mpv_get_property(m_mpv, "display-swapchain", MPV_FORMAT_INT64, &swapChain);
 
-        if (swapChain)
+        // Guard against attaching before the vo has produced a swap chain:
+        // SetSwapChain(nullptr) would detach a currently attached chain and
+        // leave the panel black. AttachSwapChain is re-driven by VoConfigured
+        // (raised when the chain appears/reappears), so skipping is safe here.
+        if (!swapChain)
         {
-            winrt::com_ptr<IDXGISwapChain2> swapChain2{nullptr};
-            if (S_OK == swapChain->QueryInterface(swapChain2.put()))
-            {
-                DXGI_MATRIX_3X2_F inverseScale{};
-                inverseScale._11 = 1.0f / panel.CompositionScaleX();
-                inverseScale._22 = 1.0f / panel.CompositionScaleY();
-                swapChain2->SetMatrixTransform(&inverseScale);
-            };
+            return;
         }
+
+        winrt::com_ptr<IDXGISwapChain2> swapChain2{nullptr};
+        if (S_OK == swapChain->QueryInterface(swapChain2.put()))
+        {
+            DXGI_MATRIX_3X2_F inverseScale{};
+            inverseScale._11 = 1.0f / panel.CompositionScaleX();
+            inverseScale._22 = 1.0f / panel.CompositionScaleY();
+            swapChain2->SetMatrixTransform(&inverseScale);
+        };
 
         winrt::com_ptr<ISwapChainPanelNative> nativePanel{nullptr};
         if (panel.try_as(nativePanel))
