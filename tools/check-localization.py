@@ -4,6 +4,8 @@
 * Every writable AppLang property must exist in each Languages/<lang>.json.
 * menus.json labelKey values must exist in AppLang; action values must be in
   the whitelist parsed from MpvPlayerPage_MenuBar.cs.
+* menus.json structure must match tools/menus.schema.json (validated inline,
+  without a jsonschema dependency).
 * Optional --xaml-audit prints hardcoded UI strings found in XAML.
 
 Exit code 1 on errors, 2 on internal failure.
@@ -57,6 +59,40 @@ def walk_menus(items, props: set[str], actions: set[str], errors: list[str], pat
             errors.append(f"menus.json: item has neither action nor mpvCommand at {path}")
 
 
+def validate_menu_schema(items, errors: list[str], path: str = "root"):
+    """Structural validation mirroring tools/menus.schema.json.
+
+    Kept dependency-free (no jsonschema package): every item is either a
+    separator, a submenu (children), or a leaf with id + labelKey and one of
+    action/mpvCommand.
+    """
+    for index, item in enumerate(items):
+        item_path = f"{path}[{index}]"
+        if not isinstance(item, dict):
+            errors.append(f"menus.json: item at {item_path} is not an object")
+            continue
+        if item.get("separator") is True:
+            continue
+        if "children" in item:
+            if not isinstance(item["children"], list):
+                errors.append(f"menus.json: children at {item_path} is not an array")
+                continue
+            if not item.get("id"):
+                errors.append(f"menus.json: submenu at {item_path} has no id")
+            validate_menu_schema(
+                item["children"],
+                errors,
+                item_path + "/" + str(item.get("id", "?")),
+            )
+            continue
+        if not item.get("id"):
+            errors.append(f"menus.json: item at {item_path} has no id")
+        if not item.get("labelKey"):
+            errors.append(f"menus.json: item at {item_path} has no labelKey")
+        if not item.get("action") and not item.get("mpvCommand"):
+            errors.append(f"menus.json: item at {item_path} has neither action nor mpvCommand")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -94,6 +130,7 @@ def main() -> int:
         actions = parse_menu_actions(
             ROOT / "mpv-winui" / "mpv-winui" / "Modules" / "Player" / "MpvPlayerPage_MenuBar.cs"
         )
+        validate_menu_schema(menus, errors)
         walk_menus(menus, props, actions, errors)
     else:
         warnings.append("menus.json not found (bundled default missing)")

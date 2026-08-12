@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/saillill/mpv-winui-player/tree/main/tools/menus.schema.json",
+  "title": "mpv-winui menu bar definition",
+  "description": "Structure of the config-driven menu bar (Menus/menus.json). Each entry is a separator, a submenu (children), or a leaf running either an app action or a raw mpv command. See Modules/Player/Menu/MenuDefinition.cs.",
+  "type": "array",
+  "items": { "$ref": "#/definitions/menuItem" },
+  "definitions": {
+    "menuItem": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique item id (used for logging and menu identity)." },
+        "labelKey": { "type": "string", "description": "AppLang property name holding the localized label." },
+        "labelArgs": { "type": "array", "items": { "type": "string" }, "description": "Optional format arguments for the label (e.g. \"{0} min\")." },
+        "icon": { "type": "string", "description": "Optional FontIcon glyph (Fluent System Icons codepoint)." },
+        "action": { "type": "string", "description": "Whitelisted app action id (see MpvPlayerPage_MenuBar.cs)." },
+        "mpvCommand": { "type": "string", "description": "Raw mpv command executed on click." },
+        "separator": { "type": "boolean", "description": "True renders a separator; other fields ignored." },
+        "children": { "type": "array", "items": { "$ref": "#/definitions/menuItem" }, "description": "Present on submenu items only." }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["separator"] },
+        { "required": ["id"] }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "not": {
+              "anyOf": [
+                { "required": ["separator"] },
+                { "required": ["children"] }
+              ]
+            }
+          },
+          "then": {
+            "anyOf": [
+              { "required": ["action"] },
+              { "required": ["mpvCommand"] }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
