@@ -789,5 +789,6 @@
   "Clear": "Очистить",
   "PlaylistImport": "Импорт плейлиста…",
   "PlaylistExport": "Экспорт плейлиста…",
-  "PlaylistFilterPlaceholder": "Фильтр плейлиста…"
+  "PlaylistFilterPlaceholder": "Фильтр плейлиста…",
+  "MenuEditorTitle": "Редактор меню"
 }

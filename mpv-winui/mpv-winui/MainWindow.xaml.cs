@@ -73,9 +73,17 @@ namespace mpv_winui
             }
         }
 
-        public void ChangeFullWindow(bool full)
+        /// <summary>Rebuilds the player page's menu bar (after the menu editor saves).</summary>
+        public void RebuildPlayerMenuBar()
         {
-            if (full)
+            if (ShellFrame?.Content is MpvPlayerPage page)
+            {
+                page.RebuildMenuBar();
+            }
+        }
+
+        public void ChangeFullWindow(bool full)
+        {            if (full)
             {
                 TitleBarRow.Height = new GridLength(0);
             }

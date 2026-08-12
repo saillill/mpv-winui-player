@@ -789,5 +789,6 @@
   "Clear": "Borrar",
   "PlaylistImport": "Importar lista de reproducción…",
   "PlaylistExport": "Exportar lista de reproducción…",
-  "PlaylistFilterPlaceholder": "Filtrar lista de reproducción…"
+  "PlaylistFilterPlaceholder": "Filtrar lista de reproducción…",
+  "MenuEditorTitle": "Editor de menús"
 }

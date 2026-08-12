@@ -47,6 +47,7 @@
     "labelKey": "MenuHelp",
     "children": [
       { "id": "about", "labelKey": "HelpAbout", "action": "about" },
+      { "id": "menu-editor", "labelKey": "MenuEditorTitle", "action": "menu-editor" },
       { "id": "mpv-docs", "labelKey": "HelpMpvDocs", "action": "mpv-docs" }
     ]
   },

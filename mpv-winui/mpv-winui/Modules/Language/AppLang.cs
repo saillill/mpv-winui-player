@@ -221,6 +221,7 @@ namespace mpv_winui.Modules.Language
         public string PlaylistImport { get; set; } = "Import Playlist…";
         public string PlaylistExport { get; set; } = "Export Playlist…";
         public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
+        public string MenuEditorTitle { get; set; } = "Menu Editor";
         public string Window { get; set; } = "Window";
         public string TogglePlaylist { get; set; } = "Toggle Playlist";
         public string ToggleFullScreen { get; set; } = "Toggle Full Screen";

@@ -789,5 +789,6 @@
   "Clear": "Clear",
   "PlaylistImport": "Import Playlist…",
   "PlaylistExport": "Export Playlist…",
-  "PlaylistFilterPlaceholder": "Filter playlist…"
+  "PlaylistFilterPlaceholder": "Filter playlist…",
+  "MenuEditorTitle": "Menu Editor"
 }

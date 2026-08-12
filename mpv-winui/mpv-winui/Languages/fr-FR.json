@@ -789,5 +789,6 @@
   "Clear": "Effacer",
   "PlaylistImport": "Importer la liste de lecture…",
   "PlaylistExport": "Exporter la liste de lecture…",
-  "PlaylistFilterPlaceholder": "Filtrer la liste de lecture…"
+  "PlaylistFilterPlaceholder": "Filtrer la liste de lecture…",
+  "MenuEditorTitle": "Éditeur de menus"
 }

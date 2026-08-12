@@ -789,5 +789,6 @@
   "Clear": "지우기",
   "PlaylistImport": "재생 목록 가져오기…",
   "PlaylistExport": "재생 목록 내보내기…",
-  "PlaylistFilterPlaceholder": "재생 목록 필터링…"
+  "PlaylistFilterPlaceholder": "재생 목록 필터링…",
+  "MenuEditorTitle": "메뉴 편집기"
 }

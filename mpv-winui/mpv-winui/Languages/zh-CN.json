@@ -789,5 +789,6 @@
   "Clear": "清空",
   "PlaylistImport": "导入播放列表…",
   "PlaylistExport": "导出播放列表…",
-  "PlaylistFilterPlaceholder": "筛选播放列表…"
+  "PlaylistFilterPlaceholder": "筛选播放列表…",
+  "MenuEditorTitle": "菜单编辑器"
 }

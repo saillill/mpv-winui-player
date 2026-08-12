@@ -789,5 +789,6 @@
   "Clear": "クリア",
   "PlaylistImport": "プレイリストをインポート…",
   "PlaylistExport": "プレイリストをエクスポート…",
-  "PlaylistFilterPlaceholder": "プレイリストを絞り込む…"
+  "PlaylistFilterPlaceholder": "プレイリストを絞り込む…",
+  "MenuEditorTitle": "メニューエディタ"
 }

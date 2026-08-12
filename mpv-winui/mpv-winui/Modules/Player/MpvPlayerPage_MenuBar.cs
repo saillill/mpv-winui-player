@@ -98,6 +98,11 @@ public sealed partial class MpvPlayerPage
         });
         RegisterMenuAction("mpv-command", p => p.ShowMpvCommandDialogAsync());
         RegisterMenuAction("shortcut-search", p => p.ShowShortcutSearchDialogAsync());
+        RegisterMenuAction("menu-editor", p =>
+        {
+            new Menu.MenuEditorWindow().Activate();
+            return Task.CompletedTask;
+        });
         RegisterMenuAction("sleep-off", p =>
         {
             p.SetSleepTimer(0);
@@ -138,6 +143,9 @@ public sealed partial class MpvPlayerPage
             MenuBarBuilder.Build(MainMenuBar, menus, KnownMenuActions, MenuFlyoutItem_Click);
         }
     }
+
+    /// <summary>Rebuilds the menu bar (used after the menu editor saves).</summary>
+    public void RebuildMenuBar() => BuildMainMenuBar();
 
     private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
