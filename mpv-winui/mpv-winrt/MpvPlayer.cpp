@@ -1518,6 +1518,7 @@ namespace winrt::mpv_winrt::implementation
                 int32_t id = -1;
                 std::string filename, title;
                 bool isCurrent = false, isPlaying = false;
+                double duration = -1.0;
 
                 for (int j = 0; j < entry->u.list->num; j++)
                 {
@@ -1544,9 +1545,21 @@ namespace winrt::mpv_winrt::implementation
                     {
                         isPlaying = value.u.flag != 0;
                     }
+                    else if (strcmp(key, "duration") == 0 && value.format == MPV_FORMAT_DOUBLE)
+                    {
+                        duration = value.u.double_;
+                    }
                 }
 
-                auto item = winrt::make<implementation::MpvPlaylistItem>(id, i, winrt::to_hstring(filename), winrt::to_hstring(title), isCurrent, isPlaying);
+                // mpv's playlist node carries no per-entry duration and
+                // playlist/N/duration is not a property; only the playing entry
+                // can be filled from the global duration property.
+                if (isCurrent && duration < 0)
+                {
+                    mpv_get_property(m_mpv, "duration", MPV_FORMAT_DOUBLE, &duration);
+                }
+
+                auto item = winrt::make<implementation::MpvPlaylistItem>(id, i, winrt::to_hstring(filename), winrt::to_hstring(title), isCurrent, isPlaying, duration);
                 items.Append(item);
             }
         }

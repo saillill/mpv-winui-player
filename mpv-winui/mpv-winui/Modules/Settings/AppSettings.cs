@@ -20,11 +20,39 @@ namespace mpv_winui.Modules.Settings
         }
 
         /// <summary>
-        /// The old subtitle-font default stored "sans-serif"; treat that value
-        /// as unset once so each UI language gets its own default font.
-        /// An explicit "System default" choice made later is kept.
+        /// Schema version of the stored settings. Migrations run once per
+        /// version: read the stored version, run every step above it, then
+        /// persist the new version. The per-feature "Migrated" flags inside
+        /// the steps keep them idempotent for installs upgraded before the
+        /// version key existed (they read version 0 and re-run the steps,
+        /// which no-op on the flags).
         /// </summary>
+        private const int CurrentSettingsSchemaVersion = 1;
+        private const string SettingsSchemaVersionKey = "SettingsSchemaVersion";
+
         private void MigrateLegacyDefaults()
+        {
+            var fromVersion = _dataSetting.GetValue(SettingsSchemaVersionKey, 0);
+            try
+            {
+                if (fromVersion >= CurrentSettingsSchemaVersion)
+                {
+                    return;
+                }
+                if (fromVersion < 1)
+                {
+                    MigrateToVersion1();
+                }
+            }
+            finally
+            {
+                // Persist the version even when a step early-returns, so the
+                // migration runs exactly once.
+                _dataSetting.SetValue(SettingsSchemaVersionKey, CurrentSettingsSchemaVersion);
+            }
+        }
+
+        private void MigrateToVersion1()
         {
             // The control bar icon checklist used to be stored in a single
             // value shared by every layout style. Keep the old value for

@@ -786,5 +786,14 @@
   "ValidationValueNotEmpty": "Значение не может быть пустым",
   "WatchHistoryClearTitle": "Очистить историю",
   "WatchHistoryClearConfirm": "Вы уверены, что хотите очистить историю?",
-  "Clear": "Очистить"
+  "Clear": "Очистить",
+  "PlaylistImport": "Импорт плейлиста…",
+  "PlaylistExport": "Экспорт плейлиста…",
+  "PlaylistFilterPlaceholder": "Фильтр плейлиста…",
+  "MenuEditorTitle": "Редактор меню",
+  "SettingsPreset": "Пресет",
+  "SettingsPresetDescription": "Применить встроенный или сохранённый пресет; изменения применяются сразу.",
+  "SettingsPresetSave": "Сохранить как пресет",
+  "SettingsPresetName": "Имя пресета",
+  "SettingsPresetSaved": "Пресет сохранён."
 }

@@ -342,6 +342,67 @@ public sealed partial class SettingsPage
                 }
             },
 
+            // ===== Presets =====
+            new Option
+            {
+                Key = "Preset",
+                Label = lang.SettingsPreset,
+                Category = program,
+                Description = lang.SettingsPresetDescription,
+                Type = OptionType.StringList,
+                Choices = PresetService.GetPresets()
+                    .Select(p => new OptionChoice(p.Name, p.Name))
+                    .ToList(),
+                Getter = () => "",
+                Setter = v =>
+                {
+                    var name = (string)v!;
+                    if (string.IsNullOrEmpty(name)) return;
+                    var preset = PresetService.GetPresets().FirstOrDefault(p => p.Name == name);
+                    if (preset is null) return;
+                    PresetService.Apply(preset);
+                }
+            },
+            new Option
+            {
+                Key = "PresetActions",
+                Label = lang.SettingsPresetSave,
+                Category = program,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.SettingsPresetSave,
+                ActionHandler = opt => { _ = ShowSavePresetDialogAsync(); },
+            },
+
         ];
+    }
+
+    private async System.Threading.Tasks.Task ShowSavePresetDialogAsync()
+    {
+        var input = new TextBox { PlaceholderText = AppContext.AppLang.SettingsPresetName };
+        var dialog = new ContentDialog
+        {
+            Title = AppContext.AppLang.SettingsPresetSave,
+            Content = input,
+            PrimaryButtonText = AppContext.AppLang.Save,
+            CloseButtonText = AppContext.AppLang.Cancel,
+            XamlRoot = XamlRoot,
+        };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            var name = input.Text?.Trim();
+            if (!string.IsNullOrEmpty(name))
+            {
+                PresetService.SaveUserPreset(name);
+                var done = new ContentDialog
+                {
+                    Title = AppContext.AppLang.SettingsPresetSave,
+                    Content = AppContext.AppLang.SettingsPresetSaved,
+                    CloseButtonText = "OK",
+                    XamlRoot = XamlRoot,
+                };
+                await done.ShowAsync();
+            }
+        }
     }
 }

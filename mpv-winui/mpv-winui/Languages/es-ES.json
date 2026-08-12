@@ -786,5 +786,14 @@
   "ValidationValueNotEmpty": "El valor no puede estar vacío",
   "WatchHistoryClearTitle": "Borrar historial",
   "WatchHistoryClearConfirm": "¿Seguro que desea borrar el historial?",
-  "Clear": "Borrar"
+  "Clear": "Borrar",
+  "PlaylistImport": "Importar lista de reproducción…",
+  "PlaylistExport": "Exportar lista de reproducción…",
+  "PlaylistFilterPlaceholder": "Filtrar lista de reproducción…",
+  "MenuEditorTitle": "Editor de menús",
+  "SettingsPreset": "Ajuste preestablecido",
+  "SettingsPresetDescription": "Aplicar un ajuste preestablecido integrado o guardado; los cambios se aplican de inmediato.",
+  "SettingsPresetSave": "Guardar actual como preestablecido",
+  "SettingsPresetName": "Nombre del preestablecido",
+  "SettingsPresetSaved": "Preestablecido guardado."
 }

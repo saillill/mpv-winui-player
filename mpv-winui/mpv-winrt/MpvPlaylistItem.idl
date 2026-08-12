@@ -8,5 +8,6 @@ namespace mpv_winrt
 		String Title { get; };
 		Boolean IsCurrent { get; };
 		Boolean IsPlaying { get; };
+		Double Duration { get; };
 	};
 }

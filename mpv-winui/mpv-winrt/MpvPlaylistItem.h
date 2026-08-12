@@ -5,8 +5,8 @@ namespace winrt::mpv_winrt::implementation
 {
     struct MpvPlaylistItem : MpvPlaylistItemT<MpvPlaylistItem>
     {
-        MpvPlaylistItem(int32_t id, int32_t index, hstring const& filename, hstring const& title, bool isCurrent, bool isPlaying)
-            : m_id(id), m_index(index), m_filename(filename), m_title(title), m_isCurrent(isCurrent), m_isPlaying(isPlaying)
+        MpvPlaylistItem(int32_t id, int32_t index, hstring const& filename, hstring const& title, bool isCurrent, bool isPlaying, double duration)
+            : m_id(id), m_index(index), m_filename(filename), m_title(title), m_isCurrent(isCurrent), m_isPlaying(isPlaying), m_duration(duration)
         {
         }
 
@@ -34,6 +34,10 @@ namespace winrt::mpv_winrt::implementation
         {
             return m_isPlaying;
         }
+        double Duration()
+        {
+            return m_duration;
+        }
 
     private:
         int32_t m_id;
@@ -42,5 +46,6 @@ namespace winrt::mpv_winrt::implementation
         hstring m_title;
         bool m_isCurrent;
         bool m_isPlaying;
+        double m_duration;
     };
 }

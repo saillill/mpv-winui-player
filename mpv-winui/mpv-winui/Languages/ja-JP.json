@@ -786,5 +786,14 @@
   "ValidationValueNotEmpty": "値を空にできません",
   "WatchHistoryClearTitle": "履歴をクリア",
   "WatchHistoryClearConfirm": "履歴をクリアしてもよろしいですか？",
-  "Clear": "クリア"
+  "Clear": "クリア",
+  "PlaylistImport": "プレイリストをインポート…",
+  "PlaylistExport": "プレイリストをエクスポート…",
+  "PlaylistFilterPlaceholder": "プレイリストを絞り込む…",
+  "MenuEditorTitle": "メニューエディタ",
+  "SettingsPreset": "プリセット",
+  "SettingsPresetDescription": "内蔵または保存済みプリセットを適用します（即時反映）。",
+  "SettingsPresetSave": "現在をプリセットとして保存",
+  "SettingsPresetName": "プリセット名",
+  "SettingsPresetSaved": "プリセットを保存しました。"
 }
