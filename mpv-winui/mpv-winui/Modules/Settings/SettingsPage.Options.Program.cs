@@ -153,7 +153,6 @@ public sealed partial class SettingsPage
                 [
                     new OptionLayoutChoice("classic", lang.OptionValueControlBarClassic),
                     new OptionLayoutChoice("modernx", lang.OptionValueControlBarModernX),
-                    new OptionLayoutChoice("custom", lang.OptionValueControlBarCustom),
                 ],
                 Getter = () => NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout),
                 Setter = v =>

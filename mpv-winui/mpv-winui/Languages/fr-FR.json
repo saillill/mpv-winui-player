@@ -802,6 +802,5 @@
   "SettingsControlBarFixedGroup": "Fixe : lecture, précédent, suivant, recul, avance",
   "SettingsControlBarShown": "Affichés (glisser pour réordonner, × pour masquer)",
   "SettingsControlBarAvailable": "Masqués (glisser sur la barre pour afficher)",
-  "SettingsControlBarCanvasHint": "Glissez pour réordonner ; glissez hors de la barre pour masquer. Les contrôles de lecture sont fixes.",
-  "OptionValueControlBarCustom": "Personnalisé"
+  "SettingsControlBarCanvasHint": "Glissez pour réordonner ; glissez hors de la barre pour masquer. Les contrôles de lecture sont fixes."
 }

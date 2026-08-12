@@ -37,11 +37,9 @@
             x:Name="AvailableCaption"
             FontSize="12"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        <WrapGrid
+        <StackPanel
             x:Name="AvailableBar"
             Orientation="Horizontal"
-            ItemWidth="56"
-            ItemHeight="64"
-            IsTabStop="False" />
+            Spacing="4" />
     </StackPanel>
 </local:OptionControlBase>

@@ -31,6 +31,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private string _style = "classic";
     private readonly List<string> _shown = [];   // movable ids in display order
     private readonly List<string> _hidden = [];  // movable ids hidden
+    private readonly List<string> _custom = [];  // saved custom order
     private readonly List<(bool Fixed, string? Id)> _barOrder = []; // null Id = group separator
 
     private string? _dragSourceId;
@@ -63,11 +64,11 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
         // Shown movable ids: custom order first (per partition), then catalog order.
         _shown.Clear();
-        var custom = AppContext.AppSetting.ControlBarCustomOrder
+        _custom.Clear();
+        _custom.AddRange(AppContext.AppSetting.ControlBarCustomOrder
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(ControlBarIconCatalog.MovableIds.Contains)
-            .ToList();
-        foreach (var id in custom)
+            .Where(ControlBarIconCatalog.MovableIds.Contains));
+        foreach (var id in _custom)
         {
             if (!_hidden.Contains(id) && !_shown.Contains(id))
             {
@@ -148,9 +149,19 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
     private void AddPartition(IReadOnlyList<string> partition)
     {
-        foreach (var id in _shown)
+        var placed = new HashSet<string>(StringComparer.Ordinal);
+        // Custom-ordered ids first (relative custom order within the partition).
+        foreach (var id in _custom)
         {
-            if (partition.Contains(id))
+            if (partition.Contains(id) && _shown.Contains(id) && placed.Add(id))
+            {
+                _barOrder.Add((false, id));
+            }
+        }
+        // Remaining ids in the partition's default (real bar) order.
+        foreach (var id in partition)
+        {
+            if (!placed.Contains(id) && _shown.Contains(id) && placed.Add(id))
             {
                 _barOrder.Add((false, id));
             }
@@ -187,6 +198,8 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         // drawer always shows its structure. Hidden buttons fill their slot
         // with the icon + localized label; empty slots stay as empty frames.
         AvailableBar.Children.Clear();
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Top };
+        var perRow = 8;
         foreach (var id in ControlBarIconCatalog.MovableIds)
         {
             var isHidden = _hidden.Contains(id);
@@ -221,7 +234,16 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                 panel.Children.Add(new FontIcon { Glyph = "", FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center, Opacity = 0.5 });
             }
             slot.Child = panel;
-            AvailableBar.Children.Add(slot);
+            row.Children.Add(slot);
+            if (row.Children.Count >= perRow)
+            {
+                AvailableBar.Children.Add(row);
+                row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Top };
+            }
+        }
+        if (row.Children.Count > 0)
+        {
+            AvailableBar.Children.Add(row);
         }
     }
 

@@ -50,9 +50,9 @@ public static class ControlBarIconCatalog
     public static IReadOnlyList<string> ModernXRight { get; } =
         ["aspect", "pip", "fullwindow", "fullscreen"];
 
-    /// <summary>Classic partitions: left holds the transport cluster + shuffle/repeat; right holds the rest.</summary>
+    /// <summary>Classic partitions: left holds the transport cluster + repeat/shuffle; right holds the rest.</summary>
     public static IReadOnlyList<string> ClassicLeft { get; } =
-        ["random", "repeat"];
+        ["repeat", "random"];
 
     public static IReadOnlyList<string> ClassicRight { get; } =
         ["volume", "speed", "tracks", "equalizer", "delay", "aspect", "pip", "fullwindow", "fullscreen"];
