@@ -249,20 +249,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             ZoneOf(2).Children.Insert(0, BuildAddPlaceholder(2));
         }
 
-        // Zone frames: 原版 has no centered zone. Outside edit mode a frame
-        // with no icons is hidden so it never collapses into a small circle;
-        // in edit mode every frame stays (a movable frame always carries its
-        // "+" placeholder or icons, and the transport frame is never empty).
-        ZoneLeftFrame.Visibility = !_editable && ZoneLeft.Children.Count == 0
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        ZoneCenterFrame.Visibility = _style == "classic" || (!_editable && ZoneCenter.Children.Count == 0)
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        ZoneRightFrame.Visibility = !_editable && ZoneRight.Children.Count == 0
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-
         // Layout changed: cached cell rects and the drop indicator state are stale.
         InvalidateBoundsCache();
         _lastIndicatorIndex = -1;

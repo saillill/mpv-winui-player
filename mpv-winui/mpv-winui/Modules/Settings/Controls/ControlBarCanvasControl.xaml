@@ -16,35 +16,33 @@
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 TextWrapping="Wrap" />
 
-            <!-- The card's bar strip, laid out in the real bar's forced zones:
-                 原版 = left zone (transport + repeat/random) | right zone;
-                 居中 = left zone | centered transport | right zone. Each zone
-                 is a designated frame (指定框); 原版 has no center frame. Every
-                 movable frame keeps a "+" card placeholder at its end — the
-                 frame never collapses to a dot, and clicking the "+" pops up
-                 that frame's addable (hidden) buttons. Cells are cached per id
-                 and RepositionThemeTransition makes hide/show/reorder slide. -->
-            <Grid x:Name="BarHost">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <!-- The card's bar strip: one rounded strip (长条) holding the
+                 real bar's forced zones — 原版 = left zone (transport +
+                 repeat/random) | right zone; 居中 = left zone | centered
+                 transport | right zone. Zones align left/center/right inside
+                 the strip, so the layout never collapses. Cells are cached
+                 per id and RepositionThemeTransition slides hide/show/reorder. -->
+            <Border
+                x:Name="BarHost"
+                Padding="6"
+                CornerRadius="6"
+                VerticalAlignment="Center"
+                Background="{ThemeResource ControlFillColorTertiaryBrush}"
+                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <Border
-                    x:Name="ZoneLeftFrame"
-                    Grid.Column="0"
-                    Padding="4"
-                    CornerRadius="6"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Left"
-                    Background="{ThemeResource ControlFillColorTertiaryBrush}"
-                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                    BorderThickness="1">
                     <StackPanel
                         x:Name="ZoneLeft"
+                        Grid.Column="0"
                         Orientation="Horizontal"
                         Spacing="3"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Center">
                         <StackPanel.Transitions>
                             <TransitionCollection>
@@ -52,21 +50,12 @@
                             </TransitionCollection>
                         </StackPanel.Transitions>
                     </StackPanel>
-                </Border>
-                <Border
-                    x:Name="ZoneCenterFrame"
-                    Grid.Column="1"
-                    Padding="4"
-                    CornerRadius="6"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Background="{ThemeResource ControlFillColorTertiaryBrush}"
-                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                    BorderThickness="1">
                     <StackPanel
                         x:Name="ZoneCenter"
+                        Grid.Column="1"
                         Orientation="Horizontal"
                         Spacing="3"
+                        HorizontalAlignment="Center"
                         VerticalAlignment="Center">
                         <StackPanel.Transitions>
                             <TransitionCollection>
@@ -74,21 +63,12 @@
                             </TransitionCollection>
                         </StackPanel.Transitions>
                     </StackPanel>
-                </Border>
-                <Border
-                    x:Name="ZoneRightFrame"
-                    Grid.Column="2"
-                    Padding="4"
-                    CornerRadius="6"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Right"
-                    Background="{ThemeResource ControlFillColorTertiaryBrush}"
-                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                    BorderThickness="1">
                     <StackPanel
                         x:Name="ZoneRight"
+                        Grid.Column="2"
                         Orientation="Horizontal"
                         Spacing="3"
+                        HorizontalAlignment="Right"
                         VerticalAlignment="Center">
                         <StackPanel.Transitions>
                             <TransitionCollection>
@@ -96,8 +76,8 @@
                             </TransitionCollection>
                         </StackPanel.Transitions>
                     </StackPanel>
-                </Border>
-            </Grid>
+                </Grid>
+            </Border>
         </StackPanel>
 
         <!-- Floating drag ghost overlay (StackPanel ignores Canvas positions). -->
