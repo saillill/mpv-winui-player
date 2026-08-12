@@ -66,6 +66,7 @@ UNMAPPED_OK = {
     "WindowPiP", "WindowPiPSize", "EnableDebugLog", "TestMpvCommandLog", "TestOsdMessage",
     "TestSignal", "FileAssociationExts", "SettingsSearchHistory", "CheckForUpdates",
     "ControlBarCustomOrder", "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
+    "ControlBarZonesClassic", "ControlBarZonesModernX",
     "ControlBarOrderStyleMigrated", "WindowPiPRect", "WindowPiPOpacity",
     "LastVideoVolume", "LastAudioVolume", "AudioVolume", "PatchVersion",
     "EnableVideoPreview",

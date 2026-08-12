@@ -1812,5 +1812,19 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(HdrOverrideMode), string.Empty);
             set => _dataSetting.SetValue(nameof(HdrOverrideMode), value);
         }
+
+        /// <summary>Per-id control-bar zone overrides for the modernx layout ("id:0,id:2").</summary>
+        public string ControlBarZonesModernX
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarZonesModernX), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarZonesModernX), value);
+        }
+
+        /// <summary>Per-id control-bar zone overrides for the classic layout ("id:0,id:2").</summary>
+        public string ControlBarZonesClassic
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarZonesClassic), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarZonesClassic), value);
+        }
     }
 }
