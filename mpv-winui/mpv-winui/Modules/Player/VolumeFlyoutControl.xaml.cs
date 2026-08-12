@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
@@ -17,6 +18,10 @@ namespace mpv_winui.Modules.Player
             VolumeSlider.Value = player.Volume;
             VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
             UpdateVolumeIcon(player.IsMuted, player.Volume);
+            // Localized names for keyboard/screen-reader access (XAML defaults
+            // are English placeholders; unpackaged WinUI has no x:Uid).
+            AutomationProperties.SetName(MuteButton, mpv_winui.AppContext.AppLang.PiPMute);
+            AutomationProperties.SetName(VolumeSlider, mpv_winui.AppContext.AppLang.ControlBarIconVolume);
         }
 
         private void MuteButton_Click(object sender, RoutedEventArgs e)

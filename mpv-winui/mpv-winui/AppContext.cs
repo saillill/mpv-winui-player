@@ -1,4 +1,5 @@
 using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
 using mpv_winui.Modules.Settings;
 using mpv_winrt;
@@ -6,7 +7,6 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace mpv_winui
@@ -23,6 +23,13 @@ namespace mpv_winui
 
         /// <summary>由播放页在 mpv 初始化后挂接，用于把设置即时下发到 mpv。</summary>
         public static Action<string>? RunMpvCommand { get; set; }
+
+        /// <summary>
+        /// True while a UI slider (progress/volume) owns keyboard focus. The
+        /// global keyboard hook must then NOT forward arrow keys to mpv, or a
+        /// single keypress would seek twice (WinUI slider + mpv binding).
+        /// </summary>
+        public static volatile bool UiFocusInSlider;
 
         /// <summary>由播放页挂接，用于设置页动态枚举 mpv 音频输出设备。</summary>
         public static Func<IReadOnlyList<MpvAudioDevice>>? GetAudioDevices { get; set; }
@@ -43,13 +50,13 @@ namespace mpv_winui
         /// <summary>Writes settings-managed plugin options into script-opts/*.conf (next mpv start).</summary>
         public static void WritePluginConfigs()
         {
-            _ = PluginConfigWriter.WriteAllAsync();
+            _ = ConfigWriteQueue.Enqueue(PluginConfigWriter.WriteAllAsync);
         }
 
         /// <summary>Writes config-only options (ytdl_hook script options) into the deployed mpv.conf.</summary>
         public static void WriteManagedMpvConfig()
         {
-            _ = ManagedMpvConfig.WriteAsync();
+            _ = ConfigWriteQueue.Enqueue(ManagedMpvConfig.WriteAsync);
         }
 
         public static void NotifySettingChanged(string key, object? value)
@@ -60,32 +67,30 @@ namespace mpv_winui
         /// <summary>枚举程序目录 Languages/*.json 作为可选语言；目录缺失时回退内置列表。</summary>
         public static string[] AvailableLanguages()
         {
-            var dir = Path.Combine(System.AppContext.BaseDirectory, "Languages");
-            if (Directory.Exists(dir))
-            {
-                var names = Directory.GetFiles(dir, "*.json")
-                    .Select(Path.GetFileNameWithoutExtension)
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-                    .ToArray();
-                if (names.Length > 0)
-                {
-                    return names!;
-                }
-            }
-
-            return ["en-US", "zh-CN"];
+            return LanguageManager.GetAvailableLanguages();
         }
 
         public static void Init()
         {
             LoadLanguage();
             SettingChanged += OnSettingChanged;
-            _task = Task.WhenAll([
-                Task.Run(LoggerHelper.SetupLogger),
-                Task.Run(PluginConfigWriter.WriteAllAsync),
-                Task.Run(ManagedMpvConfig.WriteAsync)
-            ]);
+
+            // First-run config deployment must finish BEFORE the config writers
+            // below start: they merge into mpv.conf (ManagedMpvConfig) and the
+            // script-opts files, so the bundled layer has to be on disk first.
+            // Synchronous and a fast no-op once mpv.conf exists.
+            var mpvDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "mpv-winui", "mpv");
+            ConfigDeployer.EnsureDeployed(mpvDir);
+
+            var loggerTask = Task.Run(LoggerHelper.SetupLogger);
+            // Enqueue the config writes on the same serialized queue so the
+            // startup path can await them before mpv reads the config dir.
+            _task = Task.WhenAll(
+                loggerTask,
+                ConfigWriteQueue.Enqueue(PluginConfigWriter.WriteAllAsync),
+                ConfigWriteQueue.Enqueue(ManagedMpvConfig.WriteAsync));
         }
 
         private static void OnSettingChanged(string key, object? value)
@@ -100,7 +105,7 @@ namespace mpv_winui
         {
             var lang = string.IsNullOrWhiteSpace(code) ? "en-US" : code;
             AppSetting.CurrentLanguage = lang;
-            AppLang.LoadFromJson(LanguageFilePath(lang));
+            LanguageManager.Load(AppLang, lang);
             SendMpvCommand($"set user-data/mpvw/language {lang}");
             LanguageChanged?.Invoke();
         }
@@ -113,38 +118,18 @@ namespace mpv_winui
                 lang = "en-US";
             }
 
-            AppLang.LoadFromJson(LanguageFilePath(lang));
-        }
-
-        private static string LanguageFilePath(string lang)
-        {
-            var candidates = new[]
-            {
-                Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "mpv-winui", "languages", lang + ".json"),
-                Path.Combine(System.AppContext.BaseDirectory, "Languages", lang + ".json"),
-            };
-
-            foreach (var path in candidates)
-            {
-                if (File.Exists(path))
-                {
-                    return path;
-                }
-            }
-
-            return candidates[0];
+            LanguageManager.Load(AppLang, lang);
         }
 
         public static async Task WaitAll()
         {
-            if (_task != null)
+            // Capture the reference locally: the field may be read from
+            // several threads, and awaiting a completed task again is safe,
+            // so it is never nulled out here.
+            if (_task is { } task)
             {
-                await _task;
+                await task;
             }
-
-            _task = null;
         }
 
     }

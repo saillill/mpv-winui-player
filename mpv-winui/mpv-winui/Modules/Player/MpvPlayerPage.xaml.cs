@@ -70,20 +70,42 @@ namespace mpv_winui.Modules.Player
                 AppContext.GetAudioDevices = () => _mediaPlayer.AudioDevices();
                 var lang = AppContext.AppSetting.CurrentLanguage;
                 if (string.IsNullOrWhiteSpace(lang)) lang = "en-US";
-                AppContext.SendMpvCommand($"set user-data/mpvw/language {lang}");
+                AppContext.SendMpvCommand($"no-osd set user-data/mpvw/language {lang}");
                 var mpvCli = Path.Combine(System.AppContext.BaseDirectory, "mpv.exe");
                 if (File.Exists(mpvCli))
                 {
-                    AppContext.SendMpvCommand($"set user-data/mpvw/mpv-exe \"{mpvCli}\"");
+                    AppContext.SendMpvCommand($"no-osd set user-data/mpvw/mpv-exe \"{mpvCli}\"");
                 }
                 MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
+
+                // Playback speed is a persistent setting but is intentionally
+                // not part of ApplyAll (it would clobber the live session on a
+                // settings reset); apply it here once at startup so the saved
+                // value takes effect on launch.
+                if (AppContext.AppSetting.Speed is not 1.0)
+                {
+                    AppContext.SendMpvCommand($"no-osd set speed {AppContext.AppSetting.Speed}");
+                }
 
                 SetupKeyboardInput();
                 AppContext.SettingChanged += AppContext_SettingChanged;
                 AppContext.LanguageChanged += AppContext_LanguageChanged;
+                BuildMainMenuBar();
                 SetupPreview();
 
                 OpenPendingPath().FireAndForget(OnException);
+
+                // Apply the persisted PiP setting only after mpv and the main
+                // swap chain are ready. Running this from the window's
+                // Body.Loaded raced CreateAsync: AttachSwapChain could run
+                // before mpv initialization (native crash), or SetupPlayerView
+                // would later move the swap chain back to the hidden main
+                // window, leaving the PiP window without video.
+                ApplyPiP();
+
+                // Silent background update check (GitHub Releases); never
+                // blocks startup and never surfaces network errors.
+                _ = UpdateChecker.CheckForUpdatesAsync(XamlRoot);
             }
             else
             {
@@ -139,6 +161,7 @@ namespace mpv_winui.Modules.Player
             {
                 ApplyLocalizedStrings();
                 PlayerControl.ApplyLocalizedStrings();
+                BuildMainMenuBar();
             });
         }
 
@@ -151,6 +174,19 @@ namespace mpv_winui.Modules.Player
             {
                 _logger.Debug("mpv config folder, path={}", configFolder.Path);
             }
+
+            // First run: copy the bundled config layer into the mpv config dir
+            // so the app works without a manual deploy-config.ps1 step. No-op
+            // once mpv.conf exists there (never overwrites user changes).
+            // This must run BEFORE WaitAll: the queued config writers (plugin
+            // script-opts, the managed mpv.conf block) expect mpv.conf to
+            // already exist and merge into it.
+            await ConfigDeployer.EnsureDeployedAsync(configFolder.Path);
+
+            // Ensure settings-managed config files (script-opts/*.conf, the
+            // managed mpv.conf block) are written before mpv reads the config
+            // dir at Initialize; AppContext.Init enqueues these asynchronously.
+            await AppContext.WaitAll();
 
             _mediaPlayer.SwapChainChanged += MpvPlayer_SwapChainChanged;
             await _mediaPlayer.InitializeAsync(configFolder.Path, AppContext.AppSetting.LastVideoVolume, _lastColorKind, (int)_lastRefreshRate);

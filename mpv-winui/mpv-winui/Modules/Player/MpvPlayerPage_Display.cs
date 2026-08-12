@@ -1,5 +1,7 @@
 using Microsoft.Graphics.Display;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Windowing;
 using mpv_winui.Modules.Common.Utils;
 using System;
@@ -117,17 +119,62 @@ namespace mpv_winui.Modules.Player
             return mpv_winrt.DisplayColorKind.SDR;
         }
 
+        /// <summary>Opens a dialog with the current display/HDR detection results.</summary>
+        public async System.Threading.Tasks.Task ShowDisplayInfoDialogAsync()
+        {
+            try
+            {
+                var kind = _lastColorKind.ToString();
+                var colorInfo = _displayInfo?.GetAdvancedColorInfo();
+                var advanced = colorInfo?.CurrentAdvancedColorKind.ToString() ?? "n/a";
+                var sdrWhite = colorInfo?.SdrWhiteLevelInNits.ToString("0.0") ?? "n/a";
+                var maxLuma = colorInfo?.MaxLuminanceInNits.ToString("0.0") ?? "n/a";
+                var minLuma = colorInfo?.MinLuminanceInNits.ToString("0.0") ?? "n/a";
+                var rate = _lastRefreshRate;
+                var lines = new[]
+                {
+                    $"Detected kind     : {kind}",
+                    $"Advanced color   : {advanced}",
+                    $"SDR white level  : {sdrWhite} nits",
+                    $"Max luminance    : {maxLuma} nits",
+                    $"Min luminance    : {minLuma} nits",
+                    $"Refresh rate     : {rate} Hz",
+                    "",
+                    "kind drives profiles.conf [mpvw-sdr|mpvw-wcg|mpvw-hdr].",
+                };
+                var dialog = new ContentDialog
+                {
+                    Title = "Display info",
+                    Content = new TextBlock { Text = string.Join("\n", lines), TextWrapping = TextWrapping.Wrap },
+                    CloseButtonText = "OK",
+                    XamlRoot = XamlRoot,
+                };
+                await dialog.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                OnException(ex);
+            }
+        }
+
         // 定时兜底：WinRT 事件在跨显示器/系统 HDR 切换时可能不触发，
         // 定期重读一次，确保 color-kind 最终与当前显示器一致。
         private void OnDisplayInfoTimerTick(DispatcherQueueTimer sender, object args)
         {
-            CheckAndUpdateDisplayInfo(0);
-
             if (_displayInfo is null)
             {
                 return;
             }
 
+            var monitor = Win32WindowHelper.GetMonitor(App.Window!);
+            if (_lastMonitor != monitor)
+            {
+                // 换显示器：重建 DisplayInformation 并完整读取一次
+                CheckAndUpdateDisplayInfo(2);
+                return;
+            }
+
+            // 同显示器：轻量轮询一次即可（不再重复调用 CheckAndUpdateDisplayInfo）
             var newKind = ReadColorKind(false);
             if (newKind != _lastColorKind)
             {
@@ -135,8 +182,6 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer?.UpdateDisplayColorInfo(newKind);
             }
 
-            // The 3s timer is a safety net for display events that WinRT may
-            // miss (cross-monitor / HDR switches); also re-check refresh rate.
             var rate = ReadRefreshRate();
             if (rate != _lastRefreshRate)
             {

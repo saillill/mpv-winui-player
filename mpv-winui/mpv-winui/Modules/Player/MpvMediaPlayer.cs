@@ -115,6 +115,18 @@ namespace mpv_winui.Modules.Player
             get; set;
         }
 
+        /// <summary>mpv's own log messages (shader errors, config warnings, ...).</summary>
+        public Action<MpvMediaPlayer, MpvLogEventArgs>? LogMessage
+        {
+            get; set;
+        }
+
+        /// <summary>Generic observed mpv properties (see <see cref="ObserveProperty"/>).</summary>
+        public Action<MpvMediaPlayer, string, string>? PropertyChanged
+        {
+            get; set;
+        }
+
         public Action<MpvMediaPlayer, object?>? SeekingStarted
         {
             get; set;
@@ -133,6 +145,30 @@ namespace mpv_winui.Modules.Player
 
         public bool Playing => !_mpvPlayer.IsPaused();
         public double Duration => _mpvPlayer.Duration();
+
+        /// <summary>mpv ab-loop-a in seconds, or &lt;= 0 when not set.</summary>
+        public double AbLoopA => _mpvPlayer.AbLoopA();
+
+        /// <summary>mpv ab-loop-b in seconds, or &lt;= 0 when not set.</summary>
+        public double AbLoopB => _mpvPlayer.AbLoopB();
+
+        /// <summary>Cycles the A-B loop: set A, then B, then clear.</summary>
+        public void ToggleAbLoop()
+        {
+            if (AbLoopA <= 0)
+            {
+                _mpvPlayer.Command(["osd-auto", "ab-loop-a"]);
+            }
+            else if (AbLoopB <= 0)
+            {
+                _mpvPlayer.Command(["osd-auto", "ab-loop-b"]);
+            }
+            else
+            {
+                _mpvPlayer.Command(["osd-auto", "ab-loop-a", "no"]);
+                _mpvPlayer.Command(["osd-auto", "ab-loop-b", "no"]);
+            }
+        }
 
         public bool IsMuted
         {
@@ -278,6 +314,8 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.PlaylistChanged += MpvPlayer_PlaylistChanged;
             _mpvPlayer.PreviewChanged += MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged += MpvPlayer_WindowChanged;
+            _mpvPlayer.LogMessage += MpvPlayer_LogMessage;
+            _mpvPlayer.PropertyChanged += MpvPlayer_PropertyChanged;
         }
 
         public void StopListen()
@@ -295,6 +333,8 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.PlaylistChanged -= MpvPlayer_PlaylistChanged;
             _mpvPlayer.PreviewChanged -= MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged -= MpvPlayer_WindowChanged;
+            _mpvPlayer.LogMessage -= MpvPlayer_LogMessage;
+            _mpvPlayer.PropertyChanged -= MpvPlayer_PropertyChanged;
         }
 
         private void MpvPlayer_VoConfigured()
@@ -307,8 +347,52 @@ namespace mpv_winui.Modules.Player
             WindowChanged?.Invoke(this, args);
         }
 
+        private void MpvPlayer_LogMessage(MpvLogEventArgs args)
+        {
+            // Map mpv's log levels onto NLog. Runs on the native event thread;
+            // only string building happens here, NLog is thread-safe.
+            switch (args.Level)
+            {
+                case "error":
+                case "fatal":
+                    AppContext.AppLogger.Error($"[mpv/{args.Prefix}] {args.Text}");
+                    break;
+                case "warn":
+                    AppContext.AppLogger.Warn($"[mpv/{args.Prefix}] {args.Text}");
+                    break;
+                default:
+                    AppContext.AppLogger.Info($"[mpv/{args.Prefix}] {args.Text}");
+                    break;
+            }
+            LogMessage?.Invoke(this, args);
+        }
+
+        /// <summary>Adjusts mpv's log verbosity ("fatal"…"debug"/"no").</summary>
+        public void SetLogLevel(string level)
+        {
+            _mpvPlayer?.SetLogLevel(level);
+        }
+
+        private void MpvPlayer_PropertyChanged(string name, string value)
+        {
+            PropertyChanged?.Invoke(this, name, value);
+        }
+
+        /// <summary>Observes an arbitrary mpv property; changes raise <see cref="PropertyChanged"/>.</summary>
+        public void ObserveProperty(string name)
+        {
+            _mpvPlayer?.ObserveProperty(name);
+        }
+
+        public void UnobserveProperty(string name)
+        {
+            _mpvPlayer?.UnobserveProperty(name);
+        }
+
         private void MpvPlayer_MediaInfoChanged(MediaInfoChangedEventArgs args)
         {
+            VideoWidth = args.VideoWidth;
+            VideoHeight = args.VideoHeight;
             MediaInfoChanged?.Invoke(this, args);
         }
 
@@ -381,9 +465,26 @@ namespace mpv_winui.Modules.Player
             }
         }
 
+        /// <summary>Command convenience overload; allocates no intermediate list.</summary>
+        public void Command(params string[] args)
+        {
+            if (args?.Length > 0)
+            {
+                _mpvPlayer.Command(args);
+            }
+        }
+
         public async ValueTask RunCommandAsync(IList<string> args)
         {
             if (args?.Count > 0)
+            {
+                await Task.Run(() => _mpvPlayer.Command(args));
+            }
+        }
+
+        public async ValueTask RunCommandAsync(params string[] args)
+        {
+            if (args?.Length > 0)
             {
                 await Task.Run(() => _mpvPlayer.Command(args));
             }
@@ -402,6 +503,10 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer?.UpdateSize(width, height);
         }
 
+        /// <summary>Current video display size in pixels (0 when no video).</summary>
+        public float VideoWidth { get; private set; }
+        public float VideoHeight { get; private set; }
+
         public IList<IPlayerTrackItem> SubtitleTracks()
         {
             var tracks = _mpvPlayer?.GetSubtitleTracks();
@@ -414,7 +519,9 @@ namespace mpv_winui.Modules.Player
             for (var i = 0; i < tracks.Count; i++)
             {
                 var track = tracks[i];
-                result.Add(new PlayerTrackItem(i + 1, $"{i + 1} {track.Title} {track.Lang}", track.Selected));
+                // Id is mpv's global track id (what sid/aid/vid accept); Index is
+                // only the per-type position used for display numbering.
+                result.Add(new PlayerTrackItem(track.Id, $"{track.Index} {track.Title} {track.Lang}", track.Selected));
             }
 
             return result;
@@ -432,7 +539,7 @@ namespace mpv_winui.Modules.Player
             for (var i = 0; i < tracks.Count; i++)
             {
                 var track = tracks[i];
-                result.Add(new PlayerTrackItem(i + 1, $"{i + 1} {track.Title} {track.Codec}", track.Selected));
+                result.Add(new PlayerTrackItem(track.Id, $"{track.Index} {track.Title} {track.Codec}", track.Selected));
             }
 
             return result;
@@ -450,7 +557,7 @@ namespace mpv_winui.Modules.Player
             for (var i = 0; i < tracks.Count; i++)
             {
                 var track = tracks[i];
-                result.Add(new PlayerTrackItem(i + 1, $"{i + 1} {track.Title} {track.Codec}", track.Selected));
+                result.Add(new PlayerTrackItem(track.Id, $"{track.Index} {track.Title} {track.Codec}", track.Selected));
             }
 
             return result;
@@ -469,8 +576,7 @@ namespace mpv_winui.Modules.Player
             for (var i = 0; i < tracks.Count; i++)
             {
                 var track = tracks[i];
-                var id = i + 1;
-                result.Add(new PlayerTrackItem(id, $"{id} {track.Title} {track.Lang}", id == current));
+                result.Add(new PlayerTrackItem(track.Id, $"{track.Index} {track.Title} {track.Lang}", track.Id == current));
             }
 
             return result;

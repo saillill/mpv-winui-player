@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Hosting;
@@ -10,6 +11,7 @@ using mpv_winui.Modules.Common.Utils;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 using Windows.Foundation;
 using Windows.UI;
 
@@ -52,6 +54,7 @@ namespace mpv_winui.Modules.Player
         private bool _isBuffering = false;
         private bool _isInScrubMode = false;
         private bool _isDragging = false;
+        private long _suppressBufferingUntil;
         private bool _sourceLoaded = false;
 
         private MpvMediaPlayer? _mediaPlayer;
@@ -101,8 +104,24 @@ namespace mpv_winui.Modules.Player
         public void ApplyLocalizedStrings()
         {
             ToolTipService.SetToolTip(PiPButton, AppContext.AppLang.SettingsPiP);
-            ToolTipService.SetToolTip(PiPPlayPauseButton, AppContext.AppLang.Play);
-            ToolTipService.SetToolTip(PiPCloseButton, AppContext.AppLang.Close);
+
+            // Keyboard/screen-reader names (XAML holds English placeholders).
+            AutomationProperties.SetName(ProgressSlider, AppContext.AppLang.ControlBarIconPlayback);
+            AutomationProperties.SetName(PlayPauseButton, AppContext.AppLang.Play);
+            AutomationProperties.SetName(PreviousTrackButton, AppContext.AppLang.MorePreviousTrack);
+            AutomationProperties.SetName(NextTrackButton, AppContext.AppLang.MoreNextTrack);
+            AutomationProperties.SetName(SkipBackwardButton, AppContext.AppLang.MoreSkipBackward);
+            AutomationProperties.SetName(SkipForwardButton, AppContext.AppLang.MoreSkipForward);
+            AutomationProperties.SetName(ShuffleButton, AppContext.AppLang.MoreShuffle);
+            AutomationProperties.SetName(RepeatButton, AppContext.AppLang.MoreRepeat);
+            AutomationProperties.SetName(VolumeMuteButton, AppContext.AppLang.PiPMute);
+            AutomationProperties.SetName(VolumeSlider, AppContext.AppLang.ControlBarIconVolume);
+            AutomationProperties.SetName(PlaybackRateButton, AppContext.AppLang.MorePlaybackRate);
+            AutomationProperties.SetName(TrackSelectionButton, AppContext.AppLang.ControlBarIconTracks);
+            AutomationProperties.SetName(ZoomButton, AppContext.AppLang.MoreZoom);
+            AutomationProperties.SetName(PiPButton, AppContext.AppLang.SettingsPiP);
+            AutomationProperties.SetName(FullWindowButton, AppContext.AppLang.MoreFullWindow);
+            AutomationProperties.SetName(FullScreenButton, AppContext.AppLang.MoreFullScreen);
         }
 
         private void OnAppSettingChanged(string key, object? value)
@@ -137,23 +156,13 @@ namespace mpv_winui.Modules.Player
             PiPSymbol.Glyph = AppContext.AppSetting.WindowPiP ? "\uE981" : "\uE97E";
         }
 
-        private void OnPiPCloseClick(object sender, RoutedEventArgs e)
-        {
-            AppContext.AppSetting.WindowPiP = false;
-            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiP), false);
-            UpdatePiPButton();
-            UpdatePiPBar();
-        }
-
         /// <summary>
         /// Hides the main control bar while the dedicated PiP window is shown.
-        /// The in-window PiP bar is kept for compatibility but never displayed;
-        /// the PiP window has its own compact controls.
+        /// The PiP window has its own compact controls.
         /// </summary>
         public void UpdatePiPBar()
         {
             var pip = AppContext.AppSetting.WindowPiP;
-            PiPBar.Visibility = Visibility.Collapsed;
             if (_isPiPHost)
             {
                 // The PiP window hosts this control bar, so it stays visible
@@ -388,6 +397,14 @@ namespace mpv_winui.Modules.Player
             }
         }
 
+        // While a slider owns focus its arrow keys are the slider's own input;
+        // the keyboard hook (MpvPlayerPage_Input) checks UiFocusInSlider to
+        // avoid forwarding them to mpv as well (double seek).
+        private void ProgressSlider_GotFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = true;
+        private void ProgressSlider_LostFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = false;
+        private void VolumeSlider_GotFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = true;
+        private void VolumeSlider_LostFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = false;
+
         private void UpdateTimeTexts(double position, double duration)
         {
             TimeElapsedElement.Text = FormatTime(position);
@@ -417,13 +434,19 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private void ApplyControlBarOrder(string layout)
         {
+            // The settings "custom order" canvas reorders the movable (canvas)
+            // buttons within each command bar; the transport group stays fixed.
+            var custom = ParseCustomOrder();
+
             ICommandBarElement[] left, middle, right;
             if (layout == "modernx")
             {
                 left =
                 [
-                    TrackSelectionButton, ShuffleButton, RepeatButton, PlaybackRateButton,
-                    VolumeMuteButton, VolumeSliderContainer,
+                    .. ReorderMovable(
+                        [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("tracks", TrackSelectionButton), ("random", ShuffleButton), ("speed", PlaybackRateButton)],
+                        custom),
+                    EqualizerButton, DelayButton,
                 ];
                 middle =
                 [
@@ -433,7 +456,9 @@ namespace mpv_winui.Modules.Player
                 ];
                 right =
                 [
-                    ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
+                    .. ReorderMovable(
+                        [("aspect", ZoomButton), ("pip", PiPButton), ("fullwindow", FullWindowButton), ("fullscreen", FullScreenButton)],
+                        custom),
                 ];
             }
             else
@@ -441,18 +466,68 @@ namespace mpv_winui.Modules.Player
                 left =
                 [
                     PlayPauseButton, PreviousTrackButton, NextTrackButton, SkipBackwardButton,
-                    SkipForwardButton, ShuffleButton, RepeatButton,
+                    SkipForwardButton, RepeatButton,
+                    .. ReorderMovable(
+                        [("random", ShuffleButton)],
+                        custom),
                 ];
                 middle = [];
                 right =
                 [
-                    VolumeMuteButton, VolumeSliderContainer, PlaybackRateButton,
-                    TrackSelectionButton, ZoomButton, PiPButton,
-                    FullWindowButton, FullScreenButton,
+                    .. ReorderMovable(
+                        [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("speed", PlaybackRateButton),
+                         ("tracks", TrackSelectionButton), ("aspect", ZoomButton), ("pip", PiPButton),
+                         ("fullwindow", FullWindowButton), ("fullscreen", FullScreenButton)],
+                        custom),
+                    EqualizerButton, DelayButton,
                 ];
             }
 
             ApplyBarOrders(LeftCommandBar, MiddleCommandBar, RightCommandBar, left, middle, right);
+        }
+
+        /// <summary>Parses ControlBarCustomOrder into the allowed canvas ids.</summary>
+        private static List<string> ParseCustomOrder()
+        {
+            var allowed = new[] { "volume", "tracks", "random", "speed", "aspect", "fullwindow", "fullscreen", "pip" };
+            return AppContext.AppSetting.ControlBarCustomOrder
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(x => allowed.Contains(x, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        /// <summary>
+        /// Reorders a command bar's canvas buttons to the custom order. Only
+        /// ids present in this partition are affected; the rest keep their
+        /// default relative order. "volume" maps to two controls (mute + slider).
+        /// </summary>
+        private static ICommandBarElement[] ReorderMovable((string Id, ICommandBarElement Element)[] defaults, IReadOnlyList<string> custom)
+        {
+            var result = new List<ICommandBarElement>(defaults.Length);
+            var remaining = new HashSet<string>(defaults.Select(d => d.Id), StringComparer.OrdinalIgnoreCase);
+            foreach (var id in custom)
+            {
+                if (!remaining.Remove(id))
+                {
+                    continue;
+                }
+                foreach (var (did, el) in defaults)
+                {
+                    if (string.Equals(did, id, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Add(el);
+                    }
+                }
+            }
+            // ids not mentioned in the custom order keep their default position.
+            foreach (var (id, el) in defaults)
+            {
+                if (remaining.Contains(id))
+                {
+                    result.Add(el);
+                }
+            }
+            return result.ToArray();
         }
 
         private static void ApplyBarOrders(
@@ -468,6 +543,19 @@ namespace mpv_winui.Modules.Player
             // in the bars, so after the PiP compact pass stripped a subset of
             // buttons, later applies silently dropped the missing buttons and
             // the control bar could end up empty (progress bar + times only).
+            //
+            // When the desired set is unchanged (same button objects, same
+            // order), skip the rebuild entirely: PrimaryCommands clears + adds
+            // cause visual churn on every settings/language change even though
+            // nothing moved. Visibility is a separate channel, so a pure
+            // show/hide change still works without rebuilding.
+            if (SameElements(left.PrimaryCommands, leftDesired)
+                && SameElements(middle.PrimaryCommands, middleDesired)
+                && SameElements(right.PrimaryCommands, rightDesired))
+            {
+                return;
+            }
+
             left.PrimaryCommands.Clear();
             middle.PrimaryCommands.Clear();
             right.PrimaryCommands.Clear();
@@ -484,6 +572,22 @@ namespace mpv_winui.Modules.Player
             {
                 right.PrimaryCommands.Add(element);
             }
+        }
+
+        private static bool SameElements(IList<ICommandBarElement> current, ICommandBarElement[] desired)
+        {
+            if (current.Count != desired.Length)
+            {
+                return false;
+            }
+            for (int i = 0; i < desired.Length; i++)
+            {
+                if (!ReferenceEquals(current[i], desired[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private static string NormalizeControlBarLayout(string? value)
@@ -534,6 +638,7 @@ namespace mpv_winui.Modules.Player
                         // would otherwise keep the placeholder "00.00/00.00".
                         UpdateProgressSliderValue(value.Position, value.Duration);
                         UpdateTimeTexts(value.Position, value.Duration);
+                        UpdateChapterMarks();
                     }
                 }
             }
@@ -601,10 +706,17 @@ namespace mpv_winui.Modules.Player
 
         private void PlayerControl_Loaded(object sender, RoutedEventArgs e)
         {
+            // Re-hook media events on every load: Unloaded removes them, so a
+            // reload cycle (fullscreen presenter switch, window hide/restore,
+            // navigation) would otherwise leave the bar dead (volume/repeat/
+            // shuffle/duration/seek updates stop). Remove-then-add keeps the
+            // subscription exactly once even when the MediaPlayer setter has
+            // already subscribed.
+            RemoveEventListeners();
+            AddEventListeners();
+
             RootGrid.PointerMoved += RootGrid_PointerMoved;
             PiPButton.Click += OnPiPClick;
-            PiPPlayPauseButton.Click += OnPlayPauseClick;
-            PiPCloseButton.Click += OnPiPCloseClick;
             AppContext.SettingChanged += OnAppSettingChanged;
             PlayPauseButton.Click += OnPlayPauseClick;
             SkipBackwardButton.Click += SkipBackwardButton_Click;
@@ -633,6 +745,12 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.ValueChanged += OnPositionSliderValueChanged;
             ProgressSlider.PointerPressed += ProgressSlider_PointerPressed;
             ProgressSlider.PointerReleased += ProgressSlider_PointerReleased;
+            ProgressSlider.Tapped += ProgressSlider_Tapped;
+            DelayFlyout.Opened += DelayFlyout_Opened;
+            ProgressSlider.GotFocus += ProgressSlider_GotFocus;
+            ProgressSlider.LostFocus += ProgressSlider_LostFocus;
+            VolumeSlider.GotFocus += VolumeSlider_GotFocus;
+            VolumeSlider.LostFocus += VolumeSlider_LostFocus;
             if (AppContext.AppSetting.EnableVideoPreview)
             {
                 ProgressSlider.PointerEntered += ProgressSlider_PointerEntered;
@@ -667,8 +785,6 @@ namespace mpv_winui.Modules.Player
         private void PlayerControl_Unloaded(object sender, RoutedEventArgs e)
         {
             PiPButton.Click -= OnPiPClick;
-            PiPPlayPauseButton.Click -= OnPlayPauseClick;
-            PiPCloseButton.Click -= OnPiPCloseClick;
             RootGrid.PointerMoved -= RootGrid_PointerMoved;
             AppContext.SettingChanged -= OnAppSettingChanged;
             PlayPauseButton.Click -= OnPlayPauseClick;
@@ -690,6 +806,12 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.ValueChanged -= OnPositionSliderValueChanged;
             ProgressSlider.PointerPressed -= ProgressSlider_PointerPressed;
             ProgressSlider.PointerReleased -= ProgressSlider_PointerReleased;
+            ProgressSlider.Tapped -= ProgressSlider_Tapped;
+            DelayFlyout.Opened -= DelayFlyout_Opened;
+            ProgressSlider.GotFocus -= ProgressSlider_GotFocus;
+            ProgressSlider.LostFocus -= ProgressSlider_LostFocus;
+            VolumeSlider.GotFocus -= VolumeSlider_GotFocus;
+            VolumeSlider.LostFocus -= VolumeSlider_LostFocus;
             ProgressSlider.PointerEntered -= ProgressSlider_PointerEntered;
             ProgressSlider.PointerMoved -= ProgressSlider_PointerMoved;
             ProgressSlider.PointerExited -= ProgressSlider_PointerExited;
@@ -703,6 +825,8 @@ namespace mpv_winui.Modules.Player
             _panelAnimationTimer.Tick -= PanelAnimationTick;
             _overlayIdleTimer.Stop();
             _overlayIdleTimer.Tick -= OverlayIdleTimer_Tick;
+            _hideDelayTimer.Stop();
+            _hideDelayTimer.Tick -= HideDelayTimer_Tick;
 
             RemoveEventListeners();
         }
@@ -854,9 +978,18 @@ namespace mpv_winui.Modules.Player
 
         private void PlaybackRateFlyout_MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
-            if (_mediaPlayer != null && sender is MenuFlyoutItem item && double.TryParse(item.Tag.ToString(), out double speed))
+            if (_mediaPlayer == null || sender is not MenuFlyoutItem item)
             {
-                _mediaPlayer?.PlaybackRate = speed;
+                return;
+            }
+            if (item.Tag is string tag && tag == "custom")
+            {
+                CustomRateItem_Click(sender, e);
+                return;
+            }
+            if (double.TryParse(item.Tag?.ToString(), out double speed))
+            {
+                _mediaPlayer.PlaybackRate = speed;
             }
         }
 
@@ -958,6 +1091,12 @@ namespace mpv_winui.Modules.Player
 
         private async void PlaybackSession_BufferingStarted(MpvMediaPlayer sender, object? args)
         {
+            // Local files briefly enter mpv's buffering state when seeking;
+            // do not flash the loading strip for user-initiated scrubs.
+            if (_isDragging || Environment.TickCount64 < _suppressBufferingUntil)
+            {
+                return;
+            }
             _isBuffering = true;
             DispatcherQueue.RunAsync(() => { UpdatePlaybackStatusUI(true); });
         }
@@ -1151,6 +1290,176 @@ namespace mpv_winui.Modules.Player
             }
 
             _isInScrubMode = false;
+        }
+
+        private void AbLoopButton_Click(object sender, RoutedEventArgs e)
+        {
+            MediaPlayer?.ToggleAbLoop();
+            UpdateAbLoopMarks();
+        }
+
+        // ===== Equalizer =====
+        private static readonly string[] EqualizerBands =
+        [
+            "31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k",
+        ];
+
+        private readonly List<double> _eqGains = new(10) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+        private void EqualizerFlyout_Opened(object sender, object e)
+        {
+            BuildEqualizerBands();
+        }
+
+        private void BuildEqualizerBands()
+        {
+            EqualizerBandsPanel.Items.Clear();
+            for (int i = 0; i < EqualizerBands.Length; i++)
+            {
+                var band = EqualizerBands[i];
+                var slider = new Slider
+                {
+                    Minimum = -12,
+                    Maximum = 12,
+                    Value = _eqGains[i],
+                    Width = 160,
+                    StepFrequency = 0.5,
+                };
+                int index = i;
+                slider.ValueChanged += (_, _) =>
+                {
+                    _eqGains[index] = slider.Value;
+                    ApplyEqualizer();
+                };
+                var row = new Grid { ColumnSpacing = 10 };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                var label = new TextBlock { Text = band, VerticalAlignment = VerticalAlignment.Center };
+                Grid.SetColumn(slider, 1);
+                row.Children.Add(label);
+                row.Children.Add(slider);
+                EqualizerBandsPanel.Items.Add(row);
+            }
+        }
+
+        private void ApplyEqualizer()
+        {
+            if (MediaPlayer is null)
+            {
+                return;
+            }
+            // superequalizer gains order: 10 bands (31Hz..16kHz), where the
+            // first value is the "bass" band and last the "treble".
+            var gains = string.Join(":", _eqGains.Select(g => g.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)));
+            MediaPlayer.Command(["set", "af", $"lavfi=[superequalizer@eq:{gains}]"]);
+        }
+
+        private void EqualizerReset_Click(object sender, RoutedEventArgs e)
+        {
+            for (int i = 0; i < _eqGains.Count; i++)
+            {
+                _eqGains[i] = 0;
+            }
+            BuildEqualizerBands();
+            MediaPlayer?.Command(["set", "af", ""]);
+        }
+
+        private void EqualizerOff_Click(object sender, RoutedEventArgs e)
+        {
+            MediaPlayer?.Command(["set", "af", ""]);
+        }
+
+
+        // ===== Audio / subtitle delay =====
+        private bool _delaySliderUpdating;
+
+        private void DelayFlyout_Opened(object sender, object e)
+        {
+            _delaySliderUpdating = true;
+            AudioDelaySlider.Value = AppContext.AppSetting.AudioDelay;
+            SubDelaySlider.Value = AppContext.AppSetting.SubDelay;
+            _delaySliderUpdating = false;
+        }
+
+        private void AudioDelaySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (_delaySliderUpdating)
+            {
+                return;
+            }
+            var value = Math.Round(e.NewValue, 1);
+            AppContext.AppSetting.AudioDelay = value;
+            AppContext.SendMpvCommand($"no-osd set audio-delay {value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+
+        private void SubDelaySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (_delaySliderUpdating)
+            {
+                return;
+            }
+            var value = Math.Round(e.NewValue, 1);
+            AppContext.AppSetting.SubDelay = value;
+            AppContext.SendMpvCommand($"no-osd set sub-delay {value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+
+        private void DelayReset_Click(object sender, RoutedEventArgs e)
+        {
+            AudioDelaySlider.Value = 0;
+            SubDelaySlider.Value = 0;
+        }
+
+        // ===== Custom playback rate =====
+        private async void CustomRateItem_Click(object sender, RoutedEventArgs e)
+        {
+            var box = new TextBox { PlaceholderText = "e.g. 1.3 or 16" };
+            var dialog = new ContentDialog
+            {
+                Title = AppContext.AppLang.CustomRate,
+                Content = box,
+                PrimaryButtonText = "OK",
+                CloseButtonText = AppContext.AppLang.Cancel,
+                XamlRoot = XamlRoot,
+            };
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary
+                && double.TryParse(box.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var rate)
+                && rate > 0 && rate <= 100)
+            {
+                MediaPlayer?.Command(["set", "speed", rate.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)]);
+            }
+        }
+
+        /// <summary>Positions the A/B markers on the progress bar from mpv's ab-loop properties.</summary>
+        private void UpdateAbLoopMarks()
+        {
+            var duration = MediaPlayer?.Duration ?? 0;
+            var a = MediaPlayer?.AbLoopA ?? -1;
+            var b = MediaPlayer?.AbLoopB ?? -1;
+            var width = ProgressSlider.ActualWidth;
+            if (width <= 0)
+            {
+                return;
+            }
+
+            if (a > 0 && duration > 0)
+            {
+                AbLoopMarkA.Visibility = Visibility.Visible;
+                Canvas.SetLeft(AbLoopMarkA, a / duration * width);
+            }
+            else
+            {
+                AbLoopMarkA.Visibility = Visibility.Collapsed;
+            }
+
+            if (b > 0 && duration > 0)
+            {
+                AbLoopMarkB.Visibility = Visibility.Visible;
+                Canvas.SetLeft(AbLoopMarkB, b / duration * width);
+            }
+            else
+            {
+                AbLoopMarkB.Visibility = Visibility.Collapsed;
+            }
         }
 
         private string FormatTime(double second)
@@ -1564,7 +1873,6 @@ namespace mpv_winui.Modules.Player
             {
                 VisualStateManager.GoToState(this, "PauseState", useTransitions);
             }
-            PiPPlayPauseSymbol.Glyph = isPaused ? "\uF5B0" : "\uF8AE";
         }
 
         private void UpdateVolumeUI(bool useTransitions)
@@ -1598,6 +1906,35 @@ namespace mpv_winui.Modules.Player
         private void PlayerControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             UpdateToolbarVisibility(e.NewSize.Width);
+            UpdateChapterMarks();
+        }
+
+        /// <summary>Draws thin tick marks on the progress bar at chapter starts.</summary>
+        private void UpdateChapterMarks()
+        {
+            ChapterMarksCanvas.Children.Clear();
+            var duration = MediaPlayer?.Duration ?? 0;
+            var width = ProgressSlider.ActualWidth;
+            if (width <= 0 || duration <= 0 || MediaPlayer?.Chapters() is not { Count: > 0 } chapters)
+            {
+                return;
+            }
+            // Skip the first chapter (time 0) so the bar start stays clean.
+            foreach (var chapter in chapters)
+            {
+                if (chapter.Time <= 0)
+                {
+                    continue;
+                }
+                var tick = new Border
+                {
+                    Width = 1,
+                    Height = 14,
+                    Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF)),
+                };
+                Canvas.SetLeft(tick, chapter.Time / duration * width);
+                ChapterMarksCanvas.Children.Add(tick);
+            }
         }
 
         private void UpdateToolbarVisibility(double w)
@@ -1646,6 +1983,7 @@ namespace mpv_winui.Modules.Player
         private void ProgressSlider_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             _isDragging = true;
+            _suppressBufferingUntil = Environment.TickCount64 + 2000;
             if (AppContext.AppSetting.EnableVideoPreview && ProgressSlider.Maximum > 0)
             {
                 UpdatePreview(ProgressSlider.Value / ProgressSlider.Maximum);
@@ -1655,6 +1993,24 @@ namespace mpv_winui.Modules.Player
         private void ProgressSlider_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
             _isDragging = false;
+            _suppressBufferingUntil = Environment.TickCount64 + 500;
+        }
+
+        private void ProgressSlider_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            // Click anywhere on the track to seek there (the thumb drag path
+            // sets the same value, so clicking the thumb is harmless).
+            if (ProgressSlider.Maximum <= 0)
+            {
+                return;
+            }
+            var point = e.GetPosition(ProgressSlider);
+            if (ProgressSlider.ActualWidth <= 0)
+            {
+                return;
+            }
+            var ratio = Math.Clamp(point.X / ProgressSlider.ActualWidth, 0, 1);
+            ProgressSlider.Value = ratio * ProgressSlider.Maximum;
         }
 
         private void ProgressSlider_PointerMoved(object sender, PointerRoutedEventArgs e)

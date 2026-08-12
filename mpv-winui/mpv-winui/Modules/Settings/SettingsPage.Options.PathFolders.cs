@@ -21,6 +21,9 @@ public sealed partial class SettingsPage
     private List<Option> BuildPathFoldersOptions()
     {
         var gpuRenderer = AppContext.AppLang.SettingsCategoryGpuRenderer;
+        var cache = AppContext.AppLang.SettingsCategoryCache;
+        var video = AppContext.AppLang.SettingsCategoryVideo;
+        var watchLater = AppContext.AppLang.SettingsCategoryWatchLater;
         var lang = AppContext.AppLang;
 
         return
@@ -30,7 +33,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.WatchLaterDir),
                 Label = lang.SettingsWatchLaterDir,
-                Category = gpuRenderer,
+                Category = watchLater,
                 Description = lang.SettingsHelpWatchLaterDir,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -45,7 +48,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.GpuShaderCacheDir),
                 Label = lang.SettingsGpuShaderCacheDir,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpGpuShaderCacheDir,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -56,20 +59,6 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GpuShaderCacheDir), AppContext.AppSetting.GpuShaderCacheDir = (string)v!)
             },
 
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.CacheDirectory),
-                Label = lang.SettingsCacheDir,
-                Category = gpuRenderer,
-                Description = lang.SettingsHelpCacheDirectory,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = AppData.Current.ResolveLocalData(Path.Combine("mpv", "cache")),
-                PickFolder = true,
-                OpenFolder = true,
-                Getter = () => AppContext.AppSetting.CacheDirectory,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CacheDirectory), AppContext.AppSetting.CacheDirectory = (string)v!)
-            },
         ];
     }
 }

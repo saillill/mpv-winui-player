@@ -99,6 +99,19 @@ public sealed partial class OptionListControl : UserControl
         }
     }
 
+    /// <summary>Scrolls the option with the given key into view (settings search).</summary>
+    public void ScrollToOption(string key)
+    {
+        foreach (var option in OptionList)
+        {
+            if (option.Key == key)
+            {
+                OptionListView.ScrollIntoView(option);
+                return;
+            }
+        }
+    }
+
     private static ScrollViewer? FindScrollViewer(DependencyObject root)
     {
         for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)

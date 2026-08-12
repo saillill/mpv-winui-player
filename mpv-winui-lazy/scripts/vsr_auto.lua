@@ -115,8 +115,10 @@ mp.observe_property("current-tracks/video/image", "native", sync_vsr)
 mp.register_event("file-loaded", sync_vsr)
 
 -- 读取设置窗口的开关：user-data/mpvw/vsr-auto
+-- App 用 `set user-data/mpvw/vsr-auto yes/no` 写入字符串；val ~= false 会把
+-- 字符串 "no" 当作启用，导致设置里关不掉。兼容 string 与 boolean 两种形态。
 mp.observe_property("user-data/mpvw/vsr-auto", "native", function(_, val)
-	enabled = val ~= false
+	enabled = (val == true) or (val == "yes")
 	msg.verbose("vsr auto = " .. tostring(enabled))
 	sync_vsr()
 end)

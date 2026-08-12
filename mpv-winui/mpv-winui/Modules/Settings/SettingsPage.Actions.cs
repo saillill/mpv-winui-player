@@ -823,9 +823,19 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             var builder = new System.Text.StringBuilder();
             foreach (var entry in AppContext.AppSetting.ExportAll())
             {
+                // InvariantCulture: export must round-trip through the
+                // InvariantCulture-based import regardless of the user's
+                // number format (comma-decimal regions would otherwise emit
+                // "0,5" which fails to parse back on import).
+                var text = entry.Value switch
+                {
+                    double d => d.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    float f => f.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    _ => entry.Value?.ToString() ?? string.Empty,
+                };
                 builder.Append(entry.Key)
                     .Append('=')
-                    .AppendLine(entry.Value?.ToString() ?? string.Empty);
+                    .AppendLine(text);
             }
             await File.WriteAllTextAsync(file.Path, builder.ToString());
             _actionStatus = AppContext.AppLang.SettingsConfigExported;

@@ -27,6 +27,9 @@ jobs:
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v3
 
+    - name: Check localization / menus.json schema
+      run: python tools/check-localization.py
+
     - name: Download mpv libs
       run: |
         curl -L -o mpv-libs.zip "https://github.com/ikas-mc/mpv-windows-builder/releases/download/20260731/mpv-2.dll.zip"
@@ -81,6 +84,25 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
+
+    - name: Install WiX v5
+      shell: pwsh
+      run: dotnet tool install --global wix --version 5.*
+
+    - name: Create MSI
+      shell: pwsh
+      run: |
+        $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
+        .\installer\build-installer.ps1 -Configuration $env:Configuration -Platform $env:Platform -SkipPublish -Version "1.0.${{github.run_number}}"
+      env:
+        Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }}
+
+    - name: Upload MSI
+      uses: actions/upload-artifact@v7
+      with:
+        name: mpv-winui-msi-${{ matrix.platform }}
+        path: ${{github.workspace}}\dist\mpv-winui-setup-*.msi
 
     - name: Upload Deps
       if: env.Pfx_Base64 != '' && env.Pfx_Key != ''

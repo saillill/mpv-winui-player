@@ -142,23 +142,6 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.AudioGapless),
-                Label = lang.SettingsAudioGapless,
-                Category = audio,
-                Description = lang.SettingsHelpAudioGapless,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("no", lang.OptionValueAudioGaplessNo),
-                    new OptionChoice("yes", lang.OptionValueAudioGaplessYes),
-                    new OptionChoice("weak", lang.OptionValueAudioGaplessWeak),
-                ],
-                Getter = () => AppContext.AppSetting.AudioGapless,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioGapless), AppContext.AppSetting.AudioGapless = (string)v!)
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.AudioWaitOpen),
                 Label = lang.SettingsAudioWaitOpen,
                 Category = audio,

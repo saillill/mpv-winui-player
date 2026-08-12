@@ -21,6 +21,12 @@ public sealed partial class SettingsPage
     private List<Option> BuildAdvancedOptions()
     {
         var gpuRenderer = AppContext.AppLang.SettingsCategoryGpuRenderer;
+        var audio = AppContext.AppLang.SettingsCategoryAudio;
+        var cache = AppContext.AppLang.SettingsCategoryCache;
+        var input = AppContext.AppLang.SettingsCategoryInput;
+        var osd = AppContext.AppLang.SettingsCategoryOsd;
+        var playback = AppContext.AppLang.SettingsCategoryPlayback;
+        var video = AppContext.AppLang.SettingsCategoryVideo;
         var lang = AppContext.AppLang;
 
         return
@@ -30,7 +36,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.CacheOnDisk),
                 Label = lang.SettingsCacheOnDisk,
-                Category = gpuRenderer,
+                Category = cache,
                 Description = lang.SettingsHelpCacheOnDisk,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.CacheOnDisk,
@@ -41,7 +47,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.VideoOutputLevels),
                 Label = lang.SettingsVideoOutputLevels,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpVideoOutputLevels,
                 Type = OptionType.StringList,
                 Choices =
@@ -58,7 +64,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.D3d11OutputCsp),
                 Label = lang.SettingsD3d11OutputCsp,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpD3d11OutputCsp,
                 Type = OptionType.StringList,
                 Choices =
@@ -77,7 +83,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.D3d11ExclusiveFs),
                 Label = lang.SettingsD3d11ExclusiveFs,
-                Category = gpuRenderer,
+                Category = video,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.D3d11ExclusiveFs,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11ExclusiveFs), AppContext.AppSetting.D3d11ExclusiveFs = (bool)v!)
@@ -87,7 +93,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.D3d11Flip),
                 Label = lang.SettingsD3d11Flip,
-                Category = gpuRenderer,
+                Category = video,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.D3d11Flip,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11Flip), AppContext.AppSetting.D3d11Flip = (bool)v!)
@@ -97,7 +103,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.D3d11Adapter),
                 Label = lang.SettingsD3d11Adapter,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpD3d11Adapter,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -109,7 +115,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.VideoDecodeDirect),
                 Label = lang.SettingsVideoDecodeDirect,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpVideoDecodeDirect,
                 Type = OptionType.StringList,
                 Choices =
@@ -126,7 +132,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerMaxBytes),
                 Label = lang.SettingsDemuxerMaxBytes,
-                Category = gpuRenderer,
+                Category = cache,
                 Description = lang.SettingsHelpDemuxerMaxBytes,
                 Type = OptionType.Integer,
                 Min = 32,
@@ -140,7 +146,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.IccProfileAuto),
                 Label = lang.SettingsIccProfileAuto,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpIccProfileAuto,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.IccProfileAuto,
@@ -151,7 +157,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.IccProfile),
                 Label = lang.SettingsIccProfile,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpIccProfile,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -163,7 +169,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.IccForceContrast),
                 Label = lang.SettingsIccForceContrast,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpIccForceContrast,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -177,7 +183,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.Icc3dlutSize),
                 Label = lang.SettingsIcc3dlutSize,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpIcc3dlutSize,
                 Type = OptionType.StringList,
                 Choices =
@@ -195,7 +201,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.IccCacheDir),
                 Label = lang.SettingsIccCacheDir,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpIccCacheDir,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -210,7 +216,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TargetColorspaceHint),
                 Label = lang.SettingsTargetColorspaceHint,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpTargetColorspaceHint,
                 Type = OptionType.StringList,
                 Choices =
@@ -227,7 +233,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TargetColorspaceHintMode),
                 Label = lang.SettingsTargetColorspaceHintMode,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpTargetColorspaceHintMode,
                 Type = OptionType.StringList,
                 Choices =
@@ -245,7 +251,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TargetColorspaceHintStrict),
                 Label = lang.SettingsTargetColorspaceHintStrict,
-                Category = gpuRenderer,
+                Category = video,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.TargetColorspaceHintStrict,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.TargetColorspaceHintStrict), AppContext.AppSetting.TargetColorspaceHintStrict = (bool)v!)
@@ -255,7 +261,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TargetPrim),
                 Label = lang.SettingsTargetPrim,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpTargetPrim,
                 Type = OptionType.StringList,
                 Choices =
@@ -274,7 +280,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TargetTrc),
                 Label = lang.SettingsTargetTrc,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpTargetTrc,
                 Type = OptionType.StringList,
                 Choices =
@@ -293,7 +299,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TargetPeak),
                 Label = lang.SettingsTargetPeak,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpTargetPeak,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -307,7 +313,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.GamutMappingMode),
                 Label = lang.SettingsGamutMappingMode,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpGamutMappingMode,
                 Type = OptionType.StringList,
                 Choices =
@@ -326,7 +332,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.IccCache),
                 Label = lang.SettingsIccCache,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpIccCache,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.IccCache,
@@ -337,7 +343,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.GpuShaderCache),
                 Label = lang.SettingsGpuShaderCache,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpGpuShaderCache,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.GpuShaderCache,
@@ -348,7 +354,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.GlslShadersAppend),
                 Label = lang.SettingsGlslShadersAppend,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpGlslShadersAppend,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -360,7 +366,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerMaxBackBytes),
                 Label = lang.SettingsDemuxerMaxBackBytes,
-                Category = gpuRenderer,
+                Category = cache,
                 Description = lang.SettingsHelpDemuxerMaxBackBytes,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -374,7 +380,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.AudioDisplay),
                 Label = lang.SettingsAudioDisplay,
-                Category = gpuRenderer,
+                Category = audio,
                 Description = lang.SettingsHelpAudioDisplay,
                 Type = OptionType.StringList,
                 Choices =
@@ -391,7 +397,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdFontSize),
                 Label = lang.SettingsOsdFontSize,
-                Category = gpuRenderer,
+                Category = osd,
                 Type = OptionType.Integer,
                 Min = 8,
                 Max = 96,
@@ -404,7 +410,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdFont),
                 Label = lang.SettingsOsdFont,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpOsdFont,
                 Type = OptionType.StringList,
                 Choices = SubtitleFontChoices(lang),
@@ -416,7 +422,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdOnSeek),
                 Label = lang.SettingsOsdOnSeek,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpOsdOnSeek,
                 Type = OptionType.StringList,
                 Choices =
@@ -434,7 +440,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdDuration),
                 Label = lang.SettingsOsdDuration,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpOsdDuration,
                 Type = OptionType.Integer,
                 Min = 250,
@@ -448,7 +454,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ShowOsdPlayingMsg),
                 Label = lang.SettingsShowOsdPlayingMsg,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpShowOsdPlayingMsg,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ShowOsdPlayingMsg,
@@ -463,7 +469,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdPlayingMsg),
                 Label = lang.SettingsOsdPlayingMsg,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpOsdPlayingMsg,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -475,7 +481,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdPlayingMsgDuration),
                 Label = lang.SettingsOsdPlayingMsgDuration,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpOsdPlayingMsgDuration,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -489,7 +495,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdBarWidth),
                 Label = lang.SettingsOsdBarWidth,
-                Category = gpuRenderer,
+                Category = osd,
                 Type = OptionType.Integer,
                 Min = 1,
                 Max = 100,
@@ -502,7 +508,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdBarHeight),
                 Label = lang.SettingsOsdBarHeight,
-                Category = gpuRenderer,
+                Category = osd,
                 Type = OptionType.Double,
                 Min = 0.1,
                 Max = 50,
@@ -515,7 +521,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdBlur),
                 Label = lang.SettingsOsdBlur,
-                Category = gpuRenderer,
+                Category = osd,
                 Type = OptionType.Double,
                 Min = 0,
                 Max = 20,
@@ -528,7 +534,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdOutlineSize),
                 Label = lang.SettingsOsdOutlineSize,
-                Category = gpuRenderer,
+                Category = osd,
                 Type = OptionType.Double,
                 Min = 0,
                 Max = 5,
@@ -541,7 +547,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdFractions),
                 Label = lang.SettingsOsdFractions,
-                Category = gpuRenderer,
+                Category = osd,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.OsdFractions,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdFractions), AppContext.AppSetting.OsdFractions = (bool)v!)
@@ -551,7 +557,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdColor),
                 Label = lang.SettingsOsdColor,
-                Category = gpuRenderer,
+                Category = osd,
                 Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.OsdColor,
@@ -562,7 +568,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.OsdOutlineColor),
                 Label = lang.SettingsOsdOutlineColor,
-                Category = gpuRenderer,
+                Category = osd,
                 Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.OsdOutlineColor,
@@ -573,7 +579,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.VsrAutoEnabled),
                 Label = lang.SettingsVsrAuto,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpVsrAuto,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.VsrAutoEnabled,
@@ -584,7 +590,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.HdrAutoMode),
                 Label = lang.SettingsHdrAutoMode,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpHdrAutoMode,
                 Type = OptionType.StringList,
                 Choices =
@@ -601,7 +607,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.HdrAutoLog),
                 Label = lang.SettingsHdrAutoLog,
-                Category = gpuRenderer,
+                Category = video,
                 Description = lang.SettingsHelpHdrAutoLog,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.HdrAutoLog,
@@ -616,7 +622,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.SeekHoldEnabled),
                 Label = lang.SettingsSeekHold,
-                Category = gpuRenderer,
+                Category = playback,
                 Description = lang.SettingsHelpSeekHold,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SeekHoldEnabled,
@@ -627,7 +633,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.MetadataOsdEnabled),
                 Label = lang.SettingsMetadataOsdEnabled,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpMetadataOsdEnabled,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.MetadataOsdEnabled,
@@ -642,7 +648,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.MetadataOsdAutohideTimeout),
                 Label = lang.SettingsMetadataOsdAutohideTimeout,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpMetadataOsdAutohideTimeout,
                 Type = OptionType.Integer,
                 Min = 1,
@@ -660,7 +666,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.MetadataOsdShowChapter),
                 Label = lang.SettingsMetadataOsdShowChapter,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpMetadataOsdShowChapter,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.MetadataOsdShowChapter,
@@ -675,7 +681,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.MetadataOsdEnableForVideo),
                 Label = lang.SettingsMetadataOsdEnableForVideo,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpMetadataOsdEnableForVideo,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.MetadataOsdEnableForVideo,
@@ -690,7 +696,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.MetadataOsdEnableForImage),
                 Label = lang.SettingsMetadataOsdEnableForImage,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpMetadataOsdEnableForImage,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.MetadataOsdEnableForImage,
@@ -705,7 +711,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.MetadataOsdAutohideStatusTimeout),
                 Label = lang.SettingsMetadataOsdAutohideStatusTimeout,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpMetadataOsdAutohideStatusTimeout,
                 Type = OptionType.Integer,
                 Min = 1,
@@ -723,7 +729,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.MetadataOsdShowAlbumTrack),
                 Label = lang.SettingsMetadataOsdShowAlbumTrack,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpMetadataOsdShowAlbumTrack,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.MetadataOsdShowAlbumTrack,
@@ -738,7 +744,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.MetadataOsdMessageMaxLength),
                 Label = lang.SettingsMetadataOsdMessageMaxLength,
-                Category = gpuRenderer,
+                Category = osd,
                 Description = lang.SettingsHelpMetadataOsdMessageMaxLength,
                 Type = OptionType.Integer,
                 Min = 16,
@@ -756,7 +762,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastQuality),
                 Label = lang.SettingsThumbfastQuality,
-                Category = gpuRenderer,
+                Category = playback,
                 Description = lang.SettingsHelpThumbfastQuality,
                 Type = OptionType.StringList,
                 AllowCustom = false,
@@ -778,7 +784,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastNetwork),
                 Label = lang.SettingsThumbfastNetwork,
-                Category = gpuRenderer,
+                Category = playback,
                 Description = lang.SettingsHelpThumbfastNetwork,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ThumbfastNetwork,
@@ -793,7 +799,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastMinDuration),
                 Label = lang.SettingsThumbfastMinDuration,
-                Category = gpuRenderer,
+                Category = playback,
                 Type = OptionType.Integer,
                 Min = 0,
                 Max = 60,
@@ -810,7 +816,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastPrecise),
                 Label = lang.SettingsThumbfastPrecise,
-                Category = gpuRenderer,
+                Category = playback,
                 Description = lang.SettingsHelpThumbfastPrecise,
                 Type = OptionType.StringList,
                 AllowCustom = false,
@@ -832,7 +838,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastMaxWidth),
                 Label = lang.SettingsThumbfastMaxWidth,
-                Category = gpuRenderer,
+                Category = playback,
                 Type = OptionType.Integer,
                 Min = 64,
                 Max = 2000,
@@ -849,7 +855,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastMaxHeight),
                 Label = lang.SettingsThumbfastMaxHeight,
-                Category = gpuRenderer,
+                Category = playback,
                 Type = OptionType.Integer,
                 Min = 64,
                 Max = 4000,
@@ -866,7 +872,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastSpawnFirst),
                 Label = lang.SettingsThumbfastSpawnFirst,
-                Category = gpuRenderer,
+                Category = playback,
                 Description = lang.SettingsHelpThumbfastSpawnFirst,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ThumbfastSpawnFirst,
@@ -881,7 +887,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastThreads),
                 Label = lang.SettingsThumbfastThreads,
-                Category = gpuRenderer,
+                Category = playback,
                 Description = lang.SettingsHelpThumbfastThreads,
                 Type = OptionType.Integer,
                 Min = 1,
@@ -899,7 +905,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastFrequency),
                 Label = lang.SettingsThumbfastFrequency,
-                Category = gpuRenderer,
+                Category = playback,
                 Type = OptionType.Double,
                 Min = 0.05,
                 Max = 1,
@@ -916,7 +922,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastDirectIo),
                 Label = lang.SettingsThumbfastDirectIo,
-                Category = gpuRenderer,
+                Category = playback,
                 Description = lang.SettingsHelpThumbfastDirectIo,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ThumbfastDirectIo,
@@ -931,7 +937,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastQuitAfterInactivity),
                 Label = lang.SettingsThumbfastQuitAfterInactivity,
-                Category = gpuRenderer,
+                Category = playback,
                 Description = lang.SettingsHelpThumbfastQuitAfterInactivity,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -949,7 +955,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.InputIpcServer),
                 Label = lang.SettingsInputIpcServer,
-                Category = gpuRenderer,
+                Category = input,
                 Description = lang.SettingsHelpInputIpcServer,
                 Type = OptionType.String,
                 AllowEmpty = true,

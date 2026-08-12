@@ -23,6 +23,14 @@ namespace mpv_winui.Modules.Player.History
         {
             this.InitializeComponent();
             Loaded += WatchHistoryControl_Loaded;
+            // Unpackaged WinUI has no x:Uid, so the TeachingTip strings are
+            // applied here from AppLang (they were hardcoded English before).
+            ClearTeachingTip.Title = mpv_winui.AppContext.AppLang.WatchHistoryClearTitle;
+            ClearTeachingTip.Subtitle = mpv_winui.AppContext.AppLang.WatchHistoryClearConfirm;
+            ClearTeachingTip.ActionButtonContent = mpv_winui.AppContext.AppLang.Yes;
+            ClearTeachingTip.CloseButtonContent = mpv_winui.AppContext.AppLang.No;
+            RefreshButton.Content = mpv_winui.AppContext.AppLang.Refresh;
+            ClearButton.Content = mpv_winui.AppContext.AppLang.Clear;
         }
 
         public void Initialize(string? path, bool saveWatchHistoryEnabled, Action<Exception>? onException, Logger logger)

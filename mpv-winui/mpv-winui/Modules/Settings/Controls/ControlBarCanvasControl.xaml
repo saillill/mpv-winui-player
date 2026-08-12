@@ -1,0 +1,71 @@
+<local:OptionControlBase
+    x:Class="mpv_winui.Modules.Settings.Controls.ControlBarCanvasControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:mpv_winui.Modules.Settings.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootPanel">
+        <StackPanel Spacing="8">
+            <TextBlock
+                x:Name="BarHint"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextWrapping="Wrap" />
+
+            <!-- The card's bar strip, laid out in the real bar's forced zones:
+                 原版 = left zone (transport + repeat/random) | right zone;
+                 居中 = left zone | centered transport | right zone. Hidden
+                 buttons render as empty slots inside their own zone. -->
+            <Grid x:Name="BarHost">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel
+                    x:Name="ZoneLeft"
+                    Grid.Column="0"
+                    Orientation="Horizontal"
+                    Spacing="3"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center" />
+                <StackPanel
+                    x:Name="ZoneCenter"
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="3"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+                <StackPanel
+                    x:Name="ZoneRight"
+                    Grid.Column="2"
+                    Orientation="Horizontal"
+                    Spacing="3"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center" />
+            </Grid>
+
+            <!-- Candidate drawer: one card per movable button, same size and
+                 style as the bar slots. Hidden buttons fill a card (icon +
+                 localized label below); empty cards stay as "+" frames. Drag
+                 a card's icon back onto the bar strip to show it. -->
+            <TextBlock
+                x:Name="AvailableCaption"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <StackPanel
+                x:Name="AvailableBar"
+                Orientation="Horizontal"
+                Spacing="4" />
+        </StackPanel>
+
+        <!-- Floating drag ghost overlay (StackPanel ignores Canvas positions). -->
+        <Canvas
+            x:Name="GhostOverlay"
+            IsHitTestVisible="False" />
+    </Grid>
+</local:OptionControlBase>

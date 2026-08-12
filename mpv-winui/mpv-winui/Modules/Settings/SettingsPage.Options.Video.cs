@@ -21,6 +21,7 @@ public sealed partial class SettingsPage
     private List<Option> BuildVideoOptions()
     {
         var video = AppContext.AppLang.SettingsCategoryVideo;
+        var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var lang = AppContext.AppLang;
 
         return
@@ -366,7 +367,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.HrSeek),
                 Label = lang.SettingsHrSeek,
-                Category = video,
+                Category = playback,
                 Description = lang.SettingsHelpHrSeek,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.HrSeek,
@@ -377,7 +378,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.HrSeekFramedrop),
                 Label = lang.SettingsHrSeekFramedrop,
-                Category = video,
+                Category = playback,
                 Description = lang.SettingsHelpHrSeekFramedrop,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.HrSeekFramedrop,

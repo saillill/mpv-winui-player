@@ -52,17 +52,12 @@ namespace mpv_winui.Modules.Player
 
         private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double RelativeX, double RelativeY) args)
         {
-            _lastPreviewPoint = PlayerControl.TransformToVisual(PlayerView).TransformPoint(new Point(args.RelativeX, args.RelativeY));
             // Coalesce the high-frequency pointer stream: thumbfast re-renders
             // on every hover-sec change, so only the latest position is sent
-            // to mpv (max ~25 updates/second while scrubbing).
+            // to mpv (max ~25 updates/second while scrubbing). The layout query
+            // (TransformToVisual) is deferred to the throttled tick as well.
             _pendingPreview = args;
             _previewThrottleTimer?.Start();
-
-            if (PreviewCard.Visibility == Visibility.Visible)
-            {
-                UpdatePreviewCardPosition();
-            }
         }
 
         private void PlayerControl_PreviewClearRequested(object? sender, EventArgs e)
@@ -82,8 +77,13 @@ namespace mpv_winui.Modules.Player
             }
 
             _pendingPreview = null;
+            _lastPreviewPoint = PlayerControl.TransformToVisual(PlayerView).TransformPoint(new Point(preview.RelativeX, preview.RelativeY));
             _mediaPlayer.SetHoverSec(preview.HoverSec);
             _mediaPlayer.SetDrawPreview(0, 0, 0, 0);
+            if (PreviewCard.Visibility == Visibility.Visible)
+            {
+                UpdatePreviewCardPosition();
+            }
         }
 
         private void MediaPlayer_PreviewChanged(MpvMediaPlayer sender, MpvPreviewInfo? info)
@@ -96,6 +96,10 @@ namespace mpv_winui.Modules.Player
                     return;
                 }
 
+                // Bump the generation on every new frame: without this, two
+                // concurrent LoadPreviewAsync (same generation) can finish out
+                // of order and the older frame overwrites the newer one.
+                _previewGeneration++;
                 LoadPreviewAsync(info).FireAndForget(OnException);
             });
         }

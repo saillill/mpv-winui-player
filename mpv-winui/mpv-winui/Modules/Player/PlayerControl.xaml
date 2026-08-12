@@ -92,11 +92,38 @@
                 </Grid.RowDefinitions>
                 <Slider
                     x:Name="ProgressSlider"
-                    MinWidth="80"
+                                        AutomationProperties.Name="Playback controls"
+MinWidth="80"
                     Margin="7,2,7,1"
                     VerticalAlignment="Center"
-                    IsTabStop="False"
-                    IsThumbToolTipEnabled="False" />
+                                        IsThumbToolTipEnabled="False" />
+                <Canvas
+                    x:Name="AbLoopMarksCanvas"
+                    Margin="7,2,7,1"
+                    IsHitTestVisible="False">
+                    <Border
+                        x:Name="AbLoopMarkA"
+                        Width="3"
+                        Height="14"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="#FFFF8C00"
+                        CornerRadius="1"
+                        Visibility="Collapsed" />
+                    <Border
+                        x:Name="AbLoopMarkB"
+                        Width="3"
+                        Height="14"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="#FF00BFFF"
+                        CornerRadius="1"
+                        Visibility="Collapsed" />
+                </Canvas>
+                <Canvas
+                    x:Name="ChapterMarksCanvas"
+                    Margin="7,2,7,1"
+                    IsHitTestVisible="False" />
                 <ProgressBar
                     x:Name="BufferingProgressBar"
                     Height="4"
@@ -170,9 +197,9 @@
 
                     <AppBarButton
                         x:Name="PlayPauseButton"
-                        Grid.Column="1"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}">
+                                                AutomationProperties.Name="Play"
+Grid.Column="1"
+                                                Style="{StaticResource AppBarButtonStyle}">
                         <AppBarButton.Icon>
                             <FontIcon
                                 x:Name="PlayPauseSymbol"
@@ -182,9 +209,9 @@
 
                     <AppBarButton
                         x:Name="PreviousTrackButton"
-                        Grid.Column="6"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
+                                                AutomationProperties.Name="Previous Track"
+Grid.Column="6"
+                                                Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xF8AC;" />
@@ -193,9 +220,9 @@
 
                     <AppBarButton
                         x:Name="NextTrackButton"
-                        Grid.Column="7"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
+                                                AutomationProperties.Name="Next Track"
+Grid.Column="7"
+                                                Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xF8AD;" />
@@ -204,9 +231,9 @@
 
                     <AppBarButton
                         x:Name="SkipBackwardButton"
-                        Grid.Column="2"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
+                                                AutomationProperties.Name="Skip Backward"
+Grid.Column="2"
+                                                Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xE627;" />
@@ -215,9 +242,9 @@
 
                     <AppBarButton
                         x:Name="SkipForwardButton"
-                        Grid.Column="3"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
+                                                AutomationProperties.Name="Skip Forward"
+Grid.Column="3"
+                                                Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xE628;" />
@@ -226,8 +253,8 @@
 
                     <AppBarButton
                         x:Name="ShuffleButton"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
+                                                                                                AutomationProperties.Name="Shuffle"
+Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
                             <FontIcon
@@ -240,14 +267,29 @@
 
                     <AppBarButton
                         x:Name="RepeatButton"
-                        Grid.Column="10"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
+                                                AutomationProperties.Name="Repeat"
+Grid.Column="10"
+                                                Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
                             <FontIcon
                                 x:Name="RepeatSymbol"
                                 Glyph="&#xE8EE;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="AbLoopButton"
+                                                AutomationProperties.Name="A-B loop"
+Grid.Column="11"
+                        Click="AbLoopButton_Click"
+                                                Style="{StaticResource AppBarButtonStyle}"
+                        ToolTipService.ToolTip="A-B loop"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon
+                                x:Name="AbLoopSymbol"
+                                Glyph="&#xE8B1;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -286,10 +328,10 @@
 
                     <AppBarButton
                         x:Name="VolumeMuteButton"
-                        HorizontalAlignment="Right"
+                                                AutomationProperties.Name="Mute"
+HorizontalAlignment="Right"
                         VerticalAlignment="Center"
-                        IsTabStop="False"
-                        PointerWheelChanged="VolumeMuteButton_PointerWheelChanged"
+                                                PointerWheelChanged="VolumeMuteButton_PointerWheelChanged"
                         Style="{StaticResource AppBarButtonStyle}">
                         <AppBarButton.Resources>
                             <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,12</Thickness>
@@ -305,21 +347,21 @@
                     <AppBarElementContainer x:Name="VolumeSliderContainer">
                         <ycc:SliderExt
                             x:Name="VolumeSlider"
-                            Width="88"
+                                                        AutomationProperties.Name="Volume"
+Width="88"
                             Margin="0,4,0,0"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            IsTabStop="False"
-                            IsThumbToolTipEnabled="False"
+                                                        IsThumbToolTipEnabled="False"
                             SmallChange="10"
                             Value="50" />
                     </AppBarElementContainer>
 
                     <AppBarButton
                         x:Name="PlaybackRateButton"
-                        Grid.Column="9"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
+                                                AutomationProperties.Name="Playback Rate"
+Grid.Column="9"
+                                                Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
 
                         <AppBarButton.Icon>
@@ -364,15 +406,113 @@
                                 <MenuFlyoutItem
                                     Tag="8.0"
                                     Text="8.0x" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem
+                                    x:Name="CustomRateItem"
+                                    Tag="custom"
+                                    Text="Custom…" />
                             </MenuFlyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>
 
                     <AppBarButton
+                        x:Name="EqualizerButton"
+                                                AutomationProperties.Name="Equalizer"
+Grid.Column="12"
+                                                Style="{StaticResource AppBarButtonStyle}"
+                        ToolTipService.ToolTip="Equalizer"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8B1;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <Flyout
+                                x:Name="EqualizerFlyout"
+                                Opened="EqualizerFlyout_Opened"
+                                Placement="Top">
+                                <StackPanel
+                                    Width="420"
+                                    Spacing="6">
+                                    <TextBlock
+                                        x:Name="EqualizerTitle"
+                                        FontWeight="SemiBold"
+                                        Text="Equalizer" />
+                                    <ScrollViewer
+                                        MaxHeight="280"
+                                        VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl
+                                            x:Name="EqualizerBandsPanel" />
+                                    </ScrollViewer>
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="8">
+                                        <Button
+                                            x:Name="EqualizerResetButton"
+                                            Click="EqualizerReset_Click"
+                                            Content="Reset" />
+                                        <Button
+                                            x:Name="EqualizerOffButton"
+                                            Click="EqualizerOff_Click"
+                                            Content="Off" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Flyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="DelayButton"
+                                                AutomationProperties.Name="Audio/Subtitle delay"
+Grid.Column="12"
+                                                Style="{StaticResource AppBarButtonStyle}"
+                        ToolTipService.ToolTip="Audio / subtitle delay"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE916;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <Flyout
+                                x:Name="DelayFlyout"
+                                Placement="Top">
+                                <StackPanel
+                                    Width="360"
+                                    Spacing="10">
+                                    <TextBlock
+                                        x:Name="DelayTitle"
+                                        FontWeight="SemiBold"
+                                        Text="Audio / subtitle delay" />
+                                    <StackPanel Spacing="4">
+                                        <TextBlock x:Name="AudioDelayLabel" Text="Audio delay" />
+                                        <Slider
+                                            x:Name="AudioDelaySlider"
+                                            Minimum="-10"
+                                            Maximum="10"
+                                            StepFrequency="0.1"
+                                            ValueChanged="AudioDelaySlider_ValueChanged" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock x:Name="SubDelayLabel" Text="Subtitle delay" />
+                                        <Slider
+                                            x:Name="SubDelaySlider"
+                                            Minimum="-10"
+                                            Maximum="10"
+                                            StepFrequency="0.1"
+                                            ValueChanged="SubDelaySlider_ValueChanged" />
+                                    </StackPanel>
+                                    <Button
+                                        x:Name="DelayResetButton"
+                                        Click="DelayReset_Click"
+                                        Content="Reset" />
+                                </StackPanel>
+                            </Flyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+                    <AppBarButton
                         x:Name="TrackSelectionButton"
-                        Grid.Column="13"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}">
+                                                AutomationProperties.Name="Tracks"
+Grid.Column="13"
+                                                Style="{StaticResource AppBarButtonStyle}">
                         <AppBarButton.Icon>
                             <FontIcon
                                 FontFamily="Segoe Fluent Icons"
@@ -405,9 +545,9 @@
 
                     <AppBarButton
                         x:Name="ZoomButton"
-                        Grid.Column="15"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
+                                                AutomationProperties.Name="Zoom"
+Grid.Column="15"
+                                                Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xE799;" />
@@ -424,9 +564,9 @@
 
                     <AppBarToggleButton
                         x:Name="PiPButton"
-                        Grid.Column="16"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarToggleButtonStyle}"
+                                                AutomationProperties.Name="Picture-in-picture"
+Grid.Column="16"
+                                                Style="{StaticResource AppBarToggleButtonStyle}"
                         ToolTipService.ToolTip="Picture-in-picture"
                         Visibility="Visible">
                         <AppBarToggleButton.Icon>
@@ -440,9 +580,9 @@
 
                     <AppBarButton
                         x:Name="FullWindowButton"
-                        Grid.Column="18"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}"
+                                                AutomationProperties.Name="Full Window"
+Grid.Column="18"
+                                                Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
                             <FontIcon
@@ -453,9 +593,9 @@
 
                     <AppBarButton
                         x:Name="FullScreenButton"
-                        Grid.Column="18"
-                        IsTabStop="False"
-                        Style="{StaticResource AppBarButtonStyle}">
+                                                AutomationProperties.Name="Full Screen"
+Grid.Column="18"
+                                                Style="{StaticResource AppBarButtonStyle}">
                         <AppBarButton.Icon>
                             <SymbolIcon
                                 x:Name="FullScreenSymbol"
@@ -469,35 +609,6 @@
                 </Grid>
             </Grid>
         </Border>
-        <Grid
-            x:Name="PiPBar"
-            Padding="8,4"
-            VerticalAlignment="Bottom"
-            Background="{ThemeResource MpvPlayControlBackground}"
-            Visibility="Collapsed">
-            <StackPanel Orientation="Horizontal" Spacing="4">
-                <AppBarButton
-                    x:Name="PiPPlayPauseButton"
-                    IsTabStop="False"
-                    Style="{StaticResource AppBarButtonStyle}"
-                    ToolTipService.ToolTip="Play/Pause">
-                    <AppBarButton.Icon>
-                        <FontIcon
-                            x:Name="PiPPlayPauseSymbol"
-                            Glyph="&#xF5B0;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-                <AppBarButton
-                    x:Name="PiPCloseButton"
-                    IsTabStop="False"
-                    Style="{StaticResource AppBarButtonStyle}"
-                    ToolTipService.ToolTip="Close">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE711;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-            </StackPanel>
-        </Grid>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="MediaStates">
                 <VisualState x:Name="Normal" />

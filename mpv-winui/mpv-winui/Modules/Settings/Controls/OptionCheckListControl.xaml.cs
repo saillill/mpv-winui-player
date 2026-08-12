@@ -92,14 +92,14 @@ public sealed partial class OptionCheckListControl : OptionControlBase
                     CheckItemsControl.Children.Add(new TextBlock
                     {
                         Text = item.Group,
-                        Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                        Style = TryGetResource<Style>("CaptionTextBlockStyle", Application.Current.Resources),
                         Foreground = ThemeResource.Brush(this, "TextFillColorSecondaryBrush"),
                         Margin = new Thickness(0, 6, 0, 2),
                     });
                 }
                 groupWrap = new ItemsControl
                 {
-                    ItemsPanel = (ItemsPanelTemplate)Resources["CheckWrapPanel"],
+                    ItemsPanel = TryGetResource<ItemsPanelTemplate>("CheckWrapPanel", Resources),
                 };
                 CheckItemsControl.Children.Add(groupWrap);
             }
@@ -134,6 +134,25 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             box.Checked += OnItemChecked;
             box.Unchecked += OnItemChecked;
             groupWrap?.Items.Add(box);
+        }
+    }
+
+    /// <summary>
+    /// Safely resolves a resource used by the checklist. Under Release/AOT the
+    /// framework resource lookup can surface an unexpected type; a missing or
+    /// mistyped resource must not crash the settings page (fall back to a
+    /// neutral value and log).
+    /// </summary>
+    private static T? TryGetResource<T>(string key, ResourceDictionary source) where T : class
+    {
+        try
+        {
+            return source[key] as T;
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Warn(ex, "option checklist resource missing, key={}", key);
+            return null;
         }
     }
 

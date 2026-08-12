@@ -1,5 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
@@ -21,6 +23,9 @@ public sealed partial class SettingsPage
     private List<Option> BuildProgramBehaviorOptions()
     {
         var program = AppContext.AppLang.SettingsCategoryProgram;
+        var input = AppContext.AppLang.SettingsCategoryInput;
+        var testing = AppContext.AppLang.SettingsCategoryTesting;
+        var window = AppContext.AppLang.SettingsCategoryWindow;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var lang = AppContext.AppLang;
 
@@ -166,7 +171,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestMpvCommandLog),
                 Label = lang.SettingsTestMpvCommandLog,
-                Category = program,
+                Category = testing,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestMpvCommandLog,
                 Type = OptionType.Boolean,
@@ -178,14 +183,19 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestOsdMessage),
                 Label = lang.SettingsTestOsdMessage,
-                Category = program,
+                Category = testing,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestOsdMessage,
+                // One-shot test: fire only when the toggle is turned on, so
+                // switching it off again does not re-trigger the OSD.
                 Type = OptionType.Boolean,
                 Getter = () => false,
-                Setter = _ =>
+                Setter = v =>
                 {
-                    AppContext.SendMpvCommand("show-text \"mpv-winui OSD test\"");
+                    if (v is true)
+                    {
+                        AppContext.SendMpvCommand("show-text \"mpv-winui OSD test\"");
+                    }
                 }
             },
 
@@ -193,7 +203,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestSignal),
                 Label = lang.SettingsTestSignal,
-                Category = program,
+                Category = testing,
                 Section = sProgramTesting,
                 Type = OptionType.StringList,
                 AllowCustom = false,
@@ -224,7 +234,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.EnableDebugLog),
                 Label = lang.DebugLog,
-                Category = program,
+                Category = testing,
                 Description = lang.SettingsHelpDebugLog,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableDebugLog,
@@ -293,7 +303,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.AlwaysOnTop),
                 Label = lang.SettingsAlwaysOnTop,
-                Category = program,
+                Category = window,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.AlwaysOnTop,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AlwaysOnTop), AppContext.AppSetting.AlwaysOnTop = (bool)v!)
@@ -303,7 +313,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.InputIme),
                 Label = lang.SettingsInputIme,
-                Category = program,
+                Category = input,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.InputIme,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InputIme), AppContext.AppSetting.InputIme = (bool)v!)
@@ -332,6 +342,17 @@ public sealed partial class SettingsPage
                     if (current == newLang) return; // 控件初始化回填不视为用户改动
                     AppContext.SwitchLanguage(newLang);
                 }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CheckForUpdates),
+                Label = lang.SettingsCheckForUpdates,
+                Category = program,
+                Description = lang.SettingsCheckForUpdatesDescription,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CheckForUpdates,
+                Setter = v => AppContext.AppSetting.CheckForUpdates = (bool)v!
             },
 
         ];

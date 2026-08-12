@@ -38,7 +38,9 @@ namespace mpv_winui.Modules.Player
                 UnhookWindowsHookEx(hHook);
             }
             _hHook = null;
-            _selfWeakReference = null;
+            // Note: do not null the shared _selfWeakReference here - it is also
+            // used by the window subclass (MpvPlayerPage_Display) and mouse
+            // forwarding (MpvPlayerPage_Mouse). It is released with the page.
         }
 
         private static void SendKeydown(string keyName)
@@ -129,6 +131,13 @@ namespace mpv_winui.Modules.Player
 
         private static void HandleKeyDown(uint vkey, uint scancode)
         {
+            // When a UI slider owns focus, its arrow keys are the slider's own
+            // input; forwarding them to mpv as well would seek twice.
+            if (AppContext.UiFocusInSlider && IsSliderNavigationKey(vkey))
+            {
+                return;
+            }
+
             int mpkey = W32Keyboard.mp_w32_vkey_to_mpkey((int)vkey, (scancode & KF_EXTENDED) != 0);
             if (mpkey == 0)
             {
@@ -146,6 +155,14 @@ namespace mpv_winui.Modules.Player
             }
 
             SendKeydown(ModPrefix() + $"0x{mpkey:X}");
+        }
+
+        private static bool IsSliderNavigationKey(uint vkey)
+        {
+            return vkey == WinUser.VK_LEFT || vkey == WinUser.VK_RIGHT
+                || vkey == WinUser.VK_UP || vkey == WinUser.VK_DOWN
+                || vkey == WinUser.VK_PRIOR || vkey == WinUser.VK_NEXT
+                || vkey == WinUser.VK_HOME || vkey == WinUser.VK_END;
         }
 
         private static void HandleKeyUp(uint key)
