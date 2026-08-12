@@ -287,19 +287,15 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         }
 
         bool HiddenOf(string id) => _hiddenOf(value).Contains(id, StringComparer.Ordinal);
-        var order = _orderOf(value);
+        var transport = ControlBarIconCatalog.FixedButtons.Select(b => b.Glyph).ToArray();
 
         if (value == "modernx")
         {
-            // 居中: left cluster (+ fixed tail) | centered transport | right cluster.
             var left = BuildIconCluster(HorizontalAlignment.Left,
-                OrderGlyphs(ControlBarIconCatalog.ModernXLeft, order, GlyphOf, HiddenOf)
-                    .Concat(OrderGlyphs(ControlBarIconCatalog.FixedTail, order, GlyphOf, HiddenOf))
-                    .ToArray());
-            var center = BuildIconCluster(HorizontalAlignment.Center,
-                OrderGlyphs(ControlBarIconCatalog.TransportModernX, order, GlyphOf, HiddenOf));
+                OrderGlyphs(ControlBarIconCatalog.ModernXLeft, _orderOf(value), GlyphOf, HiddenOf));
+            var center = BuildIconCluster(HorizontalAlignment.Center, transport);
             var right = BuildIconCluster(HorizontalAlignment.Right,
-                OrderGlyphs(ControlBarIconCatalog.ModernXRight, order, GlyphOf, HiddenOf));
+                OrderGlyphs(ControlBarIconCatalog.ModernXRight, _orderOf(value), GlyphOf, HiddenOf));
             Grid.SetColumn(left, 0);
             Grid.SetColumn(center, 1);
             Grid.SetColumn(right, 2);
@@ -309,15 +305,10 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         }
         else
         {
-            // 原版: transport + repeat/random on the left, cluster + fixed tail on the right.
             var left = BuildIconCluster(HorizontalAlignment.Left,
-                OrderGlyphs(ControlBarIconCatalog.TransportClassic, order, GlyphOf, HiddenOf)
-                    .Concat(OrderGlyphs(ControlBarIconCatalog.ClassicLeft, order, GlyphOf, HiddenOf))
-                    .ToArray());
+                transport.Concat(OrderGlyphs(ControlBarIconCatalog.ClassicLeft, _orderOf(value), GlyphOf, HiddenOf)).ToArray());
             var right = BuildIconCluster(HorizontalAlignment.Right,
-                OrderGlyphs(ControlBarIconCatalog.ClassicRight, order, GlyphOf, HiddenOf)
-                    .Concat(OrderGlyphs(ControlBarIconCatalog.FixedTail, order, GlyphOf, HiddenOf))
-                    .ToArray());
+                OrderGlyphs(ControlBarIconCatalog.ClassicRight, _orderOf(value), GlyphOf, HiddenOf));
             Grid.SetColumn(left, 0);
             Grid.SetColumn(right, 2);
             grid.Children.Add(left);
@@ -380,12 +371,11 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         return row;
     }
 
-    /// <summary>Renders a FontIcon glyph, or a PathIcon for "F1 M ..." path data. Shuffle/pip glyphs need the Fluent font like the real bar.</summary>
+    /// <summary>Renders a FontIcon glyph, or a PathIcon for "F1 M ..." path data.</summary>
     private UIElement CreateIcon(string value)
     {
-        if (value.StartsWith("F1 ", StringComparison.Ordinal))
-        {
-            return new Viewbox
+        return value.StartsWith("F1 ", StringComparison.Ordinal)
+            ? new Viewbox
             {
                 Width = 14,
                 Height = 14,
@@ -393,14 +383,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                 {
                     Data = (Geometry)XamlBindingHelper.ConvertValue(typeof(Geometry), value),
                 },
-            };
-        }
-
-        var icon = new FontIcon { Glyph = value, FontSize = 14 };
-        if (value is "\uEF37" or "\uE97E")
-        {
-            icon.FontFamily = new FontFamily(ControlBarIconCatalog.FluentFont);
-        }
-        return icon;
+            }
+            : new FontIcon { Glyph = value, FontSize = 14 };
     }
 }
