@@ -450,7 +450,7 @@ namespace mpv_winui.Modules.Player
                 ];
                 right =
                 [
-                    EqualizerButton, ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
+                    ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
                 ];
             }
             else
