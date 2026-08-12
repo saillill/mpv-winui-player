@@ -18,7 +18,8 @@ namespace mpv_winui.Modules.Player
             try
             {
                 var dataPackageView = e.DataView;
-                if (dataPackageView.Contains(StandardDataFormats.StorageItems))
+                if (dataPackageView.Contains(StandardDataFormats.StorageItems)
+                    || dataPackageView.Contains(StandardDataFormats.Text))
                 {
                     e.AcceptedOperation = DataPackageOperation.Link;
                 }
@@ -45,6 +46,7 @@ namespace mpv_winui.Modules.Player
         private async void OnDrop(object sender, DragEventArgs e)
         {
             var items = new List<IStorageItem>();
+            var url = string.Empty;
             var defer = e.GetDeferral();
             try
             {
@@ -56,6 +58,19 @@ namespace mpv_winui.Modules.Player
                     foreach (var item in storageItems)
                     {
                         items.Add(item);
+                    }
+                }
+                else if (dataPackageView.Contains(StandardDataFormats.Text))
+                {
+                    // Dragging a text selection/URL from a browser or editor:
+                    // treat it as a media URL when it parses as an absolute,
+                    // non-file URI (mpv plays network streams).
+                    var text = await dataPackageView.GetTextAsync();
+                    if (!string.IsNullOrWhiteSpace(text)
+                        && Uri.TryCreate(text.Trim(), UriKind.Absolute, out var uri)
+                        && !uri.IsFile)
+                    {
+                        url = text.Trim();
                     }
                 }
             }
@@ -72,6 +87,11 @@ namespace mpv_winui.Modules.Player
             {
                 var openMode = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down) ? OpenMode.Append : OpenMode.Replace;
                 PlayStorageItems(items, openMode).FireAndForget(OnException);
+            }
+            else if (url.Length > 0)
+            {
+                var openMode = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down) ? OpenMode.Append : OpenMode.Replace;
+                PlayUrl(url, openMode).FireAndForget(OnException);
             }
         }
 
