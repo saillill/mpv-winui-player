@@ -484,6 +484,19 @@ namespace mpv_winui.Modules.Player
             // in the bars, so after the PiP compact pass stripped a subset of
             // buttons, later applies silently dropped the missing buttons and
             // the control bar could end up empty (progress bar + times only).
+            //
+            // When the desired set is unchanged (same button objects, same
+            // order), skip the rebuild entirely: PrimaryCommands clears + adds
+            // cause visual churn on every settings/language change even though
+            // nothing moved. Visibility is a separate channel, so a pure
+            // show/hide change still works without rebuilding.
+            if (SameElements(left.PrimaryCommands, leftDesired)
+                && SameElements(middle.PrimaryCommands, middleDesired)
+                && SameElements(right.PrimaryCommands, rightDesired))
+            {
+                return;
+            }
+
             left.PrimaryCommands.Clear();
             middle.PrimaryCommands.Clear();
             right.PrimaryCommands.Clear();
@@ -500,6 +513,22 @@ namespace mpv_winui.Modules.Player
             {
                 right.PrimaryCommands.Add(element);
             }
+        }
+
+        private static bool SameElements(IList<ICommandBarElement> current, ICommandBarElement[] desired)
+        {
+            if (current.Count != desired.Length)
+            {
+                return false;
+            }
+            for (int i = 0; i < desired.Length; i++)
+            {
+                if (!ReferenceEquals(current[i], desired[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private static string NormalizeControlBarLayout(string? value)
