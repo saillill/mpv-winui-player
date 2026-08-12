@@ -28,17 +28,6 @@ public sealed partial class SettingsPage
             // ===== Audio / 音频 =====
             new Option
             {
-                Key = nameof(AppContext.AppSetting.AudioLanguage),
-                Label = lang.SettingsAudioLanguage,
-                Category = audio,
-                Type = OptionType.StringList,
-                Choices = LanguageChoices(true),
-                Getter = () => AppContext.AppSetting.AudioLanguage,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioLanguage), AppContext.AppSetting.AudioLanguage = (string)v!)
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.AudioDevice),
                 Label = lang.SettingsAudioDevice,
                 Category = audio,

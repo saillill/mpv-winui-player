@@ -27,6 +27,7 @@ private List<Option> BuildSettings()
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var subtitles = AppContext.AppLang.SettingsCategorySubtitles;
         var window = AppContext.AppLang.SettingsCategoryWindow;
+        var demuxer = AppContext.AppLang.SettingsCategoryDemuxer;
         var cache = AppContext.AppLang.SettingsCategoryCache;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var input = AppContext.AppLang.SettingsCategoryInput;
@@ -126,6 +127,7 @@ private List<Option> BuildSettings()
             audio,
             subtitles,
             window,
+            demuxer,
             cache,
             network,
             input,
@@ -168,7 +170,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.ThumbfastFrequency)] = 28,
             [nameof(AppSettings.ThumbfastDirectIo)] = 29,
             [nameof(AppSettings.ThumbfastQuitAfterInactivity)] = 30,
-            [nameof(AppSettings.AudioLanguage)] = 49,
+            [nameof(AppSettings.AudioLanguage)] = 31,
             [nameof(AppSettings.SubtitleLanguage)] = 32,
             [nameof(AppSettings.SubFallback)] = 33,
             [nameof(AppSettings.SavePositionOnQuit)] = 34,
@@ -427,7 +429,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CurrentLanguage)] = sProgramLanguageLog,
             [nameof(AppSettings.CheckForUpdates)] = sProgramInterface,
             // preset keys are option keys, not AppSettings properties
-            [nameof(AppSettings.EnableDebugLog)] = sProgramTesting,
+            [nameof(AppSettings.EnableDebugLog)] = sProgramLanguageLog,
             // playback
             [nameof(AppSettings.LoopFile)] = sPlayback,
             [nameof(AppSettings.LoopPlaylist)] = sPlayback,
@@ -525,7 +527,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CoverArtNames)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtImageExts)] = sAudioCoverArt,
             // subtitles
-            [nameof(AppSettings.AudioLanguage)] = sAudioOutput,
+            [nameof(AppSettings.AudioLanguage)] = sTrackLanguage,
             [nameof(AppSettings.SubtitleLanguage)] = sTrackLanguage,
             [nameof(AppSettings.SubFallback)] = sTrackFallback,
             [nameof(AppSettings.SubFontSize)] = sSubtitleText,
@@ -571,9 +573,9 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.DirectoryFilterTypes)] = sDemuxerPlaylist,
             [nameof(AppSettings.VideoExts)] = sDemuxerPlaylist,
             [nameof(AppSettings.ImageExts)] = sDemuxerPlaylist,
-            [nameof(AppSettings.DemuxerMaxBytes)] = sCache,
-            [nameof(AppSettings.DemuxerMaxBackBytes)] = sCache,
-            [nameof(AppSettings.DemuxerReadahead)] = sCache,
+            [nameof(AppSettings.DemuxerMaxBytes)] = sDemuxerBuffering,
+            [nameof(AppSettings.DemuxerMaxBackBytes)] = sDemuxerBuffering,
+            [nameof(AppSettings.DemuxerReadahead)] = sDemuxerBuffering,
             // cache
             [nameof(AppSettings.CacheEnabled)] = sCache,
             [nameof(AppSettings.CacheSecs)] = sCache,
@@ -714,6 +716,4 @@ private List<Option> BuildSettings()
 
         return options;
     }
-
-    /// <summary>Options whose presets cover every legal value; the list control must not add a "Custom" entry.</summary>
-    }
+}

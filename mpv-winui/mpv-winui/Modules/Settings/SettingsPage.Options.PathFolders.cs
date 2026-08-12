@@ -20,7 +20,6 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildPathFoldersOptions()
     {
-        var gpuRenderer = AppContext.AppLang.SettingsCategoryGpuRenderer;
         var cache = AppContext.AppLang.SettingsCategoryCache;
         var video = AppContext.AppLang.SettingsCategoryVideo;
         var watchLater = AppContext.AppLang.SettingsCategoryWatchLater;

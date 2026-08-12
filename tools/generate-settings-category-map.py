@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Regenerate the settings category/section maps in SettingsPage.xaml.cs.
+"""Regenerate the settings category/section maps in SettingsPage.Options.cs.
 
 The settings window follows the option layout of the mpv manual
 (DOCS/man/options.rst). This script is the single source of truth for:
@@ -12,7 +12,7 @@ Usage:
     python tools/generate-settings-category-map.py all
 
 Print the generated fragments to stdout and replace the corresponding
-region in SettingsPage.xaml.cs (from `var categoryOrder = new[]` up to the
+region in SettingsPage.Options.cs (from `var categoryOrder = new[]` up to the
 closing `};` of `sectionMap`). The script validates that every setting key
 is mapped exactly once.
 """
@@ -54,6 +54,7 @@ MAP = {
     "ThemeOpacity": ("program", "sProgramInterface"),
     "ThemeLuminosity": ("program", "sProgramInterface"),
     "UiFont": ("program", "sProgramInterface"),
+    "CheckForUpdates": ("program", "sProgramInterface"),
     "TestMpvCommandLog": ("testing", "sProgramTesting"),
     "TestOsdMessage": ("testing", "sProgramTesting"),
     "TestSignal": ("testing", "sProgramTesting"),
@@ -111,6 +112,7 @@ MAP = {
     "AudioWaitOpen": ("audio", "sAudioOutput"),
     "AudioPitchCorrection": ("audio", "sAudioOutput"),
     "AudioNormalizeDownmix": ("audio", "sAudioOutput"),
+    "AudioGapless": ("audio", "sAudioOutput"),
     "VolumeMax": ("audio", "sAudioVolume"),
     "AudioFileAuto": ("audio", "sAudioExternal"),
     "AudioExts": ("audio", "sAudioExternal"),
@@ -253,8 +255,8 @@ MAP = {
     "VideoSync": ("video", "sVideoSync"),
     "VideoSyncMaxVideoChange": ("video", "sVideoSync"),
     # Window (PiP / size)
-    "WindowPiP": ("window", "sWindow"),
-    "WindowPiPSize": ("window", "sWindow"),
+    "WindowPiP": ("window", "sWindowPiP"),
+    "WindowPiPSize": ("window", "sWindowPiP"),
     "WindowStartMaximized": ("window", "sWindow"),
     "WindowRememberSize": ("window", "sWindow"),
     # Network (ytdl / http / curl)
@@ -352,7 +354,7 @@ def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "all"
     if mode in ("vars", "all"):
         print("vars part (copy into BuildSettings top):")
-        print("  (see SettingsPage.xaml.cs for the current declarations)")
+        print("  (see SettingsPage.Options.cs for the current declarations)")
     if mode in ("map", "all"):
         print(emit_map())
 

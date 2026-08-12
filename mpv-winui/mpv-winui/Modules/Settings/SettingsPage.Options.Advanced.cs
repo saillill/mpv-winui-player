@@ -20,9 +20,9 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildAdvancedOptions()
     {
-        var gpuRenderer = AppContext.AppLang.SettingsCategoryGpuRenderer;
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var cache = AppContext.AppLang.SettingsCategoryCache;
+        var demuxer = AppContext.AppLang.SettingsCategoryDemuxer;
         var input = AppContext.AppLang.SettingsCategoryInput;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
@@ -132,7 +132,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerMaxBytes),
                 Label = lang.SettingsDemuxerMaxBytes,
-                Category = cache,
+                Category = demuxer,
                 Description = lang.SettingsHelpDemuxerMaxBytes,
                 Type = OptionType.Integer,
                 Min = 32,
@@ -366,7 +366,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerMaxBackBytes),
                 Label = lang.SettingsDemuxerMaxBackBytes,
-                Category = cache,
+                Category = demuxer,
                 Description = lang.SettingsHelpDemuxerMaxBackBytes,
                 Type = OptionType.Integer,
                 Min = 0,

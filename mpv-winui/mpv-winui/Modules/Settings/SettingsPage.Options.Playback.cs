@@ -25,6 +25,7 @@ public sealed partial class SettingsPage
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var cache = AppContext.AppLang.SettingsCategoryCache;
+        var demuxer = AppContext.AppLang.SettingsCategoryDemuxer;
         var video = AppContext.AppLang.SettingsCategoryVideo;
         var watchLater = AppContext.AppLang.SettingsCategoryWatchLater;
         var lang = AppContext.AppLang;
@@ -258,7 +259,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerReadahead),
                 Label = lang.SettingsDemuxerReadahead,
-                Category = cache,
+                Category = demuxer,
                 Description = lang.SettingsHelpDemuxerReadahead,
                 Type = OptionType.Double,
                 Min = 0,
@@ -560,7 +561,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.AutoCreatePlaylist),
                 Label = lang.SettingsAutoCreatePlaylist,
-                Category = playback,
+                Category = demuxer,
                 Description = lang.SettingsHelpAutoCreatePlaylist,
                 Type = OptionType.StringList,
                 Choices =
@@ -577,7 +578,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DirectoryMode),
                 Label = lang.SettingsDirectoryMode,
-                Category = playback,
+                Category = demuxer,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -594,7 +595,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DirectoryFilterTypes),
                 Label = lang.SettingsDirectoryFilterTypes,
-                Category = playback,
+                Category = demuxer,
                 Description = lang.SettingsHelpDirectoryFilterTypes,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -606,7 +607,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.VideoExts),
                 Label = lang.SettingsVideoExts,
-                Category = playback,
+                Category = demuxer,
                 Description = lang.SettingsHelpVideoExts,
                 Type = OptionType.String,
                 AllowEmpty = true,
@@ -618,7 +619,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ImageExts),
                 Label = lang.SettingsImageExts,
-                Category = playback,
+                Category = demuxer,
                 Type = OptionType.String,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.ImageExts,
