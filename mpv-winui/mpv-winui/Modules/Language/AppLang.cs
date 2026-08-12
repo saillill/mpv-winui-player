@@ -902,6 +902,52 @@ namespace mpv_winui.Modules.Language
         public string WatchHistoryClearConfirm { get; set; } = "Are you sure you want to clear the history?";
         public string Clear { get; set; } = "Clear";
 
+        public string SettingsAudioSpdif { get; set; } = "Bitstream audio (SPDIF passthrough)";
+        public string SettingsHelpAudioSpdif { get; set; } = "Pass compressed audio (AC3/EAC3/DTS/TrueHD) through to the receiver without decoding. Leave Off for normal PCM output.";
+        public string SettingsReplaygain { get; set; } = "ReplayGain";
+        public string SettingsHelpReplaygain { get; set; } = "Apply ReplayGain loudness normalization. Track uses per-track, Album uses per-album gain tags.";
+        public string OptionValueReplaygainTrack { get; set; } = "Track";
+        public string OptionValueReplaygainAlbum { get; set; } = "Album";
+        public string SettingsOsdLevel { get; set; } = "OSD verbosity";
+        public string SettingsHelpOsdLevel { get; set; } = "Amount of OSD information mpv shows: 0 hides everything, 3 shows the most.";
+        public string SettingsImageDisplayDuration { get; set; } = "Image display duration (seconds)";
+        public string SettingsHelpImageDisplayDuration { get; set; } = "How long each image stays on screen in slideshow/directory mode, in seconds.";
+        public string SettingsOverrideDisplayFps { get; set; } = "Override display refresh rate (fps)";
+        public string SettingsHelpOverrideDisplayFps { get; set; } = "Assume the display runs at this frame rate instead of querying it. 0 disables the override. Useful with display-resample sync modes.";
+        public string SettingsCachePause { get; set; } = "Pause while caching";
+        public string SettingsHelpCachePause { get; set; } = "Pause playback while the network cache is filling. Disable to keep playing while buffering.";
+        public string SettingsPrefetchPlaylist { get; set; } = "Prefetch next playlist entries";
+        public string SettingsHelpPrefetchPlaylist { get; set; } = "Start loading the next playlist entry while the current one still plays.";
+        public string SettingsSubBold { get; set; } = "Bold subtitles";
+        public string SettingsHelpSubBold { get; set; } = "Force subtitles to render bold.";
+        public string SettingsSubItalic { get; set; } = "Italic subtitles";
+        public string SettingsHelpSubItalic { get; set; } = "Force subtitles to render italic.";
+        public string SettingsSubAlignX { get; set; } = "Subtitle horizontal alignment";
+        public string SettingsHelpSubAlignX { get; set; } = "Horizontal position of subtitles: left, center or right.";
+        public string SettingsSubAlignY { get; set; } = "Subtitle vertical alignment";
+        public string SettingsHelpSubAlignY { get; set; } = "Vertical position of subtitles: top, center or bottom.";
+        public string SettingsSubMarginX { get; set; } = "Subtitle horizontal margin";
+        public string SettingsHelpSubMarginX { get; set; } = "Horizontal distance of subtitles from the screen edge, in pixels.";
+        public string SettingsSubMarginY { get; set; } = "Subtitle vertical margin";
+        public string SettingsHelpSubMarginY { get; set; } = "Vertical distance of subtitles from the screen edge, in pixels.";
+        public string SettingsOsdAlignX { get; set; } = "OSD horizontal alignment";
+        public string SettingsHelpOsdAlignX { get; set; } = "Horizontal position of OSD text: left, center or right.";
+        public string SettingsOsdAlignY { get; set; } = "OSD vertical alignment";
+        public string SettingsHelpOsdAlignY { get; set; } = "Vertical position of OSD text: top, center or bottom.";
+        public string SettingsOsdMarginX { get; set; } = "OSD horizontal margin";
+        public string SettingsHelpOsdMarginX { get; set; } = "Horizontal distance of OSD text from the screen edge, in pixels.";
+        public string SettingsOsdMarginY { get; set; } = "OSD vertical margin";
+        public string SettingsHelpOsdMarginY { get; set; } = "Vertical distance of OSD text from the screen edge, in pixels.";
+        public string SettingsDemuxerHysteresisSecs { get; set; } = "Demuxer hysteresis (seconds)";
+        public string SettingsHelpDemuxerHysteresisSecs { get; set; } = "Seconds the demuxer must exceed a cache range before switching back. 0 uses mpv's default.";
+        public string SettingsDemuxerCacheDir { get; set; } = "Demuxer cache directory";
+        public string SettingsHelpDemuxerCacheDir { get; set; } = "Folder for the on-disk demuxer cache. Leave empty to let mpv decide.";
+        public string OptionValueAlignLeft { get; set; } = "Left";
+        public string OptionValueAlignCenter { get; set; } = "Center";
+        public string OptionValueAlignRight { get; set; } = "Right";
+        public string OptionValueAlignTop { get; set; } = "Top";
+        public string OptionValueAlignBottom { get; set; } = "Bottom";
+
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)
         {

@@ -66,6 +66,90 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubPos), AppContext.AppSetting.SubPos = Convert.ToInt32(v))
             },
 
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubBold),
+                Label = lang.SettingsSubBold,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubBold,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubBold,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubBold), AppContext.AppSetting.SubBold = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubItalic),
+                Label = lang.SettingsSubItalic,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubItalic,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubItalic,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubItalic), AppContext.AppSetting.SubItalic = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAlignX),
+                Label = lang.SettingsSubAlignX,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubAlignX,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("left", lang.OptionValueAlignLeft),
+                    new OptionChoice("center", lang.OptionValueAlignCenter),
+                    new OptionChoice("right", lang.OptionValueAlignRight),
+                ],
+                Getter = () => AppContext.AppSetting.SubAlignX,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAlignX), AppContext.AppSetting.SubAlignX = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAlignY),
+                Label = lang.SettingsSubAlignY,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubAlignY,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("top", lang.OptionValueAlignTop),
+                    new OptionChoice("center", lang.OptionValueAlignCenter),
+                    new OptionChoice("bottom", lang.OptionValueAlignBottom),
+                ],
+                Getter = () => AppContext.AppSetting.SubAlignY,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAlignY), AppContext.AppSetting.SubAlignY = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubMarginX),
+                Label = lang.SettingsSubMarginX,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubMarginX,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 1000,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.SubMarginX,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubMarginX), AppContext.AppSetting.SubMarginX = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubMarginY),
+                Label = lang.SettingsSubMarginY,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubMarginY,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 1000,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.SubMarginY,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubMarginY), AppContext.AppSetting.SubMarginY = Convert.ToInt32(v))
+            },
+
             // Track language: the audio preferred language lives next to the
             // subtitle preferred language (both drive track selection), not in
             // the audio output section.

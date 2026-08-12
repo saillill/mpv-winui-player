@@ -378,6 +378,32 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.DemuxerHysteresisSecs),
+                Label = lang.SettingsDemuxerHysteresisSecs,
+                Category = demuxer,
+                Description = lang.SettingsHelpDemuxerHysteresisSecs,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 10,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.DemuxerHysteresisSecs,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerHysteresisSecs), AppContext.AppSetting.DemuxerHysteresisSecs = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.DemuxerCacheDir),
+                Label = lang.SettingsDemuxerCacheDir,
+                Category = demuxer,
+                Description = lang.SettingsHelpDemuxerCacheDir,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.DemuxerCacheDir,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerCacheDir), AppContext.AppSetting.DemuxerCacheDir = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.AudioDisplay),
                 Label = lang.SettingsAudioDisplay,
                 Category = audio,
@@ -551,6 +577,82 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.OsdFractions,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdFractions), AppContext.AppSetting.OsdFractions = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdLevel),
+                Label = lang.SettingsOsdLevel,
+                Category = osd,
+                Description = lang.SettingsHelpOsdLevel,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 3,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.OsdLevel,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdLevel), AppContext.AppSetting.OsdLevel = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdAlignX),
+                Label = lang.SettingsOsdAlignX,
+                Category = osd,
+                Description = lang.SettingsHelpOsdAlignX,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("left", lang.OptionValueAlignLeft),
+                    new OptionChoice("center", lang.OptionValueAlignCenter),
+                    new OptionChoice("right", lang.OptionValueAlignRight),
+                ],
+                Getter = () => AppContext.AppSetting.OsdAlignX,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdAlignX), AppContext.AppSetting.OsdAlignX = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdAlignY),
+                Label = lang.SettingsOsdAlignY,
+                Category = osd,
+                Description = lang.SettingsHelpOsdAlignY,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("top", lang.OptionValueAlignTop),
+                    new OptionChoice("center", lang.OptionValueAlignCenter),
+                    new OptionChoice("bottom", lang.OptionValueAlignBottom),
+                ],
+                Getter = () => AppContext.AppSetting.OsdAlignY,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdAlignY), AppContext.AppSetting.OsdAlignY = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdMarginX),
+                Label = lang.SettingsOsdMarginX,
+                Category = osd,
+                Description = lang.SettingsHelpOsdMarginX,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 1000,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.OsdMarginX,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdMarginX), AppContext.AppSetting.OsdMarginX = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdMarginY),
+                Label = lang.SettingsOsdMarginY,
+                Category = osd,
+                Description = lang.SettingsHelpOsdMarginY,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 1000,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.OsdMarginY,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdMarginY), AppContext.AppSetting.OsdMarginY = Convert.ToInt32(v))
             },
 
             new Option

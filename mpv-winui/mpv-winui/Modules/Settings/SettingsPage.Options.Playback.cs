@@ -257,6 +257,17 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.CachePause),
+                Label = lang.SettingsCachePause,
+                Category = cache,
+                Description = lang.SettingsHelpCachePause,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CachePause,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CachePause), AppContext.AppSetting.CachePause = (bool)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.DemuxerReadahead),
                 Label = lang.SettingsDemuxerReadahead,
                 Category = demuxer,
@@ -475,6 +486,17 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.PrefetchPlaylist),
+                Label = lang.SettingsPrefetchPlaylist,
+                Category = network,
+                Description = lang.SettingsHelpPrefetchPlaylist,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.PrefetchPlaylist,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.PrefetchPlaylist), AppContext.AppSetting.PrefetchPlaylist = (bool)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.NetworkTimeout),
                 Label = lang.SettingsNetworkTimeout,
                 Category = network,
@@ -624,6 +646,20 @@ public sealed partial class SettingsPage
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.ImageExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ImageExts), AppContext.AppSetting.ImageExts = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ImageDisplayDuration),
+                Label = lang.SettingsImageDisplayDuration,
+                Category = demuxer,
+                Description = lang.SettingsHelpImageDisplayDuration,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 3600,
+                Step = 0.5,
+                Getter = () => AppContext.AppSetting.ImageDisplayDuration,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ImageDisplayDuration), AppContext.AppSetting.ImageDisplayDuration = (double)v!)
             },
 
             new Option

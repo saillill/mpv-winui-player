@@ -1654,5 +1654,120 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(ScreenshotAvifEncoder), string.Empty);
             set => _dataSetting.SetValue(nameof(ScreenshotAvifEncoder), value);
         }
+
+        // ===== Options added with mpv 0.41 built-in defaults =====
+        public string AudioSpdif
+        {
+            get => _dataSetting.GetValue(nameof(AudioSpdif), string.Empty);
+            set => _dataSetting.SetValue(nameof(AudioSpdif), value);
+        }
+
+        public string Replaygain
+        {
+            get => _dataSetting.GetValue(nameof(Replaygain), "no");
+            set => _dataSetting.SetValue(nameof(Replaygain), value);
+        }
+
+        public int OsdLevel
+        {
+            get => _dataSetting.GetValue(nameof(OsdLevel), 1);
+            set => _dataSetting.SetValue(nameof(OsdLevel), value);
+        }
+
+        public double ImageDisplayDuration
+        {
+            get => _dataSetting.GetValue(nameof(ImageDisplayDuration), 5.0);
+            set => _dataSetting.SetValue(nameof(ImageDisplayDuration), value);
+        }
+
+        public double OverrideDisplayFps
+        {
+            get => _dataSetting.GetValue(nameof(OverrideDisplayFps), 0.0);
+            set => _dataSetting.SetValue(nameof(OverrideDisplayFps), value);
+        }
+
+        public bool CachePause
+        {
+            get => _dataSetting.GetValue(nameof(CachePause), true);
+            set => _dataSetting.SetValue(nameof(CachePause), value);
+        }
+
+        public bool PrefetchPlaylist
+        {
+            get => _dataSetting.GetValue(nameof(PrefetchPlaylist), false);
+            set => _dataSetting.SetValue(nameof(PrefetchPlaylist), value);
+        }
+
+        public bool SubBold
+        {
+            get => _dataSetting.GetValue(nameof(SubBold), false);
+            set => _dataSetting.SetValue(nameof(SubBold), value);
+        }
+
+        public bool SubItalic
+        {
+            get => _dataSetting.GetValue(nameof(SubItalic), false);
+            set => _dataSetting.SetValue(nameof(SubItalic), value);
+        }
+
+        public string SubAlignX
+        {
+            get => _dataSetting.GetValue(nameof(SubAlignX), "center");
+            set => _dataSetting.SetValue(nameof(SubAlignX), value);
+        }
+
+        public string SubAlignY
+        {
+            get => _dataSetting.GetValue(nameof(SubAlignY), "bottom");
+            set => _dataSetting.SetValue(nameof(SubAlignY), value);
+        }
+
+        public int SubMarginX
+        {
+            get => _dataSetting.GetValue(nameof(SubMarginX), 19);
+            set => _dataSetting.SetValue(nameof(SubMarginX), value);
+        }
+
+        public int SubMarginY
+        {
+            get => _dataSetting.GetValue(nameof(SubMarginY), 34);
+            set => _dataSetting.SetValue(nameof(SubMarginY), value);
+        }
+
+        public string OsdAlignX
+        {
+            get => _dataSetting.GetValue(nameof(OsdAlignX), "left");
+            set => _dataSetting.SetValue(nameof(OsdAlignX), value);
+        }
+
+        public string OsdAlignY
+        {
+            get => _dataSetting.GetValue(nameof(OsdAlignY), "top");
+            set => _dataSetting.SetValue(nameof(OsdAlignY), value);
+        }
+
+        public int OsdMarginX
+        {
+            get => _dataSetting.GetValue(nameof(OsdMarginX), 16);
+            set => _dataSetting.SetValue(nameof(OsdMarginX), value);
+        }
+
+        public int OsdMarginY
+        {
+            get => _dataSetting.GetValue(nameof(OsdMarginY), 16);
+            set => _dataSetting.SetValue(nameof(OsdMarginY), value);
+        }
+
+        public double DemuxerHysteresisSecs
+        {
+            get => _dataSetting.GetValue(nameof(DemuxerHysteresisSecs), 0.0);
+            set => _dataSetting.SetValue(nameof(DemuxerHysteresisSecs), value);
+        }
+
+        public string DemuxerCacheDir
+        {
+            get => _dataSetting.GetValue(nameof(DemuxerCacheDir), string.Empty);
+            set => _dataSetting.SetValue(nameof(DemuxerCacheDir), value);
+        }
     }
 }

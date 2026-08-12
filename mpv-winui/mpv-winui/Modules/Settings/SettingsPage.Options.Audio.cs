@@ -178,6 +178,43 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.AudioSpdif),
+                Label = lang.SettingsAudioSpdif,
+                Category = audio,
+                Description = lang.SettingsHelpAudioSpdif,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.Off),
+                    new OptionChoice("ac3", "AC3"),
+                    new OptionChoice("eac3", "EAC3"),
+                    new OptionChoice("dts", "DTS"),
+                    new OptionChoice("truehd", "TrueHD"),
+                    new OptionChoice("dts-hd", "DTS-HD"),
+                ],
+                Getter = () => AppContext.AppSetting.AudioSpdif,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioSpdif), AppContext.AppSetting.AudioSpdif = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.Replaygain),
+                Label = lang.SettingsReplaygain,
+                Category = audio,
+                Description = lang.SettingsHelpReplaygain,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.Off),
+                    new OptionChoice("track", lang.OptionValueReplaygainTrack),
+                    new OptionChoice("album", lang.OptionValueReplaygainAlbum),
+                ],
+                Getter = () => AppContext.AppSetting.Replaygain,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Replaygain), AppContext.AppSetting.Replaygain = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.CoverArtPreferEmbedded),
                 Label = lang.SettingsCoverArtPreferEmbedded,
                 Category = audio,

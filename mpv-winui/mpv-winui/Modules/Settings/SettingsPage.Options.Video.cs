@@ -95,6 +95,20 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.OverrideDisplayFps),
+                Label = lang.SettingsOverrideDisplayFps,
+                Category = video,
+                Description = lang.SettingsHelpOverrideDisplayFps,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 300,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.OverrideDisplayFps,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OverrideDisplayFps), AppContext.AppSetting.OverrideDisplayFps = (double)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.CorrectDownscaling),
                 Label = lang.SettingsCorrectDownscaling,
                 Category = video,
