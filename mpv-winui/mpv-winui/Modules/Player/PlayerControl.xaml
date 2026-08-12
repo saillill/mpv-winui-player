@@ -120,6 +120,10 @@ MinWidth="80"
                         CornerRadius="1"
                         Visibility="Collapsed" />
                 </Canvas>
+                <Canvas
+                    x:Name="ChapterMarksCanvas"
+                    Margin="7,2,7,1"
+                    IsHitTestVisible="False" />
                 <ProgressBar
                     x:Name="BufferingProgressBar"
                     Height="4"

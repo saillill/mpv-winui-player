@@ -579,6 +579,7 @@ namespace mpv_winui.Modules.Player
                         // would otherwise keep the placeholder "00.00/00.00".
                         UpdateProgressSliderValue(value.Position, value.Duration);
                         UpdateTimeTexts(value.Position, value.Duration);
+                        UpdateChapterMarks();
                     }
                 }
             }
@@ -1702,6 +1703,35 @@ namespace mpv_winui.Modules.Player
         private void PlayerControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             UpdateToolbarVisibility(e.NewSize.Width);
+            UpdateChapterMarks();
+        }
+
+        /// <summary>Draws thin tick marks on the progress bar at chapter starts.</summary>
+        private void UpdateChapterMarks()
+        {
+            ChapterMarksCanvas.Children.Clear();
+            var duration = MediaPlayer?.Duration ?? 0;
+            var width = ProgressSlider.ActualWidth;
+            if (width <= 0 || duration <= 0 || MediaPlayer?.Chapters() is not { Count: > 0 } chapters)
+            {
+                return;
+            }
+            // Skip the first chapter (time 0) so the bar start stays clean.
+            foreach (var chapter in chapters)
+            {
+                if (chapter.Time <= 0)
+                {
+                    continue;
+                }
+                var tick = new Border
+                {
+                    Width = 1,
+                    Height = 14,
+                    Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF)),
+                };
+                Canvas.SetLeft(tick, chapter.Time / duration * width);
+                ChapterMarksCanvas.Children.Add(tick);
+            }
         }
 
         private void UpdateToolbarVisibility(double w)
