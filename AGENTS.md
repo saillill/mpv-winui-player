@@ -200,3 +200,13 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 - Touching the config layer: read `mpv-winui-lazy/README.md`.
 - Adding components or checking licenses: read
   `mpv-winui-lazy/THIRD_PARTY_NOTICES.md`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues; use the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
