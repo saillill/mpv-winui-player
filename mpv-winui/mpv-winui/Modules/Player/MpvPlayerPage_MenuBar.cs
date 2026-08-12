@@ -17,15 +17,118 @@ public sealed partial class MpvPlayerPage
 {
     private Microsoft.UI.Xaml.DispatcherTimer? _sleepTimer;
 
-    private static readonly HashSet<string> KnownMenuActions = new(StringComparer.Ordinal)
+    /// <summary>
+    /// Menu action registry: action id -> handler. Extensible — any module can
+    /// call <see cref="RegisterMenuAction"/> to add a menu action without
+    /// touching the built-in switch, and <see cref="KnownMenuActions"/> (used
+    /// by the menu builder and the schema check) derives from it.
+    /// </summary>
+    private static readonly Dictionary<string, Func<MpvPlayerPage, Task>> MenuActions = new(StringComparer.Ordinal);
+
+    public static IReadOnlySet<string> KnownMenuActions => MenuActions.Keys.ToHashSet(StringComparer.Ordinal);
+
+    private static void RegisterMenuAction(string id, Func<MpvPlayerPage, Task> handler)
     {
-        "open", "open-folder", "open-url", "open-clipboard", "open-dvd", "open-bd",
-        "load-subtitle", "screenshot", "screenshot-no-sub", "conf-folder", "mpv-folder",
-        "playlist", "playlist-import", "playlist-export",
-        "open-watch-history", "open-watch-later", "restart", "about", "mpv-docs",
-        "quit", "fullwindow", "fullscreen", "options", "mpv-command", "shortcut-search",
-        "sleep-off", "sleep-15", "sleep-30", "sleep-45", "sleep-60", "sleep-90",
-    };
+        MenuActions[id] = handler;
+    }
+
+    static MpvPlayerPage()
+    {
+        RegisterMenuAction("open", p => p.OpenFileAsync());
+        RegisterMenuAction("open-folder", p => p.OpenFolderAsync());
+        RegisterMenuAction("open-url", p => p.OpenUrlAsync());
+        RegisterMenuAction("open-clipboard", p => p.OpenClipboardAsync());
+        RegisterMenuAction("open-dvd", p => p.OpenDvdAsync());
+        RegisterMenuAction("open-bd", p => p.OpenBdAsync());
+        RegisterMenuAction("load-subtitle", p => p.LoadSubtitleAsync());
+        RegisterMenuAction("screenshot", p => p._mediaPlayer.RunCommandAsync(["screenshot"]).AsTask());
+        RegisterMenuAction("screenshot-no-sub", p => p._mediaPlayer.RunCommandAsync(["screenshot", "video"]).AsTask());
+        RegisterMenuAction("conf-folder", async p =>
+        {
+            var storageFolder = await AppData.Current.OpenLocalDataFolderAsync();
+            await Launcher.LaunchFolderAsync(storageFolder);
+        });
+        RegisterMenuAction("mpv-folder", async p =>
+        {
+            var storageFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
+            await Launcher.LaunchFolderAsync(storageFolder);
+        });
+        RegisterMenuAction("playlist", p =>
+        {
+            p.TogglePlaylist(true);
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("playlist-import", p => p.ImportPlaylistAsync());
+        RegisterMenuAction("playlist-export", p => p.ExportPlaylistAsync());
+        RegisterMenuAction("open-watch-history", p => p.ShowWatchHistoryDialogAsync());
+        RegisterMenuAction("open-watch-later", p => p.ShowWatchLaterDialogAsync());
+        RegisterMenuAction("restart", p =>
+        {
+            if (App.Window is MainWindow mainWindow)
+            {
+                mainWindow.SaveWindowPositionAndSize();
+            }
+            AppInstance.Restart("Reset");
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("about", p => p.ShowAboutDialogAsync());
+        RegisterMenuAction("mpv-docs", p =>
+        {
+            return Launcher.LaunchUriAsync(new Uri("https://mpv.io/manual/master/")).AsTask();
+        });
+        RegisterMenuAction("quit", p =>
+        {
+            p.AppQuit();
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("fullwindow", p =>
+        {
+            p.PlayerControl.ToggleFullWindow();
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("fullscreen", p =>
+        {
+            p.PlayerControl.ToggleFullScreen();
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("options", p =>
+        {
+            p.ShowSettingsWindow();
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("mpv-command", p => p.ShowMpvCommandDialogAsync());
+        RegisterMenuAction("shortcut-search", p => p.ShowShortcutSearchDialogAsync());
+        RegisterMenuAction("sleep-off", p =>
+        {
+            p.SetSleepTimer(0);
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("sleep-15", p =>
+        {
+            p.SetSleepTimer(15);
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("sleep-30", p =>
+        {
+            p.SetSleepTimer(30);
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("sleep-45", p =>
+        {
+            p.SetSleepTimer(45);
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("sleep-60", p =>
+        {
+            p.SetSleepTimer(60);
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("sleep-90", p =>
+        {
+            p.SetSleepTimer(90);
+            return Task.CompletedTask;
+        });
+    }
 
     private void BuildMainMenuBar()
     {
@@ -60,120 +163,12 @@ public sealed partial class MpvPlayerPage
 
     private async Task ExecuteMenuAction(string action)
     {
-        switch (action)
+        if (MenuActions.TryGetValue(action, out var handler))
         {
-            case "open":
-                await OpenFileAsync();
-                break;
-            case "open-folder":
-                await OpenFolderAsync();
-                break;
-            case "open-url":
-                await OpenUrlAsync();
-                break;
-            case "open-clipboard":
-                await OpenClipboardAsync();
-                break;
-            case "open-dvd":
-                await OpenDvdAsync();
-                break;
-            case "open-bd":
-                await OpenBdAsync();
-                break;
-            case "load-subtitle":
-                await LoadSubtitleAsync();
-                break;
-            case "screenshot":
-                await _mediaPlayer.RunCommandAsync(["screenshot"]);
-                break;
-            case "screenshot-no-sub":
-                await _mediaPlayer.RunCommandAsync(["screenshot", "video"]);
-                break;
-            case "conf-folder":
-            {
-                var storageFolder = await AppData.Current.OpenLocalDataFolderAsync();
-                await Launcher.LaunchFolderAsync(storageFolder);
-                break;
-            }
-            case "mpv-folder":
-            {
-                var storageFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
-                await Launcher.LaunchFolderAsync(storageFolder);
-                break;
-            }
-            case "playlist":
-            {
-                TogglePlaylist(true);
-                break;
-            }
-            case "playlist-import":
-                await ImportPlaylistAsync();
-                break;
-            case "playlist-export":
-                await ExportPlaylistAsync();
-                break;
-            case "open-watch-history":
-            {
-                await ShowWatchHistoryDialogAsync();
-                break;
-            }
-            case "open-watch-later":
-            {
-                await ShowWatchLaterDialogAsync();
-                break;
-            }
-            case "restart":
-            {
-                if (App.Window is MainWindow mainWindow)
-                {
-                    mainWindow.SaveWindowPositionAndSize();
-                }
-                AppInstance.Restart("Reset");
-                break;
-            }
-            case "about":
-                await ShowAboutDialogAsync();
-                break;
-            case "mpv-docs":
-                await Launcher.LaunchUriAsync(new Uri("https://mpv.io/manual/master/"));
-                break;
-            case "quit":
-                AppQuit();
-                break;
-            case "fullwindow":
-                PlayerControl.ToggleFullWindow();
-                break;
-            case "fullscreen":
-                PlayerControl.ToggleFullScreen();
-                break;
-            case "options":
-                ShowSettingsWindow();
-                break;
-            case "mpv-command":
-                await ShowMpvCommandDialogAsync();
-                break;
-            case "shortcut-search":
-                await ShowShortcutSearchDialogAsync();
-                break;
-            case "sleep-off":
-                SetSleepTimer(0);
-                break;
-            case "sleep-15":
-                SetSleepTimer(15);
-                break;
-            case "sleep-30":
-                SetSleepTimer(30);
-                break;
-            case "sleep-45":
-                SetSleepTimer(45);
-                break;
-            case "sleep-60":
-                SetSleepTimer(60);
-                break;
-            case "sleep-90":
-                SetSleepTimer(90);
-                break;
+            await handler(this);
+            return;
         }
+        OnException(new InvalidOperationException($"Unknown menu action: {action}"));
     }
 
         private void SetSleepTimer(int minutes)
