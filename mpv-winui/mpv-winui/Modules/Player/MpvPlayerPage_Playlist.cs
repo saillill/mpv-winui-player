@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
 
 namespace mpv_winui.Modules.Player
 {
@@ -43,6 +45,7 @@ namespace mpv_winui.Modules.Player
             }
 
             SelectCurrentPlayListItem();
+            SetupPlaylistDrag();
         }
 
         private void SelectCurrentPlayListItem()
@@ -198,10 +201,129 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void MovePlaylistItem(int from, int to)
+        private void MovePlaylistItem(int from, int visualTo)
         {
-            _mediaPlayer.PlaylistMove(from, to);
+            // mpv's playlist-move(i, j) removes entry i first, then inserts it
+            // at j-1 when i < j (verified over the IPC pipe). To place the item
+            // at a visual row index we must compensate: when moving downward,
+            // ask for one position past the visual target.
+            int mpvTarget = visualTo + (from < visualTo ? 1 : 0);
+            _mediaPlayer.PlaylistMove(from, mpvTarget);
             RefreshPlaylistAsync();
+        }
+
+        // Manual drag-reorder. WinUI 3 ListView's built-in drag/reorder
+        // (CanDragItems/CanReorderItems) is unreliable for mouse in desktop
+        // mode, so the drag is driven from the pointer events below: a press
+        // on a row followed by a move past the threshold captures the pointer,
+        // and release moves the item to the row under the cursor (or to the
+        // end when dropped on empty space). A plain press+release stays a
+        // click and is handled by ItemClick.
+        private const double DRAG_THRESHOLD = 12.0;
+        private int _dragSourceIndex = -1;
+        private Point _dragStartPoint;
+        private bool _dragActive;
+        private bool _dragSetup;
+
+        private void SetupPlaylistDrag()
+        {
+            if (_dragSetup)
+            {
+                return;
+            }
+            _dragSetup = true;
+            // Handlers are attached to the container, not the ListView:
+            // ListViewItem captures the pointer on press, and captured
+            // pointer events are routed to the capturer's ancestor chain —
+            // they never reach a handler on the ListView itself. The
+            // container is on that chain, so move/release still arrive.
+            PlaylistContainer.AddHandler(PointerPressedEvent, new PointerEventHandler(PlaylistView_PointerPressed), true);
+            PlaylistContainer.AddHandler(PointerMovedEvent, new PointerEventHandler(PlaylistView_PointerMoved), true);
+            PlaylistContainer.AddHandler(PointerReleasedEvent, new PointerEventHandler(PlaylistView_PointerReleased), true);
+            PlaylistContainer.AddHandler(PointerCanceledEvent, new PointerEventHandler(PlaylistView_PointerReleased), true);
+            PlaylistContainer.AddHandler(PointerCaptureLostEvent, new PointerEventHandler(PlaylistView_PointerReleased), true);
+        }
+
+        private static PlaylistItem? FindPlaylistItem(DependencyObject? source)
+        {
+            while (source is not null)
+            {
+                if (source is FrameworkElement { DataContext: PlaylistItem item })
+                {
+                    return item;
+                }
+                source = VisualTreeHelper.GetParent(source);
+            }
+            return null;
+        }
+
+        private void PlaylistView_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            if (e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Mouse)
+            {
+                return;
+            }
+            var item = FindPlaylistItem(e.OriginalSource as DependencyObject);
+            if (item is null)
+            {
+                return;
+            }
+            _dragSourceIndex = item.Value.Index;
+            _dragStartPoint = e.GetCurrentPoint(PlaylistView).Position;
+            _dragActive = false;
+            PlaylistView.SelectedItem = item.Value;
+        }
+
+        private void PlaylistView_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (_dragSourceIndex < 0)
+            {
+                return;
+            }
+            var position = e.GetCurrentPoint(PlaylistView).Position;
+            if (!_dragActive)
+            {
+                var delta = new Point(position.X - _dragStartPoint.X, position.Y - _dragStartPoint.Y);
+                if (Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y) < DRAG_THRESHOLD)
+                {
+                    return;
+                }
+                _dragActive = true;
+                // No CapturePointer here: on WinUI 3 desktop capturing the
+                // pointer from an injected mouse stopped subsequent moves from
+                // reaching the view (observed via instrumentation). A short
+                // within-list drag does not need capture.
+            }
+        }
+
+        private void PlaylistView_PointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            if (_dragSourceIndex < 0)
+            {
+                return;
+            }
+            int from = _dragSourceIndex;
+            _dragSourceIndex = -1;
+            if (!_dragActive)
+            {
+                return; // a plain click; ItemClick handles it
+            }
+            _dragActive = false;
+            if (PlaylistView.PointerCaptures?.Count > 0)
+            {
+                PlaylistView.ReleasePointerCaptures();
+            }
+
+            var target = FindPlaylistItem(e.OriginalSource as DependencyObject);
+            int to = target is { } t ? t.Index : PlaylistItems.Count - 1;
+            if (from == to)
+            {
+                return;
+            }
+
+            // MovePlaylistItem applies mpv's downward-shift compensation; the
+            // visual row index is passed as-is.
+            MovePlaylistItem(from, to);
         }
     }
 }
