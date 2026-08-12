@@ -233,6 +233,8 @@ namespace mpv_winui.Modules.Player
             SetHidden(hidden.Contains("fullwindow"), FullWindowButton);
             SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
             SetHidden(hidden.Contains("pip"), PiPButton);
+            SetHidden(hidden.Contains("equalizer"), EqualizerButton);
+            SetHidden(hidden.Contains("delay"), DelayButton);
         }
 
         /// <summary>
@@ -444,9 +446,9 @@ namespace mpv_winui.Modules.Player
                 left =
                 [
                     .. ReorderMovable(
-                        [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("tracks", TrackSelectionButton), ("random", ShuffleButton), ("speed", PlaybackRateButton)],
+                        [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("tracks", TrackSelectionButton), ("random", ShuffleButton), ("speed", PlaybackRateButton),
+                         ("equalizer", EqualizerButton), ("delay", DelayButton)],
                         custom),
-                    EqualizerButton, DelayButton,
                 ];
                 middle =
                 [
@@ -477,9 +479,9 @@ namespace mpv_winui.Modules.Player
                     .. ReorderMovable(
                         [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("speed", PlaybackRateButton),
                          ("tracks", TrackSelectionButton), ("aspect", ZoomButton), ("pip", PiPButton),
-                         ("fullwindow", FullWindowButton), ("fullscreen", FullScreenButton)],
+                         ("fullwindow", FullWindowButton), ("fullscreen", FullScreenButton),
+                         ("equalizer", EqualizerButton), ("delay", DelayButton)],
                         custom),
-                    EqualizerButton, DelayButton,
                 ];
             }
 
@@ -493,7 +495,7 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private static List<string> ParseCustomOrder()
         {
-            var allowed = new[] { "volume", "tracks", "random", "speed", "aspect", "fullwindow", "fullscreen", "pip" };
+            var allowed = new[] { "volume", "tracks", "random", "speed", "aspect", "fullwindow", "fullscreen", "pip", "equalizer", "delay" };
             var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
             var order = layout == "modernx"
                 ? AppContext.AppSetting.ControlBarCustomOrderModernX
