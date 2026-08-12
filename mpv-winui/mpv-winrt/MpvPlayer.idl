@@ -1,4 +1,5 @@
 import "DisplayColorKind.idl";
+import "MpvLogEventArgs.idl";
 import "MpvPlaylistItem.idl";
 import "MpvChapter.idl";
 import "MpvEdition.idl";
@@ -42,6 +43,7 @@ namespace mpv_winrt
     delegate void ShuffleChangedEventHandler();
     delegate void PlaylistChangedEventHandler();
     delegate void PreviewChangedEventHandler(MpvPreviewInfo args);
+    delegate void MpvLogEventHandler(MpvLogEventArgs args);
 
     runtimeclass MpvPlayer
     {
@@ -64,6 +66,8 @@ namespace mpv_winrt
 
         void Command(Windows.Foundation.Collections.IVector<String> args);
         void CommandString(String cmd);
+
+        void SetLogLevel(String level);
 
         String GetWatchHistoryPath();
         String GetWatchLaterFolderPath();
@@ -142,5 +146,6 @@ namespace mpv_winrt
         event ShuffleChangedEventHandler ShuffleChanged;
         event PlaylistChangedEventHandler PlaylistChanged;
         event PreviewChangedEventHandler PreviewChanged;
+        event MpvLogEventHandler LogMessage;
     };
 }

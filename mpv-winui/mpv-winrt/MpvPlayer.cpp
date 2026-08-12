@@ -5,6 +5,7 @@
 #include "MpvAudioDevice.h"
 #include "MpvChapter.h"
 #include "MpvEdition.h"
+#include "MpvLogEventArgs.h"
 #include "MpvMenuItem.h"
 #include "MpvPlaylistItem.h"
 #include "MpvPreviewInfo.h"
@@ -100,6 +101,10 @@ namespace winrt::mpv_winrt::implementation
             throw hresult_error(E_FAIL, L"Failed to initialize mpv");
         }
         m_initialized.store(true);
+
+        // Forward mpv's own log messages (shader compile failures, config
+        // warnings, ...) to the app as a WinRT event.
+        mpv_request_log_messages(m_mpv, "info");
 
         UpdateDisplayColorInfo(colorKind);
         UpdateDisplayRefreshRate(refreshRate);
@@ -235,6 +240,21 @@ namespace winrt::mpv_winrt::implementation
                             winrt::to_hstring(mpv_error_string(end_file->error)));
                         m_playbackFailedEvent(args);
                     }
+                    break;
+                }
+
+            case MPV_EVENT_LOG_MESSAGE:
+                {
+                    auto log = static_cast<mpv_event_log_message*>(event->data);
+                    if (!log || !log->text)
+                    {
+                        break;
+                    }
+                    auto args = winrt::make<implementation::MpvLogEventArgs>(
+                        winrt::to_hstring(log->level),
+                        winrt::to_hstring(log->prefix),
+                        winrt::to_hstring(log->text));
+                    m_logMessageEvent(args);
                     break;
                 }
 
@@ -801,6 +821,25 @@ namespace winrt::mpv_winrt::implementation
     {
         const auto args = winrt::to_string(cmd);
         mpv_command_string(m_mpv, args.c_str());
+    }
+
+    void MpvPlayer::SetLogLevel(hstring const& level)
+    {
+        if (!m_mpv || !m_initialized.load())
+        {
+            return;
+        }
+        mpv_request_log_messages(m_mpv, winrt::to_string(level).c_str());
+    }
+
+    winrt::event_token MpvPlayer::LogMessage(winrt::mpv_winrt::MpvLogEventHandler const& handler)
+    {
+        return m_logMessageEvent.add(handler);
+    }
+
+    void MpvPlayer::LogMessage(winrt::event_token const& token) noexcept
+    {
+        m_logMessageEvent.remove(token);
     }
 
     winrt::hstring MpvPlayer::GetWatchHistoryPath()

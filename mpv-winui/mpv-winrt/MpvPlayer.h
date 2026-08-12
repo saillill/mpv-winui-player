@@ -70,6 +70,7 @@ namespace winrt::mpv_winrt::implementation
 
         void Command(winrt::Windows::Foundation::Collections::IVector<hstring> const& args);
         void CommandString(hstring const& cmd);
+        void SetLogLevel(hstring const& level);
 
         winrt::hstring GetWatchHistoryPath();
         winrt::hstring GetWatchLaterFolderPath();
@@ -168,6 +169,8 @@ namespace winrt::mpv_winrt::implementation
         void PlaylistChanged(winrt::event_token const& token) noexcept;
         winrt::event_token PreviewChanged(winrt::mpv_winrt::PreviewChangedEventHandler const& handler);
         void PreviewChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token LogMessage(winrt::mpv_winrt::MpvLogEventHandler const& handler);
+        void LogMessage(winrt::event_token const& token) noexcept;
 
     private:
         static mpv_node* FindMapField(mpv_node* map, const char* key);
@@ -219,6 +222,7 @@ namespace winrt::mpv_winrt::implementation
         winrt::event<winrt::mpv_winrt::ShuffleChangedEventHandler> m_shuffleChangedEvent;
         winrt::event<winrt::mpv_winrt::PlaylistChangedEventHandler> m_playlistChangedEvent;
         winrt::event<winrt::mpv_winrt::PreviewChangedEventHandler> m_previewChangedEvent;
+        winrt::event<winrt::mpv_winrt::MpvLogEventHandler> m_logMessageEvent;
     };
 }
 

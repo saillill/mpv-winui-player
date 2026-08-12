@@ -115,6 +115,12 @@ namespace mpv_winui.Modules.Player
             get; set;
         }
 
+        /// <summary>mpv's own log messages (shader errors, config warnings, ...).</summary>
+        public Action<MpvMediaPlayer, MpvLogEventArgs>? LogMessage
+        {
+            get; set;
+        }
+
         public Action<MpvMediaPlayer, object?>? SeekingStarted
         {
             get; set;
@@ -278,6 +284,7 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.PlaylistChanged += MpvPlayer_PlaylistChanged;
             _mpvPlayer.PreviewChanged += MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged += MpvPlayer_WindowChanged;
+            _mpvPlayer.LogMessage += MpvPlayer_LogMessage;
         }
 
         public void StopListen()
@@ -295,6 +302,7 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.PlaylistChanged -= MpvPlayer_PlaylistChanged;
             _mpvPlayer.PreviewChanged -= MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged -= MpvPlayer_WindowChanged;
+            _mpvPlayer.LogMessage -= MpvPlayer_LogMessage;
         }
 
         private void MpvPlayer_VoConfigured()
@@ -305,6 +313,32 @@ namespace mpv_winui.Modules.Player
         private void MpvPlayer_WindowChanged(WindowChangedEventArgs args)
         {
             WindowChanged?.Invoke(this, args);
+        }
+
+        private void MpvPlayer_LogMessage(MpvLogEventArgs args)
+        {
+            // Map mpv's log levels onto NLog. Runs on the native event thread;
+            // only string building happens here, NLog is thread-safe.
+            switch (args.Level)
+            {
+                case "error":
+                case "fatal":
+                    AppContext.AppLogger.Error($"[mpv/{args.Prefix}] {args.Text}");
+                    break;
+                case "warn":
+                    AppContext.AppLogger.Warn($"[mpv/{args.Prefix}] {args.Text}");
+                    break;
+                default:
+                    AppContext.AppLogger.Info($"[mpv/{args.Prefix}] {args.Text}");
+                    break;
+            }
+            LogMessage?.Invoke(this, args);
+        }
+
+        /// <summary>Adjusts mpv's log verbosity ("fatal"…"debug"/"no").</summary>
+        public void SetLogLevel(string level)
+        {
+            _mpvPlayer?.SetLogLevel(level);
         }
 
         private void MpvPlayer_MediaInfoChanged(MediaInfoChangedEventArgs args)
