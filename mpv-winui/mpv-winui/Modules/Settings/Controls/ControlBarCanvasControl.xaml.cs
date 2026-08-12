@@ -12,17 +12,20 @@ using Windows.Foundation;
 namespace mpv_winui.Modules.Settings.Controls;
 
 /// <summary>
-/// Drag canvas for the control-bar buttons, rendered from the real bar state
-/// as one horizontal row split into the real bar's forced zones (原版: left
-/// transport + right cluster; 居中: left cluster | centered transport | right
-/// cluster), using the same glyphs and fonts as the real bar. Hidden buttons
-/// keep an anonymous grey slot on the strip; the drawer below lists only the
-/// remaining hidden buttons (icon + label), never empty frames. A long-press
-/// (hold) starts the drag: dragging a strip cell reorders it (insertion
-/// indicator), dragging a drawer card onto a strip cell snaps to its center
-/// with a blue edge highlight and replaces that cell (the two cards swap),
-/// and dragging a cell down onto the drawer hides it. A plain click —
-/// including the ✕ close button — never starts a drag.
+/// Editable control-bar strip for the layout cards, rendered from the real
+/// bar state as one horizontal row split into the real bar's forced zones
+/// (原版: left transport + right cluster; 居中: left cluster | centered
+/// transport | right cluster) with the same glyphs and fonts as the real bar
+/// (shuffle/pip use the Fluent font). There are no empty slots: hidden
+/// buttons are simply absent, so the strip always compacts left/right.
+/// Collapsed the strip is view-only; expanded (SetEditable) it shows a ✕ on
+/// every movable cell, the candidate drawer below (only the remaining hidden
+/// buttons, icon + label) and enables dragging: dragging a strip cell onto
+/// another swaps them (对调), dropping into a gap inserts with the neighbours
+/// compacting, dragging a drawer card onto the strip inserts it, and dragging
+/// a cell down onto the drawer hides it. Cells are cached per id and the
+/// zones use RepositionThemeTransition, so hide/show/reorder slide instead of
+/// jumping. A long-press gates the drag so a quick click never spawns a ghost.
 /// </summary>
 public sealed partial class ControlBarCanvasControl : OptionControlBase
 {
@@ -31,10 +34,11 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private const double HoldMilliseconds = 250;
     private const double GhostScale = 1.2;
     private const string IndicatorTag = "fixed:indicator";
-    private const string SlotPrefix = "slot:";
 
     private readonly DispatcherQueueTimer _holdTimer;
+    private readonly Dictionary<string, Border> _cellCache = [];
     private bool _holdElapsed;
+    private bool _editable;
 
     private string _style = "classic";
     private readonly List<string> _shown = [];   // movable ids in display order
@@ -52,9 +56,9 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private Border? _dragSourceCell;
     private Border? _dropIndicator;
     private Panel? _dropIndicatorParent;
-    private Border? _snapTarget;
-    private Brush? _snapTargetBrush;
-    private Thickness _snapTargetThickness;
+    private Border? _swapTarget;
+    private Brush? _swapTargetBrush;
+    private Thickness _swapTargetThickness;
 
     public ControlBarCanvasControl()
     {
@@ -66,9 +70,9 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         AvailableBar.PointerPressed += OnAvailablePressed;
 
         // A long-press gates the drag so a quick click never spawns a ghost
-        // or snap highlight. Moving past the threshold before the hold
-        // completes does not cancel the press — the drag simply starts when
-        // the hold elapses (the pointer already moved, so it is a drag).
+        // or highlight. Moving past the threshold before the hold completes
+        // does not cancel the press — the drag simply starts when the hold
+        // elapses (the pointer already moved, so it is a drag).
         _holdTimer = DispatcherQueue.CreateTimer();
         _holdTimer.Interval = TimeSpan.FromMilliseconds(HoldMilliseconds);
         _holdTimer.Tick += (_, _) =>
@@ -81,6 +85,9 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             }
         };
     }
+
+    /// <summary>Whether the strip is in edit mode (✕, drawer, drag enabled).</summary>
+    public bool IsEditable => _editable;
 
     /// <summary>Loads the state for the given layout style and re-renders.</summary>
     public void Load(string style)
@@ -118,6 +125,19 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         Render();
     }
 
+    /// <summary>Re-reads the real bar state (used when another canvas changed it).</summary>
+    public void Reload() => Load(_style);
+
+    /// <summary>Toggles edit mode: ✕ on movable cells, drawer and drag only when editing.</summary>
+    public void SetEditable(bool value)
+    {
+        _editable = value;
+        BarHint.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        AvailableCaption.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        AvailableBar.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        Render();
+    }
+
     private static IEnumerable<string> ParseTokens(string? value) =>
         value?.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
 
@@ -140,7 +160,8 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     /// <summary>
     /// Builds the single-row zone order exactly like the real bar's command
     /// bars: classic = left transport + repeat/random | right cluster;
-    /// modernx = left cluster | centered transport | right cluster.
+    /// modernx = left cluster | centered transport | right cluster. Hidden
+    /// ids are left out, so the strip compacts.
     /// </summary>
     private void BuildBarOrder()
     {
@@ -170,10 +191,9 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     }
 
     /// <summary>
-    /// Places the partition's cells: custom-ordered shown ids first (relative
+    /// Places the partition's shown cells: custom-ordered ids first (relative
     /// custom order within the partition), then the remaining ids in the
-    /// partition's default (real bar) order — hidden ids keep their default
-    /// position as empty slots.
+    /// partition's default (real bar) order. Hidden ids are skipped.
     /// </summary>
     private void AddMovableZone(int zone, IReadOnlyList<string> partition)
     {
@@ -187,7 +207,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         }
         foreach (var id in partition)
         {
-            if (!placed.Contains(id) && placed.Add(id))
+            if (!placed.Contains(id) && _shown.Contains(id) && placed.Add(id))
             {
                 _barOrder.Add((zone, false, id));
             }
@@ -204,80 +224,76 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         foreach (var (zone, fixedCell, id) in _barOrder)
         {
             var panel = ZoneOf(zone);
-            if (fixedCell)
+            var key = fixedCell ? "fixed:" + id : (_editable ? "e:" : "s:") + id;
+            if (!_cellCache.TryGetValue(key, out var cell))
             {
                 var (_, _, glyph) = ControlBarIconCatalog.Find(id);
-                panel.Children.Add(BuildCell(glyph, id, fixed_: true));
+                cell = BuildCell(glyph, id, fixedCell);
+                cell.Tag = fixedCell ? $"fixed:{id}" : id;
+                _cellCache[key] = cell;
             }
-            else if (_hidden.Contains(id))
-            {
-                panel.Children.Add(BuildHiddenSlot(id));
-            }
-            else
-            {
-                var (_, _, glyph) = ControlBarIconCatalog.Find(id);
-                var cell = BuildCell(glyph, id, fixed_: false);
-                cell.Tag = id;
-                panel.Children.Add(cell);
-            }
+            panel.Children.Add(cell);
         }
 
         // Drawer: only the remaining hidden buttons (icon + label below),
-        // wrapped per row — no empty "+" frames for shown buttons.
+        // wrapped per row — visible only in edit mode.
         AvailableBar.Children.Clear();
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Top };
-        const int perRow = 8;
-        foreach (var id in ControlBarIconCatalog.MovableIds)
+        if (_editable)
         {
-            if (!_hidden.Contains(id) || !IsRenderable(_style, id))
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Top };
+            const int perRow = 8;
+            foreach (var id in ControlBarIconCatalog.MovableIds)
             {
-                continue;
+                if (!_hidden.Contains(id) || !IsRenderable(_style, id))
+                {
+                    continue;
+                }
+                var (_, label, glyph) = ControlBarIconCatalog.Find(id);
+                var icon = new FontIcon
+                {
+                    Glyph = glyph,
+                    FontSize = 13,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                };
+                ControlBarIconCatalog.ApplyGlyphFont(icon, id);
+
+                var frame = new Border
+                {
+                    Width = CellSize,
+                    Height = CellSize,
+                    CornerRadius = new CornerRadius(5),
+                    Background = ThemeResource.Brush(this, "ControlFillColorTertiaryBrush"),
+                    BorderBrush = ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
+                    BorderThickness = new Thickness(1),
+                    Tag = id,
+                    Child = icon,
+                };
+
+                var item = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Top };
+                item.Children.Add(frame);
+                item.Children.Add(new TextBlock
+                {
+                    Text = label,
+                    FontSize = 7,
+                    TextWrapping = TextWrapping.NoWrap,
+                    TextAlignment = TextAlignment.Center,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    MaxLines = 1,
+                    Width = CellSize,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                });
+                row.Children.Add(item);
+                if (row.Children.Count >= perRow)
+                {
+                    AvailableBar.Children.Add(row);
+                    row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Top };
+                }
             }
-            var (_, label, glyph) = ControlBarIconCatalog.Find(id);
-            var icon = new FontIcon
-            {
-                Glyph = glyph,
-                FontSize = 13,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-            ControlBarIconCatalog.ApplyGlyphFont(icon, id);
-
-            var frame = new Border
-            {
-                Width = CellSize,
-                Height = CellSize,
-                CornerRadius = new CornerRadius(5),
-                Background = ThemeResource.Brush(this, "ControlFillColorTertiaryBrush"),
-                BorderBrush = ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
-                BorderThickness = new Thickness(1),
-                Tag = id,
-                Child = icon,
-            };
-
-            var item = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Top };
-            item.Children.Add(frame);
-            item.Children.Add(new TextBlock
-            {
-                Text = label,
-                FontSize = 7,
-                TextWrapping = TextWrapping.NoWrap,
-                TextAlignment = TextAlignment.Center,
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                MaxLines = 1,
-                Width = CellSize,
-                HorizontalAlignment = HorizontalAlignment.Center,
-            });
-            row.Children.Add(item);
-            if (row.Children.Count >= perRow)
+            if (row.Children.Count > 0)
             {
                 AvailableBar.Children.Add(row);
-                row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Top };
             }
-        }
-        if (row.Children.Count > 0)
-        {
-            AvailableBar.Children.Add(row);
         }
     }
 
@@ -298,7 +314,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             Background = ThemeResource.Brush(this, "ControlFillColorTertiaryBrush"),
             BorderBrush = ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
             BorderThickness = new Thickness(1),
-            Tag = fixed_ ? $"fixed:{id}" : null,
         };
 
         var panel = new Grid();
@@ -323,7 +338,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                 Margin = new Thickness(0, 1, 1, 0),
             });
         }
-        else
+        else if (_editable)
         {
             var close = new Button
             {
@@ -346,25 +361,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         return cell;
     }
 
-    /// <summary>
-    /// A hidden button's slot on the strip: an anonymous grey frame of the
-    /// same size as a shown cell — no icon, no label, no original position
-    /// info. It stays as a drop target for the drawer cards.
-    /// </summary>
-    private Border BuildHiddenSlot(string id)
-    {
-        return new Border
-        {
-            Width = CellSize,
-            Height = CellSize,
-            CornerRadius = new CornerRadius(5),
-            Background = ThemeResource.Brush(this, "ControlFillColorTertiaryBrush"),
-            BorderBrush = ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
-            BorderThickness = new Thickness(1),
-            Tag = SlotPrefix + id,
-        };
-    }
-
     // ===== Actions =====
 
     private void HideButton(string id)
@@ -379,42 +375,23 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         Render();
     }
 
-    /// <summary>Shows the dragged drawer card at a hidden slot's position.</summary>
-    private void ShowButtonAt(string id, int shownIndex)
+    private void ShowButton(string id, int insertIndex)
     {
         if (!IsRenderable(_style, id))
         {
-            return;
+            return; // not in this layout's zones (e.g. repeat on 居中)
         }
         _hidden.Remove(id);
         if (!_shown.Contains(id))
         {
-            _shown.Insert(Math.Clamp(shownIndex, 0, _shown.Count), id);
+            _shown.Insert(Math.Clamp(insertIndex, 0, _shown.Count), id);
         }
         Save();
         BuildBarOrder();
         Render();
     }
 
-    /// <summary>Replaces the target shown cell with the dragged drawer card (the two swap).</summary>
-    private void ReplaceShown(string targetId, string draggedId)
-    {
-        var index = _shown.IndexOf(targetId);
-        if (index < 0 || !IsRenderable(_style, draggedId))
-        {
-            return;
-        }
-        _shown[index] = draggedId;
-        _hidden.Remove(draggedId);
-        if (!_hidden.Contains(targetId))
-        {
-            _hidden.Add(targetId);
-        }
-        Save();
-        BuildBarOrder();
-        Render();
-    }
-
+    /// <summary>Inserts a strip cell at the given index; neighbours compact.</summary>
     private void MoveShown(string id, int insertIndex)
     {
         var fromIndex = _shown.IndexOf(id);
@@ -427,6 +404,21 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         // removing it shifts a rightward target down by one.
         var target = insertIndex > fromIndex ? insertIndex - 1 : insertIndex;
         _shown.Insert(Math.Clamp(target, 0, _shown.Count), id);
+        Save();
+        BuildBarOrder();
+        Render();
+    }
+
+    /// <summary>Swaps two strip cells (对调).</summary>
+    private void SwapShown(string a, string b)
+    {
+        var ia = _shown.IndexOf(a);
+        var ib = _shown.IndexOf(b);
+        if (ia < 0 || ib < 0)
+        {
+            return;
+        }
+        (_shown[ia], _shown[ib]) = (_shown[ib], _shown[ia]);
         Save();
         BuildBarOrder();
         Render();
@@ -448,14 +440,14 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         StateChanged?.Invoke();
     }
 
-    /// <summary>Raised after the canvas persists a change so card previews can re-render.</summary>
+    /// <summary>Raised after the canvas persists a change so other cards' strips re-render.</summary>
     public static event Action? StateChanged;
 
-    // ===== Drag (manual pointer; long-press only) =====
+    // ===== Drag (manual pointer; long-press only; edit mode only) =====
 
     private void OnAvailablePressed(object sender, PointerRoutedEventArgs e)
     {
-        if (e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Mouse)
+        if (!_editable || e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Mouse)
         {
             return;
         }
@@ -481,7 +473,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        if (e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Mouse)
+        if (!_editable || e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Mouse)
         {
             return;
         }
@@ -545,10 +537,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     {
         while (source is not null)
         {
-            if (source is FrameworkElement { Tag: string tag }
-                && tag is not null
-                && !tag.StartsWith("fixed:", StringComparison.Ordinal)
-                && !tag.StartsWith(SlotPrefix, StringComparison.Ordinal))
+            if (source is FrameworkElement { Tag: string tag } && tag is not null && !tag.StartsWith("fixed:", StringComparison.Ordinal))
             {
                 return tag;
             }
@@ -588,9 +577,20 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             Canvas.SetLeft(_ghost, p.X - CellSize / 2);
             Canvas.SetTop(_ghost, p.Y - CellSize / 2);
         }
+
+        // Strip drags highlight the swap target under the pointer; drawer
+        // drags always show the insertion indicator (insert into the bar).
+        ClearSwapTarget();
+        ClearDropIndicator();
         if (_dragFromAvailable)
         {
-            UpdateSnapTarget(p);
+            UpdateDropIndicator(p);
+            return;
+        }
+        var target = HitBarTargetCell(p);
+        if (target is not null)
+        {
+            HighlightSwapTarget(target);
         }
         else
         {
@@ -651,7 +651,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         return null;
     }
 
-    /// <summary>All strip cells in visual order (fixed, movable, hidden slots), skipping the drop indicator.</summary>
+    /// <summary>All strip cells in visual order (fixed + movable), skipping indicators.</summary>
     private IEnumerable<(FrameworkElement Cell, StackPanel Zone)> BarCells()
     {
         foreach (var zone in new[] { ZoneLeft, ZoneCenter, ZoneRight })
@@ -663,6 +663,51 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                     yield return (fe, zone);
                 }
             }
+        }
+    }
+
+    /// <summary>The movable cell under the pointer (excluding the dragged one), or null.</summary>
+    private Border? HitBarTargetCell(Point position)
+    {
+        foreach (var (cell, _) in BarCells())
+        {
+            if (!tagIsMovable(cell))
+            {
+                continue;
+            }
+            if (cell.Tag is string tag && tag == _dragSourceId)
+            {
+                continue;
+            }
+            var rect = BoundsOf(cell);
+            if (position.X >= rect.X - 4 && position.X <= rect.Right + 4
+                && position.Y >= rect.Y - 4 && position.Y <= rect.Bottom + 4)
+            {
+                return (Border)cell;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>Accent-highlights a cell as the swap target (对调 preview).</summary>
+    private void HighlightSwapTarget(Border cell)
+    {
+        _swapTarget = cell;
+        _swapTargetBrush = cell.BorderBrush;
+        _swapTargetThickness = cell.BorderThickness;
+        cell.BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x00, 0x9D, 0xFF));
+        cell.BorderThickness = new Thickness(2);
+    }
+
+    private void ClearSwapTarget()
+    {
+        if (_swapTarget is not null)
+        {
+            _swapTarget.BorderBrush = _swapTargetBrush
+                ?? ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush");
+            _swapTarget.BorderThickness = _swapTargetThickness;
+            _swapTarget = null;
+            _swapTargetBrush = null;
         }
     }
 
@@ -681,8 +726,8 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         }
 
         // Insert the indicator before the cell that currently sits at
-        // insertIndex (fixed cells and hidden slots are skipped in the count
-        // but still bound the drop positions).
+        // insertIndex (fixed cells are skipped in the count but still bound
+        // the drop positions).
         var shownSeen = 0;
         FrameworkElement? lastCell = null;
         StackPanel? lastZone = null;
@@ -735,69 +780,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         }
     }
 
-    /// <summary>
-    /// Center-snap for drawer → strip drops: the cell under the pointer (or
-    /// the nearest one) gets a blue edge highlight. The dragged card replaces
-    /// that cell on release.
-    /// </summary>
-    private void UpdateSnapTarget(Point position)
-    {
-        ClearSnapTarget();
-        if (!_dragActive)
-        {
-            return;
-        }
-        var barBounds = BoundsOf(BarHost);
-        if (position.Y < barBounds.Y - 12 || position.Y > barBounds.Bottom + 12)
-        {
-            return;
-        }
-
-        FrameworkElement? best = null;
-        double bestDistance = double.MaxValue;
-        foreach (var (cell, _) in BarCells())
-        {
-            if (!tagIsMovable(cell) && !tagIsSlot(cell))
-            {
-                continue;
-            }
-            var rect = BoundsOf(cell);
-            if (position.X >= rect.X && position.X <= rect.Right)
-            {
-                best = cell; // strictly inside
-                break;
-            }
-            var d = Math.Abs(position.X - (rect.X + rect.Width / 2));
-            if (d < bestDistance)
-            {
-                bestDistance = d;
-                best = cell;
-            }
-        }
-        if (best is null)
-        {
-            return;
-        }
-
-        _snapTarget = (Border)best;
-        _snapTargetBrush = _snapTarget.BorderBrush;
-        _snapTargetThickness = _snapTarget.BorderThickness;
-        _snapTarget.BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x00, 0x9D, 0xFF));
-        _snapTarget.BorderThickness = new Thickness(2);
-    }
-
-    private void ClearSnapTarget()
-    {
-        if (_snapTarget is not null)
-        {
-            _snapTarget.BorderBrush = _snapTargetBrush
-                ?? ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush");
-            _snapTarget.BorderThickness = _snapTargetThickness;
-            _snapTarget = null;
-            _snapTargetBrush = null;
-        }
-    }
-
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
         if (_dragSourceId is null)
@@ -823,73 +805,52 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             _dragSourceCell = null;
         }
         ClearDropIndicator();
+        ClearSwapTarget();
 
         if (!wasDrag)
         {
-            // A plain click (or a click on the ✕ that already hid the cell).
-            ClearSnapTarget();
-            return;
+            return; // a plain click (or a click on the ✕ that already hid the cell)
         }
 
         var position = e.GetCurrentPoint(RootPanel).Position;
 
         if (fromAvailable)
         {
-            // Drawer → strip: center-snap replaces the target cell; a hidden
-            // slot just fills in at that position.
-            if (_snapTarget is not null)
+            // Drawer → strip: insert at the drop position (default), the
+            // neighbours compact left/right.
+            var drawerInsert = HitBarInsertIndex(position);
+            if (drawerInsert >= 0)
             {
-                if (_snapTarget.Tag is string tag && tagIsMovable(_snapTarget))
-                {
-                    ReplaceShown(tag, sourceId);
-                }
-                else if (_snapTarget.Tag is string slotTag && slotTag.StartsWith(SlotPrefix, StringComparison.Ordinal))
-                {
-                    ShowButtonAt(sourceId, SlotShownIndex(_snapTarget));
-                }
+                ShowButton(sourceId, drawerInsert);
             }
-            ClearSnapTarget();
             return;
         }
 
-        // Strip → strip: reorder with the insertion indicator.
+        // Strip → strip: swap with the cell under the pointer, or insert
+        // into the gap; dragging onto the drawer hides the button.
+        var target = HitBarTargetCell(position);
+        if (target?.Tag is string targetId)
+        {
+            SwapShown(sourceId, targetId);
+            return;
+        }
         var insertIndex = HitBarInsertIndex(position);
         if (insertIndex >= 0)
         {
             MoveShown(sourceId, insertIndex);
             return;
         }
-
         if (IsOverAvailable(position))
         {
             HideButton(sourceId);
         }
     }
 
-    /// <summary>Number of shown cells before the given slot (its insert position).</summary>
-    private int SlotShownIndex(FrameworkElement slot)
-    {
-        var index = 0;
-        foreach (var (cell, _) in BarCells())
-        {
-            if (ReferenceEquals(cell, slot))
-            {
-                return index;
-            }
-            if (tagIsMovable(cell))
-            {
-                index++;
-            }
-        }
-        return index;
-    }
-
     /// <summary>
     /// Returns the _shown insertion index the drop point maps to by scanning
-    /// the strip left-to-right across the zones (fixed cells and hidden slots
-    /// are skipped in the count but still bound the drop positions). -1 when
-    /// the drop is outside the strip — both horizontally (left/right of every
-    /// cell) and vertically (above/below the strip band, so a drop on the
+    /// the strip left-to-right across the zones (fixed cells are skipped in
+    /// the count but still bound the drop positions). -1 when the drop is
+    /// outside the strip — both horizontally and vertically (a drop on the
     /// drawer below is never mistaken for an insertion).
     /// </summary>
     private int HitBarInsertIndex(Point position)
@@ -920,13 +881,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     }
 
     private static bool tagIsMovable(FrameworkElement cell) =>
-        cell.Tag is string tag
-        && tag.Length > 0
-        && !tag.StartsWith("fixed:", StringComparison.Ordinal)
-        && !tag.StartsWith(SlotPrefix, StringComparison.Ordinal);
-
-    private static bool tagIsSlot(FrameworkElement cell) =>
-        cell.Tag is string tag && tag.StartsWith(SlotPrefix, StringComparison.Ordinal);
+        cell.Tag is string tag && !tag.StartsWith("fixed:", StringComparison.Ordinal);
 
     private Rect BoundsOf(FrameworkElement element)
     {

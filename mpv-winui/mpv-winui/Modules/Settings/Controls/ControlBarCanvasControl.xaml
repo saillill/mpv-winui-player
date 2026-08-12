@@ -12,13 +12,16 @@
             <TextBlock
                 x:Name="BarHint"
                 FontSize="12"
+                Visibility="Collapsed"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 TextWrapping="Wrap" />
 
             <!-- The card's bar strip, laid out in the real bar's forced zones:
                  原版 = left zone (transport + repeat/random) | right zone;
                  居中 = left zone | centered transport | right zone. Hidden
-                 buttons render as empty slots inside their own zone. -->
+                 buttons are simply absent, so the strip always compacts.
+                 Cells are cached per id and RepositionThemeTransition makes
+                 hide/show/reorder slide smoothly. -->
             <Grid x:Name="BarHost">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -32,35 +35,55 @@
                     Orientation="Horizontal"
                     Spacing="3"
                     HorizontalAlignment="Left"
-                    VerticalAlignment="Center" />
+                    VerticalAlignment="Center">
+                    <StackPanel.Transitions>
+                        <TransitionCollection>
+                            <RepositionThemeTransition />
+                        </TransitionCollection>
+                    </StackPanel.Transitions>
+                </StackPanel>
                 <StackPanel
                     x:Name="ZoneCenter"
                     Grid.Column="1"
                     Orientation="Horizontal"
                     Spacing="3"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center" />
+                    VerticalAlignment="Center">
+                    <StackPanel.Transitions>
+                        <TransitionCollection>
+                            <RepositionThemeTransition />
+                        </TransitionCollection>
+                    </StackPanel.Transitions>
+                </StackPanel>
                 <StackPanel
                     x:Name="ZoneRight"
                     Grid.Column="2"
                     Orientation="Horizontal"
                     Spacing="3"
                     HorizontalAlignment="Right"
-                    VerticalAlignment="Center" />
+                    VerticalAlignment="Center">
+                    <StackPanel.Transitions>
+                        <TransitionCollection>
+                            <RepositionThemeTransition />
+                        </TransitionCollection>
+                    </StackPanel.Transitions>
+                </StackPanel>
             </Grid>
 
-            <!-- Candidate drawer: one card per movable button, same size and
-                 style as the bar slots. Hidden buttons fill a card (icon +
-                 localized label below); empty cards stay as "+" frames. Drag
-                 a card's icon back onto the bar strip to show it. -->
+            <!-- Candidate drawer (only visible when editing): one card per
+                 remaining hidden button (icon + localized label below). Drag a
+                 card onto the strip to insert it; drag a strip cell here to
+                 hide it. -->
             <TextBlock
                 x:Name="AvailableCaption"
                 FontSize="12"
+                Visibility="Collapsed"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             <StackPanel
                 x:Name="AvailableBar"
                 Orientation="Horizontal"
-                Spacing="4" />
+                Spacing="4"
+                Visibility="Collapsed" />
         </StackPanel>
 
         <!-- Floating drag ghost overlay (StackPanel ignores Canvas positions). -->
