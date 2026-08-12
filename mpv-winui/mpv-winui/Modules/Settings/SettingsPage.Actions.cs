@@ -511,7 +511,9 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             nameof(AppSettings.ScreenshotJxlDistance) when s.ScreenshotFormat != "jxl" => false,
             nameof(AppSettings.ScreenshotJxlEffort) when s.ScreenshotFormat != "jxl" => false,
             nameof(AppSettings.ScreenshotAvifEncoder) when s.ScreenshotFormat != "avif" => false,
-            nameof(AppSettings.ScreenshotHighBitDepth) when s.ScreenshotFormat is not ("png" or "webp") => false,
+            // mpv only writes high-bit-depth screenshots for PNG, JXL and AVIF
+            // (image_writer_high_depth); WebP ignores this option.
+            nameof(AppSettings.ScreenshotHighBitDepth) when s.ScreenshotFormat is not ("png" or "jxl" or "avif") => false,
             nameof(AppSettings.ScreenshotTagColorspace) when s.ScreenshotFormat == "jpg" => false,
             _ => true,
         };

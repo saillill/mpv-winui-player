@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 
@@ -135,8 +136,8 @@ public static class MpvSettings
             nameof(AppSettings.GpuShaderCache) => $"set gpu-shader-cache {(value is true ? "yes" : "no")}",
             nameof(AppSettings.GlslShadersAppend) => string.IsNullOrWhiteSpace((string)value) ? null : $"set glsl-shaders-append {Q((string)value)}",
             nameof(AppSettings.AudioChannels) => $"set audio-channels {(string)value}",
-            nameof(AppSettings.AudioWaitOpen) => $"set audio-wait-open {(value is true ? "yes" : "no")}",
-            nameof(AppSettings.AudioBuffer) => (value is int buf && buf > 0) ? $"set audio-buffer {buf}" : null,
+            nameof(AppSettings.AudioWaitOpen) => $"set audio-wait-open {((double)value).ToString(CultureInfo.InvariantCulture)}",
+            nameof(AppSettings.AudioBuffer) => (value is double buf && buf > 0) ? $"set audio-buffer {buf.ToString(CultureInfo.InvariantCulture)}" : null,
             nameof(AppSettings.AudioExclusive) => $"set audio-exclusive {(value is true ? "yes" : "no")}",
             nameof(AppSettings.AudioPitchCorrection) => $"set audio-pitch-correction {(value is true ? "yes" : "no")}",
             nameof(AppSettings.AudioNormalizeDownmix) => $"set audio-normalize-downmix {(value is true ? "yes" : "no")}",

@@ -71,9 +71,9 @@ public sealed partial class SettingsPage
                 [
                     new OptionChoice("", lang.OptionValueAuto),
                     new OptionChoice("srgb", lang.OptionValueCspSrgb),
-                    new OptionChoice("bt.709", lang.OptionValueCspBt709),
                     new OptionChoice("bt.2020", lang.OptionValueCspBt2020),
                     new OptionChoice("pq", lang.OptionValueCspPq),
+                    new OptionChoice("linear", lang.OptionValueCspLinear),
                 ],
                 Getter = () => AppContext.AppSetting.D3d11OutputCsp,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11OutputCsp), AppContext.AppSetting.D3d11OutputCsp = (string)v!)

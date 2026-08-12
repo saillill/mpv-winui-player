@@ -61,6 +61,11 @@ public sealed partial class OptionIntegerControl : OptionControlBase
     public override (bool IsValid, string? ErrorMessage) Validate()
     {
         var val = NumberBox.Value;
+        if (double.IsNaN(val))
+        {
+            return (false, mpv_winui.AppContext.AppLang.ValidationValueNotEmpty);
+        }
+
         if (Setting is not null)
         {
             if (Setting.Min.HasValue && val < Setting.Min.Value)

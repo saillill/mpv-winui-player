@@ -551,7 +551,7 @@ namespace mpv_winui.Modules.Language
         public string OptionValueDirModeRecursive { get; set; } = "Recursive";
         public string OptionValueTscaleOversample { get; set; } = "Oversample";
         public string OptionValueTscaleLinear { get; set; } = "Linear";
-        public string OptionValueTscaleCubic { get; set; } = "Cubic";
+        public string OptionValueTscaleCubic { get; set; } = "Bicubic";
         public string OptionValueTscaleMitchell { get; set; } = "Mitchell";
         public string OptionValueTscaleLanczos { get; set; } = "Lanczos";
         public string OptionValueDitherFruit { get; set; } = "Fruit";
@@ -561,6 +561,7 @@ namespace mpv_winui.Modules.Language
         public string OptionValueCspBt709 { get; set; } = "BT.709";
         public string OptionValueCspBt2020 { get; set; } = "BT.2020";
         public string OptionValueCspPq { get; set; } = "PQ (HDR)";
+        public string OptionValueCspLinear { get; set; } = "Linear";
         public string OptionValueHintModeTarget { get; set; } = "Target";
         public string OptionValueHintModeSource { get; set; } = "Source";
         public string OptionValueHintModeSourceDynamic { get; set; } = "Source dynamic";
@@ -679,7 +680,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsAudioFilePaths { get; set; } = "External audio folders";
         public string SettingsAudioGapless { get; set; } = "Gapless audio";
         public string SettingsAudioWaitOpen { get; set; } = "Wait for audio open";
-        public string SettingsAudioBuffer { get; set; } = "Audio buffer (ms)";
+        public string SettingsHelpAudioWaitOpen { get; set; } = "How long mpv waits for audio output to open, in seconds. 0 uses mpv's default; usually only useful together with audio-stream-silence=yes.";
+        public string SettingsAudioBuffer { get; set; } = "Audio buffer (seconds)";
         public string SettingsSubAuto { get; set; } = "Auto-load subtitles";
         public string SettingsSubFont { get; set; } = "Subtitle font";
         public string SettingsSubFontProvider { get; set; } = "Subtitle font provider";
@@ -834,7 +836,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpCoverArtNames { get; set; } = "Cover art filenames to look for, separated by semicolons. Takes effect on the next start.";
         public string SettingsHelpThumbfastDirectIo { get; set; } = "Use Windows native APIs to write thumbnail frames. Takes effect on the next start.";
         public string SettingsHelpThumbfastQuitAfterInactivity { get; set; } = "Kill the thumbnail process after this many idle seconds. 0 disables. Takes effect on the next start.";
-        public string SettingsHelpAudioBuffer { get; set; } = "Audio output buffer in milliseconds. 0 lets mpv choose; larger reduces glitches but adds latency.";
+        public string SettingsHelpAudioBuffer { get; set; } = "Audio output buffer in seconds (0-10). 0 lets mpv choose (0.2 by default); larger reduces glitches but adds latency.";
 
         /// <summary>Native (autonym) name of an app UI language, e.g. zh-CN → 中文.</summary>
         public static string NativeLanguageName(string code)

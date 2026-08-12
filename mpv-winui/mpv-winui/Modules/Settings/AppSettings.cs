@@ -372,7 +372,13 @@ namespace mpv_winui.Modules.Settings
 
         public string AspectRatio
         {
-            get => _dataSetting.GetValue(nameof(AspectRatio), "auto");
+            get
+            {
+                // mpv's "auto" spelling is invalid for video-aspect-override; the
+                // legal value for "automatic" is "no". Migrate legacy stores.
+                var value = _dataSetting.GetValue(nameof(AspectRatio), "no");
+                return value == "auto" ? "no" : value;
+            }
             set => _dataSetting.SetValue(nameof(AspectRatio), value);
         }
 
@@ -464,7 +470,13 @@ namespace mpv_winui.Modules.Settings
 
         public string VideoSync
         {
-            get => _dataSetting.GetValue(nameof(VideoSync), "audio");
+            get
+            {
+                // "cfr" was removed from mpv; migrate the legacy preset to the
+                // equivalent modern mode.
+                var value = _dataSetting.GetValue(nameof(VideoSync), "audio");
+                return value == "cfr" ? "display-resample" : value;
+            }
             set => _dataSetting.SetValue(nameof(VideoSync), value);
         }
 
@@ -851,7 +863,12 @@ namespace mpv_winui.Modules.Settings
 
         public string Tscale
         {
-            get => _dataSetting.GetValue(nameof(Tscale), "oversample");
+            get
+            {
+                // mpv has no "cubic" tscale; the preset was a typo for "bicubic".
+                var value = _dataSetting.GetValue(nameof(Tscale), "oversample");
+                return value == "cubic" ? "bicubic" : value;
+            }
             set => _dataSetting.SetValue(nameof(Tscale), value);
         }
 
@@ -989,7 +1006,13 @@ namespace mpv_winui.Modules.Settings
 
         public string D3d11OutputCsp
         {
-            get => _dataSetting.GetValue(nameof(D3d11OutputCsp), string.Empty);
+            get
+            {
+                // "bt.709" is not a legal d3d11-output-csp value; fall back to
+                // auto (empty) for values written by older builds.
+                var value = _dataSetting.GetValue(nameof(D3d11OutputCsp), string.Empty);
+                return value == "bt.709" ? string.Empty : value;
+            }
             set => _dataSetting.SetValue(nameof(D3d11OutputCsp), value);
         }
 
@@ -1233,9 +1256,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(AudioGapless), value);
         }
 
-        public bool AudioWaitOpen
+        /// <summary>Seconds to wait for the audio output to open (mpv audio-wait-open).</summary>
+        public double AudioWaitOpen
         {
-            get => _dataSetting.GetValue(nameof(AudioWaitOpen), false);
+            get => _dataSetting.GetValue(nameof(AudioWaitOpen), 0.0);
             set => _dataSetting.SetValue(nameof(AudioWaitOpen), value);
         }
 
@@ -1618,9 +1642,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ThumbfastQuitAfterInactivity), value);
         }
 
-        public int AudioBuffer
+        /// <summary>Audio output buffer size in seconds (mpv audio-buffer, 0..10).</summary>
+        public double AudioBuffer
         {
-            get => _dataSetting.GetValue(nameof(AudioBuffer), 0);
+            get => _dataSetting.GetValue(nameof(AudioBuffer), 0.2);
             set => _dataSetting.SetValue(nameof(AudioBuffer), value);
         }
 

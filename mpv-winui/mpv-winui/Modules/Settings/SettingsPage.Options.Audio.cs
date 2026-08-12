@@ -145,9 +145,13 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.AudioWaitOpen),
                 Label = lang.SettingsAudioWaitOpen,
                 Category = audio,
-                Type = OptionType.Boolean,
+                Description = lang.SettingsHelpAudioWaitOpen,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 60,
+                Step = 0.5,
                 Getter = () => AppContext.AppSetting.AudioWaitOpen,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioWaitOpen), AppContext.AppSetting.AudioWaitOpen = (bool)v!)
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioWaitOpen), AppContext.AppSetting.AudioWaitOpen = (double)v!)
             },
 
             new Option
@@ -156,12 +160,12 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsAudioBuffer,
                 Category = audio,
                 Description = lang.SettingsHelpAudioBuffer,
-                Type = OptionType.Integer,
+                Type = OptionType.Double,
                 Min = 0,
-                Max = 2000,
-                Step = 50,
-                Getter = () => (double)AppContext.AppSetting.AudioBuffer,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioBuffer), AppContext.AppSetting.AudioBuffer = Convert.ToInt32(v))
+                Max = 10,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.AudioBuffer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioBuffer), AppContext.AppSetting.AudioBuffer = (double)v!)
             },
 
             new Option

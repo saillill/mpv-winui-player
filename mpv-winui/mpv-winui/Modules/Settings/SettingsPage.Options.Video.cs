@@ -51,7 +51,7 @@ public sealed partial class SettingsPage
                 Type = OptionType.StringList,
                 Choices =
                 [
-                    new OptionChoice("auto", lang.OptionValueAspectAuto),
+                    new OptionChoice("no", lang.OptionValueAspectAuto),
                     new OptionChoice("16:9", "16:9"),
                     new OptionChoice("4:3", "4:3"),
                     new OptionChoice("2.35:1", "2.35:1"),
@@ -74,7 +74,6 @@ public sealed partial class SettingsPage
                     new OptionChoice("display-resample", lang.OptionValueVideoSyncDisplayResample),
                     new OptionChoice("display-resample-vdrop", lang.OptionValueVideoSyncDisplayResampleVdrop),
                     new OptionChoice("display-adrop", lang.OptionValueVideoSyncDisplayAdrop),
-                    new OptionChoice("cfr", lang.OptionValueVideoSyncCfr),
                 ],
                 Getter = () => AppContext.AppSetting.VideoSync,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoSync), AppContext.AppSetting.VideoSync = (string)v!)
@@ -174,7 +173,7 @@ public sealed partial class SettingsPage
                 [
                     new OptionChoice("oversample", lang.OptionValueTscaleOversample),
                     new OptionChoice("linear", lang.OptionValueTscaleLinear),
-                    new OptionChoice("cubic", lang.OptionValueTscaleCubic),
+                    new OptionChoice("bicubic", lang.OptionValueTscaleCubic),
                     new OptionChoice("mitchell", lang.OptionValueTscaleMitchell),
                     new OptionChoice("lanczos", lang.OptionValueTscaleLanczos),
                 ],
