@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Regenerate the settings category/section maps in SettingsPage.Options.cs.
+"""Regenerate the settings category/section maps in SettingsPage.xaml.cs.
 
 The settings window follows the option layout of the mpv manual
 (DOCS/man/options.rst). This script is the single source of truth for:
@@ -12,7 +12,7 @@ Usage:
     python tools/generate-settings-category-map.py all
 
 Print the generated fragments to stdout and replace the corresponding
-region in SettingsPage.Options.cs (from `var categoryOrder = new[]` up to the
+region in SettingsPage.xaml.cs (from `var categoryOrder = new[]` up to the
 closing `};` of `sectionMap`). The script validates that every setting key
 is mapped exactly once.
 """
@@ -32,8 +32,8 @@ for f in sorted(SRC.glob("SettingsPage.Options*.cs")):
 keys = sorted(set(keys))
 
 # key -> (category var, section var)
-# Category vars: program playback video audio subtitles window
-#                network input shortcuts osd screenshot testing
+# Category vars: program playback watchLater video audio subtitles window demuxer
+#                cache network input shortcuts osd screenshot testing
 # Section vars:  sProgramInterface sProgramLanguageLog sProgramNetwork sProgramTesting
 #                sPlayback sPlaybackSeeking sPlaybackSeekPreview
 #                sTrackLanguage sTrackFallback
@@ -54,7 +54,6 @@ MAP = {
     "ThemeOpacity": ("program", "sProgramInterface"),
     "ThemeLuminosity": ("program", "sProgramInterface"),
     "UiFont": ("program", "sProgramInterface"),
-    "CheckForUpdates": ("program", "sProgramInterface"),
     "TestMpvCommandLog": ("testing", "sProgramTesting"),
     "TestOsdMessage": ("testing", "sProgramTesting"),
     "TestSignal": ("testing", "sProgramTesting"),
@@ -63,6 +62,8 @@ MAP = {
     "Ytdl": ("network", "sProgramNetwork"),
     "YtdlRawOptionsAppend": ("network", "sProgramNetwork"),
     # Playback Control
+    "LoopFile": ("playback", "sPlayback"),
+    "LoopPlaylist": ("playback", "sPlayback"),
     "Speed": ("playback", "sPlayback"),
     "HrSeek": ("playback", "sPlaybackSeeking"),
     "HrSeekFramedrop": ("playback", "sPlaybackSeeking"),
@@ -79,17 +80,15 @@ MAP = {
     "ThumbfastFrequency": ("playback", "sPlaybackSeekPreview"),
     "ThumbfastDirectIo": ("playback", "sPlaybackSeekPreview"),
     "ThumbfastQuitAfterInactivity": ("playback", "sPlaybackSeekPreview"),
-    "ThumbfastAudio": ("playback", "sPlaybackSeekPreview"),
-    "ThumbfastHwdec": ("playback", "sPlaybackSeekPreview"),
     # Track Selection
     "AudioLanguage": ("subtitles", "sTrackLanguage"),
     "SubtitleLanguage": ("subtitles", "sTrackLanguage"),
     "SubFallback": ("subtitles", "sTrackFallback"),
     # Watch Later
-    "SavePositionOnQuit": ("playback", "sWatchLaterResume"),
-    "ResumePlayback": ("playback", "sWatchLaterResume"),
-    "WatchLaterOptions": ("playback", "sWatchLaterStorage"),
-    "WatchLaterDir": ("playback", "sWatchLaterStorage"),
+    "SavePositionOnQuit": ("watchLater", "sWatchLaterResume"),
+    "ResumePlayback": ("watchLater", "sWatchLaterResume"),
+    "WatchLaterOptions": ("watchLater", "sWatchLaterStorage"),
+    "WatchLaterDir": ("watchLater", "sWatchLaterStorage"),
     # Video
     "Hwdec": ("video", "sVideoDecode"),
     "HwdecCodecs": ("video", "sVideoDecode"),
@@ -101,7 +100,6 @@ MAP = {
     "VideoUnscaled": ("video", "sVideoImage"),
     "VideoOutputLevels": ("video", "sVideoImage"),
     "HdrAutoMode": ("video", "sVideoFilters"),
-    "HdrOverrideMode": ("video", "sVideoFilters"),
     "HdrAutoLog": ("video", "sVideoFilters"),
     "VsrAutoEnabled": ("video", "sVideoFilters"),
     # Audio
@@ -113,9 +111,6 @@ MAP = {
     "AudioWaitOpen": ("audio", "sAudioOutput"),
     "AudioPitchCorrection": ("audio", "sAudioOutput"),
     "AudioNormalizeDownmix": ("audio", "sAudioOutput"),
-    "AudioGapless": ("audio", "sAudioOutput"),
-    "AudioSpdif": ("audio", "sAudioOutput"),
-    "Replaygain": ("audio", "sAudioVolume"),
     "VolumeMax": ("audio", "sAudioVolume"),
     "AudioFileAuto": ("audio", "sAudioExternal"),
     "AudioExts": ("audio", "sAudioExternal"),
@@ -140,12 +135,6 @@ MAP = {
     "SubShadowOffset": ("subtitles", "sSubtitleText"),
     "SubBlur": ("subtitles", "sSubtitleText"),
     "SubPos": ("subtitles", "sSubtitleText"),
-    "SubBold": ("subtitles", "sSubtitleText"),
-    "SubItalic": ("subtitles", "sSubtitleText"),
-    "SubAlignX": ("subtitles", "sSubtitleText"),
-    "SubAlignY": ("subtitles", "sSubtitleText"),
-    "SubMarginX": ("subtitles", "sSubtitleText"),
-    "SubMarginY": ("subtitles", "sSubtitleText"),
     "SubDelay": ("subtitles", "sSubtitleText"),
     "SubScaleSigns": ("subtitles", "sSubtitleText"),
     "SubUseMargins": ("subtitles", "sSubtitleText"),
@@ -168,22 +157,18 @@ MAP = {
     "AlwaysOnTop": ("window", "sWindow"),
     "KeepOpen": ("window", "sWindow"),
     # Demuxer
-    "AutoCreatePlaylist": ("playback", "sDemuxerPlaylist"),
-    "DirectoryMode": ("playback", "sDemuxerPlaylist"),
-    "DirectoryFilterTypes": ("playback", "sDemuxerPlaylist"),
-    "VideoExts": ("playback", "sDemuxerPlaylist"),
-    "ImageExts": ("playback", "sDemuxerPlaylist"),
-    "ImageDisplayDuration": ("playback", "sDemuxerPlaylist"),
-    "DemuxerMaxBytes": ("network", "sDemuxerBuffering"),
-    "DemuxerMaxBackBytes": ("network", "sDemuxerBuffering"),
-    "DemuxerReadahead": ("network", "sDemuxerBuffering"),
-    "DemuxerHysteresisSecs": ("network", "sDemuxerBuffering"),
-    "DemuxerCacheDir": ("network", "sDemuxerBuffering"),
+    "AutoCreatePlaylist": ("demuxer", "sDemuxerPlaylist"),
+    "DirectoryMode": ("demuxer", "sDemuxerPlaylist"),
+    "DirectoryFilterTypes": ("demuxer", "sDemuxerPlaylist"),
+    "VideoExts": ("demuxer", "sDemuxerPlaylist"),
+    "ImageExts": ("demuxer", "sDemuxerPlaylist"),
+    "DemuxerMaxBytes": ("demuxer", "sDemuxerBuffering"),
+    "DemuxerMaxBackBytes": ("demuxer", "sDemuxerBuffering"),
+    "DemuxerReadahead": ("demuxer", "sDemuxerBuffering"),
     # Cache
-    "CacheEnabled": ("network", "sCache"),
-    "CacheSecs": ("network", "sCache"),
-    "CacheOnDisk": ("network", "sCache"),
-    "CachePause": ("network", "sCache"),
+    "CacheEnabled": ("cache", "sCache"),
+    "CacheSecs": ("cache", "sCache"),
+    "CacheOnDisk": ("cache", "sCache"),
     # Input
     "InputIme": ("input", "sInput"),
     "InputIpcServer": ("input", "sInput"),
@@ -201,20 +186,11 @@ MAP = {
     "OsdBlur": ("osd", "sOsd"),
     "OsdOutlineSize": ("osd", "sOsd"),
     "OsdFractions": ("osd", "sOsd"),
-    "OsdLevel": ("osd", "sOsd"),
-    "OsdAlignX": ("osd", "sOsd"),
-    "OsdAlignY": ("osd", "sOsd"),
-    "OsdMarginX": ("osd", "sOsd"),
-    "OsdMarginY": ("osd", "sOsd"),
     "ShowOsdPlayingMsg": ("osd", "sOsd"),
     "MetadataOsdEnabled": ("osd", "sOsdMetadata"),
     "MetadataOsdAutohideTimeout": ("osd", "sOsdMetadata"),
     "MetadataOsdShowChapter": ("osd", "sOsdMetadata"),
     "MetadataOsdEnableForVideo": ("osd", "sOsdMetadata"),
-    "MetadataOsdEnableForAudio": ("osd", "sOsdMetadata"),
-    "MetadataOsdEnableForAudioWithAlbumArt": ("osd", "sOsdMetadata"),
-    "MetadataOsdAutohideForAudio": ("osd", "sOsdMetadata"),
-    "MetadataOsdAutohideForAudioWithAlbumArt": ("osd", "sOsdMetadata"),
     "MetadataOsdEnableForImage": ("osd", "sOsdMetadata"),
     "MetadataOsdAutohideStatusTimeout": ("osd", "sOsdMetadata"),
     "MetadataOsdShowAlbumTrack": ("osd", "sOsdMetadata"),
@@ -276,10 +252,9 @@ MAP = {
     # Video Sync
     "VideoSync": ("video", "sVideoSync"),
     "VideoSyncMaxVideoChange": ("video", "sVideoSync"),
-    "OverrideDisplayFps": ("video", "sVideoSync"),
     # Window (PiP / size)
-    "WindowPiP": ("window", "sWindowPiP"),
-    "WindowPiPSize": ("window", "sWindowPiP"),
+    "WindowPiP": ("window", "sWindow"),
+    "WindowPiPSize": ("window", "sWindow"),
     "WindowStartMaximized": ("window", "sWindow"),
     "WindowRememberSize": ("window", "sWindow"),
     # Network (ytdl / http / curl)
@@ -296,7 +271,6 @@ MAP = {
     "HttpProxy": ("network", "sNetworkHttp"),
     "CookiesFile": ("network", "sNetworkHttp"),
     "TlsVerify": ("network", "sNetworkHttp"),
-    "PrefetchPlaylist": ("network", "sNetworkHttp"),
     "NetworkTimeout": ("network", "sNetworkHttp"),
     "CurlMaxRedirects": ("network", "sNetworkCurl"),
     "CurlMaxRetries": ("network", "sNetworkCurl"),
@@ -378,7 +352,7 @@ def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "all"
     if mode in ("vars", "all"):
         print("vars part (copy into BuildSettings top):")
-        print("  (see SettingsPage.Options.cs for the current declarations)")
+        print("  (see SettingsPage.xaml.cs for the current declarations)")
     if mode in ("map", "all"):
         print(emit_map())
 

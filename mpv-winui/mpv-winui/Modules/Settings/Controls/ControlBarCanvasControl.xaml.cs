@@ -58,7 +58,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private Border? _dropIndicator;
     private Panel? _dropIndicatorParent;
     private int _lastIndicatorIndex = -1;
-    private MenuFlyout? _openFlyout;
 
     public ControlBarCanvasControl()
     {
@@ -91,10 +90,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     /// <summary>Loads the state for the given layout style and re-renders.</summary>
     public void Load(string style)
     {
-        // Rebuilding the strip destroys every cell, including any open "+"
-        // flyout anchor; hide it first or the compositor throws 0x8000FFFF.
-        CloseFlyout();
-
         _style = style;
         var hiddenSetting = style == "modernx"
             ? AppContext.AppSetting.ControlBarHiddenIconsModernX
@@ -142,27 +137,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
                 : ControlBarIconCatalog.ClassicLeft.Contains(id) ? 0 : 2;
         }
 
-        // Restore per-id zone overrides persisted by the editor; missing or
-        // invalid entries keep the partition default assigned above.
-        var zonesSetting = _style == "modernx"
-            ? AppContext.AppSetting.ControlBarZonesModernX
-            : AppContext.AppSetting.ControlBarZonesClassic;
-        foreach (var token in ParseTokens(zonesSetting))
-        {
-            var colon = token.IndexOf(':');
-            if (colon <= 0 || colon >= token.Length - 1)
-            {
-                continue;
-            }
-            var id = token[..colon];
-            if (_zoneOf.ContainsKey(id)
-                && int.TryParse(token[(colon + 1)..], out var zone)
-                && (zone == 0 || zone == 2))
-            {
-                _zoneOf[id] = zone;
-            }
-        }
-
         BuildBarOrder();
 
         // Rebuild _shown to match the visual (zone) order exactly. Insertion
@@ -185,10 +159,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     public void Reload() => Load(_style);
     public void SetEditable(bool value)
     {
-        if (!value)
-        {
-            CloseFlyout();
-        }
         _editable = value;
         BarHint.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
         Render();
@@ -432,14 +402,6 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     /// </summary>
     private void ShowAddFlyout(Button anchor, int zone)
     {
-        CloseFlyout();
-
-        // A detached anchor (e.g. after a strip rebuild) cannot host a flyout.
-        if (!anchor.IsLoaded || anchor.XamlRoot is null)
-        {
-            return;
-        }
-
         var items = _hidden
             .OrderBy(id => Array.IndexOf(ControlBarIconCatalog.MovableIds.ToArray(), id))
             .ToList();
@@ -471,29 +433,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         }
         if (flyout.Items.Count > 0)
         {
-            _openFlyout = flyout;
-            flyout.Closed += (_, _) =>
-            {
-                if (ReferenceEquals(_openFlyout, flyout))
-                {
-                    _openFlyout = null;
-                }
-            };
             flyout.ShowAt(anchor);
-        }
-    }
-
-    private void CloseFlyout()
-    {
-        var flyout = _openFlyout;
-        _openFlyout = null;
-        try
-        {
-            flyout?.Hide();
-        }
-        catch (Exception)
-        {
-            // The flyout may already be tearing down during a rebuild.
         }
     }
 
@@ -557,32 +497,25 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
 
     private void Save()
     {
-        var zones = string.Join(',', ControlBarIconCatalog.MovableIds
-            .Where(id => _zoneOf.ContainsKey(id))
-            .Select(id => $"{id}:{_zoneOf[id]}"));
         if (_style == "modernx")
         {
             AppContext.AppSetting.ControlBarHiddenIconsModernX = string.Join(',', _hidden);
             AppContext.AppSetting.ControlBarCustomOrderModernX = string.Join(',', _shown);
-            AppContext.AppSetting.ControlBarZonesModernX = zones;
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarHiddenIconsModernX), null);
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarCustomOrderModernX), string.Join(',', _shown));
-            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarZonesModernX), zones);
         }
         else
         {
             AppContext.AppSetting.ControlBarHiddenIconsClassic = string.Join(',', _hidden);
             AppContext.AppSetting.ControlBarCustomOrderClassic = string.Join(',', _shown);
-            AppContext.AppSetting.ControlBarZonesClassic = zones;
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarHiddenIconsClassic), null);
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarCustomOrderClassic), string.Join(',', _shown));
-            AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ControlBarZonesClassic), zones);
         }
-        StateChanged?.Invoke(this);
+        StateChanged?.Invoke();
     }
 
     /// <summary>Raised after the canvas persists a change so other cards' strips re-render.</summary>
-    public static event Action<ControlBarCanvasControl>? StateChanged;
+    public static event Action? StateChanged;
 
     // ===== Drag (manual pointer; long-press only; edit mode only) =====
 

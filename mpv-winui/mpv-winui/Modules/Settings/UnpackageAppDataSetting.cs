@@ -139,10 +139,7 @@ namespace mpv_winui.Modules.Settings
             _container.Values.Clear();
             foreach (var item in values)
             {
-                // Imported bools from packaged builds arrive as raw REG_NONE
-                // values that ApplicationData cannot read back reliably; store
-                // them as "true"/"false" like SetValue does.
-                _container.Values[item.Key] = item.Value is bool b ? (b ? "true" : "false") : item.Value;
+                _container.Values[item.Key] = item.Value;
             }
         }
     }

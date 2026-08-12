@@ -306,7 +306,7 @@ namespace mpv_winui.Modules.Settings
 
         public string Hwdec
         {
-            get => _dataSetting.GetValue(nameof(Hwdec), "auto-safe");
+            get => _dataSetting.GetValue(nameof(Hwdec), "auto");
             set => _dataSetting.SetValue(nameof(Hwdec), value);
         }
 
@@ -340,6 +340,12 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Volume), value);
         }
 
+        public string CacheDirectory
+        {
+            get => _dataSetting.GetValue(nameof(CacheDirectory), string.Empty);
+            set => _dataSetting.SetValue(nameof(CacheDirectory), value);
+        }
+
         public string WatchLaterDir
         {
             get => _dataSetting.GetValue(nameof(WatchLaterDir), string.Empty);
@@ -360,7 +366,7 @@ namespace mpv_winui.Modules.Settings
 
         public string Deinterlace
         {
-            get => _dataSetting.GetValue(nameof(Deinterlace), "no");
+            get => _dataSetting.GetValue(nameof(Deinterlace), "auto");
             set => _dataSetting.SetValue(nameof(Deinterlace), value);
         }
 
@@ -584,7 +590,7 @@ namespace mpv_winui.Modules.Settings
 
         public string AudioChannels
         {
-            get => _dataSetting.GetValue(nameof(AudioChannels), "auto-safe");
+            get => _dataSetting.GetValue(nameof(AudioChannels), "auto");
             set => _dataSetting.SetValue(nameof(AudioChannels), value);
         }
 
@@ -1246,7 +1252,7 @@ namespace mpv_winui.Modules.Settings
 
         public string AudioGapless
         {
-            get => _dataSetting.GetValue(nameof(AudioGapless), "weak");
+            get => _dataSetting.GetValue(nameof(AudioGapless), "no");
             set => _dataSetting.SetValue(nameof(AudioGapless), value);
         }
 
@@ -1548,7 +1554,7 @@ namespace mpv_winui.Modules.Settings
 
         public string ImageExts
         {
-            get => _dataSetting.GetValue(nameof(ImageExts), "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,tga,tif,tiff,webp");
+            get => _dataSetting.GetValue(nameof(ImageExts), "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,svg,tga,tif,tiff,webp");
             set => _dataSetting.SetValue(nameof(ImageExts), value);
         }
 
@@ -1647,178 +1653,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(ScreenshotAvifEncoder), string.Empty);
             set => _dataSetting.SetValue(nameof(ScreenshotAvifEncoder), value);
-        }
-
-        // ===== Options added with mpv 0.41 built-in defaults =====
-        public string AudioSpdif
-        {
-            get => _dataSetting.GetValue(nameof(AudioSpdif), string.Empty);
-            set => _dataSetting.SetValue(nameof(AudioSpdif), value);
-        }
-
-        public string Replaygain
-        {
-            get => _dataSetting.GetValue(nameof(Replaygain), "no");
-            set => _dataSetting.SetValue(nameof(Replaygain), value);
-        }
-
-        public int OsdLevel
-        {
-            get => _dataSetting.GetValue(nameof(OsdLevel), 1);
-            set => _dataSetting.SetValue(nameof(OsdLevel), value);
-        }
-
-        public double ImageDisplayDuration
-        {
-            get => _dataSetting.GetValue(nameof(ImageDisplayDuration), 5.0);
-            set => _dataSetting.SetValue(nameof(ImageDisplayDuration), value);
-        }
-
-        public double OverrideDisplayFps
-        {
-            get => _dataSetting.GetValue(nameof(OverrideDisplayFps), 0.0);
-            set => _dataSetting.SetValue(nameof(OverrideDisplayFps), value);
-        }
-
-        public bool CachePause
-        {
-            get => _dataSetting.GetValue(nameof(CachePause), true);
-            set => _dataSetting.SetValue(nameof(CachePause), value);
-        }
-
-        public bool PrefetchPlaylist
-        {
-            get => _dataSetting.GetValue(nameof(PrefetchPlaylist), false);
-            set => _dataSetting.SetValue(nameof(PrefetchPlaylist), value);
-        }
-
-        public bool SubBold
-        {
-            get => _dataSetting.GetValue(nameof(SubBold), false);
-            set => _dataSetting.SetValue(nameof(SubBold), value);
-        }
-
-        public bool SubItalic
-        {
-            get => _dataSetting.GetValue(nameof(SubItalic), false);
-            set => _dataSetting.SetValue(nameof(SubItalic), value);
-        }
-
-        public string SubAlignX
-        {
-            get => _dataSetting.GetValue(nameof(SubAlignX), "center");
-            set => _dataSetting.SetValue(nameof(SubAlignX), value);
-        }
-
-        public string SubAlignY
-        {
-            get => _dataSetting.GetValue(nameof(SubAlignY), "bottom");
-            set => _dataSetting.SetValue(nameof(SubAlignY), value);
-        }
-
-        public int SubMarginX
-        {
-            get => _dataSetting.GetValue(nameof(SubMarginX), 19);
-            set => _dataSetting.SetValue(nameof(SubMarginX), value);
-        }
-
-        public int SubMarginY
-        {
-            get => _dataSetting.GetValue(nameof(SubMarginY), 34);
-            set => _dataSetting.SetValue(nameof(SubMarginY), value);
-        }
-
-        public string OsdAlignX
-        {
-            get => _dataSetting.GetValue(nameof(OsdAlignX), "left");
-            set => _dataSetting.SetValue(nameof(OsdAlignX), value);
-        }
-
-        public string OsdAlignY
-        {
-            get => _dataSetting.GetValue(nameof(OsdAlignY), "top");
-            set => _dataSetting.SetValue(nameof(OsdAlignY), value);
-        }
-
-        public int OsdMarginX
-        {
-            get => _dataSetting.GetValue(nameof(OsdMarginX), 16);
-            set => _dataSetting.SetValue(nameof(OsdMarginX), value);
-        }
-
-        public int OsdMarginY
-        {
-            get => _dataSetting.GetValue(nameof(OsdMarginY), 16);
-            set => _dataSetting.SetValue(nameof(OsdMarginY), value);
-        }
-
-        public double DemuxerHysteresisSecs
-        {
-            get => _dataSetting.GetValue(nameof(DemuxerHysteresisSecs), 0.0);
-            set => _dataSetting.SetValue(nameof(DemuxerHysteresisSecs), value);
-        }
-
-        public string DemuxerCacheDir
-        {
-            get => _dataSetting.GetValue(nameof(DemuxerCacheDir), string.Empty);
-            set => _dataSetting.SetValue(nameof(DemuxerCacheDir), value);
-        }
-
-        // ===== Plugin script options (script-opts/*.conf) =====
-        public bool MetadataOsdEnableForAudio
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForAudio), true);
-            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForAudio), value);
-        }
-
-        public bool MetadataOsdEnableForAudioWithAlbumArt
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForAudioWithAlbumArt), true);
-            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForAudioWithAlbumArt), value);
-        }
-
-        public bool MetadataOsdAutohideForAudio
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideForAudio), false);
-            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideForAudio), value);
-        }
-
-        public bool MetadataOsdAutohideForAudioWithAlbumArt
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), false);
-            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), value);
-        }
-
-        public bool ThumbfastAudio
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastAudio), false);
-            set => _dataSetting.SetValue(nameof(ThumbfastAudio), value);
-        }
-
-        public string ThumbfastHwdec
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastHwdec), "yes");
-            set => _dataSetting.SetValue(nameof(ThumbfastHwdec), value);
-        }
-
-        public string HdrOverrideMode
-        {
-            get => _dataSetting.GetValue(nameof(HdrOverrideMode), string.Empty);
-            set => _dataSetting.SetValue(nameof(HdrOverrideMode), value);
-        }
-
-        /// <summary>Per-id control-bar zone overrides for the modernx layout ("id:0,id:2").</summary>
-        public string ControlBarZonesModernX
-        {
-            get => _dataSetting.GetValue(nameof(ControlBarZonesModernX), string.Empty);
-            set => _dataSetting.SetValue(nameof(ControlBarZonesModernX), value);
-        }
-
-        /// <summary>Per-id control-bar zone overrides for the classic layout ("id:0,id:2").</summary>
-        public string ControlBarZonesClassic
-        {
-            get => _dataSetting.GetValue(nameof(ControlBarZonesClassic), string.Empty);
-            set => _dataSetting.SetValue(nameof(ControlBarZonesClassic), value);
         }
     }
 }

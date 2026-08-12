@@ -50,15 +50,18 @@
                 LostFocus="OnLostFocus"
                 KeyDown="OnKeyDown"
                 TextChanged="InputBox_TextChanged" />
-            <Button
-                x:Name="DisplayButton"
+            <TextBlock
+                x:Name="DisplayText"
                 Width="260"
                 MaxWidth="260"
                 HorizontalAlignment="Left"
-                HorizontalContentAlignment="Left"
+                IsTextSelectionEnabled="True"
                 VerticalAlignment="Center"
+                Style="{StaticResource BodyTextBlockStyle}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap"
                 Visibility="Collapsed"
-                Click="OnDisplayClick" />
+                Tapped="OnDisplayTapped" />
         </Grid>
         <StackPanel
             Grid.Column="2"

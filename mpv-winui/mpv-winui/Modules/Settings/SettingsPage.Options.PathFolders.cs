@@ -20,8 +20,10 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildPathFoldersOptions()
     {
+        var gpuRenderer = AppContext.AppLang.SettingsCategoryGpuRenderer;
+        var cache = AppContext.AppLang.SettingsCategoryCache;
         var video = AppContext.AppLang.SettingsCategoryVideo;
-        var playback = AppContext.AppLang.SettingsCategoryPlayback;
+        var watchLater = AppContext.AppLang.SettingsCategoryWatchLater;
         var lang = AppContext.AppLang;
 
         return
@@ -31,7 +33,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.WatchLaterDir),
                 Label = lang.SettingsWatchLaterDir,
-                Category = playback,
+                Category = watchLater,
                 Description = lang.SettingsHelpWatchLaterDir,
                 Type = OptionType.String,
                 AllowEmpty = true,

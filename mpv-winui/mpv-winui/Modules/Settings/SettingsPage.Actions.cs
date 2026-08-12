@@ -62,6 +62,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         nameof(AppContext.AppSetting.KeepOpen),
         nameof(AppContext.AppSetting.LoopFile),
         nameof(AppContext.AppSetting.LoopPlaylist),
+        nameof(AppContext.AppSetting.Volume),
         nameof(AppContext.AppSetting.Speed),
         nameof(AppContext.AppSetting.Deinterlace),
         nameof(AppContext.AppSetting.AspectRatio),
@@ -75,6 +76,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         nameof(AppContext.AppSetting.CacheEnabled),
         nameof(AppContext.AppSetting.DirectoryMode),
         nameof(AppContext.AppSetting.AutoCreatePlaylist),
+        nameof(AppContext.AppSetting.SubAuto),
         nameof(AppContext.AppSetting.HdrAutoMode),
         nameof(AppContext.AppSetting.AudioDisplay),
         nameof(AppContext.AppSetting.SubAssUseVideoData),
@@ -96,28 +98,16 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         nameof(AppContext.AppSetting.ScreenshotTagColorspace),
     };
 
-    private static readonly Dictionary<string, List<OptionChoice>> FontChoicesCache = new(StringComparer.Ordinal);
-
     private static List<OptionChoice> SubtitleFontChoices(AppLang lang)
     {
-        // The same list feeds the UI font, OSD font and subtitle font options
-        // on every settings build; scanning the font directory three times per
-        // navigation is wasted I/O. Cache per language + selected font file.
-        var cacheKey = AppContext.AppSetting.CurrentLanguage + "|" + (AppContext.AppSetting.SubFontFile ?? string.Empty);
-        if (FontChoicesCache.TryGetValue(cacheKey, out var cachedChoices))
-        {
-            return cachedChoices;
-        }
-
         var list = new List<OptionChoice>
         {
             new("sans-serif", lang.OptionValueFontDefault),
         };
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sans-serif" };
 
         void Add(string value, string label)
         {
-            if (seen.Add(value))
+            if (!list.Any(c => c.Value == value))
             {
                 list.Add(new OptionChoice(value, label));
             }
@@ -181,7 +171,6 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         Add("Consolas", "Consolas");
         Add("Source Han Sans SC", "Source Han Sans SC");
         Add("LXGW WenKai Mono Lite", "LXGW WenKai Mono Lite");
-        FontChoicesCache[cacheKey] = list;
         return list;
     }
 
@@ -235,14 +224,6 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                     label = label[..stateHash].Trim();
                 }
                 section = ShortcutSectionLabel(ShortcutSectionKey(label));
-
-                // The section header already shows the group ("音量"), so the
-                // row label only needs the final option ("增加音量").
-                var separator = label.IndexOf('>');
-                if (separator >= 0 && separator < label.Length - 1)
-                {
-                    label = label[(separator + 1)..].Trim();
-                }
             }
 
             if (!seen.Add(key))
@@ -337,6 +318,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
 
         try
         {
+            binding.Key = newKey;
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "mpv-winui",
@@ -347,98 +329,42 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                 return;
             }
 
-            var lines = ReadConfigLines(path).ToList();
-            var targetIndex = -1;
-            var conflictIndex = -1;
-            for (var i = 0; i < lines.Count; i++)
+            var lines = ReadConfigLines(path).ToArray();
+            for (var i = 0; i < lines.Length; i++)
             {
-                if (!TryParseBindingLine(lines[i], out var lineKey, out var lineCommand))
+                var trimmed = lines[i].Trim();
+                if (trimmed.Length == 0 || trimmed.StartsWith('#'))
                 {
                     continue;
                 }
 
-                // Match by identity (key + command), not by command alone:
-                // the same command is often bound to several keys, and a
-                // command-string match would rewrite the wrong row.
-                if (lineKey == binding.Key && lineCommand == binding.Command && targetIndex < 0)
+                var hash = trimmed.IndexOf('#');
+                var bindingText = (hash >= 0 ? trimmed[..hash] : trimmed).Trim();
+                var parts = bindingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 2)
                 {
-                    targetIndex = i;
+                    continue;
                 }
-                else if (lineKey == newKey)
-                {
-                    conflictIndex = i;
-                }
-            }
 
-            if (targetIndex < 0)
-            {
-                // The clicked row no longer exists verbatim (the file changed
-                // outside the app); leave both the file and the in-memory key
-                // untouched.
-                return;
-            }
-
-            // The rebind wins over whatever was already bound to the new key:
-            // drop the conflicting row so input.conf never has two bindings
-            // for the same key (mpv would let the last one win by line order).
-            if (conflictIndex >= 0)
-            {
-                lines.RemoveAt(conflictIndex);
-                if (conflictIndex < targetIndex)
+                var command = string.Join(' ', parts.Skip(1));
+                if (string.Equals(command, binding.Command, StringComparison.Ordinal))
                 {
-                    targetIndex--;
+                    var firstToken = parts[0];
+                    var tokenIndex = lines[i].IndexOf(firstToken, StringComparison.Ordinal);
+                    if (tokenIndex >= 0)
+                    {
+                        lines[i] = lines[i][..tokenIndex] + newKey + lines[i][(tokenIndex + firstToken.Length)..];
+                    }
+                    break;
                 }
             }
 
-            var trimmed = lines[targetIndex].Trim();
-            var hash = trimmed.IndexOf('#');
-            var bindingText = (hash >= 0 ? trimmed[..hash] : trimmed).Trim();
-            var parts = bindingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 0)
-            {
-                return;
-            }
-
-            var firstToken = parts[0];
-            var tokenIndex = lines[targetIndex].IndexOf(firstToken, StringComparison.Ordinal);
-            if (tokenIndex < 0)
-            {
-                return;
-            }
-
-            lines[targetIndex] = lines[targetIndex][..tokenIndex] + newKey + lines[targetIndex][(tokenIndex + firstToken.Length)..];
-            binding.Key = newKey;
             WriteConfigLines(path, lines);
         }
         catch (Exception ex)
         {
             AppContext.AppLogger.Error(ex, "RebindShortcut failed");
         }
-    }
-
-    /// <summary>Parses a key binding line into its key token and command text.</summary>
-    private static bool TryParseBindingLine(string line, out string key, out string command)
-    {
-        key = string.Empty;
-        command = string.Empty;
-
-        var trimmed = line.Trim();
-        if (trimmed.Length == 0 || trimmed.StartsWith('#'))
-        {
-            return false;
-        }
-
-        var hash = trimmed.IndexOf('#');
-        var bindingText = (hash >= 0 ? trimmed[..hash] : trimmed).Trim();
-        var parts = bindingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 2)
-        {
-            return false;
-        }
-
-        key = parts[0];
-        command = string.Join(' ', parts.Skip(1));
-        return true;
     }
 
     /// <summary>
@@ -457,9 +383,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         {
             text = System.Text.Encoding.GetEncoding("GB18030").GetString(bytes);
         }
-        // Normalize CRLF/LF/CR but keep blank lines: a rebind rewrite must
-        // preserve the file layout. Callers skip empty entries themselves.
-        return text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        return text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
     }
 
     /// <summary>Writes a config file as UTF-8 without a BOM so mpv and the app agree.</summary>
@@ -508,41 +432,6 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         catch (Exception ex)
         {
             AppContext.AppLogger.Warn(ex, "Failed to enumerate audio devices");
-        }
-
-        return choices;
-    }
-
-    /// <summary>Lists installed display adapters (DXGI descriptions) for d3d11-adapter.</summary>
-    private static List<OptionChoice> BuildGpuAdapterChoices()
-    {
-        var choices = new List<OptionChoice>
-        {
-            new("", AppContext.AppLang.OptionValueAuto),
-        };
-
-        try
-        {
-            using var displayClass = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
-                @"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}");
-            if (displayClass is null)
-            {
-                return choices;
-            }
-
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var subKeyName in displayClass.GetSubKeyNames())
-            {
-                using var subKey = displayClass.OpenSubKey(subKeyName);
-                if (subKey?.GetValue("DriverDesc") is string desc && !string.IsNullOrWhiteSpace(desc) && seen.Add(desc))
-                {
-                    choices.Add(new OptionChoice(desc, desc));
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            AppContext.AppLogger.Error(ex, "Failed to enumerate display adapters");
         }
 
         return choices;

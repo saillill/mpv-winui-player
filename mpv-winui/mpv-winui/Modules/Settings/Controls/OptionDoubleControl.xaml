@@ -44,8 +44,8 @@
             Grid.Column="1"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
-            KeyDown="OnKeyDown"
             LostFocus="OnLostFocus"
-            SpinButtonPlacementMode="Inline" />
+            SpinButtonPlacementMode="Inline"
+            ValueChanged="OnValueChanged" />
     </Grid>
 </local:OptionControlBase>

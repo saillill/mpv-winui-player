@@ -22,10 +22,12 @@ private List<Option> BuildSettings()
     {
         var program = AppContext.AppLang.SettingsCategoryProgram;
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
+        var watchLater = AppContext.AppLang.SettingsCategoryWatchLater;
         var video = AppContext.AppLang.SettingsCategoryVideo;
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var subtitles = AppContext.AppLang.SettingsCategorySubtitles;
         var window = AppContext.AppLang.SettingsCategoryWindow;
+        var cache = AppContext.AppLang.SettingsCategoryCache;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var input = AppContext.AppLang.SettingsCategoryInput;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
@@ -42,6 +44,7 @@ private List<Option> BuildSettings()
         var sNetworkYtdlp = AppContext.AppLang.SectionNetworkYtdlp;
         var sNetworkHttp = AppContext.AppLang.SectionNetworkHttp;
         var sNetworkCurl = AppContext.AppLang.SectionNetworkCurl;
+        var sShortcutsReset = AppContext.AppLang.SectionShortcutsReset;
         var sPlayback = AppContext.AppLang.SectionPlayback;
         var sPlaybackSeeking = AppContext.AppLang.SectionPlaybackSeeking;
         var sPlaybackSeekPreview = AppContext.AppLang.SectionPlaybackSeekPreview;
@@ -89,6 +92,19 @@ private List<Option> BuildSettings()
 
         options.AddRange(BuildShortcutOptions(shortcuts));
 
+        options.Add(new Option
+        {
+            Key = "ShortcutReset",
+            Label = lang.SettingsResetShortcuts,
+            Category = shortcuts,
+            Description = lang.SettingsHelpResetShortcuts,
+            Type = OptionType.Action,
+            ActionKind = OptionActionKind.Button,
+            ActionLabel = lang.SettingsResetShortcuts,
+            ActionHandler = _ => ResetShortcuts(),
+            ActionStatus = () => _actionStatus,
+        });
+
         foreach (var option in options)
         {
             if (RedundantDescriptions.Contains(option.Key))
@@ -105,10 +121,12 @@ private List<Option> BuildSettings()
         {
             program,
             playback,
+            watchLater,
             video,
             audio,
             subtitles,
             window,
+            cache,
             network,
             input,
             shortcuts,
@@ -132,6 +150,8 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.EnableDebugLog)] = 9,
             [nameof(AppSettings.Ytdl)] = 11,
             [nameof(AppSettings.YtdlRawOptionsAppend)] = 12,
+            [nameof(AppSettings.LoopFile)] = 13,
+            [nameof(AppSettings.LoopPlaylist)] = 14,
             [nameof(AppSettings.Speed)] = 15,
             [nameof(AppSettings.HrSeek)] = 16,
             [nameof(AppSettings.HrSeekFramedrop)] = 17,
@@ -148,7 +168,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.ThumbfastFrequency)] = 28,
             [nameof(AppSettings.ThumbfastDirectIo)] = 29,
             [nameof(AppSettings.ThumbfastQuitAfterInactivity)] = 30,
-            [nameof(AppSettings.AudioLanguage)] = 31,
+            [nameof(AppSettings.AudioLanguage)] = 49,
             [nameof(AppSettings.SubtitleLanguage)] = 32,
             [nameof(AppSettings.SubFallback)] = 33,
             [nameof(AppSettings.SavePositionOnQuit)] = 34,
@@ -175,7 +195,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.AudioWaitOpen)] = 55,
             [nameof(AppSettings.AudioPitchCorrection)] = 56,
             [nameof(AppSettings.AudioNormalizeDownmix)] = 57,
-            [nameof(AppSettings.AudioGapless)] = 58,
                                     [nameof(AppSettings.VolumeMax)] = 60,
             [nameof(AppSettings.AudioFileAuto)] = 61,
             [nameof(AppSettings.AudioExts)] = 62,
@@ -337,32 +356,7 @@ private List<Option> BuildSettings()
             ["ActionImportConfig"] = 219,
             [nameof(AppSettings.ControlBarLayout)] = 220,
             [nameof(AppSettings.ControlBarHiddenIcons)] = 221,
-            [nameof(AppSettings.AudioSpdif)] = 300,
-            [nameof(AppSettings.Replaygain)] = 301,
-            [nameof(AppSettings.OsdLevel)] = 302,
-            [nameof(AppSettings.OsdAlignX)] = 303,
-            [nameof(AppSettings.OsdAlignY)] = 304,
-            [nameof(AppSettings.OsdMarginX)] = 305,
-            [nameof(AppSettings.OsdMarginY)] = 306,
-            [nameof(AppSettings.ImageDisplayDuration)] = 307,
-            [nameof(AppSettings.OverrideDisplayFps)] = 308,
-            [nameof(AppSettings.CachePause)] = 309,
-            [nameof(AppSettings.PrefetchPlaylist)] = 310,
-            [nameof(AppSettings.SubBold)] = 311,
-            [nameof(AppSettings.SubItalic)] = 312,
-            [nameof(AppSettings.SubAlignX)] = 313,
-            [nameof(AppSettings.SubAlignY)] = 314,
-            [nameof(AppSettings.SubMarginX)] = 315,
-            [nameof(AppSettings.SubMarginY)] = 316,
-            [nameof(AppSettings.DemuxerHysteresisSecs)] = 317,
-            [nameof(AppSettings.DemuxerCacheDir)] = 318,
-            [nameof(AppSettings.MetadataOsdEnableForAudio)] = 320,
-            [nameof(AppSettings.MetadataOsdEnableForAudioWithAlbumArt)] = 321,
-            [nameof(AppSettings.MetadataOsdAutohideForAudio)] = 322,
-            [nameof(AppSettings.MetadataOsdAutohideForAudioWithAlbumArt)] = 323,
-            [nameof(AppSettings.ThumbfastAudio)] = 324,
-            [nameof(AppSettings.ThumbfastHwdec)] = 325,
-            [nameof(AppSettings.HdrOverrideMode)] = 326,
+            ["ShortcutReset"] = 2000,
         };
 
         // Parsed input.conf bindings keep their original order after the capture row.
@@ -411,6 +405,7 @@ private List<Option> BuildSettings()
             [sScreenshotLocation] = 34,
             [sScreenshotQuality] = 35,
             [sProgramTesting] = 36,
+            [sShortcutsReset] = 38,
             [sNetworkYtdlp] = 39,
             [sNetworkHttp] = 40,
             [sNetworkCurl] = 41,
@@ -431,8 +426,10 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CurrentLanguage)] = sProgramLanguageLog,
             [nameof(AppSettings.CheckForUpdates)] = sProgramInterface,
             // preset keys are option keys, not AppSettings properties
-            [nameof(AppSettings.EnableDebugLog)] = sProgramLanguageLog,
+            [nameof(AppSettings.EnableDebugLog)] = sProgramTesting,
             // playback
+            [nameof(AppSettings.LoopFile)] = sPlayback,
+            [nameof(AppSettings.LoopPlaylist)] = sPlayback,
             [nameof(AppSettings.Speed)] = sPlayback,
             [nameof(AppSettings.HrSeek)] = sPlaybackSeeking,
             [nameof(AppSettings.HrSeekFramedrop)] = sPlaybackSeeking,
@@ -440,8 +437,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.EnableVideoPreview)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastQuality)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastNetwork)] = sPlaybackSeekPreview,
-            [nameof(AppSettings.ThumbfastAudio)] = sPlaybackSeekPreview,
-            [nameof(AppSettings.ThumbfastHwdec)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastMinDuration)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastPrecise)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastMaxWidth)] = sPlaybackSeekPreview,
@@ -467,7 +462,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.VideoUnscaled)] = sVideoImage,
             [nameof(AppSettings.VideoOutputLevels)] = sVideoImage,
             [nameof(AppSettings.HdrAutoMode)] = sVideoFilters,
-            [nameof(AppSettings.HdrOverrideMode)] = sVideoFilters,
             [nameof(AppSettings.HdrAutoLog)] = sVideoFilters,
             [nameof(AppSettings.VsrAutoEnabled)] = sVideoFilters,
             [nameof(AppSettings.Scale)] = sGpuScaling,
@@ -508,7 +502,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.GlslShadersAppend)] = sGpuShaders,
             [nameof(AppSettings.VideoSync)] = sVideoSync,
             [nameof(AppSettings.VideoSyncMaxVideoChange)] = sVideoSync,
-            [nameof(AppSettings.OverrideDisplayFps)] = sVideoSync,
             // audio
             [nameof(AppSettings.AudioDevice)] = sAudioOutput,
             [nameof(AppSettings.AudioExclusive)] = sAudioOutput,
@@ -516,9 +509,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.AudioDelay)] = sAudioOutput,
             [nameof(AppSettings.AudioBuffer)] = sAudioOutput,
             [nameof(AppSettings.AudioWaitOpen)] = sAudioOutput,
-            [nameof(AppSettings.AudioGapless)] = sAudioOutput,
-            [nameof(AppSettings.AudioSpdif)] = sAudioOutput,
-            [nameof(AppSettings.Replaygain)] = sAudioVolume,
             [nameof(AppSettings.AudioPitchCorrection)] = sAudioOutput,
             [nameof(AppSettings.AudioNormalizeDownmix)] = sAudioOutput,
                                     [nameof(AppSettings.VolumeMax)] = sAudioVolume,
@@ -533,7 +523,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CoverArtNames)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtImageExts)] = sAudioCoverArt,
             // subtitles
-            [nameof(AppSettings.AudioLanguage)] = sTrackLanguage,
+            [nameof(AppSettings.AudioLanguage)] = sAudioOutput,
             [nameof(AppSettings.SubtitleLanguage)] = sTrackLanguage,
             [nameof(AppSettings.SubFallback)] = sTrackFallback,
             [nameof(AppSettings.SubFontSize)] = sSubtitleText,
@@ -548,12 +538,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.SubShadowOffset)] = sSubtitleText,
             [nameof(AppSettings.SubBlur)] = sSubtitleText,
             [nameof(AppSettings.SubPos)] = sSubtitleText,
-            [nameof(AppSettings.SubBold)] = sSubtitleText,
-            [nameof(AppSettings.SubItalic)] = sSubtitleText,
-            [nameof(AppSettings.SubAlignX)] = sSubtitleText,
-            [nameof(AppSettings.SubAlignY)] = sSubtitleText,
-            [nameof(AppSettings.SubMarginX)] = sSubtitleText,
-            [nameof(AppSettings.SubMarginY)] = sSubtitleText,
             [nameof(AppSettings.SubDelay)] = sSubtitleText,
             [nameof(AppSettings.SubScaleSigns)] = sSubtitleText,
             [nameof(AppSettings.SubUseMargins)] = sSubtitleText,
@@ -585,17 +569,13 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.DirectoryFilterTypes)] = sDemuxerPlaylist,
             [nameof(AppSettings.VideoExts)] = sDemuxerPlaylist,
             [nameof(AppSettings.ImageExts)] = sDemuxerPlaylist,
-            [nameof(AppSettings.ImageDisplayDuration)] = sDemuxerPlaylist,
-            [nameof(AppSettings.DemuxerMaxBytes)] = sDemuxerBuffering,
-            [nameof(AppSettings.DemuxerMaxBackBytes)] = sDemuxerBuffering,
-            [nameof(AppSettings.DemuxerReadahead)] = sDemuxerBuffering,
-            [nameof(AppSettings.DemuxerHysteresisSecs)] = sDemuxerBuffering,
-            [nameof(AppSettings.DemuxerCacheDir)] = sDemuxerBuffering,
+            [nameof(AppSettings.DemuxerMaxBytes)] = sCache,
+            [nameof(AppSettings.DemuxerMaxBackBytes)] = sCache,
+            [nameof(AppSettings.DemuxerReadahead)] = sCache,
             // cache
             [nameof(AppSettings.CacheEnabled)] = sCache,
             [nameof(AppSettings.CacheSecs)] = sCache,
             [nameof(AppSettings.CacheOnDisk)] = sCache,
-            [nameof(AppSettings.CachePause)] = sCache,
                         // network
             [nameof(AppSettings.Ytdl)] = sProgramNetwork,
             [nameof(AppSettings.YtdlRawOptionsAppend)] = sProgramNetwork,
@@ -612,7 +592,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.HttpProxy)] = sNetworkHttp,
             [nameof(AppSettings.CookiesFile)] = sNetworkHttp,
             [nameof(AppSettings.TlsVerify)] = sNetworkHttp,
-            [nameof(AppSettings.PrefetchPlaylist)] = sNetworkHttp,
             [nameof(AppSettings.NetworkTimeout)] = sNetworkHttp,
             [nameof(AppSettings.CurlMaxRedirects)] = sNetworkCurl,
             [nameof(AppSettings.CurlMaxRetries)] = sNetworkCurl,
@@ -622,6 +601,8 @@ private List<Option> BuildSettings()
             // input
             [nameof(AppSettings.InputIme)] = sInput,
             [nameof(AppSettings.InputIpcServer)] = sInput,
+            // shortcuts
+            ["ShortcutReset"] = sShortcutsReset,
             // program actions
             ["FileAssociationCheckList"] = sProgramAssociations,
             ["ActionUnassociateFiles"] = sProgramAssociations,
@@ -643,20 +624,11 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.OsdBlur)] = sOsd,
             [nameof(AppSettings.OsdOutlineSize)] = sOsd,
             [nameof(AppSettings.OsdFractions)] = sOsd,
-            [nameof(AppSettings.OsdLevel)] = sOsd,
-            [nameof(AppSettings.OsdAlignX)] = sOsd,
-            [nameof(AppSettings.OsdAlignY)] = sOsd,
-            [nameof(AppSettings.OsdMarginX)] = sOsd,
-            [nameof(AppSettings.OsdMarginY)] = sOsd,
             [nameof(AppSettings.ShowOsdPlayingMsg)] = sOsd,
             [nameof(AppSettings.MetadataOsdEnabled)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdAutohideTimeout)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdShowChapter)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdEnableForVideo)] = sOsdMetadata,
-            [nameof(AppSettings.MetadataOsdEnableForAudio)] = sOsdMetadata,
-            [nameof(AppSettings.MetadataOsdEnableForAudioWithAlbumArt)] = sOsdMetadata,
-            [nameof(AppSettings.MetadataOsdAutohideForAudio)] = sOsdMetadata,
-            [nameof(AppSettings.MetadataOsdAutohideForAudioWithAlbumArt)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdEnableForImage)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdAutohideStatusTimeout)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdShowAlbumTrack)] = sOsdMetadata,
@@ -740,4 +712,6 @@ private List<Option> BuildSettings()
 
         return options;
     }
-}
+
+    /// <summary>Options whose presets cover every legal value; the list control must not add a "Custom" entry.</summary>
+    }

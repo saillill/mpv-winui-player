@@ -1,12 +1,13 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using System;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
 public sealed partial class OptionIntegerControl : OptionControlBase
 {
+    private bool _loading;
+
     public OptionIntegerControl()
     {
         InitializeComponent();
@@ -23,28 +24,36 @@ public sealed partial class OptionIntegerControl : OptionControlBase
             UpdateDescription(DescriptionText);
             NumberBox.IsEnabled = newValue.IsEnabled;
 
-            if (newValue.Min.HasValue)
+            _loading = true;
+            try
             {
-                NumberBox.Minimum = newValue.Min.Value;
-            }
+                if (newValue.Min.HasValue)
+                {
+                    NumberBox.Minimum = newValue.Min.Value;
+                }
 
-            if (newValue.Max.HasValue)
-            {
-                NumberBox.Maximum = newValue.Max.Value;
-            }
+                if (newValue.Max.HasValue)
+                {
+                    NumberBox.Maximum = newValue.Max.Value;
+                }
 
-            if (newValue.Step.HasValue)
-            {
-                NumberBox.SmallChange = newValue.Step.Value;
-            }
+                if (newValue.Step.HasValue)
+                {
+                    NumberBox.SmallChange = newValue.Step.Value;
+                }
 
-            if (newValue.Getter is Func<object?> func && func() is double value)
-            {
-                NumberBox.Value = value;
+                if (newValue.Getter is Func<object?> func && func() is double value)
+                {
+                    NumberBox.Value = value;
+                }
+                else
+                {
+                    NumberBox.Value = 0;
+                }
             }
-            else
+            finally
             {
-                NumberBox.Value = 0;
+                _loading = false;
             }
         }
     }
@@ -93,9 +102,9 @@ public sealed partial class OptionIntegerControl : OptionControlBase
         return true;
     }
 
-    private void OnKeyDown(object sender, KeyRoutedEventArgs e)
+    private void OnValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter)
+        if (!_loading)
         {
             TryCommit();
         }

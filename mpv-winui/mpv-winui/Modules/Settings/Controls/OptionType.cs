@@ -11,5 +11,4 @@ public enum OptionType
     Action,
     CheckList,
     Layout,
-    MultiList,
 }

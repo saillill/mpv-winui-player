@@ -20,9 +20,10 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildAdvancedOptions()
     {
+        var gpuRenderer = AppContext.AppLang.SettingsCategoryGpuRenderer;
         var audio = AppContext.AppLang.SettingsCategoryAudio;
+        var cache = AppContext.AppLang.SettingsCategoryCache;
         var input = AppContext.AppLang.SettingsCategoryInput;
-        var network = AppContext.AppLang.SettingsCategoryNetwork;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var video = AppContext.AppLang.SettingsCategoryVideo;
@@ -35,7 +36,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.CacheOnDisk),
                 Label = lang.SettingsCacheOnDisk,
-                Category = network,
+                Category = cache,
                 Description = lang.SettingsHelpCacheOnDisk,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.CacheOnDisk,
@@ -104,8 +105,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsD3d11Adapter,
                 Category = video,
                 Description = lang.SettingsHelpD3d11Adapter,
-                Type = OptionType.StringList,
-                ChoicesProvider = BuildGpuAdapterChoices,
+                Type = OptionType.String,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.D3d11Adapter,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11Adapter), AppContext.AppSetting.D3d11Adapter = (string)v!)
@@ -132,7 +132,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerMaxBytes),
                 Label = lang.SettingsDemuxerMaxBytes,
-                Category = network,
+                Category = cache,
                 Description = lang.SettingsHelpDemuxerMaxBytes,
                 Type = OptionType.Integer,
                 Min = 32,
@@ -161,10 +161,6 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpIccProfile,
                 Type = OptionType.String,
                 AllowEmpty = true,
-                PickFile = true,
-                OpenFolder = true,
-                FileTypeFilter = [".icc", ".icm"],
-                FallbackOpenFolder = "mpv",
                 Getter = () => AppContext.AppSetting.IccProfile,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.IccProfile), AppContext.AppSetting.IccProfile = (string)v!)
             },
@@ -360,7 +356,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsGlslShadersAppend,
                 Category = video,
                 Description = lang.SettingsHelpGlslShadersAppend,
-                Type = OptionType.MultiList,
+                Type = OptionType.String,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.GlslShadersAppend,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GlslShadersAppend), AppContext.AppSetting.GlslShadersAppend = (string)v!)
@@ -370,7 +366,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerMaxBackBytes),
                 Label = lang.SettingsDemuxerMaxBackBytes,
-                Category = network,
+                Category = cache,
                 Description = lang.SettingsHelpDemuxerMaxBackBytes,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -378,32 +374,6 @@ public sealed partial class SettingsPage
                 Step = 64,
                 Getter = () => (double)AppContext.AppSetting.DemuxerMaxBackBytes,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerMaxBackBytes), AppContext.AppSetting.DemuxerMaxBackBytes = Convert.ToInt32(v))
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.DemuxerHysteresisSecs),
-                Label = lang.SettingsDemuxerHysteresisSecs,
-                Category = network,
-                Description = lang.SettingsHelpDemuxerHysteresisSecs,
-                Type = OptionType.Double,
-                Min = 0,
-                Max = 10,
-                Step = 0.1,
-                Getter = () => AppContext.AppSetting.DemuxerHysteresisSecs,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerHysteresisSecs), AppContext.AppSetting.DemuxerHysteresisSecs = (double)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.DemuxerCacheDir),
-                Label = lang.SettingsDemuxerCacheDir,
-                Category = network,
-                Description = lang.SettingsHelpDemuxerCacheDir,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.DemuxerCacheDir,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerCacheDir), AppContext.AppSetting.DemuxerCacheDir = (string)v!)
             },
 
             new Option
@@ -585,82 +555,6 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.OsdLevel),
-                Label = lang.SettingsOsdLevel,
-                Category = osd,
-                Description = lang.SettingsHelpOsdLevel,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 3,
-                Step = 1,
-                Getter = () => (double)AppContext.AppSetting.OsdLevel,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdLevel), AppContext.AppSetting.OsdLevel = Convert.ToInt32(v))
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.OsdAlignX),
-                Label = lang.SettingsOsdAlignX,
-                Category = osd,
-                Description = lang.SettingsHelpOsdAlignX,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("left", lang.OptionValueAlignLeft),
-                    new OptionChoice("center", lang.OptionValueAlignCenter),
-                    new OptionChoice("right", lang.OptionValueAlignRight),
-                ],
-                Getter = () => AppContext.AppSetting.OsdAlignX,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdAlignX), AppContext.AppSetting.OsdAlignX = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.OsdAlignY),
-                Label = lang.SettingsOsdAlignY,
-                Category = osd,
-                Description = lang.SettingsHelpOsdAlignY,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("top", lang.OptionValueAlignTop),
-                    new OptionChoice("center", lang.OptionValueAlignCenter),
-                    new OptionChoice("bottom", lang.OptionValueAlignBottom),
-                ],
-                Getter = () => AppContext.AppSetting.OsdAlignY,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdAlignY), AppContext.AppSetting.OsdAlignY = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.OsdMarginX),
-                Label = lang.SettingsOsdMarginX,
-                Category = osd,
-                Description = lang.SettingsHelpOsdMarginX,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 1000,
-                Step = 1,
-                Getter = () => (double)AppContext.AppSetting.OsdMarginX,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdMarginX), AppContext.AppSetting.OsdMarginX = Convert.ToInt32(v))
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.OsdMarginY),
-                Label = lang.SettingsOsdMarginY,
-                Category = osd,
-                Description = lang.SettingsHelpOsdMarginY,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 1000,
-                Step = 1,
-                Getter = () => (double)AppContext.AppSetting.OsdMarginY,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdMarginY), AppContext.AppSetting.OsdMarginY = Convert.ToInt32(v))
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.OsdColor),
                 Label = lang.SettingsOsdColor,
                 Category = osd,
@@ -707,27 +601,6 @@ public sealed partial class SettingsPage
                 ],
                 Getter = () => AppContext.AppSetting.HdrAutoMode,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HdrAutoMode), AppContext.AppSetting.HdrAutoMode = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.HdrOverrideMode),
-                Label = lang.SettingsHdrOverrideMode,
-                Category = video,
-                Description = lang.SettingsHelpHdrOverrideMode,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("", lang.OptionValueAuto),
-                    new OptionChoice("HDR", "HDR"),
-                    new OptionChoice("SDR", "SDR"),
-                ],
-                Getter = () => AppContext.AppSetting.HdrOverrideMode,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.HdrOverrideMode = (string)v!;
-                    AppContext.WritePluginConfigs();
-                }
             },
 
             new Option
@@ -815,66 +688,6 @@ public sealed partial class SettingsPage
                 Setter = v =>
                 {
                     AppContext.AppSetting.MetadataOsdEnableForVideo = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.MetadataOsdEnableForAudio),
-                Label = lang.SettingsMetadataOsdEnableForAudio,
-                Category = osd,
-                Description = lang.SettingsHelpMetadataOsdEnableForAudio,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.MetadataOsdEnableForAudio,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.MetadataOsdEnableForAudio = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.MetadataOsdEnableForAudioWithAlbumArt),
-                Label = lang.SettingsMetadataOsdEnableForAudioWithAlbumArt,
-                Category = osd,
-                Description = lang.SettingsHelpMetadataOsdEnableForAudioWithAlbumArt,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.MetadataOsdEnableForAudioWithAlbumArt,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.MetadataOsdEnableForAudioWithAlbumArt = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.MetadataOsdAutohideForAudio),
-                Label = lang.SettingsMetadataOsdAutohideForAudio,
-                Category = osd,
-                Description = lang.SettingsHelpMetadataOsdAutohideForAudio,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.MetadataOsdAutohideForAudio,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.MetadataOsdAutohideForAudio = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.MetadataOsdAutohideForAudioWithAlbumArt),
-                Label = lang.SettingsMetadataOsdAutohideForAudioWithAlbumArt,
-                Category = osd,
-                Description = lang.SettingsHelpMetadataOsdAutohideForAudioWithAlbumArt,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.MetadataOsdAutohideForAudioWithAlbumArt,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.MetadataOsdAutohideForAudioWithAlbumArt = (bool)v!;
                     AppContext.WritePluginConfigs();
                 }
             },
@@ -978,41 +791,6 @@ public sealed partial class SettingsPage
                 Setter = v =>
                 {
                     AppContext.AppSetting.ThumbfastNetwork = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastAudio),
-                Label = lang.SettingsThumbfastAudio,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastAudio,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.ThumbfastAudio,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastAudio = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastHwdec),
-                Label = lang.SettingsThumbfastHwdec,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastHwdec,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("yes", lang.OptionValueYes),
-                    new OptionChoice("no", lang.OptionValueNo),
-                ],
-                Getter = () => AppContext.AppSetting.ThumbfastHwdec,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastHwdec = (string)v!;
                     AppContext.WritePluginConfigs();
                 }
             },

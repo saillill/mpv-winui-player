@@ -24,7 +24,9 @@ public sealed partial class SettingsPage
         var window = AppContext.AppLang.SettingsCategoryWindow;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var audio = AppContext.AppLang.SettingsCategoryAudio;
+        var cache = AppContext.AppLang.SettingsCategoryCache;
         var video = AppContext.AppLang.SettingsCategoryVideo;
+        var watchLater = AppContext.AppLang.SettingsCategoryWatchLater;
         var lang = AppContext.AppLang;
 
         return
@@ -39,7 +41,6 @@ public sealed partial class SettingsPage
                 Type = OptionType.StringList,
                 Choices =
                 [
-                    new OptionChoice("auto-safe", lang.OptionValueAutoSafe),
                     new OptionChoice("auto", lang.OptionValueAuto),
                     new OptionChoice("no", lang.OptionValueNo),
                     new OptionChoice("d3d11va", "D3D11 VA"),
@@ -152,9 +153,36 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.LoopFile),
+                Label = lang.SettingsLoopFile,
+                Category = playback,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.LoopFile,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopFile), AppContext.AppSetting.LoopFile = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.LoopPlaylist),
+                Label = lang.SettingsLoopPlaylist,
+                Category = playback,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueLoopPlaylistNo),
+                    new OptionChoice("yes", lang.OptionValueLoopPlaylistYes),
+                    new OptionChoice("inf", lang.OptionValueLoopPlaylistInf),
+                    new OptionChoice("force", lang.OptionValueLoopPlaylistForce),
+                ],
+                Getter = () => AppContext.AppSetting.LoopPlaylist,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopPlaylist), AppContext.AppSetting.LoopPlaylist = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.SavePositionOnQuit),
                 Label = lang.SettingsSavePositionOnQuit,
-                Category = playback,
+                Category = watchLater,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SavePositionOnQuit,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SavePositionOnQuit), AppContext.AppSetting.SavePositionOnQuit = (bool)v!)
@@ -188,7 +216,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ResumePlayback),
                 Label = lang.SettingsResumePlayback,
-                Category = playback,
+                Category = watchLater,
                 Description = lang.SettingsHelpResumePlayback,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ResumePlayback,
@@ -199,7 +227,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.CacheSecs),
                 Label = lang.SettingsCacheSecs,
-                Category = network,
+                Category = cache,
                 Description = lang.SettingsHelpCacheSecs,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -213,7 +241,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.CacheEnabled),
                 Label = lang.SettingsCacheEnabled,
-                Category = network,
+                Category = cache,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -227,20 +255,9 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.CachePause),
-                Label = lang.SettingsCachePause,
-                Category = network,
-                Description = lang.SettingsHelpCachePause,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.CachePause,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CachePause), AppContext.AppSetting.CachePause = (bool)v!)
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.DemuxerReadahead),
                 Label = lang.SettingsDemuxerReadahead,
-                Category = network,
+                Category = cache,
                 Description = lang.SettingsHelpDemuxerReadahead,
                 Type = OptionType.Double,
                 Min = 0,
@@ -456,17 +473,6 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.PrefetchPlaylist),
-                Label = lang.SettingsPrefetchPlaylist,
-                Category = network,
-                Description = lang.SettingsHelpPrefetchPlaylist,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.PrefetchPlaylist,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.PrefetchPlaylist), AppContext.AppSetting.PrefetchPlaylist = (bool)v!)
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.NetworkTimeout),
                 Label = lang.SettingsNetworkTimeout,
                 Category = network,
@@ -620,20 +626,6 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.ImageDisplayDuration),
-                Label = lang.SettingsImageDisplayDuration,
-                Category = playback,
-                Description = lang.SettingsHelpImageDisplayDuration,
-                Type = OptionType.Double,
-                Min = 0,
-                Max = 3600,
-                Step = 0.5,
-                Getter = () => AppContext.AppSetting.ImageDisplayDuration,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ImageDisplayDuration), AppContext.AppSetting.ImageDisplayDuration = (double)v!)
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.AudioExts),
                 Label = lang.SettingsAudioExts,
                 Category = audio,
@@ -647,7 +639,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.WatchLaterOptions),
                 Label = lang.SettingsWatchLaterOptions,
-                Category = playback,
+                Category = watchLater,
                 Description = lang.SettingsHelpWatchLaterOptions,
                 Type = OptionType.String,
                 AllowEmpty = true,
