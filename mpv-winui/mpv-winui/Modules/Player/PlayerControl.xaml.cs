@@ -439,7 +439,31 @@ namespace mpv_winui.Modules.Player
             var custom = ParseCustomOrder();
 
             ICommandBarElement[] left, middle, right;
-            if (layout == "modernx")
+            if (layout == "custom")
+            {
+                // Custom layout: the full ordered bar from the drag canvas —
+                // fixed transport + movable buttons in the saved custom order,
+                // with a small gap before the movable section. Everything sits
+                // on the left command bar (the bar is one logical row).
+                var fixedRow = new ICommandBarElement[]
+                {
+                    PlayPauseButton, PreviousTrackButton, NextTrackButton,
+                    SkipBackwardButton, SkipForwardButton,
+                };
+                left =
+                [
+                    .. fixedRow,
+                    .. ReorderMovable(
+                        [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("tracks", TrackSelectionButton),
+                         ("random", ShuffleButton), ("repeat", RepeatButton), ("speed", PlaybackRateButton),
+                         ("equalizer", EqualizerButton), ("delay", DelayButton), ("aspect", ZoomButton),
+                         ("pip", PiPButton), ("fullwindow", FullWindowButton), ("fullscreen", FullScreenButton)],
+                        custom),
+                ];
+                middle = [];
+                right = [];
+            }
+            else if (layout == "modernx")
             {
                 left =
                 [
@@ -595,6 +619,7 @@ namespace mpv_winui.Modules.Player
             return value switch
             {
                 "modernx" or "center" or "right" => "modernx",
+                "custom" => "custom",
                 _ => "classic",
             };
         }

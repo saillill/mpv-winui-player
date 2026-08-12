@@ -802,5 +802,6 @@
   "SettingsControlBarFixedGroup": "Fixed: play, previous, next, skip back, skip forward",
   "SettingsControlBarShown": "Shown (drag to reorder, × to hide)",
   "SettingsControlBarAvailable": "Hidden (drag onto the bar to show)",
-  "SettingsControlBarCanvasHint": "Drag the icons to reorder; drag off the bar to hide. The transport buttons are fixed."
+  "SettingsControlBarCanvasHint": "Drag the icons to reorder; drag off the bar to hide. The transport buttons are fixed.",
+  "OptionValueControlBarCustom": "Custom"
 }

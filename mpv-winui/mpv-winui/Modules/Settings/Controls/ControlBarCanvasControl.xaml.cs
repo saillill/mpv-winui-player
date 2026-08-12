@@ -39,6 +39,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private Point _dragStart;
     private Border? _ghost;
     private Border? _dragSourceCell;
+    private Border? _dropIndicator;
 
     public ControlBarCanvasControl()
     {
@@ -102,7 +103,18 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
     private void BuildBarOrder()
     {
         _barOrder.Clear();
-        if (_style == "modernx")
+        if (_style == "custom")
+        {
+            // Custom: the full ordered bar — fixed transport, a gap, then all
+            // shown movable buttons in the saved custom order (no partitions).
+            AddFixed();
+            Separator();
+            foreach (var id in _shown)
+            {
+                _barOrder.Add((false, id));
+            }
+        }
+        else if (_style == "modernx")
         {
             AddPartition(ControlBarIconCatalog.ModernXLeft);
             Separator();
@@ -171,28 +183,46 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             }
         }
 
-        AvailableBar.ItemsSource = null;
-        AvailableBar.ItemsSource = _hidden
-            .Where(ControlBarIconCatalog.MovableIds.Contains)
-            .Select(id => new AvailableCell(id, CatalogOf(id).Label, CatalogOf(id).Glyph))
-            .ToList();
-        AvailableBar.ItemTemplate = BuildAvailableTemplate();
-    }
-
-    private sealed record AvailableCell(string Id, string Label, string Glyph);
-
-    private DataTemplate BuildAvailableTemplate()
-    {
-        var xaml =
-            "<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">" +
-            "  <Border Width=\"44\" Height=\"44\" CornerRadius=\"6\" Background=\"{ThemeResource CardBackgroundFillColorSecondaryBrush}\" Padding=\"3\">" +
-            "    <StackPanel Spacing=\"2\" VerticalAlignment=\"Center\">" +
-            "      <FontIcon FontSize=\"14\" Glyph=\"{Binding Glyph}\" HorizontalAlignment=\"Center\" />" +
-            "      <TextBlock FontSize=\"7\" Text=\"{Binding Label}\" TextWrapping=\"NoWrap\" TextAlignment=\"Center\" TextTrimming=\"CharacterEllipsis\" MaxLines=\"1\" />" +
-            "    </StackPanel>" +
-            "  </Border>" +
-            "</DataTemplate>";
-        return (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(xaml);
+        // Fixed slot grid: one grey rounded frame per movable button, so the
+        // drawer always shows its structure. Hidden buttons fill their slot
+        // with the icon + localized label; empty slots stay as empty frames.
+        AvailableBar.Children.Clear();
+        foreach (var id in ControlBarIconCatalog.MovableIds)
+        {
+            var isHidden = _hidden.Contains(id);
+            var slot = new Border
+            {
+                Width = 52,
+                Height = 60,
+                CornerRadius = new CornerRadius(6),
+                Background = ThemeResource.Brush(this, "ControlFillColorTertiaryBrush"),
+                BorderBrush = ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
+                BorderThickness = new Thickness(1),
+                Tag = id,
+            };
+            var panel = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
+            if (isHidden)
+            {
+                var (_, label, glyph) = CatalogOf(id);
+                panel.Children.Add(new FontIcon { Glyph = glyph, FontSize = 16, HorizontalAlignment = HorizontalAlignment.Center });
+                panel.Children.Add(new TextBlock
+                {
+                    Text = label,
+                    FontSize = 8,
+                    TextWrapping = TextWrapping.NoWrap,
+                    TextAlignment = TextAlignment.Center,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    MaxLines = 1,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                });
+            }
+            else
+            {
+                panel.Children.Add(new FontIcon { Glyph = "", FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center, Opacity = 0.5 });
+            }
+            slot.Child = panel;
+            AvailableBar.Children.Add(slot);
+        }
     }
 
     private static (string Id, string Label, string Glyph) CatalogOf(string id)
@@ -228,7 +258,9 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             CornerRadius = new CornerRadius(5),
             Background = fixed_
                 ? ThemeResource.Brush(this, "ControlFillColorTertiaryBrush")
-                : ThemeResource.Brush(this, "CardBackgroundFillColorSecondaryBrush"),
+                : ThemeResource.Brush(this, "ControlFillColorTertiaryBrush"),
+            BorderBrush = ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
+            BorderThickness = new Thickness(1),
             Tag = fixed_ ? $"fixed:{id}" : id,
         };
 
@@ -343,9 +375,14 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
         {
             return;
         }
-        if (e.OriginalSource is FrameworkElement fe && fe.DataContext is AvailableCell cell)
+        if (e.OriginalSource is FrameworkElement fe)
         {
-            _dragSourceId = cell.Id;
+            var slot = FindSlot(fe);
+            if (slot is null || slot.Tag is not string id || !_hidden.Contains(id))
+            {
+                return; // empty slot: nothing to drag
+            }
+            _dragSourceId = id;
             _dragFromAvailable = true;
             _dragActive = false;
             _dragStart = e.GetCurrentPoint(RootPanel).Position;
@@ -366,6 +403,19 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             _dragActive = false;
             _dragStart = e.GetCurrentPoint(RootPanel).Position;
         }
+    }
+
+    private static FrameworkElement? FindSlot(DependencyObject? source)
+    {
+        while (source is not null)
+        {
+            if (source is FrameworkElement { Tag: string } slot && slot is not null)
+            {
+                return slot;
+            }
+            source = VisualTreeHelper.GetParent(source);
+        }
+        return null;
     }
 
     private static string? FindCellId(DependencyObject? source)
@@ -425,6 +475,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             Canvas.SetLeft(_ghost, p.X - CellSize / 2);
             Canvas.SetTop(_ghost, p.Y - CellSize / 2);
         }
+        UpdateDropIndicator(e.GetCurrentPoint(BarPanel).Position);
     }
 
     private Border? FindSourceCell()
@@ -437,6 +488,70 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             }
         }
         return null;
+    }
+
+    /// <summary>Shows a snap highlight at the insertion slot under the pointer (吸附效果).</summary>
+    private void UpdateDropIndicator(Point position)
+    {
+        if (_dropIndicator is not null)
+        {
+            BarPanel.Children.Remove(_dropIndicator);
+            _dropIndicator = null;
+        }
+        if (!_dragActive)
+        {
+            return;
+        }
+        var insertIndex = HitBarInsertIndex(position);
+        if (insertIndex < 0)
+        {
+            return;
+        }
+        // Move the indicator before the movable cell that is currently at
+        // insertIndex (fixed cells and separators are skipped).
+        var movableSeen = 0;
+        foreach (var child in BarPanel.Children)
+        {
+            if (child is not FrameworkElement cell)
+            {
+                continue;
+            }
+            if (tagIsMovable(cell))
+            {
+                if (movableSeen == insertIndex)
+                {
+                    _dropIndicator = new Border
+                    {
+                        Width = 3,
+                        Height = CellSize,
+                        CornerRadius = new CornerRadius(2),
+                        Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x99, 0x00, 0x9D, 0xFF)),
+                    };
+                    var index = BarPanel.Children.IndexOf(cell);
+                    BarPanel.Children.Insert(index, _dropIndicator);
+                    return;
+                }
+                movableSeen++;
+            }
+        }
+        // Drop past the last movable cell: append at the end.
+        _dropIndicator = new Border
+        {
+            Width = 3,
+            Height = CellSize,
+            CornerRadius = new CornerRadius(2),
+            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x99, 0x00, 0x9D, 0xFF)),
+        };
+        BarPanel.Children.Add(_dropIndicator);
+    }
+
+    private void ClearDropIndicator()
+    {
+        if (_dropIndicator is not null)
+        {
+            BarPanel.Children.Remove(_dropIndicator);
+            _dropIndicator = null;
+        }
     }
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
@@ -461,6 +576,7 @@ public sealed partial class ControlBarCanvasControl : OptionControlBase
             _dragSourceCell.Opacity = 1;
             _dragSourceCell = null;
         }
+        ClearDropIndicator();
 
         if (!wasDrag && !fromAvailable)
         {

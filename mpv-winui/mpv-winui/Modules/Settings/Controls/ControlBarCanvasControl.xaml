@@ -29,19 +29,19 @@
                 VerticalAlignment="Center" />
         </ScrollViewer>
 
-        <!-- Candidate drawer: hidden buttons, drag one back onto the bar to show it. -->
+        <!-- Candidate drawer: a fixed grid of grey rounded slots, one per
+             movable button. Hidden buttons fill a slot (icon + localized
+             label below); empty slots stay visible so the layout never
+             collapses. Drag a slot's icon back onto the bar to show it. -->
         <TextBlock
             x:Name="AvailableCaption"
             FontSize="12"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        <ItemsControl
+        <WrapGrid
             x:Name="AvailableBar"
-            IsTabStop="False">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapGrid Orientation="Horizontal" ItemWidth="48" ItemHeight="48" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
+            Orientation="Horizontal"
+            ItemWidth="56"
+            ItemHeight="64"
+            IsTabStop="False" />
     </StackPanel>
 </local:OptionControlBase>
