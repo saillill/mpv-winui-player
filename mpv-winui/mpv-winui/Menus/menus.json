@@ -28,6 +28,8 @@
     "labelKey": "MenuView",
     "children": [
       { "id": "playlist", "labelKey": "ViewPlaylist", "action": "playlist" },
+      { "id": "playlist-import", "labelKey": "PlaylistImport", "action": "playlist-import" },
+      { "id": "playlist-export", "labelKey": "PlaylistExport", "action": "playlist-export" },
       { "separator": true },
       { "id": "fullwindow", "labelKey": "ViewFullWindow", "action": "fullwindow" },
       { "id": "fullscreen", "labelKey": "ViewFullScreen", "action": "fullscreen" },

@@ -218,6 +218,8 @@ namespace mpv_winui.Modules.Language
         public string WatchLaterEmpty { get; set; } = "No watch later files found.";
         public string WatchLaterDisabled { get; set; } = "Enable --write-filename-in-watch-later-config to select recent files.";
         public string Playlist { get; set; } = "Playlist";
+        public string PlaylistImport { get; set; } = "Import Playlist…";
+        public string PlaylistExport { get; set; } = "Export Playlist…";
         public string Window { get; set; } = "Window";
         public string TogglePlaylist { get; set; } = "Toggle Playlist";
         public string ToggleFullScreen { get; set; } = "Toggle Full Screen";

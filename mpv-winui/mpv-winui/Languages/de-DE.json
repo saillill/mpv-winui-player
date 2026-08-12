@@ -786,5 +786,7 @@
   "ValidationValueNotEmpty": "Wert darf nicht leer sein",
   "WatchHistoryClearTitle": "Verlauf löschen",
   "WatchHistoryClearConfirm": "Möchten Sie den Verlauf wirklich löschen?",
-  "Clear": "Löschen"
+  "Clear": "Löschen",
+  "PlaylistImport": "Wiedergabeliste importieren…",
+  "PlaylistExport": "Wiedergabeliste exportieren…"
 }

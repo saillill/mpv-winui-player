@@ -21,7 +21,8 @@ public sealed partial class MpvPlayerPage
     {
         "open", "open-folder", "open-url", "open-clipboard", "open-dvd", "open-bd",
         "load-subtitle", "screenshot", "screenshot-no-sub", "conf-folder", "mpv-folder",
-        "playlist", "open-watch-history", "open-watch-later", "restart", "about", "mpv-docs",
+        "playlist", "playlist-import", "playlist-export",
+        "open-watch-history", "open-watch-later", "restart", "about", "mpv-docs",
         "quit", "fullwindow", "fullscreen", "options", "mpv-command", "shortcut-search",
         "sleep-off", "sleep-15", "sleep-30", "sleep-45", "sleep-60", "sleep-90",
     };
@@ -105,6 +106,12 @@ public sealed partial class MpvPlayerPage
                 TogglePlaylist(true);
                 break;
             }
+            case "playlist-import":
+                await ImportPlaylistAsync();
+                break;
+            case "playlist-export":
+                await ExportPlaylistAsync();
+                break;
             case "open-watch-history":
             {
                 await ShowWatchHistoryDialogAsync();

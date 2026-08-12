@@ -786,5 +786,7 @@
   "ValidationValueNotEmpty": "値を空にできません",
   "WatchHistoryClearTitle": "履歴をクリア",
   "WatchHistoryClearConfirm": "履歴をクリアしてもよろしいですか？",
-  "Clear": "クリア"
+  "Clear": "クリア",
+  "PlaylistImport": "プレイリストをインポート…",
+  "PlaylistExport": "プレイリストをエクスポート…"
 }

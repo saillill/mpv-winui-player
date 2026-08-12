@@ -786,5 +786,7 @@
   "ValidationValueNotEmpty": "Значение не может быть пустым",
   "WatchHistoryClearTitle": "Очистить историю",
   "WatchHistoryClearConfirm": "Вы уверены, что хотите очистить историю?",
-  "Clear": "Очистить"
+  "Clear": "Очистить",
+  "PlaylistImport": "Импорт плейлиста…",
+  "PlaylistExport": "Экспорт плейлиста…"
 }

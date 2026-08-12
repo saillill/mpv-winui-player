@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using Windows.Storage.Pickers;
 
 namespace mpv_winui.Modules.Player
 {
@@ -64,6 +65,50 @@ namespace mpv_winui.Modules.Player
         private void ClosePlaylist_Click(object sender, RoutedEventArgs e)
         {
             TogglePlaylist();
+        }
+
+        private async Task ImportPlaylistAsync()
+        {
+            var file = await FilePickerHelper.PickSingleFileAsync(picker =>
+            {
+                picker.SuggestedStartLocation = PickerLocationId.VideosLibrary;
+                picker.FileTypeFilter.Add(".m3u");
+                picker.FileTypeFilter.Add(".m3u8");
+            });
+            if (string.IsNullOrEmpty(file?.Path))
+            {
+                return;
+            }
+            // mpv's loadlist replaces the current playlist with the file's
+            // entries (relative paths resolve against the m3u's directory).
+            _mediaPlayer.Command(["osd-auto", "loadlist", file.Path]);
+            RefreshPlaylistAsync();
+        }
+
+        private async Task ExportPlaylistAsync()
+        {
+            if (PlaylistItems.Count == 0)
+            {
+                return;
+            }
+            var file = await FilePickerHelper.PickSaveFileAsync(picker =>
+            {
+                picker.SuggestedFileName = "playlist.m3u";
+                picker.FileTypeChoices.Add("M3U Playlist", [".m3u"]);
+            });
+            if (file is null)
+            {
+                return;
+            }
+            var builder = new System.Text.StringBuilder();
+            builder.AppendLine("#EXTM3U");
+            foreach (var item in PlaylistItems)
+            {
+                builder.AppendLine($"#EXTINF:-1,{item.Title}");
+                builder.AppendLine(item.Path);
+            }
+            await System.IO.File.WriteAllTextAsync(file.Path, builder.ToString());
+            AppContext.AppLogger.Info($"exported playlist ({PlaylistItems.Count} items): {file.Path}");
         }
 
         private async void RefreshPlaylist_Click(object sender, RoutedEventArgs e)

@@ -786,5 +786,7 @@
   "ValidationValueNotEmpty": "值不能为空",
   "WatchHistoryClearTitle": "清空观看历史",
   "WatchHistoryClearConfirm": "确定要清空观看历史吗？",
-  "Clear": "清空"
+  "Clear": "清空",
+  "PlaylistImport": "导入播放列表…",
+  "PlaylistExport": "导出播放列表…"
 }

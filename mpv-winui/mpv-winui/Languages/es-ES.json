@@ -786,5 +786,7 @@
   "ValidationValueNotEmpty": "El valor no puede estar vacío",
   "WatchHistoryClearTitle": "Borrar historial",
   "WatchHistoryClearConfirm": "¿Seguro que desea borrar el historial?",
-  "Clear": "Borrar"
+  "Clear": "Borrar",
+  "PlaylistImport": "Importar lista de reproducción…",
+  "PlaylistExport": "Exportar lista de reproducción…"
 }
