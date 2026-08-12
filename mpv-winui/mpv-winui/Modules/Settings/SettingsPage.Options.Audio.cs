@@ -57,7 +57,9 @@ public sealed partial class SettingsPage
                 Type = OptionType.StringList,
                 Choices =
                 [
+                    new OptionChoice("auto-safe", lang.OptionValueAutoSafe),
                     new OptionChoice("auto", lang.OptionValueChannelsAuto),
+                    new OptionChoice("mono", lang.OptionValueMono),
                     new OptionChoice("stereo", lang.OptionValueStereo),
                     new OptionChoice("5.1", lang.OptionValueSurround51),
                     new OptionChoice("7.1", lang.OptionValueSurround71),
@@ -166,6 +168,23 @@ public sealed partial class SettingsPage
                 Step = 0.1,
                 Getter = () => AppContext.AppSetting.AudioBuffer,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioBuffer), AppContext.AppSetting.AudioBuffer = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioGapless),
+                Label = lang.SettingsAudioGapless,
+                Category = audio,
+                Description = lang.SettingsHelpAudioGapless,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueAudioGaplessNo),
+                    new OptionChoice("yes", lang.OptionValueAudioGaplessYes),
+                    new OptionChoice("weak", lang.OptionValueAudioGaplessWeak),
+                ],
+                Getter = () => AppContext.AppSetting.AudioGapless,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioGapless), AppContext.AppSetting.AudioGapless = (string)v!)
             },
 
             new Option

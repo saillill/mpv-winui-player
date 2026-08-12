@@ -41,6 +41,7 @@ public sealed partial class SettingsPage
                 Type = OptionType.StringList,
                 Choices =
                 [
+                    new OptionChoice("auto-safe", lang.OptionValueAutoSafe),
                     new OptionChoice("auto", lang.OptionValueAuto),
                     new OptionChoice("no", lang.OptionValueNo),
                     new OptionChoice("d3d11va", "D3D11 VA"),

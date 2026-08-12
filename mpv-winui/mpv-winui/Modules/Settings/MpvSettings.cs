@@ -78,7 +78,6 @@ public static class MpvSettings
             nameof(AppSettings.BackgroundTileSize) => $"set background-tile-size {(int)value}",
             nameof(AppSettings.SubFontSize) => $"set sub-font-size {value}",
             nameof(AppSettings.SubDelay) => $"set sub-delay {value}",
-            nameof(AppSettings.Speed) => $"set speed {value}",
             nameof(AppSettings.SubPos) => $"set sub-pos {value}",
             nameof(AppSettings.AudioLanguage) => string.IsNullOrWhiteSpace((string)value) ? null : $"set alang {(string)value}",
             nameof(AppSettings.SubtitleLanguage) => string.IsNullOrWhiteSpace((string)value) ? null : $"set slang {(string)value}",

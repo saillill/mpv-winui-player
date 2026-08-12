@@ -529,6 +529,7 @@ namespace mpv_winui.Modules.Language
 
         // ===== Localized option values (raw mpv values stay machine-readable) =====
         public string OptionValueAuto { get; set; } = "Auto";
+        public string OptionValueAutoSafe { get; set; } = "Auto (safe)";
         public string OptionValueYes { get; set; } = "Yes";
         public string OptionValueNo { get; set; } = "No";
         public string OptionValueCustom { get; set; } = "Custom";

@@ -318,7 +318,6 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
 
         try
         {
-            binding.Key = newKey;
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "mpv-winui",
@@ -329,42 +328,98 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                 return;
             }
 
-            var lines = ReadConfigLines(path).ToArray();
-            for (var i = 0; i < lines.Length; i++)
+            var lines = ReadConfigLines(path).ToList();
+            var targetIndex = -1;
+            var conflictIndex = -1;
+            for (var i = 0; i < lines.Count; i++)
             {
-                var trimmed = lines[i].Trim();
-                if (trimmed.Length == 0 || trimmed.StartsWith('#'))
+                if (!TryParseBindingLine(lines[i], out var lineKey, out var lineCommand))
                 {
                     continue;
                 }
 
-                var hash = trimmed.IndexOf('#');
-                var bindingText = (hash >= 0 ? trimmed[..hash] : trimmed).Trim();
-                var parts = bindingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length < 2)
+                // Match by identity (key + command), not by command alone:
+                // the same command is often bound to several keys, and a
+                // command-string match would rewrite the wrong row.
+                if (lineKey == binding.Key && lineCommand == binding.Command && targetIndex < 0)
                 {
-                    continue;
+                    targetIndex = i;
                 }
-
-                var command = string.Join(' ', parts.Skip(1));
-                if (string.Equals(command, binding.Command, StringComparison.Ordinal))
+                else if (lineKey == newKey)
                 {
-                    var firstToken = parts[0];
-                    var tokenIndex = lines[i].IndexOf(firstToken, StringComparison.Ordinal);
-                    if (tokenIndex >= 0)
-                    {
-                        lines[i] = lines[i][..tokenIndex] + newKey + lines[i][(tokenIndex + firstToken.Length)..];
-                    }
-                    break;
+                    conflictIndex = i;
                 }
             }
 
+            if (targetIndex < 0)
+            {
+                // The clicked row no longer exists verbatim (the file changed
+                // outside the app); leave both the file and the in-memory key
+                // untouched.
+                return;
+            }
+
+            // The rebind wins over whatever was already bound to the new key:
+            // drop the conflicting row so input.conf never has two bindings
+            // for the same key (mpv would let the last one win by line order).
+            if (conflictIndex >= 0)
+            {
+                lines.RemoveAt(conflictIndex);
+                if (conflictIndex < targetIndex)
+                {
+                    targetIndex--;
+                }
+            }
+
+            var trimmed = lines[targetIndex].Trim();
+            var hash = trimmed.IndexOf('#');
+            var bindingText = (hash >= 0 ? trimmed[..hash] : trimmed).Trim();
+            var parts = bindingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0)
+            {
+                return;
+            }
+
+            var firstToken = parts[0];
+            var tokenIndex = lines[targetIndex].IndexOf(firstToken, StringComparison.Ordinal);
+            if (tokenIndex < 0)
+            {
+                return;
+            }
+
+            lines[targetIndex] = lines[targetIndex][..tokenIndex] + newKey + lines[targetIndex][(tokenIndex + firstToken.Length)..];
+            binding.Key = newKey;
             WriteConfigLines(path, lines);
         }
         catch (Exception ex)
         {
             AppContext.AppLogger.Error(ex, "RebindShortcut failed");
         }
+    }
+
+    /// <summary>Parses a key binding line into its key token and command text.</summary>
+    private static bool TryParseBindingLine(string line, out string key, out string command)
+    {
+        key = string.Empty;
+        command = string.Empty;
+
+        var trimmed = line.Trim();
+        if (trimmed.Length == 0 || trimmed.StartsWith('#'))
+        {
+            return false;
+        }
+
+        var hash = trimmed.IndexOf('#');
+        var bindingText = (hash >= 0 ? trimmed[..hash] : trimmed).Trim();
+        var parts = bindingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 2)
+        {
+            return false;
+        }
+
+        key = parts[0];
+        command = string.Join(' ', parts.Skip(1));
+        return true;
     }
 
     /// <summary>
@@ -383,7 +438,9 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         {
             text = System.Text.Encoding.GetEncoding("GB18030").GetString(bytes);
         }
-        return text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        // Normalize CRLF/LF/CR but keep blank lines: a rebind rewrite must
+        // preserve the file layout. Callers skip empty entries themselves.
+        return text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
     }
 
     /// <summary>Writes a config file as UTF-8 without a BOM so mpv and the app agree.</summary>

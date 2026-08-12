@@ -1,13 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using System;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
 public sealed partial class OptionDoubleControl : OptionControlBase
 {
-    private bool _loading;
-
     public OptionDoubleControl()
     {
         InitializeComponent();
@@ -21,40 +20,32 @@ public sealed partial class OptionDoubleControl : OptionControlBase
             UpdateDescription(DescriptionText);
             NumberBox.IsEnabled = newValue.IsEnabled;
 
-            _loading = true;
-            try
+            if (newValue.Min.HasValue)
             {
-                if (newValue.Min.HasValue)
-                {
-                    NumberBox.Minimum = newValue.Min.Value;
-                }
-
-                if (newValue.Max.HasValue)
-                {
-                    NumberBox.Maximum = newValue.Max.Value;
-                }
-
-                if (newValue.Step.HasValue)
-                {
-                    NumberBox.SmallChange = newValue.Step.Value;
-                }
-                else
-                {
-                    NumberBox.SmallChange = 0.1;
-                }
-
-                if (newValue.Getter is Func<object?> func && func() is double value)
-                {
-                    NumberBox.Value = value;
-                }
-                else
-                {
-                    NumberBox.Value = 0;
-                }
+                NumberBox.Minimum = newValue.Min.Value;
             }
-            finally
+
+            if (newValue.Max.HasValue)
             {
-                _loading = false;
+                NumberBox.Maximum = newValue.Max.Value;
+            }
+
+            if (newValue.Step.HasValue)
+            {
+                NumberBox.SmallChange = newValue.Step.Value;
+            }
+            else
+            {
+                NumberBox.SmallChange = 0.1;
+            }
+
+            if (newValue.Getter is Func<object?> func && func() is double value)
+            {
+                NumberBox.Value = value;
+            }
+            else
+            {
+                NumberBox.Value = 0;
             }
         }
     }
@@ -103,9 +94,9 @@ public sealed partial class OptionDoubleControl : OptionControlBase
         return true;
     }
 
-    private void OnValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    private void OnKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        if (!_loading)
+        if (e.Key == Windows.System.VirtualKey.Enter)
         {
             TryCommit();
         }

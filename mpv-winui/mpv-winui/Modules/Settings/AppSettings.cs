@@ -306,7 +306,7 @@ namespace mpv_winui.Modules.Settings
 
         public string Hwdec
         {
-            get => _dataSetting.GetValue(nameof(Hwdec), "auto");
+            get => _dataSetting.GetValue(nameof(Hwdec), "auto-safe");
             set => _dataSetting.SetValue(nameof(Hwdec), value);
         }
 
@@ -366,7 +366,7 @@ namespace mpv_winui.Modules.Settings
 
         public string Deinterlace
         {
-            get => _dataSetting.GetValue(nameof(Deinterlace), "auto");
+            get => _dataSetting.GetValue(nameof(Deinterlace), "no");
             set => _dataSetting.SetValue(nameof(Deinterlace), value);
         }
 
@@ -590,7 +590,7 @@ namespace mpv_winui.Modules.Settings
 
         public string AudioChannels
         {
-            get => _dataSetting.GetValue(nameof(AudioChannels), "auto");
+            get => _dataSetting.GetValue(nameof(AudioChannels), "auto-safe");
             set => _dataSetting.SetValue(nameof(AudioChannels), value);
         }
 
@@ -1252,7 +1252,7 @@ namespace mpv_winui.Modules.Settings
 
         public string AudioGapless
         {
-            get => _dataSetting.GetValue(nameof(AudioGapless), "no");
+            get => _dataSetting.GetValue(nameof(AudioGapless), "weak");
             set => _dataSetting.SetValue(nameof(AudioGapless), value);
         }
 

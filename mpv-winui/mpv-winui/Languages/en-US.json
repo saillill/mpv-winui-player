@@ -154,6 +154,7 @@
   "No": "No",
   "Browse": "Browse...",
   "OptionValueAuto": "Auto",
+  "OptionValueAutoSafe": "Auto (safe)",
   "OptionValueYes": "Yes",
   "OptionValueNo": "No",
   "OptionValueOn": "On",
