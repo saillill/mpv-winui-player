@@ -795,5 +795,6 @@
   "SettingsPresetDescription": "Aplicar un ajuste preestablecido integrado o guardado; los cambios se aplican de inmediato.",
   "SettingsPresetSave": "Guardar actual como preestablecido",
   "SettingsPresetName": "Nombre del preestablecido",
-  "SettingsPresetSaved": "Preestablecido guardado."
+  "SettingsPresetSaved": "Preestablecido guardado.",
+  "CustomRate": "Velocidad personalizada"
 }

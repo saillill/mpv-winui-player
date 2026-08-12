@@ -11,6 +11,7 @@ using mpv_winui.Modules.Common.Utils;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 using Windows.Foundation;
 using Windows.UI;
 
@@ -439,7 +440,7 @@ namespace mpv_winui.Modules.Player
                 left =
                 [
                     TrackSelectionButton, ShuffleButton, RepeatButton, PlaybackRateButton,
-                    VolumeMuteButton, VolumeSliderContainer,
+                    EqualizerButton, VolumeMuteButton, VolumeSliderContainer,
                 ];
                 middle =
                 [
@@ -449,7 +450,7 @@ namespace mpv_winui.Modules.Player
                 ];
                 right =
                 [
-                    ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
+                    EqualizerButton, ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
                 ];
             }
             else
@@ -463,7 +464,7 @@ namespace mpv_winui.Modules.Player
                 right =
                 [
                     VolumeMuteButton, VolumeSliderContainer, PlaybackRateButton,
-                    TrackSelectionButton, ZoomButton, PiPButton,
+                    TrackSelectionButton, EqualizerButton, ZoomButton, PiPButton,
                     FullWindowButton, FullScreenButton,
                 ];
             }
@@ -915,9 +916,18 @@ namespace mpv_winui.Modules.Player
 
         private void PlaybackRateFlyout_MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
-            if (_mediaPlayer != null && sender is MenuFlyoutItem item && double.TryParse(item.Tag.ToString(), out double speed))
+            if (_mediaPlayer == null || sender is not MenuFlyoutItem item)
             {
-                _mediaPlayer?.PlaybackRate = speed;
+                return;
+            }
+            if (item.Tag is string tag && tag == "custom")
+            {
+                CustomRateItem_Click(sender, e);
+                return;
+            }
+            if (double.TryParse(item.Tag?.ToString(), out double speed))
+            {
+                _mediaPlayer.PlaybackRate = speed;
             }
         }
 
@@ -1224,6 +1234,97 @@ namespace mpv_winui.Modules.Player
         {
             MediaPlayer?.ToggleAbLoop();
             UpdateAbLoopMarks();
+        }
+
+        // ===== Equalizer =====
+        private static readonly string[] EqualizerBands =
+        [
+            "31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k",
+        ];
+
+        private readonly List<double> _eqGains = new(10) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+        private void EqualizerFlyout_Opened(object sender, object e)
+        {
+            BuildEqualizerBands();
+        }
+
+        private void BuildEqualizerBands()
+        {
+            EqualizerBandsPanel.Items.Clear();
+            for (int i = 0; i < EqualizerBands.Length; i++)
+            {
+                var band = EqualizerBands[i];
+                var slider = new Slider
+                {
+                    Minimum = -12,
+                    Maximum = 12,
+                    Value = _eqGains[i],
+                    Width = 160,
+                    StepFrequency = 0.5,
+                };
+                int index = i;
+                slider.ValueChanged += (_, _) =>
+                {
+                    _eqGains[index] = slider.Value;
+                    ApplyEqualizer();
+                };
+                var row = new Grid { ColumnSpacing = 10 };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                var label = new TextBlock { Text = band, VerticalAlignment = VerticalAlignment.Center };
+                Grid.SetColumn(slider, 1);
+                row.Children.Add(label);
+                row.Children.Add(slider);
+                EqualizerBandsPanel.Items.Add(row);
+            }
+        }
+
+        private void ApplyEqualizer()
+        {
+            if (MediaPlayer is null)
+            {
+                return;
+            }
+            // superequalizer gains order: 10 bands (31Hz..16kHz), where the
+            // first value is the "bass" band and last the "treble".
+            var gains = string.Join(":", _eqGains.Select(g => g.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)));
+            MediaPlayer.Command(["set", "af", $"lavfi=[superequalizer@eq:{gains}]"]);
+        }
+
+        private void EqualizerReset_Click(object sender, RoutedEventArgs e)
+        {
+            for (int i = 0; i < _eqGains.Count; i++)
+            {
+                _eqGains[i] = 0;
+            }
+            BuildEqualizerBands();
+            MediaPlayer?.Command(["set", "af", ""]);
+        }
+
+        private void EqualizerOff_Click(object sender, RoutedEventArgs e)
+        {
+            MediaPlayer?.Command(["set", "af", ""]);
+        }
+
+        // ===== Custom playback rate =====
+        private async void CustomRateItem_Click(object sender, RoutedEventArgs e)
+        {
+            var box = new TextBox { PlaceholderText = "e.g. 1.3 or 16" };
+            var dialog = new ContentDialog
+            {
+                Title = AppContext.AppLang.CustomRate,
+                Content = box,
+                PrimaryButtonText = "OK",
+                CloseButtonText = AppContext.AppLang.Cancel,
+                XamlRoot = XamlRoot,
+            };
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary
+                && double.TryParse(box.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var rate)
+                && rate > 0 && rate <= 100)
+            {
+                MediaPlayer?.Command(["set", "speed", rate.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)]);
+            }
         }
 
         /// <summary>Positions the A/B markers on the progress bar from mpv's ab-loop properties.</summary>

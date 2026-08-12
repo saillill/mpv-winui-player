@@ -795,5 +795,6 @@
   "SettingsPresetDescription": "Применить встроенный или сохранённый пресет; изменения применяются сразу.",
   "SettingsPresetSave": "Сохранить как пресет",
   "SettingsPresetName": "Имя пресета",
-  "SettingsPresetSaved": "Пресет сохранён."
+  "SettingsPresetSaved": "Пресет сохранён.",
+  "CustomRate": "Своя скорость"
 }

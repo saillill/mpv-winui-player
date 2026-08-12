@@ -406,7 +406,57 @@ Grid.Column="9"
                                 <MenuFlyoutItem
                                     Tag="8.0"
                                     Text="8.0x" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem
+                                    x:Name="CustomRateItem"
+                                    Tag="custom"
+                                    Text="Custom…" />
                             </MenuFlyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="EqualizerButton"
+                                                AutomationProperties.Name="Equalizer"
+Grid.Column="12"
+                                                Style="{StaticResource AppBarButtonStyle}"
+                        ToolTipService.ToolTip="Equalizer"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8B1;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <Flyout
+                                x:Name="EqualizerFlyout"
+                                Opened="EqualizerFlyout_Opened"
+                                Placement="Top">
+                                <StackPanel
+                                    Width="420"
+                                    Spacing="6">
+                                    <TextBlock
+                                        x:Name="EqualizerTitle"
+                                        FontWeight="SemiBold"
+                                        Text="Equalizer" />
+                                    <ScrollViewer
+                                        MaxHeight="280"
+                                        VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl
+                                            x:Name="EqualizerBandsPanel" />
+                                    </ScrollViewer>
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="8">
+                                        <Button
+                                            x:Name="EqualizerResetButton"
+                                            Click="EqualizerReset_Click"
+                                            Content="Reset" />
+                                        <Button
+                                            x:Name="EqualizerOffButton"
+                                            Click="EqualizerOff_Click"
+                                            Content="Off" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Flyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>
 

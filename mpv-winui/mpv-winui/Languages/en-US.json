@@ -795,5 +795,6 @@
   "SettingsPresetDescription": "Apply a built-in or user-saved preset; changes apply immediately.",
   "SettingsPresetSave": "Save Current as Preset",
   "SettingsPresetName": "Preset name",
-  "SettingsPresetSaved": "Preset saved."
+  "SettingsPresetSaved": "Preset saved.",
+  "CustomRate": "Custom speed"
 }

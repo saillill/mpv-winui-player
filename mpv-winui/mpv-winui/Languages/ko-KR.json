@@ -795,5 +795,6 @@
   "SettingsPresetDescription": "내장 또는 저장된 프리셋을 적용합니다 (즉시 반영).",
   "SettingsPresetSave": "현재를 프리셋으로 저장",
   "SettingsPresetName": "프리셋 이름",
-  "SettingsPresetSaved": "프리셋이 저장되었습니다."
+  "SettingsPresetSaved": "프리셋이 저장되었습니다.",
+  "CustomRate": "사용자 정의 속도"
 }

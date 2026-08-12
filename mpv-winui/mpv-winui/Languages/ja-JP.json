@@ -795,5 +795,6 @@
   "SettingsPresetDescription": "内蔵または保存済みプリセットを適用します（即時反映）。",
   "SettingsPresetSave": "現在をプリセットとして保存",
   "SettingsPresetName": "プリセット名",
-  "SettingsPresetSaved": "プリセットを保存しました。"
+  "SettingsPresetSaved": "プリセットを保存しました。",
+  "CustomRate": "カスタム速度"
 }

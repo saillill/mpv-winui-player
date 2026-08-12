@@ -795,5 +795,6 @@
   "SettingsPresetDescription": "Voreinstellung (integriert oder gespeichert) anwenden; Änderungen wirken sofort.",
   "SettingsPresetSave": "Aktuelles als Voreinstellung speichern",
   "SettingsPresetName": "Name der Voreinstellung",
-  "SettingsPresetSaved": "Voreinstellung gespeichert."
+  "SettingsPresetSaved": "Voreinstellung gespeichert.",
+  "CustomRate": "Benutzerdefinierte Geschwindigkeit"
 }

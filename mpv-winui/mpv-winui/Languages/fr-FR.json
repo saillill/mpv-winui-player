@@ -795,5 +795,6 @@
   "SettingsPresetDescription": "Appliquer un préréglage intégré ou enregistré ; les changements s'appliquent immédiatement.",
   "SettingsPresetSave": "Enregistrer comme préréglage",
   "SettingsPresetName": "Nom du préréglage",
-  "SettingsPresetSaved": "Préréglage enregistré."
+  "SettingsPresetSaved": "Préréglage enregistré.",
+  "CustomRate": "Vitesse personnalisée"
 }
