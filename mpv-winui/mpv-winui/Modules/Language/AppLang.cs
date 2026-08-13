@@ -710,7 +710,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpHdrAutoMode { get; set; } = "RTX Video HDR (NVIDIA only).";
         public string SettingsHelpSeekHold { get; set; } = "Keep the window size fixed while seeking so filter reattachment does not resize the window.";
         public string SettingsHelpDemuxerReadahead { get; set; } = "Seconds of data the demuxer reads ahead. Larger values help network streams but use more memory.";
-        public string SettingsHelpYtdl { get; set; } = "Resolve http(s) URLs with yt-dlp before playback.";
+        public string SettingsHelpYtdl { get; set; } = "Resolve online video URLs (YouTube, Bilibili, etc.) with yt-dlp before playback. Requires yt-dlp to be installed.";
         public string SettingsHelpAutoCreatePlaylist { get; set; } = "Automatically add files from the same folder to the playlist when opening a file.";
         public string SettingsHelpTscale { get; set; } = "Temporal interpolation algorithm used when frame interpolation is enabled.";
         public string SettingsHelpLinearUpscaling { get; set; } = "Upscale in linear light for better color accuracy. Not compatible with sigmoid upscaling.";

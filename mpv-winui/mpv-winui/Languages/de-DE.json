@@ -424,7 +424,7 @@
   "SettingsCoverArtPreferEmbedded": "Eingebettetes Cover bevorzugen",
   "SettingsThumbfastQuality": "Vorschaubildqualität",
   "SettingsHelpDemuxerReadahead": "Sekunden, die der Demuxer vorausliest. Größere Werte helfen bei Netzwerkdateien, benötigen aber mehr Speicher.",
-  "SettingsHelpYtdl": "Löst http(s)-URLs vor der Wiedergabe mit yt-dlp auf.",
+  "SettingsHelpYtdl": "Löst Online-Video-URLs (YouTube, Bilibili usw.) vor der Wiedergabe mit yt-dlp auf. Erfordert installiertes yt-dlp.",
   "SettingsHelpAutoCreatePlaylist": "Fügt beim Öffnen einer Datei automatisch Dateien aus demselben Ordner zur Wiedergabeliste hinzu.",
   "SettingsHelpTscale": "Zeitinterpolationsalgorithmus bei aktivierter Frame-Interpolation.",
   "SettingsHelpLinearUpscaling": "Hochskalierung in linearem Licht für bessere Farbgenauigkeit. Nicht mit sigmoid upsaling kombinierbar.",

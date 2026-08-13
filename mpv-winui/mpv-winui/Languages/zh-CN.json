@@ -424,7 +424,7 @@
   "SettingsCoverArtPreferEmbedded": "优先使用内嵌封面",
   "SettingsThumbfastQuality": "缩略图预览质量",
   "SettingsHelpDemuxerReadahead": "解复用器向前预读的数据量（秒）。网络播放可调大，但占用更多内存。",
-  "SettingsHelpYtdl": "播放 http(s) 链接前先用 yt-dlp 解析。",
+  "SettingsHelpYtdl": "播放前用 yt-dlp 解析网络视频链接（YouTube、B 站等）。需要已安装 yt-dlp。",
   "SettingsHelpAutoCreatePlaylist": "打开文件时自动把同目录文件加入播放列表。",
   "SettingsHelpTscale": "帧插值启用时使用的时间插值算法。",
   "SettingsHelpLinearUpscaling": "在线性光下上采样以提高色彩准确度，与 S 形上采样不兼容。",

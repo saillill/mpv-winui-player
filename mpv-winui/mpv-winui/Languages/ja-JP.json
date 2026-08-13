@@ -424,7 +424,7 @@
   "SettingsCoverArtPreferEmbedded": "埋め込みカバーアートを優先",
   "SettingsThumbfastQuality": "サムネイルプレビュー品質",
   "SettingsHelpDemuxerReadahead": "デマルチプレクサーが先読みするデータ量（秒）。ネットワーク再生で増やすと便利ですが、メモリーを多く使います。",
-  "SettingsHelpYtdl": "http(s) の URL を再生前に yt-dlp で解決します。",
+  "SettingsHelpYtdl": "再生前に yt-dlp でネット動画の URL（YouTube、Bilibili など）を解析します。yt-dlp のインストールが必要です。",
   "SettingsHelpAutoCreatePlaylist": "ファイルを開くときに同じフォルダーのファイルを自動的に再生リストへ追加します。",
   "SettingsHelpTscale": "フレーム補間を有効にしたときに使う時間補間アルゴリズム。",
   "SettingsHelpLinearUpscaling": "線形光でアップスケールし、色の正確さを高めます。シグモイドアップスケーリングとは併用できません。",

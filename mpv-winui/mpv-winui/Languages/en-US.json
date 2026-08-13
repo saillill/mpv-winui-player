@@ -424,7 +424,7 @@
   "SettingsCoverArtPreferEmbedded": "Prefer embedded cover art",
   "SettingsThumbfastQuality": "Thumbnail preview quality",
   "SettingsHelpDemuxerReadahead": "Seconds of data the demuxer reads ahead. Larger values help network streams but use more memory.",
-  "SettingsHelpYtdl": "Resolve http(s) URLs with yt-dlp before playback.",
+  "SettingsHelpYtdl": "Resolve online video URLs (YouTube, Bilibili, etc.) with yt-dlp before playback. Requires yt-dlp to be installed.",
   "SettingsHelpAutoCreatePlaylist": "Automatically add files from the same folder to the playlist when opening a file.",
   "SettingsHelpTscale": "Temporal interpolation algorithm used when frame interpolation is enabled.",
   "SettingsHelpLinearUpscaling": "Upscale in linear light for better color accuracy. Not compatible with sigmoid upscaling.",

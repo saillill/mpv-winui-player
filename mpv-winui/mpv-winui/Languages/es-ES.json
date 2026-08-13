@@ -424,7 +424,7 @@
   "SettingsCoverArtPreferEmbedded": "Preferir carátula integrada",
   "SettingsThumbfastQuality": "Calidad de miniaturas",
   "SettingsHelpDemuxerReadahead": "Segundos de datos que el demultiplexor lee por adelantado. Útil en red, pero consume más memoria.",
-  "SettingsHelpYtdl": "Resuelve las URL http(s) con yt-dlp antes de reproducir.",
+  "SettingsHelpYtdl": "Resuelve las URL de vídeos en línea (YouTube, Bilibili, etc.) con yt-dlp antes de reproducir. Requiere yt-dlp instalado.",
   "SettingsHelpAutoCreatePlaylist": "Añade automáticamente los archivos de la misma carpeta a la lista al abrir un archivo.",
   "SettingsHelpTscale": "Algoritmo de interpolación temporal usado con la interpolación de fotogramas.",
   "SettingsHelpLinearUpscaling": "Escala en luz lineal para mejorar la precisión del color. No es compatible con el escalado sigmoide.",

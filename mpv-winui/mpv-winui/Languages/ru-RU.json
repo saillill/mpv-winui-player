@@ -424,7 +424,7 @@
   "SettingsCoverArtPreferEmbedded": "Предпочитать встроенную обложку",
   "SettingsThumbfastQuality": "Качество миниатюр",
   "SettingsHelpDemuxerReadahead": "Сколько секунд данных демультиплексор читает вперёд. Полезно для сети, но требует больше памяти.",
-  "SettingsHelpYtdl": "Разрешает http(s) URL через yt-dlp перед воспроизведением.",
+  "SettingsHelpYtdl": "Разрешает URL онлайн-видео (YouTube, Bilibili и т. д.) через yt-dlp перед воспроизведением. Требуется установленный yt-dlp.",
   "SettingsHelpAutoCreatePlaylist": "Автоматически добавляет файлы из той же папки в плейлист при открытии файла.",
   "SettingsHelpTscale": "Алгоритм временной интерполяции при включённой интерполяции кадров.",
   "SettingsHelpLinearUpscaling": "Апскейлинг в линейном свете для точности цветов. Несовместим с сигмоидным апскейлингом.",

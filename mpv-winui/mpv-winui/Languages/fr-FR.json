@@ -424,7 +424,7 @@
   "SettingsCoverArtPreferEmbedded": "Préférer la pochette intégrée",
   "SettingsThumbfastQuality": "Qualité des vignettes d'aperçu",
   "SettingsHelpDemuxerReadahead": "Secondes de données lues à l'avance par le démultiplexeur. Utile en réseau, mais consomme plus de mémoire.",
-  "SettingsHelpYtdl": "Résout les URL http(s) avec yt-dlp avant la lecture.",
+  "SettingsHelpYtdl": "Résout les URL de vidéos en ligne (YouTube, Bilibili, etc.) avec yt-dlp avant la lecture. Nécessite yt-dlp installé.",
   "SettingsHelpAutoCreatePlaylist": "Ajoute automatiquement les fichiers du même dossier à la liste de lecture à l'ouverture.",
   "SettingsHelpTscale": "Algorithme d'interpolation temporelle utilisé avec l'interpolation d'images.",
   "SettingsHelpLinearUpscaling": "Suréchantillonne en lumière linéaire pour une meilleure précision des couleurs. Incompatible avec le suréchantillonnage sigmoïde.",
