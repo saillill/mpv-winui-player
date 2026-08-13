@@ -492,6 +492,10 @@ namespace mpv_winui.Modules.Language
         public string PanelNormal { get; set; } = "Normal";
         public string PanelFaster { get; set; } = "Faster";
         public string PanelPreset { get; set; } = "Preset";
+        public string PanelMove { get; set; } = "Move";
+        public string PanelPost { get; set; } = "Post";
+        public string PanelCapture { get; set; } = "Capture";
+        public string PanelSpeed { get; set; } = "Speed";
         public string PanelSeek { get; set; } = "Seek";
         public string PanelAbHint { get; set; } = "Set A then B to loop that range.";
 
