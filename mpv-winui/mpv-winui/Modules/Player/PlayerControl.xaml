@@ -309,8 +309,8 @@ Grid.Column="11"
                                 Opened="ControlPanelFlyout_Opened">
                                 <StackPanel
                                     x:Name="ControlPanelRoot"
-                                    Width="380"
-                                    Spacing="8" />
+                                    Width="440"
+                                    Spacing="10" />
                             </Flyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>

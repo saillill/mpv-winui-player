@@ -1344,8 +1344,7 @@ namespace mpv_winui.Modules.Player
         // ===== Unified control panel =====
         private bool _panelBuilt;
         private bool _panelUpdating;
-        private readonly List<(ToggleButton Tab, StackPanel Content)> _panelTabs = [];
-        private readonly List<Slider> _panelEqSliders = [];
+        private readonly List<(ToggleButton Tab, ScrollViewer Scroll, StackPanel Content)> _panelTabs = [];
         private Slider? _panelVolumeSlider;
         private Slider? _panelBrightnessSlider;
         private Slider? _panelContrastSlider;
@@ -1358,10 +1357,30 @@ namespace mpv_winui.Modules.Player
         private ComboBox? _panelFontBox;
         private TextBlock? _panelAbTimes;
 
+        private const double PanelHeight = 340;
+
         private void ControlPanelFlyout_Opened(object sender, object e)
         {
             EnsureControlPanel();
             SyncPanelValues();
+        }
+
+        private Border PanelCard(params UIElement[] children)
+        {
+            var panel = new StackPanel { Spacing = 10 };
+            foreach (var child in children)
+            {
+                panel.Children.Add(child);
+            }
+            return new Border
+            {
+                Padding = new Thickness(12),
+                CornerRadius = new CornerRadius(6),
+                BorderThickness = new Thickness(1),
+                BorderBrush = mpv_winui.Modules.Common.View.ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
+                Background = mpv_winui.Modules.Common.View.ThemeResource.Brush(this, "CardBackgroundFillColorSecondaryBrush"),
+                Child = panel,
+            };
         }
 
         private void EnsureControlPanel()
@@ -1384,19 +1403,28 @@ namespace mpv_winui.Modules.Player
                 lang.SettingsCategorySubtitles,
                 lang.SettingsCategoryPlayback,
             };
+            var host = new Grid { Height = PanelHeight };
             for (var i = 0; i < tabNames.Length; i++)
             {
-                var tab = new ToggleButton { Content = tabNames[i], MinWidth = 76 };
+                var tab = new ToggleButton
+                {
+                    Content = tabNames[i],
+                    MinWidth = 92,
+                    Padding = new Thickness(8, 6, 8, 6),
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                };
                 var index = i;
                 tab.Click += (_, _) => SelectPanelTab(index);
                 header.Children.Add(tab);
-                _panelTabs.Add((tab, new StackPanel { Spacing = 6, Visibility = Visibility.Collapsed }));
+
+                var content = new StackPanel { Spacing = 8, Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
+                var scroll = new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+                host.Children.Add(scroll);
+                _panelTabs.Add((tab, scroll, content));
             }
-            ControlPanelRoot.Children.Add(header);
-            foreach (var (_, content) in _panelTabs)
-            {
-                ControlPanelRoot.Children.Add(content);
-            }
+
+            ControlPanelRoot.Children.Add(PanelCard(header));
+            ControlPanelRoot.Children.Add(host);
 
             BuildPanelAudio(_panelTabs[0].Content);
             BuildPanelVideo(_panelTabs[1].Content);
@@ -1409,9 +1437,10 @@ namespace mpv_winui.Modules.Player
         {
             for (var i = 0; i < _panelTabs.Count; i++)
             {
-                var (tab, content) = _panelTabs[i];
+                var (tab, scroll, content) = _panelTabs[i];
                 tab.IsChecked = i == index;
                 content.Visibility = i == index ? Visibility.Visible : Visibility.Collapsed;
+                scroll.Visibility = content.Visibility;
             }
         }
 
@@ -1424,12 +1453,34 @@ namespace mpv_winui.Modules.Player
         private static Grid PanelSliderRow(string labelText, Slider slider)
         {
             var grid = new Grid { ColumnSpacing = 8 };
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(78) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(84) });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             grid.Children.Add(new TextBlock { Text = labelText, VerticalAlignment = VerticalAlignment.Center });
             Grid.SetColumn(slider, 1);
             grid.Children.Add(slider);
             return grid;
+        }
+
+        private static StackPanel PanelEqColumn(string labelText, Slider slider)
+        {
+            var column = new StackPanel
+            {
+                Spacing = 4,
+                Width = 34,
+                HorizontalAlignment = HorizontalAlignment.Center,
+            };
+            slider.Orientation = Orientation.Vertical;
+            slider.Height = 150;
+            slider.Width = 30;
+            slider.HorizontalAlignment = HorizontalAlignment.Center;
+            column.Children.Add(slider);
+            column.Children.Add(new TextBlock
+            {
+                Text = labelText,
+                FontSize = 10,
+                HorizontalAlignment = HorizontalAlignment.Center,
+            });
+            return column;
         }
 
         private Slider PanelPropertySlider(string property, double min, double max, double step)
@@ -1449,14 +1500,14 @@ namespace mpv_winui.Modules.Player
         private void BuildPanelAudio(StackPanel root)
         {
             var lang = AppContext.AppLang;
-            root.Children.Add(PanelCaption(lang.PanelEqualizer));
 
             _panelEqOffToggle = new ToggleButton
             {
                 Content = lang.Off,
                 IsChecked = true,
                 MinWidth = 72,
-                HorizontalAlignment = HorizontalAlignment.Left,
+                Padding = new Thickness(8, 6, 8, 6),
+                HorizontalAlignment = HorizontalAlignment.Right,
             };
             _panelEqOffToggle.Checked += (_, _) =>
             {
@@ -1472,9 +1523,16 @@ namespace mpv_winui.Modules.Player
                     ApplyEqualizer();
                 }
             };
-            root.Children.Add(_panelEqOffToggle);
+
+            var eqHeader = new Grid();
+            eqHeader.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            eqHeader.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            eqHeader.Children.Add(PanelCaption(lang.PanelEqualizer));
+            Grid.SetColumn(_panelEqOffToggle, 1);
+            eqHeader.Children.Add(_panelEqOffToggle);
 
             var bandLabels = new[] { "60", "170", "310", "600", "1K", "3K", "6K", "12K", "14K", "16K" };
+            var bandRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, HorizontalAlignment = HorizontalAlignment.Center };
             for (var i = 0; i < bandLabels.Length; i++)
             {
                 var slider = new Slider { Minimum = -12, Maximum = 12, StepFrequency = 0.5, Value = _eqGains[i] };
@@ -1487,12 +1545,13 @@ namespace mpv_winui.Modules.Player
                         ApplyEqualizer();
                     }
                 };
-                _panelEqSliders.Add(slider);
-                root.Children.Add(PanelSliderRow(bandLabels[i], slider));
+                bandRow.Children.Add(PanelEqColumn(bandLabels[i], slider));
             }
 
+            root.Children.Add(PanelCard(eqHeader, bandRow));
+
             _panelVolumeSlider = PanelPropertySlider("volume", 0, 150, 1);
-            root.Children.Add(PanelSliderRow(lang.PanelMasterVolume, _panelVolumeSlider));
+            root.Children.Add(PanelCard(PanelSliderRow(lang.PanelMasterVolume, _panelVolumeSlider)));
         }
 
         private void BuildPanelVideo(StackPanel root)
@@ -1502,34 +1561,33 @@ namespace mpv_winui.Modules.Player
             _panelContrastSlider = PanelPropertySlider("contrast", -100, 100, 1);
             _panelSaturationSlider = PanelPropertySlider("saturation", -100, 100, 1);
             _panelHueSlider = PanelPropertySlider("hue", -100, 100, 1);
-            root.Children.Add(PanelSliderRow(lang.PanelBrightness, _panelBrightnessSlider));
-            root.Children.Add(PanelSliderRow(lang.PanelContrast, _panelContrastSlider));
-            root.Children.Add(PanelSliderRow(lang.PanelSaturation, _panelSaturationSlider));
-            root.Children.Add(PanelSliderRow(lang.PanelHue, _panelHueSlider));
-
             _panelSharpenSlider = new Slider { Minimum = 0, Maximum = 3, StepFrequency = 0.1 };
-            _panelSharpenSlider.ValueChanged += (_, _) =>
-            {
-                if (_panelUpdating)
-                {
-                    return;
-                }
-                var amount = _panelSharpenSlider.Value;
-                MediaPlayer?.Command("set", "vf", amount <= 0 ? "" : $"lavfi=[unsharp=5:5:{amount.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)}]");
-            };
-            root.Children.Add(PanelSliderRow(lang.PanelSharpen, _panelSharpenSlider));
-
             _panelBlurSlider = new Slider { Minimum = 0, Maximum = 3, StepFrequency = 0.1 };
-            _panelBlurSlider.ValueChanged += (_, _) =>
+
+            _panelSharpenSlider.ValueChanged += (_, _) => ApplyPanelVf("unsharp=5:5:{0}", _panelSharpenSlider);
+            _panelBlurSlider.ValueChanged += (_, _) => ApplyPanelVf("gblur=sigma={0}", _panelBlurSlider);
+
+            root.Children.Add(PanelCard(
+                PanelSliderRow(lang.PanelBrightness, _panelBrightnessSlider),
+                PanelSliderRow(lang.PanelContrast, _panelContrastSlider),
+                PanelSliderRow(lang.PanelSaturation, _panelSaturationSlider),
+                PanelSliderRow(lang.PanelHue, _panelHueSlider)));
+            root.Children.Add(PanelCard(
+                PanelSliderRow(lang.PanelSharpen, _panelSharpenSlider),
+                PanelSliderRow(lang.PanelBlur, _panelBlurSlider)));
+        }
+
+        private void ApplyPanelVf(string template, Slider slider)
+        {
+            if (_panelUpdating)
             {
-                if (_panelUpdating)
-                {
-                    return;
-                }
-                var sigma = _panelBlurSlider.Value;
-                MediaPlayer?.Command("set", "vf", sigma <= 0 ? "" : $"lavfi=[gblur=sigma={sigma.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)}]");
-            };
-            root.Children.Add(PanelSliderRow(lang.PanelBlur, _panelBlurSlider));
+                return;
+            }
+            var amount = slider.Value;
+            var filter = amount <= 0
+                ? string.Empty
+                : $"lavfi=[{string.Format(template, amount.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))}]";
+            MediaPlayer?.Command("set", "vf", filter);
         }
 
         private void BuildPanelSubtitles(StackPanel root)
@@ -1537,7 +1595,7 @@ namespace mpv_winui.Modules.Player
             var lang = AppContext.AppLang;
 
             var fontRow = new Grid { ColumnSpacing = 8 };
-            fontRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(78) });
+            fontRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(84) });
             fontRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             fontRow.Children.Add(new TextBlock { Text = lang.SettingsSubFont, VerticalAlignment = VerticalAlignment.Center });
             _panelFontBox = new ComboBox
@@ -1564,7 +1622,7 @@ namespace mpv_winui.Modules.Player
             };
             Grid.SetColumn(_panelFontBox, 1);
             fontRow.Children.Add(_panelFontBox);
-            root.Children.Add(fontRow);
+            root.Children.Add(PanelCard(fontRow));
 
             var moves = new Grid { ColumnSpacing = 8, RowSpacing = 8 };
             moves.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -1572,13 +1630,13 @@ namespace mpv_winui.Modules.Player
             moves.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             moves.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            var up = new Button { Content = lang.PanelMoveUp };
+            var up = new Button { Content = lang.PanelMoveUp, Padding = new Thickness(8, 6, 8, 6) };
             up.Click += (_, _) => MediaPlayer?.Command("add", "sub-pos", "-1");
-            var down = new Button { Content = lang.PanelMoveDown };
+            var down = new Button { Content = lang.PanelMoveDown, Padding = new Thickness(8, 6, 8, 6) };
             down.Click += (_, _) => MediaPlayer?.Command("add", "sub-pos", "1");
-            var left = new Button { Content = lang.PanelMoveLeft };
+            var left = new Button { Content = lang.PanelMoveLeft, Padding = new Thickness(8, 6, 8, 6) };
             left.Click += (_, _) => MediaPlayer?.Command("add", "sub-margin-x", "-5");
-            var right = new Button { Content = lang.PanelMoveRight };
+            var right = new Button { Content = lang.PanelMoveRight, Padding = new Thickness(8, 6, 8, 6) };
             right.Click += (_, _) => MediaPlayer?.Command("add", "sub-margin-x", "5");
 
             Grid.SetColumn(up, 0); Grid.SetRow(up, 0);
@@ -1589,15 +1647,14 @@ namespace mpv_winui.Modules.Player
             moves.Children.Add(down);
             moves.Children.Add(left);
             moves.Children.Add(right);
-            root.Children.Add(moves);
 
-            var sync = new Button { Content = lang.PanelSync };
+            var sync = new Button { Content = lang.PanelSync, Padding = new Thickness(8, 6, 8, 6), HorizontalAlignment = HorizontalAlignment.Stretch };
             sync.Click += (_, _) =>
             {
                 MediaPlayer?.Command("set", "sub-delay", "0");
                 MediaPlayer?.Command("set", "audio-delay", "0");
             };
-            root.Children.Add(sync);
+            root.Children.Add(PanelCard(moves, sync));
         }
 
         private void BuildPanelPlayback(StackPanel root)
@@ -1609,19 +1666,15 @@ namespace mpv_winui.Modules.Player
             {
                 seeks.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             }
-            var seekDefs = new[]
+            for (var i = 0; i < 4; i++)
             {
-                ("\uE72B -60", "set", "time-pos"),
-                ("\uE72B -5", "set", "time-pos"),
-                ("\uE72A +5", "set", "time-pos"),
-                ("\uE72A +60", "set", "time-pos"),
-            };
-            for (var i = 0; i < seekDefs.Length; i++)
-            {
-                var (label, _, _) = seekDefs[i];
                 var delta = i switch { 0 => -60, 1 => -5, 2 => 5, _ => 60 };
-                var text = i switch { 0 or 3 => "1min", _ => "5sec" };
-                var button = new Button { Content = (i is 0 or 1 ? "\uE72B " : "\uE72A ") + text, MinWidth = 68 };
+                var text = i is 0 or 3 ? "1min" : "5sec";
+                var button = new Button
+                {
+                    Content = (i is 0 or 1 ? " " : " ") + text,
+                    Padding = new Thickness(8, 6, 8, 6),
+                };
                 var offset = delta;
                 button.Click += (_, _) =>
                 {
@@ -1635,26 +1688,26 @@ namespace mpv_winui.Modules.Player
                 Grid.SetColumn(button, i);
                 seeks.Children.Add(button);
             }
-            root.Children.Add(seeks);
+            root.Children.Add(PanelCard(seeks));
 
             var speeds = new Grid { ColumnSpacing = 8 };
             for (var i = 0; i < 3; i++)
             {
                 speeds.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             }
-            var slower = new Button { Content = lang.PanelSlower };
+            var slower = new Button { Content = lang.PanelSlower, Padding = new Thickness(8, 6, 8, 6) };
             slower.Click += (_, _) => MediaPlayer?.Command("add", "speed", "-0.1");
-            var normal = new Button { Content = lang.PanelNormal };
+            var normal = new Button { Content = lang.PanelNormal, Padding = new Thickness(8, 6, 8, 6) };
             normal.Click += (_, _) => MediaPlayer?.Command("set", "speed", "1");
-            var faster = new Button { Content = lang.PanelFaster };
+            var faster = new Button { Content = lang.PanelFaster, Padding = new Thickness(8, 6, 8, 6) };
             faster.Click += (_, _) => MediaPlayer?.Command("add", "speed", "0.1");
             Grid.SetColumn(slower, 0); Grid.SetColumn(normal, 1); Grid.SetColumn(faster, 2);
             speeds.Children.Add(slower);
             speeds.Children.Add(normal);
             speeds.Children.Add(faster);
-            root.Children.Add(speeds);
+            root.Children.Add(PanelCard(speeds));
 
-            _panelRepeatToggle = new ToggleButton { Content = lang.MoreRepeat, MinWidth = 72, HorizontalAlignment = HorizontalAlignment.Left };
+            _panelRepeatToggle = new ToggleButton { Content = lang.MoreRepeat, MinWidth = 88, Padding = new Thickness(8, 6, 8, 6) };
             _panelRepeatToggle.Checked += (_, _) =>
             {
                 if (!_panelUpdating && MediaPlayer is { } player)
@@ -1669,25 +1722,24 @@ namespace mpv_winui.Modules.Player
                     player.RepeatState = RepeatState.None;
                 }
             };
-            root.Children.Add(_panelRepeatToggle);
 
             var abRow = new Grid { ColumnSpacing = 8 };
             abRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             abRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             abRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             abRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var aButton = new Button { Content = "A", MinWidth = 48 };
+            var aButton = new Button { Content = "A", MinWidth = 48, Padding = new Thickness(8, 6, 8, 6) };
             aButton.Click += (_, _) => MediaPlayer?.Command("ab-loop-a");
-            var bButton = new Button { Content = "B", MinWidth = 48 };
+            var bButton = new Button { Content = "B", MinWidth = 48, Padding = new Thickness(8, 6, 8, 6) };
             bButton.Click += (_, _) => MediaPlayer?.Command("ab-loop-b");
-            var resetButton = new Button { Content = lang.Reset, MinWidth = 64 };
+            var resetButton = new Button { Content = lang.Reset, MinWidth = 64, Padding = new Thickness(8, 6, 8, 6) };
             resetButton.Click += (_, _) =>
             {
                 MediaPlayer?.Command("ab-loop-a", "no");
                 MediaPlayer?.Command("ab-loop-b", "no");
                 SyncPanelAbLoop();
             };
-            _panelAbTimes = new TextBlock { Text = "00:00:00 ~ 00:00:00", VerticalAlignment = VerticalAlignment.Center };
+            _panelAbTimes = new TextBlock { Text = "00:00:00 ~ 00:00:00", VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
             Grid.SetColumn(aButton, 0);
             Grid.SetColumn(_panelAbTimes, 1);
             Grid.SetColumn(bButton, 2);
@@ -1696,7 +1748,7 @@ namespace mpv_winui.Modules.Player
             abRow.Children.Add(_panelAbTimes);
             abRow.Children.Add(bButton);
             abRow.Children.Add(resetButton);
-            root.Children.Add(abRow);
+            root.Children.Add(PanelCard(_panelRepeatToggle, abRow));
         }
 
         private void SyncPanelValues()
