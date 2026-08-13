@@ -46,6 +46,7 @@
                 x:Name="InputBox"
                 Width="260"
                 MaxWidth="260"
+                MinHeight="32"
                 HorizontalAlignment="Left"
                 LostFocus="OnLostFocus"
                 KeyDown="OnKeyDown"

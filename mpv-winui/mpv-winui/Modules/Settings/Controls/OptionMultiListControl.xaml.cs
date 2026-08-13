@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +10,13 @@ using System.Linq;
 namespace mpv_winui.Modules.Settings.Controls;
 
 /// <summary>
-/// One row per entry for semicolon-separated values (shader lists, search
-/// paths): a "+" button appends an input, each row has a remove button, and
-/// the entries are re-joined with ";" when committed.
+/// One row per entry for multi-value settings (shader lists, search paths):
+/// each row is [ + | input | x ]; "+" inserts a row below, "x" removes the
+/// row, and entries are re-joined with the option's separator when committed.
 /// </summary>
 public sealed partial class OptionMultiListControl : OptionControlBase
 {
-    private const string AddTag = "multi:add";
+    private const double ButtonSize = 32;
     private bool _loading;
 
     public OptionMultiListControl()
@@ -36,14 +38,17 @@ public sealed partial class OptionMultiListControl : OptionControlBase
         try
         {
             RowsPanel.Children.Clear();
-            if (newValue.Getter is Func<object?> getter && getter() is string value)
+            var parts = Split(newValue.Getter is Func<object?> getter && getter() is string value
+                ? value
+                : string.Empty).ToList();
+            if (parts.Count == 0)
             {
-                foreach (var part in Split(value))
-                {
-                    RowsPanel.Children.Add(BuildRow(part));
-                }
+                parts.Add(string.Empty);
             }
-            RowsPanel.Children.Add(BuildAddButton());
+            foreach (var part in parts)
+            {
+                RowsPanel.Children.Add(BuildRow(part));
+            }
         }
         finally
         {
@@ -64,12 +69,19 @@ public sealed partial class OptionMultiListControl : OptionControlBase
     private Grid BuildRow(string text)
     {
         var grid = new Grid { ColumnSpacing = 6 };
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var add = BuildSquareButton("\uE710", mpv_winui.AppContext.AppLang.Add);
+        add.Click += (_, _) => InsertRowAfter(grid);
+        Grid.SetColumn(add, 0);
+        grid.Children.Add(add);
 
         var box = new TextBox
         {
             Text = text,
+            MinHeight = ButtonSize,
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         box.LostFocus += (_, _) => Commit();
@@ -80,65 +92,53 @@ public sealed partial class OptionMultiListControl : OptionControlBase
                 Commit();
             }
         };
-        Grid.SetColumn(box, 0);
+        Grid.SetColumn(box, 1);
         grid.Children.Add(box);
 
-        var remove = new Button
-        {
-            Content = "\uE711",
-            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons"),
-            MinWidth = 32,
-            Padding = new Thickness(0),
-            Background = null,
-            BorderThickness = new Thickness(0),
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(remove, mpv_winui.AppContext.AppLang.Remove);
+        var remove = BuildSquareButton("\uE711", mpv_winui.AppContext.AppLang.Remove);
         remove.Click += (_, _) =>
         {
             RowsPanel.Children.Remove(grid);
             Commit();
         };
-        Grid.SetColumn(remove, 1);
+        Grid.SetColumn(remove, 2);
         grid.Children.Add(remove);
         return grid;
     }
 
-    private Button BuildAddButton()
+    private static Button BuildSquareButton(string glyph, string name)
     {
-        var add = new Button
+        var button = new Button
         {
-            Tag = AddTag,
-            Content = "\uE710",
-            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons"),
-            MinWidth = 32,
+            Width = ButtonSize,
+            Height = ButtonSize,
+            MinWidth = ButtonSize,
+            MinHeight = ButtonSize,
             Padding = new Thickness(0),
-            HorizontalAlignment = HorizontalAlignment.Left,
+            Background = null,
+            BorderThickness = new Thickness(0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Content = new FontIcon
+            {
+                Glyph = glyph,
+                FontFamily = new FontFamily("Segoe Fluent Icons"),
+                FontSize = 12,
+            },
         };
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(add, mpv_winui.AppContext.AppLang.Add);
-        add.Click += (_, _) => InsertRow();
-        return add;
+        AutomationProperties.SetName(button, name);
+        return button;
     }
 
-    private void InsertRow()
+    private void InsertRowAfter(Grid anchor)
     {
-        // Do not stack empty inputs: an empty last row already implies "add".
-        var last = RowsPanel.Children.OfType<Grid>().LastOrDefault();
-        if (last is not null && last.Children.OfType<TextBox>().FirstOrDefault()?.Text is not { Length: > 0 })
+        var index = RowsPanel.Children.IndexOf(anchor);
+        if (index < 0)
         {
             return;
         }
-
-        var addButton = RowsPanel.Children.OfType<Button>().FirstOrDefault(b => Equals(b.Tag, AddTag));
-        if (addButton is not null)
-        {
-            RowsPanel.Children.Remove(addButton);
-        }
-
         var row = BuildRow(string.Empty);
-        RowsPanel.Children.Add(row);
-        RowsPanel.Children.Add(BuildAddButton());
-        (row.Children[0] as TextBox)?.Focus(FocusState.Programmatic);
+        RowsPanel.Children.Insert(index + 1, row);
+        (row.Children[1] as TextBox)?.Focus(FocusState.Programmatic);
     }
 
     private void Commit()

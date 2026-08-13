@@ -455,7 +455,16 @@ namespace mpv_winui.Modules.Language
         // ===== Generic UI strings for settings controls =====
         public string Yes { get; set; } = "Yes";
         public string No { get; set; } = "No";
-        public string Browse { get; set; } = "Browse...";
+        public string Browse { get; set; } = "Select";
+        public string NotSet { get; set; } = "Not set";
+        public string KeySpace { get; set; } = "Space";
+        public string KeyEnter { get; set; } = "Enter";
+        public string KeyEsc { get; set; } = "Esc";
+        public string KeyLeft { get; set; } = "Left";
+        public string KeyRight { get; set; } = "Right";
+        public string KeyUp { get; set; } = "Up";
+        public string KeyDown { get; set; } = "Down";
+        public string KeyMeta { get; set; } = "Win";
 
         // ===== Yellow "may be ineffective" warnings =====
         public string WarningInterpolationVideoSync { get; set; } = "Only effective with the \"Resample to display refresh\" video sync mode.";

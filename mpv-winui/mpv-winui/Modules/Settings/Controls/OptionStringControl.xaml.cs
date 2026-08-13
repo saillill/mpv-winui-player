@@ -64,7 +64,7 @@ public sealed partial class OptionStringControl : OptionControlBase
                 DisplayButton.Visibility = Visibility.Visible;
                 DisplayButton.Content = newValue.Getter is Func<object?> keyFunc && keyFunc() is string keyValue
                     ? keyValue
-                    : string.Empty;
+                    : mpv_winui.AppContext.AppLang.NotSet;
             }
             else
             {
@@ -134,7 +134,9 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
 
         var text = InputBox.Text;
-        DisplayButton.Content = string.IsNullOrEmpty(text) ? InputBox.PlaceholderText : text;
+        DisplayButton.Content = string.IsNullOrEmpty(text)
+            ? (string.IsNullOrWhiteSpace(InputBox.PlaceholderText) ? mpv_winui.AppContext.AppLang.NotSet : InputBox.PlaceholderText)
+            : text;
         DisplayButton.Visibility = Visibility.Visible;
         InputBox.Visibility = Visibility.Collapsed;
     }
@@ -289,7 +291,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             {
                 _pendingModifiers.Remove(modifier);
             }
-            DisplayButton.Content = BuildCombo(_pendingModifiers, null);
+            DisplayButton.Content = ShortcutKeyLocalizer.Localize(BuildCombo(_pendingModifiers, null));
             return;
         }
 
@@ -362,7 +364,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         StopKeyCapture();
         if (Setting is { } option && string.IsNullOrEmpty(newKey) == false)
         {
-            DisplayButton.Content = newKey;
+            DisplayButton.Content = ShortcutKeyLocalizer.Localize(newKey);
             option.KeyCaptureReplaced?.Invoke(option, newKey);
         }
     }

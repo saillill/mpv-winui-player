@@ -261,7 +261,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                 ReadOnly = true,
                 KeyCaptureEditable = true,
                 KeyCaptureDefault = key,
-                Getter = () => shortcutBinding.Key,
+                Getter = () => ShortcutKeyLocalizer.Localize(shortcutBinding.Key),
                 Setter = _ => { },
                 KeyCaptureReplaced = (_, newKey) => RebindShortcut(shortcutBinding, newKey),
                 KeyCaptureReset = option => RebindShortcut(shortcutBinding, option.KeyCaptureDefault ?? shortcutBinding.Key),
@@ -534,7 +534,10 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             foreach (var subKeyName in displayClass.GetSubKeyNames())
             {
                 using var subKey = displayClass.OpenSubKey(subKeyName);
-                if (subKey?.GetValue("DriverDesc") is string desc && !string.IsNullOrWhiteSpace(desc) && seen.Add(desc))
+                if (subKey?.GetValue("DriverDesc") is string desc
+                    && !string.IsNullOrWhiteSpace(desc)
+                    && !IsVirtualDisplayAdapter(desc)
+                    && seen.Add(desc))
                 {
                     choices.Add(new OptionChoice(desc, desc));
                 }
@@ -547,6 +550,13 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
 
         return choices;
     }
+
+    /// <summary>Skips software/remote display adapters that are not real GPUs.</summary>
+    private static bool IsVirtualDisplayAdapter(string description) =>
+        description.Contains("Basic Display", StringComparison.OrdinalIgnoreCase)
+        || description.Contains("Remote Display", StringComparison.OrdinalIgnoreCase)
+        || description.Contains("基本显示", StringComparison.Ordinal)
+        || description.Contains("远程显示", StringComparison.Ordinal);
 
     private void ApplyMpv(string key, object value)
     {
