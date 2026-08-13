@@ -115,8 +115,6 @@ public sealed partial class OptionMultiListControl : OptionControlBase
             MinWidth = ButtonSize,
             MinHeight = ButtonSize,
             Padding = new Thickness(0),
-            Background = null,
-            BorderThickness = new Thickness(0),
             VerticalAlignment = VerticalAlignment.Center,
             Content = new FontIcon
             {
