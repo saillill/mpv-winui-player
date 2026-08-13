@@ -89,6 +89,7 @@ namespace mpv_winui.Modules.Language
         public string ControlBarIconPlayback { get; set; } = "Playback controls";
         public string ControlBarIconVolume { get; set; } = "Volume";
         public string ControlBarIconTracks { get; set; } = "Tracks";
+        public string ControlBarIconPanel { get; set; } = "Control panel";
         public string ControlBarIconRandom { get; set; } = "Random";
         public string ControlBarIconSpeed { get; set; } = "Speed";
         public string ControlBarIconAspect { get; set; } = "Aspect ratio";
@@ -490,6 +491,8 @@ namespace mpv_winui.Modules.Language
         public string PanelSlower { get; set; } = "Slower";
         public string PanelNormal { get; set; } = "Normal";
         public string PanelFaster { get; set; } = "Faster";
+        public string PanelSeek { get; set; } = "Seek";
+        public string PanelAbHint { get; set; } = "Set A then B to loop that range.";
 
         // ===== Yellow "may be ineffective" warnings =====
         public string WarningInterpolationVideoSync { get; set; } = "Only effective with the \"Resample to display refresh\" video sync mode.";

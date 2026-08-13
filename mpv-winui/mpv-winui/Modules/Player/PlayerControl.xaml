@@ -297,10 +297,11 @@ Grid.Column="11"
                         x:Name="ControlPanelButton"
                         AutomationProperties.Name="Control panel"
                         Style="{StaticResource AppBarButtonStyle}"
-                        ToolTipService.ToolTip="Control panel"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE713;" />
+                            <FontIcon
+                                FontFamily="Segoe Fluent Icons"
+                                Glyph="&#xE713;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <Flyout
