@@ -465,6 +465,15 @@ namespace mpv_winui.Modules.Language
         public string KeyUp { get; set; } = "Up";
         public string KeyDown { get; set; } = "Down";
         public string KeyMeta { get; set; } = "Win";
+        public string PluginSourceThumbfastLabel { get; set; } = "Thumbnail previews by thumbfast";
+        public string PluginSourceThumbfastDesc { get; set; } = "Seek preview thumbnails are rendered by the thumbfast plugin. Original project: po5/thumbfast (MPL-2.0).";
+        public string PluginSourceCoverartLabel { get; set; } = "Cover art by mpv-coverart";
+        public string PluginSourceCoverartDesc { get; set; } = "Cover art loading is handled by mpv-coverart. Original project: CogentRedTester/mpv-coverart (MIT).";
+        public string PluginSourceMetadataOsdLabel { get; set; } = "Metadata OSD by metadata-osd";
+        public string PluginSourceMetadataOsdDesc { get; set; } = "The playback metadata overlay is provided by metadata-osd. Original project: vc-01/metadata-osd (MIT).";
+        public string PluginSourceHdrLabel { get; set; } = "HDR scripts from mpv-lazy";
+        public string PluginSourceHdrDesc { get; set; } = "HDR auto-detection and override scripts are adapted from mpv-lazy. Project: hooke007/mpv_PlayKit.";
+        public string OpenProjectPage { get; set; } = "Open project page";
 
         // ===== Yellow "may be ineffective" warnings =====
         public string WarningInterpolationVideoSync { get; set; } = "Only effective with the \"Resample to display refresh\" video sync mode.";

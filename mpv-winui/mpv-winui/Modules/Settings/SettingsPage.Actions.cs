@@ -523,23 +523,26 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
 
         try
         {
-            using var displayClass = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
-                @"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}");
-            if (displayClass is null)
-            {
-                return choices;
-            }
-
+            // The display-class registry lists every registered adapter, including
+            // disabled/headless cards. Only adapters currently driving a display
+            // (non-zero current resolution) are usable for d3d11 presentation.
+            using var searcher = new System.Management.ManagementObjectSearcher(
+                "SELECT Name, CurrentHorizontalResolution FROM Win32_VideoController");
+            using var results = searcher.Get();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var subKeyName in displayClass.GetSubKeyNames())
+            foreach (System.Management.ManagementObject obj in results)
             {
-                using var subKey = displayClass.OpenSubKey(subKeyName);
-                if (subKey?.GetValue("DriverDesc") is string desc
-                    && !string.IsNullOrWhiteSpace(desc)
-                    && !IsVirtualDisplayAdapter(desc)
-                    && seen.Add(desc))
+                using (obj)
                 {
-                    choices.Add(new OptionChoice(desc, desc));
+                    if (obj["Name"] is string name
+                        && !string.IsNullOrWhiteSpace(name)
+                        && obj["CurrentHorizontalResolution"] is uint resolution
+                        && resolution > 0
+                        && !IsVirtualDisplayAdapter(name)
+                        && seen.Add(name))
+                    {
+                        choices.Add(new OptionChoice(name, name));
+                    }
                 }
             }
         }

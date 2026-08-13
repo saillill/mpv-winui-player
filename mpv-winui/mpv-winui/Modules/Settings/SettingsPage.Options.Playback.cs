@@ -453,6 +453,9 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpCookiesFile,
                 Type = OptionType.String,
                 AllowEmpty = true,
+                PickFile = true,
+                OpenFolder = true,
+                FileTypeFilter = [".txt"],
                 Getter = () => AppContext.AppSetting.CookiesFile,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CookiesFile), AppContext.AppSetting.CookiesFile = (string)v!)
             },

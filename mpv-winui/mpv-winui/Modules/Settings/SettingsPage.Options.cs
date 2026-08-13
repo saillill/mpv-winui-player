@@ -363,6 +363,10 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.ThumbfastAudio)] = 324,
             [nameof(AppSettings.ThumbfastHwdec)] = 325,
             [nameof(AppSettings.HdrOverrideMode)] = 326,
+            ["PluginSourceThumbfast"] = 18,
+            ["PluginSourceCoverart"] = 62,
+            ["PluginSourceMetadataOsd"] = 130,
+            ["PluginSourceHdr"] = 46,
         };
 
         // Parsed input.conf bindings keep their original order after the capture row.
@@ -442,6 +446,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.ThumbfastNetwork)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastAudio)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastHwdec)] = sPlaybackSeekPreview,
+            ["PluginSourceThumbfast"] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastMinDuration)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastPrecise)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbfastMaxWidth)] = sPlaybackSeekPreview,
@@ -468,6 +473,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.VideoOutputLevels)] = sVideoImage,
             [nameof(AppSettings.HdrAutoMode)] = sVideoFilters,
             [nameof(AppSettings.HdrOverrideMode)] = sVideoFilters,
+            ["PluginSourceHdr"] = sVideoFilters,
             [nameof(AppSettings.HdrAutoLog)] = sVideoFilters,
             [nameof(AppSettings.VsrAutoEnabled)] = sVideoFilters,
             [nameof(AppSettings.Scale)] = sGpuScaling,
@@ -532,6 +538,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CoverArtPreload)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtNames)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtImageExts)] = sAudioCoverArt,
+            ["PluginSourceCoverart"] = sAudioCoverArt,
             // subtitles
             [nameof(AppSettings.AudioLanguage)] = sTrackLanguage,
             [nameof(AppSettings.SubtitleLanguage)] = sTrackLanguage,
@@ -657,6 +664,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.MetadataOsdEnableForAudioWithAlbumArt)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdAutohideForAudio)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdAutohideForAudioWithAlbumArt)] = sOsdMetadata,
+            ["PluginSourceMetadataOsd"] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdEnableForImage)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdAutohideStatusTimeout)] = sOsdMetadata,
             [nameof(AppSettings.MetadataOsdShowAlbumTrack)] = sOsdMetadata,

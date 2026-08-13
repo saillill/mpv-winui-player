@@ -211,7 +211,7 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpIccCacheDir,
                 Type = OptionType.String,
                 AllowEmpty = true,
-                Placeholder = AppData.Current.ResolveLocalData(Path.Combine("mpv", "icc_cache")),
+                Placeholder = AppData.Current.ResolveLocalData(Path.Combine("mpv", "_cache", "icc")),
                 PickFolder = true,
                 OpenFolder = true,
                 Getter = () => AppContext.AppSetting.IccCacheDir,
@@ -722,6 +722,18 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = "PluginSourceHdr",
+                Label = lang.PluginSourceHdrLabel,
+                Category = video,
+                Description = lang.PluginSourceHdrDesc,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.OpenProjectPage,
+                ActionHandler = option => { _ = Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/hooke007/mpv_PlayKit")); }
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.HdrOverrideMode),
                 Label = lang.SettingsHdrOverrideMode,
                 Category = video,
@@ -780,6 +792,18 @@ public sealed partial class SettingsPage
                     AppContext.AppSetting.MetadataOsdEnabled = (bool)v!;
                     AppContext.WritePluginConfigs();
                 }
+            },
+
+            new Option
+            {
+                Key = "PluginSourceMetadataOsd",
+                Label = lang.PluginSourceMetadataOsdLabel,
+                Category = osd,
+                Description = lang.PluginSourceMetadataOsdDesc,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.OpenProjectPage,
+                ActionHandler = option => { _ = Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/vc-01/metadata-osd")); }
             },
 
             new Option
@@ -976,6 +1000,18 @@ public sealed partial class SettingsPage
                     AppContext.AppSetting.ThumbfastQuality = int.TryParse((string)v!, out var q) ? q : 2;
                     AppContext.WritePluginConfigs();
                 }
+            },
+
+            new Option
+            {
+                Key = "PluginSourceThumbfast",
+                Label = lang.PluginSourceThumbfastLabel,
+                Category = playback,
+                Description = lang.PluginSourceThumbfastDesc,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.OpenProjectPage,
+                ActionHandler = option => { _ = Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/po5/thumbfast")); }
             },
 
             new Option

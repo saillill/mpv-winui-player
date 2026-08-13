@@ -234,6 +234,18 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = "PluginSourceCoverart",
+                Label = lang.PluginSourceCoverartLabel,
+                Category = audio,
+                Description = lang.PluginSourceCoverartDesc,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.OpenProjectPage,
+                ActionHandler = option => { _ = Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/CogentRedTester/mpv-coverart")); }
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.CoverArtAlwaysScan),
                 Label = lang.SettingsCoverArtAlwaysScan,
                 Category = audio,
