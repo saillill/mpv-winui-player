@@ -282,13 +282,10 @@ namespace mpv_winui.Modules.Language
         // Settings categories follow the layout of the mpv manual (DOCS/man/options.rst).
         public string SettingsCategoryProgram { get; set; } = "Desktop";
         public string SettingsCategoryPlayback { get; set; } = "Playback";
-        public string SettingsCategoryWatchLater { get; set; } = "Watch Later";
         public string SettingsCategoryVideo { get; set; } = "Video";
         public string SettingsCategoryAudio { get; set; } = "Audio";
         public string SettingsCategorySubtitles { get; set; } = "Subtitles";
         public string SettingsCategoryWindow { get; set; } = "Window";
-        public string SettingsCategoryDemuxer { get; set; } = "Demuxer";
-        public string SettingsCategoryCache { get; set; } = "Cache";
         public string SettingsCategoryNetwork { get; set; } = "Network";
         public string SettingsCategoryInput { get; set; } = "Input";
         public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
@@ -303,7 +300,7 @@ namespace mpv_winui.Modules.Language
         public string SectionProgramTesting { get; set; } = "Testing";
         public string SectionPlayback { get; set; } = "Playback";
         public string SectionPlaybackSeeking { get; set; } = "Seeking";
-        public string SectionPlaybackSeekPreview { get; set; } = "Seek preview";
+        public string SectionPlaybackSeekPreview { get; set; } = "Thumbnails";
         public string SectionTrackLanguage { get; set; } = "Preferred languages";
         public string SectionTrackFallback { get; set; } = "Fallback";
         public string SectionWatchLaterResume { get; set; } = "Resume";

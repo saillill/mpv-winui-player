@@ -22,13 +22,10 @@ private List<Option> BuildSettings()
     {
         var program = AppContext.AppLang.SettingsCategoryProgram;
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
-        var watchLater = AppContext.AppLang.SettingsCategoryWatchLater;
         var video = AppContext.AppLang.SettingsCategoryVideo;
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var subtitles = AppContext.AppLang.SettingsCategorySubtitles;
         var window = AppContext.AppLang.SettingsCategoryWindow;
-        var demuxer = AppContext.AppLang.SettingsCategoryDemuxer;
-        var cache = AppContext.AppLang.SettingsCategoryCache;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var input = AppContext.AppLang.SettingsCategoryInput;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
@@ -122,13 +119,10 @@ private List<Option> BuildSettings()
         {
             program,
             playback,
-            watchLater,
             video,
             audio,
             subtitles,
             window,
-            demuxer,
-            cache,
             network,
             input,
             shortcuts,

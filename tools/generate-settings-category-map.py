@@ -32,8 +32,8 @@ for f in sorted(SRC.glob("SettingsPage.Options*.cs")):
 keys = sorted(set(keys))
 
 # key -> (category var, section var)
-# Category vars: program playback watchLater video audio subtitles window demuxer
-#                cache network input shortcuts osd screenshot testing
+# Category vars: program playback video audio subtitles window
+#                network input shortcuts osd screenshot testing
 # Section vars:  sProgramInterface sProgramLanguageLog sProgramNetwork sProgramTesting
 #                sPlayback sPlaybackSeeking sPlaybackSeekPreview
 #                sTrackLanguage sTrackFallback
@@ -88,10 +88,10 @@ MAP = {
     "SubtitleLanguage": ("subtitles", "sTrackLanguage"),
     "SubFallback": ("subtitles", "sTrackFallback"),
     # Watch Later
-    "SavePositionOnQuit": ("watchLater", "sWatchLaterResume"),
-    "ResumePlayback": ("watchLater", "sWatchLaterResume"),
-    "WatchLaterOptions": ("watchLater", "sWatchLaterStorage"),
-    "WatchLaterDir": ("watchLater", "sWatchLaterStorage"),
+    "SavePositionOnQuit": ("playback", "sWatchLaterResume"),
+    "ResumePlayback": ("playback", "sWatchLaterResume"),
+    "WatchLaterOptions": ("playback", "sWatchLaterStorage"),
+    "WatchLaterDir": ("playback", "sWatchLaterStorage"),
     # Video
     "Hwdec": ("video", "sVideoDecode"),
     "HwdecCodecs": ("video", "sVideoDecode"),
@@ -170,22 +170,22 @@ MAP = {
     "AlwaysOnTop": ("window", "sWindow"),
     "KeepOpen": ("window", "sWindow"),
     # Demuxer
-    "AutoCreatePlaylist": ("demuxer", "sDemuxerPlaylist"),
-    "DirectoryMode": ("demuxer", "sDemuxerPlaylist"),
-    "DirectoryFilterTypes": ("demuxer", "sDemuxerPlaylist"),
-    "VideoExts": ("demuxer", "sDemuxerPlaylist"),
-    "ImageExts": ("demuxer", "sDemuxerPlaylist"),
-    "ImageDisplayDuration": ("demuxer", "sDemuxerPlaylist"),
-    "DemuxerMaxBytes": ("demuxer", "sDemuxerBuffering"),
-    "DemuxerMaxBackBytes": ("demuxer", "sDemuxerBuffering"),
-    "DemuxerReadahead": ("demuxer", "sDemuxerBuffering"),
-    "DemuxerHysteresisSecs": ("demuxer", "sDemuxerBuffering"),
-    "DemuxerCacheDir": ("demuxer", "sDemuxerBuffering"),
+    "AutoCreatePlaylist": ("playback", "sDemuxerPlaylist"),
+    "DirectoryMode": ("playback", "sDemuxerPlaylist"),
+    "DirectoryFilterTypes": ("playback", "sDemuxerPlaylist"),
+    "VideoExts": ("playback", "sDemuxerPlaylist"),
+    "ImageExts": ("playback", "sDemuxerPlaylist"),
+    "ImageDisplayDuration": ("playback", "sDemuxerPlaylist"),
+    "DemuxerMaxBytes": ("network", "sDemuxerBuffering"),
+    "DemuxerMaxBackBytes": ("network", "sDemuxerBuffering"),
+    "DemuxerReadahead": ("network", "sDemuxerBuffering"),
+    "DemuxerHysteresisSecs": ("network", "sDemuxerBuffering"),
+    "DemuxerCacheDir": ("network", "sDemuxerBuffering"),
     # Cache
-    "CacheEnabled": ("cache", "sCache"),
-    "CacheSecs": ("cache", "sCache"),
-    "CacheOnDisk": ("cache", "sCache"),
-    "CachePause": ("cache", "sCache"),
+    "CacheEnabled": ("network", "sCache"),
+    "CacheSecs": ("network", "sCache"),
+    "CacheOnDisk": ("network", "sCache"),
+    "CachePause": ("network", "sCache"),
     # Input
     "InputIme": ("input", "sInput"),
     "InputIpcServer": ("input", "sInput"),

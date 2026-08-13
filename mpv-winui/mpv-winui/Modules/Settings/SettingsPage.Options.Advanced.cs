@@ -21,9 +21,8 @@ public sealed partial class SettingsPage
     private List<Option> BuildAdvancedOptions()
     {
         var audio = AppContext.AppLang.SettingsCategoryAudio;
-        var cache = AppContext.AppLang.SettingsCategoryCache;
-        var demuxer = AppContext.AppLang.SettingsCategoryDemuxer;
         var input = AppContext.AppLang.SettingsCategoryInput;
+        var network = AppContext.AppLang.SettingsCategoryNetwork;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var video = AppContext.AppLang.SettingsCategoryVideo;
@@ -36,7 +35,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.CacheOnDisk),
                 Label = lang.SettingsCacheOnDisk,
-                Category = cache,
+                Category = network,
                 Description = lang.SettingsHelpCacheOnDisk,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.CacheOnDisk,
@@ -132,7 +131,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerMaxBytes),
                 Label = lang.SettingsDemuxerMaxBytes,
-                Category = demuxer,
+                Category = network,
                 Description = lang.SettingsHelpDemuxerMaxBytes,
                 Type = OptionType.Integer,
                 Min = 32,
@@ -366,7 +365,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerMaxBackBytes),
                 Label = lang.SettingsDemuxerMaxBackBytes,
-                Category = demuxer,
+                Category = network,
                 Description = lang.SettingsHelpDemuxerMaxBackBytes,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -380,7 +379,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerHysteresisSecs),
                 Label = lang.SettingsDemuxerHysteresisSecs,
-                Category = demuxer,
+                Category = network,
                 Description = lang.SettingsHelpDemuxerHysteresisSecs,
                 Type = OptionType.Double,
                 Min = 0,
@@ -394,7 +393,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.DemuxerCacheDir),
                 Label = lang.SettingsDemuxerCacheDir,
-                Category = demuxer,
+                Category = network,
                 Description = lang.SettingsHelpDemuxerCacheDir,
                 Type = OptionType.String,
                 AllowEmpty = true,
