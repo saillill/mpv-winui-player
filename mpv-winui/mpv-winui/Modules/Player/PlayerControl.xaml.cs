@@ -1393,7 +1393,7 @@ namespace mpv_winui.Modules.Player
                 CornerRadius = new CornerRadius(6),
                 BorderThickness = new Thickness(1),
                 BorderBrush = mpv_winui.Modules.Common.View.ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush"),
-                Background = mpv_winui.Modules.Common.View.ThemeResource.Brush(this, "CardBackgroundFillColorSecondaryBrush"),
+                Background = mpv_winui.Modules.Common.View.ThemeResource.Brush(this, "CardBackgroundFillColorDefaultBrush"),
                 Child = panel,
             };
         }

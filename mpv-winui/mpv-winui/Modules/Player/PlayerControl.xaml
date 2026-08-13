@@ -308,9 +308,26 @@ Grid.Column="11"
                                 x:Name="ControlPanelFlyout"
                                 Placement="Top"
                                 Opened="ControlPanelFlyout_Opened">
+                                <Flyout.FlyoutPresenterStyle>
+                                    <Style
+                                        BasedOn="{StaticResource DefaultFlyoutPresenterStyle}"
+                                        TargetType="FlyoutPresenter">
+                                        <Setter Property="IsTabStop" Value="True" />
+                                        <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+                                        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                                        <Setter Property="TabNavigation" Value="Cycle" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="MaxWidth" Value="480" />
+                                        <Setter Property="MaxHeight" Value="480" />
+                                        <Setter Property="IsDefaultShadowEnabled" Value="True" />
+                                        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                                        <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
+                                    </Style>
+                                </Flyout.FlyoutPresenterStyle>
                                 <StackPanel
                                     x:Name="ControlPanelRoot"
                                     Width="440"
+                                    Padding="10"
                                     Spacing="10" />
                             </Flyout>
                         </AppBarButton.Flyout>
