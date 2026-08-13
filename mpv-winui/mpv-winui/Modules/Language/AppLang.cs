@@ -19,11 +19,8 @@ namespace mpv_winui.Modules.Language
         public string Paste { get; set; } = "Paste";
         public string Refresh { get; set; } = "Refresh";
         public string Confirm { get; set; } = "Confirm";
-        public string AppHelpAndFeedBack { get; set; } = "Feedback";
-        public string AppHelpAndFeedBackLink { get; set; } = "Feedback (Link)";
         public string AppSetting { get; set; } = "Settings";
         public string AppSettingTheme { get; set; } = "Theme";
-        public string AppSettingStyle { get; set; } = "Appearance";
         public string SettingsAlwaysOnTop { get; set; } = "Always on top";
         public string ThemeDarkName { get; set; } = "Dark";
         public string ThemeCustomName { get; set; } = "Custom";
@@ -35,21 +32,11 @@ namespace mpv_winui.Modules.Language
         public string SettingsThemeLuminosity { get; set; } = "Backdrop brightness";
         public string SettingsHelpThemeLuminosity { get; set; } = "Brightness of the Acrylic backdrop. Only applies when the Acrylic backdrop is selected.";
         public string SettingsUiFont { get; set; } = "UI font";
-        public string SettingsChooseThemeColor { get; set; } = "Choose color...";
         public string ThemeColorRecentColors { get; set; } = "Recent colors";
         public string ThemeColorWindowsColors { get; set; } = "Windows colors";
         public string ThemeColorCustomColors { get; set; } = "Custom colors";
-        public string ThemeColorRed { get; set; } = "Red";
-        public string ThemeColorGreen { get; set; } = "Green";
-        public string ThemeColorBlue { get; set; } = "Blue";
-        public string ThemeColorHue { get; set; } = "Hue";
-        public string ThemeColorSaturation { get; set; } = "Saturation";
-        public string ThemeColorLightness { get; set; } = "Lightness";
         public string ThemeColorDone { get; set; } = "Done";
         public string Save { get; set; } = "Save";
-        public string SettingsSaved { get; set; } = "Saved";
-        public string SettingsUnsaved { get; set; } = "Unsaved changes";
-        public string SettingsUnsavedConfirm { get; set; } = "You have unsaved changes. Save them before closing?";
         public string Discard { get; set; } = "Discard";
         public string Expand { get; set; } = "Expand";
         public string Collapse { get; set; } = "Collapse";
@@ -70,26 +57,14 @@ namespace mpv_winui.Modules.Language
         public string Import { get; set; } = "Import";
         public string Export { get; set; } = "Export";
         public string Upload { get; set; } = "Upload";
-        public string EnableMica { get; set; } = "Mica background";
-        public string EnableUISound { get; set; } = "Enable UI Sound";
         public string Play { get; set; } = "Play";
         public string PiPBackToPlayer { get; set; } = "Back to player";
         public string PiPExit { get; set; } = "Exit picture-in-picture";
         public string PiPMute { get; set; } = "Mute";
-        public string PiPBackward { get; set; } = "Back 10 seconds";
-        public string PiPForward { get; set; } = "Forward 10 seconds";
         public string Stop { get; set; } = "Stop";
         public string Version { get; set; } = "Version";
-        public string ClearTempFolder { get; set; } = "Delete temp files";
         public string ThemeAuto { get; set; } = "Follow system";
-        public string SettingLanguagesGroup { get; set; } = "Languages";
         public string SettingLanguages { get; set; } = "App language";
-        public string SettingLanguagesHelp { get; set; } = "Help";
-        public string SettingLanguagesShare { get; set; } = "Share or download languages";
-        public string SettingLanguagesReloadTip { get; set; } = "Reload custom languages";
-        public string SettingLanguagesExportTip { get; set; } = "Export current language";
-        public string SettingLanguagesImportTip { get; set; } = "Import language";
-        public string SettingLanguagesFolderOpenTip { get; set; } = "Open languages folder";
         public string Subtitles { get; set; } = "Subtitles";
 
         // Window / mini player
@@ -110,12 +85,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpControlBarLayout { get; set; } = "Choose a control bar style: original or centered. Click Customize to drag-reorder or hide icons, or use + to add them.";
         public string OptionValueControlBarClassic { get; set; } = "Classic";
         public string OptionValueControlBarModernX { get; set; } = "Centered";
-        public string OptionValueControlBarCompact { get; set; } = "Compact";
-        public string OptionValueControlBarLeft { get; set; } = "Left";
-        public string OptionValueControlBarCenter { get; set; } = "Centered";
-        public string OptionValueControlBarRight { get; set; } = "Right";
-        public string SettingsControlBarIcons { get; set; } = "Control bar icons";
-        public string SettingsHelpControlBarIcons { get; set; } = "Hide icons you do not use. Changes apply immediately.";
         public string ControlBarIconPlayback { get; set; } = "Playback controls";
         public string ControlBarIconVolume { get; set; } = "Volume";
         public string ControlBarIconTracks { get; set; } = "Tracks";
@@ -124,13 +93,11 @@ namespace mpv_winui.Modules.Language
         public string ControlBarIconAspect { get; set; } = "Aspect ratio";
         public string ControlBarIconFullWindow { get; set; } = "Full window";
         public string ControlBarIconFullScreen { get; set; } = "Full screen";
-        public string ControlBarIconMore { get; set; } = "More";
         public string ControlBarIconPiP { get; set; } = "Picture-in-picture";
 
         // File associations / config profiles
         public string SectionProgramAssociations { get; set; } = "File associations";
         public string SettingsAssociateFiles { get; set; } = "Associate media files";
-        public string SettingsHelpAssociateFiles { get; set; } = "Register common video and audio extensions to open with this player.";
         public string SettingsHelpFileAssociations { get; set; } = "Choose which formats should open with this player. Changes apply immediately.";
         public string FileAssociationGroupVideo { get; set; } = "Video formats";
         public string FileAssociationGroupAudio { get; set; } = "Audio formats";
@@ -223,9 +190,6 @@ namespace mpv_winui.Modules.Language
         public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
         public string CustomRate { get; set; } = "Custom speed";
         public string DisplayInfo { get; set; } = "Display info";
-        public string SettingsControlBarFixedGroup { get; set; } = "Fixed: play, previous, next, skip back, skip forward";
-        public string SettingsControlBarShown { get; set; } = "Shown (drag to reorder, × to hide)";
-        public string SettingsControlBarAvailable { get; set; } = "Hidden (drag onto the bar to show)";
         public string SettingsControlBarCanvasHint { get; set; } = "Drag the icons to reorder; drag off the bar to hide. The transport buttons are fixed.";
         public string SettingsControlBarCustomize { get; set; } = "Customize";
         public string SettingsCheckForUpdates { get; set; } = "Check for updates";
@@ -318,22 +282,16 @@ namespace mpv_winui.Modules.Language
         // Settings categories follow the layout of the mpv manual (DOCS/man/options.rst).
         public string SettingsCategoryProgram { get; set; } = "Desktop";
         public string SettingsCategoryPlayback { get; set; } = "Playback";
-        public string SettingsCategoryTrackSelection { get; set; } = "Track Selection";
-        public string SettingsCategoryWatchLater { get; set; } = "Watch Later";
         public string SettingsCategoryVideo { get; set; } = "Video";
         public string SettingsCategoryAudio { get; set; } = "Audio";
         public string SettingsCategorySubtitles { get; set; } = "Subtitles";
         public string SettingsCategoryWindow { get; set; } = "Window";
-        public string SettingsCategoryDemuxer { get; set; } = "Demuxer";
-        public string SettingsCategoryCache { get; set; } = "Cache";
         public string SettingsCategoryNetwork { get; set; } = "Network";
         public string SettingsCategoryInput { get; set; } = "Input";
         public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
         public string SettingsCategoryOsd { get; set; } = "OSD";
         public string SettingsCategoryScreenshot { get; set; } = "Screenshot";
         public string SettingsCategoryTesting { get; set; } = "Testing";
-        public string SettingsCategoryGpuRenderer { get; set; } = "GPU renderer options";
-        public string SettingsCategoryVideoSync { get; set; } = "Video Sync";
 
         // Section captions split each category into topic groups.
         public string SectionProgramInterface { get; set; } = "Interface";
@@ -342,16 +300,14 @@ namespace mpv_winui.Modules.Language
         public string SectionProgramTesting { get; set; } = "Testing";
         public string SectionPlayback { get; set; } = "Playback";
         public string SectionPlaybackSeeking { get; set; } = "Seeking";
-        public string SectionPlaybackSeekPreview { get; set; } = "Seek preview";
+        public string SectionPlaybackSeekPreview { get; set; } = "Thumbnails";
         public string SectionTrackLanguage { get; set; } = "Preferred languages";
         public string SectionTrackFallback { get; set; } = "Fallback";
         public string SectionWatchLaterResume { get; set; } = "Resume";
         public string SectionWatchLaterStorage { get; set; } = "Storage";
         public string SectionVideoDecode { get; set; } = "Decoding";
         public string SectionVideoImage { get; set; } = "Image";
-        public string SectionVideoHdr { get; set; } = "HDR & color";
         public string SectionVideoFilters { get; set; } = "NVIDIA filters";
-        public string SectionVideoUpscaling { get; set; } = "Upscaling";
         public string SectionAudioOutput { get; set; } = "Output";
         public string SectionAudioVolume { get; set; } = "Volume";
         public string SectionAudioExternal { get; set; } = "External audio";
@@ -394,7 +350,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsAudioDevice { get; set; } = "Audio output device";
         public string SettingsScreenshotDirectory { get; set; } = "Screenshot folder";
         public string SettingsScreenshotTemplate { get; set; } = "Screenshot filename template";
-        public string SettingsCacheDir { get; set; } = "Cache folder";
         public string SettingsWatchLaterOptions { get; set; } = "Watch-later saved properties";
         public string SettingsWatchLaterDir { get; set; } = "Watch-later folder";
         public string SettingsIccCacheDir { get; set; } = "ICC cache folder";
@@ -525,16 +480,15 @@ namespace mpv_winui.Modules.Language
         public string OptionValueTestSignalVideo { get; set; } = "Test video (test pattern)";
         public string OptionValueTestSignalAudio { get; set; } = "Test audio (1 kHz)";
         public string WarningSeekHoldInactive { get; set; } = "Both auto VSR and RTX Video HDR are off; this option has no effect.";
-        public string WarningThemeLuminosityMica { get; set; } = "Brightness only applies to the Acrylic backdrop.";
 
         // ===== Localized option values (raw mpv values stay machine-readable) =====
         public string OptionValueAuto { get; set; } = "Auto";
+        public string OptionValueAutoSafe { get; set; } = "Auto (safe)";
         public string OptionValueYes { get; set; } = "Yes";
         public string OptionValueNo { get; set; } = "No";
         public string OptionValueCustom { get; set; } = "Custom";
         public string OptionValueOn { get; set; } = "On";
         public string OptionValueOff { get; set; } = "Off";
-        public string OptionValueAlways { get; set; } = "Always";
         public string OptionValueStereo { get; set; } = "Stereo";
         public string OptionValueMono { get; set; } = "Mono";
         public string OptionValueSurround51 { get; set; } = "5.1";
@@ -543,7 +497,6 @@ namespace mpv_winui.Modules.Language
         public string OptionValueVideoSyncDisplayResample { get; set; } = "Resample to display refresh";
         public string OptionValueVideoSyncDisplayResampleVdrop { get; set; } = "Resample + drop frames";
         public string OptionValueVideoSyncDisplayAdrop { get; set; } = "Drop audio frames";
-        public string OptionValueVideoSyncCfr { get; set; } = "CFR (fixed frame rate)";
         public string OptionValueAutoPlaylistFilter { get; set; } = "Filter by type";
         public string OptionValueAutoPlaylistSame { get; set; } = "Same type";
         public string OptionValueDirModeIgnore { get; set; } = "Ignore";
@@ -558,7 +511,6 @@ namespace mpv_winui.Modules.Language
         public string OptionValueDitherOrdered { get; set; } = "Ordered";
         public string OptionValueDitherErrorDiffusion { get; set; } = "Error diffusion";
         public string OptionValueCspSrgb { get; set; } = "sRGB";
-        public string OptionValueCspBt709 { get; set; } = "BT.709";
         public string OptionValueCspBt2020 { get; set; } = "BT.2020";
         public string OptionValueCspPq { get; set; } = "PQ (HDR)";
         public string OptionValueCspLinear { get; set; } = "Linear";
@@ -615,7 +567,6 @@ namespace mpv_winui.Modules.Language
         public string OptionValueRotate270 { get; set; } = "90° counterclockwise";
         public string OptionValueDitherAuto { get; set; } = "Auto";
         public string OptionValueDitherNo { get; set; } = "Off";
-        public string OptionValueCacheAuto { get; set; } = "Auto";
         public string OptionValueOsdOnSeekNo { get; set; } = "No";
         public string OptionValueOsdOnSeekBar { get; set; } = "Bar";
         public string OptionValueOsdOnSeekMsg { get; set; } = "Message";
@@ -653,7 +604,6 @@ namespace mpv_winui.Modules.Language
 
         // ===== Additional option labels =====
         public string SettingsLoopPlaylist { get; set; } = "Loop playlist";
-        public string SettingsVolume { get; set; } = "Startup volume";
         public string SettingsScale { get; set; } = "Upscaling algorithm";
         public string SettingsCscale { get; set; } = "Chroma upscaling";
         public string SettingsTscale { get; set; } = "Frame interpolation algorithm";
@@ -750,7 +700,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpOsdFont { get; set; } = "Font used for on-screen messages. Defaults to the system font.";
         public string SettingsHelpOsdOnSeek { get; set; } = "What to show while seeking: progress bar, message, both, or nothing. Message is recommended.";
         public string SettingsHelpScreenshotSw { get; set; } = "Capture screenshots through the software path. More compatible with some GPUs, but slower.";
-        public string SettingsHelpCacheDirectory { get; set; } = "Folder mpv uses for cache files. Leave empty for the built-in default.";
         public string SettingsHelpWatchLaterDir { get; set; } = "Folder where mpv stores resume files. Leave empty for the built-in default.";
         public string SettingsHelpIccCacheDir { get; set; } = "Folder for cached ICC profile to 3D LUT conversions. Leave empty for the built-in default.";
         public string SettingsHelpGpuShaderCacheDir { get; set; } = "Folder for compiled GLSL shader caches. Leave empty for the built-in default.";
@@ -900,6 +849,66 @@ namespace mpv_winui.Modules.Language
         public string WatchHistoryClearTitle { get; set; } = "Clear history";
         public string WatchHistoryClearConfirm { get; set; } = "Are you sure you want to clear the history?";
         public string Clear { get; set; } = "Clear";
+
+        public string SettingsAudioSpdif { get; set; } = "Bitstream audio (SPDIF passthrough)";
+        public string SettingsHelpAudioSpdif { get; set; } = "Pass compressed audio (AC3/EAC3/DTS/TrueHD) through to the receiver without decoding. Leave Off for normal PCM output.";
+        public string SettingsReplaygain { get; set; } = "ReplayGain";
+        public string SettingsHelpReplaygain { get; set; } = "Apply ReplayGain loudness normalization. Track uses per-track, Album uses per-album gain tags.";
+        public string OptionValueReplaygainTrack { get; set; } = "Track";
+        public string OptionValueReplaygainAlbum { get; set; } = "Album";
+        public string SettingsOsdLevel { get; set; } = "OSD verbosity";
+        public string SettingsHelpOsdLevel { get; set; } = "Amount of OSD information mpv shows: 0 hides everything, 3 shows the most.";
+        public string SettingsImageDisplayDuration { get; set; } = "Image display duration (seconds)";
+        public string SettingsHelpImageDisplayDuration { get; set; } = "How long each image stays on screen in slideshow/directory mode, in seconds.";
+        public string SettingsOverrideDisplayFps { get; set; } = "Override display refresh rate (fps)";
+        public string SettingsHelpOverrideDisplayFps { get; set; } = "Assume the display runs at this frame rate instead of querying it. 0 disables the override. Useful with display-resample sync modes.";
+        public string SettingsCachePause { get; set; } = "Pause while caching";
+        public string SettingsHelpCachePause { get; set; } = "Pause playback while the network cache is filling. Disable to keep playing while buffering.";
+        public string SettingsPrefetchPlaylist { get; set; } = "Prefetch next playlist entries";
+        public string SettingsHelpPrefetchPlaylist { get; set; } = "Start loading the next playlist entry while the current one still plays.";
+        public string SettingsSubBold { get; set; } = "Bold subtitles";
+        public string SettingsHelpSubBold { get; set; } = "Force subtitles to render bold.";
+        public string SettingsSubItalic { get; set; } = "Italic subtitles";
+        public string SettingsHelpSubItalic { get; set; } = "Force subtitles to render italic.";
+        public string SettingsSubAlignX { get; set; } = "Subtitle horizontal alignment";
+        public string SettingsHelpSubAlignX { get; set; } = "Horizontal position of subtitles: left, center or right.";
+        public string SettingsSubAlignY { get; set; } = "Subtitle vertical alignment";
+        public string SettingsHelpSubAlignY { get; set; } = "Vertical position of subtitles: top, center or bottom.";
+        public string SettingsSubMarginX { get; set; } = "Subtitle horizontal margin";
+        public string SettingsHelpSubMarginX { get; set; } = "Horizontal distance of subtitles from the screen edge, in pixels.";
+        public string SettingsSubMarginY { get; set; } = "Subtitle vertical margin";
+        public string SettingsHelpSubMarginY { get; set; } = "Vertical distance of subtitles from the screen edge, in pixels.";
+        public string SettingsOsdAlignX { get; set; } = "OSD horizontal alignment";
+        public string SettingsHelpOsdAlignX { get; set; } = "Horizontal position of OSD text: left, center or right.";
+        public string SettingsOsdAlignY { get; set; } = "OSD vertical alignment";
+        public string SettingsHelpOsdAlignY { get; set; } = "Vertical position of OSD text: top, center or bottom.";
+        public string SettingsOsdMarginX { get; set; } = "OSD horizontal margin";
+        public string SettingsHelpOsdMarginX { get; set; } = "Horizontal distance of OSD text from the screen edge, in pixels.";
+        public string SettingsOsdMarginY { get; set; } = "OSD vertical margin";
+        public string SettingsHelpOsdMarginY { get; set; } = "Vertical distance of OSD text from the screen edge, in pixels.";
+        public string SettingsDemuxerHysteresisSecs { get; set; } = "Demuxer hysteresis (seconds)";
+        public string SettingsHelpDemuxerHysteresisSecs { get; set; } = "Seconds the demuxer must exceed a cache range before switching back. 0 uses mpv's default.";
+        public string SettingsDemuxerCacheDir { get; set; } = "Demuxer cache directory";
+        public string SettingsHelpDemuxerCacheDir { get; set; } = "Folder for the on-disk demuxer cache. Leave empty to let mpv decide.";
+        public string OptionValueAlignLeft { get; set; } = "Left";
+        public string OptionValueAlignCenter { get; set; } = "Center";
+        public string OptionValueAlignRight { get; set; } = "Right";
+        public string OptionValueAlignTop { get; set; } = "Top";
+        public string OptionValueAlignBottom { get; set; } = "Bottom";
+        public string SettingsMetadataOsdEnableForAudio { get; set; } = "Show metadata OSD for audio";
+        public string SettingsHelpMetadataOsdEnableForAudio { get; set; } = "Show the metadata overlay for audio files.";
+        public string SettingsMetadataOsdEnableForAudioWithAlbumArt { get; set; } = "Show metadata OSD for album art audio";
+        public string SettingsHelpMetadataOsdEnableForAudioWithAlbumArt { get; set; } = "Show the metadata overlay for audio files displayed with album art.";
+        public string SettingsMetadataOsdAutohideForAudio { get; set; } = "Auto-hide metadata OSD for audio";
+        public string SettingsHelpMetadataOsdAutohideForAudio { get; set; } = "Automatically hide the metadata overlay after the timeout for audio files.";
+        public string SettingsMetadataOsdAutohideForAudioWithAlbumArt { get; set; } = "Auto-hide metadata OSD for album art audio";
+        public string SettingsHelpMetadataOsdAutohideForAudioWithAlbumArt { get; set; } = "Automatically hide the metadata overlay after the timeout for audio files displayed with album art.";
+        public string SettingsThumbfastAudio { get; set; } = "Generate previews for audio";
+        public string SettingsHelpThumbfastAudio { get; set; } = "Also generate seek previews for audio files. Takes effect on the next start.";
+        public string SettingsThumbfastHwdec { get; set; } = "Preview hardware decoding";
+        public string SettingsHelpThumbfastHwdec { get; set; } = "Use hardware decoding when generating seek previews. Takes effect on the next start.";
+        public string SettingsHdrOverrideMode { get; set; } = "Display HDR override";
+        public string SettingsHelpHdrOverrideMode { get; set; } = "Manually override the app's display HDR detection: leave Auto to follow the app, or force HDR/SDR output. Takes effect on the next start.";
 
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)

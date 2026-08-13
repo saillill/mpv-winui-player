@@ -28,17 +28,6 @@ public sealed partial class SettingsPage
             // ===== Audio / 音频 =====
             new Option
             {
-                Key = nameof(AppContext.AppSetting.AudioLanguage),
-                Label = lang.SettingsAudioLanguage,
-                Category = audio,
-                Type = OptionType.StringList,
-                Choices = LanguageChoices(true),
-                Getter = () => AppContext.AppSetting.AudioLanguage,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioLanguage), AppContext.AppSetting.AudioLanguage = (string)v!)
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.AudioDevice),
                 Label = lang.SettingsAudioDevice,
                 Category = audio,
@@ -57,7 +46,9 @@ public sealed partial class SettingsPage
                 Type = OptionType.StringList,
                 Choices =
                 [
+                    new OptionChoice("auto-safe", lang.OptionValueAutoSafe),
                     new OptionChoice("auto", lang.OptionValueChannelsAuto),
+                    new OptionChoice("mono", lang.OptionValueMono),
                     new OptionChoice("stereo", lang.OptionValueStereo),
                     new OptionChoice("5.1", lang.OptionValueSurround51),
                     new OptionChoice("7.1", lang.OptionValueSurround71),
@@ -166,6 +157,60 @@ public sealed partial class SettingsPage
                 Step = 0.1,
                 Getter = () => AppContext.AppSetting.AudioBuffer,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioBuffer), AppContext.AppSetting.AudioBuffer = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioGapless),
+                Label = lang.SettingsAudioGapless,
+                Category = audio,
+                Description = lang.SettingsHelpAudioGapless,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueAudioGaplessNo),
+                    new OptionChoice("yes", lang.OptionValueAudioGaplessYes),
+                    new OptionChoice("weak", lang.OptionValueAudioGaplessWeak),
+                ],
+                Getter = () => AppContext.AppSetting.AudioGapless,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioGapless), AppContext.AppSetting.AudioGapless = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioSpdif),
+                Label = lang.SettingsAudioSpdif,
+                Category = audio,
+                Description = lang.SettingsHelpAudioSpdif,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.Off),
+                    new OptionChoice("ac3", "AC3"),
+                    new OptionChoice("eac3", "EAC3"),
+                    new OptionChoice("dts", "DTS"),
+                    new OptionChoice("truehd", "TrueHD"),
+                    new OptionChoice("dts-hd", "DTS-HD"),
+                ],
+                Getter = () => AppContext.AppSetting.AudioSpdif,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioSpdif), AppContext.AppSetting.AudioSpdif = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.Replaygain),
+                Label = lang.SettingsReplaygain,
+                Category = audio,
+                Description = lang.SettingsHelpReplaygain,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.Off),
+                    new OptionChoice("track", lang.OptionValueReplaygainTrack),
+                    new OptionChoice("album", lang.OptionValueReplaygainAlbum),
+                ],
+                Getter = () => AppContext.AppSetting.Replaygain,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Replaygain), AppContext.AppSetting.Replaygain = (string)v!)
             },
 
             new Option

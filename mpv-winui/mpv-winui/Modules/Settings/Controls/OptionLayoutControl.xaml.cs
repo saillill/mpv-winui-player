@@ -28,14 +28,15 @@ public sealed partial class OptionLayoutControl : OptionControlBase
     }
 
     /// <summary>Re-reads the real bar state into every card's strip when any canvas changes it.</summary>
-    private void OnCanvasStateChanged()
+    private void OnCanvasStateChanged(ControlBarCanvasControl sender)
     {
         foreach (var item in StyleCards.Items)
         {
             if (item is Border card
                 && card.Child is StackPanel panel
                 && panel.Children.Count > 1
-                && panel.Children[1] is ControlBarCanvasControl canvas)
+                && panel.Children[1] is ControlBarCanvasControl canvas
+                && !ReferenceEquals(canvas, sender))
             {
                 canvas.Reload();
             }

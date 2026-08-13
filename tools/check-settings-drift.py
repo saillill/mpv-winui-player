@@ -66,24 +66,31 @@ UNMAPPED_OK = {
     "WindowPiP", "WindowPiPSize", "EnableDebugLog", "TestMpvCommandLog", "TestOsdMessage",
     "TestSignal", "FileAssociationExts", "SettingsSearchHistory", "CheckForUpdates",
     "ControlBarCustomOrder", "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
+    "ControlBarZonesClassic", "ControlBarZonesModernX",
     "ControlBarOrderStyleMigrated", "WindowPiPRect", "WindowPiPOpacity",
     "LastVideoVolume", "LastAudioVolume", "AudioVolume", "PatchVersion",
     "EnableVideoPreview",
     # PluginConfigWriter channel (script-opts/*.conf)
     "HdrAutoLog", "MetadataOsdEnabled", "MetadataOsdAutohideTimeout",
     "MetadataOsdShowChapter", "MetadataOsdEnableForVideo", "MetadataOsdEnableForImage",
+    "MetadataOsdEnableForAudio", "MetadataOsdEnableForAudioWithAlbumArt",
+    "MetadataOsdAutohideForAudio", "MetadataOsdAutohideForAudioWithAlbumArt",
     "MetadataOsdAutohideStatusTimeout", "MetadataOsdShowAlbumTrack",
     "MetadataOsdMessageMaxLength", "CoverArtPreferEmbedded", "CoverArtAlwaysScan",
     "CoverArtLoadFromFilesystem", "CoverArtPreload", "CoverArtNames", "CoverArtImageExts",
     "ThumbfastQuality", "ThumbfastNetwork", "ThumbfastMinDuration", "ThumbfastPrecise",
     "ThumbfastMaxWidth", "ThumbfastMaxHeight", "ThumbfastSpawnFirst", "ThumbfastThreads",
     "ThumbfastFrequency", "ThumbfastDirectIo", "ThumbfastQuitAfterInactivity",
+    "ThumbfastAudio", "ThumbfastHwdec",
+    "HdrOverrideMode",
     "CoverArtExts", "MetadataOsdShowAlbum",
     # ManagedMpvConfig channel (ytdl_hook script options in mpv.conf)
     "YtdlPath", "YtdlAllFormats", "YtdlThumbnails", "YtdlExclude", "YtdlTryFirst", "YtdlUseManifests",
     # Special cases handled outside ToCommand
     "Volume",               # passed at mpv Initialize, not applied at runtime
     "ShowOsdPlayingMsg",    # merged into the OsdPlayingMsg case
+    "Speed",                # applied once at startup by MpvPlayerPage; deliberately
+                            # absent from ApplyAll so a reset never clobbers live speed
 }
 
 

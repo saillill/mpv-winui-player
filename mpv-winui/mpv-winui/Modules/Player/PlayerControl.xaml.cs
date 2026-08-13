@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Modules.Settings.Controls;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -136,7 +137,11 @@ namespace mpv_winui.Modules.Player
             }
             else if (key == nameof(AppContext.AppSetting.ControlBarLayout)
                 || key == nameof(AppContext.AppSetting.ControlBarHiddenIconsClassic)
-                || key == nameof(AppContext.AppSetting.ControlBarHiddenIconsModernX))
+                || key == nameof(AppContext.AppSetting.ControlBarHiddenIconsModernX)
+                || key == nameof(AppContext.AppSetting.ControlBarCustomOrderClassic)
+                || key == nameof(AppContext.AppSetting.ControlBarCustomOrderModernX)
+                || key == nameof(AppContext.AppSetting.ControlBarZonesClassic)
+                || key == nameof(AppContext.AppSetting.ControlBarZonesModernX))
             {
                 DispatcherQueue.TryEnqueue(ApplyControlBarStyle);
             }
@@ -235,6 +240,7 @@ namespace mpv_winui.Modules.Player
             SetHidden(hidden.Contains("pip"), PiPButton);
             SetHidden(hidden.Contains("equalizer"), EqualizerButton);
             SetHidden(hidden.Contains("delay"), DelayButton);
+            SetHidden(hidden.Contains("repeat"), RepeatButton);
         }
 
         /// <summary>
@@ -436,56 +442,89 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private void ApplyControlBarOrder(string layout)
         {
-            // The settings "custom order" canvas reorders the movable (canvas)
-            // buttons within each command bar; the transport group stays fixed.
+            // The settings canvas assigns every movable button to the left or
+            // right frame (zone 0/2) and orders it inside that frame; the
+            // transport group stays fixed. Volume maps to two controls that
+            // share the "volume" id and zone.
             var custom = ParseCustomOrder();
+            var zones = ParseZones(layout);
+
+            (string Id, ICommandBarElement Element)[] catalog =
+            [
+                ("volume", VolumeMuteButton),
+                ("volume", VolumeSliderContainer),
+                ("tracks", TrackSelectionButton),
+                ("random", ShuffleButton),
+                ("repeat", RepeatButton),
+                ("speed", PlaybackRateButton),
+                ("equalizer", EqualizerButton),
+                ("delay", DelayButton),
+                ("aspect", ZoomButton),
+                ("pip", PiPButton),
+                ("fullwindow", FullWindowButton),
+                ("fullscreen", FullScreenButton),
+            ];
+
+            int DefaultZone(string id) => layout == "modernx"
+                ? (ControlBarIconCatalog.ModernXRight.Contains(id) ? 2 : 0)
+                : (ControlBarIconCatalog.ClassicLeft.Contains(id) ? 0 : 2);
+
+            var leftMovable = new List<(string, ICommandBarElement)>();
+            var rightMovable = new List<(string, ICommandBarElement)>();
+            foreach (var entry in catalog)
+            {
+                var zone = zones.TryGetValue(entry.Id, out var saved) ? saved : DefaultZone(entry.Id);
+                (zone == 0 ? leftMovable : rightMovable).Add(entry);
+            }
 
             ICommandBarElement[] left, middle, right;
             if (layout == "modernx")
             {
-                left =
-                [
-                    .. ReorderMovable(
-                        [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("tracks", TrackSelectionButton), ("random", ShuffleButton), ("speed", PlaybackRateButton),
-                         ("equalizer", EqualizerButton), ("delay", DelayButton)],
-                        custom),
-                ];
+                left = ReorderMovable(leftMovable.ToArray(), custom);
                 middle =
                 [
                     PreviousTrackButton, SkipBackwardButton,
                     PlayPauseButton, SkipForwardButton,
                     NextTrackButton,
                 ];
-                right =
-                [
-                    .. ReorderMovable(
-                        [("aspect", ZoomButton), ("pip", PiPButton), ("fullwindow", FullWindowButton), ("fullscreen", FullScreenButton)],
-                        custom),
-                ];
+                right = ReorderMovable(rightMovable.ToArray(), custom);
             }
             else
             {
                 left =
                 [
                     PlayPauseButton, PreviousTrackButton, NextTrackButton, SkipBackwardButton,
-                    SkipForwardButton, RepeatButton,
-                    .. ReorderMovable(
-                        [("random", ShuffleButton)],
-                        custom),
+                    SkipForwardButton,
+                    .. ReorderMovable(leftMovable.ToArray(), custom),
                 ];
                 middle = [];
-                right =
-                [
-                    .. ReorderMovable(
-                        [("volume", VolumeMuteButton), ("volume", VolumeSliderContainer), ("speed", PlaybackRateButton),
-                         ("tracks", TrackSelectionButton), ("aspect", ZoomButton), ("pip", PiPButton),
-                         ("fullwindow", FullWindowButton), ("fullscreen", FullScreenButton),
-                         ("equalizer", EqualizerButton), ("delay", DelayButton)],
-                        custom),
-                ];
+                right = ReorderMovable(rightMovable.ToArray(), custom);
             }
 
             ApplyBarOrders(LeftCommandBar, MiddleCommandBar, RightCommandBar, left, middle, right);
+        }
+
+        /// <summary>Parses the persisted per-id zone overrides ("id:0,id:2").</summary>
+        private static Dictionary<string, int> ParseZones(string layout)
+        {
+            var zones = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var setting = layout == "modernx"
+                ? AppContext.AppSetting.ControlBarZonesModernX
+                : AppContext.AppSetting.ControlBarZonesClassic;
+            foreach (var token in (setting ?? string.Empty)
+                         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var colon = token.IndexOf(':');
+                if (colon <= 0 || colon >= token.Length - 1)
+                {
+                    continue;
+                }
+                if (int.TryParse(token[(colon + 1)..], out var zone) && (zone == 0 || zone == 2))
+                {
+                    zones[token[..colon]] = zone;
+                }
+            }
+            return zones;
         }
 
         /// <summary>
@@ -495,7 +534,7 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private static List<string> ParseCustomOrder()
         {
-            var allowed = new[] { "volume", "tracks", "random", "speed", "aspect", "fullwindow", "fullscreen", "pip", "equalizer", "delay" };
+            var allowed = new[] { "volume", "tracks", "random", "repeat", "speed", "aspect", "fullwindow", "fullscreen", "pip", "equalizer", "delay" };
             var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
             var order = layout == "modernx"
                 ? AppContext.AppSetting.ControlBarCustomOrderModernX
