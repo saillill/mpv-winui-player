@@ -104,7 +104,8 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsD3d11Adapter,
                 Category = video,
                 Description = lang.SettingsHelpD3d11Adapter,
-                Type = OptionType.String,
+                Type = OptionType.StringList,
+                ChoicesProvider = BuildGpuAdapterChoices,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.D3d11Adapter,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11Adapter), AppContext.AppSetting.D3d11Adapter = (string)v!)
@@ -160,6 +161,10 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpIccProfile,
                 Type = OptionType.String,
                 AllowEmpty = true,
+                PickFile = true,
+                OpenFolder = true,
+                FileTypeFilter = [".icc", ".icm"],
+                FallbackOpenFolder = "mpv",
                 Getter = () => AppContext.AppSetting.IccProfile,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.IccProfile), AppContext.AppSetting.IccProfile = (string)v!)
             },
@@ -355,7 +360,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsGlslShadersAppend,
                 Category = video,
                 Description = lang.SettingsHelpGlslShadersAppend,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.GlslShadersAppend,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GlslShadersAppend), AppContext.AppSetting.GlslShadersAppend = (string)v!)

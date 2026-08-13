@@ -152,33 +152,6 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.LoopFile),
-                Label = lang.SettingsLoopFile,
-                Category = playback,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.LoopFile,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopFile), AppContext.AppSetting.LoopFile = (bool)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.LoopPlaylist),
-                Label = lang.SettingsLoopPlaylist,
-                Category = playback,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("no", lang.OptionValueLoopPlaylistNo),
-                    new OptionChoice("yes", lang.OptionValueLoopPlaylistYes),
-                    new OptionChoice("inf", lang.OptionValueLoopPlaylistInf),
-                    new OptionChoice("force", lang.OptionValueLoopPlaylistForce),
-                ],
-                Getter = () => AppContext.AppSetting.LoopPlaylist,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopPlaylist), AppContext.AppSetting.LoopPlaylist = (string)v!)
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.SavePositionOnQuit),
                 Label = lang.SettingsSavePositionOnQuit,
                 Category = playback,

@@ -34,8 +34,6 @@ public static class MpvSettings
             nameof(AppSettings.VolumeMax) => $"set volume-max {value}",
             nameof(AppSettings.AudioGapless) => $"set gapless-audio {(string)value}",
             nameof(AppSettings.KeepOpen) => $"set keep-open {value}",
-            nameof(AppSettings.LoopPlaylist) => $"set loop-playlist {value}",
-            nameof(AppSettings.LoopFile) => $"set loop-file {(value is true ? "inf" : "no")}",
             nameof(AppSettings.CacheEnabled) => $"set cache {(string)value}",
             nameof(AppSettings.DemuxerReadahead) => $"set demuxer-readahead-secs {(double)value}",
             nameof(AppSettings.Ytdl) => $"set ytdl {(value is true ? "yes" : "no")}",

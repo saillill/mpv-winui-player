@@ -121,6 +121,18 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>File extensions offered by the picker when <see cref="PickFile"/> is true.</summary>
+    public IReadOnlyList<string>? FileTypeFilter
+    {
+        get; set;
+    }
+
+    /// <summary>Relative local-data folder opened by "Open" when the input is empty.</summary>
+    public string? FallbackOpenFolder
+    {
+        get; set;
+    }
+
     /// <summary>Optional section caption used to split a category into topic groups.</summary>
     public string? Section
     {

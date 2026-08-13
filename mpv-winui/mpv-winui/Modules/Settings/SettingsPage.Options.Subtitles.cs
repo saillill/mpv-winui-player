@@ -181,7 +181,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsSubFilePaths,
                 Category = subtitles,
                 Description = lang.SettingsHelpSubFilePaths,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.SubFilePaths,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFilePaths), AppContext.AppSetting.SubFilePaths = (string)v!)

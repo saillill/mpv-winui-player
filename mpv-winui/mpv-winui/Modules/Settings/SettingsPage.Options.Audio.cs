@@ -125,7 +125,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsAudioFilePaths,
                 Category = audio,
                 Description = lang.SettingsHelpAudioFilePaths,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.AudioFilePaths,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioFilePaths), AppContext.AppSetting.AudioFilePaths = (string)v!)

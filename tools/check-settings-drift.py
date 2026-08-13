@@ -91,6 +91,8 @@ UNMAPPED_OK = {
     "ShowOsdPlayingMsg",    # merged into the OsdPlayingMsg case
     "Speed",                # applied once at startup by MpvPlayerPage; deliberately
                             # absent from ApplyAll so a reset never clobbers live speed
+    "LoopFile",             # controlled by the status-bar repeat button
+    "LoopPlaylist",         # controlled by the bundled mpv.conf
 }
 
 

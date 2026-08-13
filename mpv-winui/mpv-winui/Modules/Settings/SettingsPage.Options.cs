@@ -42,7 +42,6 @@ private List<Option> BuildSettings()
         var sNetworkYtdlp = AppContext.AppLang.SectionNetworkYtdlp;
         var sNetworkHttp = AppContext.AppLang.SectionNetworkHttp;
         var sNetworkCurl = AppContext.AppLang.SectionNetworkCurl;
-        var sShortcutsReset = AppContext.AppLang.SectionShortcutsReset;
         var sPlayback = AppContext.AppLang.SectionPlayback;
         var sPlaybackSeeking = AppContext.AppLang.SectionPlaybackSeeking;
         var sPlaybackSeekPreview = AppContext.AppLang.SectionPlaybackSeekPreview;
@@ -90,19 +89,6 @@ private List<Option> BuildSettings()
 
         options.AddRange(BuildShortcutOptions(shortcuts));
 
-        options.Add(new Option
-        {
-            Key = "ShortcutReset",
-            Label = lang.SettingsResetShortcuts,
-            Category = shortcuts,
-            Description = lang.SettingsHelpResetShortcuts,
-            Type = OptionType.Action,
-            ActionKind = OptionActionKind.Button,
-            ActionLabel = lang.SettingsResetShortcuts,
-            ActionHandler = _ => ResetShortcuts(),
-            ActionStatus = () => _actionStatus,
-        });
-
         foreach (var option in options)
         {
             if (RedundantDescriptions.Contains(option.Key))
@@ -146,8 +132,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.EnableDebugLog)] = 9,
             [nameof(AppSettings.Ytdl)] = 11,
             [nameof(AppSettings.YtdlRawOptionsAppend)] = 12,
-            [nameof(AppSettings.LoopFile)] = 13,
-            [nameof(AppSettings.LoopPlaylist)] = 14,
             [nameof(AppSettings.Speed)] = 15,
             [nameof(AppSettings.HrSeek)] = 16,
             [nameof(AppSettings.HrSeekFramedrop)] = 17,
@@ -353,7 +337,6 @@ private List<Option> BuildSettings()
             ["ActionImportConfig"] = 219,
             [nameof(AppSettings.ControlBarLayout)] = 220,
             [nameof(AppSettings.ControlBarHiddenIcons)] = 221,
-            ["ShortcutReset"] = 2000,
             [nameof(AppSettings.AudioSpdif)] = 300,
             [nameof(AppSettings.Replaygain)] = 301,
             [nameof(AppSettings.OsdLevel)] = 302,
@@ -428,7 +411,6 @@ private List<Option> BuildSettings()
             [sScreenshotLocation] = 34,
             [sScreenshotQuality] = 35,
             [sProgramTesting] = 36,
-            [sShortcutsReset] = 38,
             [sNetworkYtdlp] = 39,
             [sNetworkHttp] = 40,
             [sNetworkCurl] = 41,
@@ -451,8 +433,6 @@ private List<Option> BuildSettings()
             // preset keys are option keys, not AppSettings properties
             [nameof(AppSettings.EnableDebugLog)] = sProgramLanguageLog,
             // playback
-            [nameof(AppSettings.LoopFile)] = sPlayback,
-            [nameof(AppSettings.LoopPlaylist)] = sPlayback,
             [nameof(AppSettings.Speed)] = sPlayback,
             [nameof(AppSettings.HrSeek)] = sPlaybackSeeking,
             [nameof(AppSettings.HrSeekFramedrop)] = sPlaybackSeeking,
@@ -642,8 +622,6 @@ private List<Option> BuildSettings()
             // input
             [nameof(AppSettings.InputIme)] = sInput,
             [nameof(AppSettings.InputIpcServer)] = sInput,
-            // shortcuts
-            ["ShortcutReset"] = sShortcutsReset,
             // program actions
             ["FileAssociationCheckList"] = sProgramAssociations,
             ["ActionUnassociateFiles"] = sProgramAssociations,

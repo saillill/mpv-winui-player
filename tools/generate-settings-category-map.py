@@ -63,8 +63,6 @@ MAP = {
     "Ytdl": ("network", "sProgramNetwork"),
     "YtdlRawOptionsAppend": ("network", "sProgramNetwork"),
     # Playback Control
-    "LoopFile": ("playback", "sPlayback"),
-    "LoopPlaylist": ("playback", "sPlayback"),
     "Speed": ("playback", "sPlayback"),
     "HrSeek": ("playback", "sPlaybackSeeking"),
     "HrSeekFramedrop": ("playback", "sPlaybackSeeking"),

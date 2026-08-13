@@ -235,6 +235,14 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                     label = label[..stateHash].Trim();
                 }
                 section = ShortcutSectionLabel(ShortcutSectionKey(label));
+
+                // The section header already shows the group ("音量"), so the
+                // row label only needs the final option ("增加音量").
+                var separator = label.IndexOf('>');
+                if (separator >= 0 && separator < label.Length - 1)
+                {
+                    label = label[(separator + 1)..].Trim();
+                }
             }
 
             if (!seen.Add(key))
@@ -500,6 +508,41 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         catch (Exception ex)
         {
             AppContext.AppLogger.Warn(ex, "Failed to enumerate audio devices");
+        }
+
+        return choices;
+    }
+
+    /// <summary>Lists installed display adapters (DXGI descriptions) for d3d11-adapter.</summary>
+    private static List<OptionChoice> BuildGpuAdapterChoices()
+    {
+        var choices = new List<OptionChoice>
+        {
+            new("", AppContext.AppLang.OptionValueAuto),
+        };
+
+        try
+        {
+            using var displayClass = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                @"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}");
+            if (displayClass is null)
+            {
+                return choices;
+            }
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var subKeyName in displayClass.GetSubKeyNames())
+            {
+                using var subKey = displayClass.OpenSubKey(subKeyName);
+                if (subKey?.GetValue("DriverDesc") is string desc && !string.IsNullOrWhiteSpace(desc) && seen.Add(desc))
+                {
+                    choices.Add(new OptionChoice(desc, desc));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Error(ex, "Failed to enumerate display adapters");
         }
 
         return choices;

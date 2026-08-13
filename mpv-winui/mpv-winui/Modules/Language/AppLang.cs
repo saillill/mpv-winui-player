@@ -12,6 +12,7 @@ namespace mpv_winui.Modules.Language
         public string AppVersion { get; } = "1.0";
         public string About { get; set; } = "About";
         public string Add { get; set; } = "Add";
+        public string Remove { get; set; } = "Remove";
         public string Cancel { get; set; } = "Cancel";
         public string Help { get; set; } = "Help";
         public string Off { get; set; } = "Off";
@@ -114,10 +115,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsConfigImported { get; set; } = "Settings imported. Some options take effect on the next launch.";
 
         // Shortcuts
-        public string SectionShortcutsReset { get; set; } = "Reset";
         public string KeyCapturePlaceholder { get; set; } = "Press any key...";
-        public string SettingsResetShortcuts { get; set; } = "Reset shortcuts";
-        public string SettingsHelpResetShortcuts { get; set; } = "Restore the bundled default input.conf. Takes effect on the next launch.";
         public string ResetShortcutsDone { get; set; } = "Shortcuts reset. Takes effect on the next launch.";
         public string ResetShortcutsMissing { get; set; } = "Bundled input.conf not found.";
 
@@ -273,7 +271,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsInputIme { get; set; } = "Input method support";
         public string SettingsVolumeMax { get; set; } = "Max volume (%)";
         public string SettingsKeepOpen { get; set; } = "After playback ends";
-        public string SettingsLoopFile { get; set; } = "Loop current file";
         public string SettingsDeinterlace { get; set; } = "Deinterlace";
         public string SettingsAspect { get; set; } = "Aspect ratio";
         public string SettingsSubFontSize { get; set; } = "Subtitle font size";
@@ -589,10 +586,6 @@ namespace mpv_winui.Modules.Language
         public string OptionValueHdrModeAuto { get; set; } = "Auto (display)";
         public string OptionValueHdrModeOn { get; set; } = "Force on";
         public string OptionValueHdrModeOff { get; set; } = "Off";
-        public string OptionValueLoopPlaylistNo { get; set; } = "No";
-        public string OptionValueLoopPlaylistYes { get; set; } = "Loop all (yes)";
-        public string OptionValueLoopPlaylistInf { get; set; } = "Loop forever (inf)";
-        public string OptionValueLoopPlaylistForce { get; set; } = "Force loop (force)";
         public string OptionValueCodePageGb18030 { get; set; } = "GB18030 (Chinese)";
         public string OptionValueCodePageUtf8 { get; set; } = "UTF-8";
         public string OptionValueCodePageUtf16 { get; set; } = "UTF-16";
@@ -603,7 +596,6 @@ namespace mpv_winui.Modules.Language
         public string OptionValueCodePageAuto { get; set; } = "Auto-detect (recommended)";
 
         // ===== Additional option labels =====
-        public string SettingsLoopPlaylist { get; set; } = "Loop playlist";
         public string SettingsScale { get; set; } = "Upscaling algorithm";
         public string SettingsCscale { get; set; } = "Chroma upscaling";
         public string SettingsTscale { get; set; } = "Frame interpolation algorithm";
@@ -895,6 +887,9 @@ namespace mpv_winui.Modules.Language
         public string OptionValueAlignRight { get; set; } = "Right";
         public string OptionValueAlignTop { get; set; } = "Top";
         public string OptionValueAlignBottom { get; set; } = "Bottom";
+        public string SettingsHelpBackgroundTileColor0 { get; set; } = "First checkerboard color shown behind letterboxed/transparent video areas.";
+        public string SettingsHelpBackgroundTileColor1 { get; set; } = "Second checkerboard color shown behind letterboxed/transparent video areas.";
+        public string SettingsHelpBackgroundTileSize { get; set; } = "Pixel size of each checkerboard square shown behind the video.";
         public string SettingsMetadataOsdEnableForAudio { get; set; } = "Show metadata OSD for audio";
         public string SettingsHelpMetadataOsdEnableForAudio { get; set; } = "Show the metadata overlay for audio files.";
         public string SettingsMetadataOsdEnableForAudioWithAlbumArt { get; set; } = "Show metadata OSD for album art audio";
