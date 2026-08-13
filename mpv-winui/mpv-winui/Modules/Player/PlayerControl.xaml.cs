@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Modules.Settings.Controls;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -136,7 +137,11 @@ namespace mpv_winui.Modules.Player
             }
             else if (key == nameof(AppContext.AppSetting.ControlBarLayout)
                 || key == nameof(AppContext.AppSetting.ControlBarHiddenIconsClassic)
-                || key == nameof(AppContext.AppSetting.ControlBarHiddenIconsModernX))
+                || key == nameof(AppContext.AppSetting.ControlBarHiddenIconsModernX)
+                || key == nameof(AppContext.AppSetting.ControlBarCustomOrderClassic)
+                || key == nameof(AppContext.AppSetting.ControlBarCustomOrderModernX)
+                || key == nameof(AppContext.AppSetting.ControlBarZonesClassic)
+                || key == nameof(AppContext.AppSetting.ControlBarZonesModernX))
             {
                 DispatcherQueue.TryEnqueue(ApplyControlBarStyle);
             }
@@ -233,6 +238,9 @@ namespace mpv_winui.Modules.Player
             SetHidden(hidden.Contains("fullwindow"), FullWindowButton);
             SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
             SetHidden(hidden.Contains("pip"), PiPButton);
+            SetHidden(hidden.Contains("equalizer"), EqualizerButton);
+            SetHidden(hidden.Contains("delay"), DelayButton);
+            SetHidden(hidden.Contains("repeat"), RepeatButton);
         }
 
         /// <summary>
@@ -434,42 +442,141 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private void ApplyControlBarOrder(string layout)
         {
+            // The settings canvas assigns every movable button to the left or
+            // right frame (zone 0/2) and orders it inside that frame; the
+            // transport group stays fixed. Volume maps to two controls that
+            // share the "volume" id and zone.
+            var custom = ParseCustomOrder();
+            var zones = ParseZones(layout);
+
+            (string Id, ICommandBarElement Element)[] catalog =
+            [
+                ("volume", VolumeMuteButton),
+                ("volume", VolumeSliderContainer),
+                ("tracks", TrackSelectionButton),
+                ("random", ShuffleButton),
+                ("repeat", RepeatButton),
+                ("speed", PlaybackRateButton),
+                ("equalizer", EqualizerButton),
+                ("delay", DelayButton),
+                ("aspect", ZoomButton),
+                ("pip", PiPButton),
+                ("fullwindow", FullWindowButton),
+                ("fullscreen", FullScreenButton),
+            ];
+
+            int DefaultZone(string id) => layout == "modernx"
+                ? (ControlBarIconCatalog.ModernXRight.Contains(id) ? 2 : 0)
+                : (ControlBarIconCatalog.ClassicLeft.Contains(id) ? 0 : 2);
+
+            var leftMovable = new List<(string, ICommandBarElement)>();
+            var rightMovable = new List<(string, ICommandBarElement)>();
+            foreach (var entry in catalog)
+            {
+                var zone = zones.TryGetValue(entry.Id, out var saved) ? saved : DefaultZone(entry.Id);
+                (zone == 0 ? leftMovable : rightMovable).Add(entry);
+            }
+
             ICommandBarElement[] left, middle, right;
             if (layout == "modernx")
             {
-                left =
-                [
-                    TrackSelectionButton, ShuffleButton, RepeatButton, PlaybackRateButton,
-                    EqualizerButton, DelayButton, VolumeMuteButton, VolumeSliderContainer,
-                ];
+                left = ReorderMovable(leftMovable.ToArray(), custom);
                 middle =
                 [
                     PreviousTrackButton, SkipBackwardButton,
                     PlayPauseButton, SkipForwardButton,
                     NextTrackButton,
                 ];
-                right =
-                [
-                    ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
-                ];
+                right = ReorderMovable(rightMovable.ToArray(), custom);
             }
             else
             {
                 left =
                 [
                     PlayPauseButton, PreviousTrackButton, NextTrackButton, SkipBackwardButton,
-                    SkipForwardButton, ShuffleButton, RepeatButton,
+                    SkipForwardButton,
+                    .. ReorderMovable(leftMovable.ToArray(), custom),
                 ];
                 middle = [];
-                right =
-                [
-                    VolumeMuteButton, VolumeSliderContainer, PlaybackRateButton,
-                    TrackSelectionButton, EqualizerButton, DelayButton, ZoomButton, PiPButton,
-                    FullWindowButton, FullScreenButton,
-                ];
+                right = ReorderMovable(rightMovable.ToArray(), custom);
             }
 
             ApplyBarOrders(LeftCommandBar, MiddleCommandBar, RightCommandBar, left, middle, right);
+        }
+
+        /// <summary>Parses the persisted per-id zone overrides ("id:0,id:2").</summary>
+        private static Dictionary<string, int> ParseZones(string layout)
+        {
+            var zones = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var setting = layout == "modernx"
+                ? AppContext.AppSetting.ControlBarZonesModernX
+                : AppContext.AppSetting.ControlBarZonesClassic;
+            foreach (var token in (setting ?? string.Empty)
+                         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var colon = token.IndexOf(':');
+                if (colon <= 0 || colon >= token.Length - 1)
+                {
+                    continue;
+                }
+                if (int.TryParse(token[(colon + 1)..], out var zone) && (zone == 0 || zone == 2))
+                {
+                    zones[token[..colon]] = zone;
+                }
+            }
+            return zones;
+        }
+
+        /// <summary>
+        /// Parses the custom order of the active layout style into the allowed
+        /// canvas ids. 原版 and 居中 keep separate orders so editing one style
+        /// never reorders the other.
+        /// </summary>
+        private static List<string> ParseCustomOrder()
+        {
+            var allowed = new[] { "volume", "tracks", "random", "repeat", "speed", "aspect", "fullwindow", "fullscreen", "pip", "equalizer", "delay" };
+            var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
+            var order = layout == "modernx"
+                ? AppContext.AppSetting.ControlBarCustomOrderModernX
+                : AppContext.AppSetting.ControlBarCustomOrderClassic;
+            return order
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(x => allowed.Contains(x, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        /// <summary>
+        /// Reorders a command bar's canvas buttons to the custom order. Only
+        /// ids present in this partition are affected; the rest keep their
+        /// default relative order. "volume" maps to two controls (mute + slider).
+        /// </summary>
+        private static ICommandBarElement[] ReorderMovable((string Id, ICommandBarElement Element)[] defaults, IReadOnlyList<string> custom)
+        {
+            var result = new List<ICommandBarElement>(defaults.Length);
+            var remaining = new HashSet<string>(defaults.Select(d => d.Id), StringComparer.OrdinalIgnoreCase);
+            foreach (var id in custom)
+            {
+                if (!remaining.Remove(id))
+                {
+                    continue;
+                }
+                foreach (var (did, el) in defaults)
+                {
+                    if (string.Equals(did, id, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Add(el);
+                    }
+                }
+            }
+            // ids not mentioned in the custom order keep their default position.
+            foreach (var (id, el) in defaults)
+            {
+                if (remaining.Contains(id))
+                {
+                    result.Add(el);
+                }
+            }
+            return result.ToArray();
         }
 
         private static void ApplyBarOrders(

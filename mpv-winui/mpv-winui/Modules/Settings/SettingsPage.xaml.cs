@@ -50,6 +50,7 @@ public sealed partial class SettingsPage : Page
     {
         var history = AppContext.AppSetting.SettingsSearchHistory
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(TryUnescape)
             .Take(MaxSearchHistory)
             .ToList();
         if (history.Count > 0)
@@ -66,10 +67,25 @@ public sealed partial class SettingsPage : Page
         }
         var history = AppContext.AppSetting.SettingsSearchHistory
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(TryUnescape)
             .Where(x => !string.Equals(x, query, StringComparison.OrdinalIgnoreCase))
             .ToList();
         history.Insert(0, query);
-        AppContext.AppSetting.SettingsSearchHistory = string.Join(",", history.Take(MaxSearchHistory));
+        AppContext.AppSetting.SettingsSearchHistory = string.Join(",", history.Take(MaxSearchHistory).Select(Uri.EscapeDataString));
+    }
+
+    private static string TryUnescape(string value)
+    {
+        // Old histories are stored raw and may contain a literal "%"; a
+        // malformed escape must not break history loading.
+        try
+        {
+            return Uri.UnescapeDataString(value);
+        }
+        catch (UriFormatException)
+        {
+            return value;
+        }
     }
 
     /// <summary>The currently selected category (used before navigating away).</summary>
@@ -202,14 +218,39 @@ public sealed partial class SettingsPage : Page
         {
             CategoryList.ItemsSource = Categories;
             SearchBox.ItemsSource = null;
+            return;
+        }
+
+        // 1) Category-level match (with pinyin/alias spellings).
+        var categoryMatches = Categories
+            .Where(c => FuzzyMatch(query, c))
+            .ToList();
+        // 2) Option-level match: the query hits an option label (e.g. "音量",
+        //    "volume", "倍速"), which the category list alone never covered.
+        var optionMatches = Settings
+            .Where(o => FuzzyMatchOption(query, o))
+            .Select(o => (o.Category, o.Key))
+            .ToList();
+
+        if (categoryMatches.Count > 0)
+        {
+            CategoryList.ItemsSource = categoryMatches;
+            SearchBox.ItemsSource = categoryMatches.Count > 0 ? categoryMatches : null;
+        }
+        else if (optionMatches.Count > 0)
+        {
+            // Jump to the category of the first hit and scroll to the option
+            // once the list rebuilds for that category.
+            var (category, key) = optionMatches[0];
+            CategoryList.ItemsSource = Categories.Where(c => c == category).ToList();
+            CategoryList.SelectedItem = category;
+            SearchBox.ItemsSource = optionMatches.Select(o => o.Category).Distinct().ToList();
+            DispatcherQueue.TryEnqueue(() => OptionsControl.ScrollToOption(key));
         }
         else
         {
-            var matches = Categories
-                .Where(c => FuzzyMatch(query, c))
-                .ToList();
-            CategoryList.ItemsSource = matches;
-            SearchBox.ItemsSource = matches.Count > 0 ? matches : null;
+            CategoryList.ItemsSource = new List<string>();
+            SearchBox.ItemsSource = null;
         }
 
         if (CategoryList.Items.Count > 0)
@@ -241,6 +282,16 @@ public sealed partial class SettingsPage : Page
         {
             CategoryList.SelectedItem = match;
             RememberSearchQuery(query);
+            return;
+        }
+
+        // Option-level query: jump to the category and scroll to the option.
+        var option = Settings.FirstOrDefault(o => FuzzyMatchOption(query, o));
+        if (option is not null)
+        {
+            CategoryList.SelectedItem = option.Category;
+            RememberSearchQuery(query);
+            DispatcherQueue.TryEnqueue(() => OptionsControl.ScrollToOption(option.Key));
         }
     }
 
@@ -260,6 +311,10 @@ public sealed partial class SettingsPage : Page
         }
         return false;
     }
+
+    private static bool FuzzyMatchOption(string query, Option option) =>
+        FuzzyMatch(query, option.Label)
+        || (option.Description is not null && FuzzyMatch(query, option.Description));
 
     private static bool ContainsFuzzy(string query, string target)
     {

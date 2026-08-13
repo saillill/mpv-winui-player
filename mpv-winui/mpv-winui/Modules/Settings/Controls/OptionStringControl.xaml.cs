@@ -61,10 +61,8 @@ public sealed partial class OptionStringControl : OptionControlBase
             if (newValue.KeyCaptureEditable)
             {
                 InputBox.Visibility = Visibility.Collapsed;
-                DisplayText.Visibility = Visibility.Visible;
-                DisplayText.MaxWidth = 260;
-                DisplayText.IsTextSelectionEnabled = false;
-                DisplayText.Text = newValue.Getter is Func<object?> keyFunc && keyFunc() is string keyValue
+                DisplayButton.Visibility = Visibility.Visible;
+                DisplayButton.Content = newValue.Getter is Func<object?> keyFunc && keyFunc() is string keyValue
                     ? keyValue
                     : string.Empty;
             }
@@ -136,12 +134,12 @@ public sealed partial class OptionStringControl : OptionControlBase
         }
 
         var text = InputBox.Text;
-        DisplayText.Text = string.IsNullOrEmpty(text) ? InputBox.PlaceholderText : text;
-        DisplayText.Visibility = Visibility.Visible;
+        DisplayButton.Content = string.IsNullOrEmpty(text) ? InputBox.PlaceholderText : text;
+        DisplayButton.Visibility = Visibility.Visible;
         InputBox.Visibility = Visibility.Collapsed;
     }
 
-    private void OnDisplayTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    private void OnDisplayClick(object sender, RoutedEventArgs e)
     {
         if (Setting?.KeyCaptureEditable == true)
         {
@@ -150,7 +148,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         else
         {
             InputBox.Visibility = Visibility.Visible;
-            DisplayText.Visibility = Visibility.Collapsed;
+            DisplayButton.Visibility = Visibility.Collapsed;
             InputBox.Focus(FocusState.Programmatic);
         }
     }
@@ -192,7 +190,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             option.KeyCaptureReset?.Invoke(option);
             if (option.Getter is Func<object?> func && func() is string value)
             {
-                DisplayText.Text = value;
+                DisplayButton.Content = value;
             }
         }
     }
@@ -208,7 +206,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         _activeCapture?.StopKeyCapture();
         _activeCapture = this;
         _pendingModifiers.Clear();
-        DisplayText.Text = mpv_winui.AppContext.AppLang.KeyCapturePlaceholder;
+        DisplayButton.Content = mpv_winui.AppContext.AppLang.KeyCapturePlaceholder;
         DisableIme(true);
     }
 
@@ -219,7 +217,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         {
             _activeCapture = null;
         }
-        DisplayText.Text = Setting?.Getter is Func<object?> func && func() is string value
+        DisplayButton.Content = Setting?.Getter is Func<object?> func && func() is string value
             ? value
             : string.Empty;
         DisableIme(false);
@@ -291,7 +289,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             {
                 _pendingModifiers.Remove(modifier);
             }
-            DisplayText.Text = BuildCombo(_pendingModifiers, null);
+            DisplayButton.Content = BuildCombo(_pendingModifiers, null);
             return;
         }
 
@@ -312,7 +310,7 @@ public sealed partial class OptionStringControl : OptionControlBase
 
         // The click that started the capture must not be captured itself.
         if (e.OriginalSource is DependencyObject source
-            && (IsDescendantOf(source, InputBox) || IsDescendantOf(source, DisplayText)))
+            && (IsDescendantOf(source, InputBox) || IsDescendantOf(source, DisplayButton)))
         {
             return;
         }
@@ -364,7 +362,7 @@ public sealed partial class OptionStringControl : OptionControlBase
         StopKeyCapture();
         if (Setting is { } option && string.IsNullOrEmpty(newKey) == false)
         {
-            DisplayText.Text = newKey;
+            DisplayButton.Content = newKey;
             option.KeyCaptureReplaced?.Invoke(option, newKey);
         }
     }
@@ -376,7 +374,7 @@ public sealed partial class OptionStringControl : OptionControlBase
             VirtualKey.Control or VirtualKey.LeftControl or VirtualKey.RightControl => "Ctrl",
             VirtualKey.Shift or VirtualKey.LeftShift or VirtualKey.RightShift => "Shift",
             VirtualKey.Menu or VirtualKey.LeftMenu or VirtualKey.RightMenu => "Alt",
-            VirtualKey.LeftWindows or VirtualKey.RightWindows => "Win",
+            VirtualKey.LeftWindows or VirtualKey.RightWindows => "Meta",
             _ => null,
         };
     }
@@ -425,6 +423,29 @@ public sealed partial class OptionStringControl : OptionControlBase
             VirtualKey.Right => "RIGHT",
             VirtualKey.Up => "UP",
             VirtualKey.Down => "DOWN",
+            // mpv key names: main keyboard digits are the bare digit, and the
+            // keypad uses the KP prefix (see mpv --input-keylist). VirtualKey
+            // ToString() would produce the invalid NUMBER*/NUMBERPAD* names.
+            VirtualKey.Number0 => "0",
+            VirtualKey.Number1 => "1",
+            VirtualKey.Number2 => "2",
+            VirtualKey.Number3 => "3",
+            VirtualKey.Number4 => "4",
+            VirtualKey.Number5 => "5",
+            VirtualKey.Number6 => "6",
+            VirtualKey.Number7 => "7",
+            VirtualKey.Number8 => "8",
+            VirtualKey.Number9 => "9",
+            VirtualKey.NumberPad0 => "KP0",
+            VirtualKey.NumberPad1 => "KP1",
+            VirtualKey.NumberPad2 => "KP2",
+            VirtualKey.NumberPad3 => "KP3",
+            VirtualKey.NumberPad4 => "KP4",
+            VirtualKey.NumberPad5 => "KP5",
+            VirtualKey.NumberPad6 => "KP6",
+            VirtualKey.NumberPad7 => "KP7",
+            VirtualKey.NumberPad8 => "KP8",
+            VirtualKey.NumberPad9 => "KP9",
             _ => key.ToString().ToUpperInvariant(),
         };
     }
@@ -438,9 +459,11 @@ public sealed partial class OptionStringControl : OptionControlBase
             if (Setting?.PickFile == true)
             {
                 var filePicker = new FileOpenPicker(owner);
-                filePicker.FileTypeFilter.Add(".ttf");
-                filePicker.FileTypeFilter.Add(".otf");
-                filePicker.FileTypeFilter.Add(".ttc");
+                var types = Setting.FileTypeFilter ?? [".ttf", ".otf", ".ttc"];
+                foreach (var type in types)
+                {
+                    filePicker.FileTypeFilter.Add(type);
+                }
                 var file = await filePicker.PickSingleFileAsync();
                 if (file?.Path is string filePath && !string.IsNullOrEmpty(filePath))
                 {
@@ -469,7 +492,11 @@ public sealed partial class OptionStringControl : OptionControlBase
         var path = InputBox.Text?.Trim();
         if (string.IsNullOrWhiteSpace(path))
         {
-            if (Setting?.PickFile == true)
+            if (!string.IsNullOrWhiteSpace(Setting?.FallbackOpenFolder))
+            {
+                path = AppData.Current.ResolveLocalData(Setting!.FallbackOpenFolder);
+            }
+            else if (Setting?.PickFile == true)
             {
                 path = AppData.Current.ResolveLocalData(Path.Combine("mpv", "fonts"));
             }

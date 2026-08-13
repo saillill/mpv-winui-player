@@ -51,7 +51,7 @@ public sealed partial class SettingsPage
                 Type = OptionType.StringList,
                 Choices =
                 [
-                    new OptionChoice("auto", lang.OptionValueAspectAuto),
+                    new OptionChoice("no", lang.OptionValueAspectAuto),
                     new OptionChoice("16:9", "16:9"),
                     new OptionChoice("4:3", "4:3"),
                     new OptionChoice("2.35:1", "2.35:1"),
@@ -74,7 +74,6 @@ public sealed partial class SettingsPage
                     new OptionChoice("display-resample", lang.OptionValueVideoSyncDisplayResample),
                     new OptionChoice("display-resample-vdrop", lang.OptionValueVideoSyncDisplayResampleVdrop),
                     new OptionChoice("display-adrop", lang.OptionValueVideoSyncDisplayAdrop),
-                    new OptionChoice("cfr", lang.OptionValueVideoSyncCfr),
                 ],
                 Getter = () => AppContext.AppSetting.VideoSync,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoSync), AppContext.AppSetting.VideoSync = (string)v!)
@@ -92,6 +91,20 @@ public sealed partial class SettingsPage
                 Step = 1,
                 Getter = () => (double)AppContext.AppSetting.VideoSyncMaxVideoChange,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoSyncMaxVideoChange), AppContext.AppSetting.VideoSyncMaxVideoChange = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OverrideDisplayFps),
+                Label = lang.SettingsOverrideDisplayFps,
+                Category = video,
+                Description = lang.SettingsHelpOverrideDisplayFps,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 300,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.OverrideDisplayFps,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OverrideDisplayFps), AppContext.AppSetting.OverrideDisplayFps = (double)v!)
             },
 
             new Option
@@ -174,7 +187,7 @@ public sealed partial class SettingsPage
                 [
                     new OptionChoice("oversample", lang.OptionValueTscaleOversample),
                     new OptionChoice("linear", lang.OptionValueTscaleLinear),
-                    new OptionChoice("cubic", lang.OptionValueTscaleCubic),
+                    new OptionChoice("bicubic", lang.OptionValueTscaleCubic),
                     new OptionChoice("mitchell", lang.OptionValueTscaleMitchell),
                     new OptionChoice("lanczos", lang.OptionValueTscaleLanczos),
                 ],
@@ -247,6 +260,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.BackgroundTileColor0),
                 Label = lang.SettingsBackgroundTileColor0,
                 Category = video,
+                Description = lang.SettingsHelpBackgroundTileColor0,
                 Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.BackgroundTileColor0,
@@ -258,6 +272,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.BackgroundTileColor1),
                 Label = lang.SettingsBackgroundTileColor1,
                 Category = video,
+                Description = lang.SettingsHelpBackgroundTileColor1,
                 Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.BackgroundTileColor1,
@@ -269,6 +284,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.BackgroundTileSize),
                 Label = lang.SettingsBackgroundTileSize,
                 Category = video,
+                Description = lang.SettingsHelpBackgroundTileSize,
                 Type = OptionType.Integer,
                 Min = 16,
                 Max = 512,

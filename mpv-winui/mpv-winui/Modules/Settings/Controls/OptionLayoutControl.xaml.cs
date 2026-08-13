@@ -1,15 +1,20 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using mpv_winui.Modules.Common.View;
-using mpv_winui.Modules.Player;
 using System;
 using System.Collections.Generic;
 using Windows.UI;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
+/// <summary>
+/// Layout card: a radio (原版/居中), its label and the control-bar strip
+/// rendered directly from the real bar state (zone frames + icons + per-frame
+/// "+" placeholders). Collapsed the strip is view-only; the chevron in the
+/// header is a customize button that toggles edit mode on the selected card
+/// (✕ on movable cells, dragging). Selecting a card never enters edit mode.
+/// </summary>
 public sealed partial class OptionLayoutControl : OptionControlBase
 {
     private string _current = string.Empty;
@@ -18,6 +23,24 @@ public sealed partial class OptionLayoutControl : OptionControlBase
     public OptionLayoutControl()
     {
         InitializeComponent();
+        ControlBarCanvasControl.StateChanged += OnCanvasStateChanged;
+        Unloaded += (_, _) => ControlBarCanvasControl.StateChanged -= OnCanvasStateChanged;
+    }
+
+    /// <summary>Re-reads the real bar state into every card's strip when any canvas changes it.</summary>
+    private void OnCanvasStateChanged(ControlBarCanvasControl sender)
+    {
+        foreach (var item in StyleCards.Items)
+        {
+            if (item is Border card
+                && card.Child is StackPanel panel
+                && panel.Children.Count > 1
+                && panel.Children[1] is ControlBarCanvasControl canvas
+                && !ReferenceEquals(canvas, sender))
+            {
+                canvas.Reload();
+            }
+        }
     }
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)
@@ -71,6 +94,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             GroupName = "BarStyle",
             IsChecked = string.Equals(choice.Value, _current, StringComparison.Ordinal),
             VerticalAlignment = VerticalAlignment.Center,
+            MinWidth = 0, // WinUI defaults to 120px, which shoves the title far from the dot
             Tag = choice.Value,
         };
         radio.Checked += (_, _) => Select(choice.Value);
@@ -86,115 +110,64 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         Grid.SetColumn(label, 1);
         header.Children.Add(label);
 
-        var expandIcon = new FontIcon
+        // A "Customize" button that reuses the exact same style as the other
+        // setting action buttons (导出设置/导入设置/取消文件关联 render with
+        // MinWidth=120, right-aligned, default button template): nothing custom.
+        // It toggles edit mode on the selected card — ✕/lock badges, the
+        // per-frame "+" popups and dragging only appear when editing. The
+        // collapsed strip shows just the zone frames and the plain icons.
+        var customize = new Button
         {
-            Glyph = "\uE70D",
-            FontSize = 12,
+            MinWidth = 120,
+            HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
+            Tag = choice.Value,
+            Content = AppContext.AppLang.SettingsControlBarCustomize,
         };
-        Grid.SetColumn(expandIcon, 2);
-        header.Children.Add(expandIcon);
+        customize.Click += (_, _) => ToggleEdit(choice.Value);
+        Grid.SetColumn(customize, 2);
+        header.Children.Add(customize);
 
         panel.Children.Add(header);
-        panel.Children.Add(BuildPreview(choice.Value));
 
-        var expandedPanel = new StackPanel { Visibility = Visibility.Collapsed, Spacing = 6 };
-        panel.Children.Add(expandedPanel);
+        var canvas = new ControlBarCanvasControl
+        {
+            Setting = Setting,
+        };
+        canvas.Load(choice.Value);
+        canvas.SetEditable(false);
+        panel.Children.Add(canvas);
 
         card.Child = panel;
-        card.Tapped += (_, e) =>
-        {
-            // Toggling an icon checkbox must not collapse the card again.
-            if (e.OriginalSource is DependencyObject source && IsDescendantOf(source, expandedPanel))
-            {
-                return;
-            }
-
-            // A tap on the radio itself only changes the selection; the
-            // Checked handler already applied it, so never expand here.
-            if (e.OriginalSource is DependencyObject tapped && IsDescendantOf(tapped, radio))
-            {
-                return;
-            }
-
-            // Selecting a card must not expand it; expand only happens when
-            // tapping an already selected card.
-            if (!string.Equals(choice.Value, _current, StringComparison.Ordinal))
-            {
-                Select(choice.Value);
-                return;
-            }
-
-            ToggleExpand(card, expandIcon, expandedPanel, choice.Value);
-        };
         UpdateCardBorder(card);
         return card;
     }
 
-    private static bool IsDescendantOf(DependencyObject? node, DependencyObject? ancestor)
+    /// <summary>
+    /// The customize button: on a non-selected card it selects that style and
+    /// enters edit mode; on the selected card it toggles edit mode.
+    /// </summary>
+    private void ToggleEdit(string value)
     {
-        while (node is not null)
+        if (!string.Equals(value, _current, StringComparison.Ordinal))
         {
-            if (ReferenceEquals(node, ancestor))
-            {
-                return true;
-            }
-            node = VisualTreeHelper.GetParent(node);
+            Select(value);
         }
-        return false;
-    }
 
-    private void ToggleExpand(Border card, FontIcon icon, StackPanel panel, string value)
-    {
         var expand = !string.Equals(_expandedValue, value, StringComparison.Ordinal);
         _expandedValue = expand ? value : null;
-        icon.Glyph = expand ? "\uE70E" : "\uE70D";
-        panel.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-        if (expand)
+        foreach (var item in StyleCards.Items)
         {
-            BuildIconChecklist(panel, value);
-        }
-    }
-
-    /// <summary>Rebuilds the expanded icon checklist for the current layout style.</summary>
-    private void BuildIconChecklist(StackPanel panel, string style)
-    {
-        panel.Children.Clear();
-        var items = Setting?.CheckItemsProviderForStyle?.Invoke(style)
-            ?? Setting?.CheckItemsProvider?.Invoke()
-            ?? Setting?.CheckItems
-            ?? [];
-        foreach (var item in items)
-        {
-            var box = new CheckBox
+            if (item is Border card
+                && card.Tag is string tag
+                && tag == value
+                && card.Child is StackPanel panel)
             {
-                IsChecked = item.IsChecked,
-                Tag = item,
-                MinWidth = 150,
-            };
-            if (string.IsNullOrEmpty(item.Glyph))
-            {
-                box.Content = item.Label;
+                if (panel.Children.Count > 1 && panel.Children[1] is ControlBarCanvasControl canvas)
+                {
+                    canvas.SetEditable(expand);
+                }
             }
-            else
-            {
-                var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-                row.Children.Add(CreateIcon(item.Glyph));
-                row.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
-                box.Content = row;
-            }
-            box.Checked += OnIconToggled;
-            box.Unchecked += OnIconToggled;
-            panel.Children.Add(box);
-        }
-    }
-
-    private void OnIconToggled(object sender, RoutedEventArgs e)
-    {
-        if (sender is CheckBox box && Setting is { } option && box.Tag is OptionCheckItem item)
-        {
-            item.IsChecked = box.IsChecked == true;
-            option.CheckChanged?.Invoke(option, item.Value, item.IsChecked, item.Target);
         }
     }
 
@@ -210,35 +183,20 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         Setting?.NotifyChanged();
 
         // Selecting a style switches the hidden-icon list to that style, so
-        // collapse any card that was expanded before (selection never expands).
+        // collapse every card (selection never edits).
         _expandedValue = null;
         foreach (var item in StyleCards.Items)
         {
-            if (item is Border card
-                && card.Child is StackPanel panel
-                && panel.Children.Count >= 3)
+            if (item is Border card && card.Child is StackPanel panel)
             {
-                if (panel.Children[2] is StackPanel expanded)
+                if (panel.Children.Count > 1 && panel.Children[1] is ControlBarCanvasControl canvas)
                 {
-                    expanded.Visibility = Visibility.Collapsed;
+                    canvas.SetEditable(false);
                 }
-                if (panel.Children[0] is Grid header
-                    && header.Children.Count == 3
-                    && header.Children[2] is FontIcon icon)
-                {
-                    icon.Glyph = "\uE70D";
-                }
-            }
-        }
-
-        foreach (var item in StyleCards.Items)
-        {
-            if (item is Border card)
-            {
                 UpdateCardBorder(card);
-                if (card.Child is StackPanel panel && panel.Children[0] is Grid header)
+                if (panel.Children[0] is Grid h2)
                 {
-                    foreach (var child in header.Children)
+                    foreach (var child in h2.Children)
                     {
                         if (child is RadioButton radio)
                         {
@@ -256,102 +214,5 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         card.BorderBrush = selected
             ? new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
             : ThemeResource.Brush(this, "ControlStrokeColorDefaultBrush");
-    }
-
-    private FrameworkElement BuildPreview(string value)
-    {
-        var bar = new Border
-        {
-            Height = 38,
-            Background = ThemeResource.Brush(this, "ControlFillColorSecondaryBrush"),
-            CornerRadius = new CornerRadius(4),
-            Padding = new Thickness(6, 0, 6, 0),
-        };
-
-        // 原版 keeps the upstream two-sided layout (transport on the left,
-        // volume/rate/tracks/zoom/pip/window controls on the right). 居中
-        // follows ModernX: tracks and volume on the left, the transport
-        // cluster centered, window controls on the right.
-        var grid = new Grid
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-        if (value == "modernx")
-        {
-            var left = BuildIconCluster(
-                HorizontalAlignment.Left,
-                "\uED1F", ControlBarIcons.Shuffle, "\uE8EE", "\uEC57", "\uE995"); // tracks, random, repeat, speed, volume
-            var center = BuildIconCluster(
-                HorizontalAlignment.Center,
-                "\uF8AC", "\uE627",                                // previous, skip back
-                "\uF5B0",                                          // play/pause
-                "\uE628", "\uF8AD");                               // skip forward, next
-            var right = BuildIconCluster(
-                HorizontalAlignment.Right,
-                "\uE799", ControlBarIcons.PictureInPicture,        // aspect, picture-in-picture
-                "\uF16B", "\uE740");                               // full window, full screen
-            Grid.SetColumn(left, 0);
-            Grid.SetColumn(center, 1);
-            Grid.SetColumn(right, 2);
-            grid.Children.Add(left);
-            grid.Children.Add(center);
-            grid.Children.Add(right);
-        }
-        else
-        {
-            var left = BuildIconCluster(
-                HorizontalAlignment.Left,
-                "\uF5B0", "\uE627", "\uE628",                      // play, skip back, skip forward
-                "\uF8AC", "\uF8AD",                                // previous, next
-                ControlBarIcons.Shuffle, "\uE8EE");                // shuffle, repeat
-            var right = BuildIconCluster(
-                HorizontalAlignment.Right,
-                "\uE995", "\uEC57", "\uED1F",                      // volume, speed, tracks
-                "\uE799", ControlBarIcons.PictureInPicture, "\uF16B", // zoom, picture-in-picture, full window
-                "\uE740");                                         // full screen
-            Grid.SetColumn(left, 0);
-            Grid.SetColumn(right, 2);
-            grid.Children.Add(left);
-            grid.Children.Add(right);
-        }
-
-        bar.Child = grid;
-        return bar;
-    }
-
-    private StackPanel BuildIconCluster(HorizontalAlignment alignment, params string[] glyphs)
-    {
-        var row = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 8,
-            HorizontalAlignment = alignment,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        foreach (var glyph in glyphs)
-        {
-            row.Children.Add(CreateIcon(glyph));
-        }
-        return row;
-    }
-
-    /// <summary>Renders a FontIcon glyph, or a PathIcon for "F1 M ..." path data.</summary>
-    private UIElement CreateIcon(string value)
-    {
-        return value.StartsWith("F1 ", StringComparison.Ordinal)
-            ? new Viewbox
-            {
-                Width = 14,
-                Height = 14,
-                Child = new PathIcon
-                {
-                    Data = (Geometry)XamlBindingHelper.ConvertValue(typeof(Geometry), value),
-                },
-            }
-            : new FontIcon { Glyph = value, FontSize = 14 };
     }
 }

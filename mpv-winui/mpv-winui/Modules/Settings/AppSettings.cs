@@ -35,6 +35,11 @@ namespace mpv_winui.Modules.Settings
             var fromVersion = _dataSetting.GetValue(SettingsSchemaVersionKey, 0);
             try
             {
+                // Runs on every launch regardless of the schema version, gated
+                // by its own flag, so already-migrated installs still receive
+                // the per-style split.
+                MigrateBarOrderPerStyle();
+
                 if (fromVersion >= CurrentSettingsSchemaVersion)
                 {
                     return;
@@ -49,6 +54,33 @@ namespace mpv_winui.Modules.Settings
                 // Persist the version even when a step early-returns, so the
                 // migration runs exactly once.
                 _dataSetting.SetValue(SettingsSchemaVersionKey, CurrentSettingsSchemaVersion);
+            }
+        }
+
+        /// <summary>
+        /// The custom order used to be a single value shared by every layout
+        /// style, which made editing one style reorder the other. Split it per
+        /// style; migrate the old value into both once. Runs on every launch
+        /// (before the schema-version gate) so existing installs get the split.
+        /// </summary>
+        private void MigrateBarOrderPerStyle()
+        {
+            const string barOrderMigratedKey = "ControlBarOrderStyleMigrated";
+            if (!_dataSetting.GetValue(barOrderMigratedKey, false))
+            {
+                var legacyOrder = _dataSetting.GetValue(nameof(ControlBarCustomOrder), string.Empty);
+                if (!string.IsNullOrEmpty(legacyOrder))
+                {
+                    if (string.IsNullOrEmpty(_dataSetting.GetValue(nameof(ControlBarCustomOrderClassic), string.Empty)))
+                    {
+                        _dataSetting.SetValue(nameof(ControlBarCustomOrderClassic), legacyOrder);
+                    }
+                    if (string.IsNullOrEmpty(_dataSetting.GetValue(nameof(ControlBarCustomOrderModernX), string.Empty)))
+                    {
+                        _dataSetting.SetValue(nameof(ControlBarCustomOrderModernX), legacyOrder);
+                    }
+                }
+                _dataSetting.SetValue(barOrderMigratedKey, true);
             }
         }
 
@@ -274,7 +306,7 @@ namespace mpv_winui.Modules.Settings
 
         public string Hwdec
         {
-            get => _dataSetting.GetValue(nameof(Hwdec), "auto");
+            get => _dataSetting.GetValue(nameof(Hwdec), "auto-safe");
             set => _dataSetting.SetValue(nameof(Hwdec), value);
         }
 
@@ -308,12 +340,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Volume), value);
         }
 
-        public string CacheDirectory
-        {
-            get => _dataSetting.GetValue(nameof(CacheDirectory), string.Empty);
-            set => _dataSetting.SetValue(nameof(CacheDirectory), value);
-        }
-
         public string WatchLaterDir
         {
             get => _dataSetting.GetValue(nameof(WatchLaterDir), string.Empty);
@@ -334,13 +360,19 @@ namespace mpv_winui.Modules.Settings
 
         public string Deinterlace
         {
-            get => _dataSetting.GetValue(nameof(Deinterlace), "auto");
+            get => _dataSetting.GetValue(nameof(Deinterlace), "no");
             set => _dataSetting.SetValue(nameof(Deinterlace), value);
         }
 
         public string AspectRatio
         {
-            get => _dataSetting.GetValue(nameof(AspectRatio), "auto");
+            get
+            {
+                // mpv's "auto" spelling is invalid for video-aspect-override; the
+                // legal value for "automatic" is "no". Migrate legacy stores.
+                var value = _dataSetting.GetValue(nameof(AspectRatio), "no");
+                return value == "auto" ? "no" : value;
+            }
             set => _dataSetting.SetValue(nameof(AspectRatio), value);
         }
 
@@ -432,7 +464,13 @@ namespace mpv_winui.Modules.Settings
 
         public string VideoSync
         {
-            get => _dataSetting.GetValue(nameof(VideoSync), "audio");
+            get
+            {
+                // "cfr" was removed from mpv; migrate the legacy preset to the
+                // equivalent modern mode.
+                var value = _dataSetting.GetValue(nameof(VideoSync), "audio");
+                return value == "cfr" ? "display-resample" : value;
+            }
             set => _dataSetting.SetValue(nameof(VideoSync), value);
         }
 
@@ -546,7 +584,7 @@ namespace mpv_winui.Modules.Settings
 
         public string AudioChannels
         {
-            get => _dataSetting.GetValue(nameof(AudioChannels), "auto");
+            get => _dataSetting.GetValue(nameof(AudioChannels), "auto-safe");
             set => _dataSetting.SetValue(nameof(AudioChannels), value);
         }
 
@@ -819,7 +857,12 @@ namespace mpv_winui.Modules.Settings
 
         public string Tscale
         {
-            get => _dataSetting.GetValue(nameof(Tscale), "oversample");
+            get
+            {
+                // mpv has no "cubic" tscale; the preset was a typo for "bicubic".
+                var value = _dataSetting.GetValue(nameof(Tscale), "oversample");
+                return value == "cubic" ? "bicubic" : value;
+            }
             set => _dataSetting.SetValue(nameof(Tscale), value);
         }
 
@@ -957,7 +1000,13 @@ namespace mpv_winui.Modules.Settings
 
         public string D3d11OutputCsp
         {
-            get => _dataSetting.GetValue(nameof(D3d11OutputCsp), string.Empty);
+            get
+            {
+                // "bt.709" is not a legal d3d11-output-csp value; fall back to
+                // auto (empty) for values written by older builds.
+                var value = _dataSetting.GetValue(nameof(D3d11OutputCsp), string.Empty);
+                return value == "bt.709" ? string.Empty : value;
+            }
             set => _dataSetting.SetValue(nameof(D3d11OutputCsp), value);
         }
 
@@ -1197,13 +1246,14 @@ namespace mpv_winui.Modules.Settings
 
         public string AudioGapless
         {
-            get => _dataSetting.GetValue(nameof(AudioGapless), "no");
+            get => _dataSetting.GetValue(nameof(AudioGapless), "weak");
             set => _dataSetting.SetValue(nameof(AudioGapless), value);
         }
 
-        public bool AudioWaitOpen
+        /// <summary>Seconds to wait for the audio output to open (mpv audio-wait-open).</summary>
+        public double AudioWaitOpen
         {
-            get => _dataSetting.GetValue(nameof(AudioWaitOpen), false);
+            get => _dataSetting.GetValue(nameof(AudioWaitOpen), 0.0);
             set => _dataSetting.SetValue(nameof(AudioWaitOpen), value);
         }
 
@@ -1397,6 +1447,33 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ControlBarLayout), value);
         }
 
+        /// <summary>
+        /// Comma-separated custom order of the reorderable control-bar buttons
+        /// (volume,tracks,random,speed,aspect,fullwindow,fullscreen,pip).
+        /// Empty = the layout's built-in order; the transport buttons
+        /// (play/prev/next/skips) are always fixed.
+        /// </summary>
+        public string ControlBarCustomOrder
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarCustomOrder), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarCustomOrder), value);
+        }
+
+        /// <summary>Custom order for the 原版 (classic) layout — separate from
+        /// the 居中 one so editing one style never reorders the other.</summary>
+        public string ControlBarCustomOrderClassic
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarCustomOrderClassic), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarCustomOrderClassic), value);
+        }
+
+        /// <summary>Custom order for the 居中 (modernx) layout.</summary>
+        public string ControlBarCustomOrderModernX
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarCustomOrderModernX), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarCustomOrderModernX), value);
+        }
+
         public string ControlBarHiddenIcons
         {
             get => _dataSetting.GetValue(nameof(ControlBarHiddenIcons), string.Empty);
@@ -1471,7 +1548,7 @@ namespace mpv_winui.Modules.Settings
 
         public string ImageExts
         {
-            get => _dataSetting.GetValue(nameof(ImageExts), "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,svg,tga,tif,tiff,webp");
+            get => _dataSetting.GetValue(nameof(ImageExts), "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,tga,tif,tiff,webp");
             set => _dataSetting.SetValue(nameof(ImageExts), value);
         }
 
@@ -1559,9 +1636,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ThumbfastQuitAfterInactivity), value);
         }
 
-        public int AudioBuffer
+        /// <summary>Audio output buffer size in seconds (mpv audio-buffer, 0..10).</summary>
+        public double AudioBuffer
         {
-            get => _dataSetting.GetValue(nameof(AudioBuffer), 0);
+            get => _dataSetting.GetValue(nameof(AudioBuffer), 0.2);
             set => _dataSetting.SetValue(nameof(AudioBuffer), value);
         }
 
@@ -1569,6 +1647,178 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(ScreenshotAvifEncoder), string.Empty);
             set => _dataSetting.SetValue(nameof(ScreenshotAvifEncoder), value);
+        }
+
+        // ===== Options added with mpv 0.41 built-in defaults =====
+        public string AudioSpdif
+        {
+            get => _dataSetting.GetValue(nameof(AudioSpdif), string.Empty);
+            set => _dataSetting.SetValue(nameof(AudioSpdif), value);
+        }
+
+        public string Replaygain
+        {
+            get => _dataSetting.GetValue(nameof(Replaygain), "no");
+            set => _dataSetting.SetValue(nameof(Replaygain), value);
+        }
+
+        public int OsdLevel
+        {
+            get => _dataSetting.GetValue(nameof(OsdLevel), 1);
+            set => _dataSetting.SetValue(nameof(OsdLevel), value);
+        }
+
+        public double ImageDisplayDuration
+        {
+            get => _dataSetting.GetValue(nameof(ImageDisplayDuration), 5.0);
+            set => _dataSetting.SetValue(nameof(ImageDisplayDuration), value);
+        }
+
+        public double OverrideDisplayFps
+        {
+            get => _dataSetting.GetValue(nameof(OverrideDisplayFps), 0.0);
+            set => _dataSetting.SetValue(nameof(OverrideDisplayFps), value);
+        }
+
+        public bool CachePause
+        {
+            get => _dataSetting.GetValue(nameof(CachePause), true);
+            set => _dataSetting.SetValue(nameof(CachePause), value);
+        }
+
+        public bool PrefetchPlaylist
+        {
+            get => _dataSetting.GetValue(nameof(PrefetchPlaylist), false);
+            set => _dataSetting.SetValue(nameof(PrefetchPlaylist), value);
+        }
+
+        public bool SubBold
+        {
+            get => _dataSetting.GetValue(nameof(SubBold), false);
+            set => _dataSetting.SetValue(nameof(SubBold), value);
+        }
+
+        public bool SubItalic
+        {
+            get => _dataSetting.GetValue(nameof(SubItalic), false);
+            set => _dataSetting.SetValue(nameof(SubItalic), value);
+        }
+
+        public string SubAlignX
+        {
+            get => _dataSetting.GetValue(nameof(SubAlignX), "center");
+            set => _dataSetting.SetValue(nameof(SubAlignX), value);
+        }
+
+        public string SubAlignY
+        {
+            get => _dataSetting.GetValue(nameof(SubAlignY), "bottom");
+            set => _dataSetting.SetValue(nameof(SubAlignY), value);
+        }
+
+        public int SubMarginX
+        {
+            get => _dataSetting.GetValue(nameof(SubMarginX), 19);
+            set => _dataSetting.SetValue(nameof(SubMarginX), value);
+        }
+
+        public int SubMarginY
+        {
+            get => _dataSetting.GetValue(nameof(SubMarginY), 34);
+            set => _dataSetting.SetValue(nameof(SubMarginY), value);
+        }
+
+        public string OsdAlignX
+        {
+            get => _dataSetting.GetValue(nameof(OsdAlignX), "left");
+            set => _dataSetting.SetValue(nameof(OsdAlignX), value);
+        }
+
+        public string OsdAlignY
+        {
+            get => _dataSetting.GetValue(nameof(OsdAlignY), "top");
+            set => _dataSetting.SetValue(nameof(OsdAlignY), value);
+        }
+
+        public int OsdMarginX
+        {
+            get => _dataSetting.GetValue(nameof(OsdMarginX), 16);
+            set => _dataSetting.SetValue(nameof(OsdMarginX), value);
+        }
+
+        public int OsdMarginY
+        {
+            get => _dataSetting.GetValue(nameof(OsdMarginY), 16);
+            set => _dataSetting.SetValue(nameof(OsdMarginY), value);
+        }
+
+        public double DemuxerHysteresisSecs
+        {
+            get => _dataSetting.GetValue(nameof(DemuxerHysteresisSecs), 0.0);
+            set => _dataSetting.SetValue(nameof(DemuxerHysteresisSecs), value);
+        }
+
+        public string DemuxerCacheDir
+        {
+            get => _dataSetting.GetValue(nameof(DemuxerCacheDir), string.Empty);
+            set => _dataSetting.SetValue(nameof(DemuxerCacheDir), value);
+        }
+
+        // ===== Plugin script options (script-opts/*.conf) =====
+        public bool MetadataOsdEnableForAudio
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForAudio), true);
+            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForAudio), value);
+        }
+
+        public bool MetadataOsdEnableForAudioWithAlbumArt
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForAudioWithAlbumArt), true);
+            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForAudioWithAlbumArt), value);
+        }
+
+        public bool MetadataOsdAutohideForAudio
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideForAudio), false);
+            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideForAudio), value);
+        }
+
+        public bool MetadataOsdAutohideForAudioWithAlbumArt
+        {
+            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), false);
+            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), value);
+        }
+
+        public bool ThumbfastAudio
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastAudio), false);
+            set => _dataSetting.SetValue(nameof(ThumbfastAudio), value);
+        }
+
+        public string ThumbfastHwdec
+        {
+            get => _dataSetting.GetValue(nameof(ThumbfastHwdec), "yes");
+            set => _dataSetting.SetValue(nameof(ThumbfastHwdec), value);
+        }
+
+        public string HdrOverrideMode
+        {
+            get => _dataSetting.GetValue(nameof(HdrOverrideMode), string.Empty);
+            set => _dataSetting.SetValue(nameof(HdrOverrideMode), value);
+        }
+
+        /// <summary>Per-id control-bar zone overrides for the modernx layout ("id:0,id:2").</summary>
+        public string ControlBarZonesModernX
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarZonesModernX), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarZonesModernX), value);
+        }
+
+        /// <summary>Per-id control-bar zone overrides for the classic layout ("id:0,id:2").</summary>
+        public string ControlBarZonesClassic
+        {
+            get => _dataSetting.GetValue(nameof(ControlBarZonesClassic), string.Empty);
+            set => _dataSetting.SetValue(nameof(ControlBarZonesClassic), value);
         }
     }
 }

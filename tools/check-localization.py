@@ -116,7 +116,7 @@ def main() -> int:
     lang_files = sorted(lang_dir.glob("*.json"))
     en_data: dict[str, str] = {}
     for path in lang_files:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
         keys = set(data.keys())
         missing = props - keys
         extra = keys - props
@@ -136,7 +136,7 @@ def main() -> int:
         for path in lang_files:
             if path.name == "en-US.json":
                 continue
-            data = json.loads(path.read_text(encoding="utf-8"))
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
             untranslated = [
                 key for key in en_data
                 if key in data and data[key] == en_data[key] and key in props
@@ -151,7 +151,7 @@ def main() -> int:
 
     menus_path = ROOT / "mpv-winui" / "mpv-winui" / "Menus" / "menus.json"
     if menus_path.exists():
-        menus = json.loads(menus_path.read_text(encoding="utf-8"))
+        menus = json.loads(menus_path.read_text(encoding="utf-8-sig"))
         actions = parse_menu_actions(
             ROOT / "mpv-winui" / "mpv-winui" / "Modules" / "Player" / "MpvPlayerPage_MenuBar.cs"
         )
