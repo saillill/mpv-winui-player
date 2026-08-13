@@ -30,6 +30,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.Deinterlace),
+                Description = lang.SettingsHelpDeinterlace,
                 Label = lang.SettingsDeinterlace,
                 Category = video,
                 Type = OptionType.StringList,
@@ -46,6 +47,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AspectRatio),
+                Description = lang.SettingsHelpAspectRatio,
                 Label = lang.SettingsAspect,
                 Category = video,
                 Type = OptionType.StringList,
@@ -110,6 +112,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.CorrectDownscaling),
+                Description = lang.SettingsHelpCorrectDownscaling,
                 Label = lang.SettingsCorrectDownscaling,
                 Category = video,
                 Type = OptionType.Boolean,
@@ -209,6 +212,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.Dither),
+                Description = lang.SettingsHelpDither,
                 Label = lang.SettingsDither,
                 Category = video,
                 Type = OptionType.StringList,
@@ -296,6 +300,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.VideoRotate),
+                Description = lang.SettingsHelpVideoRotate,
                 Label = lang.SettingsVideoRotate,
                 Category = video,
                 Type = OptionType.StringList,
@@ -365,6 +370,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.DitherDepth),
+                Description = lang.SettingsHelpDitherDepth,
                 Label = lang.SettingsDitherDepth,
                 Category = video,
                 Type = OptionType.StringList,

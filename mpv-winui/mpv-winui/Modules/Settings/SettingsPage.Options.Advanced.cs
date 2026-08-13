@@ -81,6 +81,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.D3d11ExclusiveFs),
+                Description = lang.SettingsHelpD3d11ExclusiveFs,
                 Label = lang.SettingsD3d11ExclusiveFs,
                 Category = video,
                 Type = OptionType.Boolean,
@@ -91,6 +92,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.D3d11Flip),
+                Description = lang.SettingsHelpD3d11Flip,
                 Label = lang.SettingsD3d11Flip,
                 Category = video,
                 Type = OptionType.Boolean,
@@ -254,6 +256,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.TargetColorspaceHintStrict),
+                Description = lang.SettingsHelpTargetColorspaceHintStrict,
                 Label = lang.SettingsTargetColorspaceHintStrict,
                 Category = video,
                 Type = OptionType.Boolean,
@@ -426,6 +429,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.OsdFontSize),
+                Description = lang.SettingsHelpOsdFontSize,
                 Label = lang.SettingsOsdFontSize,
                 Category = osd,
                 Type = OptionType.Integer,
@@ -524,6 +528,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.OsdBarWidth),
+                Description = lang.SettingsHelpOsdBarWidth,
                 Label = lang.SettingsOsdBarWidth,
                 Category = osd,
                 Type = OptionType.Integer,
@@ -537,6 +542,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.OsdBarHeight),
+                Description = lang.SettingsHelpOsdBarHeight,
                 Label = lang.SettingsOsdBarHeight,
                 Category = osd,
                 Type = OptionType.Double,
@@ -550,6 +556,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.OsdBlur),
+                Description = lang.SettingsHelpOsdBlur,
                 Label = lang.SettingsOsdBlur,
                 Category = osd,
                 Type = OptionType.Double,
@@ -563,6 +570,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.OsdOutlineSize),
+                Description = lang.SettingsHelpOsdOutlineSize,
                 Label = lang.SettingsOsdOutlineSize,
                 Category = osd,
                 Type = OptionType.Double,
@@ -576,6 +584,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.OsdFractions),
+                Description = lang.SettingsHelpOsdFractions,
                 Label = lang.SettingsOsdFractions,
                 Category = osd,
                 Type = OptionType.Boolean,
@@ -662,6 +671,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.OsdColor),
+                Description = lang.SettingsHelpOsdColor,
                 Label = lang.SettingsOsdColor,
                 Category = osd,
                 Type = OptionType.Color,
@@ -673,6 +683,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.OsdOutlineColor),
+                Description = lang.SettingsHelpOsdOutlineColor,
                 Label = lang.SettingsOsdOutlineColor,
                 Category = osd,
                 Type = OptionType.Color,
@@ -1020,6 +1031,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastMinDuration),
+                Description = lang.SettingsHelpThumbfastMinDuration,
                 Label = lang.SettingsThumbfastMinDuration,
                 Category = playback,
                 Type = OptionType.Integer,
@@ -1059,6 +1071,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastMaxWidth),
+                Description = lang.SettingsHelpThumbfastMaxWidth,
                 Label = lang.SettingsThumbfastMaxWidth,
                 Category = playback,
                 Type = OptionType.Integer,
@@ -1076,6 +1089,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastMaxHeight),
+                Description = lang.SettingsHelpThumbfastMaxHeight,
                 Label = lang.SettingsThumbfastMaxHeight,
                 Category = playback,
                 Type = OptionType.Integer,
@@ -1126,6 +1140,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ThumbfastFrequency),
+                Description = lang.SettingsHelpThumbfastFrequency,
                 Label = lang.SettingsThumbfastFrequency,
                 Category = playback,
                 Type = OptionType.Double,

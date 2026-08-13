@@ -133,6 +133,12 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
+    /// <summary>Separator used to join multi-entry list values (";" by default).</summary>
+    public char ListSeparator
+    {
+        get; set;
+    } = ';';
+
     /// <summary>Optional section caption used to split a category into topic groups.</summary>
     public string? Section
     {

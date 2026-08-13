@@ -41,6 +41,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AudioChannels),
+                Description = lang.SettingsHelpAudioChannels,
                 Label = lang.SettingsAudioChannels,
                 Category = audio,
                 Type = OptionType.StringList,
@@ -85,6 +86,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AudioPitchCorrection),
+                Description = lang.SettingsHelpAudioPitchCorrection,
                 Label = lang.SettingsAudioPitchCorrection,
                 Category = audio,
                 Type = OptionType.Boolean,
@@ -95,6 +97,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AudioNormalizeDownmix),
+                Description = lang.SettingsHelpAudioNormalizeDownmix,
                 Label = lang.SettingsAudioNormalizeDownmix,
                 Category = audio,
                 Type = OptionType.Boolean,
@@ -105,6 +108,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AudioFileAuto),
+                Description = lang.SettingsHelpAudioFileAuto,
                 Label = lang.SettingsAudioFileAuto,
                 Category = audio,
                 Type = OptionType.StringList,
@@ -292,6 +296,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.CoverArtImageExts),
+                Description = lang.SettingsHelpCoverArtImageExts,
                 Label = lang.SettingsCoverArtImageExts,
                 Category = audio,
                 Type = OptionType.String,

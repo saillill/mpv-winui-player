@@ -79,6 +79,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.KeepOpen),
+                Description = lang.SettingsHelpKeepOpen,
                 Label = lang.SettingsKeepOpen,
                 Category = window,
                 Type = OptionType.StringList,
@@ -111,6 +112,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.WindowPiPSize),
+                Description = lang.SettingsHelpWindowPiPSize,
                 Label = lang.SettingsPiPSize,
                 Category = window,
                 Type = OptionType.StringList,
@@ -153,6 +155,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SavePositionOnQuit),
+                Description = lang.SettingsHelpSavePositionOnQuit,
                 Label = lang.SettingsSavePositionOnQuit,
                 Category = playback,
                 Type = OptionType.Boolean,
@@ -163,6 +166,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.Speed),
+                Description = lang.SettingsHelpSpeed,
                 Label = lang.SettingsSpeed,
                 Category = playback,
                 Type = OptionType.Double,
@@ -212,6 +216,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.CacheEnabled),
+                Description = lang.SettingsHelpCacheEnabled,
                 Label = lang.SettingsCacheEnabled,
                 Category = network,
                 Type = OptionType.StringList,
@@ -279,7 +284,16 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsYtdlFormat,
                 Category = network,
                 Description = lang.SettingsHelpYtdlFormat,
-                Type = OptionType.String,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.OptionValueAuto),
+                    new OptionChoice("bv*+ba/b", "bv*+ba/b"),
+                    new OptionChoice("bv*+ba", "bv*+ba"),
+                    new OptionChoice("best", "best"),
+                    new OptionChoice("mp4", "mp4"),
+                    new OptionChoice("webm", "webm"),
+                ],
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.YtdlFormat,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.YtdlFormat), AppContext.AppSetting.YtdlFormat = (string)v!)
@@ -569,6 +583,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.DirectoryMode),
+                Description = lang.SettingsHelpDirectoryMode,
                 Label = lang.SettingsDirectoryMode,
                 Category = playback,
                 Type = OptionType.StringList,
@@ -610,6 +625,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ImageExts),
+                Description = lang.SettingsHelpImageExts,
                 Label = lang.SettingsImageExts,
                 Category = playback,
                 Type = OptionType.String,
@@ -635,6 +651,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AudioExts),
+                Description = lang.SettingsHelpAudioExts,
                 Label = lang.SettingsAudioExts,
                 Category = audio,
                 Type = OptionType.String,
@@ -649,7 +666,8 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsWatchLaterOptions,
                 Category = playback,
                 Description = lang.SettingsHelpWatchLaterOptions,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.WatchLaterOptions,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.WatchLaterOptions), AppContext.AppSetting.WatchLaterOptions = (string)v!)

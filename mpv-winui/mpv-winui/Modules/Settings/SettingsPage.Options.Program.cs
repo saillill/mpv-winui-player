@@ -130,6 +130,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.UiFont),
+                Description = lang.SettingsHelpUiFont,
                 Label = lang.SettingsUiFont,
                 Category = program,
                 Type = OptionType.StringList,
@@ -198,6 +199,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.TestSignal),
+                Description = lang.SettingsHelpTestSignal,
                 Label = lang.SettingsTestSignal,
                 Category = testing,
                 Section = sProgramTesting,
@@ -298,6 +300,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AlwaysOnTop),
+                Description = lang.SettingsHelpAlwaysOnTop,
                 Label = lang.SettingsAlwaysOnTop,
                 Category = window,
                 Type = OptionType.Boolean,
@@ -308,6 +311,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.InputIme),
+                Description = lang.SettingsHelpInputIme,
                 Label = lang.SettingsInputIme,
                 Category = input,
                 Type = OptionType.Boolean,

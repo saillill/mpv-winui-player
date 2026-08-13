@@ -55,8 +55,11 @@ public sealed partial class OptionMultiListControl : OptionControlBase
     {
     }
 
-    private static IEnumerable<string> Split(string? value) =>
-        (value ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    private IEnumerable<string> Split(string? value)
+    {
+        var separator = Setting?.ListSeparator ?? ';';
+        return (value ?? string.Empty).Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
 
     private Grid BuildRow(string text)
     {
@@ -151,7 +154,8 @@ public sealed partial class OptionMultiListControl : OptionControlBase
             .Where(text => text.Length > 0)
             .ToList();
 
-        Setting?.Setter?.Invoke(string.Join(';', values));
+        var separator = Setting?.ListSeparator ?? ';';
+        Setting?.Setter?.Invoke(string.Join(separator, values));
         Setting?.NotifyChanged();
     }
 }

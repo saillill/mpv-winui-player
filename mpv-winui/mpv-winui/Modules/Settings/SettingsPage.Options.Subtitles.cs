@@ -30,6 +30,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubFontSize),
+                Description = lang.SettingsHelpSubFontSize,
                 Label = lang.SettingsSubFontSize,
                 Category = subtitles,
                 Type = OptionType.Integer,
@@ -43,6 +44,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubDelay),
+                Description = lang.SettingsHelpSubDelay,
                 Label = lang.SettingsSubDelay,
                 Category = subtitles,
                 Type = OptionType.Double,
@@ -56,6 +58,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubPos),
+                Description = lang.SettingsHelpSubPos,
                 Label = lang.SettingsSubPos,
                 Category = subtitles,
                 Type = OptionType.Integer,
@@ -156,6 +159,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AudioLanguage),
+                Description = lang.SettingsHelpAudioLanguage,
                 Label = lang.SettingsAudioLanguage,
                 Category = subtitles,
                 Type = OptionType.StringList,
@@ -167,6 +171,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubtitleLanguage),
+                Description = lang.SettingsHelpSubtitleLanguage,
                 Label = lang.SettingsSubtitleLanguage,
                 Category = subtitles,
                 Type = OptionType.StringList,
@@ -218,6 +223,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ImageSubsVideoResolution),
+                Description = lang.SettingsHelpImageSubsVideoResolution,
                 Label = lang.SettingsImageSubsVideoResolution,
                 Category = subtitles,
                 Type = OptionType.Boolean,
@@ -240,6 +246,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubBackColor),
+                Description = lang.SettingsHelpSubBackColor,
                 Label = lang.SettingsSubBackColor,
                 Category = subtitles,
                 Type = OptionType.Color,
@@ -251,6 +258,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubBorderColor),
+                Description = lang.SettingsHelpSubBorderColor,
                 Label = lang.SettingsSubBorderColor,
                 Category = subtitles,
                 Type = OptionType.Color,
@@ -262,6 +270,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubScaleSigns),
+                Description = lang.SettingsHelpSubScaleSigns,
                 Label = lang.SettingsSubScaleSigns,
                 Category = subtitles,
                 Type = OptionType.Boolean,
@@ -311,6 +320,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubAssVideoAspectOverride),
+                Description = lang.SettingsHelpSubAssVideoAspectOverride,
                 Label = lang.SettingsSubAssVideoAspectOverride,
                 Category = subtitles,
                 Section = sSubtitleAss,
@@ -356,6 +366,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubAuto),
+                Description = lang.SettingsHelpSubAuto,
                 Label = lang.SettingsSubAuto,
                 Category = subtitles,
                 Type = OptionType.StringList,
@@ -373,6 +384,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubFont),
+                Description = lang.SettingsHelpSubFont,
                 Label = lang.SettingsSubFont,
                 Category = subtitles,
                 Type = OptionType.StringList,
@@ -416,6 +428,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubCodePage),
+                Description = lang.SettingsHelpSubCodePage,
                 Label = lang.SettingsSubCodePage,
                 Category = subtitles,
                 Type = OptionType.StringList,
@@ -437,6 +450,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubOutlineSize),
+                Description = lang.SettingsHelpSubOutlineSize,
                 Label = lang.SettingsSubOutlineSize,
                 Category = subtitles,
                 Type = OptionType.Double,
@@ -450,6 +464,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubShadowOffset),
+                Description = lang.SettingsHelpSubShadowOffset,
                 Label = lang.SettingsSubShadowOffset,
                 Category = subtitles,
                 Type = OptionType.Double,
@@ -463,6 +478,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubBlur),
+                Description = lang.SettingsHelpSubBlur,
                 Label = lang.SettingsSubBlur,
                 Category = subtitles,
                 Type = OptionType.Double,
