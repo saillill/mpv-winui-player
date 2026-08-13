@@ -607,7 +607,8 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsDirectoryFilterTypes,
                 Category = playback,
                 Description = lang.SettingsHelpDirectoryFilterTypes,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.DirectoryFilterTypes,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DirectoryFilterTypes), AppContext.AppSetting.DirectoryFilterTypes = (string)v!)
@@ -619,7 +620,8 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsVideoExts,
                 Category = playback,
                 Description = lang.SettingsHelpVideoExts,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.VideoExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoExts), AppContext.AppSetting.VideoExts = (string)v!)
@@ -631,7 +633,8 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpImageExts,
                 Label = lang.SettingsImageExts,
                 Category = playback,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.ImageExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ImageExts), AppContext.AppSetting.ImageExts = (string)v!)
@@ -657,7 +660,8 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpAudioExts,
                 Label = lang.SettingsAudioExts,
                 Category = audio,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.AudioExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioExts), AppContext.AppSetting.AudioExts = (string)v!)
