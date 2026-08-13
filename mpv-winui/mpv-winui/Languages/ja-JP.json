@@ -171,6 +171,7 @@
   "PanelSlower": "遅く",
   "PanelNormal": "標準",
   "PanelFaster": "速く",
+  "PanelPreset": "プリセット",
   "ControlBarIconPanel": "コントロールパネル",
   "PanelSeek": "シーク",
   "PanelAbHint": "A を設定してから B を設定すると、その範囲をループ再生します。",

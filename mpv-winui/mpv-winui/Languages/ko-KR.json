@@ -171,6 +171,7 @@
   "PanelSlower": "느리게",
   "PanelNormal": "보통",
   "PanelFaster": "빠르게",
+  "PanelPreset": "프리셋",
   "ControlBarIconPanel": "제어판",
   "PanelSeek": "탐색",
   "PanelAbHint": "A를 설정한 뒤 B를 설정하면 해당 구간을 반복 재생합니다.",

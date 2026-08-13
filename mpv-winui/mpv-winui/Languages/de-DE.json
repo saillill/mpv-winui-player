@@ -171,6 +171,7 @@
   "PanelSlower": "Langsamer",
   "PanelNormal": "Normal",
   "PanelFaster": "Schneller",
+  "PanelPreset": "Preset",
   "ControlBarIconPanel": "Bedienfeld",
   "PanelSeek": "Springen",
   "PanelAbHint": "Erst A, dann B setzen, um diesen Bereich zu wiederholen.",

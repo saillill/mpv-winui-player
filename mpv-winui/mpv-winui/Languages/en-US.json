@@ -171,6 +171,7 @@
   "PanelSlower": "Slower",
   "PanelNormal": "Normal",
   "PanelFaster": "Faster",
+  "PanelPreset": "Preset",
   "ControlBarIconPanel": "Control panel",
   "PanelSeek": "Seek",
   "PanelAbHint": "Set A then B to loop that range.",

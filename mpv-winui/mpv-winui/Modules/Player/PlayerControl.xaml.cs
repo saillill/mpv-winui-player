@@ -1360,6 +1360,7 @@ namespace mpv_winui.Modules.Player
         private bool _panelBuilt;
         private bool _panelUpdating;
         private readonly List<(ToggleButton Tab, ScrollViewer Scroll, StackPanel Content)> _panelTabs = [];
+        private readonly List<Slider> _panelEqSliders = [];
         private Slider? _panelVolumeSlider;
         private Slider? _panelBrightnessSlider;
         private Slider? _panelContrastSlider;
@@ -1369,10 +1370,11 @@ namespace mpv_winui.Modules.Player
         private Slider? _panelBlurSlider;
         private ToggleButton? _panelEqOffToggle;
         private ToggleButton? _panelRepeatToggle;
+        private ComboBox? _panelAudioDeviceBox;
         private ComboBox? _panelFontBox;
         private TextBlock? _panelAbTimes;
 
-        private const double PanelHeight = 280;
+        private const double PanelHeight = 300;
 
         private void ControlPanelFlyout_Opened(object sender, object e)
         {
@@ -1410,7 +1412,11 @@ namespace mpv_winui.Modules.Player
             ControlPanelRoot.Children.Clear();
             _panelTabs.Clear();
 
-            var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
+            var shell = new Grid { ColumnSpacing = 10 };
+            shell.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            shell.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            var tabColumn = new StackPanel { Spacing = 4 };
             var tabNames = new[]
             {
                 lang.SettingsCategoryAudio,
@@ -1424,13 +1430,13 @@ namespace mpv_winui.Modules.Player
                 var tab = new ToggleButton
                 {
                     Content = tabNames[i],
-                    MinWidth = 88,
+                    MinWidth = 92,
                     Padding = new Thickness(6, 3, 6, 3),
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                 };
                 var index = i;
                 tab.Click += (_, _) => SelectPanelTab(index);
-                header.Children.Add(tab);
+                tabColumn.Children.Add(tab);
 
                 var content = new StackPanel { Spacing = 8, Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
                 var scroll = new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
@@ -1438,8 +1444,10 @@ namespace mpv_winui.Modules.Player
                 _panelTabs.Add((tab, scroll, content));
             }
 
-            ControlPanelRoot.Children.Add(PanelCard(header));
-            ControlPanelRoot.Children.Add(host);
+            shell.Children.Add(tabColumn);
+            Grid.SetColumn(host, 1);
+            shell.Children.Add(host);
+            ControlPanelRoot.Children.Add(shell);
 
             BuildPanelAudio(_panelTabs[0].Content);
             BuildPanelVideo(_panelTabs[1].Content);
@@ -1501,7 +1509,7 @@ namespace mpv_winui.Modules.Player
                 HorizontalAlignment = HorizontalAlignment.Center,
             };
             slider.Orientation = Orientation.Vertical;
-            slider.Height = 118;
+            slider.Height = 150;
             slider.Width = 30;
             slider.HorizontalAlignment = HorizontalAlignment.Center;
             column.Children.Add(slider);
@@ -1534,11 +1542,11 @@ namespace mpv_winui.Modules.Player
 
             _panelEqOffToggle = new ToggleButton
             {
-                Content = lang.Off,
+                Content = $"{lang.PanelEqualizer} {lang.Off}",
                 IsChecked = true,
-                MinWidth = 72,
+                MinWidth = 0,
                 Padding = new Thickness(6, 3, 6, 3),
-                HorizontalAlignment = HorizontalAlignment.Right,
+                HorizontalAlignment = HorizontalAlignment.Left,
             };
             _panelEqOffToggle.Checked += (_, _) =>
             {
@@ -1555,15 +1563,51 @@ namespace mpv_winui.Modules.Player
                 }
             };
 
-            var eqHeader = new Grid();
-            eqHeader.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            eqHeader.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            eqHeader.Children.Add(PanelCaption(lang.PanelEqualizer, "\uE8B1"));
-            Grid.SetColumn(_panelEqOffToggle, 1);
-            eqHeader.Children.Add(_panelEqOffToggle);
+            _panelAudioDeviceBox = new ComboBox
+            {
+                MinWidth = 160,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                PlaceholderText = lang.SettingsAudioDevice,
+            };
+            var devices = AppContext.GetAudioDevices?.Invoke();
+            if (devices is not null)
+            {
+                foreach (var device in devices)
+                {
+                    var label = string.IsNullOrWhiteSpace(device.Description) ? device.Name : device.Description;
+                    _panelAudioDeviceBox.Items.Add(new ComboBoxItem { Content = label, Tag = device.Name });
+                }
+            }
+            _panelAudioDeviceBox.SelectionChanged += (_, _) =>
+            {
+                if (_panelUpdating || _panelAudioDeviceBox.SelectedItem is not ComboBoxItem { Tag: string name })
+                {
+                    return;
+                }
+                MediaPlayer?.Command("set", "audio-device", name);
+            };
+
+            var presetButton = new Button { Content = lang.PanelPreset, Padding = new Thickness(6, 3, 6, 3), MinWidth = 0 };
+            presetButton.Flyout = BuildPanelPresetFlyout();
+
+            var topRow = new Grid { ColumnSpacing = 8 };
+            topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            topRow.Children.Add(_panelEqOffToggle);
+            Grid.SetColumn(_panelAudioDeviceBox, 1);
+            topRow.Children.Add(_panelAudioDeviceBox);
+            Grid.SetColumn(presetButton, 2);
+            topRow.Children.Add(presetButton);
 
             var bandLabels = new[] { "60", "170", "310", "600", "1K", "3K", "6K", "12K", "14K", "16K" };
-            var bandRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, HorizontalAlignment = HorizontalAlignment.Center };
+            var bandRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 2,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
             for (var i = 0; i < bandLabels.Length; i++)
             {
                 var slider = new Slider { Minimum = -12, Maximum = 12, StepFrequency = 0.5, Value = _eqGains[i] };
@@ -1576,13 +1620,85 @@ namespace mpv_winui.Modules.Player
                         ApplyEqualizer();
                     }
                 };
+                _panelEqSliders.Add(slider);
                 bandRow.Children.Add(PanelEqColumn(bandLabels[i], slider));
             }
 
-            root.Children.Add(PanelCard(eqHeader, bandRow));
-
             _panelVolumeSlider = PanelPropertySlider("volume", 0, 150, 1);
-            root.Children.Add(PanelCard(PanelCaption(lang.PanelMasterVolume, "\uE995"), _panelVolumeSlider));
+            _panelVolumeSlider.Orientation = Orientation.Vertical;
+            _panelVolumeSlider.Height = 210;
+            _panelVolumeSlider.Width = 44;
+            _panelVolumeSlider.HorizontalAlignment = HorizontalAlignment.Center;
+            var volumeColumn = new StackPanel { Spacing = 6, HorizontalAlignment = HorizontalAlignment.Center };
+            volumeColumn.Children.Add(new TextBlock
+            {
+                Text = lang.PanelMasterVolume,
+                FontSize = 11,
+                HorizontalAlignment = HorizontalAlignment.Center,
+            });
+            volumeColumn.Children.Add(_panelVolumeSlider);
+
+            var audioGrid = new Grid { ColumnSpacing = 10 };
+            audioGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            audioGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(64) });
+            var leftColumn = new StackPanel { Spacing = 8 };
+            leftColumn.Children.Add(PanelCard(topRow));
+            leftColumn.Children.Add(PanelCard(bandRow));
+            audioGrid.Children.Add(leftColumn);
+            Grid.SetColumn(volumeColumn, 1);
+            audioGrid.Children.Add(volumeColumn);
+
+            root.Children.Add(audioGrid);
+        }
+
+        private MenuFlyout BuildPanelPresetFlyout()
+        {
+            var flyout = new MenuFlyout();
+            var presets = new (string Name, double[] Gains)[]
+            {
+                ("Flat", [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+                ("Bass", [6, 5, 4, 2, 0, 0, 0, 0, 0, 0]),
+                ("Vocal", [0, -2, 0, 3, 4, 4, 3, 2, 0, 0]),
+                ("Treble", [0, 0, 0, 0, 0, 1, 2, 3, 4, 5]),
+            };
+            foreach (var preset in presets)
+            {
+                var item = new MenuFlyoutItem { Text = preset.Name, Tag = preset.Gains };
+                item.Click += (_, _) => ApplyPanelPreset((double[])item.Tag);
+                flyout.Items.Add(item);
+            }
+            return flyout;
+        }
+
+        private void ApplyPanelPreset(double[] gains)
+        {
+            for (var i = 0; i < _eqGains.Count && i < gains.Length; i++)
+            {
+                _eqGains[i] = gains[i];
+            }
+            _panelUpdating = true;
+            try
+            {
+                for (var i = 0; i < _panelEqSliders.Count && i < gains.Length; i++)
+                {
+                    _panelEqSliders[i].Value = gains[i];
+                }
+            }
+            finally
+            {
+                _panelUpdating = false;
+            }
+            if (_panelEqOffToggle is { } toggle)
+            {
+                if (toggle.IsChecked == true)
+                {
+                    toggle.IsChecked = false; // the Unchecked handler applies the curve
+                }
+                else
+                {
+                    ApplyEqualizer();
+                }
+            }
         }
 
         private void BuildPanelVideo(StackPanel root)

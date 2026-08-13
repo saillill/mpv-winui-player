@@ -326,7 +326,7 @@ Grid.Column="11"
                                 </Flyout.FlyoutPresenterStyle>
                                 <StackPanel
                                     x:Name="ControlPanelRoot"
-                                    Width="440"
+                                    Width="560"
                                     Padding="10"
                                     Spacing="10" />
                             </Flyout>

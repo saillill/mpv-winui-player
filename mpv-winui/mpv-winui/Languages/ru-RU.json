@@ -171,6 +171,7 @@
   "PanelSlower": "Медленнее",
   "PanelNormal": "Обычно",
   "PanelFaster": "Быстрее",
+  "PanelPreset": "Пресет",
   "ControlBarIconPanel": "Панель управления",
   "PanelSeek": "Перейти",
   "PanelAbHint": "Задайте A, затем B, чтобы зациклить этот диапазон.",
