@@ -474,6 +474,22 @@ namespace mpv_winui.Modules.Language
         public string PluginSourceHdrLabel { get; set; } = "HDR scripts from mpv-lazy";
         public string PluginSourceHdrDesc { get; set; } = "HDR auto-detection and override scripts are adapted from mpv-lazy. Project: hooke007/mpv_PlayKit.";
         public string OpenProjectPage { get; set; } = "Open project page";
+        public string PanelEqualizer { get; set; } = "Equalizer";
+        public string PanelMasterVolume { get; set; } = "Master volume";
+        public string PanelBrightness { get; set; } = "Brightness";
+        public string PanelContrast { get; set; } = "Contrast";
+        public string PanelSaturation { get; set; } = "Saturation";
+        public string PanelHue { get; set; } = "Hue";
+        public string PanelSharpen { get; set; } = "Sharpen";
+        public string PanelBlur { get; set; } = "Blur";
+        public string PanelMoveUp { get; set; } = "Move up";
+        public string PanelMoveDown { get; set; } = "Move down";
+        public string PanelMoveLeft { get; set; } = "Move left";
+        public string PanelMoveRight { get; set; } = "Move right";
+        public string PanelSync { get; set; } = "Sync subtitles";
+        public string PanelSlower { get; set; } = "Slower";
+        public string PanelNormal { get; set; } = "Normal";
+        public string PanelFaster { get; set; } = "Faster";
 
         // ===== Yellow "may be ineffective" warnings =====
         public string WarningInterpolationVideoSync { get; set; } = "Only effective with the \"Resample to display refresh\" video sync mode.";

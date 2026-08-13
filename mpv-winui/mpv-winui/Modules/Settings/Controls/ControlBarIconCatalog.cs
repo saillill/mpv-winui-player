@@ -36,10 +36,7 @@ public static class ControlBarIconCatalog
         ("volume", "音量", "\uE995"),
         ("tracks", "轨道", "\uED1F"),
         ("random", "随机", "\uEF37"),
-        ("repeat", "循环", "\uE8EE"),
-        ("speed", "速度", "\uEC57"),
-        ("equalizer", "均衡器", "\uE8B1"),
-        ("delay", "延迟", "\uE916"),
+        ("panel", "控制面板", "\uE713"),
         ("aspect", "缩放", "\uE799"),
         ("pip", "画中画", "\uE97E"),
         ("fullwindow", "全窗口", "\uF16B"),
@@ -49,8 +46,8 @@ public static class ControlBarIconCatalog
     /// <summary>All movable ids in catalog order.</summary>
     public static IReadOnlyList<string> MovableIds { get; } =
     [
-        "volume", "tracks", "random", "repeat", "speed", "equalizer",
-        "delay", "aspect", "pip", "fullwindow", "fullscreen",
+        "volume", "tracks", "random", "panel",
+        "aspect", "pip", "fullwindow", "fullscreen",
     ];
 
     /// <summary>Transport order for 原版: play, previous, next, skip-back, skip-forward.</summary>
@@ -63,7 +60,7 @@ public static class ControlBarIconCatalog
 
     /// <summary>居中 left zone: volume, tracks, random, speed (reorderable), then the fixed tail.</summary>
     public static IReadOnlyList<string> ModernXLeft { get; } =
-        ["volume", "tracks", "random", "speed"];
+        ["volume", "tracks", "random", "panel"];
 
     /// <summary>居中 right zone: aspect, pip, fullwindow, fullscreen.</summary>
     public static IReadOnlyList<string> ModernXRight { get; } =
@@ -71,15 +68,15 @@ public static class ControlBarIconCatalog
 
     /// <summary>原版 left zone (after the transport cluster): repeat, random.</summary>
     public static IReadOnlyList<string> ClassicLeft { get; } =
-        ["repeat", "random"];
+        ["panel", "random"];
 
     /// <summary>原版 right zone: volume, speed, tracks, aspect, pip, fullwindow, fullscreen, then the fixed tail.</summary>
     public static IReadOnlyList<string> ClassicRight { get; } =
-        ["volume", "speed", "tracks", "aspect", "pip", "fullwindow", "fullscreen"];
+        ["volume", "tracks", "aspect", "pip", "fullwindow", "fullscreen"];
 
     /// <summary>Fixed tail appended after a layout's movable partition (equalizer, delay).</summary>
     public static IReadOnlyList<string> FixedTail { get; } =
-        ["equalizer", "delay"];
+        [];
 
     /// <summary>Looks an id up in the movable then the fixed catalog.</summary>
     public static (string Id, string Label, string Glyph) Find(string id)

@@ -233,14 +233,11 @@ namespace mpv_winui.Modules.Player
             SetHidden(hidden.Contains("volume"), VolumeMuteButton, VolumeSliderContainer);
             SetHidden(hidden.Contains("tracks"), TrackSelectionButton);
             SetHidden(hidden.Contains("random"), ShuffleButton);
-            SetHidden(hidden.Contains("speed"), PlaybackRateButton);
+            SetHidden(hidden.Contains("panel"), ControlPanelButton);
             SetHidden(hidden.Contains("aspect"), ZoomButton);
             SetHidden(hidden.Contains("fullwindow"), FullWindowButton);
             SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
             SetHidden(hidden.Contains("pip"), PiPButton);
-            SetHidden(hidden.Contains("equalizer"), EqualizerButton);
-            SetHidden(hidden.Contains("delay"), DelayButton);
-            SetHidden(hidden.Contains("repeat"), RepeatButton);
         }
 
         /// <summary>
@@ -455,10 +452,7 @@ namespace mpv_winui.Modules.Player
                 ("volume", VolumeSliderContainer),
                 ("tracks", TrackSelectionButton),
                 ("random", ShuffleButton),
-                ("repeat", RepeatButton),
-                ("speed", PlaybackRateButton),
-                ("equalizer", EqualizerButton),
-                ("delay", DelayButton),
+                ("panel", ControlPanelButton),
                 ("aspect", ZoomButton),
                 ("pip", PiPButton),
                 ("fullwindow", FullWindowButton),
@@ -1345,6 +1339,405 @@ namespace mpv_winui.Modules.Player
         {
             MediaPlayer?.ToggleAbLoop();
             UpdateAbLoopMarks();
+        }
+
+        // ===== Unified control panel =====
+        private bool _panelBuilt;
+        private bool _panelUpdating;
+        private readonly List<(ToggleButton Tab, StackPanel Content)> _panelTabs = [];
+        private readonly List<Slider> _panelEqSliders = [];
+        private Slider? _panelVolumeSlider;
+        private Slider? _panelBrightnessSlider;
+        private Slider? _panelContrastSlider;
+        private Slider? _panelSaturationSlider;
+        private Slider? _panelHueSlider;
+        private Slider? _panelSharpenSlider;
+        private Slider? _panelBlurSlider;
+        private ToggleButton? _panelEqOffToggle;
+        private ToggleButton? _panelRepeatToggle;
+        private ComboBox? _panelFontBox;
+        private TextBlock? _panelAbTimes;
+
+        private void ControlPanelFlyout_Opened(object sender, object e)
+        {
+            EnsureControlPanel();
+            SyncPanelValues();
+        }
+
+        private void EnsureControlPanel()
+        {
+            if (_panelBuilt)
+            {
+                return;
+            }
+            _panelBuilt = true;
+
+            var lang = AppContext.AppLang;
+            ControlPanelRoot.Children.Clear();
+            _panelTabs.Clear();
+
+            var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
+            var tabNames = new[]
+            {
+                lang.SettingsCategoryAudio,
+                lang.SettingsCategoryVideo,
+                lang.SettingsCategorySubtitles,
+                lang.SettingsCategoryPlayback,
+            };
+            for (var i = 0; i < tabNames.Length; i++)
+            {
+                var tab = new ToggleButton { Content = tabNames[i], MinWidth = 76 };
+                var index = i;
+                tab.Click += (_, _) => SelectPanelTab(index);
+                header.Children.Add(tab);
+                _panelTabs.Add((tab, new StackPanel { Spacing = 6, Visibility = Visibility.Collapsed }));
+            }
+            ControlPanelRoot.Children.Add(header);
+            foreach (var (_, content) in _panelTabs)
+            {
+                ControlPanelRoot.Children.Add(content);
+            }
+
+            BuildPanelAudio(_panelTabs[0].Content);
+            BuildPanelVideo(_panelTabs[1].Content);
+            BuildPanelSubtitles(_panelTabs[2].Content);
+            BuildPanelPlayback(_panelTabs[3].Content);
+            SelectPanelTab(0);
+        }
+
+        private void SelectPanelTab(int index)
+        {
+            for (var i = 0; i < _panelTabs.Count; i++)
+            {
+                var (tab, content) = _panelTabs[i];
+                tab.IsChecked = i == index;
+                content.Visibility = i == index ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private static TextBlock PanelCaption(string text) => new()
+        {
+            Text = text,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+        };
+
+        private static Grid PanelSliderRow(string labelText, Slider slider)
+        {
+            var grid = new Grid { ColumnSpacing = 8 };
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(78) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.Children.Add(new TextBlock { Text = labelText, VerticalAlignment = VerticalAlignment.Center });
+            Grid.SetColumn(slider, 1);
+            grid.Children.Add(slider);
+            return grid;
+        }
+
+        private Slider PanelPropertySlider(string property, double min, double max, double step)
+        {
+            var slider = new Slider { Minimum = min, Maximum = max, StepFrequency = step };
+            slider.ValueChanged += (_, _) =>
+            {
+                if (_panelUpdating)
+                {
+                    return;
+                }
+                MediaPlayer?.Command("set", property, slider.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture));
+            };
+            return slider;
+        }
+
+        private void BuildPanelAudio(StackPanel root)
+        {
+            var lang = AppContext.AppLang;
+            root.Children.Add(PanelCaption(lang.PanelEqualizer));
+
+            _panelEqOffToggle = new ToggleButton
+            {
+                Content = lang.Off,
+                IsChecked = true,
+                MinWidth = 72,
+                HorizontalAlignment = HorizontalAlignment.Left,
+            };
+            _panelEqOffToggle.Checked += (_, _) =>
+            {
+                if (!_panelUpdating)
+                {
+                    MediaPlayer?.Command("set", "af", "");
+                }
+            };
+            _panelEqOffToggle.Unchecked += (_, _) =>
+            {
+                if (!_panelUpdating)
+                {
+                    ApplyEqualizer();
+                }
+            };
+            root.Children.Add(_panelEqOffToggle);
+
+            var bandLabels = new[] { "60", "170", "310", "600", "1K", "3K", "6K", "12K", "14K", "16K" };
+            for (var i = 0; i < bandLabels.Length; i++)
+            {
+                var slider = new Slider { Minimum = -12, Maximum = 12, StepFrequency = 0.5, Value = _eqGains[i] };
+                var index = i;
+                slider.ValueChanged += (_, _) =>
+                {
+                    _eqGains[index] = slider.Value;
+                    if (!_panelUpdating)
+                    {
+                        ApplyEqualizer();
+                    }
+                };
+                _panelEqSliders.Add(slider);
+                root.Children.Add(PanelSliderRow(bandLabels[i], slider));
+            }
+
+            _panelVolumeSlider = PanelPropertySlider("volume", 0, 150, 1);
+            root.Children.Add(PanelSliderRow(lang.PanelMasterVolume, _panelVolumeSlider));
+        }
+
+        private void BuildPanelVideo(StackPanel root)
+        {
+            var lang = AppContext.AppLang;
+            _panelBrightnessSlider = PanelPropertySlider("brightness", -100, 100, 1);
+            _panelContrastSlider = PanelPropertySlider("contrast", -100, 100, 1);
+            _panelSaturationSlider = PanelPropertySlider("saturation", -100, 100, 1);
+            _panelHueSlider = PanelPropertySlider("hue", -100, 100, 1);
+            root.Children.Add(PanelSliderRow(lang.PanelBrightness, _panelBrightnessSlider));
+            root.Children.Add(PanelSliderRow(lang.PanelContrast, _panelContrastSlider));
+            root.Children.Add(PanelSliderRow(lang.PanelSaturation, _panelSaturationSlider));
+            root.Children.Add(PanelSliderRow(lang.PanelHue, _panelHueSlider));
+
+            _panelSharpenSlider = new Slider { Minimum = 0, Maximum = 3, StepFrequency = 0.1 };
+            _panelSharpenSlider.ValueChanged += (_, _) =>
+            {
+                if (_panelUpdating)
+                {
+                    return;
+                }
+                var amount = _panelSharpenSlider.Value;
+                MediaPlayer?.Command("set", "vf", amount <= 0 ? "" : $"lavfi=[unsharp=5:5:{amount.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)}]");
+            };
+            root.Children.Add(PanelSliderRow(lang.PanelSharpen, _panelSharpenSlider));
+
+            _panelBlurSlider = new Slider { Minimum = 0, Maximum = 3, StepFrequency = 0.1 };
+            _panelBlurSlider.ValueChanged += (_, _) =>
+            {
+                if (_panelUpdating)
+                {
+                    return;
+                }
+                var sigma = _panelBlurSlider.Value;
+                MediaPlayer?.Command("set", "vf", sigma <= 0 ? "" : $"lavfi=[gblur=sigma={sigma.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)}]");
+            };
+            root.Children.Add(PanelSliderRow(lang.PanelBlur, _panelBlurSlider));
+        }
+
+        private void BuildPanelSubtitles(StackPanel root)
+        {
+            var lang = AppContext.AppLang;
+
+            var fontRow = new Grid { ColumnSpacing = 8 };
+            fontRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(78) });
+            fontRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            fontRow.Children.Add(new TextBlock { Text = lang.SettingsSubFont, VerticalAlignment = VerticalAlignment.Center });
+            _panelFontBox = new ComboBox
+            {
+                IsEditable = true,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                ItemsSource = new[]
+                {
+                    "sans-serif", "Microsoft YaHei", "SimSun", "DengXian", "SimHei",
+                    "Consolas", "Segoe UI", "Source Han Sans SC", "LXGW WenKai Mono Lite",
+                },
+            };
+            _panelFontBox.SelectionChanged += (_, _) =>
+            {
+                if (_panelUpdating)
+                {
+                    return;
+                }
+                var font = (_panelFontBox.SelectedItem as string) ?? _panelFontBox.Text;
+                if (!string.IsNullOrWhiteSpace(font))
+                {
+                    MediaPlayer?.Command("set", "sub-font", font);
+                }
+            };
+            Grid.SetColumn(_panelFontBox, 1);
+            fontRow.Children.Add(_panelFontBox);
+            root.Children.Add(fontRow);
+
+            var moves = new Grid { ColumnSpacing = 8, RowSpacing = 8 };
+            moves.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            moves.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            moves.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            moves.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var up = new Button { Content = lang.PanelMoveUp };
+            up.Click += (_, _) => MediaPlayer?.Command("add", "sub-pos", "-1");
+            var down = new Button { Content = lang.PanelMoveDown };
+            down.Click += (_, _) => MediaPlayer?.Command("add", "sub-pos", "1");
+            var left = new Button { Content = lang.PanelMoveLeft };
+            left.Click += (_, _) => MediaPlayer?.Command("add", "sub-margin-x", "-5");
+            var right = new Button { Content = lang.PanelMoveRight };
+            right.Click += (_, _) => MediaPlayer?.Command("add", "sub-margin-x", "5");
+
+            Grid.SetColumn(up, 0); Grid.SetRow(up, 0);
+            Grid.SetColumn(down, 1); Grid.SetRow(down, 0);
+            Grid.SetColumn(left, 0); Grid.SetRow(left, 1);
+            Grid.SetColumn(right, 1); Grid.SetRow(right, 1);
+            moves.Children.Add(up);
+            moves.Children.Add(down);
+            moves.Children.Add(left);
+            moves.Children.Add(right);
+            root.Children.Add(moves);
+
+            var sync = new Button { Content = lang.PanelSync };
+            sync.Click += (_, _) =>
+            {
+                MediaPlayer?.Command("set", "sub-delay", "0");
+                MediaPlayer?.Command("set", "audio-delay", "0");
+            };
+            root.Children.Add(sync);
+        }
+
+        private void BuildPanelPlayback(StackPanel root)
+        {
+            var lang = AppContext.AppLang;
+
+            var seeks = new Grid { ColumnSpacing = 8 };
+            for (var i = 0; i < 4; i++)
+            {
+                seeks.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            }
+            var seekDefs = new[]
+            {
+                ("\uE72B -60", "set", "time-pos"),
+                ("\uE72B -5", "set", "time-pos"),
+                ("\uE72A +5", "set", "time-pos"),
+                ("\uE72A +60", "set", "time-pos"),
+            };
+            for (var i = 0; i < seekDefs.Length; i++)
+            {
+                var (label, _, _) = seekDefs[i];
+                var delta = i switch { 0 => -60, 1 => -5, 2 => 5, _ => 60 };
+                var text = i switch { 0 or 3 => "1min", _ => "5sec" };
+                var button = new Button { Content = (i is 0 or 1 ? "\uE72B " : "\uE72A ") + text, MinWidth = 68 };
+                var offset = delta;
+                button.Click += (_, _) =>
+                {
+                    if (MediaPlayer is not { } player)
+                    {
+                        return;
+                    }
+                    var target = player.Position + offset;
+                    player.Command("seek", target.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture), "absolute");
+                };
+                Grid.SetColumn(button, i);
+                seeks.Children.Add(button);
+            }
+            root.Children.Add(seeks);
+
+            var speeds = new Grid { ColumnSpacing = 8 };
+            for (var i = 0; i < 3; i++)
+            {
+                speeds.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            }
+            var slower = new Button { Content = lang.PanelSlower };
+            slower.Click += (_, _) => MediaPlayer?.Command("add", "speed", "-0.1");
+            var normal = new Button { Content = lang.PanelNormal };
+            normal.Click += (_, _) => MediaPlayer?.Command("set", "speed", "1");
+            var faster = new Button { Content = lang.PanelFaster };
+            faster.Click += (_, _) => MediaPlayer?.Command("add", "speed", "0.1");
+            Grid.SetColumn(slower, 0); Grid.SetColumn(normal, 1); Grid.SetColumn(faster, 2);
+            speeds.Children.Add(slower);
+            speeds.Children.Add(normal);
+            speeds.Children.Add(faster);
+            root.Children.Add(speeds);
+
+            _panelRepeatToggle = new ToggleButton { Content = lang.MoreRepeat, MinWidth = 72, HorizontalAlignment = HorizontalAlignment.Left };
+            _panelRepeatToggle.Checked += (_, _) =>
+            {
+                if (!_panelUpdating && MediaPlayer is { } player)
+                {
+                    player.RepeatState = RepeatState.One;
+                }
+            };
+            _panelRepeatToggle.Unchecked += (_, _) =>
+            {
+                if (!_panelUpdating && MediaPlayer is { } player)
+                {
+                    player.RepeatState = RepeatState.None;
+                }
+            };
+            root.Children.Add(_panelRepeatToggle);
+
+            var abRow = new Grid { ColumnSpacing = 8 };
+            abRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            abRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            abRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            abRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var aButton = new Button { Content = "A", MinWidth = 48 };
+            aButton.Click += (_, _) => MediaPlayer?.Command("ab-loop-a");
+            var bButton = new Button { Content = "B", MinWidth = 48 };
+            bButton.Click += (_, _) => MediaPlayer?.Command("ab-loop-b");
+            var resetButton = new Button { Content = lang.Reset, MinWidth = 64 };
+            resetButton.Click += (_, _) =>
+            {
+                MediaPlayer?.Command("ab-loop-a", "no");
+                MediaPlayer?.Command("ab-loop-b", "no");
+                SyncPanelAbLoop();
+            };
+            _panelAbTimes = new TextBlock { Text = "00:00:00 ~ 00:00:00", VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(aButton, 0);
+            Grid.SetColumn(_panelAbTimes, 1);
+            Grid.SetColumn(bButton, 2);
+            Grid.SetColumn(resetButton, 3);
+            abRow.Children.Add(aButton);
+            abRow.Children.Add(_panelAbTimes);
+            abRow.Children.Add(bButton);
+            abRow.Children.Add(resetButton);
+            root.Children.Add(abRow);
+        }
+
+        private void SyncPanelValues()
+        {
+            if (MediaPlayer is not { } player)
+            {
+                return;
+            }
+
+            _panelUpdating = true;
+            try
+            {
+                _panelVolumeSlider!.Value = player.Volume;
+                _panelRepeatToggle!.IsChecked = player.RepeatState != RepeatState.None;
+                SyncPanelAbLoop();
+            }
+            finally
+            {
+                _panelUpdating = false;
+            }
+        }
+
+        private void SyncPanelAbLoop()
+        {
+            if (_panelAbTimes is null)
+            {
+                return;
+            }
+            var a = MediaPlayer?.AbLoopA ?? 0;
+            var b = MediaPlayer?.AbLoopB ?? 0;
+            _panelAbTimes.Text = $"{FormatPanelTime(a)} ~ {FormatPanelTime(b)}";
+        }
+
+        private static string FormatPanelTime(double seconds)
+        {
+            if (seconds <= 0)
+            {
+                return "00:00:00";
+            }
+            var t = TimeSpan.FromSeconds(seconds);
+            return $"{(int)t.TotalHours:00}:{t.Minutes:00}:{t.Seconds:00}";
         }
 
         // ===== Equalizer =====
