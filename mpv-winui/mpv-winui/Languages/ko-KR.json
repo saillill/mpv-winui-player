@@ -176,6 +176,7 @@
   "PanelPost": "후처리",
   "PanelCapture": "캡처",
   "PanelSpeed": "속도",
+  "PanelOn": "켬",
   "ControlBarIconPanel": "제어판",
   "PanelSeek": "탐색",
   "PanelAbHint": "A를 설정한 뒤 B를 설정하면 해당 구간을 반복 재생합니다.",
