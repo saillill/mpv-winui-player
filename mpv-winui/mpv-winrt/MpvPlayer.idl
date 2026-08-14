@@ -4,6 +4,7 @@ import "MpvPlaylistItem.idl";
 import "MpvChapter.idl";
 import "MpvEdition.idl";
 import "MpvAudioDevice.idl";
+import "MpvGpuAdapter.idl";
 import "MpvProfile.idl";
 import "MpvMenuItem.idl";
 import "MpvTrack.idl";
@@ -124,6 +125,7 @@ namespace mpv_winrt
         Windows.Foundation.Collections.IVectorView<MpvChapter> GetChapters();
         Windows.Foundation.Collections.IVectorView<MpvEdition> GetEditions();
         Windows.Foundation.Collections.IVectorView<MpvAudioDevice> GetAudioDevices();
+        Windows.Foundation.Collections.IVectorView<MpvGpuAdapter> GetGpuAdapters();
         Windows.Foundation.Collections.IVectorView<MpvProfile> GetProfiles();
         Int32 CurrentChapter();
         Int32 CurrentEdition();

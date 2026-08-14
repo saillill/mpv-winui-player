@@ -193,37 +193,44 @@ public sealed partial class OptionColorControl : OptionControlBase
 
     private async void OnCustomClick(object sender, RoutedEventArgs e)
     {
-        if (Setting is null || XamlRoot is null)
+        try
         {
-            return;
+            if (Setting is null || XamlRoot is null)
+            {
+                return;
+            }
+
+            var picker = new ColorPicker
+            {
+                Color = TryParse(Setting.Getter?.Invoke() as string) ?? Colors.White,
+                IsAlphaEnabled = false,
+                IsColorSliderVisible = true,
+                IsColorChannelTextInputVisible = true,
+                IsHexInputVisible = true,
+                IsMoreButtonVisible = false,
+                ColorSpectrumShape = ColorSpectrumShape.Box,
+                MinWidth = 320,
+            };
+            var dialog = new ContentDialog
+            {
+                Title = mpv_winui.AppContext.AppLang.ThemeColorCustomColors,
+                Content = picker,
+                XamlRoot = XamlRoot,
+                RequestedTheme = WindowStyleManager.ResolveTheme(),
+                PrimaryButtonText = mpv_winui.AppContext.AppLang.ThemeColorDone,
+                CloseButtonText = mpv_winui.AppContext.AppLang.Cancel,
+                DefaultButton = ContentDialogButton.Primary,
+            };
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                var color = picker.Color;
+                ApplyColor($"#{color.R:X2}{color.G:X2}{color.B:X2}");
+            }
         }
-
-        var picker = new ColorPicker
+        catch (Exception ex)
         {
-            Color = TryParse(Setting.Getter?.Invoke() as string) ?? Colors.White,
-            IsAlphaEnabled = false,
-            IsColorSliderVisible = true,
-            IsColorChannelTextInputVisible = true,
-            IsHexInputVisible = true,
-            IsMoreButtonVisible = false,
-            ColorSpectrumShape = ColorSpectrumShape.Box,
-            MinWidth = 320,
-        };
-        var dialog = new ContentDialog
-        {
-            Title = mpv_winui.AppContext.AppLang.ThemeColorCustomColors,
-            Content = picker,
-            XamlRoot = XamlRoot,
-            RequestedTheme = WindowStyleManager.ResolveTheme(),
-            PrimaryButtonText = mpv_winui.AppContext.AppLang.ThemeColorDone,
-            CloseButtonText = mpv_winui.AppContext.AppLang.Cancel,
-            DefaultButton = ContentDialogButton.Primary,
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            var color = picker.Color;
-            ApplyColor($"#{color.R:X2}{color.G:X2}{color.B:X2}");
+            mpv_winui.AppContext.AppLogger.Error(ex, "custom color dialog failed");
         }
     }
 

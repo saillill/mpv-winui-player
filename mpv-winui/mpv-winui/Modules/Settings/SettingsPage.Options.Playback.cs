@@ -79,6 +79,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.KeepOpen),
+                Description = lang.SettingsHelpKeepOpen,
                 Label = lang.SettingsKeepOpen,
                 Category = window,
                 Type = OptionType.StringList,
@@ -90,6 +91,64 @@ public sealed partial class SettingsPage
                 ],
                 Getter = () => AppContext.AppSetting.KeepOpen,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.KeepOpen), AppContext.AppSetting.KeepOpen = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.StartFullscreen),
+                Description = lang.SettingsHelpStartFullscreen,
+                Label = lang.SettingsStartFullscreen,
+                Category = window,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.StartFullscreen,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.StartFullscreen), AppContext.AppSetting.StartFullscreen = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowTitle),
+                Description = lang.SettingsHelpWindowTitle,
+                Label = lang.SettingsWindowTitle,
+                Category = window,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.WindowTitle,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowTitle = (string)v!;
+                    if (App.Window is MainWindow mainWindow)
+                    {
+                        mainWindow.UpdateTitle(string.Empty);
+                    }
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.LoopPlaylist),
+                Description = lang.SettingsHelpLoopPlaylist,
+                Label = lang.SettingsLoopPlaylist,
+                Category = playback,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueOff),
+                    new OptionChoice("inf", lang.OptionValueLoopInfinite),
+                    new OptionChoice("force", lang.OptionValueLoopForce),
+                ],
+                Getter = () => AppContext.AppSetting.LoopPlaylist,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopPlaylist), AppContext.AppSetting.LoopPlaylist = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.LoopFile),
+                Description = lang.SettingsHelpLoopFile,
+                Label = lang.SettingsLoopFile,
+                Category = playback,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.LoopFile,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopFile), AppContext.AppSetting.LoopFile = (bool)v!)
             },
 
             new Option
@@ -111,6 +170,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.WindowPiPSize),
+                Description = lang.SettingsHelpWindowPiPSize,
                 Label = lang.SettingsPiPSize,
                 Category = window,
                 Type = OptionType.StringList,
@@ -152,34 +212,8 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = nameof(AppContext.AppSetting.LoopFile),
-                Label = lang.SettingsLoopFile,
-                Category = playback,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.LoopFile,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopFile), AppContext.AppSetting.LoopFile = (bool)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.LoopPlaylist),
-                Label = lang.SettingsLoopPlaylist,
-                Category = playback,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("no", lang.OptionValueLoopPlaylistNo),
-                    new OptionChoice("yes", lang.OptionValueLoopPlaylistYes),
-                    new OptionChoice("inf", lang.OptionValueLoopPlaylistInf),
-                    new OptionChoice("force", lang.OptionValueLoopPlaylistForce),
-                ],
-                Getter = () => AppContext.AppSetting.LoopPlaylist,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopPlaylist), AppContext.AppSetting.LoopPlaylist = (string)v!)
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.SavePositionOnQuit),
+                Description = lang.SettingsHelpSavePositionOnQuit,
                 Label = lang.SettingsSavePositionOnQuit,
                 Category = playback,
                 Type = OptionType.Boolean,
@@ -190,6 +224,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.Speed),
+                Description = lang.SettingsHelpSpeed,
                 Label = lang.SettingsSpeed,
                 Category = playback,
                 Type = OptionType.Double,
@@ -239,6 +274,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.CacheEnabled),
+                Description = lang.SettingsHelpCacheEnabled,
                 Label = lang.SettingsCacheEnabled,
                 Category = network,
                 Type = OptionType.StringList,
@@ -306,7 +342,16 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsYtdlFormat,
                 Category = network,
                 Description = lang.SettingsHelpYtdlFormat,
-                Type = OptionType.String,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.OptionValueAuto),
+                    new OptionChoice("bv*+ba/b", "bv*+ba/b"),
+                    new OptionChoice("bv*+ba", "bv*+ba"),
+                    new OptionChoice("best", "best"),
+                    new OptionChoice("mp4", "mp4"),
+                    new OptionChoice("webm", "webm"),
+                ],
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.YtdlFormat,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.YtdlFormat), AppContext.AppSetting.YtdlFormat = (string)v!)
@@ -466,6 +511,9 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpCookiesFile,
                 Type = OptionType.String,
                 AllowEmpty = true,
+                PickFile = true,
+                OpenFolder = true,
+                FileTypeFilter = [".txt"],
                 Getter = () => AppContext.AppSetting.CookiesFile,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CookiesFile), AppContext.AppSetting.CookiesFile = (string)v!)
             },
@@ -596,6 +644,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.DirectoryMode),
+                Description = lang.SettingsHelpDirectoryMode,
                 Label = lang.SettingsDirectoryMode,
                 Category = playback,
                 Type = OptionType.StringList,
@@ -616,7 +665,8 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsDirectoryFilterTypes,
                 Category = playback,
                 Description = lang.SettingsHelpDirectoryFilterTypes,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.DirectoryFilterTypes,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DirectoryFilterTypes), AppContext.AppSetting.DirectoryFilterTypes = (string)v!)
@@ -628,7 +678,8 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsVideoExts,
                 Category = playback,
                 Description = lang.SettingsHelpVideoExts,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.VideoExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoExts), AppContext.AppSetting.VideoExts = (string)v!)
@@ -637,9 +688,11 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ImageExts),
+                Description = lang.SettingsHelpImageExts,
                 Label = lang.SettingsImageExts,
                 Category = playback,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.ImageExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ImageExts), AppContext.AppSetting.ImageExts = (string)v!)
@@ -662,9 +715,11 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AudioExts),
+                Description = lang.SettingsHelpAudioExts,
                 Label = lang.SettingsAudioExts,
                 Category = audio,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.AudioExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioExts), AppContext.AppSetting.AudioExts = (string)v!)
@@ -676,7 +731,8 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsWatchLaterOptions,
                 Category = playback,
                 Description = lang.SettingsHelpWatchLaterOptions,
-                Type = OptionType.String,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.WatchLaterOptions,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.WatchLaterOptions), AppContext.AppSetting.WatchLaterOptions = (string)v!)

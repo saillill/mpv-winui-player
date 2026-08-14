@@ -27,6 +27,7 @@ public enum OptionActionKind
     Button,
 }
 
+/// <summary>Display tier used to fold advanced/experimental options by default.</summary>
 /// <summary>A checkbox entry used by <see cref="OptionType.CheckList"/> options.</summary>
 public sealed class OptionCheckItem
 {
@@ -47,6 +48,9 @@ public sealed class OptionCheckItem
 
     /// <summary>Optional localized caption shown above the first item of a group.</summary>
     public string? Group { get; }
+
+    /// <summary>Optional secondary line shown under the checkbox label (e.g. profile-desc).</summary>
+    public string? Description { get; set; }
 
     /// <summary>Optional target key the item writes to (e.g. a per-style setting).</summary>
     public string? Target { get; set; }
@@ -120,6 +124,24 @@ public sealed class Option : INotifyPropertyChanged
     {
         get; set;
     }
+
+    /// <summary>File extensions offered by the picker when <see cref="PickFile"/> is true.</summary>
+    public IReadOnlyList<string>? FileTypeFilter
+    {
+        get; set;
+    }
+
+    /// <summary>Relative local-data folder opened by "Open" when the input is empty.</summary>
+    public string? FallbackOpenFolder
+    {
+        get; set;
+    }
+
+    /// <summary>Separator used to join multi-entry list values (";" by default).</summary>
+    public char ListSeparator
+    {
+        get; set;
+    } = ';';
 
     /// <summary>Optional section caption used to split a category into topic groups.</summary>
     public string? Section

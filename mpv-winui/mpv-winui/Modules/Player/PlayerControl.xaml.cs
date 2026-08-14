@@ -51,6 +51,8 @@ namespace mpv_winui.Modules.Player
         private Visual? _panelGradientVisual;
 
         private readonly DispatcherTimer _positionUpdateTimer;
+        private double _lastPolledPosition = double.NaN;
+        private double _lastPolledDuration = double.NaN;
         private bool _hasError = false;
         private bool _isBuffering = false;
         private bool _isInScrubMode = false;
@@ -105,6 +107,22 @@ namespace mpv_winui.Modules.Player
         public void ApplyLocalizedStrings()
         {
             ToolTipService.SetToolTip(PiPButton, AppContext.AppLang.SettingsPiP);
+            ToolTipService.SetToolTip(PlayPauseButton, AppContext.AppLang.Play);
+            ToolTipService.SetToolTip(PreviousTrackButton, AppContext.AppLang.MorePreviousTrack);
+            ToolTipService.SetToolTip(NextTrackButton, AppContext.AppLang.MoreNextTrack);
+            ToolTipService.SetToolTip(SkipBackwardButton, AppContext.AppLang.MoreSkipBackward);
+            ToolTipService.SetToolTip(SkipForwardButton, AppContext.AppLang.MoreSkipForward);
+            ToolTipService.SetToolTip(ShuffleButton, AppContext.AppLang.MoreShuffle);
+            ToolTipService.SetToolTip(RepeatButton, AppContext.AppLang.MoreRepeat);
+            ToolTipService.SetToolTip(VolumeMuteButton, AppContext.AppLang.PiPMute);
+            ToolTipService.SetToolTip(VolumeSlider, AppContext.AppLang.ControlBarIconVolume);
+            ToolTipService.SetToolTip(PlaybackRateButton, AppContext.AppLang.MorePlaybackRate);
+            ToolTipService.SetToolTip(TrackSelectionButton, AppContext.AppLang.ControlBarIconTracks);
+            ToolTipService.SetToolTip(ZoomButton, AppContext.AppLang.MoreZoom);
+            ToolTipService.SetToolTip(FullWindowButton, AppContext.AppLang.MoreFullWindow);
+            ToolTipService.SetToolTip(FullScreenButton, AppContext.AppLang.MoreFullScreen);
+            ToolTipService.SetToolTip(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
+            ToolTipService.SetToolTip(MoreButton, AppContext.AppLang.ControlBarIconMore);
 
             // Keyboard/screen-reader names (XAML holds English placeholders).
             AutomationProperties.SetName(ProgressSlider, AppContext.AppLang.ControlBarIconPlayback);
@@ -123,6 +141,7 @@ namespace mpv_winui.Modules.Player
             AutomationProperties.SetName(PiPButton, AppContext.AppLang.SettingsPiP);
             AutomationProperties.SetName(FullWindowButton, AppContext.AppLang.MoreFullWindow);
             AutomationProperties.SetName(FullScreenButton, AppContext.AppLang.MoreFullScreen);
+            AutomationProperties.SetName(MoreButton, AppContext.AppLang.ControlBarIconMore);
         }
 
         private void OnAppSettingChanged(string key, object? value)
@@ -233,14 +252,11 @@ namespace mpv_winui.Modules.Player
             SetHidden(hidden.Contains("volume"), VolumeMuteButton, VolumeSliderContainer);
             SetHidden(hidden.Contains("tracks"), TrackSelectionButton);
             SetHidden(hidden.Contains("random"), ShuffleButton);
-            SetHidden(hidden.Contains("speed"), PlaybackRateButton);
+            SetHidden(hidden.Contains("panel"), ControlPanelButton);
             SetHidden(hidden.Contains("aspect"), ZoomButton);
             SetHidden(hidden.Contains("fullwindow"), FullWindowButton);
             SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
             SetHidden(hidden.Contains("pip"), PiPButton);
-            SetHidden(hidden.Contains("equalizer"), EqualizerButton);
-            SetHidden(hidden.Contains("delay"), DelayButton);
-            SetHidden(hidden.Contains("repeat"), RepeatButton);
         }
 
         /// <summary>
@@ -455,10 +471,7 @@ namespace mpv_winui.Modules.Player
                 ("volume", VolumeSliderContainer),
                 ("tracks", TrackSelectionButton),
                 ("random", ShuffleButton),
-                ("repeat", RepeatButton),
-                ("speed", PlaybackRateButton),
-                ("equalizer", EqualizerButton),
-                ("delay", DelayButton),
+                ("panel", ControlPanelButton),
                 ("aspect", ZoomButton),
                 ("pip", PiPButton),
                 ("fullwindow", FullWindowButton),
@@ -487,7 +500,7 @@ namespace mpv_winui.Modules.Player
                     PlayPauseButton, SkipForwardButton,
                     NextTrackButton,
                 ];
-                right = ReorderMovable(rightMovable.ToArray(), custom);
+                right = [.. ReorderMovable(rightMovable.ToArray(), custom), MoreButton];
             }
             else
             {
@@ -498,7 +511,7 @@ namespace mpv_winui.Modules.Player
                     .. ReorderMovable(leftMovable.ToArray(), custom),
                 ];
                 middle = [];
-                right = ReorderMovable(rightMovable.ToArray(), custom);
+                right = [.. ReorderMovable(rightMovable.ToArray(), custom), MoreButton];
             }
 
             ApplyBarOrders(LeftCommandBar, MiddleCommandBar, RightCommandBar, left, middle, right);
@@ -534,7 +547,7 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private static List<string> ParseCustomOrder()
         {
-            var allowed = new[] { "volume", "tracks", "random", "repeat", "speed", "aspect", "fullwindow", "fullscreen", "pip", "equalizer", "delay" };
+            var allowed = new[] { "volume", "tracks", "random", "panel", "aspect", "fullwindow", "fullscreen", "pip" };
             var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
             var order = layout == "modernx"
                 ? AppContext.AppSetting.ControlBarCustomOrderModernX
@@ -659,6 +672,18 @@ namespace mpv_winui.Modules.Player
             }
         }
 
+        /// <summary>Ids the user explicitly hid in the control-bar settings.</summary>
+        private static HashSet<string> CurrentHiddenIconIds()
+        {
+            var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
+            var value = layout == "modernx"
+                ? AppContext.AppSetting.ControlBarHiddenIconsModernX
+                : AppContext.AppSetting.ControlBarHiddenIconsClassic;
+            return new HashSet<string>(
+                value?.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
+                StringComparer.OrdinalIgnoreCase);
+        }
+
         public MpvMediaPlayer? MediaPlayer
         {
             get
@@ -767,6 +792,7 @@ namespace mpv_winui.Modules.Player
             RootGrid.PointerMoved += RootGrid_PointerMoved;
             PiPButton.Click += OnPiPClick;
             AppContext.SettingChanged += OnAppSettingChanged;
+            AppContext.LanguageChanged += OnLanguageChanged;
             PlayPauseButton.Click += OnPlayPauseClick;
             SkipBackwardButton.Click += SkipBackwardButton_Click;
             SkipForwardButton.Click += SkipForwardButton_Click;
@@ -836,6 +862,7 @@ namespace mpv_winui.Modules.Player
             PiPButton.Click -= OnPiPClick;
             RootGrid.PointerMoved -= RootGrid_PointerMoved;
             AppContext.SettingChanged -= OnAppSettingChanged;
+            AppContext.LanguageChanged -= OnLanguageChanged;
             PlayPauseButton.Click -= OnPlayPauseClick;
             SkipBackwardButton.Click -= SkipBackwardButton_Click;
             SkipForwardButton.Click -= SkipForwardButton_Click;
@@ -1319,8 +1346,21 @@ namespace mpv_winui.Modules.Player
         {
             if (MediaPlayer?.Playing == true)
             {
-                UpdateProgressSliderValue(MediaPlayer?.Position);
-                UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
+                // Read each native value once per tick and skip UI updates
+                // when nothing changed (audit A3; event-driven observation is
+                // planned once ObserveProperty is wired through).
+                var position = MediaPlayer.Position;
+                var duration = MediaPlayer.Duration;
+                if (Math.Abs(position - _lastPolledPosition) < 0.001
+                    && Math.Abs(duration - _lastPolledDuration) < 0.001)
+                {
+                    return;
+                }
+
+                _lastPolledPosition = position;
+                _lastPolledDuration = duration;
+                UpdateProgressSliderValue(position, duration);
+                UpdateTimeTexts(position, duration);
                 OnPositionChanged?.Invoke();
             }
         }
@@ -1347,136 +1387,6 @@ namespace mpv_winui.Modules.Player
             UpdateAbLoopMarks();
         }
 
-        // ===== Equalizer =====
-        private static readonly string[] EqualizerBands =
-        [
-            "31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k",
-        ];
-
-        private readonly List<double> _eqGains = new(10) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-        private void EqualizerFlyout_Opened(object sender, object e)
-        {
-            BuildEqualizerBands();
-        }
-
-        private void BuildEqualizerBands()
-        {
-            EqualizerBandsPanel.Items.Clear();
-            for (int i = 0; i < EqualizerBands.Length; i++)
-            {
-                var band = EqualizerBands[i];
-                var slider = new Slider
-                {
-                    Minimum = -12,
-                    Maximum = 12,
-                    Value = _eqGains[i],
-                    Width = 160,
-                    StepFrequency = 0.5,
-                };
-                int index = i;
-                slider.ValueChanged += (_, _) =>
-                {
-                    _eqGains[index] = slider.Value;
-                    ApplyEqualizer();
-                };
-                var row = new Grid { ColumnSpacing = 10 };
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                var label = new TextBlock { Text = band, VerticalAlignment = VerticalAlignment.Center };
-                Grid.SetColumn(slider, 1);
-                row.Children.Add(label);
-                row.Children.Add(slider);
-                EqualizerBandsPanel.Items.Add(row);
-            }
-        }
-
-        private void ApplyEqualizer()
-        {
-            if (MediaPlayer is null)
-            {
-                return;
-            }
-            // superequalizer gains order: 10 bands (31Hz..16kHz), where the
-            // first value is the "bass" band and last the "treble".
-            var gains = string.Join(":", _eqGains.Select(g => g.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)));
-            MediaPlayer.Command(["set", "af", $"lavfi=[superequalizer@eq:{gains}]"]);
-        }
-
-        private void EqualizerReset_Click(object sender, RoutedEventArgs e)
-        {
-            for (int i = 0; i < _eqGains.Count; i++)
-            {
-                _eqGains[i] = 0;
-            }
-            BuildEqualizerBands();
-            MediaPlayer?.Command(["set", "af", ""]);
-        }
-
-        private void EqualizerOff_Click(object sender, RoutedEventArgs e)
-        {
-            MediaPlayer?.Command(["set", "af", ""]);
-        }
-
-
-        // ===== Audio / subtitle delay =====
-        private bool _delaySliderUpdating;
-
-        private void DelayFlyout_Opened(object sender, object e)
-        {
-            _delaySliderUpdating = true;
-            AudioDelaySlider.Value = AppContext.AppSetting.AudioDelay;
-            SubDelaySlider.Value = AppContext.AppSetting.SubDelay;
-            _delaySliderUpdating = false;
-        }
-
-        private void AudioDelaySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
-        {
-            if (_delaySliderUpdating)
-            {
-                return;
-            }
-            var value = Math.Round(e.NewValue, 1);
-            AppContext.AppSetting.AudioDelay = value;
-            AppContext.SendMpvCommand($"no-osd set audio-delay {value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-        }
-
-        private void SubDelaySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
-        {
-            if (_delaySliderUpdating)
-            {
-                return;
-            }
-            var value = Math.Round(e.NewValue, 1);
-            AppContext.AppSetting.SubDelay = value;
-            AppContext.SendMpvCommand($"no-osd set sub-delay {value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-        }
-
-        private void DelayReset_Click(object sender, RoutedEventArgs e)
-        {
-            AudioDelaySlider.Value = 0;
-            SubDelaySlider.Value = 0;
-        }
-
-        // ===== Custom playback rate =====
-        private async void CustomRateItem_Click(object sender, RoutedEventArgs e)
-        {
-            var box = new TextBox { PlaceholderText = "e.g. 1.3 or 16" };
-            var dialog = new ContentDialog
-            {
-                Title = AppContext.AppLang.CustomRate,
-                Content = box,
-                PrimaryButtonText = "OK",
-                CloseButtonText = AppContext.AppLang.Cancel,
-                XamlRoot = XamlRoot,
-            };
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary
-                && double.TryParse(box.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var rate)
-                && rate > 0 && rate <= 100)
-            {
-                MediaPlayer?.Command(["set", "speed", rate.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)]);
-            }
-        }
 
         /// <summary>Positions the A/B markers on the progress bar from mpv's ab-loop properties.</summary>
         private void UpdateAbLoopMarks()
@@ -1613,219 +1523,6 @@ namespace mpv_winui.Modules.Player
         private Storyboard? _showStoryboard;
         private Storyboard? _hideStoryboard;
 
-        private void StopPanelAnimations()
-        {
-            _panelGridVisual?.StopAnimation("Opacity");
-            _panelGradientVisual?.StopAnimation("Opacity");
-            if (_panelGridVisual is not null)
-            {
-                _panelGridVisual.Opacity = 1f;
-            }
-            if (_panelGradientVisual is not null)
-            {
-                _panelGradientVisual.Opacity = 1f;
-            }
-            _panelAnimationTimer.Stop();
-            _panelAnimationTimer.Tick -= PanelAnimationTick;
-            _showStoryboard?.Stop();
-            _showStoryboard = null;
-            _hideStoryboard?.Stop();
-            _hideStoryboard = null;
-            _panelAnimating = false;
-        }
-
-        /// <summary>
-        /// Overlay tween: the main window uses a XAML Storyboard on the render
-        /// transform. PiP (a second top-level window) cannot use a Storyboard
-        /// (crashes the compositor) and must not animate the composition
-        /// `Offset` (layout owns it, which strands the bar after zoom), so it
-        /// uses a short DispatcherTimer tween on the XAML values instead.
-        /// </summary>
-        private void StartPanelAnimation(bool show)
-        {
-            if (_panelAnimating && _panelAnimationShow == show)
-            {
-                return;
-            }
-
-            _panelAnimating = true;
-            _panelAnimationShow = show;
-
-            if (!_isPiPHost)
-            {
-                StartMainWindowPanelAnimation(show);
-                return;
-            }
-
-            StartPiPPanelAnimation(show);
-        }
-
-        /// <summary>
-        /// Main-window overlay tween: XAML Storyboard on the render transform.
-        /// TranslateTransform is layout-independent, so a resize/zoom while the
-        /// bar is hidden cannot leave it stranded above the bottom edge (the
-        /// composition Visual.Offset path snaps back to a stale layout value
-        /// when the grid is Collapsed).
-        /// </summary>
-        private void StartMainWindowPanelAnimation(bool show)
-        {
-            // Stop only the in-flight storyboard. Do not call
-            // StopPanelAnimations() here: it clears _panelAnimating, which
-            // defeats the same-direction re-entry guard in StartPanelAnimation
-            // and lets every pointer move restart the pop-out animation
-            // (the bar visibly twitches).
-            _showStoryboard?.Stop();
-            _showStoryboard = null;
-            _hideStoryboard?.Stop();
-            _hideStoryboard = null;
-
-            if (show)
-            {
-                ControlPanelGrid.Visibility = Visibility.Visible;
-            }
-
-            ControlPanelGradient.Opacity = 1;
-            ControlPanelGrid.Opacity = 1;
-            TranslateVertical.Y = 0;
-
-            var storyboard = new Storyboard
-            {
-                Duration = TimeSpan.FromMilliseconds(180),
-            };
-            AddPanelAnimation(storyboard, "Opacity", show ? 0 : 1, show ? 1 : 0, 180, ControlPanelGrid);
-            AddPanelAnimation(storyboard, "Opacity", show ? 0 : 1, show ? 1 : 0, 180, ControlPanelGradient);
-            AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", show ? 48 : 0, show ? 0 : 48, 180, ControlPanelGrid);
-            storyboard.Completed += (_, _) => PanelAnimationCompleted(show);
-            storyboard.Begin();
-
-            if (show)
-            {
-                _showStoryboard = storyboard;
-            }
-            else
-            {
-                _hideStoryboard = storyboard;
-            }
-        }
-
-        private void StartPiPPanelAnimation(bool show)
-        {
-            if (show)
-            {
-                ControlPanelGrid.Visibility = Visibility.Visible;
-            }
-
-            // Composition opacity multiplies the XAML opacity, so keep the
-            // XAML base at 1 and animate only the composition value; the 16ms
-            // timer drives just the slide (TranslateTransform), which is
-            // layout-independent. This is smoother than tweening three XAML
-            // properties per timer tick.
-            ControlPanelGradient.Opacity = 1;
-            ControlPanelGrid.Opacity = 1;
-            TranslateVertical.Y = show ? 48 : 0;
-
-            EnsurePanelVisuals();
-            if (_panelCompositor is not null && _panelGridVisual is not null && _panelGradientVisual is not null)
-            {
-                _panelGridVisual.StopAnimation("Opacity");
-                _panelGradientVisual.StopAnimation("Opacity");
-
-                var ease = _panelCompositor.CreateCubicBezierEasingFunction(
-                    new System.Numerics.Vector2(0.215f, 0.61f),
-                    new System.Numerics.Vector2(0.355f, 1f));
-                var opacity = _panelCompositor.CreateScalarKeyFrameAnimation();
-                opacity.Duration = TimeSpan.FromMilliseconds(180);
-                opacity.InsertKeyFrame(0f, show ? 0f : 1f);
-                opacity.InsertKeyFrame(1f, show ? 1f : 0f, ease);
-                _panelGridVisual.StartAnimation("Opacity", opacity);
-                _panelGradientVisual.StartAnimation("Opacity", opacity);
-            }
-
-            _panelAnimationStart = Environment.TickCount64;
-            _panelAnimationTimer.Tick -= PanelAnimationTick;
-            _panelAnimationTimer.Tick += PanelAnimationTick;
-            _panelAnimationTimer.Start();
-        }
-
-        private void PanelAnimationTick(object? sender, object e)
-        {
-            const double durationMs = 180;
-            var elapsed = Environment.TickCount64 - _panelAnimationStart;
-            var t = Math.Clamp(elapsed / durationMs, 0, 1);
-            var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
-
-            TranslateVertical.Y = _panelAnimationShow ? 48 * (1 - eased) : 48 * eased;
-
-            if (t >= 1)
-            {
-                _panelAnimationTimer.Stop();
-                PanelAnimationCompleted(_panelAnimationShow);
-            }
-        }
-
-        private void EnsurePanelVisuals()
-        {
-            if (_panelGridVisual is null)
-            {
-                _panelGridVisual = ElementCompositionPreview.GetElementVisual(ControlPanelGrid);
-                _panelGradientVisual = ElementCompositionPreview.GetElementVisual(ControlPanelGradient);
-                _panelCompositor = _panelGridVisual.Compositor;
-            }
-        }
-
-        private void PanelAnimationCompleted(bool show)
-        {
-            _panelAnimating = false;
-            _panelGridVisual?.StopAnimation("Opacity");
-            _panelGradientVisual?.StopAnimation("Opacity");
-            if (_panelGridVisual is not null)
-            {
-                _panelGridVisual.Opacity = 1f;
-            }
-            if (_panelGradientVisual is not null)
-            {
-                _panelGradientVisual.Opacity = 1f;
-            }
-
-            if (show)
-            {
-                ControlPanelGradient.Opacity = 1;
-                ControlPanelGrid.Opacity = 1;
-                TranslateVertical.Y = 0;
-                _controlPanelIsVisible = true;
-            }
-            else
-            {
-                ControlPanelGrid.Visibility = Visibility.Collapsed;
-                ControlPanelGrid.Opacity = 1;
-                TranslateVertical.Y = 0;
-                // Keep the gradient mounted and hit-testable. WinUI skips
-                // hit-testing for elements at exactly zero opacity, so
-                // leave a barely visible floor value.
-                ControlPanelGradient.Opacity = 0.01;
-                _controlPanelIsVisible = false;
-            }
-        }
-
-        private void AddPanelAnimation(
-            Storyboard storyboard,
-            string property,
-            double from,
-            double to,
-            double milliseconds,
-            FrameworkElement? target = null)
-        {
-            var animation = new DoubleAnimation
-            {
-                From = from,
-                To = to,
-                Duration = TimeSpan.FromMilliseconds(milliseconds),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
-            };
-            Storyboard.SetTarget(animation, target ?? ControlPanelGrid);
-            Storyboard.SetTargetProperty(animation, property);
-            storyboard.Children.Add(animation);
-        }
 
         private void AppBarElementContainer_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -2022,6 +1719,93 @@ namespace mpv_winui.Modules.Player
         public void RefreshAdaptiveState()
         {
             UpdateToolbarVisibility(ActualWidth);
+        }
+
+        /// <summary>
+        /// Rebuilds the narrow-window overflow menu from the controls the
+        /// width-adaptive state currently hides (Medium/Compact/Narrow).
+        /// User-hidden icons stay hidden; the menu only restores
+        /// width-collapsed actions so no function is lost when the window
+        /// shrinks. The bar itself is never rebuilt here (see AGENTS.md).
+        /// </summary>
+        private void MoreFlyout_Opening(object? sender, object e)
+        {
+            MoreFlyout.Items.Clear();
+            var userHidden = CurrentHiddenIconIds();
+
+            AddOverflowItem(AppContext.AppLang.MoreSkipBackward, SkipBackwardButton, Backward, userHidden);
+            AddOverflowItem(AppContext.AppLang.MoreSkipForward, SkipForwardButton, Forward, userHidden);
+            AddOverflowItem(AppContext.AppLang.MoreShuffle, ShuffleButton, () => OnShuffleClick(null, null), userHidden, "random");
+            AddOverflowItem(AppContext.AppLang.MoreRepeat, RepeatButton, () => OnRepeatClick(null, null), userHidden);
+
+            if (PlaybackRateButton.Visibility != Visibility.Visible)
+            {
+                MoreFlyout.Items.Add(BuildPlaybackRateSubmenu());
+            }
+
+            if (ZoomButton.Visibility != Visibility.Visible && !userHidden.Contains("aspect"))
+            {
+                MoreFlyout.Items.Add(BuildZoomSubmenu());
+            }
+
+            AddOverflowItem(AppContext.AppLang.MorePreviousTrack, PreviousTrackButton, () => PreviousTrackButton_Click(null, null), userHidden);
+            AddOverflowItem(AppContext.AppLang.MoreNextTrack, NextTrackButton, () => NextTrackButton_Click(null, null), userHidden);
+            AddOverflowItem(AppContext.AppLang.MoreFullWindow, FullWindowButton, () => ToggleFullWindow(), userHidden, "fullwindow");
+            AddOverflowItem(AppContext.AppLang.MoreFullScreen, FullScreenButton, () => ToggleFullScreen(), userHidden, "fullscreen");
+        }
+
+        private void AddOverflowItem(
+            string label,
+            FrameworkElement sourceButton,
+            Action action,
+            IReadOnlySet<string> userHidden,
+            string? hiddenId = null)
+        {
+            if (sourceButton.Visibility == Visibility.Visible)
+            {
+                return;
+            }
+            if (hiddenId is not null && userHidden.Contains(hiddenId))
+            {
+                return;
+            }
+
+            var item = new MenuFlyoutItem { Text = label };
+            item.Click += (_, _) => action();
+            MoreFlyout.Items.Add(item);
+        }
+
+        /// <summary>Clones the standard rate flyout into a submenu item.</summary>
+        private MenuFlyoutSubItem BuildPlaybackRateSubmenu()
+        {
+            var submenu = new MenuFlyoutSubItem { Text = AppContext.AppLang.MorePlaybackRate };
+            foreach (var item in PlaybackRateFlyout.Items)
+            {
+                if (item is MenuFlyoutItem source)
+                {
+                    var clone = new MenuFlyoutItem { Text = source.Text, Tag = source.Tag };
+                    clone.Click += PlaybackRateFlyout_MenuFlyoutItem_Click;
+                    submenu.Items.Add(clone);
+                }
+            }
+            return submenu;
+        }
+
+        private MenuFlyoutSubItem BuildZoomSubmenu()
+        {
+            var submenu = new MenuFlyoutSubItem { Text = AppContext.AppLang.MoreZoom };
+            AddZoomOption(submenu, AppContext.AppLang.MoreZoomAuto, "no");
+            AddZoomOption(submenu, "4:3", "4:3");
+            AddZoomOption(submenu, "16:9", "16:9");
+            AddZoomOption(submenu, "16:10", "16:10");
+            return submenu;
+        }
+
+        private void AddZoomOption(MenuFlyoutSubItem submenu, string text, string tag)
+        {
+            var item = new MenuFlyoutItem { Text = text, Tag = tag };
+            item.Click += ZoomSelectionMenu_Click;
+            submenu.Items.Add(item);
         }
 
         private void ProgressSlider_PointerEntered(object sender, PointerRoutedEventArgs e)

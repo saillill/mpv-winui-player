@@ -34,6 +34,14 @@ namespace mpv_winui
         /// <summary>由播放页挂接，用于设置页动态枚举 mpv 音频输出设备。</summary>
         public static Func<IReadOnlyList<MpvAudioDevice>>? GetAudioDevices { get; set; }
 
+        /// <summary>DXGI display adapters (settings d3d11-adapter list), set
+        /// by the player page so enumeration never blocks the UI thread.</summary>
+        public static Func<IReadOnlyList<MpvGpuAdapter>>? GetGpuAdapters { get; set; }
+
+        /// <summary>Runtime mpv profile list (profile-list property), used by
+        /// the settings Profile manager when a player is initialized.</summary>
+        public static Func<IReadOnlyList<MpvProfile>>? GetMpvProfiles { get; set; }
+
         public static event Action<string, object?>? SettingChanged;
 
         public static event Action? LanguageChanged;

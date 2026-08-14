@@ -15,8 +15,6 @@ namespace mpv_winui.Modules.Player
 {
 public sealed partial class MpvPlayerPage
 {
-    private Microsoft.UI.Xaml.DispatcherTimer? _sleepTimer;
-
     /// <summary>
     /// Menu action registry: action id -> handler. Extensible — any module can
     /// call <see cref="RegisterMenuAction"/> to add a menu action without
@@ -99,41 +97,6 @@ public sealed partial class MpvPlayerPage
         });
         RegisterMenuAction("mpv-command", p => p.ShowMpvCommandDialogAsync());
         RegisterMenuAction("shortcut-search", p => p.ShowShortcutSearchDialogAsync());
-        RegisterMenuAction("menu-editor", p =>
-        {
-            new Menu.MenuEditorWindow().Activate();
-            return Task.CompletedTask;
-        });
-        RegisterMenuAction("sleep-off", p =>
-        {
-            p.SetSleepTimer(0);
-            return Task.CompletedTask;
-        });
-        RegisterMenuAction("sleep-15", p =>
-        {
-            p.SetSleepTimer(15);
-            return Task.CompletedTask;
-        });
-        RegisterMenuAction("sleep-30", p =>
-        {
-            p.SetSleepTimer(30);
-            return Task.CompletedTask;
-        });
-        RegisterMenuAction("sleep-45", p =>
-        {
-            p.SetSleepTimer(45);
-            return Task.CompletedTask;
-        });
-        RegisterMenuAction("sleep-60", p =>
-        {
-            p.SetSleepTimer(60);
-            return Task.CompletedTask;
-        });
-        RegisterMenuAction("sleep-90", p =>
-        {
-            p.SetSleepTimer(90);
-            return Task.CompletedTask;
-        });
     }
 
     private void BuildMainMenuBar()
@@ -179,35 +142,6 @@ public sealed partial class MpvPlayerPage
         }
         OnException(new InvalidOperationException($"Unknown menu action: {action}"));
     }
-
-        private void SetSleepTimer(int minutes)
-        {
-            _sleepTimer?.Stop();
-            _sleepTimer = null;
-
-            if (minutes <= 0)
-            {
-                AppContext.SendMpvCommand($"show-text {QuoteForMpv(AppContext.AppLang.SleepTimerCanceled)}");
-                return;
-            }
-
-            _sleepTimer = new Microsoft.UI.Xaml.DispatcherTimer
-            {
-                Interval = TimeSpan.FromMinutes(minutes)
-            };
-            _sleepTimer.Tick += (_, _) =>
-            {
-                _sleepTimer?.Stop();
-                _mediaPlayer.Pause();
-                AppContext.SendMpvCommand($"show-text {QuoteForMpv(AppContext.AppLang.SleepTimerFinished)}");
-            };
-            _sleepTimer.Start();
-            AppContext.SendMpvCommand(
-                $"show-text {QuoteForMpv(string.Format(AppContext.AppLang.SleepTimerSetMessage, minutes))}");
-        }
-
-        private static string QuoteForMpv(string value) =>
-            $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
 
         private async Task ShowMpvCommandDialogAsync()
         {

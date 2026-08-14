@@ -7,83 +7,72 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <!--
+        WinUI 3 settings shell: NavigationView (icon pane) on the left,
+        search + options + reset footer in the content area. The category
+        items are built in code so their labels follow AppLang on language
+        switches without rebuilding the page.
+    -->
+    <NavigationView
+        x:Name="CategoryNav"
+        IsBackButtonVisible="Collapsed"
+        IsPaneToggleButtonVisible="False"
+        IsSettingsVisible="False"
+        OpenPaneLength="240"
+        PaneDisplayMode="Left"
+        SelectionChanged="CategoryNav_SelectionChanged">
+        <NavigationView.Content>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-        <Grid
-            Grid.Row="0"
-            Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-            <AutoSuggestBox
-                x:Name="SearchBox"
-                Grid.Row="0"
-                Margin="8,10,8,4"
-                PlaceholderText="Search"
-                QueryIcon="Find"
-                QuerySubmitted="SearchBox_QuerySubmitted"
-                SuggestionChosen="SearchBox_SuggestionChosen"
-                TextChanged="SearchBox_TextChanged" />
-            <ListView
-                x:Name="CategoryList"
-                Grid.Row="1"
-                Padding="8,4,4,12"
-                SelectionChanged="CategoryList_SelectionChanged"
-                SelectionMode="Single">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
+                <AutoSuggestBox
+                    x:Name="SearchBox"
+                    Grid.Row="0"
+                    Margin="12,10,12,4"
+                    PlaceholderText="Search"
+                    QueryIcon="Find"
+                    QuerySubmitted="SearchBox_QuerySubmitted"
+                    SuggestionChosen="SearchBox_SuggestionChosen"
+                    TextChanged="SearchBox_TextChanged" />
+
+                <ctl:OptionListControl
+                    x:Name="OptionsControl"
+                    Grid.Row="1"
+                    ShowHeaders="False" />
+
+                <Border
+                    Grid.Row="2"
+                    Padding="16,10"
+                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                    BorderThickness="0,1,0,0">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock
-                            Padding="8,6"
-                            Style="{StaticResource BodyTextBlockStyle}"
-                            Text="{x:Bind}" />
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </Grid>
-
-        <ctl:OptionListControl
-            x:Name="OptionsControl"
-            Grid.Row="0"
-            Grid.Column="1"
-            ShowHeaders="False" />
-
-        <Border
-            Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Padding="16,10"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0">
-            <Grid ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    x:Name="SaveStatusText"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                <Button
-                    x:Name="ResetButton"
-                    Grid.Column="1"
-                    MinWidth="96"
-                    Click="OnResetClick" />
-                <Button
-                    x:Name="ResetAllButton"
-                    Grid.Column="2"
-                    MinWidth="96"
-                    Click="OnResetAllClick" />
+                            x:Name="SaveStatusText"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                        <Button
+                            x:Name="ResetButton"
+                            Grid.Column="1"
+                            MinWidth="96"
+                            Click="OnResetClick" />
+                        <Button
+                            x:Name="ResetAllButton"
+                            Grid.Column="2"
+                            MinWidth="96"
+                            Click="OnResetAllClick" />
+                    </Grid>
+                </Border>
             </Grid>
-        </Border>
-    </Grid>
+        </NavigationView.Content>
+    </NavigationView>
 </Page>

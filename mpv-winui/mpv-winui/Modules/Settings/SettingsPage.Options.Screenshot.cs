@@ -29,6 +29,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotDirectory),
+                Description = lang.SettingsHelpScreenshotDirectory,
                 Label = lang.SettingsScreenshotDirectory,
                 Category = screenshot,
                 Type = OptionType.String,
@@ -62,6 +63,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotFormat),
+                Description = lang.SettingsHelpScreenshotFormat,
                 Label = lang.SettingsScreenshotFormat,
                 Category = screenshot,
                 Type = OptionType.StringList,
@@ -94,6 +96,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotJpegSourceChroma),
+                Description = lang.SettingsHelpScreenshotJpegSourceChroma,
                 Label = lang.SettingsScreenshotJpegSourceChroma,
                 Category = screenshot,
                 Type = OptionType.Boolean,
@@ -118,6 +121,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotPngFilter),
+                Description = lang.SettingsHelpScreenshotPngFilter,
                 Label = lang.SettingsScreenshotPngFilter,
                 Category = screenshot,
                 Type = OptionType.Integer,
@@ -156,6 +160,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotWebpCompression),
+                Description = lang.SettingsHelpScreenshotWebpCompression,
                 Label = lang.SettingsScreenshotWebpCompression,
                 Category = screenshot,
                 Type = OptionType.Integer,
@@ -183,6 +188,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotJxlEffort),
+                Description = lang.SettingsHelpScreenshotJxlEffort,
                 Label = lang.SettingsScreenshotJxlEffort,
                 Category = screenshot,
                 Type = OptionType.Integer,
@@ -196,6 +202,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotAvifEncoder),
+                Description = lang.SettingsHelpScreenshotAvifEncoder,
                 Label = lang.SettingsScreenshotAvifEncoder,
                 Category = screenshot,
                 Type = OptionType.String,
@@ -218,6 +225,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotTagColorspace),
+                Description = lang.SettingsHelpScreenshotTagColorspace,
                 Label = lang.SettingsScreenshotTagColorspace,
                 Category = screenshot,
                 Type = OptionType.Boolean,

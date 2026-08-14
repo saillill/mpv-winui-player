@@ -11,4 +11,6 @@ public enum OptionType
     Action,
     CheckList,
     Layout,
+    MultiList,
+    ShaderList,
 }

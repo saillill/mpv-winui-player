@@ -30,6 +30,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.Deinterlace),
+                Description = lang.SettingsHelpDeinterlace,
                 Label = lang.SettingsDeinterlace,
                 Category = video,
                 Type = OptionType.StringList,
@@ -46,6 +47,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AspectRatio),
+                Description = lang.SettingsHelpAspectRatio,
                 Label = lang.SettingsAspect,
                 Category = video,
                 Type = OptionType.StringList,
@@ -110,6 +112,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.CorrectDownscaling),
+                Description = lang.SettingsHelpCorrectDownscaling,
                 Label = lang.SettingsCorrectDownscaling,
                 Category = video,
                 Type = OptionType.Boolean,
@@ -209,6 +212,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.Dither),
+                Description = lang.SettingsHelpDither,
                 Label = lang.SettingsDither,
                 Category = video,
                 Type = OptionType.StringList,
@@ -260,6 +264,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.BackgroundTileColor0),
                 Label = lang.SettingsBackgroundTileColor0,
                 Category = video,
+                Description = lang.SettingsHelpBackgroundTileColor0,
                 Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.BackgroundTileColor0,
@@ -271,6 +276,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.BackgroundTileColor1),
                 Label = lang.SettingsBackgroundTileColor1,
                 Category = video,
+                Description = lang.SettingsHelpBackgroundTileColor1,
                 Type = OptionType.Color,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.BackgroundTileColor1,
@@ -282,6 +288,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.BackgroundTileSize),
                 Label = lang.SettingsBackgroundTileSize,
                 Category = video,
+                Description = lang.SettingsHelpBackgroundTileSize,
                 Type = OptionType.Integer,
                 Min = 16,
                 Max = 512,
@@ -293,6 +300,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.VideoRotate),
+                Description = lang.SettingsHelpVideoRotate,
                 Label = lang.SettingsVideoRotate,
                 Category = video,
                 Type = OptionType.StringList,
@@ -362,6 +370,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.DitherDepth),
+                Description = lang.SettingsHelpDitherDepth,
                 Label = lang.SettingsDitherDepth,
                 Category = video,
                 Type = OptionType.StringList,

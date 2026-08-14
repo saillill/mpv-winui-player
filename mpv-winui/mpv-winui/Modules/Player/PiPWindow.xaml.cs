@@ -597,8 +597,14 @@ public sealed partial class PiPWindow : Window
     {
         ToolTipService.SetToolTip(PiPBackButton, AppContext.AppLang.PiPBackToPlayer);
         ToolTipService.SetToolTip(PiPExitButton, AppContext.AppLang.PiPExit);
+        ToolTipService.SetToolTip(PiPSettingsButton, AppContext.AppLang.AppSetting);
         AutomationProperties.SetName(PiPBackButton, AppContext.AppLang.PiPBackToPlayer);
         AutomationProperties.SetName(PiPExitButton, AppContext.AppLang.PiPExit);
+        AutomationProperties.SetName(PiPSettingsButton, AppContext.AppLang.AppSetting);
+        PiPOpacityLabel.Text = AppContext.AppLang.PiPWindowOpacity;
+        AutomationProperties.SetName(PiPOpacitySlider, AppContext.AppLang.PiPWindowOpacity);
+        PiPSubtitleToggle.Content = AppContext.AppLang.Subtitles;
+        AutomationProperties.SetName(PiPSubtitleToggle, AppContext.AppLang.Subtitles);
     }
 
     private void PiPWindow_LanguageChanged()

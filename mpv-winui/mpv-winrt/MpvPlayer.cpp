@@ -5,6 +5,7 @@
 #include "MpvAudioDevice.h"
 #include "MpvChapter.h"
 #include "MpvEdition.h"
+#include "MpvGpuAdapter.h"
 #include "MpvLogEventArgs.h"
 #include "MpvMenuItem.h"
 #include "MpvPlaylistItem.h"
@@ -21,6 +22,7 @@
 #include "VolumeChangedEventArgs.h"
 #include "WindowChangedEventArgs.h"
 #include <vector>
+#include <dxgi1_2.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <microsoft.ui.xaml.media.dxinterop.h>
@@ -1925,6 +1927,51 @@ namespace winrt::mpv_winrt::implementation
 
         mpv_free_node_contents(&node);
         return devices.GetView();
+    }
+
+    winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvGpuAdapter> MpvPlayer::GetGpuAdapters()
+    {
+        auto adapters = winrt::single_threaded_vector<winrt::mpv_winrt::MpvGpuAdapter>();
+
+        winrt::com_ptr<IDXGIFactory1> factory;
+        HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), factory.put_void());
+        if (FAILED(hr))
+        {
+            return adapters.GetView();
+        }
+
+        for (UINT index = 0; ; index++)
+        {
+            winrt::com_ptr<IDXGIAdapter1> adapter;
+            hr = factory->EnumAdapters1(index, adapter.put());
+            if (hr == DXGI_ERROR_NOT_FOUND)
+            {
+                break;
+            }
+            if (FAILED(hr))
+            {
+                continue;
+            }
+
+            DXGI_ADAPTER_DESC1 desc{};
+            if (FAILED(adapter->GetDesc1(&desc)))
+            {
+                continue;
+            }
+
+            // Only adapters with at least one connected output can drive
+            // d3d11 presentation; headless/disabled cards are skipped here.
+            winrt::com_ptr<IDXGIOutput> output;
+            if (adapter->EnumOutputs(0, output.put()) == DXGI_ERROR_NOT_FOUND)
+            {
+                continue;
+            }
+
+            auto name = winrt::hstring{ desc.Description };
+            adapters.Append(winrt::make<implementation::MpvGpuAdapter>(name, name));
+        }
+
+        return adapters.GetView();
     }
 
     winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvProfile> MpvPlayer::GetProfiles()

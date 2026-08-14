@@ -134,6 +134,7 @@
     <ClInclude Include="MpvChapter.h" />
     <ClInclude Include="MpvEdition.h" />
     <ClInclude Include="MpvAudioDevice.h" />
+    <ClInclude Include="MpvGpuAdapter.h" />
     <ClInclude Include="MpvProfile.h" />
     <ClInclude Include="MpvMenuItem.h" />
     <ClInclude Include="MpvTrack.h" />
@@ -165,6 +166,7 @@
     <Midl Include="MpvChapter.idl" />
     <Midl Include="MpvEdition.idl" />
     <Midl Include="MpvAudioDevice.idl" />
+    <Midl Include="MpvGpuAdapter.idl" />
     <Midl Include="MpvProfile.idl" />
     <Midl Include="MpvMenuItem.idl" />
     <Midl Include="MpvTrack.idl" />

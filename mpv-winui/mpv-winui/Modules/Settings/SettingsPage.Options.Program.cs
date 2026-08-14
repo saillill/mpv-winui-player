@@ -23,8 +23,9 @@ public sealed partial class SettingsPage
     private List<Option> BuildProgramBehaviorOptions()
     {
         var program = AppContext.AppLang.SettingsCategoryProgram;
-        var input = AppContext.AppLang.SettingsCategoryInput;
-        var testing = AppContext.AppLang.SettingsCategoryTesting;
+        var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
+        var osd = AppContext.AppLang.SettingsCategoryOsd;
+        var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var window = AppContext.AppLang.SettingsCategoryWindow;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var lang = AppContext.AppLang;
@@ -130,6 +131,7 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.UiFont),
+                Description = lang.SettingsHelpUiFont,
                 Label = lang.SettingsUiFont,
                 Category = program,
                 Type = OptionType.StringList,
@@ -171,7 +173,8 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestMpvCommandLog),
                 Label = lang.SettingsTestMpvCommandLog,
-                Category = testing,
+                // Developer/diagnostic option, grouped under Program.
+                Category = program,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestMpvCommandLog,
                 Type = OptionType.Boolean,
@@ -183,7 +186,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestOsdMessage),
                 Label = lang.SettingsTestOsdMessage,
-                Category = testing,
+                Category = osd,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestOsdMessage,
                 // One-shot test is an action, not a toggle: a button keeps the
@@ -198,8 +201,9 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.TestSignal),
+                Description = lang.SettingsHelpTestSignal,
                 Label = lang.SettingsTestSignal,
-                Category = testing,
+                Category = playback,
                 Section = sProgramTesting,
                 Type = OptionType.StringList,
                 AllowCustom = false,
@@ -230,7 +234,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.EnableDebugLog),
                 Label = lang.DebugLog,
-                Category = testing,
+                Category = program,
                 Description = lang.SettingsHelpDebugLog,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.EnableDebugLog,
@@ -297,7 +301,22 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = "ProfilesCheckList",
+                Label = lang.SettingsProfiles,
+                Category = program,
+                Description = lang.SettingsHelpProfiles,
+                Warning = BuildProfileItems().Count == 0 ? lang.SettingsProfilesEmpty : null,
+                Type = OptionType.CheckList,
+                CheckExpandLabel = lang.Expand,
+                CheckCollapseLabel = lang.Collapse,
+                CheckItemsProvider = BuildProfileItems,
+                CheckChanged = (_, value, isChecked, _) => ApplyProfile(value, isChecked),
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.AlwaysOnTop),
+                Description = lang.SettingsHelpAlwaysOnTop,
                 Label = lang.SettingsAlwaysOnTop,
                 Category = window,
                 Type = OptionType.Boolean,
@@ -308,8 +327,9 @@ public sealed partial class SettingsPage
             new Option
             {
                 Key = nameof(AppContext.AppSetting.InputIme),
+                Description = lang.SettingsHelpInputIme,
                 Label = lang.SettingsInputIme,
-                Category = input,
+                Category = shortcuts,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.InputIme,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InputIme), AppContext.AppSetting.InputIme = (bool)v!)

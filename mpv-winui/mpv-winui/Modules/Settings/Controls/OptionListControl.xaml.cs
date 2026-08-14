@@ -54,8 +54,8 @@ public sealed partial class OptionListControl : UserControl
 
     private void ApplyItemsSource()
     {
-        // Sections are rendered as separate list rows (SectionHeaderItem),
-        // so the caption keeps its own typography and is not merged into a card.
+        // Every option renders through the same common templates (the
+        // OptionTemplateSelector below); no tier filtering.
         var items = new List<object>(OptionList.Count + 8);
         foreach (var option in OptionList)
         {
@@ -63,12 +63,15 @@ public sealed partial class OptionListControl : UserControl
             {
                 continue;
             }
+
             if (option.ShowSectionHeader)
             {
                 items.Add(new SectionHeaderItem { Caption = option.Section ?? string.Empty });
             }
+
             items.Add(option);
         }
+
         OptionListView.ItemsSource = items;
     }
 

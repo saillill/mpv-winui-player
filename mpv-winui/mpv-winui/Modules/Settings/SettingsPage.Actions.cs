@@ -60,8 +60,6 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         nameof(AppContext.AppSetting.AudioLanguage),
         nameof(AppContext.AppSetting.SubtitleLanguage),
         nameof(AppContext.AppSetting.KeepOpen),
-        nameof(AppContext.AppSetting.LoopFile),
-        nameof(AppContext.AppSetting.LoopPlaylist),
         nameof(AppContext.AppSetting.Speed),
         nameof(AppContext.AppSetting.Deinterlace),
         nameof(AppContext.AppSetting.AspectRatio),
@@ -235,6 +233,14 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                     label = label[..stateHash].Trim();
                 }
                 section = ShortcutSectionLabel(ShortcutSectionKey(label));
+
+                // The section header already shows the group ("音量"), so the
+                // row label only needs the final option ("增加音量").
+                var separator = label.IndexOf('>');
+                if (separator >= 0 && separator < label.Length - 1)
+                {
+                    label = label[(separator + 1)..].Trim();
+                }
             }
 
             if (!seen.Add(key))
@@ -253,7 +259,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                 ReadOnly = true,
                 KeyCaptureEditable = true,
                 KeyCaptureDefault = key,
-                Getter = () => shortcutBinding.Key,
+                Getter = () => ShortcutKeyLocalizer.Localize(shortcutBinding.Key),
                 Setter = _ => { },
                 KeyCaptureReplaced = (_, newKey) => RebindShortcut(shortcutBinding, newKey),
                 KeyCaptureReset = option => RebindShortcut(shortcutBinding, option.KeyCaptureDefault ?? shortcutBinding.Key),
@@ -480,16 +486,26 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
 
     private static List<OptionChoice> BuildAudioDeviceChoices()
     {
+        lock (DeviceChoicesLock)
+        {
+            if (_audioDeviceChoicesCache is not null)
+            {
+                return _audioDeviceChoicesCache;
+            }
+        }
+
         var choices = new List<OptionChoice>
         {
             new("auto", AppContext.AppLang.OptionValueAuto),
         };
 
+        var enumerated = false;
         try
         {
             var devices = AppContext.GetAudioDevices?.Invoke();
             if (devices is not null)
             {
+                enumerated = true;
                 foreach (var device in devices)
                 {
                     var label = string.IsNullOrWhiteSpace(device.Description) ? device.Name : device.Description;
@@ -502,8 +518,137 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             AppContext.AppLogger.Warn(ex, "Failed to enumerate audio devices");
         }
 
+        // Only cache when the player's audio-device source was available; a
+        // premature cache would pin the auto-only list forever.
+        if (enumerated)
+        {
+            lock (DeviceChoicesLock)
+            {
+                _audioDeviceChoicesCache = choices;
+            }
+        }
         return choices;
     }
+
+    private static readonly object DeviceChoicesLock = new();
+    private static List<OptionChoice>? _audioDeviceChoicesCache;
+    private static List<OptionChoice>? _gpuChoicesCache;
+
+    /// <summary>
+    /// Warms the cached device-choice lists on a background thread so opening
+    /// the settings page never blocks the UI thread on WMI/native enumeration
+    /// (audit A2). The synchronous providers still fall back to a first-call
+    /// enumeration when the warm-up has not finished.
+    /// </summary>
+    internal static void WarmDeviceChoices()
+    {
+        _ = System.Threading.Tasks.Task.Run(() =>
+        {
+            try
+            {
+                _ = BuildGpuAdapterChoices();
+                _ = BuildAudioDeviceChoices();
+            }
+            catch (Exception ex)
+            {
+                AppContext.AppLogger.Warn(ex, "Device choice warm-up failed");
+            }
+        });
+    }
+
+    /// <summary>Lists installed display adapters (DXGI descriptions) for d3d11-adapter.</summary>
+    private static List<OptionChoice> BuildGpuAdapterChoices()
+    {
+        lock (DeviceChoicesLock)
+        {
+            if (_gpuChoicesCache is not null)
+            {
+                return _gpuChoicesCache;
+            }
+        }
+
+        var choices = new List<OptionChoice>
+        {
+            new("", AppContext.AppLang.OptionValueAuto),
+        };
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var enumerated = false;
+
+        // DXGI is the official, fast enumeration path (audit A2); the player
+        // page provides it through the native component. WMI remains the
+        // fallback for a settings session without an initialized player.
+        var dxgiAdapters = AppContext.GetGpuAdapters?.Invoke();
+        if (dxgiAdapters is not null)
+        {
+            enumerated = true;
+            foreach (var adapter in dxgiAdapters)
+            {
+                var name = string.IsNullOrWhiteSpace(adapter.Description)
+                    ? adapter.Name
+                    : adapter.Description;
+                if (!string.IsNullOrWhiteSpace(name)
+                    && !IsVirtualDisplayAdapter(name)
+                    && seen.Add(name))
+                {
+                    choices.Add(new OptionChoice(name, name));
+                }
+            }
+        }
+        else
+        {
+            try
+            {
+                // The display-class registry lists every registered adapter,
+                // including disabled/headless cards. Only adapters currently
+                // driving a display (non-zero current resolution) are usable
+                // for d3d11 presentation.
+                using var searcher = new System.Management.ManagementObjectSearcher(
+                    "SELECT Name, CurrentHorizontalResolution FROM Win32_VideoController");
+                using var results = searcher.Get();
+                foreach (System.Management.ManagementObject obj in results)
+                {
+                    using (obj)
+                    {
+                        if (obj["Name"] is string name
+                            && !string.IsNullOrWhiteSpace(name)
+                            && obj["CurrentHorizontalResolution"] is uint resolution
+                            && resolution > 0
+                            && !IsVirtualDisplayAdapter(name)
+                            && seen.Add(name))
+                        {
+                            choices.Add(new OptionChoice(name, name));
+                        }
+                    }
+                }
+                enumerated = true;
+            }
+            catch (Exception ex)
+            {
+                AppContext.AppLogger.Error(ex, "Failed to enumerate display adapters");
+            }
+        }
+
+        // Only cache when a source was available; a premature cache would pin
+        // the auto-only list before the player starts.
+        if (!enumerated)
+        {
+            return choices;
+        }
+
+        lock (DeviceChoicesLock)
+        {
+            _gpuChoicesCache = choices;
+        }
+        return choices;
+    }
+
+    /// <summary>Skips software/remote display adapters that are not real GPUs.</summary>
+    private static bool IsVirtualDisplayAdapter(string description) =>
+        description.Contains("Basic Display", StringComparison.OrdinalIgnoreCase)
+        || description.Contains("Remote Display", StringComparison.OrdinalIgnoreCase)
+        || description.Contains("基本显示", StringComparison.Ordinal)
+        || description.Contains("远程显示", StringComparison.Ordinal);
 
     private void ApplyMpv(string key, object value)
     {
@@ -511,8 +656,32 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         {
             AppContext.SendMpvCommand(cmd);
         }
-        RefreshWarningsAndEnabled();
+        // Only settings that feed warning/visibility/enabled rules require the
+        // full O(N) re-evaluation; everything else skips it (audit A1).
+        if (WarningDependencyKeys.Contains(key))
+        {
+            RefreshWarningsAndEnabled();
+        }
     }
+
+    /// <summary>AppSettings keys whose change can alter warnings/visibility/enabled state.</summary>
+    private static readonly HashSet<string> WarningDependencyKeys = new(StringComparer.Ordinal)
+    {
+        nameof(AppSettings.VideoSync),
+        nameof(AppSettings.Interpolation),
+        nameof(AppSettings.Hwdec),
+        nameof(AppSettings.LinearUpscaling),
+        nameof(AppSettings.SigmoidUpscaling),
+        nameof(AppSettings.ResumePlayback),
+        nameof(AppSettings.BlendSubtitles),
+        nameof(AppSettings.SubtitleLanguage),
+        nameof(AppSettings.VsrAutoEnabled),
+        nameof(AppSettings.HdrAutoMode),
+        nameof(AppSettings.ThemeType),
+        nameof(AppSettings.BackdropType),
+        nameof(AppSettings.WindowPiP),
+        nameof(AppSettings.ScreenshotFormat),
+    };
 
     /// <summary>Re-evaluates yellow warnings and disabled states after any option changes.</summary>
     private void RefreshWarningsAndEnabled()
@@ -655,6 +824,137 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         }
 
         AppContext.AppSetting.FileAssociationExts = string.Join(';', list);
+    }
+
+    /// <summary>Profiles applied through the settings checklist in this session.</summary>
+    private static readonly HashSet<string> AppliedProfiles = new(StringComparer.Ordinal);
+
+    private sealed record MpvProfileInfo(string Name, string? Description);
+
+    private static List<OptionCheckItem> BuildProfileItems()
+    {
+        // mpv's runtime profile-list is the authoritative source (it includes
+        // built-in profiles such as gpu-hq); profiles.conf only enriches the
+        // rows with their profile-desc. Fall back to the file alone when no
+        // player is initialized.
+        var fileDescriptions = ReadMpvProfiles()
+            .ToDictionary(p => p.Name, p => p.Description, StringComparer.Ordinal);
+        var runtimeProfiles = AppContext.GetMpvProfiles?.Invoke();
+        if (runtimeProfiles is { Count: > 0 })
+        {
+            return runtimeProfiles
+                .Select(p => new OptionCheckItem(p.Name, p.Name, AppliedProfiles.Contains(p.Name))
+                {
+                    Description = fileDescriptions.TryGetValue(p.Name, out var description) ? description : null,
+                })
+                .ToList();
+        }
+
+        return fileDescriptions
+            .Select(pair => new OptionCheckItem(pair.Key, pair.Key, AppliedProfiles.Contains(pair.Key))
+            {
+                Description = pair.Value,
+            })
+            .ToList();
+    }
+
+    /// <summary>
+    /// Reads profile names and profile-desc from the user's profiles.conf.
+    /// Read-only: mpv owns the file, and applying happens at runtime with the
+    /// apply-profile command (config-time profile edits need a restart).
+    /// </summary>
+    private static List<MpvProfileInfo> ReadMpvProfiles()
+    {
+        var path = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "mpv-winui",
+            "mpv",
+            "profiles.conf");
+        var profiles = new List<MpvProfileInfo>();
+        try
+        {
+            if (!File.Exists(path))
+            {
+                return profiles;
+            }
+
+            string? currentName = null;
+            string? currentDescription = null;
+            foreach (var rawLine in File.ReadLines(path))
+            {
+                var line = rawLine.Trim();
+                if (line.Length == 0 || line.StartsWith("#", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (line.Length > 2 && line[0] == '[' && line[^1] == ']')
+                {
+                    if (currentName is not null)
+                    {
+                        profiles.Add(new MpvProfileInfo(currentName, currentDescription));
+                    }
+                    currentName = line[1..^1].Trim();
+                    currentDescription = null;
+                    continue;
+                }
+
+                if (currentName is null || currentDescription is not null)
+                {
+                    continue;
+                }
+
+                var eq = line.IndexOf('=');
+                if (eq > 0 && line[..eq].Trim().Equals("profile-desc", StringComparison.OrdinalIgnoreCase))
+                {
+                    currentDescription = UnquoteMpvValue(line[(eq + 1)..].Trim());
+                }
+            }
+
+            if (currentName is not null)
+            {
+                profiles.Add(new MpvProfileInfo(currentName, currentDescription));
+            }
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Warn(ex, "failed to read profiles.conf");
+        }
+
+        return profiles;
+    }
+
+    private static string UnquoteMpvValue(string value)
+    {
+        if (value.Length >= 2)
+        {
+            var first = value[0];
+            var last = value[^1];
+            if ((first == '"' && last == '"') || (first == '\'' && last == '\''))
+            {
+                return value[1..^1];
+            }
+        }
+        return value;
+    }
+
+    private static void ApplyProfile(string name, bool isChecked)
+    {
+        if (isChecked)
+        {
+            AppliedProfiles.Add(name);
+            AppContext.SendMpvCommand($"apply-profile {QuoteMpvArg(name)}");
+            return;
+        }
+
+        // mpv has no "unapply": removing the session marker only changes the
+        // checklist state; the profile stays active until another overrides it.
+        AppliedProfiles.Remove(name);
+    }
+
+    private static string QuoteMpvArg(string value)
+    {
+        return "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
     }
 
     private void ApplyAssociations()
