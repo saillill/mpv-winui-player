@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:bc="using:mpv_winui.Modules.Common.Convertor"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:hx="using:mpv_winui.Modules.Common.View"
     xmlns:local="using:mpv_winui.Modules.Player"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -110,7 +111,7 @@
         </MenuFlyout>
     </Page.Resources>
 
-    <Grid>
+    <Grid x:Name="PageRoot">
         <Grid.RowDefinitions>
             <RowDefinition
                 x:Name="MenuRow"
@@ -125,7 +126,7 @@
             <ColumnDefinition
                 x:Name="PlaylistColumn"
                 Width="0"
-                MaxWidth="300" />
+                MaxWidth="420" />
         </Grid.ColumnDefinitions>
         <MenuBar
             x:Name="MainMenuBar"
@@ -183,6 +184,16 @@
                 <RowDefinition Height="44" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
+            <local:ResizeGrip
+                x:Name="PlaylistResizeGrip"
+                Grid.RowSpan="2"
+                Width="6"
+                HorizontalAlignment="Left"
+                PointerCanceled="PlaylistResizeGrip_PointerReleased"
+                PointerCaptureLost="PlaylistResizeGrip_PointerReleased"
+                PointerMoved="PlaylistResizeGrip_PointerMoved"
+                PointerPressed="PlaylistResizeGrip_PointerPressed"
+                PointerReleased="PlaylistResizeGrip_PointerReleased" />
             <Grid
                 Grid.Row="0"
                 Height="44"
@@ -297,16 +308,20 @@
                                 FontSize="14"
                                 Glyph="&#xE8B2;"
                                 Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent)}" />
-                            <TextBlock
+                            <StackPanel
                                 Grid.Row="0"
                                 Grid.Column="1"
-                                FontSize="12"
-                                TextTrimming="CharacterEllipsis"
-                                ToolTipService.ToolTip="{x:Bind Title}">
-                                <Run Text="{x:Bind Index}" />
-                                <Run Text="." />
-                                <Run Text="{x:Bind Title}" />
-                            </TextBlock>
+                                Orientation="Horizontal">
+                                <TextBlock FontSize="12">
+                                    <Run Text="{x:Bind Index}" />
+                                    <Run Text=". " />
+                                </TextBlock>
+                                <hx:HighlightTextBlock
+                                    FontSize="12"
+                                    Query="{x:Bind Query}"
+                                    Text="{x:Bind Title}"
+                                    ToolTipService.ToolTip="{x:Bind Title}" />
+                            </StackPanel>
                             <TextBlock
                                 Grid.Row="1"
                                 Grid.Column="1"
@@ -383,7 +398,6 @@
                     <VisualState.Setters>
                         <Setter Target="PlaylistContainer.Visibility" Value="Visible" />
                         <Setter Target="TopBarButtons.Visibility" Value="Collapsed" />
-                        <Setter Target="PlaylistColumn.Width" Value="1*" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

@@ -27,6 +27,7 @@ public enum OptionActionKind
     Button,
 }
 
+/// <summary>Display tier used to fold advanced/experimental options by default.</summary>
 /// <summary>A checkbox entry used by <see cref="OptionType.CheckList"/> options.</summary>
 public sealed class OptionCheckItem
 {
@@ -47,6 +48,9 @@ public sealed class OptionCheckItem
 
     /// <summary>Optional localized caption shown above the first item of a group.</summary>
     public string? Group { get; }
+
+    /// <summary>Optional secondary line shown under the checkbox label (e.g. profile-desc).</summary>
+    public string? Description { get; set; }
 
     /// <summary>Optional target key the item writes to (e.g. a per-style setting).</summary>
     public string? Target { get; set; }

@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Markup;
 using mpv_winui.Modules.Common.View;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
@@ -80,11 +81,17 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             return;
         }
 
+        // Rows with a secondary description need full width; plain short
+        // checkboxes keep the compact wrap layout used by file associations.
+        var panelTemplate = items.Any(i => !string.IsNullOrEmpty(i.Description))
+            ? TryGetResource<ItemsPanelTemplate>("CheckListPanel", Resources)
+            : TryGetResource<ItemsPanelTemplate>("CheckWrapPanel", Resources);
+
         string? lastGroup = null;
         ItemsControl? groupWrap = null;
         foreach (var item in items)
         {
-            if (!string.Equals(item.Group, lastGroup, StringComparison.Ordinal))
+            if (groupWrap is null || !string.Equals(item.Group, lastGroup, StringComparison.Ordinal))
             {
                 lastGroup = item.Group;
                 if (!string.IsNullOrEmpty(item.Group))
@@ -99,7 +106,7 @@ public sealed partial class OptionCheckListControl : OptionControlBase
                 }
                 groupWrap = new ItemsControl
                 {
-                    ItemsPanel = TryGetResource<ItemsPanelTemplate>("CheckWrapPanel", Resources),
+                    ItemsPanel = panelTemplate ?? TryGetResource<ItemsPanelTemplate>("CheckWrapPanel", Resources),
                 };
                 CheckItemsControl.Children.Add(groupWrap);
             }
@@ -110,31 +117,53 @@ public sealed partial class OptionCheckListControl : OptionControlBase
                 Tag = item,
                 MinWidth = 132,
             };
-            if (string.IsNullOrEmpty(item.Glyph))
-            {
-                box.Content = item.Label;
-            }
-            else
-            {
-                var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-                panel.Children.Add(item.Glyph.StartsWith("F1 ", StringComparison.Ordinal)
-                    ? new Viewbox
-                    {
-                        Width = 14,
-                        Height = 14,
-                        Child = new PathIcon
-                        {
-                            Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), item.Glyph),
-                        },
-                    }
-                    : new FontIcon { Glyph = item.Glyph, FontSize = 14 });
-                panel.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
-                box.Content = panel;
-            }
+            box.Content = BuildCheckContent(item);
             box.Checked += OnItemChecked;
             box.Unchecked += OnItemChecked;
-            groupWrap?.Items.Add(box);
+            groupWrap.Items.Add(box);
         }
+    }
+
+    private static object BuildCheckContent(OptionCheckItem item)
+    {
+        if (!string.IsNullOrEmpty(item.Description))
+        {
+            var panel = new StackPanel { Spacing = 2 };
+            panel.Children.Add(new TextBlock
+            {
+                Text = item.Label,
+                TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+            panel.Children.Add(new TextBlock
+            {
+                Text = item.Description,
+                Style = TryGetResource<Style>("CaptionTextBlockStyle", Application.Current.Resources),
+                Foreground = ThemeResource.Brush(panel, "TextFillColorSecondaryBrush"),
+                TextWrapping = TextWrapping.Wrap,
+            });
+            return panel;
+        }
+
+        if (string.IsNullOrEmpty(item.Glyph))
+        {
+            return item.Label;
+        }
+
+        var glyphPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        glyphPanel.Children.Add(item.Glyph.StartsWith("F1 ", StringComparison.Ordinal)
+            ? new Viewbox
+            {
+                Width = 14,
+                Height = 14,
+                Child = new PathIcon
+                {
+                    Data = (Microsoft.UI.Xaml.Media.Geometry)XamlBindingHelper.ConvertValue(typeof(Microsoft.UI.Xaml.Media.Geometry), item.Glyph),
+                },
+            }
+            : new FontIcon { Glyph = item.Glyph, FontSize = 14 });
+        glyphPanel.Children.Add(new TextBlock { Text = item.Label, VerticalAlignment = VerticalAlignment.Center });
+        return glyphPanel;
     }
 
     /// <summary>

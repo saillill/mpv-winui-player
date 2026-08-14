@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Input;
 using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
@@ -23,6 +24,9 @@ namespace mpv_winui.Modules.Player
         public readonly string Title => item.Title;
         public readonly string Path => item.Filename;
         public readonly string Filename => System.IO.Path.GetFileName(item.Filename);
+
+        /// <summary>Active playlist filter; the row highlight control binds to this.</summary>
+        public string Query { get; set; } = string.Empty;
 
         /// <summary>Media duration in seconds, or &lt;= 0 when unknown.</summary>
         public readonly double Duration => item.Duration;
@@ -56,6 +60,9 @@ namespace mpv_winui.Modules.Player
 
         private readonly List<PlaylistItem> _allPlaylistItems = [];
         private string _playlistFilter = "";
+        private bool _resizingPlaylist;
+        private double _resizeStartWidth;
+        private double _resizeStartX;
 
         private void RefreshPlaylistAsync()
         {
@@ -99,7 +106,9 @@ namespace mpv_winui.Modules.Player
                     || item.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase)
                     || item.Path.Contains(filter, StringComparison.OrdinalIgnoreCase))
                 {
-                    FilteredPlaylistItems.Add(item);
+                    var copy = item;
+                    copy.Query = filter;
+                    FilteredPlaylistItems.Add(copy);
                 }
             }
         }
@@ -216,6 +225,7 @@ namespace mpv_winui.Modules.Player
             if (PlaylistContainer.Visibility == Visibility.Collapsed)
             {
                 VisualStateManager.GoToState(this, "ShowPlaylist", true);
+                PlaylistColumn.Width = new GridLength(GetPlaylistWidth());
                 if (refresh)
                 {
                     RefreshPlaylistAsync();
@@ -223,8 +233,57 @@ namespace mpv_winui.Modules.Player
             }
             else
             {
+                PlaylistColumn.Width = new GridLength(0);
                 VisualStateManager.GoToState(this, "HidePlaylist", true);
             }
+        }
+
+        private static double GetPlaylistWidth()
+        {
+            var saved = AppContext.AppSetting.PlaylistWidth;
+            return saved is >= 280 and <= 420 ? saved : 320;
+        }
+
+        private void PlaylistResizeGrip_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
+            {
+                return;
+            }
+
+            _resizingPlaylist = true;
+            _resizeStartWidth = PlaylistColumn.ActualWidth;
+            _resizeStartX = e.GetCurrentPoint(PageRoot).Position.X;
+            PlaylistResizeGrip.CapturePointer(e.Pointer);
+            e.Handled = true;
+        }
+
+        private void PlaylistResizeGrip_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_resizingPlaylist)
+            {
+                return;
+            }
+
+            var x = e.GetCurrentPoint(PageRoot).Position.X;
+            PlaylistColumn.Width = new GridLength(Math.Clamp(_resizeStartWidth + (_resizeStartX - x), 280, 420));
+            e.Handled = true;
+        }
+
+        private void PlaylistResizeGrip_PointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_resizingPlaylist)
+            {
+                return;
+            }
+
+            _resizingPlaylist = false;
+            if (PlaylistResizeGrip.PointerCaptures?.Count > 0)
+            {
+                PlaylistResizeGrip.ReleasePointerCaptures();
+            }
+            AppContext.AppSetting.PlaylistWidth = (int)PlaylistColumn.ActualWidth;
+            e.Handled = true;
         }
 
         private void PlaylistView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)

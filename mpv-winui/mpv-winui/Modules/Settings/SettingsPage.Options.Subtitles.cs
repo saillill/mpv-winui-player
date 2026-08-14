@@ -43,6 +43,78 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.SubScaleByWindow),
+                Description = lang.SettingsHelpSubScaleByWindow,
+                Label = lang.SettingsSubScaleByWindow,
+                Category = subtitles,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubScaleByWindow,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubScaleByWindow), AppContext.AppSetting.SubScaleByWindow = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubLineSpacing),
+                Description = lang.SettingsHelpSubLineSpacing,
+                Label = lang.SettingsSubLineSpacing,
+                Category = subtitles,
+                Type = OptionType.Double,
+                Min = -2,
+                Max = 2,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.SubLineSpacing,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubLineSpacing), AppContext.AppSetting.SubLineSpacing = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubJustify),
+                Description = lang.SettingsHelpSubJustify,
+                Label = lang.SettingsSubJustify,
+                Category = subtitles,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("left", lang.OptionValueAlignLeft),
+                    new OptionChoice("center", lang.OptionValueAlignCenter),
+                    new OptionChoice("right", lang.OptionValueAlignRight),
+                ],
+                Getter = () => AppContext.AppSetting.SubJustify,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubJustify), AppContext.AppSetting.SubJustify = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubClearOnSeek),
+                Description = lang.SettingsHelpSubClearOnSeek,
+                Label = lang.SettingsSubClearOnSeek,
+                Category = subtitles,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubClearOnSeek,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubClearOnSeek), AppContext.AppSetting.SubClearOnSeek = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubHinting),
+                Description = lang.SettingsHelpSubHinting,
+                Label = lang.SettingsSubHinting,
+                Category = subtitles,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("none", lang.OptionValueHintingNone),
+                    new OptionChoice("light", lang.OptionValueHintingLight),
+                    new OptionChoice("normal", lang.OptionValueHintingNormal),
+                    new OptionChoice("native", lang.OptionValueHintingNative),
+                ],
+                Getter = () => AppContext.AppSetting.SubHinting,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubHinting), AppContext.AppSetting.SubHinting = (string)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.SubDelay),
                 Description = lang.SettingsHelpSubDelay,
                 Label = lang.SettingsSubDelay,
@@ -402,7 +474,7 @@ public sealed partial class SettingsPage
                 Type = OptionType.String,
                 AllowEmpty = true,
                 Placeholder = AppData.Current.ResolveLocalData(Path.Combine("mpv", "fonts")),
-                PickFile = true,
+                PickFolder = true,
                 OpenFolder = true,
                 Getter = () => AppContext.AppSetting.SubFontFile,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFontFile), AppContext.AppSetting.SubFontFile = (string)v!)

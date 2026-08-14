@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
@@ -25,23 +26,118 @@ public sealed partial class SettingsPage : Page
     private string _actionStatus = string.Empty;
     private int _resetStatusGeneration;
 
-    /// <summary>Navigation state used to keep the selected category and scroll position after a reset or language switch.</summary>
-    public sealed record NavigationState(string? Category, double Offset);
+    /// <summary>Stable category keys, parallel to the localized category order.</summary>
+    private static readonly string[] CategoryKeys =
+    [
+        "program", "playback", "video", "audio", "subtitles",
+        "window", "network", "shortcuts", "osd", "screenshot",
+    ];
+
+    /// <summary>Fluent glyphs in the same order as <see cref="CategoryKeys"/>.</summary>
+    // Segoe Fluent Icons codepoints (system icon font). The sidebar must not
+    // mix these with the bundled FluentSystemIcons-Regular.ttf: the same
+    // codepoints map to different glyphs there (e.g. E946 is "Code", which
+    // made the OSD icon render as a pile of code characters).
+    private static readonly string[] CategoryGlyphs =
+    [
+        "\uE713", "\uE768", "\uE714", "\uE767", "\uED1F",
+        "\uE8A4", "\uE774", "\uE765", "\uE946", "\uE722",
+    ];
+
+    /// <summary>
+    /// Creates the Segoe Fluent Icons font on the calling (UI) thread. It
+    /// must not live in the static initializer: WarmDeviceChoices can trigger
+    /// the SettingsPage cctor on a background thread, and WinUI FontFamily is
+    /// thread-affine (settings crashed with 0x8001010E on open).
+    /// </summary>
+    private static FontFamily CreateCategoryIconFont() => new("Segoe Fluent Icons");
 
     public SettingsPage()
     {
         InitializeComponent();
+        _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
+        WarmDeviceChoices();
+        LoadSearchHistory();
+        RebuildLocalizedContent();
+    }
+
+    /// <summary>Debounces keystroke-level search filtering (audit A4).</summary>
+    private readonly DispatcherTimer _searchDebounceTimer = new()
+    {
+        Interval = TimeSpan.FromMilliseconds(250),
+    };
+    private string _pendingSearchQuery = string.Empty;
+
+    /// <summary>Prebuilt search index (audit A4): category aliases and the
+    /// flattened searchable text of every option are computed once per
+    /// settings rebuild instead of per keystroke burst.</summary>
+    private readonly Dictionary<string, string[]> _categoryAliasCache = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _optionSearchTextCache = new(StringComparer.Ordinal);
+
+    private void SearchDebounceTimer_Tick(object? sender, object e)
+    {
+        _searchDebounceTimer.Stop();
+        ApplySearchQuery(_pendingSearchQuery);
+    }
+
+    /// <summary>
+    /// Rebuilds the option tree, category pane and localized labels in place.
+    /// Used at construction, after language switches and after resets, so the
+    /// page instance (search text, selection, scroll) survives.
+    /// </summary>
+    private void RebuildLocalizedContent()
+    {
+        var selectedKey = CurrentCategoryKey;
+        var offset = OptionsControl.GetScrollOffset();
+        CategoryOrder.Clear();
         var options = BuildSettings();
+        Settings.Clear();
         Settings.AddRange(options);
+        Categories.Clear();
         Categories.AddRange(CategoryOrder.Where(c => Settings.Any(o => o.Category == c)));
-        CategoryList.ItemsSource = Categories;
-        CategoryList.SelectedIndex = 0;
+        RebuildSearchIndex();
+        RebuildNavigationItems(selectedKey);
         ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
         ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
         SearchBox.PlaceholderText = AppContext.AppLang.Search;
-        LoadSearchHistory();
-        UpdateOptions();
         RefreshWarningsAndEnabled();
+        UpdateOptions();
+        if (offset > 0)
+        {
+            var target = offset;
+            DispatcherQueue.TryEnqueue(() => OptionsControl.SetScrollOffset(target));
+        }
+    }
+
+    private void RebuildSearchIndex()
+    {
+        _categoryAliasCache.Clear();
+        _optionSearchTextCache.Clear();
+
+        foreach (var category in Categories)
+        {
+            _categoryAliasCache[category] = CategorySearchAliases(category)
+                .Where(alias => !string.IsNullOrEmpty(alias))
+                .ToArray();
+        }
+
+        foreach (var option in Settings)
+        {
+            var text = string.Join(
+                "\n",
+                option.Label,
+                option.Description ?? string.Empty,
+                option.Category,
+                string.Join("\n", GetCategoryAliases(option.Category)));
+            _optionSearchTextCache[option.Key] = text;
+        }
+    }
+
+    private IReadOnlyList<string> GetCategoryAliases(string category)
+    {
+        return _categoryAliasCache.TryGetValue(category, out var aliases)
+            ? aliases
+            : Array.Empty<string>();
     }
 
     private const int MaxSearchHistory = 8;
@@ -50,7 +146,7 @@ public sealed partial class SettingsPage : Page
     {
         var history = AppContext.AppSetting.SettingsSearchHistory
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(TryUnescape)
+            .Select(DecodeHistoryEntry)
             .Take(MaxSearchHistory)
             .ToList();
         if (history.Count > 0)
@@ -67,110 +163,173 @@ public sealed partial class SettingsPage : Page
         }
         var history = AppContext.AppSetting.SettingsSearchHistory
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(TryUnescape)
+            .Select(DecodeHistoryEntry)
             .Where(x => !string.Equals(x, query, StringComparison.OrdinalIgnoreCase))
             .ToList();
         history.Insert(0, query);
-        AppContext.AppSetting.SettingsSearchHistory = string.Join(",", history.Take(MaxSearchHistory).Select(Uri.EscapeDataString));
+        AppContext.AppSetting.SettingsSearchHistory = string.Join(",", history.Take(MaxSearchHistory).Select(EncodeHistoryEntry));
     }
 
-    private static string TryUnescape(string value)
+    /// <summary>Base64url-encodes one history entry (commas/percent safe, audit A8).</summary>
+    private static string EncodeHistoryEntry(string value) =>
+        Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(value))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+
+    private static string DecodeHistoryEntry(string value)
     {
-        // Old histories are stored raw and may contain a literal "%"; a
-        // malformed escape must not break history loading.
         try
         {
-            return Uri.UnescapeDataString(value);
+            var normalized = value.Replace('-', '+').Replace('_', '/');
+            normalized = normalized.PadRight(normalized.Length + (4 - normalized.Length % 4) % 4, '=');
+            return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(normalized));
         }
-        catch (UriFormatException)
+        catch (FormatException)
         {
-            return value;
+            // Legacy histories are stored raw/escaped; keep parsing them.
+            try
+            {
+                return Uri.UnescapeDataString(value);
+            }
+            catch (UriFormatException)
+            {
+                return value;
+            }
         }
     }
 
-    /// <summary>The currently selected category (used before navigating away).</summary>
-    public string? CurrentCategory => CategoryList.SelectedItem as string;
+    /// <summary>The currently selected category (localized label).</summary>
+    public string? CurrentCategory
+    {
+        get
+        {
+            var key = CurrentCategoryKey;
+            if (key is null)
+            {
+                return null;
+            }
+            var index = Array.IndexOf(CategoryKeys, key);
+            return index >= 0 && index < Categories.Count ? Categories[index] : null;
+        }
+    }
+
+    private string? CurrentCategoryKey =>
+        CategoryNav.SelectedItem is NavigationViewItem item ? item.Tag as string : null;
 
     /// <summary>The current vertical scroll offset of the options list.</summary>
     public double CurrentScrollOffset => OptionsControl.GetScrollOffset();
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    /// <summary>Refreshes the page after a language switch without recreating it.</summary>
+    public void OnLanguageChanged()
     {
-        base.OnNavigatedTo(e);
-        if (e.Parameter is not NavigationState state)
+        RebuildLocalizedContent();
+    }
+
+    private void RebuildNavigationItems(string? selectedKey)
+    {
+        CategoryNav.MenuItems.Clear();
+        NavigationViewItem? selectedItem = null;
+        for (var i = 0; i < Categories.Count && i < CategoryKeys.Length; i++)
         {
-            return;
+            var item = new NavigationViewItem
+            {
+                Content = Categories[i],
+                Tag = CategoryKeys[i],
+                Icon = new FontIcon
+                {
+                    Glyph = CategoryGlyphs[i],
+                    FontFamily = CreateCategoryIconFont(),
+                },
+            };
+            if (string.Equals(CategoryKeys[i], selectedKey, StringComparison.Ordinal))
+            {
+                selectedItem = item;
+            }
+            CategoryNav.MenuItems.Add(item);
         }
 
-        if (!string.IsNullOrEmpty(state.Category) && Categories.Contains(state.Category))
-        {
-            CategoryList.SelectedItem = state.Category;
-        }
+        CategoryNav.SelectedItem = selectedItem
+            ?? (CategoryNav.MenuItems.Count > 0 ? CategoryNav.MenuItems[0] : null);
+    }
 
-        if (state.Offset > 0)
+    private void SelectCategory(string category)
+    {
+        var index = Categories.IndexOf(category);
+        if (index >= 0 && index < CategoryNav.MenuItems.Count)
         {
-            var offset = state.Offset;
-            DispatcherQueue.TryEnqueue(() => OptionsControl.SetScrollOffset(offset));
+            CategoryNav.SelectedItem = CategoryNav.MenuItems[index];
         }
     }
 
     private async void OnResetClick(object sender, RoutedEventArgs e)
     {
-        var dialog = new ContentDialog
+        try
         {
-            Title = AppContext.AppLang.Reset,
-            Content = AppContext.AppLang.SettingsResetConfirm,
-            XamlRoot = XamlRoot,
-            PrimaryButtonText = AppContext.AppLang.Reset,
-            CloseButtonText = AppContext.AppLang.Cancel,
-            DefaultButton = ContentDialogButton.Primary,
-        };
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
-        {
-            return;
-        }
+            var dialog = new ContentDialog
+            {
+                Title = AppContext.AppLang.Reset,
+                Content = AppContext.AppLang.SettingsResetConfirm,
+                XamlRoot = XamlRoot,
+                PrimaryButtonText = AppContext.AppLang.Reset,
+                CloseButtonText = AppContext.AppLang.Cancel,
+                DefaultButton = ContentDialogButton.Primary,
+            };
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
 
-        var category = CurrentCategory;
-        var keys = Settings
-            .Where(o => o.Category == category)
-            .Select(o => o.Key)
-            .Where(k => !k.StartsWith("Shortcut:", StringComparison.Ordinal)
-                && k is not ("ShortcutCapture" or "ShortcutReset"
-                    or "FileAssociationCheckList" or "ActionUnassociateFiles"
-                    or "ActionExportConfig" or "ActionImportConfig"))
-            .ToList();
-        AppContext.AppSetting.ResetKeys(keys);
-        ApplyAfterReset();
-        ShowResetStatus(AppContext.AppLang.SettingsResetDone);
-        Frame?.BackStack.Clear();
-        Frame?.Navigate(typeof(SettingsPage), new NavigationState(category, CurrentScrollOffset));
+            var category = CurrentCategory;
+            var keys = Settings
+                .Where(o => o.Category == category)
+                .Select(o => o.Key)
+                .Where(k => !k.StartsWith("Shortcut:", StringComparison.Ordinal)
+                    && k is not ("ShortcutCapture" or "ShortcutReset"
+                        or "FileAssociationCheckList" or "ActionUnassociateFiles"
+                        or "ActionExportConfig" or "ActionImportConfig"
+                        or "ProfilesCheckList"))
+                .ToList();
+            AppContext.AppSetting.ResetKeys(keys);
+            ApplyAfterReset();
+            ShowResetStatus(AppContext.AppLang.SettingsResetDone);
+            RebuildLocalizedContent();
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Error(ex, "reset category failed");
+        }
     }
 
     private async void OnResetAllClick(object sender, RoutedEventArgs e)
     {
-        var dialog = new ContentDialog
+        try
         {
-            Title = AppContext.AppLang.ResetAllSettings,
-            Content = AppContext.AppLang.SettingsResetAllConfirm,
-            XamlRoot = XamlRoot,
-            PrimaryButtonText = AppContext.AppLang.Reset,
-            CloseButtonText = AppContext.AppLang.Cancel,
-            DefaultButton = ContentDialogButton.Primary,
-        };
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
-        {
-            return;
-        }
+            var dialog = new ContentDialog
+            {
+                Title = AppContext.AppLang.ResetAllSettings,
+                Content = AppContext.AppLang.SettingsResetAllConfirm,
+                XamlRoot = XamlRoot,
+                PrimaryButtonText = AppContext.AppLang.Reset,
+                CloseButtonText = AppContext.AppLang.Cancel,
+                DefaultButton = ContentDialogButton.Primary,
+            };
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
 
-        var category = CurrentCategory;
-        var offset = CurrentScrollOffset;
-        AppContext.AppSetting.ResetAll();
-        ResetShortcuts();
-        UnassociateFiles();
-        ApplyAfterReset();
-        ShowResetStatus(AppContext.AppLang.SettingsResetAllDone);
-        Frame?.BackStack.Clear();
-        Frame?.Navigate(typeof(SettingsPage), new NavigationState(category, offset));
+            AppContext.AppSetting.ResetAll();
+            ResetShortcuts();
+            UnassociateFiles();
+            ApplyAfterReset();
+            ShowResetStatus(AppContext.AppLang.SettingsResetAllDone);
+            RebuildLocalizedContent();
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Error(ex, "reset all settings failed");
+        }
     }
 
     private void ApplyAfterReset()
@@ -204,7 +363,7 @@ public sealed partial class SettingsPage : Page
         });
     }
 
-    private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateOptions();
+    private void CategoryNav_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args) => UpdateOptions();
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
@@ -216,62 +375,53 @@ public sealed partial class SettingsPage : Page
         var query = SearchBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(query))
         {
-            CategoryList.ItemsSource = Categories;
+            _searchDebounceTimer.Stop();
+            _pendingSearchQuery = string.Empty;
             SearchBox.ItemsSource = null;
+            UpdateOptions();
             return;
         }
 
-        // 1) Category-level match (with pinyin/alias spellings).
+        // Debounce: wait for the user to pause before scanning the tree.
+        _pendingSearchQuery = query;
+        _searchDebounceTimer.Stop();
+        _searchDebounceTimer.Start();
+    }
+
+    private void ApplySearchQuery(string query)
+    {
+        // Global results: every matching option across categories is shown in
+        // one flat list for now; grouping/highlighting arrives with the
+        // search-results view in the next stage.
         var categoryMatches = Categories
             .Where(c => FuzzyMatch(query, c))
             .ToList();
-        // 2) Option-level match: the query hits an option label (e.g. "音量",
-        //    "volume", "倍速"), which the category list alone never covered.
         var optionMatches = Settings
             .Where(o => FuzzyMatchOption(query, o))
-            .Select(o => (o.Category, o.Key))
             .ToList();
-
-        if (categoryMatches.Count > 0)
-        {
-            CategoryList.ItemsSource = categoryMatches;
-            SearchBox.ItemsSource = categoryMatches.Count > 0 ? categoryMatches : null;
-        }
-        else if (optionMatches.Count > 0)
-        {
-            // Jump to the category of the first hit and scroll to the option
-            // once the list rebuilds for that category.
-            var (category, key) = optionMatches[0];
-            CategoryList.ItemsSource = Categories.Where(c => c == category).ToList();
-            CategoryList.SelectedItem = category;
-            SearchBox.ItemsSource = optionMatches.Select(o => o.Category).Distinct().ToList();
-            DispatcherQueue.TryEnqueue(() => OptionsControl.ScrollToOption(key));
-        }
-        else
-        {
-            CategoryList.ItemsSource = new List<string>();
-            SearchBox.ItemsSource = null;
-        }
-
-        if (CategoryList.Items.Count > 0)
-        {
-            CategoryList.SelectedIndex = 0;
-        }
+        OptionsControl.OptionList = optionMatches;
+        SearchBox.ItemsSource = categoryMatches.Count > 0
+            ? categoryMatches
+            : optionMatches.Select(o => o.Category).Distinct().ToList();
     }
 
     private void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
     {
         if (args.SelectedItem is string category && Categories.Contains(category))
         {
-            CategoryList.SelectedItem = category;
+            SearchBox.Text = string.Empty;
+            SelectCategory(category);
         }
     }
 
     private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
+        _searchDebounceTimer.Stop();
+
         if (args.ChosenSuggestion is string suggested && Categories.Contains(suggested))
         {
-            CategoryList.SelectedItem = suggested;
+            SearchBox.Text = string.Empty;
+            SelectCategory(suggested);
             RememberSearchQuery(suggested);
             return;
         }
@@ -280,29 +430,31 @@ public sealed partial class SettingsPage : Page
         var match = Categories.FirstOrDefault(c => FuzzyMatch(query, c));
         if (match is not null)
         {
-            CategoryList.SelectedItem = match;
+            SearchBox.Text = string.Empty;
+            SelectCategory(match);
             RememberSearchQuery(query);
             return;
         }
 
-        // Option-level query: jump to the category and scroll to the option.
+        // Option-level query: keep the global results list and scroll to the
+        // first hit.
         var option = Settings.FirstOrDefault(o => FuzzyMatchOption(query, o));
         if (option is not null)
         {
-            CategoryList.SelectedItem = option.Category;
+            ApplySearchQuery(query);
             RememberSearchQuery(query);
             DispatcherQueue.TryEnqueue(() => OptionsControl.ScrollToOption(option.Key));
         }
     }
 
-    private static bool FuzzyMatch(string query, string target)
+    private bool FuzzyMatch(string query, string category)
     {
-        if (ContainsFuzzy(query, target))
+        if (ContainsFuzzy(query, category))
         {
             return true;
         }
 
-        foreach (var alias in CategorySearchAliases(target))
+        foreach (var alias in GetCategoryAliases(category))
         {
             if (ContainsFuzzy(query, alias))
             {
@@ -312,9 +464,18 @@ public sealed partial class SettingsPage : Page
         return false;
     }
 
-    private static bool FuzzyMatchOption(string query, Option option) =>
-        FuzzyMatch(query, option.Label)
-        || (option.Description is not null && FuzzyMatch(query, option.Description));
+    private bool FuzzyMatchOption(string query, Option option)
+    {
+        if (_optionSearchTextCache.TryGetValue(option.Key, out var searchText))
+        {
+            return ContainsFuzzy(query, searchText);
+        }
+
+        // Index not built yet (e.g. mid-rebuild): fall back to the direct
+        // fields so search never drops a result.
+        return FuzzyMatch(query, option.Label)
+            || (option.Description is not null && FuzzyMatch(query, option.Description));
+    }
 
     private static bool ContainsFuzzy(string query, string target)
     {
@@ -469,9 +630,16 @@ public sealed partial class SettingsPage : Page
 
     private void UpdateOptions()
     {
-        var selected = CategoryList.SelectedItem as string;
+        var query = SearchBox.Text?.Trim() ?? string.Empty;
+        if (!string.IsNullOrEmpty(query))
+        {
+            OptionsControl.OptionList = Settings.Where(o => FuzzyMatchOption(query, o)).ToList();
+            return;
+        }
+
+        var selected = CurrentCategory;
         OptionsControl.OptionList = selected is null
-            ? string.IsNullOrWhiteSpace(SearchBox.Text) ? Settings : []
+            ? Settings
             : Settings.Where(o => o.Category == selected).ToList();
     }
 

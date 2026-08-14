@@ -60,6 +60,51 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.AudioFormat),
+                Description = lang.SettingsHelpAudioFormat,
+                Label = lang.SettingsAudioFormat,
+                Category = audio,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.OptionValueAuto),
+                    new OptionChoice("u8", "u8"),
+                    new OptionChoice("s16", "s16"),
+                    new OptionChoice("s32", "s32"),
+                    new OptionChoice("float", "float"),
+                    new OptionChoice("floatp", "floatp"),
+                ],
+                Getter = () => AppContext.AppSetting.AudioFormat,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioFormat), AppContext.AppSetting.AudioFormat = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioSampleRate),
+                Description = lang.SettingsHelpAudioSampleRate,
+                Label = lang.SettingsAudioSampleRate,
+                Category = audio,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 384000,
+                Step = 1000,
+                Getter = () => (double)AppContext.AppSetting.AudioSampleRate,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioSampleRate), AppContext.AppSetting.AudioSampleRate = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioStreamSilence),
+                Description = lang.SettingsHelpAudioStreamSilence,
+                Label = lang.SettingsAudioStreamSilence,
+                Category = audio,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.AudioStreamSilence,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioStreamSilence), AppContext.AppSetting.AudioStreamSilence = (bool)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.AudioDelay),
                 Label = lang.SettingsAudioDelay,
                 Category = audio,

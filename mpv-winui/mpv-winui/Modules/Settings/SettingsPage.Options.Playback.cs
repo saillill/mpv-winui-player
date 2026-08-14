@@ -95,6 +95,64 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.StartFullscreen),
+                Description = lang.SettingsHelpStartFullscreen,
+                Label = lang.SettingsStartFullscreen,
+                Category = window,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.StartFullscreen,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.StartFullscreen), AppContext.AppSetting.StartFullscreen = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowTitle),
+                Description = lang.SettingsHelpWindowTitle,
+                Label = lang.SettingsWindowTitle,
+                Category = window,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.WindowTitle,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowTitle = (string)v!;
+                    if (App.Window is MainWindow mainWindow)
+                    {
+                        mainWindow.UpdateTitle(string.Empty);
+                    }
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.LoopPlaylist),
+                Description = lang.SettingsHelpLoopPlaylist,
+                Label = lang.SettingsLoopPlaylist,
+                Category = playback,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueOff),
+                    new OptionChoice("inf", lang.OptionValueLoopInfinite),
+                    new OptionChoice("force", lang.OptionValueLoopForce),
+                ],
+                Getter = () => AppContext.AppSetting.LoopPlaylist,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopPlaylist), AppContext.AppSetting.LoopPlaylist = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.LoopFile),
+                Description = lang.SettingsHelpLoopFile,
+                Label = lang.SettingsLoopFile,
+                Category = playback,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.LoopFile,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopFile), AppContext.AppSetting.LoopFile = (bool)v!)
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.WindowPiP),
                 Label = lang.SettingsPiP,
                 Category = window,

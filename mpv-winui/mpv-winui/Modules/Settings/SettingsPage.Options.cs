@@ -27,17 +27,16 @@ private List<Option> BuildSettings()
         var subtitles = AppContext.AppLang.SettingsCategorySubtitles;
         var window = AppContext.AppLang.SettingsCategoryWindow;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
-        var input = AppContext.AppLang.SettingsCategoryInput;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
         var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
-        var testing = AppContext.AppLang.SettingsCategoryTesting;
         var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramNetwork = AppContext.AppLang.SectionProgramNetwork;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var sProgramAssociations = AppContext.AppLang.SectionProgramAssociations;
         var sProgramConfig = AppContext.AppLang.SectionProgramConfig;
+        var sProgramProfiles = AppContext.AppLang.SectionProgramProfiles;
         var sWindowPiP = AppContext.AppLang.SectionWindowPiP;
         var sNetworkYtdlp = AppContext.AppLang.SectionNetworkYtdlp;
         var sNetworkHttp = AppContext.AppLang.SectionNetworkHttp;
@@ -84,6 +83,7 @@ private List<Option> BuildSettings()
         options.AddRange(BuildAudioOptions());
         options.AddRange(BuildSubtitlesOptions());
         options.AddRange(BuildScreenshotOptions());
+
         options.AddRange(BuildAdvancedOptions());
         options.AddRange(BuildPathFoldersOptions());
 
@@ -101,7 +101,10 @@ private List<Option> BuildSettings()
             }
         }
 
-                                var categoryOrder = new[]
+        // WinUI 3 settings shell: 10 top-level categories. "Input" is merged
+        // into Shortcuts and "Testing" items live inside their related
+        // categories (Program/OSD/Playback) as experimental sections.
+        var categoryOrder = new[]
         {
             program,
             playback,
@@ -110,11 +113,9 @@ private List<Option> BuildSettings()
             subtitles,
             window,
             network,
-            input,
             shortcuts,
             osd,
             screenshot,
-            testing,
         };
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
@@ -133,6 +134,8 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.Ytdl)] = 11,
             [nameof(AppSettings.YtdlRawOptionsAppend)] = 12,
             [nameof(AppSettings.Speed)] = 15,
+            [nameof(AppSettings.LoopPlaylist)] = 13,
+            [nameof(AppSettings.LoopFile)] = 14,
             [nameof(AppSettings.HrSeek)] = 16,
             [nameof(AppSettings.HrSeekFramedrop)] = 17,
             [nameof(AppSettings.SeekHoldEnabled)] = 18,
@@ -306,6 +309,11 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.GpuShaderCache)] = 188,
             [nameof(AppSettings.GpuShaderCacheDir)] = 189,
             [nameof(AppSettings.GlslShadersAppend)] = 190,
+            [nameof(AppSettings.GlslShaders)] = 361,
+            [nameof(AppSettings.GlslShaderOpts)] = 362,
+            [nameof(AppSettings.WindowTitle)] = 363,
+            [nameof(AppSettings.SubHinting)] = 364,
+            ["ProfilesCheckList"] = 365,
             [nameof(AppSettings.VideoSync)] = 191,
             [nameof(AppSettings.VideoSyncMaxVideoChange)] = 192,
             [nameof(AppSettings.WindowPiP)] = 193,
@@ -352,10 +360,35 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.SubItalic)] = 312,
             [nameof(AppSettings.SubAlignX)] = 313,
             [nameof(AppSettings.SubAlignY)] = 314,
+            [nameof(AppSettings.SubScaleByWindow)] = 322,
+            [nameof(AppSettings.SubLineSpacing)] = 323,
+            [nameof(AppSettings.SubJustify)] = 324,
+            [nameof(AppSettings.SubClearOnSeek)] = 325,
             [nameof(AppSettings.SubMarginX)] = 315,
             [nameof(AppSettings.SubMarginY)] = 316,
             [nameof(AppSettings.DemuxerHysteresisSecs)] = 317,
             [nameof(AppSettings.DemuxerCacheDir)] = 318,
+            [nameof(AppSettings.AudioFormat)] = 340,
+            [nameof(AppSettings.AudioSampleRate)] = 341,
+            [nameof(AppSettings.AudioStreamSilence)] = 342,
+            [nameof(AppSettings.StartFullscreen)] = 343,
+            [nameof(AppSettings.D3d11OutputFormat)] = 344,
+            [nameof(AppSettings.D3d11SyncInterval)] = 345,
+            [nameof(AppSettings.TargetGamut)] = 346,
+            [nameof(AppSettings.ToneMappingMaxBoost)] = 347,
+            [nameof(AppSettings.HdrComputePeak)] = 348,
+            [nameof(AppSettings.HdrPeakDecayRate)] = 349,
+            [nameof(AppSettings.HdrSceneThresholdLow)] = 350,
+            [nameof(AppSettings.HdrSceneThresholdHigh)] = 351,
+            [nameof(AppSettings.HdrContrastRecovery)] = 352,
+            [nameof(AppSettings.HdrContrastSmoothness)] = 353,
+            [nameof(AppSettings.CachePauseInitial)] = 354,
+            [nameof(AppSettings.CachePauseWait)] = 355,
+            [nameof(AppSettings.InverseToneMapping)] = 356,
+            [nameof(AppSettings.ToneMappingVisualize)] = 357,
+            [nameof(AppSettings.D3d11Warp)] = 358,
+            [nameof(AppSettings.VideoReversalBuffer)] = 359,
+            [nameof(AppSettings.AudioReversalBuffer)] = 360,
             [nameof(AppSettings.MetadataOsdEnableForAudio)] = 320,
             [nameof(AppSettings.MetadataOsdEnableForAudioWithAlbumArt)] = 321,
             [nameof(AppSettings.MetadataOsdAutohideForAudio)] = 322,
@@ -421,6 +454,7 @@ private List<Option> BuildSettings()
             [sWindowPiP] = 42,
             [sProgramAssociations] = 43,
             [sProgramConfig] = 44,
+            [sProgramProfiles] = 45,
         };
 
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -438,6 +472,10 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.EnableDebugLog)] = sProgramLanguageLog,
             // playback
             [nameof(AppSettings.Speed)] = sPlayback,
+            [nameof(AppSettings.LoopPlaylist)] = sPlayback,
+            [nameof(AppSettings.LoopFile)] = sPlayback,
+            [nameof(AppSettings.VideoReversalBuffer)] = sPlayback,
+            [nameof(AppSettings.AudioReversalBuffer)] = sPlayback,
             [nameof(AppSettings.HrSeek)] = sPlaybackSeeking,
             [nameof(AppSettings.HrSeekFramedrop)] = sPlaybackSeeking,
             [nameof(AppSettings.SeekHoldEnabled)] = sPlaybackSeeking,
@@ -488,6 +526,16 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.Dither)] = sGpuScaling,
             [nameof(AppSettings.DitherDepth)] = sGpuScaling,
             [nameof(AppSettings.ToneMapping)] = sGpuColor,
+            [nameof(AppSettings.TargetGamut)] = sGpuColor,
+            [nameof(AppSettings.ToneMappingMaxBoost)] = sGpuColor,
+            [nameof(AppSettings.HdrComputePeak)] = sGpuColor,
+            [nameof(AppSettings.HdrPeakDecayRate)] = sGpuColor,
+            [nameof(AppSettings.HdrSceneThresholdLow)] = sGpuColor,
+            [nameof(AppSettings.HdrSceneThresholdHigh)] = sGpuColor,
+            [nameof(AppSettings.HdrContrastRecovery)] = sGpuColor,
+            [nameof(AppSettings.HdrContrastSmoothness)] = sGpuColor,
+            [nameof(AppSettings.InverseToneMapping)] = sGpuColor,
+            [nameof(AppSettings.ToneMappingVisualize)] = sGpuColor,
             [nameof(AppSettings.TargetColorspaceHint)] = sGpuColor,
             [nameof(AppSettings.TargetColorspaceHintMode)] = sGpuColor,
             [nameof(AppSettings.TargetColorspaceHintStrict)] = sGpuColor,
@@ -509,9 +557,14 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.D3d11ExclusiveFs)] = sGpuD3d11,
             [nameof(AppSettings.D3d11Flip)] = sGpuD3d11,
             [nameof(AppSettings.D3d11Adapter)] = sGpuD3d11,
+            [nameof(AppSettings.D3d11OutputFormat)] = sGpuD3d11,
+            [nameof(AppSettings.D3d11SyncInterval)] = sGpuD3d11,
+            [nameof(AppSettings.D3d11Warp)] = sGpuD3d11,
             [nameof(AppSettings.GpuShaderCache)] = sGpuShaders,
             [nameof(AppSettings.GpuShaderCacheDir)] = sGpuShaders,
             [nameof(AppSettings.GlslShadersAppend)] = sGpuShaders,
+            [nameof(AppSettings.GlslShaders)] = sGpuShaders,
+            [nameof(AppSettings.GlslShaderOpts)] = sGpuShaders,
             [nameof(AppSettings.VideoSync)] = sVideoSync,
             [nameof(AppSettings.VideoSyncMaxVideoChange)] = sVideoSync,
             [nameof(AppSettings.OverrideDisplayFps)] = sVideoSync,
@@ -519,6 +572,9 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.AudioDevice)] = sAudioOutput,
             [nameof(AppSettings.AudioExclusive)] = sAudioOutput,
             [nameof(AppSettings.AudioChannels)] = sAudioOutput,
+            [nameof(AppSettings.AudioFormat)] = sAudioOutput,
+            [nameof(AppSettings.AudioSampleRate)] = sAudioOutput,
+            [nameof(AppSettings.AudioStreamSilence)] = sAudioOutput,
             [nameof(AppSettings.AudioDelay)] = sAudioOutput,
             [nameof(AppSettings.AudioBuffer)] = sAudioOutput,
             [nameof(AppSettings.AudioWaitOpen)] = sAudioOutput,
@@ -559,6 +615,11 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.SubItalic)] = sSubtitleText,
             [nameof(AppSettings.SubAlignX)] = sSubtitleText,
             [nameof(AppSettings.SubAlignY)] = sSubtitleText,
+            [nameof(AppSettings.SubScaleByWindow)] = sSubtitleText,
+            [nameof(AppSettings.SubLineSpacing)] = sSubtitleText,
+            [nameof(AppSettings.SubJustify)] = sSubtitleText,
+            [nameof(AppSettings.SubClearOnSeek)] = sSubtitleText,
+            [nameof(AppSettings.SubHinting)] = sSubtitleText,
             [nameof(AppSettings.SubMarginX)] = sSubtitleText,
             [nameof(AppSettings.SubMarginY)] = sSubtitleText,
             [nameof(AppSettings.SubDelay)] = sSubtitleText,
@@ -582,6 +643,8 @@ private List<Option> BuildSettings()
             // window
             [nameof(AppSettings.AlwaysOnTop)] = sWindow,
             [nameof(AppSettings.KeepOpen)] = sWindow,
+            [nameof(AppSettings.StartFullscreen)] = sWindow,
+            [nameof(AppSettings.WindowTitle)] = sWindow,
             [nameof(AppSettings.WindowPiP)] = sWindowPiP,
             [nameof(AppSettings.WindowPiPSize)] = sWindowPiP,
             [nameof(AppSettings.WindowStartMaximized)] = sWindow,
@@ -603,6 +666,8 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CacheSecs)] = sCache,
             [nameof(AppSettings.CacheOnDisk)] = sCache,
             [nameof(AppSettings.CachePause)] = sCache,
+            [nameof(AppSettings.CachePauseInitial)] = sCache,
+            [nameof(AppSettings.CachePauseWait)] = sCache,
                         // network
             [nameof(AppSettings.Ytdl)] = sProgramNetwork,
             [nameof(AppSettings.YtdlRawOptionsAppend)] = sProgramNetwork,
@@ -634,6 +699,7 @@ private List<Option> BuildSettings()
             ["ActionUnassociateFiles"] = sProgramAssociations,
             ["ActionExportConfig"] = sProgramConfig,
             ["ActionImportConfig"] = sProgramConfig,
+            ["ProfilesCheckList"] = sProgramProfiles,
             [nameof(AppSettings.ControlBarLayout)] = sProgramInterface,
             [nameof(AppSettings.ControlBarHiddenIcons)] = sProgramInterface,
             // osd

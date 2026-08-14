@@ -382,6 +382,36 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(SubFontSize), value);
         }
 
+        public bool SubScaleByWindow
+        {
+            get => _dataSetting.GetValue(nameof(SubScaleByWindow), true);
+            set => _dataSetting.SetValue(nameof(SubScaleByWindow), value);
+        }
+
+        public double SubLineSpacing
+        {
+            get => _dataSetting.GetValue(nameof(SubLineSpacing), 0.0);
+            set => _dataSetting.SetValue(nameof(SubLineSpacing), value);
+        }
+
+        public string SubJustify
+        {
+            get => _dataSetting.GetValue(nameof(SubJustify), "auto");
+            set => _dataSetting.SetValue(nameof(SubJustify), value);
+        }
+
+        public bool SubClearOnSeek
+        {
+            get => _dataSetting.GetValue(nameof(SubClearOnSeek), true);
+            set => _dataSetting.SetValue(nameof(SubClearOnSeek), value);
+        }
+
+        public string SubHinting
+        {
+            get => _dataSetting.GetValue(nameof(SubHinting), "none");
+            set => _dataSetting.SetValue(nameof(SubHinting), value);
+        }
+
         public double SubDelay
         {
             get => _dataSetting.GetValue(nameof(SubDelay), 0.0);
@@ -528,6 +558,102 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ToneMapping), value);
         }
 
+        public string TargetGamut
+        {
+            get => _dataSetting.GetValue(nameof(TargetGamut), string.Empty);
+            set => _dataSetting.SetValue(nameof(TargetGamut), value);
+        }
+
+        public double ToneMappingMaxBoost
+        {
+            get => _dataSetting.GetValue(nameof(ToneMappingMaxBoost), 1.0);
+            set => _dataSetting.SetValue(nameof(ToneMappingMaxBoost), value);
+        }
+
+        public string HdrComputePeak
+        {
+            get => _dataSetting.GetValue(nameof(HdrComputePeak), "auto");
+            set => _dataSetting.SetValue(nameof(HdrComputePeak), value);
+        }
+
+        public double HdrPeakDecayRate
+        {
+            get => _dataSetting.GetValue(nameof(HdrPeakDecayRate), 20.0);
+            set => _dataSetting.SetValue(nameof(HdrPeakDecayRate), value);
+        }
+
+        public double HdrSceneThresholdLow
+        {
+            get => _dataSetting.GetValue(nameof(HdrSceneThresholdLow), 1.0);
+            set => _dataSetting.SetValue(nameof(HdrSceneThresholdLow), value);
+        }
+
+        public double HdrSceneThresholdHigh
+        {
+            get => _dataSetting.GetValue(nameof(HdrSceneThresholdHigh), 3.0);
+            set => _dataSetting.SetValue(nameof(HdrSceneThresholdHigh), value);
+        }
+
+        public double HdrContrastRecovery
+        {
+            get => _dataSetting.GetValue(nameof(HdrContrastRecovery), 0.0);
+            set => _dataSetting.SetValue(nameof(HdrContrastRecovery), value);
+        }
+
+        public double HdrContrastSmoothness
+        {
+            get => _dataSetting.GetValue(nameof(HdrContrastSmoothness), 3.5);
+            set => _dataSetting.SetValue(nameof(HdrContrastSmoothness), value);
+        }
+
+        public bool CachePauseInitial
+        {
+            get => _dataSetting.GetValue(nameof(CachePauseInitial), false);
+            set => _dataSetting.SetValue(nameof(CachePauseInitial), value);
+        }
+
+        public double CachePauseWait
+        {
+            get => _dataSetting.GetValue(nameof(CachePauseWait), 1.0);
+            set => _dataSetting.SetValue(nameof(CachePauseWait), value);
+        }
+
+        public int D3d11SyncInterval
+        {
+            get => _dataSetting.GetValue(nameof(D3d11SyncInterval), 1);
+            set => _dataSetting.SetValue(nameof(D3d11SyncInterval), value);
+        }
+
+        public bool InverseToneMapping
+        {
+            get => _dataSetting.GetValue(nameof(InverseToneMapping), false);
+            set => _dataSetting.SetValue(nameof(InverseToneMapping), value);
+        }
+
+        public bool ToneMappingVisualize
+        {
+            get => _dataSetting.GetValue(nameof(ToneMappingVisualize), false);
+            set => _dataSetting.SetValue(nameof(ToneMappingVisualize), value);
+        }
+
+        public string D3d11Warp
+        {
+            get => _dataSetting.GetValue(nameof(D3d11Warp), "auto");
+            set => _dataSetting.SetValue(nameof(D3d11Warp), value);
+        }
+
+        public int VideoReversalBuffer
+        {
+            get => _dataSetting.GetValue(nameof(VideoReversalBuffer), 0);
+            set => _dataSetting.SetValue(nameof(VideoReversalBuffer), value);
+        }
+
+        public int AudioReversalBuffer
+        {
+            get => _dataSetting.GetValue(nameof(AudioReversalBuffer), 0);
+            set => _dataSetting.SetValue(nameof(AudioReversalBuffer), value);
+        }
+
         public string DitherDepth
         {
             get => _dataSetting.GetValue(nameof(DitherDepth), "no");
@@ -586,6 +712,42 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(AudioChannels), "auto-safe");
             set => _dataSetting.SetValue(nameof(AudioChannels), value);
+        }
+
+        public string AudioFormat
+        {
+            get => _dataSetting.GetValue(nameof(AudioFormat), string.Empty);
+            set => _dataSetting.SetValue(nameof(AudioFormat), value);
+        }
+
+        public int AudioSampleRate
+        {
+            get => _dataSetting.GetValue(nameof(AudioSampleRate), 0);
+            set => _dataSetting.SetValue(nameof(AudioSampleRate), value);
+        }
+
+        public bool AudioStreamSilence
+        {
+            get => _dataSetting.GetValue(nameof(AudioStreamSilence), false);
+            set => _dataSetting.SetValue(nameof(AudioStreamSilence), value);
+        }
+
+        public bool StartFullscreen
+        {
+            get => _dataSetting.GetValue(nameof(StartFullscreen), false);
+            set => _dataSetting.SetValue(nameof(StartFullscreen), value);
+        }
+
+        public string WindowTitle
+        {
+            get => _dataSetting.GetValue(nameof(WindowTitle), string.Empty);
+            set => _dataSetting.SetValue(nameof(WindowTitle), value);
+        }
+
+        public string D3d11OutputFormat
+        {
+            get => _dataSetting.GetValue(nameof(D3d11OutputFormat), string.Empty);
+            set => _dataSetting.SetValue(nameof(D3d11OutputFormat), value);
         }
 
         public bool AudioExclusive
@@ -1414,6 +1576,13 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPOpacity), value);
         }
 
+        /// <summary>Playlist panel width in pixels (280-420), persisted across sessions.</summary>
+        public int PlaylistWidth
+        {
+            get => _dataSetting.GetValue(nameof(PlaylistWidth), 320);
+            set => _dataSetting.SetValue(nameof(PlaylistWidth), value);
+        }
+
         /// <summary>Checks the GitHub Releases API for updates at startup.</summary>
         public bool CheckForUpdates
         {
@@ -1568,6 +1737,18 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(GlslShadersAppend), string.Empty);
             set => _dataSetting.SetValue(nameof(GlslShadersAppend), value);
+        }
+
+        public string GlslShaders
+        {
+            get => _dataSetting.GetValue(nameof(GlslShaders), string.Empty);
+            set => _dataSetting.SetValue(nameof(GlslShaders), value);
+        }
+
+        public string GlslShaderOpts
+        {
+            get => _dataSetting.GetValue(nameof(GlslShaderOpts), string.Empty);
+            set => _dataSetting.SetValue(nameof(GlslShaderOpts), value);
         }
 
         public bool MetadataOsdEnableForVideo

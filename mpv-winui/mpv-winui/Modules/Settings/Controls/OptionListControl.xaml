@@ -148,6 +148,20 @@
             </Border>
         </DataTemplate>
 
+        <DataTemplate x:Key="ShaderListTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="60"
+                Margin="0,0,0,12"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="4">
+                <ctl:OptionShaderListControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
+            </Border>
+        </DataTemplate>
+
         <DataTemplate x:Key="SectionHeaderTemplate" x:DataType="ctl:SectionHeaderItem">
             <Grid Margin="4,12,4,8">
                 <StackPanel>
@@ -175,6 +189,7 @@
             LayoutTemplate="{StaticResource LayoutTemplate}"
             MultiListTemplate="{StaticResource MultiListTemplate}"
             SectionHeaderTemplate="{StaticResource SectionHeaderTemplate}"
+            ShaderListTemplate="{StaticResource ShaderListTemplate}"
             TextListTemplate="{StaticResource TextListTemplate}"
             TextTemplate="{StaticResource TextTemplate}" />
 
@@ -193,7 +208,7 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid>
+    <Grid x:Name="Root">
         <ListView
             x:Name="OptionListView"
             Grid.Row="1"

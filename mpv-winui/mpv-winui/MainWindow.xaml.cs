@@ -27,6 +27,12 @@ namespace mpv_winui
 
             AppWindow.Title = PackageHelper.AppName;
             AppWindow.SetIcon("App.ico");
+            var customTitle = AppContext.AppSetting.WindowTitle;
+            if (!string.IsNullOrWhiteSpace(customTitle))
+            {
+                ShellTitleBar.Title = customTitle;
+                AppWindow.Title = customTitle;
+            }
 
             SetupWindowSize();
 
@@ -93,9 +99,19 @@ namespace mpv_winui
             }
         }
 
+        private string _lastMediaTitle = PackageHelper.AppName;
+
         public void UpdateTitle(string title)
         {
-            ShellTitleBar?.Title = title;
+            if (!string.IsNullOrEmpty(title))
+            {
+                _lastMediaTitle = title;
+            }
+
+            var custom = AppContext.AppSetting.WindowTitle;
+            var effective = string.IsNullOrWhiteSpace(custom) ? _lastMediaTitle : custom;
+            ShellTitleBar?.Title = effective;
+            AppWindow.Title = effective;
         }
 
         private SettingsWindow? _settingsWindow;

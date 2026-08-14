@@ -607,6 +607,12 @@ namespace mpv_winui.Modules.Player
             return _mpvPlayer.GetAudioDevices();
         }
 
+        /// <summary>Display adapters enumerated through DXGI (audit A2).</summary>
+        public IReadOnlyList<MpvGpuAdapter> GpuAdapters()
+        {
+            return _mpvPlayer.GetGpuAdapters();
+        }
+
         public IReadOnlyList<MpvProfile> Profiles()
         {
             return _mpvPlayer.GetProfiles();

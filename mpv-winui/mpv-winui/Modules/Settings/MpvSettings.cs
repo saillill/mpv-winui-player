@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace mpv_winui.Modules.Settings;
@@ -27,13 +29,19 @@ public static class MpvSettings
             nameof(AppSettings.HwdecCodecs) => $"set hwdec-codecs {(string)value}",
             nameof(AppSettings.AlwaysOnTop) => $"set ontop {(value is true ? "yes" : "no")}",
             nameof(AppSettings.InputIme) => $"set input-ime {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.StartFullscreen) => $"set fullscreen {(value is true ? "yes" : "no")}",
             nameof(AppSettings.D3d11OutputCsp) => string.IsNullOrWhiteSpace((string)value) ? null : $"set d3d11-output-csp {(string)value}",
+            nameof(AppSettings.D3d11OutputFormat) => string.IsNullOrWhiteSpace((string)value) ? null : $"set d3d11-output-format {(string)value}",
+            nameof(AppSettings.D3d11SyncInterval) => $"set d3d11-sync-interval {(int)value}",
+            nameof(AppSettings.D3d11Warp) => $"set d3d11-warp {(string)value}",
             nameof(AppSettings.D3d11ExclusiveFs) => $"set d3d11-exclusive-fs {(value is true ? "yes" : "no")}",
             nameof(AppSettings.D3d11Flip) => $"set d3d11-flip {(value is true ? "yes" : "no")}",
             nameof(AppSettings.D3d11Adapter) => string.IsNullOrWhiteSpace((string)value) ? null : $"set d3d11-adapter {Q((string)value)}",
             nameof(AppSettings.VolumeMax) => $"set volume-max {value}",
             nameof(AppSettings.AudioGapless) => $"set gapless-audio {(string)value}",
             nameof(AppSettings.KeepOpen) => $"set keep-open {value}",
+            nameof(AppSettings.LoopPlaylist) => $"set loop-playlist {(string)value}",
+            nameof(AppSettings.LoopFile) => $"set loop-file {(value is true ? "inf" : "no")}",
             nameof(AppSettings.CacheEnabled) => $"set cache {(string)value}",
             nameof(AppSettings.DemuxerReadahead) => $"set demuxer-readahead-secs {(double)value}",
             nameof(AppSettings.Ytdl) => $"set ytdl {(value is true ? "yes" : "no")}",
@@ -74,6 +82,11 @@ public static class MpvSettings
             nameof(AppSettings.BackgroundTileColor1) => string.IsNullOrWhiteSpace((string)value) ? null : $"set background-tile-color-1 {Q((string)value)}",
             nameof(AppSettings.BackgroundTileSize) => $"set background-tile-size {(int)value}",
             nameof(AppSettings.SubFontSize) => $"set sub-font-size {value}",
+            nameof(AppSettings.SubScaleByWindow) => $"set sub-scale-by-window {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.SubLineSpacing) => $"set sub-line-spacing {((double)value).ToString(CultureInfo.InvariantCulture)}",
+            nameof(AppSettings.SubJustify) => $"set sub-justify {(string)value}",
+            nameof(AppSettings.SubClearOnSeek) => $"set sub-clear-on-seek {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.SubHinting) => $"set sub-hinting {(string)value}",
             nameof(AppSettings.SubDelay) => $"set sub-delay {value}",
             nameof(AppSettings.SubPos) => $"set sub-pos {value}",
             nameof(AppSettings.AudioLanguage) => string.IsNullOrWhiteSpace((string)value) ? null : $"set alang {(string)value}",
@@ -109,6 +122,18 @@ public static class MpvSettings
             nameof(AppSettings.LinearDownscaling) => $"set linear-downscaling {(value is true ? "yes" : "no")}",
             nameof(AppSettings.SigmoidUpscaling) => $"set sigmoid-upscaling {(value is true ? "yes" : "no")}",
             nameof(AppSettings.ToneMapping) => $"set tone-mapping {(string)value}",
+            nameof(AppSettings.TargetGamut) => string.IsNullOrWhiteSpace((string)value) ? null : $"set target-gamut {(string)value}",
+            nameof(AppSettings.ToneMappingMaxBoost) => $"set tone-mapping-max-boost {((double)value).ToString(CultureInfo.InvariantCulture)}",
+            nameof(AppSettings.HdrComputePeak) => $"set hdr-compute-peak {(string)value}",
+            nameof(AppSettings.HdrPeakDecayRate) => $"set hdr-peak-decay-rate {((double)value).ToString(CultureInfo.InvariantCulture)}",
+            nameof(AppSettings.HdrSceneThresholdLow) => $"set hdr-scene-threshold-low {((double)value).ToString(CultureInfo.InvariantCulture)}",
+            nameof(AppSettings.HdrSceneThresholdHigh) => $"set hdr-scene-threshold-high {((double)value).ToString(CultureInfo.InvariantCulture)}",
+            nameof(AppSettings.HdrContrastRecovery) => $"set hdr-contrast-recovery {((double)value).ToString(CultureInfo.InvariantCulture)}",
+            nameof(AppSettings.HdrContrastSmoothness) => $"set hdr-contrast-smoothness {((double)value).ToString(CultureInfo.InvariantCulture)}",
+            nameof(AppSettings.InverseToneMapping) => $"set inverse-tone-mapping {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.ToneMappingVisualize) => $"set tone-mapping-visualize {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.VideoReversalBuffer) => (value is int vb && vb > 0) ? $"set video-reversal-buffer {vb}" : null,
+            nameof(AppSettings.AudioReversalBuffer) => (value is int ab && ab > 0) ? $"set audio-reversal-buffer {ab}" : null,
             nameof(AppSettings.DitherDepth) => $"set dither-depth {(string)value}",
             nameof(AppSettings.HrSeek) => $"set hr-seek {(value is true ? "yes" : "no")}",
             nameof(AppSettings.HrSeekFramedrop) => $"set hr-seek-framedrop {(value is true ? "yes" : "no")}",
@@ -131,7 +156,12 @@ public static class MpvSettings
             nameof(AppSettings.DemuxerMaxBackBytes) => (value is int back && back > 0) ? $"set demuxer-max-back-bytes {back}MiB" : null,
             nameof(AppSettings.GpuShaderCache) => $"set gpu-shader-cache {(value is true ? "yes" : "no")}",
             nameof(AppSettings.GlslShadersAppend) => string.IsNullOrWhiteSpace((string)value) ? null : $"set glsl-shaders-append {Q((string)value)}",
+            nameof(AppSettings.GlslShaders) => BuildShaderListCommand((string)value),
+            nameof(AppSettings.GlslShaderOpts) => string.IsNullOrWhiteSpace((string)value) ? null : $"set glsl-shader-opts {Q((string)value)}",
             nameof(AppSettings.AudioChannels) => $"set audio-channels {(string)value}",
+            nameof(AppSettings.AudioFormat) => string.IsNullOrWhiteSpace((string)value) ? null : $"set audio-format {(string)value}",
+            nameof(AppSettings.AudioSampleRate) => (value is int rate && rate > 0) ? $"set audio-samplerate {rate}" : null,
+            nameof(AppSettings.AudioStreamSilence) => $"set audio-stream-silence {(value is true ? "yes" : "no")}",
             nameof(AppSettings.AudioWaitOpen) => $"set audio-wait-open {((double)value).ToString(CultureInfo.InvariantCulture)}",
             nameof(AppSettings.AudioBuffer) => (value is double buf && buf > 0) ? $"set audio-buffer {buf.ToString(CultureInfo.InvariantCulture)}" : null,
             nameof(AppSettings.AudioSpdif) => string.IsNullOrWhiteSpace((string)value) ? null : $"set audio-spdif {(string)value}",
@@ -140,6 +170,8 @@ public static class MpvSettings
             nameof(AppSettings.ImageDisplayDuration) => $"set image-display-duration {((double)value).ToString(CultureInfo.InvariantCulture)}",
             nameof(AppSettings.OverrideDisplayFps) => $"set override-display-fps {((double)value).ToString(CultureInfo.InvariantCulture)}",
             nameof(AppSettings.CachePause) => $"set cache-pause {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.CachePauseInitial) => $"set cache-pause-initial {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.CachePauseWait) => $"set cache-pause-wait {((double)value).ToString(CultureInfo.InvariantCulture)}",
             nameof(AppSettings.PrefetchPlaylist) => $"set prefetch-playlist {(value is true ? "yes" : "no")}",
             nameof(AppSettings.SubBold) => $"set sub-bold {(value is true ? "yes" : "no")}",
             nameof(AppSettings.SubItalic) => $"set sub-italic {(value is true ? "yes" : "no")}",
@@ -242,6 +274,14 @@ public static class MpvSettings
                 continue;
             }
 
+            // Startup-only options cannot be changed through runtime `set`;
+            // they are written to mpv.conf instead. Keep this set conservative
+            // until each entry is verified against the manual (audit A5).
+            if (ConfigOnlyKeys.Contains(prop.Name))
+            {
+                continue;
+            }
+
             object? value;
             try
             {
@@ -262,5 +302,28 @@ public static class MpvSettings
                 run(cmd);
             }
         }
+    }
+
+    /// <summary>AppSettings mapped to mpv options that only take effect at startup.</summary>
+    private static readonly HashSet<string> ConfigOnlyKeys = new(StringComparer.Ordinal)
+    {
+        nameof(AppSettings.InputIpcServer),
+        nameof(AppSettings.IccCacheDir),
+        nameof(AppSettings.GpuShaderCacheDir),
+        nameof(AppSettings.DemuxerCacheDir),
+    };
+
+    /// <summary>
+    /// Serializes the shader-list editor value into an mpv <c>glsl-shaders</c>
+    /// set command: entries are ';'-separated and disabled entries (prefixed
+    /// with '!') are excluded from the applied list.
+    /// </summary>
+    private static string? BuildShaderListCommand(string value)
+    {
+        var enabled = value
+            .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(part => !part.StartsWith("!", StringComparison.Ordinal))
+            .ToList();
+        return enabled.Count == 0 ? null : $"set glsl-shaders {Q(string.Join(';', enabled))}";
     }
 }

@@ -16,6 +16,7 @@ public partial class OptionTemplateSelector : DataTemplateSelector
     public DataTemplate CheckListTemplate { get; set; } = null!;
     public DataTemplate LayoutTemplate { get; set; } = null!;
     public DataTemplate MultiListTemplate { get; set; } = null!;
+    public DataTemplate ShaderListTemplate { get; set; } = null!;
 
     protected override DataTemplate SelectTemplateCore(object item)
     {
@@ -37,6 +38,7 @@ public partial class OptionTemplateSelector : DataTemplateSelector
                 OptionType.CheckList => CheckListTemplate,
                 OptionType.Layout => LayoutTemplate,
                 OptionType.MultiList => MultiListTemplate,
+                OptionType.ShaderList => ShaderListTemplate,
                 _ => base.SelectTemplateCore(item)
             };
         }

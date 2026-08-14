@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Windowing;
 using mpv_winui.Modules.Common.View;
 using mpv_winui;
 using System;
@@ -26,6 +27,12 @@ public sealed partial class SettingsWindow : Window
         AppWindow.Title = AppContext.AppLang.SettingsTitle;
         AppWindow.SetIcon("App.ico");
         AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
+
+        if (AppWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.PreferredMinimumWidth = 720;
+            presenter.PreferredMinimumHeight = 480;
+        }
 
         _styleManager = new WindowStyleManager(this);
         _styleManager?.Setup();
@@ -73,13 +80,13 @@ public sealed partial class SettingsWindow : Window
         DispatcherQueue.TryEnqueue(() =>
         {
             SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
-            var state = PageFrame.Content is SettingsPage page
-                ? new SettingsPage.NavigationState(page.CurrentCategory, page.CurrentScrollOffset)
-                : null;
-            // Language switches rebuild the page; keep the frame from growing
-            // an unbounded back stack across repeated switches.
-            PageFrame.BackStack.Clear();
-            PageFrame.Navigate(typeof(SettingsPage), state);
+            AppWindow.Title = AppContext.AppLang.SettingsTitle;
+            // Language switches refresh the existing page in place, keeping
+            // the selected category, search text and scroll offset.
+            if (PageFrame.Content is SettingsPage page)
+            {
+                page.OnLanguageChanged();
+            }
         });
     }
 }

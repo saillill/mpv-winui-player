@@ -1,0 +1,48 @@
+<UserControl
+    x:Class="mpv_winui.Modules.Player.QuickControlPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:mpv_winui.Modules.Player"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <!-- Quick-control equalizer bands (audit C4/A9): the panel fills
+             EqualizerBands and the sliders bind TwoWay to EqualizerBand.Value. -->
+        <ItemsPanelTemplate x:Key="EqualizerBandsPanelTemplate">
+            <StackPanel Orientation="Horizontal" Spacing="2" />
+        </ItemsPanelTemplate>
+        <DataTemplate x:Key="EqualizerBandTemplate" x:DataType="local:EqualizerBand">
+            <StackPanel
+                Width="36"
+                HorizontalAlignment="Center"
+                Spacing="4">
+                <Slider
+                    Width="30"
+                    Height="170"
+                    AutomationProperties.Name="{x:Bind Band}"
+                    HorizontalAlignment="Center"
+                    Maximum="12"
+                    Minimum="-12"
+                    Orientation="Vertical"
+                    StepFrequency="0.5"
+                    Value="{x:Bind Value, Mode=TwoWay}" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="10"
+                    Text="{x:Bind Band}" />
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <!--
+      Quick-control flyout shell (audit C4, structural step): the flyout now
+      hosts a XAML user control; the per-section controls are still built by
+      PlayerControl into ContentRoot so existing behavior is preserved.
+    -->
+    <StackPanel
+        x:Name="ContentRoot"
+        Padding="10"
+        Spacing="10" />
+</UserControl>

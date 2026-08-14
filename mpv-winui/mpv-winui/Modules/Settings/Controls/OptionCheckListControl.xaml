@@ -14,6 +14,9 @@
                 ItemWidth="170"
                 Orientation="Horizontal" />
         </ItemsPanelTemplate>
+        <ItemsPanelTemplate x:Key="CheckListPanel">
+            <StackPanel Spacing="4" />
+        </ItemsPanelTemplate>
     </UserControl.Resources>
 
     <Grid

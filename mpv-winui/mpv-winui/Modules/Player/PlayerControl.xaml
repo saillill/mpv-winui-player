@@ -11,6 +11,30 @@
     d:DesignWidth="400"
     mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <!-- Equalizer flyout band row (audit A9): sliders bind TwoWay to
+             EqualizerBand.Value instead of being rebuilt on every open. -->
+        <DataTemplate x:Key="EqualizerFlyoutBandTemplate" x:DataType="local:EqualizerBand">
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="{x:Bind Band}" />
+                <Slider
+                    Grid.Column="1"
+                    Width="160"
+                    AutomationProperties.Name="{x:Bind Band}"
+                    Maximum="12"
+                    Minimum="-12"
+                    StepFrequency="0.5"
+                    Value="{x:Bind Value, Mode=TwoWay}" />
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
     <Grid x:Name="RootGrid">
         <Grid.Resources>
             <LinearGradientBrush
@@ -324,10 +348,7 @@ Grid.Column="11"
                                         <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
                                     </Style>
                                 </Flyout.FlyoutPresenterStyle>
-                                <StackPanel
-                                    x:Name="ControlPanelRoot"
-                                    Padding="10"
-                                    Spacing="10" />
+                                <local:QuickControlPanel x:Name="ControlPanelHost" />
                             </Flyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>
@@ -642,6 +663,23 @@ Grid.Column="18"
                         </AppBarButton.Icon>
                     </AppBarButton>
 
+                    <AppBarButton
+                        x:Name="MoreButton"
+                        Grid.Column="19"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        Visibility="Collapsed">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE712;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <MenuFlyout
+                                x:Name="MoreFlyout"
+                                LightDismissOverlayMode="Off"
+                                Placement="Top"
+                                Opening="MoreFlyout_Opening" />
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
 
                     <CommandBar.SecondaryCommands />
                 </CommandBar>
@@ -782,6 +820,7 @@ Grid.Column="18"
                         <Setter Target="RepeatButton.Visibility" Value="Collapsed" />
                         <Setter Target="PlaybackRateButton.Visibility" Value="Collapsed" />
                         <Setter Target="ZoomButton.Visibility" Value="Collapsed" />
+                        <Setter Target="MoreButton.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="Compact">
@@ -795,6 +834,7 @@ Grid.Column="18"
                         <Setter Target="PreviousTrackButton.Visibility" Value="Collapsed" />
                         <Setter Target="NextTrackButton.Visibility" Value="Collapsed" />
                         <Setter Target="FullWindowButton.Visibility" Value="Collapsed" />
+                        <Setter Target="MoreButton.Visibility" Value="Visible" />
 
                     </VisualState.Setters>
                 </VisualState>
@@ -811,6 +851,7 @@ Grid.Column="18"
                         <Setter Target="FullWindowButton.Visibility" Value="Collapsed" />
                         <Setter Target="FullScreenButton.Visibility" Value="Collapsed" />
                         <Setter Target="VolumeSliderContainer.Visibility" Value="Collapsed" />
+                        <Setter Target="MoreButton.Visibility" Value="Visible" />
 
                     </VisualState.Setters>
                 </VisualState>

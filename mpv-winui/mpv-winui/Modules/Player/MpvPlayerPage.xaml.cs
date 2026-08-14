@@ -68,6 +68,8 @@ namespace mpv_winui.Modules.Player
 
                 AppContext.RunMpvCommand = cmd => _mediaPlayer.RunCommandAsync(cmd).FireAndForget(OnException);
                 AppContext.GetAudioDevices = () => _mediaPlayer.AudioDevices();
+                AppContext.GetGpuAdapters = () => _mediaPlayer.GpuAdapters();
+                AppContext.GetMpvProfiles = () => _mediaPlayer.Profiles();
                 var lang = AppContext.AppSetting.CurrentLanguage;
                 if (string.IsNullOrWhiteSpace(lang)) lang = "en-US";
                 AppContext.SendMpvCommand($"no-osd set user-data/mpvw/language {lang}");
@@ -117,8 +119,8 @@ namespace mpv_winui.Modules.Player
         {
             AppContext.RunMpvCommand = null;
             AppContext.GetAudioDevices = null;
-            _sleepTimer?.Stop();
-            _sleepTimer = null;
+            AppContext.GetGpuAdapters = null;
+            AppContext.GetMpvProfiles = null;
             AppContext.SettingChanged -= AppContext_SettingChanged;
             AppContext.LanguageChanged -= AppContext_LanguageChanged;
             CleanupDisplayInfo();

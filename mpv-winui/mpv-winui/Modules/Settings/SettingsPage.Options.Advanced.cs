@@ -21,7 +21,7 @@ public sealed partial class SettingsPage
     private List<Option> BuildAdvancedOptions()
     {
         var audio = AppContext.AppLang.SettingsCategoryAudio;
-        var input = AppContext.AppLang.SettingsCategoryInput;
+        var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
@@ -76,6 +76,25 @@ public sealed partial class SettingsPage
                 ],
                 Getter = () => AppContext.AppSetting.D3d11OutputCsp,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11OutputCsp), AppContext.AppSetting.D3d11OutputCsp = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.D3d11OutputFormat),
+                Description = lang.SettingsHelpD3d11OutputFormat,
+                Label = lang.SettingsD3d11OutputFormat,
+                Category = video,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("", lang.OptionValueAuto),
+                    new OptionChoice("rgba8", "rgba8"),
+                    new OptionChoice("bgra8", "bgra8"),
+                    new OptionChoice("rgb10_a2", "rgb10_a2"),
+                    new OptionChoice("rgba16f", "rgba16f"),
+                ],
+                Getter = () => AppContext.AppSetting.D3d11OutputFormat,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11OutputFormat), AppContext.AppSetting.D3d11OutputFormat = (string)v!)
             },
 
             new Option
@@ -337,6 +356,225 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.TargetGamut),
+                Description = lang.SettingsHelpTargetGamut,
+                Label = lang.SettingsTargetGamut,
+                Category = video,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.TargetGamut,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.TargetGamut), AppContext.AppSetting.TargetGamut = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ToneMappingMaxBoost),
+                Description = lang.SettingsHelpToneMappingMaxBoost,
+                Label = lang.SettingsToneMappingMaxBoost,
+                Category = video,
+                Type = OptionType.Double,
+                Min = 1,
+                Max = 10,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.ToneMappingMaxBoost,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ToneMappingMaxBoost), AppContext.AppSetting.ToneMappingMaxBoost = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HdrComputePeak),
+                Description = lang.SettingsHelpHdrComputePeak,
+                Label = lang.SettingsHdrComputePeak,
+                Category = video,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("yes", lang.OptionValueOn),
+                    new OptionChoice("no", lang.OptionValueOff),
+                ],
+                Getter = () => AppContext.AppSetting.HdrComputePeak,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HdrComputePeak), AppContext.AppSetting.HdrComputePeak = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HdrPeakDecayRate),
+                Description = lang.SettingsHelpHdrPeakDecayRate,
+                Label = lang.SettingsHdrPeakDecayRate,
+                Category = video,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 1000,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.HdrPeakDecayRate,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HdrPeakDecayRate), AppContext.AppSetting.HdrPeakDecayRate = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HdrSceneThresholdLow),
+                Description = lang.SettingsHelpHdrSceneThresholdLow,
+                Label = lang.SettingsHdrSceneThresholdLow,
+                Category = video,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.HdrSceneThresholdLow,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HdrSceneThresholdLow), AppContext.AppSetting.HdrSceneThresholdLow = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HdrSceneThresholdHigh),
+                Description = lang.SettingsHelpHdrSceneThresholdHigh,
+                Label = lang.SettingsHdrSceneThresholdHigh,
+                Category = video,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.HdrSceneThresholdHigh,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HdrSceneThresholdHigh), AppContext.AppSetting.HdrSceneThresholdHigh = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HdrContrastRecovery),
+                Description = lang.SettingsHelpHdrContrastRecovery,
+                Label = lang.SettingsHdrContrastRecovery,
+                Category = video,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 2,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.HdrContrastRecovery,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HdrContrastRecovery), AppContext.AppSetting.HdrContrastRecovery = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HdrContrastSmoothness),
+                Description = lang.SettingsHelpHdrContrastSmoothness,
+                Label = lang.SettingsHdrContrastSmoothness,
+                Category = video,
+                Type = OptionType.Double,
+                Min = 1,
+                Max = 100,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.HdrContrastSmoothness,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HdrContrastSmoothness), AppContext.AppSetting.HdrContrastSmoothness = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CachePauseInitial),
+                Description = lang.SettingsHelpCachePauseInitial,
+                Label = lang.SettingsCachePauseInitial,
+                Category = network,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CachePauseInitial,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CachePauseInitial), AppContext.AppSetting.CachePauseInitial = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CachePauseWait),
+                Description = lang.SettingsHelpCachePauseWait,
+                Label = lang.SettingsCachePauseWait,
+                Category = network,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 60,
+                Step = 0.5,
+                Getter = () => AppContext.AppSetting.CachePauseWait,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CachePauseWait), AppContext.AppSetting.CachePauseWait = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.D3d11SyncInterval),
+                Description = lang.SettingsHelpD3d11SyncInterval,
+                Label = lang.SettingsD3d11SyncInterval,
+                Category = video,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 4,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.D3d11SyncInterval,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11SyncInterval), AppContext.AppSetting.D3d11SyncInterval = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.InverseToneMapping),
+                Description = lang.SettingsHelpInverseToneMapping,
+                Label = lang.SettingsInverseToneMapping,
+                Category = video,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.InverseToneMapping,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InverseToneMapping), AppContext.AppSetting.InverseToneMapping = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ToneMappingVisualize),
+                Description = lang.SettingsHelpToneMappingVisualize,
+                Label = lang.SettingsToneMappingVisualize,
+                Category = video,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.ToneMappingVisualize,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ToneMappingVisualize), AppContext.AppSetting.ToneMappingVisualize = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.D3d11Warp),
+                Description = lang.SettingsHelpD3d11Warp,
+                Label = lang.SettingsD3d11Warp,
+                Category = video,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("yes", lang.OptionValueOn),
+                    new OptionChoice("no", lang.OptionValueOff),
+                ],
+                Getter = () => AppContext.AppSetting.D3d11Warp,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.D3d11Warp), AppContext.AppSetting.D3d11Warp = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VideoReversalBuffer),
+                Description = lang.SettingsHelpVideoReversalBuffer,
+                Label = lang.SettingsVideoReversalBuffer,
+                Category = playback,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 1000000000,
+                Step = 1000000,
+                Getter = () => (double)AppContext.AppSetting.VideoReversalBuffer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoReversalBuffer), AppContext.AppSetting.VideoReversalBuffer = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioReversalBuffer),
+                Description = lang.SettingsHelpAudioReversalBuffer,
+                Label = lang.SettingsAudioReversalBuffer,
+                Category = playback,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 1000000000,
+                Step = 1000000,
+                Getter = () => (double)AppContext.AppSetting.AudioReversalBuffer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioReversalBuffer), AppContext.AppSetting.AudioReversalBuffer = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.IccCache),
                 Label = lang.SettingsIccCache,
                 Category = video,
@@ -367,6 +605,29 @@ public sealed partial class SettingsPage
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.GlslShadersAppend,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GlslShadersAppend), AppContext.AppSetting.GlslShadersAppend = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.GlslShaders),
+                Description = lang.SettingsHelpGlslShaders,
+                Label = lang.SettingsGlslShaders,
+                Category = video,
+                Type = OptionType.ShaderList,
+                Getter = () => AppContext.AppSetting.GlslShaders,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GlslShaders), AppContext.AppSetting.GlslShaders = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.GlslShaderOpts),
+                Description = lang.SettingsHelpGlslShaderOpts,
+                Label = lang.SettingsGlslShaderOpts,
+                Category = video,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.GlslShaderOpts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GlslShaderOpts), AppContext.AppSetting.GlslShaderOpts = (string)v!)
             },
 
             new Option
@@ -508,7 +769,17 @@ public sealed partial class SettingsPage
                 Type = OptionType.String,
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.OsdPlayingMsg,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdPlayingMsg), AppContext.AppSetting.OsdPlayingMsg = (string)v!)
+                Setter = v =>
+                {
+                    AppContext.AppSetting.OsdPlayingMsg = (string)v!;
+                    // Only push the text while the display toggle is on;
+                    // otherwise editing the message would silently clear it
+                    // (audit B2).
+                    if (AppContext.AppSetting.ShowOsdPlayingMsg)
+                    {
+                        ApplyMpv(nameof(AppContext.AppSetting.OsdPlayingMsg), (string)v!);
+                    }
+                }
             },
 
             new Option
@@ -1228,7 +1499,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.InputIpcServer),
                 Label = lang.SettingsInputIpcServer,
-                Category = input,
+                Category = shortcuts,
                 Description = lang.SettingsHelpInputIpcServer,
                 Type = OptionType.String,
                 AllowEmpty = true,
