@@ -18,6 +18,9 @@ public sealed class EqualizerBand : INotifyPropertyChanged
 
     public string Band { get; }
 
+    /// <summary>Current gain formatted for the label above the slider.</summary>
+    public string ValueText => _value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+
     public double Value
     {
         get => _value;
@@ -30,6 +33,7 @@ public sealed class EqualizerBand : INotifyPropertyChanged
             _value = value;
             ValueChanged?.Invoke(value);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ValueText)));
         }
     }
 

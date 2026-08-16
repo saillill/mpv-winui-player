@@ -23,14 +23,21 @@
                 <TextBlock
                     VerticalAlignment="Center"
                     Text="{x:Bind Band}" />
-                <Slider
+                <StackPanel
                     Grid.Column="1"
-                    Width="160"
-                    AutomationProperties.Name="{x:Bind Band}"
-                    Maximum="12"
-                    Minimum="-12"
-                    StepFrequency="0.5"
-                    Value="{x:Bind Value, Mode=TwoWay}" />
+                    Spacing="2">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="12"
+                        Text="{x:Bind ValueText, Mode=OneWay}" />
+                    <Slider
+                        Width="160"
+                        AutomationProperties.Name="{x:Bind Band}"
+                        Maximum="12"
+                        Minimum="-12"
+                        StepFrequency="0.5"
+                        Value="{x:Bind Value, Mode=TwoWay}" />
+                </StackPanel>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
