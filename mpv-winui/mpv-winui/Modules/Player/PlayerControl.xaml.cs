@@ -714,6 +714,7 @@ namespace mpv_winui.Modules.Player
 
                         UpdateShuffleButtonUI();
                         UpdateRepeatButtonUI();
+                        UpdatePlaybackRateUI(value.PlaybackRate);
                         VolumeSlider.Value2 = _mediaPlayer?.Volume ?? 50; //TODO
 
                         // Initialize time/progress from the current media state.
@@ -929,6 +930,7 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.RepeatStateChanged += MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged += MediaPlayer_ShuffleEnabledChanged;
             _mediaPlayer?.PositionChanged += PlaybackSession_PositionChanged;
+            _mediaPlayer?.SpeedChanged += PlaybackSession_SpeedChanged;
         }
 
         private void RemoveEventListeners()
@@ -944,6 +946,7 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.RepeatStateChanged -= MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged -= MediaPlayer_ShuffleEnabledChanged;
             _mediaPlayer?.PositionChanged -= PlaybackSession_PositionChanged;
+            _mediaPlayer?.SpeedChanged -= PlaybackSession_SpeedChanged;
         }
 
         private void NextTrackButton_Click(object sender, RoutedEventArgs e)
@@ -1078,6 +1081,32 @@ namespace mpv_winui.Modules.Player
             {
                 _mediaPlayer.PlaybackRate = speed;
             }
+        }
+
+        private void PlaybackSession_SpeedChanged(MpvMediaPlayer sender, SpeedChangedEventArgs args)
+        {
+            DispatcherQueue.RunAsync(() => UpdatePlaybackRateUI(args.Speed));
+        }
+
+        /// <summary>
+        /// Marks the matching rate preset in the flyout and shows the current
+        /// speed in the button tooltip; keeps the UI in sync when speed is
+        /// changed from mpv commands (menu/input.conf) as well as the flyout.
+        /// </summary>
+        private void UpdatePlaybackRateUI(double speed)
+        {
+            foreach (var item in PlaybackRateFlyout.Items)
+            {
+                if (item is ToggleMenuFlyoutItem toggle
+                    && item.Tag is string tag
+                    && tag != "custom"
+                    && double.TryParse(tag, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var preset))
+                {
+                    toggle.IsChecked = Math.Abs(preset - speed) < 0.001;
+                }
+            }
+            var label = speed.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+            ToolTipService.SetToolTip(PlaybackRateButton, $"{AppContext.AppLang.MorePlaybackRate} — {label}x");
         }
 
 

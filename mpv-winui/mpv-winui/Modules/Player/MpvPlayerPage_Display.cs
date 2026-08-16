@@ -228,6 +228,18 @@ namespace mpv_winui.Modules.Player
                     try
                     {
                         System.IO.Directory.CreateDirectory(logDir);
+                        // Cap display-info.log at ~1 MiB: rotate to .old so a
+                        // long-lived HDR/display session cannot grow unbounded.
+                        var fileInfo = new System.IO.FileInfo(logPath);
+                        if (fileInfo.Exists && fileInfo.Length > 1024 * 1024)
+                        {
+                            var oldPath = logPath + ".old";
+                            if (System.IO.File.Exists(oldPath))
+                            {
+                                System.IO.File.Delete(oldPath);
+                            }
+                            System.IO.File.Move(logPath, oldPath);
+                        }
                         System.IO.File.AppendAllText(logPath, line);
                     }
                     catch

@@ -1013,5 +1013,9 @@
   "AudioVolumeDown": "Volumen -5",
   "AudioMute": "Silenciar",
   "SubtitleCycleTrack": "Cambiar pista de subtítulos",
-  "SubtitleVisibility": "Mostrar/ocultar subtítulos"
+  "SubtitleVisibility": "Mostrar/ocultar subtítulos",
+  "MoreZoomAuto": "Automático",
+  "OptionValueToneMapClip": "Recorte",
+  "SettingsReferrer": "Referente",
+  "SettingsUserAgent": "Agente de usuario"
 }

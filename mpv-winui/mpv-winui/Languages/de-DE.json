@@ -361,7 +361,7 @@
   "OptionValueToneMapBt2390": "BT.2390",
   "OptionValueToneMapBt2446a": "BT.2446a",
   "OptionValueToneMapMobius": "Möbius",
-  "OptionValueToneMapClip": "Clip",
+  "OptionValueToneMapClip": "Beschneiden",
   "OptionValueToneMapReinhard": "Reinhard",
   "OptionValueRotateNo": "Keine Drehung",
   "OptionValueRotate90": "90° im Uhrzeigersinn",
@@ -1013,5 +1013,10 @@
   "AudioVolumeDown": "Lautstärke -5",
   "AudioMute": "Stumm",
   "SubtitleCycleTrack": "Untertitelspur wechseln",
-  "SubtitleVisibility": "Untertitel umschalten"
+  "SubtitleVisibility": "Untertitel umschalten",
+  "OptionValueGamutClip": "Beschneiden",
+  "OptionValueTscaleOversample": "Überabtastung",
+  "PanelPreset": "Voreinstellung",
+  "SectionCache": "Zwischenspeicher",
+  "SectionTrackFallback": "Ersatz"
 }

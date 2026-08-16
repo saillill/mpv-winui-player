@@ -128,7 +128,8 @@ namespace mpv_winui.Modules.Player
             }
             else
             {
-                //TODO
+                // Initialization failed or is still in flight; the page stays
+                // inert rather than showing a half-wired player.
             }
         }
 
@@ -262,9 +263,45 @@ namespace mpv_winui.Modules.Player
 
         private void OnException(Exception ex)
         {
-            //TODO add notify
             _logger.Error(ex);
+            if (ex is OperationCanceledException)
+            {
+                return;
+            }
+
+            // Surface unexpected failures once per 5s; log-only would leave
+            // users with no feedback when a menu/playlist action fails.
+            if (Environment.TickCount64 - _lastExceptionNotifyTicks < 5000)
+            {
+                return;
+            }
+            _lastExceptionNotifyTicks = Environment.TickCount64;
+
+            DispatcherQueue.RunAsync(async () =>
+            {
+                try
+                {
+                    if (XamlRoot is null)
+                    {
+                        return;
+                    }
+                    var dialog = new ContentDialog
+                    {
+                        Title = "mpv-winui",
+                        Content = ex.Message,
+                        CloseButtonText = AppContext.AppLang.Ok,
+                        XamlRoot = XamlRoot,
+                    };
+                    await dialog.ShowAsync();
+                }
+                catch
+                {
+                    // Dialog failures are non-fatal (e.g. app closing).
+                }
+            });
         }
+
+        private long _lastExceptionNotifyTicks;
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {

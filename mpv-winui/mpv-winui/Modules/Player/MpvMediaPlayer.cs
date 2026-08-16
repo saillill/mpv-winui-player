@@ -112,6 +112,11 @@ namespace mpv_winui.Modules.Player
             get; set;
         }
 
+        public Action<MpvMediaPlayer, SpeedChangedEventArgs>? SpeedChanged
+        {
+            get; set;
+        }
+
         public Action<MpvMediaPlayer, object?>? SwapChainChanged
         {
             get; set;
@@ -324,6 +329,7 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.LogMessage += MpvPlayer_LogMessage;
             _mpvPlayer.PropertyChanged += MpvPlayer_PropertyChanged;
             _mpvPlayer.PositionChanged += MpvPlayer_PositionChanged;
+            _mpvPlayer.SpeedChanged += MpvPlayer_SpeedChanged;
         }
 
         public void StopListen()
@@ -344,6 +350,7 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.LogMessage -= MpvPlayer_LogMessage;
             _mpvPlayer.PropertyChanged -= MpvPlayer_PropertyChanged;
             _mpvPlayer.PositionChanged -= MpvPlayer_PositionChanged;
+            _mpvPlayer.SpeedChanged -= MpvPlayer_SpeedChanged;
         }
 
         private void MpvPlayer_VoConfigured()
@@ -439,6 +446,11 @@ namespace mpv_winui.Modules.Player
         private void MpvPlayer_PositionChanged(PositionChangedEventArgs args)
         {
             PositionChanged?.Invoke(this, args);
+        }
+
+        private void MpvPlayer_SpeedChanged(SpeedChangedEventArgs args)
+        {
+            SpeedChanged?.Invoke(this, args);
         }
 
         private void MpvPlayer_VolumeChanged(VolumeChangedEventArgs args)

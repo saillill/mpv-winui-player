@@ -171,5 +171,20 @@ namespace mpv_winrt_test
             mpvPlayer.SetLogLevel("warn");
             mpvPlayer.SetLogLevel("no");
         }
+
+        [Test]
+        public async Task SpeedChangedFiresOnPropertySet()
+        {
+            MpvPlayer mpvPlayer = new();
+            mpvPlayer.Initialize("", 1, 1, 30, DisplayColorKind.SDR, 60);
+
+            var tcs = new TaskCompletionSource<double>();
+            mpvPlayer.SpeedChanged += args => tcs.TrySetResult(args.Speed);
+
+            mpvPlayer.PlaybackSpeed(1.5);
+            var completed = await Task.WhenAny(tcs.Task, Task.Delay(5000));
+            Assert.That(completed, Is.SameAs(tcs.Task), "SpeedChanged never fired for speed=1.5");
+            Assert.That(await tcs.Task, Is.EqualTo(1.5).Within(0.01));
+        }
     }
 }

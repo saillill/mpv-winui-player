@@ -73,6 +73,13 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   build (runtime `set` fails), so `UpdateDisplayRefreshRate` applies it as an
   option before `mpv_initialize`; the user setting is written to the managed
   mpv.conf block and wins over the auto-detected rate at startup.
+- **History data**: `recent.json` is recentmenu's uosc-style menu data and is
+  not read by the app; the WatchHistory dialog reads mpv's
+  `watch-history-path` file (`path`/`time`/`title` JSON lines). Keep the two
+  sources separate when touching history.
+- **Menu scripts**: `dyn_menu.lua` / `dialog.lua` (GPL-2.0) provide mpv's
+  `menu-data`; project-written `dynamic_menu.lua` adds localized wrappers.
+  Both are loaded via `load-scripts`; keep their interplay documented here.
 - **PiP**: a dedicated borderless always-on-top window reusing `PlayerControl`
   in centered compact mode; the main window is hidden and Alt+F4 restores it.
   Left-press on the PiP video drags the window — do not bind left-click pause

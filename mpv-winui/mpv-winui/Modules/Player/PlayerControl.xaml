@@ -440,37 +440,37 @@ Grid.Column="9"
                                 x:Name="PlaybackRateFlyout"
                                 LightDismissOverlayMode="Off"
                                 Placement="Top">
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="0.1"
                                     Text="0.1x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="0.25"
                                     Text="0.25x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="0.5"
                                     Text="0.5x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="0.75"
                                     Text="0.75x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="1.0"
                                     Text="1.0x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="1.25"
                                     Text="1.25x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="1.5"
                                     Text="1.5x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="1.75"
                                     Text="1.75x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="2.0"
                                     Text="2.0x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="4.0"
                                     Text="4.0x" />
-                                <MenuFlyoutItem
+                                <ToggleMenuFlyoutItem
                                     Tag="8.0"
                                     Text="8.0x" />
                                 <MenuFlyoutSeparator />

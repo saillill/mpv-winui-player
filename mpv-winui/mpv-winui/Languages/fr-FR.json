@@ -863,7 +863,7 @@
   "OptionValueYtdlThumbnailAll": "Toutes",
   "SettingsYtdlExclude": "URL exclues",
   "SettingsHelpYtdlExclude": "Modèles d'URL non envoyés à yt-dlp, séparés par |.",
-  "SettingsUserAgent": "User-Agent",
+  "SettingsUserAgent": "Agent utilisateur",
   "SettingsHelpUserAgent": "User-Agent pour le streaming HTTP. Vide = défaut.",
   "SettingsReferrer": "Référent",
   "SettingsHelpReferrer": "Chemin ou URL de référent pour les requêtes HTTP. Vide = aucun.",
@@ -1013,5 +1013,7 @@
   "AudioVolumeDown": "Volume -5",
   "AudioMute": "Couper le son",
   "SubtitleCycleTrack": "Changer de piste de sous-titres",
-  "SubtitleVisibility": "Afficher/masquer les sous-titres"
+  "SubtitleVisibility": "Afficher/masquer les sous-titres",
+  "OptionValueGamutClip": "Écrêtage",
+  "OptionValueToneMapClip": "Écrêtage"
 }

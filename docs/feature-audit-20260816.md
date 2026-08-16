@@ -27,7 +27,7 @@
 | 2 | P1 | 打包/激活 | unpackaged（便携/MSI）未注册 `mpv-winui://` 协议，README 宣称支持 | 在 `installer/product.wxs` 增加 HKCU `Software\Classes\mpv-winui\shell\open\command` 注册；或从 README 移除宣称 |
 | 3 | P1 | 文件打开 | DVD/BD 入口是“选文件夹”占位（`OpenDvdAsync`/`OpenBdAsync` 均有 TODO） | 实现 `loadfile dvd://`/`bd://` 设备选择，或从菜单移除并改 README |
 | 4 | P1 | 播放控制 | `speed` 变化未回传 UI：原生 `SpeedChanged` 已观察，C# 未订阅，倍速按钮无勾选/无当前值 | `MpvMediaPlayer` 订阅并转发 `SpeedChanged`，`PlayerControl` 更新倍速按钮文案/勾选 |
-| 5 | P1 | 本地化 | de-DE 94%、es-ES 95%、fr-FR 94%；`MenuAudio`/`MenuVideo`/`MoreZoom` 等顶级键缺失回退英文 | 用 `check-localization.py` 的 residue 清单补齐三个语言文件 |
+| 5 | P1 | 本地化 | de-DE 94%、es-ES 95%、fr-FR 94%；部分可译键值仍为英文（其余为技术名词，同词属正常） | 用 `check-localization.py` 的 residue 清单补齐三个语言文件 |
 | 6 | P2 | 设置/工具 | `check-settings-drift.py` 对 UI-only 项误报：`PlaylistWidth`、`WindowTitle` 报 ERROR | 将两者加入 `UNMAPPED_OK` 白名单 |
 | 7 | P2 | 历史 | `recent.json`（recentmenu/uosc 格式）与 App 的 WatchHistory 解析（`path/time/title`）不是同一数据源；“最近播放”无固定 UI 入口 | 实机播放后核对 mpv `watch-history-path` 文件字段；明确 recentmenu 入口或停用 |
 | 8 | P2 | 日志 | `display-info.log` 追加写无轮转；`OnException` 只记日志不提示用户 | display-info 按天/大小轮转；对非静默异常加轻量提示 |
@@ -118,7 +118,7 @@
 
 - 完整性：8 语言文件、菜单/设置/控制条/右键文案、语言切换即时生效、用户目录覆盖全部实现；`check-localization.py` 通过（缺键允许回退英文）。
 - 合理性：`AppLang.LoadFromJson` 缺失键保留默认值，回退稳定。
-- 待改进（P1）：de/es/fr 完整率 94-95%，顶级菜单键缺失；建议补齐并对脚本增加“缺失键阈值”或输出完整 residue 清单。
+- 待改进（P1）：de/es/fr 完整率 94-95%，部分可译键值仍为英文（顶级菜单词如 Audio/Video/Zoom 在目标语言中同词，属正常）；已按 residue 清单补齐可译项。
 - 证据：`check-localization.py` 输出、`AppLang.cs`。
 
 ### 13. 日志 / 诊断
@@ -147,3 +147,12 @@
 1. P1 快赢：README 睡眠定时器/协议宣称修正；de/es/fr 补齐；`SpeedChanged` 接线。
 2. P1 功能补齐：DVD/BD 真实加载或移除入口；MSI 协议注册。
 3. P2 批量：drift 白名单、过滤增量、display-info 轮转、recentmenu 入口确认、注释清理。
+
+## 实施状态（2026-08-16 第二轮）
+
+- README(zh/en) 移除“睡眠定时器”宣称；`mpv-winui://` 说明与 `installer/product.wxs` 协议注册补齐。
+- DVD/BD 菜单改为真实加载：选择光盘根目录后 `set dvd-device`/`set bluray-device` + `loadfile dvd://`/`bd://`。
+- `SpeedChanged` 原生事件接线到 `MpvMediaPlayer`，倍速菜单项改为可勾选并显示当前倍速提示（新增单测）。
+- de/es/fr/ja/ko/ru/zh 未翻译键补齐（可译项翻译，技术名词保留原词）。
+- `check-settings-drift.py` 白名单补 `PlaylistWidth`/`WindowTitle`；播放列表过滤改增量 diff；m3u 导出清洗换行；`display-info.log` 1 MiB 轮转；`OnException` 增加 5s 节流提示；过期 TODO/注释清理；AGENTS.md 补充 recentmenu 与 menu 脚本说明。
+- 验证：Debug/Release 构建 0 错误，单测 7/7 通过，IPC/UIA 冒烟通过（进度前进、播放列表追加、倍速设置、PiP 窗口）。

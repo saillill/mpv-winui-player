@@ -198,31 +198,89 @@ namespace mpv_winui.Modules.Player
                 || a.IsCurrent != b.IsCurrent
                 || a.Title != b.Title
                 || a.Path != b.Path
-                || a.Duration != b.Duration;
+                || a.Duration != b.Duration
+                || a.Query != b.Query;
         }
 
         private void ApplyPlaylistFilter()
         {
             var filter = _playlistFilter.Trim();
-            FilteredPlaylistItems.Clear();
+            var desired = new List<PlaylistItem>();
             if (filter.Length == 0)
             {
                 foreach (var item in _allPlaylistItems)
                 {
-                    FilteredPlaylistItems.Add(item);
+                    desired.Add(item);
                 }
-                return;
             }
-            foreach (var item in _allPlaylistItems)
+            else
             {
-                if (item.Title.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                    || item.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                    || item.Path.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                foreach (var item in _allPlaylistItems)
                 {
-                    var copy = item;
-                    copy.Query = filter;
-                    FilteredPlaylistItems.Add(copy);
+                    if (item.Title.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                        || item.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                        || item.Path.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var copy = item;
+                        copy.Query = filter;
+                        desired.Add(copy);
+                    }
                 }
+            }
+            SyncFilteredList(desired);
+        }
+
+        /// <summary>
+        /// Applies the filtered result to the visible collection by diff
+        /// (add/remove/update in place) instead of clearing and re-adding
+        /// every row on each keystroke.
+        /// </summary>
+        private void SyncFilteredList(IReadOnlyList<PlaylistItem> desired)
+        {
+            var insertAt = 0;
+            foreach (var item in desired)
+            {
+                if (insertAt < FilteredPlaylistItems.Count
+                    && FilteredPlaylistItems[insertAt].Id == item.Id)
+                {
+                    if (PlaylistItemChanged(FilteredPlaylistItems[insertAt], item))
+                    {
+                        FilteredPlaylistItems[insertAt] = item;
+                    }
+                    insertAt++;
+                    continue;
+                }
+
+                var found = -1;
+                for (int j = insertAt + 1; j < FilteredPlaylistItems.Count; j++)
+                {
+                    if (FilteredPlaylistItems[j].Id == item.Id)
+                    {
+                        found = j;
+                        break;
+                    }
+                }
+
+                if (found >= 0)
+                {
+                    var existing = FilteredPlaylistItems[found];
+                    FilteredPlaylistItems.RemoveAt(found);
+                    FilteredPlaylistItems.Insert(insertAt, existing);
+                    if (PlaylistItemChanged(existing, item))
+                    {
+                        FilteredPlaylistItems[insertAt] = item;
+                    }
+                }
+                else
+                {
+                    FilteredPlaylistItems.Insert(insertAt, item);
+                }
+                insertAt++;
+            }
+
+            while (FilteredPlaylistItems.Count > insertAt)
+            {
+                FilteredPlaylistItems.RemoveAt(FilteredPlaylistItems.Count - 1);
             }
         }
 
@@ -303,7 +361,10 @@ namespace mpv_winui.Modules.Player
             builder.AppendLine("#EXTM3U");
             foreach (var item in PlaylistItems)
             {
-                builder.AppendLine($"#EXTINF:-1,{item.Title}");
+                // Line breaks inside a title would split the EXTINF record;
+                // normalize them to spaces before writing.
+                var title = item.Title.Replace('\r', ' ').Replace('\n', ' ');
+                builder.AppendLine($"#EXTINF:-1,{title}");
                 builder.AppendLine(item.Path);
             }
             await System.IO.File.WriteAllTextAsync(file.Path, builder.ToString());
