@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -45,11 +46,38 @@ public sealed class EqualizerBand : INotifyPropertyChanged
 
 /// <summary>
 /// Content shell for the quick-control flyout. PlayerControl builds the
-/// audio/video/subtitle/playback sections into <see cref="ContentRoot"/>.
+/// audio/video/subtitle sections through the Build* methods below; the
+/// section builders live in QuickControlPanel.Audio/Video/Subtitles partials.
 /// </summary>
 public sealed partial class QuickControlPanel : UserControl
 {
     public ObservableCollection<EqualizerBand> EqualizerBands { get; } = [];
+
+    /// <summary>Player wiring set by PlayerControl before the panel is built.</summary>
+    public MpvMediaPlayer? MediaPlayer
+    {
+        get;
+        set;
+    }
+
+    public Action? ApplyEqualizer
+    {
+        get;
+        set;
+    }
+
+    /// <summary>Shared 10-band gain state kept in sync with PlayerControl's equalizer.</summary>
+    public IList<double> EqGains
+    {
+        get;
+        set;
+    } = new List<double>(10) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+    internal bool PanelUpdating
+    {
+        get;
+        set;
+    }
 
     public QuickControlPanel()
     {
@@ -58,4 +86,10 @@ public sealed partial class QuickControlPanel : UserControl
 
     /// <summary>Panel that PlayerControl fills with the quick-control sections.</summary>
     public StackPanel ContentPanel => ContentRoot;
+
+    public void BuildAudio(StackPanel root) => BuildPanelAudio(root);
+
+    public void BuildVideo(StackPanel root) => BuildPanelVideo(root);
+
+    public void BuildSubtitles(StackPanel root) => BuildPanelSubtitles(root);
 }

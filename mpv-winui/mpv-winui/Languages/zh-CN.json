@@ -1013,5 +1013,7 @@
   "AudioVolumeDown": "音量 -5",
   "AudioMute": "静音",
   "SubtitleCycleTrack": "切换字幕轨",
-  "SubtitleVisibility": "显示/隐藏字幕"
+  "SubtitleVisibility": "显示/隐藏字幕",
+  "ControlBarIconAbLoop": "A-B 循环",
+  "PanelDelay": "音视频/字幕延迟"
 }

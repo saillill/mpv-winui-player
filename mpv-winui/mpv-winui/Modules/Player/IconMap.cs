@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using mpv_winui.Modules.Common.View;
 
 namespace mpv_winui.Modules.Player;
 
@@ -14,8 +15,8 @@ public static class IconMap
 {
     public static readonly string Font = File.Exists(
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "SegoeIcons.ttf"))
-        ? "Segoe Fluent Icons"
-        : "Segoe MDL2 Assets";
+        ? IconFonts.SegoeFluentIcons
+        : IconFonts.SegoeMdl2Assets;
 
     private static readonly Lazy<Dictionary<string, string>> _userExact = new(LoadUserExact);
     private static readonly Lazy<List<KeyValuePair<string, string>>> _userPrefixes = new(LoadUserPrefixes);

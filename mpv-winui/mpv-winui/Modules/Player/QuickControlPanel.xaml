@@ -17,7 +17,7 @@
                 Spacing="4">
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontSize="12"
+                    Style="{StaticResource MpvCaptionTextStyle}"
                     Text="{x:Bind ValueText, Mode=OneWay}" />
                 <Slider
                     Width="36"
@@ -35,7 +35,7 @@
                 </Slider>
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontSize="11"
+                    Style="{StaticResource MpvCaptionTextStyle}"
                     Text="{x:Bind Band}" />
             </StackPanel>
         </DataTemplate>

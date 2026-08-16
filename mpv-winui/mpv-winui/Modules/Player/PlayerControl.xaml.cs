@@ -134,6 +134,24 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
             ToolTipService.SetToolTip(MoreButton, AppContext.AppLang.ControlBarIconMore);
 
+            // Flyout labels that XAML holds as English placeholders.
+            ToolTipService.SetToolTip(AbLoopButton, AppContext.AppLang.ControlBarIconAbLoop);
+            AutomationProperties.SetName(AbLoopButton, AppContext.AppLang.ControlBarIconAbLoop);
+            ToolTipService.SetToolTip(EqualizerButton, AppContext.AppLang.PanelEqualizer);
+            AutomationProperties.SetName(EqualizerButton, AppContext.AppLang.PanelEqualizer);
+            EqualizerTitle.Text = AppContext.AppLang.PanelEqualizer;
+            EqualizerResetButton.Content = AppContext.AppLang.Reset;
+            EqualizerOffButton.Content = AppContext.AppLang.Off;
+            CustomRateItem.Text = AppContext.AppLang.CustomRate;
+            ToolTipService.SetToolTip(DelayButton, AppContext.AppLang.PanelDelay);
+            AutomationProperties.SetName(DelayButton, AppContext.AppLang.PanelDelay);
+            DelayTitle.Text = AppContext.AppLang.PanelDelay;
+            AudioDelayLabel.Text = AppContext.AppLang.SettingsAudioDelay;
+            SubDelayLabel.Text = AppContext.AppLang.SettingsSubDelay;
+            AutomationProperties.SetName(AudioDelaySlider, AppContext.AppLang.SettingsAudioDelay);
+            AutomationProperties.SetName(SubDelaySlider, AppContext.AppLang.SettingsSubDelay);
+            DelayResetButton.Content = AppContext.AppLang.Reset;
+
             // Keyboard/screen-reader names (XAML holds English placeholders).
             AutomationProperties.SetName(ProgressSlider, AppContext.AppLang.ControlBarIconPlayback);
             AutomationProperties.SetName(PlayPauseButton, AppContext.AppLang.Play);
@@ -850,12 +868,6 @@ namespace mpv_winui.Modules.Player
             _overlayIdleTimer.Tick += OverlayIdleTimer_Tick;
 
             UpdateToolbarVisibility(ActualWidth);
-            //UpdatePlaybackStatusUI(false);
-            //UpdatePlayPauseUI(false);
-            //UpdateVolumeUI(false);
-            //UpdateCompactUI(false);
-            //UpdateFullScreenUI();
-            //UpdateRepeatButtonUI();
 
             this.SizeChanged += PlayerControl_SizeChanged;
 
@@ -1529,10 +1541,10 @@ namespace mpv_winui.Modules.Player
 
                 var storyboard = new Storyboard
                 {
-                    Duration = TimeSpan.FromMilliseconds(180),
+                    Duration = TimeSpan.FromMilliseconds(PanelShowMs),
                 };
-                AddPanelAnimation(storyboard, "Opacity", 0, 1, 180);
-                AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", 48, 0, 180);
+                AddPanelAnimation(storyboard, "Opacity", 0, 1, PanelShowMs);
+                AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", 48, 0, PanelShowMs);
                 storyboard.Begin();
                 _showStoryboard = storyboard;
             }
@@ -1559,10 +1571,10 @@ namespace mpv_winui.Modules.Player
 
                 var storyboard = new Storyboard
                 {
-                    Duration = TimeSpan.FromMilliseconds(150),
+                    Duration = TimeSpan.FromMilliseconds(PanelHideMs),
                 };
-                AddPanelAnimation(storyboard, "Opacity", 1, 0, 150);
-                AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", 0, 48, 150);
+                AddPanelAnimation(storyboard, "Opacity", 1, 0, PanelHideMs);
+                AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", 0, 48, PanelHideMs);
                 storyboard.Completed += (_, _) =>
                 {
                     if (!_controlPanelIsVisible)

@@ -1013,5 +1013,7 @@
   "AudioVolumeDown": "Громкость -5",
   "AudioMute": "Без звука",
   "SubtitleCycleTrack": "Переключить дорожку субтитров",
-  "SubtitleVisibility": "Показать/скрыть субтитры"
+  "SubtitleVisibility": "Показать/скрыть субтитры",
+  "ControlBarIconAbLoop": "Петля A-B",
+  "PanelDelay": "Задержка аудио/субтитров"
 }

@@ -1013,5 +1013,7 @@
   "AudioVolumeDown": "Volume -5",
   "AudioMute": "Mute",
   "SubtitleCycleTrack": "Switch subtitle track",
-  "SubtitleVisibility": "Toggle subtitles"
+  "SubtitleVisibility": "Toggle subtitles",
+  "ControlBarIconAbLoop": "A-B loop",
+  "PanelDelay": "Audio / subtitle delay"
 }
