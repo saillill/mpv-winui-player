@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace mpv_winui.Modules.Player;
@@ -26,7 +27,13 @@ public sealed partial class QuickControlPanel
         var deinterlace = PanelToggleButton(lang.SettingsDeinterlace, "\uF2BE",
             on => MediaPlayer?.Command("set", "deinterlace", on ? "yes" : "no"));
 
-        var effects = new StackPanel { Spacing = 8 };
+        // Centered inside the stretched last card so the taller button area
+        // fills the remaining 400px panel height instead of leaving a gap.
+        var effects = new StackPanel
+        {
+            Spacing = 12,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
         effects.Children.Add(PanelButtonRow(sharp, blur, post, deinterlace));
         effects.Children.Add(PanelButtonRow(
             PanelIconButton(lang.PanelRotate, "\uF13E",

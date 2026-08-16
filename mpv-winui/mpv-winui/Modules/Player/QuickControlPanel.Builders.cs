@@ -38,11 +38,11 @@ public sealed partial class QuickControlPanel
                 Spacing = 6,
                 Children =
                 {
-                    new FontIcon { Glyph = glyph, FontSize = 14, FontFamily = PanelIconFont },
-                    new TextBlock { Text = label, FontSize = 12, VerticalAlignment = VerticalAlignment.Center },
+                    new FontIcon { Glyph = glyph, FontSize = 16, FontFamily = PanelIconFont },
+                    new TextBlock { Text = label, FontSize = 14, VerticalAlignment = VerticalAlignment.Center },
                 },
             },
-            MinHeight = 32,
+            MinHeight = 48,
             MinWidth = 88,
             Padding = new Thickness(10, 4, 10, 4),
             CornerRadius = new CornerRadius(6),
@@ -63,11 +63,11 @@ public sealed partial class QuickControlPanel
                 Spacing = 6,
                 Children =
                 {
-                    new FontIcon { Glyph = glyph, FontSize = 14, FontFamily = PanelIconFont },
-                    new TextBlock { Text = label, FontSize = 12, VerticalAlignment = VerticalAlignment.Center },
+                    new FontIcon { Glyph = glyph, FontSize = 16, FontFamily = PanelIconFont },
+                    new TextBlock { Text = label, FontSize = 14, VerticalAlignment = VerticalAlignment.Center },
                 },
             },
-            MinHeight = 32,
+            MinHeight = 48,
             MinWidth = 92,
             Padding = new Thickness(10, 4, 10, 4),
             CornerRadius = new CornerRadius(6),

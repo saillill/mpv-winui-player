@@ -103,13 +103,17 @@ namespace mpv_winui.Modules.Player
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                 };
                 build(cards);
-                // Never let a card stretch to fill leftover page height
-                // (that was what inflated the EQ/移动/按钮 cards).
-                foreach (var child in cards.Children)
+                // The last card absorbs the leftover page height so each tab
+                // fills the fixed 400px panel (video buttons, EQ band card,
+                // subtitle style row); earlier cards keep natural height.
+                for (int i = 0; i < cards.Children.Count; i++)
                 {
-                    if (child is FrameworkElement fe)
+                    if (cards.Children[i] is FrameworkElement fe)
                     {
-                        fe.VerticalAlignment = VerticalAlignment.Top;
+                        fe.VerticalAlignment = i == cards.Children.Count - 1
+                            ? VerticalAlignment.Stretch
+                            : VerticalAlignment.Top;
+                        fe.HorizontalAlignment = HorizontalAlignment.Stretch;
                     }
                 }
                 pivot.Items.Add(new PivotItem { Header = header, Content = cards });

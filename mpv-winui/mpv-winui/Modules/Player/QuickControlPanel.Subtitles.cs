@@ -125,5 +125,24 @@ public sealed partial class QuickControlPanel
         pad.Children.Add(right);
         pad.Children.Add(down);
         root.Children.Add(PanelOptionCard(PanelSection(lang.PanelMove, pad)));
+
+        // Extra style row so the subtitle page fills the fixed panel height:
+        // bold / italic toggles plus a position reset.
+        var bold = PanelToggleButton(lang.SettingsSubBold, "\uE8D4",
+            on => MediaPlayer?.Command("set", "sub-bold", on ? "yes" : "no"));
+        var italic = PanelToggleButton(lang.SettingsSubItalic, "\uE8DB",
+            on => MediaPlayer?.Command("set", "sub-italic", on ? "yes" : "no"));
+        var resetPos = PanelIconButton(lang.Reset, "\uE777", () =>
+        {
+            MediaPlayer?.Command("set", "sub-pos", "0");
+            MediaPlayer?.Command("set", "sub-margin-x", "0");
+        });
+        var styleRow = new StackPanel
+        {
+            Spacing = 8,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        styleRow.Children.Add(PanelButtonRow(bold, italic, resetPos));
+        root.Children.Add(PanelOptionCard(styleRow));
     }
 }
