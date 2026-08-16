@@ -145,26 +145,6 @@ public sealed partial class QuickControlPanel
         return grid;
     }
 
-    private Button PanelResetButton(string property, Slider slider)
-    {
-        var button = new Button { Content = AppContext.AppLang.Reset };
-        AutomationProperties.SetName(button, AppContext.AppLang.Reset);
-        button.Click += (_, _) =>
-        {
-            PanelUpdating = true;
-            try
-            {
-                slider.Value = 0;
-            }
-            finally
-            {
-                PanelUpdating = false;
-            }
-            MediaPlayer?.Command("set", property, "0");
-        };
-        return button;
-    }
-
     private Slider PanelPropertySlider(string property, double min, double max, double step, string? automationName = null)
     {
         // Natural height: forcing 20px clipped the slider template's lower
@@ -187,42 +167,4 @@ public sealed partial class QuickControlPanel
         return slider;
     }
 
-    /// <summary>
-    /// Slider row with a live value label on the right of the track,
-    /// matching the settings-style numeric feedback for picture sliders.
-    /// </summary>
-    private Grid PanelSliderRow(string label, string property, double min, double max, double step)
-    {
-        var slider = PanelPropertySlider(property, min, max, step, label);
-        var value = new TextBlock
-        {
-            FontSize = 11,
-            MinWidth = 32,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        value.Text = slider.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
-        slider.ValueChanged += (_, _) =>
-            value.Text = slider.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
-
-        var reset = PanelResetButton(property, slider);
-        var sliderArea = new Grid
-        {
-            ColumnSpacing = 8,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-        sliderArea.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        sliderArea.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        sliderArea.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        slider.HorizontalAlignment = HorizontalAlignment.Stretch;
-        slider.VerticalAlignment = VerticalAlignment.Center;
-        reset.MinWidth = 0;
-        reset.VerticalAlignment = VerticalAlignment.Center;
-        sliderArea.Children.Add(slider);
-        Grid.SetColumn(value, 1);
-        sliderArea.Children.Add(value);
-        Grid.SetColumn(reset, 2);
-        sliderArea.Children.Add(reset);
-        return PanelSection(label, sliderArea);
-    }
 }
