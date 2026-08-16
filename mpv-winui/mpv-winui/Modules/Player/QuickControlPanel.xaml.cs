@@ -20,7 +20,10 @@ public sealed class EqualizerBand : INotifyPropertyChanged
     public string Band { get; }
 
     /// <summary>Current gain formatted for the label above the slider.</summary>
-    public string ValueText => _value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+    public string ValueText =>
+        _value == 0d
+            ? "0"
+            : _value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
 
     public double Value
     {

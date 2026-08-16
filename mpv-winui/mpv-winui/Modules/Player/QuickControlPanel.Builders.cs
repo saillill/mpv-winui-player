@@ -184,9 +184,9 @@ public sealed partial class QuickControlPanel
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        value.Text = slider.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+        value.Text = FormatSliderValue(slider.Value);
         slider.ValueChanged += (_, _) =>
-            value.Text = slider.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+            value.Text = FormatSliderValue(slider.Value);
 
         var reset = new Button
         {
@@ -237,5 +237,11 @@ public sealed partial class QuickControlPanel
         sliderArea.Children.Add(reset);
         return PanelSection(label, sliderArea);
     }
+
+    /// <summary>Formats a slider value, normalizing negative zero to "0".</summary>
+    private static string FormatSliderValue(double value) =>
+        value == 0d
+            ? "0"
+            : value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
 
 }
