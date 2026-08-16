@@ -114,7 +114,6 @@ public sealed partial class QuickControlPanel
         presetRow.Children.Add(new TextBlock
         {
             Text = lang.PanelPresetFont,
-            Style = (Style)Application.Current.Resources["MpvCaptionTextStyle"],
             VerticalAlignment = VerticalAlignment.Center,
         });
         Grid.SetColumn(presetBox, 1);

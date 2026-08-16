@@ -127,7 +127,6 @@ public sealed partial class QuickControlPanel
         grid.Children.Add(new TextBlock
         {
             Text = labelText,
-            Style = (Style)Application.Current.Resources["MpvCaptionTextStyle"],
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
         });

@@ -90,6 +90,9 @@ namespace mpv_winui.Modules.Player
                 // EQ/移动/按钮 cards) - removed.
                 var cards = new StackPanel
                 {
+                    // Keep every tab at the same visible height so switching
+                    // audio/video/subtitles does not resize the flyout.
+                    MinHeight = 320,
                     Spacing = 8,
                     Margin = new Thickness(0, 8, 0, 0),
                     HorizontalAlignment = HorizontalAlignment.Stretch,
