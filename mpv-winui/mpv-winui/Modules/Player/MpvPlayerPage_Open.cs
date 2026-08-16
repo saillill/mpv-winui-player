@@ -100,24 +100,34 @@ namespace mpv_winui.Modules.Player
 
         private async Task OpenDvdAsync()
         {
-            //TODO
-            var picker = new FolderPicker(_appWindow.Id);
-            var folder = await picker.PickSingleFolderAsync();
-            if (folder?.Path is string path && !string.IsNullOrEmpty(path))
+            // DVD: pick the drive root (or VIDEO_TS folder), point mpv's
+            // dvd-device at it, then open dvd://.
+            var folder = await PickDiscRootAsync();
+            if (string.IsNullOrEmpty(folder))
             {
-                await PlayFolder(path, OpenMode.Replace);
+                return;
             }
+            await _mediaPlayer.RunCommandAsync(["set", "dvd-device", folder]);
+            await _mediaPlayer.RunCommandAsync(["osd-auto", "loadfile", "dvd://"]);
         }
 
         private async Task OpenBdAsync()
         {
-            //TODO check bd
+            // Blu-ray: same device flow with bd:// (bluray-device option).
+            var folder = await PickDiscRootAsync();
+            if (string.IsNullOrEmpty(folder))
+            {
+                return;
+            }
+            await _mediaPlayer.RunCommandAsync(["set", "bluray-device", folder]);
+            await _mediaPlayer.RunCommandAsync(["osd-auto", "loadfile", "bd://"]);
+        }
+
+        private async Task<string?> PickDiscRootAsync()
+        {
             var picker = new FolderPicker(_appWindow.Id);
             var folder = await picker.PickSingleFolderAsync();
-            if (folder?.Path is string path && !string.IsNullOrEmpty(path))
-            {
-                await PlayFolder(path, OpenMode.Replace);
-            }
+            return folder?.Path;
         }
 
         private async Task LoadSubtitleAsync()
@@ -130,7 +140,6 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        //TODO list
         private IReadOnlyList<FileItem>? _pendingPaths;
         private async ValueTask OpenPendingPath()
         {

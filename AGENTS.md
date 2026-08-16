@@ -63,6 +63,23 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 - **Command strings**: `mpv_command_string` parses C-style escapes. Windows
   paths need doubled backslashes inside quotes (`Q()` in `MpvSettings.cs`);
   a raw `C:\Users\...` silently keeps the old option value.
+- **Command ordering**: settings ApplyAll, menu commands and `OpenAsync` run
+  through `MpvCommandQueue` (FIFO worker, one native batch for ApplyAll);
+  keyboard/mouse input forwarding and property setters stay direct so input
+  keeps low latency. Position UI is event-driven: `time-pos` is observed
+  natively and `PlayerControl` coalesces updates on a 100ms timer — never
+  reintroduce the 250ms `Position()`/`Duration()` polling loop.
+- **Refresh rate**: `override-display-fps` is startup-only in the bundled mpv
+  build (runtime `set` fails), so `UpdateDisplayRefreshRate` applies it as an
+  option before `mpv_initialize`; the user setting is written to the managed
+  mpv.conf block and wins over the auto-detected rate at startup.
+- **History data**: `recent.json` is recentmenu's uosc-style menu data and is
+  not read by the app; the WatchHistory dialog reads mpv's
+  `watch-history-path` file (`path`/`time`/`title` JSON lines). Keep the two
+  sources separate when touching history.
+- **Menu scripts**: `dyn_menu.lua` / `dialog.lua` (GPL-2.0) provide mpv's
+  `menu-data`; project-written `dynamic_menu.lua` adds localized wrappers.
+  Both are loaded via `load-scripts`; keep their interplay documented here.
 - **PiP**: a dedicated borderless always-on-top window reusing `PlayerControl`
   in centered compact mode; the main window is hidden and Alt+F4 restores it.
   Left-press on the PiP video drags the window — do not bind left-click pause

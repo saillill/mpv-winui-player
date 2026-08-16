@@ -12,12 +12,20 @@ namespace mpv_winui.Modules.Settings
     public class AppSettings
     {
         private readonly IDataSetting _dataSetting;
+        private readonly CachedDataSetting _settingsCache;
 
         public AppSettings()
         {
-            _dataSetting = PackageHelper.IsPackaged ? new AppDataSetting("app-settings") : new UnpackageAppDataSetting("app");
+            IDataSetting backend = PackageHelper.IsPackaged
+                ? new AppDataSetting("app-settings")
+                : new UnpackageAppDataSetting("app");
+            _settingsCache = new CachedDataSetting(backend);
+            _dataSetting = _settingsCache;
             MigrateLegacyDefaults();
         }
+
+        /// <summary>Flushes pending in-memory settings to the backend (used on app exit).</summary>
+        public void Flush() => _settingsCache.Flush();
 
         /// <summary>
         /// Schema version of the stored settings. Migrations run once per

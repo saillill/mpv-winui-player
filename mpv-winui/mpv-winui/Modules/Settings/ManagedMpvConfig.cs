@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -41,6 +42,7 @@ public static class ManagedMpvConfig
             ScriptOpt("ytdl_hook-use_manifests", s.YtdlUseManifests ? "yes" : "no"),
             ScriptOpt("ytdl_hook-thumbnails", s.YtdlThumbnails),
             ScriptOpt("ytdl_hook-exclude", s.YtdlExclude),
+            MpvOption("override-display-fps", s.OverrideDisplayFps),
             EndMarker,
         };
 
@@ -81,6 +83,13 @@ public static class ManagedMpvConfig
         return string.IsNullOrWhiteSpace(value)
             ? $"#script-opts={key}="
             : $"script-opts={key}={Quote(value)}";
+    }
+
+    private static string MpvOption(string key, double value)
+    {
+        return value > 0
+            ? $"{key}={value.ToString(CultureInfo.InvariantCulture)}"
+            : $"#{key}=0";
     }
 
     private static string Quote(string value)

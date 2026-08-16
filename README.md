@@ -47,9 +47,10 @@ and the underlying mpv is always there if you want to go deeper.**
 ## What it can do
 
 Open media however you like — menu, drag and drop, command line arguments, or
-a `mpv-winui://` link. Whatever mpv can play, it plays: local files, network
-streams, DVDs and Blu-rays. Hardware decoding is on by default when available,
-and HDR/wide-gamut content is adapted automatically.
+a `mpv-winui://` link (registered by the installer). Whatever mpv can play,
+it plays: local files, network streams, DVDs and Blu-rays. Hardware decoding
+is on by default when available, and HDR/wide-gamut content is adapted
+automatically.
 
 Playback controls are all there: play, pause, seek, volume, speed, previous/
 next, loop and shuffle. Switch audio/video/subtitle tracks freely, load
@@ -99,7 +100,7 @@ On top of that we:
   your own mpv commands.
 - Works out of the box: the bundled mpv config is deployed automatically on
   first run.
-- Sleep timer, shortcut search and file details (MediaInfo).
+- Shortcut search and file details (MediaInfo).
 - A set of bundled mpv plugins: thumbnails, right-click menu, cover art,
   metadata display, recent files, statistics, console and more.
 

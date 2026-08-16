@@ -16,7 +16,6 @@ namespace mpv_winui
         {
             ComWrappersSupport.InitializeComWrappers();
 
-            //TODO config
             var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
             var instance = AppInstance.FindOrRegisterForKey("main");
             if (!instance.IsCurrent)

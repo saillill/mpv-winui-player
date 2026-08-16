@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Input;
@@ -63,53 +64,223 @@ namespace mpv_winui.Modules.Player
         private bool _resizingPlaylist;
         private double _resizeStartWidth;
         private double _resizeStartX;
+        private DispatcherQueueTimer? _playlistRefreshTimer;
+        private bool _playlistRefreshPending;
+        private int _lastCurrentPlaylistIndex = -1;
 
         private void RefreshPlaylistAsync()
         {
+            // Coalesce bursty mpv playlist events into one refresh.
+            _playlistRefreshPending = true;
+            _playlistRefreshTimer ??= CreatePlaylistRefreshTimer();
+            _playlistRefreshTimer.Start();
+        }
+
+        private DispatcherQueueTimer CreatePlaylistRefreshTimer()
+        {
+            var timer = DispatcherQueue.CreateTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(100);
+            timer.Tick += PlaylistRefreshTimer_Tick;
+            return timer;
+        }
+
+        private void PlaylistRefreshTimer_Tick(DispatcherQueueTimer sender, object args)
+        {
+            sender.Stop();
+            if (!_playlistRefreshPending)
+            {
+                return;
+            }
+            _playlistRefreshPending = false;
             GetPlaylistAsync().FireAndForget(OnException);
+        }
+
+        private void CleanupPlaylistRefresh()
+        {
+            if (_playlistRefreshTimer is { } timer)
+            {
+                timer.Stop();
+                timer.Tick -= PlaylistRefreshTimer_Tick;
+                _playlistRefreshTimer = null;
+            }
+            _playlistRefreshPending = false;
         }
 
         private async Task GetPlaylistAsync()
         {
             var items = await Task.Run(() => _mediaPlayer.Playlist().Select(x => new PlaylistItem(x)).ToList());
-            PlaylistItems.Clear();
-            _allPlaylistItems.Clear();
-            if (items?.Count > 0)
-            {
-                foreach (var item in items)
-                {
-                    PlaylistItems.Add(item);
-                    _allPlaylistItems.Add(item);
-                }
-            }
-
+            ApplyPlaylistDiff(items ?? []);
             ApplyPlaylistFilter();
             SelectCurrentPlayListItem();
             SetupPlaylistDrag();
         }
 
+        /// <summary>
+        /// Updates the two playlist collections by diff instead of clearing
+        /// and re-adding every entry: stale ids are removed, moved ids are
+        /// relocated, and only changed entries are replaced in place.
+        /// </summary>
+        private void ApplyPlaylistDiff(IReadOnlyList<PlaylistItem> newItems)
+        {
+            var newIds = new HashSet<int>(newItems.Count);
+            foreach (var item in newItems)
+            {
+                newIds.Add(item.Id);
+            }
+
+            // Remove entries that no longer exist in mpv's playlist.
+            for (int i = _allPlaylistItems.Count - 1; i >= 0; i--)
+            {
+                if (!newIds.Contains(_allPlaylistItems[i].Id))
+                {
+                    _allPlaylistItems.RemoveAt(i);
+                    PlaylistItems.RemoveAt(i);
+                }
+            }
+
+            var insertAt = 0;
+            foreach (var item in newItems)
+            {
+                if (insertAt < _allPlaylistItems.Count
+                    && _allPlaylistItems[insertAt].Id == item.Id)
+                {
+                    if (PlaylistItemChanged(_allPlaylistItems[insertAt], item))
+                    {
+                        _allPlaylistItems[insertAt] = item;
+                        PlaylistItems[insertAt] = item;
+                    }
+                    insertAt++;
+                    continue;
+                }
+
+                var found = -1;
+                for (int j = insertAt + 1; j < _allPlaylistItems.Count; j++)
+                {
+                    if (_allPlaylistItems[j].Id == item.Id)
+                    {
+                        found = j;
+                        break;
+                    }
+                }
+
+                if (found >= 0)
+                {
+                    var existing = _allPlaylistItems[found];
+                    _allPlaylistItems.RemoveAt(found);
+                    PlaylistItems.RemoveAt(found);
+                    _allPlaylistItems.Insert(insertAt, existing);
+                    PlaylistItems.Insert(insertAt, existing);
+                    if (PlaylistItemChanged(existing, item))
+                    {
+                        _allPlaylistItems[insertAt] = item;
+                        PlaylistItems[insertAt] = item;
+                    }
+                }
+                else
+                {
+                    _allPlaylistItems.Insert(insertAt, item);
+                    PlaylistItems.Insert(insertAt, item);
+                }
+                insertAt++;
+            }
+
+            // Drop any leftovers beyond the new playlist length.
+            while (_allPlaylistItems.Count > insertAt)
+            {
+                _allPlaylistItems.RemoveAt(_allPlaylistItems.Count - 1);
+                PlaylistItems.RemoveAt(PlaylistItems.Count - 1);
+            }
+        }
+
+        private static bool PlaylistItemChanged(PlaylistItem a, PlaylistItem b)
+        {
+            return a.Id != b.Id
+                || a.IsCurrent != b.IsCurrent
+                || a.Title != b.Title
+                || a.Path != b.Path
+                || a.Duration != b.Duration
+                || a.Query != b.Query;
+        }
+
         private void ApplyPlaylistFilter()
         {
             var filter = _playlistFilter.Trim();
-            FilteredPlaylistItems.Clear();
+            var desired = new List<PlaylistItem>();
             if (filter.Length == 0)
             {
                 foreach (var item in _allPlaylistItems)
                 {
-                    FilteredPlaylistItems.Add(item);
+                    desired.Add(item);
                 }
-                return;
             }
-            foreach (var item in _allPlaylistItems)
+            else
             {
-                if (item.Title.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                    || item.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                    || item.Path.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                foreach (var item in _allPlaylistItems)
                 {
-                    var copy = item;
-                    copy.Query = filter;
-                    FilteredPlaylistItems.Add(copy);
+                    if (item.Title.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                        || item.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                        || item.Path.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var copy = item;
+                        copy.Query = filter;
+                        desired.Add(copy);
+                    }
                 }
+            }
+            SyncFilteredList(desired);
+        }
+
+        /// <summary>
+        /// Applies the filtered result to the visible collection by diff
+        /// (add/remove/update in place) instead of clearing and re-adding
+        /// every row on each keystroke.
+        /// </summary>
+        private void SyncFilteredList(IReadOnlyList<PlaylistItem> desired)
+        {
+            var insertAt = 0;
+            foreach (var item in desired)
+            {
+                if (insertAt < FilteredPlaylistItems.Count
+                    && FilteredPlaylistItems[insertAt].Id == item.Id)
+                {
+                    if (PlaylistItemChanged(FilteredPlaylistItems[insertAt], item))
+                    {
+                        FilteredPlaylistItems[insertAt] = item;
+                    }
+                    insertAt++;
+                    continue;
+                }
+
+                var found = -1;
+                for (int j = insertAt + 1; j < FilteredPlaylistItems.Count; j++)
+                {
+                    if (FilteredPlaylistItems[j].Id == item.Id)
+                    {
+                        found = j;
+                        break;
+                    }
+                }
+
+                if (found >= 0)
+                {
+                    var existing = FilteredPlaylistItems[found];
+                    FilteredPlaylistItems.RemoveAt(found);
+                    FilteredPlaylistItems.Insert(insertAt, existing);
+                    if (PlaylistItemChanged(existing, item))
+                    {
+                        FilteredPlaylistItems[insertAt] = item;
+                    }
+                }
+                else
+                {
+                    FilteredPlaylistItems.Insert(insertAt, item);
+                }
+                insertAt++;
+            }
+
+            while (FilteredPlaylistItems.Count > insertAt)
+            {
+                FilteredPlaylistItems.RemoveAt(FilteredPlaylistItems.Count - 1);
             }
         }
 
@@ -117,20 +288,35 @@ namespace mpv_winui.Modules.Player
         {
             _playlistFilter = PlaylistFilterBox.Text;
             ApplyPlaylistFilter();
-            SelectCurrentPlayListItem();
+            SelectCurrentPlayListItem(force: true);
         }
 
-        private void SelectCurrentPlayListItem()
+        private void SelectCurrentPlayListItem(bool force = false)
         {
+            var currentIndex = -1;
             for (int i = 0; i < FilteredPlaylistItems.Count; i++)
             {
                 if (FilteredPlaylistItems[i].IsCurrent)
                 {
-                    PlaylistView.SelectedIndex = i;
-                    PlaylistView.ScrollIntoView(FilteredPlaylistItems[i], ScrollIntoViewAlignment.Leading);
+                    currentIndex = i;
                     break;
                 }
             }
+
+            // Only scroll when the current row actually changed; playlist
+            // refresh events otherwise keep re-scrolling the same row.
+            if (!force && currentIndex == _lastCurrentPlaylistIndex)
+            {
+                return;
+            }
+            _lastCurrentPlaylistIndex = currentIndex;
+            if (currentIndex < 0)
+            {
+                return;
+            }
+
+            PlaylistView.SelectedIndex = currentIndex;
+            PlaylistView.ScrollIntoView(FilteredPlaylistItems[currentIndex], ScrollIntoViewAlignment.Leading);
         }
 
         private void ClosePlaylist_Click(object sender, RoutedEventArgs e)
@@ -175,7 +361,10 @@ namespace mpv_winui.Modules.Player
             builder.AppendLine("#EXTM3U");
             foreach (var item in PlaylistItems)
             {
-                builder.AppendLine($"#EXTINF:-1,{item.Title}");
+                // Line breaks inside a title would split the EXTINF record;
+                // normalize them to spaces before writing.
+                var title = item.Title.Replace('\r', ' ').Replace('\n', ' ');
+                builder.AppendLine($"#EXTINF:-1,{title}");
                 builder.AppendLine(item.Path);
             }
             await System.IO.File.WriteAllTextAsync(file.Path, builder.ToString());

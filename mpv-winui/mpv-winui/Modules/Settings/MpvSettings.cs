@@ -168,7 +168,9 @@ public static class MpvSettings
             nameof(AppSettings.Replaygain) => $"set replaygain {(string)value}",
             nameof(AppSettings.OsdLevel) => $"set osd-level {(int)value}",
             nameof(AppSettings.ImageDisplayDuration) => $"set image-display-duration {((double)value).ToString(CultureInfo.InvariantCulture)}",
-            nameof(AppSettings.OverrideDisplayFps) => $"set override-display-fps {((double)value).ToString(CultureInfo.InvariantCulture)}",
+            // Startup-only option in this mpv build: runtime "set" fails, so
+            // the value is written into the managed mpv.conf block instead.
+            nameof(AppSettings.OverrideDisplayFps) => null,
             nameof(AppSettings.CachePause) => $"set cache-pause {(value is true ? "yes" : "no")}",
             nameof(AppSettings.CachePauseInitial) => $"set cache-pause-initial {(value is true ? "yes" : "no")}",
             nameof(AppSettings.CachePauseWait) => $"set cache-pause-wait {((double)value).ToString(CultureInfo.InvariantCulture)}",
@@ -263,10 +265,11 @@ public static class MpvSettings
     /// mapped for apply-time: volume is passed at mpv Initialize and speed
     /// defaults to 1.0, so a settings reset never clobbers the live session.
     /// </summary>
-    public static void ApplyAll(Action<string> run)
+    public static List<string> BuildApplyAllCommands()
     {
         var settings = AppContext.AppSetting;
         var props = typeof(AppSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var commands = new List<string>();
         foreach (var prop in props)
         {
             if (!prop.CanRead || !prop.CanWrite)
@@ -278,6 +281,14 @@ public static class MpvSettings
             // they are written to mpv.conf instead. Keep this set conservative
             // until each entry is verified against the manual (audit A5).
             if (ConfigOnlyKeys.Contains(prop.Name))
+            {
+                continue;
+            }
+
+            // Commands that target scripts must wait until the scripts are
+            // actually loaded (first FileLoaded); sending them during the
+            // startup batch races script registration and silently fails.
+            if (StartupDeferredKeys.Contains(prop.Name))
             {
                 continue;
             }
@@ -299,8 +310,17 @@ public static class MpvSettings
 
             if (ToCommand(prop.Name, value) is { } cmd)
             {
-                run(cmd);
+                commands.Add(cmd);
             }
+        }
+        return commands;
+    }
+
+    public static void ApplyAll(Action<string> run)
+    {
+        foreach (var cmd in BuildApplyAllCommands())
+        {
+            run(cmd);
         }
     }
 
@@ -311,6 +331,13 @@ public static class MpvSettings
         nameof(AppSettings.IccCacheDir),
         nameof(AppSettings.GpuShaderCacheDir),
         nameof(AppSettings.DemuxerCacheDir),
+        nameof(AppSettings.OverrideDisplayFps),
+    };
+
+    /// <summary>AppSettings keys applied after the first file loads.</summary>
+    private static readonly HashSet<string> StartupDeferredKeys = new(StringComparer.Ordinal)
+    {
+        nameof(AppSettings.HdrAutoMode),
     };
 
     /// <summary>

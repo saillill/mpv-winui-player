@@ -10,27 +10,32 @@
     <UserControl.Resources>
         <!-- Quick-control equalizer bands (audit C4/A9): the panel fills
              EqualizerBands and the sliders bind TwoWay to EqualizerBand.Value. -->
-        <ItemsPanelTemplate x:Key="EqualizerBandsPanelTemplate">
-            <StackPanel Orientation="Horizontal" Spacing="2" />
-        </ItemsPanelTemplate>
         <DataTemplate x:Key="EqualizerBandTemplate" x:DataType="local:EqualizerBand">
             <StackPanel
-                Width="36"
+                Width="44"
                 HorizontalAlignment="Center"
                 Spacing="4">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="12"
+                    Text="{x:Bind ValueText, Mode=OneWay}" />
                 <Slider
-                    Width="30"
-                    Height="170"
+                    Width="36"
+                    Height="120"
                     AutomationProperties.Name="{x:Bind Band}"
                     HorizontalAlignment="Center"
                     Maximum="12"
                     Minimum="-12"
                     Orientation="Vertical"
                     StepFrequency="0.5"
-                    Value="{x:Bind Value, Mode=TwoWay}" />
+                    Value="{x:Bind Value, Mode=TwoWay}">
+                    <Slider.Resources>
+                        <x:Double x:Key="SliderTrackThemeHeight">8</x:Double>
+                    </Slider.Resources>
+                </Slider>
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontSize="10"
+                    FontSize="11"
                     Text="{x:Bind Band}" />
             </StackPanel>
         </DataTemplate>
@@ -41,8 +46,18 @@
       hosts a XAML user control; the per-section controls are still built by
       PlayerControl into ContentRoot so existing behavior is preserved.
     -->
-    <StackPanel
-        x:Name="ContentRoot"
-        Padding="10"
-        Spacing="10" />
+    <!-- The widest page (video/subtitle full-width cards) must not resize the
+         flyout when switching tabs; pin the content width to the presenter max. -->
+    <Grid MinWidth="560">
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Disabled"
+            HorizontalScrollMode="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                x:Name="ContentRoot"
+                Padding="8"
+                HorizontalAlignment="Stretch"
+                Spacing="8" />
+        </ScrollViewer>
+    </Grid>
 </UserControl>

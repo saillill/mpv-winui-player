@@ -79,7 +79,7 @@ namespace mpv_winui
             }
         }
 
-        /// <summary>Rebuilds the player page's menu bar (after the menu editor saves).</summary>
+        /// <summary>Rebuilds the player page's menu bar (after menu definition or language changes).</summary>
         public void RebuildPlayerMenuBar()
         {
             if (ShellFrame?.Content is MpvPlayerPage page)
@@ -147,6 +147,7 @@ namespace mpv_winui
             AppContext.SettingChanged -= MainWindow_SettingChanged;
             _settingsWindow?.Close();
             CleanupStyle();
+            AppContext.AppSetting.Flush();
         }
     }
 }

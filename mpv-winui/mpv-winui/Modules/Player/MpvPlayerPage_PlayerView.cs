@@ -12,7 +12,6 @@ namespace mpv_winui.Modules.Player
         private bool _playerViewLoaded = false;
         private void SetupPlayerView()
         {
-            //TODO 
             var size = new ViewSize(PlayerView.ActualWidth, PlayerView.ActualHeight, PlayerView.CompositionScaleX, PlayerView.CompositionScaleY);
             UpdatePlayerViewSize(size);
             _mediaPlayer.UpdatePanel(PlayerView);
@@ -21,7 +20,6 @@ namespace mpv_winui.Modules.Player
             _sizeChangedAction = DebounceUtil.Debounce<ViewSize>(UpdatePlayerViewSize, TimeSpan.FromMilliseconds(100));
             PlayerView.SizeChanged += PlayerView_SizeChanged;
 
-            //TODO 
             _lastCompositionScaleX = PlayerView.CompositionScaleX;
             _lastCompositionScaleY = PlayerView.CompositionScaleY;
             PlayerView.CompositionScaleChanged += PlayerView_CompositionScaleChanged;
@@ -90,7 +88,6 @@ namespace mpv_winui.Modules.Player
 
                 _mediaPlayer?.UpdatePanelScale(sender.CompositionScaleX, sender.CompositionScaleY);
 
-                //TODO
                 var size = new ViewSize(sender.ActualWidth, sender.ActualHeight, sender.CompositionScaleX, sender.CompositionScaleY);
                 _sizeChangedAction?.Invoke(size);
             }
