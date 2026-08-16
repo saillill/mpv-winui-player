@@ -20,7 +20,7 @@ public sealed partial class QuickControlPanel
 
     private Border PanelOptionCard(UIElement content) => new()
     {
-        MinHeight = 44,
+        MinHeight = 48,
         Style = (Style)Application.Current.Resources["MpvCardStyle"],
         Child = content,
     };
@@ -90,13 +90,13 @@ public sealed partial class QuickControlPanel
     /// <summary>Lays buttons out in equal-width columns that fill the card.</summary>
     private static Grid PanelButtonRow(params FrameworkElement[] buttons)
     {
-        // Left-aligned natural widths: equal star columns were clipping long
-        // labels and making rows look stretched instead of aligned.
-        var grid = new Grid { ColumnSpacing = 8, HorizontalAlignment = HorizontalAlignment.Left };
+        // Equal star columns fill the card so every button row is balanced.
+        var grid = new Grid { ColumnSpacing = 8, HorizontalAlignment = HorizontalAlignment.Stretch };
         for (var i = 0; i < buttons.Length; i++)
         {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            buttons[i].HorizontalAlignment = HorizontalAlignment.Left;
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            buttons[i].HorizontalAlignment = HorizontalAlignment.Stretch;
+            buttons[i].MinWidth = 0;
             Grid.SetColumn(buttons[i], i);
             grid.Children.Add(buttons[i]);
         }
@@ -128,7 +128,9 @@ public sealed partial class QuickControlPanel
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        // Fixed label column keeps every slider at the same start x and the
+        // same width across the video/subtitle rows.
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(96) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.Children.Add(new TextBlock
         {
@@ -183,7 +185,9 @@ public sealed partial class QuickControlPanel
 
     private Slider PanelPropertySlider(string property, double min, double max, double step, string? automationName = null)
     {
-        var slider = new Slider { Minimum = min, Maximum = max, StepFrequency = step, Height = 20 };
+        // Natural height: forcing 20px clipped the slider template's lower
+        // half inside the card (user-reported cut).
+        var slider = new Slider { Minimum = min, Maximum = max, StepFrequency = step };
         // WinUI reads the track thickness from SliderTrackThemeHeight.
         slider.Resources["SliderTrackThemeHeight"] = 8.0;
         if (!string.IsNullOrEmpty(automationName))
