@@ -68,6 +68,7 @@ namespace mpv_winrt
 
         void Command(Windows.Foundation.Collections.IVector<String> args);
         void CommandString(String cmd);
+        void ApplyCommandStrings(Windows.Foundation.Collections.IVector<String> commands);
 
         void SetLogLevel(String level);
 

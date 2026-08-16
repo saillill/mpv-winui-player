@@ -24,6 +24,9 @@ namespace mpv_winui
         /// <summary>由播放页在 mpv 初始化后挂接，用于把设置即时下发到 mpv。</summary>
         public static Action<string>? RunMpvCommand { get; set; }
 
+        /// <summary>由播放页挂接，日志级别切换时同步 mpv 的 log 请求级别。</summary>
+        public static Action<string>? SetMpvLogLevel { get; set; }
+
         /// <summary>
         /// True while a UI slider (progress/volume) owns keyboard focus. The
         /// global keyboard hook must then NOT forward arrow keys to mpv, or a

@@ -26,6 +26,11 @@ namespace mpv_winui.Modules.Common.Utils
                     .FilterMinLevel(level)
                     .WriteToFile(fileName: AppData.Current.ResolveLocalData("logs\\mpv-winui.${shortdate}.log.txt"), encoding: Encoding.UTF8, keepFileOpen: false, maxArchiveDays: 15);
             });
+
+            // Keep the native mpv log forwarding at warn by default; raise it
+            // to info only while debug logging is enabled so the per-message
+            // cross-thread forwarding cost stays low during normal playback.
+            AppContext.SetMpvLogLevel?.Invoke(AppContext.AppSetting.EnableDebugLog ? "info" : "warn");
         }
     }
 }

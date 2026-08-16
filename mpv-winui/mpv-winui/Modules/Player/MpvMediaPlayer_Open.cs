@@ -51,7 +51,7 @@ namespace mpv_winui.Modules.Player
                 {
                     foreach (var file in files)
                     {
-                        _mpvPlayer.Command(["osd-auto", "sub-add", file.Path]);
+                        _ = _commandQueue.EnqueueVector(["osd-auto", "sub-add", file.Path]);
                     }
                     return;
                 }
@@ -62,7 +62,7 @@ namespace mpv_winui.Modules.Player
                     {
                         for (int i = 0; i < files.Count; i++)
                         {
-                            _mpvPlayer.Command(["osd-auto", "loadfile", files[i].Path, i == 0 ? "replace+play" : "append"]);
+                            _ = _commandQueue.EnqueueVector(["osd-auto", "loadfile", files[i].Path, i == 0 ? "replace+play" : "append"]);
                         }
                         break;
                     }
@@ -71,7 +71,7 @@ namespace mpv_winui.Modules.Player
                     {
                         for (int i = 0; i < files.Count; i++)
                         {
-                            _mpvPlayer.Command(["osd-auto", "loadfile", files[i].Path, "append"]);
+                            _ = _commandQueue.EnqueueVector(["osd-auto", "loadfile", files[i].Path, "append"]);
                         }
                         break;
                     }
@@ -80,7 +80,7 @@ namespace mpv_winui.Modules.Player
                     {
                         for (int i = files.Count - 1; i >= 0; i--)
                         {
-                            _mpvPlayer.Command(["osd-auto", "loadfile", files[i].Path, i > 0 ? "insert-next" : "insert-next-play"]);
+                            _ = _commandQueue.EnqueueVector(["osd-auto", "loadfile", files[i].Path, i > 0 ? "insert-next" : "insert-next-play"]);
                         }
                         break;
                     }
@@ -90,12 +90,20 @@ namespace mpv_winui.Modules.Player
 
         public Task OpenAsync(FileItem file, OpenMode action = OpenMode.Replace)
         {
-            return Task.Run(() => Open(file, action));
+            return Task.Run(async () =>
+            {
+                Open(file, action);
+                await _commandQueue.DrainAsync();
+            });
         }
 
         public Task OpenAsync(IReadOnlyList<FileItem> files, OpenMode action = OpenMode.Replace)
         {
-            return Task.Run(() => Open(files, action));
+            return Task.Run(async () =>
+            {
+                Open(files, action);
+                await _commandQueue.DrainAsync();
+            });
         }
     }
 }

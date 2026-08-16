@@ -70,6 +70,7 @@ namespace winrt::mpv_winrt::implementation
 
         void Command(winrt::Windows::Foundation::Collections::IVector<hstring> const& args);
         void CommandString(hstring const& cmd);
+        void ApplyCommandStrings(winrt::Windows::Foundation::Collections::IVector<hstring> const& commands);
         void SetLogLevel(hstring const& level);
 
         void ObserveProperty(hstring const& name);
@@ -218,6 +219,7 @@ namespace winrt::mpv_winrt::implementation
 
         std::thread m_eventThread;
         std::atomic<bool> m_eventThreadRunning{false};
+        double m_lastDuration{0.0};
 
         winrt::event<winrt::mpv_winrt::MediaLoadedEventHandler> m_mediaLoadedEvent;
         winrt::event<winrt::mpv_winrt::PlaybackEndedEventHandler> m_playbackEndedEvent;

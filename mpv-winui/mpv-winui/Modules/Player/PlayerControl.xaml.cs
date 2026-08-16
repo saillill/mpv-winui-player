@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Settings.Controls;
 using System;
@@ -51,6 +52,8 @@ namespace mpv_winui.Modules.Player
         private Visual? _panelGradientVisual;
 
         private readonly DispatcherTimer _positionUpdateTimer;
+        private readonly object _positionLock = new();
+        private (double Position, double Duration)? _pendingPosition;
         private double _lastPolledPosition = double.NaN;
         private double _lastPolledDuration = double.NaN;
         private bool _hasError = false;
@@ -59,6 +62,10 @@ namespace mpv_winui.Modules.Player
         private bool _isDragging = false;
         private long _suppressBufferingUntil;
         private bool _sourceLoaded = false;
+        private double[]? _cachedChapterTimes;
+        private double _cachedChapterDuration = double.NaN;
+        private double _lastChapterMarkWidth = double.NaN;
+        private SolidColorBrush? _chapterTickBrush;
 
         private MpvMediaPlayer? _mediaPlayer;
 
@@ -101,7 +108,10 @@ namespace mpv_winui.Modules.Player
             this.Loaded += PlayerControl_Loaded;
             this.Unloaded += PlayerControl_Unloaded;
 
-            _positionUpdateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+            // Coalescing timer for event-driven time-pos updates: the native
+            // observation can fire at frame rate, so the UI applies the
+            // latest value at most ~10 times per second.
+            _positionUpdateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         }
 
         public void ApplyLocalizedStrings()
@@ -836,7 +846,6 @@ namespace mpv_winui.Modules.Player
             VolumeSlider.ValueChanged2 += OnVolumeSliderValueChanged;
 
             _positionUpdateTimer.Tick += OnPositionUpdateTimerTick;
-            _positionUpdateTimer.Start();
             _overlayIdleTimer.Tick += OverlayIdleTimer_Tick;
 
             UpdateToolbarVisibility(ActualWidth);
@@ -919,6 +928,7 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.Seeked += MediaPlayer_Seeked;
             _mediaPlayer?.RepeatStateChanged += MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged += MediaPlayer_ShuffleEnabledChanged;
+            _mediaPlayer?.PositionChanged += PlaybackSession_PositionChanged;
         }
 
         private void RemoveEventListeners()
@@ -933,6 +943,7 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.Seeked -= MediaPlayer_Seeked;
             _mediaPlayer?.RepeatStateChanged -= MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged -= MediaPlayer_ShuffleEnabledChanged;
+            _mediaPlayer?.PositionChanged -= PlaybackSession_PositionChanged;
         }
 
         private void NextTrackButton_Click(object sender, RoutedEventArgs e)
@@ -1097,10 +1108,10 @@ namespace mpv_winui.Modules.Player
                 if (args)
                 {
                     _positionUpdateTimer.Stop();
-                }
-                else
-                {
-                    _positionUpdateTimer.Start();
+                    lock (_positionLock)
+                    {
+                        _pendingPosition = null;
+                    }
                 }
 
                 UpdatePlayPauseUI(args, true);
@@ -1113,6 +1124,8 @@ namespace mpv_winui.Modules.Player
             _sourceLoaded = true;
             DispatcherQueue.RunAsync(() =>
             {
+                InvalidateChapterCache();
+                UpdateChapterMarks(force: true);
                 UpdateProgressSliderValue(0, sender.Duration);
                 if (sender.Duration > 0)
                 {
@@ -1342,27 +1355,50 @@ namespace mpv_winui.Modules.Player
             MediaPlayer?.Volume = value;
         }
 
+        private void PlaybackSession_PositionChanged(MpvMediaPlayer sender, PositionChangedEventArgs args)
+        {
+            // Runs on the native mpv event thread; store the latest snapshot
+            // and let the UI-thread coalescing timer apply it.
+            lock (_positionLock)
+            {
+                _pendingPosition = (args.Position, args.Duration);
+            }
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (!_positionUpdateTimer.IsEnabled)
+                {
+                    _positionUpdateTimer.Start();
+                }
+            });
+        }
+
         private void OnPositionUpdateTimerTick(object? sender, object e)
         {
-            if (MediaPlayer?.Playing == true)
+            _positionUpdateTimer.Stop();
+            (double Position, double Duration)? pending;
+            lock (_positionLock)
             {
-                // Read each native value once per tick and skip UI updates
-                // when nothing changed (audit A3; event-driven observation is
-                // planned once ObserveProperty is wired through).
-                var position = MediaPlayer.Position;
-                var duration = MediaPlayer.Duration;
-                if (Math.Abs(position - _lastPolledPosition) < 0.001
-                    && Math.Abs(duration - _lastPolledDuration) < 0.001)
-                {
-                    return;
-                }
-
-                _lastPolledPosition = position;
-                _lastPolledDuration = duration;
-                UpdateProgressSliderValue(position, duration);
-                UpdateTimeTexts(position, duration);
-                OnPositionChanged?.Invoke();
+                pending = _pendingPosition;
+                _pendingPosition = null;
             }
+            if (pending is not { } value)
+            {
+                return;
+            }
+
+            var position = value.Position;
+            var duration = value.Duration;
+            if (Math.Abs(position - _lastPolledPosition) < 0.001
+                && Math.Abs(duration - _lastPolledDuration) < 0.001)
+            {
+                return;
+            }
+
+            _lastPolledPosition = position;
+            _lastPolledDuration = duration;
+            UpdateProgressSliderValue(position, duration);
+            UpdateTimeTexts(position, duration);
+            OnPositionChanged?.Invoke();
         }
 
         private void UpdateProgressSliderValue(double? value, double? max = null)
@@ -1655,30 +1691,55 @@ namespace mpv_winui.Modules.Player
             UpdateChapterMarks();
         }
 
-        /// <summary>Draws thin tick marks on the progress bar at chapter starts.</summary>
-        private void UpdateChapterMarks()
+        /// <summary>
+        /// Draws thin tick marks on the progress bar at chapter starts. The
+        /// chapter list and brush are cached per media; SizeChanged only
+        /// repositions ticks when the bar width actually changed.
+        /// </summary>
+        private void InvalidateChapterCache()
         {
-            ChapterMarksCanvas.Children.Clear();
+            _cachedChapterTimes = null;
+            _cachedChapterDuration = double.NaN;
+            _lastChapterMarkWidth = double.NaN;
+        }
+
+        private void UpdateChapterMarks(bool force = false)
+        {
             var duration = MediaPlayer?.Duration ?? 0;
             var width = ProgressSlider.ActualWidth;
-            if (width <= 0 || duration <= 0 || MediaPlayer?.Chapters() is not { Count: > 0 } chapters)
+            if (width <= 0 || duration <= 0)
+            {
+                ChapterMarksCanvas.Children.Clear();
+                return;
+            }
+
+            if (force
+                || _cachedChapterTimes is null
+                || Math.Abs(duration - _cachedChapterDuration) > 0.001)
+            {
+                _cachedChapterTimes = MediaPlayer?.Chapters() is { Count: > 0 } chapters
+                    ? chapters.Where(c => c.Time > 0).Select(c => c.Time).ToArray()
+                    : [];
+                _cachedChapterDuration = duration;
+                _chapterTickBrush ??= new SolidColorBrush(Windows.UI.Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF));
+            }
+
+            if (Math.Abs(width - _lastChapterMarkWidth) < 1.0 && !force)
             {
                 return;
             }
-            // Skip the first chapter (time 0) so the bar start stays clean.
-            foreach (var chapter in chapters)
+            _lastChapterMarkWidth = width;
+
+            ChapterMarksCanvas.Children.Clear();
+            foreach (var time in _cachedChapterTimes)
             {
-                if (chapter.Time <= 0)
-                {
-                    continue;
-                }
                 var tick = new Border
                 {
                     Width = 1,
                     Height = 14,
-                    Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF)),
+                    Background = _chapterTickBrush,
                 };
-                Canvas.SetLeft(tick, chapter.Time / duration * width);
+                Canvas.SetLeft(tick, time / duration * width);
                 ChapterMarksCanvas.Children.Add(tick);
             }
         }

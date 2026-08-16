@@ -147,6 +147,7 @@ namespace mpv_winui
             AppContext.SettingChanged -= MainWindow_SettingChanged;
             _settingsWindow?.Close();
             CleanupStyle();
+            AppContext.AppSetting.Flush();
         }
     }
 }

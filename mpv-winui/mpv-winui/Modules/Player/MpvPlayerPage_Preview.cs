@@ -19,6 +19,7 @@ namespace mpv_winui.Modules.Player
 
         private Point _lastPreviewPoint;
         private int _previewGeneration;
+        private bool _previewLoadInFlight;
         private DispatcherQueueTimer? _previewThrottleTimer;
         private (double HoverSec, double RelativeX, double RelativeY)? _pendingPreview;
 
@@ -107,6 +108,11 @@ namespace mpv_winui.Modules.Player
         private async Task LoadPreviewAsync(MpvPreviewInfo info)
         {
             var generation = _previewGeneration;
+            if (_previewLoadInFlight)
+            {
+                return;
+            }
+            _previewLoadInFlight = true;
             try
             {
                 byte[]? bytes = null;
@@ -127,6 +133,10 @@ namespace mpv_winui.Modules.Player
                     return;
                 }
                 if (bytes.Length < info.Width * info.Height * 4)
+                {
+                    return;
+                }
+                if (generation != _previewGeneration)
                 {
                     return;
                 }
@@ -154,6 +164,10 @@ namespace mpv_winui.Modules.Player
             catch (Exception)
             {
                 // The thumbnail file may be replaced between renders; keep the last frame.
+            }
+            finally
+            {
+                _previewLoadInFlight = false;
             }
         }
 

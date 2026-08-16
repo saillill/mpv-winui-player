@@ -106,7 +106,13 @@ public sealed partial class SettingsPage
                 Max = 300,
                 Step = 1,
                 Getter = () => AppContext.AppSetting.OverrideDisplayFps,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OverrideDisplayFps), AppContext.AppSetting.OverrideDisplayFps = (double)v!)
+                Setter = v =>
+                {
+                    AppContext.AppSetting.OverrideDisplayFps = (double)v!;
+                    ApplyMpv(nameof(AppContext.AppSetting.OverrideDisplayFps), AppContext.AppSetting.OverrideDisplayFps);
+                    // Startup-only option: persist into mpv.conf for the next start.
+                    AppContext.WriteManagedMpvConfig();
+                }
             },
 
             new Option

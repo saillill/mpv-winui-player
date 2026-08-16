@@ -97,6 +97,9 @@ namespace winrt::mpv_winrt::implementation
         SetOption("auto-window-resize", "no");
         SetOption("force-window", "yes");
         SetOption("d3d11-composition-size", std::to_string(width) + "x" + std::to_string(height));
+        // override-display-fps is a startup-only option in this mpv build
+        // (runtime "set" fails), so it must be applied before mpv_initialize.
+        UpdateDisplayRefreshRate(refreshRate);
 
         if (mpv_initialize(m_mpv) < 0)
         {
@@ -105,17 +108,18 @@ namespace winrt::mpv_winrt::implementation
         m_initialized.store(true);
 
         // Forward mpv's own log messages (shader compile failures, config
-        // warnings, ...) to the app as a WinRT event.
-        mpv_request_log_messages(m_mpv, "info");
+        // warnings, ...) to the app as a WinRT event. Default to warn so the
+        // per-message cross-thread forwarding cost stays low; the app raises
+        // the level to info when debug logging is enabled.
+        mpv_request_log_messages(m_mpv, "warn");
 
         UpdateDisplayColorInfo(colorKind);
-        UpdateDisplayRefreshRate(refreshRate);
 
         mpv_observe_property(m_mpv, MpvObserveId::CoreIdle, "core-idle", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::Pause, "pause", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::Duration, "duration", MPV_FORMAT_DOUBLE);
         // mpv_observe_property(m_mpv, MpvObserveId::PlaybackTime, "playback-time", MPV_FORMAT_DOUBLE);
-        // mpv_observe_property(m_mpv, MpvObserveId::TimePos, "time-pos", MPV_FORMAT_DOUBLE);
+        mpv_observe_property(m_mpv, MpvObserveId::TimePos, "time-pos", MPV_FORMAT_DOUBLE);
 
         mpv_observe_property(m_mpv, MpvObserveId::LoopFile, "loop-file", MPV_FORMAT_STRING);
         mpv_observe_property(m_mpv, MpvObserveId::LoopPlaylist, "loop-playlist", MPV_FORMAT_STRING);
@@ -342,9 +346,27 @@ namespace winrt::mpv_winrt::implementation
                         case MpvObserveId::TimePos:
                         case MpvObserveId::Duration:
                             {
-                                double position = GetDoubleProperty("time-pos");
-                                double duration = GetDoubleProperty("duration");
-                                double percentPos = GetDoubleProperty("percent-pos");
+                                // Use the observed event payload instead of
+                                // re-reading time-pos/percent-pos on every
+                                // frame; duration only changes on file load,
+                                // so a cached value is enough between events.
+                                double observed = prop->format == MPV_FORMAT_DOUBLE && prop->data
+                                    ? *static_cast<double*>(prop->data)
+                                    : 0.0;
+                                double position;
+                                double duration;
+                                if (event->reply_userdata == MpvObserveId::Duration)
+                                {
+                                    m_lastDuration = observed;
+                                    duration = observed;
+                                    position = GetDoubleProperty("time-pos");
+                                }
+                                else
+                                {
+                                    position = observed;
+                                    duration = m_lastDuration;
+                                }
+                                double percentPos = duration > 0.0 ? (position / duration) * 100.0 : 0.0;
                                 auto args = winrt::make<implementation::PositionChangedEventArgs>(
                                     position, duration, percentPos);
                                 m_positionChangedEvent(args);
@@ -840,6 +862,34 @@ namespace winrt::mpv_winrt::implementation
     {
         const auto args = winrt::to_string(cmd);
         mpv_command_string(m_mpv, args.c_str());
+    }
+
+    void MpvPlayer::ApplyCommandStrings(IVector<hstring> const& commands)
+    {
+        if (!m_mpv || !commands)
+        {
+            return;
+        }
+
+        // One ABI call for a batch of commands; mpv executes them in the
+        // order they are queued here, and a failed command must not abort
+        // the rest of the batch.
+        for (auto const& item : commands)
+        {
+            std::string command = winrt::to_string(item);
+            if (command.empty())
+            {
+                continue;
+            }
+            if (mpv_command_string(m_mpv, command.c_str()) < 0)
+            {
+                auto args = winrt::make<implementation::MpvLogEventArgs>(
+                    L"warn",
+                    L"mpv-winrt",
+                    winrt::to_hstring("ApplyCommandStrings failed: " + command));
+                m_logMessageEvent(args);
+            }
+        }
     }
 
     void MpvPlayer::SetLogLevel(hstring const& level)
@@ -2166,7 +2216,14 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
 
-        SetOption("override-display-fps", std::to_string(refreshRate));
+        std::string rate = std::to_string(refreshRate);
+        if (!m_initialized.load())
+        {
+            // Before init this is a real option; after init the option cannot
+            // be changed at runtime, so only the user-data property is kept
+            // up to date for profiles/scripts.
+            SetOption("override-display-fps", rate);
+        }
         SetInt64Property("user-data/mpvw/refresh-rate", refreshRate);
     }
 } // namespace winrt::mpv_winrt::implementation

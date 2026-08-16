@@ -30,6 +30,7 @@ namespace mpv_winui.Modules.Player
     public partial class MpvMediaPlayer
     {
         private readonly MpvPlayer _mpvPlayer;
+        private readonly MpvCommandQueue _commandQueue;
 
         private readonly Lazy<HashSet<string>> _subtitleExtensions;
 
@@ -41,6 +42,7 @@ namespace mpv_winui.Modules.Player
         public MpvMediaPlayer()
         {
             this._mpvPlayer = new MpvPlayer();
+            _commandQueue = new(_mpvPlayer);
             _subtitleExtensions = new(() =>
             {
                 var exts = _mpvPlayer.GetSubtitleExtensions();
@@ -101,6 +103,11 @@ namespace mpv_winui.Modules.Player
             get; set;
         }
         public Action<MpvMediaPlayer, object?>? Seeked
+        {
+            get; set;
+        }
+
+        public Action<MpvMediaPlayer, PositionChangedEventArgs>? PositionChanged
         {
             get; set;
         }
@@ -316,6 +323,7 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.WindowChanged += MpvPlayer_WindowChanged;
             _mpvPlayer.LogMessage += MpvPlayer_LogMessage;
             _mpvPlayer.PropertyChanged += MpvPlayer_PropertyChanged;
+            _mpvPlayer.PositionChanged += MpvPlayer_PositionChanged;
         }
 
         public void StopListen()
@@ -335,6 +343,7 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.WindowChanged -= MpvPlayer_WindowChanged;
             _mpvPlayer.LogMessage -= MpvPlayer_LogMessage;
             _mpvPlayer.PropertyChanged -= MpvPlayer_PropertyChanged;
+            _mpvPlayer.PositionChanged -= MpvPlayer_PositionChanged;
         }
 
         private void MpvPlayer_VoConfigured()
@@ -427,6 +436,11 @@ namespace mpv_winui.Modules.Player
             BufferingStarted?.Invoke(this, null);
         }
 
+        private void MpvPlayer_PositionChanged(PositionChangedEventArgs args)
+        {
+            PositionChanged?.Invoke(this, args);
+        }
+
         private void MpvPlayer_VolumeChanged(VolumeChangedEventArgs args)
         {
             VolumeChangedChanged?.Invoke(this, (int)args.Volume);
@@ -478,7 +492,7 @@ namespace mpv_winui.Modules.Player
         {
             if (args?.Count > 0)
             {
-                await Task.Run(() => _mpvPlayer.Command(args));
+                await _commandQueue.EnqueueVector(args);
             }
         }
 
@@ -486,7 +500,7 @@ namespace mpv_winui.Modules.Player
         {
             if (args?.Length > 0)
             {
-                await Task.Run(() => _mpvPlayer.Command(args));
+                await _commandQueue.EnqueueVector(args);
             }
         }
 
@@ -494,9 +508,18 @@ namespace mpv_winui.Modules.Player
         {
             if (!string.IsNullOrEmpty(cmd))
             {
-                await Task.Run(() => _mpvPlayer.CommandString(cmd));
+                await _commandQueue.EnqueueCommand(cmd);
             }
         }
+
+        /// <summary>Enqueues a single mpv command on the ordered worker.</summary>
+        public Task EnqueueCommand(string command) => _commandQueue.EnqueueCommand(command);
+
+        /// <summary>Enqueues a batch of commands; one native call executes them in order.</summary>
+        public Task EnqueueCommands(IEnumerable<string> commands) => _commandQueue.EnqueueCommands(commands);
+
+        /// <summary>Waits until all previously enqueued commands have executed.</summary>
+        public Task DrainCommandsAsync() => _commandQueue.DrainAsync();
 
         public void UpdateSize(uint width, uint height)
         {
@@ -648,6 +671,7 @@ namespace mpv_winui.Modules.Player
 
         public void Close()
         {
+            _commandQueue.Stop();
             _mpvPlayer.VoConfigured -= MpvPlayer_VoConfigured;
             _mpvPlayer?.Destroy();
         }

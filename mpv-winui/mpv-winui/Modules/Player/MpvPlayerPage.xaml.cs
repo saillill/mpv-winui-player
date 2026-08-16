@@ -25,6 +25,7 @@ namespace mpv_winui.Modules.Player
         private readonly AppWindow _appWindow;
 
         private Task? _task;
+        private bool _hdrModeAppliedOnce;
 
         public MpvPlayerPage()
         {
@@ -66,19 +67,30 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.StartListen();
 
-                AppContext.RunMpvCommand = cmd => _mediaPlayer.RunCommandAsync(cmd).FireAndForget(OnException);
+                AppContext.RunMpvCommand = cmd => _ = _mediaPlayer.EnqueueCommand(cmd);
+                AppContext.SetMpvLogLevel = level => _mediaPlayer.SetLogLevel(level);
                 AppContext.GetAudioDevices = () => _mediaPlayer.AudioDevices();
                 AppContext.GetGpuAdapters = () => _mediaPlayer.GpuAdapters();
                 AppContext.GetMpvProfiles = () => _mediaPlayer.Profiles();
+                // LoggerHelper may have run before this hook existed; sync the
+                // native mpv log level once the player is available.
+                AppContext.SetMpvLogLevel(AppContext.AppSetting.EnableDebugLog ? "info" : "warn");
                 var lang = AppContext.AppSetting.CurrentLanguage;
                 if (string.IsNullOrWhiteSpace(lang)) lang = "en-US";
                 AppContext.SendMpvCommand($"no-osd set user-data/mpvw/language {lang}");
                 var mpvCli = Path.Combine(System.AppContext.BaseDirectory, "mpv.exe");
                 if (File.Exists(mpvCli))
                 {
-                    AppContext.SendMpvCommand($"no-osd set user-data/mpvw/mpv-exe \"{mpvCli}\"");
+                    // mpv_command_string parses C-style escapes: Windows paths
+                    // need doubled backslashes inside the quotes.
+                    var escapedCli = mpvCli.Replace("\\", "\\\\");
+                    AppContext.SendMpvCommand($"no-osd set user-data/mpvw/mpv-exe \"{escapedCli}\"");
                 }
-                MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
+                var applyCommands = MpvSettings.BuildApplyAllCommands();
+                if (applyCommands.Count > 0)
+                {
+                    await _mediaPlayer.EnqueueCommands(applyCommands);
+                }
 
                 // Playback speed is a persistent setting but is intentionally
                 // not part of ApplyAll (it would clobber the live session on a
@@ -88,6 +100,11 @@ namespace mpv_winui.Modules.Player
                 {
                     AppContext.SendMpvCommand($"no-osd set speed {AppContext.AppSetting.Speed}");
                 }
+                await _mediaPlayer.DrainCommandsAsync();
+                // hdr_auto registers its script-message handler after mpv
+                // scripts load; the startup batch races that registration, so
+                // the saved HDR mode is applied once the first file loads.
+                _mediaPlayer.MediaOpened += MpvPlayerPage_ApplyHdrModeOnce;
 
                 SetupKeyboardInput();
                 AppContext.SettingChanged += AppContext_SettingChanged;
@@ -118,12 +135,14 @@ namespace mpv_winui.Modules.Player
         private void MpvPlayerPage_Unloaded(object sender, RoutedEventArgs e)
         {
             AppContext.RunMpvCommand = null;
+            AppContext.SetMpvLogLevel = null;
             AppContext.GetAudioDevices = null;
             AppContext.GetGpuAdapters = null;
             AppContext.GetMpvProfiles = null;
             AppContext.SettingChanged -= AppContext_SettingChanged;
             AppContext.LanguageChanged -= AppContext_LanguageChanged;
             CleanupDisplayInfo();
+            CleanupPlaylistRefresh();
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
             _mediaPlayer.VolumeChangedChanged -= VolumeChangedChanged;
@@ -134,7 +153,18 @@ namespace mpv_winui.Modules.Player
             CleanupKeyboardInput();
             CleanupPreview();
             ClosePiPWindow();
+            _mediaPlayer.MediaOpened -= MpvPlayerPage_ApplyHdrModeOnce;
             _mediaPlayer.Close();
+        }
+
+        private void MpvPlayerPage_ApplyHdrModeOnce(MpvMediaPlayer player, object? args)
+        {
+            if (_hdrModeAppliedOnce)
+            {
+                return;
+            }
+            _hdrModeAppliedOnce = true;
+            AppContext.SendMpvCommand($"script-message-to hdr_auto mode {AppContext.AppSetting.HdrAutoMode}");
         }
 
         private void AppContext_SettingChanged(string key, object? value)
@@ -191,7 +221,10 @@ namespace mpv_winui.Modules.Player
             await AppContext.WaitAll();
 
             _mediaPlayer.SwapChainChanged += MpvPlayer_SwapChainChanged;
-            await _mediaPlayer.InitializeAsync(configFolder.Path, AppContext.AppSetting.LastVideoVolume, _lastColorKind, (int)_lastRefreshRate);
+            var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
+                ? AppContext.AppSetting.OverrideDisplayFps
+                : _lastRefreshRate;
+            await _mediaPlayer.InitializeAsync(configFolder.Path, AppContext.AppSetting.LastVideoVolume, _lastColorKind, (int)refreshRate);
 
             _isPlayerInitialized = true;
         }

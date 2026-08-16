@@ -32,7 +32,10 @@ namespace mpv_winui.Modules.Player
 
             _displayInfoDebouncer = new(DispatcherQueue, TimeSpan.FromSeconds(1), CheckAndUpdateDisplayInfo);
             _displayInfoTimer = DispatcherQueue.CreateTimer();
-            _displayInfoTimer.Interval = TimeSpan.FromSeconds(3);
+            // Events (AdvancedColorInfoChanged, AppWindow.Changed,
+            // WM_DISPLAYCHANGE, WM_EXITSIZEMOVE) cover nearly all display
+            // changes; this timer is only a slow fallback.
+            _displayInfoTimer.Interval = TimeSpan.FromSeconds(15);
             _displayInfoTimer.Tick += OnDisplayInfoTimerTick;
             _displayInfoTimer.Start();
             _lastMonitor = Win32WindowHelper.GetMonitor(App.Window!);
@@ -161,7 +164,7 @@ namespace mpv_winui.Modules.Player
         // 定期重读一次，确保 color-kind 最终与当前显示器一致。
         private void OnDisplayInfoTimerTick(DispatcherQueueTimer sender, object args)
         {
-            if (_displayInfo is null)
+            if (_displayInfo is null || IsMainWindowMinimized())
             {
                 return;
             }
@@ -186,8 +189,23 @@ namespace mpv_winui.Modules.Player
             if (rate != _lastRefreshRate)
             {
                 _lastRefreshRate = rate;
-                _mediaPlayer?.UpdateDisplayRefreshRate(rate);
+                if (ShouldAutoApplyRefreshRate())
+                {
+                    _mediaPlayer?.UpdateDisplayRefreshRate(rate);
+                }
             }
+        }
+
+        private bool IsMainWindowMinimized()
+        {
+            return _appWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized };
+        }
+
+        private static bool ShouldAutoApplyRefreshRate()
+        {
+            // A non-zero user override wins; only the auto-detected rate is
+            // written back when the user has not configured one.
+            return AppContext.AppSetting.OverrideDisplayFps <= 0;
         }
 
         private void TryLogDisplayInfo(mpv_winrt.DisplayColorKind kind, DisplayAdvancedColorInfo? colorInfo)
@@ -294,7 +312,10 @@ namespace mpv_winui.Modules.Player
                 if (rate != _lastRefreshRate)
                 {
                     _lastRefreshRate = rate;
-                    _mediaPlayer?.UpdateDisplayRefreshRate(rate);
+                    if (ShouldAutoApplyRefreshRate())
+                    {
+                        _mediaPlayer?.UpdateDisplayRefreshRate(rate);
+                    }
                 }
             }
         }
