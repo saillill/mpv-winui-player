@@ -140,7 +140,8 @@ public sealed partial class QuickControlPanel
         var styleRow = new StackPanel
         {
             Spacing = 8,
-            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 8, 0, 8),
+            VerticalAlignment = VerticalAlignment.Top,
         };
         styleRow.Children.Add(PanelButtonRow(bold, italic, resetPos));
         root.Children.Add(PanelOptionCard(styleRow));

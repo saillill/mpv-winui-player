@@ -27,12 +27,13 @@ public sealed partial class QuickControlPanel
         var deinterlace = PanelToggleButton(lang.SettingsDeinterlace, "\uF2BE",
             on => MediaPlayer?.Command("set", "deinterlace", on ? "yes" : "no"));
 
-        // Centered inside the stretched last card so the taller button area
-        // fills the remaining 400px panel height instead of leaving a gap.
+        // Top-aligned with a fixed vertical margin so the buttons keep a
+        // consistent gap from the stretched card edges.
         var effects = new StackPanel
         {
             Spacing = 12,
-            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 8, 0, 8),
+            VerticalAlignment = VerticalAlignment.Top,
         };
         effects.Children.Add(PanelButtonRow(sharp, blur, post, deinterlace));
         effects.Children.Add(PanelButtonRow(

@@ -21,7 +21,7 @@
                     Text="{x:Bind ValueText, Mode=OneWay}" />
                 <Slider
                     Width="36"
-                    Height="160"
+                    Height="180"
                     AutomationProperties.Name="{x:Bind Band}"
                     HorizontalAlignment="Center"
                     Maximum="12"
