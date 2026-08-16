@@ -19,6 +19,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
 {
     private string _current = string.Empty;
     private string? _expandedValue;
+    private bool _suppressRadio;
 
     public OptionLayoutControl()
     {
@@ -97,7 +98,14 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             MinWidth = 0, // WinUI defaults to 120px, which shoves the title far from the dot
             Tag = choice.Value,
         };
-        radio.Checked += (_, _) => Select(choice.Value);
+        radio.Checked += (_, _) =>
+        {
+            if (_suppressRadio)
+            {
+                return;
+            }
+            Select(choice.Value);
+        };
         Grid.SetColumn(radio, 0);
         header.Children.Add(radio);
 
@@ -149,25 +157,57 @@ public sealed partial class OptionLayoutControl : OptionControlBase
     /// </summary>
     private void ToggleEdit(string value)
     {
-        if (!string.Equals(value, _current, StringComparison.Ordinal))
+        try
         {
-            Select(value);
-        }
-
-        var expand = !string.Equals(_expandedValue, value, StringComparison.Ordinal);
-        _expandedValue = expand ? value : null;
-        foreach (var item in StyleCards.Items)
-        {
-            if (item is Border card
-                && card.Tag is string tag
-                && tag == value
-                && card.Child is StackPanel panel)
+            if (!string.Equals(value, _current, StringComparison.Ordinal))
             {
-                if (panel.Children.Count > 1 && panel.Children[1] is ControlBarCanvasControl canvas)
+                _current = value;
+                if (Setting?.Setter is { } setter)
                 {
-                    canvas.SetEditable(expand);
+                    setter(value);
+                }
+                Setting?.NotifyChanged();
+            }
+
+            var expand = !string.Equals(_expandedValue, value, StringComparison.Ordinal);
+            _expandedValue = expand ? value : null;
+            _suppressRadio = true;
+            try
+            {
+                foreach (var item in StyleCards.Items)
+                {
+                    if (item is Border card
+                        && card.Tag is string tag
+                        && card.Child is StackPanel panel)
+                    {
+                        if (panel.Children.Count > 1 && panel.Children[1] is ControlBarCanvasControl canvas)
+                        {
+                            canvas.SetEditable(string.Equals(tag, value, StringComparison.Ordinal) && expand);
+                        }
+                        UpdateCardBorder(card);
+                        if (panel.Children[0] is Grid header)
+                        {
+                            foreach (var child in header.Children)
+                            {
+                                if (child is RadioButton radio)
+                                {
+                                    radio.IsChecked = string.Equals(radio.Tag as string, value, StringComparison.Ordinal);
+                                }
+                            }
+                        }
+                    }
                 }
             }
+            finally
+            {
+                _suppressRadio = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Never let a customize click tear down the settings window; log
+            // the failure so the next report carries the real stack.
+            AppContext.AppLogger.Error(ex, "control-bar layout customize toggle failed");
         }
     }
 
