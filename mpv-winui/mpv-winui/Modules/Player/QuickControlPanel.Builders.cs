@@ -135,31 +135,13 @@ public sealed partial class QuickControlPanel
         grid.Children.Add(new TextBlock
         {
             Text = labelText,
-            HorizontalAlignment = HorizontalAlignment.Left,
+            // Centered in the fixed column: left-aligned short labels left a
+            // large gap before the slider, right side felt cramped.
+            HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         });
         Grid.SetColumn(content, 1);
         grid.Children.Add(content);
-        return grid;
-    }
-
-    private static Grid PanelSliderWithReset(Slider slider, Button reset)
-    {
-        var grid = new Grid
-        {
-            ColumnSpacing = 8,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        slider.HorizontalAlignment = HorizontalAlignment.Stretch;
-        slider.VerticalAlignment = VerticalAlignment.Center;
-        reset.MinWidth = 0;
-        reset.VerticalAlignment = VerticalAlignment.Center;
-        grid.Children.Add(slider);
-        Grid.SetColumn(reset, 1);
-        grid.Children.Add(reset);
         return grid;
     }
 
@@ -203,5 +185,48 @@ public sealed partial class QuickControlPanel
             MediaPlayer?.Command("set", property, slider.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture));
         };
         return slider;
+    }
+
+    /// <summary>
+    /// Slider row with a live value label above the track (right-aligned),
+    /// matching the settings-style numeric feedback for picture sliders.
+    /// </summary>
+    private Grid PanelSliderRow(string label, string property, double min, double max, double step)
+    {
+        var slider = PanelPropertySlider(property, min, max, step, label);
+        var value = new TextBlock
+        {
+            FontSize = 11,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        value.Text = slider.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+        slider.ValueChanged += (_, _) =>
+            value.Text = slider.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+
+        var reset = PanelResetButton(property, slider);
+        var sliderArea = new Grid
+        {
+            ColumnSpacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        sliderArea.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        sliderArea.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        slider.HorizontalAlignment = HorizontalAlignment.Stretch;
+        slider.VerticalAlignment = VerticalAlignment.Center;
+        reset.MinWidth = 0;
+        reset.VerticalAlignment = VerticalAlignment.Center;
+        sliderArea.Children.Add(slider);
+        Grid.SetColumn(reset, 1);
+        sliderArea.Children.Add(reset);
+
+        var body = new StackPanel
+        {
+            Spacing = 2,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        body.Children.Add(value);
+        body.Children.Add(sliderArea);
+        return PanelSection(label, body);
     }
 }

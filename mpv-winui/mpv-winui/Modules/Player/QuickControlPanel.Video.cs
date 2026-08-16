@@ -5,31 +5,13 @@ namespace mpv_winui.Modules.Player;
 /// <summary>Video page of the quick-control panel (picture sliders and filters).</summary>
 public sealed partial class QuickControlPanel
 {
-    private Slider? _panelBrightnessSlider;
-    private Slider? _panelContrastSlider;
-    private Slider? _panelSaturationSlider;
-    private Slider? _panelHueSlider;
-
     private void BuildPanelVideo(StackPanel root)
     {
         var lang = AppContext.AppLang;
-        _panelBrightnessSlider = PanelPropertySlider("brightness", -100, 100, 1, lang.PanelBrightness);
-        _panelContrastSlider = PanelPropertySlider("contrast", -100, 100, 1, lang.PanelContrast);
-        _panelSaturationSlider = PanelPropertySlider("saturation", -100, 100, 1, lang.PanelSaturation);
-        _panelHueSlider = PanelPropertySlider("hue", -100, 100, 1, lang.PanelHue);
-
-        root.Children.Add(PanelOptionCard(PanelSection(
-            lang.PanelBrightness,
-            PanelSliderWithReset(_panelBrightnessSlider, PanelResetButton("brightness", _panelBrightnessSlider)))));
-        root.Children.Add(PanelOptionCard(PanelSection(
-            lang.PanelContrast,
-            PanelSliderWithReset(_panelContrastSlider, PanelResetButton("contrast", _panelContrastSlider)))));
-        root.Children.Add(PanelOptionCard(PanelSection(
-            lang.PanelSaturation,
-            PanelSliderWithReset(_panelSaturationSlider, PanelResetButton("saturation", _panelSaturationSlider)))));
-        root.Children.Add(PanelOptionCard(PanelSection(
-            lang.PanelHue,
-            PanelSliderWithReset(_panelHueSlider, PanelResetButton("hue", _panelHueSlider)))));
+        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.PanelBrightness, "brightness", -100, 100, 1)));
+        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.PanelContrast, "contrast", -100, 100, 1)));
+        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.PanelSaturation, "saturation", -100, 100, 1)));
+        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.PanelHue, "hue", -100, 100, 1)));
 
         var sharp = PanelToggleButton(lang.PanelSharpen, "\uF47D",
             on => MediaPlayer?.Command("set", "vf", on ? "lavfi=[unsharp=5:5:1.0]" : ""));

@@ -50,7 +50,10 @@ namespace mpv_winui.Modules.Player
 
             var pivot = new Pivot
             {
-                MinHeight = 340,
+                // Fixed height keeps the flyout the same size across the
+                // audio/video/subtitle tabs; content taller than this scrolls
+                // inside the ScrollViewer instead of resizing the popup.
+                Height = 380,
                 Padding = new Thickness(0),
                 IsHeaderItemsCarouselEnabled = false,
                 IsTabStop = false,
