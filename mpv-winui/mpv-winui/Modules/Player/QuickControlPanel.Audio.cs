@@ -114,6 +114,25 @@ public sealed partial class QuickControlPanel
             bandGrid.Children.Add(cell);
         }
         root.Children.Add(PanelOptionCard(bandGrid));
+
+        // Quick actions fill the bottom of the audio page: mute, track
+        // cycling and volume nudges (all localized via existing AppLang keys).
+        var mute = PanelToggleButton(lang.PiPMute, "\uE74F",
+            on => MediaPlayer?.Command("set", "mute", on ? "yes" : "no"));
+        var cycleTrack = PanelIconButton(lang.AudioCycleTrack, "\uE8D6",
+            () => MediaPlayer?.Command("cycle", "audio"));
+        var volumeUp = PanelIconButton(lang.AudioVolumeUp, "\uE994",
+            () => MediaPlayer?.Command("add", "volume", "5"));
+        var volumeDown = PanelIconButton(lang.AudioVolumeDown, "\uE992",
+            () => MediaPlayer?.Command("add", "volume", "-5"));
+        var quickRow = new StackPanel
+        {
+            Spacing = 8,
+            Margin = new Thickness(0, 8, 0, 8),
+            VerticalAlignment = VerticalAlignment.Top,
+        };
+        quickRow.Children.Add(PanelButtonRow(mute, cycleTrack, volumeUp, volumeDown));
+        root.Children.Add(PanelOptionCard(quickRow));
     }
 
     private void ApplyPanelPreset(double[] gains)
