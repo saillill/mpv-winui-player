@@ -188,7 +188,7 @@ public sealed partial class QuickControlPanel
     }
 
     /// <summary>
-    /// Slider row with a live value label above the track (right-aligned),
+    /// Slider row with a live value label on the right of the track,
     /// matching the settings-style numeric feedback for picture sliders.
     /// </summary>
     private Grid PanelSliderRow(string label, string property, double min, double max, double step)
@@ -197,7 +197,8 @@ public sealed partial class QuickControlPanel
         var value = new TextBlock
         {
             FontSize = 11,
-            HorizontalAlignment = HorizontalAlignment.Right,
+            MinWidth = 32,
+            HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
         value.Text = slider.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
@@ -212,21 +213,16 @@ public sealed partial class QuickControlPanel
         };
         sliderArea.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         sliderArea.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        sliderArea.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         slider.HorizontalAlignment = HorizontalAlignment.Stretch;
         slider.VerticalAlignment = VerticalAlignment.Center;
         reset.MinWidth = 0;
         reset.VerticalAlignment = VerticalAlignment.Center;
         sliderArea.Children.Add(slider);
-        Grid.SetColumn(reset, 1);
+        Grid.SetColumn(value, 1);
+        sliderArea.Children.Add(value);
+        Grid.SetColumn(reset, 2);
         sliderArea.Children.Add(reset);
-
-        var body = new StackPanel
-        {
-            Spacing = 2,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        body.Children.Add(value);
-        body.Children.Add(sliderArea);
-        return PanelSection(label, body);
+        return PanelSection(label, sliderArea);
     }
 }
