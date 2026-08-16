@@ -134,7 +134,7 @@ public sealed partial class PlayerControl
         {
             Title = AppContext.AppLang.CustomRate,
             Content = box,
-            PrimaryButtonText = "OK",
+            PrimaryButtonText = AppContext.AppLang.Ok,
             CloseButtonText = AppContext.AppLang.Cancel,
             XamlRoot = XamlRoot,
         };

@@ -1018,5 +1018,7 @@
   "OptionValueTscaleOversample": "Überabtastung",
   "PanelPreset": "Voreinstellung",
   "SectionCache": "Zwischenspeicher",
-  "SectionTrackFallback": "Ersatz"
+  "SectionTrackFallback": "Ersatz",
+  "ControlBarIconAbLoop": "A-B-Schleife",
+  "PanelDelay": "Audio-/Untertitel-Verzögerung"
 }

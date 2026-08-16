@@ -94,6 +94,7 @@ namespace mpv_winui.Modules.Language
         public string ControlBarIconRandom { get; set; } = "Random";
         public string ControlBarIconSpeed { get; set; } = "Speed";
         public string ControlBarIconAspect { get; set; } = "Aspect ratio";
+        public string ControlBarIconAbLoop { get; set; } = "A-B loop";
         public string ControlBarIconFullWindow { get; set; } = "Full window";
         public string ControlBarIconFullScreen { get; set; } = "Full screen";
         public string ControlBarIconMore { get; set; } = "More controls";
@@ -541,6 +542,7 @@ namespace mpv_winui.Modules.Language
         public string PluginSourceHdrDesc { get; set; } = "HDR auto-detection and override scripts are adapted from mpv-lazy. Project: hooke007/mpv_PlayKit.";
         public string OpenProjectPage { get; set; } = "Open project page";
         public string PanelEqualizer { get; set; } = "Equalizer";
+        public string PanelDelay { get; set; } = "Audio / subtitle delay";
         public string PanelMasterVolume { get; set; } = "Master volume";
         public string PanelBrightness { get; set; } = "Brightness";
         public string PanelContrast { get; set; } = "Contrast";

@@ -1015,5 +1015,7 @@
   "SubtitleCycleTrack": "Changer de piste de sous-titres",
   "SubtitleVisibility": "Afficher/masquer les sous-titres",
   "OptionValueGamutClip": "Écrêtage",
-  "OptionValueToneMapClip": "Écrêtage"
+  "OptionValueToneMapClip": "Écrêtage",
+  "ControlBarIconAbLoop": "Boucle A-B",
+  "PanelDelay": "Délai audio/sous-titres"
 }

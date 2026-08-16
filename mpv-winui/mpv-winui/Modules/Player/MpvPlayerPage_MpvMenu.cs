@@ -340,51 +340,6 @@ namespace mpv_winui.Modules.Player
                 }
             }
 
-            foreach (var barItem in MainMenuBar.Items)
-            {
-                barItem.Title = barItem.Tag switch
-                {
-                    "file" => AppContext.AppLang.MenuFile,
-                    "view" => AppContext.AppLang.MenuView,
-                    "help" => AppContext.AppLang.MenuHelp,
-                    _ => barItem.Title,
-                };
-
-                foreach (var baseItem in barItem.Items)
-                {
-                    if (baseItem is MenuFlyoutItem mi)
-                    {
-                        mi.Text = mi.Tag switch
-                        {
-                            "open" => AppContext.AppLang.FileOpen,
-                            "open-folder" => AppContext.AppLang.FileOpenFolder,
-                            "open-url" => AppContext.AppLang.FileOpenUrl,
-                            "open-clipboard" => AppContext.AppLang.FileOpenClipboard,
-                            "open-dvd" => AppContext.AppLang.FileOpenDvd,
-                            "open-bd" => AppContext.AppLang.FileOpenBd,
-                            "open-watch-history" => AppContext.AppLang.FileOpenWatchHistory,
-                            "open-watch-later" => AppContext.AppLang.FileOpenWatchLater,
-                            "load-subtitle" => AppContext.AppLang.FileLoadSubtitle,
-                            "screenshot" => AppContext.AppLang.FileScreenshot,
-                            "screenshot-no-sub" => AppContext.AppLang.FileScreenshotNoSub,
-                            "restart" => AppContext.AppLang.FileRestart,
-                            "quit" => AppContext.AppLang.FileQuit,
-                            "playlist" => AppContext.AppLang.ViewPlaylist,
-                            "fullwindow" => AppContext.AppLang.ViewFullWindow,
-                            "fullscreen" => AppContext.AppLang.ViewFullScreen,
-                            "options" => AppContext.AppLang.ViewOptions,
-                            "mpv-command" => AppContext.AppLang.SettingsCommandMenuItem,
-                            "shortcut-search" => AppContext.AppLang.ShortcutSearchTitle,
-                            "conf-folder" => AppContext.AppLang.ViewConfFolder,
-                            "mpv-folder" => AppContext.AppLang.ViewMpvFolder,
-                            "about" => AppContext.AppLang.HelpAbout,
-                            "mpv-docs" => AppContext.AppLang.HelpMpvDocs,
-                            _ => mi.Text,
-                        };
-                    }
-                }
-            }
-
             ToolTipService.SetToolTip(TopBarOntopButton, AppContext.AppLang.SettingsAlwaysOnTop);
             ToolTipService.SetToolTip(TopBarScreenshotButton, AppContext.AppLang.FileScreenshot);
             ToolTipService.SetToolTip(TopBarPlaylistButton, AppContext.AppLang.TogglePlaylist);

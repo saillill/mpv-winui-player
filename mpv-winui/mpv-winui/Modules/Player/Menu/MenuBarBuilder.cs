@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.Language;
 using NLog;
 using System;
@@ -127,7 +128,7 @@ public static class MenuBarBuilder
                 item.Icon = new FontIcon
                 {
                     Glyph = entry.Icon,
-                    FontFamily = new FontFamily("ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"),
+                    FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
                 };
             }
             item.Click += itemClick;

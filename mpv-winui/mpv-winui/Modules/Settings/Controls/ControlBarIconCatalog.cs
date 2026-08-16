@@ -15,7 +15,7 @@ namespace mpv_winui.Modules.Settings.Controls;
 public static class ControlBarIconCatalog
 {
     /// <summary>Font that contains the shuffle/pip glyphs (same as the real bar).</summary>
-    public const string FluentFont = "ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular";
+    public const string FluentFont = mpv_winui.Modules.Common.View.IconFonts.FluentSystemIconsUri;
 
     /// <summary>True for ids whose glyph only exists in the Fluent font (shuffle, pip).</summary>
     public static bool IsFluent(string id) => id is "random" or "pip";

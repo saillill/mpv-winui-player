@@ -1013,5 +1013,7 @@
   "AudioVolumeDown": "音量 -5",
   "AudioMute": "ミュート",
   "SubtitleCycleTrack": "字幕トラック切替",
-  "SubtitleVisibility": "字幕表示切替"
+  "SubtitleVisibility": "字幕表示切替",
+  "ControlBarIconAbLoop": "A-Bループ",
+  "PanelDelay": "音声/字幕ディレイ"
 }

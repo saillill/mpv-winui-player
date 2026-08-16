@@ -108,7 +108,7 @@ public sealed partial class MpvPlayerPage
         }
     }
 
-    /// <summary>Rebuilds the menu bar (used after the menu editor saves).</summary>
+    /// <summary>Rebuilds the menu bar (used after menu definition or language changes).</summary>
     public void RebuildMenuBar() => BuildMainMenuBar();
 
     private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)

@@ -24,6 +24,12 @@ namespace mpv_winui.Modules.Player
     /// </summary>
     public sealed partial class PlayerControl
     {
+        // Shared panel animation timing. Windowed show/hide use 180/150ms;
+        // overlay (fullscreen/PiP) intentionally keeps 180ms for both
+        // directions so the bar feels symmetric (see AGENTS.md).
+        private const double PanelShowMs = 180;
+        private const double PanelHideMs = 150;
+
         private void StopPanelAnimations()
         {
             _panelGridVisual?.StopAnimation("Opacity");
@@ -101,11 +107,11 @@ namespace mpv_winui.Modules.Player
 
             var storyboard = new Storyboard
             {
-                Duration = TimeSpan.FromMilliseconds(180),
+                Duration = TimeSpan.FromMilliseconds(PanelShowMs),
             };
-            AddPanelAnimation(storyboard, "Opacity", show ? 0 : 1, show ? 1 : 0, 180, ControlPanelGrid);
-            AddPanelAnimation(storyboard, "Opacity", show ? 0 : 1, show ? 1 : 0, 180, ControlPanelGradient);
-            AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", show ? 48 : 0, show ? 0 : 48, 180, ControlPanelGrid);
+            AddPanelAnimation(storyboard, "Opacity", show ? 0 : 1, show ? 1 : 0, PanelShowMs, ControlPanelGrid);
+            AddPanelAnimation(storyboard, "Opacity", show ? 0 : 1, show ? 1 : 0, PanelShowMs, ControlPanelGradient);
+            AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", show ? 48 : 0, show ? 0 : 48, PanelShowMs, ControlPanelGrid);
             storyboard.Completed += (_, _) => PanelAnimationCompleted(show);
             storyboard.Begin();
 
@@ -145,7 +151,7 @@ namespace mpv_winui.Modules.Player
                     new System.Numerics.Vector2(0.215f, 0.61f),
                     new System.Numerics.Vector2(0.355f, 1f));
                 var opacity = _panelCompositor.CreateScalarKeyFrameAnimation();
-                opacity.Duration = TimeSpan.FromMilliseconds(180);
+                opacity.Duration = TimeSpan.FromMilliseconds(PanelShowMs);
                 opacity.InsertKeyFrame(0f, show ? 0f : 1f);
                 opacity.InsertKeyFrame(1f, show ? 1f : 0f, ease);
                 _panelGridVisual.StartAnimation("Opacity", opacity);
@@ -160,7 +166,7 @@ namespace mpv_winui.Modules.Player
 
         private void PanelAnimationTick(object? sender, object e)
         {
-            const double durationMs = 180;
+            const double durationMs = PanelShowMs;
             var elapsed = Environment.TickCount64 - _panelAnimationStart;
             var t = Math.Clamp(elapsed / durationMs, 0, 1);
             var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
