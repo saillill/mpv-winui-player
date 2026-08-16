@@ -18,10 +18,11 @@
                 <TextBlock
                     HorizontalAlignment="Center"
                     FontSize="12"
+                    Margin="0,6,0,0"
                     Text="{x:Bind ValueText, Mode=OneWay}" />
                 <Slider
                     Width="36"
-                    Height="180"
+                    Height="170"
                     AutomationProperties.Name="{x:Bind Band}"
                     HorizontalAlignment="Center"
                     Maximum="12"
@@ -36,6 +37,7 @@
                 <TextBlock
                     HorizontalAlignment="Center"
                     FontSize="11"
+                    Margin="0,0,0,6"
                     Text="{x:Bind Band}" />
             </StackPanel>
         </DataTemplate>
