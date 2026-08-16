@@ -155,4 +155,5 @@
 - `SpeedChanged` 原生事件接线到 `MpvMediaPlayer`，倍速菜单项改为可勾选并显示当前倍速提示（新增单测）。
 - de/es/fr/ja/ko/ru/zh 未翻译键补齐（可译项翻译，技术名词保留原词）。
 - `check-settings-drift.py` 白名单补 `PlaylistWidth`/`WindowTitle`；播放列表过滤改增量 diff；m3u 导出清洗换行；`display-info.log` 1 MiB 轮转；`OnException` 增加 5s 节流提示；过期 TODO/注释清理；AGENTS.md 补充 recentmenu 与 menu 脚本说明。
+- `VolumeFlyoutControl` 订阅 `VolumeChangedChanged` 保持外部音量/静音状态同步；mpv 实测 `watch-history-path` 为每行 `{time,path}` JSON，与 App 解析器兼容。
 - 验证：Debug/Release 构建 0 错误，单测 7/7 通过，IPC/UIA 冒烟通过（进度前进、播放列表追加、倍速设置、PiP 窗口）。
