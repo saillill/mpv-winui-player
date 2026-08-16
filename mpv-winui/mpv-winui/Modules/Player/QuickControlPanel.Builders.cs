@@ -90,12 +90,13 @@ public sealed partial class QuickControlPanel
     /// <summary>Lays buttons out in equal-width columns that fill the card.</summary>
     private static Grid PanelButtonRow(params FrameworkElement[] buttons)
     {
-        var grid = new Grid { ColumnSpacing = 8 };
+        // Left-aligned natural widths: equal star columns were clipping long
+        // labels and making rows look stretched instead of aligned.
+        var grid = new Grid { ColumnSpacing = 8, HorizontalAlignment = HorizontalAlignment.Left };
         for (var i = 0; i < buttons.Length; i++)
         {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            buttons[i].HorizontalAlignment = HorizontalAlignment.Stretch;
-            buttons[i].MinWidth = 0;
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            buttons[i].HorizontalAlignment = HorizontalAlignment.Left;
             Grid.SetColumn(buttons[i], i);
             grid.Children.Add(buttons[i]);
         }
@@ -121,13 +122,18 @@ public sealed partial class QuickControlPanel
 
     private static Grid PanelSection(string labelText, FrameworkElement content)
     {
-        var grid = new Grid { ColumnSpacing = 8, VerticalAlignment = VerticalAlignment.Center };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(96) });
+        var grid = new Grid
+        {
+            ColumnSpacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.Children.Add(new TextBlock
         {
             Text = labelText,
-            HorizontalAlignment = HorizontalAlignment.Right,
+            HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center,
         });
         Grid.SetColumn(content, 1);
@@ -137,11 +143,17 @@ public sealed partial class QuickControlPanel
 
     private static Grid PanelSliderWithReset(Slider slider, Button reset)
     {
-        var grid = new Grid { ColumnSpacing = 8, VerticalAlignment = VerticalAlignment.Center };
+        var grid = new Grid
+        {
+            ColumnSpacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         slider.HorizontalAlignment = HorizontalAlignment.Stretch;
         slider.VerticalAlignment = VerticalAlignment.Center;
+        reset.MinWidth = 0;
         reset.VerticalAlignment = VerticalAlignment.Center;
         grid.Children.Add(slider);
         Grid.SetColumn(reset, 1);
