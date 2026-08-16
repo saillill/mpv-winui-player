@@ -53,11 +53,9 @@ namespace mpv_winui.Modules.Player
                 // Fixed height keeps the flyout the same size across the
                 // audio/video/subtitle tabs; content taller than this scrolls
                 // inside the ScrollViewer instead of resizing the popup.
-                // Sized to the narrow horizontal video page (4 slider cards +
-                // two button rows) so video fills the panel and the bottom
-                // buttons stay visible; fixed so tabs never resize the
-                // flyout.
-                Height = 320,
+                // User preference: ~400px gives the panel a roomier feel while
+                // staying fixed so tabs never resize the flyout.
+                Height = 400,
                 Padding = new Thickness(0),
                 IsHeaderItemsCarouselEnabled = false,
                 IsTabStop = false,
