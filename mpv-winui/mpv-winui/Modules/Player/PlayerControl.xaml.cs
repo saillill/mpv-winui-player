@@ -252,7 +252,7 @@ namespace mpv_winui.Modules.Player
                     LeftCommandBar,
                     MiddleCommandBar,
                     RightCommandBar,
-                    [VolumeMuteButton],
+                    [VolumeMuteButton, CompactTimeContainer],
                     [SkipBackwardButton, PlayPauseButton, SkipForwardButton],
                     pipRight);
                 SetHidden(true, PreviousTrackButton, NextTrackButton, RepeatButton,
@@ -260,13 +260,13 @@ namespace mpv_winui.Modules.Player
                            ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
                            VolumeSliderContainer);
                 TimeTextGrid.Visibility = Visibility.Collapsed;
-                CompactTimeText.Visibility = Visibility.Visible;
+                CompactTimeContainer.Visibility = Visibility.Visible;
                 UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
                 return;
             }
 
             TimeTextGrid.Visibility = Visibility.Visible;
-            CompactTimeText.Visibility = Visibility.Collapsed;
+            CompactTimeContainer.Visibility = Visibility.Collapsed;
 
             var hiddenValue = layout == "modernx"
                 ? AppContext.AppSetting.ControlBarHiddenIconsModernX
@@ -694,23 +694,25 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private AppBarElementContainer BuildPiPRightItem(ToggleButton source)
+        private AppBarToggleButton BuildPiPRightItem(ToggleButton source)
         {
             // A ToggleButton that has already been realized in the XAML tree
-            // cannot be reparented into an AppBarElementContainer (Content
-            // setter throws E_INVALIDARG), so build a fresh toggle each time
-            // and forward the click through PiPRightToggleAction. The source
-            // toggle stays in the PiP window as the state/icon authority.
+            // cannot be reparented into the command bar (Content setter throws
+            // E_INVALIDARG), so build a fresh AppBarToggleButton each time and
+            // forward the click through PiPRightToggleAction. Using the same
+            // AppBarToggleButton style as the rest of the bar keeps the CC
+            // icon at the same height and gives it the checked accent state.
             var icon = source.Content as FontIcon;
-            var toggle = new ToggleButton
+            var toggle = new AppBarToggleButton
             {
-                Content = new FontIcon
+                Icon = new FontIcon
                 {
                     Glyph = icon?.Glyph ?? "\uF2E3",
                     FontSize = 16,
                     FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
                 },
                 IsChecked = source.IsChecked,
+                Style = (Style)RootGrid.Resources["AppBarToggleButtonStyle"],
                 Visibility = Visibility.Visible,
             };
             AutomationProperties.SetName(toggle, AppContext.AppLang.Subtitles);
@@ -719,7 +721,7 @@ namespace mpv_winui.Modules.Player
             {
                 toggle.Click += (_, _) => action(toggle.IsChecked == true);
             }
-            return new AppBarElementContainer { Content = toggle };
+            return toggle;
         }
 
         private static bool SameElements(IList<ICommandBarElement> current, ICommandBarElement[] desired)
@@ -1361,6 +1363,13 @@ namespace mpv_winui.Modules.Player
                 {
                     Content = control,
                     Placement = FlyoutPlacementMode.Top,
+                    FlyoutPresenterStyle = new Style(typeof(FlyoutPresenter))
+                    {
+                        Setters =
+                        {
+                            new Setter(FlyoutPresenter.PaddingProperty, new Thickness(4)),
+                        },
+                    },
                 };
                 flyout.ShowAt(VolumeMuteButton);
                 return;

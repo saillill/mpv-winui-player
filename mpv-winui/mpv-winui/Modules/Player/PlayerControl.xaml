@@ -201,15 +201,6 @@ MinWidth="80"
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock
-                    x:Name="CompactTimeText"
-                    Grid.Column="0"
-                    Margin="12,0,0,0"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    FontSize="13"
-                    Visibility="Collapsed" />
-
                 <CommandBar
                     x:Name="LeftCommandBar"
                     Grid.Column="0"
@@ -225,6 +216,19 @@ MinWidth="80"
                         <x:Double x:Key="AppBarThemeCompactHeight">40</x:Double>
                         <x:Double x:Key="AppBarMoreButtonColumnMinWidth">0</x:Double>
                     </CommandBar.Resources>
+
+                    <AppBarElementContainer
+                        x:Name="CompactTimeContainer"
+                        Height="40"
+                        VerticalAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Visibility="Collapsed">
+                        <TextBlock
+                            x:Name="CompactTimeText"
+                            Margin="0,-2,10,0"
+                            VerticalAlignment="Center"
+                            FontSize="13" />
+                    </AppBarElementContainer>
 
                     <AppBarButton
                         x:Name="PlayPauseButton"
