@@ -78,6 +78,7 @@ namespace winrt::mpv_winrt::implementation
 
         winrt::hstring GetWatchHistoryPath();
         winrt::hstring GetWatchLaterFolderPath();
+        winrt::hstring GetCurrentFilePath();
         bool SaveWatchHistory();
 
         double Volume();

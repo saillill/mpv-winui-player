@@ -1046,6 +1046,11 @@ namespace winrt::mpv_winrt::implementation
         return GetHStringProperty("current-watch-later-dir");
     }
 
+    winrt::hstring MpvPlayer::GetCurrentFilePath()
+    {
+        return GetHStringProperty("path");
+    }
+
     bool MpvPlayer::SaveWatchHistory()
     {
         return GetFlagProperty("save-watch-history");

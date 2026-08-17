@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
+using mpv_winui.Modules.Activation;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
@@ -11,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.Storage;
 using Microsoft.Windows.Storage.Pickers;
 
@@ -959,129 +961,69 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
 
     private void ApplyAssociations()
     {
-        var selected = ParseTokenList(AppContext.AppSetting.FileAssociationExts).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var extension in AssociationExtensions)
+        _ = ApplyAssociationsAsync();
+    }
+
+    private async Task ApplyAssociationsAsync()
+    {
+        try
         {
-            if (selected.Contains(extension))
+            var service = ActivationRegistrationService.Instance;
+            var selected = ParseTokenList(AppContext.AppSetting.FileAssociationExts).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var toRegister = AssociationExtensions.Where(selected.Contains).ToList();
+            var toUnregister = AssociationExtensions.Where(ext => !selected.Contains(ext)).ToList();
+
+            if (toRegister.Count > 0)
             {
-                RegisterExtension(extension);
+                await service.RegisterAsync(toRegister);
+            }
+
+            if (toUnregister.Count > 0)
+            {
+                await service.UnregisterAsync(toUnregister);
+            }
+
+            // Keep the mpv-winui:// protocol while any file association is
+            // active; remove it when the user clears the whole checklist.
+            if (selected.Count == 0)
+            {
+                await service.UnregisterProtocolAsync("mpv-winui");
             }
             else
             {
-                UnregisterExtension(extension);
+                await service.RegisterProtocolAsync("mpv-winui");
             }
-        }
-        _actionStatus = AppContext.AppLang.SettingsAssociateDone;
-    }
 
-    private static void RegisterExtension(string extension)
-    {
-        var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
-        if (string.IsNullOrEmpty(exe))
+            _actionStatus = AppContext.AppLang.SettingsAssociateDone;
+        }
+        catch (Exception ex)
         {
-            return;
+            AppContext.AppLogger.Error(ex, "file association apply failed");
         }
-
-        using (var command = Registry.CurrentUser.CreateSubKey(@"Software\Classes\mpv-winui.media\shell\open\command"))
-        {
-            command.SetValue(string.Empty, $"\"{exe}\" \"%1\"");
-        }
-
-        using (var icon = Registry.CurrentUser.CreateSubKey(@"Software\Classes\mpv-winui.media\DefaultIcon"))
-        {
-            icon.SetValue(string.Empty, $"\"{exe}\",0");
-        }
-
-        using var extKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\" + extension);
-        // Never overwrite an association owned by another application (a
-        // foreign legacy default value or a Windows-managed UserChoice).
-        // Advertise through OpenWithProgids instead, which is the
-        // non-destructive way to appear in "Open with" without stealing the
-        // user's current default app.
-        var currentDefault = extKey.GetValue(string.Empty) as string;
-        if (string.IsNullOrEmpty(currentDefault)
-            || string.Equals(currentDefault, "mpv-winui.media", StringComparison.OrdinalIgnoreCase))
-        {
-            extKey.SetValue(string.Empty, "mpv-winui.media");
-        }
-
-        using var openWith = extKey.CreateSubKey("OpenWithProgids");
-        openWith.SetValue("mpv-winui.media", Array.Empty<byte>());
     }
 
     private void UnassociateFiles()
     {
-        foreach (var extension in ParseTokenList(AppContext.AppSetting.FileAssociationExts))
-        {
-            UnregisterExtension(extension);
-        }
-
-        try
-        {
-            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\mpv-winui.media", throwOnMissingSubKey: false);
-        }
-        catch (System.Exception)
-        {
-        }
-
-        AppContext.AppSetting.FileAssociationExts = string.Empty;
-        _actionStatus = AppContext.AppLang.SettingsUnassociateDone;
+        _ = UnassociateFilesAsync();
     }
 
-    private static void UnregisterExtension(string extension)
+    private async Task UnassociateFilesAsync()
     {
-        const string progId = "mpv-winui.media";
         try
         {
-            using var extKey = Registry.CurrentUser.OpenSubKey(@"Software\Classes\" + extension, writable: true);
-            if (extKey is null)
+            var extensions = ParseTokenList(AppContext.AppSetting.FileAssociationExts).ToList();
+            if (extensions.Count > 0)
             {
-                return;
+                await ActivationRegistrationService.Instance.UnregisterAsync(extensions);
             }
 
-            // Remove our ProgID from the shared "Open with" list; the list
-            // belongs to every registered application, so only our value.
-            using (var openWith = extKey.OpenSubKey("OpenWithProgids", writable: true))
-            {
-                openWith?.DeleteValue(progId, throwOnMissingValue: false);
-            }
-
-            // If the legacy default is not ours, leave everything else alone
-            // (another application owns the association).
-            var currentDefault = extKey.GetValue(string.Empty) as string;
-            if (!string.Equals(currentDefault, progId, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            extKey.DeleteValue(string.Empty, throwOnMissingValue: false);
-
-            var subKeys = extKey.GetSubKeyNames();
-            var hasUserChoice = subKeys.Any(k => string.Equals(k, "UserChoice", StringComparison.OrdinalIgnoreCase));
-            if (hasUserChoice)
-            {
-                // UserChoice is owned by Windows (per-user default app); never
-                // delete it, even when it currently points at this app.
-                return;
-            }
-
-            var emptyOpenWith = subKeys.Contains("OpenWithProgids", StringComparer.OrdinalIgnoreCase)
-                && extKey.OpenSubKey("OpenWithProgids")?.GetValueNames().Length == 0;
-            if (emptyOpenWith == true)
-            {
-                extKey.DeleteSubKeyTree("OpenWithProgids", throwOnMissingSubKey: false);
-                subKeys = extKey.GetSubKeyNames();
-            }
-
-            if (extKey.GetValueNames().Length == 0 && subKeys.Length == 0)
-            {
-                extKey.Close();
-                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + extension, throwOnMissingSubKey: false);
-            }
+            await ActivationRegistrationService.Instance.UnregisterProtocolAsync("mpv-winui");
+            AppContext.AppSetting.FileAssociationExts = string.Empty;
+            _actionStatus = AppContext.AppLang.SettingsUnassociateDone;
         }
-        catch (System.Exception)
+        catch (Exception ex)
         {
-            // Some extensions may be owned by another application; keep going.
+            AppContext.AppLogger.Error(ex, "file association unregister failed");
         }
     }
 

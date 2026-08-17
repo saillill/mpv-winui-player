@@ -158,6 +158,9 @@ namespace mpv_winui.Modules.Player
         public bool Playing => !_mpvPlayer.IsPaused();
         public double Duration => _mpvPlayer.Duration();
 
+        /// <summary>Full path/URL of the currently loaded media (mpv "path").</summary>
+        public string CurrentPath => _mpvPlayer.GetCurrentFilePath();
+
         /// <summary>mpv ab-loop-a in seconds, or &lt;= 0 when not set.</summary>
         public double AbLoopA => _mpvPlayer.AbLoopA();
 

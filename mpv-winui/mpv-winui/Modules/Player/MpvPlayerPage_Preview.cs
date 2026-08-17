@@ -1,14 +1,11 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml.Media.Imaging;
-using mpv_winui.Modules.Common.Utils;
 using mpv_winrt;
+using mpv_winui.Modules.Common.Utils;
 using System;
-using System.IO;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.Graphics.Imaging;
 
 namespace mpv_winui.Modules.Player
 {
@@ -18,18 +15,26 @@ namespace mpv_winui.Modules.Player
         private const double PreviewCardHeight = 143;
 
         private Point _lastPreviewPoint;
-        private int _previewGeneration;
-        private bool _previewLoadInFlight;
         private DispatcherQueueTimer? _previewThrottleTimer;
         private (double HoverSec, double RelativeX, double RelativeY)? _pendingPreview;
 
+        // In-process software preview: a second libmpv instance renders into
+        // PreviewImage via mpv_render_context (no external mpv.exe / thumbfast).
+        private MpvPreviewer? _previewer;
+        private Task? _previewerInitTask;
+        private bool _previewerCleanedUp;
+        private string _previewLoadedPath = string.Empty;
+        private double _lastPreviewSec = -1;
+        private (string Path, double Sec)? _pendingPreviewerRequest;
+
         private void SetupPreview()
         {
+            _logger.Debug("SetupPreview called, enabled={}", AppContext.AppSetting.EnableVideoPreview);
             if (AppContext.AppSetting.EnableVideoPreview)
             {
+                _previewerCleanedUp = false;
                 PlayerControl.PreviewUpdateRequested += PlayerControl_PreviewUpdateRequested;
                 PlayerControl.PreviewClearRequested += PlayerControl_PreviewClearRequested;
-                _mediaPlayer.PreviewChanged += MediaPlayer_PreviewChanged;
                 _previewThrottleTimer = DispatcherQueue.CreateTimer();
                 _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(40);
                 _previewThrottleTimer.Tick += PreviewThrottleTick;
@@ -47,16 +52,14 @@ namespace mpv_winui.Modules.Player
             }
             PlayerControl.PreviewUpdateRequested -= PlayerControl_PreviewUpdateRequested;
             PlayerControl.PreviewClearRequested -= PlayerControl_PreviewClearRequested;
-            _mediaPlayer.PreviewChanged -= MediaPlayer_PreviewChanged;
             HidePreview();
+            DestroyPreviewer();
         }
 
         private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double RelativeX, double RelativeY) args)
         {
-            // Coalesce the high-frequency pointer stream: thumbfast re-renders
-            // on every hover-sec change, so only the latest position is sent
-            // to mpv (max ~25 updates/second while scrubbing). The layout query
-            // (TransformToVisual) is deferred to the throttled tick as well.
+            // Coalesce the high-frequency pointer stream; only the latest hover
+            // position is sent to the previewer (max ~25 updates/sec).
             _pendingPreview = args;
             _previewThrottleTimer?.Start();
         }
@@ -65,7 +68,6 @@ namespace mpv_winui.Modules.Player
         {
             _pendingPreview = null;
             _previewThrottleTimer?.Stop();
-            _mediaPlayer.ClearPreview();
             HidePreview();
         }
 
@@ -79,95 +81,136 @@ namespace mpv_winui.Modules.Player
 
             _pendingPreview = null;
             _lastPreviewPoint = PlayerControl.TransformToVisual(PlayerView).TransformPoint(new Point(preview.RelativeX, preview.RelativeY));
-            _mediaPlayer.SetHoverSec(preview.HoverSec);
-            _mediaPlayer.SetDrawPreview(0, 0, 0, 0);
-            if (PreviewCard.Visibility == Visibility.Visible)
-            {
-                UpdatePreviewCardPosition();
-            }
+            ShowPreviewAt(preview.HoverSec);
         }
 
-        private void MediaPlayer_PreviewChanged(MpvMediaPlayer sender, MpvPreviewInfo? info)
+        private void ShowPreviewAt(double hoverSec)
         {
-            DispatcherQueue.TryEnqueue(() =>
+            try
             {
-                if (info is null || string.IsNullOrEmpty(info.Path))
+                var path = CurrentPlaybackPath();
+                _logger.Debug("built-in preview hover, path={}, sec={}", path ?? "<null>", hoverSec);
+                if (string.IsNullOrEmpty(path))
                 {
                     HidePreview();
                     return;
                 }
 
-                // Bump the generation on every new frame: without this, two
-                // concurrent LoadPreviewAsync (same generation) can finish out
-                // of order and the older frame overwrites the newer one.
-                _previewGeneration++;
-                LoadPreviewAsync(info).FireAndForget(OnException);
-            });
+                if (_previewer is not null)
+                {
+                    ShowPreviewAtCore(path, hoverSec);
+                    return;
+                }
+
+                _pendingPreviewerRequest = (path, hoverSec);
+                _previewerInitTask ??= InitializePreviewerAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "built-in preview update failed");
+                HidePreview();
+            }
         }
 
-        private async Task LoadPreviewAsync(MpvPreviewInfo info)
+        private async Task InitializePreviewerAsync()
         {
-            var generation = _previewGeneration;
-            if (_previewLoadInFlight)
-            {
-                return;
-            }
-            _previewLoadInFlight = true;
             try
             {
-                byte[]? bytes = null;
-                for (var attempt = 0; attempt < 3 && bytes is null; attempt++)
+                var scale = XamlRoot?.RasterizationScale ?? 1.0;
+                if (scale < 1.0)
                 {
-                    try
-                    {
-                        bytes = await File.ReadAllBytesAsync(info.Path);
-                    }
-                    catch (IOException)
-                    {
-                        // thumbfast replaces the frame file while rendering; retry briefly.
-                        await Task.Delay(40);
-                    }
+                    scale = 1.0;
                 }
-                if (bytes is null)
+
+                var renderWidth = (uint)Math.Max(1, Math.Ceiling(PreviewImage.Width * scale));
+                var renderHeight = (uint)Math.Max(1, Math.Ceiling(PreviewImage.Height * scale));
+                var previewer = new MpvPreviewer();
+                await previewer.Initialize(PreviewImage, renderWidth, renderHeight);
+
+                if (_previewerCleanedUp)
                 {
-                    return;
-                }
-                if (bytes.Length < info.Width * info.Height * 4)
-                {
-                    return;
-                }
-                if (generation != _previewGeneration)
-                {
+                    await Task.Run(() => previewer.Destroy());
                     return;
                 }
 
-                var bitmap = SoftwareBitmap.CreateCopyFromBuffer(
-                    bytes.AsBuffer(),
-                    BitmapPixelFormat.Bgra8,
-                    (int)info.Width,
-                    (int)info.Height,
-                    BitmapAlphaMode.Ignore);
-                var source = new SoftwareBitmapSource();
-                await source.SetBitmapAsync(bitmap);
-
-                // The preview may have been hidden while the frame was being
-                // decoded; ignore stale loads so the card does not pop back in.
-                if (generation != _previewGeneration)
+                _previewer = previewer;
+                if (_pendingPreviewerRequest is { } pending)
                 {
-                    return;
+                    _pendingPreviewerRequest = null;
+                    ShowPreviewAtCore(pending.Path, pending.Sec);
                 }
-
-                PreviewImage.Source = source;
-                PreviewCard.Visibility = Visibility.Visible;
-                UpdatePreviewCardPosition();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // The thumbnail file may be replaced between renders; keep the last frame.
+                _logger.Error(ex, "built-in preview initialization failed");
+                _previewer = null;
             }
             finally
             {
-                _previewLoadInFlight = false;
+                _previewerInitTask = null;
+            }
+        }
+
+        private string? CurrentPlaybackPath()
+        {
+            foreach (var item in _allPlaylistItems)
+            {
+                if (item.IsCurrent && !string.IsNullOrEmpty(item.Path))
+                {
+                    return item.Path;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_mediaPlayer.CurrentPath))
+            {
+                return _mediaPlayer.CurrentPath;
+            }
+
+            return _pendingPaths?.FirstOrDefault()?.Path;
+        }
+
+        private void ShowPreviewAtCore(string path, double sec)
+        {
+            if (_previewer is null)
+            {
+                _logger.Debug("built-in preview core skipped, previewer not ready");
+                return;
+            }
+
+            _logger.Debug("built-in preview core, path={}, sec={}", path, sec);
+            if (!string.Equals(_previewLoadedPath, path, StringComparison.Ordinal))
+            {
+                _previewLoadedPath = path;
+                _lastPreviewSec = -1;
+                Task.Run(() =>
+                {
+                    _previewer.LoadFile(path);
+                    _previewer.SetPosition(sec);
+                    _previewer.Pause();
+                }).FireAndForget(OnException);
+                _lastPreviewSec = sec;
+            }
+            else if (Math.Abs(sec - _lastPreviewSec) > 0.05)
+            {
+                _previewer.SetPosition(sec);
+                _lastPreviewSec = sec;
+            }
+
+            PreviewCard.Visibility = Visibility.Visible;
+            UpdatePreviewCardPosition();
+        }
+
+        private void DestroyPreviewer()
+        {
+            _previewerCleanedUp = true;
+            _pendingPreviewerRequest = null;
+            _previewLoadedPath = string.Empty;
+            _lastPreviewSec = -1;
+
+            if (_previewer is { } previewer)
+            {
+                _previewer = null;
+                Task.Run(() => previewer.Destroy()).FireAndForget(OnException);
             }
         }
 
@@ -189,8 +232,6 @@ namespace mpv_winui.Modules.Player
 
         private void HidePreview()
         {
-            _previewGeneration++;
-            PreviewImage.Source = null;
             PreviewCard.Visibility = Visibility.Collapsed;
         }
     }
