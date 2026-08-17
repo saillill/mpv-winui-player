@@ -54,44 +54,6 @@
                 Glyph="&#xE711;" />
         </Button>
 
-        <!-- Top-right (left of exit): quick settings — window opacity and subtitles. -->
-        <Button
-            x:Name="PiPSettingsButton"
-            Margin="0,8,50,0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Style="{StaticResource PiPTopButtonStyle}">
-            <FontIcon
-                FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
-                FontSize="16"
-                Glyph="&#xE713;" />
-            <Button.Flyout>
-                <Flyout
-                    x:Name="PiPSettingsFlyout"
-                    Placement="Bottom">
-                    <StackPanel
-                        Width="280"
-                        Spacing="10">
-                        <TextBlock
-                            x:Name="PiPOpacityLabel"
-                            FontWeight="SemiBold"
-                            Text="Window opacity" />
-                        <Slider
-                            x:Name="PiPOpacitySlider"
-                            Minimum="0.2"
-                            Maximum="1"
-                            StepFrequency="0.05"
-                            Value="1"
-                            ValueChanged="PiPOpacitySlider_ValueChanged" />
-                        <ToggleButton
-                            x:Name="PiPSubtitleToggle"
-                            Click="PiPSubtitleToggle_Click"
-                            Content="Subtitles" />
-                    </StackPanel>
-                </Flyout>
-            </Button.Flyout>
-        </Button>
-
         <!--
             The fullscreen control bar, in centered (居中) compact mode:
             volume on the left, skip back / play / skip forward centered,
@@ -101,5 +63,19 @@
         <local:PlayerControl
             x:Name="PiPControls"
             VerticalAlignment="Bottom" />
+
+        <!--
+            Subtitle toggle for the status bar's far right. PlayerControl
+            reparents this into the PiP compact command bar on attach; it
+            starts collapsed so it never flashes before that happens.
+        -->
+        <ToggleButton
+            x:Name="PiPSubtitleToggle"
+            Click="PiPSubtitleToggle_Click"
+            Visibility="Collapsed">
+            <FontIcon
+                FontSize="16"
+                Glyph="&#xE9CF;" />
+        </ToggleButton>
     </Grid>
 </Window>

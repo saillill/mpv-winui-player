@@ -97,15 +97,6 @@ public sealed partial class PiPWindow
         RestoreMainWindow();
     }
 
-    private void PiPOpacitySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
-    {
-        // H4: window opacity. RootGrid.Opacity fades the whole PiP content
-        // (video + controls); persisted so the choice survives restarts.
-        var value = Math.Round(e.NewValue, 2);
-        RootGrid.Opacity = value;
-        AppContext.AppSetting.WindowPiPOpacity = value;
-    }
-
     private void PiPSubtitleToggle_Click(object sender, RoutedEventArgs e)
     {
         // H5: quick subtitle toggle on the PiP window.

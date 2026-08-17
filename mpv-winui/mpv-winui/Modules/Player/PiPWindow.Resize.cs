@@ -503,8 +503,8 @@ public sealed partial class PiPWindow
         try
         {
             var area = GetPiPDisplayArea().WorkArea;
-            var minW = Math.Max(120, area.Width / 12.0);
-            var minH = Math.Max(68, area.Height / 12.0);
+            var minW = Math.Max(400, area.Width / 6.0);
+            var minH = Math.Max(225, area.Height / 6.0);
             var maxW = area.Width / 2.0;
             var maxH = area.Height / 2.0;
             _resizeMinW = minW;

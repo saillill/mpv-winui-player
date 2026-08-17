@@ -98,8 +98,8 @@ public sealed partial class PiPWindow : Window
     private const int HTBOTTOMLEFT = 16;
     private const int HTBOTTOMRIGHT = 17;
     private double _videoAspect = 16.0 / 9.0;
-    private double _resizeMinW = 320;
-    private double _resizeMinH = 180;
+    private double _resizeMinW = 400;
+    private double _resizeMinH = 225;
     private double _resizeMaxW = 960;
     private double _resizeMaxH = 540;
     [Flags]
@@ -137,6 +137,9 @@ public sealed partial class PiPWindow : Window
     {
         _selfWeakReference = new(this);
         InitializeComponent();
+        // Hand the subtitle toggle to the compact status bar (far right);
+        // PlayerControl reparents it into the PiP command bar.
+        PiPControls.PiPRightToggle = PiPSubtitleToggle;
         RootGrid.RequestedTheme = ElementTheme.Dark;
         ConfigureWindow();
         ApplyLocalizedStrings();
@@ -185,7 +188,6 @@ public sealed partial class PiPWindow : Window
     public void ShowPiP(int width, int height)
     {
         RootGrid.Opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
-        PiPOpacitySlider.Value = RootGrid.Opacity;
         // H2: restore the saved position/size when present, otherwise claim
         // the bottom-right corner of the main window's display on entry; the
         // user can drag the window afterwards.
@@ -326,13 +328,9 @@ public sealed partial class PiPWindow : Window
     {
         ToolTipService.SetToolTip(PiPBackButton, AppContext.AppLang.PiPBackToPlayer);
         ToolTipService.SetToolTip(PiPExitButton, AppContext.AppLang.PiPExit);
-        ToolTipService.SetToolTip(PiPSettingsButton, AppContext.AppLang.AppSetting);
         AutomationProperties.SetName(PiPBackButton, AppContext.AppLang.PiPBackToPlayer);
         AutomationProperties.SetName(PiPExitButton, AppContext.AppLang.PiPExit);
-        AutomationProperties.SetName(PiPSettingsButton, AppContext.AppLang.AppSetting);
-        PiPOpacityLabel.Text = AppContext.AppLang.PiPWindowOpacity;
-        AutomationProperties.SetName(PiPOpacitySlider, AppContext.AppLang.PiPWindowOpacity);
-        PiPSubtitleToggle.Content = AppContext.AppLang.Subtitles;
+        ToolTipService.SetToolTip(PiPSubtitleToggle, AppContext.AppLang.Subtitles);
         AutomationProperties.SetName(PiPSubtitleToggle, AppContext.AppLang.Subtitles);
     }
 

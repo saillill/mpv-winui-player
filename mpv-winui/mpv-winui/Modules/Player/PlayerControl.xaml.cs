@@ -240,19 +240,24 @@ namespace mpv_winui.Modules.Player
 
             if (_compactMode)
             {
-                // PiP: time on the left, transport centered, volume on the right.
+                // PiP: volume on the far left (flyout slider), transport
+                // centered, subtitle toggle on the far right.
                 _currentSegment = 0;
                 VisualStateManager.GoToState(this, "Wide", false);
+                var pipRight = PiPRightToggle is { } toggle
+                    ? new ICommandBarElement[] { BuildPiPRightItem(toggle) }
+                    : [];
                 ApplyBarOrders(
                     LeftCommandBar,
                     MiddleCommandBar,
                     RightCommandBar,
-                    [],
+                    [VolumeMuteButton],
                     [SkipBackwardButton, PlayPauseButton, SkipForwardButton],
-                    [VolumeMuteButton, VolumeSliderContainer]);
+                    pipRight);
                 SetHidden(true, PreviousTrackButton, NextTrackButton, RepeatButton,
                            TrackSelectionButton, ShuffleButton, PlaybackRateButton,
-                           ZoomButton, PiPButton, FullWindowButton, FullScreenButton);
+                           ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
+                           VolumeSliderContainer);
                 TimeTextGrid.Visibility = Visibility.Collapsed;
                 CompactTimeText.Visibility = Visibility.Visible;
                 UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
@@ -314,6 +319,13 @@ namespace mpv_winui.Modules.Player
                     SetOverlayMode(false);
                 }
             }
+        }
+
+        /// <summary>PiP-only toggle hosted at the compact bar's far right (subtitle switch).</summary>
+        public ToggleButton? PiPRightToggle
+        {
+            get;
+            set;
         }
 
         /// <summary>
@@ -628,6 +640,16 @@ namespace mpv_winui.Modules.Player
             ICommandBarElement[] middleDesired,
             ICommandBarElement[] rightDesired)
         {
+            // The PiP subtitle toggle is defined in PiPWindow.xaml and gets
+            // reparented here; make sure it is visible once it joins the bar.
+            foreach (var element in rightDesired)
+            {
+                if (element is AppBarElementContainer { Content: ToggleButton toggle })
+                {
+                    toggle.Visibility = Visibility.Visible;
+                }
+            }
+
             // Rebuild from the canonical lists on every apply. The previous
             // implementation only re-added elements that were already present
             // in the bars, so after the PiP compact pass stripped a subset of
@@ -662,6 +684,12 @@ namespace mpv_winui.Modules.Player
             {
                 right.PrimaryCommands.Add(element);
             }
+        }
+
+        private static AppBarElementContainer BuildPiPRightItem(ToggleButton toggle)
+        {
+            toggle.Visibility = Visibility.Visible;
+            return new AppBarElementContainer { Content = toggle };
         }
 
         private static bool SameElements(IList<ICommandBarElement> current, ICommandBarElement[] desired)
@@ -1299,7 +1327,11 @@ namespace mpv_winui.Modules.Player
             if (VolumeSliderContainer.Visibility != Visibility.Visible)
             {
                 var control = new VolumeFlyoutControl(MediaPlayer);
-                var flyout = new Flyout { Content = control };
+                var flyout = new Flyout
+                {
+                    Content = control,
+                    Placement = FlyoutPlacementMode.Top,
+                };
                 flyout.ShowAt(VolumeMuteButton);
                 return;
             }
