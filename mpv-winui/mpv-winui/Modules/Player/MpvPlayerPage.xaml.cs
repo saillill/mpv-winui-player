@@ -77,6 +77,7 @@ namespace mpv_winui.Modules.Player
                 var lang = AppContext.AppSetting.CurrentLanguage;
                 if (string.IsNullOrWhiteSpace(lang)) lang = "en-US";
                 AppContext.SendMpvCommand($"no-osd set user-data/mpvw/language {lang}");
+                ApplyDisplayPeak();
                 var applyCommands = MpvSettings.BuildApplyAllCommands();
                 if (applyCommands.Count > 0)
                 {
@@ -176,6 +177,10 @@ namespace mpv_winui.Modules.Player
                         CleanupPreview();
                     }
                 });
+            }
+            else if (key == nameof(AppContext.AppSetting.DisplayPeak))
+            {
+                DispatcherQueue.TryEnqueue(ApplyDisplayPeak);
             }
         }
 

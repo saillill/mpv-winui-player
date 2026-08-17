@@ -117,21 +117,6 @@ namespace mpv_winui.Modules.Settings
                 _dataSetting.SetValue(barIconsMigratedKey, true);
             }
 
-            // Older builds defaulted thumbfast's inactivity quit to 0, which
-            // left orphaned mpv.exe preview processes after abrupt app exits.
-            // The new default is 30 seconds; treat a stored 0 as "unset" once
-            // so existing installs pick up the new default (users can still
-            // set 0 explicitly afterwards).
-            const string thumbfastQuitMigratedKey = "ThumbfastQuitInactivityMigrated";
-            if (!_dataSetting.GetValue(thumbfastQuitMigratedKey, false))
-            {
-                if (_dataSetting.GetValue(nameof(ThumbfastQuitAfterInactivity), 0) == 0)
-                {
-                    _dataSetting.ResetKeys((string[])[nameof(ThumbfastQuitAfterInactivity)]);
-                }
-                _dataSetting.SetValue(thumbfastQuitMigratedKey, true);
-            }
-
             const string migratedKey = "SubFontLanguageDefaultMigrated";
             if (_dataSetting.GetValue(migratedKey, false))
             {
@@ -1120,6 +1105,16 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(TargetPeak), value);
         }
 
+        /// <summary>
+        /// Display peak luminance in nits; 0 = auto-detect from the monitor
+        /// (fallback 1000 when detection is unavailable).
+        /// </summary>
+        public int DisplayPeak
+        {
+            get => _dataSetting.GetValue(nameof(DisplayPeak), 0);
+            set => _dataSetting.SetValue(nameof(DisplayPeak), value);
+        }
+
         public bool IccCache
         {
             get => _dataSetting.GetValue(nameof(IccCache), true);
@@ -1160,12 +1155,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(CoverArtPreferEmbedded), false);
             set => _dataSetting.SetValue(nameof(CoverArtPreferEmbedded), value);
-        }
-
-        public int ThumbfastQuality
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastQuality), 1);
-            set => _dataSetting.SetValue(nameof(ThumbfastQuality), value);
         }
 
         public string D3d11OutputCsp
@@ -1316,24 +1305,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(SubScaleSigns), true);
             set => _dataSetting.SetValue(nameof(SubScaleSigns), value);
-        }
-
-        public bool ThumbfastNetwork
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastNetwork), false);
-            set => _dataSetting.SetValue(nameof(ThumbfastNetwork), value);
-        }
-
-        public int ThumbfastMinDuration
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastMinDuration), 0);
-            set => _dataSetting.SetValue(nameof(ThumbfastMinDuration), value);
-        }
-
-        public int ThumbfastPrecise
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastPrecise), 0);
-            set => _dataSetting.SetValue(nameof(ThumbfastPrecise), value);
         }
 
         public bool MetadataOsdShowChapter
@@ -1687,36 +1658,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(VideoExts), value);
         }
 
-        public int ThumbfastMaxWidth
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastMaxWidth), 200);
-            set => _dataSetting.SetValue(nameof(ThumbfastMaxWidth), value);
-        }
-
-        public int ThumbfastMaxHeight
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastMaxHeight), 2000);
-            set => _dataSetting.SetValue(nameof(ThumbfastMaxHeight), value);
-        }
-
-        public bool ThumbfastSpawnFirst
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastSpawnFirst), false);
-            set => _dataSetting.SetValue(nameof(ThumbfastSpawnFirst), value);
-        }
-
-        public int ThumbfastThreads
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastThreads), 6);
-            set => _dataSetting.SetValue(nameof(ThumbfastThreads), value);
-        }
-
-        public double ThumbfastFrequency
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastFrequency), 0.15);
-            set => _dataSetting.SetValue(nameof(ThumbfastFrequency), value);
-        }
-
         public string D3d11Adapter
         {
             get => _dataSetting.GetValue(nameof(D3d11Adapter), string.Empty);
@@ -1811,18 +1752,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(CoverArtImageExts), "jpg;jpeg;png;bmp;gif;webp");
             set => _dataSetting.SetValue(nameof(CoverArtImageExts), value);
-        }
-
-        public bool ThumbfastDirectIo
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastDirectIo), true);
-            set => _dataSetting.SetValue(nameof(ThumbfastDirectIo), value);
-        }
-
-        public int ThumbfastQuitAfterInactivity
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastQuitAfterInactivity), 30);
-            set => _dataSetting.SetValue(nameof(ThumbfastQuitAfterInactivity), value);
         }
 
         /// <summary>Audio output buffer size in seconds (mpv audio-buffer, 0..10).</summary>
@@ -1976,18 +1905,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), false);
             set => _dataSetting.SetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), value);
-        }
-
-        public bool ThumbfastAudio
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastAudio), false);
-            set => _dataSetting.SetValue(nameof(ThumbfastAudio), value);
-        }
-
-        public string ThumbfastHwdec
-        {
-            get => _dataSetting.GetValue(nameof(ThumbfastHwdec), "yes");
-            set => _dataSetting.SetValue(nameof(ThumbfastHwdec), value);
         }
 
         public string HdrOverrideMode

@@ -13,7 +13,6 @@ summarized below. Full license texts for fonts and MediaInfo ship in
 | `scripts/select.lua`, `scripts/console.lua`, `scripts/stats.lua` | [mpv-player/mpv](https://github.com/mpv-player/mpv) | See file headers (select = LGPL-2.1+, console = ISC-style, stats = project header) |
 | `scripts/coverart.lua` | [CogentRedTester/mpv-coverart](https://github.com/CogentRedTester/mpv-coverart) | MIT |
 | `scripts/recentmenu.lua` | [natural-harmonia-gropius/recent-menu](https://github.com/natural-harmonia-gropius/recent-menu) | MIT |
-| `scripts/thumbfast.lua` | [po5/thumbfast](https://github.com/po5/thumbfast) (commit 9deb0733c4e36938cf90e42ddfb7a19a8b2f4641, mpv-lazy adapted) | MPL-2.0 |
 | `scripts/metadata_osd.lua` | [vc-01/metadata-osd](https://github.com/vc-01/metadata-osd) | MIT |
 | `scripts/hdr_auto.lua`, `scripts/vsr_auto.lua`, `scripts/seek_hold.lua`, `scripts/dynamic_menu.lua`, `scripts/mpvw_hdr_override.lua`, `scripts/stats_mediainfo.lua`, `scripts/auto_sub_fonts_dir.lua`, `scripts/save_global_props.lua` | Project-written or mpv-lazy derived (see file headers) | LGPL-2.1-or-later for project-written parts; provenance preserved for derived parts |
 
@@ -22,7 +21,6 @@ summarized below. Full license texts for fonts and MediaInfo ship in
 | Component | Source | License |
 |---|---|---|
 | `MediaInfo.exe` | [MediaArea/MediaInfo](https://mediaarea.net/en/MediaInfo) v26.05 | BSD-2-Clause (full text in `licenses/MediaInfo-BSD-2-Clause.txt`; SHA-256 `30F2828A45A1895B033C3CD7784581033327E7B393033C55F4A03BB15CAB0D89`) |
-| `mpv.exe` (shipped in the release package for thumbfast subprocess rendering) | [shinchiro/mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake) 20260808 (mpv v0.41.0-920 / FFmpeg N-125994) | GPL-2.0+ (built from mpv/FFmpeg sources; see the upstream repository for source code) |
 
 ## Fonts
 
@@ -83,6 +81,3 @@ and modifications are released under LGPL-2.1-or-later.
   distributed as source code in this repository; the GPL does not extend to
   the WinUI app code, which communicates with them only through mpv's public
   `menu-data` / `script-message` interfaces.
-- The bundled `mpv.exe` is a GPL-2.0+ build. It is a separate program invoked
-  by thumbfast to render preview thumbnails. Source code is available from the
-  upstream repositories linked above.

@@ -95,7 +95,6 @@ GPL 插件使用时请遵守其许可。
 - [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player) —— 原版上游项目
 - [mpv-lazy](https://github.com/hooke007/mpv_PlayKit) —— 预置配置与脚本
 - [WinUI 3 / Windows App SDK](https://github.com/microsoft/microsoft-ui-xaml) —— 界面框架
-- [thumbfast](https://github.com/po5/thumbfast) —— 缩略图预览
 - [dyn_menu / mpv-menu-plugin](https://github.com/tsl0922/mpv-menu-plugin) —— 右键菜单数据
 - [MediaInfo](https://mediaarea.net/en/MediaInfo) —— 文件信息
 

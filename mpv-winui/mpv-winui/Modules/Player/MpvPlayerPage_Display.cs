@@ -194,6 +194,7 @@ namespace mpv_winui.Modules.Player
                     _mediaPlayer?.UpdateDisplayRefreshRate(rate);
                 }
             }
+            ApplyDisplayPeak();
         }
 
         private bool IsMainWindowMinimized()
@@ -268,6 +269,65 @@ namespace mpv_winui.Modules.Player
             return DefaultRefreshRate;
         }
 
+        private const int DefaultDisplayPeakNits = 1000;
+
+        /// <summary>
+        /// Applies the effective display peak: user <see cref="AppSettings.DisplayPeak"/>
+        /// wins over detection; the legacy advanced TargetPeak, when set, wins over
+        /// both. Written to user-data/mpvw/display-peak (drives the [mpvw-hdr]
+        /// profile-cond) and to target-peak for tone mapping.
+        /// </summary>
+        private void ApplyDisplayPeak()
+        {
+            try
+            {
+                var detected = ReadDisplayPeakNits();
+                var displayPeak = AppContext.AppSetting.DisplayPeak > 0
+                    ? AppContext.AppSetting.DisplayPeak
+                    : detected;
+                if (displayPeak <= 0)
+                {
+                    displayPeak = DefaultDisplayPeakNits;
+                }
+
+                var targetPeak = AppContext.AppSetting.TargetPeak > 0
+                    ? AppContext.AppSetting.TargetPeak
+                    : displayPeak;
+
+                AppContext.SendMpvCommand($"no-osd set user-data/mpvw/display-peak {displayPeak}");
+                AppContext.SendMpvCommand($"no-osd set target-peak {targetPeak}");
+
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.Debug("display peak applied: detected={}, displayPeak={}, targetPeak={}",
+                        detected, displayPeak, targetPeak);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "apply display peak failed");
+            }
+        }
+
+        private int ReadDisplayPeakNits()
+        {
+            try
+            {
+                var colorInfo = _displayInfo?.GetAdvancedColorInfo();
+                if (colorInfo is null || colorInfo.MaxLuminanceInNits <= 0)
+                {
+                    return 0;
+                }
+
+                return Math.Clamp((int)Math.Round(colorInfo.MaxLuminanceInNits), 1, 10000);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "read display peak failed");
+                return 0;
+            }
+        }
+
         private void OnAdvancedColorInfoChanged(DisplayInformation sender, object args)
         {
             var newKind = ReadColorKind();
@@ -280,6 +340,7 @@ namespace mpv_winui.Modules.Player
             {
                 TryLogDisplayInfo(newKind, _displayInfo?.GetAdvancedColorInfo());
             }
+            ApplyDisplayPeak();
         }
 
         private void OnDisplayAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
@@ -329,6 +390,7 @@ namespace mpv_winui.Modules.Player
                         _mediaPlayer?.UpdateDisplayRefreshRate(rate);
                     }
                 }
+                ApplyDisplayPeak();
             }
         }
 

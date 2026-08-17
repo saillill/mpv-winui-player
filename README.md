@@ -124,7 +124,6 @@ accordance with their license.
   scripts
 - [WinUI 3 / Windows App SDK](https://github.com/microsoft/microsoft-ui-xaml)
   — the interface
-- [thumbfast](https://github.com/po5/thumbfast) — preview thumbnails
 - [dyn_menu / mpv-menu-plugin](https://github.com/tsl0922/mpv-menu-plugin) —
   the right-click menu data
 - [MediaInfo](https://mediaarea.net/en/MediaInfo) — file details

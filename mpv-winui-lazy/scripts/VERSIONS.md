@@ -22,7 +22,6 @@ the file header comment repeats it.
 
 | Script | Source | Pin |
 |---|---|---|
-| `thumbfast.lua` | https://github.com/po5/thumbfast | commit `9deb0733c4…` (see header) |
 | `stats.lua` | https://github.com/mpv-player/mpv (player/lua/stats.lua) | commit in header `COMMIT_` |
 | `select.lua` | https://github.com/mpv-player/mpv (player/lua/select.lua) | bundled copy, Chinese-localized |
 | `console.lua` | https://github.com/mpv-player/mpv (player/lua/console.lua) | bundled copy, WinUI-styled (reads Windows light/dark) |

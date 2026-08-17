@@ -436,6 +436,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsTargetPrim { get; set; } = "Target primaries";
         public string SettingsTargetTrc { get; set; } = "Target transfer curve";
         public string SettingsTargetPeak { get; set; } = "Target peak brightness (nits)";
+        public string SettingsDisplayPeak { get; set; } = "Display peak brightness (nits)";
         public string SettingsGamutMappingMode { get; set; } = "Gamut mapping mode";
         public string SettingsD3d11OutputCsp { get; set; } = "D3D11 output colorspace";
         public string SettingsD3d11ExclusiveFs { get; set; } = "D3D11 exclusive fullscreen";
@@ -504,17 +505,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsCoverArtPreload { get; set; } = "Preload cover art";
         public string SettingsCoverArtNames { get; set; } = "Cover art filenames";
         public string SettingsCoverArtImageExts { get; set; } = "Cover art image extensions";
-        public string SettingsThumbfastQuality { get; set; } = "Thumbnail preview quality";
-        public string SettingsThumbfastNetwork { get; set; } = "Network stream thumbnails";
-        public string SettingsThumbfastMinDuration { get; set; } = "Thumbnails minimum duration (s)";
-        public string SettingsThumbfastPrecise { get; set; } = "Thumbnail precise seeking";
-        public string SettingsThumbfastMaxWidth { get; set; } = "Thumbnail max width";
-        public string SettingsThumbfastMaxHeight { get; set; } = "Thumbnail max height";
-        public string SettingsThumbfastSpawnFirst { get; set; } = "Generate thumbnails on load";
-        public string SettingsThumbfastThreads { get; set; } = "Thumbnail software threads";
-        public string SettingsThumbfastFrequency { get; set; } = "Thumbnail render interval (s)";
-        public string SettingsThumbfastDirectIo { get; set; } = "Thumbnail direct I/O";
-        public string SettingsThumbfastQuitAfterInactivity { get; set; } = "Thumbnail process idle timeout (s)";
         public string SettingsVsrAuto { get; set; } = "Auto NVIDIA VSR";
         public string SettingsHdrAutoMode { get; set; } = "RTX Video HDR mode";
         public string SettingsSeekHold { get; set; } = "Keep window size while seeking";
@@ -532,15 +522,6 @@ namespace mpv_winui.Modules.Language
         public string KeyUp { get; set; } = "Up";
         public string KeyDown { get; set; } = "Down";
         public string KeyMeta { get; set; } = "Win";
-        public string PluginSourceThumbfastLabel { get; set; } = "Thumbnail previews by thumbfast";
-        public string PluginSourceThumbfastDesc { get; set; } = "Seek preview thumbnails are rendered by the thumbfast plugin. Original project: po5/thumbfast (MPL-2.0).";
-        public string PluginSourceCoverartLabel { get; set; } = "Cover art by mpv-coverart";
-        public string PluginSourceCoverartDesc { get; set; } = "Cover art loading is handled by mpv-coverart. Original project: CogentRedTester/mpv-coverart (MIT).";
-        public string PluginSourceMetadataOsdLabel { get; set; } = "Metadata OSD by metadata-osd";
-        public string PluginSourceMetadataOsdDesc { get; set; } = "The playback metadata overlay is provided by metadata-osd. Original project: vc-01/metadata-osd (MIT).";
-        public string PluginSourceHdrLabel { get; set; } = "HDR scripts from mpv-lazy";
-        public string PluginSourceHdrDesc { get; set; } = "HDR auto-detection and override scripts are adapted from mpv-lazy. Project: hooke007/mpv_PlayKit.";
-        public string OpenProjectPage { get; set; } = "Open project page";
         public string PanelEqualizer { get; set; } = "Equalizer";
         public string PanelDelay { get; set; } = "Audio / subtitle delay";
         public string PanelMasterVolume { get; set; } = "Master volume";
@@ -852,6 +833,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpTargetPrim { get; set; } = "Primaries of the output colorspace when not using an ICC profile. Auto keeps the display profile.";
         public string SettingsHelpTargetTrc { get; set; } = "Transfer curve of the output when not using an ICC profile. Auto keeps the display profile.";
         public string SettingsHelpTargetPeak { get; set; } = "Peak brightness of the display in nits. 0 keeps the automatic value (HDR profile uses 1000).";
+        public string SettingsHelpDisplayPeak { get; set; } = "Peak luminance of your display in nits. 0 auto-detects from the monitor (fallback 1000); the [mpvw-hdr] profile and target-peak use this value.";
         public string SettingsHelpIccCache { get; set; } = "Cache ICC profile to 3D LUT conversions on disk.";
         public string SettingsHelpGpuShaderCache { get; set; } = "Cache compiled GLSL shaders on disk to speed up startup.";
         public string SettingsHelpDemuxerMaxBackBytes { get; set; } = "How much data the demuxer keeps buffered behind the current position. 0 disables the limit.";
@@ -859,7 +841,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpMetadataOsdEnabled { get; set; } = "Show the metadata OSD (artist, album, title) when playback starts. Takes effect on the next start.";
         public string SettingsHelpMetadataOsdAutohideTimeout { get; set; } = "Seconds before the metadata OSD hides automatically.";
         public string SettingsHelpCoverArtPreferEmbedded { get; set; } = "Prefer the embedded cover-art track over an external cover image file.";
-        public string SettingsHelpThumbfastQuality { get; set; } = "Preview thumbnail quality: 1 fastest, 2 balanced, 3 highest but slow. Takes effect on the next start.";
         public string SettingsHelpHwdecCodecs { get; set; } = "Codecs that may use hardware decoding. All tries every codec; set a comma list such as h264,hevc to limit it.";
         public string SettingsHelpD3d11OutputCsp { get; set; } = "Colorspace sent to the display in D3D11 mode. Auto keeps the SDR/WCG/HDR profiles.";
         public string SettingsHelpTargetColorspaceHintMode { get; set; } = "Metadata used for the automatic colorspace hint: target, source, or source-dynamic.";
@@ -870,14 +851,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpScreenshotWebpLossless { get; set; } = "Encode WebP screenshots losslessly.";
         public string SettingsHelpScreenshotJxlDistance { get; set; } = "JXL visual distance: 0 is lossless, higher values compress more.";
         public string SettingsHelpWatchLaterOptions { get; set; } = "Comma-separated properties saved with the playback position, e.g. start,vid,aid,sid.";
-        public string SettingsHelpThumbfastNetwork { get; set; } = "Generate preview thumbnails for network streams. Takes effect on the next start.";
-        public string SettingsHelpThumbfastPrecise { get; set; } = "Thumbnail seeking precision: 0 auto, 1 keyframes only, 2 always precise. Takes effect on the next start.";
-        public string OptionValueThumbfastQualityFast { get; set; } = "Fastest";
-        public string OptionValueThumbfastQualityBalanced { get; set; } = "Balanced";
-        public string OptionValueThumbfastQualityHighest { get; set; } = "Highest (slower)";
-        public string OptionValueThumbfastPreciseAuto { get; set; } = "Auto";
-        public string OptionValueThumbfastPreciseKeyframes { get; set; } = "Keyframes only";
-        public string OptionValueThumbfastPreciseAlways { get; set; } = "Always precise";
         public string SettingsHelpMetadataOsdShowChapter { get; set; } = "Show the current chapter number in the metadata OSD. Takes effect on the next start.";
         public string SettingsHelpCoverArtAlwaysScan { get; set; } = "Scan for cover art for any file type, not only audio files. Takes effect on the next start.";
         public string SettingsHelpIccProfile { get; set; } = "Load a specific ICC profile file. Leave empty to keep auto color management.";
@@ -890,8 +863,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpInputIpcServer { get; set; } = "Named pipe for external programs to control mpv. Leave empty to disable.";
         public string SettingsHelpDirectoryFilterTypes { get; set; } = "File types collected for the playlist when a folder is opened: video,audio,image,archive,playlist.";
         public string SettingsHelpVideoExts { get; set; } = "Video extensions recognized when collecting playlist files, comma-separated.";
-        public string SettingsHelpThumbfastSpawnFirst { get; set; } = "Start generating thumbnails as soon as a file loads. Takes effect on the next start.";
-        public string SettingsHelpThumbfastThreads { get; set; } = "Software decoder threads used for thumbnails. Takes effect on the next start.";
         public string SettingsHelpD3d11Adapter { get; set; } = "GPU adapter used in D3D11 mode, e.g. NVIDIA GeForce RTX 4070 Ti Super. Empty keeps the system default.";
         public string SettingsHelpGlslShadersAppend { get; set; } = "Additional GLSL shader files loaded at startup, separated by semicolons.";
         public string SettingsGlslShaders { get; set; } = "Shader list (overwrite)";
@@ -906,8 +877,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpCoverArtPreload { get; set; } = "Load cover art before playback starts. Takes effect on the next start.";
         public string SettingsHelpMetadataOsdMessageMaxLength { get; set; } = "Maximum length of metadata OSD messages in characters. Takes effect on the next start.";
         public string SettingsHelpCoverArtNames { get; set; } = "Cover art filenames to look for, separated by semicolons. Takes effect on the next start.";
-        public string SettingsHelpThumbfastDirectIo { get; set; } = "Use Windows native APIs to write thumbnail frames. Takes effect on the next start.";
-        public string SettingsHelpThumbfastQuitAfterInactivity { get; set; } = "Kill the thumbnail process after this many idle seconds. 0 disables. Takes effect on the next start.";
         public string SettingsHelpAudioBuffer { get; set; } = "Audio output buffer in seconds (0-10). 0 lets mpv choose (0.2 by default); larger reduces glitches but adds latency.";
 
         /// <summary>Native (autonym) name of an app UI language, e.g. zh-CN → 中文.</summary>
@@ -1044,10 +1013,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpMetadataOsdAutohideForAudio { get; set; } = "Automatically hide the metadata overlay after the timeout for audio files.";
         public string SettingsMetadataOsdAutohideForAudioWithAlbumArt { get; set; } = "Auto-hide metadata OSD for album art audio";
         public string SettingsHelpMetadataOsdAutohideForAudioWithAlbumArt { get; set; } = "Automatically hide the metadata overlay after the timeout for audio files displayed with album art.";
-        public string SettingsThumbfastAudio { get; set; } = "Generate previews for audio";
-        public string SettingsHelpThumbfastAudio { get; set; } = "Also generate seek previews for audio files. Takes effect on the next start.";
-        public string SettingsThumbfastHwdec { get; set; } = "Preview hardware decoding";
-        public string SettingsHelpThumbfastHwdec { get; set; } = "Use hardware decoding when generating seek previews. Takes effect on the next start.";
         public string SettingsHdrOverrideMode { get; set; } = "Display HDR override";
         public string SettingsHelpHdrOverrideMode { get; set; } = "Manually override the app's display HDR detection: leave Auto to follow the app, or force HDR/SDR output. Takes effect on the next start.";
 
@@ -1062,10 +1027,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpOsdFractions { get; set; } = "Show time values with millisecond precision.";
         public string SettingsHelpOsdColor { get; set; } = "Text color of OSD messages (#AARRGGBB).";
         public string SettingsHelpOsdOutlineColor { get; set; } = "Outline color of OSD text (#AARRGGBB).";
-        public string SettingsHelpThumbfastMinDuration { get; set; } = "Only generate seek previews for videos longer than this many seconds (0 = always).";
-        public string SettingsHelpThumbfastMaxWidth { get; set; } = "Maximum preview thumbnail width in pixels.";
-        public string SettingsHelpThumbfastMaxHeight { get; set; } = "Maximum preview thumbnail height in pixels.";
-        public string SettingsHelpThumbfastFrequency { get; set; } = "How often a preview frame is generated, in seconds.";
         public string SettingsHelpAudioChannels { get; set; } = "Speaker layout sent to the audio device; Auto (safe) falls back to a supported layout.";
         public string SettingsHelpAudioPitchCorrection { get; set; } = "Keep the pitch when playback speed changes (otherwise speed-up raises the pitch).";
         public string SettingsHelpAudioNormalizeDownmix { get; set; } = "Normalize the downmixed audio when playing multichannel audio on stereo.";

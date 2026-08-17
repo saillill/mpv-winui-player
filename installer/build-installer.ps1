@@ -36,8 +36,6 @@ if (-not $SkipPublish) {
         "-p:PublishDir=$publishDir" -v:m
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    # Standalone mpv.exe is required by thumbfast (video preview thumbnails).
-    & "$root\tools\fetch-mpv-cli.ps1" -PublishDir $publishDir
 }
 
 $pub = $publishDir.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
