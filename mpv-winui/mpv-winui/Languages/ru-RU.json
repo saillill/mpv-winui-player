@@ -732,7 +732,6 @@
   "SectionAudioCoverArt": "Музыкальная обложка",
   "SectionDemuxerPlaylist": "Файлы и список воспроизведения",
   "SectionDemuxerBuffering": "Буферизация",
-  "SectionInput": "Ввод",
   "SectionOsdMetadata": "Наложение метаданных",
   "SectionGpuScaling": "Масштабирование и дизеринг",
   "SectionGpuInterpolation": "Интерполяция движения",

@@ -345,7 +345,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDemuxerPlaylist { get; set; } = "Playlist & directories";
         public string SectionDemuxerBuffering { get; set; } = "Buffering";
         public string SectionCache { get; set; } = "Cache";
-        public string SectionInput { get; set; } = "Input";
         public string SectionOsd { get; set; } = "OSD";
         public string SectionOsdMetadata { get; set; } = "Metadata overlay";
         public string SectionScreenshotLocation { get; set; } = "Location & naming";

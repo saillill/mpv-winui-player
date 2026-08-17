@@ -21,6 +21,7 @@ public sealed partial class SettingsPage
     private List<Option> BuildAdvancedOptions()
     {
         var audio = AppContext.AppLang.SettingsCategoryAudio;
+        var program = AppContext.AppLang.SettingsCategoryProgram;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
@@ -1249,7 +1250,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.InputIpcServer),
                 Label = lang.SettingsInputIpcServer,
-                Category = shortcuts,
+                Category = program,
                 Description = lang.SettingsHelpInputIpcServer,
                 Type = OptionType.String,
                 AllowEmpty = true,

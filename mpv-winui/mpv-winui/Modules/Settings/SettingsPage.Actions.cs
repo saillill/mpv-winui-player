@@ -242,6 +242,16 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                     label = label[(separator + 1)..].Trim();
                 }
             }
+            else if (label.Length > 0)
+            {
+                // Non-menu rows use "#键描述 功能描述"; keep only the function
+                // part so the row name is not bound to a key name.
+                var space = label.IndexOf(' ');
+                if (space > 0 && space < label.Length - 1)
+                {
+                    label = label[(space + 1)..].Trim();
+                }
+            }
 
             if (!seen.Add(key))
             {

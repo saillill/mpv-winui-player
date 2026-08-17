@@ -732,7 +732,6 @@
   "SectionAudioCoverArt": "음악 커버",
   "SectionDemuxerPlaylist": "파일 및 재생 목록",
   "SectionDemuxerBuffering": "버퍼링",
-  "SectionInput": "입력",
   "SectionOsdMetadata": "메타데이터 오버레이",
   "SectionGpuScaling": "스케일링 및 디더링",
   "SectionGpuInterpolation": "모션 보간",

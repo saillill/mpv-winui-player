@@ -732,7 +732,6 @@
   "SectionAudioCoverArt": "音乐封面",
   "SectionDemuxerPlaylist": "文件与播放列表",
   "SectionDemuxerBuffering": "缓冲",
-  "SectionInput": "输入",
   "SectionOsdMetadata": "元数据覆盖层",
   "SectionGpuScaling": "缩放与抖动",
   "SectionGpuInterpolation": "动态插帧",

@@ -62,7 +62,6 @@ private List<Option> BuildSettings()
         var sDemuxerPlaylist = AppContext.AppLang.SectionDemuxerPlaylist;
         var sDemuxerBuffering = AppContext.AppLang.SectionDemuxerBuffering;
         var sCache = AppContext.AppLang.SectionCache;
-        var sInput = AppContext.AppLang.SectionInput;
         var sOsd = AppContext.AppLang.SectionOsd;
         var sOsdMetadata = AppContext.AppLang.SectionOsdMetadata;
         var sScreenshotLocation = AppContext.AppLang.SectionScreenshotLocation;
@@ -426,7 +425,6 @@ private List<Option> BuildSettings()
             [sDemuxerBuffering] = 28,
             [sCache] = 29,
             [sProgramNetwork] = 30,
-            [sInput] = 31,
             [sOsd] = 32,
             [sOsdMetadata] = 33,
             [sScreenshotLocation] = 34,
@@ -660,9 +658,9 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CurlConnectTimeout)] = sNetworkCurl,
             [nameof(AppSettings.CurlBufferSize)] = sNetworkCurl,
             [nameof(AppSettings.CurlMaxRequestSize)] = sNetworkCurl,
-            // input
-            [nameof(AppSettings.InputIme)] = sInput,
-            [nameof(AppSettings.InputIpcServer)] = sInput,
+            // input (program category; not shortcut bindings)
+            [nameof(AppSettings.InputIme)] = sProgramInterface,
+            [nameof(AppSettings.InputIpcServer)] = sProgramConfig,
             // program actions
             ["FileAssociationCheckList"] = sProgramAssociations,
             ["ActionUnassociateFiles"] = sProgramAssociations,

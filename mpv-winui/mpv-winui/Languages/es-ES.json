@@ -732,7 +732,6 @@
   "SectionAudioCoverArt": "Carátula de música",
   "SectionDemuxerPlaylist": "Archivos y lista de reproducción",
   "SectionDemuxerBuffering": "Almacenamiento en búfer",
-  "SectionInput": "Entrada",
   "SectionOsdMetadata": "Superposición de metadatos",
   "SectionGpuScaling": "Escalado y tramado",
   "SectionGpuInterpolation": "Interpolación de movimiento",

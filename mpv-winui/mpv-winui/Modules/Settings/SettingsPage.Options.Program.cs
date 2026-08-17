@@ -329,7 +329,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.InputIme),
                 Description = lang.SettingsHelpInputIme,
                 Label = lang.SettingsInputIme,
-                Category = shortcuts,
+                Category = program,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.InputIme,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InputIme), AppContext.AppSetting.InputIme = (bool)v!)

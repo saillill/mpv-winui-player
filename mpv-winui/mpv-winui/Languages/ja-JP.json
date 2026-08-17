@@ -732,7 +732,6 @@
   "SectionAudioCoverArt": "音楽カバー",
   "SectionDemuxerPlaylist": "ファイルと再生リスト",
   "SectionDemuxerBuffering": "バッファリング",
-  "SectionInput": "入力",
   "SectionOsdMetadata": "メタデータ表示",
   "SectionGpuScaling": "スケーリングとディザリング",
   "SectionGpuInterpolation": "フレーム補間",

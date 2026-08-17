@@ -732,7 +732,6 @@
   "SectionAudioCoverArt": "Pochette musicale",
   "SectionDemuxerPlaylist": "Fichiers et liste de lecture",
   "SectionDemuxerBuffering": "Mise en mémoire tampon",
-  "SectionInput": "Entrée",
   "SectionOsdMetadata": "Superposition de métadonnées",
   "SectionGpuScaling": "Mise à l'échelle et tramage",
   "SectionGpuInterpolation": "Interpolation de mouvement",

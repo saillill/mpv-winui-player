@@ -732,7 +732,6 @@
   "SectionAudioCoverArt": "Music cover art",
   "SectionDemuxerPlaylist": "Files & playlist",
   "SectionDemuxerBuffering": "Buffering",
-  "SectionInput": "Input",
   "SectionOsdMetadata": "Metadata overlay",
   "SectionGpuScaling": "Scaling & dithering",
   "SectionGpuInterpolation": "Motion interpolation",
