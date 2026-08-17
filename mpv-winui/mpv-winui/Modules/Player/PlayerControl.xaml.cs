@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using mpv_winrt;
+using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Settings.Controls;
 using System;
@@ -323,6 +324,13 @@ namespace mpv_winui.Modules.Player
 
         /// <summary>PiP-only toggle hosted at the compact bar's far right (subtitle switch).</summary>
         public ToggleButton? PiPRightToggle
+        {
+            get;
+            set;
+        }
+
+        /// <summary>Invoked with the new checked state when the PiP subtitle toggle is clicked.</summary>
+        public Action<bool>? PiPRightToggleAction
         {
             get;
             set;
@@ -686,9 +694,31 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private static AppBarElementContainer BuildPiPRightItem(ToggleButton toggle)
+        private AppBarElementContainer BuildPiPRightItem(ToggleButton source)
         {
-            toggle.Visibility = Visibility.Visible;
+            // A ToggleButton that has already been realized in the XAML tree
+            // cannot be reparented into an AppBarElementContainer (Content
+            // setter throws E_INVALIDARG), so build a fresh toggle each time
+            // and forward the click through PiPRightToggleAction. The source
+            // toggle stays in the PiP window as the state/icon authority.
+            var icon = source.Content as FontIcon;
+            var toggle = new ToggleButton
+            {
+                Content = new FontIcon
+                {
+                    Glyph = icon?.Glyph ?? "\uF2E3",
+                    FontSize = 16,
+                    FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
+                },
+                IsChecked = source.IsChecked,
+                Visibility = Visibility.Visible,
+            };
+            AutomationProperties.SetName(toggle, AppContext.AppLang.Subtitles);
+            ToolTipService.SetToolTip(toggle, AppContext.AppLang.Subtitles);
+            if (PiPRightToggleAction is { } action)
+            {
+                toggle.Click += (_, _) => action(toggle.IsChecked == true);
+            }
             return new AppBarElementContainer { Content = toggle };
         }
 

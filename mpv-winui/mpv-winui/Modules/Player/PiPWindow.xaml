@@ -67,8 +67,9 @@
 
         <!--
             Subtitle toggle for the status bar's far right. PlayerControl
-            reparents this into the PiP compact command bar on attach; it
-            starts collapsed so it never flashes before that happens.
+            builds a fresh status-bar toggle from this source on attach (the
+            XAML element itself cannot be reparented); this one stays
+            collapsed as the state/icon authority.
         -->
         <ToggleButton
             x:Name="PiPSubtitleToggle"

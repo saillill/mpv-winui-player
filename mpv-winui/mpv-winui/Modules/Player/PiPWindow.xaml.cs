@@ -137,9 +137,12 @@ public sealed partial class PiPWindow : Window
     {
         _selfWeakReference = new(this);
         InitializeComponent();
-        // Hand the subtitle toggle to the compact status bar (far right);
-        // PlayerControl reparents it into the PiP command bar.
+        // Hand the subtitle toggle to the compact status bar (far right).
+        // PlayerControl builds a fresh status-bar toggle from this source on
+        // attach (the XAML element itself cannot be reparented), so this one
+        // stays collapsed as the state/icon authority.
         PiPControls.PiPRightToggle = PiPSubtitleToggle;
+        PiPControls.PiPRightToggleAction = visible => SetSubtitleVisibility(visible);
         RootGrid.RequestedTheme = ElementTheme.Dark;
         ConfigureWindow();
         ApplyLocalizedStrings();
