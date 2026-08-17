@@ -1254,6 +1254,7 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpInputIpcServer,
                 Type = OptionType.String,
                 AllowEmpty = true,
+                Placeholder = @"\\.\pipe\mpvipc",
                 Getter = () => AppContext.AppSetting.InputIpcServer,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InputIpcServer), AppContext.AppSetting.InputIpcServer = (string)v!)
             },
