@@ -70,7 +70,6 @@ namespace mpv_winui.Modules.Player
                 AppContext.SetMpvLogLevel = level => _mediaPlayer.SetLogLevel(level);
                 AppContext.GetAudioDevices = () => _mediaPlayer.AudioDevices();
                 AppContext.GetGpuAdapters = () => _mediaPlayer.GpuAdapters();
-                AppContext.GetMpvProfiles = () => _mediaPlayer.Profiles();
                 // LoggerHelper may have run before this hook existed; sync the
                 // native mpv log level once the player is available.
                 AppContext.SetMpvLogLevel(AppContext.AppSetting.EnableDebugLog ? "info" : "warn");
@@ -131,7 +130,6 @@ namespace mpv_winui.Modules.Player
             AppContext.SetMpvLogLevel = null;
             AppContext.GetAudioDevices = null;
             AppContext.GetGpuAdapters = null;
-            AppContext.GetMpvProfiles = null;
             AppContext.SettingChanged -= AppContext_SettingChanged;
             AppContext.LanguageChanged -= AppContext_LanguageChanged;
             CleanupDisplayInfo();

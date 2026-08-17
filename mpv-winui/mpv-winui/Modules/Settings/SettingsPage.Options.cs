@@ -36,7 +36,6 @@ private List<Option> BuildSettings()
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var sProgramAssociations = AppContext.AppLang.SectionProgramAssociations;
         var sProgramConfig = AppContext.AppLang.SectionProgramConfig;
-        var sProgramProfiles = AppContext.AppLang.SectionProgramProfiles;
         var sWindowPiP = AppContext.AppLang.SectionWindowPiP;
         var sNetworkYtdlp = AppContext.AppLang.SectionNetworkYtdlp;
         var sNetworkHttp = AppContext.AppLang.SectionNetworkHttp;
@@ -302,7 +301,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.GlslShaderOpts)] = 362,
             [nameof(AppSettings.WindowTitle)] = 363,
             [nameof(AppSettings.SubHinting)] = 364,
-            ["ProfilesCheckList"] = 365,
             [nameof(AppSettings.VideoSync)] = 191,
             [nameof(AppSettings.VideoSyncMaxVideoChange)] = 192,
             [nameof(AppSettings.WindowPiP)] = 193,
@@ -436,7 +434,6 @@ private List<Option> BuildSettings()
             [sWindowPiP] = 42,
             [sProgramAssociations] = 43,
             [sProgramConfig] = 44,
-            [sProgramProfiles] = 45,
         };
 
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -666,7 +663,6 @@ private List<Option> BuildSettings()
             ["ActionUnassociateFiles"] = sProgramAssociations,
             ["ActionExportConfig"] = sProgramConfig,
             ["ActionImportConfig"] = sProgramConfig,
-            ["ProfilesCheckList"] = sProgramProfiles,
             [nameof(AppSettings.ControlBarLayout)] = sProgramInterface,
             [nameof(AppSettings.ControlBarHiddenIcons)] = sProgramInterface,
             // osd

@@ -117,11 +117,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpImportConfig { get; set; } = "Restore settings from a settings file.";
         public string SettingsConfigExported { get; set; } = "Settings exported.";
         public string SettingsConfigImported { get; set; } = "Settings imported. Some options take effect on the next launch.";
-        public string SectionProgramProfiles { get; set; } = "Profiles";
-        public string SettingsProfiles { get; set; } = "mpv profiles";
-        public string SettingsHelpProfiles { get; set; } = "Profiles available to mpv: user profiles from profiles.conf plus built-in presets while a player is running. Checking one applies it to the current session with mpv's apply-profile command; unchecking does not undo it (apply another profile to override). The list is read-only here.";
-        public string SettingsProfilesEmpty { get; set; } = "No profiles found in profiles.conf.";
-
         // Shortcuts
         public string KeyCapturePlaceholder { get; set; } = "Press any key...";
         public string ResetShortcutsDone { get; set; } = "Shortcuts reset. Takes effect on the next launch.";

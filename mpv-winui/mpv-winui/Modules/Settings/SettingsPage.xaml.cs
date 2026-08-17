@@ -287,8 +287,7 @@ public sealed partial class SettingsPage : Page
                 .Where(k => !k.StartsWith("Shortcut:", StringComparison.Ordinal)
                     && k is not ("ShortcutCapture" or "ShortcutReset"
                         or "FileAssociationCheckList" or "ActionUnassociateFiles"
-                        or "ActionExportConfig" or "ActionImportConfig"
-                        or "ProfilesCheckList"))
+                        or "ActionExportConfig" or "ActionImportConfig"))
                 .ToList();
             AppContext.AppSetting.ResetKeys(keys);
             ApplyAfterReset();

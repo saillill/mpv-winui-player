@@ -301,20 +301,6 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = "ProfilesCheckList",
-                Label = lang.SettingsProfiles,
-                Category = program,
-                Description = lang.SettingsHelpProfiles,
-                Warning = BuildProfileItems().Count == 0 ? lang.SettingsProfilesEmpty : null,
-                Type = OptionType.CheckList,
-                CheckExpandLabel = lang.Expand,
-                CheckCollapseLabel = lang.Collapse,
-                CheckItemsProvider = BuildProfileItems,
-                CheckChanged = (_, value, isChecked, _) => ApplyProfile(value, isChecked),
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.AlwaysOnTop),
                 Description = lang.SettingsHelpAlwaysOnTop,
                 Label = lang.SettingsAlwaysOnTop,

@@ -115,20 +115,38 @@ public sealed partial class QuickControlPanel
         }
         root.Children.Add(PanelOptionCard(bandGrid));
 
-        // Quick actions fill the bottom of the audio page: channel cycling
-        // and audio-delay reset (all localized via existing AppLang keys).
-        var channels = PanelIconButton(lang.SettingsAudioChannels, "\uE8D6",
-            () => MediaPlayer?.Command(["cycle-values", "audio-channels", "stereo", "5.1", "7.1", "auto-safe"]));
-        var delayReset = PanelIconButton(lang.SettingsAudioDelay, "\uE916",
-            () => MediaPlayer?.Command("set", "audio-delay", "0"));
-        var quickRow = new StackPanel
+        // Channel layout picker: a real selector instead of a cycle button so
+        // the current layout is visible and any value can be chosen directly.
+        var channelBox = new ComboBox
         {
-            Spacing = 8,
-            Margin = new Thickness(0, 8, 0, 8),
-            VerticalAlignment = VerticalAlignment.Top,
+            MinWidth = 0,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            PlaceholderText = lang.SettingsAudioChannels,
         };
-        quickRow.Children.Add(PanelButtonRow(channels, delayReset));
-        root.Children.Add(PanelOptionCard(quickRow));
+        AutomationProperties.SetName(channelBox, lang.SettingsAudioChannels);
+        var channelLayouts = new (string Value, string Label)[]
+        {
+            ("stereo", "stereo"),
+            ("5.1", "5.1"),
+            ("7.1", "7.1"),
+            ("auto", lang.OptionValueChannelsAuto),
+        };
+        foreach (var (value, label) in channelLayouts)
+        {
+            channelBox.Items.Add(new ComboBoxItem { Content = label, Tag = value });
+        }
+        channelBox.SelectionChanged += (_, _) =>
+        {
+            if (channelBox.SelectedItem is ComboBoxItem { Tag: string value })
+            {
+                MediaPlayer?.Command("set", "audio-channels", value);
+            }
+        };
+        root.Children.Add(PanelOptionCard(PanelSection(lang.SettingsAudioChannels, channelBox)));
+
+        // Audio delay as a slider with live value + reset (same row style as
+        // the video/subtitle property sliders).
+        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.SettingsAudioDelay, "audio-delay", -10, 10, 0.1)));
     }
 
     private void ApplyPanelPreset(double[] gains)

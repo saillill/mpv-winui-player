@@ -66,7 +66,22 @@ public sealed partial class QuickControlPanel
         fontRow.Children.Add(_panelFontBox);
         Grid.SetColumn(sizeBox, 1);
         fontRow.Children.Add(sizeBox);
-        root.Children.Add(PanelOptionCard(PanelSection(lang.SettingsSubFont, fontRow)));
+
+        // Bold / italic / position reset live under the font card so the
+        // subtitle style controls stay grouped with the font itself.
+        var bold = PanelToggleButton(lang.SettingsSubBold, "\uE8D4",
+            on => MediaPlayer?.Command("set", "sub-bold", on ? "yes" : "no"));
+        var italic = PanelToggleButton(lang.SettingsSubItalic, "\uE8DB",
+            on => MediaPlayer?.Command("set", "sub-italic", on ? "yes" : "no"));
+        var resetPos = PanelIconButton(lang.Reset, "\uE777", () =>
+        {
+            MediaPlayer?.Command("set", "sub-pos", "0");
+            MediaPlayer?.Command("set", "sub-margin-x", "0");
+        });
+        var fontCard = new StackPanel { Spacing = 8 };
+        fontCard.Children.Add(fontRow);
+        fontCard.Children.Add(PanelButtonRow(bold, italic, resetPos));
+        root.Children.Add(PanelOptionCard(PanelSection(lang.SettingsSubFont, fontCard)));
 
         var slower = new Button { Content = lang.PanelSlower, MinWidth = 72 };
         slower.Click += (_, _) => MediaPlayer?.Command("add", "sub-delay", "0.25");
@@ -126,24 +141,5 @@ public sealed partial class QuickControlPanel
         pad.Children.Add(down);
         root.Children.Add(PanelOptionCard(PanelSection(lang.PanelMove, pad)));
 
-        // Extra style row so the subtitle page fills the fixed panel height:
-        // bold / italic toggles plus a position reset.
-        var bold = PanelToggleButton(lang.SettingsSubBold, "\uE8D4",
-            on => MediaPlayer?.Command("set", "sub-bold", on ? "yes" : "no"));
-        var italic = PanelToggleButton(lang.SettingsSubItalic, "\uE8DB",
-            on => MediaPlayer?.Command("set", "sub-italic", on ? "yes" : "no"));
-        var resetPos = PanelIconButton(lang.Reset, "\uE777", () =>
-        {
-            MediaPlayer?.Command("set", "sub-pos", "0");
-            MediaPlayer?.Command("set", "sub-margin-x", "0");
-        });
-        var styleRow = new StackPanel
-        {
-            Spacing = 8,
-            Margin = new Thickness(0, 8, 0, 8),
-            VerticalAlignment = VerticalAlignment.Top,
-        };
-        styleRow.Children.Add(PanelButtonRow(bold, italic, resetPos));
-        root.Children.Add(PanelOptionCard(styleRow));
     }
 }
