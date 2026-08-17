@@ -11,7 +11,9 @@ Width="40"
             Click="MuteButton_Click"
                         LabelPosition="Collapsed">
             <AppBarButton.Icon>
-                <FontIcon x:Name="VolumeIcon" />
+                <FontIcon
+                    x:Name="VolumeIcon"
+                    FontFamily="{StaticResource MpvIconFontFamily}" />
             </AppBarButton.Icon>
         </AppBarButton>
         <Slider

@@ -234,7 +234,8 @@ Grid.Column="1"
                         <AppBarButton.Icon>
                             <FontIcon
                                 x:Name="PlayPauseSymbol"
-                                Glyph="&#xF5B0;" />
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF606;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -245,7 +246,9 @@ Grid.Column="6"
                                                 Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xF8AC;" />
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF629;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -256,7 +259,9 @@ Grid.Column="7"
                                                 Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xF8AD;" />
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF56A;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -267,7 +272,9 @@ Grid.Column="2"
                                                 Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE627;" />
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEAFC;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -278,7 +285,9 @@ Grid.Column="3"
                                                 Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE628;" />
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEB01;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -290,7 +299,7 @@ Style="{StaticResource AppBarButtonStyle}"
                         <AppBarButton.Icon>
                             <FontIcon
                                 x:Name="ShuffleSymbol"
-                                FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
                                 FontSize="20"
                                 Glyph="&#xEF37;" />
                         </AppBarButton.Icon>
@@ -305,7 +314,8 @@ Grid.Column="10"
                         <AppBarButton.Icon>
                             <FontIcon
                                 x:Name="RepeatSymbol"
-                                Glyph="&#xE8EE;" />
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF172;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -320,7 +330,8 @@ Grid.Column="11"
                         <AppBarButton.Icon>
                             <FontIcon
                                 x:Name="AbLoopSymbol"
-                                Glyph="&#xE8B1;" />
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xE0AF;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -331,8 +342,8 @@ Grid.Column="11"
                         Visibility="Visible">
                         <AppBarButton.Icon>
                             <FontIcon
-                                FontFamily="Segoe Fluent Icons"
-                                Glyph="&#xE713;" />
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF6AA;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <Flyout
@@ -407,7 +418,8 @@ HorizontalAlignment="Right"
                         <AppBarButton.Icon>
                             <FontIcon
                                 x:Name="AudioMuteSymbol"
-                                Glyph="&#xE995;" />
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEB43;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -432,7 +444,9 @@ Grid.Column="9"
                         Visibility="Visible">
 
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xEC57;" />
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF831;" />
                         </AppBarButton.Icon>
 
                         <AppBarButton.Flyout>
@@ -490,7 +504,9 @@ Grid.Column="12"
                         ToolTipService.ToolTip="Equalizer"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE8B1;" />
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF340;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <Flyout
@@ -535,7 +551,9 @@ Grid.Column="12"
                         ToolTipService.ToolTip="Audio / subtitle delay"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE916;" />
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF827;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <Flyout
@@ -582,8 +600,8 @@ Grid.Column="13"
                                                 Style="{StaticResource AppBarButtonStyle}">
                         <AppBarButton.Icon>
                             <FontIcon
-                                FontFamily="Segoe Fluent Icons"
-                                Glyph="&#xED1F;" />
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEBCD;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <Flyout
@@ -617,7 +635,9 @@ Grid.Column="15"
                                                 Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE799;" />
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEE8D;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <MenuFlyout
@@ -639,9 +659,9 @@ Grid.Column="16"
                         <AppBarToggleButton.Icon>
                             <FontIcon
                                 x:Name="PiPSymbol"
-                                FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
                                 FontSize="20"
-                                Glyph="&#xE97E;" />
+                                Glyph="&#xF5FE;" />
                         </AppBarToggleButton.Icon>
                     </AppBarToggleButton>
 
@@ -654,7 +674,8 @@ Grid.Column="18"
                         <AppBarButton.Icon>
                             <FontIcon
                                 x:Name="FullWindowSymbol"
-                                Glyph="&#xF16B;" />
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF160;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -664,9 +685,10 @@ Grid.Column="18"
 Grid.Column="18"
                                                 Style="{StaticResource AppBarButtonStyle}">
                         <AppBarButton.Icon>
-                            <SymbolIcon
+                            <FontIcon
                                 x:Name="FullScreenSymbol"
-                                Symbol="FullScreen" />
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xE685;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
 
@@ -676,7 +698,9 @@ Grid.Column="18"
                         Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="&#xE712;" />
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xED38;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <MenuFlyout
@@ -734,7 +758,7 @@ Grid.Column="18"
                 <VisualState x:Name="PlayState" />
                 <VisualState x:Name="PauseState">
                     <VisualState.Setters>
-                        <Setter Target="PlayPauseSymbol.Glyph" Value="&#xF8AE;" />
+                        <Setter Target="PlayPauseSymbol.Glyph" Value="&#xF5A2;" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -743,27 +767,27 @@ Grid.Column="18"
                 <VisualState x:Name="VolumeState" />
                 <VisualState x:Name="MuteState">
                     <VisualState.Setters>
-                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xE74F;" />
+                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xEB4B;" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="VolumeState0">
                     <VisualState.Setters>
-                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xE992;" />
+                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xF6F9;" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="VolumeState1">
                     <VisualState.Setters>
-                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xE993;" />
+                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xF6FB;" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="VolumeState2">
                     <VisualState.Setters>
-                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xE994;" />
+                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xEB43;" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="VolumeState3">
                     <VisualState.Setters>
-                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xE995;" />
+                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xEB43;" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -772,7 +796,7 @@ Grid.Column="18"
                 <VisualState x:Name="NonFullScreenState" />
                 <VisualState x:Name="FullScreenState">
                     <VisualState.Setters>
-                        <Setter Target="FullScreenButton.Icon" Value="BackToWindow" />
+                        <Setter Target="FullScreenSymbol.Glyph" Value="&#xE688;" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -781,7 +805,7 @@ Grid.Column="18"
                 <VisualState x:Name="NonFullWindowState" />
                 <VisualState x:Name="FullWindowState">
                     <VisualState.Setters>
-                        <Setter Target="FullWindowSymbol.Glyph" Value="&#xE745;" />
+                        <Setter Target="FullWindowSymbol.Glyph" Value="&#xF166;" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -790,12 +814,12 @@ Grid.Column="18"
                 <VisualState x:Name="RepeatAllState" />
                 <VisualState x:Name="RepeatNoneState">
                     <VisualState.Setters>
-                        <Setter Target="RepeatSymbol.Glyph" Value="&#xF5E7;" />
+                        <Setter Target="RepeatSymbol.Glyph" Value="&#xF175;" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="RepeatOneState">
                     <VisualState.Setters>
-                        <Setter Target="RepeatSymbol.Glyph" Value="&#xE8ED;" />
+                        <Setter Target="RepeatSymbol.Glyph" Value="&#xEF34;" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

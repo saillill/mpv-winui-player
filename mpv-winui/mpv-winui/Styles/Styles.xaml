@@ -24,6 +24,10 @@
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
+    <!-- Built-in Fluent icon font shared by the control bar, PiP window and
+         track selector so every status-bar glyph renders from one font. -->
+    <FontFamily x:Key="MpvIconFontFamily">ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular</FontFamily>
+
     <!-- Shared card used by the quick-control panel and other code-built
          surfaces, so card look stays consistent instead of being re-declared
          with inline brushes/radii in each builder. -->

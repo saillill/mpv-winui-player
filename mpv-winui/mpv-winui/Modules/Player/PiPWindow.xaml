@@ -36,9 +36,9 @@
             Style="{StaticResource PiPTopButtonStyle}"
             Click="PiPBackButton_Click">
             <FontIcon
-                FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                FontFamily="{StaticResource MpvIconFontFamily}"
                 FontSize="18"
-                Glyph="&#xE981;" />
+                Glyph="&#xF15C;" />
         </Button>
 
         <!-- Top-right: exit picture-in-picture and restore the main window. -->
@@ -50,8 +50,9 @@
             Style="{StaticResource PiPTopButtonStyle}"
             Click="PiPExitButton_Click">
             <FontIcon
+                FontFamily="{StaticResource MpvIconFontFamily}"
                 FontSize="14"
-                Glyph="&#xE711;" />
+                Glyph="&#xF36A;" />
         </Button>
 
         <!--
@@ -74,8 +75,9 @@
             Click="PiPSubtitleToggle_Click"
             Visibility="Collapsed">
             <FontIcon
+                FontFamily="{StaticResource MpvIconFontFamily}"
                 FontSize="16"
-                Glyph="&#xE9CF;" />
+                Glyph="&#xF2E3;" />
         </ToggleButton>
     </Grid>
 </Window>

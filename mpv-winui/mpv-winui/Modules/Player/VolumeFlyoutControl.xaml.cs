@@ -85,12 +85,12 @@ namespace mpv_winui.Modules.Player
         {
             if (isMuted)
             {
-                VolumeIcon.Glyph = "\uE74F";
+                VolumeIcon.Glyph = "\uEB4B";
             }
             else
             {
                 var vol = volume;
-                VolumeIcon.Glyph = vol < 1 ? "\uE992" : vol < 34 ? "\uE993" : vol < 67 ? "\uE994" : "\uE995";
+                VolumeIcon.Glyph = vol < 1 ? "\uF6F9" : vol < 34 ? "\uF6FB" : "\uEB43";
             }
         }
     }
