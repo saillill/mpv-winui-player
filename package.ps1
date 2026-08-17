@@ -25,9 +25,6 @@ if (-not (Test-Path -LiteralPath "$pub\mpv-winui.exe")) {
     Write-Error "Publish output not found: $pub (run build.ps1 + publish first, or omit -SkipPublish)"
 }
 
-# Standalone mpv.exe is required by thumbfast (video preview thumbnails).
-& "$root\tools\fetch-mpv-cli.ps1" -PublishDir $pub
-
 $staging = Join-Path $root 'dist\staging'
 if (Test-Path -LiteralPath $staging) {
     [System.IO.Directory]::Delete($staging, $true)

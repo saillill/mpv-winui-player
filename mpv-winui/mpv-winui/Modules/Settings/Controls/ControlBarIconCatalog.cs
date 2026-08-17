@@ -23,24 +23,24 @@ public static class ControlBarIconCatalog
     /// <summary>Fixed transport buttons, in 原版 (classic) order.</summary>
     public static IReadOnlyList<(string Id, string Label, string Glyph)> FixedButtons { get; } =
     [
-        ("play", "播放/暂停", "\uF5B0"),
-        ("previous", "上一首", "\uF8AC"),
-        ("next", "下一首", "\uF8AD"),
-        ("skip-back", "快退", "\uE627"),
-        ("skip-forward", "快进", "\uE628"),
+        ("play", "Play/Pause", "\uF5B0"),
+        ("previous", "Previous", "\uF8AC"),
+        ("next", "Next", "\uF8AD"),
+        ("skip-back", "Skip Backward", "\uE627"),
+        ("skip-forward", "Skip Forward", "\uE628"),
     ];
 
     /// <summary>Reorderable/hideable buttons (the canvas's movable set).</summary>
     public static IReadOnlyList<(string Id, string Label, string Glyph)> MovableButtons { get; } =
     [
-        ("volume", "音量", "\uE995"),
-        ("tracks", "轨道", "\uED1F"),
-        ("random", "随机", "\uEF37"),
-        ("panel", "控制面板", "\uE713"),
-        ("aspect", "缩放", "\uE799"),
-        ("pip", "画中画", "\uE97E"),
-        ("fullwindow", "全窗口", "\uF16B"),
-        ("fullscreen", "全屏", "\uE740"),
+        ("volume", "Volume", "\uE995"),
+        ("tracks", "Tracks", "\uED1F"),
+        ("random", "Random", "\uEF37"),
+        ("panel", "Control panel", "\uE713"),
+        ("aspect", "Aspect ratio", "\uE799"),
+        ("pip", "Picture-in-picture", "\uE97E"),
+        ("fullwindow", "Full window", "\uF16B"),
+        ("fullscreen", "Full screen", "\uE740"),
     ];
 
     /// <summary>All movable ids in catalog order.</summary>
@@ -85,17 +85,40 @@ public static class ControlBarIconCatalog
         {
             if (item.Id == id)
             {
-                return item;
+                return (item.Id, Label(item.Id), item.Glyph);
             }
         }
         foreach (var item in FixedButtons)
         {
             if (item.Id == id)
             {
-                return item;
+                return (item.Id, Label(item.Id), item.Glyph);
             }
         }
-        return (id, id, "\uE7C3");
+        return (id, Label(id), "\uE7C3");
+    }
+
+    /// <summary>Localized label for a control-bar id, falling back to the catalog label.</summary>
+    public static string Label(string id)
+    {
+        var lang = mpv_winui.AppContext.AppLang;
+        return id switch
+        {
+            "play" => lang.Play,
+            "previous" => lang.MorePreviousTrack,
+            "next" => lang.MoreNextTrack,
+            "skip-back" => lang.MoreSkipBackward,
+            "skip-forward" => lang.MoreSkipForward,
+            "volume" => lang.ControlBarIconVolume,
+            "tracks" => lang.ControlBarIconTracks,
+            "random" => lang.ControlBarIconRandom,
+            "panel" => lang.ControlBarIconPanel,
+            "aspect" => lang.ControlBarIconAspect,
+            "pip" => lang.ControlBarIconPiP,
+            "fullwindow" => lang.ControlBarIconFullWindow,
+            "fullscreen" => lang.ControlBarIconFullScreen,
+            _ => id,
+        };
     }
 
     /// <summary>

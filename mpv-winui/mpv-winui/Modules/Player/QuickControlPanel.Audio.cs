@@ -2,54 +2,17 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using System;
 
 namespace mpv_winui.Modules.Player;
 
-/// <summary>Audio page of the quick-control panel (equalizer, device, presets).</summary>
+/// <summary>Audio page of the quick-control panel (preset, device, equalizer).</summary>
 public sealed partial class QuickControlPanel
 {
-    private ToggleButton? _panelEqOffToggle;
     private ComboBox? _panelAudioDeviceBox;
-
-    private void UpdatePanelEqToggleLabel()
-    {
-        if (_panelEqOffToggle is not { } toggle)
-        {
-            return;
-        }
-        var lang = AppContext.AppLang;
-        toggle.Content = $"{lang.PanelEqualizer} {(toggle.IsChecked == true ? lang.Off : lang.PanelOn)}";
-    }
 
     private void BuildPanelAudio(StackPanel root)
     {
         var lang = AppContext.AppLang;
-
-        _panelEqOffToggle = new ToggleButton
-        {
-            IsChecked = true,
-            MinWidth = 0,
-            HorizontalAlignment = HorizontalAlignment.Left,
-        };
-        AutomationProperties.SetName(_panelEqOffToggle, lang.PanelEqualizer);
-        UpdatePanelEqToggleLabel();
-        _panelEqOffToggle.Checked += (_, _) =>
-        {
-            if (!PanelUpdating)
-            {
-                MediaPlayer?.Command("set", "af", "");
-            }
-            UpdatePanelEqToggleLabel();
-        };
-        _panelEqOffToggle.Unchecked += (_, _) =>
-        {
-            if (!PanelUpdating)
-            {
-                ApplyEqualizer?.Invoke();
-            }
-            UpdatePanelEqToggleLabel();
-        };
 
         _panelAudioDeviceBox = new ComboBox
         {
@@ -69,7 +32,7 @@ public sealed partial class QuickControlPanel
         }
         _panelAudioDeviceBox.SelectionChanged += (_, _) =>
         {
-            if (PanelUpdating || _panelAudioDeviceBox.SelectedItem is not ComboBoxItem { Tag: string name })
+            if (_panelAudioDeviceBox.SelectedItem is not ComboBoxItem { Tag: string name })
             {
                 return;
             }
@@ -80,8 +43,9 @@ public sealed partial class QuickControlPanel
         {
             MinWidth = 0,
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            PlaceholderText = string.Empty,
+            PlaceholderText = lang.PanelPresetFont,
         };
+        AutomationProperties.SetName(presetBox, lang.PanelPresetFont);
         var presets = new (string Id, double[] Gains)[]
         {
             ("flat", [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
@@ -108,26 +72,16 @@ public sealed partial class QuickControlPanel
                 ApplyPanelPreset(gains);
             }
         };
-        var presetRow = new Grid { ColumnSpacing = 8 };
-        presetRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        presetRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        presetRow.Children.Add(new TextBlock
-        {
-            Text = lang.PanelPresetFont,
-            Style = (Style)Application.Current.Resources["MpvCaptionTextStyle"],
-            VerticalAlignment = VerticalAlignment.Center,
-        });
-        Grid.SetColumn(presetBox, 1);
-        presetRow.Children.Add(presetBox);
 
+        // Two placeholder-led selectors side by side: EQ preset + audio
+        // device, mirroring each other instead of a toggle switch.
         var topRow = new Grid { ColumnSpacing = 8 };
-        topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        topRow.Children.Add(_panelEqOffToggle);
+        topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        topRow.Children.Add(presetBox);
         Grid.SetColumn(_panelAudioDeviceBox, 1);
         topRow.Children.Add(_panelAudioDeviceBox);
         root.Children.Add(PanelOptionCard(topRow));
-        root.Children.Add(PanelOptionCard(presetRow));
 
         var bandLabels = new[] { "60", "170", "310", "600", "1K", "3K", "6K", "12K", "14K", "16K" };
         var bands = EqualizerBands;
@@ -139,10 +93,7 @@ public sealed partial class QuickControlPanel
             band.ValueChanged += value =>
             {
                 EqGains[index] = value;
-                if (!PanelUpdating)
-                {
-                    ApplyEqualizer?.Invoke();
-                }
+                ApplyEqualizer?.Invoke();
             };
             bands.Add(band);
         }
@@ -163,6 +114,21 @@ public sealed partial class QuickControlPanel
             bandGrid.Children.Add(cell);
         }
         root.Children.Add(PanelOptionCard(bandGrid));
+
+        // Quick actions fill the bottom of the audio page: channel cycling
+        // and audio-delay reset (all localized via existing AppLang keys).
+        var channels = PanelIconButton(lang.SettingsAudioChannels, "\uE8D6",
+            () => MediaPlayer?.Command(["cycle-values", "audio-channels", "stereo", "5.1", "7.1", "auto-safe"]));
+        var delayReset = PanelIconButton(lang.SettingsAudioDelay, "\uE916",
+            () => MediaPlayer?.Command("set", "audio-delay", "0"));
+        var quickRow = new StackPanel
+        {
+            Spacing = 8,
+            Margin = new Thickness(0, 8, 0, 8),
+            VerticalAlignment = VerticalAlignment.Top,
+        };
+        quickRow.Children.Add(PanelButtonRow(channels, delayReset));
+        root.Children.Add(PanelOptionCard(quickRow));
     }
 
     private void ApplyPanelPreset(double[] gains)
@@ -184,16 +150,6 @@ public sealed partial class QuickControlPanel
         {
             PanelUpdating = false;
         }
-        if (_panelEqOffToggle is { } toggle)
-        {
-            if (toggle.IsChecked == true)
-            {
-                toggle.IsChecked = false; // the Unchecked handler applies the curve
-            }
-            else
-            {
-                ApplyEqualizer?.Invoke();
-            }
-        }
+        ApplyEqualizer?.Invoke();
     }
 }

@@ -84,11 +84,13 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
   in centered compact mode; the main window is hidden and Alt+F4 restores it.
   Left-press on the PiP video drags the window — do not bind left-click pause
   there.
-- **HDR**: the app writes `user-data/mpvw/color-kind` and the refresh rate;
-  `profiles.conf` switches output. `d3d11-output-csp=display-p3` is invalid —
-  keep the `target-*` triplet for HDR.
-- **thumbfast**: spawns a standalone `mpv.exe` for previews; keep
-  `quit_after_inactivity` non-zero so abrupt app exits do not orphan it.
+- **HDR**: the app writes `user-data/mpvw/color-kind`, the refresh rate and
+  `user-data/mpvw/display-peak` (detected monitor nits or user override);
+  `profiles.conf` switches output and the app applies `target-peak` at runtime
+  (mpv numeric options do not support `${}` property expansion).
+- **Seek preview**: in-process `MpvPreviewer` (second libmpv instance +
+  `mpv_render_context` software rendering) replaces the former thumbfast
+  external `mpv.exe` subprocess; no standalone mpv.exe is shipped anymore.
 - **Fullscreen is driven by mpv's `fullscreen` property** (`HandleFullscreenProperty`
   applies the presenter, full-window page state and overlay; the app button
   only sends `set fullscreen yes/no`). Keep it state-based, never toggle-based,

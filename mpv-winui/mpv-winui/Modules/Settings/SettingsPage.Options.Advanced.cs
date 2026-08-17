@@ -337,6 +337,24 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.DisplayPeak),
+                Label = lang.SettingsDisplayPeak,
+                Category = video,
+                Description = lang.SettingsHelpDisplayPeak,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 10000,
+                Step = 100,
+                Getter = () => (double)AppContext.AppSetting.DisplayPeak,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.DisplayPeak = Convert.ToInt32(v);
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.DisplayPeak), AppContext.AppSetting.DisplayPeak);
+                }
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.GamutMappingMode),
                 Label = lang.SettingsGamutMappingMode,
                 Category = video,
@@ -993,18 +1011,6 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = "PluginSourceHdr",
-                Label = lang.PluginSourceHdrLabel,
-                Category = video,
-                Description = lang.PluginSourceHdrDesc,
-                Type = OptionType.Action,
-                ActionKind = OptionActionKind.Button,
-                ActionLabel = lang.OpenProjectPage,
-                ActionHandler = option => { _ = Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/hooke007/mpv_PlayKit")); }
-            },
-
-            new Option
-            {
                 Key = nameof(AppContext.AppSetting.HdrOverrideMode),
                 Label = lang.SettingsHdrOverrideMode,
                 Category = video,
@@ -1063,18 +1069,6 @@ public sealed partial class SettingsPage
                     AppContext.AppSetting.MetadataOsdEnabled = (bool)v!;
                     AppContext.WritePluginConfigs();
                 }
-            },
-
-            new Option
-            {
-                Key = "PluginSourceMetadataOsd",
-                Label = lang.PluginSourceMetadataOsdLabel,
-                Category = osd,
-                Description = lang.PluginSourceMetadataOsdDesc,
-                Type = OptionType.Action,
-                ActionKind = OptionActionKind.Button,
-                ActionLabel = lang.OpenProjectPage,
-                ActionHandler = option => { _ = Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/vc-01/metadata-osd")); }
             },
 
             new Option
@@ -1247,250 +1241,6 @@ public sealed partial class SettingsPage
                 Setter = v =>
                 {
                     AppContext.AppSetting.MetadataOsdMessageMaxLength = Convert.ToInt32(v);
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastQuality),
-                Label = lang.SettingsThumbfastQuality,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastQuality,
-                Type = OptionType.StringList,
-                AllowCustom = false,
-                Choices =
-                [
-                    new OptionChoice("1", lang.OptionValueThumbfastQualityFast),
-                    new OptionChoice("2", lang.OptionValueThumbfastQualityBalanced),
-                    new OptionChoice("3", lang.OptionValueThumbfastQualityHighest),
-                ],
-                Getter = () => AppContext.AppSetting.ThumbfastQuality.ToString(),
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastQuality = int.TryParse((string)v!, out var q) ? q : 2;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = "PluginSourceThumbfast",
-                Label = lang.PluginSourceThumbfastLabel,
-                Category = playback,
-                Description = lang.PluginSourceThumbfastDesc,
-                Type = OptionType.Action,
-                ActionKind = OptionActionKind.Button,
-                ActionLabel = lang.OpenProjectPage,
-                ActionHandler = option => { _ = Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/po5/thumbfast")); }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastNetwork),
-                Label = lang.SettingsThumbfastNetwork,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastNetwork,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.ThumbfastNetwork,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastNetwork = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastAudio),
-                Label = lang.SettingsThumbfastAudio,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastAudio,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.ThumbfastAudio,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastAudio = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastHwdec),
-                Label = lang.SettingsThumbfastHwdec,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastHwdec,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("yes", lang.OptionValueYes),
-                    new OptionChoice("no", lang.OptionValueNo),
-                ],
-                Getter = () => AppContext.AppSetting.ThumbfastHwdec,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastHwdec = (string)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastMinDuration),
-                Description = lang.SettingsHelpThumbfastMinDuration,
-                Label = lang.SettingsThumbfastMinDuration,
-                Category = playback,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 60,
-                Step = 1,
-                Getter = () => (double)AppContext.AppSetting.ThumbfastMinDuration,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastMinDuration = Convert.ToInt32(v);
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastPrecise),
-                Label = lang.SettingsThumbfastPrecise,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastPrecise,
-                Type = OptionType.StringList,
-                AllowCustom = false,
-                Choices =
-                [
-                    new OptionChoice("0", lang.OptionValueThumbfastPreciseAuto),
-                    new OptionChoice("1", lang.OptionValueThumbfastPreciseKeyframes),
-                    new OptionChoice("2", lang.OptionValueThumbfastPreciseAlways),
-                ],
-                Getter = () => AppContext.AppSetting.ThumbfastPrecise.ToString(),
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastPrecise = int.TryParse((string)v!, out var p) ? p : 0;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastMaxWidth),
-                Description = lang.SettingsHelpThumbfastMaxWidth,
-                Label = lang.SettingsThumbfastMaxWidth,
-                Category = playback,
-                Type = OptionType.Integer,
-                Min = 64,
-                Max = 2000,
-                Step = 16,
-                Getter = () => (double)AppContext.AppSetting.ThumbfastMaxWidth,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastMaxWidth = Convert.ToInt32(v);
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastMaxHeight),
-                Description = lang.SettingsHelpThumbfastMaxHeight,
-                Label = lang.SettingsThumbfastMaxHeight,
-                Category = playback,
-                Type = OptionType.Integer,
-                Min = 64,
-                Max = 4000,
-                Step = 16,
-                Getter = () => (double)AppContext.AppSetting.ThumbfastMaxHeight,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastMaxHeight = Convert.ToInt32(v);
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastSpawnFirst),
-                Label = lang.SettingsThumbfastSpawnFirst,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastSpawnFirst,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.ThumbfastSpawnFirst,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastSpawnFirst = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastThreads),
-                Label = lang.SettingsThumbfastThreads,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastThreads,
-                Type = OptionType.Integer,
-                Min = 1,
-                Max = 16,
-                Step = 1,
-                Getter = () => (double)AppContext.AppSetting.ThumbfastThreads,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastThreads = Convert.ToInt32(v);
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastFrequency),
-                Description = lang.SettingsHelpThumbfastFrequency,
-                Label = lang.SettingsThumbfastFrequency,
-                Category = playback,
-                Type = OptionType.Double,
-                Min = 0.05,
-                Max = 1,
-                Step = 0.05,
-                Getter = () => AppContext.AppSetting.ThumbfastFrequency,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastFrequency = (double)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastDirectIo),
-                Label = lang.SettingsThumbfastDirectIo,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastDirectIo,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.ThumbfastDirectIo,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastDirectIo = (bool)v!;
-                    AppContext.WritePluginConfigs();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThumbfastQuitAfterInactivity),
-                Label = lang.SettingsThumbfastQuitAfterInactivity,
-                Category = playback,
-                Description = lang.SettingsHelpThumbfastQuitAfterInactivity,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 600,
-                Step = 5,
-                Getter = () => (double)AppContext.AppSetting.ThumbfastQuitAfterInactivity,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThumbfastQuitAfterInactivity = Convert.ToInt32(v);
                     AppContext.WritePluginConfigs();
                 }
             },

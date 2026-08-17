@@ -49,22 +49,6 @@ public static class PluginConfigWriter
                 ["names"] = "cover;folder;album;front",
                 ["imageExts"] = "jpg;jpeg;png;bmp;gif;webp",
             },
-            ["thumbfast.conf"] = new()
-            {
-                ["quality"] = "1",
-                ["network"] = "no",
-                ["audio"] = "no",
-                ["hwdec"] = "yes",
-                ["min_duration"] = "0",
-                ["precise"] = "0",
-                ["max_width"] = "200",
-                ["max_height"] = "2000",
-                ["spawn_first"] = "no",
-                ["sw_threads"] = "6",
-                ["frequency"] = "0.15",
-                ["direct_io"] = "yes",
-                ["quit_after_inactivity"] = "0",
-            },
             ["mpvw_hdr_override.conf"] = new()
             {
                 ["mode"] = "",
@@ -109,19 +93,6 @@ public static class PluginConfigWriter
         managed["coverart.conf"]["preload"] = s.CoverArtPreload ? "yes" : "no";
         managed["coverart.conf"]["names"] = s.CoverArtNames;
         managed["coverart.conf"]["imageExts"] = s.CoverArtImageExts;
-        managed["thumbfast.conf"]["quality"] = s.ThumbfastQuality.ToString();
-        managed["thumbfast.conf"]["network"] = s.ThumbfastNetwork ? "yes" : "no";
-        managed["thumbfast.conf"]["audio"] = s.ThumbfastAudio ? "yes" : "no";
-        managed["thumbfast.conf"]["hwdec"] = s.ThumbfastHwdec;
-        managed["thumbfast.conf"]["min_duration"] = s.ThumbfastMinDuration.ToString();
-        managed["thumbfast.conf"]["precise"] = s.ThumbfastPrecise.ToString();
-        managed["thumbfast.conf"]["max_width"] = s.ThumbfastMaxWidth.ToString();
-        managed["thumbfast.conf"]["max_height"] = s.ThumbfastMaxHeight.ToString();
-        managed["thumbfast.conf"]["spawn_first"] = s.ThumbfastSpawnFirst ? "yes" : "no";
-        managed["thumbfast.conf"]["sw_threads"] = s.ThumbfastThreads.ToString();
-        managed["thumbfast.conf"]["frequency"] = s.ThumbfastFrequency.ToString("0.##");
-        managed["thumbfast.conf"]["direct_io"] = s.ThumbfastDirectIo ? "yes" : "no";
-        managed["thumbfast.conf"]["quit_after_inactivity"] = s.ThumbfastQuitAfterInactivity.ToString();
         managed["mpvw_hdr_override.conf"]["mode"] = s.HdrOverrideMode;
 
         var dir = Path.Combine(

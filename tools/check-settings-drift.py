@@ -65,6 +65,7 @@ UNMAPPED_OK = {
     "CurrentLanguage", "WindowRememberSize", "WindowPositionAndSize", "WindowStartMaximized",
     "WindowPiP", "WindowPiPSize", "EnableDebugLog", "TestMpvCommandLog", "TestOsdMessage",
     "TestSignal", "FileAssociationExts", "SettingsSearchHistory", "CheckForUpdates",
+    "DisplayPeak",
     "ControlBarCustomOrder", "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
     "ControlBarZonesClassic", "ControlBarZonesModernX",
     "ControlBarOrderStyleMigrated", "WindowPiPRect", "WindowPiPOpacity",
@@ -81,10 +82,6 @@ UNMAPPED_OK = {
     "MetadataOsdAutohideStatusTimeout", "MetadataOsdShowAlbumTrack",
     "MetadataOsdMessageMaxLength", "CoverArtPreferEmbedded", "CoverArtAlwaysScan",
     "CoverArtLoadFromFilesystem", "CoverArtPreload", "CoverArtNames", "CoverArtImageExts",
-    "ThumbfastQuality", "ThumbfastNetwork", "ThumbfastMinDuration", "ThumbfastPrecise",
-    "ThumbfastMaxWidth", "ThumbfastMaxHeight", "ThumbfastSpawnFirst", "ThumbfastThreads",
-    "ThumbfastFrequency", "ThumbfastDirectIo", "ThumbfastQuitAfterInactivity",
-    "ThumbfastAudio", "ThumbfastHwdec",
     "HdrOverrideMode",
     "CoverArtExts", "MetadataOsdShowAlbum",
     # ManagedMpvConfig channel (ytdl_hook script options in mpv.conf)

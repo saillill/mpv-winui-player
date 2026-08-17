@@ -1,35 +1,22 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace mpv_winui.Modules.Player;
 
-/// <summary>Video page of the quick-control panel (picture sliders and filters).</summary>
+/// <summary>
+/// Video page of the quick-control panel: four narrow horizontal slider
+/// cards (label | slider | value | reset) followed by the filter/zoom rows.
+/// </summary>
 public sealed partial class QuickControlPanel
 {
-    private Slider? _panelBrightnessSlider;
-    private Slider? _panelContrastSlider;
-    private Slider? _panelSaturationSlider;
-    private Slider? _panelHueSlider;
-
     private void BuildPanelVideo(StackPanel root)
     {
         var lang = AppContext.AppLang;
-        _panelBrightnessSlider = PanelPropertySlider("brightness", -100, 100, 1, lang.PanelBrightness);
-        _panelContrastSlider = PanelPropertySlider("contrast", -100, 100, 1, lang.PanelContrast);
-        _panelSaturationSlider = PanelPropertySlider("saturation", -100, 100, 1, lang.PanelSaturation);
-        _panelHueSlider = PanelPropertySlider("hue", -100, 100, 1, lang.PanelHue);
 
-        root.Children.Add(PanelOptionCard(PanelSection(
-            lang.PanelBrightness,
-            PanelSliderWithReset(_panelBrightnessSlider, PanelResetButton("brightness", _panelBrightnessSlider)))));
-        root.Children.Add(PanelOptionCard(PanelSection(
-            lang.PanelContrast,
-            PanelSliderWithReset(_panelContrastSlider, PanelResetButton("contrast", _panelContrastSlider)))));
-        root.Children.Add(PanelOptionCard(PanelSection(
-            lang.PanelSaturation,
-            PanelSliderWithReset(_panelSaturationSlider, PanelResetButton("saturation", _panelSaturationSlider)))));
-        root.Children.Add(PanelOptionCard(PanelSection(
-            lang.PanelHue,
-            PanelSliderWithReset(_panelHueSlider, PanelResetButton("hue", _panelHueSlider)))));
+        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.PanelBrightness, "brightness", -100, 100, 1)));
+        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.PanelContrast, "contrast", -100, 100, 1)));
+        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.PanelSaturation, "saturation", -100, 100, 1)));
+        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.PanelHue, "hue", -100, 100, 1)));
 
         var sharp = PanelToggleButton(lang.PanelSharpen, "\uF47D",
             on => MediaPlayer?.Command("set", "vf", on ? "lavfi=[unsharp=5:5:1.0]" : ""));
@@ -40,7 +27,14 @@ public sealed partial class QuickControlPanel
         var deinterlace = PanelToggleButton(lang.SettingsDeinterlace, "\uF2BE",
             on => MediaPlayer?.Command("set", "deinterlace", on ? "yes" : "no"));
 
-        var effects = new StackPanel { Spacing = 8 };
+        // Top-aligned with a fixed vertical margin so the buttons keep a
+        // consistent gap from the stretched card edges.
+        var effects = new StackPanel
+        {
+            Spacing = 12,
+            Margin = new Thickness(0, 8, 0, 8),
+            VerticalAlignment = VerticalAlignment.Top,
+        };
         effects.Children.Add(PanelButtonRow(sharp, blur, post, deinterlace));
         effects.Children.Add(PanelButtonRow(
             PanelIconButton(lang.PanelRotate, "\uF13E",

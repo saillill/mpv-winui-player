@@ -50,7 +50,12 @@ namespace mpv_winui.Modules.Player
 
             var pivot = new Pivot
             {
-                MinHeight = 340,
+                // Fixed height keeps the flyout the same size across the
+                // audio/video/subtitle tabs; content taller than this scrolls
+                // inside the ScrollViewer instead of resizing the popup.
+                // User preference: ~400px gives the panel a roomier feel while
+                // staying fixed so tabs never resize the flyout.
+                Height = 400,
                 Padding = new Thickness(0),
                 IsHeaderItemsCarouselEnabled = false,
                 IsTabStop = false,
@@ -90,18 +95,25 @@ namespace mpv_winui.Modules.Player
                 // EQ/移动/按钮 cards) - removed.
                 var cards = new StackPanel
                 {
+                    // Keep every tab at the same visible height so switching
+                    // audio/video/subtitles does not resize the flyout.
+                    MinHeight = 320,
                     Spacing = 8,
                     Margin = new Thickness(0, 8, 0, 0),
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                 };
                 build(cards);
-                // Never let a card stretch to fill leftover page height
-                // (that was what inflated the EQ/移动/按钮 cards).
-                foreach (var child in cards.Children)
+                // The last card absorbs the leftover page height so each tab
+                // fills the fixed 400px panel (video buttons, EQ band card,
+                // subtitle style row); earlier cards keep natural height.
+                for (int i = 0; i < cards.Children.Count; i++)
                 {
-                    if (child is FrameworkElement fe)
+                    if (cards.Children[i] is FrameworkElement fe)
                     {
-                        fe.VerticalAlignment = VerticalAlignment.Top;
+                        fe.VerticalAlignment = i == cards.Children.Count - 1
+                            ? VerticalAlignment.Stretch
+                            : VerticalAlignment.Top;
+                        fe.HorizontalAlignment = HorizontalAlignment.Stretch;
                     }
                 }
                 pivot.Items.Add(new PivotItem { Header = header, Content = cards });
