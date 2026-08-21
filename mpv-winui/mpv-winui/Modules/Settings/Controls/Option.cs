@@ -126,7 +126,7 @@ public sealed class Option : INotifyPropertyChanged
     }
 
     /// <summary>File extensions offered by the picker when <see cref="PickFile"/> is true.</summary>
-    public IReadOnlyList<string>? FileTypeFilter
+    public string[]? FileTypeFilter
     {
         get; set;
     }

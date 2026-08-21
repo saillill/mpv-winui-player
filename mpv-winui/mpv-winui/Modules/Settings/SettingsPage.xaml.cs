@@ -89,19 +89,27 @@ public sealed partial class SettingsPage : Page
     {
         var selectedKey = CurrentCategoryKey;
         var offset = OptionsControl.GetScrollOffset();
-        CategoryOrder.Clear();
-        var options = BuildSettings();
-        Settings.Clear();
-        Settings.AddRange(options);
-        Categories.Clear();
-        Categories.AddRange(CategoryOrder.Where(c => Settings.Any(o => o.Category == c)));
-        RebuildSearchIndex();
-        RebuildNavigationItems(selectedKey);
-        ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
-        ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
-        SearchBox.PlaceholderText = AppContext.AppLang.Search;
-        RefreshWarningsAndEnabled();
-        UpdateOptions();
+        _rebuildingContent = true;
+        try
+        {
+            CategoryOrder.Clear();
+            var options = BuildSettings();
+            Settings.Clear();
+            Settings.AddRange(options);
+            Categories.Clear();
+            Categories.AddRange(CategoryOrder.Where(c => Settings.Any(o => o.Category == c)));
+            RebuildSearchIndex();
+            RebuildNavigationItems(selectedKey);
+            ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
+            ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
+            SearchBox.PlaceholderText = AppContext.AppLang.Search;
+            RefreshWarningsAndEnabled();
+            UpdateOptions();
+        }
+        finally
+        {
+            _rebuildingContent = false;
+        }
         if (offset > 0)
         {
             var target = offset;
@@ -142,17 +150,18 @@ public sealed partial class SettingsPage : Page
 
     private const int MaxSearchHistory = 8;
 
-    private void LoadSearchHistory()
+    private void LoadSearchHistory() => RestoreSearchHistorySuggestions();
+
+    /// <summary>Refills the suggestion list with the saved search history
+    /// (used at construction and whenever an active query is cleared).</summary>
+    private void RestoreSearchHistorySuggestions()
     {
         var history = AppContext.AppSetting.SettingsSearchHistory
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(DecodeHistoryEntry)
             .Take(MaxSearchHistory)
             .ToList();
-        if (history.Count > 0)
-        {
-            SearchBox.ItemsSource = history;
-        }
+        SearchBox.ItemsSource = history.Count > 0 ? history : null;
     }
 
     private void RememberSearchQuery(string query)
@@ -362,7 +371,24 @@ public sealed partial class SettingsPage : Page
         });
     }
 
-    private void CategoryNav_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args) => UpdateOptions();
+    /// <summary>True while <see cref="RebuildLocalizedContent"/> re-selects the
+    /// category programmatically; the selection-changed handler must not treat
+    /// that as a user click and clear the active search.</summary>
+    private bool _rebuildingContent;
+
+    private void CategoryNav_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+        // A user click on a category ends an active search: the list switches
+        // to that category, so what is shown matches the footer's reset target.
+        if (!_rebuildingContent && !string.IsNullOrEmpty(SearchBox.Text))
+        {
+            _searchDebounceTimer.Stop();
+            _pendingSearchQuery = string.Empty;
+            SearchBox.Text = string.Empty;
+            RestoreSearchHistorySuggestions();
+        }
+        UpdateOptions();
+    }
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
@@ -376,7 +402,7 @@ public sealed partial class SettingsPage : Page
         {
             _searchDebounceTimer.Stop();
             _pendingSearchQuery = string.Empty;
-            SearchBox.ItemsSource = null;
+            RestoreSearchHistorySuggestions();
             UpdateOptions();
             return;
         }
@@ -632,10 +658,14 @@ public sealed partial class SettingsPage : Page
         var query = SearchBox.Text?.Trim() ?? string.Empty;
         if (!string.IsNullOrEmpty(query))
         {
+            // Global search results span categories, so "reset current
+            // category" has no visible target until the query is cleared.
+            ResetButton.IsEnabled = false;
             OptionsControl.OptionList = Settings.Where(o => FuzzyMatchOption(query, o)).ToList();
             return;
         }
 
+        ResetButton.IsEnabled = true;
         var selected = CurrentCategory;
         OptionsControl.OptionList = selected is null
             ? Settings

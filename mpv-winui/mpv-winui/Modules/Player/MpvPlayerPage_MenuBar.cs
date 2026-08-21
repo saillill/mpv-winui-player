@@ -104,7 +104,8 @@ public sealed partial class MpvPlayerPage
         var menus = MenuDefinitionSource.TryLoad();
         if (menus is { Count: > 0 })
         {
-            MenuBarBuilder.Build(MainMenuBar, menus, KnownMenuActions, MenuFlyoutItem_Click);
+            MenuBarBuilder.Build(MainMenuBar, menus, KnownMenuActions, MenuFlyoutItem_Click,
+                MenuShortcutHints.FindForCommand);
         }
     }
 

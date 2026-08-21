@@ -1786,11 +1786,11 @@ namespace mpv_winui.Modules.Player
                     case < 34:
                         VisualStateManager.GoToState(this, "VolumeState1", useTransitions);
                         break;
-                    case < 67:
-                        VisualStateManager.GoToState(this, "VolumeState2", useTransitions);
-                        break;
                     default:
-                        VisualStateManager.GoToState(this, "VolumeState3", useTransitions);
+                        // Medium and high volume share one glyph (the bundled
+                        // font has no distinct fourth step), so both ranges
+                        // land in VolumeState2.
+                        VisualStateManager.GoToState(this, "VolumeState2", useTransitions);
                         break;
                 }
             }

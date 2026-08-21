@@ -23,7 +23,8 @@ public static class MenuBarBuilder
         MenuBar menuBar,
         IReadOnlyList<MenuDefinition> menus,
         IReadOnlySet<string> knownActions,
-        RoutedEventHandler itemClick)
+        RoutedEventHandler itemClick,
+        Func<string?, string?>? commandHintResolver = null)
     {
         menuBar.Items.Clear();
         foreach (var top in menus)
@@ -43,7 +44,7 @@ public static class MenuBarBuilder
                 Tag = top,
                 IsTabStop = false,
             };
-            AddItems(barItem.Items, children, knownActions, itemClick);
+            AddItems(barItem.Items, children, knownActions, itemClick, commandHintResolver);
             if (barItem.Items.Count > 0)
             {
                 menuBar.Items.Add(barItem);
@@ -55,7 +56,8 @@ public static class MenuBarBuilder
         IList<MenuFlyoutItemBase> target,
         IReadOnlyList<MenuDefinition> items,
         IReadOnlySet<string> knownActions,
-        RoutedEventHandler itemClick)
+        RoutedEventHandler itemClick,
+        Func<string?, string?>? commandHintResolver)
     {
         // Drop leading separators, collapse consecutive ones and never leave a
         // dangling divider (trailing, or before a skipped/empty item), so a
@@ -83,7 +85,7 @@ public static class MenuBarBuilder
                 {
                     Text = ResolveLabel(entry),
                 };
-                AddItems(sub.Items, children, knownActions, itemClick);
+                AddItems(sub.Items, children, knownActions, itemClick, commandHintResolver);
                 if (sub.Items.Count == 0)
                 {
                     // Empty submenu: drop it and any pending separator.
@@ -117,9 +119,20 @@ public static class MenuBarBuilder
                 pendingSeparator = false;
             }
 
+            var text = ResolveLabel(entry);
+            // Display-only shortcut hint from input.conf (never a real
+            // KeyboardAccelerator: keys are forwarded to mpv by a hook, an
+            // accelerator would fire the command twice).
+            if (commandHintResolver is not null
+                && !string.IsNullOrEmpty(entry.MpvCommand)
+                && commandHintResolver(entry.MpvCommand) is { } hint)
+            {
+                text = $"{text}  ({hint})";
+            }
+
             var item = new MenuFlyoutItem
             {
-                Text = ResolveLabel(entry),
+                Text = text,
                 Tag = entry,
                 IsTabStop = false,
             };
