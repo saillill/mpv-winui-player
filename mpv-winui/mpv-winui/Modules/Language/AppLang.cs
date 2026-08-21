@@ -126,6 +126,7 @@ namespace mpv_winui.Modules.Language
         public string SectionNetworkYtdlp { get; set; } = "yt-dlp (YouTube / Bilibili)";
         public string SectionNetworkHttp { get; set; } = "HTTP";
         public string SectionNetworkCurl { get; set; } = "libcurl backend";
+        public string SectionTrackSelection { get; set; } = "Track selection";
         public string SettingsYtdlFormat { get; set; } = "yt-dlp format";
         public string SettingsHelpYtdlFormat { get; set; } = "Format string passed to yt-dlp, e.g. bestvideo+bestaudio/best, mp4, webm. Leave empty for yt-dlp defaults.";
         public string SettingsYtdlPath { get; set; } = "yt-dlp executable";
@@ -191,6 +192,14 @@ namespace mpv_winui.Modules.Language
         public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
         public string CustomRate { get; set; } = "Custom speed";
         public string DisplayInfo { get; set; } = "Display info";
+        public string DisplayInfoTitle { get; set; } = "Display info";
+        public string DisplayInfoDetectedKind { get; set; } = "Detected color kind";
+        public string DisplayInfoAdvancedColor { get; set; } = "Advanced color";
+        public string DisplayInfoSdrWhiteLevel { get; set; } = "SDR white level";
+        public string DisplayInfoMaxLuminance { get; set; } = "Max luminance";
+        public string DisplayInfoMinLuminance { get; set; } = "Min luminance";
+        public string DisplayInfoRefreshRate { get; set; } = "Refresh rate";
+        public string DisplayInfoProfilesNote { get; set; } = "kind drives profiles.conf [mpvw-sdr|mpvw-wcg|mpvw-hdr].";
         public string SettingsControlBarCanvasHint { get; set; } = "Drag the icons to reorder; drag off the bar to hide. The transport buttons are fixed.";
         public string SettingsControlBarCustomize { get; set; } = "Customize";
         public string SettingsCheckForUpdates { get; set; } = "Check for updates";
@@ -317,9 +326,9 @@ namespace mpv_winui.Modules.Language
         // Section captions split each category into topic groups.
         public string SectionProgramInterface { get; set; } = "Interface";
         public string SectionProgramLanguageLog { get; set; } = "Language & logging";
-        public string SectionProgramNetwork { get; set; } = "Network integration";
         public string SectionProgramTesting { get; set; } = "Testing";
         public string SectionPlayback { get; set; } = "Playback";
+        public string SectionReversePlayback { get; set; } = "Reverse playback";
         public string SectionPlaybackSeeking { get; set; } = "Seeking";
         public string SectionPlaybackSeekPreview { get; set; } = "Thumbnails";
         public string SectionTrackLanguage { get; set; } = "Preferred languages";

@@ -134,22 +134,23 @@ namespace mpv_winui.Modules.Player
                 var maxLuma = colorInfo?.MaxLuminanceInNits.ToString("0.0") ?? "n/a";
                 var minLuma = colorInfo?.MinLuminanceInNits.ToString("0.0") ?? "n/a";
                 var rate = _lastRefreshRate;
+                var lang = AppContext.AppLang;
                 var lines = new[]
                 {
-                    $"Detected kind     : {kind}",
-                    $"Advanced color   : {advanced}",
-                    $"SDR white level  : {sdrWhite} nits",
-                    $"Max luminance    : {maxLuma} nits",
-                    $"Min luminance    : {minLuma} nits",
-                    $"Refresh rate     : {rate} Hz",
+                    $"{lang.DisplayInfoDetectedKind}: {kind}",
+                    $"{lang.DisplayInfoAdvancedColor}: {advanced}",
+                    $"{lang.DisplayInfoSdrWhiteLevel}: {sdrWhite} nits",
+                    $"{lang.DisplayInfoMaxLuminance}: {maxLuma} nits",
+                    $"{lang.DisplayInfoMinLuminance}: {minLuma} nits",
+                    $"{lang.DisplayInfoRefreshRate}: {rate} Hz",
                     "",
-                    "kind drives profiles.conf [mpvw-sdr|mpvw-wcg|mpvw-hdr].",
+                    lang.DisplayInfoProfilesNote,
                 };
                 var dialog = new ContentDialog
                 {
-                    Title = "Display info",
+                    Title = lang.DisplayInfoTitle,
                     Content = new TextBlock { Text = string.Join("\n", lines), TextWrapping = TextWrapping.Wrap },
-                    CloseButtonText = "OK",
+                    CloseButtonText = lang.Ok,
                     XamlRoot = XamlRoot,
                 };
                 await dialog.ShowAsync();

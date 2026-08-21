@@ -32,7 +32,6 @@ private List<Option> BuildSettings()
         var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
         var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
-        var sProgramNetwork = AppContext.AppLang.SectionProgramNetwork;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var sProgramAssociations = AppContext.AppLang.SectionProgramAssociations;
         var sProgramConfig = AppContext.AppLang.SectionProgramConfig;
@@ -41,8 +40,10 @@ private List<Option> BuildSettings()
         var sNetworkHttp = AppContext.AppLang.SectionNetworkHttp;
         var sNetworkCurl = AppContext.AppLang.SectionNetworkCurl;
         var sPlayback = AppContext.AppLang.SectionPlayback;
+        var sReversePlayback = AppContext.AppLang.SectionReversePlayback;
         var sPlaybackSeeking = AppContext.AppLang.SectionPlaybackSeeking;
         var sPlaybackSeekPreview = AppContext.AppLang.SectionPlaybackSeekPreview;
+        var sTrackSelection = AppContext.AppLang.SectionTrackSelection;
         var sTrackLanguage = AppContext.AppLang.SectionTrackLanguage;
         var sTrackFallback = AppContext.AppLang.SectionTrackFallback;
         var sWatchLaterResume = AppContext.AppLang.SectionWatchLaterResume;
@@ -128,7 +129,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.TestOsdMessage)] = 7,
             [nameof(AppSettings.TestSignal)] = 8,
             [nameof(AppSettings.CurrentLanguage)] = 9,
-            [nameof(AppSettings.EnableDebugLog)] = 9,
+            [nameof(AppSettings.EnableDebugLog)] = 10,
             [nameof(AppSettings.Ytdl)] = 11,
             [nameof(AppSettings.YtdlRawOptionsAppend)] = 12,
             [nameof(AppSettings.Speed)] = 15,
@@ -279,7 +280,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.TargetTrc)] = 171,
             [nameof(AppSettings.TargetPeak)] = 172,
             [nameof(AppSettings.DisplayPeak)] = 173,
-            [nameof(AppSettings.GamutMappingMode)] = 173,
+            [nameof(AppSettings.GamutMappingMode)] = 184,
             [nameof(AppSettings.IccProfileAuto)] = 174,
             [nameof(AppSettings.IccProfile)] = 175,
             [nameof(AppSettings.IccForceContrast)] = 176,
@@ -330,6 +331,7 @@ private List<Option> BuildSettings()
             ["ActionUnassociateFiles"] = 217,
             ["ActionExportConfig"] = 218,
             ["ActionImportConfig"] = 219,
+            [nameof(AppSettings.CheckForUpdates)] = 220,
             [nameof(AppSettings.ControlBarLayout)] = 220,
             [nameof(AppSettings.ControlBarHiddenIcons)] = 221,
             [nameof(AppSettings.AudioSpdif)] = 300,
@@ -394,11 +396,13 @@ private List<Option> BuildSettings()
         {
             [sProgramInterface] = 0,
             [sProgramLanguageLog] = 1,
-            [sPlayback] = 2,
-            [sPlaybackSeeking] = 3,
-            [sPlaybackSeekPreview] = 4,
-            [sWatchLaterResume] = 5,
-            [sWatchLaterStorage] = 6,
+            [sTrackSelection] = 2,
+            [sPlayback] = 3,
+            [sReversePlayback] = 4,
+            [sPlaybackSeeking] = 5,
+            [sPlaybackSeekPreview] = 6,
+            [sWatchLaterResume] = 7,
+            [sWatchLaterStorage] = 8,
             [sVideoDecode] = 7,
             [sVideoImage] = 8,
             [sVideoFilters] = 9,
@@ -422,7 +426,6 @@ private List<Option> BuildSettings()
             [sDemuxerPlaylist] = 27,
             [sDemuxerBuffering] = 28,
             [sCache] = 29,
-            [sProgramNetwork] = 30,
             [sOsd] = 32,
             [sOsdMetadata] = 33,
             [sScreenshotLocation] = 34,
@@ -446,15 +449,15 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.ThemeLuminosity)] = sProgramInterface,
             [nameof(AppSettings.UiFont)] = sProgramInterface,
             [nameof(AppSettings.CurrentLanguage)] = sProgramLanguageLog,
-            [nameof(AppSettings.CheckForUpdates)] = sProgramInterface,
+            [nameof(AppSettings.CheckForUpdates)] = sProgramConfig,
             // preset keys are option keys, not AppSettings properties
             [nameof(AppSettings.EnableDebugLog)] = sProgramLanguageLog,
             // playback
             [nameof(AppSettings.Speed)] = sPlayback,
             [nameof(AppSettings.LoopPlaylist)] = sPlayback,
             [nameof(AppSettings.LoopFile)] = sPlayback,
-            [nameof(AppSettings.VideoReversalBuffer)] = sPlayback,
-            [nameof(AppSettings.AudioReversalBuffer)] = sPlayback,
+            [nameof(AppSettings.VideoReversalBuffer)] = sReversePlayback,
+            [nameof(AppSettings.AudioReversalBuffer)] = sReversePlayback,
             [nameof(AppSettings.HrSeek)] = sPlaybackSeeking,
             [nameof(AppSettings.HrSeekFramedrop)] = sPlaybackSeeking,
             [nameof(AppSettings.SeekHoldEnabled)] = sPlaybackSeeking,
@@ -475,7 +478,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.VideoUnscaled)] = sVideoImage,
             [nameof(AppSettings.VideoOutputLevels)] = sVideoImage,
             [nameof(AppSettings.HdrAutoMode)] = sVideoFilters,
-            [nameof(AppSettings.HdrOverrideMode)] = sVideoFilters,
+            [nameof(AppSettings.HdrOverrideMode)] = sGpuColor,
             [nameof(AppSettings.HdrAutoLog)] = sVideoFilters,
             [nameof(AppSettings.VsrAutoEnabled)] = sVideoFilters,
             [nameof(AppSettings.Scale)] = sGpuScaling,
@@ -560,7 +563,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CoverArtNames)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtImageExts)] = sAudioCoverArt,
             // subtitles
-            [nameof(AppSettings.AudioLanguage)] = sTrackLanguage,
+            [nameof(AppSettings.AudioLanguage)] = sTrackSelection,
             [nameof(AppSettings.SubtitleLanguage)] = sTrackLanguage,
             [nameof(AppSettings.SubFallback)] = sTrackFallback,
             [nameof(AppSettings.SubFontSize)] = sSubtitleText,
@@ -633,8 +636,8 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CachePauseInitial)] = sCache,
             [nameof(AppSettings.CachePauseWait)] = sCache,
                         // network
-            [nameof(AppSettings.Ytdl)] = sProgramNetwork,
-            [nameof(AppSettings.YtdlRawOptionsAppend)] = sProgramNetwork,
+            [nameof(AppSettings.Ytdl)] = sNetworkYtdlp,
+            [nameof(AppSettings.YtdlRawOptionsAppend)] = sNetworkYtdlp,
             [nameof(AppSettings.YtdlFormat)] = sNetworkYtdlp,
             [nameof(AppSettings.YtdlPath)] = sNetworkYtdlp,
             [nameof(AppSettings.YtdlTryFirst)] = sNetworkYtdlp,
@@ -656,7 +659,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CurlBufferSize)] = sNetworkCurl,
             [nameof(AppSettings.CurlMaxRequestSize)] = sNetworkCurl,
             // input (program category; not shortcut bindings)
-            [nameof(AppSettings.InputIme)] = sProgramInterface,
+            [nameof(AppSettings.InputIme)] = sProgramConfig,
             [nameof(AppSettings.InputIpcServer)] = sProgramConfig,
             // program actions
             ["FileAssociationCheckList"] = sProgramAssociations,

@@ -26,6 +26,21 @@ public sealed partial class SettingsPage
         return
         [
             // ===== Audio / 音频 =====
+            // Preferred audio language: a track-selection preference, so it
+            // leads the category (its own "Track selection" section) instead
+            // of hiding among the output device options.
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioLanguage),
+                Description = lang.SettingsHelpAudioLanguage,
+                Label = lang.SettingsAudioLanguage,
+                Category = audio,
+                Type = OptionType.StringList,
+                Choices = LanguageChoices(true),
+                Getter = () => AppContext.AppSetting.AudioLanguage,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioLanguage), AppContext.AppSetting.AudioLanguage = (string)v!)
+            },
+
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AudioDevice),

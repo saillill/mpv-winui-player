@@ -225,21 +225,9 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubMarginY), AppContext.AppSetting.SubMarginY = Convert.ToInt32(v))
             },
 
-            // Track language: the audio preferred language lives next to the
-            // subtitle preferred language (both drive track selection), not in
-            // the audio output section.
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.AudioLanguage),
-                Description = lang.SettingsHelpAudioLanguage,
-                Label = lang.SettingsAudioLanguage,
-                Category = subtitles,
-                Type = OptionType.StringList,
-                Choices = LanguageChoices(true),
-                Getter = () => AppContext.AppSetting.AudioLanguage,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioLanguage), AppContext.AppSetting.AudioLanguage = (string)v!)
-            },
-
+            // Track language: the preferred audio language lives in the audio
+            // category (SectionTrackSelection); only the subtitle language
+            // stays with the subtitle settings.
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubtitleLanguage),

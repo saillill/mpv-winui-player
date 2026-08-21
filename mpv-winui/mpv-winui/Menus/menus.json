@@ -81,9 +81,9 @@
     "id": "help",
     "labelKey": "MenuHelp",
     "children": [
-      { "id": "about", "labelKey": "HelpAbout", "action": "about" },
       { "id": "display-info", "labelKey": "DisplayInfo", "action": "display-info" },
-      { "id": "mpv-docs", "labelKey": "HelpMpvDocs", "action": "mpv-docs" }
+      { "id": "mpv-docs", "labelKey": "HelpMpvDocs", "action": "mpv-docs" },
+      { "id": "about", "labelKey": "HelpAbout", "action": "about" }
     ]
   }
 ]
