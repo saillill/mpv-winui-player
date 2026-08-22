@@ -13,6 +13,11 @@
 
 namespace winrt::mpv_winrt::implementation
 {
+    // Thumbfast-style seek preview worker: a second libmpv instance that
+    // answers hover requests with cheap keyframe seeks. Renders are gated on
+    // seek completion (the "seeking" flag), requests issued before the media
+    // finishes loading are deferred until MPV reports FILE_LOADED, and a
+    // demuxer cache keeps back-and-forth scrubbing off the disk.
     struct MpvPreviewer : MpvPreviewerT<MpvPreviewer>
     {
         MpvPreviewer();
@@ -28,7 +33,10 @@ namespace winrt::mpv_winrt::implementation
         void CreateContext();
         void SetOption(std::string const& name, std::string const& value);
         void CreateRenderContext();
-        void RenderLoop();
+        void WorkerLoop();
+        void DrainEvents();
+        void OnFileLoaded();
+        void RequestSeek(double position);
         void RenderFrame();
         static void SwRenderUpdateCallback(void* cb_ctx);
         void NotifyFrameReady();
@@ -46,7 +54,7 @@ namespace winrt::mpv_winrt::implementation
         size_t m_stride{0};
         size_t m_size{0};
 
-        std::thread m_renderThread;
+        std::thread m_workerThread;
         std::mutex m_renderMutex;
         std::mutex m_lifecycleMutex;
         std::condition_variable m_renderCv;
@@ -54,6 +62,11 @@ namespace winrt::mpv_winrt::implementation
         bool m_quit{false};
         bool m_initialized{false};
         bool m_destroyed{false};
+
+        // Preview media state, guarded by m_renderMutex (written on the
+        // worker thread, read from caller threads via LoadFile/SetPosition).
+        bool m_mediaReady{false};
+        double m_pendingPos{-1};
     };
 }
 

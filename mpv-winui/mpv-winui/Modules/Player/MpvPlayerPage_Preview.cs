@@ -27,6 +27,10 @@ namespace mpv_winui.Modules.Player
         private double _lastPreviewSec = -1;
         private (string Path, double Sec)? _pendingPreviewerRequest;
 
+        // False when the pending request comes from the MediaOpened warmup:
+        // the previewer then just loads the file without showing the card.
+        private bool _pendingPreviewShow = true;
+
         private void SetupPreview()
         {
             _logger.Debug("SetupPreview called, enabled={}", AppContext.AppSetting.EnableVideoPreview);
@@ -35,6 +39,7 @@ namespace mpv_winui.Modules.Player
                 _previewerCleanedUp = false;
                 PlayerControl.PreviewUpdateRequested += PlayerControl_PreviewUpdateRequested;
                 PlayerControl.PreviewClearRequested += PlayerControl_PreviewClearRequested;
+                _mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
                 _previewThrottleTimer = DispatcherQueue.CreateTimer();
                 _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(40);
                 _previewThrottleTimer.Tick += PreviewThrottleTick;
@@ -52,8 +57,52 @@ namespace mpv_winui.Modules.Player
             }
             PlayerControl.PreviewUpdateRequested -= PlayerControl_PreviewUpdateRequested;
             PlayerControl.PreviewClearRequested -= PlayerControl_PreviewClearRequested;
+            _mediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
             HidePreview();
             DestroyPreviewer();
+        }
+
+        // Thumbfast-style worker warmup: feed the file to the preview
+        // instance as soon as playback starts, so the first hover shows a
+        // thumbnail instead of waiting for a second mpv to boot.
+        private void MediaPlayer_MediaOpened(object? sender, object? args)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    var path = CurrentPlaybackPath();
+                    if (string.IsNullOrEmpty(path))
+                    {
+                        return;
+                    }
+
+                    if (_previewer is not null)
+                    {
+                        WarmupPreviewerWith(path);
+                        return;
+                    }
+
+                    _pendingPreviewerRequest = (path, 0);
+                    _pendingPreviewShow = false;
+                    _previewerInitTask ??= InitializePreviewerAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "preview warmup failed");
+                }
+            });
+        }
+
+        private void WarmupPreviewerWith(string path)
+        {
+            if (string.Equals(_previewLoadedPath, path, StringComparison.Ordinal))
+            {
+                return;
+            }
+            _previewLoadedPath = path;
+            _lastPreviewSec = -1;
+            Task.Run(() => _previewer?.LoadFile(path)).FireAndForget(OnException);
         }
 
         private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double RelativeX, double RelativeY) args)
@@ -103,6 +152,7 @@ namespace mpv_winui.Modules.Player
                 }
 
                 _pendingPreviewerRequest = (path, hoverSec);
+                _pendingPreviewShow = true;
                 _previewerInitTask ??= InitializePreviewerAsync();
             }
             catch (Exception ex)
@@ -137,7 +187,16 @@ namespace mpv_winui.Modules.Player
                 if (_pendingPreviewerRequest is { } pending)
                 {
                     _pendingPreviewerRequest = null;
-                    ShowPreviewAtCore(pending.Path, pending.Sec);
+                    if (_pendingPreviewShow)
+                    {
+                        ShowPreviewAtCore(pending.Path, pending.Sec);
+                    }
+                    else
+                    {
+                        // Warmup request: load the file silently, the card
+                        // only appears on a real hover.
+                        WarmupPreviewerWith(pending.Path);
+                    }
                 }
             }
             catch (Exception ex)
@@ -190,8 +249,11 @@ namespace mpv_winui.Modules.Player
                 }).FireAndForget(OnException);
                 _lastPreviewSec = sec;
             }
-            else if (Math.Abs(sec - _lastPreviewSec) > 0.05)
+            else if (Math.Abs(sec - _lastPreviewSec) > 0.25)
             {
+                // Keyframe seeks snap to the nearest keyframe anyway (usually
+                // seconds apart), so requests finer than this only burn seek
+                // commands without changing the shown frame.
                 _previewer.SetPosition(sec);
                 _lastPreviewSec = sec;
             }

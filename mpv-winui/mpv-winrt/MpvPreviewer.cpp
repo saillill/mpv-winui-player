@@ -75,7 +75,13 @@ namespace winrt::mpv_winrt::implementation
                 SetOption("hr-seek", "no");
                 SetOption("audio", "no");
                 SetOption("terminal", "no");
-                SetOption("cache", "no");
+                // A demuxer cache is what keeps back-and-forth scrubbing off
+                // the disk: with cache disabled every backward seek re-read
+                // the file, which made hovering over the seek bar stutter.
+                SetOption("cache", "yes");
+                SetOption("demuxer-readahead-secs", "10");
+                SetOption("demuxer-max-bytes", "33554432");
+                SetOption("demuxer-max-back-bytes", "16777216");
                 SetOption("hwdec", "auto");
 
                 if (mpv_initialize(m_mpv) < 0)
@@ -121,7 +127,7 @@ namespace winrt::mpv_winrt::implementation
                 std::lock_guard lock(m_renderMutex);
                 m_quit = false;
             }
-            m_renderThread = std::thread([this]() { RenderLoop(); });
+            m_workerThread = std::thread([this]() { WorkerLoop(); });
             m_initialized = true;
         }
     }
@@ -154,12 +160,16 @@ namespace winrt::mpv_winrt::implementation
         m_renderCv.notify_one();
     }
 
-    void MpvPreviewer::RenderLoop()
+    // One worker for both concerns: draining the mpv event queue (so async
+    // seek replies and FILE_LOADED never pile up unconsumed) and rendering
+    // frames once a seek has settled. The wait timeout makes events drain
+    // even when no frame is being produced (e.g. while a file loads).
+    void MpvPreviewer::WorkerLoop()
     {
         while (true)
         {
             std::unique_lock lock(m_renderMutex);
-            m_renderCv.wait(lock, [this]() { return m_framePending || m_quit; });
+            m_renderCv.wait_for(lock, std::chrono::milliseconds(50), [this]() { return m_framePending || m_quit; });
             m_framePending = false;
             if (m_quit)
             {
@@ -167,13 +177,166 @@ namespace winrt::mpv_winrt::implementation
             }
             lock.unlock();
 
+            DrainEvents();
             RenderFrame();
         }
     }
 
+    void MpvPreviewer::DrainEvents()
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        while (m_mpv)
+        {
+            mpv_event* event = mpv_wait_event(m_mpv, 0);
+            if (event->event_id == MPV_EVENT_NONE || event->event_id == MPV_EVENT_IDLE)
+            {
+                break;
+            }
+
+            if (event->event_id == MPV_EVENT_FILE_LOADED)
+            {
+                OnFileLoaded();
+            }
+        }
+    }
+
+    // loadfile completes asynchronously; seeks issued before this point would
+    // land on the previous file or fail outright, so any position requested
+    // meanwhile is replayed here.
+    void MpvPreviewer::OnFileLoaded()
+    {
+        double pending = -1;
+        {
+            std::lock_guard lock(m_renderMutex);
+            m_mediaReady = true;
+            pending = m_pendingPos;
+            m_pendingPos = -1;
+        }
+
+        int paused = 1;
+        mpv_set_property(m_mpv, "pause", MPV_FORMAT_FLAG, &paused);
+
+        if (pending >= 0)
+        {
+            RequestSeek(pending);
+        }
+    }
+
+    void MpvPreviewer::LoadFile(winrt::hstring const& url)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        {
+            std::lock_guard lock(m_renderMutex);
+            m_mediaReady = false;
+            m_pendingPos = -1;
+        }
+
+        std::string urlStr = winrt::to_string(url);
+        const char* cmd[] = {"loadfile", urlStr.c_str(), "replace", nullptr};
+        mpv_command_async(m_mpv, 0, cmd);
+    }
+
+    // Thumbfast-style request path: a non-blocking keyframe seek. mpv itself
+    // coalesces queued seeks, and the render gate below skips frames until
+    // the seek settles, so hover storms never queue unbounded work.
+    void MpvPreviewer::RequestSeek(double position)
+    {
+        char time[32];
+        snprintf(time, sizeof(time), "%.3f", position);
+        const char* cmd[] = {"seek", time, "absolute+keyframe", nullptr};
+        mpv_command_async(m_mpv, 0, cmd);
+    }
+
+    void MpvPreviewer::SetPosition(double position)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        bool ready;
+        {
+            std::lock_guard lock(m_renderMutex);
+            ready = m_mediaReady;
+            if (!ready)
+            {
+                m_pendingPos = position;
+            }
+        }
+
+        if (ready)
+        {
+            RequestSeek(position);
+        }
+    }
+
+    void MpvPreviewer::Pause()
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+        int paused = 1;
+        mpv_set_property(m_mpv, "pause", MPV_FORMAT_FLAG, &paused);
+    }
+
+    void MpvPreviewer::Destroy()
+    {
+        std::lock_guard lifecycleLock(m_lifecycleMutex);
+        m_destroyed = true;
+        if (m_initialized)
+        {
+            m_initialized = false;
+            {
+                std::lock_guard lock(m_renderMutex);
+                m_quit = true;
+            }
+            m_renderCv.notify_all();
+            if (m_workerThread.joinable())
+            {
+                m_workerThread.join();
+            }
+        }
+
+        if (m_renderContext)
+        {
+            mpv_render_context_set_update_callback(m_renderContext, nullptr, nullptr);
+            mpv_render_context_free(m_renderContext);
+            m_renderContext = nullptr;
+        }
+
+        if (m_mpv)
+        {
+            mpv_terminate_destroy(m_mpv);
+            m_mpv = nullptr;
+        }
+
+        m_bitmapData = nullptr;
+        m_bitmap = nullptr;
+        m_dispatcher = nullptr;
+    }
+
     void MpvPreviewer::RenderFrame()
     {
-        if (!m_renderContext || !m_bitmapData)
+        if (!m_renderContext || !m_bitmapData || !m_mpv)
+        {
+            return;
+        }
+
+        // Never render mid-seek: the update callback also fires when a seek
+        // starts, and drawing then shows stale frames and wastes a full sw
+        // render per hover tick. The callback fires again once the seek
+        // lands, which is when the thumbnail actually gets drawn.
+        int seeking = 0;
+        if (mpv_get_property(m_mpv, "seeking", MPV_FORMAT_FLAG, &seeking) >= 0 && seeking)
         {
             return;
         }
@@ -210,72 +373,5 @@ namespace winrt::mpv_winrt::implementation
                 }
             });
         }
-    }
-
-    void MpvPreviewer::LoadFile(winrt::hstring const& url)
-    {
-        if (!m_mpv)
-        {
-            return;
-        }
-
-        std::string urlStr = winrt::to_string(url);
-        const char* cmd[] = {"loadfile", urlStr.c_str(), "replace", nullptr};
-        mpv_command(m_mpv, cmd);
-    }
-
-    void MpvPreviewer::SetPosition(double position)
-    {
-        if (!m_mpv)
-        {
-            return;
-        }
-        mpv_set_property(m_mpv, "time-pos", MPV_FORMAT_DOUBLE, &position);
-    }
-
-    void MpvPreviewer::Pause()
-    {
-        if (!m_mpv)
-        {
-            return;
-        }
-        int paused = 1;
-        mpv_set_property(m_mpv, "pause", MPV_FORMAT_FLAG, &paused);
-    }
-
-    void MpvPreviewer::Destroy()
-    {
-        std::lock_guard lifecycleLock(m_lifecycleMutex);
-        m_destroyed = true;
-        if (m_initialized)
-        {
-            m_initialized = false;
-            {
-                std::lock_guard lock(m_renderMutex);
-                m_quit = true;
-            }
-            m_renderCv.notify_all();
-            if (m_renderThread.joinable())
-            {
-                m_renderThread.join();
-            }
-        }
-
-        if (m_renderContext)
-        {
-            mpv_render_context_set_update_callback(m_renderContext, nullptr, nullptr);
-            mpv_render_context_free(m_renderContext);
-            m_renderContext = nullptr;
-        }
-
-        if (m_mpv)
-        {
-            mpv_terminate_destroy(m_mpv);
-            m_mpv = nullptr;
-        }
-
-        m_bitmapData = nullptr;
-        m_bitmap = nullptr;
-        m_dispatcher = nullptr;
     }
 }
