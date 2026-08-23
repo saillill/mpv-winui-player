@@ -355,7 +355,13 @@
                                         <Setter Property="TabNavigation" Value="Cycle" />
                                         <Setter Property="Padding" Value="0" />
                                         <Setter Property="MaxWidth" Value="560" />
-                                        <Setter Property="MaxHeight" Value="480" />
+                                        <!-- Cap near full screen height: the audio
+                                             tab's cards exceed the old 480px cap,
+                                             hiding the device/delay sections behind
+                                             an easy-to-miss scrollbar. The flyout
+                                             still shrinks to the real placement
+                                             space, and the panel scrolls inside. -->
+                                        <Setter Property="MaxHeight" Value="720" />
                                         <Setter Property="IsDefaultShadowEnabled" Value="True" />
                                         <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
                                         <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
