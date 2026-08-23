@@ -190,7 +190,7 @@ public sealed partial class PiPWindow : Window
 
     public void ShowPiP(int width, int height)
     {
-        RootGrid.Opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
+        ApplyOpacity();
         // H2: restore the saved position/size when present, otherwise claim
         // the bottom-right corner of the main window's display on entry; the
         // user can drag the window afterwards.
@@ -283,10 +283,16 @@ public sealed partial class PiPWindow : Window
         }
     }
 
-    /// <summary>Re-applies the configured opacity to an open mini player.</summary>
+    /// <summary>Re-applies the configured opacity to an open mini player.
+    /// Below full opacity the black background is replaced with transparent
+    /// so the XAML content becomes see-through against the desktop.</summary>
     public void ApplyOpacity()
     {
-        RootGrid.Opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
+        var opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
+        RootGrid.Opacity = opacity;
+        RootGrid.Background = opacity < 1.0
+            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent)
+            : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black);
     }
 
     public void HidePiP()

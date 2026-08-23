@@ -81,15 +81,26 @@ public sealed partial class MpvPlayerPage
 
         // Re-attach the swap chain to the main window's video surface.
         _mediaPlayer.UpdatePanel(PlayerView);
-        UpdateMainViewSize();
-        _mediaPlayer.UpdatePanelScale(
-            (float)PlayerView.CompositionScaleX,
-            (float)PlayerView.CompositionScaleY);
 
         if (App.Window is MainWindow mainWindow)
         {
             mainWindow.RestoreFromPiP();
         }
+
+        // Defer sizing until the main window is shown and PlayerView has been
+        // re-measured: running UpdateMainViewSize while the window was still
+        // hidden read ActualWidth=0, leaving the video rendered at the
+        // swap-chain's fallback size in the top-left corner.
+        _ = DispatcherQueue.TryEnqueue(() =>
+        {
+            UpdateMainViewSize();
+            _mediaPlayer.UpdatePanelScale(
+                (float)PlayerView.CompositionScaleX,
+                (float)PlayerView.CompositionScaleY);
+            PlayerControl.RefreshAdaptiveState();
+            PlayerControl.SetOverlayMode(_isFullWindow || _isFullScreen);
+            PlayerControl.ShowControlPanel();
+        });
 
         // WinUI 3: hiding and re-showing a window that is in the FullScreen
         // presenter leaves the XAML content island stale - the video swap
@@ -102,8 +113,6 @@ public sealed partial class MpvPlayerPage
             _appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
         }
 
-        PlayerControl.SetOverlayMode(_isFullWindow || _isFullScreen);
-        PlayerControl.ShowControlPanel();
         PlayerControl.UpdatePiPBar();
     }
 

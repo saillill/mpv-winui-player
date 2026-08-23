@@ -75,6 +75,10 @@ namespace mpv_winui.Modules.Player
                 }
             }
             PlayerControl.UpdateFullScreen(fullscreen);
+            // Re-evaluate width-adaptive state after presenter transition:
+            // without this, exiting fullscreen sometimes left only the slider
+            // visible because _currentSegment was stale.
+            PlayerControl.RefreshAdaptiveState();
         }
 
         private void HandleOnTopProperty(bool enable)
