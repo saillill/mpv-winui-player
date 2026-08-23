@@ -108,10 +108,12 @@ namespace winrt::mpv_winrt::implementation
         }
         m_initialized.store(true);
 
-        // Build the right-click menu natively from input.conf, bypassing
-        // dyn_menu.lua. The Lua script may still be loaded but our value
-        // overwrites its output since we run after mpv_initialize returns.
-        MpvMenuBuilder::BuildAndSet(m_mpv, to_string(configPath));
+        // Native menu builder: disabled pending memory-management review.
+        // The ta.c canary crash was caused by freeing our tree (allocated
+        // with new/realloc) via mpv_free_node_contents which uses mpv's
+        // internal ta allocator. The free call is now removed but the
+        // builder needs further validation before re-enabling.
+        // MpvMenuBuilder::BuildAndSet(m_mpv, to_string(configPath));
 
         // Forward mpv's own log messages (shader compile failures, config
         // warnings, ...) to the app as a WinRT event. Default to warn so the

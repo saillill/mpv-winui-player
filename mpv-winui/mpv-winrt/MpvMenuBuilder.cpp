@@ -514,7 +514,11 @@ namespace winrt::mpv_winrt
         BuildNodeList(entries, root);
 
         int result = mpv_set_property(mpv, "menu-data", MPV_FORMAT_NODE, &root);
-        mpv_free_node_contents(&root);
+        // Do NOT call mpv_free_node_contents here. Our tree was allocated
+        // with new/realloc, not mpv's internal ta allocator — calling
+        // mpv's free function on foreign memory corrupts the heap and
+        // crashes with a canary assertion in ta.c.
+        // The one-time leak is negligible (a few KB at startup).
         return result >= 0;
     }
 }
