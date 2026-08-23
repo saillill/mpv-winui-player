@@ -142,12 +142,27 @@ namespace mpv_winui.Modules.Player
             target.Add(item);
         }
 
+        // Debug/technical entries hidden from the right-click menu; these are
+        // developer-facing tools that regular users never need.
+        private static readonly HashSet<string> HiddenMenuTitles = new(StringComparer.Ordinal)
+        {
+            "按键名检测", "清除已记录的属性值", "打开select总菜单",
+            "打开select分菜单-属性列表", "环境体检", "常驻显示统计信息",
+            "时间码解析模式", "切换解码模式", "按键绑定列表",
+        };
+
         private void AddMenuDataItems(IList<MenuFlyoutItemBase> target, IReadOnlyList<MpvMenuItem> items, string? inheritGlyph = null)
         {
             bool isSeparatorPre = false;
             foreach (var entry in items)
             {
                 if (entry.IsHidden)
+                {
+                    continue;
+                }
+
+                var cleanTitle = DisplayTitle(entry.Title);
+                if (HiddenMenuTitles.Contains(cleanTitle))
                 {
                     continue;
                 }
