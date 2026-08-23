@@ -1555,6 +1555,20 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPOpacity), value);
         }
 
+        /// <summary>Seek-bar preview thumbnail width in logical px (120..480).</summary>
+        public string ThumbnailPreviewWidth
+        {
+            get => _dataSetting.GetValue(nameof(ThumbnailPreviewWidth), "248");
+            set => _dataSetting.SetValue(nameof(ThumbnailPreviewWidth), value);
+        }
+
+        /// <summary>Preview refresh interval while hovering, ms (40..600).</summary>
+        public int ThumbnailUpdateInterval
+        {
+            get => _dataSetting.GetValue(nameof(ThumbnailUpdateInterval), 40);
+            set => _dataSetting.SetValue(nameof(ThumbnailUpdateInterval), value);
+        }
+
         /// <summary>Playlist panel width in pixels (280-420), persisted across sessions.</summary>
         public int PlaylistWidth
         {

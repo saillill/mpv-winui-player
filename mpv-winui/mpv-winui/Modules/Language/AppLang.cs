@@ -263,6 +263,15 @@ namespace mpv_winui.Modules.Language
         public string MorePreviousTrack { get; set; } = "Previous Track";
         public string MoreRepeat { get; set; } = "Repeat";
         public string MoreShuffle { get; set; } = "Shuffle";
+        public string SettingsThumbnailSize { get; set; } = "Thumbnail preview size";
+        public string SettingsHelpThumbnailSize { get; set; } = "Width of the seek-bar preview thumbnail. Applies the next time the preview initializes, e.g. after reopening a file.";
+        public string SettingsThumbnailInterval { get; set; } = "Thumbnail update interval";
+        public string SettingsHelpThumbnailInterval { get; set; } = "How often the preview refreshes while hovering, in milliseconds. Larger values save CPU on big files.";
+        public string SettingsPiPOpacity { get; set; } = "Mini player opacity";
+        public string SettingsHelpPiPOpacity { get; set; } = "Opacity of the picture-in-picture window (0.2-1.0). Applies the next time it opens.";
+        public string OptionValueThumbSmall { get; set; } = "Small";
+        public string OptionValueThumbMedium { get; set; } = "Medium";
+        public string OptionValueThumbLarge { get; set; } = "Large";
         public string ControlBarModeNoRepeat { get; set; } = "No repeat";
         public string ControlBarModeSequence { get; set; } = "In order";
         public string ControlBarModeRepeatOne { get; set; } = "Loop one";

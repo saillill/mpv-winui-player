@@ -11,8 +11,22 @@ namespace mpv_winui.Modules.Player
 {
     public sealed partial class MpvPlayerPage
     {
-        private const double PreviewCardWidth = 248;
-        private const double PreviewCardHeight = 143;
+        // Card chrome = image size + padding (4x2) + border (1x2); refreshed
+        // from ThumbnailPreviewWidth whenever the preview initializes.
+        private double _previewCardWidth = 258;
+        private double _previewCardHeight = 145;
+
+        private void ApplyThumbnailSizeSetting()
+        {
+            var width = Math.Clamp(
+                int.TryParse(mpv_winui.AppContext.AppSetting.ThumbnailPreviewWidth, out var parsed) ? parsed : 248,
+                120, 480);
+            var height = (int)Math.Round(width * 135.0 / 240.0);
+            PreviewImage.Width = width;
+            PreviewImage.Height = height;
+            _previewCardWidth = width + 10;
+            _previewCardHeight = height + 10;
+        }
 
         private Point _lastPreviewPoint;
         private DispatcherQueueTimer? _previewThrottleTimer;
@@ -41,7 +55,7 @@ namespace mpv_winui.Modules.Player
                 PlayerControl.PreviewClearRequested += PlayerControl_PreviewClearRequested;
                 _mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
                 _previewThrottleTimer = DispatcherQueue.CreateTimer();
-                _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(40);
+                _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(mpv_winui.AppContext.AppSetting.ThumbnailUpdateInterval, 40, 600));
                 _previewThrottleTimer.Tick += PreviewThrottleTick;
             }
         }
@@ -166,6 +180,7 @@ namespace mpv_winui.Modules.Player
         {
             try
             {
+                ApplyThumbnailSizeSetting();
                 var scale = XamlRoot?.RasterizationScale ?? 1.0;
                 if (scale < 1.0)
                 {
@@ -285,10 +300,10 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
-            var x = _lastPreviewPoint.X - PreviewCardWidth / 2;
-            var y = _lastPreviewPoint.Y - PreviewCardHeight - 12;
-            x = Math.Clamp(x, 0, viewWidth - PreviewCardWidth);
-            y = Math.Clamp(y, 0, viewHeight - PreviewCardHeight);
+            var x = _lastPreviewPoint.X - _previewCardWidth / 2;
+            var y = _lastPreviewPoint.Y - _previewCardHeight - 12;
+            x = Math.Clamp(x, 0, viewWidth - _previewCardWidth);
+            y = Math.Clamp(y, 0, viewHeight - _previewCardHeight);
             PreviewCard.Margin = new Microsoft.UI.Xaml.Thickness(x, y, 0, 0);
         }
 

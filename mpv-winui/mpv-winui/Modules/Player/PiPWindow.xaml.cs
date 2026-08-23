@@ -283,6 +283,12 @@ public sealed partial class PiPWindow : Window
         }
     }
 
+    /// <summary>Re-applies the configured opacity to an open mini player.</summary>
+    public void ApplyOpacity()
+    {
+        RootGrid.Opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
+    }
+
     public void HidePiP()
     {
         AppWindow.Hide();

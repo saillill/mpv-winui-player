@@ -180,6 +180,26 @@ namespace mpv_winui.Modules.Player
             {
                 DispatcherQueue.TryEnqueue(ApplyDisplayPeak);
             }
+            else if (key == nameof(AppContext.AppSetting.ThumbnailUpdateInterval))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (_previewThrottleTimer is { } timer)
+                    {
+                        timer.Interval = TimeSpan.FromMilliseconds(
+                            Math.Clamp(Convert.ToInt32(value), 40, 600));
+                    }
+                });
+            }
+            else if (key == nameof(AppContext.AppSetting.ThumbnailPreviewWidth))
+            {
+                // Re-init on the next hover so the new render size applies.
+                DispatcherQueue.TryEnqueue(DestroyPreviewer);
+            }
+            else if (key == nameof(AppContext.AppSetting.WindowPiPOpacity))
+            {
+                DispatcherQueue.TryEnqueue(() => _pipWindow?.ApplyOpacity());
+            }
         }
 
         private void AppContext_LanguageChanged()
