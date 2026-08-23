@@ -1410,23 +1410,31 @@ namespace mpv_winui.Modules.Player
         {
             if (MediaPlayer is { } player)
             {
-                // Cycle: play once -> sequential -> shuffle -> play once.
-                // "Play once" runs the playlist in order and stops at the
-                // end; "sequential" keeps the order but loops the list;
-                // "shuffle" hands ordering to the mpv shuffle state.
+                // Cycle: no repeat -> sequential -> single loop -> shuffle.
+                // "No repeat" runs the playlist in order and stops at the
+                // end; "sequential" loops the list in order; "single loop"
+                // repeats the current file; shuffle hands ordering to the
+                // patched mpv shuffle state.
                 if (player.ShuffleEnabled)
                 {
                     player.ShuffleEnabled = false;
                     player.RepeatState = RepeatState.None;
                 }
-                else if (player.RepeatState == RepeatState.All)
-                {
-                    player.ShuffleEnabled = true;
-                    player.RepeatState = RepeatState.None;
-                }
                 else
                 {
-                    player.RepeatState = RepeatState.All;
+                    switch (player.RepeatState)
+                    {
+                        case RepeatState.None:
+                            player.RepeatState = RepeatState.All;
+                            break;
+                        case RepeatState.All:
+                            player.RepeatState = RepeatState.One;
+                            break;
+                        default:
+                            player.ShuffleEnabled = true;
+                            player.RepeatState = RepeatState.None;
+                            break;
+                    }
                 }
                 UpdatePlaybackModeUI();
             }
@@ -1712,15 +1720,23 @@ namespace mpv_winui.Modules.Player
                 stateName = "ModeShuffle";
                 label = lang.MoreShuffle;
             }
-            else if (MediaPlayer?.RepeatState == RepeatState.All)
-            {
-                stateName = "ModeSequence";
-                label = lang.ControlBarModeSequence;
-            }
             else
             {
-                stateName = "ModePlayOnce";
-                label = lang.ControlBarModePlayOnce;
+                switch (MediaPlayer?.RepeatState)
+                {
+                    case RepeatState.All:
+                        stateName = "ModeSequence";
+                        label = lang.ControlBarModeSequence;
+                        break;
+                    case RepeatState.One:
+                        stateName = "ModeRepeatOne";
+                        label = lang.ControlBarModeRepeatOne;
+                        break;
+                    default:
+                        stateName = "ModeNoRepeat";
+                        label = lang.ControlBarModeNoRepeat;
+                        break;
+                }
             }
 
             VisualStateManager.GoToState(this, stateName, false);

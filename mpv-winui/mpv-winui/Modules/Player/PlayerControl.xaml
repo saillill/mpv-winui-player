@@ -787,7 +787,7 @@
             </VisualStateGroup>
 
             <VisualStateGroup x:Name="PlaybackModeStates">
-                <VisualState x:Name="ModePlayOnce">
+                <VisualState x:Name="ModeNoRepeat">
                     <VisualState.Setters>
                         <Setter Target="ShuffleSymbol.Glyph" Value="&#xF175;" />
                     </VisualState.Setters>
@@ -795,6 +795,11 @@
                 <VisualState x:Name="ModeSequence">
                     <VisualState.Setters>
                         <Setter Target="ShuffleSymbol.Glyph" Value="&#xF172;" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ModeRepeatOne">
+                    <VisualState.Setters>
+                        <Setter Target="ShuffleSymbol.Glyph" Value="&#xEF34;" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="ModeShuffle">
