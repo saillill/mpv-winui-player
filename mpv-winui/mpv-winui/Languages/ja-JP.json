@@ -856,7 +856,7 @@
   "ControlBarIconPlayback": "再生コントロール",
   "ControlBarIconVolume": "音量",
   "ControlBarIconTracks": "トラック",
-  "ControlBarIconRandom": "シャッフル",
+  "ControlBarIconPlaybackMode": "再生モード",
   "ControlBarIconSpeed": "再生速度",
   "ControlBarIconAspect": "アスペクト比",
   "ControlBarIconFullWindow": "フルウィンドウ",

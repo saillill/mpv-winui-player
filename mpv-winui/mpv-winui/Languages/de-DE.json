@@ -856,7 +856,7 @@
   "ControlBarIconPlayback": "Wiedergabesteuerung",
   "ControlBarIconVolume": "Lautstärke",
   "ControlBarIconTracks": "Titel",
-  "ControlBarIconRandom": "Zufallswiedergabe",
+  "ControlBarIconPlaybackMode": "Wiedergabemodus",
   "ControlBarIconSpeed": "Geschwindigkeit",
   "ControlBarIconAspect": "Seitenverhältnis",
   "ControlBarIconFullWindow": "Volles Fenster",

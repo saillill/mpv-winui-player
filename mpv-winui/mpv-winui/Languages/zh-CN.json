@@ -856,7 +856,7 @@
   "ControlBarIconPlayback": "播放控制",
   "ControlBarIconVolume": "音量",
   "ControlBarIconTracks": "轨道",
-  "ControlBarIconRandom": "随机播放",
+  "ControlBarIconPlaybackMode": "播放模式",
   "ControlBarIconSpeed": "倍速",
   "ControlBarIconAspect": "画面比例",
   "ControlBarIconFullWindow": "全窗",

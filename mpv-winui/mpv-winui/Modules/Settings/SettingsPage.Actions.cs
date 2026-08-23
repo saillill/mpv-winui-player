@@ -927,7 +927,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         [
             ("volume", lang.ControlBarIconVolume, "\uE767"),
             ("tracks", lang.ControlBarIconTracks, "\uED1F"),
-            ("random", lang.ControlBarIconRandom, ControlBarIcons.Shuffle),
+            ("random", lang.ControlBarIconPlaybackMode, "\uF172"),
             ("speed", lang.ControlBarIconSpeed, "\uEC57"),
             ("aspect", lang.ControlBarIconAspect, "\uE799"),
             ("fullwindow", lang.ControlBarIconFullWindow, "\uF16B"),

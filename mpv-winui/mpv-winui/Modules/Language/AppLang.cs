@@ -91,7 +91,7 @@ namespace mpv_winui.Modules.Language
         public string ControlBarIconVolume { get; set; } = "Volume";
         public string ControlBarIconTracks { get; set; } = "Tracks";
         public string ControlBarIconPanel { get; set; } = "Control panel";
-        public string ControlBarIconRandom { get; set; } = "Random";
+        public string ControlBarIconPlaybackMode { get; set; } = "Playback mode";
         public string ControlBarIconSpeed { get; set; } = "Speed";
         public string ControlBarIconAspect { get; set; } = "Aspect ratio";
         public string ControlBarIconAbLoop { get; set; } = "A-B loop";

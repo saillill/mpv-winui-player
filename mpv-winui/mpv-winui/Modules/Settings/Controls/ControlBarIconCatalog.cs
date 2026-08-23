@@ -32,7 +32,7 @@ public static class ControlBarIconCatalog
     [
         ("volume", "Volume", "\uEB43"),
         ("tracks", "Tracks", "\uEBCD"),
-        ("random", "Random", "\uEF37"),
+        ("random", "Playback mode", "\uF172"),
         ("panel", "Control panel", "\uF6AA"),
         ("aspect", "Aspect ratio", "\uEE8D"),
         ("pip", "Picture-in-picture", "\uF5FE"),
@@ -108,7 +108,7 @@ public static class ControlBarIconCatalog
             "skip-forward" => lang.MoreSkipForward,
             "volume" => lang.ControlBarIconVolume,
             "tracks" => lang.ControlBarIconTracks,
-            "random" => lang.ControlBarIconRandom,
+            "random" => lang.ControlBarIconPlaybackMode,
             "panel" => lang.ControlBarIconPanel,
             "aspect" => lang.ControlBarIconAspect,
             "pip" => lang.ControlBarIconPiP,

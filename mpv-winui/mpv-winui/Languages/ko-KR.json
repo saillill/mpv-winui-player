@@ -856,7 +856,7 @@
   "ControlBarIconPlayback": "재생 컨트롤",
   "ControlBarIconVolume": "볼륨",
   "ControlBarIconTracks": "트랙",
-  "ControlBarIconRandom": "임의 재생",
+  "ControlBarIconPlaybackMode": "재생 모드",
   "ControlBarIconSpeed": "배속",
   "ControlBarIconAspect": "화면 비율",
   "ControlBarIconFullWindow": "전체 창",

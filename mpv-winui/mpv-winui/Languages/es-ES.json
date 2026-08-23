@@ -856,7 +856,7 @@
   "ControlBarIconPlayback": "Controles de reproducción",
   "ControlBarIconVolume": "Volumen",
   "ControlBarIconTracks": "Pistas",
-  "ControlBarIconRandom": "Reproducción aleatoria",
+  "ControlBarIconPlaybackMode": "Modo de reproducción",
   "ControlBarIconSpeed": "Velocidad",
   "ControlBarIconAspect": "Relación de aspecto",
   "ControlBarIconFullWindow": "Ventana completa",
