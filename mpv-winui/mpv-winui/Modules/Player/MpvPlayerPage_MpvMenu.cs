@@ -12,6 +12,12 @@ namespace mpv_winui.Modules.Player
 {
     public sealed partial class MpvPlayerPage
     {
+        // Title renames for cleaner presentation.
+        private static readonly Dictionary<string, string> TitleRenames = new(StringComparer.Ordinal)
+        {
+            ["滤镜与增强"] = "滤镜",
+        };
+
         private MenuFlyout BuildMenuFlyoutFromData(IReadOnlyList<MpvMenuItem>? items)
         {
             var flyout = new MenuFlyout();
@@ -24,14 +30,42 @@ namespace mpv_winui.Modules.Player
             {
                 AddMenuDataItems(flyout.Items, items);
             }
-            else
-            {
-                flyout.Items.Add(new MenuFlyoutSeparator());
-            }
 
+            // Clean orphan separators left behind by filtering.
+            CleanOrphanSeparators(flyout.Items);
+
+            // Footer: separator then window controls then quit.
+            if (flyout.Items.Count > 0)
+            {
+                var last = flyout.Items[flyout.Items.Count - 1];
+                if (last is not MenuFlyoutSeparator)
+                {
+                    flyout.Items.Add(new MenuFlyoutSeparator());
+                }
+            }
             AddCustomFooterItems(flyout.Items);
 
             return flyout;
+        }
+
+        /// <summary>Removes leading, trailing and consecutive separators.</summary>
+        private static void CleanOrphanSeparators(IList<MenuFlyoutItemBase> items)
+        {
+            // Remove leading separators
+            while (items.Count > 0 && items[0] is MenuFlyoutSeparator)
+                items.RemoveAt(0);
+            // Remove consecutive separators
+            for (int i = 1; i < items.Count; i++)
+            {
+                if (items[i] is MenuFlyoutSeparator && items[i - 1] is MenuFlyoutSeparator)
+                {
+                    items.RemoveAt(i);
+                    i--;
+                }
+            }
+            // Remove trailing separator
+            while (items.Count > 0 && items[items.Count - 1] is MenuFlyoutSeparator)
+                items.RemoveAt(items.Count - 1);
         }
 
         /// <summary>
@@ -142,13 +176,23 @@ namespace mpv_winui.Modules.Player
             target.Add(item);
         }
 
-        // Debug/technical entries hidden from the right-click menu; these are
-        // developer-facing tools that regular users never need.
+        // Entries hidden from the right-click menu.
+        // Debug/technical: developer-facing tools regular users never need.
+        // Transport controls: redundant with the control bar buttons.
+        // Dynamic submenus: @chapters/@editions/@tracks often resolve to
+        //   empty lists for typical files; hiding avoids dead entries.
         private static readonly HashSet<string> HiddenMenuTitles = new(StringComparer.Ordinal)
         {
+            // Debug/technical
             "按键名检测", "清除已记录的属性值", "打开select总菜单",
             "打开select分菜单-属性列表", "环境体检", "常驻显示统计信息",
             "时间码解析模式", "切换解码模式", "按键绑定列表",
+            // Transport controls (control bar already has these)
+            "播放", "暂停", "停止",
+            // Empty dynamic submenus for most files
+            "章节", "版本", "轨道",
+            // Items that belong in submenus, not at root level
+            "播放列表", "重置缩放",
         };
 
         private void AddMenuDataItems(IList<MenuFlyoutItemBase> target, IReadOnlyList<MpvMenuItem> items, string? inheritGlyph = null)
@@ -166,6 +210,10 @@ namespace mpv_winui.Modules.Player
                 {
                     continue;
                 }
+                if (TitleRenames.TryGetValue(cleanTitle, out var renamed))
+                {
+                    cleanTitle = renamed;
+                }
 
                 if (entry.Type == "separator")
                 {
@@ -180,7 +228,7 @@ namespace mpv_winui.Modules.Player
 
                 if (entry.Type == "submenu" && entry.Items.Count > 0)
                 {
-                    var subItem = new MenuFlyoutSubItem { Text = DisplayTitle(entry.Title), IsEnabled = !entry.IsDisabled };
+                    var subItem = new MenuFlyoutSubItem { Text = cleanTitle, IsEnabled = !entry.IsDisabled };
                     var gs = IconMap.For(entry.Title) ?? inheritGlyph;
                     if (gs is not null)
                         subItem.Icon = new FontIcon { Glyph = gs, FontFamily = new FontFamily(IconMap.Font) };
@@ -196,11 +244,11 @@ namespace mpv_winui.Modules.Player
                     MenuFlyoutItem item;
                     if (entry.IsChecked)
                     {
-                        item = new ToggleMenuFlyoutItem { Text = DisplayTitle(entry.Title), IsEnabled = !entry.IsDisabled, IsChecked = true, };
+                        item = new ToggleMenuFlyoutItem { Text = cleanTitle, IsEnabled = !entry.IsDisabled, IsChecked = true, };
                     }
                     else
                     {
-                        item = new MenuFlyoutItem { Text = DisplayTitle(entry.Title), IsEnabled = !entry.IsDisabled, };
+                        item = new MenuFlyoutItem { Text = cleanTitle, IsEnabled = !entry.IsDisabled, };
                     }
 
                     var g = IconMap.For(entry.Title) ?? inheritGlyph;
