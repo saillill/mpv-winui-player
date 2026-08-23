@@ -8,6 +8,7 @@
 #include "MpvGpuAdapter.h"
 #include "MpvLogEventArgs.h"
 #include "MpvMenuItem.h"
+#include "MpvMenuBuilder.h"
 #include "MpvPlaylistItem.h"
 #include "MpvPreviewInfo.h"
 #include "MpvProfile.h"
@@ -106,6 +107,11 @@ namespace winrt::mpv_winrt::implementation
             throw hresult_error(E_FAIL, L"Failed to initialize mpv");
         }
         m_initialized.store(true);
+
+        // Build the right-click menu natively from input.conf, bypassing
+        // dyn_menu.lua. The Lua script may still be loaded but our value
+        // overwrites its output since we run after mpv_initialize returns.
+        MpvMenuBuilder::BuildAndSet(m_mpv, to_string(configPath));
 
         // Forward mpv's own log messages (shader compile failures, config
         // warnings, ...) to the app as a WinRT event. Default to warn so the
