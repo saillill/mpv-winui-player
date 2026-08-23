@@ -59,7 +59,11 @@ public static class MpvSettings
             nameof(AppSettings.CurlConnectTimeout) => $"set curl-connect-timeout {value}",
             nameof(AppSettings.CurlBufferSize) => $"set curl-buffer-size {value}",
             nameof(AppSettings.CurlMaxRequestSize) => $"set curl-max-request-size {value}",
-            nameof(AppSettings.AutoCreatePlaylist) => $"set autocreate-playlist {(string)value}",
+            // The patched native autocreate-playlist scans the file's whole
+            // directory synchronously inside loadfile (minutes on huge
+            // dirs). Always disable it here; MpvMediaPlayer fills the playlist
+            // lazily in the background instead, driven by the same setting.
+            nameof(AppSettings.AutoCreatePlaylist) => "set autocreate-playlist no",
             nameof(AppSettings.DirectoryMode) => $"set directory-mode {(string)value}",
             nameof(AppSettings.DirectoryFilterTypes) => $"set directory-filter-types {(string)value}",
             nameof(AppSettings.VideoExts) => $"set video-exts {(string)value}",

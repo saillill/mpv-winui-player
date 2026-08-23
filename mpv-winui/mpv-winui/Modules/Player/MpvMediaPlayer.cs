@@ -339,6 +339,7 @@ namespace mpv_winui.Modules.Player
 
         public void StopListen()
         {
+            _autoPlaylistStopped = true;
             _mpvPlayer.MediaLoaded -= MpvPlayer_MediaLoaded;
             _mpvPlayer.PlaybackFailed -= MpvPlayer_PlaybackFailed;
             _mpvPlayer.FileLoaded -= MpvPlayer_FileLoaded;
