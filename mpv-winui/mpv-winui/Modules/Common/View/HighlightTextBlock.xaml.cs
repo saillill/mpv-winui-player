@@ -41,13 +41,16 @@ public sealed partial class HighlightTextBlock : UserControl
         typeof(HighlightTextBlock),
         new PropertyMetadata(string.Empty, OnContentChanged));
 
-    public double FontSize
+    // Deliberately shadows Control.FontSize: WinUI has no OverrideMetadata,
+    // so re-registering the DP is the only way to hook size changes into
+    // RebuildInlines for the inner TextBlock.
+    public new double FontSize
     {
         get => (double)GetValue(FontSizeProperty);
         set => SetValue(FontSizeProperty, value);
     }
 
-    public static readonly DependencyProperty FontSizeProperty = DependencyProperty.Register(
+    public static new readonly DependencyProperty FontSizeProperty = DependencyProperty.Register(
         nameof(FontSize),
         typeof(double),
         typeof(HighlightTextBlock),

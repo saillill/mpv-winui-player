@@ -1021,12 +1021,12 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.SpeedChanged -= PlaybackSession_SpeedChanged;
         }
 
-        private void NextTrackButton_Click(object sender, RoutedEventArgs e)
+        private void NextTrackButton_Click(object? sender, RoutedEventArgs? e)
         {
             _mediaPlayer?.PlaylistNext();
         }
 
-        private void PreviousTrackButton_Click(object sender, RoutedEventArgs e)
+        private void PreviousTrackButton_Click(object? sender, RoutedEventArgs? e)
         {
             _mediaPlayer?.PlaylistPrevious();
         }
@@ -1411,7 +1411,7 @@ namespace mpv_winui.Modules.Player
             UpdateFullScreenUI(enabled);
         }
 
-        private void OnRepeatClick(object sender, RoutedEventArgs e)
+        private void OnRepeatClick(object? sender, RoutedEventArgs? e)
         {
             if (MediaPlayer is { } player)
             {
@@ -1425,7 +1425,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void OnShuffleClick(object sender, RoutedEventArgs e)
+        private void OnShuffleClick(object? sender, RoutedEventArgs? e)
         {
             if (MediaPlayer is { } player)
             {

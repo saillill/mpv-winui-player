@@ -42,25 +42,29 @@ namespace mpv_winui
 
         public async void Open()
         {
+            AppContext.AppLogger.Debug("MainWindow.Open enter");
             IReadOnlyList<FileItem>? fileItems = null;
             try
             {
                 var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
                 fileItems = await ActivationService.Instance.ParseFileItemsAsync(activatedArgs);
+                AppContext.AppLogger.Debug($"MainWindow.Open parsed {fileItems?.Count ?? 0} item(s)");
+                // Inside the try: async void — a Navigate throw here would be
+                // an unhandled exception and take the app down at launch.
+                ShellFrame.Navigate(typeof(MpvPlayerPage), fileItems);
             }
             catch (System.Exception ex)
             {
                 AppContext.AppLogger.Error(ex);
             }
-
-            ShellFrame.Navigate(typeof(MpvPlayerPage), fileItems);
         }
 
         public async void Refresh(AppActivationArguments activatedArgs)
         {
+            AppContext.AppLogger.Debug($"MainWindow.Refresh enter, kind={activatedArgs.Kind}");
             try
             {
-                var fileItems = await ActivationService.Instance.ParseFileItemsAsync(activatedArgs);
+                var fileItems = await ActivationService.Instance.ParseFileItemsAsync(activatedArgs, includeProcessArgv: false);
                 if (fileItems?.Count > 0)
                 {
                     DispatcherQueue.RunAsync(() =>

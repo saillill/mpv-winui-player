@@ -56,9 +56,10 @@ public static class UpdateChecker
                 return;
             }
 
+            var fallbackUrl = $"https://github.com/saillill/mpv-winui-player/releases/tag/{tag}";
             var url = doc.RootElement.TryGetProperty("html_url", out var urlEl)
-                ? urlEl.GetString()
-                : $"https://github.com/saillill/mpv-winui-player/releases/tag/{tag}";
+                ? urlEl.GetString() ?? fallbackUrl
+                : fallbackUrl;
             _logger.Info("update available: {} (current {})", tag, PackageHelper.AppVersion);
 
             if (xamlRoot is null)

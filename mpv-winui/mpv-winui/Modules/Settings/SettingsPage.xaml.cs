@@ -22,6 +22,12 @@ public sealed partial class SettingsPage : Page
 
     public List<Option> Settings { get; } = [];
     public List<string> Categories { get; } = [];
+
+    /// <summary>Stable keys parallel to <see cref="Categories"/>: same length,
+    /// same order. Pairing by index into <see cref="CategoryKeys"/> instead
+    /// would shift whenever an empty category is filtered out.</summary>
+    private List<string> ActiveCategoryKeys { get; } = [];
+
     public List<string> CategoryOrder { get; } = [];
     private string _actionStatus = string.Empty;
     private int _resetStatusGeneration;
@@ -97,7 +103,18 @@ public sealed partial class SettingsPage : Page
             Settings.Clear();
             Settings.AddRange(options);
             Categories.Clear();
-            Categories.AddRange(CategoryOrder.Where(c => Settings.Any(o => o.Category == c)));
+            ActiveCategoryKeys.Clear();
+            var categoryCount = Math.Min(CategoryOrder.Count, CategoryKeys.Length);
+            for (var i = 0; i < categoryCount; i++)
+            {
+                var label = CategoryOrder[i];
+                if (!Settings.Any(o => o.Category == label))
+                {
+                    continue;
+                }
+                Categories.Add(label);
+                ActiveCategoryKeys.Add(CategoryKeys[i]);
+            }
             RebuildSearchIndex();
             RebuildNavigationItems(selectedKey);
             ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
@@ -218,8 +235,8 @@ public sealed partial class SettingsPage : Page
             {
                 return null;
             }
-            var index = Array.IndexOf(CategoryKeys, key);
-            return index >= 0 && index < Categories.Count ? Categories[index] : null;
+            var index = ActiveCategoryKeys.IndexOf(key);
+            return index >= 0 ? Categories[index] : null;
         }
     }
 
@@ -239,19 +256,20 @@ public sealed partial class SettingsPage : Page
     {
         CategoryNav.MenuItems.Clear();
         NavigationViewItem? selectedItem = null;
-        for (var i = 0; i < Categories.Count && i < CategoryKeys.Length; i++)
+        for (var i = 0; i < Categories.Count && i < ActiveCategoryKeys.Count; i++)
         {
+            var key = ActiveCategoryKeys[i];
             var item = new NavigationViewItem
             {
                 Content = Categories[i],
-                Tag = CategoryKeys[i],
+                Tag = key,
                 Icon = new FontIcon
                 {
-                    Glyph = CategoryGlyphs[i],
+                    Glyph = CategoryGlyphs[Array.IndexOf(CategoryKeys, key)],
                     FontFamily = CreateCategoryIconFont(),
                 },
             };
-            if (string.Equals(CategoryKeys[i], selectedKey, StringComparison.Ordinal))
+            if (string.Equals(key, selectedKey, StringComparison.Ordinal))
             {
                 selectedItem = item;
             }

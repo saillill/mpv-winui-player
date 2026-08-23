@@ -288,7 +288,9 @@ namespace mpv_winui.Modules.Player
         public async Task InitializeAsync(string configFolder, int volume, mpv_winrt.DisplayColorKind colorKind, int refreshRate)
         {
             _mpvPlayer.VoConfigured += MpvPlayer_VoConfigured;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             await Task.Run(() => { _mpvPlayer.Initialize(configFolder, 1, 1, volume, colorKind, refreshRate); });
+            AppContext.AppLogger.Debug($"native mpv core initialized in {sw.ElapsedMilliseconds}ms");
         }
 
         public void UpdatePanel(object panel)
@@ -468,6 +470,7 @@ namespace mpv_winui.Modules.Player
 
         private void MpvPlayer_FileLoaded()
         {
+            AppContext.AppLogger.Debug("FileLoaded event raised");
             var isPaused = _mpvPlayer.IsPaused();
             PlaybackStateChanged?.Invoke(this, isPaused);
             MediaOpened?.Invoke(this, null);

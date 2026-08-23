@@ -158,26 +158,35 @@ namespace mpv_winui.Modules.Player
                 .Select(x => new FileItem(x.Path, x.IsOfType(Windows.Storage.StorageItemTypes.File) ? FileType.File : FileType.Folder))
                 .ToList();
 
+            // Early-drop diagnosis: a drop landing while CreateAsync is still
+            // initializing the native player used to vanish silently.
+            AppContext.AppLogger.Debug("play storage items, count={0}, initialized={1}, paths={2}",
+                items.Count, _isPlayerInitialized, string.Join(" | ", items.Select(i => $"{i.Type}:{i.Path}")));
+
             if (items?.Count > 0)
             {
+                await WaitForPlayerReadyAsync();
                 await _mediaPlayer.OpenAsync(items, openMode);
             }
         }
 
         private async ValueTask PlayFiles(IReadOnlyList<string> files, OpenMode openMode)
         {
+            await WaitForPlayerReadyAsync();
             var items = files.Select(file => new FileItem(file, FileType.File)).ToList();
             await _mediaPlayer.OpenAsync(items, openMode);
         }
 
         private async ValueTask PlayFolders(IReadOnlyList<string> folders, OpenMode openMode)
         {
+            await WaitForPlayerReadyAsync();
             var items = folders.Select(file => new FileItem(file, FileType.Folder)).ToList();
             await _mediaPlayer.OpenAsync(items, openMode);
         }
 
         private async ValueTask PlayUrl(string url, OpenMode openMode)
         {
+            await WaitForPlayerReadyAsync();
             await _mediaPlayer.OpenAsync((FileItem[])[new FileItem(url, FileType.Url)], openMode);
         }
 

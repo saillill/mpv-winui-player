@@ -38,19 +38,24 @@ namespace mpv_winui.Modules.Activation
 
         /// <summary>
         /// 收集 unpackaged Launch 激活的文件/URI 参数：
-        /// GetCommandLineArgs()[1..] 是托管视图（argv[0] 为 dll）；
+        /// GetCommandLineArgs()[1..] 是托管视图（argv[0] 为 dll），
         /// ILaunchActivatedEventArgs.Arguments 是原始命令行（首 token 为 exe），
         /// 两种来源都取、跳过首 token，再去重。
+        /// includeProcessArgv 仅对首次启动为真；单实例重定向时本进程 argv 是
+        /// 上一次启动的残留参数，混入会导致旧文件重播、新文件只 append 不播放。
         /// </summary>
-        private static IEnumerable<string> CommandLineCandidates(AppActivationArguments activatedArgs)
+        private static IEnumerable<string> CommandLineCandidates(AppActivationArguments activatedArgs, bool includeProcessArgv)
         {
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            var cmd = Environment.GetCommandLineArgs();
-            for (int i = 1; i < cmd.Length; i++)
+            if (includeProcessArgv)
             {
-                var t = cmd[i].Trim().Trim('"');
-                if (t.Length > 0 && seen.Add(t)) yield return t;
+                var cmd = Environment.GetCommandLineArgs();
+                for (int i = 1; i < cmd.Length; i++)
+                {
+                    var t = cmd[i].Trim().Trim('"');
+                    if (t.Length > 0 && seen.Add(t)) yield return t;
+                }
             }
 
             if (activatedArgs.Data is Windows.ApplicationModel.Activation.ILaunchActivatedEventArgs launchArgs
@@ -68,7 +73,7 @@ namespace mpv_winui.Modules.Activation
             }
         }
 
-        public IReadOnlyList<string>? Parse(AppActivationArguments activatedArgs)
+        public IReadOnlyList<string>? Parse(AppActivationArguments activatedArgs, bool includeProcessArgv = true)
         {
             switch (activatedArgs.Kind)
             {
@@ -106,8 +111,7 @@ namespace mpv_winui.Modules.Activation
 
                 case ExtendedActivationKind.Launch:
                 {
-                    foreach (var candidate in CommandLineCandidates(activatedArgs))
-                    {
+                    foreach (var candidate in CommandLineCandidates(activatedArgs, includeProcessArgv))                    {
                         if (ParseMpvWinuiUri(candidate) is string uriPath)
                         {
                             return (string[])[uriPath];
@@ -130,7 +134,7 @@ namespace mpv_winui.Modules.Activation
             return [];
         }
 
-        public async Task<IReadOnlyList<FileItem>?> ParseFileItemsAsync(AppActivationArguments activatedArgs)
+        public async Task<IReadOnlyList<FileItem>?> ParseFileItemsAsync(AppActivationArguments activatedArgs, bool includeProcessArgv = true)
         {
             switch (activatedArgs.Kind)
             {
@@ -195,7 +199,7 @@ namespace mpv_winui.Modules.Activation
                     // b.mp4") must all be collected, not just the first that
                     // exists — the caller builds the playlist from the list.
                     var items = new List<FileItem>();
-                    foreach (var candidate in CommandLineCandidates(activatedArgs))
+                    foreach (var candidate in CommandLineCandidates(activatedArgs, includeProcessArgv))
                     {
                         var path = ParseMpvWinuiUri(candidate) ?? candidate;
                         FileItem? item = await Task.Run(() =>

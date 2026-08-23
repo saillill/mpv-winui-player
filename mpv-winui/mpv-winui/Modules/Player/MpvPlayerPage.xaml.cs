@@ -194,6 +194,7 @@ namespace mpv_winui.Modules.Player
 
         private async Task CreateAsync()
         {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             InitDisplayInfo();
 
             var configFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
@@ -209,11 +210,13 @@ namespace mpv_winui.Modules.Player
             // script-opts, the managed mpv.conf block) expect mpv.conf to
             // already exist and merge into it.
             await ConfigDeployer.EnsureDeployedAsync(configFolder.Path);
+            _logger.Debug("CreateAsync: config deployed at {}ms", sw.ElapsedMilliseconds);
 
             // Ensure settings-managed config files (script-opts/*.conf, the
             // managed mpv.conf block) are written before mpv reads the config
             // dir at Initialize; AppContext.Init enqueues these asynchronously.
             await AppContext.WaitAll();
+            _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
             _mediaPlayer.SwapChainChanged += MpvPlayer_SwapChainChanged;
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
@@ -222,6 +225,18 @@ namespace mpv_winui.Modules.Player
             await _mediaPlayer.InitializeAsync(configFolder.Path, AppContext.AppSetting.LastVideoVolume, _lastColorKind, (int)refreshRate);
 
             _isPlayerInitialized = true;
+            _playerReadyTcs.TrySetResult();
+            _logger.Debug("CreateAsync: player initialized at {}ms", sw.ElapsedMilliseconds);
+        }
+
+        // A drop (or menu open) landing while CreateAsync is still running
+        // used to enqueue loadfile into a native handle that silently no-ops
+        // before initialization, losing the request. Callers now await this.
+        private TaskCompletionSource _playerReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private Task WaitForPlayerReadyAsync()
+        {
+            return _isPlayerInitialized ? Task.CompletedTask : _playerReadyTcs.Task;
         }
 
         private void VolumeChangedChanged(MpvMediaPlayer player, int volume)

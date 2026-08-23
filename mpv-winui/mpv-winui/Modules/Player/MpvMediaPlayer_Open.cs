@@ -92,8 +92,10 @@ namespace mpv_winui.Modules.Player
         {
             return Task.Run(async () =>
             {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 Open(file, action);
                 await _commandQueue.DrainAsync();
+                AppContext.AppLogger.Debug($"OpenAsync drained in {sw.ElapsedMilliseconds}ms ({action})");
             });
         }
 
@@ -101,8 +103,10 @@ namespace mpv_winui.Modules.Player
         {
             return Task.Run(async () =>
             {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 Open(files, action);
                 await _commandQueue.DrainAsync();
+                AppContext.AppLogger.Debug($"OpenAsync drained in {sw.ElapsedMilliseconds}ms ({files.Count} item(s), {action})");
             });
         }
     }
