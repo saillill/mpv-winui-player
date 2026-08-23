@@ -31,6 +31,8 @@
   "MorePreviousTrack": "Previous",
   "MoreRepeat": "Repeat",
   "MoreShuffle": "Shuffle",
+  "ControlBarModePlayOnce": "Play once",
+  "ControlBarModeSequence": "In order",
   "MoreSkipBackward": "Skip Backward",
   "MoreSkipForward": "Skip Forward",
   "MoreZoom": "Zoom",

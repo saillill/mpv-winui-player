@@ -124,7 +124,6 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(SkipBackwardButton, AppContext.AppLang.MoreSkipBackward);
             ToolTipService.SetToolTip(SkipForwardButton, AppContext.AppLang.MoreSkipForward);
             ToolTipService.SetToolTip(ShuffleButton, AppContext.AppLang.MoreShuffle);
-            ToolTipService.SetToolTip(RepeatButton, AppContext.AppLang.MoreRepeat);
             ToolTipService.SetToolTip(VolumeMuteButton, AppContext.AppLang.PiPMute);
             ToolTipService.SetToolTip(VolumeSlider, AppContext.AppLang.ControlBarIconVolume);
             ToolTipService.SetToolTip(PlaybackRateButton, AppContext.AppLang.MorePlaybackRate);
@@ -161,7 +160,6 @@ namespace mpv_winui.Modules.Player
             AutomationProperties.SetName(SkipBackwardButton, AppContext.AppLang.MoreSkipBackward);
             AutomationProperties.SetName(SkipForwardButton, AppContext.AppLang.MoreSkipForward);
             AutomationProperties.SetName(ShuffleButton, AppContext.AppLang.MoreShuffle);
-            AutomationProperties.SetName(RepeatButton, AppContext.AppLang.MoreRepeat);
             AutomationProperties.SetName(VolumeMuteButton, AppContext.AppLang.PiPMute);
             AutomationProperties.SetName(VolumeSlider, AppContext.AppLang.ControlBarIconVolume);
             AutomationProperties.SetName(PlaybackRateButton, AppContext.AppLang.MorePlaybackRate);
@@ -790,8 +788,7 @@ namespace mpv_winui.Modules.Player
                     {
                         AddEventListeners();
 
-                        UpdateShuffleButtonUI();
-                        UpdateRepeatButtonUI();
+                        UpdatePlaybackModeUI();
                         UpdatePlaybackRateUI(value.PlaybackRate);
                         VolumeSlider.Value2 = _mediaPlayer?.Volume ?? 50; //TODO
 
@@ -888,8 +885,7 @@ namespace mpv_winui.Modules.Player
             VolumeMuteButton.Click += OnMuteClick;
             FullScreenButton.Click += OnFullScreenClick;
             FullWindowButton.Click += FullWindowButton_Click;
-            RepeatButton.Click += OnRepeatClick;
-            ShuffleButton.Click += OnShuffleClick;
+            ShuffleButton.Click += OnPlaybackModeClick;
             TrackSelectionButton.Click += TrackSelectionButton_Click;
             ZoomButton.Click += ZoomButton_Click;
             PreviousTrackButton.Click += PreviousTrackButton_Click;
@@ -951,8 +947,7 @@ namespace mpv_winui.Modules.Player
             VolumeMuteButton.Click -= OnMuteClick;
             FullScreenButton.Click -= OnFullScreenClick;
             FullWindowButton.Click -= FullWindowButton_Click;
-            RepeatButton.Click -= OnRepeatClick;
-            ShuffleButton.Click -= OnShuffleClick;
+            ShuffleButton.Click -= OnPlaybackModeClick;
             foreach (var item in PlaybackRateFlyout.Items)
             {
                 if (item is MenuFlyoutItem menuFlyoutItem)
@@ -1319,12 +1314,12 @@ namespace mpv_winui.Modules.Player
 
         private void MediaPlayer_RepeatStateChanged(MpvMediaPlayer sender, RepeatState state)
         {
-            DispatcherQueue.RunAsync(UpdateRepeatButtonUI);
+            DispatcherQueue.RunAsync(UpdatePlaybackModeUI);
         }
 
         private void MediaPlayer_ShuffleEnabledChanged(MpvMediaPlayer sender, bool enabled)
         {
-            DispatcherQueue.RunAsync(UpdateShuffleButtonUI);
+            DispatcherQueue.RunAsync(UpdatePlaybackModeUI);
         }
 
         private void OnPlayPauseClick(object sender, RoutedEventArgs e)
@@ -1411,36 +1406,29 @@ namespace mpv_winui.Modules.Player
             UpdateFullScreenUI(enabled);
         }
 
-        private void OnRepeatClick(object? sender, RoutedEventArgs? e)
+        private void OnPlaybackModeClick(object? sender, RoutedEventArgs? e)
         {
             if (MediaPlayer is { } player)
             {
-                player.RepeatState = player.RepeatState switch
-                {
-                    RepeatState.All => RepeatState.One,
-                    RepeatState.One => RepeatState.None,
-                    _ => RepeatState.All,
-                };
-                UpdateRepeatButtonUI();
-            }
-        }
-
-        private void OnShuffleClick(object? sender, RoutedEventArgs? e)
-        {
-            if (MediaPlayer is { } player)
-            {
+                // Cycle: play once -> sequential -> shuffle -> play once.
+                // "Play once" runs the playlist in order and stops at the
+                // end; "sequential" keeps the order but loops the list;
+                // "shuffle" hands ordering to the mpv shuffle state.
                 if (player.ShuffleEnabled)
                 {
                     player.ShuffleEnabled = false;
+                    player.RepeatState = RepeatState.None;
+                }
+                else if (player.RepeatState == RepeatState.All)
+                {
+                    player.ShuffleEnabled = true;
+                    player.RepeatState = RepeatState.None;
                 }
                 else
                 {
-                    player.ShuffleEnabled = true;
-
-                    //TODO 
-                    player.PlaylistShuffle();
+                    player.RepeatState = RepeatState.All;
                 }
-                UpdateShuffleButtonUI();
+                UpdatePlaybackModeUI();
             }
         }
 
@@ -1714,27 +1702,30 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void UpdateRepeatButtonUI()
+        private void UpdatePlaybackModeUI()
         {
-            var stateName = MediaPlayer?.RepeatState switch
+            var lang = mpv_winui.AppContext.AppLang;
+            string stateName;
+            string label;
+            if (MediaPlayer?.ShuffleEnabled == true)
             {
-                RepeatState.One => "RepeatOneState",
-                RepeatState.None => "RepeatNoneState",
-                _ => "RepeatAllState",
-            };
+                stateName = "ModeShuffle";
+                label = lang.MoreShuffle;
+            }
+            else if (MediaPlayer?.RepeatState == RepeatState.All)
+            {
+                stateName = "ModeSequence";
+                label = lang.ControlBarModeSequence;
+            }
+            else
+            {
+                stateName = "ModePlayOnce";
+                label = lang.ControlBarModePlayOnce;
+            }
 
             VisualStateManager.GoToState(this, stateName, false);
-        }
-
-        private void UpdateShuffleButtonUI()
-        {
-            var stateName = MediaPlayer?.ShuffleEnabled switch
-            {
-                true => "ShuffleState",
-                _ => "ShuffleNoneState",
-            };
-
-            VisualStateManager.GoToState(this, stateName, false);
+            ToolTipService.SetToolTip(ShuffleButton, label);
+            AutomationProperties.SetName(ShuffleButton, label);
         }
 
         private void UpdatePlaybackStatusUI(bool useTransitions)
@@ -1908,8 +1899,7 @@ namespace mpv_winui.Modules.Player
 
             AddOverflowItem(AppContext.AppLang.MoreSkipBackward, SkipBackwardButton, Backward, userHidden);
             AddOverflowItem(AppContext.AppLang.MoreSkipForward, SkipForwardButton, Forward, userHidden);
-            AddOverflowItem(AppContext.AppLang.MoreShuffle, ShuffleButton, () => OnShuffleClick(null, null), userHidden, "random");
-            AddOverflowItem(AppContext.AppLang.MoreRepeat, RepeatButton, () => OnRepeatClick(null, null), userHidden);
+            AddOverflowItem(AppContext.AppLang.MoreShuffle, ShuffleButton, () => OnPlaybackModeClick(null, null), userHidden, "random");
 
             if (PlaybackRateButton.Visibility != Visibility.Visible)
             {

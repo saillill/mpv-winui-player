@@ -31,6 +31,8 @@
   "MorePreviousTrack": "上一项",
   "MoreRepeat": "循环",
   "MoreShuffle": "随机播放",
+  "ControlBarModePlayOnce": "播放一次",
+  "ControlBarModeSequence": "顺序播放",
   "MoreSkipBackward": "后退",
   "MoreSkipForward": "前进",
   "MoreZoom": "缩放",

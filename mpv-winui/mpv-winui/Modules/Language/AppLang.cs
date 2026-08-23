@@ -263,6 +263,8 @@ namespace mpv_winui.Modules.Language
         public string MorePreviousTrack { get; set; } = "Previous Track";
         public string MoreRepeat { get; set; } = "Repeat";
         public string MoreShuffle { get; set; } = "Shuffle";
+        public string ControlBarModePlayOnce { get; set; } = "Play once";
+        public string ControlBarModeSequence { get; set; } = "In order";
         public string MoreSkipBackward { get; set; } = "Skip Backward";
         public string MoreSkipForward { get; set; } = "Skip Forward";
         public string MoreZoom { get; set; } = "Zoom";

@@ -307,7 +307,7 @@
                         x:Name="RepeatButton"
                         Style="{StaticResource AppBarButtonStyle}"
                         AutomationProperties.Name="Repeat"
-                        Visibility="Visible">
+                        Visibility="Collapsed">
                         <AppBarButton.Icon>
                             <FontIcon
                                 x:Name="RepeatSymbol"
@@ -786,27 +786,18 @@
                 </VisualState>
             </VisualStateGroup>
 
-            <VisualStateGroup x:Name="RepeatStates">
-                <VisualState x:Name="RepeatAllState" />
-                <VisualState x:Name="RepeatNoneState">
+            <VisualStateGroup x:Name="PlaybackModeStates">
+                <VisualState x:Name="ModePlayOnce">
                     <VisualState.Setters>
-                        <Setter Target="RepeatSymbol.Glyph" Value="&#xF175;" />
+                        <Setter Target="ShuffleSymbol.Glyph" Value="&#xF175;" />
                     </VisualState.Setters>
                 </VisualState>
-                <VisualState x:Name="RepeatOneState">
+                <VisualState x:Name="ModeSequence">
                     <VisualState.Setters>
-                        <Setter Target="RepeatSymbol.Glyph" Value="&#xEF34;" />
+                        <Setter Target="ShuffleSymbol.Glyph" Value="&#xF172;" />
                     </VisualState.Setters>
                 </VisualState>
-            </VisualStateGroup>
-
-            <VisualStateGroup x:Name="ShuffleStates">
-                <VisualState x:Name="ShuffleNoneState">
-                    <VisualState.Setters>
-                        <Setter Target="ShuffleSymbol.Glyph" Value="&#xEF3D;" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="ShuffleState">
+                <VisualState x:Name="ModeShuffle">
                     <VisualState.Setters>
                         <Setter Target="ShuffleSymbol.Glyph" Value="&#xEF37;" />
                     </VisualState.Setters>
