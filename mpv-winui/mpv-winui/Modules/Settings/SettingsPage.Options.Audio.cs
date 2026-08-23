@@ -164,6 +164,16 @@ public sealed partial class SettingsPage
                 Getter = () => AppContext.AppSetting.AudioNormalizeDownmix,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioNormalizeDownmix), AppContext.AppSetting.AudioNormalizeDownmix = (bool)v!)
             },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AdLavcDownmix),
+                Label = lang.SettingsAdLavcDownmix,
+                Category = audio,
+                Description = lang.SettingsHelpAdLavcDownmix,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.AdLavcDownmix,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AdLavcDownmix), AppContext.AppSetting.AdLavcDownmix = (bool)v!)
+            },
 
             new Option
             {

@@ -1556,6 +1556,34 @@ namespace mpv_winui.Modules.Settings
         }
 
         /// <summary>Seek-bar preview thumbnail width in logical px (120..480).</summary>
+
+        /// <summary>Picture brightness adjustment (-100..100).</summary>
+        public int PictureBrightness { get => _dataSetting.GetValue(nameof(PictureBrightness), 0); set => _dataSetting.SetValue(nameof(PictureBrightness), value); }
+        /// <summary>Picture contrast adjustment (-100..100).</summary>
+        public int PictureContrast { get => _dataSetting.GetValue(nameof(PictureContrast), 0); set => _dataSetting.SetValue(nameof(PictureContrast), value); }
+        /// <summary>Picture saturation adjustment (-100..100).</summary>
+        public int PictureSaturation { get => _dataSetting.GetValue(nameof(PictureSaturation), 0); set => _dataSetting.SetValue(nameof(PictureSaturation), value); }
+        /// <summary>Picture gamma adjustment (-100..100).</summary>
+        public int PictureGamma { get => _dataSetting.GetValue(nameof(PictureGamma), 0); set => _dataSetting.SetValue(nameof(PictureGamma), value); }
+        /// <summary>Picture hue adjustment (-100..100).</summary>
+        public int PictureHue { get => _dataSetting.GetValue(nameof(PictureHue), 0); set => _dataSetting.SetValue(nameof(PictureHue), value); }
+        /// <summary>Sharpening strength (0..5, gpu-next only).</summary>
+        public double PictureSharpen { get => _dataSetting.GetValue(nameof(PictureSharpen), 0.0); set => _dataSetting.SetValue(nameof(PictureSharpen), value); }
+        /// <summary>Auto-resize window on video resolution change.</summary>
+        public bool AutoWindowResize { get => _dataSetting.GetValue(nameof(AutoWindowResize), true); set => _dataSetting.SetValue(nameof(AutoWindowResize), value); }
+        /// <summary>Decoder-level stereo downmix for multichannel audio.</summary>
+        public bool AdLavcDownmix { get => _dataSetting.GetValue(nameof(AdLavcDownmix), false); set => _dataSetting.SetValue(nameof(AdLavcDownmix), value); }
+
+
+        /// <summary>Picture brightness adjustment (-100..100).</summary>
+        /// <summary>Picture contrast adjustment (-100..100).</summary>
+        /// <summary>Picture saturation adjustment (-100..100).</summary>
+        /// <summary>Picture gamma adjustment (-100..100).</summary>
+        /// <summary>Picture hue adjustment (-100..100).</summary>
+        /// <summary>Sharpening strength (0..5, gpu-next only).</summary>
+        /// <summary>Auto-resize window on video resolution change.</summary>
+        /// <summary>Decoder-level stereo downmix for multichannel audio.</summary>
+
         public string ThumbnailPreviewWidth
         {
             get => _dataSetting.GetValue(nameof(ThumbnailPreviewWidth), "248");

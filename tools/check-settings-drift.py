@@ -71,6 +71,7 @@ UNMAPPED_OK = {
     "ControlBarOrderStyleMigrated", "WindowPiPRect", "WindowPiPOpacity",
     "LastVideoVolume", "LastAudioVolume", "AudioVolume", "PatchVersion",
     "EnableVideoPreview",
+    "ThumbnailPreviewWidth", "ThumbnailUpdateInterval",
     # UI-only settings persisted by their own handlers (playlist width from
     # the resize grip, window title from MainWindow).
     "PlaylistWidth", "WindowTitle",

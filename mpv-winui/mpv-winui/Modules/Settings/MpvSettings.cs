@@ -63,6 +63,14 @@ public static class MpvSettings
             // directory synchronously inside loadfile (minutes on huge
             // dirs). Always disable it here; MpvMediaPlayer fills the playlist
             // lazily in the background instead, driven by the same setting.
+            nameof(AppSettings.PictureBrightness) => $"set brightness {(int)AppContext.AppSetting.PictureBrightness}",
+            nameof(AppSettings.PictureContrast) => $"set contrast {(int)AppContext.AppSetting.PictureContrast}",
+            nameof(AppSettings.PictureSaturation) => $"set saturation {(int)AppContext.AppSetting.PictureSaturation}",
+            nameof(AppSettings.PictureGamma) => $"set gamma {(int)AppContext.AppSetting.PictureGamma}",
+            nameof(AppSettings.PictureHue) => $"set hue {(int)AppContext.AppSetting.PictureHue}",
+            nameof(AppSettings.PictureSharpen) => $"set sharpen {AppContext.AppSetting.PictureSharpen:0.0##}",
+            nameof(AppSettings.AutoWindowResize) => (bool)value ? "set auto-window-resize yes" : "set auto-window-resize no",
+            nameof(AppSettings.AdLavcDownmix) => (bool)value ? "set ad-lavc-downmix yes" : "set ad-lavc-downmix no",
             nameof(AppSettings.AutoCreatePlaylist) => "set autocreate-playlist no",
             nameof(AppSettings.DirectoryMode) => $"set directory-mode {(string)value}",
             nameof(AppSettings.DirectoryFilterTypes) => $"set directory-filter-types {(string)value}",

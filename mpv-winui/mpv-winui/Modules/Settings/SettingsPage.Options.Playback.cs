@@ -103,6 +103,20 @@ public sealed partial class SettingsPage
                 Getter = () => AppContext.AppSetting.StartFullscreen,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.StartFullscreen), AppContext.AppSetting.StartFullscreen = (bool)v!)
             },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AutoWindowResize),
+                Label = lang.SettingsAutoWindowResize,
+                Category = window,
+                Description = lang.SettingsHelpAutoWindowResize,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.AutoWindowResize,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.AutoWindowResize = (bool)v!;
+                    ApplyMpv(nameof(AppContext.AppSetting.AutoWindowResize), AppContext.AppSetting.AutoWindowResize);
+                }
+            },
 
             new Option
             {
