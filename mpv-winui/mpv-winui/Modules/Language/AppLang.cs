@@ -275,6 +275,15 @@ namespace mpv_winui.Modules.Language
         public string ControlBarModeNoRepeat { get; set; } = "No repeat";
         public string ControlBarModeSequence { get; set; } = "In order";
         public string ControlBarModeRepeatOne { get; set; } = "Loop one";
+        public string SectionSubtitleStyle { get; set; } = "Style";
+        public string SectionSubtitlePosition { get; set; } = "Position && alignment";
+        public string SectionSubtitleBehavior { get; set; } = "Behavior && loading";
+        public string SectionToneMapping { get; set; } = "Tone mapping";
+        public string SectionTargetColorspace { get; set; } = "Target color space";
+        public string SectionColorManagement { get; set; } = "Color management";
+        public string SectionOsdAppearance { get; set; } = "Appearance";
+        public string SectionOsdBehavior { get; set; } = "Behavior";
+        public string SectionOsdPosition { get; set; } = "Positioning";
         public string SettingsPictureBrightness { get; set; } = "Picture brightness";
         public string SettingsHelpPictureBrightness { get; set; } = "Picture brightness (-100..100). Default 0.";
         public string SettingsPictureContrast { get; set; } = "Picture contrast";
