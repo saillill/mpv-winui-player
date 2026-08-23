@@ -31,6 +31,22 @@ public static class ShortcutKeyLocalizer
                 "UP" => lang.KeyUp,
                 "DOWN" => lang.KeyDown,
                 "META" => lang.KeyMeta,
+                "MBTN_LEFT" => lang.KeyMouseLeft,
+                "MBTN_RIGHT" => lang.KeyMouseRight,
+                "MBTN_MID" => lang.KeyMouseMiddle,
+                "MBTN_BACK" => lang.KeyMouseBackward,
+                "MBTN_FORWARD" => lang.KeyMouseForward,
+                "MBTN_LEFT_DBL" => lang.KeyMouseLeftDouble,
+                "WHEEL_UP" => lang.KeyWheelUp,
+                "WHEEL_DOWN" => lang.KeyWheelDown,
+                "WHEEL_LEFT" => lang.KeyWheelLeft,
+                "WHEEL_RIGHT" => lang.KeyWheelRight,
+                "PGUP" => lang.KeyPageUp,
+                "PGDWN" => lang.KeyPageDown,
+                "BS" => lang.KeyBackspace,
+                _ when parts[i].ToUpperInvariant().StartsWith("KP", StringComparison.Ordinal)
+                    && parts[i].Length == 3 && char.IsDigit(parts[i][2])
+                    => lang.KeyKeypad + parts[i][2],
                 _ => parts[i],
             };
         }
