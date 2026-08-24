@@ -39,3 +39,4 @@ SetWindowLong
 SetWindowPos
 ImmGetContext
 ImmAssociateContext
+VIRTUAL_KEY

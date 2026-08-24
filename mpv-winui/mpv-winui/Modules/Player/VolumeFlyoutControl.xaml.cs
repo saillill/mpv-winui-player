@@ -18,7 +18,7 @@ namespace mpv_winui.Modules.Player
             this.InitializeComponent();
             _player.SetTarget(player);
             _subscribedPlayer = player;
-            player.VolumeChangedChanged += OnPlayerVolumeChanged;
+            player.VolumeChanged += OnPlayerVolumeChanged;
             Unloaded += VolumeFlyoutControl_Unloaded;
             VolumeSlider.Value = player.Volume;
             VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
@@ -76,7 +76,7 @@ namespace mpv_winui.Modules.Player
         {
             if (_subscribedPlayer is { } player)
             {
-                player.VolumeChangedChanged -= OnPlayerVolumeChanged;
+                player.VolumeChanged -= OnPlayerVolumeChanged;
                 _subscribedPlayer = null;
             }
         }

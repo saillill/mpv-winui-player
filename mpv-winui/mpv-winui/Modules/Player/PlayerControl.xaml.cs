@@ -235,7 +235,7 @@ namespace mpv_winui.Modules.Player
         /// <summary>Applies control-bar layout and hidden-icon preferences from the settings.</summary>
         public void ApplyControlBarStyle()
         {
-            var layout = _compactMode ? "modernx" : NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
+            var layout = _compactMode ? "modernx" : ControlBarLayoutEngine.Normalize(AppContext.AppSetting.ControlBarLayout);
             ApplyControlBarOrder(layout);
 
             if (_compactMode)
@@ -270,9 +270,7 @@ namespace mpv_winui.Modules.Player
             var hiddenValue = layout == "modernx"
                 ? AppContext.AppSetting.ControlBarHiddenIconsModernX
                 : AppContext.AppSetting.ControlBarHiddenIconsClassic;
-            var hidden = new HashSet<string>(
-                hiddenValue?.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
-                StringComparer.OrdinalIgnoreCase);
+            var hidden = ControlBarLayoutEngine.ParseHiddenIcons(hiddenValue);
 
             // Restore the buttons the PiP compact pass collapses.
             SetHidden(false,
@@ -497,7 +495,7 @@ namespace mpv_winui.Modules.Player
         }
 
         /// <summary>
-        /// 鍘熺増 keeps the upstream control order. 灞呬腑 reorders the buttons to
+        /// 原版 keeps the upstream control order. 居中 reorders the buttons to
         /// match ModernX: tracks and volume on the left edge, previous/skip/
         /// play/skip/next centered, window controls on the right edge. The
         /// command bars sit in star columns so the middle cluster is centered
@@ -509,8 +507,13 @@ namespace mpv_winui.Modules.Player
             // right frame (zone 0/2) and orders it inside that frame; the
             // transport group stays fixed. Volume maps to two controls that
             // share the "volume" id and zone.
-            var custom = ParseCustomOrder();
-            var zones = ParseZones(layout);
+            bool modernx = layout == "modernx";
+            var custom = ControlBarLayoutEngine.ParseCustomOrder(modernx
+                ? AppContext.AppSetting.ControlBarCustomOrderModernX
+                : AppContext.AppSetting.ControlBarCustomOrderClassic);
+            var zones = ControlBarLayoutEngine.ParseZones(modernx
+                ? AppContext.AppSetting.ControlBarZonesModernX
+                : AppContext.AppSetting.ControlBarZonesClassic);
 
             (string Id, ICommandBarElement Element)[] catalog =
             [
@@ -540,14 +543,14 @@ namespace mpv_winui.Modules.Player
             ICommandBarElement[] left, middle, right;
             if (layout == "modernx")
             {
-                left = ReorderMovable(leftMovable.ToArray(), custom);
+                left = ControlBarLayoutEngine.ReorderMovable(leftMovable.ToArray(), custom);
                 middle =
                 [
                     PreviousTrackButton, SkipBackwardButton,
                     PlayPauseButton, SkipForwardButton,
                     NextTrackButton,
                 ];
-                right = [.. ReorderMovable(rightMovable.ToArray(), custom), MoreButton];
+                right = [.. ControlBarLayoutEngine.ReorderMovable(rightMovable.ToArray(), custom), MoreButton];
             }
             else
             {
@@ -555,88 +558,13 @@ namespace mpv_winui.Modules.Player
                 [
                     PlayPauseButton, PreviousTrackButton, NextTrackButton, SkipBackwardButton,
                     SkipForwardButton,
-                    .. ReorderMovable(leftMovable.ToArray(), custom),
+                    .. ControlBarLayoutEngine.ReorderMovable(leftMovable.ToArray(), custom),
                 ];
                 middle = [];
-                right = [.. ReorderMovable(rightMovable.ToArray(), custom), MoreButton];
+                right = [.. ControlBarLayoutEngine.ReorderMovable(rightMovable.ToArray(), custom), MoreButton];
             }
 
             ApplyBarOrders(LeftCommandBar, MiddleCommandBar, RightCommandBar, left, middle, right);
-        }
-
-        /// <summary>Parses the persisted per-id zone overrides ("id:0,id:2").</summary>
-        private static Dictionary<string, int> ParseZones(string layout)
-        {
-            var zones = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            var setting = layout == "modernx"
-                ? AppContext.AppSetting.ControlBarZonesModernX
-                : AppContext.AppSetting.ControlBarZonesClassic;
-            foreach (var token in (setting ?? string.Empty)
-                         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                var colon = token.IndexOf(':');
-                if (colon <= 0 || colon >= token.Length - 1)
-                {
-                    continue;
-                }
-                if (int.TryParse(token[(colon + 1)..], out var zone) && (zone == 0 || zone == 2))
-                {
-                    zones[token[..colon]] = zone;
-                }
-            }
-            return zones;
-        }
-
-        /// <summary>
-        /// Parses the custom order of the active layout style into the allowed
-        /// canvas ids. 原版 and 居中 keep separate orders so editing one style
-        /// never reorders the other.
-        /// </summary>
-        private static List<string> ParseCustomOrder()
-        {
-            var allowed = new[] { "volume", "tracks", "random", "panel", "aspect", "fullwindow", "fullscreen", "pip" };
-            var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
-            var order = layout == "modernx"
-                ? AppContext.AppSetting.ControlBarCustomOrderModernX
-                : AppContext.AppSetting.ControlBarCustomOrderClassic;
-            return order
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(x => allowed.Contains(x, StringComparer.OrdinalIgnoreCase))
-                .ToList();
-        }
-
-        /// <summary>
-        /// Reorders a command bar's canvas buttons to the custom order. Only
-        /// ids present in this partition are affected; the rest keep their
-        /// default relative order. "volume" maps to two controls (mute + slider).
-        /// </summary>
-        private static ICommandBarElement[] ReorderMovable((string Id, ICommandBarElement Element)[] defaults, IReadOnlyList<string> custom)
-        {
-            var result = new List<ICommandBarElement>(defaults.Length);
-            var remaining = new HashSet<string>(defaults.Select(d => d.Id), StringComparer.OrdinalIgnoreCase);
-            foreach (var id in custom)
-            {
-                if (!remaining.Remove(id))
-                {
-                    continue;
-                }
-                foreach (var (did, el) in defaults)
-                {
-                    if (string.Equals(did, id, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.Add(el);
-                    }
-                }
-            }
-            // ids not mentioned in the custom order keep their default position.
-            foreach (var (id, el) in defaults)
-            {
-                if (remaining.Contains(id))
-                {
-                    result.Add(el);
-                }
-            }
-            return result.ToArray();
         }
 
         private static void ApplyBarOrders(
@@ -739,15 +667,6 @@ namespace mpv_winui.Modules.Player
             return true;
         }
 
-        private static string NormalizeControlBarLayout(string? value)
-        {
-            return value switch
-            {
-                "modernx" or "center" or "right" => "modernx",
-                _ => "classic",
-            };
-        }
-
         private static void SetHidden(bool hide, params FrameworkElement[] elements)
         {
             foreach (var element in elements)
@@ -762,13 +681,11 @@ namespace mpv_winui.Modules.Player
         /// <summary>Ids the user explicitly hid in the control-bar settings.</summary>
         private static HashSet<string> CurrentHiddenIconIds()
         {
-            var layout = NormalizeControlBarLayout(AppContext.AppSetting.ControlBarLayout);
+            var layout = ControlBarLayoutEngine.Normalize(AppContext.AppSetting.ControlBarLayout);
             var value = layout == "modernx"
                 ? AppContext.AppSetting.ControlBarHiddenIconsModernX
                 : AppContext.AppSetting.ControlBarHiddenIconsClassic;
-            return new HashSet<string>(
-                value?.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
-                StringComparer.OrdinalIgnoreCase);
+            return ControlBarLayoutEngine.ParseHiddenIcons(value);
         }
 
         public MpvMediaPlayer? MediaPlayer
@@ -791,7 +708,7 @@ namespace mpv_winui.Modules.Player
 
                         UpdatePlaybackModeUI();
                         UpdatePlaybackRateUI(value.PlaybackRate);
-                        VolumeSlider.Value2 = _mediaPlayer?.Volume ?? 50; //TODO
+                        VolumeSlider.Value2 = _mediaPlayer?.Volume ?? 50;
 
                         // Initialize time/progress from the current media state.
                         // The position timer only refreshes while playing, so a
@@ -990,10 +907,9 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.MediaOpened += MediaPlayer_MediaOpened;
             _mediaPlayer?.MediaFailed += MediaPlayer_MediaFailed;
             _mediaPlayer?.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
-            _mediaPlayer?.BufferingStarted += PlaybackSession_BufferingStarted;
-            _mediaPlayer?.BufferingEnded += PlaybackSession_BufferingEnded;
-            _mediaPlayer?.NaturalDurationChanged += PlaybackSession_NaturalDurationChanged;
-            _mediaPlayer?.VolumeChangedChanged += PlaybackSession_VolumeChangedChanged;
+            _mediaPlayer?.SeekingStarted += PlaybackSession_SeekingStarted;
+            _mediaPlayer?.SeekingEnded += PlaybackSession_SeekingEnded;
+            _mediaPlayer?.VolumeChanged += PlaybackSession_VolumeChanged;
             _mediaPlayer?.Seeked += MediaPlayer_Seeked;
             _mediaPlayer?.RepeatStateChanged += MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged += MediaPlayer_ShuffleEnabledChanged;
@@ -1006,10 +922,9 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.MediaOpened -= MediaPlayer_MediaOpened;
             _mediaPlayer?.MediaFailed -= MediaPlayer_MediaFailed;
             _mediaPlayer?.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
-            _mediaPlayer?.BufferingStarted -= PlaybackSession_BufferingStarted;
-            _mediaPlayer?.BufferingEnded -= PlaybackSession_BufferingEnded;
-            _mediaPlayer?.NaturalDurationChanged -= PlaybackSession_NaturalDurationChanged;
-            _mediaPlayer?.VolumeChangedChanged -= PlaybackSession_VolumeChangedChanged;
+            _mediaPlayer?.SeekingStarted -= PlaybackSession_SeekingStarted;
+            _mediaPlayer?.SeekingEnded -= PlaybackSession_SeekingEnded;
+            _mediaPlayer?.VolumeChanged -= PlaybackSession_VolumeChanged;
             _mediaPlayer?.Seeked -= MediaPlayer_Seeked;
             _mediaPlayer?.RepeatStateChanged -= MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged -= MediaPlayer_ShuffleEnabledChanged;
@@ -1030,26 +945,29 @@ namespace mpv_winui.Modules.Player
         private void ZoomButton_Click(object sender, RoutedEventArgs e)
         {
             ZoomSelectionFlyout.Items.Clear();
-
-            var item = new MenuFlyoutItem() { Text = AppContext.AppLang.MoreZoomAuto, Tag = "no", };
-            item.Click += ZoomSelectionMenu_Click;
-            ZoomSelectionFlyout.Items.Add(item);
-
-            item = new MenuFlyoutItem() { Text = "4:3", Tag = "4:3", };
-            item.Click += ZoomSelectionMenu_Click;
-            ZoomSelectionFlyout.Items.Add(item);
-
-            item = new MenuFlyoutItem() { Text = "16:9", Tag = "16:9", };
-            item.Click += ZoomSelectionMenu_Click;
-            ZoomSelectionFlyout.Items.Add(item);
-
-            item = new MenuFlyoutItem() { Text = "16:10", Tag = "16:10", };
-            item.Click += ZoomSelectionMenu_Click;
-            ZoomSelectionFlyout.Items.Add(item);
+            AddZoomOptions(ZoomSelectionFlyout.Items, ZoomSelectionMenu_Click);
 
             if (sender is MenuFlyoutItem)
             {
                 ZoomSelectionFlyout.ShowAt(ZoomButton);
+            }
+        }
+
+        /// <summary>Single source of the aspect-ratio options shared by
+        /// the zoom flyout and the narrow-window overflow submenu.</summary>
+        internal static void AddZoomOptions(IList<MenuFlyoutItemBase> items, RoutedEventHandler onClick)
+        {
+            foreach (var (label, tag) in new[]
+                     {
+                         (AppContext.AppLang.MoreZoomAuto, "no"),
+                         ("4:3", "4:3"),
+                         ("16:9", "16:9"),
+                         ("16:10", "16:10"),
+                     })
+            {
+                var item = new MenuFlyoutItem { Text = label, Tag = tag };
+                item.Click += onClick;
+                items.Add(item);
             }
         }
 
@@ -1198,7 +1116,7 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.Position -= 10;
         }
 
-        private async void PlaybackSession_PlaybackStateChanged(MpvMediaPlayer sender, bool args)
+        private void PlaybackSession_PlaybackStateChanged(MpvMediaPlayer sender, bool args)
         {
             DispatcherQueue.RunAsync(() =>
             {
@@ -1215,7 +1133,7 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        private async void MediaPlayer_MediaOpened(MpvMediaPlayer sender, object? args)
+        private void MediaPlayer_MediaOpened(MpvMediaPlayer sender, object? args)
         {
             _hasError = false;
             _sourceLoaded = true;
@@ -1235,7 +1153,7 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        private async void MediaPlayer_Seeked(MpvMediaPlayer sender, object? args)
+        private void MediaPlayer_Seeked(MpvMediaPlayer sender, object? args)
         {
             DispatcherQueue.RunAsync(() =>
             {
@@ -1263,7 +1181,7 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.StepFrequency = 1;
         }
 
-        private async void MediaPlayer_MediaFailed(MpvMediaPlayer sender, string? args)
+        private void MediaPlayer_MediaFailed(MpvMediaPlayer sender, string? args)
         {
             _hasError = true;
             _sourceLoaded = false;
@@ -1275,7 +1193,7 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        private async void PlaybackSession_BufferingStarted(MpvMediaPlayer sender, object? args)
+        private void PlaybackSession_SeekingStarted(MpvMediaPlayer sender, object? args)
         {
             // Local files briefly enter mpv's buffering state when seeking;
             // do not flash the loading strip for user-initiated scrubs.
@@ -1287,24 +1205,13 @@ namespace mpv_winui.Modules.Player
             DispatcherQueue.RunAsync(() => { UpdatePlaybackStatusUI(true); });
         }
 
-        private async void PlaybackSession_BufferingEnded(MpvMediaPlayer sender, object? args)
+        private void PlaybackSession_SeekingEnded(MpvMediaPlayer sender, object? args)
         {
             _isBuffering = false;
             DispatcherQueue.RunAsync(() => { UpdatePlaybackStatusUI(true); });
         }
 
-        private async void PlaybackSession_NaturalDurationChanged(MpvMediaPlayer sender, object? args)
-        {
-            DispatcherQueue.RunAsync(() =>
-            {
-                if (sender.Duration > 0)
-                {
-                    UpdateProgressSliderValue(null, sender.Duration);
-                }
-            });
-        }
-
-        private async void PlaybackSession_VolumeChangedChanged(MpvMediaPlayer sender, int volume)
+        private void PlaybackSession_VolumeChanged(MpvMediaPlayer sender, int volume)
         {
             DispatcherQueue.RunAsync(() =>
             {
@@ -1956,18 +1863,8 @@ namespace mpv_winui.Modules.Player
         private MenuFlyoutSubItem BuildZoomSubmenu()
         {
             var submenu = new MenuFlyoutSubItem { Text = AppContext.AppLang.MoreZoom };
-            AddZoomOption(submenu, AppContext.AppLang.MoreZoomAuto, "no");
-            AddZoomOption(submenu, "4:3", "4:3");
-            AddZoomOption(submenu, "16:9", "16:9");
-            AddZoomOption(submenu, "16:10", "16:10");
+            AddZoomOptions(submenu.Items, ZoomSelectionMenu_Click);
             return submenu;
-        }
-
-        private void AddZoomOption(MenuFlyoutSubItem submenu, string text, string tag)
-        {
-            var item = new MenuFlyoutItem { Text = text, Tag = tag };
-            item.Click += ZoomSelectionMenu_Click;
-            submenu.Items.Add(item);
         }
 
         private void ProgressSlider_PointerEntered(object sender, PointerRoutedEventArgs e)
