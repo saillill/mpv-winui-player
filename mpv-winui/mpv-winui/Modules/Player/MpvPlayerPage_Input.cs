@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using mpv;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Win32.Foundation;
@@ -17,7 +18,6 @@ namespace mpv_winui.Modules.Player
         {
             _hHook = SetWindowsHookEx(WINDOWS_HOOK_ID.WH_KEYBOARD, &MessageHookProc, HINSTANCE.Null, GetCurrentThreadId());
 
-            //TODO
             App.Window?.Activated += Window_Activated;
         }
 
@@ -48,12 +48,6 @@ namespace mpv_winui.Modules.Player
             if (string.IsNullOrEmpty(keyName))
             {
                 return;
-            }
-
-            if (_logger.IsTraceEnabled)
-            {
-                var code = Keycodes.mp_input_get_key_from_name(keyName);
-                _logger.Debug("keydown: mpv-name={}, mpv-code={}", keyName, code);
             }
 
             if (_selfWeakReference?.TryGetTarget(out var self) == true)
@@ -87,7 +81,7 @@ namespace mpv_winui.Modules.Player
                 {
                     HandleKeyUp(vkey);
 
-                    if (vkey == WinUser.VK_F10)
+                    if (vkey == (uint)VIRTUAL_KEY.VK_F10)
                     {
                         return (LRESULT)1;
                     }
@@ -98,14 +92,14 @@ namespace mpv_winui.Modules.Player
                     bool isSystemKey = (flags & (1U << 29)) != 0;
                     if (isSystemKey)
                     {
-                        if (vkey == WinUser.VK_SPACE)
+                        if (vkey == (uint)VIRTUAL_KEY.VK_SPACE)
                         {
                             return (LRESULT)0;
                         }
 
                         HandleKeyDown(vkey, scancode);
 
-                        if (vkey == WinUser.VK_F10)
+                        if (vkey == (uint)VIRTUAL_KEY.VK_F10)
                         {
                             return (LRESULT)1;
                         }
@@ -148,21 +142,16 @@ namespace mpv_winui.Modules.Player
                 }
             }
 
-            if (_logger.IsTraceEnabled)
-            {
-                var keyName = Keycodes.mp_input_get_key_name(mpkey);
-                _logger.Debug("keydown: key={}, mpv-key={}, key-name={}", vkey, mpkey, keyName);
-            }
 
             SendKeydown(ModPrefix() + $"0x{mpkey:X}");
         }
 
         private static bool IsSliderNavigationKey(uint vkey)
         {
-            return vkey == WinUser.VK_LEFT || vkey == WinUser.VK_RIGHT
-                || vkey == WinUser.VK_UP || vkey == WinUser.VK_DOWN
-                || vkey == WinUser.VK_PRIOR || vkey == WinUser.VK_NEXT
-                || vkey == WinUser.VK_HOME || vkey == WinUser.VK_END;
+            return vkey == (uint)VIRTUAL_KEY.VK_LEFT || vkey == (uint)VIRTUAL_KEY.VK_RIGHT
+                || vkey == (uint)VIRTUAL_KEY.VK_UP || vkey == (uint)VIRTUAL_KEY.VK_DOWN
+                || vkey == (uint)VIRTUAL_KEY.VK_PRIOR || vkey == (uint)VIRTUAL_KEY.VK_NEXT
+                || vkey == (uint)VIRTUAL_KEY.VK_HOME || vkey == (uint)VIRTUAL_KEY.VK_END;
         }
 
         private static void HandleKeyUp(uint key)
@@ -174,9 +163,9 @@ namespace mpv_winui.Modules.Player
 
             switch (key)
             {
-                case WinUser.VK_MENU:
-                case WinUser.VK_CONTROL:
-                case WinUser.VK_SHIFT:
+                case (uint)VIRTUAL_KEY.VK_MENU:
+                case (uint)VIRTUAL_KEY.VK_CONTROL:
+                case (uint)VIRTUAL_KEY.VK_SHIFT:
                     break;
                 default:
                 {

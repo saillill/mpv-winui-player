@@ -17,8 +17,9 @@
 
 using System;
 using static mpv.Keycodes;
-using static mpv.WinUser;
 using static Windows.Win32.PInvoke;
+
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 
 namespace mpv
 {
@@ -36,19 +37,19 @@ namespace mpv
             int res = 0;
 
             // AltGr is represented as LCONTROL+RMENU on Windows
-            bool alt_gr = key_state(VK_RMENU) && key_state(VK_LCONTROL);
+            bool alt_gr = key_state((int)VIRTUAL_KEY.VK_RMENU) && key_state((int)VIRTUAL_KEY.VK_LCONTROL);
 
-            if (key_state(VK_RCONTROL) || (key_state(VK_LCONTROL) && !alt_gr))
+            if (key_state((int)VIRTUAL_KEY.VK_RCONTROL) || (key_state((int)VIRTUAL_KEY.VK_LCONTROL) && !alt_gr))
             {
                 res |= MP_KEY_MODIFIER_CTRL;
             }
 
-            if (key_state(VK_SHIFT))
+            if (key_state((int)VIRTUAL_KEY.VK_SHIFT))
             {
                 res |= MP_KEY_MODIFIER_SHIFT;
             }
 
-            if (key_state(VK_LMENU) || (key_state(VK_RMENU) && !alt_gr))
+            if (key_state((int)VIRTUAL_KEY.VK_LMENU) || (key_state((int)VIRTUAL_KEY.VK_RMENU) && !alt_gr))
             {
                 res |= MP_KEY_MODIFIER_ALT;
             }
@@ -94,7 +95,7 @@ namespace mpv
 
         private static void clear_keyboard_buffer()
         {
-            uint vkey = VK_DECIMAL;
+            uint vkey = (int)VIRTUAL_KEY.VK_DECIMAL;
             Span<byte> keys = stackalloc byte[256];
             uint scancode = MapVirtualKey(vkey, MAPVK_VK_TO_VSC);
             Span<char> buf = stackalloc char[10];
@@ -149,11 +150,11 @@ namespace mpv
             // If mp_input_use_alt_gr is false, detect and remove AltGr so normal
             // characters are generated. Note that AltGr is represented as
             // LCONTROL+RMENU on Windows.
-            if ((keys[VK_RMENU] & 0x80) != 0 && (keys[VK_LCONTROL] & 0x80) != 0)
+            if ((keys[(int)VIRTUAL_KEY.VK_RMENU] & 0x80) != 0 && (keys[(int)VIRTUAL_KEY.VK_LCONTROL] & 0x80) != 0)
             {
-                keys[VK_RMENU] = keys[VK_LCONTROL] = 0;
-                keys[VK_MENU] = keys[VK_LMENU];
-                keys[VK_CONTROL] = keys[VK_RCONTROL];
+                keys[(int)VIRTUAL_KEY.VK_RMENU] = keys[(int)VIRTUAL_KEY.VK_LCONTROL] = 0;
+                keys[(int)VIRTUAL_KEY.VK_MENU] = keys[(int)VIRTUAL_KEY.VK_LMENU];
+                keys[(int)VIRTUAL_KEY.VK_CONTROL] = keys[(int)VIRTUAL_KEY.VK_RCONTROL];
             }
 
             int c = to_unicode(vkey, scancode, keys);
@@ -161,14 +162,14 @@ namespace mpv
             // Some shift states prevent ToUnicode from working or cause it to produce
             // control characters. If this is detected, remove modifiers until it
             // starts producing normal characters.
-            if (c < 0x20 && (keys[VK_MENU] & 0x80) != 0)
+            if (c < 0x20 && (keys[(int)VIRTUAL_KEY.VK_MENU] & 0x80) != 0)
             {
-                keys[VK_LMENU] = keys[VK_RMENU] = keys[VK_MENU] = 0;
+                keys[(int)VIRTUAL_KEY.VK_LMENU] = keys[(int)VIRTUAL_KEY.VK_RMENU] = keys[(int)VIRTUAL_KEY.VK_MENU] = 0;
                 c = to_unicode(vkey, scancode, keys);
             }
-            if (c < 0x20 && (keys[VK_CONTROL] & 0x80) != 0)
+            if (c < 0x20 && (keys[(int)VIRTUAL_KEY.VK_CONTROL] & 0x80) != 0)
             {
-                keys[VK_LCONTROL] = keys[VK_RCONTROL] = keys[VK_CONTROL] = 0;
+                keys[(int)VIRTUAL_KEY.VK_LCONTROL] = keys[(int)VIRTUAL_KEY.VK_RCONTROL] = keys[(int)VIRTUAL_KEY.VK_CONTROL] = 0;
                 c = to_unicode(vkey, scancode, keys);
             }
             if (c < 0x20)
@@ -176,7 +177,7 @@ namespace mpv
                 return 0;
             }
 
-            // Decode lone UTF-16 surrogates (VK_PACKET can generate these)
+            // Decode lone UTF-16 surrogates ((int)VIRTUAL_KEY.VK_PACKET can generate these)
             if (c < 0x10000)
             {
                 return decode_utf16((char)c);
@@ -185,22 +186,5 @@ namespace mpv
             return c;
         }
 
-        public static bool handle_appcommand(int cmd)
-        {
-            int mpkey = W32Keyboard.mp_w32_appcmd_to_mpkey(cmd);
-            if (mpkey == 0)
-            {
-                return false;
-            }
-            // mp_input_put_key(w32->input_ctx, mpkey | mod_state(w32));
-            // In C# we would call the input context's put_key method
-            return true;
-        }
-
-        public static int handle_char(uint wc, bool decode)
-        {
-            int c = decode ? decode_utf16((char)wc) : (int)wc;
-            return c;
-        }
     }
 }

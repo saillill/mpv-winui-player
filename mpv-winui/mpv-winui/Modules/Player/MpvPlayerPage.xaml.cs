@@ -61,7 +61,7 @@ namespace mpv_winui.Modules.Player
                 PlayerControl.MediaPlayer = _mediaPlayer;
 
                 _mediaPlayer.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
-                _mediaPlayer.VolumeChangedChanged += VolumeChangedChanged;
+                _mediaPlayer.VolumeChanged += MediaPlayer_VolumeChanged;
                 _mediaPlayer.WindowChanged += MpvPlayerPage_WindowChanged;
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.StartListen();
@@ -136,7 +136,7 @@ namespace mpv_winui.Modules.Player
             CleanupPlaylistRefresh();
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
-            _mediaPlayer.VolumeChangedChanged -= VolumeChangedChanged;
+            _mediaPlayer.VolumeChanged -= MediaPlayer_VolumeChanged;
             _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
             _mediaPlayer.StopListen();
@@ -259,7 +259,7 @@ namespace mpv_winui.Modules.Player
             return _isPlayerInitialized ? Task.CompletedTask : _playerReadyTcs.Task;
         }
 
-        private void VolumeChangedChanged(MpvMediaPlayer player, int volume)
+        private void MediaPlayer_VolumeChanged(MpvMediaPlayer player, int volume)
         {
             AppContext.AppSetting.LastVideoVolume = volume;
         }
