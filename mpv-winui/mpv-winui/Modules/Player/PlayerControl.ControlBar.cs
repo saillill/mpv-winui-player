@@ -66,7 +66,7 @@ namespace mpv_winui.Modules.Player
             /// <summary>Applies control-bar layout and hidden-icon preferences from the settings.</summary>
             public void ApplyControlBarStyle()
             {
-                var layout = _compactMode ? "modernx" : ControlBarLayoutEngine.Normalize(AppContext.AppSetting.ControlBarLayout);
+                var layout = _compactMode ? "modernx" : ControlBarLayoutGrammar.Normalize(AppContext.AppSetting.ControlBarLayout);
                 ApplyControlBarOrder(layout);
     
                 if (_compactMode)
@@ -101,7 +101,7 @@ namespace mpv_winui.Modules.Player
                 var hiddenValue = layout == "modernx"
                     ? AppContext.AppSetting.ControlBarHiddenIconsModernX
                     : AppContext.AppSetting.ControlBarHiddenIconsClassic;
-                var hidden = ControlBarLayoutEngine.ParseHiddenIcons(hiddenValue);
+                var hidden = ControlBarLayoutGrammar.ParseHiddenIcons(hiddenValue);
     
                 // Restore the buttons the PiP compact pass collapses.
                 SetHidden(false,
@@ -184,10 +184,10 @@ namespace mpv_winui.Modules.Player
                 // transport group stays fixed. Volume maps to two controls that
                 // share the "volume" id and zone.
                 bool modernx = layout == "modernx";
-                var custom = ControlBarLayoutEngine.ParseCustomOrder(modernx
+                var custom = ControlBarLayoutGrammar.ParseCustomOrder(modernx
                     ? AppContext.AppSetting.ControlBarCustomOrderModernX
                     : AppContext.AppSetting.ControlBarCustomOrderClassic);
-                var zones = ControlBarLayoutEngine.ParseZones(modernx
+                var zones = ControlBarLayoutGrammar.ParseZones(modernx
                     ? AppContext.AppSetting.ControlBarZonesModernX
                     : AppContext.AppSetting.ControlBarZonesClassic);
     
@@ -357,11 +357,11 @@ namespace mpv_winui.Modules.Player
             /// <summary>Ids the user explicitly hid in the control-bar settings.</summary>
             private static HashSet<string> CurrentHiddenIconIds()
             {
-                var layout = ControlBarLayoutEngine.Normalize(AppContext.AppSetting.ControlBarLayout);
+                var layout = ControlBarLayoutGrammar.Normalize(AppContext.AppSetting.ControlBarLayout);
                 var value = layout == "modernx"
                     ? AppContext.AppSetting.ControlBarHiddenIconsModernX
                     : AppContext.AppSetting.ControlBarHiddenIconsClassic;
-                return ControlBarLayoutEngine.ParseHiddenIcons(value);
+                return ControlBarLayoutGrammar.ParseHiddenIcons(value);
             }
     
             /// <summary>

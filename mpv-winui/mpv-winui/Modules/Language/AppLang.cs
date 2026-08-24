@@ -262,6 +262,8 @@ namespace mpv_winui.Modules.Language
         public string MorePlaybackRate { get; set; } = "Playback Rate";
         public string MorePreviousTrack { get; set; } = "Previous Track";
         public string MoreRepeat { get; set; } = "Repeat";
+        public string A11yVideoPreview { get; set; } = "Video preview";
+        public string A11yColorSwatch { get; set; } = "Color swatch";
         public string MoreShuffle { get; set; } = "Shuffle";
         public string SettingsThumbnailSize { get; set; } = "Thumbnail preview size";
         public string SettingsHelpThumbnailSize { get; set; } = "Width of the seek-bar preview thumbnail. Applies the next time the preview initializes, e.g. after reopening a file.";

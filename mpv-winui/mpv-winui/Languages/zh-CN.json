@@ -1031,5 +1031,7 @@
   "SubtitleCycleTrack": "切换字幕轨",
   "SubtitleVisibility": "显示/隐藏字幕",
   "ControlBarIconAbLoop": "A-B 循环",
-  "PanelDelay": "音视频/字幕延迟"
+  "PanelDelay": "音视频/字幕延迟",
+  "A11yVideoPreview": "视频预览",
+  "A11yColorSwatch": "颜色样块"
 }

@@ -1031,5 +1031,7 @@
   "SubtitleCycleTrack": "Switch subtitle track",
   "SubtitleVisibility": "Toggle subtitles",
   "ControlBarIconAbLoop": "A-B loop",
-  "PanelDelay": "Audio / subtitle delay"
+  "PanelDelay": "Audio / subtitle delay",
+  "A11yVideoPreview": "Video preview",
+  "A11yColorSwatch": "Color swatch"
 }

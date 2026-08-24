@@ -395,7 +395,7 @@
   "OptionValueToneMapBt2390": "BT.2390",
   "OptionValueToneMapBt2446a": "BT.2446a",
   "OptionValueToneMapMobius": "Möbius",
-  "OptionValueToneMapClip": "Clip",
+  "OptionValueToneMapClip": "Écrêtage",
   "OptionValueToneMapReinhard": "Reinhard",
   "OptionValueRotateNo": "Aucune rotation",
   "OptionValueRotate90": "90° horaire",
@@ -652,7 +652,7 @@
   "OptionValueHintModeTarget": "Cible",
   "OptionValueHintModeSource": "Source",
   "OptionValueHintModeSourceDynamic": "Source dynamique",
-  "OptionValueGamutClip": "Clip",
+  "OptionValueGamutClip": "Écrêtage",
   "OptionValueGamutWarn": "Avertir",
   "OptionValueGamutDesaturate": "Désaturer",
   "OptionValueGamutDarken": "Assombrir",
@@ -1030,8 +1030,8 @@
   "AudioMute": "Couper le son",
   "SubtitleCycleTrack": "Changer de piste de sous-titres",
   "SubtitleVisibility": "Afficher/masquer les sous-titres",
-  "OptionValueGamutClip": "Écrêtage",
-  "OptionValueToneMapClip": "Écrêtage",
   "ControlBarIconAbLoop": "Boucle A-B",
-  "PanelDelay": "Délai audio/sous-titres"
+  "PanelDelay": "Délai audio/sous-titres",
+  "A11yVideoPreview": "Aperçu vidéo",
+  "A11yColorSwatch": "Échantillon de couleur"
 }

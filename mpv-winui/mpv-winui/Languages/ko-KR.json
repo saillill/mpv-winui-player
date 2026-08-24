@@ -1031,5 +1031,7 @@
   "SubtitleCycleTrack": "자막 트랙 전환",
   "SubtitleVisibility": "자막 표시 전환",
   "ControlBarIconAbLoop": "A-B 반복",
-  "PanelDelay": "오디오/자막 지연"
+  "PanelDelay": "오디오/자막 지연",
+  "A11yVideoPreview": "동영상 미리보기",
+  "A11yColorSwatch": "색 샘플"
 }

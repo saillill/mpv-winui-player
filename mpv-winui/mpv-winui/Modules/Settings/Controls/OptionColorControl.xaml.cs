@@ -1,5 +1,6 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using mpv_winui.Modules.Common.View;
@@ -31,6 +32,7 @@ public sealed partial class OptionColorControl : OptionControlBase
         RecentLabel.Text = mpv_winui.AppContext.AppLang.ThemeColorRecentColors;
         WindowsLabel.Text = mpv_winui.AppContext.AppLang.ThemeColorWindowsColors;
         CustomButton.Content = mpv_winui.AppContext.AppLang.ThemeColorCustomColors;
+        AutomationProperties.SetName(ColorSwatch, mpv_winui.AppContext.AppLang.A11yColorSwatch);
         BuildRecentGrid();
         BuildWindowsGrid();
         UpdateSwatch();
