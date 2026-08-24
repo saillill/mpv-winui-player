@@ -132,6 +132,7 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(FullWindowButton, AppContext.AppLang.MoreFullWindow);
             ToolTipService.SetToolTip(FullScreenButton, AppContext.AppLang.MoreFullScreen);
             ToolTipService.SetToolTip(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
+            AutomationProperties.SetName(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
             ToolTipService.SetToolTip(MoreButton, AppContext.AppLang.ControlBarIconMore);
 
             // Flyout labels that XAML holds as English placeholders.
