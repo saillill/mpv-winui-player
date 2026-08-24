@@ -34,11 +34,6 @@ namespace mpv_winui.Modules.Player
 
         private readonly Lazy<HashSet<string>> _subtitleExtensions;
 
-        private MpvPlayer GetMpvPlayer()
-        {
-            return _mpvPlayer;
-        }
-
         public MpvMediaPlayer()
         {
             this._mpvPlayer = new MpvPlayer();

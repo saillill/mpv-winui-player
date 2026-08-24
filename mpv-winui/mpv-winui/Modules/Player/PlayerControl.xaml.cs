@@ -1668,24 +1668,6 @@ namespace mpv_winui.Modules.Player
         private Storyboard? _hideStoryboard;
 
 
-        private void AppBarElementContainer_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (e.OriginalSource != sender)
-            {
-                return;
-            }
-
-            if (sender is AppBarElementContainer { Content: Panel control })
-            {
-                foreach (var item in control.Children)
-                {
-                    if (item is Control cc)
-                    {
-                        cc.Focus(FocusState.Programmatic);
-                    }
-                }
-            }
-        }
 
         private void UpdateFullScreenUI(bool enabled)
         {
