@@ -24,6 +24,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
     {
         nameof(AppContext.AppSetting.ThemeType),
         nameof(AppContext.AppSetting.BackdropType),
+        nameof(AppContext.AppSetting.CurrentLanguage),
         nameof(AppContext.AppSetting.KeepOpen),
         nameof(AppContext.AppSetting.LoopPlaylist),
         nameof(AppContext.AppSetting.CacheEnabled),
@@ -131,6 +132,11 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                 Add("DengXian", "等线");
                 Add("SimHei", "黑体");
                 Add("KaiTi", "楷体");
+                break;
+            case "zh-TW":
+                Add("Microsoft JhengHei", "微軟正黑體");
+                Add("PMingLiU", "新細明體");
+                Add("DFKai-SB", "標楷體");
                 break;
             case "ja-JP":
                 Add("Yu Gothic UI", "Yu Gothic UI");

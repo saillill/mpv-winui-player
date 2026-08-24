@@ -44,7 +44,7 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 - `Controls/Option*.xaml/cs`: per-type renderers (Boolean, StringList, Integer, Double, Color, CheckList, Layout, ShaderList).
 - Dependency gating: `RefreshWarningsAndEnabled()` evaluates Warning/IsEnabled/IsVisible rules.
 - `tools/check-settings-drift.py`: validates AppSettings ↔ ToCommand ↔ option keys consistency.
-- `tools/check-localization.py`: validates AppLang properties × 8 language JSON files.
+- `tools/check-localization.py`: validates AppLang properties × the Languages/*.json files (9 languages).
 - App-level settings (no ToCommand mapping) must be whitelisted in check-settings-drift.py.
 
 ### Right-click menu
@@ -74,5 +74,5 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 ## Pointers
 
 - Editing menus / input.conf: read `docs/localization.md` first.
-- Localization: all user-facing strings go through AppLang × 8 Languages/*.json. Run `python tools/check-localization.py` after changes.
+- Localization: all user-facing strings go through AppLang × Languages/*.json (9 languages). Run `python tools/check-localization.py` after changes.
 - Adding settings options: read `docs/localization.md`, run both checkers after changes.

@@ -3,6 +3,7 @@ local msg = require 'mp.msg'
 
 -- ===== 菜单本地化 =====
 local menu_lang = mp.get_property_native('user-data/mpvw/language') or 'en-US'
+if menu_lang == 'zh-TW' then menu_lang = 'zh-CN' end
 -- BEGIN MENU_I18N
 local menu_i18n = {
     ['en-US'] = {
@@ -208,5 +209,6 @@ mp.observe_property("vf", "native", update_menus)
 mp.observe_property("user-data/hdr-auto/mode", "native", update_menus)
 mp.observe_property('user-data/mpvw/language', 'string', function()
     menu_lang = mp.get_property_native('user-data/mpvw/language') or 'en-US'
+    if menu_lang == 'zh-TW' then menu_lang = 'zh-CN' end
     update_menus()
 end)

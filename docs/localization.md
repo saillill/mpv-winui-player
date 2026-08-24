@@ -4,7 +4,7 @@
 
 1. WinUI 界面文案（按钮、菜单、对话框、设置页等）一律通过
    `AppLang` 属性读取，文案放在 `mpv-winui/mpv-winui/Languages/<lang>.json`
-   （属性名 = JSON key，共 8 种语言）。
+   （属性名 = JSON key，共 9 种语言，含 zh-TW）。
 2. mpv 侧文案（右键菜单、OSD、脚本提示）沿用各 Lua 脚本内的 8 语言
    i18n 表（如 `dyn_menu.lua`、`select.lua`、`hdr_auto.lua`），这是独立
    渠道，不并入 AppLang。

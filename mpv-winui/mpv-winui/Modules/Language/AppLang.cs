@@ -942,6 +942,7 @@ namespace mpv_winui.Modules.Language
             {
                 "en-US" => "English",
                 "zh-CN" => "中文",
+                "zh-TW" => "繁體中文",
                 "ja-JP" => "日本語",
                 "ko-KR" => "한국어",
                 "de-DE" => "Deutsch",

@@ -359,6 +359,7 @@ namespace mpv_winui.Modules.Settings
             return AppContext.AppSetting.CurrentLanguage switch
             {
                 "zh-CN" => "Microsoft YaHei",
+                "zh-TW" => "Microsoft JhengHei",
                 "ja-JP" => "Yu Gothic UI",
                 "ko-KR" => "Malgun Gothic",
                 _ => "Segoe UI",
