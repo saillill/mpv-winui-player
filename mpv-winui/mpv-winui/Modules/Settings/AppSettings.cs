@@ -195,7 +195,7 @@ namespace mpv_winui.Modules.Settings
         /// <summary>Backdrop transparency, 0 (opaque) to 100 (fully transparent).</summary>
         public int ThemeOpacity
         {
-            get => _dataSetting.GetValue(nameof(ThemeOpacity), 30);
+            get => _dataSetting.GetValue(nameof(ThemeOpacity), 100);
             set => _dataSetting.SetValue(nameof(ThemeOpacity), value);
         }
 
@@ -209,7 +209,7 @@ namespace mpv_winui.Modules.Settings
         /// <summary>Backdrop luminosity/brightness, 0 (dark) to 100 (bright).</summary>
         public int ThemeLuminosity
         {
-            get => _dataSetting.GetValue(nameof(ThemeLuminosity), 40);
+            get => _dataSetting.GetValue(nameof(ThemeLuminosity), 80);
             set => _dataSetting.SetValue(nameof(ThemeLuminosity), value);
         }
 
