@@ -79,12 +79,15 @@ namespace mpv_winui.Modules.Player
             {
                 return;
             }
-            target.Add(new MenuFlyoutSeparator());
+
+            // Wrap custom entries in a submenu so they don't clutter
+            // the root level of the context menu.
+            var sub = new MenuFlyoutSubItem { Text = "自定义" };
             foreach (var entry in custom)
             {
                 if (entry.Separator)
                 {
-                    target.Add(new MenuFlyoutSeparator());
+                    sub.Items.Add(new MenuFlyoutSeparator());
                     continue;
                 }
                 if (string.IsNullOrEmpty(entry.Label) || string.IsNullOrEmpty(entry.MpvCommand))
@@ -94,13 +97,22 @@ namespace mpv_winui.Modules.Player
                 var item = new MenuFlyoutItem { Text = entry.Label };
                 var cmd = entry.MpvCommand;
                 item.Click += (_, _) => MpvMenuItemClick(cmd!);
-                target.Add(item);
+                sub.Items.Add(item);
+            }
+            if (sub.Items.Count > 0)
+            {
+                target.Add(new MenuFlyoutSeparator());
+                target.Add(sub);
             }
         }
 
         private void AddOpenHeaderItems(IList<MenuFlyoutItemBase> target)
         {
-            var openSub = new MenuFlyoutSubItem { Text = AppContext.AppLang.File };
+            var openSub = new MenuFlyoutSubItem
+            {
+                Text = AppContext.AppLang.File,
+                Icon = new FontIcon { Glyph = "\uE8E5", FontFamily = new FontFamily(IconMap.Font) },
+            };
             target.Add(openSub);
 
             var item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenFile, Tag = "open" };
@@ -128,10 +140,6 @@ namespace mpv_winui.Modules.Player
             item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenWatchLater, Tag = "open-watch-later" };
             item.Click += Item_Click;
             openSub.Items.Add(item);
-
-            item = new MenuFlyoutItem { Text = AppContext.AppLang.Playlist, Tag = "playlist" };
-            item.Click += Item_Click;
-            target.Add(item);
         }
 
         private void AddCustomFooterItems(IList<MenuFlyoutItemBase> target)
@@ -139,7 +147,8 @@ namespace mpv_winui.Modules.Player
             var subItem = new MenuFlyoutSubItem
             {
                 Text = AppContext.AppLang.Window,
-                MinWidth = 200
+                MinWidth = 200,
+                Icon = new FontIcon { Glyph = "\uE922", FontFamily = new FontFamily(IconMap.Font) },
             };
             target.Add(subItem);
 
