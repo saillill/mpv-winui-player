@@ -1,25 +1,15 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Input;
 using mpv;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
-using Windows.Win32.UI.Input.KeyboardAndMouse;
 using static Windows.Win32.PInvoke;
 
 namespace mpv_winui.Modules.Player
 {
-    /// <summary>
-    /// Input forwarding for embedded composition mode: libmpv never sees
-    /// Win32 keyboard or mouse input here, so a thread-level keyboard hook,
-    /// window-activation key flush and WinUI pointer events translate user
-    /// input into mpv keydown/keyup commands (VK -> mpv key-code port in
-    /// Modules/Mpv).
-    /// </summary>
     public sealed partial class MpvPlayerPage
     {
-
         private HHOOK? _hHook;
         private static bool _suppressKeyboard = false;
 
@@ -27,6 +17,7 @@ namespace mpv_winui.Modules.Player
         {
             _hHook = SetWindowsHookEx(WINDOWS_HOOK_ID.WH_KEYBOARD, &MessageHookProc, HINSTANCE.Null, GetCurrentThreadId());
 
+            //TODO
             App.Window?.Activated += Window_Activated;
         }
 
@@ -57,6 +48,12 @@ namespace mpv_winui.Modules.Player
             if (string.IsNullOrEmpty(keyName))
             {
                 return;
+            }
+
+            if (_logger.IsTraceEnabled)
+            {
+                var code = Keycodes.mp_input_get_key_from_name(keyName);
+                _logger.Debug("keydown: mpv-name={}, mpv-code={}", keyName, code);
             }
 
             if (_selfWeakReference?.TryGetTarget(out var self) == true)
@@ -90,7 +87,7 @@ namespace mpv_winui.Modules.Player
                 {
                     HandleKeyUp(vkey);
 
-                    if (vkey == (uint)VIRTUAL_KEY.VK_F10)
+                    if (vkey == WinUser.VK_F10)
                     {
                         return (LRESULT)1;
                     }
@@ -101,14 +98,14 @@ namespace mpv_winui.Modules.Player
                     bool isSystemKey = (flags & (1U << 29)) != 0;
                     if (isSystemKey)
                     {
-                        if (vkey == (uint)VIRTUAL_KEY.VK_SPACE)
+                        if (vkey == WinUser.VK_SPACE)
                         {
                             return (LRESULT)0;
                         }
 
                         HandleKeyDown(vkey, scancode);
 
-                        if (vkey == (uint)VIRTUAL_KEY.VK_F10)
+                        if (vkey == WinUser.VK_F10)
                         {
                             return (LRESULT)1;
                         }
@@ -151,16 +148,21 @@ namespace mpv_winui.Modules.Player
                 }
             }
 
+            if (_logger.IsTraceEnabled)
+            {
+                var keyName = Keycodes.mp_input_get_key_name(mpkey);
+                _logger.Debug("keydown: key={}, mpv-key={}, key-name={}", vkey, mpkey, keyName);
+            }
 
             SendKeydown(ModPrefix() + $"0x{mpkey:X}");
         }
 
         private static bool IsSliderNavigationKey(uint vkey)
         {
-            return vkey == (uint)VIRTUAL_KEY.VK_LEFT || vkey == (uint)VIRTUAL_KEY.VK_RIGHT
-                || vkey == (uint)VIRTUAL_KEY.VK_UP || vkey == (uint)VIRTUAL_KEY.VK_DOWN
-                || vkey == (uint)VIRTUAL_KEY.VK_PRIOR || vkey == (uint)VIRTUAL_KEY.VK_NEXT
-                || vkey == (uint)VIRTUAL_KEY.VK_HOME || vkey == (uint)VIRTUAL_KEY.VK_END;
+            return vkey == WinUser.VK_LEFT || vkey == WinUser.VK_RIGHT
+                || vkey == WinUser.VK_UP || vkey == WinUser.VK_DOWN
+                || vkey == WinUser.VK_PRIOR || vkey == WinUser.VK_NEXT
+                || vkey == WinUser.VK_HOME || vkey == WinUser.VK_END;
         }
 
         private static void HandleKeyUp(uint key)
@@ -172,9 +174,9 @@ namespace mpv_winui.Modules.Player
 
             switch (key)
             {
-                case (uint)VIRTUAL_KEY.VK_MENU:
-                case (uint)VIRTUAL_KEY.VK_CONTROL:
-                case (uint)VIRTUAL_KEY.VK_SHIFT:
+                case WinUser.VK_MENU:
+                case WinUser.VK_CONTROL:
+                case WinUser.VK_SHIFT:
                     break;
                 default:
                 {
@@ -212,36 +214,5 @@ namespace mpv_winui.Modules.Player
             return prefix;
         }
 
-    
-
-    // ----- mouse forwarding (from MpvPlayerPage_Mouse.cs) -----
-    private void VideoArea_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
-    {
-        var point = e.GetCurrentPoint(PlayerView);
-        var props = point.Properties;
-
-        var key = props.IsHorizontalMouseWheel
-            ? (props.MouseWheelDelta > 0 ? "WHEEL_LEFT" : "WHEEL_RIGHT")
-            : (props.MouseWheelDelta > 0 ? "WHEEL_UP" : "WHEEL_DOWN");
-
-        SendMouseButton(key);
-        e.Handled = true;
-    }
-
-    private void PlayerView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-        // input.conf: MBTN_LEFT_DBL cycle fullscreen
-        SendMouseButton("MBTN_LEFT_DBL");
-        e.Handled = true;
-    }
-
-    private static void SendMouseButton(string keyName)
-    {
-        if (_selfWeakReference?.TryGetTarget(out var self) == true)
-        {
-            self?._mediaPlayer?.Command(["keydown", keyName]);
-            self?._mediaPlayer?.Command(["keyup", keyName]);
-        }
-        }
     }
 }
