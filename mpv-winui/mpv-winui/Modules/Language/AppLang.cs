@@ -27,11 +27,11 @@ namespace mpv_winui.Modules.Language
         public string ThemeCustomName { get; set; } = "Custom";
         public string ThemeLightName { get; set; } = "Light";
         public string SettingsThemeAccentColor { get; set; } = "Accent color";
-        public string SettingsHelpThemeAccentColor { get; set; } = "Tint color for the window backdrop. Leave empty to follow the system accent.";
+        public string SettingsHelpThemeAccentColor { get; set; } = "Tint color for the window backdrop. Used by the Custom theme; the other themes follow the system accent automatically.";
         public string SettingsThemeOpacity { get; set; } = "Backdrop transparency";
-        public string SettingsHelpThemeOpacity { get; set; } = "Higher values make the backdrop more transparent. Only applies to the Acrylic backdrop.";
+        public string SettingsHelpThemeOpacity { get; set; } = "Higher values make the backdrop more transparent. Applies to Acrylic and Mica backdrops.";
         public string SettingsThemeLuminosity { get; set; } = "Backdrop brightness";
-        public string SettingsHelpThemeLuminosity { get; set; } = "Brightness of the Acrylic backdrop. Only applies when the Acrylic backdrop is selected.";
+        public string SettingsHelpThemeLuminosity { get; set; } = "Brightness of the backdrop material. Applies to Acrylic and Mica backdrops.";
         public string SettingsUiFont { get; set; } = "UI font";
         public string ThemeColorRecentColors { get; set; } = "Recent colors";
         public string ThemeColorWindowsColors { get; set; } = "Windows colors";
