@@ -207,7 +207,27 @@ public sealed partial class WindowStyleManager : IDisposable
 
         // Follow-system / Light / Dark sync the Windows accent color; the
         // UISettings.ColorValuesChanged handler re-runs this when it changes.
-        return _uiSettings.GetColorValue(UIColorType.Accent);
+        return ShadeByBrightness(_uiSettings.GetColorValue(UIColorType.Accent));
+    }
+
+    /// <summary>
+    /// Maps the brightness slider onto the resolved tint color: 50 keeps the
+    /// base color, higher shades toward white, lower toward black. Shading the
+    /// tint (instead of only driving the material's LuminosityOpacity) gives a
+    /// strong, monotonic brightness response in every theme mode - the raw
+    /// luminosity channel alone is nearly inert when TintOpacity approaches
+    /// zero (transparency 100).
+    /// </summary>
+    private Color ShadeByBrightness(Color baseColor)
+    {
+        var b = Math.Clamp(AppContext.AppSetting.ThemeLuminosity, 0, 100) / 100.0;
+        byte Shade(byte c, double target) => (byte)Math.Round(c + ((target > c ? 255.0 : 0.0) - c) * target);
+        var t = Math.Abs(b - 0.5) * 2.0;
+        return Color.FromArgb(
+            baseColor.A,
+            Shade(baseColor.R, t),
+            Shade(baseColor.G, t),
+            Shade(baseColor.B, t));
     }
 
     private float GetBackdropTintOpacity()
