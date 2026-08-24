@@ -204,26 +204,10 @@ namespace mpv_winui.Modules.Player
             "播放列表", "重置缩放",
         };
 
-        // Top-level section ordering: lower value = earlier in the menu.
-        // Sections not listed here sort alphabetically at the end.
-        private static readonly Dictionary<string, int> SectionOrder = new(StringComparer.Ordinal)
-        {
-            ["导航"] = 100,
-            ["视频"] = 200,
-            ["音频"] = 300,
-            ["字幕"] = 400,
-            ["音量"] = 500,
-            ["速度"] = 510,
-            ["滤镜"] = 600,
-            ["截屏"] = 700,
-            ["查看"] = 800,
-            ["工具"] = 900,
-        };
-
         private void AddMenuDataItems(IList<MenuFlyoutItemBase> target, IReadOnlyList<MpvMenuItem> items, string? inheritGlyph = null)
         {
-            // First pass: build all top-level items into a sortable list
-            var topLevelItems = new List<(int Order, string Title, MenuFlyoutItemBase Item)>();
+            // Follow input.conf annotation order (same as mpv-menu-plugin):
+            // no re-sorting, items appear in the order dyn_menu.lua produces.
             bool isSeparatorPre = false;
 
             foreach (var entry in items)
@@ -245,16 +229,14 @@ namespace mpv_winui.Modules.Player
 
                 if (entry.Type == "separator")
                 {
-                    if (!isSeparatorPre && topLevelItems.Count > 0)
+                    if (!isSeparatorPre && target.Count > 0)
                     {
-                        topLevelItems.Add((int.MaxValue, "---", new MenuFlyoutSeparator()));
+                        target.Add(new MenuFlyoutSeparator());
                     }
                     isSeparatorPre = true;
                     continue;
                 }
                 isSeparatorPre = false;
-
-                int order = SectionOrder.TryGetValue(cleanTitle, out var o) ? o : 9999;
 
                 if (entry.Type == "submenu" && entry.Items.Count > 0)
                 {
@@ -265,7 +247,7 @@ namespace mpv_winui.Modules.Player
                     AddMenuDataItems(subItem.Items, entry.Items, gs);
                     if (subItem.Items.Count > 0)
                     {
-                        topLevelItems.Add((order, cleanTitle, subItem));
+                        target.Add(subItem);
                     }
                 }
                 else if (!string.IsNullOrEmpty(entry.Command))
@@ -285,26 +267,13 @@ namespace mpv_winui.Modules.Player
                     if (g is not null)
                         item.Icon = new FontIcon { Glyph = g, FontFamily = new FontFamily(IconMap.Font) };
                     item.Click += (_, _) => MpvMenuItemClick(cmd);
-                    topLevelItems.Add((order, cleanTitle, item));
+                    target.Add(item);
                 }
             }
 
-            // Sort by section order, add to target with separator cleanup
-            topLevelItems.Sort((a, b) =>
-            {
-                var cmp = a.Order.CompareTo(b.Order);
-                return cmp != 0 ? cmp : string.CompareOrdinal(a.Title, b.Title);
-            });
-
-            foreach (var (_, _, item) in topLevelItems)
-            {
-                // Skip consecutive separators after sorting
-                if (item is MenuFlyoutSeparator && target.Count > 0 && target[target.Count - 1] is MenuFlyoutSeparator)
-                    continue;
-                if (item is MenuFlyoutSeparator && target.Count == 0)
-                    continue;
-                target.Add(item);
-            }
+            // Clean leading/trailing separators left behind by filtering
+            while (target.Count > 0 && target[0] is MenuFlyoutSeparator)
+                target.RemoveAt(0);
             while (target.Count > 0 && target[target.Count - 1] is MenuFlyoutSeparator)
                 target.RemoveAt(target.Count - 1);
         }
