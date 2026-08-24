@@ -53,7 +53,8 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 - Items appear in input.conf annotation order (same as mpv-menu-plugin).
 - No icons, no filtering, no renames — plain text rendering.
 - `HiddenMenuTitles` was removed; to hide entries edit input.conf directly.
-- A native C++ builder (`MpvMenuBuilder.cpp`) exists but is disabled pending memory-management review.
+- The native C++ builder (`MpvMenuBuilder.cpp`) was removed (it was disabled
+  after a ta.c canary crash; re-enable paths live in git history).
 
 ### Thumbnail preview (seek-bar)
 
@@ -65,7 +66,9 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 ### License guardrails
 
 - App code: LGPL-2.1. Project-written config-layer files: LGPL-2.1-or-later.
-- dyn_menu.lua / dialog.lua are GPL-2.0-only source (still loaded but native replacement exists).
+- dyn_menu.lua is GPL-2.0-only source with a documented local patch; dialog.lua
+  was removed (no menu references it anymore) — see
+  `mpv-winui-lazy/scripts/LOCAL-PATCHES.md`.
 - Update `mpv-winui-lazy/THIRD_PARTY_NOTICES.md` when adding third-party components.
 
 ## Pointers

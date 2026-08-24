@@ -9,7 +9,7 @@ summarized below. Full license texts for fonts and MediaInfo ship in
 
 | Component | Source | License |
 |---|---|---|
-| `scripts/dyn_menu.lua`, `scripts/dialog.lua` | [tsl0922/mpv-menu-plugin](https://github.com/tsl0922/mpv-menu-plugin) | GPL-2.0-only (`dyn_menu.lua` contains project-local modifications; the previously bundled `menu.dll` binary was removed because the shipped mpv uses its native `menu-data` path) |
+| `scripts/dyn_menu.lua` | [tsl0922/mpv-menu-plugin](https://github.com/tsl0922/mpv-menu-plugin) | GPL-2.0-only (`dyn_menu.lua` contains project-local modifications; the previously bundled `menu.dll` binary was removed because the shipped mpv uses its native `menu-data` path; the upstream `dialog.lua` was dropped — no menu references it) |
 | `scripts/select.lua`, `scripts/console.lua`, `scripts/stats.lua` | [mpv-player/mpv](https://github.com/mpv-player/mpv) | See file headers (select = LGPL-2.1+, console = ISC-style, stats = project header) |
 | `scripts/coverart.lua` | [CogentRedTester/mpv-coverart](https://github.com/CogentRedTester/mpv-coverart) | MIT |
 | `scripts/recentmenu.lua` | [natural-harmonia-gropius/recent-menu](https://github.com/natural-harmonia-gropius/recent-menu) | MIT |
@@ -77,7 +77,7 @@ and modifications are released under LGPL-2.1-or-later.
 
 - The app project itself (`mpv-winui/`) is licensed under LGPL-2.1 (see the
   repository root `LICENSE.txt`).
-- `scripts/dyn_menu.lua` and `scripts/dialog.lua` are GPL-2.0-only. They are
-  distributed as source code in this repository; the GPL does not extend to
-  the WinUI app code, which communicates with them only through mpv's public
-  `menu-data` / `script-message` interfaces.
+- `scripts/dyn_menu.lua` is GPL-2.0-only. It is distributed as source code in
+  this repository; the GPL does not extend to the WinUI app code, which
+  communicates with it only through mpv's public `menu-data` /
+  `script-message` interfaces.

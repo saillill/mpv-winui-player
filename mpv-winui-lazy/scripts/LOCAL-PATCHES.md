@@ -1,9 +1,10 @@
 # Local modifications to GPL scripts
 
-`dyn_menu.lua` and `dialog.lua` are GPL-2.0-only source from
-tsl0922/mpv-menu-plugin. The GPL boundary matters here (see AGENTS.md):
-these two files stay unmodified *upstream files plus a documented patch*,
-never rewritten in place, and no GPL binary (menu.dll) is shipped.
+`dyn_menu.lua` is GPL-2.0-only source from tsl0922/mpv-menu-plugin. The GPL
+boundary matters here (see AGENTS.md): the file stays an *unmodified upstream
+file plus a documented patch*, never rewritten in place, and no GPL binary
+(menu.dll) is shipped. (`dialog.lua` from the same source was removed — no
+menu references it anymore.)
 
 ## dyn_menu.lua — project-local patch
 
@@ -29,11 +30,6 @@ git diff --no-index <upstream-dyn_menu.lua> scripts/dyn_menu.lua > dyn_menu.patc
 # apply the patch onto the new upstream file, resolve conflicts, re-run
 # the localization check and right-click menu smoke.
 ```
-
-## dialog.lua
-
-Unmodified upstream (234 lines); kept only for its internal
-script-message protocol — no menu references it anymore.
 
 ## Why this matters
 

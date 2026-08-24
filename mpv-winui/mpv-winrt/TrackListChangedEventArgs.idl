@@ -1,9 +1,0 @@
-import "MpvTrack.idl";
-
-namespace mpv_winrt
-{
-	runtimeclass TrackListChangedEventArgs
-	{
-		Windows.Foundation.Collections.IVectorView<MpvTrack> Tracks { get; };
-	};
-}

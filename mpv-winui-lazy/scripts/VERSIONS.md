@@ -33,8 +33,7 @@ the file header comment repeats it.
 
 | Script | Source | Note |
 |---|---|---|
-| `dyn_menu.lua` | https://github.com/tsl0922/mpv-menu-plugin | project-local mods; keep as a diff |
-| `dialog.lua` | https://github.com/tsl0922/mpv-menu-plugin | no longer referenced by any menu |
+| `dyn_menu.lua` | https://github.com/tsl0922/mpv-menu-plugin | project-local mods; keep as a diff (`dialog.lua` from the same source was removed — no menu references it) |
 
 ## Upgrading a pinned script
 
