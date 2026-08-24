@@ -1,3 +1,4 @@
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -12,107 +13,27 @@ namespace mpv_winui.Modules.Player
 {
     public sealed partial class MpvPlayerPage
     {
-        // Title renames for cleaner presentation.
-        private static readonly Dictionary<string, string> TitleRenames = new(StringComparer.Ordinal)
-        {
-            ["滤镜与增强"] = "滤镜",
-        };
-
         private MenuFlyout BuildMenuFlyoutFromData(IReadOnlyList<MpvMenuItem>? items)
         {
             var flyout = new MenuFlyout();
 
             AddOpenHeaderItems(flyout.Items);
 
-            AddCustomMenuItems(flyout.Items);
-
             if (items?.Count > 0)
             {
+                // Render raw menu-data in input.conf annotation order,
+                // no filtering, no icons — same as mpv-menu-plugin.
                 AddMenuDataItems(flyout.Items, items);
             }
 
-            // Clean orphan separators left behind by filtering.
-            CleanOrphanSeparators(flyout.Items);
-
-            // Footer: separator then window controls then quit.
-            if (flyout.Items.Count > 0)
-            {
-                var last = flyout.Items[flyout.Items.Count - 1];
-                if (last is not MenuFlyoutSeparator)
-                {
-                    flyout.Items.Add(new MenuFlyoutSeparator());
-                }
-            }
             AddCustomFooterItems(flyout.Items);
 
             return flyout;
         }
 
-        /// <summary>Removes leading, trailing and consecutive separators.</summary>
-        private static void CleanOrphanSeparators(IList<MenuFlyoutItemBase> items)
-        {
-            // Remove leading separators
-            while (items.Count > 0 && items[0] is MenuFlyoutSeparator)
-                items.RemoveAt(0);
-            // Remove consecutive separators
-            for (int i = 1; i < items.Count; i++)
-            {
-                if (items[i] is MenuFlyoutSeparator && items[i - 1] is MenuFlyoutSeparator)
-                {
-                    items.RemoveAt(i);
-                    i--;
-                }
-            }
-            // Remove trailing separator
-            while (items.Count > 0 && items[items.Count - 1] is MenuFlyoutSeparator)
-                items.RemoveAt(items.Count - 1);
-        }
-
-        /// <summary>
-        /// Inserts the user's custom commands (custom_menu.json in the mpv
-        /// config directory) between the fixed header and the mpv menu-data.
-        /// </summary>
-        private void AddCustomMenuItems(IList<MenuFlyoutItemBase> target)
-        {
-            var custom = Menu.CustomMenuSource.TryLoad();
-            if (custom is not { Count: > 0 })
-            {
-                return;
-            }
-
-            // Wrap custom entries in a submenu so they don't clutter
-            // the root level of the context menu.
-            var sub = new MenuFlyoutSubItem { Text = "自定义" };
-            foreach (var entry in custom)
-            {
-                if (entry.Separator)
-                {
-                    sub.Items.Add(new MenuFlyoutSeparator());
-                    continue;
-                }
-                if (string.IsNullOrEmpty(entry.Label) || string.IsNullOrEmpty(entry.MpvCommand))
-                {
-                    continue;
-                }
-                var item = new MenuFlyoutItem { Text = entry.Label };
-                var cmd = entry.MpvCommand;
-                item.Click += (_, _) => MpvMenuItemClick(cmd!);
-                sub.Items.Add(item);
-            }
-            if (sub.Items.Count > 0)
-            {
-                target.Add(new MenuFlyoutSeparator());
-                target.Add(sub);
-            }
-        }
-
         private void AddOpenHeaderItems(IList<MenuFlyoutItemBase> target)
         {
-            var openSub = new MenuFlyoutSubItem
-            {
-                Text = AppContext.AppLang.File,
-                Icon = new FontIcon { Glyph = "\uE8E5", FontFamily = new FontFamily(IconMap.Font) },
-            };
+            var openSub = new MenuFlyoutSubItem { Text = AppContext.AppLang.File };
             target.Add(openSub);
 
             var item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenFile, Tag = "open" };
@@ -130,16 +51,6 @@ namespace mpv_winui.Modules.Player
             item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenFromClipboard, Tag = "open-clipboard" };
             item.Click += Item_Click;
             openSub.Items.Add(item);
-
-            openSub.Items.Add(new MenuFlyoutSeparator());
-
-            item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenWatchHistory, Tag = "open-watch-history" };
-            item.Click += Item_Click;
-            openSub.Items.Add(item);
-
-            item = new MenuFlyoutItem { Text = AppContext.AppLang.OpenWatchLater, Tag = "open-watch-later" };
-            item.Click += Item_Click;
-            openSub.Items.Add(item);
         }
 
         private void AddCustomFooterItems(IList<MenuFlyoutItemBase> target)
@@ -147,8 +58,7 @@ namespace mpv_winui.Modules.Player
             var subItem = new MenuFlyoutSubItem
             {
                 Text = AppContext.AppLang.Window,
-                MinWidth = 200,
-                Icon = new FontIcon { Glyph = "\uE922", FontFamily = new FontFamily(IconMap.Font) },
+                MinWidth = 200
             };
             target.Add(subItem);
 
@@ -185,31 +95,11 @@ namespace mpv_winui.Modules.Player
             target.Add(item);
         }
 
-        // Entries hidden from the right-click menu.
-        // Debug/technical: developer-facing tools regular users never need.
-        // Transport controls: redundant with the control bar buttons.
-        // Dynamic submenus: @chapters/@editions/@tracks often resolve to
-        //   empty lists for typical files; hiding avoids dead entries.
-        private static readonly HashSet<string> HiddenMenuTitles = new(StringComparer.Ordinal)
+        /// <summary>Render raw menu-data without filtering or icons,
+        /// matching mpv-menu-plugin's plain rendering behaviour.</summary>
+        private void AddMenuDataItems(IList<MenuFlyoutItemBase> target, IReadOnlyList<MpvMenuItem> items)
         {
-            // Debug/technical
-            "按键名检测", "清除已记录的属性值", "打开select总菜单",
-            "打开select分菜单-属性列表", "环境体检", "常驻显示统计信息",
-            "时间码解析模式", "切换解码模式", "按键绑定列表",
-            // Transport controls (control bar already has these)
-            "播放", "暂停", "停止",
-            // Empty dynamic submenus for most files
-            "章节", "版本", "轨道",
-            // Items that belong in submenus, not at root level
-            "播放列表", "重置缩放",
-        };
-
-        private void AddMenuDataItems(IList<MenuFlyoutItemBase> target, IReadOnlyList<MpvMenuItem> items, string? inheritGlyph = null)
-        {
-            // Follow input.conf annotation order (same as mpv-menu-plugin):
-            // no re-sorting, items appear in the order dyn_menu.lua produces.
             bool isSeparatorPre = false;
-
             foreach (var entry in items)
             {
                 if (entry.IsHidden)
@@ -217,19 +107,9 @@ namespace mpv_winui.Modules.Player
                     continue;
                 }
 
-                var cleanTitle = DisplayTitle(entry.Title);
-                if (HiddenMenuTitles.Contains(cleanTitle))
-                {
-                    continue;
-                }
-                if (TitleRenames.TryGetValue(cleanTitle, out var renamed))
-                {
-                    cleanTitle = renamed;
-                }
-
                 if (entry.Type == "separator")
                 {
-                    if (!isSeparatorPre && target.Count > 0)
+                    if (!isSeparatorPre)
                     {
                         target.Add(new MenuFlyoutSeparator());
                     }
@@ -238,13 +118,12 @@ namespace mpv_winui.Modules.Player
                 }
                 isSeparatorPre = false;
 
+                var cleanTitle = DisplayTitle(entry.Title);
+
                 if (entry.Type == "submenu" && entry.Items.Count > 0)
                 {
                     var subItem = new MenuFlyoutSubItem { Text = cleanTitle, IsEnabled = !entry.IsDisabled };
-                    var gs = IconMap.For(entry.Title) ?? inheritGlyph;
-                    if (gs is not null)
-                        subItem.Icon = new FontIcon { Glyph = gs, FontFamily = new FontFamily(IconMap.Font) };
-                    AddMenuDataItems(subItem.Items, entry.Items, gs);
+                    AddMenuDataItems(subItem.Items, entry.Items);
                     if (subItem.Items.Count > 0)
                     {
                         target.Add(subItem);
@@ -256,22 +135,17 @@ namespace mpv_winui.Modules.Player
                     MenuFlyoutItem item;
                     if (entry.IsChecked)
                     {
-                        item = new ToggleMenuFlyoutItem { Text = cleanTitle, IsEnabled = !entry.IsDisabled, IsChecked = true, };
+                        item = new ToggleMenuFlyoutItem { Text = cleanTitle, IsEnabled = !entry.IsDisabled, IsChecked = true };
                     }
                     else
                     {
-                        item = new MenuFlyoutItem { Text = cleanTitle, IsEnabled = !entry.IsDisabled, };
+                        item = new MenuFlyoutItem { Text = cleanTitle, IsEnabled = !entry.IsDisabled };
                     }
-
-                    var g = IconMap.For(entry.Title) ?? inheritGlyph;
-                    if (g is not null)
-                        item.Icon = new FontIcon { Glyph = g, FontFamily = new FontFamily(IconMap.Font) };
                     item.Click += (_, _) => MpvMenuItemClick(cmd);
                     target.Add(item);
                 }
             }
 
-            // Clean leading/trailing separators left behind by filtering
             while (target.Count > 0 && target[0] is MenuFlyoutSeparator)
                 target.RemoveAt(0);
             while (target.Count > 0 && target[target.Count - 1] is MenuFlyoutSeparator)
@@ -293,70 +167,20 @@ namespace mpv_winui.Modules.Player
                     switch (tag)
                     {
                         case "open":
-                        {
                             await OpenFileAsync();
                             break;
-                        }
                         case "open-folder":
-                        {
                             await OpenFolderAsync();
                             break;
-                        }
                         case "open-url":
-                        {
                             await OpenUrlAsync();
                             break;
-                        }
                         case "open-clipboard":
-                        {
                             await OpenClipboardAsync();
                             break;
-                        }
-                        case "open-dvd":
-                        {
-                            await OpenDvdAsync();
-                            break;
-                        }
-                        case "open-bd":
-                        {
-                            await OpenBdAsync();
-                            break;
-                        }
-                        case "load-subtitle":
-                        {
-                            await LoadSubtitleAsync();
-                            break;
-                        }
                         case "quit":
-                        {
                             AppQuit();
                             break;
-                        }
-                        case "fullscreen":
-                        {
-                            PlayerControl.ToggleFullScreen();
-                            break;
-                        }
-                        case "fullwindow":
-                        {
-                            PlayerControl.ToggleFullWindow();
-                            break;
-                        }
-                        case "playlist":
-                        {
-                            TogglePlaylist(true);
-                            break;
-                        }
-                        case "open-watch-history":
-                        {
-                            await ShowWatchHistoryDialogAsync();
-                            break;
-                        }
-                        case "open-watch-later":
-                        {
-                            await ShowWatchLaterDialogAsync();
-                            break;
-                        }
                     }
                 }
                 catch (Exception ex)
@@ -372,7 +196,6 @@ namespace mpv_winui.Modules.Player
             {
                 _logger.Debug("mpv menu item click, cmd={}", cmd);
             }
-
             _mediaPlayer.RunCommandAsync(cmd).FireAndForget(OnException);
         }
 
@@ -388,39 +211,13 @@ namespace mpv_winui.Modules.Player
             {
                 flyout.ShowAt(PlayerView);
             }
-
             args.Handled = true;
         }
 
-        /// <summary>
-        /// 将固定菜单文本从 AppLang 应用到 XAML（unpackaged WinUI 3 不支持 x:Uid 语言切换，
-        /// 也不支持 x:Bind 静态属性，故用代码后置赋值；AppLang 在 AppContext.Init 时已加载）。
-        /// </summary>
+        /// <summary>将固定菜单文本从 AppLang 应用到 XAML（unpackaged WinUI 3 不支持 x:Uid 语言切换，
+        /// 也不支持 x:Bind 静态属性，故用代码后置赋值；AppLang 在 AppContext.Init 时已加载）。</summary>
         private void ApplyLocalizedStrings()
         {
-            if (Resources["PlaylistContextMenu"] is MenuFlyout playlistMenu)
-            {
-                foreach (var item in playlistMenu.Items)
-                {
-                    if (item is MenuFlyoutItem mi)
-                    {
-                        mi.Text = mi.Tag switch
-                        {
-                            "play" => AppContext.AppLang.PlaylistPlay,
-                            "move-top" => AppContext.AppLang.PlaylistMoveTop,
-                            "move-up" => AppContext.AppLang.PlaylistMoveUp,
-                            "move-down" => AppContext.AppLang.PlaylistMoveDown,
-                            "move-bottom" => AppContext.AppLang.PlaylistMoveBottom,
-                            "remove" => AppContext.AppLang.PlaylistRemove,
-                            "copy-title" => AppContext.AppLang.PlaylistCopyTitle,
-                            "copy-path" => AppContext.AppLang.PlaylistCopyPath,
-                            "open-location" => AppContext.AppLang.PlaylistOpenLocation,
-                            _ => mi.Text,
-                        };
-                    }
-                }
-            }
-
             ToolTipService.SetToolTip(TopBarOntopButton, AppContext.AppLang.SettingsAlwaysOnTop);
             ToolTipService.SetToolTip(TopBarScreenshotButton, AppContext.AppLang.FileScreenshot);
             ToolTipService.SetToolTip(TopBarPlaylistButton, AppContext.AppLang.TogglePlaylist);
