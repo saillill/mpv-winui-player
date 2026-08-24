@@ -120,8 +120,8 @@ LOCAL-PATCHES 流程机械维护；如需恢复走 observe_property 只读路径
 - PlayerControl：主分部 1988→1126 行；布局引擎、控制条组合
   （ControlBar.cs）、面板动画（PanelAnimation.cs）、进度标记
   （ProgressMarks.cs）、预览管线（Preview.cs）各成档。
-  布局纯函数已独立，单元测试因 WinUI 程序集引用成本暂缓——逻辑为
-  原样搬移，行为由冒烟覆盖。
+  布局字符串语法进一步抽为无 UI 依赖的 ControlBarLayoutGrammar，
+  经链接源码编入 mpv-winrt-test，20 个 NUnit 用例覆盖（套件 25/25）。
 - AppSettings：1972→592 行核心（基础设施+迁移+界面域），按名称前缀
   分出 Playback/Video/Audio/Subtitles/Osd/Network/Screenshot/Plugins 八个
   域 partial；`check-settings-drift.py` 已改为 glob `AppSettings*.cs`，
@@ -145,3 +145,10 @@ WindowsAppSDK 必须整组升级（Bootstrap.dll 冲突教训）；新功能先�
 本文件是唯一活审计文档。下次大审计时直接在其上迭代版本号与日期，
 不要另开新档；阶段性完成后把已完成项移入 git commit message 并从
 清单划掉，保持文档短于 300 行。
+
+## 6. 收尾批注（2026-08-24）
+
+- 无障碍文案：全量扫描后确认运行期仍硬编码的屏幕阅读器名称仅 4 处
+  （RepeatButton/预览卡/颜色样块等），已全部接 AppLang；新增
+  A11yVideoPreview/A11yColorSwatch 两键 ×8 语言，其余 XAML 字面量均为
+  运行时被 ApplyLocalizedStrings 覆盖的占位符。
