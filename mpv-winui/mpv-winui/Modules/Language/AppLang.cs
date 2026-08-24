@@ -941,7 +941,7 @@ namespace mpv_winui.Modules.Language
             return code switch
             {
                 "en-US" => "English",
-                "zh-CN" => "中文",
+                "zh-CN" => "简体中文",
                 "zh-TW" => "繁體中文",
                 "ja-JP" => "日本語",
                 "ko-KR" => "한국어",
