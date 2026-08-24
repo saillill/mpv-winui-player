@@ -745,12 +745,10 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
     {
         return option.Key switch
         {
-            // Backdrop tint/transparency/brightness only apply in Custom theme mode.
+            // The custom tint color only applies in Custom theme mode; the
+            // other themes follow the system accent. Transparency/brightness
+            // sliders apply to Acrylic and Mica in every theme mode.
             nameof(AppSettings.ThemeAccentColor) when s.ThemeType != AppSettings.ThemeType_Custom => false,
-            nameof(AppSettings.ThemeOpacity) when s.ThemeType != AppSettings.ThemeType_Custom => false,
-            nameof(AppSettings.ThemeLuminosity) when s.ThemeType != AppSettings.ThemeType_Custom => false,
-            // MicaController ignores luminosity, so brightness only shows for Acrylic.
-            nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
             // PiP size only applies while the mini player is enabled.
             nameof(AppSettings.WindowPiPSize) when !s.WindowPiP => false,
             // Format-specific screenshot options only appear for the active format.

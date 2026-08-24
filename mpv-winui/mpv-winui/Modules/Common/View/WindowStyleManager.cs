@@ -188,6 +188,7 @@ public sealed partial class WindowStyleManager : IDisposable
 
         _micaController.TintColor = GetBackdropTintColor(_theme);
         _micaController.TintOpacity = GetBackdropTintOpacity();
+        _micaController.LuminosityOpacity = GetBackdropLuminosityOpacity();
     }
 
     private Color GetBackdropTintColor(ElementTheme theme)
