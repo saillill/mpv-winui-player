@@ -22,6 +22,7 @@ public sealed partial class WindowStyleManager : IDisposable
     private DesktopAcrylicController? _acrylicController;
     private MicaController? _micaController;
     private ElementTheme _theme;
+    private Microsoft.UI.Xaml.Controls.Border? _brightnessOverlay;
 
     public WindowStyleManager(Window window)
     {
@@ -174,9 +175,9 @@ public sealed partial class WindowStyleManager : IDisposable
         _acrylicController?.Kind = DesktopAcrylicKind.Thin;
         _acrylicController?.TintOpacity = GetBackdropTintOpacity();
         _acrylicController?.TintColor = GetBackdropTintColor(theme);
-        _acrylicController?.LuminosityOpacity = GetBackdropLuminosityOpacity();
 
         ApplyMicaTint();
+        UpdateBrightnessOverlay();
     }
 
     private void ApplyMicaTint()
@@ -188,7 +189,6 @@ public sealed partial class WindowStyleManager : IDisposable
 
         _micaController.TintColor = GetBackdropTintColor(_theme);
         _micaController.TintOpacity = GetBackdropTintOpacity();
-        _micaController.LuminosityOpacity = GetBackdropLuminosityOpacity();
     }
 
     private Color GetBackdropTintColor(ElementTheme theme)
@@ -207,27 +207,7 @@ public sealed partial class WindowStyleManager : IDisposable
 
         // Follow-system / Light / Dark sync the Windows accent color; the
         // UISettings.ColorValuesChanged handler re-runs this when it changes.
-        return ShadeByBrightness(_uiSettings.GetColorValue(UIColorType.Accent));
-    }
-
-    /// <summary>
-    /// Maps the brightness slider onto the resolved tint color: 50 keeps the
-    /// base color, higher shades toward white, lower toward black. Shading the
-    /// tint (instead of only driving the material's LuminosityOpacity) gives a
-    /// strong, monotonic brightness response in every theme mode - the raw
-    /// luminosity channel alone is nearly inert when TintOpacity approaches
-    /// zero (transparency 100).
-    /// </summary>
-    private Color ShadeByBrightness(Color baseColor)
-    {
-        var b = Math.Clamp(AppContext.AppSetting.ThemeLuminosity, 0, 100) / 100.0;
-        byte Shade(byte c, double target) => (byte)Math.Round(c + ((target > c ? 255.0 : 0.0) - c) * target);
-        var t = Math.Abs(b - 0.5) * 2.0;
-        return Color.FromArgb(
-            baseColor.A,
-            Shade(baseColor.R, t),
-            Shade(baseColor.G, t),
-            Shade(baseColor.B, t));
+        return _uiSettings.GetColorValue(UIColorType.Accent);
     }
 
     private float GetBackdropTintOpacity()
@@ -236,9 +216,34 @@ public sealed partial class WindowStyleManager : IDisposable
         return 1f - opacity / 100f;
     }
 
-    private float GetBackdropLuminosityOpacity()
+    /// <summary>
+    /// Brightness is a plain white/black dimming layer drawn over the
+    /// backdrop material and under the content: 50 keeps the material as-is,
+    /// higher values fade toward solid white, lower toward solid black. This
+    /// is deterministic in every theme mode and at any transparency - unlike
+    /// the material's LuminosityOpacity, which goes inert once TintOpacity
+    /// approaches zero.
+    /// </summary>
+    private void UpdateBrightnessOverlay()
     {
-        return Math.Clamp(AppContext.AppSetting.ThemeLuminosity, 0, 100) / 100f;
+        _brightnessOverlay ??= _contentRoot.FindName("BackdropTintOverlay") as Microsoft.UI.Xaml.Controls.Border;
+        if (_brightnessOverlay is null)
+        {
+            return;
+        }
+
+        var b = Math.Clamp(AppContext.AppSetting.ThemeLuminosity, 0, 100) / 100.0;
+        var strength = Math.Abs(b - 0.5) * 2.0;
+        if (strength < 0.004)
+        {
+            _brightnessOverlay.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var target = b > 0.5 ? Colors.White : Colors.Black;
+        _brightnessOverlay.Background = new SolidColorBrush(Color.FromArgb(
+            (byte)Math.Round(255 * strength), target.R, target.G, target.B));
+        _brightnessOverlay.Visibility = Visibility.Visible;
     }
 
     private static Color? TryParseColor(string? hex)

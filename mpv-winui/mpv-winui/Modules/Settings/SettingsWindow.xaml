@@ -8,6 +8,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Border
+            x:Name="BackdropTintOverlay"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            IsHitTestVisible="False" />
+
+        <Border
             Grid.Row="0"
             Padding="16,8">
             <TextBlock
