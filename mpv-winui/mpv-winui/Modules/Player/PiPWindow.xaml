@@ -36,9 +36,9 @@
             Style="{StaticResource PiPTopButtonStyle}"
             Click="PiPBackButton_Click">
             <FontIcon
-                FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
+                FontFamily="{StaticResource MpvIconFontFamily}"
                 FontSize="18"
-                Glyph="&#xE981;" />
+                Glyph="&#xF15C;" />
         </Button>
 
         <!-- Top-right: exit picture-in-picture and restore the main window. -->
@@ -50,8 +50,9 @@
             Style="{StaticResource PiPTopButtonStyle}"
             Click="PiPExitButton_Click">
             <FontIcon
+                FontFamily="{StaticResource MpvIconFontFamily}"
                 FontSize="14"
-                Glyph="&#xE711;" />
+                Glyph="&#xF36A;" />
         </Button>
 
         <!--
@@ -66,16 +67,18 @@
 
         <!--
             Subtitle toggle for the status bar's far right. PlayerControl
-            reparents this into the PiP compact command bar on attach; it
-            starts collapsed so it never flashes before that happens.
+            builds a fresh status-bar toggle from this source on attach (the
+            XAML element itself cannot be reparented); this one stays
+            collapsed as the state/icon authority.
         -->
         <ToggleButton
             x:Name="PiPSubtitleToggle"
             Click="PiPSubtitleToggle_Click"
             Visibility="Collapsed">
             <FontIcon
+                FontFamily="{StaticResource MpvIconFontFamily}"
                 FontSize="16"
-                Glyph="&#xE9CF;" />
+                Glyph="&#xF2E3;" />
         </ToggleButton>
     </Grid>
 </Window>

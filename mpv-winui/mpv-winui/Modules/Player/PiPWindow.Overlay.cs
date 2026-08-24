@@ -99,9 +99,14 @@ public sealed partial class PiPWindow
 
     private void PiPSubtitleToggle_Click(object sender, RoutedEventArgs e)
     {
+        SetSubtitleVisibility(PiPSubtitleToggle.IsChecked != true);
+    }
+
+    private void SetSubtitleVisibility(bool visible)
+    {
         // H5: quick subtitle toggle on the PiP window.
-        _player?.Command(["no-osd", "cycle", "sub-visibility"]);
-        PiPSubtitleToggle.IsChecked = !PiPSubtitleToggle.IsChecked;
+        PiPSubtitleToggle.IsChecked = visible;
+        _player?.Command(["no-osd", "set", "sub-visibility", visible ? "yes" : "no"]);
     }
 
     private void PiPView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)

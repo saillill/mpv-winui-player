@@ -103,6 +103,20 @@ public sealed partial class SettingsPage
                 Getter = () => AppContext.AppSetting.StartFullscreen,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.StartFullscreen), AppContext.AppSetting.StartFullscreen = (bool)v!)
             },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AutoWindowResize),
+                Label = lang.SettingsAutoWindowResize,
+                Category = window,
+                Description = lang.SettingsHelpAutoWindowResize,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.AutoWindowResize,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.AutoWindowResize = (bool)v!;
+                    ApplyMpv(nameof(AppContext.AppSetting.AutoWindowResize), AppContext.AppSetting.AutoWindowResize);
+                }
+            },
 
             new Option
             {
@@ -185,6 +199,24 @@ public sealed partial class SettingsPage
                 {
                     AppContext.AppSetting.WindowPiPSize = (string)v!;
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPSize), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPOpacity),
+                Label = lang.SettingsPiPOpacity,
+                Category = window,
+                Description = lang.SettingsHelpPiPOpacity,
+                Type = OptionType.Double,
+                Min = 0.2,
+                Max = 1.0,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.WindowPiPOpacity,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiPOpacity = Convert.ToDouble(v);
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPOpacity), v);
                 }
             },
 
@@ -750,6 +782,45 @@ public sealed partial class SettingsPage
                 {
                     AppContext.AppSetting.EnableVideoPreview = (bool)v!;
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.EnableVideoPreview), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbnailPreviewWidth),
+                Label = lang.SettingsThumbnailSize,
+                Category = playback,
+                Description = lang.SettingsHelpThumbnailSize,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("180", lang.OptionValueThumbSmall),
+                    new OptionChoice("248", lang.OptionValueThumbMedium),
+                    new OptionChoice("320", lang.OptionValueThumbLarge),
+                ],
+                Getter = () => AppContext.AppSetting.ThumbnailPreviewWidth,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbnailPreviewWidth = (string)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ThumbnailPreviewWidth), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbnailUpdateInterval),
+                Label = lang.SettingsThumbnailInterval,
+                Category = playback,
+                Description = lang.SettingsHelpThumbnailInterval,
+                Type = OptionType.Integer,
+                Min = 40,
+                Max = 600,
+                Step = 20,
+                Getter = () => AppContext.AppSetting.ThumbnailUpdateInterval,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbnailUpdateInterval = Convert.ToInt32(v);
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ThumbnailUpdateInterval), v);
                 }
             },
 

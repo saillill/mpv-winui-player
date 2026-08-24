@@ -137,9 +137,12 @@ public sealed partial class PiPWindow : Window
     {
         _selfWeakReference = new(this);
         InitializeComponent();
-        // Hand the subtitle toggle to the compact status bar (far right);
-        // PlayerControl reparents it into the PiP command bar.
+        // Hand the subtitle toggle to the compact status bar (far right).
+        // PlayerControl builds a fresh status-bar toggle from this source on
+        // attach (the XAML element itself cannot be reparented), so this one
+        // stays collapsed as the state/icon authority.
         PiPControls.PiPRightToggle = PiPSubtitleToggle;
+        PiPControls.PiPRightToggleAction = visible => SetSubtitleVisibility(visible);
         RootGrid.RequestedTheme = ElementTheme.Dark;
         ConfigureWindow();
         ApplyLocalizedStrings();
@@ -187,7 +190,7 @@ public sealed partial class PiPWindow : Window
 
     public void ShowPiP(int width, int height)
     {
-        RootGrid.Opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
+        ApplyOpacity();
         // H2: restore the saved position/size when present, otherwise claim
         // the bottom-right corner of the main window's display on entry; the
         // user can drag the window afterwards.
@@ -278,6 +281,18 @@ public sealed partial class PiPWindow : Window
         {
             _player.UpdateSize(width, height);
         }
+    }
+
+    /// <summary>Re-applies the configured opacity to an open mini player.
+    /// Below full opacity the black background is replaced with transparent
+    /// so the XAML content becomes see-through against the desktop.</summary>
+    public void ApplyOpacity()
+    {
+        var opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
+        RootGrid.Opacity = opacity;
+        RootGrid.Background = opacity < 1.0
+            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent)
+            : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black);
     }
 
     public void HidePiP()

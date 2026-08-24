@@ -16,7 +16,7 @@ namespace mpv_winui.Modules.Settings.Controls;
 /// as one horizontal row split into the real bar's forced zone frames
 /// (原版: left transport + right cluster, no center frame; 居中: left cluster |
 /// centered transport | right cluster) with the same glyphs and fonts as the
-/// real bar (shuffle/pip use the Fluent font). Each movable frame ends with a
+/// real bar (all icons use the bundled Fluent font). Each movable frame ends with a
 /// "+" card placeholder: it never collapses to a dot, and clicking it pops up
 /// that frame's addable (hidden) buttons — one click adds the button to the
 /// frame. There is no persistent drawer. Collapsed the strip is view-only

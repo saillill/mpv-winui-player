@@ -18,6 +18,9 @@ namespace mpv_winui.Modules.Player
             try
             {
                 var dataPackageView = e.DataView;
+                _logger.Debug("drag enter, storageItems={0}, text={1}",
+                    dataPackageView.Contains(StandardDataFormats.StorageItems),
+                    dataPackageView.Contains(StandardDataFormats.Text));
                 if (dataPackageView.Contains(StandardDataFormats.StorageItems)
                     || dataPackageView.Contains(StandardDataFormats.Text))
                 {
@@ -36,6 +39,7 @@ namespace mpv_winui.Modules.Player
 
         private void OnDragOver(object sender, DragEventArgs e)
         {
+            _logger.Debug("drag over");
             e.DragUIOverride.IsCaptionVisible = true;
             e.DragUIOverride.IsContentVisible = true;
             e.DragUIOverride.IsGlyphVisible = true;
@@ -45,6 +49,7 @@ namespace mpv_winui.Modules.Player
 
         private async void OnDrop(object sender, DragEventArgs e)
         {
+            _logger.Debug("drop received");
             var items = new List<IStorageItem>();
             var url = string.Empty;
             var defer = e.GetDeferral();
@@ -85,13 +90,19 @@ namespace mpv_winui.Modules.Player
 
             if (items.Count > 0)
             {
+                _logger.Debug("drop items, count={0}", items.Count);
                 var openMode = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down) ? OpenMode.Append : OpenMode.Replace;
                 PlayStorageItems(items, openMode).FireAndForget(OnException);
             }
             else if (url.Length > 0)
             {
+                _logger.Debug("drop url, len={0}", url.Length);
                 var openMode = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down) ? OpenMode.Append : OpenMode.Replace;
                 PlayUrl(url, openMode).FireAndForget(OnException);
+            }
+            else
+            {
+                _logger.Debug("drop ignored, no usable payload");
             }
         }
 

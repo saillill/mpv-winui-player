@@ -92,31 +92,25 @@ namespace mpv_winui.Modules.Player
                 });
                 // Cards keep their natural height. The old filler-stretch
                 // made the last card huge and hid its content (giant empty
-                // EQ/移动/按钮 cards) - removed.
+                // EQ/移动/按钮 cards) - removed. Each tab scrolls inside the
+                // fixed-height pivot below (audio's cards exceed 400px).
                 var cards = new StackPanel
                 {
-                    // Keep every tab at the same visible height so switching
-                    // audio/video/subtitles does not resize the flyout.
-                    MinHeight = 320,
                     Spacing = 8,
                     Margin = new Thickness(0, 8, 0, 0),
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                 };
                 build(cards);
-                // The last card absorbs the leftover page height so each tab
-                // fills the fixed 400px panel (video buttons, EQ band card,
-                // subtitle style row); earlier cards keep natural height.
-                for (int i = 0; i < cards.Children.Count; i++)
+                var scroller = new ScrollViewer
                 {
-                    if (cards.Children[i] is FrameworkElement fe)
-                    {
-                        fe.VerticalAlignment = i == cards.Children.Count - 1
-                            ? VerticalAlignment.Stretch
-                            : VerticalAlignment.Top;
-                        fe.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    }
-                }
-                pivot.Items.Add(new PivotItem { Header = header, Content = cards });
+                    Content = cards,
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                    HorizontalScrollMode = ScrollMode.Disabled,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    VerticalScrollMode = ScrollMode.Auto,
+                    Padding = new Thickness(0, 0, 4, 0),
+                };
+                pivot.Items.Add(new PivotItem { Header = header, Content = scroller });
             }
             ControlPanelHost.ContentPanel.Children.Add(pivot);
         }

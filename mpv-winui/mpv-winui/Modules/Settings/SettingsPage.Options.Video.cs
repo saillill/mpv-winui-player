@@ -43,6 +43,84 @@ public sealed partial class SettingsPage
                 Getter = () => AppContext.AppSetting.Deinterlace,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Deinterlace), AppContext.AppSetting.Deinterlace = (string)v!)
             },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.PictureBrightness),
+                Label = lang.SettingsPictureBrightness,
+                Category = video,
+                Description = lang.SettingsHelpPictureBrightness,
+                Type = OptionType.Integer,
+                Min = -100,
+                Max = 100,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.PictureBrightness,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.PictureBrightness), AppContext.AppSetting.PictureBrightness = Convert.ToInt32(v))
+            },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.PictureContrast),
+                Label = lang.SettingsPictureContrast,
+                Category = video,
+                Description = lang.SettingsHelpPictureContrast,
+                Type = OptionType.Integer,
+                Min = -100,
+                Max = 100,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.PictureContrast,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.PictureContrast), AppContext.AppSetting.PictureContrast = Convert.ToInt32(v))
+            },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.PictureSaturation),
+                Label = lang.SettingsPictureSaturation,
+                Category = video,
+                Description = lang.SettingsHelpPictureSaturation,
+                Type = OptionType.Integer,
+                Min = -100,
+                Max = 100,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.PictureSaturation,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.PictureSaturation), AppContext.AppSetting.PictureSaturation = Convert.ToInt32(v))
+            },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.PictureGamma),
+                Label = lang.SettingsPictureGamma,
+                Category = video,
+                Description = lang.SettingsHelpPictureGamma,
+                Type = OptionType.Integer,
+                Min = -100,
+                Max = 100,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.PictureGamma,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.PictureGamma), AppContext.AppSetting.PictureGamma = Convert.ToInt32(v))
+            },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.PictureHue),
+                Label = lang.SettingsPictureHue,
+                Category = video,
+                Description = lang.SettingsHelpPictureHue,
+                Type = OptionType.Integer,
+                Min = -100,
+                Max = 100,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.PictureHue,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.PictureHue), AppContext.AppSetting.PictureHue = Convert.ToInt32(v))
+            },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.PictureSharpen),
+                Label = lang.SettingsPictureSharpen,
+                Category = video,
+                Description = lang.SettingsHelpPictureSharpen,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 5,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.PictureSharpen,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.PictureSharpen), AppContext.AppSetting.PictureSharpen = Convert.ToInt32(v))
+            },
 
             new Option
             {

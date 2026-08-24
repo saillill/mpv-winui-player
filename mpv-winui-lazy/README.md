@@ -26,7 +26,7 @@ mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com
 | 路径 | 说明 |
 |---|---|
 | `mpv.conf` / `profiles.conf` / `input.conf` | mpv 主配置、条件配置、按键绑定 |
-| `scripts/` | Lua 脚本（mpv-menu-plugin 的 `dyn_menu.lua`/`dialog.lua` 为 GPL-2.0-only；已移除随附的 `menu.dll` 二进制，当前 mpv 走自带 `menu-data` 渲染路径） |
+| `scripts/` | Lua 脚本（mpv-menu-plugin 的 `dyn_menu.lua` 为 GPL-2.0-only；已移除随附的 `menu.dll` 二进制，当前 mpv 走自带 `menu-data` 渲染路径） |
 | `script-opts/` | 脚本选项（`dyn_menu.conf` 控制菜单数据通道与标题长度上限） |
 | `shaders/` | 可选着色器，许可证见各文件头 |
 | `vs/` | 可选 VapourSynth 脚本（需自行安装 VapourSynth 运行库） |
@@ -34,7 +34,7 @@ mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com
 | `MediaInfo.exe` | MediaInfo CLI v26.05（BSD-2-Clause，`工具 > MediaInfo` 用） |
 | `licenses/` | 随包第三方许可证全文（MediaInfo BSD-2-Clause） |
 
-历史菜单整理记录见仓库根目录 [`docs/menu-audit-20260807.md`](../docs/menu-audit-20260807.md)。
+历史菜单整理与当前审计记录见 [`docs/audit-and-roadmap-20260824.md`](../docs/audit-and-roadmap-20260824.md)。
 
 ## 部署
 

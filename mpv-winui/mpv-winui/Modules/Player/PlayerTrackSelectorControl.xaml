@@ -28,8 +28,9 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <FontIcon
+                            FontFamily="{StaticResource MpvIconFontFamily}"
                             FontSize="16"
-                            Glyph="&#xED1E;" />
+                            Glyph="&#xEBCD;" />
                         <TextBlock
                             x:Name="SubtitleHeaderText"
                             VerticalAlignment="Center"
@@ -68,8 +69,9 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <FontIcon
+                            FontFamily="{StaticResource MpvIconFontFamily}"
                             FontSize="16"
-                            Glyph="&#xED1E;" />
+                            Glyph="&#xEBCD;" />
                         <TextBlock
                             x:Name="SecondSubHeaderText"
                             VerticalAlignment="Center"
@@ -108,8 +110,9 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <FontIcon
+                            FontFamily="{StaticResource MpvIconFontFamily}"
                             FontSize="16"
-                            Glyph="&#xE8B2;" />
+                            Glyph="&#xF850;" />
                         <TextBlock
                             x:Name="VideoHeaderText"
                             VerticalAlignment="Center"
@@ -148,8 +151,9 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <FontIcon
+                            FontFamily="{StaticResource MpvIconFontFamily}"
                             FontSize="16"
-                            Glyph="&#xE8D6;" />
+                            Glyph="&#xE855;" />
                         <TextBlock
                             x:Name="AudioHeaderText"
                             VerticalAlignment="Center"

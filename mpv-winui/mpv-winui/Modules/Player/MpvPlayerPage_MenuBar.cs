@@ -104,7 +104,8 @@ public sealed partial class MpvPlayerPage
         var menus = MenuDefinitionSource.TryLoad();
         if (menus is { Count: > 0 })
         {
-            MenuBarBuilder.Build(MainMenuBar, menus, KnownMenuActions, MenuFlyoutItem_Click);
+            MenuBarBuilder.Build(MainMenuBar, menus, KnownMenuActions, MenuFlyoutItem_Click,
+                MenuShortcutHints.FindForCommand);
         }
     }
 
@@ -217,7 +218,7 @@ public sealed partial class MpvPlayerPage
                     .Where(b => string.IsNullOrWhiteSpace(query)
                                 || b.Key.Contains(query, StringComparison.OrdinalIgnoreCase)
                                 || b.Command.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    .Select(b => $"{b.Key}    {b.Command}")
+                    .Select(b => $"{mpv_winui.Modules.Settings.Controls.ShortcutKeyLocalizer.Localize(b.Key)}    {b.Command}")
                     .ToList();
                 list.ItemsSource = items;
                 empty.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;

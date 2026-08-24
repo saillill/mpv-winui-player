@@ -56,8 +56,8 @@ Playback controls are all there: play, pause, seek, volume, speed, previous/
 next, loop and shuffle. Switch audio/video/subtitle tracks freely, load
 external subtitles, tweak how subtitles look. The playlist sidebar supports
 drag-and-drop reordering; the progress bar shows preview thumbnails; it
-remembers where you stopped, with watch history and “watch later”. A sleep
-timer, screenshots, file details (MediaInfo) and shortcut search round it out.
+remembers where you stopped, with watch history and “watch later”. Screenshots,
+file details (MediaInfo) and shortcut search round it out.
 
 ## How it compares to the original mpv
 

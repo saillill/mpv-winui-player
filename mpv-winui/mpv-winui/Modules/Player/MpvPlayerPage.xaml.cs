@@ -61,7 +61,7 @@ namespace mpv_winui.Modules.Player
                 PlayerControl.MediaPlayer = _mediaPlayer;
 
                 _mediaPlayer.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
-                _mediaPlayer.VolumeChangedChanged += VolumeChangedChanged;
+                _mediaPlayer.VolumeChanged += MediaPlayer_VolumeChanged;
                 _mediaPlayer.WindowChanged += MpvPlayerPage_WindowChanged;
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.StartListen();
@@ -70,7 +70,6 @@ namespace mpv_winui.Modules.Player
                 AppContext.SetMpvLogLevel = level => _mediaPlayer.SetLogLevel(level);
                 AppContext.GetAudioDevices = () => _mediaPlayer.AudioDevices();
                 AppContext.GetGpuAdapters = () => _mediaPlayer.GpuAdapters();
-                AppContext.GetMpvProfiles = () => _mediaPlayer.Profiles();
                 // LoggerHelper may have run before this hook existed; sync the
                 // native mpv log level once the player is available.
                 AppContext.SetMpvLogLevel(AppContext.AppSetting.EnableDebugLog ? "info" : "warn");
@@ -131,14 +130,13 @@ namespace mpv_winui.Modules.Player
             AppContext.SetMpvLogLevel = null;
             AppContext.GetAudioDevices = null;
             AppContext.GetGpuAdapters = null;
-            AppContext.GetMpvProfiles = null;
             AppContext.SettingChanged -= AppContext_SettingChanged;
             AppContext.LanguageChanged -= AppContext_LanguageChanged;
             CleanupDisplayInfo();
             CleanupPlaylistRefresh();
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
-            _mediaPlayer.VolumeChangedChanged -= VolumeChangedChanged;
+            _mediaPlayer.VolumeChanged -= MediaPlayer_VolumeChanged;
             _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
             _mediaPlayer.StopListen();
@@ -182,6 +180,26 @@ namespace mpv_winui.Modules.Player
             {
                 DispatcherQueue.TryEnqueue(ApplyDisplayPeak);
             }
+            else if (key == nameof(AppContext.AppSetting.ThumbnailUpdateInterval))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (_previewThrottleTimer is { } timer)
+                    {
+                        timer.Interval = TimeSpan.FromMilliseconds(
+                            Math.Clamp(Convert.ToInt32(value), 40, 600));
+                    }
+                });
+            }
+            else if (key == nameof(AppContext.AppSetting.ThumbnailPreviewWidth))
+            {
+                // Re-init on the next hover so the new render size applies.
+                DispatcherQueue.TryEnqueue(DestroyPreviewer);
+            }
+            else if (key == nameof(AppContext.AppSetting.WindowPiPOpacity))
+            {
+                DispatcherQueue.TryEnqueue(() => _pipWindow?.ApplyOpacity());
+            }
         }
 
         private void AppContext_LanguageChanged()
@@ -196,6 +214,7 @@ namespace mpv_winui.Modules.Player
 
         private async Task CreateAsync()
         {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             InitDisplayInfo();
 
             var configFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
@@ -211,11 +230,13 @@ namespace mpv_winui.Modules.Player
             // script-opts, the managed mpv.conf block) expect mpv.conf to
             // already exist and merge into it.
             await ConfigDeployer.EnsureDeployedAsync(configFolder.Path);
+            _logger.Debug("CreateAsync: config deployed at {}ms", sw.ElapsedMilliseconds);
 
             // Ensure settings-managed config files (script-opts/*.conf, the
             // managed mpv.conf block) are written before mpv reads the config
             // dir at Initialize; AppContext.Init enqueues these asynchronously.
             await AppContext.WaitAll();
+            _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
             _mediaPlayer.SwapChainChanged += MpvPlayer_SwapChainChanged;
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
@@ -224,9 +245,21 @@ namespace mpv_winui.Modules.Player
             await _mediaPlayer.InitializeAsync(configFolder.Path, AppContext.AppSetting.LastVideoVolume, _lastColorKind, (int)refreshRate);
 
             _isPlayerInitialized = true;
+            _playerReadyTcs.TrySetResult();
+            _logger.Debug("CreateAsync: player initialized at {}ms", sw.ElapsedMilliseconds);
         }
 
-        private void VolumeChangedChanged(MpvMediaPlayer player, int volume)
+        // A drop (or menu open) landing while CreateAsync is still running
+        // used to enqueue loadfile into a native handle that silently no-ops
+        // before initialization, losing the request. Callers now await this.
+        private TaskCompletionSource _playerReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private Task WaitForPlayerReadyAsync()
+        {
+            return _isPlayerInitialized ? Task.CompletedTask : _playerReadyTcs.Task;
+        }
+
+        private void MediaPlayer_VolumeChanged(MpvMediaPlayer player, int volume)
         {
             AppContext.AppSetting.LastVideoVolume = volume;
         }

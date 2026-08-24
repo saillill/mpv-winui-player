@@ -14,10 +14,7 @@ import "VolumeChangedEventArgs.idl";
 import "PositionChangedEventArgs.idl";
 import "SpeedChangedEventArgs.idl";
 import "MediaInfoChangedEventArgs.idl";
-import "NetworkInfoChangedEventArgs.idl";
 import "PlaybackFailedEventArgs.idl";
-import "TrackListChangedEventArgs.idl";
-import "TrackListCountChangedEventArgs.idl";
 import "WindowChangedEventArgs.idl";
 
 namespace mpv_winrt
@@ -27,16 +24,12 @@ namespace mpv_winrt
     delegate void PlaybackFailedEventHandler(PlaybackFailedEventArgs args);
     delegate void SeekEventHandler();
     delegate void FileLoadedEventHandler();
-    delegate void TrackChangedEventHandler();
 
     delegate void PlaybackStateChangedEventHandler(PlaybackStateChangedEventArgs args);
     delegate void VolumeChangedEventHandler(VolumeChangedEventArgs args);
     delegate void PositionChangedEventHandler(PositionChangedEventArgs args);
     delegate void SpeedChangedEventHandler(SpeedChangedEventArgs args);
     delegate void MediaInfoChangedEventHandler(MediaInfoChangedEventArgs args);
-    delegate void NetworkInfoChangedEventHandler(NetworkInfoChangedEventArgs args);
-    delegate void TrackListChangedEventHandler(TrackListChangedEventArgs args);
-    delegate void TrackListCountChangedEventHandler(TrackListCountChangedEventArgs args);
     delegate void VoConfiguredEventHandler();
     delegate void WindowChangedEventHandler(WindowChangedEventArgs args);
     delegate void LoopFileChangedEventHandler();
@@ -71,9 +64,6 @@ namespace mpv_winrt
         void ApplyCommandStrings(Windows.Foundation.Collections.IVector<String> commands);
 
         void SetLogLevel(String level);
-
-        void ObserveProperty(String name);
-        void UnobserveProperty(String name);
 
         String GetWatchHistoryPath();
         String GetWatchLaterFolderPath();
@@ -140,16 +130,12 @@ namespace mpv_winrt
         event PlaybackFailedEventHandler PlaybackFailed;
         event SeekEventHandler Seeked;
         event FileLoadedEventHandler FileLoaded;
-        event TrackChangedEventHandler TrackChanged;
 
         event PlaybackStateChangedEventHandler PlaybackStateChanged;
         event VolumeChangedEventHandler VolumeChanged;
         event PositionChangedEventHandler PositionChanged;
         event SpeedChangedEventHandler SpeedChanged;
         event MediaInfoChangedEventHandler MediaInfoChanged;
-        event NetworkInfoChangedEventHandler NetworkInfoChanged;
-        event TrackListChangedEventHandler TrackListChanged;
-        event TrackListCountChangedEventHandler TrackListCountChanged;
         event VoConfiguredEventHandler VoConfigured;
         event WindowChangedEventHandler WindowChanged;
         event LoopFileChangedEventHandler LoopFileChanged;
@@ -158,6 +144,5 @@ namespace mpv_winrt
         event PlaylistChangedEventHandler PlaylistChanged;
         event PreviewChangedEventHandler PreviewChanged;
         event MpvLogEventHandler LogMessage;
-        event MpvPropertyChangedEventHandler PropertyChanged;
     };
 }

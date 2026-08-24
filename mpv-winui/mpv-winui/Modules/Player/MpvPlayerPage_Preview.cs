@@ -11,8 +11,22 @@ namespace mpv_winui.Modules.Player
 {
     public sealed partial class MpvPlayerPage
     {
-        private const double PreviewCardWidth = 248;
-        private const double PreviewCardHeight = 143;
+        // Card chrome = image size + padding (4x2) + border (1x2); refreshed
+        // from ThumbnailPreviewWidth whenever the preview initializes.
+        private double _previewCardWidth = 258;
+        private double _previewCardHeight = 145;
+
+        private void ApplyThumbnailSizeSetting()
+        {
+            var width = Math.Clamp(
+                int.TryParse(mpv_winui.AppContext.AppSetting.ThumbnailPreviewWidth, out var parsed) ? parsed : 248,
+                120, 480);
+            var height = (int)Math.Round(width * 135.0 / 240.0);
+            PreviewImage.Width = width;
+            PreviewImage.Height = height;
+            _previewCardWidth = width + 10;
+            _previewCardHeight = height + 10;
+        }
 
         private Point _lastPreviewPoint;
         private DispatcherQueueTimer? _previewThrottleTimer;
@@ -27,6 +41,10 @@ namespace mpv_winui.Modules.Player
         private double _lastPreviewSec = -1;
         private (string Path, double Sec)? _pendingPreviewerRequest;
 
+        // False when the pending request comes from the MediaOpened warmup:
+        // the previewer then just loads the file without showing the card.
+        private bool _pendingPreviewShow = true;
+
         private void SetupPreview()
         {
             _logger.Debug("SetupPreview called, enabled={}", AppContext.AppSetting.EnableVideoPreview);
@@ -35,8 +53,9 @@ namespace mpv_winui.Modules.Player
                 _previewerCleanedUp = false;
                 PlayerControl.PreviewUpdateRequested += PlayerControl_PreviewUpdateRequested;
                 PlayerControl.PreviewClearRequested += PlayerControl_PreviewClearRequested;
+                _mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
                 _previewThrottleTimer = DispatcherQueue.CreateTimer();
-                _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(40);
+                _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(mpv_winui.AppContext.AppSetting.ThumbnailUpdateInterval, 40, 600));
                 _previewThrottleTimer.Tick += PreviewThrottleTick;
             }
         }
@@ -52,8 +71,52 @@ namespace mpv_winui.Modules.Player
             }
             PlayerControl.PreviewUpdateRequested -= PlayerControl_PreviewUpdateRequested;
             PlayerControl.PreviewClearRequested -= PlayerControl_PreviewClearRequested;
+            _mediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
             HidePreview();
             DestroyPreviewer();
+        }
+
+        // Thumbfast-style worker warmup: feed the file to the preview
+        // instance as soon as playback starts, so the first hover shows a
+        // thumbnail instead of waiting for a second mpv to boot.
+        private void MediaPlayer_MediaOpened(object? sender, object? args)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    var path = CurrentPlaybackPath();
+                    if (string.IsNullOrEmpty(path))
+                    {
+                        return;
+                    }
+
+                    if (_previewer is not null)
+                    {
+                        WarmupPreviewerWith(path);
+                        return;
+                    }
+
+                    _pendingPreviewerRequest = (path, 0);
+                    _pendingPreviewShow = false;
+                    _previewerInitTask ??= InitializePreviewerAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "preview warmup failed");
+                }
+            });
+        }
+
+        private void WarmupPreviewerWith(string path)
+        {
+            if (string.Equals(_previewLoadedPath, path, StringComparison.Ordinal))
+            {
+                return;
+            }
+            _previewLoadedPath = path;
+            _lastPreviewSec = -1;
+            Task.Run(() => _previewer?.LoadFile(path)).FireAndForget(OnException);
         }
 
         private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double RelativeX, double RelativeY) args)
@@ -103,6 +166,7 @@ namespace mpv_winui.Modules.Player
                 }
 
                 _pendingPreviewerRequest = (path, hoverSec);
+                _pendingPreviewShow = true;
                 _previewerInitTask ??= InitializePreviewerAsync();
             }
             catch (Exception ex)
@@ -116,6 +180,7 @@ namespace mpv_winui.Modules.Player
         {
             try
             {
+                ApplyThumbnailSizeSetting();
                 var scale = XamlRoot?.RasterizationScale ?? 1.0;
                 if (scale < 1.0)
                 {
@@ -137,7 +202,16 @@ namespace mpv_winui.Modules.Player
                 if (_pendingPreviewerRequest is { } pending)
                 {
                     _pendingPreviewerRequest = null;
-                    ShowPreviewAtCore(pending.Path, pending.Sec);
+                    if (_pendingPreviewShow)
+                    {
+                        ShowPreviewAtCore(pending.Path, pending.Sec);
+                    }
+                    else
+                    {
+                        // Warmup request: load the file silently, the card
+                        // only appears on a real hover.
+                        WarmupPreviewerWith(pending.Path);
+                    }
                 }
             }
             catch (Exception ex)
@@ -190,8 +264,11 @@ namespace mpv_winui.Modules.Player
                 }).FireAndForget(OnException);
                 _lastPreviewSec = sec;
             }
-            else if (Math.Abs(sec - _lastPreviewSec) > 0.05)
+            else if (Math.Abs(sec - _lastPreviewSec) > 0.25)
             {
+                // Keyframe seeks snap to the nearest keyframe anyway (usually
+                // seconds apart), so requests finer than this only burn seek
+                // commands without changing the shown frame.
                 _previewer.SetPosition(sec);
                 _lastPreviewSec = sec;
             }
@@ -223,10 +300,10 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
-            var x = _lastPreviewPoint.X - PreviewCardWidth / 2;
-            var y = _lastPreviewPoint.Y - PreviewCardHeight - 12;
-            x = Math.Clamp(x, 0, viewWidth - PreviewCardWidth);
-            y = Math.Clamp(y, 0, viewHeight - PreviewCardHeight);
+            var x = _lastPreviewPoint.X - _previewCardWidth / 2;
+            var y = _lastPreviewPoint.Y - _previewCardHeight - 12;
+            x = Math.Clamp(x, 0, viewWidth - _previewCardWidth);
+            y = Math.Clamp(y, 0, viewHeight - _previewCardHeight);
             PreviewCard.Margin = new Microsoft.UI.Xaml.Thickness(x, y, 0, 0);
         }
 

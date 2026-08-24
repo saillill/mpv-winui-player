@@ -90,7 +90,7 @@ public sealed partial class PlayerControl
     // ===== Audio / subtitle delay =====
     private bool _delaySliderUpdating;
 
-    private void DelayFlyout_Opened(object sender, object e)
+    private void DelayFlyout_Opened(object? sender, object e)
     {
         _delaySliderUpdating = true;
         AudioDelaySlider.Value = AppContext.AppSetting.AudioDelay;
