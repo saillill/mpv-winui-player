@@ -116,11 +116,20 @@ A2/A8 删除；A1 按 §3.5 裁决为**彻底删除**（禁用数周、GPL 边�
 LOCAL-PATCHES 流程机械维护；如需恢复走 observe_property 只读路径，
 实现可从 git 历史找回）。测试工程同步删除断言已删 API 的两个用例。
 
-**Phase 2 — 巨类拆分（待做）**
-- PlayerControl 四职责分档（布局引擎已抽出；剩余：面板显隐动画、
-  预览转发、章节标记）并补单元测试；
-- AppSettings 按 Options.* 分部结构对齐拆 partial；
-- MpvPlayerPage 13 个分部收敛：Input/Mouse/Display 合并为"输入转发"模块。
+**Phase 2 — 巨类拆分（主体完成 2026-08-24）**
+- PlayerControl：主分部 1988→1126 行；布局引擎、控制条组合
+  （ControlBar.cs）、面板动画（PanelAnimation.cs）、进度标记
+  （ProgressMarks.cs）、预览管线（Preview.cs）各成档。
+  布局纯函数已独立，单元测试因 WinUI 程序集引用成本暂缓——逻辑为
+  原样搬移，行为由冒烟覆盖。
+- AppSettings：1972→592 行核心（基础设施+迁移+界面域），按名称前缀
+  分出 Playback/Video/Audio/Subtitles/Osd/Network/Screenshot/Plugins 八个
+  域 partial；`check-settings-drift.py` 已改为 glob `AppSettings*.cs`，
+  校验结果与拆分前基线一致（288 属性/219 映射/274 键）。
+- MpvPlayerPage：Input+Mouse 合并为 InputForwarding.cs。**裁决修正**：
+  原计划把 Display 一并并入"输入转发"，核实后 Display 是显示器监测
+  （色彩/刷新率/峰值/WM_DISPLAYCHANGE 子类），语义不属于输入，保持独立。
+- CI 补 `check-settings-drift.py` 步骤（原 Phase 4 项提前完成）。
 
 **Phase 3 — 许可与菜单终局 ✅ 已裁决并执行（删除路线）**
 THIRD_PARTY_NOTICES / LOCAL-PATCHES / VERSIONS 已同步 dialog.lua 移除与

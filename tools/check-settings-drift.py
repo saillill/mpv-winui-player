@@ -31,9 +31,12 @@ for stream in (sys.stdout, sys.stderr):
         pass
 
 
-def parse_appsettings_props(src: Path) -> set[str]:
-    text = src.read_text(encoding="utf-8")
-    return set(re.findall(r"public (?:string|bool|int|double|float|long|string\[\]|IReadOnlyList<[^>]+>|List<[^>]+>|TimeSpan|uint)\s+(\w+)\s*\{", text))
+def parse_appsettings_props(src_dir: Path) -> set[str]:
+    keys: set[str] = set()
+    for f in sorted(src_dir.glob("AppSettings*.cs")):
+        text = f.read_text(encoding="utf-8")
+        keys |= set(re.findall(r"public (?:string|bool|int|double|float|long|string\[\]|IReadOnlyList<[^>]+>|List<[^>]+>|TimeSpan|uint)\s+(\w+)\s*\{", text))
+    return keys
 
 
 def parse_mpvsettings_cases(src: Path) -> set[str]:
@@ -98,7 +101,7 @@ UNMAPPED_OK = {
 
 
 def main() -> int:
-    appsettings = parse_appsettings_props(SRC / "AppSettings.cs")
+    appsettings = parse_appsettings_props(SRC)
     mpvsettings = parse_mpvsettings_cases(SRC / "MpvSettings.cs")
     option_keys = parse_option_keys(SRC)
 

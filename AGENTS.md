@@ -21,13 +21,13 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 - Logs: `%LOCALAPPDATA%\mpv-winui\logs\mpv-winui.<date>.log.txt`, plus `display-info.log`.
 - Config runs from `%LOCALAPPDATA%\mpv-winui\mpv` (synced by ConfigDeployer at startup).
 - Settings are in registry `HKCU\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app`; booleans stored as `"true"` / `"false"`.
-- Defaults live in `AppSettings.cs`; live mpv mapping is `MpvSettings.ToCommand`.
+- Defaults live in `AppSettings*.cs` (core + domain partials); live mpv mapping is `MpvSettings.ToCommand`.
 - PrintWindow misses WinUI popups; use CopyFromScreen for visual verification.
 - UIA BoundingRectangle has a ×1.5 DPI scale factor on this machine.
 
 ### Architecture gotchas
 
-- **Mouse input**: libmpv never sees Win32 mouse input in composition mode. The app forwards it via WH_KEYBOARD hook + window subclass in MpvPlayerPage_Input/MpvPlayerPage_Mouse.
+- **Mouse input**: libmpv never sees Win32 mouse input in composition mode. The app forwards keyboard/mouse via the input-forwarding partial (MpvPlayerPage_InputForwarding.cs); display monitoring lives in MpvPlayerPage_Display.cs.
 - **Command strings**: `mpv_command_string` parses C-style escapes. Windows paths need doubled backslashes inside quotes (`Q()` in `MpvSettings.cs`).
 - **Command ordering**: settings ApplyAll, menu commands and `OpenAsync` run through `MpvCommandQueue` (FIFO worker); input forwarding stays direct.
 - **Position UI**: event-driven; `time-pos` observed natively + 100ms coalescing timer — never reintroduce polling.

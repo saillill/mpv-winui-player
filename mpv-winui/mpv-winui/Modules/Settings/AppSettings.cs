@@ -9,7 +9,7 @@ namespace mpv_winui.Modules.Settings
     // MpvSettings.ApplyAll enumerates the properties reflectively; keep them
     // available under trimming/AOT.
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
-    public class AppSettings
+    public partial class AppSettings
     {
         private readonly IDataSetting _dataSetting;
         private readonly CachedDataSetting _settingsCache;
@@ -162,9 +162,13 @@ namespace mpv_winui.Modules.Settings
         }
 
         public const string ThemeType_Auto = "Auto";
+
         public const string ThemeType_Light = "Light";
+
         public const string ThemeType_Dark = "Dark";
+
         public const string ThemeType_Custom = "Custom";
+
         public string ThemeType
         {
             get => _dataSetting.GetValue(nameof(ThemeType), ThemeType_Auto);
@@ -172,7 +176,9 @@ namespace mpv_winui.Modules.Settings
         }
 
         public const string BackdropType_Acrylic = "Acrylic";
+
         public const string BackdropType_Mica = "Mica";
+
         public string BackdropType
         {
             get => _dataSetting.GetValue(nameof(BackdropType), BackdropType_Acrylic);
@@ -212,13 +218,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(UiFont), string.Empty);
             set => _dataSetting.SetValue(nameof(UiFont), value);
-        }
-
-        /// <summary>Whether to show the playback-start OSD message.</summary>
-        public bool ShowOsdPlayingMsg
-        {
-            get => _dataSetting.GetValue(nameof(ShowOsdPlayingMsg), false);
-            set => _dataSetting.SetValue(nameof(ShowOsdPlayingMsg), value);
         }
 
         /// <summary>Log every mpv command sent by the app (testing).</summary>
@@ -297,46 +296,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(EnableVideoPreview), value);
         }
 
-        public string Hwdec
-        {
-            get => _dataSetting.GetValue(nameof(Hwdec), "auto-safe");
-            set => _dataSetting.SetValue(nameof(Hwdec), value);
-        }
-
-        public int VolumeMax
-        {
-            get => _dataSetting.GetValue(nameof(VolumeMax), 100);
-            set => _dataSetting.SetValue(nameof(VolumeMax), value);
-        }
-
-        public string KeepOpen
-        {
-            get => _dataSetting.GetValue(nameof(KeepOpen), "yes");
-            set => _dataSetting.SetValue(nameof(KeepOpen), value);
-        }
-
-        public string LoopPlaylist
-        {
-            get => _dataSetting.GetValue(nameof(LoopPlaylist), "yes");
-            set => _dataSetting.SetValue(nameof(LoopPlaylist), value);
-        }
-
-        public bool LoopFile
-        {
-            get => _dataSetting.GetValue(nameof(LoopFile), false);
-            set => _dataSetting.SetValue(nameof(LoopFile), value);
-        }
-
         public int Volume
         {
             get => _dataSetting.GetValue(nameof(Volume), 100);
             set => _dataSetting.SetValue(nameof(Volume), value);
-        }
-
-        public string WatchLaterDir
-        {
-            get => _dataSetting.GetValue(nameof(WatchLaterDir), string.Empty);
-            set => _dataSetting.SetValue(nameof(WatchLaterDir), value);
         }
 
         public string IccCacheDir
@@ -351,270 +314,20 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(GpuShaderCacheDir), value);
         }
 
-        public string Deinterlace
-        {
-            get => _dataSetting.GetValue(nameof(Deinterlace), "no");
-            set => _dataSetting.SetValue(nameof(Deinterlace), value);
-        }
-
-        public string AspectRatio
-        {
-            get
-            {
-                // mpv's "auto" spelling is invalid for video-aspect-override; the
-                // legal value for "automatic" is "no". Migrate legacy stores.
-                var value = _dataSetting.GetValue(nameof(AspectRatio), "no");
-                return value == "auto" ? "no" : value;
-            }
-            set => _dataSetting.SetValue(nameof(AspectRatio), value);
-        }
-
-        public int SubFontSize
-        {
-            get => _dataSetting.GetValue(nameof(SubFontSize), 42);
-            set => _dataSetting.SetValue(nameof(SubFontSize), value);
-        }
-
-        public bool SubScaleByWindow
-        {
-            get => _dataSetting.GetValue(nameof(SubScaleByWindow), true);
-            set => _dataSetting.SetValue(nameof(SubScaleByWindow), value);
-        }
-
-        public double SubLineSpacing
-        {
-            get => _dataSetting.GetValue(nameof(SubLineSpacing), 0.0);
-            set => _dataSetting.SetValue(nameof(SubLineSpacing), value);
-        }
-
-        public string SubJustify
-        {
-            get => _dataSetting.GetValue(nameof(SubJustify), "auto");
-            set => _dataSetting.SetValue(nameof(SubJustify), value);
-        }
-
-        public bool SubClearOnSeek
-        {
-            get => _dataSetting.GetValue(nameof(SubClearOnSeek), true);
-            set => _dataSetting.SetValue(nameof(SubClearOnSeek), value);
-        }
-
-        public string SubHinting
-        {
-            get => _dataSetting.GetValue(nameof(SubHinting), "none");
-            set => _dataSetting.SetValue(nameof(SubHinting), value);
-        }
-
-        public double SubDelay
-        {
-            get => _dataSetting.GetValue(nameof(SubDelay), 0.0);
-            set => _dataSetting.SetValue(nameof(SubDelay), value);
-        }
-
         public double Speed
         {
             get => _dataSetting.GetValue(nameof(Speed), 1.0);
             set => _dataSetting.SetValue(nameof(Speed), value);
         }
 
-        public int SubPos
-        {
-            get => _dataSetting.GetValue(nameof(SubPos), 100);
-            set => _dataSetting.SetValue(nameof(SubPos), value);
-        }
-
-        public string AudioLanguage
-        {
-            get => _dataSetting.GetValue(nameof(AudioLanguage), string.Empty);
-            set => _dataSetting.SetValue(nameof(AudioLanguage), value);
-        }
-
-        public string SubtitleLanguage
-        {
-            get => _dataSetting.GetValue(nameof(SubtitleLanguage), string.Empty);
-            set => _dataSetting.SetValue(nameof(SubtitleLanguage), value);
-        }
-
-        public string AudioDevice
-        {
-            get => _dataSetting.GetValue(nameof(AudioDevice), "auto");
-            set => _dataSetting.SetValue(nameof(AudioDevice), value);
-        }
-
         /// <summary>截图目录：默认 Windows 官方推荐位置 图片\Screenshots（C:\Users\&lt;用户&gt;\Pictures\Screenshots）。</summary>
         private static readonly string DefaultScreenshotDirectory =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Screenshots");
-
-        public string ScreenshotDirectory
-        {
-            get
-            {
-                var v = _dataSetting.GetValue(nameof(ScreenshotDirectory), string.Empty);
-                return string.IsNullOrWhiteSpace(v) ? DefaultScreenshotDirectory : v;
-            }
-            set => _dataSetting.SetValue(nameof(ScreenshotDirectory), value);
-        }
-
-        public string ScreenshotTemplate
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotTemplate), string.Empty);
-            set => _dataSetting.SetValue(nameof(ScreenshotTemplate), value);
-        }
-
-        public bool SavePositionOnQuit
-        {
-            get => _dataSetting.GetValue(nameof(SavePositionOnQuit), false);
-            set => _dataSetting.SetValue(nameof(SavePositionOnQuit), value);
-        }
-
-        public bool ResumePlayback
-        {
-            get => _dataSetting.GetValue(nameof(ResumePlayback), true);
-            set => _dataSetting.SetValue(nameof(ResumePlayback), value);
-        }
-
-        public string ScreenshotFormat
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotFormat), "png");
-            set => _dataSetting.SetValue(nameof(ScreenshotFormat), value);
-        }
-
-        public int ScreenshotJpegQuality
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotJpegQuality), 90);
-            set => _dataSetting.SetValue(nameof(ScreenshotJpegQuality), value);
-        }
-
-        public string VideoSync
-        {
-            get
-            {
-                // "cfr" was removed from mpv; migrate the legacy preset to the
-                // equivalent modern mode.
-                var value = _dataSetting.GetValue(nameof(VideoSync), "audio");
-                return value == "cfr" ? "display-resample" : value;
-            }
-            set => _dataSetting.SetValue(nameof(VideoSync), value);
-        }
-
-        public bool Interpolation
-        {
-            get => _dataSetting.GetValue(nameof(Interpolation), false);
-            set => _dataSetting.SetValue(nameof(Interpolation), value);
-        }
-
-        public bool CorrectDownscaling
-        {
-            get => _dataSetting.GetValue(nameof(CorrectDownscaling), true);
-            set => _dataSetting.SetValue(nameof(CorrectDownscaling), value);
-        }
-
-        public string Scale
-        {
-            get => _dataSetting.GetValue(nameof(Scale), "lanczos");
-            set => _dataSetting.SetValue(nameof(Scale), value);
-        }
 
         public string DScale
         {
             get => _dataSetting.GetValue(nameof(DScale), "bicubic");
             set => _dataSetting.SetValue(nameof(DScale), value);
-        }
-
-        public string VideoRotate
-        {
-            get => _dataSetting.GetValue(nameof(VideoRotate), "no");
-            set => _dataSetting.SetValue(nameof(VideoRotate), value);
-        }
-
-        public bool Deband
-        {
-            get => _dataSetting.GetValue(nameof(Deband), false);
-            set => _dataSetting.SetValue(nameof(Deband), value);
-        }
-
-        public bool LinearDownscaling
-        {
-            get => _dataSetting.GetValue(nameof(LinearDownscaling), true);
-            set => _dataSetting.SetValue(nameof(LinearDownscaling), value);
-        }
-
-        public bool SigmoidUpscaling
-        {
-            get => _dataSetting.GetValue(nameof(SigmoidUpscaling), true);
-            set => _dataSetting.SetValue(nameof(SigmoidUpscaling), value);
-        }
-
-        public string ToneMapping
-        {
-            get => _dataSetting.GetValue(nameof(ToneMapping), "bt.2390");
-            set => _dataSetting.SetValue(nameof(ToneMapping), value);
-        }
-
-        public string TargetGamut
-        {
-            get => _dataSetting.GetValue(nameof(TargetGamut), string.Empty);
-            set => _dataSetting.SetValue(nameof(TargetGamut), value);
-        }
-
-        public double ToneMappingMaxBoost
-        {
-            get => _dataSetting.GetValue(nameof(ToneMappingMaxBoost), 1.0);
-            set => _dataSetting.SetValue(nameof(ToneMappingMaxBoost), value);
-        }
-
-        public string HdrComputePeak
-        {
-            get => _dataSetting.GetValue(nameof(HdrComputePeak), "auto");
-            set => _dataSetting.SetValue(nameof(HdrComputePeak), value);
-        }
-
-        public double HdrPeakDecayRate
-        {
-            get => _dataSetting.GetValue(nameof(HdrPeakDecayRate), 20.0);
-            set => _dataSetting.SetValue(nameof(HdrPeakDecayRate), value);
-        }
-
-        public double HdrSceneThresholdLow
-        {
-            get => _dataSetting.GetValue(nameof(HdrSceneThresholdLow), 1.0);
-            set => _dataSetting.SetValue(nameof(HdrSceneThresholdLow), value);
-        }
-
-        public double HdrSceneThresholdHigh
-        {
-            get => _dataSetting.GetValue(nameof(HdrSceneThresholdHigh), 3.0);
-            set => _dataSetting.SetValue(nameof(HdrSceneThresholdHigh), value);
-        }
-
-        public double HdrContrastRecovery
-        {
-            get => _dataSetting.GetValue(nameof(HdrContrastRecovery), 0.0);
-            set => _dataSetting.SetValue(nameof(HdrContrastRecovery), value);
-        }
-
-        public double HdrContrastSmoothness
-        {
-            get => _dataSetting.GetValue(nameof(HdrContrastSmoothness), 3.5);
-            set => _dataSetting.SetValue(nameof(HdrContrastSmoothness), value);
-        }
-
-        public bool CachePauseInitial
-        {
-            get => _dataSetting.GetValue(nameof(CachePauseInitial), false);
-            set => _dataSetting.SetValue(nameof(CachePauseInitial), value);
-        }
-
-        public double CachePauseWait
-        {
-            get => _dataSetting.GetValue(nameof(CachePauseWait), 1.0);
-            set => _dataSetting.SetValue(nameof(CachePauseWait), value);
-        }
-
-        public int D3d11SyncInterval
-        {
-            get => _dataSetting.GetValue(nameof(D3d11SyncInterval), 1);
-            set => _dataSetting.SetValue(nameof(D3d11SyncInterval), value);
         }
 
         public bool InverseToneMapping
@@ -623,106 +336,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(InverseToneMapping), value);
         }
 
-        public bool ToneMappingVisualize
-        {
-            get => _dataSetting.GetValue(nameof(ToneMappingVisualize), false);
-            set => _dataSetting.SetValue(nameof(ToneMappingVisualize), value);
-        }
-
-        public string D3d11Warp
-        {
-            get => _dataSetting.GetValue(nameof(D3d11Warp), "auto");
-            set => _dataSetting.SetValue(nameof(D3d11Warp), value);
-        }
-
-        public int VideoReversalBuffer
-        {
-            get => _dataSetting.GetValue(nameof(VideoReversalBuffer), 0);
-            set => _dataSetting.SetValue(nameof(VideoReversalBuffer), value);
-        }
-
-        public int AudioReversalBuffer
-        {
-            get => _dataSetting.GetValue(nameof(AudioReversalBuffer), 0);
-            set => _dataSetting.SetValue(nameof(AudioReversalBuffer), value);
-        }
-
-        public string DitherDepth
-        {
-            get => _dataSetting.GetValue(nameof(DitherDepth), "no");
-            set => _dataSetting.SetValue(nameof(DitherDepth), value);
-        }
-
-        public bool HrSeek
-        {
-            get => _dataSetting.GetValue(nameof(HrSeek), true);
-            set => _dataSetting.SetValue(nameof(HrSeek), value);
-        }
-
-        public bool HrSeekFramedrop
-        {
-            get => _dataSetting.GetValue(nameof(HrSeekFramedrop), false);
-            set => _dataSetting.SetValue(nameof(HrSeekFramedrop), value);
-        }
-
-        public bool CacheOnDisk
-        {
-            get => _dataSetting.GetValue(nameof(CacheOnDisk), false);
-            set => _dataSetting.SetValue(nameof(CacheOnDisk), value);
-        }
-
-        public string VideoOutputLevels
-        {
-            get => _dataSetting.GetValue(nameof(VideoOutputLevels), "auto");
-            set => _dataSetting.SetValue(nameof(VideoOutputLevels), value);
-        }
-
-        public string VideoDecodeDirect
-        {
-            get => _dataSetting.GetValue(nameof(VideoDecodeDirect), "auto");
-            set => _dataSetting.SetValue(nameof(VideoDecodeDirect), value);
-        }
-
-        public bool IccProfileAuto
-        {
-            get => _dataSetting.GetValue(nameof(IccProfileAuto), false);
-            set => _dataSetting.SetValue(nameof(IccProfileAuto), value);
-        }
-
         public string Icc3dlutSize
         {
             get => _dataSetting.GetValue(nameof(Icc3dlutSize), "auto");
             set => _dataSetting.SetValue(nameof(Icc3dlutSize), value);
-        }
-
-        public int DemuxerMaxBytes
-        {
-            get => _dataSetting.GetValue(nameof(DemuxerMaxBytes), 1024);
-            set => _dataSetting.SetValue(nameof(DemuxerMaxBytes), value);
-        }
-
-        public string AudioChannels
-        {
-            get => _dataSetting.GetValue(nameof(AudioChannels), "auto-safe");
-            set => _dataSetting.SetValue(nameof(AudioChannels), value);
-        }
-
-        public string AudioFormat
-        {
-            get => _dataSetting.GetValue(nameof(AudioFormat), string.Empty);
-            set => _dataSetting.SetValue(nameof(AudioFormat), value);
-        }
-
-        public int AudioSampleRate
-        {
-            get => _dataSetting.GetValue(nameof(AudioSampleRate), 0);
-            set => _dataSetting.SetValue(nameof(AudioSampleRate), value);
-        }
-
-        public bool AudioStreamSilence
-        {
-            get => _dataSetting.GetValue(nameof(AudioStreamSilence), false);
-            set => _dataSetting.SetValue(nameof(AudioStreamSilence), value);
         }
 
         public bool StartFullscreen
@@ -737,76 +354,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowTitle), value);
         }
 
-        public string D3d11OutputFormat
-        {
-            get => _dataSetting.GetValue(nameof(D3d11OutputFormat), string.Empty);
-            set => _dataSetting.SetValue(nameof(D3d11OutputFormat), value);
-        }
-
-        public bool AudioExclusive
-        {
-            get => _dataSetting.GetValue(nameof(AudioExclusive), false);
-            set => _dataSetting.SetValue(nameof(AudioExclusive), value);
-        }
-
-        public bool AudioPitchCorrection
-        {
-            get => _dataSetting.GetValue(nameof(AudioPitchCorrection), true);
-            set => _dataSetting.SetValue(nameof(AudioPitchCorrection), value);
-        }
-
-        public bool AudioNormalizeDownmix
-        {
-            get => _dataSetting.GetValue(nameof(AudioNormalizeDownmix), false);
-            set => _dataSetting.SetValue(nameof(AudioNormalizeDownmix), value);
-        }
-
-        public string AudioFileAuto
-        {
-            get => _dataSetting.GetValue(nameof(AudioFileAuto), "fuzzy");
-            set => _dataSetting.SetValue(nameof(AudioFileAuto), value);
-        }
-
-        public string AudioDisplay
-        {
-            get => _dataSetting.GetValue(nameof(AudioDisplay), "embedded-first");
-            set => _dataSetting.SetValue(nameof(AudioDisplay), value);
-        }
-
-        public double AudioDelay
-        {
-            get => _dataSetting.GetValue(nameof(AudioDelay), 0.0);
-            set => _dataSetting.SetValue(nameof(AudioDelay), value);
-        }
-
-        public string SubAssOverride
-        {
-            get => _dataSetting.GetValue(nameof(SubAssOverride), "scale");
-            set => _dataSetting.SetValue(nameof(SubAssOverride), value);
-        }
-
-        public double SubBlur
-        {
-            get => _dataSetting.GetValue(nameof(SubBlur), 0.0);
-            set => _dataSetting.SetValue(nameof(SubBlur), value);
-        }
-
-        public string SubAuto
-        {
-            get => _dataSetting.GetValue(nameof(SubAuto), "fuzzy");
-            set => _dataSetting.SetValue(nameof(SubAuto), value);
-        }
-
-        public string SubFont
-        {
-            get
-            {
-                var stored = _dataSetting.GetValue(nameof(SubFont), string.Empty);
-                return string.IsNullOrEmpty(stored) ? LanguageDefaultSubtitleFont() : stored;
-            }
-            set => _dataSetting.SetValue(nameof(SubFont), value);
-        }
-
         private static string LanguageDefaultSubtitleFont()
         {
             return AppContext.AppSetting.CurrentLanguage switch
@@ -818,291 +365,10 @@ namespace mpv_winui.Modules.Settings
             };
         }
 
-        public string SubFontProvider
-        {
-            get => _dataSetting.GetValue(nameof(SubFontProvider), "auto");
-            set => _dataSetting.SetValue(nameof(SubFontProvider), value);
-        }
-
-        public string SubCodePage
-        {
-            get => _dataSetting.GetValue(nameof(SubCodePage), "auto");
-            set => _dataSetting.SetValue(nameof(SubCodePage), value);
-        }
-
-        public string SubFontFile
-        {
-            get => _dataSetting.GetValue(nameof(SubFontFile), string.Empty);
-            set => _dataSetting.SetValue(nameof(SubFontFile), value);
-        }
-
-        public bool SubAssScaleWithWindow
-        {
-            get => _dataSetting.GetValue(nameof(SubAssScaleWithWindow), false);
-            set => _dataSetting.SetValue(nameof(SubAssScaleWithWindow), value);
-        }
-
-        public string BlendSubtitles
-        {
-            get => _dataSetting.GetValue(nameof(BlendSubtitles), "no");
-            set => _dataSetting.SetValue(nameof(BlendSubtitles), value);
-        }
-
-        public string SubFallback
-        {
-            get => _dataSetting.GetValue(nameof(SubFallback), "default");
-            set => _dataSetting.SetValue(nameof(SubFallback), value);
-        }
-
-        public double SubOutlineSize
-        {
-            get => _dataSetting.GetValue(nameof(SubOutlineSize), 1.5);
-            set => _dataSetting.SetValue(nameof(SubOutlineSize), value);
-        }
-
-        public double SubShadowOffset
-        {
-            get => _dataSetting.GetValue(nameof(SubShadowOffset), 2.0);
-            set => _dataSetting.SetValue(nameof(SubShadowOffset), value);
-        }
-
-        public bool SubEmbeddedFonts
-        {
-            get => _dataSetting.GetValue(nameof(SubEmbeddedFonts), true);
-            set => _dataSetting.SetValue(nameof(SubEmbeddedFonts), value);
-        }
-
-        public bool SubUseMargins
-        {
-            get => _dataSetting.GetValue(nameof(SubUseMargins), true);
-            set => _dataSetting.SetValue(nameof(SubUseMargins), value);
-        }
-
-        public bool SubAssForceMargins
-        {
-            get => _dataSetting.GetValue(nameof(SubAssForceMargins), true);
-            set => _dataSetting.SetValue(nameof(SubAssForceMargins), value);
-        }
-
-        public bool StretchImageSubsToScreen
-        {
-            get => _dataSetting.GetValue(nameof(StretchImageSubsToScreen), true);
-            set => _dataSetting.SetValue(nameof(StretchImageSubsToScreen), value);
-        }
-
-        public int OsdFontSize
-        {
-            get => _dataSetting.GetValue(nameof(OsdFontSize), 20);
-            set => _dataSetting.SetValue(nameof(OsdFontSize), value);
-        }
-
-        public string OsdFont
-        {
-            get => _dataSetting.GetValue(nameof(OsdFont), "sans-serif");
-            set => _dataSetting.SetValue(nameof(OsdFont), value);
-        }
-
-        public string OsdOnSeek
-        {
-            get => _dataSetting.GetValue(nameof(OsdOnSeek), "msg");
-            set => _dataSetting.SetValue(nameof(OsdOnSeek), value);
-        }
-
-        public int OsdDuration
-        {
-            get => _dataSetting.GetValue(nameof(OsdDuration), 2000);
-            set => _dataSetting.SetValue(nameof(OsdDuration), value);
-        }
-
-        public bool VsrAutoEnabled
-        {
-            get => _dataSetting.GetValue(nameof(VsrAutoEnabled), false);
-            set => _dataSetting.SetValue(nameof(VsrAutoEnabled), value);
-        }
-
-        public string HdrAutoMode
-        {
-            get => _dataSetting.GetValue(nameof(HdrAutoMode), "auto");
-            set => _dataSetting.SetValue(nameof(HdrAutoMode), value);
-        }
-
-        public bool SeekHoldEnabled
-        {
-            get => _dataSetting.GetValue(nameof(SeekHoldEnabled), true);
-            set => _dataSetting.SetValue(nameof(SeekHoldEnabled), value);
-        }
-
-        public int CacheSecs
-        {
-            get => _dataSetting.GetValue(nameof(CacheSecs), 0);
-            set => _dataSetting.SetValue(nameof(CacheSecs), value);
-        }
-
-        public int ScreenshotPngCompression
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotPngCompression), 4);
-            set => _dataSetting.SetValue(nameof(ScreenshotPngCompression), value);
-        }
-
-        public int ScreenshotWebpQuality
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotWebpQuality), 100);
-            set => _dataSetting.SetValue(nameof(ScreenshotWebpQuality), value);
-        }
-
-        public bool ScreenshotHighBitDepth
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotHighBitDepth), false);
-            set => _dataSetting.SetValue(nameof(ScreenshotHighBitDepth), value);
-        }
-
-        public bool ScreenshotTagColorspace
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotTagColorspace), true);
-            set => _dataSetting.SetValue(nameof(ScreenshotTagColorspace), value);
-        }
-
-        public bool ScreenshotSw
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotSw), false);
-            set => _dataSetting.SetValue(nameof(ScreenshotSw), value);
-        }
-
         public bool AlwaysOnTop
         {
             get => _dataSetting.GetValue(nameof(AlwaysOnTop), false);
             set => _dataSetting.SetValue(nameof(AlwaysOnTop), value);
-        }
-
-        public string CacheEnabled
-        {
-            get => _dataSetting.GetValue(nameof(CacheEnabled), "auto");
-            set => _dataSetting.SetValue(nameof(CacheEnabled), value);
-        }
-
-        public double DemuxerReadahead
-        {
-            get => _dataSetting.GetValue(nameof(DemuxerReadahead), 2.0);
-            set => _dataSetting.SetValue(nameof(DemuxerReadahead), value);
-        }
-
-        public bool Ytdl
-        {
-            get => _dataSetting.GetValue(nameof(Ytdl), true);
-            set => _dataSetting.SetValue(nameof(Ytdl), value);
-        }
-
-        public string AutoCreatePlaylist
-        {
-            get => _dataSetting.GetValue(nameof(AutoCreatePlaylist), "same");
-            set => _dataSetting.SetValue(nameof(AutoCreatePlaylist), value);
-        }
-
-        public string DirectoryMode
-        {
-            get => _dataSetting.GetValue(nameof(DirectoryMode), "ignore");
-            set => _dataSetting.SetValue(nameof(DirectoryMode), value);
-        }
-
-        public string Cscale
-        {
-            get => _dataSetting.GetValue(nameof(Cscale), "lanczos");
-            set => _dataSetting.SetValue(nameof(Cscale), value);
-        }
-
-        public string Tscale
-        {
-            get
-            {
-                // mpv has no "cubic" tscale; the preset was a typo for "bicubic".
-                var value = _dataSetting.GetValue(nameof(Tscale), "oversample");
-                return value == "cubic" ? "bicubic" : value;
-            }
-            set => _dataSetting.SetValue(nameof(Tscale), value);
-        }
-
-        public bool LinearUpscaling
-        {
-            get => _dataSetting.GetValue(nameof(LinearUpscaling), false);
-            set => _dataSetting.SetValue(nameof(LinearUpscaling), value);
-        }
-
-        public string Dither
-        {
-            get => _dataSetting.GetValue(nameof(Dither), "fruit");
-            set => _dataSetting.SetValue(nameof(Dither), value);
-        }
-
-        public double Panscan
-        {
-            get => _dataSetting.GetValue(nameof(Panscan), 0.0);
-            set => _dataSetting.SetValue(nameof(Panscan), value);
-        }
-
-        public string SubFilePaths
-        {
-            get => _dataSetting.GetValue(nameof(SubFilePaths), "sub;Subs;subtitles");
-            set => _dataSetting.SetValue(nameof(SubFilePaths), value);
-        }
-
-        public int SubHdrPeak
-        {
-            get => _dataSetting.GetValue(nameof(SubHdrPeak), 100);
-            set => _dataSetting.SetValue(nameof(SubHdrPeak), value);
-        }
-
-        public int ImageSubsHdrPeak
-        {
-            get => _dataSetting.GetValue(nameof(ImageSubsHdrPeak), 10000);
-            set => _dataSetting.SetValue(nameof(ImageSubsHdrPeak), value);
-        }
-
-        public string SubAssStyleOverrides
-        {
-            get => _dataSetting.GetValue(nameof(SubAssStyleOverrides), string.Empty);
-            set => _dataSetting.SetValue(nameof(SubAssStyleOverrides), value);
-        }
-
-        public string OsdPlayingMsg
-        {
-            get => _dataSetting.GetValue(nameof(OsdPlayingMsg), "${filename}");
-            set => _dataSetting.SetValue(nameof(OsdPlayingMsg), value);
-        }
-
-        public int OsdPlayingMsgDuration
-        {
-            get => _dataSetting.GetValue(nameof(OsdPlayingMsgDuration), 3000);
-            set => _dataSetting.SetValue(nameof(OsdPlayingMsgDuration), value);
-        }
-
-        public int OsdBarWidth
-        {
-            get => _dataSetting.GetValue(nameof(OsdBarWidth), 100);
-            set => _dataSetting.SetValue(nameof(OsdBarWidth), value);
-        }
-
-        public string TargetColorspaceHint
-        {
-            get => _dataSetting.GetValue(nameof(TargetColorspaceHint), "yes");
-            set => _dataSetting.SetValue(nameof(TargetColorspaceHint), value);
-        }
-
-        public string TargetPrim
-        {
-            get => _dataSetting.GetValue(nameof(TargetPrim), string.Empty);
-            set => _dataSetting.SetValue(nameof(TargetPrim), value);
-        }
-
-        public string TargetTrc
-        {
-            get => _dataSetting.GetValue(nameof(TargetTrc), string.Empty);
-            set => _dataSetting.SetValue(nameof(TargetTrc), value);
-        }
-
-        public int TargetPeak
-        {
-            get => _dataSetting.GetValue(nameof(TargetPeak), 0);
-            set => _dataSetting.SetValue(nameof(TargetPeak), value);
         }
 
         /// <summary>
@@ -1127,401 +393,16 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(GpuShaderCache), value);
         }
 
-        public int DemuxerMaxBackBytes
-        {
-            get => _dataSetting.GetValue(nameof(DemuxerMaxBackBytes), 512);
-            set => _dataSetting.SetValue(nameof(DemuxerMaxBackBytes), value);
-        }
-
-        public bool HdrAutoLog
-        {
-            get => _dataSetting.GetValue(nameof(HdrAutoLog), false);
-            set => _dataSetting.SetValue(nameof(HdrAutoLog), value);
-        }
-
-        public bool MetadataOsdEnabled
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdEnabled), true);
-            set => _dataSetting.SetValue(nameof(MetadataOsdEnabled), value);
-        }
-
-        public int MetadataOsdAutohideTimeout
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideTimeout), 5);
-            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideTimeout), value);
-        }
-
-        public bool CoverArtPreferEmbedded
-        {
-            get => _dataSetting.GetValue(nameof(CoverArtPreferEmbedded), false);
-            set => _dataSetting.SetValue(nameof(CoverArtPreferEmbedded), value);
-        }
-
-        public string D3d11OutputCsp
-        {
-            get
-            {
-                // "bt.709" is not a legal d3d11-output-csp value; fall back to
-                // auto (empty) for values written by older builds.
-                var value = _dataSetting.GetValue(nameof(D3d11OutputCsp), string.Empty);
-                return value == "bt.709" ? string.Empty : value;
-            }
-            set => _dataSetting.SetValue(nameof(D3d11OutputCsp), value);
-        }
-
-        public bool D3d11ExclusiveFs
-        {
-            get => _dataSetting.GetValue(nameof(D3d11ExclusiveFs), false);
-            set => _dataSetting.SetValue(nameof(D3d11ExclusiveFs), value);
-        }
-
-        public bool D3d11Flip
-        {
-            get => _dataSetting.GetValue(nameof(D3d11Flip), true);
-            set => _dataSetting.SetValue(nameof(D3d11Flip), value);
-        }
-
-        public string HwdecCodecs
-        {
-            get => _dataSetting.GetValue(nameof(HwdecCodecs), "all");
-            set => _dataSetting.SetValue(nameof(HwdecCodecs), value);
-        }
-
         public bool InputIme
         {
             get => _dataSetting.GetValue(nameof(InputIme), true);
             set => _dataSetting.SetValue(nameof(InputIme), value);
         }
 
-        public string TargetColorspaceHintMode
-        {
-            get => _dataSetting.GetValue(nameof(TargetColorspaceHintMode), string.Empty);
-            set => _dataSetting.SetValue(nameof(TargetColorspaceHintMode), value);
-        }
-
-        public bool TargetColorspaceHintStrict
-        {
-            get => _dataSetting.GetValue(nameof(TargetColorspaceHintStrict), true);
-            set => _dataSetting.SetValue(nameof(TargetColorspaceHintStrict), value);
-        }
-
-        public string GamutMappingMode
-        {
-            get => _dataSetting.GetValue(nameof(GamutMappingMode), string.Empty);
-            set => _dataSetting.SetValue(nameof(GamutMappingMode), value);
-        }
-
-        public string SubColor
-        {
-            get => _dataSetting.GetValue(nameof(SubColor), string.Empty);
-            set => _dataSetting.SetValue(nameof(SubColor), value);
-        }
-
-        public bool ImageSubsVideoResolution
-        {
-            get => _dataSetting.GetValue(nameof(ImageSubsVideoResolution), false);
-            set => _dataSetting.SetValue(nameof(ImageSubsVideoResolution), value);
-        }
-
-        public string AudioFilePaths
-        {
-            get => _dataSetting.GetValue(nameof(AudioFilePaths), string.Empty);
-            set => _dataSetting.SetValue(nameof(AudioFilePaths), value);
-        }
-
-        public int VideoSyncMaxVideoChange
-        {
-            get => _dataSetting.GetValue(nameof(VideoSyncMaxVideoChange), 5);
-            set => _dataSetting.SetValue(nameof(VideoSyncMaxVideoChange), value);
-        }
-
-        public bool ScreenshotJpegSourceChroma
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotJpegSourceChroma), true);
-            set => _dataSetting.SetValue(nameof(ScreenshotJpegSourceChroma), value);
-        }
-
-        public int ScreenshotPngFilter
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotPngFilter), 5);
-            set => _dataSetting.SetValue(nameof(ScreenshotPngFilter), value);
-        }
-
-        public bool ScreenshotWebpLossless
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotWebpLossless), true);
-            set => _dataSetting.SetValue(nameof(ScreenshotWebpLossless), value);
-        }
-
-        public int ScreenshotWebpCompression
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotWebpCompression), 0);
-            set => _dataSetting.SetValue(nameof(ScreenshotWebpCompression), value);
-        }
-
-        public int ScreenshotJxlDistance
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotJxlDistance), 0);
-            set => _dataSetting.SetValue(nameof(ScreenshotJxlDistance), value);
-        }
-
-        public int ScreenshotJxlEffort
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotJxlEffort), 4);
-            set => _dataSetting.SetValue(nameof(ScreenshotJxlEffort), value);
-        }
-
-        public double OsdBarHeight
-        {
-            get => _dataSetting.GetValue(nameof(OsdBarHeight), 1.8);
-            set => _dataSetting.SetValue(nameof(OsdBarHeight), value);
-        }
-
-        public double OsdBlur
-        {
-            get => _dataSetting.GetValue(nameof(OsdBlur), 0.0);
-            set => _dataSetting.SetValue(nameof(OsdBlur), value);
-        }
-
-        public double OsdOutlineSize
-        {
-            get => _dataSetting.GetValue(nameof(OsdOutlineSize), 0.8);
-            set => _dataSetting.SetValue(nameof(OsdOutlineSize), value);
-        }
-
-        public bool OsdFractions
-        {
-            get => _dataSetting.GetValue(nameof(OsdFractions), true);
-            set => _dataSetting.SetValue(nameof(OsdFractions), value);
-        }
-
-        public string WatchLaterOptions
-        {
-            get => _dataSetting.GetValue(nameof(WatchLaterOptions), "start,vid,aid,sid");
-            set => _dataSetting.SetValue(nameof(WatchLaterOptions), value);
-        }
-
-        public bool SubScaleSigns
-        {
-            get => _dataSetting.GetValue(nameof(SubScaleSigns), true);
-            set => _dataSetting.SetValue(nameof(SubScaleSigns), value);
-        }
-
-        public bool MetadataOsdShowChapter
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdShowChapter), false);
-            set => _dataSetting.SetValue(nameof(MetadataOsdShowChapter), value);
-        }
-
-        public bool CoverArtAlwaysScan
-        {
-            get => _dataSetting.GetValue(nameof(CoverArtAlwaysScan), false);
-            set => _dataSetting.SetValue(nameof(CoverArtAlwaysScan), value);
-        }
-
-        public string BackgroundTileColor0
-        {
-            get => _dataSetting.GetValue(nameof(BackgroundTileColor0), "#B4B4B4");
-            set => _dataSetting.SetValue(nameof(BackgroundTileColor0), value);
-        }
-
-        public string BackgroundTileColor1
-        {
-            get => _dataSetting.GetValue(nameof(BackgroundTileColor1), "#DCDCDC");
-            set => _dataSetting.SetValue(nameof(BackgroundTileColor1), value);
-        }
-
-        public int BackgroundTileSize
-        {
-            get => _dataSetting.GetValue(nameof(BackgroundTileSize), 128);
-            set => _dataSetting.SetValue(nameof(BackgroundTileSize), value);
-        }
-
-        public string IccProfile
-        {
-            get => _dataSetting.GetValue(nameof(IccProfile), string.Empty);
-            set => _dataSetting.SetValue(nameof(IccProfile), value);
-        }
-
         public int IccForceContrast
         {
             get => _dataSetting.GetValue(nameof(IccForceContrast), 0);
             set => _dataSetting.SetValue(nameof(IccForceContrast), value);
-        }
-
-        public string VideoUnscaled
-        {
-            get => _dataSetting.GetValue(nameof(VideoUnscaled), string.Empty);
-            set => _dataSetting.SetValue(nameof(VideoUnscaled), value);
-        }
-
-        public string SubBackColor
-        {
-            get => _dataSetting.GetValue(nameof(SubBackColor), string.Empty);
-            set => _dataSetting.SetValue(nameof(SubBackColor), value);
-        }
-
-        public string SubBorderColor
-        {
-            get => _dataSetting.GetValue(nameof(SubBorderColor), string.Empty);
-            set => _dataSetting.SetValue(nameof(SubBorderColor), value);
-        }
-
-        public string SubAssUseVideoData
-        {
-            get => _dataSetting.GetValue(nameof(SubAssUseVideoData), string.Empty);
-            set => _dataSetting.SetValue(nameof(SubAssUseVideoData), value);
-        }
-
-        public string SubAssVideoAspectOverride
-        {
-            get => _dataSetting.GetValue(nameof(SubAssVideoAspectOverride), string.Empty);
-            set => _dataSetting.SetValue(nameof(SubAssVideoAspectOverride), value);
-        }
-
-        public string SubAssVsfilterColorCompat
-        {
-            get => _dataSetting.GetValue(nameof(SubAssVsfilterColorCompat), string.Empty);
-            set => _dataSetting.SetValue(nameof(SubAssVsfilterColorCompat), value);
-        }
-
-        public string AudioGapless
-        {
-            get => _dataSetting.GetValue(nameof(AudioGapless), "weak");
-            set => _dataSetting.SetValue(nameof(AudioGapless), value);
-        }
-
-        /// <summary>Seconds to wait for the audio output to open (mpv audio-wait-open).</summary>
-        public double AudioWaitOpen
-        {
-            get => _dataSetting.GetValue(nameof(AudioWaitOpen), 0.0);
-            set => _dataSetting.SetValue(nameof(AudioWaitOpen), value);
-        }
-
-        public string OsdColor
-        {
-            get => _dataSetting.GetValue(nameof(OsdColor), string.Empty);
-            set => _dataSetting.SetValue(nameof(OsdColor), value);
-        }
-
-        public string YtdlRawOptionsAppend
-        {
-            get => _dataSetting.GetValue(nameof(YtdlRawOptionsAppend), string.Empty);
-            set => _dataSetting.SetValue(nameof(YtdlRawOptionsAppend), value);
-        }
-
-        public string YtdlFormat
-        {
-            get => _dataSetting.GetValue(nameof(YtdlFormat), string.Empty);
-            set => _dataSetting.SetValue(nameof(YtdlFormat), value);
-        }
-
-        public string YtdlPath
-        {
-            get => _dataSetting.GetValue(nameof(YtdlPath), string.Empty);
-            set => _dataSetting.SetValue(nameof(YtdlPath), value);
-        }
-
-        public bool YtdlTryFirst
-        {
-            get => _dataSetting.GetValue(nameof(YtdlTryFirst), false);
-            set => _dataSetting.SetValue(nameof(YtdlTryFirst), value);
-        }
-
-        public bool YtdlAllFormats
-        {
-            get => _dataSetting.GetValue(nameof(YtdlAllFormats), true);
-            set => _dataSetting.SetValue(nameof(YtdlAllFormats), value);
-        }
-
-        public bool YtdlUseManifests
-        {
-            get => _dataSetting.GetValue(nameof(YtdlUseManifests), false);
-            set => _dataSetting.SetValue(nameof(YtdlUseManifests), value);
-        }
-
-        public string YtdlThumbnails
-        {
-            get => _dataSetting.GetValue(nameof(YtdlThumbnails), "none");
-            set => _dataSetting.SetValue(nameof(YtdlThumbnails), value);
-        }
-
-        public string YtdlExclude
-        {
-            get => _dataSetting.GetValue(nameof(YtdlExclude), string.Empty);
-            set => _dataSetting.SetValue(nameof(YtdlExclude), value);
-        }
-
-        public string UserAgent
-        {
-            get => _dataSetting.GetValue(nameof(UserAgent), string.Empty);
-            set => _dataSetting.SetValue(nameof(UserAgent), value);
-        }
-
-        public string Referrer
-        {
-            get => _dataSetting.GetValue(nameof(Referrer), string.Empty);
-            set => _dataSetting.SetValue(nameof(Referrer), value);
-        }
-
-        public string HttpHeaderFields
-        {
-            get => _dataSetting.GetValue(nameof(HttpHeaderFields), string.Empty);
-            set => _dataSetting.SetValue(nameof(HttpHeaderFields), value);
-        }
-
-        public string HttpProxy
-        {
-            get => _dataSetting.GetValue(nameof(HttpProxy), string.Empty);
-            set => _dataSetting.SetValue(nameof(HttpProxy), value);
-        }
-
-        public string CookiesFile
-        {
-            get => _dataSetting.GetValue(nameof(CookiesFile), string.Empty);
-            set => _dataSetting.SetValue(nameof(CookiesFile), value);
-        }
-
-        public bool TlsVerify
-        {
-            get => _dataSetting.GetValue(nameof(TlsVerify), true);
-            set => _dataSetting.SetValue(nameof(TlsVerify), value);
-        }
-
-        public int NetworkTimeout
-        {
-            get => _dataSetting.GetValue(nameof(NetworkTimeout), 60);
-            set => _dataSetting.SetValue(nameof(NetworkTimeout), value);
-        }
-
-        public int CurlMaxRedirects
-        {
-            get => _dataSetting.GetValue(nameof(CurlMaxRedirects), 16);
-            set => _dataSetting.SetValue(nameof(CurlMaxRedirects), value);
-        }
-
-        public int CurlMaxRetries
-        {
-            get => _dataSetting.GetValue(nameof(CurlMaxRetries), 5);
-            set => _dataSetting.SetValue(nameof(CurlMaxRetries), value);
-        }
-
-        public int CurlConnectTimeout
-        {
-            get => _dataSetting.GetValue(nameof(CurlConnectTimeout), 30);
-            set => _dataSetting.SetValue(nameof(CurlConnectTimeout), value);
-        }
-
-        public int CurlBufferSize
-        {
-            get => _dataSetting.GetValue(nameof(CurlBufferSize), 4 * 1024 * 1024);
-            set => _dataSetting.SetValue(nameof(CurlBufferSize), value);
-        }
-
-        public int CurlMaxRequestSize
-        {
-            get => _dataSetting.GetValue(nameof(CurlMaxRequestSize), 0);
-            set => _dataSetting.SetValue(nameof(CurlMaxRequestSize), value);
         }
 
         // Picture-in-picture is a session state: it must never be persisted,
@@ -1555,25 +436,8 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPOpacity), value);
         }
 
-        /// <summary>Seek-bar preview thumbnail width in logical px (120..480).</summary>
-
-        /// <summary>Picture brightness adjustment (-100..100).</summary>
-        public int PictureBrightness { get => _dataSetting.GetValue(nameof(PictureBrightness), 0); set => _dataSetting.SetValue(nameof(PictureBrightness), value); }
-        /// <summary>Picture contrast adjustment (-100..100).</summary>
-        public int PictureContrast { get => _dataSetting.GetValue(nameof(PictureContrast), 0); set => _dataSetting.SetValue(nameof(PictureContrast), value); }
-        /// <summary>Picture saturation adjustment (-100..100).</summary>
-        public int PictureSaturation { get => _dataSetting.GetValue(nameof(PictureSaturation), 0); set => _dataSetting.SetValue(nameof(PictureSaturation), value); }
-        /// <summary>Picture gamma adjustment (-100..100).</summary>
-        public int PictureGamma { get => _dataSetting.GetValue(nameof(PictureGamma), 0); set => _dataSetting.SetValue(nameof(PictureGamma), value); }
-        /// <summary>Picture hue adjustment (-100..100).</summary>
-        public int PictureHue { get => _dataSetting.GetValue(nameof(PictureHue), 0); set => _dataSetting.SetValue(nameof(PictureHue), value); }
-        /// <summary>Sharpening strength (0..5, gpu-next only).</summary>
-        public double PictureSharpen { get => _dataSetting.GetValue(nameof(PictureSharpen), 0.0); set => _dataSetting.SetValue(nameof(PictureSharpen), value); }
         /// <summary>Auto-resize window on video resolution change.</summary>
         public bool AutoWindowResize { get => _dataSetting.GetValue(nameof(AutoWindowResize), true); set => _dataSetting.SetValue(nameof(AutoWindowResize), value); }
-        /// <summary>Decoder-level stereo downmix for multichannel audio.</summary>
-        public bool AdLavcDownmix { get => _dataSetting.GetValue(nameof(AdLavcDownmix), false); set => _dataSetting.SetValue(nameof(AdLavcDownmix), value); }
-
 
         /// <summary>Picture brightness adjustment (-100..100).</summary>
         /// <summary>Picture contrast adjustment (-100..100).</summary>
@@ -1583,7 +447,6 @@ namespace mpv_winui.Modules.Settings
         /// <summary>Sharpening strength (0..5, gpu-next only).</summary>
         /// <summary>Auto-resize window on video resolution change.</summary>
         /// <summary>Decoder-level stereo downmix for multichannel audio.</summary>
-
         public string ThumbnailPreviewWidth
         {
             get => _dataSetting.GetValue(nameof(ThumbnailPreviewWidth), "248");
@@ -1688,22 +551,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(InputIpcServer), value);
         }
 
-        public string DirectoryFilterTypes
-        {
-            get => _dataSetting.GetValue(nameof(DirectoryFilterTypes), "video,audio");
-            set => _dataSetting.SetValue(nameof(DirectoryFilterTypes), value);
-        }
-
         public string VideoExts
         {
             get => _dataSetting.GetValue(nameof(VideoExts), "3g2,3gp,avi,flv,m2ts,m4v,mj2,mkv,mov,mp4,mpeg,mpg,ogv,rmvb,ts,webm,wmv,y4m,rm");
             set => _dataSetting.SetValue(nameof(VideoExts), value);
-        }
-
-        public string D3d11Adapter
-        {
-            get => _dataSetting.GetValue(nameof(D3d11Adapter), string.Empty);
-            set => _dataSetting.SetValue(nameof(D3d11Adapter), value);
         }
 
         public string ImageExts
@@ -1718,241 +569,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(AudioExts), value);
         }
 
-        public string OsdOutlineColor
-        {
-            get => _dataSetting.GetValue(nameof(OsdOutlineColor), string.Empty);
-            set => _dataSetting.SetValue(nameof(OsdOutlineColor), value);
-        }
-
-        public string GlslShadersAppend
-        {
-            get => _dataSetting.GetValue(nameof(GlslShadersAppend), string.Empty);
-            set => _dataSetting.SetValue(nameof(GlslShadersAppend), value);
-        }
-
-        public string GlslShaders
-        {
-            get => _dataSetting.GetValue(nameof(GlslShaders), string.Empty);
-            set => _dataSetting.SetValue(nameof(GlslShaders), value);
-        }
-
-        public string GlslShaderOpts
-        {
-            get => _dataSetting.GetValue(nameof(GlslShaderOpts), string.Empty);
-            set => _dataSetting.SetValue(nameof(GlslShaderOpts), value);
-        }
-
-        public bool MetadataOsdEnableForVideo
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForVideo), false);
-            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForVideo), value);
-        }
-
-        public bool MetadataOsdEnableForImage
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForImage), false);
-            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForImage), value);
-        }
-
-        public int MetadataOsdAutohideStatusTimeout
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideStatusTimeout), 5);
-            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideStatusTimeout), value);
-        }
-
-        public bool MetadataOsdShowAlbumTrack
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdShowAlbumTrack), false);
-            set => _dataSetting.SetValue(nameof(MetadataOsdShowAlbumTrack), value);
-        }
-
-        public bool CoverArtLoadFromFilesystem
-        {
-            get => _dataSetting.GetValue(nameof(CoverArtLoadFromFilesystem), true);
-            set => _dataSetting.SetValue(nameof(CoverArtLoadFromFilesystem), value);
-        }
-
-        public bool CoverArtPreload
-        {
-            get => _dataSetting.GetValue(nameof(CoverArtPreload), false);
-            set => _dataSetting.SetValue(nameof(CoverArtPreload), value);
-        }
-
-        public int MetadataOsdMessageMaxLength
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdMessageMaxLength), 96);
-            set => _dataSetting.SetValue(nameof(MetadataOsdMessageMaxLength), value);
-        }
-
-        public string CoverArtNames
-        {
-            get => _dataSetting.GetValue(nameof(CoverArtNames), "cover;folder;album;front");
-            set => _dataSetting.SetValue(nameof(CoverArtNames), value);
-        }
-
-        public string CoverArtImageExts
-        {
-            get => _dataSetting.GetValue(nameof(CoverArtImageExts), "jpg;jpeg;png;bmp;gif;webp");
-            set => _dataSetting.SetValue(nameof(CoverArtImageExts), value);
-        }
-
-        /// <summary>Audio output buffer size in seconds (mpv audio-buffer, 0..10).</summary>
-        public double AudioBuffer
-        {
-            get => _dataSetting.GetValue(nameof(AudioBuffer), 0.2);
-            set => _dataSetting.SetValue(nameof(AudioBuffer), value);
-        }
-
-        public string ScreenshotAvifEncoder
-        {
-            get => _dataSetting.GetValue(nameof(ScreenshotAvifEncoder), string.Empty);
-            set => _dataSetting.SetValue(nameof(ScreenshotAvifEncoder), value);
-        }
-
-        // ===== Options added with mpv 0.41 built-in defaults =====
-        public string AudioSpdif
-        {
-            get => _dataSetting.GetValue(nameof(AudioSpdif), string.Empty);
-            set => _dataSetting.SetValue(nameof(AudioSpdif), value);
-        }
-
-        public string Replaygain
-        {
-            get => _dataSetting.GetValue(nameof(Replaygain), "no");
-            set => _dataSetting.SetValue(nameof(Replaygain), value);
-        }
-
-        public int OsdLevel
-        {
-            get => _dataSetting.GetValue(nameof(OsdLevel), 1);
-            set => _dataSetting.SetValue(nameof(OsdLevel), value);
-        }
-
-        public double ImageDisplayDuration
-        {
-            get => _dataSetting.GetValue(nameof(ImageDisplayDuration), 5.0);
-            set => _dataSetting.SetValue(nameof(ImageDisplayDuration), value);
-        }
-
         public double OverrideDisplayFps
         {
             get => _dataSetting.GetValue(nameof(OverrideDisplayFps), 0.0);
             set => _dataSetting.SetValue(nameof(OverrideDisplayFps), value);
-        }
-
-        public bool CachePause
-        {
-            get => _dataSetting.GetValue(nameof(CachePause), true);
-            set => _dataSetting.SetValue(nameof(CachePause), value);
-        }
-
-        public bool PrefetchPlaylist
-        {
-            get => _dataSetting.GetValue(nameof(PrefetchPlaylist), false);
-            set => _dataSetting.SetValue(nameof(PrefetchPlaylist), value);
-        }
-
-        public bool SubBold
-        {
-            get => _dataSetting.GetValue(nameof(SubBold), false);
-            set => _dataSetting.SetValue(nameof(SubBold), value);
-        }
-
-        public bool SubItalic
-        {
-            get => _dataSetting.GetValue(nameof(SubItalic), false);
-            set => _dataSetting.SetValue(nameof(SubItalic), value);
-        }
-
-        public string SubAlignX
-        {
-            get => _dataSetting.GetValue(nameof(SubAlignX), "center");
-            set => _dataSetting.SetValue(nameof(SubAlignX), value);
-        }
-
-        public string SubAlignY
-        {
-            get => _dataSetting.GetValue(nameof(SubAlignY), "bottom");
-            set => _dataSetting.SetValue(nameof(SubAlignY), value);
-        }
-
-        public int SubMarginX
-        {
-            get => _dataSetting.GetValue(nameof(SubMarginX), 19);
-            set => _dataSetting.SetValue(nameof(SubMarginX), value);
-        }
-
-        public int SubMarginY
-        {
-            get => _dataSetting.GetValue(nameof(SubMarginY), 34);
-            set => _dataSetting.SetValue(nameof(SubMarginY), value);
-        }
-
-        public string OsdAlignX
-        {
-            get => _dataSetting.GetValue(nameof(OsdAlignX), "left");
-            set => _dataSetting.SetValue(nameof(OsdAlignX), value);
-        }
-
-        public string OsdAlignY
-        {
-            get => _dataSetting.GetValue(nameof(OsdAlignY), "top");
-            set => _dataSetting.SetValue(nameof(OsdAlignY), value);
-        }
-
-        public int OsdMarginX
-        {
-            get => _dataSetting.GetValue(nameof(OsdMarginX), 16);
-            set => _dataSetting.SetValue(nameof(OsdMarginX), value);
-        }
-
-        public int OsdMarginY
-        {
-            get => _dataSetting.GetValue(nameof(OsdMarginY), 16);
-            set => _dataSetting.SetValue(nameof(OsdMarginY), value);
-        }
-
-        public double DemuxerHysteresisSecs
-        {
-            get => _dataSetting.GetValue(nameof(DemuxerHysteresisSecs), 0.0);
-            set => _dataSetting.SetValue(nameof(DemuxerHysteresisSecs), value);
-        }
-
-        public string DemuxerCacheDir
-        {
-            get => _dataSetting.GetValue(nameof(DemuxerCacheDir), string.Empty);
-            set => _dataSetting.SetValue(nameof(DemuxerCacheDir), value);
-        }
-
-        // ===== Plugin script options (script-opts/*.conf) =====
-        public bool MetadataOsdEnableForAudio
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForAudio), true);
-            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForAudio), value);
-        }
-
-        public bool MetadataOsdEnableForAudioWithAlbumArt
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdEnableForAudioWithAlbumArt), true);
-            set => _dataSetting.SetValue(nameof(MetadataOsdEnableForAudioWithAlbumArt), value);
-        }
-
-        public bool MetadataOsdAutohideForAudio
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideForAudio), false);
-            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideForAudio), value);
-        }
-
-        public bool MetadataOsdAutohideForAudioWithAlbumArt
-        {
-            get => _dataSetting.GetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), false);
-            set => _dataSetting.SetValue(nameof(MetadataOsdAutohideForAudioWithAlbumArt), value);
-        }
-
-        public string HdrOverrideMode
-        {
-            get => _dataSetting.GetValue(nameof(HdrOverrideMode), string.Empty);
-            set => _dataSetting.SetValue(nameof(HdrOverrideMode), value);
         }
 
         /// <summary>Per-id control-bar zone overrides for the modernx layout ("id:0,id:2").</summary>
