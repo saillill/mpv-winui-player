@@ -65,10 +65,10 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />
-        <PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.5" />
-        <PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.3" />
-        <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="2.3.1" />
-        <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.2" />
+        <PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.9" />
+        <PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.6" />
+        <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="2.4.0" />
+        <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.6" />
         <PackageReference Include="NLog" Version="6.2.0" />
         <PackageReference Include="System.Management" Version="10.0.11" />
     </ItemGroup>
@@ -88,7 +88,6 @@
             <HintPath>..\bin\$(Platform)\$(Configuration)\mpv_winrt\mpv_winrt.winmd</HintPath>
         </Reference>
         <Content Include="..\bin\$(Platform)\$(Configuration)\mpv_winrt\mpv_winrt.dll" Link="mpv_winrt.dll" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="..\bin\$(Platform)\$(Configuration)\mpv_winrt\Microsoft.WindowsAppRuntime.Bootstrap.dll" Link="Microsoft.WindowsAppRuntime.Bootstrap.dll" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
     <ItemGroup>
         <Page Update="Modules\Player\MpvPlayerPage.xaml">
