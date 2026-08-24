@@ -1031,7 +1031,5 @@
   "SubtitleCycleTrack": "字幕トラック切替",
   "SubtitleVisibility": "字幕表示切替",
   "ControlBarIconAbLoop": "A-Bループ",
-  "PanelDelay": "音声/字幕ディレイ",
-  "A11yVideoPreview": "動画プレビュー",
-  "A11yColorSwatch": "色サンプル"
+  "PanelDelay": "音声/字幕ディレイ"
 }

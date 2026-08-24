@@ -1,7 +1,6 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using mpv_winrt;
@@ -227,7 +226,6 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(PlaylistCloseButton, AppContext.AppLang.TogglePlaylist);
             ToolTipService.SetToolTip(PlaylistRefreshButton, AppContext.AppLang.Refresh);
             PlaylistFilterBox.PlaceholderText = AppContext.AppLang.PlaylistFilterPlaceholder;
-            AutomationProperties.SetName(PreviewCard, AppContext.AppLang.A11yVideoPreview);
         }
     }
 }

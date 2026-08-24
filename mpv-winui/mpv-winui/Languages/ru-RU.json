@@ -1031,7 +1031,5 @@
   "SubtitleCycleTrack": "Переключить дорожку субтитров",
   "SubtitleVisibility": "Показать/скрыть субтитры",
   "ControlBarIconAbLoop": "Петля A-B",
-  "PanelDelay": "Задержка аудио/субтитров",
-  "A11yVideoPreview": "Предпросмотр видео",
-  "A11yColorSwatch": "Образец цвета"
+  "PanelDelay": "Задержка аудио/субтитров"
 }
