@@ -3,12 +3,12 @@
 mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)（mpv-lazy）裁剪而成：
 
 - 移除了 ModernZ / k7f_zen / 旧 WinUI 菜单宿主（工具目录与 dead 配置）；
-- `input.conf` 恢复 mpv 数据菜单（149 条 `#menu:`，沿用此前 mpv-lazy/tsl0922 排版；
-  原 160 条本地定制版备份在 `%LOCALAPPDATA%\mpv-winui\mpv\input.conf.bak-20260807-menu`）；
+- `input.conf` 恢复 mpv 数据菜单（137 条 `#menu:`，沿用此前 mpv-lazy/tsl0922 排版）；
   动态“增强脚本/着色器”子菜单仍由 `dynamic_menu.lua` 生成；
 - 依赖 `menu.dll` 的 dialog.lua 动作（视频/音频/字幕“加载文件”、复制文件路径/元数据、
   导出播放列表）已从菜单移除——`menu` 脚本二进制不再随包分发，App 菜单栏已提供等价的
-  “文件 > 加载字幕”等入口；`dialog.lua` 脚本本身保留（仅脚本内部协议，不再被菜单引用）；
+  “文件 > 加载字幕”等入口；`dialog.lua` 脚本本身也已删除（无任何菜单引用它，
+  详见 `scripts/LOCAL-PATCHES.md`）；
 - `input_plus.lua` 已移除（F3-F5 临时清滤镜/着色器、`,`/`.` 按住倍速、Ctrl+←/→ 流媒体式跳转等绑定随之删除）；
 - `dyn_menu.lua` / `dynamic_menu.lua` 内置 8 语言菜单翻译表（en-US / zh-CN / ja-JP / ko-KR /
   de-DE / fr-FR / es-ES / ru-RU），App 通过 `user-data/mpvw/language` 写入界面语言后自动重解析；
@@ -34,7 +34,7 @@ mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com
 | `MediaInfo.exe` | MediaInfo CLI v26.05（BSD-2-Clause，`工具 > MediaInfo` 用） |
 | `licenses/` | 随包第三方许可证全文（MediaInfo BSD-2-Clause） |
 
-历史菜单整理与当前审计记录见 [`docs/audit-and-roadmap-20260824.md`](../docs/audit-and-roadmap-20260824.md)。
+历史菜单整理与当前审计记录见 [`docs/audit-and-roadmap-20260828.md`](../docs/audit-and-roadmap-20260828.md)。
 
 ## 部署
 
@@ -44,7 +44,8 @@ powershell -File mpv-winui-lazy\deploy-config.ps1
 
 目标目录：`%LOCALAPPDATA%\mpv-winui\mpv`。脚本使用 robocopy `/MIR`，会删除目标目录中
 源里不存在的旧文件；`_cache/`、`cache/`、`watch_later/`、`gpu_cache/`、`icc_cache/`、
-`*.log`、`recent.json`、`saved-props.json` 为运行数据，不部署、不删除；
+`*.log`、`recent.json`、`saved-props.json`、`custom_menu.json`、`*.bak*` 为运行数据或
+用户文件，不部署、不删除；
 `menus.json` 同样被排除——目标目录中的 `menus.json` 是用户的菜单覆盖配置（App 优先读取），部署不得清除。
 
 > 安装版与便携版首次运行时会由 App 自动执行一次等效部署（`ConfigDeployer`，

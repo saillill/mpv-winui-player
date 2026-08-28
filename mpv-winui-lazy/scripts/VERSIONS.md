@@ -25,8 +25,8 @@ the file header comment repeats it.
 | `stats.lua` | https://github.com/mpv-player/mpv (player/lua/stats.lua) | commit in header `COMMIT_` |
 | `select.lua` | https://github.com/mpv-player/mpv (player/lua/select.lua) | bundled copy, Chinese-localized |
 | `console.lua` | https://github.com/mpv-player/mpv (player/lua/console.lua) | bundled copy, WinUI-styled (reads Windows light/dark) |
-| `coverart.lua` | https://github.com/occivink/mpv-scripts | MIT |
-| `recentmenu.lua` | https://github.com/occivink/mpv-scripts | MIT |
+| `coverart.lua` | https://github.com/CogentRedTester/mpv-coverart | MIT |
+| `recentmenu.lua` | https://github.com/natural-harmonia-gropius/recent-menu | MIT |
 | `metadata_osd.lua` | mpv-lazy bundle | version 0.6.2 in header |
 
 ## GPL-2.0-only (license boundary — see AGENTS.md)
