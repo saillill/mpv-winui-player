@@ -51,6 +51,8 @@
   "SettingsHelpThumbnailInterval": "Fréquence d'actualisation de la miniature au survol, en millisecondes. Des valeurs plus élevées économisent le CPU.",
   "SettingsPiPOpacity": "Opacité du mini-lecteur",
   "SettingsHelpPiPOpacity": "Opacité de la fenêtre incrustation image (0,2-1,0). Prend effet à la prochaine ouverture.",
+  "TimeShowRemaining": "Afficher le temps restant",
+  "TimeShowTotal": "Afficher la durée totale",
   "SettingsPiPTopButtons": "Boutons en haut",
   "SettingsHelpPiPTopButtons": "Affiche les boutons « Retour » et « Quitter » lorsque le pointeur atteint le haut du mini-lecteur.",
   "SettingsPiPControls": "Barre de commandes du mini-lecteur",

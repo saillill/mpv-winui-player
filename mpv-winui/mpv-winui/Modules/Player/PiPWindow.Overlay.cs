@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -123,8 +123,20 @@ public sealed partial class PiPWindow
 
     private void PiPExitButton_Click(object sender, RoutedEventArgs e)
     {
-        // The top-right close exits the whole player (mpv + app). Persist the
-        // PiP state first so the next start opens the main window normally.
+        // The top-right close exits the whole player (mpv + app). Exit()
+        // skips window teardown, so write the resumable state here first
+        // (same flush as the main window's quit action); then reset the
+        // PiP flag so the next start opens the main window normally.
+        try
+        {
+            _player?.Command(["write-watch-later"]);
+            _ = _player?.SaveWatchHistory;
+        }
+        catch (Exception)
+        {
+            // Best effort: losing the flush must not block the exit.
+        }
+        AppContext.AppSetting.Flush();
         AppContext.AppSetting.WindowPiP = false;
         Application.Current.Exit();
     }

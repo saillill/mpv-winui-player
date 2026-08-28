@@ -37,6 +37,8 @@
   "SettingsHelpThumbnailInterval": "悬停时缩略图刷新的间隔（毫秒）。值越大越省 CPU。",
   "SettingsPiPOpacity": "迷你播放器不透明度",
   "SettingsHelpPiPOpacity": "画中画窗口的不透明度（0.2–1.0），下次打开时生效。",
+  "TimeShowRemaining": "显示剩余时间",
+  "TimeShowTotal": "显示总时长",
   "SettingsPiPTopButtons": "顶部悬浮按钮",
   "SettingsHelpPiPTopButtons": "鼠标移到迷你播放器顶部时显示“返回”与“退出”按钮。",
   "SettingsPiPControls": "迷你播放器控制条",

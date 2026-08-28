@@ -134,6 +134,7 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
             AutomationProperties.SetName(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
             ToolTipService.SetToolTip(MoreButton, AppContext.AppLang.ControlBarIconMore);
+            UpdateTimeToggleAccessibility();
 
             // Flyout labels that XAML holds as English placeholders.
             ToolTipService.SetToolTip(AbLoopButton, AppContext.AppLang.ControlBarIconAbLoop);
@@ -206,11 +207,32 @@ namespace mpv_winui.Modules.Player
         private void VolumeSlider_GotFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = true;
         private void VolumeSlider_LostFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = false;
 
+        // Right-side time: click toggles between total duration and the
+        // remaining time (minus-prefixed), like mainstream players.
+        private bool _showRemainingTime;
+
         private void UpdateTimeTexts(double position, double duration)
         {
             TimeElapsedElement.Text = FormatTime(position);
-            TimeRemainingElement.Text = FormatTime(duration);
+            TimeRemainingElement.Text = _showRemainingTime && duration > 0
+                ? "-" + FormatTime(Math.Max(0, duration - position))
+                : FormatTime(duration);
             CompactTimeText.Text = $"{FormatCompactTime(position)}/{FormatCompactTime(duration)}";
+        }
+
+        private void TimeRemainingElement_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            _showRemainingTime = !_showRemainingTime;
+            UpdateTimeToggleAccessibility();
+            UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
+            e.Handled = true;
+        }
+
+        private void UpdateTimeToggleAccessibility()
+        {
+            var hint = _showRemainingTime ? AppContext.AppLang.TimeShowTotal : AppContext.AppLang.TimeShowRemaining;
+            ToolTipService.SetToolTip(TimeRemainingElement, hint);
+            AutomationProperties.SetName(TimeRemainingElement, hint);
         }
 
         private static string FormatCompactTime(double seconds)

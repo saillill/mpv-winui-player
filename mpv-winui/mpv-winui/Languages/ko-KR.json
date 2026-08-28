@@ -51,6 +51,8 @@
   "SettingsHelpThumbnailInterval": "마우스를 올릴 때 썸네일을 새로 고치는 간격(밀리초). 값이 클수록 CPU를 절약합니다.",
   "SettingsPiPOpacity": "미니 플레이어 불투명도",
   "SettingsHelpPiPOpacity": "화면 속 화면 창의 불투명도(0.2~1.0). 다음에 열 때 적용됩니다.",
+  "TimeShowRemaining": "남은 시간 표시",
+  "TimeShowTotal": "전체 시간 표시",
   "SettingsPiPTopButtons": "상단 오버레이 버튼",
   "SettingsHelpPiPTopButtons": "포인터를 미니 플레이어 상단으로 이동하면 뒤로 가기 및 종료 버튼을 표시합니다.",
   "SettingsPiPControls": "미니 플레이어 컨트롤 바",

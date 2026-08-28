@@ -37,6 +37,8 @@
   "SettingsHelpThumbnailInterval": "How often the preview refreshes while hovering, in milliseconds. Larger values save CPU on big files.",
   "SettingsPiPOpacity": "Mini player opacity",
   "SettingsHelpPiPOpacity": "Opacity of the picture-in-picture window (0.2-1.0). Applies the next time it opens.",
+  "TimeShowRemaining": "Show remaining time",
+  "TimeShowTotal": "Show total duration",
   "SettingsPiPTopButtons": "Top overlay buttons",
   "SettingsHelpPiPTopButtons": "Show the back and exit buttons when the pointer moves to the top of the mini-player.",
   "SettingsPiPControls": "Mini-player control bar",

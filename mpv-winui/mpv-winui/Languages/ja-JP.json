@@ -51,6 +51,8 @@
   "SettingsHelpThumbnailInterval": "ホバー時にサムネイルを更新する間隔（ミリ秒）。大きいほど CPU を節約します。",
   "SettingsPiPOpacity": "ミニプレーヤーの不透明度",
   "SettingsHelpPiPOpacity": "ピクチャーインピクチャーウィンドウの不透明度（0.2〜1.0）。次回開くときに有効。",
+  "TimeShowRemaining": "残り時間を表示",
+  "TimeShowTotal": "総時間を表示",
   "SettingsPiPTopButtons": "上部オーバーレイボタン",
   "SettingsHelpPiPTopButtons": "ポインターをミニプレーヤーの上部に移動すると、戻るボタンと終了ボタンを表示します。",
   "SettingsPiPControls": "ミニプレーヤーのコントロールバー",

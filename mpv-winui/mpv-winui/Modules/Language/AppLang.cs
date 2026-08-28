@@ -1090,6 +1090,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpPiPTopButtons { get; set; } = "Show the back and exit buttons when the pointer moves to the top of the mini-player.";
         public string SettingsPiPControls { get; set; } = "Mini-player control bar";
         public string SettingsHelpPiPControls { get; set; } = "Show the control bar (volume, play, seek) when the pointer moves to the bottom of the mini-player.";
+        public string TimeShowRemaining { get; set; } = "Show remaining time";
+        public string TimeShowTotal { get; set; } = "Show total duration";
         public string SettingsHelpSavePositionOnQuit { get; set; } = "Remember the playback position when quitting so the file can resume later.";
         public string SettingsHelpSpeed { get; set; } = "Playback speed saved for the next launch (1.0 is normal).";
         public string SettingsHelpCacheEnabled { get; set; } = "Network cache: Off disables, Auto caches only when needed, Yes always caches.";

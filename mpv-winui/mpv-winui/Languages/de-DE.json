@@ -51,6 +51,8 @@
   "SettingsHelpThumbnailInterval": "Wie oft die Vorschau beim Darüberfahren aktualisiert wird, in ms. Größere Werte sparen CPU.",
   "SettingsPiPOpacity": "Minispiel-Deckkraft",
   "SettingsHelpPiPOpacity": "Deckkraft des Bild-in-Bild-Fensters (0,2-1,0). Gilt beim nächsten Öffnen.",
+  "TimeShowRemaining": "Verbleibende Zeit anzeigen",
+  "TimeShowTotal": "Gesamtdauer anzeigen",
   "SettingsPiPTopButtons": "Schaltflächen oben einblenden",
   "SettingsHelpPiPTopButtons": "Zeigt die Schaltflächen „Zurück“ und „Beenden“, wenn der Zeiger an den oberen Rand des Mini-Players bewegt wird.",
   "SettingsPiPControls": "Steuerleiste des Mini-Players",

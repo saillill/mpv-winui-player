@@ -1,4 +1,4 @@
-using Microsoft.UI.Windowing;
+﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -290,6 +290,20 @@ namespace mpv_winui.Modules.Player
 
         private void AppQuit()
         {
+            // Exit() tears the process down without running window teardown,
+            // so persist the resumable state explicitly: mpv writes the
+            // watch-later file (resume-playback/save-position-on-quit read
+            // it back) and the app-side history gets its final entry.
+            try
+            {
+                _mediaPlayer.Command(["write-watch-later"]);
+                _ = _mediaPlayer.SaveWatchHistory;
+            }
+            catch (Exception ex)
+            {
+                _logger.Debug(ex, "pre-exit flush failed");
+            }
+            AppContext.AppSetting.Flush();
             Application.Current.Exit();
         }
 
