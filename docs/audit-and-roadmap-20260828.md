@@ -95,8 +95,13 @@ ControlPanelGradient 120、`-Release x64` 静默落回 Debug——参数按位�
   RepeatStateChanged；ShuffleEnabledChanged；MediaInfoChanged 缓存）。
   实证：音量链 IPC 设 77 → 原生事件 → 注册表 0x4D 落盘。~~原列的
   MediaFailed/SwapChainChanged 复核~~（即本次删除项）。
-- **Phase B — C++ 样板压缩**：事件 add/remove 用宏或 CRTP helper 收敛；
-  `GetTracks` 三段近似解析表驱动（沿用 2026-08-24 §3.3 结论，本轮确认仍成立）。
+- **Phase B — C++ 样板压缩 ✅ 已完成（2026-08-28）**：16 组事件 add/remove
+  访问器（cpp 约 130 行）改由 `MPVWINRT_EVENT(event, handlerType, field)`
+  宏在头文件一行一个生成，宏在 struct 后 `#undef`。原计划的 "GetTracks
+  表驱动"经核实**已无必要**——解析早已统一进 `GetTracks(type)`，三个公开
+  方法各为一行委托（上一轮审计文档的"三段近似解析"结论已过期，本行即更正）。
+  `MpvPreviewInfo` 全仓（IDL/C++/C#）零消费者，随本阶段删除（h+idl+工程
+  条目+MpvPlayer.idl import）。
 - **Phase C — 巨类拆分**：SettingsPage.Actions.cs 按职责切分（动作分发 /
   快捷键编辑 / 系统信息 / 重置）；ControlBarCanvasControl 评估抽布局编辑
   纯函数（可仿 ControlBarLayoutGrammar 编入测试工程的做法）。

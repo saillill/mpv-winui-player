@@ -8,7 +8,6 @@
 #include "MpvLogEventArgs.h"
 #include "MpvMenuItem.h"
 #include "MpvPlaylistItem.h"
-#include "MpvPreviewInfo.h"
 #include "MpvTrack.h"
 #include "PlaybackFailedEventArgs.h"
 #include "PlaybackStateChangedEventArgs.h"
@@ -394,157 +393,6 @@ namespace winrt::mpv_winrt::implementation
         }
     }
 
-    winrt::event_token MpvPlayer::MediaLoaded(winrt::mpv_winrt::MediaLoadedEventHandler const& handler)
-    {
-        return m_mediaLoadedEvent.add(handler);
-    }
-
-    void MpvPlayer::MediaLoaded(winrt::event_token const& token) noexcept
-    {
-        m_mediaLoadedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::PlaybackFailed(winrt::mpv_winrt::PlaybackFailedEventHandler const& handler)
-    {
-        return m_playbackFailedEvent.add(handler);
-    }
-
-    void MpvPlayer::PlaybackFailed(winrt::event_token const& token) noexcept
-    {
-        m_playbackFailedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::Seeked(winrt::mpv_winrt::SeekEventHandler const& handler)
-    {
-        return m_seekedEvent.add(handler);
-    }
-
-    void MpvPlayer::Seeked(winrt::event_token const& token) noexcept
-    {
-        m_seekedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::FileLoaded(winrt::mpv_winrt::FileLoadedEventHandler const& handler)
-    {
-        return m_fileLoadedEvent.add(handler);
-    }
-
-    void MpvPlayer::FileLoaded(winrt::event_token const& token) noexcept
-    {
-        m_fileLoadedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::PlaybackStateChanged(
-        winrt::mpv_winrt::PlaybackStateChangedEventHandler const& handler)
-    {
-        return m_playbackStateChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::PlaybackStateChanged(winrt::event_token const& token) noexcept
-    {
-        m_playbackStateChangedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::VolumeChanged(winrt::mpv_winrt::VolumeChangedEventHandler const& handler)
-    {
-        return m_volumeChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::VolumeChanged(winrt::event_token const& token) noexcept
-    {
-        m_volumeChangedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::PositionChanged(winrt::mpv_winrt::PositionChangedEventHandler const& handler)
-    {
-        return m_positionChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::PositionChanged(winrt::event_token const& token) noexcept
-    {
-        m_positionChangedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::SpeedChanged(winrt::mpv_winrt::SpeedChangedEventHandler const& handler)
-    {
-        return m_speedChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::SpeedChanged(winrt::event_token const& token) noexcept
-    {
-        m_speedChangedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::MediaInfoChanged(winrt::mpv_winrt::MediaInfoChangedEventHandler const& handler)
-    {
-        return m_mediaInfoChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::MediaInfoChanged(winrt::event_token const& token) noexcept
-    {
-        m_mediaInfoChangedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::VoConfigured(winrt::mpv_winrt::VoConfiguredEventHandler const& handler)
-    {
-        return m_voConfiguredEvent.add(handler);
-    }
-
-    void MpvPlayer::VoConfigured(winrt::event_token const& token) noexcept
-    {
-        m_voConfiguredEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::WindowChanged(winrt::mpv_winrt::WindowChangedEventHandler const& handler)
-    {
-        return m_windowChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::WindowChanged(winrt::event_token const& token) noexcept
-    {
-        m_windowChangedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::LoopFileChanged(winrt::mpv_winrt::LoopFileChangedEventHandler const& handler)
-    {
-        return m_loopFileChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::LoopFileChanged(winrt::event_token const& token) noexcept
-    {
-        m_loopFileChangedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::LoopPlaylistChanged(winrt::mpv_winrt::LoopPlaylistChangedEventHandler const& handler)
-    {
-        return m_loopPlaylistChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::LoopPlaylistChanged(winrt::event_token const& token) noexcept
-    {
-        m_loopPlaylistChangedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::ShuffleChanged(winrt::mpv_winrt::ShuffleChangedEventHandler const& handler)
-    {
-        return m_shuffleChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::ShuffleChanged(winrt::event_token const& token) noexcept
-    {
-        m_shuffleChangedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::PlaylistChanged(winrt::mpv_winrt::PlaylistChangedEventHandler const& handler)
-    {
-        return m_playlistChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::PlaylistChanged(winrt::event_token const& token) noexcept
-    {
-        m_playlistChangedEvent.remove(token);
-    }
-
     void MpvPlayer::UpdateSize(uint32_t width, uint32_t height)
     {
         if (!m_mpv)
@@ -689,16 +537,6 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
         mpv_request_log_messages(m_mpv, winrt::to_string(level).c_str());
-    }
-
-    winrt::event_token MpvPlayer::LogMessage(winrt::mpv_winrt::MpvLogEventHandler const& handler)
-    {
-        return m_logMessageEvent.add(handler);
-    }
-
-    void MpvPlayer::LogMessage(winrt::event_token const& token) noexcept
-    {
-        m_logMessageEvent.remove(token);
     }
 
     winrt::hstring MpvPlayer::GetWatchHistoryPath()
