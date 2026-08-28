@@ -33,9 +33,10 @@ public sealed partial class PiPWindow
         var inBottomMask = position.Y >= height - BottomMaskHeight;
 
         // The top buttons only react to the top mask, the status bar only to
-        // the bottom mask; everywhere else both retract.
-        SetTopButtonsVisible(inTopMask);
-        if (inBottomMask)
+        // the bottom mask; everywhere else both retract. Both overlays can be
+        // switched off entirely from the PiP settings.
+        SetTopButtonsVisible(mpv_winui.AppContext.AppSetting.WindowPiPShowTopButtons && inTopMask);
+        if (inBottomMask && mpv_winui.AppContext.AppSetting.WindowPiPShowControls)
         {
             PiPControls.ShowControlPanel();
         }

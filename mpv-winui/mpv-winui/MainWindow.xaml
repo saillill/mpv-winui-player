@@ -15,11 +15,6 @@
                 Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Border
-            x:Name="BackdropTintOverlay"
-            Grid.Row="0"
-            Grid.RowSpan="2"
-            IsHitTestVisible="False" />
 
         <TitleBar x:Name="ShellTitleBar">
             <TitleBar.IconSource>

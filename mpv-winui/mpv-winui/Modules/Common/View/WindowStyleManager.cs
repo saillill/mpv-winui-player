@@ -1,5 +1,4 @@
 using Microsoft.UI;
-using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -7,22 +6,26 @@ using Microsoft.UI.Xaml.Media;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Settings;
 using System;
-using Windows.UI;
 using Windows.UI.ViewManagement;
-using WinRT;
 
 namespace mpv_winui.Modules.Common.View;
 
-public sealed partial class WindowStyleManager : IDisposable
+/// <summary>
+/// Applies the Windows-conventional personalization model: the app chooses a
+/// theme mode (follow system / light / dark) and a backdrop material
+/// (Mica / Desktop Acrylic / none) via Window.SystemBackdrop. Everything the
+/// OS owns stays with the OS — the material tint comes from the wallpaper
+/// (Mica), the system "Transparency effects" toggle makes the material fall
+/// back to a solid color on its own, and the accent color is the system one.
+/// The framework keeps the backdrop theme in sync with the window's
+/// RequestedTheme, so no manual SystemBackdropConfiguration is needed.
+/// </summary>
+public sealed class WindowStyleManager : IDisposable
 {
     private readonly Window _window;
     private readonly FrameworkElement _contentRoot;
     private readonly UISettings _uiSettings = new();
-    private SystemBackdropConfiguration? _configurationSource;
-    private DesktopAcrylicController? _acrylicController;
-    private MicaController? _micaController;
     private ElementTheme _theme;
-    private Microsoft.UI.Xaml.Controls.Border? _brightnessOverlay;
 
     public WindowStyleManager(Window window)
     {
@@ -37,16 +40,7 @@ public sealed partial class WindowStyleManager : IDisposable
         UpdateContentTheme(_theme);
         UpdateUiFont();
 
-        _window.DispatcherQueue.EnsureSystemDispatcherQueue();
-        _configurationSource = new SystemBackdropConfiguration
-        {
-            IsInputActive = true
-        };
-
         ApplyBackdrop();
-
-        UpdateBackdropTheme(_theme);
-
         _uiSettings.ColorValuesChanged += OnColorValuesChanged;
     }
 
@@ -54,7 +48,6 @@ public sealed partial class WindowStyleManager : IDisposable
     public void UpdateBackdrop()
     {
         ApplyBackdrop();
-        UpdateBackdropTheme(_theme);
     }
 
     /// <summary>Applies the user-selected UI font to the window content.</summary>
@@ -73,35 +66,19 @@ public sealed partial class WindowStyleManager : IDisposable
 
     private void ApplyBackdrop()
     {
-        _acrylicController?.Dispose();
-        _acrylicController = null;
-        _micaController?.Dispose();
-        _micaController = null;
-
-        switch (AppContext.AppSetting.BackdropType)
+        // XAML SystemBackdrop classes handle theme tracking, focus state and
+        // fallback (no hardware / transparency off / battery saver / high
+        // contrast) themselves — exactly the Windows Settings behavior.
+        _window.SystemBackdrop = AppContext.AppSetting.BackdropType switch
         {
-            case AppSettings.BackdropType_Mica:
-            {
-                if (MicaController.IsSupported())
-                {
-                    _micaController = new MicaController();
-                    _micaController?.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
-                    _micaController?.SetSystemBackdropConfiguration(_configurationSource);
-                    ApplyMicaTint();
-                }
-                break;
-            }
-            default:
-            {
-                if (DesktopAcrylicController.IsSupported())
-                {
-                    _acrylicController = new DesktopAcrylicController();
-                    _acrylicController?.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
-                    _acrylicController?.SetSystemBackdropConfiguration(_configurationSource);
-                }
-                break;
-            }
-        }
+            AppSettings.BackdropType_Mica => MicaController.IsSupported()
+                ? new MicaBackdrop()
+                : null,
+            AppSettings.BackdropType_Acrylic => DesktopAcrylicController.IsSupported()
+                ? new DesktopAcrylicBackdrop()
+                : null,
+            _ => null,
+        };
     }
 
     public ElementTheme GetThemeType()
@@ -129,18 +106,12 @@ public sealed partial class WindowStyleManager : IDisposable
 
         _theme = theme;
         UpdateContentTheme(theme);
-        UpdateBackdropTheme(theme);
         UpdateTitleBarColors(theme);
     }
 
     public void Cleanup()
     {
         _uiSettings.ColorValuesChanged -= OnColorValuesChanged;
-        _acrylicController?.Dispose();
-        _acrylicController = null;
-        _micaController?.Dispose();
-        _micaController = null;
-        _configurationSource = null;
     }
 
     private void OnColorValuesChanged(UISettings sender, object args)
@@ -152,121 +123,12 @@ public sealed partial class WindowStyleManager : IDisposable
             {
                 UpdateTheme(theme);
             }
-            else
-            {
-                UpdateBackdropTheme(_theme);
-            }
         });
     }
 
     private void UpdateContentTheme(ElementTheme theme)
     {
         _contentRoot.RequestedTheme = theme;
-    }
-
-    private void UpdateBackdropTheme(ElementTheme theme)
-    {
-        _configurationSource?.Theme = theme switch
-        {
-            ElementTheme.Dark => SystemBackdropTheme.Dark,
-            _ => SystemBackdropTheme.Light
-        };
-
-        _acrylicController?.Kind = DesktopAcrylicKind.Thin;
-        _acrylicController?.TintOpacity = GetBackdropTintOpacity();
-        _acrylicController?.TintColor = GetBackdropTintColor(theme);
-
-        ApplyMicaTint();
-        UpdateBrightnessOverlay();
-    }
-
-    private void ApplyMicaTint()
-    {
-        if (_micaController is null)
-        {
-            return;
-        }
-
-        _micaController.TintColor = GetBackdropTintColor(_theme);
-        _micaController.TintOpacity = GetBackdropTintOpacity();
-    }
-
-    private Color GetBackdropTintColor(ElementTheme theme)
-    {
-        if (AppContext.AppSetting.ThemeType == AppSettings.ThemeType_Custom)
-        {
-            if (TryParseColor(AppContext.AppSetting.ThemeAccentColor) is { } custom)
-            {
-                return custom;
-            }
-
-            return theme == ElementTheme.Dark
-                ? Color.FromArgb(255, 0x2C, 0x2C, 0x2C)
-                : Colors.White;
-        }
-
-        // Follow-system / Light / Dark sync the Windows accent color; the
-        // UISettings.ColorValuesChanged handler re-runs this when it changes.
-        return _uiSettings.GetColorValue(UIColorType.Accent);
-    }
-
-    private float GetBackdropTintOpacity()
-    {
-        var opacity = Math.Clamp(AppContext.AppSetting.ThemeOpacity, 0, 100);
-        return 1f - opacity / 100f;
-    }
-
-    /// <summary>
-    /// Brightness is a plain white/black dimming layer drawn over the
-    /// backdrop material and under the content: 50 keeps the material as-is,
-    /// higher values fade toward solid white, lower toward solid black. This
-    /// is deterministic in every theme mode and at any transparency - unlike
-    /// the material's LuminosityOpacity, which goes inert once TintOpacity
-    /// approaches zero.
-    /// </summary>
-    private void UpdateBrightnessOverlay()
-    {
-        _brightnessOverlay ??= _contentRoot.FindName("BackdropTintOverlay") as Microsoft.UI.Xaml.Controls.Border;
-        if (_brightnessOverlay is null)
-        {
-            return;
-        }
-
-        var b = Math.Clamp(AppContext.AppSetting.ThemeLuminosity, 0, 100) / 100.0;
-        var strength = Math.Abs(b - 0.5) * 2.0;
-        if (strength < 0.004)
-        {
-            _brightnessOverlay.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        var target = b > 0.5 ? Colors.White : Colors.Black;
-        _brightnessOverlay.Background = new SolidColorBrush(Color.FromArgb(
-            (byte)Math.Round(255 * strength), target.R, target.G, target.B));
-        _brightnessOverlay.Visibility = Visibility.Visible;
-    }
-
-    private static Color? TryParseColor(string? hex)
-    {
-        if (string.IsNullOrWhiteSpace(hex))
-        {
-            return null;
-        }
-
-        var value = hex.Trim().TrimStart('#');
-        if (value.Length == 6
-            && uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var rgb))
-        {
-            return Color.FromArgb(255, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
-        }
-
-        if (value.Length == 8
-            && uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var argb))
-        {
-            return Color.FromArgb((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
-        }
-
-        return null;
     }
 
     private void UpdateTitleBarColors(ElementTheme theme)
@@ -277,18 +139,8 @@ public sealed partial class WindowStyleManager : IDisposable
         }
 
         var titleBar = _window.AppWindow.TitleBar;
-        //titleBar.ForegroundColor = Colors.White;
-        //titleBar.BackgroundColor = Colors.Green;
         titleBar.ButtonForegroundColor = theme == ElementTheme.Dark ? Colors.White : Colors.Black;
         titleBar.ButtonBackgroundColor = Colors.Transparent;
-        //titleBar.ButtonHoverForegroundColor = Colors.Gainsboro;
-        //titleBar.ButtonHoverBackgroundColor = Colors.Transparent;
-        //titleBar.ButtonPressedForegroundColor = Colors.Gray;
-        //titleBar.ButtonPressedBackgroundColor = Colors.LightGreen;
-
-        //titleBar.InactiveForegroundColor = Colors.Gainsboro;
-        //titleBar.InactiveBackgroundColor = Colors.SeaGreen;
-        //titleBar.ButtonInactiveForegroundColor = Colors.Gainsboro;
         titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
     }
 

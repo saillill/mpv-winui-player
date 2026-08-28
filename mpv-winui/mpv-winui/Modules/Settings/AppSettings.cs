@@ -166,10 +166,7 @@ namespace mpv_winui.Modules.Settings
         public const string ThemeType_Auto = "Auto";
 
         public const string ThemeType_Light = "Light";
-
         public const string ThemeType_Dark = "Dark";
-
-        public const string ThemeType_Custom = "Custom";
 
         public string ThemeType
         {
@@ -181,38 +178,19 @@ namespace mpv_winui.Modules.Settings
 
         public const string BackdropType_Mica = "Mica";
 
+        public const string BackdropType_None = "None";
+
         public string BackdropType
         {
-            get => _dataSetting.GetValue(nameof(BackdropType), BackdropType_Acrylic);
+            get => _dataSetting.GetValue(nameof(BackdropType), BackdropType_Mica);
             set => _dataSetting.SetValue(nameof(BackdropType), value);
         }
 
-        /// <summary>Accent tint color for the window backdrop (#RRGGBB / #AARRGGBB). Empty follows the system accent.</summary>
-        public string ThemeAccentColor
-        {
-            get => _dataSetting.GetValue(nameof(ThemeAccentColor), string.Empty);
-            set => _dataSetting.SetValue(nameof(ThemeAccentColor), value);
-        }
-
-        /// <summary>Backdrop transparency, 0 (opaque) to 100 (fully transparent).</summary>
-        public int ThemeOpacity
-        {
-            get => _dataSetting.GetValue(nameof(ThemeOpacity), 100);
-            set => _dataSetting.SetValue(nameof(ThemeOpacity), value);
-        }
-
-        /// <summary>Recently picked theme colors, semicolon-separated hex values.</summary>
+        /// <summary>Recently picked colors for the color-picker controls, semicolon-separated hex values.</summary>
         public string ThemeRecentColors
         {
             get => _dataSetting.GetValue(nameof(ThemeRecentColors), string.Empty);
             set => _dataSetting.SetValue(nameof(ThemeRecentColors), value);
-        }
-
-        /// <summary>Backdrop luminosity/brightness, 0 (dark) to 100 (bright).</summary>
-        public int ThemeLuminosity
-        {
-            get => _dataSetting.GetValue(nameof(ThemeLuminosity), 80);
-            set => _dataSetting.SetValue(nameof(ThemeLuminosity), value);
         }
 
         /// <summary>UI font family for the app interface. Empty follows the system font.</summary>
@@ -414,10 +392,18 @@ namespace mpv_winui.Modules.Settings
         }
 
         /// <summary>Last PiP window position+size ("x,y,w,h"); empty restores the default bottom-right placement.</summary>
-        public string WindowPiPRect
+        /// <summary>Show the top overlay buttons (back / exit) in the PiP window.</summary>
+        public bool WindowPiPShowTopButtons
         {
-            get => _dataSetting.GetValue(nameof(WindowPiPRect), string.Empty);
-            set => _dataSetting.SetValue(nameof(WindowPiPRect), value);
+            get => _dataSetting.GetValue(nameof(WindowPiPShowTopButtons), true);
+            set => _dataSetting.SetValue(nameof(WindowPiPShowTopButtons), value);
+        }
+
+        /// <summary>Show the hover control bar at the bottom of the PiP window.</summary>
+        public bool WindowPiPShowControls
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPShowControls), true);
+            set => _dataSetting.SetValue(nameof(WindowPiPShowControls), value);
         }
 
         /// <summary>PiP window opacity (0.2..1), used for the quick-settings slider.</summary>

@@ -286,10 +286,6 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
     {
         return option.Key switch
         {
-            // The custom tint color only applies in Custom theme mode; the
-            // other themes follow the system accent. Transparency/brightness
-            // sliders apply to Acrylic and Mica in every theme mode.
-            nameof(AppSettings.ThemeAccentColor) when s.ThemeType != AppSettings.ThemeType_Custom => false,
             // PiP size only applies while the mini player is enabled.
             nameof(AppSettings.WindowPiPSize) when !s.WindowPiP => false,
             // Format-specific screenshot options only appear for the active format.
@@ -319,8 +315,6 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => false,
             // mpv: linear-upscaling and sigmoid-upscaling are mutually exclusive.
             nameof(AppSettings.LinearUpscaling) when s.SigmoidUpscaling => false,
-            // MicaController ignores luminosity, so brightness only applies to Acrylic.
-            nameof(AppSettings.ThemeLuminosity) when s.BackdropType != AppSettings.BackdropType_Acrylic => false,
             _ => true,
         };
     }

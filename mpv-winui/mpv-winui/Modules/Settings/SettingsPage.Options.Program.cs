@@ -45,7 +45,6 @@ public sealed partial class SettingsPage
                     new OptionChoice(AppSettings.ThemeType_Auto, lang.ThemeAuto),
                     new OptionChoice(AppSettings.ThemeType_Light, lang.ThemeLightName),
                     new OptionChoice(AppSettings.ThemeType_Dark, lang.ThemeDarkName),
-                    new OptionChoice(AppSettings.ThemeType_Custom, lang.ThemeCustomName),
                 ],
                 Getter = () => AppContext.AppSetting.ThemeType,
                 Setter = v =>
@@ -65,8 +64,9 @@ public sealed partial class SettingsPage
                 Type = OptionType.StringList,
                 Choices =
                 [
-                    new OptionChoice(AppSettings.BackdropType_Acrylic, lang.OptionValueBackdropAcrylic),
                     new OptionChoice(AppSettings.BackdropType_Mica, lang.OptionValueBackdropMica),
+                    new OptionChoice(AppSettings.BackdropType_Acrylic, lang.OptionValueBackdropAcrylic),
+                    new OptionChoice(AppSettings.BackdropType_None, lang.OptionValueBackdropNone),
                 ],
                 Getter = () => AppContext.AppSetting.BackdropType,
                 Setter = v =>
@@ -74,57 +74,6 @@ public sealed partial class SettingsPage
                     AppContext.AppSetting.BackdropType = (string)v;
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), v);
                     RefreshWarningsAndEnabled();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThemeAccentColor),
-                Label = lang.SettingsThemeAccentColor,
-                Category = program,
-                Description = lang.SettingsHelpThemeAccentColor,
-                Type = OptionType.Color,
-                Getter = () => AppContext.AppSetting.ThemeAccentColor,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThemeAccentColor = (string)v!;
-                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ThemeAccentColor), v);
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThemeOpacity),
-                Label = lang.SettingsThemeOpacity,
-                Category = program,
-                Description = lang.SettingsHelpThemeOpacity,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 100,
-                Step = 5,
-                Getter = () => (double)AppContext.AppSetting.ThemeOpacity,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThemeOpacity = Convert.ToInt32(v);
-                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ThemeOpacity), v);
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.ThemeLuminosity),
-                Label = lang.SettingsThemeLuminosity,
-                Category = program,
-                Description = lang.SettingsHelpThemeLuminosity,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 100,
-                Step = 5,
-                Getter = () => (double)AppContext.AppSetting.ThemeLuminosity,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.ThemeLuminosity = Convert.ToInt32(v);
-                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ThemeLuminosity), v);
                 }
             },
 
