@@ -71,10 +71,8 @@ namespace mpv_winui.Modules.Player
     
                 if (_compactMode)
                 {
-                    // PiP: volume button + always-visible horizontal slider
-                    // on the far left (the same strip as the main status
-                    // bar — no popup), transport centered, subtitle toggle
-                    // on the far right.
+                    // PiP: volume on the far left (flyout slider), transport
+                    // centered, subtitle toggle on the far right.
                     _currentSegment = 0;
                     VisualStateManager.GoToState(this, "Wide", false);
                     var pipRight = PiPRightToggle is { } toggle
@@ -84,13 +82,13 @@ namespace mpv_winui.Modules.Player
                         LeftCommandBar,
                         MiddleCommandBar,
                         RightCommandBar,
-                        [VolumeMuteButton, VolumeSliderContainer, CompactTimeContainer],
+                        [VolumeMuteButton, CompactTimeContainer],
                         [SkipBackwardButton, PlayPauseButton, SkipForwardButton],
                         pipRight);
                     SetHidden(true, PreviousTrackButton, NextTrackButton, RepeatButton,
                                TrackSelectionButton, ShuffleButton, PlaybackRateButton,
-                               ZoomButton, PiPButton, FullWindowButton, FullScreenButton);
-                    SetHidden(false, VolumeSliderContainer);
+                               ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
+                               VolumeSliderContainer);
                     TimeTextGrid.Visibility = Visibility.Collapsed;
                     CompactTimeContainer.Visibility = Visibility.Visible;
                     UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
@@ -299,58 +297,34 @@ namespace mpv_winui.Modules.Player
                 }
             }
     
-            private AppBarButton BuildPiPRightItem(ToggleButton source)
+            private AppBarToggleButton BuildPiPRightItem(ToggleButton source)
             {
                 // A ToggleButton that has already been realized in the XAML tree
                 // cannot be reparented into the command bar (Content setter throws
-                // E_INVALIDARG), so build a fresh button each time and forward the
-                // click through PiPRightToggleAction. The active state tints the
-                // glyph with the accent color instead of the AppBarToggleButton
-                // checked pill, which paints the whole 40px slot.
+                // E_INVALIDARG), so build a fresh AppBarToggleButton each time and
+                // forward the click through PiPRightToggleAction. Using the same
+                // AppBarToggleButton style as the rest of the bar keeps the CC
+                // icon at the same height and gives it the checked accent state.
                 var icon = source.Content as FontIcon;
-                var buttonIcon = new FontIcon
+                var toggle = new AppBarToggleButton
                 {
-                    Glyph = icon?.Glyph ?? "\uF2E3",
-                    FontSize = 19,
-                    FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
-                };
-                var activeBrush = (Brush)RootGrid.Resources["PiPSubtitleActiveBrush"];
-                var button = new AppBarButton
-                {
-                    Icon = buttonIcon,
-                    Style = (Style)RootGrid.Resources["AppBarButtonStyle"],
+                    Icon = new FontIcon
+                    {
+                        Glyph = icon?.Glyph ?? "\uF2E3",
+                        FontSize = 16,
+                        FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
+                    },
+                    IsChecked = source.IsChecked,
+                    Style = (Style)RootGrid.Resources["AppBarToggleButtonStyle"],
                     Visibility = Visibility.Visible,
                 };
-                AutomationProperties.SetName(button, AppContext.AppLang.Subtitles);
-                ToolTipService.SetToolTip(button, AppContext.AppLang.Subtitles);
-                var active = source.IsChecked == true;
-                SetPiPSubtitleTint(buttonIcon, activeBrush, active);
-                button.Click += (_, _) =>
+                AutomationProperties.SetName(toggle, AppContext.AppLang.Subtitles);
+                ToolTipService.SetToolTip(toggle, AppContext.AppLang.Subtitles);
+                if (PiPRightToggleAction is { } action)
                 {
-                    active = !active;
-                    SetPiPSubtitleTint(buttonIcon, activeBrush, active);
-                    if (PiPRightToggleAction is { } action)
-                    {
-                        action(active);
-                    }
-                };
-                return button;
-            }
-
-            /// <summary>Tints the active glyph with the accent; when off, the
-            /// local value must be cleared (not set to null) so the theme
-            /// style's foreground applies again — a local null would override
-            /// it and render the glyph near-invisible black.</summary>
-            private static void SetPiPSubtitleTint(FontIcon icon, Brush activeBrush, bool active)
-            {
-                if (active)
-                {
-                    icon.Foreground = activeBrush;
+                    toggle.Click += (_, _) => action(toggle.IsChecked == true);
                 }
-                else
-                {
-                    icon.ClearValue(FontIcon.ForegroundProperty);
-                }
+                return toggle;
             }
     
             private static bool SameElements(IList<ICommandBarElement> current, ICommandBarElement[] desired)

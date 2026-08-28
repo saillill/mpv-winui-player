@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -25,10 +25,6 @@ namespace mpv_winui.Modules.Player;
 
 public sealed partial class PiPWindow
 {
-    /// <summary>True while the opacity flyout is open: the top buttons must
-    /// stay put until the user finishes with it (see RootGrid_PointerMoved).</summary>
-    private bool _opacityFlyoutOpen;
-
     private void RootGrid_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         var position = e.GetCurrentPoint(RootGrid).Position;
@@ -38,10 +34,8 @@ public sealed partial class PiPWindow
 
         // The top buttons only react to the top mask, the status bar only to
         // the bottom mask; everywhere else both retract. Both overlays can be
-        // switched off entirely from the PiP settings. An open flyout counts
-        // as "still operating": retracting the buttons under a user who is
-        // dragging the opacity slider feels broken.
-        SetTopButtonsVisible(mpv_winui.AppContext.AppSetting.WindowPiPShowTopButtons && (inTopMask || _opacityFlyoutOpen));
+        // switched off entirely from the PiP settings.
+        SetTopButtonsVisible(mpv_winui.AppContext.AppSetting.WindowPiPShowTopButtons && inTopMask);
         if (inBottomMask && mpv_winui.AppContext.AppSetting.WindowPiPShowControls)
         {
             PiPControls.ShowControlPanel();
@@ -58,10 +52,7 @@ public sealed partial class PiPWindow
         // idle timer, but the top buttons previously stayed visible until the
         // pointer re-entered and moved to a non-top zone.
         PiPView.SetResizeCursor(null);
-        if (!_opacityFlyoutOpen)
-        {
-            SetTopButtonsVisible(false);
-        }
+        SetTopButtonsVisible(false);
         PiPControls.HideControlPanel();
     }
 
@@ -132,20 +123,8 @@ public sealed partial class PiPWindow
 
     private void PiPExitButton_Click(object sender, RoutedEventArgs e)
     {
-        // The top-right close exits the whole player (mpv + app). Exit()
-        // skips window teardown, so write the resumable state here first
-        // (same flush as the main window's quit action); then reset the
-        // PiP flag so the next start opens the main window normally.
-        try
-        {
-            _player?.Command(["quit-watch-later"]);
-            _ = _player?.SaveWatchHistory;
-        }
-        catch (Exception)
-        {
-            // Best effort: losing the flush must not block the exit.
-        }
-        AppContext.AppSetting.Flush();
+        // The top-right close exits the whole player (mpv + app). Persist the
+        // PiP state first so the next start opens the main window normally.
         AppContext.AppSetting.WindowPiP = false;
         Application.Current.Exit();
     }
@@ -172,15 +151,13 @@ public sealed partial class PiPWindow
         if (show)
         {
             PiPBackButton.Visibility = Visibility.Visible;
-            PiPOpacityButton.Visibility = Visibility.Visible;
             PiPExitButton.Visibility = Visibility.Visible;
             PiPBackButton.Opacity = 1;
-            PiPOpacityButton.Opacity = 1;
             PiPExitButton.Opacity = 1;
         }
 
         EnsureTopButtonVisuals();
-        if (_topButtonsCompositor is null || _topBackButtonVisual is null || _topExitButtonVisual is null || _topOpacityButtonVisual is null)
+        if (_topButtonsCompositor is null || _topBackButtonVisual is null || _topExitButtonVisual is null)
         {
             // Composition unavailable: snap to the target state.
             TopButtonsAnimationCompleted(show);
@@ -188,7 +165,6 @@ public sealed partial class PiPWindow
         }
 
         _topBackButtonVisual.StopAnimation("Opacity");
-        _topOpacityButtonVisual.StopAnimation("Opacity");
         _topExitButtonVisual.StopAnimation("Opacity");
 
         var ease = _topButtonsCompositor.CreateCubicBezierEasingFunction(
@@ -203,7 +179,6 @@ public sealed partial class PiPWindow
 
         var batch = _topButtonsCompositor.CreateScopedBatch(CompositionBatchTypes.Animation);
         _topBackButtonVisual.StartAnimation("Opacity", opacity);
-        _topOpacityButtonVisual.StartAnimation("Opacity", opacity);
         _topExitButtonVisual.StartAnimation("Opacity", opacity);
         batch.Completed += (_, _) => TopButtonsAnimationCompleted(show);
         batch.End();
@@ -215,7 +190,6 @@ public sealed partial class PiPWindow
         {
             _topBackButtonVisual = ElementCompositionPreview.GetElementVisual(PiPBackButton);
             _topExitButtonVisual = ElementCompositionPreview.GetElementVisual(PiPExitButton);
-            _topOpacityButtonVisual = ElementCompositionPreview.GetElementVisual(PiPOpacityButton);
             _topButtonsCompositor = _topBackButtonVisual.Compositor;
         }
     }
@@ -224,29 +198,22 @@ public sealed partial class PiPWindow
     {
         _topButtonsAnimating = false;
         _topBackButtonVisual?.StopAnimation("Opacity");
-        _topOpacityButtonVisual?.StopAnimation("Opacity");
         _topExitButtonVisual?.StopAnimation("Opacity");
         if (_topBackButtonVisual is not null)
         {
             _topBackButtonVisual.Opacity = show ? 1f : 0f;
-        }
-        if (_topOpacityButtonVisual is not null)
-        {
-            _topOpacityButtonVisual.Opacity = show ? 1f : 0f;
         }
         if (_topExitButtonVisual is not null)
         {
             _topExitButtonVisual.Opacity = show ? 1f : 0f;
         }
         PiPBackButton.Opacity = show ? 1 : 0;
-        PiPOpacityButton.Opacity = show ? 1 : 0;
         PiPExitButton.Opacity = show ? 1 : 0;
         if (!show)
         {
             // Fully hidden buttons must not stay hit-testable: an
             // invisible button still shows its tooltip on hover.
             PiPBackButton.Visibility = Visibility.Collapsed;
-            PiPOpacityButton.Visibility = Visibility.Collapsed;
             PiPExitButton.Visibility = Visibility.Collapsed;
         }
     }
@@ -254,103 +221,21 @@ public sealed partial class PiPWindow
     private void StopTopButtonsAnimation()
     {
         _topBackButtonVisual?.StopAnimation("Opacity");
-        _topOpacityButtonVisual?.StopAnimation("Opacity");
         _topExitButtonVisual?.StopAnimation("Opacity");
         _sizeUpdateTimer.Stop();
         _sizeUpdateTimer.Tick -= SizeUpdateTimer_Tick;
         _topButtonsAnimating = false;
         PiPBackButton.Visibility = Visibility.Visible;
-        PiPOpacityButton.Visibility = Visibility.Visible;
         PiPExitButton.Visibility = Visibility.Visible;
         PiPBackButton.Opacity = 1;
-        PiPOpacityButton.Opacity = 1;
         PiPExitButton.Opacity = 1;
         if (_topBackButtonVisual is not null)
         {
             _topBackButtonVisual.Opacity = 1f;
         }
-        if (_topOpacityButtonVisual is not null)
-        {
-            _topOpacityButtonVisual.Opacity = 1f;
-        }
         if (_topExitButtonVisual is not null)
         {
             _topExitButtonVisual.Opacity = 1f;
         }
-    }
-
-    /// <summary>
-    /// Quick opacity slider for the PiP window: writes the percentage to the
-    /// same setting the settings page uses and applies the layered-window
-    /// alpha live, so dragging the slider shows the effect immediately.
-    /// The flyout follows the app theme, not the PiP window's forced-dark
-    /// video overlay theme — in a light-theme app it must read as white.
-    /// </summary>
-    private void PiPOpacityButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement anchor)
-        {
-            return;
-        }
-
-        // The popup inherits the PiP window's forced Dark scope; override
-        // both the presenter background (theme brushes would resolve dark
-        // down here) and the content theme to the app's resolved theme.
-        var theme = mpv_winui.Modules.Common.View.WindowStyleManager.ResolveTheme();
-        var light = theme == ElementTheme.Light;
-        var presenterStyle = new Style(typeof(FlyoutPresenter))
-        {
-            BasedOn = (Style)Application.Current.Resources["DefaultFlyoutPresenterStyle"],
-        };
-        presenterStyle.Setters.Add(new Setter(
-            FlyoutPresenter.BackgroundProperty,
-            new SolidColorBrush(light
-                ? Windows.UI.Color.FromArgb(0xF2, 0xF3, 0xF3, 0xF3)
-                : Windows.UI.Color.FromArgb(0xF2, 0x2C, 0x2C, 0x2C))));
-        var flyout = new Flyout
-        {
-            Placement = FlyoutPlacementMode.Bottom,
-            FlyoutPresenterStyle = presenterStyle,
-        };
-
-        var panel = new StackPanel { Spacing = 8, Width = 220, RequestedTheme = theme };
-        var header = new Grid { ColumnSpacing = 8 };
-        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var title = new TextBlock
-        {
-            Text = AppContext.AppLang.SettingsPiPOpacity,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-        };
-        var valueText = new TextBlock
-        {
-            Text = $"{Math.Round(AppContext.AppSetting.WindowPiPOpacity * 100)}%",
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-        };
-        Grid.SetColumn(title, 0);
-        Grid.SetColumn(valueText, 1);
-        header.Children.Add(title);
-        header.Children.Add(valueText);
-        var slider = new Slider
-        {
-            Minimum = 20,
-            Maximum = 100,
-            StepFrequency = 5,
-            Value = Math.Round(Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0) * 100),
-            IsThumbToolTipEnabled = false,
-        };
-        slider.ValueChanged += (_, args) =>
-        {
-            var percent = (int)Math.Round(args.NewValue);
-            valueText.Text = $"{percent}%";
-            AppContext.AppSetting.WindowPiPOpacity = percent / 100.0;
-            ApplyOpacity();
-        };
-        panel.Children.Add(header);
-        panel.Children.Add(slider);
-        flyout.Content = panel;
-        _opacityFlyoutOpen = true;
-        flyout.Closed += (_, _) => _opacityFlyoutOpen = false;
-        flyout.ShowAt(anchor);
     }
 }

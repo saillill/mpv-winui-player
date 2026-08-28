@@ -134,7 +134,6 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
             AutomationProperties.SetName(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
             ToolTipService.SetToolTip(MoreButton, AppContext.AppLang.ControlBarIconMore);
-            UpdateTimeToggleAccessibility();
 
             // Flyout labels that XAML holds as English placeholders.
             ToolTipService.SetToolTip(AbLoopButton, AppContext.AppLang.ControlBarIconAbLoop);
@@ -165,7 +164,6 @@ namespace mpv_winui.Modules.Player
             // RepeatButton is hidden (mode button reuses it) but stays in
             // the tree; give it a localized name for screen readers.
             AutomationProperties.SetName(RepeatButton, AppContext.AppLang.MoreRepeat);
-            ToolTipService.SetToolTip(RepeatButton, AppContext.AppLang.MoreRepeat);
             AutomationProperties.SetName(VolumeMuteButton, AppContext.AppLang.PiPMute);
             AutomationProperties.SetName(VolumeSlider, AppContext.AppLang.ControlBarIconVolume);
             AutomationProperties.SetName(PlaybackRateButton, AppContext.AppLang.MorePlaybackRate);
@@ -208,32 +206,11 @@ namespace mpv_winui.Modules.Player
         private void VolumeSlider_GotFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = true;
         private void VolumeSlider_LostFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = false;
 
-        // Right-side time: click toggles between total duration and the
-        // remaining time (minus-prefixed), like mainstream players.
-        private bool _showRemainingTime;
-
         private void UpdateTimeTexts(double position, double duration)
         {
             TimeElapsedElement.Text = FormatTime(position);
-            TimeRemainingElement.Text = _showRemainingTime && duration > 0
-                ? "-" + FormatTime(Math.Max(0, duration - position))
-                : FormatTime(duration);
+            TimeRemainingElement.Text = FormatTime(duration);
             CompactTimeText.Text = $"{FormatCompactTime(position)}/{FormatCompactTime(duration)}";
-        }
-
-        private void TimeRemainingElement_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            _showRemainingTime = !_showRemainingTime;
-            UpdateTimeToggleAccessibility();
-            UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
-            e.Handled = true;
-        }
-
-        private void UpdateTimeToggleAccessibility()
-        {
-            var hint = _showRemainingTime ? AppContext.AppLang.TimeShowTotal : AppContext.AppLang.TimeShowRemaining;
-            ToolTipService.SetToolTip(TimeRemainingElement, hint);
-            AutomationProperties.SetName(TimeRemainingElement, hint);
         }
 
         private static string FormatCompactTime(double seconds)
@@ -818,11 +795,6 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        /// <summary>True while the compact-bar volume flyout is open: the
-        /// overlay bar must not retract under a user who is dragging its
-        /// slider (pointer events land on the popup, not this control).</summary>
-        private bool _volumeFlyoutOpen;
-
         private void OnMuteClick(object sender, RoutedEventArgs e)
         {
             if (MediaPlayer == null)
@@ -830,38 +802,22 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
-            // The PiP compact bar always shows the horizontal slider, so this
-            // flyout is only reached when the main window's volume strip is
-            // hidden through the control-bar customization.
             if (VolumeSliderContainer.Visibility != Visibility.Visible)
             {
                 var control = new VolumeFlyoutControl(MediaPlayer);
-                // Official WinUI flyout shell: default background (system
-                // acrylic/fallback), just tightened for the narrow vertical
-                // volume strip. Custom acrylic backgrounds read as an opaque
-                // gray box over the video swap chain.
-                var presenterStyle = new Style(typeof(FlyoutPresenter))
-                {
-                    BasedOn = (Style)Application.Current.Resources["DefaultFlyoutPresenterStyle"],
-                };
-                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(6)));
-                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.MinWidthProperty, 0d));
                 var flyout = new Flyout
                 {
                     Content = control,
                     Placement = FlyoutPlacementMode.Top,
-                    FlyoutPresenterStyle = presenterStyle,
+                    FlyoutPresenterStyle = new Style(typeof(FlyoutPresenter))
+                    {
+                        Setters =
+                        {
+                            new Setter(FlyoutPresenter.PaddingProperty, new Thickness(4)),
+                        },
+                    },
                 };
-                _volumeFlyoutOpen = true;
-                flyout.Closed += (_, _) => _volumeFlyoutOpen = false;
-                // The button sits at the window's left edge in PiP; centering
-                // the flyout on it would clip against the window border, so
-                // anchor the center to the button's right edge instead.
-                flyout.ShowAt(VolumeMuteButton, new FlyoutShowOptions
-                {
-                    Placement = FlyoutPlacementMode.Top,
-                    Position = new Point(VolumeMuteButton.ActualWidth + 12, 0),
-                });
+                flyout.ShowAt(VolumeMuteButton);
                 return;
             }
 
