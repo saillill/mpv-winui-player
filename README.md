@@ -31,8 +31,8 @@ steps. If you later edit mpv config, key bindings or menus, do it in
 In one sentence: **everything mpv can do is wrapped in a graphical interface,
 and the underlying mpv is always there if you want to go deeper.**
 
-- Multiple UI languages: English, 简体中文, 日本語, 한국어, Deutsch, Français,
-  Español, Русский — switching takes effect immediately.
+- Multiple UI languages: English, 简体中文, 繁體中文, 日本語, 한국어, Deutsch,
+  Français, Español, Русский — switching takes effect immediately.
 - Control bar: play/pause, progress, volume, speed and track switching in one
   bar; hover the progress bar to see video preview thumbnails.
 - Settings: the common mpv options are presented as a clearly categorized,

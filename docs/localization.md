@@ -5,14 +5,14 @@
 1. WinUI 界面文案（按钮、菜单、对话框、设置页等）一律通过
    `AppLang` 属性读取，文案放在 `mpv-winui/mpv-winui/Languages/<lang>.json`
    （属性名 = JSON key，共 9 种语言，含 zh-TW）。
-2. mpv 侧文案（右键菜单、OSD、脚本提示）沿用各 Lua 脚本内的 8 语言
-   i18n 表（如 `dyn_menu.lua`、`select.lua`、`hdr_auto.lua`），这是独立
-   渠道，不并入 AppLang。
+2. mpv 侧文案（右键菜单、OSD、脚本提示）沿用部分 Lua 脚本内置的 i18n 表
+   （如 `dyn_menu.lua`、`select.lua`、`hdr_auto.lua`），这是独立渠道，
+   不并入 AppLang；`zh-TW` 在 lua 读取点归一化为 `zh-CN`，避免 OSD 回退英文。
 
 ## 新增/修改文案的流程
 
 1. 在 `AppLang.cs` 增加属性（默认值写英文），并保证属性名唯一。
-2. 同步更新 8 份 `Languages/*.json`（缺 key 会导致校验脚本报错）。
+2. 同步更新 9 份 `Languages/*.json`（缺 key 会导致校验脚本报错）。
 3. 代码中只引用 `AppContext.AppLang.<Property>`，不在 XAML/C# 直接写面向
    用户的硬编码文本。
 
@@ -34,4 +34,6 @@ python tools\check-localization.py              # 必查项
 python tools\check-localization.py --xaml-audit # 额外输出硬编码文案清单
 ```
 
-也可以直接 `.\build.ps1 -Debug x64 -CheckLocalization` 在构建后自动校验。
+也可以 `.\build.ps1 -Configuration Debug -Platform x64 -CheckLocalization`
+在构建后自动校验。注意 `-Debug x64` 这类缩写不可靠（`-Debug` 是 PowerShell
+公共参数，不会设置 `-Configuration`），必须写全参数名。
