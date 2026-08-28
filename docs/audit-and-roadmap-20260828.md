@@ -102,9 +102,14 @@ ControlPanelGradient 120、`-Release x64` 静默落回 Debug——参数按位�
   方法各为一行委托（上一轮审计文档的"三段近似解析"结论已过期，本行即更正）。
   `MpvPreviewInfo` 全仓（IDL/C++/C#）零消费者，随本阶段删除（h+idl+工程
   条目+MpvPlayer.idl import）。
-- **Phase C — 巨类拆分**：SettingsPage.Actions.cs 按职责切分（动作分发 /
-  快捷键编辑 / 系统信息 / 重置）；ControlBarCanvasControl 评估抽布局编辑
-  纯函数（可仿 ControlBarLayoutGrammar 编入测试工程的做法）。
+- **Phase C — 巨类拆分 ✅ 已完成（2026-08-28）**：SettingsPage.Actions.cs
+  1101→531 行，按真实接缝拆出三个 partial：Shortcuts（快捷键构建/重绑/
+  input.conf 读写/重置，331 行）、SystemInfo（音频设备+GPU 适配器枚举与
+  缓存预热，188 行）、ImportExport（设置导出/导入，117 行）。纯移动无逻辑
+  改动，csproj 隐式通配自动纳入。原计划的"重置"块实际只有 ResetShortcuts
+  一个方法，已归入 Shortcuts——第四块按真实内容命名 ImportExport。
+  ControlBarCanvasControl 的纯函数抽取经评估暂不做（与 Settings 门控无关，
+  留待其有测试需求时仿 LayoutGrammar 模式）。
 - **Phase D — 持续**：CI 已含两校验；WindowsAppSDK 整组升级；
   新功能先问"mpv 是否已有该属性/命令"。
 
