@@ -86,9 +86,15 @@ ControlPanelGradient 120、`-Release x64` 静默落回 Debug——参数按位�
 原则：动 UI 前跑两校验；涉 mpv_node 的改动先读 AGENTS.md canary 教训；
 每阶段完成即 commit+push，勿跨阶段攒大提交。
 
-- **Phase A — 包装层收敛**：按 §4.1 裁决中继事件的去留（逐个列出消费者，
-  纯转发者删除，UI 改订原生事件）；`MediaFailed`/`SwapChainChanged` 一并
-  复核。目标：MpvMediaPlayer 只剩"有状态 + 有语义"的成员。
+- **Phase A — 包装层收敛 ✅ 已完成（2026-08-28）**：删除 7 个纯转发 relay
+  （MediaFailed/VolumeChanged/PlaylistChanged/PositionChanged/SpeedChanged/
+  SwapChainChanged/WindowChanged），新增 `MpvMediaPlayer.Native` 访问器，
+  四个消费者（PlayerControl/MpvPlayerPage/PlayerView/VolumeFlyout）改订
+  原生事件；保留 8 个含语义成员（MediaOpened；PlaybackStateChanged 含
+  载入时暂停态合成，非纯转发；SeekingStarted/Ended/Seeked 扇出；
+  RepeatStateChanged；ShuffleEnabledChanged；MediaInfoChanged 缓存）。
+  实证：音量链 IPC 设 77 → 原生事件 → 注册表 0x4D 落盘。~~原列的
+  MediaFailed/SwapChainChanged 复核~~（即本次删除项）。
 - **Phase B — C++ 样板压缩**：事件 add/remove 用宏或 CRTP helper 收敛；
   `GetTracks` 三段近似解析表驱动（沿用 2026-08-24 §3.3 结论，本轮确认仍成立）。
 - **Phase C — 巨类拆分**：SettingsPage.Actions.cs 按职责切分（动作分发 /

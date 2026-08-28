@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using System;
 
@@ -18,7 +19,7 @@ namespace mpv_winui.Modules.Player
             this.InitializeComponent();
             _player.SetTarget(player);
             _subscribedPlayer = player;
-            player.VolumeChanged += OnPlayerVolumeChanged;
+            player.Native.VolumeChanged += OnPlayerVolumeChanged;
             Unloaded += VolumeFlyoutControl_Unloaded;
             VolumeSlider.Value = player.Volume;
             VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
@@ -51,7 +52,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void OnPlayerVolumeChanged(MpvMediaPlayer sender, int volume)
+        private void OnPlayerVolumeChanged(VolumeChangedEventArgs args)
         {
             DispatcherQueue.RunAsync(() =>
             {
@@ -62,8 +63,12 @@ namespace mpv_winui.Modules.Player
                 _updating = true;
                 try
                 {
+                    var volume = (int)args.Volume;
                     VolumeSlider.Value = volume;
-                    UpdateVolumeIcon(sender.IsMuted, volume);
+                    if (_player.TryGetTarget(out var player))
+                    {
+                        UpdateVolumeIcon(player.IsMuted, volume);
+                    }
                 }
                 finally
                 {
@@ -76,7 +81,7 @@ namespace mpv_winui.Modules.Player
         {
             if (_subscribedPlayer is { } player)
             {
-                player.VolumeChanged -= OnPlayerVolumeChanged;
+                player.Native.VolumeChanged -= OnPlayerVolumeChanged;
                 _subscribedPlayer = null;
             }
         }

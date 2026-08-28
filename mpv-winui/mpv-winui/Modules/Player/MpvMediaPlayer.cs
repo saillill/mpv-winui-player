@@ -34,6 +34,14 @@ namespace mpv_winui.Modules.Player
 
         private readonly Lazy<HashSet<string>> _subtitleExtensions;
 
+        /// <summary>
+        /// The native WinRT player. Created together with this wrapper and
+        /// destroyed with it (never recreated mid-session), so consumers may
+        /// subscribe its events directly. Wrapper events remain only where
+        /// they carry real semantics (state synthesis / seek fan-out).
+        /// </summary>
+        public MpvPlayer Native => _mpvPlayer;
+
         public MpvMediaPlayer()
         {
             this._mpvPlayer = new MpvPlayer();
@@ -57,10 +65,11 @@ namespace mpv_winui.Modules.Player
         {
             get; set;
         }
-        public Action<MpvMediaPlayer, string?>? MediaFailed
-        {
-            get; set;
-        }
+        /// <summary>
+        /// Pause-state changes (native relay) plus one synthesized event per
+        /// file load carrying the initial paused state — UI would otherwise
+        /// show a stale play state when a file loads paused.
+        /// </summary>
         public Action<MpvMediaPlayer, bool>? PlaybackStateChanged
         {
             get; set;
@@ -75,10 +84,6 @@ namespace mpv_winui.Modules.Player
         {
             get; set;
         }
-        public Action<MpvMediaPlayer, int>? VolumeChanged
-        {
-            get; set;
-        }
         public Action<MpvMediaPlayer, RepeatState>? RepeatStateChanged
         {
             get; set;
@@ -87,31 +92,7 @@ namespace mpv_winui.Modules.Player
         {
             get; set;
         }
-        public Action<MpvMediaPlayer, object?>? PlaylistChanged
-        {
-            get; set;
-        }
         public Action<MpvMediaPlayer, object?>? Seeked
-        {
-            get; set;
-        }
-
-        public Action<MpvMediaPlayer, PositionChangedEventArgs>? PositionChanged
-        {
-            get; set;
-        }
-
-        public Action<MpvMediaPlayer, SpeedChangedEventArgs>? SpeedChanged
-        {
-            get; set;
-        }
-
-        public Action<MpvMediaPlayer, object?>? SwapChainChanged
-        {
-            get; set;
-        }
-
-        public Action<MpvMediaPlayer, WindowChangedEventArgs>? WindowChanged
         {
             get; set;
         }
@@ -257,7 +238,6 @@ namespace mpv_winui.Modules.Player
 
         public async Task InitializeAsync(string configFolder, int volume, mpv_winrt.DisplayColorKind colorKind, int refreshRate)
         {
-            _mpvPlayer.VoConfigured += MpvPlayer_VoConfigured;
             var sw = System.Diagnostics.Stopwatch.StartNew();
             await Task.Run(() => { _mpvPlayer.Initialize(configFolder, 1, 1, volume, colorKind, refreshRate); });
             AppContext.AppLogger.Debug($"native mpv core initialized in {sw.ElapsedMilliseconds}ms");
@@ -289,50 +269,28 @@ namespace mpv_winui.Modules.Player
         public void StartListen()
         {
             _mpvPlayer.MediaLoaded += MpvPlayer_MediaLoaded;
-            _mpvPlayer.PlaybackFailed += MpvPlayer_PlaybackFailed;
             _mpvPlayer.FileLoaded += MpvPlayer_FileLoaded;
             _mpvPlayer.PlaybackStateChanged += MpvPlayer_PlaybackStateChanged;
-            _mpvPlayer.VolumeChanged += MpvPlayer_VolumeChanged;
             _mpvPlayer.Seeked += MpvPlayer_Seeked;
             _mpvPlayer.MediaInfoChanged += MpvPlayer_MediaInfoChanged;
             _mpvPlayer.LoopFileChanged += MpvPlayer_LoopFileChanged;
             _mpvPlayer.LoopPlaylistChanged += MpvPlayer_LoopPlaylistChanged;
             _mpvPlayer.ShuffleChanged += MpvPlayer_ShuffleChanged;
-            _mpvPlayer.PlaylistChanged += MpvPlayer_PlaylistChanged;
-            _mpvPlayer.WindowChanged += MpvPlayer_WindowChanged;
             _mpvPlayer.LogMessage += MpvPlayer_LogMessage;
-            _mpvPlayer.PositionChanged += MpvPlayer_PositionChanged;
-            _mpvPlayer.SpeedChanged += MpvPlayer_SpeedChanged;
         }
 
         public void StopListen()
         {
             _autoPlaylistStopped = true;
             _mpvPlayer.MediaLoaded -= MpvPlayer_MediaLoaded;
-            _mpvPlayer.PlaybackFailed -= MpvPlayer_PlaybackFailed;
             _mpvPlayer.FileLoaded -= MpvPlayer_FileLoaded;
             _mpvPlayer.PlaybackStateChanged -= MpvPlayer_PlaybackStateChanged;
-            _mpvPlayer.VolumeChanged -= MpvPlayer_VolumeChanged;
             _mpvPlayer.Seeked -= MpvPlayer_Seeked;
             _mpvPlayer.MediaInfoChanged -= MpvPlayer_MediaInfoChanged;
             _mpvPlayer.LoopFileChanged -= MpvPlayer_LoopFileChanged;
             _mpvPlayer.LoopPlaylistChanged -= MpvPlayer_LoopPlaylistChanged;
             _mpvPlayer.ShuffleChanged -= MpvPlayer_ShuffleChanged;
-            _mpvPlayer.PlaylistChanged -= MpvPlayer_PlaylistChanged;
-            _mpvPlayer.WindowChanged -= MpvPlayer_WindowChanged;
             _mpvPlayer.LogMessage -= MpvPlayer_LogMessage;
-            _mpvPlayer.PositionChanged -= MpvPlayer_PositionChanged;
-            _mpvPlayer.SpeedChanged -= MpvPlayer_SpeedChanged;
-        }
-
-        private void MpvPlayer_VoConfigured()
-        {
-            SwapChainChanged?.Invoke(this, null);
-        }
-
-        private void MpvPlayer_WindowChanged(WindowChangedEventArgs args)
-        {
-            WindowChanged?.Invoke(this, args);
         }
 
         private void MpvPlayer_LogMessage(MpvLogEventArgs args)
@@ -382,30 +340,12 @@ namespace mpv_winui.Modules.Player
             ShuffleEnabledChanged?.Invoke(this, ShuffleEnabled);
         }
 
-        private void MpvPlayer_PlaylistChanged()
-        {
-            PlaylistChanged?.Invoke(this, null);
-        }
-
         private void MpvPlayer_Seeked()
         {
+            // mpv reports only "a seek happened"; fan it out into the two
+            // directions the UI needs (progress reset on start, refresh on end).
             Seeked?.Invoke(this, null);
             SeekingStarted?.Invoke(this, null);
-        }
-
-        private void MpvPlayer_PositionChanged(PositionChangedEventArgs args)
-        {
-            PositionChanged?.Invoke(this, args);
-        }
-
-        private void MpvPlayer_SpeedChanged(SpeedChangedEventArgs args)
-        {
-            SpeedChanged?.Invoke(this, args);
-        }
-
-        private void MpvPlayer_VolumeChanged(VolumeChangedEventArgs args)
-        {
-            VolumeChanged?.Invoke(this, (int)args.Volume);
         }
 
         private void MpvPlayer_PlaybackStateChanged(PlaybackStateChangedEventArgs args)
@@ -419,11 +359,6 @@ namespace mpv_winui.Modules.Player
             var isPaused = _mpvPlayer.IsPaused();
             PlaybackStateChanged?.Invoke(this, isPaused);
             MediaOpened?.Invoke(this, null);
-        }
-
-        private void MpvPlayer_PlaybackFailed(PlaybackFailedEventArgs args)
-        {
-            MediaFailed?.Invoke(this, args.Message);
         }
 
         private void MpvPlayer_MediaLoaded()
@@ -602,7 +537,6 @@ namespace mpv_winui.Modules.Player
         public void Close()
         {
             _commandQueue.Stop();
-            _mpvPlayer.VoConfigured -= MpvPlayer_VoConfigured;
             _mpvPlayer?.Destroy();
         }
     }

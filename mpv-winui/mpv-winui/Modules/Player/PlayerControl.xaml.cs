@@ -440,31 +440,31 @@ namespace mpv_winui.Modules.Player
         private void AddEventListeners()
         {
             _mediaPlayer?.MediaOpened += MediaPlayer_MediaOpened;
-            _mediaPlayer?.MediaFailed += MediaPlayer_MediaFailed;
+            _mediaPlayer?.Native.PlaybackFailed += MediaPlayer_MediaFailed;
             _mediaPlayer?.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
             _mediaPlayer?.SeekingStarted += PlaybackSession_SeekingStarted;
             _mediaPlayer?.SeekingEnded += PlaybackSession_SeekingEnded;
-            _mediaPlayer?.VolumeChanged += PlaybackSession_VolumeChanged;
+            _mediaPlayer?.Native.VolumeChanged += PlaybackSession_VolumeChanged;
             _mediaPlayer?.Seeked += MediaPlayer_Seeked;
             _mediaPlayer?.RepeatStateChanged += MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged += MediaPlayer_ShuffleEnabledChanged;
-            _mediaPlayer?.PositionChanged += PlaybackSession_PositionChanged;
-            _mediaPlayer?.SpeedChanged += PlaybackSession_SpeedChanged;
+            _mediaPlayer?.Native.PositionChanged += PlaybackSession_PositionChanged;
+            _mediaPlayer?.Native.SpeedChanged += PlaybackSession_SpeedChanged;
         }
 
         private void RemoveEventListeners()
         {
             _mediaPlayer?.MediaOpened -= MediaPlayer_MediaOpened;
-            _mediaPlayer?.MediaFailed -= MediaPlayer_MediaFailed;
+            _mediaPlayer?.Native.PlaybackFailed -= MediaPlayer_MediaFailed;
             _mediaPlayer?.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
             _mediaPlayer?.SeekingStarted -= PlaybackSession_SeekingStarted;
             _mediaPlayer?.SeekingEnded -= PlaybackSession_SeekingEnded;
-            _mediaPlayer?.VolumeChanged -= PlaybackSession_VolumeChanged;
+            _mediaPlayer?.Native.VolumeChanged -= PlaybackSession_VolumeChanged;
             _mediaPlayer?.Seeked -= MediaPlayer_Seeked;
             _mediaPlayer?.RepeatStateChanged -= MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged -= MediaPlayer_ShuffleEnabledChanged;
-            _mediaPlayer?.PositionChanged -= PlaybackSession_PositionChanged;
-            _mediaPlayer?.SpeedChanged -= PlaybackSession_SpeedChanged;
+            _mediaPlayer?.Native.PositionChanged -= PlaybackSession_PositionChanged;
+            _mediaPlayer?.Native.SpeedChanged -= PlaybackSession_SpeedChanged;
         }
 
         private void NextTrackButton_Click(object? sender, RoutedEventArgs? e)
@@ -604,7 +604,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void PlaybackSession_SpeedChanged(MpvMediaPlayer sender, SpeedChangedEventArgs args)
+        private void PlaybackSession_SpeedChanged(SpeedChangedEventArgs args)
         {
             DispatcherQueue.RunAsync(() => UpdatePlaybackRateUI(args.Speed));
         }
@@ -716,14 +716,14 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.StepFrequency = 1;
         }
 
-        private void MediaPlayer_MediaFailed(MpvMediaPlayer sender, string? args)
+        private void MediaPlayer_MediaFailed(PlaybackFailedEventArgs args)
         {
             _hasError = true;
             _sourceLoaded = false;
 
             DispatcherQueue.RunAsync(() =>
             {
-                ErrorTextBlock.Text = args;
+                ErrorTextBlock.Text = args.Message;
                 UpdatePlaybackStatusUI(true);
             });
         }
@@ -746,11 +746,11 @@ namespace mpv_winui.Modules.Player
             DispatcherQueue.RunAsync(() => { UpdatePlaybackStatusUI(true); });
         }
 
-        private void PlaybackSession_VolumeChanged(MpvMediaPlayer sender, int volume)
+        private void PlaybackSession_VolumeChanged(VolumeChangedEventArgs args)
         {
             DispatcherQueue.RunAsync(() =>
             {
-                VolumeSlider.Value2 = volume;
+                VolumeSlider.Value2 = (int)args.Volume;
                 UpdateVolumeUI(true);
             });
         }
@@ -906,7 +906,7 @@ namespace mpv_winui.Modules.Player
             MediaPlayer?.Volume = value;
         }
 
-        private void PlaybackSession_PositionChanged(MpvMediaPlayer sender, PositionChangedEventArgs args)
+        private void PlaybackSession_PositionChanged(PositionChangedEventArgs args)
         {
             // Runs on the native mpv event thread; store the latest snapshot
             // and let the UI-thread coalescing timer apply it.
