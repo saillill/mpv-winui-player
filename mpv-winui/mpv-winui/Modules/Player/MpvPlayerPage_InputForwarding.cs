@@ -1,16 +1,25 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
 using mpv;
-using Windows.Win32.UI.Input.KeyboardAndMouse;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using static Windows.Win32.PInvoke;
 
 namespace mpv_winui.Modules.Player
 {
+    /// <summary>
+    /// Input forwarding for embedded composition mode: libmpv never sees
+    /// Win32 keyboard or mouse input here, so a thread-level keyboard hook,
+    /// window-activation key flush and WinUI pointer events translate user
+    /// input into mpv keydown/keyup commands (VK -> mpv key-code port in
+    /// Modules/Mpv).
+    /// </summary>
     public sealed partial class MpvPlayerPage
     {
+
         private HHOOK? _hHook;
         private static bool _suppressKeyboard = false;
 
@@ -203,5 +212,36 @@ namespace mpv_winui.Modules.Player
             return prefix;
         }
 
+    
+
+    // ----- mouse forwarding (from MpvPlayerPage_Mouse.cs) -----
+    private void VideoArea_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        var point = e.GetCurrentPoint(PlayerView);
+        var props = point.Properties;
+
+        var key = props.IsHorizontalMouseWheel
+            ? (props.MouseWheelDelta > 0 ? "WHEEL_LEFT" : "WHEEL_RIGHT")
+            : (props.MouseWheelDelta > 0 ? "WHEEL_UP" : "WHEEL_DOWN");
+
+        SendMouseButton(key);
+        e.Handled = true;
+    }
+
+    private void PlayerView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        // input.conf: MBTN_LEFT_DBL cycle fullscreen
+        SendMouseButton("MBTN_LEFT_DBL");
+        e.Handled = true;
+    }
+
+    private static void SendMouseButton(string keyName)
+    {
+        if (_selfWeakReference?.TryGetTarget(out var self) == true)
+        {
+            self?._mediaPlayer?.Command(["keydown", keyName]);
+            self?._mediaPlayer?.Command(["keyup", keyName]);
+        }
+        }
     }
 }

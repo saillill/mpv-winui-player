@@ -7,9 +7,30 @@ namespace mpv_winui.Modules.Settings.Controls;
 
 public sealed partial class OptionDoubleControl : OptionControlBase
 {
+    private bool _suppressValueChanged;
+
     public OptionDoubleControl()
     {
         InitializeComponent();
+
+        // Commit on every value change: spin buttons and typed edits must
+        // persist immediately. LostFocus alone never fires when the settings
+        // window closes, which silently dropped the new value before.
+        NumberBox.ValueChanged += OnNumberBoxValueChanged;
+    }
+
+    private void OnNumberBoxValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        if (_suppressValueChanged || Setting is null)
+        {
+            return;
+        }
+        // Clearing the box produces NaN mid-typing; wait for a real number.
+        if (double.IsNaN(args.NewValue))
+        {
+            return;
+        }
+        TryCommit();
     }
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)
@@ -39,13 +60,21 @@ public sealed partial class OptionDoubleControl : OptionControlBase
                 NumberBox.SmallChange = 0.1;
             }
 
-            if (newValue.Getter is Func<object?> func && func() is double value)
+            _suppressValueChanged = true;
+            try
             {
-                NumberBox.Value = value;
+                if (newValue.Getter is Func<object?> func && func() is double value)
+                {
+                    NumberBox.Value = value;
+                }
+                else
+                {
+                    NumberBox.Value = 0;
+                }
             }
-            else
+            finally
             {
-                NumberBox.Value = 0;
+                _suppressValueChanged = false;
             }
         }
     }

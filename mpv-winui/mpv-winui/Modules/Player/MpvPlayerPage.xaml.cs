@@ -2,6 +2,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.FileSystem;
@@ -60,9 +61,9 @@ namespace mpv_winui.Modules.Player
 
                 PlayerControl.MediaPlayer = _mediaPlayer;
 
-                _mediaPlayer.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
-                _mediaPlayer.VolumeChanged += MediaPlayer_VolumeChanged;
-                _mediaPlayer.WindowChanged += MpvPlayerPage_WindowChanged;
+                _mediaPlayer.Native.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
+                _mediaPlayer.Native.VolumeChanged += MediaPlayer_VolumeChanged;
+                _mediaPlayer.Native.WindowChanged += MpvPlayerPage_WindowChanged;
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.StartListen();
 
@@ -135,9 +136,9 @@ namespace mpv_winui.Modules.Player
             CleanupDisplayInfo();
             CleanupPlaylistRefresh();
 
-            _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
-            _mediaPlayer.VolumeChanged -= MediaPlayer_VolumeChanged;
-            _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
+            _mediaPlayer.Native.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
+            _mediaPlayer.Native.VolumeChanged -= MediaPlayer_VolumeChanged;
+            _mediaPlayer.Native.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
             _mediaPlayer.StopListen();
             TeardownPlayerView();
@@ -238,7 +239,7 @@ namespace mpv_winui.Modules.Player
             await AppContext.WaitAll();
             _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
-            _mediaPlayer.SwapChainChanged += MpvPlayer_SwapChainChanged;
+            _mediaPlayer.Native.VoConfigured += MpvPlayer_SwapChainChanged;
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
                 ? AppContext.AppSetting.OverrideDisplayFps
                 : _lastRefreshRate;
@@ -259,9 +260,9 @@ namespace mpv_winui.Modules.Player
             return _isPlayerInitialized ? Task.CompletedTask : _playerReadyTcs.Task;
         }
 
-        private void MediaPlayer_VolumeChanged(MpvMediaPlayer player, int volume)
+        private void MediaPlayer_VolumeChanged(VolumeChangedEventArgs args)
         {
-            AppContext.AppSetting.LastVideoVolume = volume;
+            AppContext.AppSetting.LastVideoVolume = (int)args.Volume;
         }
 
         private void PlayerView_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)

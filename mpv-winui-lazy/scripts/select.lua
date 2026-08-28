@@ -443,7 +443,9 @@ local select_i18n = {
 }
 
 local function _(s)
-    local t = select_i18n[mp.get_property_native("user-data/mpvw/language") or "en-US"]
+    local lang = mp.get_property_native("user-data/mpvw/language") or "en-US"
+    if lang == "zh-TW" then lang = "zh-CN" end
+    local t = select_i18n[lang]
     if t and t[s] then
         return t[s]
     end

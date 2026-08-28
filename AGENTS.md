@@ -21,13 +21,13 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 - Logs: `%LOCALAPPDATA%\mpv-winui\logs\mpv-winui.<date>.log.txt`, plus `display-info.log`.
 - Config runs from `%LOCALAPPDATA%\mpv-winui\mpv` (synced by ConfigDeployer at startup).
 - Settings are in registry `HKCU\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app`; booleans stored as `"true"` / `"false"`.
-- Defaults live in `AppSettings.cs`; live mpv mapping is `MpvSettings.ToCommand`.
+- Defaults live in `AppSettings*.cs` (core + domain partials); live mpv mapping is `MpvSettings.ToCommand`.
 - PrintWindow misses WinUI popups; use CopyFromScreen for visual verification.
 - UIA BoundingRectangle has a ×1.5 DPI scale factor on this machine.
 
 ### Architecture gotchas
 
-- **Mouse input**: libmpv never sees Win32 mouse input in composition mode. The app forwards it via WH_KEYBOARD hook + window subclass in MpvPlayerPage_Input/MpvPlayerPage_Mouse.
+- **Mouse input**: libmpv never sees Win32 mouse input in composition mode. The app forwards keyboard/mouse via the input-forwarding partial (MpvPlayerPage_InputForwarding.cs); display monitoring lives in MpvPlayerPage_Display.cs.
 - **Command strings**: `mpv_command_string` parses C-style escapes. Windows paths need doubled backslashes inside quotes (`Q()` in `MpvSettings.cs`).
 - **Command ordering**: settings ApplyAll, menu commands and `OpenAsync` run through `MpvCommandQueue` (FIFO worker); input forwarding stays direct.
 - **Position UI**: event-driven; `time-pos` observed natively + 100ms coalescing timer — never reintroduce polling.
@@ -44,7 +44,7 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 - `Controls/Option*.xaml/cs`: per-type renderers (Boolean, StringList, Integer, Double, Color, CheckList, Layout, ShaderList).
 - Dependency gating: `RefreshWarningsAndEnabled()` evaluates Warning/IsEnabled/IsVisible rules.
 - `tools/check-settings-drift.py`: validates AppSettings ↔ ToCommand ↔ option keys consistency.
-- `tools/check-localization.py`: validates AppLang properties × 8 language JSON files.
+- `tools/check-localization.py`: validates AppLang properties × the Languages/*.json files (9 languages).
 - App-level settings (no ToCommand mapping) must be whitelisted in check-settings-drift.py.
 
 ### Right-click menu
@@ -74,5 +74,5 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 ## Pointers
 
 - Editing menus / input.conf: read `docs/localization.md` first.
-- Localization: all user-facing strings go through AppLang × 8 Languages/*.json. Run `python tools/check-localization.py` after changes.
+- Localization: all user-facing strings go through AppLang × Languages/*.json (9 languages). Run `python tools/check-localization.py` after changes.
 - Adding settings options: read `docs/localization.md`, run both checkers after changes.

@@ -15,16 +15,6 @@ namespace mpv_winui.Modules.Common.Utils
             SetContent(package => package.SetText(text));
         }
 
-        public static void SetCopyUri(Uri? uri)
-        {
-            if (uri == null)
-            {
-                return;
-            }
-
-            SetContent(package => package.SetUri(uri));
-        }
-
         private static void SetContent(Action<DataPackage> fill)
         {
             try

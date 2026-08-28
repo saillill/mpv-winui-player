@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
@@ -24,14 +24,7 @@ namespace mpv_winui.Modules.Language
         public string AppSettingTheme { get; set; } = "Theme";
         public string SettingsAlwaysOnTop { get; set; } = "Always on top";
         public string ThemeDarkName { get; set; } = "Dark";
-        public string ThemeCustomName { get; set; } = "Custom";
         public string ThemeLightName { get; set; } = "Light";
-        public string SettingsThemeAccentColor { get; set; } = "Accent color";
-        public string SettingsHelpThemeAccentColor { get; set; } = "Tint color for the window backdrop. Leave empty to follow the system accent.";
-        public string SettingsThemeOpacity { get; set; } = "Backdrop transparency";
-        public string SettingsHelpThemeOpacity { get; set; } = "Higher values make the backdrop more transparent. Only applies to the Acrylic backdrop.";
-        public string SettingsThemeLuminosity { get; set; } = "Backdrop brightness";
-        public string SettingsHelpThemeLuminosity { get; set; } = "Brightness of the Acrylic backdrop. Only applies when the Acrylic backdrop is selected.";
         public string SettingsUiFont { get; set; } = "UI font";
         public string ThemeColorRecentColors { get; set; } = "Recent colors";
         public string ThemeColorWindowsColors { get; set; } = "Windows colors";
@@ -77,6 +70,7 @@ namespace mpv_winui.Modules.Language
         public string OptionValuePiPSmall { get; set; } = "Small (320x180)";
         public string OptionValuePiPMedium { get; set; } = "Medium (480x270)";
         public string OptionValuePiPLarge { get; set; } = "Large (640x360)";
+        public string OptionValuePiPXLarge { get; set; } = "Extra large (960x540)";
         public string SettingsStartMaximized { get; set; } = "Start maximized";
         public string SettingsHelpStartMaximized { get; set; } = "Open the window maximized on launch.";
         public string SettingsRememberWindowSize { get; set; } = "Remember window size and position";
@@ -262,6 +256,8 @@ namespace mpv_winui.Modules.Language
         public string MorePlaybackRate { get; set; } = "Playback Rate";
         public string MorePreviousTrack { get; set; } = "Previous Track";
         public string MoreRepeat { get; set; } = "Repeat";
+        public string A11yVideoPreview { get; set; } = "Video preview";
+        public string A11yColorSwatch { get; set; } = "Color swatch";
         public string MoreShuffle { get; set; } = "Shuffle";
         public string SettingsThumbnailSize { get; set; } = "Thumbnail preview size";
         public string SettingsHelpThumbnailSize { get; set; } = "Width of the seek-bar preview thumbnail. Applies the next time the preview initializes, e.g. after reopening a file.";
@@ -715,6 +711,7 @@ namespace mpv_winui.Modules.Language
         public string OptionValueChannelsAuto { get; set; } = "Auto";
         public string OptionValueBackdropAcrylic { get; set; } = "Acrylic";
         public string OptionValueBackdropMica { get; set; } = "Mica";
+        public string OptionValueBackdropNone { get; set; } = "None";
         public string OptionValueToneMapBt2390 { get; set; } = "BT.2390";
         public string OptionValueToneMapBt2446a { get; set; } = "BT.2446a";
         public string OptionValueToneMapMobius { get; set; } = "Möbius";
@@ -939,7 +936,8 @@ namespace mpv_winui.Modules.Language
             return code switch
             {
                 "en-US" => "English",
-                "zh-CN" => "中文",
+                "zh-CN" => "简体中文",
+                "zh-TW" => "繁體中文",
                 "ja-JP" => "日本語",
                 "ko-KR" => "한국어",
                 "de-DE" => "Deutsch",
@@ -1088,6 +1086,10 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpCoverArtImageExts { get; set; } = "Image extensions treated as cover art, separated by semicolons.";
         public string SettingsHelpKeepOpen { get; set; } = "Keep the window open after the playlist ends instead of quitting.";
         public string SettingsHelpWindowPiPSize { get; set; } = "Size of the floating mini-player window as a percentage of the screen.";
+        public string SettingsPiPTopButtons { get; set; } = "Top overlay buttons";
+        public string SettingsHelpPiPTopButtons { get; set; } = "Show the back and exit buttons when the pointer moves to the top of the mini-player.";
+        public string SettingsPiPControls { get; set; } = "Mini-player control bar";
+        public string SettingsHelpPiPControls { get; set; } = "Show the control bar (volume, play, seek) when the pointer moves to the bottom of the mini-player.";
         public string SettingsHelpSavePositionOnQuit { get; set; } = "Remember the playback position when quitting so the file can resume later.";
         public string SettingsHelpSpeed { get; set; } = "Playback speed saved for the next launch (1.0 is normal).";
         public string SettingsHelpCacheEnabled { get; set; } = "Network cache: Off disables, Auto caches only when needed, Yes always caches.";

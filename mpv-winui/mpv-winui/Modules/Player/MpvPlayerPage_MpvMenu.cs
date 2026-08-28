@@ -1,6 +1,7 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using mpv_winrt;
@@ -226,6 +227,34 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(PlaylistCloseButton, AppContext.AppLang.TogglePlaylist);
             ToolTipService.SetToolTip(PlaylistRefreshButton, AppContext.AppLang.Refresh);
             PlaylistFilterBox.PlaceholderText = AppContext.AppLang.PlaylistFilterPlaceholder;
+            AutomationProperties.SetName(PreviewCard, AppContext.AppLang.A11yVideoPreview);
+
+            // The playlist context menu is declared in XAML with English
+            // placeholders; its items carry no x:Name, so retarget the text
+            // through the same Tag the click handler dispatches on.
+            if (Resources["PlaylistContextMenu"] is MenuFlyout playlistFlyout)
+            {
+                var lang = AppContext.AppLang;
+                foreach (var flyoutItem in playlistFlyout.Items)
+                {
+                    if (flyoutItem is MenuFlyoutItem { Tag: string tag } menuItem)
+                    {
+                        menuItem.Text = tag switch
+                        {
+                            "play" => lang.PlaylistPlay,
+                            "move-top" => lang.PlaylistMoveTop,
+                            "move-up" => lang.PlaylistMoveUp,
+                            "move-down" => lang.PlaylistMoveDown,
+                            "move-bottom" => lang.PlaylistMoveBottom,
+                            "remove" => lang.PlaylistRemove,
+                            "copy-title" => lang.PlaylistCopyTitle,
+                            "copy-path" => lang.PlaylistCopyPath,
+                            "open-location" => lang.PlaylistOpenLocation,
+                            _ => menuItem.Text,
+                        };
+                    }
+                }
+            }
         }
     }
 }

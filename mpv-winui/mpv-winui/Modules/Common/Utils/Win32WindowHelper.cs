@@ -11,13 +11,6 @@ namespace mpv_winui.Modules.Common.Utils
     {
         public static nint GetHwnd(Window window) => WinRT.Interop.WindowNative.GetWindowHandle(window);
 
-        public static double GetWindowScale(Window window)
-        {
-            var dpi = PInvoke.GetDpiForWindow(new HWND(GetHwnd(window)));
-            var scalingFactor = (float)dpi / 96;
-            return scalingFactor > 0 ? scalingFactor : 1;
-        }
-
         public static void SetForegroundWindow(Window window)
         {
             PInvoke.SetForegroundWindow(new HWND(GetHwnd(window)));
@@ -26,11 +19,6 @@ namespace mpv_winui.Modules.Common.Utils
         private static void ShowWindow(Window window, int value)
         {
             PInvoke.ShowWindow(new HWND(GetHwnd(window)), (SHOW_WINDOW_CMD)value);
-        }
-
-        public static HMONITOR GetMonitorFromRect(RECT rect)
-        {
-            return PInvoke.MonitorFromRect(rect, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
         }
 
         public static HMONITOR GetMonitor(Window window)

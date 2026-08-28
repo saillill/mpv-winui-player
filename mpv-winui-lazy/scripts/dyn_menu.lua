@@ -19,6 +19,7 @@ opts.read_options(o)
 -- 应用把界面语言写入 user-data/mpvw/language（如 en-US/zh-CN），
 -- 这里按语言翻译 input.conf 的 #menu: 标题与动态菜单标题；未收录的键保持原样。
 local menu_lang = mp.get_property_native('user-data/mpvw/language') or 'en-US'
+if menu_lang == 'zh-TW' then menu_lang = 'zh-CN' end
 -- BEGIN MENU_I18N
 local menu_i18n = {
     ['en-US'] = {
@@ -1733,6 +1734,7 @@ end
 -- 界面语言变化时（应用设置后重启前也会写入）重解析菜单
 mp.observe_property('user-data/mpvw/language', 'string', function()
     menu_lang = mp.get_property_native('user-data/mpvw/language') or 'en-US'
+    if menu_lang == 'zh-TW' then menu_lang = 'zh-CN' end
     if input_conf_text then
         menu_items = parse_input_conf(input_conf_text)
         menu_items_dirty = true

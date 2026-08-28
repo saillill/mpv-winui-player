@@ -7,6 +7,7 @@
             <RowDefinition Height="40" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
         <Border
             Grid.Row="0"
             Padding="16,8">
