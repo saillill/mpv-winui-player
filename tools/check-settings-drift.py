@@ -62,7 +62,7 @@ def parse_option_keys(src_dir: Path) -> set[str]:
 # Adding a new mpv-facing setting here is a bug; the check keeps this list tight.
 UNMAPPED_OK = {
     # UI-only
-    "ThemeType", "BackdropType",
+    "ThemeType", "ThemeAccentColor", "ThemeOpacity", "ThemeLuminosity", "BackdropType",
     "UiFont", "ThemeRecentColors", "ControlBarLayout", "ControlBarHiddenIcons",
     "ControlBarHiddenIconsClassic", "ControlBarHiddenIconsModernX",
     "CurrentLanguage", "WindowRememberSize", "WindowPositionAndSize", "WindowStartMaximized",
@@ -71,8 +71,7 @@ UNMAPPED_OK = {
     "DisplayPeak",
     "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
     "ControlBarZonesClassic", "ControlBarZonesModernX",
-    "ControlBarOrderStyleMigrated", "WindowPiPShowTopButtons", "WindowPiPShowControls",
-    "WindowPiPOpacity",
+    "ControlBarOrderStyleMigrated", "WindowPiPRect", "WindowPiPOpacity",
     "LastVideoVolume", "AudioVolume",
     "EnableVideoPreview",
     "ThumbnailPreviewWidth", "ThumbnailUpdateInterval",

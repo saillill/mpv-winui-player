@@ -215,6 +215,10 @@ public sealed partial class PiPWindow
             // on every change and fires 300ms after the drag ends).
             ScheduleVideoSizeUpdate();
         }
+        if (args.DidSizeChange || args.DidPositionChange)
+        {
+            SaveCurrentRect();
+        }
     }
 
     private void PositionAtBottomRight(int width, int height)
@@ -392,6 +396,7 @@ public sealed partial class PiPWindow
             // Safety net: re-assert the swap chain size once layout settles.
             ScheduleVideoSizeUpdate();
         }
+        SaveCurrentRect();
         e.Handled = true;
     }
 
