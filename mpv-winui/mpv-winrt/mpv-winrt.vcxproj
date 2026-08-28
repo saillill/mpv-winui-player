@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.2\build\native\Microsoft.WindowsAppSDK.WinUI.props" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.2\build\native\Microsoft.WindowsAppSDK.WinUI.props')" />
   <Import Project="..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.5\build\native\Microsoft.WindowsAppSDK.Foundation.props" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.5\build\native\Microsoft.WindowsAppSDK.Foundation.props')" />
@@ -133,10 +133,8 @@
     <ClInclude Include="MpvPreviewer.h" />
     <ClInclude Include="MpvPreviewInfo.h" />
     <ClInclude Include="MpvChapter.h" />
-    <ClInclude Include="MpvEdition.h" />
     <ClInclude Include="MpvAudioDevice.h" />
     <ClInclude Include="MpvGpuAdapter.h" />
-    <ClInclude Include="MpvProfile.h" />
     <ClInclude Include="MpvMenuItem.h" />
     <ClInclude Include="MpvTrack.h" />
     <ClInclude Include="PlaybackStateChangedEventArgs.h" />
@@ -164,10 +162,8 @@
     <Midl Include="MpvPreviewer.idl" />
     <Midl Include="MpvPreviewInfo.idl" />
     <Midl Include="MpvChapter.idl" />
-    <Midl Include="MpvEdition.idl" />
     <Midl Include="MpvAudioDevice.idl" />
     <Midl Include="MpvGpuAdapter.idl" />
-    <Midl Include="MpvProfile.idl" />
     <Midl Include="MpvMenuItem.idl" />
     <Midl Include="MpvTrack.idl" />
     <Midl Include="PlaybackStateChangedEventArgs.idl" />

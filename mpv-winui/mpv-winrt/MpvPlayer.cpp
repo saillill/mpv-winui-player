@@ -4,13 +4,11 @@
 #include "MediaInfoChangedEventArgs.h"
 #include "MpvAudioDevice.h"
 #include "MpvChapter.h"
-#include "MpvEdition.h"
 #include "MpvGpuAdapter.h"
 #include "MpvLogEventArgs.h"
 #include "MpvMenuItem.h"
 #include "MpvPlaylistItem.h"
 #include "MpvPreviewInfo.h"
-#include "MpvProfile.h"
 #include "MpvTrack.h"
 #include "PlaybackFailedEventArgs.h"
 #include "PlaybackStateChangedEventArgs.h"
@@ -120,7 +118,6 @@ namespace winrt::mpv_winrt::implementation
         mpv_observe_property(m_mpv, MpvObserveId::LoopPlaylist, "loop-playlist", MPV_FORMAT_STRING);
         mpv_observe_property(m_mpv, MpvObserveId::Shuffle, "shuffle", MPV_FORMAT_STRING);
         mpv_observe_property(m_mpv, MpvObserveId::Playlist, "playlist", MPV_FORMAT_NODE);
-        mpv_observe_property(m_mpv, MpvObserveId::Preview, "user-data/mpvw/preview", MPV_FORMAT_NODE);
 
         mpv_observe_property(m_mpv, MpvObserveId::Speed, "speed", MPV_FORMAT_DOUBLE);
 
@@ -220,11 +217,7 @@ namespace winrt::mpv_winrt::implementation
             case MPV_EVENT_END_FILE:
                 {
                     auto end_file = static_cast<mpv_event_end_file*>(event->data);
-                    if (end_file->reason == MPV_END_FILE_REASON_EOF)
-                    {
-                        m_playbackEndedEvent();
-                    }
-                    else if (end_file->reason == MPV_END_FILE_REASON_ERROR)
+                    if (end_file->reason == MPV_END_FILE_REASON_ERROR)
                     {
                         auto args = winrt::make<implementation::PlaybackFailedEventArgs>(
                             winrt::to_hstring(mpv_error_string(end_file->error)));
@@ -379,37 +372,6 @@ namespace winrt::mpv_winrt::implementation
                                 break;
                             }
 
-                        case MpvObserveId::Preview:
-                            {
-                                if (prop->format == MPV_FORMAT_NODE && prop->data)
-                                {
-                                    auto* root = static_cast<mpv_node*>(prop->data);
-                                    auto* wField = root->format == MPV_FORMAT_NODE_MAP ? FindMapField(root, "w") : nullptr;
-                                    auto* hField = root->format == MPV_FORMAT_NODE_MAP ? FindMapField(root, "h") : nullptr;
-                                    auto* pathField = root->format == MPV_FORMAT_NODE_MAP ? FindMapField(root, "path") : nullptr;
-                                    if (wField && hField && pathField &&
-                                        wField->format == MPV_FORMAT_INT64 &&
-                                        hField->format == MPV_FORMAT_INT64 &&
-                                        pathField->format == MPV_FORMAT_STRING && pathField->u.string)
-                                    {
-                                        auto args = winrt::make<implementation::MpvPreviewInfo>(
-                                            static_cast<int32_t>(wField->u.int64),
-                                            static_cast<int32_t>(hField->u.int64),
-                                            winrt::to_hstring(pathField->u.string));
-                                        m_previewChangedEvent(args);
-                                    }
-                                    else
-                                    {
-                                        m_previewChangedEvent(nullptr);
-                                    }
-                                }
-                                else
-                                {
-                                    m_previewChangedEvent(nullptr);
-                                }
-                                break;
-                            }
-
                         case MpvObserveId::Fullscreen:
                         case MpvObserveId::Ontop:
                         case MpvObserveId::WindowMinimized:
@@ -440,16 +402,6 @@ namespace winrt::mpv_winrt::implementation
     void MpvPlayer::MediaLoaded(winrt::event_token const& token) noexcept
     {
         m_mediaLoadedEvent.remove(token);
-    }
-
-    winrt::event_token MpvPlayer::PlaybackEnded(winrt::mpv_winrt::PlaybackEndedEventHandler const& handler)
-    {
-        return m_playbackEndedEvent.add(handler);
-    }
-
-    void MpvPlayer::PlaybackEnded(winrt::event_token const& token) noexcept
-    {
-        m_playbackEndedEvent.remove(token);
     }
 
     winrt::event_token MpvPlayer::PlaybackFailed(winrt::mpv_winrt::PlaybackFailedEventHandler const& handler)
@@ -593,16 +545,6 @@ namespace winrt::mpv_winrt::implementation
         m_playlistChangedEvent.remove(token);
     }
 
-    winrt::event_token MpvPlayer::PreviewChanged(winrt::mpv_winrt::PreviewChangedEventHandler const& handler)
-    {
-        return m_previewChangedEvent.add(handler);
-    }
-
-    void MpvPlayer::PreviewChanged(winrt::event_token const& token) noexcept
-    {
-        m_previewChangedEvent.remove(token);
-    }
-
     void MpvPlayer::UpdateSize(uint32_t width, uint32_t height)
     {
         if (!m_mpv)
@@ -648,18 +590,6 @@ namespace winrt::mpv_winrt::implementation
         }
     }
 
-    void MpvPlayer::LoadList(hstring const& url)
-    {
-        if (!m_mpv)
-        {
-            return;
-        }
-
-        std::string path = winrt::to_string(url);
-        const char* args[] = {"loadlist", path.c_str(), nullptr};
-        mpv_command(m_mpv, args);
-    }
-
     void MpvPlayer::Play()
     {
         if (!m_mpv)
@@ -687,16 +617,6 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
         const char* args[] = {"stop", nullptr};
-        mpv_command(m_mpv, args);
-    }
-
-    void MpvPlayer::TogglePlayPause()
-    {
-        if (!m_mpv)
-        {
-            return;
-        }
-        const char* args[] = {"cycle", "pause", nullptr};
         mpv_command(m_mpv, args);
     }
 
@@ -1124,62 +1044,6 @@ namespace winrt::mpv_winrt::implementation
 
         std::string aspectRatio = to_string(ratio);
         SetStringProperty("video-aspect-override", aspectRatio);
-    }
-
-    void MpvPlayer::SetHoverSec(double sec)
-    {
-        if (!m_mpv)
-        {
-            return;
-        }
-        SetDoubleProperty("user-data/osc/hover-sec", sec);
-    }
-
-    void MpvPlayer::SetDrawPreview(int32_t x, int32_t y, int32_t w, int32_t h)
-    {
-        if (!m_mpv)
-        {
-            return;
-        }
-
-        mpv_node node{};
-        mpv_node_list list{};
-        mpv_node values[4]{};
-        const char* keyPtrs[4] = {"x", "y", "w", "h"};
-
-        values[0].format = MPV_FORMAT_INT64;
-        values[0].u.int64 = static_cast<int64_t>(x);
-
-        values[1].format = MPV_FORMAT_INT64;
-        values[1].u.int64 = static_cast<int64_t>(y);
-
-        values[2].format = MPV_FORMAT_INT64;
-        values[2].u.int64 = static_cast<int64_t>(w);
-
-        values[3].format = MPV_FORMAT_INT64;
-        values[3].u.int64 = static_cast<int64_t>(h);
-
-        list.num = 4;
-        list.keys = (char**)keyPtrs;
-        list.values = values;
-
-        node.format = MPV_FORMAT_NODE_MAP;
-        node.u.list = &list;
-
-        mpv_set_property(m_mpv, "user-data/osc/draw-preview", MPV_FORMAT_NODE, &node);
-    }
-
-    void MpvPlayer::ClearPreview()
-    {
-        if (!m_mpv)
-        {
-            return;
-        }
-
-        mpv_node null_node{};
-        null_node.format = MPV_FORMAT_NONE;
-        mpv_set_property(m_mpv, "user-data/osc/draw-preview", MPV_FORMAT_NODE, &null_node);
-        mpv_del_property(m_mpv, "user-data/osc/hover-sec");
     }
 
     void MpvPlayer::AttachSwapChain(SwapChainPanel const& panel)
@@ -1650,53 +1514,6 @@ namespace winrt::mpv_winrt::implementation
         return chapters.GetView();
     }
 
-    winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvEdition> MpvPlayer::GetEditions()
-    {
-        auto editions = winrt::single_threaded_vector<winrt::mpv_winrt::MpvEdition>();
-        if (!m_mpv)
-        {
-            return editions.GetView();
-        }
-
-        mpv_node node;
-        if (mpv_get_property(m_mpv, "edition-list", MPV_FORMAT_NODE, &node) < 0)
-        {
-            return editions.GetView();
-        }
-
-        if (node.format == MPV_FORMAT_NODE_ARRAY)
-        {
-            for (int i = 0; i < node.u.list->num; i++)
-            {
-                mpv_node* entry = &node.u.list->values[i];
-                if (entry->format != MPV_FORMAT_NODE_MAP)
-                {
-                    continue;
-                }
-
-                int32_t id = i;
-                std::string title;
-
-                for (int j = 0; j < entry->u.list->num; j++)
-                {
-                    auto& key = entry->u.list->keys[j];
-                    auto& value = entry->u.list->values[j];
-
-                    if (strcmp(key, "title") == 0 && value.format == MPV_FORMAT_STRING)
-                    {
-                        title = value.u.string ? value.u.string : "";
-                    }
-                }
-
-                auto edition = winrt::make<implementation::MpvEdition>(id, winrt::to_hstring(title));
-                editions.Append(edition);
-            }
-        }
-
-        mpv_free_node_contents(&node);
-        return editions.GetView();
-    }
-
     winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvAudioDevice> MpvPlayer::GetAudioDevices()
     {
         auto devices = winrt::single_threaded_vector<winrt::mpv_winrt::MpvAudioDevice>();
@@ -1791,52 +1608,6 @@ namespace winrt::mpv_winrt::implementation
         }
 
         return adapters.GetView();
-    }
-
-    winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvProfile> MpvPlayer::GetProfiles()
-    {
-        auto profiles = winrt::single_threaded_vector<winrt::mpv_winrt::MpvProfile>();
-        if (!m_mpv)
-        {
-            return profiles.GetView();
-        }
-
-        mpv_node node;
-        if (mpv_get_property(m_mpv, "profile-list", MPV_FORMAT_NODE, &node) < 0)
-        {
-            return profiles.GetView();
-        }
-
-        if (node.format == MPV_FORMAT_NODE_ARRAY)
-        {
-            for (int i = 0; i < node.u.list->num; i++)
-            {
-                mpv_node* entry = &node.u.list->values[i];
-                if (entry->format != MPV_FORMAT_NODE_MAP)
-                {
-                    continue;
-                }
-
-                std::string name;
-
-                for (int j = 0; j < entry->u.list->num; j++)
-                {
-                    auto& key = entry->u.list->keys[j];
-                    auto& value = entry->u.list->values[j];
-
-                    if (strcmp(key, "name") == 0 && value.format == MPV_FORMAT_STRING)
-                    {
-                        name = value.u.string ? value.u.string : "";
-                    }
-                }
-
-                auto profile = winrt::make<implementation::MpvProfile>(winrt::to_hstring(name));
-                profiles.Append(profile);
-            }
-        }
-
-        mpv_free_node_contents(&node);
-        return profiles.GetView();
     }
 
     int32_t MpvPlayer::CurrentChapter()

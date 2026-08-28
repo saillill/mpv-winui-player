@@ -76,7 +76,9 @@ namespace mpv_winui.Modules.Settings
             const string barOrderMigratedKey = "ControlBarOrderStyleMigrated";
             if (!_dataSetting.GetValue(barOrderMigratedKey, false))
             {
-                var legacyOrder = _dataSetting.GetValue(nameof(ControlBarCustomOrder), string.Empty);
+                // Legacy registry key name kept as a literal: the property was
+                // removed, only this one-time migration still reads it.
+                var legacyOrder = _dataSetting.GetValue("ControlBarCustomOrder", string.Empty);
                 if (!string.IsNullOrEmpty(legacyOrder))
                 {
                     if (string.IsNullOrEmpty(_dataSetting.GetValue(nameof(ControlBarCustomOrderClassic), string.Empty)))
@@ -266,22 +268,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(AppVersion), value);
         }
 
-        public int PatchVersion
-        {
-            get => _dataSetting.GetValue(nameof(PatchVersion), 0);
-            set => _dataSetting.SetValue(nameof(PatchVersion), value);
-        }
-
         public int LastVideoVolume
         {
             get => _dataSetting.GetValue(nameof(LastVideoVolume), 50);
             set => _dataSetting.SetValue(nameof(LastVideoVolume), value);
-        }
-
-        public int LastAudioVolume
-        {
-            get => _dataSetting.GetValue(nameof(LastAudioVolume), 50);
-            set => _dataSetting.SetValue(nameof(LastAudioVolume), value);
         }
 
         public string WindowPositionAndSize
@@ -499,18 +489,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(ControlBarLayout), "classic");
             set => _dataSetting.SetValue(nameof(ControlBarLayout), value);
-        }
-
-        /// <summary>
-        /// Comma-separated custom order of the reorderable control-bar buttons
-        /// (volume,tracks,random,speed,aspect,fullwindow,fullscreen,pip).
-        /// Empty = the layout's built-in order; the transport buttons
-        /// (play/prev/next/skips) are always fixed.
-        /// </summary>
-        public string ControlBarCustomOrder
-        {
-            get => _dataSetting.GetValue(nameof(ControlBarCustomOrder), string.Empty);
-            set => _dataSetting.SetValue(nameof(ControlBarCustomOrder), value);
         }
 
         /// <summary>Custom order for the 原版 (classic) layout — separate from

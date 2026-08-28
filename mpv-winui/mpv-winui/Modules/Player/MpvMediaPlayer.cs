@@ -91,10 +91,6 @@ namespace mpv_winui.Modules.Player
         {
             get; set;
         }
-        public Action<MpvMediaPlayer, MpvPreviewInfo?>? PreviewChanged
-        {
-            get; set;
-        }
         public Action<MpvMediaPlayer, object?>? Seeked
         {
             get; set;
@@ -119,13 +115,6 @@ namespace mpv_winui.Modules.Player
         {
             get; set;
         }
-
-        /// <summary>mpv's own log messages (shader errors, config warnings, ...).</summary>
-        public Action<MpvMediaPlayer, MpvLogEventArgs>? LogMessage
-        {
-            get; set;
-        }
-
 
         public Action<MpvMediaPlayer, MediaInfoChangedEventArgs>? MediaInfoChanged
         {
@@ -310,7 +299,6 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.LoopPlaylistChanged += MpvPlayer_LoopPlaylistChanged;
             _mpvPlayer.ShuffleChanged += MpvPlayer_ShuffleChanged;
             _mpvPlayer.PlaylistChanged += MpvPlayer_PlaylistChanged;
-            _mpvPlayer.PreviewChanged += MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged += MpvPlayer_WindowChanged;
             _mpvPlayer.LogMessage += MpvPlayer_LogMessage;
             _mpvPlayer.PositionChanged += MpvPlayer_PositionChanged;
@@ -331,7 +319,6 @@ namespace mpv_winui.Modules.Player
             _mpvPlayer.LoopPlaylistChanged -= MpvPlayer_LoopPlaylistChanged;
             _mpvPlayer.ShuffleChanged -= MpvPlayer_ShuffleChanged;
             _mpvPlayer.PlaylistChanged -= MpvPlayer_PlaylistChanged;
-            _mpvPlayer.PreviewChanged -= MpvPlayer_PreviewChanged;
             _mpvPlayer.WindowChanged -= MpvPlayer_WindowChanged;
             _mpvPlayer.LogMessage -= MpvPlayer_LogMessage;
             _mpvPlayer.PositionChanged -= MpvPlayer_PositionChanged;
@@ -365,7 +352,6 @@ namespace mpv_winui.Modules.Player
                     AppContext.AppLogger.Info($"[mpv/{args.Prefix}] {args.Text}");
                     break;
             }
-            LogMessage?.Invoke(this, args);
         }
 
         /// <summary>Adjusts mpv's log verbosity ("fatal"…"debug"/"no").</summary>
@@ -399,11 +385,6 @@ namespace mpv_winui.Modules.Player
         private void MpvPlayer_PlaylistChanged()
         {
             PlaylistChanged?.Invoke(this, null);
-        }
-
-        private void MpvPlayer_PreviewChanged(MpvPreviewInfo args)
-        {
-            PreviewChanged?.Invoke(this, args);
         }
 
         private void MpvPlayer_Seeked()
@@ -602,11 +583,6 @@ namespace mpv_winui.Modules.Player
             return _mpvPlayer.GetChapters();
         }
 
-        public IReadOnlyList<MpvEdition> Editions()
-        {
-            return _mpvPlayer.GetEditions();
-        }
-
         public IReadOnlyList<MpvAudioDevice> AudioDevices()
         {
             return _mpvPlayer.GetAudioDevices();
@@ -618,37 +594,9 @@ namespace mpv_winui.Modules.Player
             return _mpvPlayer.GetGpuAdapters();
         }
 
-        public IReadOnlyList<MpvProfile> Profiles()
-        {
-            return _mpvPlayer.GetProfiles();
-        }
-
         public void AddSubtitle(string path, bool selected = true, string? title = null)
         {
             _mpvPlayer.AddSubtitle(path, selected, title ?? "");
-        }
-
-        public void AddSubtitles(IReadOnlyList<string> paths)
-        {
-            foreach (var path in paths)
-            {
-                _mpvPlayer.AddSubtitle(path, false, string.Empty);
-            }
-        }
-
-        public void SetHoverSec(double sec)
-        {
-            _mpvPlayer?.SetHoverSec(sec);
-        }
-
-        public void SetDrawPreview(int x, int y, int w, int h)
-        {
-            _mpvPlayer?.SetDrawPreview(x, y, w, h);
-        }
-
-        public void ClearPreview()
-        {
-            _mpvPlayer?.ClearPreview();
         }
 
         public void Close()

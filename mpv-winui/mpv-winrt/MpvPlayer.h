@@ -27,7 +27,6 @@ namespace winrt::mpv_winrt::implementation
         LoopPlaylist = 11,
         Shuffle = 12,
         Playlist = 42,
-        Preview = 43,
         VoConfigured = 50,
 
         // donot change
@@ -52,12 +51,10 @@ namespace winrt::mpv_winrt::implementation
         void UpdateDisplayColorInfo(winrt::mpv_winrt::DisplayColorKind colorKind);
         void UpdateDisplayRefreshRate(int32_t refreshRate);
         void LoadFile(hstring const& url, double position);
-        void LoadList(hstring const& url);
 
         void Play();
         void Pause();
         void Stop();
-        void TogglePlayPause();
         bool IsPaused();
 
         void Command(winrt::Windows::Foundation::Collections::IVector<hstring> const& args);
@@ -104,18 +101,12 @@ namespace winrt::mpv_winrt::implementation
 
         void SetAspectRatio(hstring const& ratio);
 
-        void SetHoverSec(double sec);
-        void SetDrawPreview(int32_t x, int32_t y, int32_t w, int32_t h);
-        void ClearPreview();
-
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvPlaylistItem> GetPlaylist();
 
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvTrack> GetAudioTracks();
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvTrack> GetVideoTracks();
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvTrack> GetSubtitleTracks();
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvChapter> GetChapters();
-        winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvEdition> GetEditions();
-        winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvProfile> GetProfiles();
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvAudioDevice> GetAudioDevices();
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvGpuAdapter> GetGpuAdapters();
         int32_t CurrentChapter();
@@ -126,8 +117,6 @@ namespace winrt::mpv_winrt::implementation
 
         winrt::event_token MediaLoaded(winrt::mpv_winrt::MediaLoadedEventHandler const& handler);
         void MediaLoaded(winrt::event_token const& token) noexcept;
-        winrt::event_token PlaybackEnded(winrt::mpv_winrt::PlaybackEndedEventHandler const& handler);
-        void PlaybackEnded(winrt::event_token const& token) noexcept;
         winrt::event_token PlaybackFailed(winrt::mpv_winrt::PlaybackFailedEventHandler const& handler);
         void PlaybackFailed(winrt::event_token const& token) noexcept;
         winrt::event_token Seeked(winrt::mpv_winrt::SeekEventHandler const& handler);
@@ -157,8 +146,6 @@ namespace winrt::mpv_winrt::implementation
         void ShuffleChanged(winrt::event_token const& token) noexcept;
         winrt::event_token PlaylistChanged(winrt::mpv_winrt::PlaylistChangedEventHandler const& handler);
         void PlaylistChanged(winrt::event_token const& token) noexcept;
-        winrt::event_token PreviewChanged(winrt::mpv_winrt::PreviewChangedEventHandler const& handler);
-        void PreviewChanged(winrt::event_token const& token) noexcept;
         winrt::event_token LogMessage(winrt::mpv_winrt::MpvLogEventHandler const& handler);
         void LogMessage(winrt::event_token const& token) noexcept;
 
@@ -192,7 +179,6 @@ namespace winrt::mpv_winrt::implementation
         double m_lastDuration{0.0};
 
         winrt::event<winrt::mpv_winrt::MediaLoadedEventHandler> m_mediaLoadedEvent;
-        winrt::event<winrt::mpv_winrt::PlaybackEndedEventHandler> m_playbackEndedEvent;
         winrt::event<winrt::mpv_winrt::PlaybackFailedEventHandler> m_playbackFailedEvent;
         winrt::event<winrt::mpv_winrt::SeekEventHandler> m_seekedEvent;
         winrt::event<winrt::mpv_winrt::FileLoadedEventHandler> m_fileLoadedEvent;
@@ -208,7 +194,6 @@ namespace winrt::mpv_winrt::implementation
         winrt::event<winrt::mpv_winrt::LoopPlaylistChangedEventHandler> m_loopPlaylistChangedEvent;
         winrt::event<winrt::mpv_winrt::ShuffleChangedEventHandler> m_shuffleChangedEvent;
         winrt::event<winrt::mpv_winrt::PlaylistChangedEventHandler> m_playlistChangedEvent;
-        winrt::event<winrt::mpv_winrt::PreviewChangedEventHandler> m_previewChangedEvent;
         winrt::event<winrt::mpv_winrt::MpvLogEventHandler> m_logMessageEvent;
     };
 }

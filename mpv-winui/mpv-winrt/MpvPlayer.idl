@@ -2,10 +2,8 @@ import "DisplayColorKind.idl";
 import "MpvLogEventArgs.idl";
 import "MpvPlaylistItem.idl";
 import "MpvChapter.idl";
-import "MpvEdition.idl";
 import "MpvAudioDevice.idl";
 import "MpvGpuAdapter.idl";
-import "MpvProfile.idl";
 import "MpvMenuItem.idl";
 import "MpvTrack.idl";
 import "MpvPreviewInfo.idl";
@@ -20,7 +18,6 @@ import "WindowChangedEventArgs.idl";
 namespace mpv_winrt
 {
     delegate void MediaLoadedEventHandler();
-    delegate void PlaybackEndedEventHandler();
     delegate void PlaybackFailedEventHandler(PlaybackFailedEventArgs args);
     delegate void SeekEventHandler();
     delegate void FileLoadedEventHandler();
@@ -36,7 +33,6 @@ namespace mpv_winrt
     delegate void LoopPlaylistChangedEventHandler();
     delegate void ShuffleChangedEventHandler();
     delegate void PlaylistChangedEventHandler();
-    delegate void PreviewChangedEventHandler(MpvPreviewInfo args);
     delegate void MpvLogEventHandler(MpvLogEventArgs args);
     delegate void MpvPropertyChangedEventHandler(String name, String value);
 
@@ -47,7 +43,6 @@ namespace mpv_winrt
         void Destroy();
         void UpdateSize(UInt32 width, UInt32 height);
         void LoadFile(String url, Double position);
-        void LoadList(String url);
         void AttachSwapChain(Microsoft.UI.Xaml.Controls.SwapChainPanel panel);
         void UpdateSwapChainScale(Single scaleX, Single scaleY);
         void UpdateDisplayColorInfo(DisplayColorKind colorKind);
@@ -56,7 +51,6 @@ namespace mpv_winrt
         void Play();
         void Pause();
         void Stop();
-        void TogglePlayPause();
         Boolean IsPaused();
 
         void Command(Windows.Foundation.Collections.IVector<String> args);
@@ -105,20 +99,14 @@ namespace mpv_winrt
 
         void SetAspectRatio(String ratio);
 
-        void SetHoverSec(Double sec);
-        void SetDrawPreview(Int32 x, Int32 y, Int32 w, Int32 h);
-        void ClearPreview();
-
         Windows.Foundation.Collections.IVectorView<MpvPlaylistItem> GetPlaylist();
 
         Windows.Foundation.Collections.IVectorView<MpvTrack> GetAudioTracks();
         Windows.Foundation.Collections.IVectorView<MpvTrack> GetVideoTracks();
         Windows.Foundation.Collections.IVectorView<MpvTrack> GetSubtitleTracks();
         Windows.Foundation.Collections.IVectorView<MpvChapter> GetChapters();
-        Windows.Foundation.Collections.IVectorView<MpvEdition> GetEditions();
         Windows.Foundation.Collections.IVectorView<MpvAudioDevice> GetAudioDevices();
         Windows.Foundation.Collections.IVectorView<MpvGpuAdapter> GetGpuAdapters();
-        Windows.Foundation.Collections.IVectorView<MpvProfile> GetProfiles();
         Int32 CurrentChapter();
         Int32 CurrentEdition();
 
@@ -126,7 +114,6 @@ namespace mpv_winrt
         String GetSubtitleExtensions();
 
         event MediaLoadedEventHandler MediaLoaded;
-        event PlaybackEndedEventHandler PlaybackEnded;
         event PlaybackFailedEventHandler PlaybackFailed;
         event SeekEventHandler Seeked;
         event FileLoadedEventHandler FileLoaded;
@@ -142,7 +129,6 @@ namespace mpv_winrt
         event LoopPlaylistChangedEventHandler LoopPlaylistChanged;
         event ShuffleChangedEventHandler ShuffleChanged;
         event PlaylistChangedEventHandler PlaylistChanged;
-        event PreviewChangedEventHandler PreviewChanged;
         event MpvLogEventHandler LogMessage;
     };
 }

@@ -69,10 +69,10 @@ UNMAPPED_OK = {
     "WindowPiP", "WindowPiPSize", "EnableDebugLog", "TestMpvCommandLog", "TestOsdMessage",
     "TestSignal", "FileAssociationExts", "SettingsSearchHistory", "CheckForUpdates",
     "DisplayPeak",
-    "ControlBarCustomOrder", "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
+    "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
     "ControlBarZonesClassic", "ControlBarZonesModernX",
     "ControlBarOrderStyleMigrated", "WindowPiPRect", "WindowPiPOpacity",
-    "LastVideoVolume", "LastAudioVolume", "AudioVolume", "PatchVersion",
+    "LastVideoVolume", "AudioVolume",
     "EnableVideoPreview",
     "ThumbnailPreviewWidth", "ThumbnailUpdateInterval",
     # UI-only settings persisted by their own handlers (playlist width from

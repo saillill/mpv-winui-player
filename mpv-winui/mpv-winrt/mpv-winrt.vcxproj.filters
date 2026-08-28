@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Resources">
@@ -21,10 +21,8 @@
     <ClInclude Include="MpvPlaylistItem.h" />
     <ClInclude Include="MpvPreviewer.h" />
     <ClInclude Include="MpvChapter.h" />
-    <ClInclude Include="MpvEdition.h" />
     <ClInclude Include="MpvAudioDevice.h" />
     <ClInclude Include="MpvGpuAdapter.h" />
-    <ClInclude Include="MpvProfile.h" />
     <ClInclude Include="MpvMenuItem.h" />
     <ClInclude Include="MpvTrack.h" />
     <ClInclude Include="PlaybackStateChangedEventArgs.h" />
@@ -41,10 +39,8 @@
     <Midl Include="MpvPlaylistItem.idl" />
     <Midl Include="MpvPreviewer.idl" />
     <Midl Include="MpvChapter.idl" />
-    <Midl Include="MpvEdition.idl" />
     <Midl Include="MpvAudioDevice.idl" />
     <Midl Include="MpvGpuAdapter.idl" />
-    <Midl Include="MpvProfile.idl" />
     <Midl Include="MpvMenuItem.idl" />
     <Midl Include="MpvTrack.idl" />
     <Midl Include="PlaybackStateChangedEventArgs.idl" />
