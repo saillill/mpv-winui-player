@@ -307,7 +307,7 @@
   "SettingsHelpAudioFileAuto": "Passende externe Audiodatei neben dem Video automatisch laden.",
   "SettingsHelpCoverArtImageExts": "Als Cover behandelte Bild-Endungen, durch Semikolons getrennt.",
   "SettingsHelpKeepOpen": "Fenster nach Ende der Wiedergabeliste offen halten statt zu beenden.",
-  "SettingsHelpWindowPiPSize": "Größe des schwebenden Mini-Player-Fensters als Prozentsatz des Bildschirms.",
+  "SettingsHelpWindowPiPSize": "Größe des schwebenden Mini-Player-Fensters.",
   "SettingsHelpSavePositionOnQuit": "Wiedergabeposition beim Beenden merken, um später fortzusetzen.",
   "SettingsHelpSpeed": "Für den nächsten Start gespeicherte Wiedergabegeschwindigkeit (1.0 ist normal).",
   "SettingsHelpCacheEnabled": "Netzwerk-Cache: Aus deaktiviert, Auto puffert nur bei Bedarf, Ja puffert immer.",

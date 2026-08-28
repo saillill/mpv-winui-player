@@ -106,13 +106,15 @@ namespace mpv_winui.Modules.Player
 
                 OpenPendingPath().FireAndForget(OnException);
 
-                // Apply the persisted PiP setting only after mpv and the main
-                // swap chain are ready. Running this from the window's
-                // Body.Loaded raced CreateAsync: AttachSwapChain could run
-                // before mpv initialization (native crash), or SetupPlayerView
-                // would later move the swap chain back to the hidden main
-                // window, leaving the PiP window without video.
-                ApplyPiP();
+                // PiP is a transient mode: never auto-enter it on launch. The
+                // control-bar PiP button persists WindowPiP while a session is
+                // running (so the settings section opens), but a fresh start
+                // must always show the main player, never a floating mini
+                // window. Clear any state left over from the last session.
+                if (AppContext.AppSetting.WindowPiP)
+                {
+                    AppContext.AppSetting.WindowPiP = false;
+                }
 
                 // Silent background update check (GitHub Releases); never
                 // blocks startup and never surfaces network errors.

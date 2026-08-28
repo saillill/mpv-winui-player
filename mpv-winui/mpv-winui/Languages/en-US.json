@@ -307,7 +307,7 @@
   "SettingsHelpAudioFileAuto": "Automatically load a matching external audio file next to the video.",
   "SettingsHelpCoverArtImageExts": "Image extensions treated as cover art, separated by semicolons.",
   "SettingsHelpKeepOpen": "Keep the window open after the playlist ends instead of quitting.",
-  "SettingsHelpWindowPiPSize": "Size of the floating mini-player window as a percentage of the screen.",
+  "SettingsHelpWindowPiPSize": "Size of the floating mini-player window.",
   "SettingsHelpSavePositionOnQuit": "Remember the playback position when quitting so the file can resume later.",
   "SettingsHelpSpeed": "Playback speed saved for the next launch (1.0 is normal).",
   "SettingsHelpCacheEnabled": "Network cache: Off disables, Auto caches only when needed, Yes always caches.",

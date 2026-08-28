@@ -307,7 +307,7 @@
   "SettingsHelpAudioFileAuto": "Charge automatiquement un fichier audio externe correspondant à côté de la vidéo.",
   "SettingsHelpCoverArtImageExts": "Extensions d'image traitées comme pochettes, séparées par des points-virgules.",
   "SettingsHelpKeepOpen": "Garde la fenêtre ouverte après la fin de la liste au lieu de quitter.",
-  "SettingsHelpWindowPiPSize": "Taille de la fenêtre mini-lecteur flottante, en pourcentage de l'écran.",
+  "SettingsHelpWindowPiPSize": "Taille de la fenêtre du mini-lecteur flottant.",
   "SettingsHelpSavePositionOnQuit": "Mémorise la position à la fermeture pour reprendre le fichier plus tard.",
   "SettingsHelpSpeed": "Vitesse de lecture enregistrée pour le prochain lancement (1.0 est normal).",
   "SettingsHelpCacheEnabled": "Cache réseau : Off désactive, Auto ne met en cache qu'au besoin, Yes met toujours en cache.",

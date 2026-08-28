@@ -307,7 +307,7 @@
   "SettingsHelpAudioFileAuto": "動画と同じ名前の外部音声ファイルを自動で読み込みます。",
   "SettingsHelpCoverArtImageExts": "アルバムアートとして扱う画像拡張子（セミコロン区切り）。",
   "SettingsHelpKeepOpen": "プレイリスト終了後に終了せずウィンドウを開いたままにします。",
-  "SettingsHelpWindowPiPSize": "フローティングミニプレーヤーのウィンドウサイズ（画面に対する割合）。",
+  "SettingsHelpWindowPiPSize": "ミニプレーヤーウィンドウのサイズ。",
   "SettingsHelpSavePositionOnQuit": "終了時に再生位置を記録し、後で続きから再生できるようにします。",
   "SettingsHelpSpeed": "次回起動時に使う再生速度（1.0 が通常）。",
   "SettingsHelpCacheEnabled": "ネットワークキャッシュ：オフは無効、自動は必要な時のみ、はいは常にキャッシュ。",

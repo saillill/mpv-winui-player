@@ -306,7 +306,7 @@
   "SettingsHelpAudioFileAuto": "自動載入與影片同名的外部音訊檔案。",
   "SettingsHelpCoverArtImageExts": "視為專輯封面的圖片副檔名，用分號分隔。",
   "SettingsHelpKeepOpen": "播放列表結束後保持視窗開啟，而不是退出。",
-  "SettingsHelpWindowPiPSize": "浮動迷你播放器視窗大小（螢幕百分比）。",
+  "SettingsHelpWindowPiPSize": "浮動迷你播放器視窗的大小。",
   "SettingsHelpSavePositionOnQuit": "退出時記住播放位置，以便之後繼續觀看。",
   "SettingsHelpSpeed": "下次啟動時使用的播放速度（1.0 為正常）。",
   "SettingsHelpCacheEnabled": "網路快取：關閉禁用、自動按需快取、總是快取。",

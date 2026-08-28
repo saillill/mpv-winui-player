@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -177,7 +177,11 @@ namespace mpv_winui.Modules.Player
 
         private void OnAppSettingChanged(string key, object? value)
         {
-            if (key == nameof(AppContext.AppSetting.WindowPiP))
+            if (key == nameof(AppContext.AppSetting.VolumeMax))
+            {
+                VolumeSlider.Maximum = Math.Max(100, Convert.ToInt32(value));
+            }
+            else if (key == nameof(AppContext.AppSetting.WindowPiP))
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {
@@ -243,6 +247,10 @@ namespace mpv_winui.Modules.Player
 
                         UpdatePlaybackModeUI();
                         UpdatePlaybackRateUI(value.PlaybackRate);
+                        // The slider must reach every level volume-max allows,
+                        // otherwise hotkey/wheel volume above 100 displays as
+                        // a pinned 100 on the slider.
+                        VolumeSlider.Maximum = Math.Max(100, AppContext.AppSetting.VolumeMax);
                         VolumeSlider.Value2 = _mediaPlayer?.Volume ?? 50;
 
                         // Initialize time/progress from the current media state.

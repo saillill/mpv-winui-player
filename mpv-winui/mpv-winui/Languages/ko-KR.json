@@ -307,7 +307,7 @@
   "SettingsHelpAudioFileAuto": "동영상과 이름이 같은 외부 오디오 파일을 자동으로 불러옵니다.",
   "SettingsHelpCoverArtImageExts": "앨범 아트로 취급할 이미지 확장자(세미콜론 구분)입니다.",
   "SettingsHelpKeepOpen": "재생목록이 끝나도 종료하지 않고 창을 열어 둡니다.",
-  "SettingsHelpWindowPiPSize": "플로팅 미니 플레이어 창 크기(화면 비율)입니다.",
+  "SettingsHelpWindowPiPSize": "미니 플레이어 창 크기.",
   "SettingsHelpSavePositionOnQuit": "종료 시 재생 위치를 기억해 나중에 이어 볼 수 있게 합니다.",
   "SettingsHelpSpeed": "다음 실행 시 사용할 재생 속도입니다(1.0이 보통).",
   "SettingsHelpCacheEnabled": "네트워크 캐시: 끔은 비활성, 자동은 필요할 때만, 켬은 항상 캐시합니다.",
