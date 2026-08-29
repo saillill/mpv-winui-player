@@ -827,17 +827,16 @@ namespace mpv_winui.Modules.Player
             if (VolumeSliderContainer.Visibility != Visibility.Visible)
             {
                 var control = new VolumeFlyoutControl(MediaPlayer);
+                var presenterStyle = new Style(typeof(FlyoutPresenter))
+                {
+                    BasedOn = (Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
+                };
+                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(8)));
                 var flyout = new Flyout
                 {
                     Content = control,
                     Placement = FlyoutPlacementMode.Top,
-                    FlyoutPresenterStyle = new Style(typeof(FlyoutPresenter))
-                    {
-                        Setters =
-                        {
-                            new Setter(FlyoutPresenter.PaddingProperty, new Thickness(4)),
-                        },
-                    },
+                    FlyoutPresenterStyle = presenterStyle,
                 };
                 flyout.ShowAt(VolumeMuteButton);
                 return;

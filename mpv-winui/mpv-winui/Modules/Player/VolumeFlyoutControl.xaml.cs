@@ -21,6 +21,9 @@ namespace mpv_winui.Modules.Player
             _subscribedPlayer = player;
             player.Native.VolumeChanged += OnPlayerVolumeChanged;
             Unloaded += VolumeFlyoutControl_Unloaded;
+            // Maximum must precede Value, otherwise a volume above 100
+            // (allowed by volume-max) is clamped down on open.
+            VolumeSlider.Maximum = Math.Max(100, mpv_winui.AppContext.AppSetting.VolumeMax);
             VolumeSlider.Value = player.Volume;
             VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
             UpdateVolumeIcon(player.IsMuted, player.Volume);

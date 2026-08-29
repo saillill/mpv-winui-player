@@ -50,4 +50,20 @@
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
     </Style>
 
+    <!-- Shared acrylic shell for the player popups (control panel, track
+         selector, volume). Per-use Padding/MaxWidth/MaxHeight stay on the
+         consuming flyout via BasedOn. -->
+    <Style
+        x:Key="AcrylicFlyoutPresenterStyle"
+        BasedOn="{StaticResource DefaultFlyoutPresenterStyle}"
+        TargetType="FlyoutPresenter">
+        <Setter Property="IsTabStop" Value="True" />
+        <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="TabNavigation" Value="Cycle" />
+        <Setter Property="IsDefaultShadowEnabled" Value="True" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
+    </Style>
+
 </ResourceDictionary>
