@@ -1,5 +1,4 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
@@ -121,7 +120,6 @@ public sealed partial class SettingsPage : Page
             ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
             ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
             SearchBox.PlaceholderText = AppContext.AppLang.Search;
-            AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
             RefreshWarningsAndEnabled();
             UpdateOptions();
         }

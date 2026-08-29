@@ -20,7 +20,6 @@ namespace mpv_winui.Modules.Common.View
                 {
                     window.AppWindow.Show();
                 }
-                Win32WindowHelper.RestoreIfMinimized(window);
                 Win32WindowHelper.SetForegroundWindow(window);
             }
 
