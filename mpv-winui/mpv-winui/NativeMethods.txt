@@ -14,6 +14,7 @@ HOOKPROC
 GetModuleHandle
 SetForegroundWindow
 ShowWindow
+IsIconic
 MonitorFromWindow
 GetMonitorInfoW
 EnumDisplaySettingsW

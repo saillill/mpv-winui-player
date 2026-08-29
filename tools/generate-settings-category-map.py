@@ -268,6 +268,8 @@ MAP = {
     # Window (PiP / size)
     "WindowPiP": ("window", "sWindowPiP"),
     "WindowPiPSize": ("window", "sWindowPiP"),
+    "WindowPiPAspectRatioLock": ("window", "sWindowPiP"),
+    "WindowPiPAnchor": ("window", "sWindowPiP"),
     "WindowStartMaximized": ("window", "sWindow"),
     "WindowRememberSize": ("window", "sWindow"),
     # Network (ytdl / http / curl)

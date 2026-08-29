@@ -16,6 +16,20 @@ namespace mpv_winui.Modules.Common.Utils
             PInvoke.SetForegroundWindow(new HWND(GetHwnd(window)));
         }
 
+        /// <summary>
+        /// A minimized window still reports AppWindow.IsVisible, so callers
+        /// skip the Show() branch and SetForegroundWindow only lights up the
+        /// taskbar entry — restore it explicitly first.
+        /// </summary>
+        public static void RestoreIfMinimized(Window window)
+        {
+            var hwnd = new HWND(GetHwnd(window));
+            if (PInvoke.IsIconic(hwnd))
+            {
+                PInvoke.ShowWindow(hwnd, SHOW_WINDOW_CMD.SW_RESTORE);
+            }
+        }
+
         private static void ShowWindow(Window window, int value)
         {
             PInvoke.ShowWindow(new HWND(GetHwnd(window)), (SHOW_WINDOW_CMD)value);
