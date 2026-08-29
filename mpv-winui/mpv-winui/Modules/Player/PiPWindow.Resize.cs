@@ -215,6 +215,15 @@ public sealed partial class PiPWindow
             // on every change and fires 300ms after the drag ends).
             ScheduleVideoSizeUpdate();
         }
+        if (args.DidPositionChange || args.DidSizeChange)
+        {
+            // The DWM presenter re-applies the non-client frame and resets
+            // the border/caption color attributes on every move/resize,
+            // which shows up as a thick white frame around the window.
+            // Re-assert the frameless style and DWM attributes each time.
+            MakeFrameless();
+            ApplyRoundedCorners();
+        }
     }
 
     private void PositionAtBottomRight(int width, int height)
