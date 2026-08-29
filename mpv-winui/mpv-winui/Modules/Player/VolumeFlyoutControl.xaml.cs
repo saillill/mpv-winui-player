@@ -30,6 +30,7 @@ namespace mpv_winui.Modules.Player
             // Localized names for keyboard/screen-reader access (XAML defaults
             // are English placeholders; unpackaged WinUI has no x:Uid).
             AutomationProperties.SetName(MuteButton, mpv_winui.AppContext.AppLang.PiPMute);
+            ToolTipService.SetToolTip(MuteButton, mpv_winui.AppContext.AppLang.PiPMute);
             AutomationProperties.SetName(VolumeSlider, mpv_winui.AppContext.AppLang.ControlBarIconVolume);
         }
 

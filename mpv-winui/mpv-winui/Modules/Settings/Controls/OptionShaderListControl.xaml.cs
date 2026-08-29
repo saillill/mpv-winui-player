@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using mpv_winui.Modules.FileSystem;
 using System;
@@ -75,6 +76,27 @@ public sealed partial class OptionShaderListControl : OptionControlBase
     }
 
     private void Entry_Changed(object sender, RoutedEventArgs e) => Commit();
+
+    // Per-row icon buttons pick up their localized tooltip/label when each
+    // item realizes (DataTemplates cannot reach AppLang from XAML without
+    // x:Uid, so the code-behind wires them like every other string).
+    private void MoveUpButton_Loaded(object sender, RoutedEventArgs e) =>
+        NameRowButton(sender, mpv_winui.AppContext.AppLang.PanelMoveUp);
+
+    private void MoveDownButton_Loaded(object sender, RoutedEventArgs e) =>
+        NameRowButton(sender, mpv_winui.AppContext.AppLang.PanelMoveDown);
+
+    private void RemoveButton_Loaded(object sender, RoutedEventArgs e) =>
+        NameRowButton(sender, mpv_winui.AppContext.AppLang.Remove);
+
+    private static void NameRowButton(object sender, string text)
+    {
+        if (sender is FrameworkElement button)
+        {
+            ToolTipService.SetToolTip(button, text);
+            AutomationProperties.SetName(button, text);
+        }
+    }
 
     private void MoveUp_Click(object sender, RoutedEventArgs e)
     {

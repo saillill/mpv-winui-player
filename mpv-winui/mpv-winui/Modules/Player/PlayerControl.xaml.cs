@@ -165,6 +165,7 @@ namespace mpv_winui.Modules.Player
             // RepeatButton is hidden (mode button reuses it) but stays in
             // the tree; give it a localized name for screen readers.
             AutomationProperties.SetName(RepeatButton, AppContext.AppLang.MoreRepeat);
+            ToolTipService.SetToolTip(RepeatButton, AppContext.AppLang.MoreRepeat);
             AutomationProperties.SetName(VolumeMuteButton, AppContext.AppLang.PiPMute);
             AutomationProperties.SetName(VolumeSlider, AppContext.AppLang.ControlBarIconVolume);
             AutomationProperties.SetName(PlaybackRateButton, AppContext.AppLang.MorePlaybackRate);

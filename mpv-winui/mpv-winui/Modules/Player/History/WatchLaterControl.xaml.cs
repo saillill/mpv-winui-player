@@ -21,6 +21,9 @@ namespace mpv_winui.Modules.Player.History
         public WatchLaterControl()
         {
             this.InitializeComponent();
+            // XAML holds an English placeholder label; unpackaged WinUI has
+            // no x:Uid, so localize it here like the other code-behind strings.
+            RefreshButton.Label = mpv_winui.AppContext.AppLang.Refresh;
             Loaded += WatchLaterControl_Loaded;
         }
 
