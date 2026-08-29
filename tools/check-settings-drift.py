@@ -73,6 +73,7 @@ UNMAPPED_OK = {
     "ControlBarZonesClassic", "ControlBarZonesModernX",
     "ControlBarOrderStyleMigrated", "WindowPiPShowTopButtons", "WindowPiPShowControls",
     "WindowPiPOpacity", "WindowPiPAspectRatioLock", "WindowPiPAnchor",
+    "WindowAspectRatioLock",
     "LastVideoVolume", "AudioVolume",
     "EnableVideoPreview",
     "ThumbnailPreviewWidth", "ThumbnailUpdateInterval",

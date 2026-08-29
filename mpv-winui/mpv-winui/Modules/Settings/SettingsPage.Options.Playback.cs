@@ -282,6 +282,17 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.WindowAspectRatioLock),
+                Label = lang.SettingsWindowAspectRatioLock,
+                Category = window,
+                Description = lang.SettingsHelpWindowAspectRatioLock,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowAspectRatioLock,
+                Setter = v => AppContext.AppSetting.WindowAspectRatioLock = (bool)v!
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.WindowStartMaximized),
                 Label = lang.SettingsStartMaximized,
                 Category = window,

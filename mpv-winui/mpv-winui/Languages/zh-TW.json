@@ -70,6 +70,8 @@
   "SettingsPictureSharpen": "銳化強度",
   "SettingsHelpPictureSharpen": "銳化強度（0 到 5）。僅 gpu-next 支援。",
   "SettingsAutoWindowResize": "自動適配視窗大小",
+  "SettingsWindowAspectRatioLock": "鎖定視窗寬高比",
+  "SettingsHelpWindowAspectRatioLock": "拖曳調整視窗大小時保持影片寬高比。",
   "SettingsHelpAutoWindowResize": "影片解析度變化時自動調整視窗大小。",
   "SettingsAdLavcDownmix": "解碼器立體聲下混",
   "SettingsHelpAdLavcDownmix": "在解碼器層面將多聲道音訊下混為立體聲。",

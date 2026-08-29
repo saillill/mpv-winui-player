@@ -84,6 +84,8 @@
   "SettingsPictureSharpen": "シャープネス",
   "SettingsHelpPictureSharpen": "シャープネス強度 (0〜5)。gpu-next のみ対応。",
   "SettingsAutoWindowResize": "自動ウィンドウサイズ調整",
+  "SettingsWindowAspectRatioLock": "ウィンドウのアスペクト比を固定",
+  "SettingsHelpWindowAspectRatioLock": "ドラッグでウィンドウをリサイズする際、動画のアスペクト比を維持します。",
   "SettingsHelpAutoWindowResize": "映像解像度が変わったらウィンドウサイズを自動調整します。",
   "SettingsAdLavcDownmix": "デコーダーレベルのダウンミックス",
   "SettingsHelpAdLavcDownmix": "デコーダーレベルでマルチチャンネル音声をステレオにダウンミックスします。",

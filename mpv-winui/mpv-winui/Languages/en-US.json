@@ -70,6 +70,8 @@
   "SettingsPictureSharpen": "Sharpening",
   "SettingsHelpPictureSharpen": "Sharpening strength (0-5). gpu-next only.",
   "SettingsAutoWindowResize": "Auto-fit window to video",
+  "SettingsWindowAspectRatioLock": "Lock window aspect ratio",
+  "SettingsHelpWindowAspectRatioLock": "Keep the video aspect ratio while drag-resizing the window.",
   "SettingsHelpAutoWindowResize": "Resize window on video resolution change.",
   "SettingsAdLavcDownmix": "Decoder stereo downmix",
   "SettingsHelpAdLavcDownmix": "Downmix multichannel audio to stereo at decoder level.",

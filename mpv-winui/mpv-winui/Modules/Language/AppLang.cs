@@ -302,6 +302,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpPictureSharpen { get; set; } = "Sharpening strength (0-5). gpu-next only.";
         public string SettingsAutoWindowResize { get; set; } = "Auto-fit window to video";
         public string SettingsHelpAutoWindowResize { get; set; } = "Resize the window when video resolution changes.";
+        public string SettingsWindowAspectRatioLock { get; set; } = "Lock window aspect ratio";
+        public string SettingsHelpWindowAspectRatioLock { get; set; } = "Keep the video aspect ratio while drag-resizing the window.";
         public string SettingsAdLavcDownmix { get; set; } = "Decoder stereo downmix";
         public string SettingsHelpAdLavcDownmix { get; set; } = "Downmix multichannel audio to stereo at decoder level.";
         public string MoreSkipBackward { get; set; } = "Skip Backward";

@@ -405,6 +405,13 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPAnchor), value);
         }
 
+        /// <summary>Keep the video aspect ratio while drag-resizing the main window.</summary>
+        public bool WindowAspectRatioLock
+        {
+            get => _dataSetting.GetValue(nameof(WindowAspectRatioLock), true);
+            set => _dataSetting.SetValue(nameof(WindowAspectRatioLock), value);
+        }
+
         /// <summary>Last PiP window position+size ("x,y,w,h"); empty restores the default bottom-right placement.</summary>
         /// <summary>Show the top overlay buttons (back / exit) in the PiP window.</summary>
         public bool WindowPiPShowTopButtons
@@ -444,10 +451,15 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ThumbnailPreviewWidth), value);
         }
 
-        /// <summary>Preview refresh interval while hovering, ms (40..600).</summary>
+        /// <summary>
+        /// Preview refresh interval while hovering, ms (40..600). 150 default:
+        /// every tick is a keyframe seek of the preview instance whose decode
+        /// and I/O compete with playback — 25/s (the old default) made the
+        /// main video stutter on slower storage; ~7/s keeps the strip fluid.
+        /// </summary>
         public int ThumbnailUpdateInterval
         {
-            get => _dataSetting.GetValue(nameof(ThumbnailUpdateInterval), 40);
+            get => _dataSetting.GetValue(nameof(ThumbnailUpdateInterval), 150);
             set => _dataSetting.SetValue(nameof(ThumbnailUpdateInterval), value);
         }
 

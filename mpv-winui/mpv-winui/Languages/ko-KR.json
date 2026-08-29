@@ -84,6 +84,8 @@
   "SettingsPictureSharpen": "샤피닝 강도",
   "SettingsHelpPictureSharpen": "샤피닝 강도 (0~5), gpu-next 전용.",
   "SettingsAutoWindowResize": "자동 창 크기 조정",
+  "SettingsWindowAspectRatioLock": "창 가로세로 비 고정",
+  "SettingsHelpWindowAspectRatioLock": "창 크기를 조절할 때 동영상 가로세로 비를 유지합니다.",
   "SettingsHelpAutoWindowResize": "비디오 해상도 변경 시 자동으로 창 크기 조정.",
   "SettingsAdLavcDownmix": "디코더 스테레오 다운믹스",
   "SettingsHelpAdLavcDownmix": "디코더 수준에서 멀티채널을 스테레오로 다운믹스.",
