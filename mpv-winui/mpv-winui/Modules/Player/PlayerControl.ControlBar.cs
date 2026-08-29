@@ -311,7 +311,7 @@ namespace mpv_winui.Modules.Player
                 var buttonIcon = new FontIcon
                 {
                     Glyph = icon?.Glyph ?? "\uF2E3",
-                    FontSize = 16,
+                    FontSize = 19,
                     FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
                 };
                 var activeBrush = (Brush)RootGrid.Resources["PiPSubtitleActiveBrush"];

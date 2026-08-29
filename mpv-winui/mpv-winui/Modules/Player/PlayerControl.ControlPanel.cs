@@ -51,11 +51,13 @@ namespace mpv_winui.Modules.Player
             var pivot = new Pivot
             {
                 // Fixed height keeps the flyout the same size across the
-                // audio/video/subtitle tabs; content taller than this scrolls
-                // inside the ScrollViewer instead of resizing the popup.
-                // User preference: ~400px gives the panel a roomier feel while
-                // staying fixed so tabs never resize the flyout.
-                Height = 400,
+                // audio/video/subtitle tabs. 440 gives all three pages
+                // enough room to render without their inner scrollbars
+                // (audio's EQ card is the tallest) while staying inside
+                // the flyout presenter's 480 cap.
+                // User preference: roomy panel with fixed size so tabs
+                // never resize the flyout.
+                Height = 440,
                 Padding = new Thickness(0),
                 IsHeaderItemsCarouselEnabled = false,
                 IsTabStop = false,
