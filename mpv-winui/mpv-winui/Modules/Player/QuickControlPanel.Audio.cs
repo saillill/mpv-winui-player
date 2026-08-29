@@ -142,11 +142,18 @@ public sealed partial class QuickControlPanel
                 MediaPlayer?.Command("set", "audio-channels", value);
             }
         };
-        root.Children.Add(PanelOptionCard(PanelSection(lang.SettingsAudioChannels, channelBox)));
-
-        // Audio delay as a slider with live value + reset (same row style as
-        // the video/subtitle property sliders).
-        root.Children.Add(PanelOptionCard(PanelSliderRow(lang.SettingsAudioDelay, "audio-delay", -10, 10, 0.1)));
+        // Channels and audio delay share one row card: the audio page must
+        // fit the fixed pivot height without scrolling (EQ card is the tall
+        // one), so full-width cards are reserved for the EQ alone.
+        var channelsSection = PanelSection(lang.SettingsAudioChannels, channelBox);
+        var delaySection = PanelSliderRow(lang.SettingsAudioDelay, "audio-delay", -10, 10, 0.1);
+        var pair = new Grid { ColumnSpacing = 8 };
+        pair.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pair.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pair.Children.Add(channelsSection);
+        Grid.SetColumn(delaySection, 1);
+        pair.Children.Add(delaySection);
+        root.Children.Add(PanelOptionCard(pair));
     }
 
     private void ApplyPanelPreset(double[] gains)

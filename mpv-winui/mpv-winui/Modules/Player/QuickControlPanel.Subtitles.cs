@@ -103,8 +103,8 @@ public sealed partial class QuickControlPanel
             var b = new Button
             {
                 Content = new FontIcon { Glyph = glyph, FontSize = 16, FontFamily = PanelIconFont },
-                Width = 48,
-                Height = 48,
+                Width = 40,
+                Height = 40,
                 MinWidth = 0,
                 MinHeight = 0,
                 Padding = new Thickness(4),
@@ -117,8 +117,8 @@ public sealed partial class QuickControlPanel
 
         var pad = new Grid
         {
-            Width = 160,
-            Height = 160,
+            Width = 120,
+            Height = 120,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };

@@ -67,6 +67,8 @@
                 <Setter Property="Width" Value="40" />
                 <Setter Property="AllowFocusOnInteraction" Value="True" />
             </Style>
+            <!-- Accent tint for the PiP subtitle toggle's active glyph. -->
+            <SolidColorBrush x:Key="PiPSubtitleActiveBrush" Color="{ThemeResource SystemAccentColor}" />
         </Grid.Resources>
         <Border
             x:Name="ControlPanelGradient"
@@ -236,7 +238,7 @@
                         Style="{StaticResource AppBarButtonStyle}"
                         AutomationProperties.Name="Play">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 x:Name="PlayPauseSymbol"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF606;" />
@@ -249,7 +251,7 @@
                         AutomationProperties.Name="Previous Track"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF629;" />
                         </AppBarButton.Icon>
@@ -261,7 +263,7 @@
                         AutomationProperties.Name="Next Track"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF56A;" />
                         </AppBarButton.Icon>
@@ -273,7 +275,7 @@
                         AutomationProperties.Name="Skip Backward"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xEAFC;" />
                         </AppBarButton.Icon>
@@ -285,7 +287,7 @@
                         AutomationProperties.Name="Skip Forward"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xEB01;" />
                         </AppBarButton.Icon>
@@ -311,7 +313,7 @@
                         AutomationProperties.Name="Repeat"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 x:Name="RepeatSymbol"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF172;" />
@@ -325,7 +327,7 @@
                         AutomationProperties.Name="A-B loop"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 x:Name="AbLoopSymbol"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xE0AF;" />
@@ -338,7 +340,7 @@
                         Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF6AA;" />
                         </AppBarButton.Icon>
@@ -346,21 +348,15 @@
                             <Flyout
                                 x:Name="ControlPanelFlyout"
                                 Placement="Top"
+                                Opening="ControlPanelFlyout_Opening"
                                 Opened="ControlPanelFlyout_Opened">
                                 <Flyout.FlyoutPresenterStyle>
                                     <Style
-                                        BasedOn="{StaticResource DefaultFlyoutPresenterStyle}"
+                                        BasedOn="{StaticResource AcrylicFlyoutPresenterStyle}"
                                         TargetType="FlyoutPresenter">
-                                        <Setter Property="IsTabStop" Value="True" />
-                                        <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
-                                        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
-                                        <Setter Property="TabNavigation" Value="Cycle" />
                                         <Setter Property="Padding" Value="0" />
                                         <Setter Property="MaxWidth" Value="560" />
                                         <Setter Property="MaxHeight" Value="480" />
-                                        <Setter Property="IsDefaultShadowEnabled" Value="True" />
-                                        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-                                        <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
                                     </Style>
                                 </Flyout.FlyoutPresenterStyle>
                                 <local:QuickControlPanel x:Name="ControlPanelHost" />
@@ -413,7 +409,7 @@
                             <Thickness x:Key="AppBarButtonInnerBorderMargin">5</Thickness>
                         </AppBarButton.Resources>
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 x:Name="AudioMuteSymbol"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xEB43;" />
@@ -440,7 +436,7 @@
                         Visibility="Visible">
 
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF831;" />
                         </AppBarButton.Icon>
@@ -498,7 +494,7 @@
                         AutomationProperties.Name="Equalizer"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF340;" />
                         </AppBarButton.Icon>
@@ -543,7 +539,7 @@
                         AutomationProperties.Name="Audio/Subtitle delay"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF827;" />
                         </AppBarButton.Icon>
@@ -590,28 +586,22 @@
                         Style="{StaticResource AppBarButtonStyle}"
                         AutomationProperties.Name="Tracks">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xEBCD;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <Flyout
                                 x:Name="TrackSelectionFlyout"
+                                Opening="TrackSelectionFlyout_Opening"
                                 Placement="Top">
                                 <Flyout.FlyoutPresenterStyle>
                                     <Style
-                                        BasedOn="{StaticResource DefaultFlyoutPresenterStyle}"
+                                        BasedOn="{StaticResource AcrylicFlyoutPresenterStyle}"
                                         TargetType="FlyoutPresenter">
-                                        <Setter Property="IsTabStop" Value="True" />
-                                        <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
-                                        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
-                                        <Setter Property="TabNavigation" Value="Cycle" />
                                         <Setter Property="Padding" Value="0" />
                                         <Setter Property="MaxWidth" Value="480" />
                                         <Setter Property="MaxHeight" Value="480" />
-                                        <Setter Property="IsDefaultShadowEnabled" Value="True" />
-                                        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-                                        <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
                                     </Style>
                                 </Flyout.FlyoutPresenterStyle>
                                 <local:PlayerTrackSelectorControl x:Name="TrackSelectorControl" />
@@ -625,7 +615,7 @@
                         AutomationProperties.Name="Zoom"
                         Visibility="Visible">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xEE8D;" />
                         </AppBarButton.Icon>
@@ -657,7 +647,7 @@
                         AutomationProperties.Name="Full Window"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 x:Name="FullWindowSymbol"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF160;" />
@@ -669,7 +659,7 @@
                         Style="{StaticResource AppBarButtonStyle}"
                         AutomationProperties.Name="Full Screen">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 x:Name="FullScreenSymbol"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xE685;" />
@@ -681,7 +671,7 @@
                         Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon
+                            <FontIcon FontSize="19"
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xED38;" />
                         </AppBarButton.Icon>

@@ -8,6 +8,17 @@ namespace mpv_winui.Modules.Player
     {
         private void MpvPlayerPage_MediaInfoChanged(MpvMediaPlayer player, MediaInfoChangedEventArgs args)
         {
+            // The main window's aspect-lock reads these (mpv reports 0x0 when
+            // nothing is playing, which clears the lock's "active video" gate).
+            if (args.VideoWidth > 0 && args.VideoHeight > 0)
+            {
+                MainWindow.HasActiveVideo = true;
+                MainWindow.CurrentVideoAspect = (double)args.VideoWidth / args.VideoHeight;
+            }
+            else
+            {
+                MainWindow.HasActiveVideo = false;
+            }
             DispatcherQueue.RunAsync(() =>
             {
                 if (!string.IsNullOrEmpty(args.MediaTitle))

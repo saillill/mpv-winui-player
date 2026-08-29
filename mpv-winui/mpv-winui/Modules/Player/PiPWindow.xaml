@@ -56,6 +56,24 @@
         </Button>
 
         <!--
+            Top-right (left of exit): quick window-opacity slider. The PiP
+            window may sit over other work, so tuning translucency without a
+            trip to the settings page is the whole point of this button.
+        -->
+        <Button
+            x:Name="PiPOpacityButton"
+            Margin="0,8,50,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Style="{StaticResource PiPTopButtonStyle}"
+            Click="PiPOpacityButton_Click">
+            <FontIcon
+                FontFamily="{StaticResource MpvIconFontFamily}"
+                FontSize="14"
+                Glyph="&#xE337;" />
+        </Button>
+
+        <!--
             The fullscreen control bar, in centered (居中) compact mode:
             volume on the left, skip back / play / skip forward centered,
             progress slider and time labels included. Everything else is

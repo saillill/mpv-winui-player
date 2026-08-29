@@ -72,6 +72,12 @@ namespace mpv_winui.Modules.Player
             {
                 if (_overlayMode)
                 {
+                    if (_volumeFlyoutOpen)
+                    {
+                        // The user is interacting with the volume flyout above
+                        // the bar; retracting under their slider feels broken.
+                        return;
+                    }
                     // Debounce: a transient exit (pointer on the mask edge) must
                     // not start and restart the retract animation repeatedly.
                     _hideDelayTimer.Tick -= HideDelayTimer_Tick;

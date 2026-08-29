@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
@@ -316,9 +316,12 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.WindowPiPShowControls)] = 193,
             [nameof(AppSettings.WindowPiPShowTopButtons)] = 193,
             [nameof(AppSettings.WindowPiPSize)] = 194,
+            [nameof(AppSettings.WindowPiPAspectRatioLock)] = 194,
+            [nameof(AppSettings.WindowPiPAnchor)] = 194,
             [nameof(AppSettings.WindowPiPOpacity)] = 195,
             [nameof(AppSettings.WindowStartMaximized)] = 195,
             [nameof(AppSettings.WindowRememberSize)] = 196,
+            [nameof(AppSettings.WindowAspectRatioLock)] = 196,
             [nameof(AppSettings.YtdlFormat)] = 197,
             [nameof(AppSettings.YtdlPath)] = 198,
             [nameof(AppSettings.YtdlTryFirst)] = 199,
@@ -643,8 +646,11 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.WindowPiPShowControls)] = sWindowPiP,
             [nameof(AppSettings.WindowPiPShowTopButtons)] = sWindowPiP,
             [nameof(AppSettings.WindowPiPOpacity)] = sWindowPiP,
+            [nameof(AppSettings.WindowPiPAspectRatioLock)] = sWindowPiP,
+            [nameof(AppSettings.WindowPiPAnchor)] = sWindowPiP,
             [nameof(AppSettings.WindowPiPSize)] = sWindowPiP,
             [nameof(AppSettings.WindowStartMaximized)] = sWindow,
+            [nameof(AppSettings.WindowAspectRatioLock)] = sWindow,
             [nameof(AppSettings.WindowRememberSize)] = sWindow,
             // demuxer
             [nameof(AppSettings.AutoCreatePlaylist)] = sDemuxerPlaylist,
