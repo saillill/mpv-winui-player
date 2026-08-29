@@ -1,7 +1,8 @@
-using Microsoft.UI.Windowing;
+﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.FileSystem;
@@ -60,9 +61,9 @@ namespace mpv_winui.Modules.Player
 
                 PlayerControl.MediaPlayer = _mediaPlayer;
 
-                _mediaPlayer.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
-                _mediaPlayer.VolumeChanged += MediaPlayer_VolumeChanged;
-                _mediaPlayer.WindowChanged += MpvPlayerPage_WindowChanged;
+                _mediaPlayer.Native.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
+                _mediaPlayer.Native.VolumeChanged += MediaPlayer_VolumeChanged;
+                _mediaPlayer.Native.WindowChanged += MpvPlayerPage_WindowChanged;
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.StartListen();
 
@@ -105,13 +106,15 @@ namespace mpv_winui.Modules.Player
 
                 OpenPendingPath().FireAndForget(OnException);
 
-                // Apply the persisted PiP setting only after mpv and the main
-                // swap chain are ready. Running this from the window's
-                // Body.Loaded raced CreateAsync: AttachSwapChain could run
-                // before mpv initialization (native crash), or SetupPlayerView
-                // would later move the swap chain back to the hidden main
-                // window, leaving the PiP window without video.
-                ApplyPiP();
+                // PiP is a transient mode: never auto-enter it on launch. The
+                // control-bar PiP button persists WindowPiP while a session is
+                // running (so the settings section opens), but a fresh start
+                // must always show the main player, never a floating mini
+                // window. Clear any state left over from the last session.
+                if (AppContext.AppSetting.WindowPiP)
+                {
+                    AppContext.AppSetting.WindowPiP = false;
+                }
 
                 // Silent background update check (GitHub Releases); never
                 // blocks startup and never surfaces network errors.
@@ -135,9 +138,9 @@ namespace mpv_winui.Modules.Player
             CleanupDisplayInfo();
             CleanupPlaylistRefresh();
 
-            _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
-            _mediaPlayer.VolumeChanged -= MediaPlayer_VolumeChanged;
-            _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
+            _mediaPlayer.Native.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
+            _mediaPlayer.Native.VolumeChanged -= MediaPlayer_VolumeChanged;
+            _mediaPlayer.Native.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
             _mediaPlayer.StopListen();
             TeardownPlayerView();
@@ -238,7 +241,7 @@ namespace mpv_winui.Modules.Player
             await AppContext.WaitAll();
             _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
-            _mediaPlayer.SwapChainChanged += MpvPlayer_SwapChainChanged;
+            _mediaPlayer.Native.VoConfigured += MpvPlayer_SwapChainChanged;
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
                 ? AppContext.AppSetting.OverrideDisplayFps
                 : _lastRefreshRate;
@@ -259,9 +262,9 @@ namespace mpv_winui.Modules.Player
             return _isPlayerInitialized ? Task.CompletedTask : _playerReadyTcs.Task;
         }
 
-        private void MediaPlayer_VolumeChanged(MpvMediaPlayer player, int volume)
+        private void MediaPlayer_VolumeChanged(VolumeChangedEventArgs args)
         {
-            AppContext.AppSetting.LastVideoVolume = volume;
+            AppContext.AppSetting.LastVideoVolume = (int)args.Volume;
         }
 
         private void PlayerView_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
@@ -287,6 +290,20 @@ namespace mpv_winui.Modules.Player
 
         private void AppQuit()
         {
+            // Exit() tears the process down without running window teardown,
+            // so persist the resumable state explicitly: mpv writes the
+            // watch-later file (resume-playback/save-position-on-quit read
+            // it back) and the app-side history gets its final entry.
+            try
+            {
+                _mediaPlayer.Command(["quit-watch-later"]);
+                _ = _mediaPlayer.SaveWatchHistory;
+            }
+            catch (Exception ex)
+            {
+                _logger.Debug(ex, "pre-exit flush failed");
+            }
+            AppContext.AppSetting.Flush();
             Application.Current.Exit();
         }
 

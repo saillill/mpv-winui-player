@@ -193,12 +193,72 @@ public sealed partial class SettingsPage
                     new OptionChoice("320x180", lang.OptionValuePiPSmall),
                     new OptionChoice("480x270", lang.OptionValuePiPMedium),
                     new OptionChoice("640x360", lang.OptionValuePiPLarge),
+                    new OptionChoice("960x540", lang.OptionValuePiPXLarge),
                 ],
                 Getter = () => AppContext.AppSetting.WindowPiPSize,
                 Setter = v =>
                 {
                     AppContext.AppSetting.WindowPiPSize = (string)v!;
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPSize), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPAspectRatioLock),
+                Label = lang.SettingsPiPAspectRatioLock,
+                Category = window,
+                Description = lang.SettingsHelpPiPAspectRatioLock,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiPAspectRatioLock,
+                Setter = v => AppContext.AppSetting.WindowPiPAspectRatioLock = (bool)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPAnchor),
+                Label = lang.SettingsPiPAnchor,
+                Category = window,
+                Description = lang.SettingsHelpPiPAnchor,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("bottom-right", lang.OptionValuePiPAnchorBottomRight),
+                    new OptionChoice("bottom-left", lang.OptionValuePiPAnchorBottomLeft),
+                    new OptionChoice("top-right", lang.OptionValuePiPAnchorTopRight),
+                    new OptionChoice("top-left", lang.OptionValuePiPAnchorTopLeft),
+                ],
+                Getter = () => AppContext.AppSetting.WindowPiPAnchor,
+                Setter = v => AppContext.AppSetting.WindowPiPAnchor = (string)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPShowTopButtons),
+                Label = lang.SettingsPiPTopButtons,
+                Category = window,
+                Description = lang.SettingsHelpPiPTopButtons,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiPShowTopButtons,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiPShowTopButtons = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPShowTopButtons), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPShowControls),
+                Label = lang.SettingsPiPControls,
+                Category = window,
+                Description = lang.SettingsHelpPiPControls,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiPShowControls,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiPShowControls = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPShowControls), v);
                 }
             },
 

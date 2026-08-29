@@ -18,6 +18,7 @@
             DefaultLabelPosition="Right"
             IsDynamicOverflowEnabled="False">
             <AppBarButton
+                x:Name="RefreshButton"
                 Click="RefreshButton_Click"
                 Icon="Refresh"
                 Label="Refresh" />

@@ -1,4 +1,4 @@
-SetWindowsHookEx
+﻿SetWindowsHookEx
 UnhookWindowsHookEx
 CallNextHookEx
 GetCurrentThreadId
@@ -40,3 +40,5 @@ SetWindowPos
 ImmGetContext
 ImmAssociateContext
 VIRTUAL_KEY
+SetLayeredWindowAttributes
+LAYERED_WINDOW_ATTRIBUTES_FLAGS

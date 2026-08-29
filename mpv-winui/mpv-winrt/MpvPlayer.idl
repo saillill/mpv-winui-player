@@ -1,4 +1,4 @@
-import "DisplayColorKind.idl";
+﻿import "DisplayColorKind.idl";
 import "MpvLogEventArgs.idl";
 import "MpvPlaylistItem.idl";
 import "MpvChapter.idl";
@@ -6,7 +6,6 @@ import "MpvAudioDevice.idl";
 import "MpvGpuAdapter.idl";
 import "MpvMenuItem.idl";
 import "MpvTrack.idl";
-import "MpvPreviewInfo.idl";
 import "PlaybackStateChangedEventArgs.idl";
 import "VolumeChangedEventArgs.idl";
 import "PositionChangedEventArgs.idl";

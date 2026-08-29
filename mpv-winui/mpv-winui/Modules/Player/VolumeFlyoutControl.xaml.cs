@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using System;
 
@@ -18,14 +19,18 @@ namespace mpv_winui.Modules.Player
             this.InitializeComponent();
             _player.SetTarget(player);
             _subscribedPlayer = player;
-            player.VolumeChanged += OnPlayerVolumeChanged;
+            player.Native.VolumeChanged += OnPlayerVolumeChanged;
             Unloaded += VolumeFlyoutControl_Unloaded;
+            // Maximum must precede Value, otherwise a volume above 100
+            // (allowed by volume-max) is clamped down on open.
+            VolumeSlider.Maximum = Math.Max(100, mpv_winui.AppContext.AppSetting.VolumeMax);
             VolumeSlider.Value = player.Volume;
             VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
             UpdateVolumeIcon(player.IsMuted, player.Volume);
             // Localized names for keyboard/screen-reader access (XAML defaults
             // are English placeholders; unpackaged WinUI has no x:Uid).
             AutomationProperties.SetName(MuteButton, mpv_winui.AppContext.AppLang.PiPMute);
+            ToolTipService.SetToolTip(MuteButton, mpv_winui.AppContext.AppLang.PiPMute);
             AutomationProperties.SetName(VolumeSlider, mpv_winui.AppContext.AppLang.ControlBarIconVolume);
         }
 
@@ -51,7 +56,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void OnPlayerVolumeChanged(MpvMediaPlayer sender, int volume)
+        private void OnPlayerVolumeChanged(VolumeChangedEventArgs args)
         {
             DispatcherQueue.RunAsync(() =>
             {
@@ -62,8 +67,12 @@ namespace mpv_winui.Modules.Player
                 _updating = true;
                 try
                 {
+                    var volume = (int)args.Volume;
                     VolumeSlider.Value = volume;
-                    UpdateVolumeIcon(sender.IsMuted, volume);
+                    if (_player.TryGetTarget(out var player))
+                    {
+                        UpdateVolumeIcon(player.IsMuted, volume);
+                    }
                 }
                 finally
                 {
@@ -76,7 +85,7 @@ namespace mpv_winui.Modules.Player
         {
             if (_subscribedPlayer is { } player)
             {
-                player.VolumeChanged -= OnPlayerVolumeChanged;
+                player.Native.VolumeChanged -= OnPlayerVolumeChanged;
                 _subscribedPlayer = null;
             }
         }

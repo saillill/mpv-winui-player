@@ -227,6 +227,15 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(PlaylistCloseButton, AppContext.AppLang.TogglePlaylist);
             ToolTipService.SetToolTip(PlaylistRefreshButton, AppContext.AppLang.Refresh);
             PlaylistFilterBox.PlaceholderText = AppContext.AppLang.PlaylistFilterPlaceholder;
+            // Icon-only buttons: tooltips above are invisible to screen readers.
+            AutomationProperties.SetName(TopBarOntopButton, AppContext.AppLang.SettingsAlwaysOnTop);
+            AutomationProperties.SetName(TopBarScreenshotButton, AppContext.AppLang.FileScreenshot);
+            AutomationProperties.SetName(TopBarPlaylistButton, AppContext.AppLang.TogglePlaylist);
+            AutomationProperties.SetName(PlaylistOntopButton, AppContext.AppLang.SettingsAlwaysOnTop);
+            AutomationProperties.SetName(PlaylistScreenshotButton, AppContext.AppLang.FileScreenshot);
+            AutomationProperties.SetName(PlaylistCloseButton, AppContext.AppLang.TogglePlaylist);
+            AutomationProperties.SetName(PlaylistRefreshButton, AppContext.AppLang.Refresh);
+            AutomationProperties.SetName(PlaylistFilterBox, AppContext.AppLang.PlaylistFilterPlaceholder);
             AutomationProperties.SetName(PreviewCard, AppContext.AppLang.A11yVideoPreview);
 
             // The playlist context menu is declared in XAML with English

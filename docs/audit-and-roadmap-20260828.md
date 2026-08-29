@@ -86,14 +86,30 @@ ControlPanelGradient 120、`-Release x64` 静默落回 Debug——参数按位�
 原则：动 UI 前跑两校验；涉 mpv_node 的改动先读 AGENTS.md canary 教训；
 每阶段完成即 commit+push，勿跨阶段攒大提交。
 
-- **Phase A — 包装层收敛**：按 §4.1 裁决中继事件的去留（逐个列出消费者，
-  纯转发者删除，UI 改订原生事件）；`MediaFailed`/`SwapChainChanged` 一并
-  复核。目标：MpvMediaPlayer 只剩"有状态 + 有语义"的成员。
-- **Phase B — C++ 样板压缩**：事件 add/remove 用宏或 CRTP helper 收敛；
-  `GetTracks` 三段近似解析表驱动（沿用 2026-08-24 §3.3 结论，本轮确认仍成立）。
-- **Phase C — 巨类拆分**：SettingsPage.Actions.cs 按职责切分（动作分发 /
-  快捷键编辑 / 系统信息 / 重置）；ControlBarCanvasControl 评估抽布局编辑
-  纯函数（可仿 ControlBarLayoutGrammar 编入测试工程的做法）。
+- **Phase A — 包装层收敛 ✅ 已完成（2026-08-28）**：删除 7 个纯转发 relay
+  （MediaFailed/VolumeChanged/PlaylistChanged/PositionChanged/SpeedChanged/
+  SwapChainChanged/WindowChanged），新增 `MpvMediaPlayer.Native` 访问器，
+  四个消费者（PlayerControl/MpvPlayerPage/PlayerView/VolumeFlyout）改订
+  原生事件；保留 8 个含语义成员（MediaOpened；PlaybackStateChanged 含
+  载入时暂停态合成，非纯转发；SeekingStarted/Ended/Seeked 扇出；
+  RepeatStateChanged；ShuffleEnabledChanged；MediaInfoChanged 缓存）。
+  实证：音量链 IPC 设 77 → 原生事件 → 注册表 0x4D 落盘。~~原列的
+  MediaFailed/SwapChainChanged 复核~~（即本次删除项）。
+- **Phase B — C++ 样板压缩 ✅ 已完成（2026-08-28）**：16 组事件 add/remove
+  访问器（cpp 约 130 行）改由 `MPVWINRT_EVENT(event, handlerType, field)`
+  宏在头文件一行一个生成，宏在 struct 后 `#undef`。原计划的 "GetTracks
+  表驱动"经核实**已无必要**——解析早已统一进 `GetTracks(type)`，三个公开
+  方法各为一行委托（上一轮审计文档的"三段近似解析"结论已过期，本行即更正）。
+  `MpvPreviewInfo` 全仓（IDL/C++/C#）零消费者，随本阶段删除（h+idl+工程
+  条目+MpvPlayer.idl import）。
+- **Phase C — 巨类拆分 ✅ 已完成（2026-08-28）**：SettingsPage.Actions.cs
+  1101→531 行，按真实接缝拆出三个 partial：Shortcuts（快捷键构建/重绑/
+  input.conf 读写/重置，331 行）、SystemInfo（音频设备+GPU 适配器枚举与
+  缓存预热，188 行）、ImportExport（设置导出/导入，117 行）。纯移动无逻辑
+  改动，csproj 隐式通配自动纳入。原计划的"重置"块实际只有 ResetShortcuts
+  一个方法，已归入 Shortcuts——第四块按真实内容命名 ImportExport。
+  ControlBarCanvasControl 的纯函数抽取经评估暂不做（与 Settings 门控无关，
+  留待其有测试需求时仿 LayoutGrammar 模式）。
 - **Phase D — 持续**：CI 已含两校验；WindowsAppSDK 整组升级；
   新功能先问"mpv 是否已有该属性/命令"。
 

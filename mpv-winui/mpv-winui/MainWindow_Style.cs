@@ -32,10 +32,7 @@ namespace mpv_winui
 
         private void MainWindow_SettingChanged(string key, object? value)
         {
-            if (key == nameof(AppContext.AppSetting.BackdropType)
-                || key == nameof(AppContext.AppSetting.ThemeAccentColor)
-                || key == nameof(AppContext.AppSetting.ThemeOpacity)
-                || key == nameof(AppContext.AppSetting.ThemeLuminosity))
+            if (key == nameof(AppContext.AppSetting.BackdropType))
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {

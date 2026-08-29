@@ -1,4 +1,4 @@
-using Microsoft.UI.Composition;
+﻿using Microsoft.UI.Composition;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -84,6 +84,7 @@ public sealed partial class PiPWindow : Window
     private Compositor? _topButtonsCompositor;
     private Visual? _topBackButtonVisual;
     private Visual? _topExitButtonVisual;
+    private Visual? _topOpacityButtonVisual;
     private readonly DispatcherTimer _sizeUpdateTimer = new() { Interval = TimeSpan.FromMilliseconds(300) };
     private const double TopMaskHeight = 90;
     private const double BottomMaskHeight = 120;
@@ -191,68 +192,13 @@ public sealed partial class PiPWindow : Window
     public void ShowPiP(int width, int height)
     {
         ApplyOpacity();
-        // H2: restore the saved position/size when present, otherwise claim
-        // the bottom-right corner of the main window's display on entry; the
-        // user can drag the window afterwards.
-        if (!RestoreSavedRect(width, height))
-        {
-            PositionAtBottomRight(width, height);
-        }
+        // Claim the configured screen corner on entry (the user can drag the
+        // window around afterwards).
+        PositionAtAnchor(width, height);
         PiPControls.ApplyControlBarStyle();
         AppWindow.Show();
         ApplyPiPSize(width, height);
         ScheduleVideoSizeUpdate();
-    }
-
-    /// <summary>Restores the persisted PiP rect; clamps it into the work area of its display.</summary>
-    private bool RestoreSavedRect(int defaultWidth, int defaultHeight)
-    {
-        var saved = AppContext.AppSetting.WindowPiPRect;
-        if (string.IsNullOrEmpty(saved))
-        {
-            return false;
-        }
-        try
-        {
-            var parts = saved.Split(',');
-            if (parts.Length != 4)
-            {
-                return false;
-            }
-            var rect = new RectInt32(
-                int.Parse(parts[0]), int.Parse(parts[1]),
-                int.Parse(parts[2]), int.Parse(parts[3]));
-            if (rect.Width <= 0 || rect.Height <= 0)
-            {
-                return false;
-            }
-            var work = GetPiPDisplayArea().WorkArea;
-            rect.Width = Math.Min(rect.Width, work.Width);
-            rect.Height = Math.Min(rect.Height, work.Height);
-            rect.X = Math.Clamp(rect.X, work.X, work.X + work.Width - rect.Width);
-            rect.Y = Math.Clamp(rect.Y, work.Y, work.Y + work.Height - rect.Height);
-            AppWindow.MoveAndResize(rect);
-            MakeFrameless();
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    /// <summary>Persists the current PiP window rect for the next entry.</summary>
-    private void SaveCurrentRect()
-    {
-        try
-        {
-            var p = AppWindow.Position;
-            var size = AppWindow.Size;
-            AppContext.AppSetting.WindowPiPRect = $"{p.X},{p.Y},{size.Width},{size.Height}";
-        }
-        catch (Exception)
-        {
-        }
     }
 
     private void ScheduleVideoSizeUpdate()
@@ -288,11 +234,15 @@ public sealed partial class PiPWindow : Window
     /// so the XAML content becomes see-through against the desktop.</summary>
     public void ApplyOpacity()
     {
+        // Whole-window alpha via a layered window: XAML Opacity on the root
+        // only fades the content toward the compositor's black backdrop
+        // (darkening the video instead of showing the desktop through).
         var opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
-        RootGrid.Opacity = opacity;
-        RootGrid.Background = opacity < 1.0
-            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent)
-            : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black);
+        var hwnd = new HWND(WindowNative.GetWindowHandle(this));
+        const int WS_EX_LAYERED = 0x00080000;
+        var style = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+        PInvoke.SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, style | WS_EX_LAYERED);
+        PInvoke.SetLayeredWindowAttributes(hwnd, default(COLORREF), (byte)Math.Round(opacity * 255), LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA);
     }
 
     public void HidePiP()
@@ -345,6 +295,8 @@ public sealed partial class PiPWindow : Window
         ToolTipService.SetToolTip(PiPExitButton, AppContext.AppLang.PiPExit);
         AutomationProperties.SetName(PiPBackButton, AppContext.AppLang.PiPBackToPlayer);
         AutomationProperties.SetName(PiPExitButton, AppContext.AppLang.PiPExit);
+        ToolTipService.SetToolTip(PiPOpacityButton, AppContext.AppLang.SettingsPiPOpacity);
+        AutomationProperties.SetName(PiPOpacityButton, AppContext.AppLang.SettingsPiPOpacity);
         ToolTipService.SetToolTip(PiPSubtitleToggle, AppContext.AppLang.Subtitles);
         AutomationProperties.SetName(PiPSubtitleToggle, AppContext.AppLang.Subtitles);
     }

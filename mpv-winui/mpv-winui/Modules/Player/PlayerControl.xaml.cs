@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -134,6 +134,7 @@ namespace mpv_winui.Modules.Player
             ToolTipService.SetToolTip(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
             AutomationProperties.SetName(ControlPanelButton, AppContext.AppLang.ControlBarIconPanel);
             ToolTipService.SetToolTip(MoreButton, AppContext.AppLang.ControlBarIconMore);
+            UpdateTimeToggleAccessibility();
 
             // Flyout labels that XAML holds as English placeholders.
             ToolTipService.SetToolTip(AbLoopButton, AppContext.AppLang.ControlBarIconAbLoop);
@@ -164,6 +165,7 @@ namespace mpv_winui.Modules.Player
             // RepeatButton is hidden (mode button reuses it) but stays in
             // the tree; give it a localized name for screen readers.
             AutomationProperties.SetName(RepeatButton, AppContext.AppLang.MoreRepeat);
+            ToolTipService.SetToolTip(RepeatButton, AppContext.AppLang.MoreRepeat);
             AutomationProperties.SetName(VolumeMuteButton, AppContext.AppLang.PiPMute);
             AutomationProperties.SetName(VolumeSlider, AppContext.AppLang.ControlBarIconVolume);
             AutomationProperties.SetName(PlaybackRateButton, AppContext.AppLang.MorePlaybackRate);
@@ -177,7 +179,11 @@ namespace mpv_winui.Modules.Player
 
         private void OnAppSettingChanged(string key, object? value)
         {
-            if (key == nameof(AppContext.AppSetting.WindowPiP))
+            if (key == nameof(AppContext.AppSetting.VolumeMax))
+            {
+                VolumeSlider.Maximum = Math.Max(100, Convert.ToInt32(value));
+            }
+            else if (key == nameof(AppContext.AppSetting.WindowPiP))
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {
@@ -202,11 +208,32 @@ namespace mpv_winui.Modules.Player
         private void VolumeSlider_GotFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = true;
         private void VolumeSlider_LostFocus(object sender, RoutedEventArgs e) => mpv_winui.AppContext.UiFocusInSlider = false;
 
+        // Right-side time: click toggles between total duration and the
+        // remaining time (minus-prefixed), like mainstream players.
+        private bool _showRemainingTime;
+
         private void UpdateTimeTexts(double position, double duration)
         {
             TimeElapsedElement.Text = FormatTime(position);
-            TimeRemainingElement.Text = FormatTime(duration);
+            TimeRemainingElement.Text = _showRemainingTime && duration > 0
+                ? "-" + FormatTime(Math.Max(0, duration - position))
+                : FormatTime(duration);
             CompactTimeText.Text = $"{FormatCompactTime(position)}/{FormatCompactTime(duration)}";
+        }
+
+        private void TimeRemainingElement_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            _showRemainingTime = !_showRemainingTime;
+            UpdateTimeToggleAccessibility();
+            UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
+            e.Handled = true;
+        }
+
+        private void UpdateTimeToggleAccessibility()
+        {
+            var hint = _showRemainingTime ? AppContext.AppLang.TimeShowTotal : AppContext.AppLang.TimeShowRemaining;
+            ToolTipService.SetToolTip(TimeRemainingElement, hint);
+            AutomationProperties.SetName(TimeRemainingElement, hint);
         }
 
         private static string FormatCompactTime(double seconds)
@@ -243,6 +270,10 @@ namespace mpv_winui.Modules.Player
 
                         UpdatePlaybackModeUI();
                         UpdatePlaybackRateUI(value.PlaybackRate);
+                        // The slider must reach every level volume-max allows,
+                        // otherwise hotkey/wheel volume above 100 displays as
+                        // a pinned 100 on the slider.
+                        VolumeSlider.Maximum = Math.Max(100, AppContext.AppSetting.VolumeMax);
                         VolumeSlider.Value2 = _mediaPlayer?.Volume ?? 50;
 
                         // Initialize time/progress from the current media state.
@@ -440,31 +471,31 @@ namespace mpv_winui.Modules.Player
         private void AddEventListeners()
         {
             _mediaPlayer?.MediaOpened += MediaPlayer_MediaOpened;
-            _mediaPlayer?.MediaFailed += MediaPlayer_MediaFailed;
+            _mediaPlayer?.Native.PlaybackFailed += MediaPlayer_MediaFailed;
             _mediaPlayer?.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
             _mediaPlayer?.SeekingStarted += PlaybackSession_SeekingStarted;
             _mediaPlayer?.SeekingEnded += PlaybackSession_SeekingEnded;
-            _mediaPlayer?.VolumeChanged += PlaybackSession_VolumeChanged;
+            _mediaPlayer?.Native.VolumeChanged += PlaybackSession_VolumeChanged;
             _mediaPlayer?.Seeked += MediaPlayer_Seeked;
             _mediaPlayer?.RepeatStateChanged += MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged += MediaPlayer_ShuffleEnabledChanged;
-            _mediaPlayer?.PositionChanged += PlaybackSession_PositionChanged;
-            _mediaPlayer?.SpeedChanged += PlaybackSession_SpeedChanged;
+            _mediaPlayer?.Native.PositionChanged += PlaybackSession_PositionChanged;
+            _mediaPlayer?.Native.SpeedChanged += PlaybackSession_SpeedChanged;
         }
 
         private void RemoveEventListeners()
         {
             _mediaPlayer?.MediaOpened -= MediaPlayer_MediaOpened;
-            _mediaPlayer?.MediaFailed -= MediaPlayer_MediaFailed;
+            _mediaPlayer?.Native.PlaybackFailed -= MediaPlayer_MediaFailed;
             _mediaPlayer?.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
             _mediaPlayer?.SeekingStarted -= PlaybackSession_SeekingStarted;
             _mediaPlayer?.SeekingEnded -= PlaybackSession_SeekingEnded;
-            _mediaPlayer?.VolumeChanged -= PlaybackSession_VolumeChanged;
+            _mediaPlayer?.Native.VolumeChanged -= PlaybackSession_VolumeChanged;
             _mediaPlayer?.Seeked -= MediaPlayer_Seeked;
             _mediaPlayer?.RepeatStateChanged -= MediaPlayer_RepeatStateChanged;
             _mediaPlayer?.ShuffleEnabledChanged -= MediaPlayer_ShuffleEnabledChanged;
-            _mediaPlayer?.PositionChanged -= PlaybackSession_PositionChanged;
-            _mediaPlayer?.SpeedChanged -= PlaybackSession_SpeedChanged;
+            _mediaPlayer?.Native.PositionChanged -= PlaybackSession_PositionChanged;
+            _mediaPlayer?.Native.SpeedChanged -= PlaybackSession_SpeedChanged;
         }
 
         private void NextTrackButton_Click(object? sender, RoutedEventArgs? e)
@@ -604,7 +635,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void PlaybackSession_SpeedChanged(MpvMediaPlayer sender, SpeedChangedEventArgs args)
+        private void PlaybackSession_SpeedChanged(SpeedChangedEventArgs args)
         {
             DispatcherQueue.RunAsync(() => UpdatePlaybackRateUI(args.Speed));
         }
@@ -716,14 +747,14 @@ namespace mpv_winui.Modules.Player
             ProgressSlider.StepFrequency = 1;
         }
 
-        private void MediaPlayer_MediaFailed(MpvMediaPlayer sender, string? args)
+        private void MediaPlayer_MediaFailed(PlaybackFailedEventArgs args)
         {
             _hasError = true;
             _sourceLoaded = false;
 
             DispatcherQueue.RunAsync(() =>
             {
-                ErrorTextBlock.Text = args;
+                ErrorTextBlock.Text = args.Message;
                 UpdatePlaybackStatusUI(true);
             });
         }
@@ -746,11 +777,11 @@ namespace mpv_winui.Modules.Player
             DispatcherQueue.RunAsync(() => { UpdatePlaybackStatusUI(true); });
         }
 
-        private void PlaybackSession_VolumeChanged(MpvMediaPlayer sender, int volume)
+        private void PlaybackSession_VolumeChanged(VolumeChangedEventArgs args)
         {
             DispatcherQueue.RunAsync(() =>
             {
-                VolumeSlider.Value2 = volume;
+                VolumeSlider.Value2 = (int)args.Volume;
                 UpdateVolumeUI(true);
             });
         }
@@ -797,17 +828,22 @@ namespace mpv_winui.Modules.Player
             if (VolumeSliderContainer.Visibility != Visibility.Visible)
             {
                 var control = new VolumeFlyoutControl(MediaPlayer);
+                var presenterStyle = new Style(typeof(FlyoutPresenter))
+                {
+                    BasedOn = (Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
+                };
+                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(8)));
+                // In-app acrylic cannot sample the swap chain under the flyout
+                // (it falls back to opaque), so overlay the video with a
+                // translucent solid instead.
+                presenterStyle.Setters.Add(new Setter(
+                    FlyoutPresenter.BackgroundProperty,
+                    (Brush)Application.Current.Resources["PlayerFlyoutTranslucentBrush"]));
                 var flyout = new Flyout
                 {
                     Content = control,
                     Placement = FlyoutPlacementMode.Top,
-                    FlyoutPresenterStyle = new Style(typeof(FlyoutPresenter))
-                    {
-                        Setters =
-                        {
-                            new Setter(FlyoutPresenter.PaddingProperty, new Thickness(4)),
-                        },
-                    },
+                    FlyoutPresenterStyle = presenterStyle,
                 };
                 flyout.ShowAt(VolumeMuteButton);
                 return;
@@ -906,7 +942,7 @@ namespace mpv_winui.Modules.Player
             MediaPlayer?.Volume = value;
         }
 
-        private void PlaybackSession_PositionChanged(MpvMediaPlayer sender, PositionChangedEventArgs args)
+        private void PlaybackSession_PositionChanged(PositionChangedEventArgs args)
         {
             // Runs on the native mpv event thread; store the latest snapshot
             // and let the UI-thread coalescing timer apply it.

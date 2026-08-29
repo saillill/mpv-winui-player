@@ -398,7 +398,7 @@ namespace mpv_winui.Modules.Player
             return PlaylistContainer.Visibility == Visibility.Visible;
         }
 
-        private void MpvPlayerPage_PlaylistChanged(MpvMediaPlayer player, object? arg2)
+        private void MpvPlayerPage_PlaylistChanged()
         {
             DispatcherQueue.RunAsync(() =>
             {

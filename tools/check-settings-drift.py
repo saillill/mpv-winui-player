@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Check settings drift for mpv-winui-player.
 
 Three sources must stay in sync:
@@ -62,7 +62,7 @@ def parse_option_keys(src_dir: Path) -> set[str]:
 # Adding a new mpv-facing setting here is a bug; the check keeps this list tight.
 UNMAPPED_OK = {
     # UI-only
-    "ThemeType", "ThemeAccentColor", "ThemeOpacity", "ThemeLuminosity", "BackdropType",
+    "ThemeType", "BackdropType",
     "UiFont", "ThemeRecentColors", "ControlBarLayout", "ControlBarHiddenIcons",
     "ControlBarHiddenIconsClassic", "ControlBarHiddenIconsModernX",
     "CurrentLanguage", "WindowRememberSize", "WindowPositionAndSize", "WindowStartMaximized",
@@ -71,7 +71,8 @@ UNMAPPED_OK = {
     "DisplayPeak",
     "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
     "ControlBarZonesClassic", "ControlBarZonesModernX",
-    "ControlBarOrderStyleMigrated", "WindowPiPRect", "WindowPiPOpacity",
+    "ControlBarOrderStyleMigrated", "WindowPiPShowTopButtons", "WindowPiPShowControls",
+    "WindowPiPOpacity", "WindowPiPAspectRatioLock", "WindowPiPAnchor",
     "LastVideoVolume", "AudioVolume",
     "EnableVideoPreview",
     "ThumbnailPreviewWidth", "ThumbnailUpdateInterval",
