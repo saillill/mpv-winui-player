@@ -191,12 +191,12 @@ public sealed partial class MpvPlayerPage
             var search = new TextBox
             {
                 PlaceholderText = AppContext.AppLang.ShortcutSearchPlaceholder,
-                MinWidth = 440
+                MinWidth = 480,
             };
             var list = new ListView
             {
-                MaxHeight = 380,
-                SelectionMode = ListViewSelectionMode.None
+                MaxHeight = 420,
+                SelectionMode = ListViewSelectionMode.None,
             };
             var empty = new TextBlock
             {
@@ -205,30 +205,27 @@ public sealed partial class MpvPlayerPage
                     Microsoft.UI.Colors.Gray),
                 Visibility = Visibility.Collapsed
             };
-            var panel = new StackPanel { Spacing = 8 };
+            var panel = new StackPanel { Spacing = 8, MinWidth = 480 };
             panel.Children.Add(search);
             panel.Children.Add(list);
             panel.Children.Add(empty);
 
             var bindings = LoadBindings();
-            var query = string.Empty;
             void Refresh()
             {
-                var items = bindings
+                var query = (search.Text ?? string.Empty).Trim();
+                var rows = bindings
                     .Where(b => string.IsNullOrWhiteSpace(query)
                                 || b.Key.Contains(query, StringComparison.OrdinalIgnoreCase)
-                                || b.Command.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    .Select(b => $"{mpv_winui.Modules.Settings.Controls.ShortcutKeyLocalizer.Localize(b.Key)}    {b.Command}")
+                                || b.Command.Contains(query, StringComparison.OrdinalIgnoreCase)
+                                || b.Description.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .Select(BuildShortcutRow)
                     .ToList();
-                list.ItemsSource = items;
-                empty.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+                list.ItemsSource = rows;
+                empty.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             }
 
-            search.TextChanged += (_, _) =>
-            {
-                query = search.Text ?? string.Empty;
-                Refresh();
-            };
+            search.TextChanged += (_, _) => Refresh();
             Refresh();
 
             var dialog = new ContentDialog
@@ -242,7 +239,75 @@ public sealed partial class MpvPlayerPage
             await dialog.ShowAsync();
         }
 
-        private static List<(string Key, string Command)> LoadBindings()
+        /// <summary>
+        /// One shortcut list row: friendly name on the left, the key rendered
+        /// as rounded pills on the right (Win11 settings look). The raw mpv
+        /// command stays available as the row tooltip for power users.
+        /// </summary>
+        private static FrameworkElement BuildShortcutRow((string Key, string Description, string Command) binding)
+        {
+            var name = new TextBlock
+            {
+                Text = string.IsNullOrEmpty(binding.Description) ? binding.Command : binding.Description,
+                FontSize = 14,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+            };
+
+            var pills = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            var parts = binding.Key.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            for (var i = 0; i < parts.Length; i++)
+            {
+                if (i > 0)
+                {
+                    pills.Children.Add(new TextBlock
+                    {
+                        Text = "+",
+                        FontSize = 12,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                    });
+                }
+                pills.Children.Add(new Border
+                {
+                    CornerRadius = new CornerRadius(4),
+                    Padding = new Thickness(8, 3, 8, 3),
+                    Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
+                    BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+                    BorderThickness = new Thickness(1),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Child = new TextBlock
+                    {
+                        Text = mpv_winui.Modules.Settings.Controls.ShortcutKeyLocalizer.Localize(parts[i]),
+                        FontSize = 12,
+                    },
+                });
+            }
+
+            var row = new Grid { ColumnSpacing = 16 };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            row.Children.Add(name);
+            Grid.SetColumn(pills, 1);
+            row.Children.Add(pills);
+            row.MinHeight = 36;
+            ToolTipService.SetToolTip(row, binding.Command);
+            return row;
+        }
+
+        /// <summary>
+        /// Parses input.conf bindings: key, command and the trailing Chinese
+        /// description comment (the bundled conf documents every binding as
+        /// "#鼠标左键 暂停/播放"). Menu-directive lines ("#menu: … #@state=…")
+        /// contribute their label, dynamic-menu placeholders ("_ ignore") are
+        /// dropped, and duplicate key+command pairs collapse.
+        /// </summary>
+        private static List<(string Key, string Description, string Command)> LoadBindings()
         {
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -254,7 +319,7 @@ public sealed partial class MpvPlayerPage
                 return [];
             }
 
-            var result = new List<(string, string)>();
+            var result = new List<(string Key, string Description, string Command)>();
             foreach (var raw in File.ReadAllLines(path))
             {
                 var line = raw.Trim();
@@ -263,20 +328,47 @@ public sealed partial class MpvPlayerPage
                     continue;
                 }
 
-                var separator = line.IndexOfAny([' ', '\t']);
+                var description = string.Empty;
+                var main = line;
+                var hash = line.IndexOf('#');
+                if (hash >= 0)
+                {
+                    main = line[..hash].TrimEnd();
+                    description = line[(hash + 1)..].Trim();
+                    if (description.StartsWith("menu:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        description = description[5..].Trim();
+                    }
+                    var meta = description.IndexOf("#@", StringComparison.Ordinal);
+                    if (meta >= 0)
+                    {
+                        description = description[..meta].Trim();
+                    }
+                    if (description.StartsWith('@'))
+                    {
+                        description = string.Empty;
+                    }
+                }
+
+                var separator = main.IndexOfAny([' ', '\t']);
                 if (separator <= 0)
                 {
                     continue;
                 }
 
-                var key = line[..separator].Trim();
-                var command = line[separator..].Trim();
-                if (key.Length > 0 && command.Length > 0)
+                var key = main[..separator].Trim();
+                var command = main[separator..].Trim();
+                if (key.Length == 0 || command.Length == 0 || key == "_" || command == "ignore")
                 {
-                    result.Add((key, command));
+                    continue;
                 }
+                result.Add((key, description, command));
             }
-            return result;
+
+            return result
+                .GroupBy(b => (b.Key, b.Command))
+                .Select(g => g.First())
+                .ToList();
         }
 
         private void ShowSettingsWindow()
