@@ -129,7 +129,7 @@ public sealed partial class PiPWindow
         // PiP flag so the next start opens the main window normally.
         try
         {
-            _player?.Command(["write-watch-later"]);
+            _player?.Command(["quit-watch-later"]);
             _ = _player?.SaveWatchHistory;
         }
         catch (Exception)

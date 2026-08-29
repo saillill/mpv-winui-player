@@ -296,7 +296,7 @@ namespace mpv_winui.Modules.Player
             // it back) and the app-side history gets its final entry.
             try
             {
-                _mediaPlayer.Command(["write-watch-later"]);
+                _mediaPlayer.Command(["quit-watch-later"]);
                 _ = _mediaPlayer.SaveWatchHistory;
             }
             catch (Exception ex)
