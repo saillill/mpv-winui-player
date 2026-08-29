@@ -297,34 +297,42 @@ namespace mpv_winui.Modules.Player
                 }
             }
     
-            private AppBarToggleButton BuildPiPRightItem(ToggleButton source)
+            private AppBarButton BuildPiPRightItem(ToggleButton source)
             {
                 // A ToggleButton that has already been realized in the XAML tree
                 // cannot be reparented into the command bar (Content setter throws
-                // E_INVALIDARG), so build a fresh AppBarToggleButton each time and
-                // forward the click through PiPRightToggleAction. Using the same
-                // AppBarToggleButton style as the rest of the bar keeps the CC
-                // icon at the same height and gives it the checked accent state.
+                // E_INVALIDARG), so build a fresh button each time and forward the
+                // click through PiPRightToggleAction. The active state tints the
+                // glyph with the accent color instead of the AppBarToggleButton
+                // checked pill, which paints the whole 40px slot.
                 var icon = source.Content as FontIcon;
-                var toggle = new AppBarToggleButton
+                var buttonIcon = new FontIcon
                 {
-                    Icon = new FontIcon
-                    {
-                        Glyph = icon?.Glyph ?? "\uF2E3",
-                        FontSize = 16,
-                        FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
-                    },
-                    IsChecked = source.IsChecked,
-                    Style = (Style)RootGrid.Resources["AppBarToggleButtonStyle"],
+                    Glyph = icon?.Glyph ?? "\uF2E3",
+                    FontSize = 16,
+                    FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
+                };
+                var activeBrush = (Brush)RootGrid.Resources["PiPSubtitleActiveBrush"];
+                var button = new AppBarButton
+                {
+                    Icon = buttonIcon,
+                    Style = (Style)RootGrid.Resources["AppBarButtonStyle"],
                     Visibility = Visibility.Visible,
                 };
-                AutomationProperties.SetName(toggle, AppContext.AppLang.Subtitles);
-                ToolTipService.SetToolTip(toggle, AppContext.AppLang.Subtitles);
-                if (PiPRightToggleAction is { } action)
+                AutomationProperties.SetName(button, AppContext.AppLang.Subtitles);
+                ToolTipService.SetToolTip(button, AppContext.AppLang.Subtitles);
+                var active = source.IsChecked == true;
+                buttonIcon.Foreground = active ? activeBrush : null;
+                button.Click += (_, _) =>
                 {
-                    toggle.Click += (_, _) => action(toggle.IsChecked == true);
-                }
-                return toggle;
+                    active = !active;
+                    buttonIcon.Foreground = active ? activeBrush : null;
+                    if (PiPRightToggleAction is { } action)
+                    {
+                        action(active);
+                    }
+                };
+                return button;
             }
     
             private static bool SameElements(IList<ICommandBarElement> current, ICommandBarElement[] desired)

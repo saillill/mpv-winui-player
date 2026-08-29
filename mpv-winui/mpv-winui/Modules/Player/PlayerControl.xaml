@@ -67,6 +67,8 @@
                 <Setter Property="Width" Value="40" />
                 <Setter Property="AllowFocusOnInteraction" Value="True" />
             </Style>
+            <!-- Accent tint for the PiP subtitle toggle's active glyph. -->
+            <SolidColorBrush x:Key="PiPSubtitleActiveBrush" Color="{ThemeResource SystemAccentColor}" />
         </Grid.Resources>
         <Border
             x:Name="ControlPanelGradient"
