@@ -205,6 +205,35 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.WindowPiPAspectRatioLock),
+                Label = lang.SettingsPiPAspectRatioLock,
+                Category = window,
+                Description = lang.SettingsHelpPiPAspectRatioLock,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiPAspectRatioLock,
+                Setter = v => AppContext.AppSetting.WindowPiPAspectRatioLock = (bool)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPAnchor),
+                Label = lang.SettingsPiPAnchor,
+                Category = window,
+                Description = lang.SettingsHelpPiPAnchor,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("bottom-right", lang.OptionValuePiPAnchorBottomRight),
+                    new OptionChoice("bottom-left", lang.OptionValuePiPAnchorBottomLeft),
+                    new OptionChoice("top-right", lang.OptionValuePiPAnchorTopRight),
+                    new OptionChoice("top-left", lang.OptionValuePiPAnchorTopLeft),
+                ],
+                Getter = () => AppContext.AppSetting.WindowPiPAnchor,
+                Setter = v => AppContext.AppSetting.WindowPiPAnchor = (string)v!
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.WindowPiPShowTopButtons),
                 Label = lang.SettingsPiPTopButtons,
                 Category = window,

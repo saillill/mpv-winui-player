@@ -163,13 +163,15 @@ public sealed partial class PiPWindow
         if (show)
         {
             PiPBackButton.Visibility = Visibility.Visible;
+            PiPOpacityButton.Visibility = Visibility.Visible;
             PiPExitButton.Visibility = Visibility.Visible;
             PiPBackButton.Opacity = 1;
+            PiPOpacityButton.Opacity = 1;
             PiPExitButton.Opacity = 1;
         }
 
         EnsureTopButtonVisuals();
-        if (_topButtonsCompositor is null || _topBackButtonVisual is null || _topExitButtonVisual is null)
+        if (_topButtonsCompositor is null || _topBackButtonVisual is null || _topExitButtonVisual is null || _topOpacityButtonVisual is null)
         {
             // Composition unavailable: snap to the target state.
             TopButtonsAnimationCompleted(show);
@@ -177,6 +179,7 @@ public sealed partial class PiPWindow
         }
 
         _topBackButtonVisual.StopAnimation("Opacity");
+        _topOpacityButtonVisual.StopAnimation("Opacity");
         _topExitButtonVisual.StopAnimation("Opacity");
 
         var ease = _topButtonsCompositor.CreateCubicBezierEasingFunction(
@@ -191,6 +194,7 @@ public sealed partial class PiPWindow
 
         var batch = _topButtonsCompositor.CreateScopedBatch(CompositionBatchTypes.Animation);
         _topBackButtonVisual.StartAnimation("Opacity", opacity);
+        _topOpacityButtonVisual.StartAnimation("Opacity", opacity);
         _topExitButtonVisual.StartAnimation("Opacity", opacity);
         batch.Completed += (_, _) => TopButtonsAnimationCompleted(show);
         batch.End();
@@ -202,6 +206,7 @@ public sealed partial class PiPWindow
         {
             _topBackButtonVisual = ElementCompositionPreview.GetElementVisual(PiPBackButton);
             _topExitButtonVisual = ElementCompositionPreview.GetElementVisual(PiPExitButton);
+            _topOpacityButtonVisual = ElementCompositionPreview.GetElementVisual(PiPOpacityButton);
             _topButtonsCompositor = _topBackButtonVisual.Compositor;
         }
     }
@@ -210,22 +215,29 @@ public sealed partial class PiPWindow
     {
         _topButtonsAnimating = false;
         _topBackButtonVisual?.StopAnimation("Opacity");
+        _topOpacityButtonVisual?.StopAnimation("Opacity");
         _topExitButtonVisual?.StopAnimation("Opacity");
         if (_topBackButtonVisual is not null)
         {
             _topBackButtonVisual.Opacity = show ? 1f : 0f;
+        }
+        if (_topOpacityButtonVisual is not null)
+        {
+            _topOpacityButtonVisual.Opacity = show ? 1f : 0f;
         }
         if (_topExitButtonVisual is not null)
         {
             _topExitButtonVisual.Opacity = show ? 1f : 0f;
         }
         PiPBackButton.Opacity = show ? 1 : 0;
+        PiPOpacityButton.Opacity = show ? 1 : 0;
         PiPExitButton.Opacity = show ? 1 : 0;
         if (!show)
         {
             // Fully hidden buttons must not stay hit-testable: an
             // invisible button still shows its tooltip on hover.
             PiPBackButton.Visibility = Visibility.Collapsed;
+            PiPOpacityButton.Visibility = Visibility.Collapsed;
             PiPExitButton.Visibility = Visibility.Collapsed;
         }
     }
@@ -233,21 +245,88 @@ public sealed partial class PiPWindow
     private void StopTopButtonsAnimation()
     {
         _topBackButtonVisual?.StopAnimation("Opacity");
+        _topOpacityButtonVisual?.StopAnimation("Opacity");
         _topExitButtonVisual?.StopAnimation("Opacity");
         _sizeUpdateTimer.Stop();
         _sizeUpdateTimer.Tick -= SizeUpdateTimer_Tick;
         _topButtonsAnimating = false;
         PiPBackButton.Visibility = Visibility.Visible;
+        PiPOpacityButton.Visibility = Visibility.Visible;
         PiPExitButton.Visibility = Visibility.Visible;
         PiPBackButton.Opacity = 1;
+        PiPOpacityButton.Opacity = 1;
         PiPExitButton.Opacity = 1;
         if (_topBackButtonVisual is not null)
         {
             _topBackButtonVisual.Opacity = 1f;
         }
+        if (_topOpacityButtonVisual is not null)
+        {
+            _topOpacityButtonVisual.Opacity = 1f;
+        }
         if (_topExitButtonVisual is not null)
         {
             _topExitButtonVisual.Opacity = 1f;
         }
+    }
+
+    /// <summary>
+    /// Quick opacity slider for the PiP window: writes the percentage to the
+    /// same setting the settings page uses and applies the layered-window
+    /// alpha live, so dragging the slider shows the effect immediately.
+    /// </summary>
+    private void PiPOpacityButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement anchor)
+        {
+            return;
+        }
+
+        var presenterStyle = new Microsoft.UI.Xaml.Style(typeof(FlyoutPresenter))
+        {
+            BasedOn = (Microsoft.UI.Xaml.Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
+        };
+        presenterStyle.Setters.Add(new Setter(
+            FlyoutPresenter.BackgroundProperty,
+            (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["PlayerFlyoutTranslucentBrush"]));
+        var flyout = new Flyout
+        {
+            Placement = FlyoutPlacementMode.Bottom,
+            FlyoutPresenterStyle = presenterStyle,
+        };
+
+        var panel = new StackPanel { Spacing = 10, MinWidth = 200 };
+        var header = new StackPanel { Spacing = 2 };
+        var title = new TextBlock
+        {
+            Text = AppContext.AppLang.SettingsPiPOpacity,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+        };
+        var valueText = new TextBlock
+        {
+            Text = $"{Math.Round(AppContext.AppSetting.WindowPiPOpacity * 100)}%",
+            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+        };
+        header.Children.Add(title);
+        header.Children.Add(valueText);
+        var slider = new Slider
+        {
+            Minimum = 20,
+            Maximum = 100,
+            StepFrequency = 5,
+            Value = Math.Round(Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0) * 100),
+            IsThumbToolTipEnabled = false,
+        };
+        slider.ValueChanged += (_, args) =>
+        {
+            var percent = (int)Math.Round(args.NewValue);
+            valueText.Text = $"{percent}%";
+            AppContext.AppSetting.WindowPiPOpacity = percent / 100.0;
+            ApplyOpacity();
+        };
+        panel.Children.Add(header);
+        panel.Children.Add(slider);
+        flyout.Content = panel;
+        flyout.ShowAt(anchor);
     }
 }

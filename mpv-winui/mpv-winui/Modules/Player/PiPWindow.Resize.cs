@@ -132,10 +132,16 @@ public sealed partial class PiPWindow
     /// Adjusts the native WM_SIZING drag rectangle: the video aspect is kept
     /// and the window's bottom-right corner (recorded at WM_ENTERSIZEMOVE)
     /// stays fixed, so the PiP scales from the top-left while remaining
-    /// docked at its bottom-right position.
+    /// docked at its bottom-right position. With the aspect lock off the OS
+    /// handles the drag untouched (free resize from the dragged edge).
     /// </summary>
     private bool AdjustSizingRect(int edge, ref RECT rect)
     {
+        if (!AppContext.AppSetting.WindowPiPAspectRatioLock)
+        {
+            return false;
+        }
+
         const int WMSZ_TOP = 3;
         const int WMSZ_BOTTOM = 6;
 
@@ -226,15 +232,28 @@ public sealed partial class PiPWindow
         }
     }
 
-    private void PositionAtBottomRight(int width, int height)
+    /// <summary>
+    /// Claims the work-area corner configured by <c>WindowPiPAnchor</c>
+    /// (bottom-right by default), keeping a 16px margin from the screen
+    /// edges and clamping the window inside the work area.
+    /// </summary>
+    private void PositionAtAnchor(int width, int height)
     {
+        var anchor = AppContext.AppSetting.WindowPiPAnchor;
+        var leftAligned = anchor.Contains("left");
+        var topAligned = anchor.StartsWith("top");
         try
         {
-            var area = GetPiPDisplayArea();
-            var work = area.WorkArea;
-            var x = work.X + work.Width - width - 16;
-            var y = work.Y + work.Height - height - 16;
-            AppWindow.MoveAndResize(new RectInt32(Math.Max(work.X, x), Math.Max(work.Y, y), width, height));
+            var work = GetPiPDisplayArea().WorkArea;
+            var x = leftAligned ? work.X + 16 : work.X + work.Width - width - 16;
+            var y = topAligned ? work.Y + 16 : work.Y + work.Height - height - 16;
+            var maxX = Math.Max(work.X, work.X + work.Width - width);
+            var maxY = Math.Max(work.Y, work.Y + work.Height - height);
+            AppWindow.MoveAndResize(new RectInt32(
+                Math.Clamp(x, work.X, maxX),
+                Math.Clamp(y, work.Y, maxY),
+                width,
+                height));
         }
         catch (Exception)
         {
@@ -447,9 +466,11 @@ public sealed partial class PiPWindow
     }
 
     /// <summary>
-    /// Edge/corner resize anchored at the bottom-right corner: the window
-    /// scales from the top-left while its bottom-right corner stays fixed and
-    /// the size keeps <see cref="_videoAspect"/>.
+    /// Edge/corner resize. With the aspect lock on (default) the window
+    /// scales from the top-left while its bottom-right corner stays fixed
+    /// and the size keeps <see cref="_videoAspect"/>. With the lock off the
+    /// width/height follow the dragged edge freely and the opposite
+    /// edge/corner stays put.
     /// </summary>
     private void ApplyResize(double deltaX, double deltaY)
     {
@@ -457,6 +478,31 @@ public sealed partial class PiPWindow
         {
             var start = _resizeStartRect;
             var aspect = _videoAspect > 0 ? _videoAspect : 16.0 / 9.0;
+
+            if (!AppContext.AppSetting.WindowPiPAspectRatioLock)
+            {
+                double freeW = start.Width;
+                double freeH = start.Height;
+                if ((_resizeZone & (ResizeZone.Left | ResizeZone.Right)) != 0)
+                {
+                    freeW = start.Width + ((_resizeZone & ResizeZone.Right) != 0 ? deltaX : -deltaX);
+                }
+                if ((_resizeZone & (ResizeZone.Top | ResizeZone.Bottom)) != 0)
+                {
+                    freeH = start.Height + ((_resizeZone & ResizeZone.Bottom) != 0 ? deltaY : -deltaY);
+                }
+                freeW = Math.Clamp(freeW, _resizeMinW, _resizeMaxW);
+                freeH = Math.Clamp(freeH, _resizeMinH, _resizeMaxH);
+                var freeLeft = (_resizeZone & ResizeZone.Left) != 0
+                    ? start.X + start.Width - (int)Math.Round(freeW)
+                    : start.X;
+                var freeTop = (_resizeZone & ResizeZone.Top) != 0
+                    ? start.Y + start.Height - (int)Math.Round(freeH)
+                    : start.Y;
+                AppWindow.MoveAndResize(new RectInt32(freeLeft, freeTop, (int)Math.Round(freeW), (int)Math.Round(freeH)));
+                _player?.UpdateSize((uint)freeW, (uint)freeH);
+                return;
+            }
 
             double w;
             if ((_resizeZone & (ResizeZone.Left | ResizeZone.Right)) != 0)

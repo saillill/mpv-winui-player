@@ -66,6 +66,14 @@ namespace mpv_winui.Modules.Language
         public string SettingsPiP { get; set; } = "Picture-in-picture (mini player)";
         public string SettingsHelpPiP { get; set; } = "Switch the window to a compact always-on-top mini player.";
         public string SettingsPiPSize { get; set; } = "Mini player size";
+        public string SettingsPiPAspectRatioLock { get; set; } = "Lock mini player aspect ratio";
+        public string SettingsHelpPiPAspectRatioLock { get; set; } = "Keep the video aspect ratio while resizing the mini player. Turn off to stretch it freely.";
+        public string SettingsPiPAnchor { get; set; } = "Mini player default position";
+        public string SettingsHelpPiPAnchor { get; set; } = "Screen corner the mini player claims when it opens.";
+        public string OptionValuePiPAnchorTopLeft { get; set; } = "Top left";
+        public string OptionValuePiPAnchorTopRight { get; set; } = "Top right";
+        public string OptionValuePiPAnchorBottomLeft { get; set; } = "Bottom left";
+        public string OptionValuePiPAnchorBottomRight { get; set; } = "Bottom right";
         public string SectionWindowPiP { get; set; } = "Picture-in-picture";
         public string OptionValuePiPSmall { get; set; } = "Small (320x180)";
         public string OptionValuePiPMedium { get; set; } = "Medium (480x270)";

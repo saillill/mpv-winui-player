@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Check settings drift for mpv-winui-player.
 
 Three sources must stay in sync:
@@ -72,7 +72,7 @@ UNMAPPED_OK = {
     "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
     "ControlBarZonesClassic", "ControlBarZonesModernX",
     "ControlBarOrderStyleMigrated", "WindowPiPShowTopButtons", "WindowPiPShowControls",
-    "WindowPiPOpacity",
+    "WindowPiPOpacity", "WindowPiPAspectRatioLock", "WindowPiPAnchor",
     "LastVideoVolume", "AudioVolume",
     "EnableVideoPreview",
     "ThumbnailPreviewWidth", "ThumbnailUpdateInterval",

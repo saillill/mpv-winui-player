@@ -391,6 +391,20 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPSize), value);
         }
 
+        /// <summary>Keep the video aspect ratio while resizing the PiP window (both the native and pointer resize paths).</summary>
+        public bool WindowPiPAspectRatioLock
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPAspectRatioLock), true);
+            set => _dataSetting.SetValue(nameof(WindowPiPAspectRatioLock), value);
+        }
+
+        /// <summary>Screen corner the PiP window claims on entry ("top-left"/"top-right"/"bottom-left"/"bottom-right").</summary>
+        public string WindowPiPAnchor
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPAnchor), "bottom-right");
+            set => _dataSetting.SetValue(nameof(WindowPiPAnchor), value);
+        }
+
         /// <summary>Last PiP window position+size ("x,y,w,h"); empty restores the default bottom-right placement.</summary>
         /// <summary>Show the top overlay buttons (back / exit) in the PiP window.</summary>
         public bool WindowPiPShowTopButtons
