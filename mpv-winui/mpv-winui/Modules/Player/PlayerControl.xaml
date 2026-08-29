@@ -348,6 +348,7 @@
                             <Flyout
                                 x:Name="ControlPanelFlyout"
                                 Placement="Top"
+                                Opening="ControlPanelFlyout_Opening"
                                 Opened="ControlPanelFlyout_Opened">
                                 <Flyout.FlyoutPresenterStyle>
                                     <Style
@@ -592,6 +593,7 @@
                         <AppBarButton.Flyout>
                             <Flyout
                                 x:Name="TrackSelectionFlyout"
+                                Opening="TrackSelectionFlyout_Opening"
                                 Placement="Top">
                                 <Flyout.FlyoutPresenterStyle>
                                     <Style
