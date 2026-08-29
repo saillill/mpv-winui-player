@@ -1,4 +1,4 @@
-using Microsoft.UI.Composition;
+﻿using Microsoft.UI.Composition;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -241,7 +241,7 @@ public sealed partial class PiPWindow : Window
         const int WS_EX_LAYERED = 0x00080000;
         var style = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
         PInvoke.SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, style | WS_EX_LAYERED);
-        PInvoke.SetLayeredWindowAttributes(hwnd, default(COLORREF), (byte)Math.Round(opacity * 255), SET_LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA);
+        PInvoke.SetLayeredWindowAttributes(hwnd, default(COLORREF), (byte)Math.Round(opacity * 255), LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA);
     }
 
     public void HidePiP()
