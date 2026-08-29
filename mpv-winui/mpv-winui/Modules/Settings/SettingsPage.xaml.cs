@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -32,6 +32,13 @@ public sealed partial class SettingsPage : Page
     public List<string> CategoryOrder { get; } = [];
     private string _actionStatus = string.Empty;
     private int _resetStatusGeneration;
+
+    /// <summary>
+    /// Section currently drilled into (localized label), null while the
+    /// category shows its section overview. Reset on category/language
+    /// switches: section labels change with the language.
+    /// </summary>
+    private string? _selectedSection;
 
     /// <summary>Stable category keys, parallel to the localized category order.</summary>
     private static readonly string[] CategoryKeys =
@@ -96,6 +103,9 @@ public sealed partial class SettingsPage : Page
     {
         var selectedKey = CurrentCategoryKey;
         var offset = OptionsControl.GetScrollOffset();
+        // Section labels are localized; a drilled-in section cannot survive
+        // a rebuild (language switch / reset) — fall back to the overview.
+        _selectedSection = null;
         _rebuildingContent = true;
         try
         {
@@ -122,6 +132,9 @@ public sealed partial class SettingsPage : Page
             ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
             SearchBox.PlaceholderText = AppContext.AppLang.Search;
             AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
+            var backTip = AppContext.AppLang.CommonBack;
+            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
+            AutomationProperties.SetName(BreadcrumbBackButton, backTip);
             RefreshWarningsAndEnabled();
             UpdateOptions();
         }
@@ -407,6 +420,15 @@ public sealed partial class SettingsPage : Page
             SearchBox.Text = string.Empty;
             RestoreSearchHistorySuggestions();
         }
+        // Category switches always land on the section overview (section
+        // labels are localized, so a drilled-in section cannot survive).
+        _selectedSection = null;
+        UpdateOptions();
+    }
+
+    private void BreadcrumbBack_Click(object sender, RoutedEventArgs e)
+    {
+        _selectedSection = null;
         UpdateOptions();
     }
 
@@ -435,6 +457,9 @@ public sealed partial class SettingsPage : Page
 
     private void ApplySearchQuery(string query)
     {
+        // Searching leaves the section drill-down: the global result list
+        // spans sections, so a stale _selectedSection would filter it away.
+        _selectedSection = null;
         // Global results: every matching option across categories is shown in
         // one flat list for now; grouping/highlighting arrives with the
         // search-results view in the next stage.
@@ -445,6 +470,9 @@ public sealed partial class SettingsPage : Page
             .Where(o => FuzzyMatchOption(query, o))
             .ToList();
         OptionsControl.OptionList = optionMatches;
+        SectionsHost.Visibility = Visibility.Collapsed;
+        BreadcrumbBar.Visibility = Visibility.Collapsed;
+        OptionsControl.Visibility = Visibility.Visible;
         SearchBox.ItemsSource = categoryMatches.Count > 0
             ? categoryMatches
             : optionMatches.Select(o => o.Category).Distinct().ToList();
@@ -678,18 +706,113 @@ public sealed partial class SettingsPage : Page
         var query = SearchBox.Text?.Trim() ?? string.Empty;
         if (!string.IsNullOrEmpty(query))
         {
-            // Global search results span categories, so "reset current
-            // category" has no visible target until the query is cleared.
+            // Global search results span categories and sections, so the
+            // drill-down state and "reset current category" have no visible
+            // target until the query is cleared.
             ResetButton.IsEnabled = false;
+            SectionsHost.Visibility = Visibility.Collapsed;
+            BreadcrumbBar.Visibility = Visibility.Collapsed;
+            OptionsControl.Visibility = Visibility.Visible;
             OptionsControl.OptionList = Settings.Where(o => FuzzyMatchOption(query, o)).ToList();
             return;
         }
 
         ResetButton.IsEnabled = true;
         var selected = CurrentCategory;
-        OptionsControl.OptionList = selected is null
+        var categoryOptions = selected is null
             ? Settings
             : Settings.Where(o => o.Category == selected).ToList();
+        var sections = SectionSummaries(categoryOptions);
+
+        // Windows-Settings flow: a category with several sections first shows
+        // the section cards; clicking one drills into a breadcrumb sub-page.
+        // Single-section categories go straight to their options.
+        var showOverview = _selectedSection is null && sections.Count > 1;
+        SectionsHost.Visibility = showOverview ? Visibility.Visible : Visibility.Collapsed;
+        OptionsControl.Visibility = showOverview ? Visibility.Collapsed : Visibility.Visible;
+
+        if (showOverview)
+        {
+            BreadcrumbBar.Visibility = Visibility.Collapsed;
+            SectionsHost.ItemsSource = sections.Select(s => BuildSectionCard(s.Label, s.Count)).ToList();
+            OptionsControl.OptionList = [];
+            return;
+        }
+
+        if (_selectedSection is not null)
+        {
+            BreadcrumbBar.Visibility = Visibility.Visible;
+            BreadcrumbText.Text = selected is null
+                ? _selectedSection
+                : $"{selected} > {_selectedSection}";
+            OptionsControl.OptionList = categoryOptions
+                .Where(o => o.Section == _selectedSection)
+                .ToList();
+            return;
+        }
+
+        BreadcrumbBar.Visibility = Visibility.Collapsed;
+        OptionsControl.OptionList = categoryOptions;
+    }
+
+    /// <summary>Ordered (label, count) summaries of a category's sections;
+    /// options arrive pre-clustered so first-seen order is the page order.</summary>
+    private static List<(string Label, int Count)> SectionSummaries(IEnumerable<Option> categoryOptions) =>
+        categoryOptions
+            .Where(o => !string.IsNullOrEmpty(o.Section))
+            .GroupBy(o => o.Section!, StringComparer.Ordinal)
+            .Select(g => (g.Key, g.Count()))
+            .ToList();
+
+    /// <summary>Windows-Settings-like navigation card for one section.</summary>
+    private FrameworkElement BuildSectionCard(string label, int count)
+    {
+        var card = new Button
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            Padding = new Thickness(14, 8, 8, 8),
+            CornerRadius = new CornerRadius(6),
+            Content = new Grid { ColumnSpacing = 8 },
+        };
+        if (card.Content is Grid grid)
+        {
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.Children.Add(new TextBlock
+            {
+                Text = label,
+                FontSize = 14,
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+            var countText = new TextBlock
+            {
+                Text = count.ToString(),
+                FontSize = 12,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+            };
+            Grid.SetColumn(countText, 1);
+            grid.Children.Add(countText);
+            var chevron = new FontIcon
+            {
+                Glyph = "\uE76C",
+                FontSize = 12,
+                FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons"),
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+            };
+            Grid.SetColumn(chevron, 2);
+            grid.Children.Add(chevron);
+        }
+        AutomationProperties.SetName(card, label);
+        card.Click += (_, _) =>
+        {
+            _selectedSection = label;
+            UpdateOptions();
+        };
+        return card;
     }
 
     }

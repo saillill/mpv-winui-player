@@ -25,6 +25,7 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
@@ -39,13 +40,58 @@
                     SuggestionChosen="SearchBox_SuggestionChosen"
                     TextChanged="SearchBox_TextChanged" />
 
+                <!-- Windows-Settings-style sub-page breadcrumb: back chevron +
+                     "category > section", shown only while drilled into a
+                     section (built in UpdateOptions). -->
+                <Grid
+                    x:Name="BreadcrumbBar"
+                    Grid.Row="1"
+                    Margin="12,2,12,4"
+                    ColumnSpacing="4"
+                    Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        x:Name="BreadcrumbBackButton"
+                        Grid.Column="0"
+                        MinWidth="32"
+                        MinHeight="32"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="BreadcrumbBack_Click">
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="14" Glyph="&#xE72B;" />
+                    </Button>
+                    <TextBlock
+                        x:Name="BreadcrumbText"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        TextTrimming="CharacterEllipsis" />
+                </Grid>
+
+                <!-- Sub-category overview: section cards shown instead of the
+                     option list when a category holds more than one section. -->
+                <ListView
+                    x:Name="SectionsHost"
+                    Grid.Row="2"
+                    Margin="12,4,12,0"
+                    Padding="0,0,4,0"
+                    SelectionMode="None"
+                    IsItemClickEnabled="False"
+                    Visibility="Collapsed" />
+
                 <ctl:OptionListControl
                     x:Name="OptionsControl"
-                    Grid.Row="1"
+                    Grid.Row="2"
                     ShowHeaders="False" />
 
                 <Border
-                    Grid.Row="2"
+                    Grid.Row="3"
                     Padding="16,10"
                     BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                     BorderThickness="0,1,0,0">

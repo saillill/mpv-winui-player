@@ -46,6 +46,7 @@ namespace mpv_winui.Modules.Language
         public string Test { get; set; } = "Test";
         public string Open { get; set; } = "Open";
         public string Reset { get; set; } = "Reset";
+        public string CommonBack { get; set; } = "Back";
         public string Privacy { get; set; } = "Privacy";
         public string Download { get; set; } = "Download";
         public string Import { get; set; } = "Import";
