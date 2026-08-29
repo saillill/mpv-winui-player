@@ -233,11 +233,15 @@ public sealed partial class PiPWindow : Window
     /// so the XAML content becomes see-through against the desktop.</summary>
     public void ApplyOpacity()
     {
+        // Whole-window alpha via a layered window: XAML Opacity on the root
+        // only fades the content toward the compositor's black backdrop
+        // (darkening the video instead of showing the desktop through).
         var opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
-        RootGrid.Opacity = opacity;
-        RootGrid.Background = opacity < 1.0
-            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent)
-            : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black);
+        var hwnd = new HWND(WindowNative.GetWindowHandle(this));
+        const int WS_EX_LAYERED = 0x00080000;
+        var style = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+        PInvoke.SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, style | WS_EX_LAYERED);
+        PInvoke.SetLayeredWindowAttributes(hwnd, default(COLORREF), (byte)Math.Round(opacity * 255), SET_LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA);
     }
 
     public void HidePiP()

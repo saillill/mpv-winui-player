@@ -40,3 +40,5 @@ SetWindowPos
 ImmGetContext
 ImmAssociateContext
 VIRTUAL_KEY
+SetLayeredWindowAttributes
+SET_LAYERED_WINDOW_ATTRIBUTES_FLAGS
