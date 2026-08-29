@@ -71,8 +71,10 @@ namespace mpv_winui.Modules.Player
     
                 if (_compactMode)
                 {
-                    // PiP: volume on the far left (flyout slider), transport
-                    // centered, subtitle toggle on the far right.
+                    // PiP: volume button + always-visible horizontal slider
+                    // on the far left (the same strip as the main status
+                    // bar — no popup), transport centered, subtitle toggle
+                    // on the far right.
                     _currentSegment = 0;
                     VisualStateManager.GoToState(this, "Wide", false);
                     var pipRight = PiPRightToggle is { } toggle
@@ -82,13 +84,13 @@ namespace mpv_winui.Modules.Player
                         LeftCommandBar,
                         MiddleCommandBar,
                         RightCommandBar,
-                        [VolumeMuteButton, CompactTimeContainer],
+                        [VolumeMuteButton, VolumeSliderContainer, CompactTimeContainer],
                         [SkipBackwardButton, PlayPauseButton, SkipForwardButton],
                         pipRight);
                     SetHidden(true, PreviousTrackButton, NextTrackButton, RepeatButton,
                                TrackSelectionButton, ShuffleButton, PlaybackRateButton,
-                               ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
-                               VolumeSliderContainer);
+                               ZoomButton, PiPButton, FullWindowButton, FullScreenButton);
+                    SetHidden(false, VolumeSliderContainer);
                     TimeTextGrid.Visibility = Visibility.Collapsed;
                     CompactTimeContainer.Visibility = Visibility.Visible;
                     UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);

@@ -830,6 +830,9 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
+            // The PiP compact bar always shows the horizontal slider, so this
+            // flyout is only reached when the main window's volume strip is
+            // hidden through the control-bar customization.
             if (VolumeSliderContainer.Visibility != Visibility.Visible)
             {
                 var control = new VolumeFlyoutControl(MediaPlayer);

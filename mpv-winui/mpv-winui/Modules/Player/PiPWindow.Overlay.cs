@@ -283,7 +283,8 @@ public sealed partial class PiPWindow
     /// Quick opacity slider for the PiP window: writes the percentage to the
     /// same setting the settings page uses and applies the layered-window
     /// alpha live, so dragging the slider shows the effect immediately.
-    /// Uses the stock flyout presentation (official WinUI look).
+    /// The flyout follows the app theme, not the PiP window's forced-dark
+    /// video overlay theme — in a light-theme app it must read as white.
     /// </summary>
     private void PiPOpacityButton_Click(object sender, RoutedEventArgs e)
     {
@@ -292,9 +293,27 @@ public sealed partial class PiPWindow
             return;
         }
 
-        var flyout = new Flyout { Placement = FlyoutPlacementMode.Bottom };
+        // The popup inherits the PiP window's forced Dark scope; override
+        // both the presenter background (theme brushes would resolve dark
+        // down here) and the content theme to the app's resolved theme.
+        var theme = mpv_winui.Modules.Common.View.WindowStyleManager.ResolveTheme();
+        var light = theme == ElementTheme.Light;
+        var presenterStyle = new Style(typeof(FlyoutPresenter))
+        {
+            BasedOn = (Style)Application.Current.Resources["DefaultFlyoutPresenterStyle"],
+        };
+        presenterStyle.Setters.Add(new Setter(
+            FlyoutPresenter.BackgroundProperty,
+            new SolidColorBrush(light
+                ? Windows.UI.Color.FromArgb(0xF2, 0xF3, 0xF3, 0xF3)
+                : Windows.UI.Color.FromArgb(0xF2, 0x2C, 0x2C, 0x2C))));
+        var flyout = new Flyout
+        {
+            Placement = FlyoutPlacementMode.Bottom,
+            FlyoutPresenterStyle = presenterStyle,
+        };
 
-        var panel = new StackPanel { Spacing = 8, Width = 220 };
+        var panel = new StackPanel { Spacing = 8, Width = 220, RequestedTheme = theme };
         var header = new Grid { ColumnSpacing = 8 };
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
