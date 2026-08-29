@@ -833,6 +833,12 @@ namespace mpv_winui.Modules.Player
                     BasedOn = (Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
                 };
                 presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(8)));
+                // In-app acrylic cannot sample the swap chain under the flyout
+                // (it falls back to opaque), so overlay the video with a
+                // translucent solid instead.
+                presenterStyle.Setters.Add(new Setter(
+                    FlyoutPresenter.BackgroundProperty,
+                    (Brush)Application.Current.Resources["PlayerFlyoutTranslucentBrush"]));
                 var flyout = new Flyout
                 {
                     Content = control,

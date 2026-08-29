@@ -322,17 +322,33 @@ namespace mpv_winui.Modules.Player
                 AutomationProperties.SetName(button, AppContext.AppLang.Subtitles);
                 ToolTipService.SetToolTip(button, AppContext.AppLang.Subtitles);
                 var active = source.IsChecked == true;
-                buttonIcon.Foreground = active ? activeBrush : null;
+                SetPiPSubtitleTint(buttonIcon, activeBrush, active);
                 button.Click += (_, _) =>
                 {
                     active = !active;
-                    buttonIcon.Foreground = active ? activeBrush : null;
+                    SetPiPSubtitleTint(buttonIcon, activeBrush, active);
                     if (PiPRightToggleAction is { } action)
                     {
                         action(active);
                     }
                 };
                 return button;
+            }
+
+            /// <summary>Tints the active glyph with the accent; when off, the
+            /// local value must be cleared (not set to null) so the theme
+            /// style's foreground applies again — a local null would override
+            /// it and render the glyph near-invisible black.</summary>
+            private static void SetPiPSubtitleTint(FontIcon icon, Brush activeBrush, bool active)
+            {
+                if (active)
+                {
+                    icon.Foreground = activeBrush;
+                }
+                else
+                {
+                    icon.ClearValue(FontIcon.ForegroundProperty);
+                }
             }
     
             private static bool SameElements(IList<ICommandBarElement> current, ICommandBarElement[] desired)
