@@ -25,6 +25,10 @@ namespace mpv_winui.Modules.Player;
 
 public sealed partial class PiPWindow
 {
+    /// <summary>True while the opacity flyout is open: the top buttons must
+    /// stay put until the user finishes with it (see RootGrid_PointerMoved).</summary>
+    private bool _opacityFlyoutOpen;
+
     private void RootGrid_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         var position = e.GetCurrentPoint(RootGrid).Position;
@@ -34,8 +38,10 @@ public sealed partial class PiPWindow
 
         // The top buttons only react to the top mask, the status bar only to
         // the bottom mask; everywhere else both retract. Both overlays can be
-        // switched off entirely from the PiP settings.
-        SetTopButtonsVisible(mpv_winui.AppContext.AppSetting.WindowPiPShowTopButtons && inTopMask);
+        // switched off entirely from the PiP settings. An open flyout counts
+        // as "still operating": retracting the buttons under a user who is
+        // dragging the opacity slider feels broken.
+        SetTopButtonsVisible(mpv_winui.AppContext.AppSetting.WindowPiPShowTopButtons && (inTopMask || _opacityFlyoutOpen));
         if (inBottomMask && mpv_winui.AppContext.AppSetting.WindowPiPShowControls)
         {
             PiPControls.ShowControlPanel();
@@ -52,7 +58,10 @@ public sealed partial class PiPWindow
         // idle timer, but the top buttons previously stayed visible until the
         // pointer re-entered and moved to a non-top zone.
         PiPView.SetResizeCursor(null);
-        SetTopButtonsVisible(false);
+        if (!_opacityFlyoutOpen)
+        {
+            SetTopButtonsVisible(false);
+        }
         PiPControls.HideControlPanel();
     }
 
@@ -274,6 +283,7 @@ public sealed partial class PiPWindow
     /// Quick opacity slider for the PiP window: writes the percentage to the
     /// same setting the settings page uses and applies the layered-window
     /// alpha live, so dragging the slider shows the effect immediately.
+    /// Uses the stock flyout presentation (official WinUI look).
     /// </summary>
     private void PiPOpacityButton_Click(object sender, RoutedEventArgs e)
     {
@@ -282,21 +292,12 @@ public sealed partial class PiPWindow
             return;
         }
 
-        var presenterStyle = new Microsoft.UI.Xaml.Style(typeof(FlyoutPresenter))
-        {
-            BasedOn = (Microsoft.UI.Xaml.Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
-        };
-        presenterStyle.Setters.Add(new Setter(
-            FlyoutPresenter.BackgroundProperty,
-            (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["PlayerFlyoutTranslucentBrush"]));
-        var flyout = new Flyout
-        {
-            Placement = FlyoutPlacementMode.Bottom,
-            FlyoutPresenterStyle = presenterStyle,
-        };
+        var flyout = new Flyout { Placement = FlyoutPlacementMode.Bottom };
 
-        var panel = new StackPanel { Spacing = 10, MinWidth = 200 };
-        var header = new StackPanel { Spacing = 2 };
+        var panel = new StackPanel { Spacing = 8, Width = 220 };
+        var header = new Grid { ColumnSpacing = 8 };
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var title = new TextBlock
         {
             Text = AppContext.AppLang.SettingsPiPOpacity,
@@ -307,6 +308,8 @@ public sealed partial class PiPWindow
             Text = $"{Math.Round(AppContext.AppSetting.WindowPiPOpacity * 100)}%",
             Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
         };
+        Grid.SetColumn(title, 0);
+        Grid.SetColumn(valueText, 1);
         header.Children.Add(title);
         header.Children.Add(valueText);
         var slider = new Slider
@@ -327,6 +330,8 @@ public sealed partial class PiPWindow
         panel.Children.Add(header);
         panel.Children.Add(slider);
         flyout.Content = panel;
+        _opacityFlyoutOpen = true;
+        flyout.Closed += (_, _) => _opacityFlyoutOpen = false;
         flyout.ShowAt(anchor);
     }
 }

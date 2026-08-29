@@ -51,7 +51,7 @@
     </Style>
 
     <!-- Shared acrylic shell for the player popups (control panel, track
-         selector, volume). Per-use Padding/MaxWidth/MaxHeight stay on the
+         selector). Per-use Padding/MaxWidth/MaxHeight stay on the
          consuming flyout via BasedOn. -->
     <Style
         x:Key="AcrylicFlyoutPresenterStyle"
@@ -65,14 +65,5 @@
         <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
         <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
     </Style>
-
-    <!-- Translucent flyout background for popups that open over the video:
-         in-app acrylic cannot sample the swap chain surface, so it falls
-         back to an opaque fill — a semi-transparent solid lets the video
-         show through instead. -->
-    <SolidColorBrush
-        x:Key="PlayerFlyoutTranslucentBrush"
-        Opacity="1"
-        Color="#B31F1F1F" />
 
 </ResourceDictionary>
