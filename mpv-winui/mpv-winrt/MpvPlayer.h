@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Windows.Foundation.Collections.h>
 
 namespace winrt::mpv_winrt::implementation
@@ -157,6 +158,8 @@ namespace winrt::mpv_winrt::implementation
         void ProcessEvents();
         void HandleMpvEvent(mpv_event* event);
 
+        void CompletePendingSwapChainAttach();
+
         double GetDoubleProperty(const char* name);
         int64_t GetInt64Property(const char* name);
         winrt::hstring GetHStringProperty(const char* name);
@@ -168,6 +171,16 @@ namespace winrt::mpv_winrt::implementation
 
         mpv_handle* m_mpv{nullptr};
         std::atomic<IDXGISwapChain*> m_swapChain{nullptr};
+        // Target panel recorded by AttachSwapChain, with the dispatcher it
+        // was captured on. When the vo has no swap chain yet the attach is
+        // deferred: the next VIDEO_RECONFIG re-drives it via
+        // CompletePendingSwapChainAttach on the panel's UI thread, so
+        // callers never have to re-drive AttachSwapChain around vo
+        // readiness. Replaced on every AttachSwapChain call, cleared on
+        // teardown.
+        winrt::Microsoft::UI::Xaml::Controls::SwapChainPanel m_targetPanel{nullptr};
+        winrt::Microsoft::UI::Dispatching::DispatcherQueue m_targetPanelDispatcher{nullptr};
+        std::mutex m_targetPanelMutex;
         // True once mpv_initialize has succeeded; mpv_set_option_string is only
         // valid before that, runtime option changes must go through properties.
         std::atomic<bool> m_initialized{false};

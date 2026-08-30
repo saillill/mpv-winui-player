@@ -40,6 +40,11 @@ namespace winrt::mpv_winrt::implementation
             m_mpv = nullptr;
             m_swapChain = nullptr;
         }
+        {
+            std::lock_guard lock(m_targetPanelMutex);
+            m_targetPanel = nullptr;
+            m_targetPanelDispatcher = nullptr;
+        }
     }
 
     void MpvPlayer::CreateContext()
@@ -61,6 +66,11 @@ namespace winrt::mpv_winrt::implementation
         }
         m_swapChain.store(nullptr);
         m_initialized.store(false);
+        {
+            std::lock_guard lock(m_targetPanelMutex);
+            m_targetPanel = nullptr;
+            m_targetPanelDispatcher = nullptr;
+        }
     }
 
     void MpvPlayer::Initialize(hstring const& configPath, uint32_t width, uint32_t height, int32_t volume, winrt::mpv_winrt::DisplayColorKind colorKind, int32_t refreshRate)
@@ -255,6 +265,11 @@ namespace winrt::mpv_winrt::implementation
                         m_swapChain.store(swapChain);
                         m_voConfiguredEvent();
                     }
+                    // A panel recorded by AttachSwapChain while the vo had no
+                    // chain (startup race, PiP enter before the first frame)
+                    // is attached here once the chain exists — the caller does
+                    // not have to re-drive the attach around vo readiness.
+                    CompletePendingSwapChainAttach();
                     // Video dimensions are only current at this point: the
                     // media-title property change fires at start-file, before
                     // the new video is configured, so the PiP window would
@@ -884,6 +899,30 @@ namespace winrt::mpv_winrt::implementation
         SetStringProperty("video-aspect-override", aspectRatio);
     }
 
+    namespace
+    {
+        // Matrix + panel binding shared by the immediate and the deferred
+        // attach paths; must run on the panel's UI thread.
+        void SetSwapChainOnPanel(winrt::Microsoft::UI::Xaml::Controls::SwapChainPanel const& panel, IDXGISwapChain* swapChain)
+        {
+            winrt::com_ptr<IDXGISwapChain2> swapChain2{nullptr};
+            if (S_OK == swapChain->QueryInterface(swapChain2.put()))
+            {
+                DXGI_MATRIX_3X2_F inverseScale{};
+                inverseScale._11 = 1.0f / panel.CompositionScaleX();
+                inverseScale._22 = 1.0f / panel.CompositionScaleY();
+                swapChain2->SetMatrixTransform(&inverseScale);
+            };
+
+            winrt::com_ptr<ISwapChainPanelNative> nativePanel{nullptr};
+            if (panel.try_as(nativePanel))
+            {
+#pragma warning(suppress : 6387)
+                nativePanel->SetSwapChain(swapChain);
+            }
+        }
+    }
+
     void MpvPlayer::AttachSwapChain(SwapChainPanel const& panel)
     {
         if (!m_mpv)
@@ -891,33 +930,68 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
 
+        // Always record the target panel and its dispatcher first: when the
+        // vo has not produced a swap chain yet (startup, PiP enter before the
+        // first frame) the attach is completed by
+        // CompletePendingSwapChainAttach on the next VIDEO_RECONFIG, so
+        // callers never have to re-drive AttachSwapChain around vo readiness
+        // themselves.
+        {
+            std::lock_guard lock(m_targetPanelMutex);
+            m_targetPanel = panel;
+            m_targetPanelDispatcher = panel.DispatcherQueue();
+        }
+
         IDXGISwapChain* swapChain = nullptr;
         mpv_get_property(m_mpv, "display-swapchain", MPV_FORMAT_INT64, &swapChain);
 
         // Guard against attaching before the vo has produced a swap chain:
         // SetSwapChain(nullptr) would detach a currently attached chain and
-        // leave the panel black. AttachSwapChain is re-driven by VoConfigured
-        // (raised when the chain appears/reappears), so skipping is safe here.
+        // leave the panel black. The deferred path above completes it.
         if (!swapChain)
         {
             return;
         }
 
-        winrt::com_ptr<IDXGISwapChain2> swapChain2{nullptr};
-        if (S_OK == swapChain->QueryInterface(swapChain2.put()))
-        {
-            DXGI_MATRIX_3X2_F inverseScale{};
-            inverseScale._11 = 1.0f / panel.CompositionScaleX();
-            inverseScale._22 = 1.0f / panel.CompositionScaleY();
-            swapChain2->SetMatrixTransform(&inverseScale);
-        };
+        SetSwapChainOnPanel(panel, swapChain);
+    }
 
-        winrt::com_ptr<ISwapChainPanelNative> nativePanel{nullptr};
-        if (panel.try_as(nativePanel))
+    void MpvPlayer::CompletePendingSwapChainAttach()
+    {
+        if (!m_mpv)
         {
-#pragma warning(suppress : 6387)
-            nativePanel->SetSwapChain(swapChain);
+            return;
         }
+
+        winrt::Microsoft::UI::Xaml::Controls::SwapChainPanel panel{nullptr};
+        winrt::Microsoft::UI::Dispatching::DispatcherQueue dispatcher{nullptr};
+        {
+            std::lock_guard lock(m_targetPanelMutex);
+            panel = m_targetPanel;
+            dispatcher = m_targetPanelDispatcher;
+        }
+        if (!panel || !dispatcher)
+        {
+            return;
+        }
+
+        IDXGISwapChain* swapChain = nullptr;
+        mpv_get_property(m_mpv, "display-swapchain", MPV_FORMAT_INT64, &swapChain);
+        if (!swapChain)
+        {
+            return;
+        }
+
+        // The chain pointer lives inside mpv's vo: hold our own reference so
+        // it cannot die between this event-thread call and the dispatched
+        // lambda. TryEnqueue is safe from any thread; SetSwapChain runs on
+        // the panel's UI thread.
+        winrt::com_ptr<IDXGISwapChain> chainRef{nullptr};
+        chainRef.copy_from(swapChain);
+        dispatcher.TryEnqueue([panel, chainRef]()
+        {
+            SetSwapChainOnPanel(panel, chainRef.get());
+        });
     }
 
     void MpvPlayer::UpdateSwapChainScale(float scaleX, float scaleY)
