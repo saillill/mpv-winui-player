@@ -32,6 +32,12 @@ namespace mpv_winui.Modules.Player
         /// <summary>Media duration in seconds, or &lt;= 0 when unknown.</summary>
         public readonly double Duration => item.Duration;
 
+        /// <summary>
+        /// "· WxH" for the currently playing row — mpv only exposes video
+        /// dimensions for the playing entry, so every other row stays empty.
+        /// </summary>
+        public string ResolutionText { get; set; } = string.Empty;
+
         /// <summary>Formatted "m:ss" / "h:mm:ss" for the playlist row, empty when unknown.</summary>
         public readonly string DurationText
         {
@@ -108,7 +114,16 @@ namespace mpv_winui.Modules.Player
 
         private async Task GetPlaylistAsync()
         {
-            var items = await Task.Run(() => _mediaPlayer.Playlist().Select(x => new PlaylistItem(x)).ToList());
+            // _videoWidth/_videoHeight are plain uints written on the UI
+            // thread: reads here stay atomic and at worst one refresh stale.
+            var videoWidth = _videoWidth;
+            var videoHeight = _videoHeight;
+            var items = await Task.Run(() => _mediaPlayer.Playlist().Select(x => new PlaylistItem(x)
+            {
+                ResolutionText = x.IsCurrent && videoWidth > 0
+                    ? $" · {videoWidth}×{videoHeight}"
+                    : string.Empty,
+            }).ToList());
             ApplyPlaylistDiff(items ?? []);
             ApplyPlaylistFilter();
             SelectCurrentPlayListItem();

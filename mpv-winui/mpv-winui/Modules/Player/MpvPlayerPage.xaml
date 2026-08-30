@@ -332,6 +332,7 @@
                                 <Run Text="{x:Bind Filename}" />
                                 <Run Text="   " />
                                 <Run Text="{x:Bind DurationText}" />
+                                <Run Text="{x:Bind ResolutionText}" />
                             </TextBlock>
                         </Grid>
                     </DataTemplate>

@@ -6,6 +6,9 @@ namespace mpv_winui.Modules.Player
 {
     public sealed partial class MpvPlayerPage
     {
+        private uint _videoWidth;
+        private uint _videoHeight;
+
         private void MpvPlayerPage_MediaInfoChanged(MpvMediaPlayer player, MediaInfoChangedEventArgs args)
         {
             // The main window's aspect-lock reads these (mpv reports 0x0 when
@@ -19,6 +22,8 @@ namespace mpv_winui.Modules.Player
             {
                 MainWindow.HasActiveVideo = false;
             }
+            _videoWidth = args.VideoWidth > 0 ? (uint)args.VideoWidth : 0;
+            _videoHeight = args.VideoHeight > 0 ? (uint)args.VideoHeight : 0;
             DispatcherQueue.RunAsync(() =>
             {
                 if (!string.IsNullOrEmpty(args.MediaTitle))
@@ -33,6 +38,9 @@ namespace mpv_winui.Modules.Player
                 {
                     UpdatePageTitle(PackageHelper.AppName);
                 }
+                // The playlist's current row shows WxH; the refresh is
+                // debounced by the shared playlist timer.
+                RefreshPlaylistAsync();
             });
         }
 
