@@ -4,6 +4,7 @@
 #include <d3d11_4.h>
 #include <dxgi1_6.h>
 #include <mpv/client.h>
+#include <map>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -76,6 +77,15 @@ namespace winrt::mpv_winrt::implementation
         void CommandString(hstring const& cmd);
         void ApplyCommandStrings(winrt::Windows::Foundation::Collections::IVector<hstring> const& commands);
         void SetLogLevel(hstring const& level);
+
+        // Generic property subscription: any mpv property can be observed by
+        // name without touching the IDL again. The handler receives the
+        // property name and mpv's string rendering of the value (empty when
+        // the property is unavailable). Registered before Initialize are
+        // attached once mpv comes up; handles start above every MpvObserveId
+        // so the event switch can tell the two apart.
+        uint64_t ObserveProperty(hstring const& name, winrt::mpv_winrt::MpvPropertyChangedEventHandler const& handler);
+        void UnobserveProperty(uint64_t handle);
 
         winrt::hstring GetWatchHistoryPath();
         winrt::hstring GetWatchLaterFolderPath();
@@ -159,6 +169,7 @@ namespace winrt::mpv_winrt::implementation
         void HandleMpvEvent(mpv_event* event);
 
         void CompletePendingSwapChainAttach();
+        void StartPropertyObservers();
 
         double GetDoubleProperty(const char* name);
         int64_t GetInt64Property(const char* name);
@@ -181,6 +192,13 @@ namespace winrt::mpv_winrt::implementation
         winrt::Microsoft::UI::Xaml::Controls::SwapChainPanel m_targetPanel{nullptr};
         winrt::Microsoft::UI::Dispatching::DispatcherQueue m_targetPanelDispatcher{nullptr};
         std::mutex m_targetPanelMutex;
+        // Generic observers (ObserveProperty): written on the caller's thread,
+        // read on the mpv event thread inside PROPERTY_CHANGE. Handles start
+        // above every MpvObserveId value.
+        static constexpr uint64_t kDynamicObserveBase = 0x100000000ULL;
+        std::atomic<uint64_t> m_nextObserverHandle{kDynamicObserveBase};
+        std::mutex m_observersMutex;
+        std::map<uint64_t, std::pair<winrt::hstring, winrt::mpv_winrt::MpvPropertyChangedEventHandler>> m_propertyObservers;
         // True once mpv_initialize has succeeded; mpv_set_option_string is only
         // valid before that, runtime option changes must go through properties.
         std::atomic<bool> m_initialized{false};

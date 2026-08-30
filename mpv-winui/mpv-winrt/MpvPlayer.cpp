@@ -27,6 +27,32 @@ using namespace Windows::Foundation::Collections;
 
 namespace winrt::mpv_winrt::implementation
 {
+    namespace
+    {
+        // mpv_node -> flat string for the generic ObserveProperty surface.
+        // Nested maps/arrays and NONE (property unavailable) render empty.
+        winrt::hstring NodeToHString(const mpv_node* node)
+        {
+            if (!node)
+            {
+                return winrt::hstring{};
+            }
+            switch (node->format)
+            {
+                case MPV_FORMAT_STRING:
+                    return node->u.string ? winrt::to_hstring(node->u.string) : winrt::hstring{};
+                case MPV_FORMAT_FLAG:
+                    return winrt::hstring(node->u.flag != 0 ? L"yes" : L"no");
+                case MPV_FORMAT_INT64:
+                    return winrt::to_hstring(node->u.int64);
+                case MPV_FORMAT_DOUBLE:
+                    return winrt::to_hstring(node->u.double_);
+                default:
+                    return winrt::hstring{};
+            }
+        }
+    }
+
     MpvPlayer::MpvPlayer()
     {
     }
@@ -70,6 +96,10 @@ namespace winrt::mpv_winrt::implementation
             std::lock_guard lock(m_targetPanelMutex);
             m_targetPanel = nullptr;
             m_targetPanelDispatcher = nullptr;
+        }
+        {
+            std::lock_guard lock(m_observersMutex);
+            m_propertyObservers.clear();
         }
     }
 
@@ -142,6 +172,9 @@ namespace winrt::mpv_winrt::implementation
         mpv_observe_property(m_mpv, MpvObserveId::WindowMaximized, "window-maximized", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::TitleBar, "title-bar", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::Border, "border", MPV_FORMAT_FLAG);
+
+        // Generic observers registered before Initialize could run.
+        StartPropertyObservers();
 
         StartEventThread();
     }
@@ -401,6 +434,30 @@ namespace winrt::mpv_winrt::implementation
                             }
 
                         default:
+                            // Generic ObserveProperty subscriptions: handles
+                            // are allocated above every MpvObserveId value.
+                            if (event->reply_userdata >= kDynamicObserveBase)
+                            {
+                                std::pair<winrt::hstring, winrt::mpv_winrt::MpvPropertyChangedEventHandler> entry;
+                                {
+                                    std::lock_guard lock(m_observersMutex);
+                                    auto it = m_propertyObservers.find(event->reply_userdata);
+                                    if (it != m_propertyObservers.end())
+                                    {
+                                        entry = it->second;
+                                    }
+                                }
+                                if (entry.second)
+                                {
+                                    // MPV_FORMAT_NODE keeps the event data
+                                    // self-describing: mpv degrades the format
+                                    // to NONE (data invalid) when the property
+                                    // is unavailable, which NodeToHString
+                                    // renders as an empty string.
+                                    winrt::hstring value = NodeToHString(static_cast<const mpv_node*>(prop->data));
+                                    entry.second(entry.first, value);
+                                }
+                            }
                             break;
                     }
                     break;
@@ -992,6 +1049,50 @@ namespace winrt::mpv_winrt::implementation
         {
             SetSwapChainOnPanel(panel, chainRef.get());
         });
+    }
+
+    uint64_t MpvPlayer::ObserveProperty(hstring const& name, winrt::mpv_winrt::MpvPropertyChangedEventHandler const& handler)
+    {
+        uint64_t handle = m_nextObserverHandle.fetch_add(1);
+        {
+            std::lock_guard lock(m_observersMutex);
+            m_propertyObservers.emplace(handle, std::make_pair(name, handler));
+        }
+        if (m_mpv)
+        {
+            mpv_observe_property(m_mpv, handle, winrt::to_string(name).c_str(), MPV_FORMAT_NODE);
+        }
+        return handle;
+    }
+
+    void MpvPlayer::UnobserveProperty(uint64_t handle)
+    {
+        {
+            std::lock_guard lock(m_observersMutex);
+            m_propertyObservers.erase(handle);
+        }
+        if (m_mpv)
+        {
+            mpv_unobserve_property(m_mpv, handle);
+        }
+    }
+
+    void MpvPlayer::StartPropertyObservers()
+    {
+        // Registered while mpv was down: attach them now that the core exists.
+        std::vector<std::pair<uint64_t, std::string>> pending;
+        {
+            std::lock_guard lock(m_observersMutex);
+            pending.reserve(m_propertyObservers.size());
+            for (auto const& [handle, entry] : m_propertyObservers)
+            {
+                pending.emplace_back(handle, winrt::to_string(entry.first));
+            }
+        }
+        for (auto const& [handle, name] : pending)
+        {
+            mpv_observe_property(m_mpv, handle, name.c_str(), MPV_FORMAT_NODE);
+        }
     }
 
     void MpvPlayer::UpdateSwapChainScale(float scaleX, float scaleY)
