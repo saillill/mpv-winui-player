@@ -11,7 +11,7 @@
         <DataTemplate x:Key="BooleanTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -25,7 +25,7 @@
         <DataTemplate x:Key="TextTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -39,7 +39,7 @@
         <DataTemplate x:Key="IntegerTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -53,7 +53,7 @@
         <DataTemplate x:Key="DoubleTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -67,7 +67,7 @@
         <DataTemplate x:Key="TextListTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -81,7 +81,7 @@
         <DataTemplate x:Key="ColorTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -95,7 +95,7 @@
         <DataTemplate x:Key="ActionTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -109,7 +109,7 @@
         <DataTemplate x:Key="CheckListTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -123,7 +123,7 @@
         <DataTemplate x:Key="LayoutTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -137,7 +137,7 @@
         <DataTemplate x:Key="MultiListTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -151,7 +151,7 @@
         <DataTemplate x:Key="ShaderListTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="60"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"

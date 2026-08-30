@@ -432,6 +432,12 @@ public sealed partial class SettingsPage : Page
         UpdateOptions();
     }
 
+    private void BreadcrumbCategory_Click(object sender, RoutedEventArgs e)
+    {
+        _selectedSection = null;
+        UpdateOptions();
+    }
+
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
@@ -742,9 +748,13 @@ public sealed partial class SettingsPage : Page
         if (_selectedSection is not null)
         {
             BreadcrumbBar.Visibility = Visibility.Visible;
-            BreadcrumbText.Text = selected is null
-                ? _selectedSection
-                : $"{selected} > {_selectedSection}";
+            // Windows-settings breadcrumb: the category segment is a live
+            // button jumping back to the section overview; only the trailing
+            // section is plain text.
+            BreadcrumbCategoryLink.Content = selected;
+            BreadcrumbCategoryLink.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
+            BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
+            BreadcrumbSection.Text = _selectedSection ?? string.Empty;
             OptionsControl.OptionList = categoryOptions
                 .Where(o => o.Section == _selectedSection)
                 .ToList();
@@ -773,9 +783,9 @@ public sealed partial class SettingsPage : Page
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            Padding = new Thickness(14, 10, 10, 10),
+            Padding = new Thickness(14, 13, 12, 13),
             CornerRadius = new CornerRadius(4),
-            Margin = new Thickness(0, 0, 0, 4),
+            Margin = new Thickness(0, 0, 0, 8),
             Content = new Grid { ColumnSpacing = 14 },
         };
         if (card.Content is Grid grid)
