@@ -130,8 +130,11 @@ public sealed partial class SettingsPage : Page
             RebuildNavigationItems(selectedKey);
             ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
             ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
-            SearchBox.PlaceholderText = AppContext.AppLang.Search;
-            AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
+            if (SearchBox is not null)
+            {
+                SearchBox.PlaceholderText = AppContext.AppLang.Search;
+                AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
+            }
             var backTip = AppContext.AppLang.CommonBack;
             ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
             AutomationProperties.SetName(BreadcrumbBackButton, backTip);
@@ -188,6 +191,11 @@ public sealed partial class SettingsPage : Page
     /// (used at construction and whenever an active query is cleared).</summary>
     private void RestoreSearchHistorySuggestions()
     {
+        // The constructor path runs before the window hands over the search box.
+        if (SearchBox is null)
+        {
+            return;
+        }
         var history = AppContext.AppSetting.SettingsSearchHistory
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(DecodeHistoryEntry)
@@ -438,7 +446,27 @@ public sealed partial class SettingsPage : Page
         UpdateOptions();
     }
 
-    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    /// <summary>The search box lives in the settings window's top bar;
+    /// SettingsWindow hands it over before navigation so all search
+    /// behaviour (history, debounce, suggestions) stays on this page.</summary>
+    internal AutoSuggestBox? SearchBox { get; private set; }
+
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        // The constructor rebuilds content before the box exists (the frame
+        // instantiates the page by type); the top-bar box arrives here, and
+        // the bits the constructor skipped get applied now.
+        if (SearchBox is null && e.Parameter is AutoSuggestBox box)
+        {
+            SearchBox = box;
+            SearchBox.PlaceholderText = AppContext.AppLang.Search;
+            AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
+            RestoreSearchHistorySuggestions();
+        }
+    }
+
+    internal void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
         {
@@ -484,7 +512,7 @@ public sealed partial class SettingsPage : Page
             : optionMatches.Select(o => o.Category).Distinct().ToList();
     }
 
-    private void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    internal void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
     {
         if (args.SelectedItem is string category && Categories.Contains(category))
         {
@@ -493,7 +521,7 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    internal void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
         _searchDebounceTimer.Stop();
 
@@ -761,7 +789,12 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        BreadcrumbBar.Visibility = Visibility.Collapsed;
+        // Single-section category or the section overview: show the trail
+        // with just the category name — nothing above it to link back to.
+        BreadcrumbBar.Visibility = Visibility.Visible;
+        BreadcrumbCategoryLink.Visibility = Visibility.Collapsed;
+        BreadcrumbSeparator.Visibility = Visibility.Collapsed;
+        BreadcrumbSection.Text = selected ?? string.Empty;
         OptionsControl.OptionList = categoryOptions;
     }
 
@@ -783,10 +816,12 @@ public sealed partial class SettingsPage : Page
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            Padding = new Thickness(14, 13, 12, 13),
+            VerticalContentAlignment = VerticalAlignment.Center,
+            MinHeight = 64,
+            Padding = new Thickness(14, 12, 12, 12),
             CornerRadius = new CornerRadius(4),
             Margin = new Thickness(0, 0, 0, 8),
-            Content = new Grid { ColumnSpacing = 14 },
+            Content = new Grid { ColumnSpacing = 18 },
         };
         if (card.Content is Grid grid)
         {
@@ -797,7 +832,7 @@ public sealed partial class SettingsPage : Page
             grid.Children.Add(new FontIcon
             {
                 Glyph = icon,
-                FontSize = 18,
+                FontSize = 20,
                 FontFamily = new FontFamily("Segoe Fluent Icons"),
                 VerticalAlignment = VerticalAlignment.Center,
             });

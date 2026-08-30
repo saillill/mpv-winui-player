@@ -52,8 +52,22 @@ public sealed partial class SettingsWindow : Window
 
     private void PageFrame_Loaded(object sender, RoutedEventArgs e)
     {
-        PageFrame.Navigate(typeof(SettingsPage));
+        // The search box lives in the window top bar; Frame can only build
+        // pages by type, so the box travels as the navigation parameter and
+        // the page picks it up in OnNavigatedTo.
+        PageFrame.Navigate(typeof(SettingsPage), SearchBox);
     }
+
+    // The search box is owned by the window (top bar); behaviour stays on the
+    // page and the events are simply forwarded.
+    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        => (PageFrame.Content as SettingsPage)?.SearchBox_TextChanged(sender, args);
+
+    private void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+        => (PageFrame.Content as SettingsPage)?.SearchBox_SuggestionChosen(sender, args);
+
+    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        => (PageFrame.Content as SettingsPage)?.SearchBox_QuerySubmitted(sender, args);
 
     public void MoveAndResize(RectInt32 rect)
     {

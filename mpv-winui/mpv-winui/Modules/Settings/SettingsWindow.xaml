@@ -10,12 +10,34 @@
 
         <Border
             Grid.Row="0"
-            Padding="16,8">
-            <TextBlock
-                x:Name="SettingsTitleText"
-                FontSize="16"
-                FontWeight="SemiBold"
-                Text="Settings" />
+            Padding="16,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    x:Name="SettingsTitleText"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Text="Settings" />
+                <!-- Search lives in the window top bar (Win11-settings style),
+                     outside the per-category page; the page owns the logic
+                     through the SearchBox property handover. -->
+                <AutoSuggestBox
+                    x:Name="SearchBox"
+                    Grid.Column="1"
+                    Width="340"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    PlaceholderText="Search"
+                    QueryIcon="Find"
+                    QuerySubmitted="SearchBox_QuerySubmitted"
+                    SuggestionChosen="SearchBox_SuggestionChosen"
+                    TextChanged="SearchBox_TextChanged" />
+            </Grid>
         </Border>
         <Frame
             x:Name="PageFrame"
