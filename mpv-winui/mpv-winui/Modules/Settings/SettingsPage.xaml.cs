@@ -58,36 +58,6 @@ public sealed partial class SettingsPage : Page
         "\uE8A4", "\uE774", "\uE765", "\uE946", "\uE722",
     ];
 
-    /// <summary>Windows-accent-inspired colors, same order as CategoryKeys.</summary>
-    private static readonly (byte R, byte G, byte B)[] CategoryIconColors =
-    [
-        (0x00, 0x78, 0xD4), // program
-        (0xC2, 0x39, 0xB3), // playback
-        (0x5B, 0x2B, 0xD6), // video
-        (0xCA, 0x50, 0x10), // audio
-        (0x10, 0x89, 0x3E), // subtitles
-        (0x03, 0x83, 0x87), // window
-        (0x00, 0x78, 0xD4), // network
-        (0x87, 0x64, 0xB8), // shortcuts
-        (0x00, 0xB7, 0xC3), // osd
-        (0xE3, 0x00, 0x8C), // screenshot
-    ];
-
-    /// <summary>Colored Windows shell icon assets, same order as CategoryKeys.</summary>
-    private static readonly string[] CategoryIconFiles =
-    [
-        "Program.png",
-        "Playback.png",
-        "Video.png",
-        "Audio.png",
-        "Subtitles.png",
-        "Window.png",
-        "Network.png",
-        "Shortcuts.png",
-        "Osd.png",
-        "Screenshot.png",
-    ];
-
     /// <summary>
     /// Creates the Segoe Fluent Icons font on the calling (UI) thread. It
     /// must not live in the static initializer: WarmDeviceChoices can trigger
@@ -95,20 +65,6 @@ public sealed partial class SettingsPage : Page
     /// thread-affine (settings crashed with 0x8001010E on open).
     /// </summary>
     private static FontFamily CreateCategoryIconFont() => new("Segoe Fluent Icons");
-
-    private static SolidColorBrush CreateCategoryIconBrush(string key)
-    {
-        var i = Array.IndexOf(CategoryKeys, key);
-        var (r, g, b) = i >= 0 ? CategoryIconColors[i] : ((byte)0x60, (byte)0x60, (byte)0x60);
-        return new SolidColorBrush(Windows.UI.Color.FromArgb(255, r, g, b));
-    }
-
-    /// <summary>Returns the navigation glyph for a localized category label.</summary>
-    private string CategoryGlyphForLabel(string category)
-    {
-        var index = CategoryOrder.IndexOf(category);
-        return index >= 0 && index < CategoryGlyphs.Length ? CategoryGlyphs[index] : "\uE8B7";
-    }
 
     public SettingsPage()
     {
@@ -329,12 +285,10 @@ public sealed partial class SettingsPage : Page
             {
                 Content = Categories[i],
                 Tag = key,
-                Icon = new BitmapIcon
+                Icon = new FontIcon
                 {
-                    UriSource = new Uri($"ms-appx:///Assets/SettingsCategoryIcons/{CategoryIconFiles[Array.IndexOf(CategoryKeys, key)]}"),
-                    ShowAsMonochrome = false,
-                    Width = 20,
-                    Height = 20,
+                    Glyph = CategoryGlyphs[Array.IndexOf(CategoryKeys, key)],
+                    FontFamily = CreateCategoryIconFont(),
                 },
             };
             if (string.Equals(key, selectedKey, StringComparison.Ordinal))

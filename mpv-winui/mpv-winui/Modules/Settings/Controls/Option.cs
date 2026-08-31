@@ -159,12 +159,6 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
-    /// <summary>Segoe Fluent Icon glyph shown at the left of the option card.</summary>
-    public string? Icon
-    {
-        get; set;
-    }
-
     /// <summary>Marks the first option of a section; the list renders a separate section caption row above it.</summary>
     public bool ShowSectionHeader
     {

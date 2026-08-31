@@ -18,22 +18,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionBooleanControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionBooleanControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -47,22 +34,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionStringControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionStringControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -76,22 +50,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionIntegerControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionIntegerControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -105,22 +66,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionDoubleControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionDoubleControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -134,22 +82,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionStringListControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionStringListControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -163,22 +98,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionColorControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionColorControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -192,22 +114,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionActionControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionActionControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -221,22 +130,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionCheckListControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionCheckListControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -250,22 +146,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionLayoutControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionLayoutControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -279,22 +162,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionMultiListControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionMultiListControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
@@ -308,22 +178,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Glyph="{x:Bind Icon}"
-                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                        FontSize="16"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <ctl:OptionShaderListControl
-                        Grid.Column="1"
-                        Setting="{x:Bind}"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <ctl:OptionShaderListControl
+                    Setting="{x:Bind}"
+                    VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
 
