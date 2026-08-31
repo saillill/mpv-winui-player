@@ -737,7 +737,9 @@ public sealed partial class SettingsPage : Page
 
     private void UpdateOptions()
     {
-        var query = SearchBox.Text?.Trim() ?? string.Empty;
+        // Can run from the constructor (the navigation's initial
+        // SelectionChanged) before the top-bar search box is handed over.
+        var query = SearchBox?.Text?.Trim() ?? string.Empty;
         if (!string.IsNullOrEmpty(query))
         {
             // Global search results span categories and sections, so the
