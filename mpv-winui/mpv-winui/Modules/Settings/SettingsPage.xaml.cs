@@ -135,7 +135,6 @@ public sealed partial class SettingsPage : Page
                 SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
                 AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
             }
-            AdvancedHeader.Text = AppContext.AppLang.AdvancedSettings;
             var backTip = AppContext.AppLang.CommonBack;            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
             AutomationProperties.SetName(BreadcrumbBackButton, backTip);
             RefreshWarningsAndEnabled();
@@ -747,7 +746,6 @@ public sealed partial class SettingsPage : Page
             // target until the query is cleared.
             ResetButton.IsEnabled = false;
             SectionsHost.Visibility = Visibility.Collapsed;
-            AdvancedHeader.Visibility = Visibility.Collapsed;
             BreadcrumbBar.Visibility = Visibility.Collapsed;
             OptionsControl.Visibility = Visibility.Visible;
             OptionsControl.OptionList = Settings.Where(o => FuzzyMatchOption(query, o)).ToList();
@@ -766,7 +764,6 @@ public sealed partial class SettingsPage : Page
         // cards. Categories with a single section go straight to their
         // options.
         var showOverview = _selectedSection is null && sections.Count > 1;
-        AdvancedHeader.Visibility = Visibility.Collapsed;
         SectionsHost.Visibility = showOverview ? Visibility.Visible : Visibility.Collapsed;
         OptionsControl.Visibility = Visibility.Visible;
 
@@ -783,8 +780,6 @@ public sealed partial class SettingsPage : Page
 
             OptionsControl.Visibility = primaryOptions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             OptionsControl.OptionList = primaryOptions;
-            AdvancedHeader.Text = AppContext.AppLang.AdvancedSettings;
-            AdvancedHeader.Visibility = advancedSections.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             SectionsHost.ItemsSource = advancedSections.Select(s => BuildSectionCard(s.Label)).ToList();
             return;
         }
@@ -834,7 +829,8 @@ public sealed partial class SettingsPage : Page
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             VerticalContentAlignment = VerticalAlignment.Center,
             MinHeight = 60,
-            Padding = new Thickness(16, 10, 16, 10),
+            MaxHeight = 60,
+            Padding = new Thickness(16, 8, 16, 8),
             Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
             BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
             BorderThickness = new Thickness(1),
