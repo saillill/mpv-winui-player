@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
@@ -849,6 +849,13 @@ private List<Option> BuildSettings()
         }
 
         CategoryOrder.AddRange(categoryOrder);
+
+        foreach (var option in options)
+        {
+            option.Icon = string.IsNullOrEmpty(option.Section)
+                ? CategoryGlyphForLabel(option.Category)
+                : SectionMeta(option.Section).Icon;
+        }
 
         return options;
     }
