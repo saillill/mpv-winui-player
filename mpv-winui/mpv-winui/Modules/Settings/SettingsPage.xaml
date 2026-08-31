@@ -7,6 +7,25 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <!-- Mirrors OptionListViewItemStyle: section cards must sit in the
+             same padded content area as the option cards, not inside the
+             ListView's default 12px item chrome. -->
+        <Style
+            x:Key="SectionCardListViewItemStyle"
+            BasedOn="{StaticResource DefaultListViewItemStyle}"
+            TargetType="ListViewItem">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="IsTabStop" Value="False" />
+        </Style>
+    </Page.Resources>
+
     <!--
         WinUI 3 settings shell: NavigationView (icon pane) on the left,
         search + options + reset footer in the content area. The category
@@ -69,10 +88,17 @@
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
                         Spacing="10">
-                        <HyperlinkButton
+                        <Button
                             x:Name="BreadcrumbCategoryLink"
                             Padding="0"
                             Margin="0"
+                            MinWidth="0"
+                            MinHeight="0"
+                            HorizontalContentAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             FontSize="24"
                             FontWeight="SemiBold"
                             Click="BreadcrumbCategory_Click"
@@ -110,10 +136,12 @@
                             Visibility="Collapsed" />
                         <ListView
                             x:Name="SectionsHost"
-                            Margin="0,4,0,0"
-                            Padding="0,0,4,0"
+                            Margin="8,4,32,0"
+                            Padding="0"
+                            HorizontalAlignment="Stretch"
                             SelectionMode="None"
                             IsItemClickEnabled="False"
+                            ItemContainerStyle="{StaticResource SectionCardListViewItemStyle}"
                             Visibility="Collapsed" />
                     </StackPanel>
                 </ScrollViewer>
