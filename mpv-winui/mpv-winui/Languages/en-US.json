@@ -1,4 +1,4 @@
-﻿{
+{
   "WatchHistoryDialogTitle": "Watch History",
   "WatchLaterDialogTitle": "Watch Later",
   "WatchHistoryEmpty": "The watch history file is empty.",
@@ -985,6 +985,7 @@
   "Search": "Search",
   "SearchPlaceholder": "Find a setting",
   "AdvancedSettings": "Advanced settings",
+  "MoreSettings": "More settings",
   "OptionValueControlBarClassic": "Original",
   "OptionValueControlBarModernX": "Centered",
   "FileAssociationGroupVideo": "Video formats",
@@ -1104,5 +1105,6 @@
   "ControlBarIconAbLoop": "A-B loop",
   "PanelDelay": "Audio / subtitle delay",
   "A11yVideoPreview": "Video preview",
-  "A11yColorSwatch": "Color swatch"
+  "A11yColorSwatch": "Color swatch",
+  "FileAssociationGroupImage": "Image formats"
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "WatchHistoryDialogTitle": "观看历史",
   "WatchLaterDialogTitle": "稍后观看",
   "WatchHistoryEmpty": "观看历史文件为空。",
@@ -985,6 +985,7 @@
   "Search": "搜索",
   "SearchPlaceholder": "查找设置",
   "AdvancedSettings": "高级设置",
+  "MoreSettings": "更多设置",
   "OptionValueControlBarClassic": "原版",
   "OptionValueControlBarModernX": "居中",
   "FileAssociationGroupVideo": "视频格式",
@@ -1104,5 +1105,6 @@
   "ControlBarIconAbLoop": "A-B 循环",
   "PanelDelay": "音视频/字幕延迟",
   "A11yVideoPreview": "视频预览",
-  "A11yColorSwatch": "颜色样块"
+  "A11yColorSwatch": "颜色样块",
+  "FileAssociationGroupImage": "图片格式"
 }

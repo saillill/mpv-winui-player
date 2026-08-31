@@ -39,6 +39,7 @@ namespace mpv_winui.Modules.Language
         public string Search { get; set; } = "Search";
         public string SearchPlaceholder { get; set; } = "Find a setting";
         public string AdvancedSettings { get; set; } = "Advanced settings";
+        public string MoreSettings { get; set; } = "More settings";
         public string SettingsResetConfirm { get; set; } = "Reset all settings to their defaults?";
         public string ResetCurrentCategory { get; set; } = "Reset current category";
         public string ResetAllSettings { get; set; } = "Reset all settings";
@@ -112,6 +113,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsAssociateFiles { get; set; } = "Associate media files";
         public string SettingsHelpFileAssociations { get; set; } = "Choose which formats should open with this player. Changes apply immediately.";
         public string FileAssociationGroupVideo { get; set; } = "Video formats";
+        public string FileAssociationGroupImage { get; set; } = "Image formats";
         public string FileAssociationGroupAudio { get; set; } = "Audio formats";
         public string SettingsUnassociateFiles { get; set; } = "Remove file associations";
         public string SettingsHelpUnassociateFiles { get; set; } = "Remove the media file associations registered by this player.";

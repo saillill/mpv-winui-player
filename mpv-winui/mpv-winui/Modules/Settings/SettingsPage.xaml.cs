@@ -40,6 +40,9 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private string? _selectedSection;
 
+    /// <summary>Sentinel for the consolidated "More settings" second-level page.</summary>
+    private const string AdvancedOverviewKey = "__more_settings__";
+
     /// <summary>Stable category keys, parallel to the localized category order.</summary>
     private static readonly string[] CategoryKeys =
     [
@@ -780,7 +783,24 @@ public sealed partial class SettingsPage : Page
 
             OptionsControl.Visibility = primaryOptions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             OptionsControl.OptionList = primaryOptions;
-            SectionsHost.ItemsSource = advancedSections.Select(s => BuildSectionCard(s.Label)).ToList();
+            SectionsHost.ItemsSource = advancedSections.Count > 0
+                ? new FrameworkElement[] { BuildMoreSettingsCard(AppContext.AppLang.MoreSettings) }
+                : Array.Empty<FrameworkElement>();
+            return;
+        }
+
+        if (_selectedSection == AdvancedOverviewKey)
+        {
+            BreadcrumbBar.Visibility = Visibility.Visible;
+            // Breadcrumb: category is a live link back to the overview;
+            // the trailing segment names this consolidated page.
+            BreadcrumbCategoryLink.Content = selected;
+            BreadcrumbCategoryLink.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
+            BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
+            BreadcrumbSection.Text = AppContext.AppLang.MoreSettings;
+            OptionsControl.OptionList = categoryOptions
+                .Where(o => o.AdvancedSection)
+                .ToList();
             return;
         }
 
@@ -817,6 +837,70 @@ public sealed partial class SettingsPage : Page
             .GroupBy(o => o.Section!, StringComparer.Ordinal)
             .Select(g => (g.Key, g.Count(), g.First().AdvancedSection))
             .ToList();
+
+    /// <summary>Card that opens the consolidated second-level page for all
+    /// advanced/complex options in the current category.</summary>
+    private FrameworkElement BuildMoreSettingsCard(string label)
+    {
+        var card = new Button
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            MinHeight = 72,
+            Padding = new Thickness(16, 16, 16, 16),
+            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
+            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(4),
+            Margin = new Thickness(0, 0, 0, 8),
+            Content = new Grid { ColumnSpacing = 18 },
+        };
+        if (card.Content is Grid grid)
+        {
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            grid.Children.Add(new FontIcon
+            {
+                Glyph = "\uE713",
+                FontSize = 20,
+                FontFamily = new FontFamily("Segoe Fluent Icons"),
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+
+            var textStack = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
+            textStack.Children.Add(new TextBlock { Text = label, FontSize = 14 });
+            textStack.Children.Add(new TextBlock
+            {
+                Text = AppContext.AppLang.AdvancedSettings,
+                FontSize = 12,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+            });
+            Grid.SetColumn(textStack, 1);
+            grid.Children.Add(textStack);
+
+            var chevron = new FontIcon
+            {
+                Glyph = "\uE76C",
+                FontSize = 12,
+                FontFamily = new FontFamily("Segoe Fluent Icons"),
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+            };
+            Grid.SetColumn(chevron, 2);
+            grid.Children.Add(chevron);
+        }
+        AutomationProperties.SetName(card, $"{label}, {AppContext.AppLang.AdvancedSettings}");
+        card.Click += (_, _) =>
+        {
+            _selectedSection = AdvancedOverviewKey;
+            UpdateOptions();
+        };
+        return card;
+    }
 
     /// <summary>Windows-Settings-like navigation card for one section: a
     /// leading glyph, title with a secondary description line, chevron.</summary>
