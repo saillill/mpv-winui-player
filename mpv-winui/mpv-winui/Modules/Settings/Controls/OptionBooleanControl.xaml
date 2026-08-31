@@ -1,4 +1,4 @@
-<local:OptionControlBase
+﻿<local:OptionControlBase
     x:Class="mpv_winui.Modules.Settings.Controls.OptionBooleanControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,6 +6,87 @@
     xmlns:local="using:mpv_winui.Modules.Settings.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+
+    <local:OptionControlBase.Resources>
+        <!-- Bare Windows-settings toggle: the on/off caption column is
+             collapsed to zero so the track alone hugs the card's right
+             edge (captions live in the row label, not beside the track). -->
+        <Style x:Key="BareToggleSwitchStyle" TargetType="ToggleSwitch">
+            <Setter Property="Foreground" Value="{ThemeResource ToggleSwitchForeground}" />
+            <Setter Property="ManipulationMode" Value="System,TranslateX" />
+            <Setter Property="UseSystemFocusVisuals" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleSwitch">
+                        <Grid
+                            Background="{ThemeResource ToggleSwitchContainerBackground}"
+                            BorderBrush="{ThemeResource ToggleSwitchContainerBorderBrush}"
+                            BorderThickness="{ThemeResource ToggleSwitchContainerBorderThickness}"
+                            CornerRadius="{ThemeResource ControlCornerRadius}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="SwitchKnobOn.Background" Value="{ThemeResource ToggleSwitchKnobOnBackground}" />
+                                            <Setter Target="SwitchKnobOff.Background" Value="{ThemeResource ToggleSwitchKnobOffBackground}" />
+                                            <Setter Target="SwitchKnobBounds.Stroke" Value="{ThemeResource ToggleSwitchStrokeOnPointerOver}" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="SwitchKnobOn.Background" Value="{ThemeResource ToggleSwitchKnobOnBackground}" />
+                                            <Setter Target="SwitchKnobOff.Background" Value="{ThemeResource ToggleSwitchKnobOffBackground}" />
+                                            <Setter Target="SwitchKnobBounds.Stroke" Value="{ThemeResource ToggleSwitchStrokeOnPressed}" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <VisualState.Setters>
+                                            <Setter Target="SwitchKnobOn.Background" Value="{ThemeResource ToggleSwitchKnobOnBackgroundDisabled}" />
+                                            <Setter Target="SwitchKnobOff.Background" Value="{ThemeResource ToggleSwitchKnobOffBackgroundDisabled}" />
+                                            <Setter Target="SwitchKnobBounds.Stroke" Value="{ThemeResource ToggleSwitchStrokeOnDisabled}" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                                <VisualStateGroup x:Name="ToggleStates">
+                                    <VisualState x:Name="Dragging" />
+                                    <VisualState x:Name="Off">
+                                        <VisualState.Setters>
+                                            <Setter Target="SwitchKnobOn.Visibility" Value="Collapsed" />
+                                            <Setter Target="SwitchKnobOff.Visibility" Value="Visible" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="On">
+                                        <VisualState.Setters>
+                                            <Setter Target="SwitchKnobOn.Visibility" Value="Visible" />
+                                            <Setter Target="SwitchKnobOff.Visibility" Value="Collapsed" />
+                                            <Setter Target="SwitchKnobBounds.Fill" Value="{ThemeResource ToggleSwitchFillOn}" />
+                                            <Setter Target="SwitchKnobBounds.Stroke" Value="{ThemeResource ToggleSwitchStrokeOn}" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <Grid x:Name="SwitchKnobBounds" CornerRadius="{ThemeResource ControlCornerRadius}" />
+                            <Grid x:Name="SwitchKnobOff" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Ellipse
+                                    Width="12"
+                                    Height="12"
+                                    Fill="{ThemeResource ToggleSwitchKnobOffBackground}"
+                                    Stroke="{ThemeResource ToggleSwitchKnobOffStroke}" />
+                            </Grid>
+                            <Grid x:Name="SwitchKnobOn" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Ellipse
+                                    Width="12"
+                                    Height="12"
+                                    Fill="{ThemeResource ToggleSwitchKnobOnBackground}"
+                                    Stroke="{ThemeResource ToggleSwitchKnobOnStroke}" />
+                            </Grid>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </local:OptionControlBase.Resources>
 
     <Grid VerticalAlignment="Center">
         <Grid.ColumnDefinitions>
@@ -36,8 +117,11 @@
         <ToggleSwitch
             x:Name="ToggleSwitch"
             Grid.Column="1"
+            Width="40"
+            Height="20"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
+            Style="{StaticResource BareToggleSwitchStyle}"
             Toggled="OnToggled" />
     </Grid>
 </local:OptionControlBase>
