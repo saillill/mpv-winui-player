@@ -37,7 +37,7 @@
                     x:Name="BreadcrumbBar"
                     Grid.Row="0"
                     MaxWidth="1060"
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Stretch"
                     Margin="12,4,12,4"
                     ColumnSpacing="4"
                     Visibility="Collapsed">
@@ -92,7 +92,7 @@
                     x:Name="SectionsHost"
                     Grid.Row="1"
                     MaxWidth="1060"
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Stretch"
                     Margin="12,4,12,0"
                     Padding="0,0,4,0"
                     SelectionMode="None"
@@ -103,7 +103,7 @@
                     x:Name="OptionsControl"
                     Grid.Row="1"
                     MaxWidth="1060"
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Stretch"
                     ShowHeaders="False" />
 
                 <Border
