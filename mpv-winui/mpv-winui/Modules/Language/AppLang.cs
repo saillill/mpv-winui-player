@@ -38,6 +38,7 @@ namespace mpv_winui.Modules.Language
         public string Close { get; set; } = "Close";
         public string Search { get; set; } = "Search";
         public string SearchPlaceholder { get; set; } = "Find a setting";
+        public string AdvancedSettings { get; set; } = "Advanced settings";
         public string SettingsResetConfirm { get; set; } = "Reset all settings to their defaults?";
         public string ResetCurrentCategory { get; set; } = "Reset current category";
         public string ResetAllSettings { get; set; } = "Reset all settings";

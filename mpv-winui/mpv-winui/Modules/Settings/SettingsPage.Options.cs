@@ -97,6 +97,32 @@ private List<Option> BuildSettings()
 
         options.AddRange(BuildShortcutOptions(shortcuts));
 
+        // Advanced/complex sections stay behind entry cards on the category
+        // overview; every other section's options are laid out directly on
+        // the overview page. Per-option overrides pull common values out of
+        // an otherwise advanced section.
+        var advancedSections = new HashSet<string>(StringComparer.Ordinal)
+        {
+            sProgramAssociations, sProgramTesting,
+            sReversePlayback, sWatchLaterStorage,
+            sVideoFilters, sVideoSync, sColorManagement,
+            sGpuScaling, sGpuInterpolation, sGpuShaders, sGpuBackground,
+            sToneMapping, sTargetColorspace,
+            sAudioExternal, sAudioCoverArt,
+            sSubtitleText, sSubtitleAss, sSubtitleImage,
+            sTrackSelection, sTrackLanguage, sTrackFallback,
+            sOsdBehavior, sOsdPosition, sOsdMetadata,
+            sNetworkHttp, sNetworkCurl, sNetworkYtdlp,
+            sCache, sDemuxerBuffering, sDemuxerPlaylist,
+        };
+        var pinnedOverviewOptions = new HashSet<string>(StringComparer.Ordinal)
+        {
+            nameof(AppSettings.CurrentLanguage),   // language lives on the overview
+            nameof(AppSettings.CheckForUpdates),   // so does the update toggle
+            nameof(AppSettings.Hwdec),             // hardware decoding is common
+            nameof(AppSettings.AudioDevice),       // output device pick stays up front
+        };
+
         foreach (var option in options)
         {
             if (RedundantDescriptions.Contains(option.Key))
@@ -106,6 +132,14 @@ private List<Option> BuildSettings()
             if (NoCustomOptions.Contains(option.Key))
             {
                 option.AllowCustom = false;
+            }
+            if (advancedSections.Contains(option.Section))
+            {
+                option.AdvancedSection = true;
+            }
+            if (pinnedOverviewOptions.Contains(option.Key))
+            {
+                option.AdvancedSection = false;
             }
         }
 

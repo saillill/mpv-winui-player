@@ -135,6 +135,7 @@ public sealed partial class SettingsPage : Page
                 SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
                 AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
             }
+            AdvancedHeader.Text = AppContext.AppLang.AdvancedSettings;
             var backTip = AppContext.AppLang.CommonBack;            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
             AutomationProperties.SetName(BreadcrumbBackButton, backTip);
             RefreshWarningsAndEnabled();
@@ -746,6 +747,7 @@ public sealed partial class SettingsPage : Page
             // target until the query is cleared.
             ResetButton.IsEnabled = false;
             SectionsHost.Visibility = Visibility.Collapsed;
+            AdvancedHeader.Visibility = Visibility.Collapsed;
             BreadcrumbBar.Visibility = Visibility.Collapsed;
             OptionsControl.Visibility = Visibility.Visible;
             OptionsControl.OptionList = Settings.Where(o => FuzzyMatchOption(query, o)).ToList();
@@ -759,12 +761,14 @@ public sealed partial class SettingsPage : Page
             : Settings.Where(o => o.Category == selected).ToList();
         var sections = SectionSummaries(categoryOptions);
 
-        // Windows-Settings flow: a category with several sections first shows
-        // the section cards; clicking one drills into a breadcrumb sub-page.
-        // Single-section categories go straight to their options.
+        // Windows-Settings flow: common options live directly on the
+        // category overview; advanced/complex sections stay behind entry
+        // cards. Categories with a single section go straight to their
+        // options.
         var showOverview = _selectedSection is null && sections.Count > 1;
+        AdvancedHeader.Visibility = Visibility.Collapsed;
         SectionsHost.Visibility = showOverview ? Visibility.Visible : Visibility.Collapsed;
-        OptionsControl.Visibility = showOverview ? Visibility.Collapsed : Visibility.Visible;
+        OptionsControl.Visibility = Visibility.Visible;
 
         if (showOverview)
         {
@@ -773,8 +777,15 @@ public sealed partial class SettingsPage : Page
             BreadcrumbCategoryLink.Visibility = Visibility.Collapsed;
             BreadcrumbSeparator.Visibility = Visibility.Collapsed;
             BreadcrumbSection.Text = selected ?? string.Empty;
-            SectionsHost.ItemsSource = sections.Select(s => BuildSectionCard(s.Label)).ToList();
-            OptionsControl.OptionList = [];
+
+            var primaryOptions = categoryOptions.Where(o => !o.AdvancedSection).ToList();
+            var advancedSections = sections.Where(s => s.Advanced).ToList();
+
+            OptionsControl.Visibility = primaryOptions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            OptionsControl.OptionList = primaryOptions;
+            AdvancedHeader.Text = AppContext.AppLang.AdvancedSettings;
+            AdvancedHeader.Visibility = advancedSections.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            SectionsHost.ItemsSource = advancedSections.Select(s => BuildSectionCard(s.Label)).ToList();
             return;
         }
 
@@ -803,13 +814,13 @@ public sealed partial class SettingsPage : Page
         OptionsControl.OptionList = categoryOptions;
     }
 
-    /// <summary>Ordered (label, count) summaries of a category's sections;
-    /// options arrive pre-clustered so first-seen order is the page order.</summary>
-    private static List<(string Label, int Count)> SectionSummaries(IEnumerable<Option> categoryOptions) =>
+    /// <summary>Ordered summaries of a category's sections; options arrive
+    /// pre-clustered so first-seen order is the page order.</summary>
+    private static List<(string Label, int Count, bool Advanced)> SectionSummaries(IEnumerable<Option> categoryOptions) =>
         categoryOptions
             .Where(o => !string.IsNullOrEmpty(o.Section))
             .GroupBy(o => o.Section!, StringComparer.Ordinal)
-            .Select(g => (g.Key, g.Count()))
+            .Select(g => (g.Key, g.Count(), g.First().AdvancedSection))
             .ToList();
 
     /// <summary>Windows-Settings-like navigation card for one section: a

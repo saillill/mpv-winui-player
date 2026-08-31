@@ -77,6 +77,16 @@ public sealed class Option : INotifyPropertyChanged
     public string Label { get; set; } = string.Empty;
     public string Category { get; set; } = "General";
 
+    /// <summary>
+    /// True when the option's section is an advanced/complex one that stays
+    /// behind a section entry card; false (common) options are laid out
+    /// directly on the category overview page.
+    /// </summary>
+    public bool AdvancedSection
+    {
+        get; set;
+    }
+
     /// <summary>Placeholder text shown when the value is empty (e.g. the built-in default path).</summary>
     public string? Placeholder
     {

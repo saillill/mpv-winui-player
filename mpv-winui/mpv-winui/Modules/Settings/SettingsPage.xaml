@@ -96,23 +96,27 @@
 
                 <!-- Sub-category overview: section cards shown instead of the
                      option list when a category holds more than one section. -->
-                <ListView
-                    x:Name="SectionsHost"
-                    Grid.Row="1"
-                    MaxWidth="1060"
-                    HorizontalAlignment="Stretch"
-                    Margin="12,4,12,0"
-                    Padding="0,0,4,0"
-                    SelectionMode="None"
-                    IsItemClickEnabled="False"
-                    Visibility="Collapsed" />
-
-                <ctl:OptionListControl
-                    x:Name="OptionsControl"
-                    Grid.Row="1"
-                    MaxWidth="1060"
-                    HorizontalAlignment="Stretch"
-                    ShowHeaders="False" />
+                <!-- One scrolling surface per category page: common options
+                     directly on the overview, then the advanced entry cards. -->
+                <ScrollViewer Grid.Row="1" Padding="12,4,12,0">
+                    <StackPanel MaxWidth="1060" HorizontalAlignment="Stretch">
+                        <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
+                        <TextBlock
+                            x:Name="AdvancedHeader"
+                            Margin="4,16,4,8"
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                            Visibility="Collapsed" />
+                        <ListView
+                            x:Name="SectionsHost"
+                            Margin="0,4,0,0"
+                            Padding="0,0,4,0"
+                            SelectionMode="None"
+                            IsItemClickEnabled="False"
+                            Visibility="Collapsed" />
+                    </StackPanel>
+                </ScrollViewer>
 
                 <Border
                     Grid.Row="2"
