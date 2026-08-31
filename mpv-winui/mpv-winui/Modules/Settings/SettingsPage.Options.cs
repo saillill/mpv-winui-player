@@ -97,30 +97,33 @@ private List<Option> BuildSettings()
 
         options.AddRange(BuildShortcutOptions(shortcuts));
 
-        // Advanced/complex sections stay behind entry cards on the category
-        // overview; every other section's options are laid out directly on
-        // the overview page. Per-option overrides pull common values out of
-        // an otherwise advanced section.
+        // The overview carries only the sections people tune regularly;
+        // fine-grained, seldom-batch-adjusted sections (decoding details,
+        // seeking behavior, volume/output internals, video image, OSD look,
+        // screenshots, ...) go behind entry cards. Per-option pins pull the
+        // handful of common switches back onto the overview.
         var advancedSections = new HashSet<string>(StringComparer.Ordinal)
         {
-            sProgramAssociations, sProgramTesting,
-            sReversePlayback, sWatchLaterStorage,
-            sVideoFilters, sVideoSync, sColorManagement,
+            sProgramAssociations, sProgramTesting, sProgramConfig, sProgramLanguageLog,
+            sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback, sWatchLaterStorage,
+            sVideoDecode, sVideoImage, sVideoFilters, sVideoSync, sColorManagement,
             sGpuScaling, sGpuInterpolation, sGpuShaders, sGpuBackground,
             sToneMapping, sTargetColorspace,
-            sAudioExternal, sAudioCoverArt,
-            sSubtitleText, sSubtitleAss, sSubtitleImage,
+            sAudioVolume, sAudioOutput, sAudioExternal, sAudioCoverArt,
+            sSubtitleText, sSubtitlePosition, sSubtitleAss, sSubtitleImage,
             sTrackSelection, sTrackLanguage, sTrackFallback,
-            sOsdBehavior, sOsdPosition, sOsdMetadata,
+            sOsdBehavior, sOsdAppearance, sOsdPosition, sOsdMetadata,
+            sScreenshotLocation, sScreenshotQuality,
             sNetworkHttp, sNetworkCurl, sNetworkYtdlp,
             sCache, sDemuxerBuffering, sDemuxerPlaylist,
         };
         var pinnedOverviewOptions = new HashSet<string>(StringComparer.Ordinal)
         {
-            nameof(AppSettings.CurrentLanguage),   // language lives on the overview
-            nameof(AppSettings.CheckForUpdates),   // so does the update toggle
-            nameof(AppSettings.Hwdec),             // hardware decoding is common
-            nameof(AppSettings.AudioDevice),       // output device pick stays up front
+            nameof(AppSettings.CurrentLanguage),   // language
+            nameof(AppSettings.CheckForUpdates),   // update toggle
+            nameof(AppSettings.Hwdec),             // hardware decoding
+            nameof(AppSettings.AudioDevice),       // output device
+            nameof(AppSettings.EnableVideoPreview),// seek preview switch
         };
 
         foreach (var option in options)
