@@ -824,6 +824,8 @@ public sealed partial class SettingsPage : Page
             VerticalContentAlignment = VerticalAlignment.Center,
             MinHeight = 64,
             Padding = new Thickness(20, 12, 12, 12),
+            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+            BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(4),
             Margin = new Thickness(0, 0, 0, 8),
             Content = new Grid { ColumnSpacing = 18 },

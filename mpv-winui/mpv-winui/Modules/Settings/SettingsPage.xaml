@@ -21,6 +21,13 @@
         OpenPaneLength="240"
         PaneDisplayMode="Left"
         SelectionChanged="CategoryNav_SelectionChanged">
+        <NavigationView.Resources>
+            <!-- One surface for pane and content: no inner grey layers, the
+                 window background shows through on both sides. -->
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+        </NavigationView.Resources>
         <NavigationView.Content>
             <Grid>
                 <Grid.RowDefinitions>
@@ -38,8 +45,8 @@
                     Grid.Row="0"
                     MaxWidth="1060"
                     HorizontalAlignment="Stretch"
-                    Margin="12,4,12,4"
-                    ColumnSpacing="4"
+                    Margin="12,4,12,12"
+                    ColumnSpacing="10"
                     Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -55,13 +62,13 @@
                         Background="Transparent"
                         BorderThickness="0"
                         Click="BreadcrumbBack_Click">
-                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="14" Glyph="&#xE72B;" />
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="16" Glyph="&#xE72B;" />
                     </Button>
                     <StackPanel
                         Grid.Column="2"
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
-                        Spacing="6">
+                        Spacing="10">
                         <HyperlinkButton
                             x:Name="BreadcrumbCategoryLink"
                             Padding="0"
@@ -74,7 +81,8 @@
                             x:Name="BreadcrumbSeparator"
                             VerticalAlignment="Center"
                             FontSize="17"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                             Text="&#x203A;"
                             Visibility="Collapsed" />
                         <TextBlock
@@ -109,8 +117,7 @@
                 <Border
                     Grid.Row="2"
                     Padding="16,10"
-                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                    BorderThickness="0,1,0,0">
+                    BorderThickness="0">
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
