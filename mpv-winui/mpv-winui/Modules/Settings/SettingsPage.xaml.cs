@@ -73,6 +73,21 @@ public sealed partial class SettingsPage : Page
         (0xE3, 0x00, 0x8C), // screenshot
     ];
 
+    /// <summary>Colored Windows shell icon assets, same order as CategoryKeys.</summary>
+    private static readonly string[] CategoryIconFiles =
+    [
+        "Program.png",
+        "Playback.png",
+        "Video.png",
+        "Audio.png",
+        "Subtitles.png",
+        "Window.png",
+        "Network.png",
+        "Shortcuts.png",
+        "Osd.png",
+        "Screenshot.png",
+    ];
+
     /// <summary>
     /// Creates the Segoe Fluent Icons font on the calling (UI) thread. It
     /// must not live in the static initializer: WarmDeviceChoices can trigger
@@ -314,11 +329,12 @@ public sealed partial class SettingsPage : Page
             {
                 Content = Categories[i],
                 Tag = key,
-                Icon = new FontIcon
+                Icon = new BitmapIcon
                 {
-                    Glyph = CategoryGlyphs[Array.IndexOf(CategoryKeys, key)],
-                    FontFamily = CreateCategoryIconFont(),
-                    Foreground = CreateCategoryIconBrush(key),
+                    UriSource = new Uri($"ms-appx:///Assets/SettingsCategoryIcons/{CategoryIconFiles[Array.IndexOf(CategoryKeys, key)]}"),
+                    ShowAsMonochrome = false,
+                    Width = 20,
+                    Height = 20,
                 },
             };
             if (string.Equals(key, selectedKey, StringComparison.Ordinal))

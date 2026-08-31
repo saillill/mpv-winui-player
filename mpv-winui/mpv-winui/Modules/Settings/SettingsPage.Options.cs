@@ -852,11 +852,118 @@ private List<Option> BuildSettings()
 
         foreach (var option in options)
         {
-            option.Icon = string.IsNullOrEmpty(option.Section)
-                ? CategoryGlyphForLabel(option.Category)
-                : SectionMeta(option.Section).Icon;
+            option.Icon = GetOptionGlyph(option);
         }
 
         return options;
+    }
+
+    private string GetOptionGlyph(Option option)
+    {
+        var key = option.Key;
+        var text = key + " " + (option.Description ?? string.Empty);
+
+        // Keyboard / shortcuts
+        if (key.StartsWith("Shortcut:", StringComparison.Ordinal)
+            || text.Contains("Shortcut", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Keyboard", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Input", StringComparison.OrdinalIgnoreCase))
+            return "\uE765";
+
+        // Language / locale
+        if (text.Contains("Language", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Locale", StringComparison.OrdinalIgnoreCase))
+            return "\uE8C1";
+
+        // Decode / GPU / shaders / scaling filters
+        if (text.Contains("Hwdec", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Decode", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("GPU", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("D3D11", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Shader", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Interpolation", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Scaling", StringComparison.OrdinalIgnoreCase))
+            return "\uE9D9";
+
+        // Video / display / aspect
+        if (text.Contains("Video", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Display", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Aspect", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Panscan", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Scale", StringComparison.OrdinalIgnoreCase))
+            return "\uE714";
+
+        // Audio / volume
+        if (text.Contains("Audio", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Volume", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Sound", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Output", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Downmix", StringComparison.OrdinalIgnoreCase))
+            return "\uE767";
+
+        // Subtitles / captions
+        if (key.Contains("Sub", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Subtitle", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Caption", StringComparison.OrdinalIgnoreCase))
+            return "\uE7DE";
+
+        // Window / PiP / fullscreen / on-top
+        if (text.Contains("Window", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("PiP", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("AlwaysOnTop", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Fullscreen", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("KeepOpen", StringComparison.OrdinalIgnoreCase))
+            return "\uE8A4";
+
+        // Network / stream / cache / playlists
+        if (text.Contains("Network", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Http", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Cache", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Proxy", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Ytdl", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Buffer", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Playlist", StringComparison.OrdinalIgnoreCase))
+            return "\uE774";
+
+        // OSD / on-screen info
+        if (text.Contains("Osd", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Metadata", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Chapter", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Album", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Playing", StringComparison.OrdinalIgnoreCase))
+            return "\uE946";
+
+        // Screenshot / camera / capture
+        if (text.Contains("Screenshot", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Capture", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Camera", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Encoder", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Format", StringComparison.OrdinalIgnoreCase))
+            return "\uE722";
+
+        // Color / HDR / picture quality
+        if (text.Contains("Color", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Hdr", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Tone", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Gamma", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Dither", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Brightness", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Contrast", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Saturation", StringComparison.OrdinalIgnoreCase))
+            return "\uE790";
+
+        // Files / folders / paths / associations
+        if (text.Contains("Path", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("File", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Folder", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Directory", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Ext", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("Association", StringComparison.OrdinalIgnoreCase))
+            return "\uE838";
+
+        // Fallback to the section/category glyph so no card is ever blank.
+        return string.IsNullOrEmpty(option.Section)
+            ? CategoryGlyphForLabel(option.Category)
+            : SectionMeta(option.Section).Icon;
     }
 }
