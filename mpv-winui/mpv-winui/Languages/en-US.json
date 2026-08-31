@@ -983,6 +983,7 @@
   "Apply": "Apply",
   "Close": "Close",
   "Search": "Search",
+  "SearchPlaceholder": "Search",
   "OptionValueControlBarClassic": "Original",
   "OptionValueControlBarModernX": "Centered",
   "FileAssociationGroupVideo": "Video formats",

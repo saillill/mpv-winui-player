@@ -132,11 +132,10 @@ public sealed partial class SettingsPage : Page
             ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
             if (SearchBox is not null)
             {
-                SearchBox.PlaceholderText = AppContext.AppLang.Search;
+                SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
                 AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
             }
-            var backTip = AppContext.AppLang.CommonBack;
-            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
+            var backTip = AppContext.AppLang.CommonBack;            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
             AutomationProperties.SetName(BreadcrumbBackButton, backTip);
             RefreshWarningsAndEnabled();
             UpdateOptions();
@@ -460,7 +459,7 @@ public sealed partial class SettingsPage : Page
         if (SearchBox is null && e.Parameter is AutoSuggestBox box)
         {
             SearchBox = box;
-            SearchBox.PlaceholderText = AppContext.AppLang.Search;
+            SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
             AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
             RestoreSearchHistorySuggestions();
         }
@@ -769,7 +768,11 @@ public sealed partial class SettingsPage : Page
 
         if (showOverview)
         {
-            BreadcrumbBar.Visibility = Visibility.Collapsed;
+            // The overview also carries the trail — category name only.
+            BreadcrumbBar.Visibility = Visibility.Visible;
+            BreadcrumbCategoryLink.Visibility = Visibility.Collapsed;
+            BreadcrumbSeparator.Visibility = Visibility.Collapsed;
+            BreadcrumbSection.Text = selected ?? string.Empty;
             SectionsHost.ItemsSource = sections.Select(s => BuildSectionCard(s.Label)).ToList();
             OptionsControl.OptionList = [];
             return;
@@ -820,7 +823,7 @@ public sealed partial class SettingsPage : Page
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             VerticalContentAlignment = VerticalAlignment.Center,
             MinHeight = 64,
-            Padding = new Thickness(14, 12, 12, 12),
+            Padding = new Thickness(20, 12, 12, 12),
             CornerRadius = new CornerRadius(4),
             Margin = new Thickness(0, 0, 0, 8),
             Content = new Grid { ColumnSpacing = 18 },

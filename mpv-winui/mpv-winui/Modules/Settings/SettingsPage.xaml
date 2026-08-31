@@ -36,7 +36,9 @@
                 <Grid
                     x:Name="BreadcrumbBar"
                     Grid.Row="0"
-                    Margin="12,2,12,4"
+                    MaxWidth="1060"
+                    HorizontalAlignment="Center"
+                    Margin="12,4,12,4"
                     ColumnSpacing="4"
                     Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
@@ -64,21 +66,21 @@
                             x:Name="BreadcrumbCategoryLink"
                             Padding="0"
                             Margin="0"
-                            FontSize="20"
+                            FontSize="24"
                             FontWeight="SemiBold"
                             Click="BreadcrumbCategory_Click"
                             Visibility="Collapsed" />
                         <TextBlock
                             x:Name="BreadcrumbSeparator"
                             VerticalAlignment="Center"
-                            FontSize="15"
+                            FontSize="17"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Text="&#x203A;"
                             Visibility="Collapsed" />
                         <TextBlock
                             x:Name="BreadcrumbSection"
                             VerticalAlignment="Center"
-                            FontSize="20"
+                            FontSize="24"
                             FontWeight="SemiBold"
                             TextTrimming="CharacterEllipsis" />
                     </StackPanel>
@@ -89,6 +91,8 @@
                 <ListView
                     x:Name="SectionsHost"
                     Grid.Row="1"
+                    MaxWidth="1060"
+                    HorizontalAlignment="Center"
                     Margin="12,4,12,0"
                     Padding="0,0,4,0"
                     SelectionMode="None"
@@ -98,6 +102,8 @@
                 <ctl:OptionListControl
                     x:Name="OptionsControl"
                     Grid.Row="1"
+                    MaxWidth="1060"
+                    HorizontalAlignment="Center"
                     ShowHeaders="False" />
 
                 <Border
