@@ -19,8 +19,10 @@ public sealed partial class OptionBooleanControl : OptionControlBase
         {
             LabelText.Text = newValue.Label;
             UpdateDescription(DescriptionText);
-            ToggleSwitch.OnContent = mpv_winui.AppContext.AppLang.OptionValueOn;
-            ToggleSwitch.OffContent = mpv_winui.AppContext.AppLang.OptionValueOff;
+            // Windows-settings style: bare switch, track color carries the
+            // state; no On/Off captions (and no RTL mirroring) next to it.
+            ToggleSwitch.OnContent = null;
+            ToggleSwitch.OffContent = null;
             ToggleSwitch.IsEnabled = newValue.IsEnabled;
 
             _loading = true;

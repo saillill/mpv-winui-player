@@ -185,19 +185,12 @@
         </DataTemplate>
 
         <DataTemplate x:Key="SectionHeaderTemplate" x:DataType="ctl:SectionHeaderItem">
-            <Grid Margin="4,12,4,8">
-                <StackPanel>
-                    <TextBlock
-                        FontSize="14"
-                        FontWeight="SemiBold"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="{x:Bind Caption}" />
-                    <Border
-                        Height="1"
-                        Margin="0,8,0,0"
-                        Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
-                </StackPanel>
-            </Grid>
+            <TextBlock
+                Margin="4,16,4,8"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                Text="{x:Bind Caption}" />
         </DataTemplate>
 
         <ctl:OptionTemplateSelector

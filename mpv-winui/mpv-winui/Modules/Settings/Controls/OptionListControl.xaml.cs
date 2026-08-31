@@ -55,18 +55,33 @@ public sealed partial class OptionListControl : UserControl
     private void ApplyItemsSource()
     {
         // Every option renders through the same common templates (the
-        // OptionTemplateSelector below); no tier filtering.
-        var items = new List<object>(OptionList.Count + 8);
+        // OptionTemplateSelector below); no tier filtering. Group headers
+        // appear only when the page actually spans two or more sections —
+        // a single-section page repeating its own name is pure noise.
+        var visible = new List<Option>(OptionList.Count);
         foreach (var option in OptionList)
         {
-            if (!option.IsVisible)
+            if (option.IsVisible)
             {
-                continue;
+                visible.Add(option);
             }
+        }
 
-            if (option.ShowSectionHeader)
+        var sectionCount = visible
+            .Where(o => !string.IsNullOrEmpty(o.Section))
+            .Select(o => o.Section)
+            .Distinct(StringComparer.Ordinal)
+            .Count();
+        var showHeaders = sectionCount >= 2;
+
+        var items = new List<object>(visible.Count + 8);
+        string? lastSection = null;
+        foreach (var option in visible)
+        {
+            if (showHeaders && !string.IsNullOrEmpty(option.Section) && option.Section != lastSection)
             {
-                items.Add(new SectionHeaderItem { Caption = option.Section ?? string.Empty });
+                items.Add(new SectionHeaderItem { Caption = option.Section });
+                lastSection = option.Section;
             }
 
             items.Add(option);
