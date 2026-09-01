@@ -793,6 +793,10 @@ public sealed partial class SettingsPage : Page
         if (_selectedSection?.StartsWith(GroupSectionPrefix, StringComparison.Ordinal) == true)
         {
             var groupName = _selectedSection[GroupSectionPrefix.Length..];
+            var groupSections = SectionSummaries(categoryOptions)
+                .Where(s => s.Advanced && SectionGroupOf(s.Label) == groupName)
+                .ToList();
+
             BreadcrumbBar.Visibility = Visibility.Visible;
             // Breadcrumb: category is a live link back to the overview;
             // the trailing segment names this functional group.
@@ -800,9 +804,12 @@ public sealed partial class SettingsPage : Page
             BreadcrumbCategoryLink.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSection.Text = groupName;
-            OptionsControl.OptionList = categoryOptions
-                .Where(o => o.AdvancedSection && SectionGroupOf(o.Section ?? string.Empty) == groupName)
-                .ToList();
+
+            // The group page is itself a menu of its sub-sections. The user
+            // drills one more level to see that section's actual options.
+            OptionsControl.Visibility = Visibility.Collapsed;
+            SectionsHost.Visibility = Visibility.Visible;
+            SectionsHost.ItemsSource = groupSections.Select(s => BuildSectionCard(s.Label)).ToList();
             return;
         }
 
