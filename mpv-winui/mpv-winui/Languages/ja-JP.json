@@ -781,7 +781,7 @@
   "SectionDescWindow": "最前面表示、リサイズ、アスペクト比ロック",
   "SectionVideoSync": "ビデオ同期",
   "SectionDescVideoSync": "映像同期モード",
-  "SectionVideoDecode": "デコード",
+  "SectionVideoDecode": "ハードウェアデコード",
   "SectionDescVideoDecode": "ハードウェアデコード、コーデック選択",
   "SectionAudioOutput": "出力",
   "SectionDescAudioOutput": "出力デバイス、チャンネル",

@@ -781,7 +781,7 @@
   "SectionDescWindow": "Always on top, resizing, aspect lock",
   "SectionVideoSync": "Video sync",
   "SectionDescVideoSync": "Video sync mode and timing",
-  "SectionVideoDecode": "Decoding",
+  "SectionVideoDecode": "Hardware decoding",
   "SectionDescVideoDecode": "Hardware decoding, codec selection",
   "SectionAudioOutput": "Output",
   "SectionDescAudioOutput": "Output device, channels",

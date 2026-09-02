@@ -781,7 +781,7 @@
   "SectionDescWindow": "置顶、缩放、宽高比锁",
   "SectionVideoSync": "视频同步",
   "SectionDescVideoSync": "视频同步模式",
-  "SectionVideoDecode": "解码",
+  "SectionVideoDecode": "硬解模式",
   "SectionDescVideoDecode": "硬件解码、解码器选择",
   "SectionAudioOutput": "输出",
   "SectionDescAudioOutput": "输出设备、声道",

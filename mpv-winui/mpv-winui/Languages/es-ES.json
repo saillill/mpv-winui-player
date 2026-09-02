@@ -781,7 +781,7 @@
   "SectionDescWindow": "Siempre visible, cambio de tamaño, bloqueo de aspecto",
   "SectionVideoSync": "Sincronización de vídeo",
   "SectionDescVideoSync": "Modo de sincronización de vídeo",
-  "SectionVideoDecode": "Decodificación",
+  "SectionVideoDecode": "Decodificación por hardware",
   "SectionDescVideoDecode": "Decodificación por hardware, selección de códecs",
   "SectionAudioOutput": "Salida",
   "SectionDescAudioOutput": "Dispositivo de salida, canales",

@@ -781,7 +781,7 @@
   "SectionDescWindow": "Toujours au premier plan, redimensionnement, verrouillage du rapport",
   "SectionVideoSync": "Synchronisation vidéo",
   "SectionDescVideoSync": "Mode de synchronisation vidéo",
-  "SectionVideoDecode": "Décodage",
+  "SectionVideoDecode": "Décodage matériel",
   "SectionDescVideoDecode": "Décodage matériel, sélection des codecs",
   "SectionAudioOutput": "Sortie",
   "SectionDescAudioOutput": "Périphérique de sortie, canaux",

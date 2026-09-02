@@ -781,7 +781,7 @@
   "SectionDescWindow": "Immer im Vordergrund, Größenänderung, Seitenverhältnis-Sperre",
   "SectionVideoSync": "Video-Synchronisation",
   "SectionDescVideoSync": "Videosynchronisierung und Timing",
-  "SectionVideoDecode": "Dekodierung",
+  "SectionVideoDecode": "Hardware-Dekodierung",
   "SectionDescVideoDecode": "Hardwaredekodierung, Codec-Auswahl",
   "SectionAudioOutput": "Ausgabe",
   "SectionDescAudioOutput": "Ausgabegerät, Kanäle",

@@ -781,7 +781,7 @@
   "SectionDescWindow": "Поверх окон, изменение размера, блокировка пропорций",
   "SectionVideoSync": "Синхронизация видео",
   "SectionDescVideoSync": "Режим синхронизации видео",
-  "SectionVideoDecode": "Декодирование",
+  "SectionVideoDecode": "Аппаратное декодирование",
   "SectionDescVideoDecode": "Аппаратное декодирование, выбор кодеков",
   "SectionAudioOutput": "Вывод",
   "SectionDescAudioOutput": "Устройство вывода, каналы",

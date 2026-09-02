@@ -781,7 +781,7 @@
   "SectionDescWindow": "항상 위, 크기 조정, 가로세로 비 고정",
   "SectionVideoSync": "비디오 동기화",
   "SectionDescVideoSync": "비디오 동기화 모드",
-  "SectionVideoDecode": "디코딩",
+  "SectionVideoDecode": "하드웨어 디코딩",
   "SectionDescVideoDecode": "하드웨어 디코딩, 코덱 선택",
   "SectionAudioOutput": "출력",
   "SectionDescAudioOutput": "출력 장치, 채널",
