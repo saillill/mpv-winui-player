@@ -40,10 +40,6 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private string? _selectedSection;
 
-    /// <summary>Sentinel for the consolidated "More settings" second-level page.</summary>
-    private const string AdvancedOverviewKey = "__more_settings__";
-    private const string GroupSectionPrefix = "__group__";
-
     /// <summary>Stable category keys, parallel to the localized category order.</summary>
     private static readonly string[] CategoryKeys =
     [
@@ -785,33 +781,11 @@ public sealed partial class SettingsPage : Page
             OptionsControl.Visibility = primaryOptions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             OptionsControl.OptionList = primaryOptions;
             SectionsHost.ItemsSource = advancedSections.Count > 0
-                ? BuildGroupCards(advancedSections)
+                ? BuildSectionCards(advancedSections)
                 : Array.Empty<FrameworkElement>();
             return;
         }
 
-        if (_selectedSection?.StartsWith(GroupSectionPrefix, StringComparison.Ordinal) == true)
-        {
-            var groupName = _selectedSection[GroupSectionPrefix.Length..];
-            var groupSections = SectionSummaries(categoryOptions)
-                .Where(s => s.Advanced && SectionGroupOf(s.Label) == groupName)
-                .ToList();
-
-            BreadcrumbBar.Visibility = Visibility.Visible;
-            // Breadcrumb: category is a live link back to the overview;
-            // the trailing segment names this functional group.
-            BreadcrumbCategoryLink.Content = selected;
-            BreadcrumbCategoryLink.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
-            BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
-            BreadcrumbSection.Text = groupName;
-
-            // The group page is itself a menu of its sub-sections. The user
-            // drills one more level to see that section's actual options.
-            OptionsControl.Visibility = Visibility.Collapsed;
-            SectionsHost.Visibility = Visibility.Visible;
-            SectionsHost.ItemsSource = groupSections.Select(s => BuildSectionCard(s.Label)).ToList();
-            return;
-        }
 
         if (_selectedSection is not null)
         {
@@ -847,252 +821,13 @@ public sealed partial class SettingsPage : Page
             .Select(g => (g.Key, g.Count(), g.First().AdvancedSection))
             .ToList();
 
-    /// <summary>Card that opens the consolidated second-level page for all
-    /// advanced/complex options in the current category.</summary>
-    private FrameworkElement BuildMoreSettingsCard(string label)
-    {
-        var card = new Button
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            MinHeight = 72,
-            Padding = new Thickness(16, 16, 16, 16),
-            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
-            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(4),
-            Margin = new Thickness(0, 0, 0, 8),
-            Content = new Grid { ColumnSpacing = 18 },
-        };
-        if (card.Content is Grid grid)
-        {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            grid.Children.Add(new FontIcon
-            {
-                Glyph = "\uE713",
-                FontSize = 20,
-                FontFamily = new FontFamily("Segoe Fluent Icons"),
-                VerticalAlignment = VerticalAlignment.Center,
-            });
-
-            var textStack = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
-            textStack.Children.Add(new TextBlock { Text = label, FontSize = 14 });
-            textStack.Children.Add(new TextBlock
-            {
-                Text = AppContext.AppLang.AdvancedSettings,
-                FontSize = 12,
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-            });
-            Grid.SetColumn(textStack, 1);
-            grid.Children.Add(textStack);
-
-            var chevron = new FontIcon
-            {
-                Glyph = "\uE76C",
-                FontSize = 12,
-                FontFamily = new FontFamily("Segoe Fluent Icons"),
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-            };
-            Grid.SetColumn(chevron, 2);
-            grid.Children.Add(chevron);
-        }
-        AutomationProperties.SetName(card, $"{label}, {AppContext.AppLang.AdvancedSettings}");
-        card.Click += (_, _) =>
-        {
-            _selectedSection = AdvancedOverviewKey;
-            UpdateOptions();
-        };
-        return card;
-    }
-
-    private List<FrameworkElement> BuildGroupCards(
-        IReadOnlyList<(string Label, int Count, bool Advanced)> advancedSections)
-    {
-        var groups = new List<(string Label, List<string> Sections)>();
-        foreach (var section in advancedSections)
-        {
-            var group = SectionGroupOf(section.Label);
-            if (groups.Count == 0 || groups[^1].Label != group)
-            {
-                groups.Add((group, new List<string>()));
-            }
-            groups[^1].Sections.Add(section.Label);
-        }
-
-        return groups
-            .Select(g => BuildGroupCard(g.Label, SectionGroupIcon(g.Label)))
-            .ToList();
-    }
-
-    private FrameworkElement BuildGroupCard(string groupLabel, string iconGlyph)
-    {
-        var card = new Button
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            MinHeight = 72,
-            Padding = new Thickness(16, 16, 16, 16),
-            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
-            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(4),
-            Margin = new Thickness(0, 0, 0, 8),
-            Content = new Grid { ColumnSpacing = 18 },
-        };
-        if (card.Content is Grid grid)
-        {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            grid.Children.Add(new FontIcon
-            {
-                Glyph = iconGlyph,
-                FontSize = 20,
-                FontFamily = new FontFamily("Segoe Fluent Icons"),
-                VerticalAlignment = VerticalAlignment.Center,
-            });
-
-            var textStack = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
-            textStack.Children.Add(new TextBlock { Text = groupLabel, FontSize = 14 });
-            textStack.Children.Add(new TextBlock
-            {
-                Text = AppContext.AppLang.AdvancedSettings,
-                FontSize = 12,
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-            });
-            Grid.SetColumn(textStack, 1);
-            grid.Children.Add(textStack);
-
-            var chevron = new FontIcon
-            {
-                Glyph = "\uE76C",
-                FontSize = 12,
-                FontFamily = new FontFamily("Segoe Fluent Icons"),
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-            };
-            Grid.SetColumn(chevron, 2);
-            grid.Children.Add(chevron);
-        }
-        AutomationProperties.SetName(card, $"{groupLabel}, {AppContext.AppLang.AdvancedSettings}");
-        card.Click += (_, _) =>
-        {
-            _selectedSection = GroupSectionPrefix + groupLabel;
-            UpdateOptions();
-        };
-        return card;
-    }
-
-    private string SectionGroupOf(string sectionLabel)
-    {
-        var lang = AppContext.AppLang;
-        if (sectionLabel == lang.SectionProgramLanguageLog
-            || sectionLabel == lang.SectionProgramConfig
-            || sectionLabel == lang.SectionProgramTesting
-            || sectionLabel == lang.SectionProgramAssociations)
-            return lang.SettingsGroupProgramConfigFiles;
-        if (sectionLabel == lang.SectionReversePlayback
-            || sectionLabel == lang.SectionPlaybackSeeking
-            || sectionLabel == lang.SectionPlaybackSeekPreview)
-            return lang.SettingsGroupPlaybackNavigation;
-        if (sectionLabel == lang.SectionWatchLaterResume
-            || sectionLabel == lang.SectionWatchLaterStorage
-            || sectionLabel == lang.SectionDemuxerPlaylist)
-            return lang.SettingsGroupFilesPlaylists;
-        if (sectionLabel == lang.SectionVideoDecode
-            || sectionLabel == lang.SectionVideoSync)
-            return lang.SettingsGroupVideoDecodeSync;
-        if (sectionLabel == lang.SectionVideoImage
-            || sectionLabel == lang.SectionVideoFilters)
-            return lang.SettingsGroupVideoImageFilters;
-        if (sectionLabel == lang.SectionGpuScaling
-            || sectionLabel == lang.SectionGpuInterpolation
-            || sectionLabel == lang.SectionGpuShaders
-            || sectionLabel == lang.SectionGpuBackground
-            || sectionLabel == lang.SectionGpuD3d11)
-            return lang.SettingsGroupGpuRendering;
-        if (sectionLabel == lang.SectionToneMapping
-            || sectionLabel == lang.SectionTargetColorspace
-            || sectionLabel == lang.SectionColorManagement)
-            return lang.SettingsGroupColorHdr;
-        if (sectionLabel == lang.SectionAudioOutput
-            || sectionLabel == lang.SectionAudioVolume)
-            return lang.SettingsGroupAudioOutput;
-        if (sectionLabel == lang.SectionAudioExternal
-            || sectionLabel == lang.SectionAudioCoverArt)
-            return lang.SettingsGroupAudioExternalCover;
-        if (sectionLabel == lang.SectionSubtitleText
-            || sectionLabel == lang.SectionSubtitleStyle
-            || sectionLabel == lang.SectionSubtitlePosition
-            || sectionLabel == lang.SectionSubtitleBehavior)
-            return lang.SettingsGroupSubtitleText;
-        if (sectionLabel == lang.SectionSubtitleAss)
-            return lang.SettingsGroupSubtitleAss;
-        if (sectionLabel == lang.SectionSubtitleImage)
-            return lang.SettingsGroupSubtitleImage;
-        if (sectionLabel == lang.SectionWindow)
-            return lang.SettingsGroupWindowBehavior;
-        if (sectionLabel == lang.SectionWindowPiP)
-            return lang.SettingsGroupWindowPip;
-        if (sectionLabel == lang.SectionNetworkYtdlp)
-            return lang.SettingsGroupNetworkYtdlp;
-        if (sectionLabel == lang.SectionNetworkHttp
-            || sectionLabel == lang.SectionNetworkCurl)
-            return lang.SettingsGroupNetworkHttpCurl;
-        if (sectionLabel == lang.SectionCache
-            || sectionLabel == lang.SectionDemuxerBuffering)
-            return lang.SettingsGroupCache;
-        if (sectionLabel == lang.SectionOsdAppearance
-            || sectionLabel == lang.SectionOsdBehavior
-            || sectionLabel == lang.SectionOsdPosition)
-            return lang.SettingsGroupOsdAppearance;
-        if (sectionLabel == lang.SectionOsdMetadata)
-            return lang.SettingsGroupOsdMetadata;
-        if (sectionLabel == lang.SectionScreenshotLocation)
-            return lang.SettingsGroupScreenshotLocation;
-        if (sectionLabel == lang.SectionScreenshotQuality)
-            return lang.SettingsGroupScreenshotQuality;
-        return AppContext.AppLang.MoreSettings;
-    }
-
-    private static string SectionGroupIcon(string groupLabel)
-    {
-        return groupLabel switch
-        {
-            _ when groupLabel == AppContext.AppLang.SettingsGroupProgramConfigFiles => "\uE838",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupPlaybackNavigation => "\uE786",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupFilesPlaylists => "\uE8FD",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupNetworkCache => "\uE774",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupVideoDecodeSync => "\uE9D9",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupVideoImageFilters => "\uE7F4",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupGpuRendering => "\uE771",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupColorHdr => "\uE790",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupAudioOutput => "\uE767",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupAudioExternalCover => "\uEB9F",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupSubtitleText => "\uE90B",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupSubtitleAss => "\uE8D2",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupSubtitleImage => "\uE91B",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupWindowBehavior => "\uE8A4",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupWindowPip => "\uEE49",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupNetworkYtdlp => "\uE717",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupNetworkHttpCurl => "\uE702",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupCache => "\uE74E",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupOsdAppearance => "\uE932",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupOsdMetadata => "\uEA8F",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupScreenshotLocation => "\uE8B5",
-            _ when groupLabel == AppContext.AppLang.SettingsGroupScreenshotQuality => "\uE740",
-            _ => "\uE713",
-        };
-    }
+    /// <summary>One entry card per advanced section, straight to that
+    /// section's options (Windows-settings flow: common options sit on
+    /// the overview, each remaining topic is one drill-in card).</summary>
+    private List<FrameworkElement> BuildSectionCards(
+        IReadOnlyList<(string Label, int Count, bool Advanced)> advancedSections) =>
+        advancedSections.Select(s => BuildSectionCard(s.Label)).ToList();
 
     /// <summary>Windows-Settings-like navigation card for one section: a
     /// leading glyph, title with a secondary description line, chevron.</summary>
