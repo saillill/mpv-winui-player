@@ -836,9 +836,14 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpAudioExts,
                 Label = lang.SettingsAudioExts,
                 Category = audio,
-                Type = OptionType.MultiList,
+                Type = OptionType.CheckList,
                 ListSeparator = ',',
                 AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.AudioExts,
+                    KnownAudioExtensions,
+                    group: lang.FileAssociationGroupAudio),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
                 Getter = () => AppContext.AppSetting.AudioExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioExts), AppContext.AppSetting.AudioExts = (string)v!)
             },
@@ -919,17 +924,24 @@ public sealed partial class SettingsPage
     private static readonly string[] KnownImageExtensions =
         "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,tga,tif,tiff,webp".Split(',');
 
+    private static readonly string[] KnownAudioExtensions =
+        "aac,ac3,alac,ape,dsf,dts,flac,m4a,mka,mp3,ogg,opus,tak,tta,wav,wma,wv".Split(',');
+
+    private static readonly string[] KnownCoverArtNames =
+        "cover,folder,album,front,thumb,back".Split(',');
+
     private static readonly string[] KnownDirectoryFilterTypes =
         ["video", "audio", "image", "sub", "playlist"];
 
     private static List<OptionCheckItem> BuildExtensionCheckItems(
         string? current,
         IEnumerable<string> known,
-        string? group)
+        string? group,
+        char separator = ',')
     {
         var knownList = known as IReadOnlyList<string> ?? known.ToList();
         var currentSet = new HashSet<string>(
-            (current ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            (current ?? string.Empty).Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             StringComparer.OrdinalIgnoreCase);
         var knownSet = new HashSet<string>(knownList, StringComparer.OrdinalIgnoreCase);
 
