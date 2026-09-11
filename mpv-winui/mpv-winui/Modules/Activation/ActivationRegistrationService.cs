@@ -58,8 +58,18 @@ namespace mpv_winui.Modules.Activation
             var fileTypes = extensions.ToArray();
             return Task.Run(() =>
             {
-                ActivationRegistrationManager.RegisterForFileTypeActivation(
-                    fileTypes, LogoPath, AssociationDisplayName, ["open"], ExePath);
+                try
+                {
+                    ActivationRegistrationManager.RegisterForFileTypeActivation(
+                        fileTypes, LogoPath, AssociationDisplayName, ["open"], ExePath);
+                }
+                catch (Exception ex)
+                {
+                    AppContext.AppLogger.Error(ex, "RegisterForFileTypeActivation failed");
+                    throw;
+                }
+
+                EnsureShellCommand(ComputeAppId() + ".File");
             });
         }
 
@@ -99,7 +109,17 @@ namespace mpv_winui.Modules.Activation
             var s = NormalizeScheme(scheme);
             return Task.Run(() =>
             {
-                ActivationRegistrationManager.RegisterForProtocolActivation(s, LogoPath, AssociationDisplayName, ExePath);
+                try
+                {
+                    ActivationRegistrationManager.RegisterForProtocolActivation(s, LogoPath, AssociationDisplayName, ExePath);
+                }
+                catch (Exception ex)
+                {
+                    AppContext.AppLogger.Error(ex, "RegisterForProtocolActivation failed");
+                    throw;
+                }
+
+                EnsureShellCommand(ComputeAppId() + ".Protocol");
             });
         }
 
@@ -187,6 +207,72 @@ namespace mpv_winui.Modules.Activation
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Makes sure HKCU\Software\Classes\&lt;progId&gt;\shell\open\command has a
+        /// launch command. WindowsAppSDK's RegisterForFileTypeActivation /
+        /// RegisterForProtocolActivation create the association entry under
+        /// ...\WindowsAppRuntimeApplications but on some unpackaged setups the
+        /// ProgId's shell verb command is left empty, so Windows cannot start
+        /// the app from a file/protocol. We repair that here.
+        /// </summary>
+        private static void EnsureShellCommand(string progId)
+        {
+            try
+            {
+                var command = "\"" + ExePath + "\" \"%1\"";
+                var commandKeyPath = $@"Software\Classes\{progId}\shell\open\command";
+
+                var existing = Registry.GetValue($@"HKEY_CURRENT_USER\{commandKeyPath}", null, null) as string;
+                if (string.IsNullOrWhiteSpace(existing))
+                {
+                    using var commandKey = Registry.CurrentUser.CreateSubKey(commandKeyPath);
+                    commandKey?.SetValue(null, command);
+                }
+
+                var defaultIconKeyPath = $@"Software\Classes\{progId}\DefaultIcon";
+                var defaultIcon = Registry.GetValue($@"HKEY_CURRENT_USER\{defaultIconKeyPath}", null, null) as string;
+                if (string.IsNullOrWhiteSpace(defaultIcon))
+                {
+                    using var defaultIconKey = Registry.CurrentUser.CreateSubKey(defaultIconKeyPath);
+                    defaultIconKey?.SetValue(null, LogoPath);
+                }
+
+                var applicationKeyPath = $@"Software\Classes\{progId}\Application";
+                var applicationName = Registry.GetValue($@"HKEY_CURRENT_USER\{applicationKeyPath}", "ApplicationName", null) as string;
+                if (string.IsNullOrWhiteSpace(applicationName))
+                {
+                    using var applicationKey = Registry.CurrentUser.CreateSubKey(applicationKeyPath);
+                    applicationKey?.SetValue("ApplicationName", AssociationDisplayName);
+                }
+            }
+            catch (Exception ex)
+            {
+                AppContext.AppLogger.Error(ex, "EnsureShellCommand failed for " + progId);
+            }
+        }
+
+        /// <summary>
+        /// True when the ProgId Windows would actually launch for this app has a
+        /// usable open command. A registration can exist under
+        /// ...\WindowsAppRuntimeApplications while the HKCU\Software\Classes ProgId
+        /// has an empty or missing shell\open\command, in which case Windows shows
+        /// the app but cannot start it from a file.
+        /// </summary>
+        public static bool HasUsableShellCommand()
+        {
+            try
+            {
+                var path = $@"Software\Classes\{ComputeAppId()}.File\shell\open\command";
+                var value = Registry.GetValue($@"HKEY_CURRENT_USER\{path}", null, null) as string;
+                return !string.IsNullOrWhiteSpace(value);
+            }
+            catch (Exception ex)
+            {
+                AppContext.AppLogger.Error(ex, "shell command probe failed");
+                return false;
+            }
         }
     }
 }
