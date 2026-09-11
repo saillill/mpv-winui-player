@@ -268,6 +268,9 @@ namespace mpv_winui.Modules.Player
 
         public void StartListen()
         {
+            // StopListen latches the abort flag; clear it on (re)start or the
+            // auto-playlist scan stays permanently disabled after one unload.
+            _autoPlaylistStopped = false;
             _mpvPlayer.MediaLoaded += MpvPlayer_MediaLoaded;
             _mpvPlayer.FileLoaded += MpvPlayer_FileLoaded;
             _mpvPlayer.PlaybackStateChanged += MpvPlayer_PlaybackStateChanged;

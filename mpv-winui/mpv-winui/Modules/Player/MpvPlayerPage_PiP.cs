@@ -39,8 +39,13 @@ public sealed partial class MpvPlayerPage
         {
             // Re-attach after an exit detached the window. Attach is idempotent
             // when the same player is already attached (e.g. a WindowPiPSize
-            // change while PiP is active), so the event cannot stack.
+            // change while PiP is active).
             _pipWindow!.Attach(_mediaPlayer);
+            // ExitPiP unsubscribes on every exit while keeping the window object,
+            // so re-entering must subscribe again or DPI/scale changes stop
+            // reaching the swap chain after the first PiP session.
+            _pipWindow.VideoPanel.CompositionScaleChanged -= PiPView_CompositionScaleChanged;
+            _pipWindow.VideoPanel.CompositionScaleChanged += PiPView_CompositionScaleChanged;
         }
 
         var (width, height) = ComputeDefaultPiPSize();

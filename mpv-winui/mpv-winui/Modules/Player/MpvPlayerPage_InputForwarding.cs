@@ -134,6 +134,13 @@ namespace mpv_winui.Modules.Player
 
         private static void HandleKeyDown(uint vkey, uint scancode)
         {
+            // Typing in a text-entry control must not leak single letters to
+            // mpv as shortcuts (screenshot, fullscreen, ...) behind the user.
+            if (IsTextInputFocused())
+            {
+                return;
+            }
+
             // When a UI slider owns focus, its arrow keys are the slider's own
             // input; forwarding them to mpv as well would seek twice.
             if (AppContext.UiFocusInSlider && IsSliderNavigationKey(vkey))
@@ -161,6 +168,39 @@ namespace mpv_winui.Modules.Player
                 || vkey == (uint)VIRTUAL_KEY.VK_UP || vkey == (uint)VIRTUAL_KEY.VK_DOWN
                 || vkey == (uint)VIRTUAL_KEY.VK_PRIOR || vkey == (uint)VIRTUAL_KEY.VK_NEXT
                 || vkey == (uint)VIRTUAL_KEY.VK_HOME || vkey == (uint)VIRTUAL_KEY.VK_END;
+        }
+
+        /// <summary>
+        /// True while a text-entry control owns keyboard focus: forwarding those keys
+        /// to mpv would fire mpv shortcuts (screenshot, fullscreen, ...) behind the
+        /// user's back while they type in the settings search box or an option field.
+        /// </summary>
+        private static bool IsTextInputFocused()
+        {
+            try
+            {
+                if (_selfWeakReference?.TryGetTarget(out var self) != true || self is null)
+                {
+                    return false;
+                }
+
+                var root = self.XamlRoot;
+                if (root is null)
+                {
+                    return false;
+                }
+
+                return FocusManager.GetFocusedElement(root) is Microsoft.UI.Xaml.Controls.TextBox
+                    or Microsoft.UI.Xaml.Controls.AutoSuggestBox
+                    or Microsoft.UI.Xaml.Controls.PasswordBox
+                    or Microsoft.UI.Xaml.Controls.RichEditBox
+                    or Microsoft.UI.Xaml.Controls.NumberBox
+                    or Microsoft.UI.Xaml.Controls.ComboBox;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static void HandleKeyUp(uint key)

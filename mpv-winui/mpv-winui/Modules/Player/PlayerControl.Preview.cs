@@ -26,7 +26,7 @@ namespace mpv_winui.Modules.Player
     {
             private void ProgressSlider_PointerEntered(object sender, PointerRoutedEventArgs e)
             {
-                _isDragging = true;
+                _isHoveringProgress = true;
             }
     
             private void ProgressSlider_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -64,15 +64,16 @@ namespace mpv_winui.Modules.Player
     
             private void ProgressSlider_PointerMoved(object sender, PointerRoutedEventArgs e)
             {
-                if (_isDragging)
+                if (_isHoveringProgress)
                 {
                     UpdatePreview(e);
                 }
             }
-    
+
             private void ProgressSlider_PointerExited(object sender, PointerRoutedEventArgs e)
             {
                 _isDragging = false;
+                _isHoveringProgress = false;
                 ClearPreview();
             }
     
@@ -121,6 +122,7 @@ namespace mpv_winui.Modules.Player
                     ProgressSlider.PointerMoved -= ProgressSlider_PointerMoved;
                     ProgressSlider.PointerExited -= ProgressSlider_PointerExited;
                     _isDragging = false;
+                    _isHoveringProgress = false;
                     ClearPreview();
                 }
             }

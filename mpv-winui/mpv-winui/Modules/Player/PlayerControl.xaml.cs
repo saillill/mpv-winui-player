@@ -61,6 +61,7 @@ namespace mpv_winui.Modules.Player
         private bool _isBuffering = false;
         private bool _isInScrubMode = false;
         private bool _isDragging = false;
+        private bool _isHoveringProgress = false;
         private long _suppressBufferingUntil;
         private bool _sourceLoaded = false;
         private double[]? _cachedChapterTimes;
