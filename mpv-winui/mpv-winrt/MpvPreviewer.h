@@ -38,6 +38,7 @@ namespace winrt::mpv_winrt::implementation
         void OnFileLoaded();
         void RequestSeek(double position);
         void RenderFrame();
+        void RequestRender();
         static void SwRenderUpdateCallback(void* cb_ctx);
         void NotifyFrameReady();
 
@@ -67,6 +68,14 @@ namespace winrt::mpv_winrt::implementation
         // worker thread, read from caller threads via LoadFile/SetPosition).
         bool m_mediaReady{false};
         double m_pendingPos{-1};
+
+        // Worker-thread only. Set when a render pass was skipped because a
+        // seek was still in flight. mpv_render_context_render() redraws the
+        // previous frame when no new one is queued, so a frame dropped during
+        // a seek is lost forever unless something re-runs the pass - the
+        // "seeking" property change and SEEK/PLAYBACK_RESTART do exactly that
+        // via RequestRender().
+        bool m_renderNeeded{false};
     };
 }
 

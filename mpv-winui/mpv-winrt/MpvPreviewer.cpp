@@ -6,6 +6,11 @@
 
 namespace
 {
+    // reply_userdata for the "seeking" observation. Non-zero so property-change
+    // events cannot be confused with the fire-and-forget async commands below,
+    // which all pass 0.
+    constexpr uint64_t SeekObserveId = 1;
+
     struct __declspec(uuid("905a0fef-bc53-11df-8c49-001e4fc686da")) IBufferByteAccess : ::IUnknown
     {
         virtual HRESULT __stdcall Buffer(BYTE** value) = 0;
@@ -83,6 +88,13 @@ namespace winrt::mpv_winrt::implementation
                 SetOption("demuxer-max-bytes", "33554432");
                 SetOption("demuxer-max-back-bytes", "16777216");
                 SetOption("hwdec", "auto");
+                // Without this mpv_render_context_render() blocks until the
+                // frame's supposed display time (render.h: "this will limit
+                // your rendering to video FPS. You can prevent this by setting
+                // the video-timing-offset global option to 0"). The preview
+                // instance is paused, so that wait can stall the worker thread
+                // - which is also the thread draining mpv events.
+                SetOption("video-timing-offset", "0");
 
                 if (mpv_initialize(m_mpv) < 0)
                 {
@@ -90,6 +102,12 @@ namespace winrt::mpv_winrt::implementation
                 }
 
                 CreateRenderContext();
+
+                // Watch "seeking" so the worker is woken when a seek settles.
+                // libmpv raises the render update callback only once per queued
+                // frame, so this is the reliable signal that the frame for a
+                // requested position is ready to be drawn.
+                mpv_observe_property(m_mpv, SeekObserveId, "seeking", MPV_FORMAT_FLAG);
             }
             catch (...)
             {
@@ -126,6 +144,9 @@ namespace winrt::mpv_winrt::implementation
             {
                 std::lock_guard lock(m_renderMutex);
                 m_quit = false;
+                // Force one pass so the first frame is drawn even if libmpv's
+                // update callback arrived before the worker thread started.
+                m_renderNeeded = true;
             }
             m_workerThread = std::thread([this]() { WorkerLoop(); });
             m_initialized = true;
@@ -201,6 +222,21 @@ namespace winrt::mpv_winrt::implementation
             {
                 OnFileLoaded();
             }
+            else if (event->event_id == MPV_EVENT_SEEK || event->event_id == MPV_EVENT_PLAYBACK_RESTART)
+            {
+                // A seek settled (or the video chain was reconfigured). Force a
+                // render pass: libmpv raises the update callback only once per
+                // queued frame, so relying on it alone can leave the thumbnail
+                // stuck on a stale frame.
+                RequestRender();
+            }
+            else if (event->event_id == MPV_EVENT_PROPERTY_CHANGE && event->reply_userdata == SeekObserveId)
+            {
+                // The "seeking" flag changed. When it turns off the frame for
+                // the requested position is ready, which is exactly when the
+                // deferred pass from RenderFrame() has to run.
+                RequestRender();
+            }
         }
     }
 
@@ -217,6 +253,10 @@ namespace winrt::mpv_winrt::implementation
             m_pendingPos = -1;
         }
 
+        // A freshly loaded file always needs one draw; without this the
+        // thumbnail stays empty until the first seek happens to land.
+        m_renderNeeded = true;
+
         int paused = 1;
         mpv_set_property(m_mpv, "pause", MPV_FORMAT_FLAG, &paused);
 
@@ -224,6 +264,16 @@ namespace winrt::mpv_winrt::implementation
         {
             RequestSeek(pending);
         }
+    }
+
+    // Wakes the worker for a render pass that was deferred (or must be redone)
+    // without relying on libmpv's update callback.
+    void MpvPreviewer::RequestRender()
+    {
+        std::lock_guard lock(m_renderMutex);
+        m_renderNeeded = true;
+        m_framePending = true;
+        m_renderCv.notify_one();
     }
 
     void MpvPreviewer::LoadFile(winrt::hstring const& url)
@@ -333,13 +383,33 @@ namespace winrt::mpv_winrt::implementation
 
         // Never render mid-seek: the update callback also fires when a seek
         // starts, and drawing then shows stale frames and wastes a full sw
-        // render per hover tick. The callback fires again once the seek
-        // lands, which is when the thumbnail actually gets drawn.
+        // render per hover tick.
+        //
+        // Deliberately NOT calling mpv_render_context_update() on this path:
+        // consuming the update flag here would swallow the notification for the
+        // frame mpv is about to produce, and libmpv does not raise the callback
+        // a second time. Because mpv_render_context_render() just redraws the
+        // previous frame when the queue is empty (see render.h), a swallowed
+        // notification means the thumbnail never advances again - which is
+        // exactly the "frozen thumbnail" symptom. Mark the pass as still needed
+        // instead; the "seeking" property change and SEEK / PLAYBACK_RESTART
+        // re-run it the moment the seek lands.
         int seeking = 0;
         if (mpv_get_property(m_mpv, "seeking", MPV_FORMAT_FLAG, &seeking) >= 0 && seeking)
         {
+            m_renderNeeded = true;
             return;
         }
+
+        // Render only when libmpv queued a new frame or when an earlier pass was
+        // deferred by an in-flight seek. The old code rendered unconditionally
+        // on every 50ms tick, which burned a full software render each time.
+        const uint64_t flags = mpv_render_context_update(m_renderContext);
+        if ((flags & MPV_RENDER_UPDATE_FRAME) == 0 && !m_renderNeeded)
+        {
+            return;
+        }
+        m_renderNeeded = false;
 
         int swSize[2] = {static_cast<int>(m_width), static_cast<int>(m_height)};
         const char* format = "bgr0";
@@ -352,7 +422,6 @@ namespace winrt::mpv_winrt::implementation
             {MPV_RENDER_PARAM_INVALID, nullptr},
         };
 
-        mpv_render_context_update(m_renderContext);
         mpv_render_context_render(m_renderContext, params);
 
         for (size_t i = 3; i < m_size; i += 4)
