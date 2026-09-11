@@ -22,6 +22,10 @@ namespace mpv_winui.Modules.Player
         private HMONITOR? _lastMonitor;
         private DispatcherTimerDebouncer<int>? _displayInfoDebouncer;
         private DispatcherQueueTimer? _displayInfoTimer;
+        // Last advanced-color read failure written to display-info.log, so a
+        // persistently broken detection logs its reason once instead of on
+        // every 15s polling tick.
+        private string? _lastDisplayFailureReason;
 
         private void InitDisplayInfo()
         {
@@ -112,14 +116,75 @@ namespace mpv_winui.Modules.Player
                     {
                         TryLogDisplayInfo(kind, colorInfo);
                     }
+                    _lastDisplayFailureReason = null;
                     return kind;
+                }
+
+                if (log)
+                {
+                    TryLogDisplayInfoFailure(
+                        "GetAdvancedColorInfo returned null - DisplayInformation is null or its WindowId is stale");
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error(ex);
+                if (log)
+                {
+                    TryLogDisplayInfoFailure("GetAdvancedColorInfo threw: " + ex.Message);
+                }
             }
-            return mpv_winrt.DisplayColorKind.SDR;
+
+            // Keep the last known kind instead of hard-falling back to SDR.
+            // A transient read failure used to pin the player to SDR, which
+            // activates the [mpvw-sdr] profile (d3d11-output-csp=srgb) and
+            // silently disables RTX Video HDR - hdr_auto.lua only engages when
+            // the output colorspace is PQ. A genuine "display is SDR" reading
+            // is a successful read and still applies normally.
+            return _lastColorKind;
+        }
+
+        // Writes a diagnostic line when the advanced-color state could not be
+        // read at all. display-info.log used to contain successful reads only,
+        // so "the display really is SDR" and "detection is broken" looked
+        // identical - which is what made the RTX Video HDR chain so hard to
+        // diagnose.
+        private void TryLogDisplayInfoFailure(string reason)
+        {
+            try
+            {
+                // Log each distinct reason once: the 15s fallback timer would
+                // otherwise append the same line thousands of times a day.
+                if (string.Equals(_lastDisplayFailureReason, reason, System.StringComparison.Ordinal))
+                {
+                    return;
+                }
+                _lastDisplayFailureReason = reason;
+
+                var logDir = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "mpv-winui", "logs");
+                var logPath = System.IO.Path.Combine(logDir, "display-info.log");
+                var monitorText = _lastMonitor?.ToString();
+                var monitor = string.IsNullOrEmpty(monitorText) ? "<unresolved>" : monitorText!;
+                var line = $"{DateTime.Now:HH:mm:ss.fff} kind=FAIL advanced=<unavailable> " +
+                           $"reason={reason} " +
+                           $"monitor={monitor} windowId={_appWindow.Id.Value}\n";
+                _ = System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        System.IO.Directory.CreateDirectory(logDir);
+                        System.IO.File.AppendAllText(logPath, line);
+                    }
+                    catch
+                    {
+                    }
+                });
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>Opens a dialog with the current display/HDR detection results.</summary>
