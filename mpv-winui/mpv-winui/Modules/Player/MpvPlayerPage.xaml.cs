@@ -100,13 +100,9 @@ namespace mpv_winui.Modules.Player
                 SetupKeyboardInput();
                 SetupMouseInput();
 
-                if (AppContext.AppSetting.EnableVideoPreview)
+                if (AppContext.AppSetting.EnableVideoPreview || AppContext.AppSetting.EnableVideoBuiltInPreview)
                 {
                     SetupPreview();
-                }
-                if (AppContext.AppSetting.EnableVideoBuiltInPreview)
-                {
-                    SetupBuiltInPreview();
                 }
 
                 SetupCustomMenuBarItems();
@@ -157,7 +153,6 @@ namespace mpv_winui.Modules.Player
             CleanupPreview();
             ClosePiPWindow();
             CleanupPlayControl();
-            CleanupBuiltInPreview();
             _mediaPlayer.Destroy();
         }
 
@@ -173,19 +168,40 @@ namespace mpv_winui.Modules.Player
 
         private void AppContext_SettingChanged(string key, object? value)
         {
-            if (key == nameof(AppContext.AppSetting.EnableVideoPreview))
+            if (key == nameof(AppContext.AppSetting.EnableVideoPreview)
+                || key == nameof(AppContext.AppSetting.EnableVideoBuiltInPreview))
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    var enabled = value is bool b && b;
+                    var enabled = key == nameof(AppContext.AppSetting.EnableVideoBuiltInPreview)
+                        ? (value is bool b2 && b2) || AppContext.AppSetting.EnableVideoPreview
+                        : (value is bool b && b) || AppContext.AppSetting.EnableVideoBuiltInPreview;
+
                     PlayerControl.EnablePreviewEvents(enabled);
+                    CleanupPreview();
                     if (enabled)
                     {
                         SetupPreview();
                     }
-                    else
+                });
+            }
+            else if (key == nameof(AppContext.AppSetting.KeepVideoBuiltInPreviewAlive))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (MpvPreview is not null)
                     {
-                        CleanupPreview();
+                        MpvPreview.KeepAlive = value is bool b && b;
+                    }
+                });
+            }
+            else if (key == nameof(AppContext.AppSetting.BuiltInPreviewAliveTimeout))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (MpvPreview is not null)
+                    {
+                        MpvPreview.KeepAliveTimeout = Convert.ToInt32(value);
                     }
                 });
             }

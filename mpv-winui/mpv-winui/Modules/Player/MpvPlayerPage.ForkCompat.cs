@@ -1,4 +1,3 @@
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
@@ -62,58 +61,6 @@ namespace mpv_winui.Modules.Player
             }
 
             SetupCustomMenuBarItems();
-        }
-
-        // -------------------------------------------------------------- preview
-
-        /// <summary>
-        /// Coalescing timer for seek-bar hover thumbnail requests.
-        ///
-        /// The merged preview path is event-driven (the control raises
-        /// <c>PreviewUpdateRequested</c> and we forward <c>SetHoverSec</c> /
-        /// <c>SetDrawPreview</c> straight to the native player), so this timer does
-        /// not gate rendering. It is created lazily so the
-        /// <c>ThumbnailUpdateInterval</c> setting has a live target to configure -
-        /// the settings-changed branch assigns <see cref="DispatcherQueueTimer.Interval"/>
-        /// through the non-null pattern match.
-        /// </summary>
-        private DispatcherQueueTimer? _previewThrottleTimer;
-
-        /// <summary>
-        /// Lazily creates <see cref="_previewThrottleTimer"/> bound to this page's
-        /// dispatcher, with the interval taken from the current setting.
-        /// </summary>
-        private DispatcherQueueTimer EnsurePreviewThrottleTimer()
-        {
-            if (_previewThrottleTimer is null)
-            {
-                _previewThrottleTimer = DispatcherQueue.CreateTimer();
-                _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(
-                    Math.Clamp(AppContext.AppSetting.ThumbnailUpdateInterval, 40, 600));
-                _previewThrottleTimer.IsRepeating = true;
-            }
-
-            return _previewThrottleTimer;
-        }
-
-        /// <summary>
-        /// Releases the preview renderer so the next hover re-creates it with the
-        /// current settings (render size, software/hardware mode).
-        /// </summary>
-        private void DestroyPreviewer()
-        {
-            CleanupPreview();
-            SetupPreview();
-        }
-
-        // -------------------------------------------------------------- playlist
-
-        /// <summary>
-        /// Stops any pending playlist refresh work. The merged playlist path
-        /// refreshes on demand, so there is no recurring timer to cancel.
-        /// </summary>
-        private void CleanupPlaylistRefresh()
-        {
         }
     }
 }
