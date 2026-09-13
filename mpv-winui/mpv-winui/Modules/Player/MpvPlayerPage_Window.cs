@@ -15,22 +15,22 @@ namespace mpv_winui.Modules.Player
                     switch (args.PropertyId)
                     {
                         case 201:
-                            SetFullScreen(args.Value);
+                            HandleFullscreenProperty(args.Value);
                             break;
                         case 202:
-                            SetAlwaysOnTop(args.Value);
+                            HandleOnTopProperty(args.Value);
                             break;
                         case 203:
-                            SetWindowMinimized(args.Value);
+                            HandleWindowMinimizedProperty(args.Value);
                             break;
                         case 204:
-                            SetWindowMaximized(args.Value);
+                            HandleWindowMaximizedProperty(args.Value);
                             break;
                         case 205:
-                            SetFullWindow(args.Value);
+                            HandleTitleBarProperty(args.Value);
                             break;
                         case 206:
-                            SetWindowBorder(args.Value);
+                            HandleBorderProperty(args.Value);
                             break;
                     }
                 }
@@ -41,7 +41,7 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        private void SetFullScreen(bool fullscreen)
+        private void HandleFullscreenProperty(bool fullscreen)
         {
             // State-based (not toggle-based): the mpv "fullscreen" property is
             // the source of truth, so "set fullscreen no" (ESC) and repeated
@@ -81,27 +81,24 @@ namespace mpv_winui.Modules.Player
             PlayerControl.RefreshAdaptiveState();
         }
 
-        private void SetAlwaysOnTop(bool enable)
+        private void HandleOnTopProperty(bool enable)
         {
             if (_appWindow.Presenter is OverlappedPresenter presenter)
             {
                 presenter.IsAlwaysOnTop = enable;
             }
-
-            // The upstream UI drives "always on top" from a menu item rather than
-            // the fork's top-bar pin buttons, so there is no glyph to flip here.
-            // The menu item reads its check state from the presenter directly.
-        }
-
-        private void ToggleAlwaysOnTop()
-        {
-            if (_appWindow.Presenter is OverlappedPresenter presenter)
+            if (TopBarOntopIcon is not null)
             {
-                presenter.IsAlwaysOnTop = !presenter.IsAlwaysOnTop;
+                // Fluent pin glyphs: F602 = pin (unpinned), F604 = pin off (pinned).
+                TopBarOntopIcon.Glyph = enable ? "\uF604" : "\uF602";
+            }
+            if (PlaylistOntopIcon is not null)
+            {
+                PlaylistOntopIcon.Glyph = enable ? "\uF604" : "\uF602";
             }
         }
 
-        private void SetWindowMinimized(bool minimized)
+        private void HandleWindowMinimizedProperty(bool minimized)
         {
             if (_appWindow.Presenter is OverlappedPresenter presenter)
             {
@@ -116,7 +113,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void SetWindowMaximized(bool maximized)
+        private void HandleWindowMaximizedProperty(bool maximized)
         {
             if (_appWindow.Presenter is OverlappedPresenter presenter)
             {
@@ -131,7 +128,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void SetFullWindow(bool showTitleBar)
+        private void HandleTitleBarProperty(bool showTitleBar)
         {
             // mpv's title-bar property maps to the app's full-window state;
             // apply the requested state instead of blindly toggling.
@@ -141,7 +138,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void SetWindowBorder(bool hasBorder)
+        private void HandleBorderProperty(bool hasBorder)
         {
             if (_appWindow.Presenter is OverlappedPresenter presenter)
             {

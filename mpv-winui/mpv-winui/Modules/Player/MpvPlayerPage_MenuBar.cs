@@ -1,12 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using mpv_winui.Modules.AppModel;
-using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.FileSystem;
-using mpv_winui.Modules.Menu.MenuBar;
-using mpv_winui.Modules.Menu.MenuEditor;
 using mpv_winui.Modules.Player.Menu;
-using mpv_winui.Modules.Settings.Controls;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,163 +13,106 @@ using AppInstance = Microsoft.Windows.AppLifecycle.AppInstance;
 
 namespace mpv_winui.Modules.Player
 {
-    public sealed partial class MpvPlayerPage
+public sealed partial class MpvPlayerPage
+{
+    /// <summary>
+    /// Menu action registry: action id -> handler. Extensible — any module can
+    /// call <see cref="RegisterMenuAction"/> to add a menu action without
+    /// touching the built-in switch, and <see cref="KnownMenuActions"/> (used
+    /// by the menu builder and the schema check) derives from it.
+    /// </summary>
+    private static readonly Dictionary<string, Func<MpvPlayerPage, Task>> MenuActions = new(StringComparer.Ordinal);
+
+    public static IReadOnlySet<string> KnownMenuActions => MenuActions.Keys.ToHashSet(StringComparer.Ordinal);
+
+    private static void RegisterMenuAction(string id, Func<MpvPlayerPage, Task> handler)
     {
-        private const string MpvMenuConfFileName = "mpv\\menu.conf";
+        MenuActions[id] = handler;
+    }
 
-        /// <summary>
-        /// Menu action registry: action id -> handler. Extensible - any module can
-        /// call <see cref="RegisterMenuAction"/> to add a menu action without
-        /// touching a switch, and <see cref="KnownMenuActions"/> (used by
-        /// <see cref="MenuBarBuilder"/> and the definitions check) derives from it.
-        ///
-        /// The config-driven definitions in Menus/menus.json reference actions by
-        /// id, so an id that is not registered is skipped at build time rather
-        /// than throwing when clicked.
-        /// </summary>
-        private static readonly Dictionary<string, Func<MpvPlayerPage, Task>> MenuActions = new(StringComparer.Ordinal);
-
-        public static IReadOnlySet<string> KnownMenuActions => MenuActions.Keys.ToHashSet(StringComparer.Ordinal);
-
-        private static void RegisterMenuAction(string id, Func<MpvPlayerPage, Task> handler)
+    static MpvPlayerPage()
+    {
+        RegisterMenuAction("open", p => p.OpenFileAsync());
+        RegisterMenuAction("open-folder", p => p.OpenFolderAsync());
+        RegisterMenuAction("open-url", p => p.OpenUrlAsync());
+        RegisterMenuAction("open-clipboard", p => p.OpenClipboardAsync());
+        RegisterMenuAction("open-dvd", p => p.OpenDvdAsync());
+        RegisterMenuAction("open-bd", p => p.OpenBdAsync());
+        RegisterMenuAction("load-subtitle", p => p.LoadSubtitleAsync());
+        RegisterMenuAction("screenshot", p => p._mediaPlayer.RunCommandAsync(["screenshot"]).AsTask());
+        RegisterMenuAction("screenshot-no-sub", p => p._mediaPlayer.RunCommandAsync(["screenshot", "video"]).AsTask());
+        RegisterMenuAction("conf-folder", async p =>
         {
-            MenuActions[id] = handler;
-        }
-
-        static MpvPlayerPage()
+            var storageFolder = await AppData.Current.OpenLocalDataFolderAsync();
+            await Launcher.LaunchFolderAsync(storageFolder);
+        });
+        RegisterMenuAction("mpv-folder", async p =>
         {
-            RegisterMenuAction("open", p => p.OpenFileAsync());
-            RegisterMenuAction("open-folder", p => p.OpenFolderAsync());
-            RegisterMenuAction("open-url", p => p.OpenUrlAsync());
-            RegisterMenuAction("open-clipboard", p => p.OpenClipboardAsync());
-            RegisterMenuAction("open-dvd", p => p.OpenDvdAsync());
-            RegisterMenuAction("open-bd", p => p.OpenBdAsync());
-            RegisterMenuAction("open-dvda", p => p.OpenDvdaAsync());
-            RegisterMenuAction("open-cdda", p => p.OpenCddaAsync());
-            RegisterMenuAction("open-cd-img", p => p.OpenCdImgAsync());
-            RegisterMenuAction("open-dvd-img", p => p.OpenDvdImgAsync());
-            RegisterMenuAction("open-dvda-img", p => p.OpenDvdaImgAsync());
-            RegisterMenuAction("open-bd-img", p => p.OpenBdImgAsync());
-            RegisterMenuAction("load-subtitle", p => p.LoadSubtitleAsync());
-            RegisterMenuAction("screenshot", p => p._mediaPlayer.RunCommandAsync(["screenshot"]).AsTask());
-            RegisterMenuAction("screenshot-no-sub", p => p._mediaPlayer.RunCommandAsync(["screenshot", "video"]).AsTask());
-            RegisterMenuAction("conf-folder", async p =>
-            {
-                var storageFolder = await AppData.Current.OpenLocalDataFolderAsync();
-                await Launcher.LaunchFolderAsync(storageFolder);
-            });
-            RegisterMenuAction("mpv-folder", async p =>
-            {
-                var storageFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
-                await Launcher.LaunchFolderAsync(storageFolder);
-            });
-            RegisterMenuAction("playlist", p =>
-            {
-                p.TogglePlaylist(true);
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("playlist-import", p => p.ImportPlaylistAsync());
-            RegisterMenuAction("playlist-export", p => p.ExportPlaylistAsync());
-            RegisterMenuAction("open-watch-history", p => p.ShowWatchHistoryDialogAsync());
-            RegisterMenuAction("open-watch-later", p => p.ShowWatchLaterDialogAsync());
-            RegisterMenuAction("restart", p =>
-            {
-                if (App.Window is MainWindow mainWindow)
-                {
-                    mainWindow.SaveWindowPositionAndSize();
-                }
-                AppInstance.Restart("Reset");
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("about", p => p.ShowAboutDialogAsync());
-            RegisterMenuAction("display-info", p => p.ShowDisplayInfoDialogAsync());
-            RegisterMenuAction("mpv-docs", p =>
-            {
-                return Launcher.LaunchUriAsync(new Uri("https://mpv.io/manual/master/")).AsTask();
-            });
-            RegisterMenuAction("quit", p =>
-            {
-                p.AppQuit();
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("fullwindow", p =>
-            {
-                p.PlayerControl.ToggleFullWindow();
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("fullscreen", p =>
-            {
-                p.PlayerControl.ToggleFullScreen();
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("ontop", p =>
-            {
-                p.ToggleAlwaysOnTop();
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("options", p =>
-            {
-                p.ShowSettingsWindow();
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("conf-edit", p =>
-            {
-                p.ShowMpvConfigWindow();
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("media-info", p =>
-            {
-                p.ShowMediaInfoWindow();
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("edit-menu-menubar", p =>
-            {
-                p.ShowMenuEditorWindow(MenuBarService.Instance.FilePath, MenuType.Menubar);
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("edit-menu-mpv", p =>
-            {
-                p.ShowMenuEditorWindow(AppData.Current.ResolveLocalData(MpvMenuConfFileName), MenuType.ContextMenu);
-                return Task.CompletedTask;
-            });
-            RegisterMenuAction("open-mpv-conf", p => p.OpenConfigFileAsync("mpv.conf", true));
-            RegisterMenuAction("open-mpvw-conf", p => p.OpenConfigFileAsync("mpvw.conf", true));
-            RegisterMenuAction("open-input-conf", p => p.OpenConfigFileAsync("input.conf", true));
-            RegisterMenuAction("open-menu-conf", p => p.OpenConfigFileAsync("menu.conf", true));
-            RegisterMenuAction("open-mpv-log", p => p.OpenConfigFileAsync("mpv.log", true));
-            RegisterMenuAction("open-mpwv-menu-conf", p => p.OpenConfigFileAsync("mpvw-menu.conf", false));
-            RegisterMenuAction("link-mpv-wiki", p =>
-                Launcher.LaunchUriAsync(new Uri("https://github.com/mpv-player/mpv/wiki")).AsTask());
-            RegisterMenuAction("link-mpv-manual-stable", p =>
-                Launcher.LaunchUriAsync(new Uri("https://mpv.io/manual/stable/")).AsTask());
-            RegisterMenuAction("link-mpv-manual", p =>
-                Launcher.LaunchUriAsync(new Uri("https://mpv.io/manual/master/")).AsTask());
-            RegisterMenuAction("link-mpvw-wiki", p =>
-                Launcher.LaunchUriAsync(new Uri("https://github.com/ikas-mc/mpv-winui-player/wiki")).AsTask());
-            RegisterMenuAction("mpv-command", p => p.ShowMpvCommandDialogAsync());
-            RegisterMenuAction("shortcut-search", p => p.ShowShortcutSearchDialogAsync());
-        }
-
-        /// <summary>
-        /// Builds the menu bar from the config-driven definitions
-        /// (Menus/menus.json, with a user override in the mpv config directory
-        /// taking precedence). Labels resolve through AppLang at build time, so
-        /// a rebuild after a language change re-localizes the whole bar.
-        /// </summary>
-        private void BuildMainMenuBar()
+            var storageFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
+            await Launcher.LaunchFolderAsync(storageFolder);
+        });
+        RegisterMenuAction("playlist", p =>
         {
-            var menus = MenuDefinitionSource.TryLoad();
-            if (menus is { Count: > 0 })
+            p.TogglePlaylist(true);
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("playlist-import", p => p.ImportPlaylistAsync());
+        RegisterMenuAction("playlist-export", p => p.ExportPlaylistAsync());
+        RegisterMenuAction("open-watch-history", p => p.ShowWatchHistoryDialogAsync());
+        RegisterMenuAction("open-watch-later", p => p.ShowWatchLaterDialogAsync());
+        RegisterMenuAction("restart", p =>
+        {
+            if (App.Window is MainWindow mainWindow)
             {
-                MenuBarBuilder.Build(MainMenuBar, menus, KnownMenuActions, MenuFlyoutItem_Click,
-                    MenuShortcutHints.FindForCommand);
+                mainWindow.SaveWindowPositionAndSize();
             }
+            AppInstance.Restart("Reset");
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("about", p => p.ShowAboutDialogAsync());
+        RegisterMenuAction("display-info", p => p.ShowDisplayInfoDialogAsync());
+        RegisterMenuAction("mpv-docs", p =>
+        {
+            return Launcher.LaunchUriAsync(new Uri("https://mpv.io/manual/master/")).AsTask();
+        });
+        RegisterMenuAction("quit", p =>
+        {
+            p.AppQuit();
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("fullwindow", p =>
+        {
+            p.PlayerControl.ToggleFullWindow();
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("fullscreen", p =>
+        {
+            p.PlayerControl.ToggleFullScreen();
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("options", p =>
+        {
+            p.ShowSettingsWindow();
+            return Task.CompletedTask;
+        });
+        RegisterMenuAction("mpv-command", p => p.ShowMpvCommandDialogAsync());
+        RegisterMenuAction("shortcut-search", p => p.ShowShortcutSearchDialogAsync());
+    }
+
+    private void BuildMainMenuBar()
+    {
+        var menus = MenuDefinitionSource.TryLoad();
+        if (menus is { Count: > 0 })
+        {
+            MenuBarBuilder.Build(MainMenuBar, menus, KnownMenuActions, MenuFlyoutItem_Click,
+                MenuShortcutHints.FindForCommand);
         }
+    }
 
-        /// <summary>Rebuilds the menu bar (used after menu definition or language changes).</summary>
-        public void RebuildMenuBar() => BuildMainMenuBar();
+    /// <summary>Rebuilds the menu bar (used after menu definition or language changes).</summary>
+    public void RebuildMenuBar() => BuildMainMenuBar();
 
-        private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+    private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -195,115 +134,15 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private async Task ExecuteMenuAction(string action)
+    private async Task ExecuteMenuAction(string action)
+    {
+        if (MenuActions.TryGetValue(action, out var handler))
         {
-            if (MenuActions.TryGetValue(action, out var handler))
-            {
-                await handler(this);
-                return;
-            }
-            OnException(new InvalidOperationException($"Unknown menu action: {action}"));
+            await handler(this);
+            return;
         }
-
-        // ------------------------------------------------------- built-in fallback
-
-        /// <summary>
-        /// Wires the built-in (XAML-declared) menu bar items. Used when no
-        /// config-driven definition is available, so the menu bar is never empty.
-        /// The definitions path is the normal one; this is the safety net.
-        /// </summary>
-        private void SetupCustomMenuBarItems()
-        {
-            if (MenuDefinitionSource.TryLoad() is { Count: > 0 })
-            {
-                // Config-driven definitions own the bar; nothing to patch here.
-                return;
-            }
-
-            // No definitions: the XAML items stay as authored. Their Click
-            // handlers already route through MenuFlyoutItem_Click, which no-ops
-            // for tags that are not MenuDefinition instances - so remap the
-            // built-in tags onto the action registry to keep them alive.
-            AttachBuiltInMenuActions();
-        }
-
-        /// <summary>
-        /// Rewrites the XAML-declared menu items so their Tag carries a
-        /// <see cref="MenuDefinition"/> (action id) instead of the bare string.
-        /// Only used on the fallback path, where the bar is authored in XAML.
-        /// </summary>
-        private void AttachBuiltInMenuActions()
-        {
-            if (MainMenuBar is null)
-            {
-                return;
-            }
-
-            foreach (var item in EnumerateMenuItems(MainMenuBar.Items))
-            {
-                var def = BuildDefinitionFor(item);
-                if (def is not null)
-                {
-                    item.Tag = def;
-                }
-            }
-        }
-
-        private static IEnumerable<MenuFlyoutItem> EnumerateMenuItems(IList<MenuBarItem> barItems)
-        {
-            foreach (var barItem in barItems)
-            {
-                foreach (var leaf in EnumerateLeaves(barItem.Items))
-                {
-                    yield return leaf;
-                }
-            }
-        }
-
-        private static IEnumerable<MenuFlyoutItem> EnumerateLeaves(IList<MenuFlyoutItemBase> items)
-        {
-            foreach (var entry in items)
-            {
-                switch (entry)
-                {
-                    case MenuFlyoutItem leaf:
-                        yield return leaf;
-                        break;
-                    case MenuFlyoutSubItem sub:
-                        foreach (var nested in EnumerateLeaves(sub.Items))
-                        {
-                            yield return nested;
-                        }
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Maps a XAML-authored item onto a definition so the shared click path
-        /// can dispatch it. Text is preserved; the action id comes from the Tag.
-        /// </summary>
-        private static MenuDefinition? BuildDefinitionFor(MenuFlyoutItem item)
-        {
-            if (item.Tag is MenuDefinition existing)
-            {
-                return existing;
-            }
-
-            var id = item.Tag as string;
-            if (string.IsNullOrEmpty(id))
-            {
-                return null;
-            }
-
-            return new MenuDefinition
-            {
-                Id = id,
-                Action = id,
-            };
-        }
-
-        // ------------------------------------------------------------ dialogs
+        OnException(new InvalidOperationException($"Unknown menu action: {action}"));
+    }
 
         private async Task ShowMpvCommandDialogAsync()
         {
@@ -444,7 +283,7 @@ namespace mpv_winui.Modules.Player
                     VerticalAlignment = VerticalAlignment.Center,
                     Child = new TextBlock
                     {
-                        Text = ShortcutKeyLocalizer.Localize(parts[i]),
+                        Text = mpv_winui.Modules.Settings.Controls.ShortcutKeyLocalizer.Localize(parts[i]),
                         FontSize = 12,
                     },
                 });
@@ -462,9 +301,9 @@ namespace mpv_winui.Modules.Player
         }
 
         /// <summary>
-        /// Parses input.conf bindings: key, command and the trailing description
-        /// comment (the bundled conf documents every binding as
-        /// "#鼠标左键 暂停/播放"). Menu-directive lines ("#menu: ... #@state=...")
+        /// Parses input.conf bindings: key, command and the trailing Chinese
+        /// description comment (the bundled conf documents every binding as
+        /// "#鼠标左键 暂停/播放"). Menu-directive lines ("#menu: … #@state=…")
         /// contribute their label, dynamic-menu placeholders ("_ ignore") are
         /// dropped, and duplicate key+command pairs collapse.
         /// </summary>
@@ -538,39 +377,6 @@ namespace mpv_winui.Modules.Player
             {
                 window.OpenSettingWindow();
             }
-        }
-
-        private void ShowMpvConfigWindow()
-        {
-            if (App.Window is MainWindow window)
-            {
-                window.OpenMpvConfigWindow();
-            }
-        }
-
-        private void ShowMediaInfoWindow()
-        {
-            if (App.Window is MainWindow window)
-            {
-                window.OpenMediaInfoWindow(_mediaPlayer?.GetCurrentPath());
-            }
-        }
-
-        private void ShowMenuEditorWindow(string filePath, MenuType type)
-        {
-            if (App.Window is MainWindow window)
-            {
-                window.OpenMenuEditorWindow(filePath, type);
-            }
-        }
-
-        private async Task OpenConfigFileAsync(string fileName, bool inMpvFolder)
-        {
-            var folder = inMpvFolder
-                ? await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName)
-                : await AppData.Current.OpenLocalDataFolderAsync();
-            var file = await folder.CreateFileAsync(fileName, Windows.Storage.CreationCollisionOption.OpenIfExists);
-            await Launcher.LaunchFileAsync(file);
         }
 
         private async Task ShowAboutDialogAsync()

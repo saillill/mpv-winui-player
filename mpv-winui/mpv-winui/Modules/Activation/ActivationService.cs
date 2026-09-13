@@ -1,5 +1,4 @@
 using Microsoft.Windows.AppLifecycle;
-using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Player;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Activation;
 using Windows.Storage;
 
 namespace mpv_winui.Modules.Activation
@@ -159,15 +157,34 @@ namespace mpv_winui.Modules.Activation
                 {
                     if (activatedArgs.Data is Windows.ApplicationModel.Activation.IProtocolActivatedEventArgs protocolArgs)
                     {
-                        if (protocolArgs.Uri.Scheme == "mpvw")
+                        if (protocolArgs.Uri.Scheme == "mpv-winui")
                         {
                             var query = protocolArgs.Uri.Query;
                             if (query.StartsWith("?file="))
                             {
-                                var path = query[6..];
+                                var path = query.Substring(6);
                                 if (!string.IsNullOrEmpty(path))
                                 {
-                                    var item = await ParseUriToFileItem(path);
+                                    FileItem? item = await Task.Run(() =>
+                                    {
+                                        if (Uri.TryCreate(path, UriKind.Absolute, out Uri? uri) && !uri.IsFile)
+                                        {
+                                            return new FileItem(path, FileType.Url);
+                                        }
+
+                                        if (Directory.Exists(path))
+                                        {
+                                            return new FileItem(path, FileType.Folder);
+                                        }
+
+                                        if (File.Exists(path))
+                                        {
+                                            return new FileItem(path, FileType.File);
+                                        }
+
+                                        return null;
+                                    });
+
                                     return item == null ? [] : (FileItem[])[item];
                                 }
                             }
@@ -220,29 +237,6 @@ namespace mpv_winui.Modules.Activation
             }
 
             return [];
-        }
-
-        private static async Task<FileItem?> ParseUriToFileItem(string path)
-        {
-            return await Task.Run(() =>
-            {
-                if (Uri.TryCreate(path, UriKind.Absolute, out Uri? uri) && !uri.IsFile)
-                {
-                    return new FileItem(path, FileType.Url);
-                }
-
-                if (Directory.Exists(path))
-                {
-                    return new FileItem(path, FileType.Folder);
-                }
-
-                if (File.Exists(path))
-                {
-                    return new FileItem(path, FileType.File);
-                }
-
-                return new FileItem(path, FileType.Other);
-            });
         }
     }
 }

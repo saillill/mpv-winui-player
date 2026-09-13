@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using mpv_winrt;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,9 +27,13 @@ namespace mpv_winui.Modules.Player
         public PlayerTrackSelectorControl()
         {
             InitializeComponent();
+            SubtitleHeaderText.Text = mpv_winui.AppContext.AppLang.Subtitles;
+            SecondSubHeaderText.Text = mpv_winui.AppContext.AppLang.SecondSubtitle;
+            VideoHeaderText.Text = mpv_winui.AppContext.AppLang.VideoTracks;
+            AudioHeaderText.Text = mpv_winui.AppContext.AppLang.AudioTracks;
         }
 
-        public void LoadVideoTracks(IReadOnlyList<MpvTrack> tracks)
+        public void LoadVideoTracks(IList<IPlayerTrackItem> tracks)
         {
             VideoItems.Clear();
             var selectedIndex = -1;
@@ -39,19 +42,19 @@ namespace mpv_winui.Modules.Player
                 for (var i = 0; i < tracks.Count; i++)
                 {
                     var track = tracks[i];
-                    if (track.Selected)
+                    if (track.Checked)
                     {
                         selectedIndex = i;
                     }
 
-                    VideoItems.Add(new TrackItem(track.Index, $"{track.Index} {track.Title} {track.Codec}"));
+                    VideoItems.Add(new TrackItem(track.Id, track.Label));
                 }
             }
 
             VideoListView.SelectedIndex = selectedIndex;
         }
 
-        public void LoadSubtitleTracks(IReadOnlyList<MpvTrack> tracks, string offLabel)
+        public void LoadSubtitleTracks(IList<IPlayerTrackItem> tracks, string offLabel)
         {
             SubtitleItems.Clear();
             SubtitleItems.Add(new TrackItem(-1, offLabel));
@@ -61,19 +64,19 @@ namespace mpv_winui.Modules.Player
                 for (var i = 0; i < tracks.Count; i++)
                 {
                     var track = tracks[i];
-                    if (track.Selected)
+                    if (track.Checked)
                     {
                         selectedIndex = i + 1;
                     }
 
-                    SubtitleItems.Add(new TrackItem(track.Index, $"{track.Index} {track.Title} {track.Lang}"));
+                    SubtitleItems.Add(new TrackItem(track.Id, track.Label));
                 }
             }
 
             SubtitleListView.SelectedIndex = selectedIndex;
         }
 
-        public void LoadAudioTracks(IReadOnlyList<MpvTrack> tracks)
+        public void LoadAudioTracks(IList<IPlayerTrackItem> tracks)
         {
             AudioItems.Clear();
             var selectedIndex = -1;
@@ -82,19 +85,19 @@ namespace mpv_winui.Modules.Player
                 for (var i = 0; i < tracks.Count; i++)
                 {
                     var track = tracks[i];
-                    if (track.Selected)
+                    if (track.Checked)
                     {
                         selectedIndex = i;
                     }
 
-                    AudioItems.Add(new TrackItem(track.Index, $"{track.Index} {track.Title} {track.Codec}"));
+                    AudioItems.Add(new TrackItem(track.Id, track.Label));
                 }
             }
 
             AudioListView.SelectedIndex = selectedIndex;
         }
 
-        public void LoadSecondSubtitleTracks(IReadOnlyList<MpvTrack> tracks, int currentId, string offLabel)
+        public void LoadSecondSubtitleTracks(IList<IPlayerTrackItem> tracks, string offLabel)
         {
             SecondSubItems.Clear();
             SecondSubItems.Add(new TrackItem(-1, offLabel));
@@ -105,12 +108,12 @@ namespace mpv_winui.Modules.Player
                 for (var i = 0; i < tracks.Count; i++)
                 {
                     var track = tracks[i];
-                    if (track.Index == currentId)
+                    if (track.Checked)
                     {
                         selectedIndex = i + 1;
                     }
 
-                    SecondSubItems.Add(new TrackItem(track.Index, $"{track.Index} {track.Title} {track.Lang}"));
+                    SecondSubItems.Add(new TrackItem(track.Id, track.Label));
                 }
             }
 

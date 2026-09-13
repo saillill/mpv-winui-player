@@ -8,12 +8,13 @@ using Windows.Graphics;
 
 namespace mpv_winui.Modules.Settings;
 
-public sealed partial class SettingsWindow : BaseWindow
+public sealed partial class SettingsWindow : Window
 {
     /// <summary>The currently open settings window (used to own folder/file pickers).</summary>
     public static SettingsWindow? Instance { get; private set; }
 
     private WindowStyleManager? _styleManager;
+
     public SettingsWindow()
     {
         Instance = this;

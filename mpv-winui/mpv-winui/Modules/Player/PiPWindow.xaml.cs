@@ -75,7 +75,7 @@ public sealed partial class PiPCursorSurface : SwapChainPanel
 /// </summary>
 public sealed partial class PiPWindow : Window
 {
-    private mpv_winrt.MpvPlayer? _player;
+    private MpvMediaPlayer? _player;
     private bool _closing;
     private bool _tearingDown;
     private bool _topButtonsShow;
@@ -160,7 +160,7 @@ public sealed partial class PiPWindow : Window
     /// <summary>The video surface that libmpv renders into.</summary>
     public SwapChainPanel VideoPanel => PiPView;
 
-    public void Attach(mpv_winrt.MpvPlayer player)
+    public void Attach(MpvMediaPlayer player)
     {
         if (_player == player)
         {
@@ -168,11 +168,11 @@ public sealed partial class PiPWindow : Window
         }
         if (_player is not null)
         {
-            _player.FileLoaded -= PiPPlayer_MediaLoaded;
+            _player.MediaOpened -= PiPPlayer_MediaLoaded;
             _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
         }
         _player = player;
-        _player.FileLoaded += PiPPlayer_MediaLoaded;
+        _player.MediaOpened += PiPPlayer_MediaLoaded;
         _player.MediaInfoChanged += PiPPlayer_MediaInfoChanged;
         PiPControls.MediaPlayer = player;
         PiPControls.IsPiPHost = true;
@@ -182,7 +182,7 @@ public sealed partial class PiPWindow : Window
     {
         if (_player is not null)
         {
-            _player.FileLoaded -= PiPPlayer_MediaLoaded;
+            _player.MediaOpened -= PiPPlayer_MediaLoaded;
             _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
             PiPControls.MediaPlayer = null;
             _player = null;
@@ -230,30 +230,19 @@ public sealed partial class PiPWindow : Window
     }
 
     /// <summary>Re-applies the configured opacity to an open mini player.
-    ///
-    /// Two things are needed together and neither is sufficient alone:
-    /// (a) the layered-window alpha below makes the whole HWND genuinely
-    /// see-through to the desktop - XAML Opacity on the root only fades the
-    /// content toward the compositor's black backdrop, which darkens the video
-    /// instead of revealing the desktop; and (b) swapping the root background
-    /// from black to transparent below full opacity, without which the opaque
-    /// backdrop still washes the result out to an imperceptible dim.
-    /// </summary>
+    /// Below full opacity the black background is replaced with transparent
+    /// so the XAML content becomes see-through against the desktop.</summary>
     public void ApplyOpacity()
     {
+        // Whole-window alpha via a layered window: XAML Opacity on the root
+        // only fades the content toward the compositor's black backdrop
+        // (darkening the video instead of showing the desktop through).
         var opacity = Math.Clamp(AppContext.AppSetting.WindowPiPOpacity, 0.2, 1.0);
-
-        // (a) Whole-window alpha via a layered window.
         var hwnd = new HWND(WindowNative.GetWindowHandle(this));
         const int WS_EX_LAYERED = 0x00080000;
         var style = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
         PInvoke.SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, style | WS_EX_LAYERED);
         PInvoke.SetLayeredWindowAttributes(hwnd, default(COLORREF), (byte)Math.Round(opacity * 255), LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA);
-
-        // (b) Drop the opaque black backdrop so the see-through is visible.
-        RootGrid.Background = opacity < 1.0
-            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent)
-            : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black);
     }
 
     public void HidePiP()

@@ -1,6 +1,6 @@
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
-using mpv_winui.Modules.Player.BuiltInPreview;
+using Microsoft.UI.Dispatching;
+using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using System;
 using System.Linq;
@@ -9,129 +9,130 @@ using Windows.Foundation;
 
 namespace mpv_winui.Modules.Player
 {
-    /// <summary>
-    /// Seek-bar hover preview.
-    ///
-    /// Two rendering back ends share one pointer pipeline (the control raises
-    /// <c>PreviewUpdateRequested</c> / <c>PreviewClearRequested</c>):
-    ///
-    /// * <b>Native</b> (<c>EnableVideoPreview</c>) - mpv draws the thumbnail
-    ///   itself via <c>SetHoverSec</c> / <c>SetDrawPreview</c>, so the card is
-    ///   positioned in native pixel space.
-    /// * <b>Built-in</b> (<c>EnableVideoBuiltInPreview</c>) - a second libmpv
-    ///   instance (<see cref="MpvPreviewer"/>) renders into
-    ///   <c>MpvPreview</c>'s Image, and the card is moved by a XAML
-    ///   <c>TranslateTransform</c>.
-    ///
-    /// Both are fed from a coalescing <see cref="DispatcherQueueTimer"/> so the
-    /// high-frequency pointer stream collapses to one request per tick.
-    /// </summary>
     public sealed partial class MpvPlayerPage
     {
-        // ------------------------------------------------------------ shared state
+        // Card chrome = image size + padding (4x2) + border (1x2); refreshed
+        // from ThumbnailPreviewWidth whenever the preview initializes.
+        private double _previewCardWidth = 258;
+        private double _previewCardHeight = 145;
 
-        /// <summary>Coalescing timer for hover-preview requests (created lazily).</summary>
-        private DispatcherQueueTimer? _previewThrottleTimer;
-
-        /// <summary>Latest pointer sample; only the newest is used per tick.</summary>
-        private (double HoverSec, double RelativeX, double RelativeY)? _pendingPreview;
-
-        /// <summary>Consecutive idle ticks; the sampler stops itself once at rest.</summary>
-        private int _previewIdleTicks;
-
-        /// <summary>Which back end the last <see cref="SetupPreview"/> selected.</summary>
-        private bool _useBuiltInPreview;
-
-        /// <summary>
-        /// Lazily creates <see cref="_previewThrottleTimer"/> bound to this page's
-        /// dispatcher, with the interval taken from the current setting. Created on
-        /// demand so the <c>ThumbnailUpdateInterval</c> setting always has a live
-        /// target while previews are enabled.
-        /// </summary>
-        private DispatcherQueueTimer EnsurePreviewThrottleTimer()
+        private void ApplyThumbnailSizeSetting()
         {
-            if (_previewThrottleTimer is null)
-            {
-                _previewThrottleTimer = DispatcherQueue.CreateTimer();
-                _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(
-                    Math.Clamp(AppContext.AppSetting.ThumbnailUpdateInterval, 40, 600));
-                // Repeating: the sampler keeps its cadence while the pointer moves
-                // and stops itself after a few idle ticks.
-                _previewThrottleTimer.IsRepeating = true;
-                _previewThrottleTimer.Tick += PreviewThrottleTick;
-            }
-
-            return _previewThrottleTimer;
+            var width = Math.Clamp(
+                int.TryParse(mpv_winui.AppContext.AppSetting.ThumbnailPreviewWidth, out var parsed) ? parsed : 248,
+                120, 480);
+            var height = (int)Math.Round(width * 135.0 / 240.0);
+            PreviewImage.Width = width;
+            PreviewImage.Height = height;
+            _previewCardWidth = width + 10;
+            _previewCardHeight = height + 10;
         }
 
-        // ------------------------------------------------------------ lifecycle
+        private Point _lastPreviewPoint;
+        private DispatcherQueueTimer? _previewThrottleTimer;
+        private (double HoverSec, double RelativeX, double RelativeY)? _pendingPreview;
+        // Consecutive timer ticks that found no new hover position; used to stop
+        // the sampler once the pointer is at rest.
+        private int _previewIdleTicks;
+
+        // In-process software preview: a second libmpv instance renders into
+        // PreviewImage via mpv_render_context (no external mpv.exe / thumbfast).
+        private MpvPreviewer? _previewer;
+        private Task? _previewerInitTask;
+        private bool _previewerCleanedUp;
+        private string _previewLoadedPath = string.Empty;
+        private double _lastPreviewSec = -1;
+        private (string Path, double Sec)? _pendingPreviewerRequest;
+
+        // False when the pending request comes from the MediaOpened warmup:
+        // the previewer then just loads the file without showing the card.
+        private bool _pendingPreviewShow = true;
 
         private void SetupPreview()
         {
-            // The two settings are mutually exclusive renderers for the same UI;
-            // prefer the built-in one when both are on (it is the richer path).
-            _useBuiltInPreview = AppContext.AppSetting.EnableVideoBuiltInPreview;
-
-            if (!AppContext.AppSetting.EnableVideoPreview && !_useBuiltInPreview)
+            _logger.Debug("SetupPreview called, enabled={}", AppContext.AppSetting.EnableVideoPreview);
+            if (AppContext.AppSetting.EnableVideoPreview)
             {
-                return;
+                _previewerCleanedUp = false;
+                PlayerControl.PreviewUpdateRequested += PlayerControl_PreviewUpdateRequested;
+                PlayerControl.PreviewClearRequested += PlayerControl_PreviewClearRequested;
+                _mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
+                _previewThrottleTimer = DispatcherQueue.CreateTimer();
+                _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(mpv_winui.AppContext.AppSetting.ThumbnailUpdateInterval, 40, 600));
+                // Repeating: the sampler keeps its cadence while the pointer
+                // moves and stops itself after a few idle ticks.
+                _previewThrottleTimer.IsRepeating = true;
+                _previewThrottleTimer.Tick += PreviewThrottleTick;
             }
-
-            EnsurePreviewThrottleTimer();
-
-            if (_useBuiltInPreview)
-            {
-                SetupBuiltInPreview();
-            }
-
-            PlayerControl.PreviewUpdateRequested += PlayerControl_PreviewUpdateRequested;
-            PlayerControl.PreviewClearRequested += PlayerControl_PreviewClearRequested;
         }
 
         private void CleanupPreview()
         {
             _pendingPreview = null;
-            _previewIdleTicks = 0;
-
             if (_previewThrottleTimer is { } timer)
             {
                 timer.Stop();
                 timer.Tick -= PreviewThrottleTick;
                 _previewThrottleTimer = null;
             }
-
             PlayerControl.PreviewUpdateRequested -= PlayerControl_PreviewUpdateRequested;
             PlayerControl.PreviewClearRequested -= PlayerControl_PreviewClearRequested;
-
-            if (_useBuiltInPreview)
-            {
-                CleanupBuiltInPreview();
-                _useBuiltInPreview = false;
-            }
-
+            _mediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
             HidePreview();
+            DestroyPreviewer();
         }
 
-        /// <summary>
-        /// Releases the preview renderer so the next hover re-creates it with the
-        /// current settings (render size, resolution scale).
-        /// </summary>
-        private void DestroyPreviewer()
+        // Thumbfast-style worker warmup: feed the file to the preview
+        // instance as soon as playback starts, so the first hover shows a
+        // thumbnail instead of waiting for a second mpv to boot.
+        private void MediaPlayer_MediaOpened(object? sender, object? args)
         {
-            CleanupPreview();
-            SetupPreview();
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    var path = CurrentPlaybackPath();
+                    if (string.IsNullOrEmpty(path))
+                    {
+                        return;
+                    }
+
+                    if (_previewer is not null)
+                    {
+                        WarmupPreviewerWith(path);
+                        return;
+                    }
+
+                    _pendingPreviewerRequest = (path, 0);
+                    _pendingPreviewShow = false;
+                    _previewerInitTask ??= InitializePreviewerAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "preview warmup failed");
+                }
+            });
         }
 
-        // ------------------------------------------------------------ pointer pipeline
+        private void WarmupPreviewerWith(string path)
+        {
+            if (string.Equals(_previewLoadedPath, path, StringComparison.Ordinal))
+            {
+                return;
+            }
+            _previewLoadedPath = path;
+            _lastPreviewSec = -1;
+            Task.Run(() => _previewer?.LoadFile(path)).FireAndForget(OnException);
+        }
 
-        private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double X, double Y) args)
+        private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double RelativeX, double RelativeY) args)
         {
             // Coalesce the high-frequency pointer stream; only the latest hover
-            // position reaches the renderer. The timer samples at a fixed cadence
-            // and is only *started* here - restarting it on every move postponed
-            // the tick for as long as the pointer kept moving, which is what made
-            // the thumbnail trail the cursor.
-            _pendingPreview = (args.HoverSec, args.X, args.Y);
+            // position is sent to the previewer. The timer samples at a fixed
+            // cadence and is only started here - restarting it on every move
+            // postponed the tick for as long as the pointer kept moving, which
+            // is what made the thumbnail trail the cursor.
+            _pendingPreview = args;
             if (_previewThrottleTimer is { IsRunning: false } timer)
             {
                 _previewIdleTicks = 0;
@@ -153,7 +154,8 @@ namespace mpv_winui.Modules.Player
             {
                 _pendingPreview = null;
                 _previewIdleTicks = 0;
-                ShowPreviewAt(preview.HoverSec, preview.RelativeX, preview.RelativeY);
+                _lastPreviewPoint = PlayerControl.TransformToVisual(PlayerView).TransformPoint(new Point(preview.RelativeX, preview.RelativeY));
+                ShowPreviewAt(preview.HoverSec);
                 return;
             }
 
@@ -164,142 +166,169 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void ShowPreviewAt(double hoverSec, double relativeX, double relativeY)
+        private void ShowPreviewAt(double hoverSec)
         {
             try
             {
-                if (_useBuiltInPreview)
+                var path = CurrentPlaybackPath();
+                _logger.Debug("built-in preview hover, path={}, sec={}", path ?? "<null>", hoverSec);
+                if (string.IsNullOrEmpty(path))
                 {
-                    ShowBuiltInPreviewAt(hoverSec, relativeX, relativeY);
+                    HidePreview();
+                    return;
                 }
-                else
+
+                if (_previewer is not null)
                 {
-                    ShowNativePreviewAt(hoverSec, relativeX, relativeY);
+                    ShowPreviewAtCore(path, hoverSec);
+                    return;
                 }
+
+                _pendingPreviewerRequest = (path, hoverSec);
+                _pendingPreviewShow = true;
+                _previewerInitTask ??= InitializePreviewerAsync();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "hover preview update failed");
+                _logger.Error(ex, "built-in preview update failed");
                 HidePreview();
             }
         }
 
-        private void HidePreview()
+        private async Task InitializePreviewerAsync()
         {
-            if (_useBuiltInPreview)
+            try
             {
-                MpvPreview?.Hide();
-                return;
-            }
-
-            _mediaPlayer.ClearPreview();
-        }
-
-        // ------------------------------------------------------------ native backend
-
-        private const int NativePreviewWidth = 192;
-        private const int NativePreviewHeight = 108;
-
-        /// <summary>
-        /// mpv-side preview: hand the hover time and the target rectangle (in
-        /// native pixels) to the player, which composites the frame into the swap
-        /// chain itself.
-        /// </summary>
-        private void ShowNativePreviewAt(double hoverSec, double relativeX, double relativeY)
-        {
-            var point = PlayerControl.TransformSliderPoint(PlayerView, relativeX, relativeY);
-
-            var scaleX = PlayerView.CompositionScaleX;
-            var scaleY = PlayerView.CompositionScaleY;
-
-            double previewX;
-            if (point.X < NativePreviewWidth / 2.0)
-            {
-                previewX = 0;
-            }
-            else if (point.X > (PlayerView.ActualWidth - (NativePreviewWidth / 2.0)))
-            {
-                previewX = PlayerView.ActualWidth - NativePreviewWidth;
-            }
-            else
-            {
-                previewX = point.X - (NativePreviewWidth / 2.0);
-            }
-            var previewY = point.Y - NativePreviewHeight - 8;
-
-            _mediaPlayer.SetHoverSec(hoverSec);
-            _mediaPlayer.SetDrawPreview(
-                (int)(previewX * scaleX),
-                (int)(previewY * scaleY),
-                (int)(NativePreviewWidth * scaleX),
-                (int)(NativePreviewHeight * scaleY));
-        }
-
-        // ---------------------------------------------------------- built-in backend
-
-        private void ShowBuiltInPreviewAt(double hoverSec, double relativeX, double relativeY)
-        {
-            if (_discMenuActive)
-            {
-                return;
-            }
-
-            var path = _mediaPlayer.GetCurrentPath();
-            if (string.IsNullOrEmpty(path))
-            {
-                return;
-            }
-
-            string discPath;
-            var isDisc = TryGetDiscType(path, out var discType);
-            if (isDisc)
-            {
-                if (null == discType)
+                ApplyThumbnailSizeSetting();
+                var scale = XamlRoot?.RasterizationScale ?? 1.0;
+                if (scale < 1.0)
                 {
+                    scale = 1.0;
+                }
+
+                var renderWidth = (uint)Math.Max(1, Math.Ceiling(PreviewImage.Width * scale));
+                var renderHeight = (uint)Math.Max(1, Math.Ceiling(PreviewImage.Height * scale));
+                var previewer = new MpvPreviewer();
+                await previewer.Initialize(PreviewImage, renderWidth, renderHeight);
+
+                if (_previewerCleanedUp)
+                {
+                    await Task.Run(() => previewer.Destroy());
                     return;
                 }
-                discPath = _mediaPlayer.GetDiscPath(discType.Value);
+
+                _previewer = previewer;
+                if (_pendingPreviewerRequest is { } pending)
+                {
+                    _pendingPreviewerRequest = null;
+                    if (_pendingPreviewShow)
+                    {
+                        ShowPreviewAtCore(pending.Path, pending.Sec);
+                    }
+                    else
+                    {
+                        // Warmup request: load the file silently, the card
+                        // only appears on a real hover.
+                        WarmupPreviewerWith(pending.Path);
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                discPath = string.Empty;
+                _logger.Error(ex, "built-in preview initialization failed");
+                _previewer = null;
             }
-
-            var currentEdition = _mediaPlayer.CurrentEdition();
-            var currentVideoTrack = _mediaPlayer.CurrentVideoTrack();
-
-            var point = PlayerControl.TransformSliderPoint(PlayerView, relativeX, relativeY);
-            if (_logger.IsDebugEnabled)
+            finally
             {
-                _logger.Debug("BuiltInPreview UpdateRequested, HoverSec={}, RelativeX={}, RelativeY={}",
-                    hoverSec, point.X, point.Y);
+                _previewerInitTask = null;
+            }
+        }
+
+        private string? CurrentPlaybackPath()
+        {
+            foreach (var item in _allPlaylistItems)
+            {
+                if (item.IsCurrent && !string.IsNullOrEmpty(item.Path))
+                {
+                    return item.Path;
+                }
             }
 
-            if (MpvPreview is null)
+            if (!string.IsNullOrEmpty(_mediaPlayer.CurrentPath))
+            {
+                return _mediaPlayer.CurrentPath;
+            }
+
+            return _pendingPaths?.FirstOrDefault()?.Path;
+        }
+
+        private void ShowPreviewAtCore(string path, double sec)
+        {
+            if (_previewer is null)
+            {
+                _logger.Debug("built-in preview core skipped, previewer not ready");
+                return;
+            }
+
+            _logger.Debug("built-in preview core, path={}, sec={}", path, sec);
+            if (!string.Equals(_previewLoadedPath, path, StringComparison.Ordinal))
+            {
+                _previewLoadedPath = path;
+                _lastPreviewSec = -1;
+                Task.Run(() =>
+                {
+                    _previewer.LoadFile(path);
+                    _previewer.SetPosition(sec);
+                    _previewer.Pause();
+                }).FireAndForget(OnException);
+                _lastPreviewSec = sec;
+            }
+            else if (Math.Abs(sec - _lastPreviewSec) > 0.25)
+            {
+                // Keyframe seeks snap to the nearest keyframe anyway (usually
+                // seconds apart), so requests finer than this only burn seek
+                // commands without changing the shown frame.
+                _previewer.SetPosition(sec);
+                _lastPreviewSec = sec;
+            }
+
+            PreviewCard.Visibility = Visibility.Visible;
+            UpdatePreviewCardPosition();
+        }
+
+        private void DestroyPreviewer()
+        {
+            _previewerCleanedUp = true;
+            _pendingPreviewerRequest = null;
+            _previewLoadedPath = string.Empty;
+            _lastPreviewSec = -1;
+
+            if (_previewer is { } previewer)
+            {
+                _previewer = null;
+                Task.Run(() => previewer.Destroy()).FireAndForget(OnException);
+            }
+        }
+
+        private void UpdatePreviewCardPosition()
+        {
+            var viewWidth = PlayerView.ActualWidth;
+            var viewHeight = PlayerView.ActualHeight;
+            if (viewWidth <= 0 || viewHeight <= 0)
             {
                 return;
             }
 
-            var cardWidth = MpvPreview.ActualWidth > 0 ? MpvPreview.ActualWidth : MpvPreview.Width;
-            var cardHeight = MpvPreview.ActualHeight > 0 ? MpvPreview.ActualHeight : MpvPreview.Height;
-            var hostWidth = PlayerControl.ActualWidth;
+            var x = _lastPreviewPoint.X - _previewCardWidth / 2;
+            var y = _lastPreviewPoint.Y - _previewCardHeight - 12;
+            x = Math.Clamp(x, 0, viewWidth - _previewCardWidth);
+            y = Math.Clamp(y, 0, viewHeight - _previewCardHeight);
+            PreviewCard.Margin = new Microsoft.UI.Xaml.Thickness(x, y, 0, 0);
+        }
 
-            if (point.X < cardWidth / 2.0)
-            {
-                PreviewControlTranslation.X = 0;
-            }
-            else if (point.X > (hostWidth - (cardWidth / 2.0)))
-            {
-                PreviewControlTranslation.X = hostWidth - cardWidth;
-            }
-            else
-            {
-                PreviewControlTranslation.X = point.X - (cardWidth / 2.0);
-            }
-            PreviewControlTranslation.Y = point.Y - cardHeight - 8;
-
-            MpvPreview.Show(hoverSec, path, isDisc, discType, discPath, currentEdition, currentVideoTrack);
-            MpvPreview.Visibility = Visibility.Visible;
+        private void HidePreview()
+        {
+            PreviewCard.Visibility = Visibility.Collapsed;
         }
     }
 }

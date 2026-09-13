@@ -1,4 +1,4 @@
-﻿using Microsoft.UI;
+using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -26,7 +26,6 @@ public sealed class WindowStyleManager : IDisposable
     private readonly FrameworkElement _contentRoot;
     private readonly UISettings _uiSettings = new();
     private ElementTheme _theme;
-    private string? _backdropType;
 
     public WindowStyleManager(Window window)
     {
@@ -38,7 +37,7 @@ public sealed class WindowStyleManager : IDisposable
     {
         _theme = GetThemeType();
         UpdateTitleBarColors(_theme);
-        SetContentTheme(_theme);
+        UpdateContentTheme(_theme);
         UpdateUiFont();
 
         ApplyBackdrop();
@@ -98,11 +97,6 @@ public sealed class WindowStyleManager : IDisposable
         };
     }
 
-    public string GetBackdropType()
-    {
-        return AppContext.AppSetting.BackdropType;
-    }
-
     public void UpdateTheme(ElementTheme theme)
     {
         if (_theme == theme)
@@ -111,7 +105,7 @@ public sealed class WindowStyleManager : IDisposable
         }
 
         _theme = theme;
-        SetContentTheme(theme);
+        UpdateContentTheme(theme);
         UpdateTitleBarColors(theme);
     }
 
@@ -132,8 +126,7 @@ public sealed class WindowStyleManager : IDisposable
         });
     }
 
-
-    private void SetContentTheme(ElementTheme theme)
+    private void UpdateContentTheme(ElementTheme theme)
     {
         _contentRoot.RequestedTheme = theme;
     }

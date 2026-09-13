@@ -1,32 +1,25 @@
-﻿using Microsoft.UI.Windowing;
-using Windows.Graphics;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using mpv_winui.Modules.Activation;
 using mpv_winui.Modules.AppModel;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Common.View;
-using mpv_winui.Modules.MediaInfo;
-using mpv_winui.Modules.Menu.MenuEditor;
-using mpv_winui.Modules.MpvConf;
 using mpv_winui.Modules.Player;
 using mpv_winui.Modules.Settings;
 using System;
 using System.Collections.Generic;
+using Windows.Graphics;
 
 namespace mpv_winui
 {
-    public sealed partial class MainWindow : BaseWindow
+    public sealed partial class MainWindow : Window
     {
-        private readonly WindowsManager _windowsManager;
-
         public MainWindow()
         {
             InitializeComponent();
 
             SetupStyle();
-
-            _windowsManager = new WindowsManager();
 
             AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
             ShellTitleBar.Title = PackageHelper.AppName;
@@ -79,6 +72,7 @@ namespace mpv_winui
                         if (ShellFrame?.Content is IParameterRefreshSupportView view)
                         {
                             view.OnRefresh(fileItems);
+                            this.ShowWindow();
                         }
                     });
                 }
@@ -129,8 +123,9 @@ namespace mpv_winui
         {
             if (null == _settingsWindow)
             {
-                _settingsWindow = new SettingsWindow();
-                _settingsWindow.Closed += SettingsWindow_Closed;
+                _settingsWindow = new();
+                _settingsWindow?.Activate();
+                _settingsWindow?.Closed += SettingsWindow_Closed;
             }
 
             var position = AppWindow.Position;
@@ -139,33 +134,16 @@ namespace mpv_winui
                 (int)(position.X + (size.Width * 0.1)),
                 (int)(position.Y + (size.Height * 0.1)),
                 (int)(size.Width * 0.8),
-                (int)(size.Height * 0.8));
+                (int)(size.Height * 0.8)
+                );
             _settingsWindow?.MoveAndResize(rect);
+
             _settingsWindow?.ShowWindow();
         }
 
         private void SettingsWindow_Closed(object sender, WindowEventArgs args)
         {
-            if (_settingsWindow is not null)
-            {
-                _settingsWindow.Closed -= SettingsWindow_Closed;
-            }
             _settingsWindow = null;
-        }
-
-        public void OpenMpvConfigWindow()
-        {
-            _windowsManager.Open("mpvconf", () => new MpvConfEditorWindow(), this, 0.8, 480, 320);
-        }
-
-        public void OpenMediaInfoWindow(string? path)
-        {
-            _windowsManager.Open("mediainfo_" + HashUtil.ComputeMd5(path ?? string.Empty), () => new MediaInfoWindow(path), this, 0.8, 480, 320);
-        }
-
-        public void OpenMenuEditorWindow(string filePath, MenuType type)
-        {
-            _windowsManager.Open("menueditor_" + HashUtil.ComputeMd5(filePath ?? string.Empty), () => new MenuEditorWindow(filePath ?? string.Empty, type), this, 0.8, 720, 480);
         }
 
         private void Window_Closed(object sender, WindowEventArgs args)

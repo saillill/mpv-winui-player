@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Windowing;
+using Microsoft.UI.Windowing;
 using System;
 
 namespace mpv_winui.Modules.Player;
@@ -53,7 +53,7 @@ public sealed partial class MpvPlayerPage
 
         // Move the existing composition swap chain into the PiP window; libmpv
         // keeps rendering to it, so no second render context is needed.
-        _mediaPlayer.AttachSwapChain(pipWindow.VideoPanel);
+        _mediaPlayer.UpdatePanel(pipWindow.VideoPanel);
         _mediaPlayer.UpdateSize((uint)width, (uint)height);
         pipWindow.ShowPiP(width, height);
         UpdatePiPPanelScale();
@@ -85,7 +85,7 @@ public sealed partial class MpvPlayerPage
         }
 
         // Re-attach the swap chain to the main window's video surface.
-        _mediaPlayer.AttachSwapChain(PlayerView);
+        _mediaPlayer.UpdatePanel(PlayerView);
 
         if (App.Window is MainWindow mainWindow)
         {
@@ -99,7 +99,7 @@ public sealed partial class MpvPlayerPage
         _ = DispatcherQueue.TryEnqueue(() =>
         {
             UpdateMainViewSize();
-            _mediaPlayer.UpdateSwapChainScale(
+            _mediaPlayer.UpdatePanelScale(
                 (float)PlayerView.CompositionScaleX,
                 (float)PlayerView.CompositionScaleY);
             PlayerControl.RefreshAdaptiveState();
@@ -130,7 +130,7 @@ public sealed partial class MpvPlayerPage
     {
         if (_pipWindow is { } pipWindow)
         {
-            _mediaPlayer.UpdateSwapChainScale(
+            _mediaPlayer.UpdatePanelScale(
                 (float)pipWindow.VideoPanel.CompositionScaleX,
                 (float)pipWindow.VideoPanel.CompositionScaleY);
         }

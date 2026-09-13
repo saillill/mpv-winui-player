@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
-using mpv_winui.Modules.AppModel;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
 using mpv_winui.Modules.Player;
@@ -67,11 +66,8 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private static FontFamily CreateCategoryIconFont() => new("Segoe Fluent Icons");
 
-    private readonly bool _isUnpackaged;
-
     public SettingsPage()
     {
-        _isUnpackaged = !PackageHelper.IsPackaged;
         InitializeComponent();
         _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
         WarmDeviceChoices();
@@ -389,7 +385,7 @@ public sealed partial class SettingsPage : Page
         MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
         if (App.Window is MainWindow mainWindow)
         {
-            mainWindow.UpdateTheme();
+            mainWindow.UpdateCurrentTheme();
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), AppContext.AppSetting.BackdropType);
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.EnableDebugLog), AppContext.AppSetting.EnableDebugLog);
         }

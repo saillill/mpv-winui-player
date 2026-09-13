@@ -1,5 +1,3 @@
-import "DiscType.idl";
-
 namespace mpv_winrt
 {
     runtimeclass MpvPreviewer
@@ -12,9 +10,5 @@ namespace mpv_winrt
         void LoadFile(String url);
         void SetPosition(Double position);
         void Pause();
-
-        void SetEdition(Int32 edition);
-        void SetDiscPath(DiscType type, String path);
-        void SetVideoTrack(Int32 value);
     };
 }
