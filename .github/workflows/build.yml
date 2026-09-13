@@ -33,11 +33,14 @@ jobs:
     - name: Check settings drift
       run: python tools/check-settings-drift.py
 
-    - name: Download mpv libs
+    - name: Download deps
       run: |
         curl -L -o mpv-libs.zip "https://github.com/ikas-mc/mpv-windows-builder/releases/download/20260731/mpv-2.dll.zip"
         Expand-Archive -Path mpv-libs.zip -DestinationPath "${{github.workspace}}\mpv-winui\libs" -Force
         Remove-Item -Path mpv-libs.zip -Force
+        curl -L -o mediainfo.zip "https://github.com/ikas-mc/MediaInfoLib-builder/releases/download/0.1.0/mediainfo.dll.zip"
+        Expand-Archive -Path mediainfo.zip -DestinationPath "${{github.workspace}}\mpv-winui\libs" -Force
+        Remove-Item -Path mediainfo.zip -Force
 
     - name: Update Package
       run: |
@@ -111,7 +114,7 @@ jobs:
       if: env.Pfx_Base64 != '' && env.Pfx_Key != ''
       uses: actions/upload-artifact@v7
       with:
-        name: mpv-winui-Deps-${{ matrix.platform }}
+        name: mpvw-deps-${{ matrix.platform }}
         archive: true
         path: |
           ${{env.Appx_Package_Dir}}\*\Dependencies\${{ matrix.platform }}\*
@@ -120,7 +123,7 @@ jobs:
       if: env.Pfx_Base64 != '' && env.Pfx_Key != ''
       uses: actions/upload-artifact@v7
       with:
-        name: mpv-winui-${{ matrix.platform }}-${{ matrix.configuration }}
+        name: mpvw-msix-${{ matrix.platform }}-${{ matrix.configuration }}
         archive: true
         path: |
           ${{env.Appx_Package_Dir}}\*\*.msix
@@ -129,8 +132,16 @@ jobs:
     - name: Upload Unpackaged
       uses: actions/upload-artifact@v7
       with:
-        name: mpv-winui-unpackaged-${{ matrix.platform }}-${{ matrix.configuration }}
+        name: mpvw-unpackaged-${{ matrix.platform }}-${{ matrix.configuration }}
+        archive: true
         path: ${{github.workspace}}\mpv-winui\mpv-winui\bin\win-${{ matrix.platform }}\publish
+
+    - name: Upload App Data Sample
+      uses: actions/upload-artifact@v7
+      with:
+        name: mpvw-app-data-sample
+        archive: true
+        path: ${{github.workspace}}\data
 
     - name: Upload Release Zip
       uses: actions/upload-artifact@v7

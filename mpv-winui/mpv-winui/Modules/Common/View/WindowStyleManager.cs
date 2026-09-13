@@ -26,6 +26,7 @@ public sealed class WindowStyleManager : IDisposable
     private readonly FrameworkElement _contentRoot;
     private readonly UISettings _uiSettings = new();
     private ElementTheme _theme;
+    private string? _backdropType;
 
     public WindowStyleManager(Window window)
     {
@@ -97,6 +98,11 @@ public sealed class WindowStyleManager : IDisposable
         };
     }
 
+    public string GetBackdropType()
+    {
+        return AppContext.AppSetting.BackdropType;
+    }
+
     public void UpdateTheme(ElementTheme theme)
     {
         if (_theme == theme)
@@ -126,7 +132,44 @@ public sealed class WindowStyleManager : IDisposable
         });
     }
 
-    private void UpdateContentTheme(ElementTheme theme)
+    private void SetBackdrop(string backdropType)
+    {
+        _micaController?.RemoveAllSystemBackdropTargets();
+        _acrylicController?.RemoveAllSystemBackdropTargets();
+
+        switch (backdropType)
+        {
+            case AppSettings.BackdropType_Mica:
+            {
+                if (MicaController.IsSupported())
+                {
+                    if (null == _micaController)
+                    {
+                        _micaController = new MicaController();
+                        _micaController?.SetSystemBackdropConfiguration(_configurationSource);
+                    }
+                    _micaController?.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
+                }
+
+                break;
+            }
+            default:
+            {
+                if (DesktopAcrylicController.IsSupported())
+                {
+                    if (null == _acrylicController)
+                    {
+                        _acrylicController = new DesktopAcrylicController();
+                        _acrylicController?.SetSystemBackdropConfiguration(_configurationSource);
+                    }
+                    _acrylicController?.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
+                }
+                break;
+            }
+        }
+    }
+
+    private void SetContentTheme(ElementTheme theme)
     {
         _contentRoot.RequestedTheme = theme;
     }

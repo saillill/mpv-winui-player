@@ -18,11 +18,12 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="MpvPlayer.h" />
-    <ClInclude Include="MpvPlaylistItem.h" />
     <ClInclude Include="MpvPreviewer.h" />
+    <ClInclude Include="MpvPlaylistItem.h" />
     <ClInclude Include="MpvChapter.h" />
+    <ClInclude Include="MpvEdition.h" />
     <ClInclude Include="MpvAudioDevice.h" />
-    <ClInclude Include="MpvGpuAdapter.h" />
+    <ClInclude Include="MpvProfile.h" />
     <ClInclude Include="MpvMenuItem.h" />
     <ClInclude Include="MpvTrack.h" />
     <ClInclude Include="PlaybackStateChangedEventArgs.h" />
@@ -30,17 +31,21 @@
     <ClInclude Include="PositionChangedEventArgs.h" />
     <ClInclude Include="SpeedChangedEventArgs.h" />
     <ClInclude Include="MediaInfoChangedEventArgs.h" />
-    <ClInclude Include="PlaybackFailedEventArgs.h" />
+    <ClInclude Include="NetworkInfoChangedEventArgs.h" />
+    <ClInclude Include="FileFailedEventArgs.h" />
+    <ClInclude Include="TrackListChangedEventArgs.h" />
+    <ClInclude Include="TrackListCountChangedEventArgs.h" />
     <ClInclude Include="WindowChangedEventArgs.h" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="MpvPlayer.idl" />
+    <Midl Include="MpvPreviewer.idl" />
     <Midl Include="TrackType.idl" />
     <Midl Include="MpvPlaylistItem.idl" />
-    <Midl Include="MpvPreviewer.idl" />
     <Midl Include="MpvChapter.idl" />
+    <Midl Include="MpvEdition.idl" />
     <Midl Include="MpvAudioDevice.idl" />
-    <Midl Include="MpvGpuAdapter.idl" />
+    <Midl Include="MpvProfile.idl" />
     <Midl Include="MpvMenuItem.idl" />
     <Midl Include="MpvTrack.idl" />
     <Midl Include="PlaybackStateChangedEventArgs.idl" />
@@ -48,9 +53,13 @@
     <Midl Include="PositionChangedEventArgs.idl" />
     <Midl Include="SpeedChangedEventArgs.idl" />
     <Midl Include="MediaInfoChangedEventArgs.idl" />
-    <Midl Include="PlaybackFailedEventArgs.idl" />
+    <Midl Include="NetworkInfoChangedEventArgs.idl" />
+    <Midl Include="FileFailedEventArgs.idl" />
+    <Midl Include="TrackListChangedEventArgs.idl" />
+    <Midl Include="TrackListCountChangedEventArgs.idl" />
     <Midl Include="WindowChangedEventArgs.idl" />
     <Midl Include="DisplayColorKind.idl" />
+    <Midl Include="DiscType.idl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mpv_winrt.def" />

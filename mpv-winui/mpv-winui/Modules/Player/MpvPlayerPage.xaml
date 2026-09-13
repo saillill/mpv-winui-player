@@ -5,32 +5,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:bc="using:mpv_winui.Modules.Common.Convertor"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:hx="using:mpv_winui.Modules.Common.View"
     xmlns:local="using:mpv_winui.Modules.Player"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:pc="using:mpv_winui.Modules.Player.PlayerControl"
+    xmlns:preview="using:mpv_winui.Modules.Player.BuiltInPreview"
     mc:Ignorable="d">
 
     <Page.Resources>
-        <Style
-            x:Key="TopBarIconButtonStyle"
-            TargetType="Button">
-            <Setter Property="Width" Value="36" />
-            <Setter Property="Height" Value="30" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <ContentPresenter
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Foreground="{TemplateBinding Foreground}" />
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         <MenuFlyout x:Key="PlaylistContextMenu">
             <MenuFlyoutItem
                 Click="PlaylistMenu_Click"
@@ -111,7 +92,7 @@
         </MenuFlyout>
     </Page.Resources>
 
-    <Grid x:Name="PageRoot">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition
                 x:Name="MenuRow"
@@ -126,52 +107,208 @@
             <ColumnDefinition
                 x:Name="PlaylistColumn"
                 Width="0"
-                MaxWidth="420" />
+                MaxWidth="300" />
         </Grid.ColumnDefinitions>
         <MenuBar
             x:Name="MainMenuBar"
             Grid.Row="0"
-            Grid.ColumnSpan="1"
-            HorizontalAlignment="Left" />
+            Grid.ColumnSpan="1">
+            <MenuBarItem
+                Title="File"
+                IsTabStop="False">
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="open"
+                    Text="Open File" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="open-folder"
+                    Text="Open Folder" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="open-url"
+                    Text="Open URL" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="open-clipboard"
+                    Text="Open from Clipboard" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="open-dvd"
+                    Text="Open DVD" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="open-bd"
+                    Text="Open Blu-ray" />
+                <MenuFlyoutSubItem Text="Open Disc">
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-cdda"
+                        Text="Open CD" />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-dvda"
+                        Text="Open DVDA" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-cd-img"
+                        Text="Open CD Img" />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-dvd-img"
+                        Text="Open DVD Img" />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-dvda-img"
+                        Text="Open DVDA Img" />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-bd-img"
+                        Text="Open BD Img" />
+                </MenuFlyoutSubItem>
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="open-watch-history"
+                    Text="Open Watch History" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="open-watch-later"
+                    Text="Open Watch Later" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="load-subtitle"
+                    Text="Add Subtitle" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="screenshot"
+                    Text="Screenshot" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="screenshot-no-sub"
+                    Text="Screenshot (No Subtitles)" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="restart"
+                    Text="Restart" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="quit"
+                    Text="Quit" />
+            </MenuBarItem>
 
-        <StackPanel
-            x:Name="TopBarButtons"
-            Grid.Row="0"
-            Grid.Column="0"
-            Margin="8,0,10,0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Center"
-            Orientation="Horizontal"
-            Spacing="4">
-            <Button
-                x:Name="TopBarOntopButton"
-                Click="TopBarOntop_Click"
-                Style="{StaticResource TopBarIconButtonStyle}">
-                <FontIcon
-                    x:Name="TopBarOntopIcon"
-                    FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
-                    FontSize="18"
-                    Glyph="&#xF602;" />
-            </Button>
-            <Button
-                x:Name="TopBarScreenshotButton"
-                Click="TopBarScreenshot_Click"
-                Style="{StaticResource TopBarIconButtonStyle}">
-                <FontIcon
-                    FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
-                    FontSize="18"
-                    Glyph="&#xF255;" />
-            </Button>
-            <Button
-                x:Name="TopBarPlaylistButton"
-                Click="TopBarPlaylist_Click"
-                Style="{StaticResource TopBarIconButtonStyle}">
-                <FontIcon
-                    FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
-                    FontSize="18"
-                    Glyph="&#xE8C3;" />
-            </Button>
-        </StackPanel>
+            <MenuBarItem
+                Title="View"
+                IsTabStop="False">
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="playlist"
+                    Text="Playlist" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="fullwindow"
+                    Text="Full Window" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="fullscreen"
+                    Text="Full Screen" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="ontop"
+                    Text="Always On Top" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="options"
+                    Text="Options" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="conf-edit"
+                    Text="Mpv Conf Editor" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="edit-menu-mpv"
+                    Text="Mpv Menu Editor" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="edit-menu-menubar"
+                    Text="Menu Bar Editor" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="conf-folder"
+                    Text="Open App Data Folder" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="mpv-folder"
+                    Text="Open Mpv Config Folder" />
+                <MenuFlyoutSubItem Text="Open">
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-mpv-conf"
+                        Text="mpv.conf" />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-mpvw-conf"
+                        Text="mpvw.conf" />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-input-conf"
+                        Text="input.conf" />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-menu-conf"
+                        Text="menu.conf" />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-mpv-log"
+                        Text="mpv.log" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem
+                        Click="MenuFlyoutItem_Click"
+                        Tag="open-mpwv-menu-conf"
+                        Text="mpvw-menu.conf" />
+                </MenuFlyoutSubItem>
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="media-info"
+                    Text="Media Info" />
+            </MenuBarItem>
+
+            <MenuBarItem
+                Title="Help"
+                IsTabStop="False">
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="about"
+                    Text="About" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="link-mpv-wiki"
+                    Text="Mpv Wiki" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="link-mpv-manual"
+                    Text="Mpv Manual" />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="link-mpv-manual-stable"
+                    Text="Mpv Manual(Stable)" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                    Click="MenuFlyoutItem_Click"
+                    Tag="link-mpvw-wiki"
+                    Text="Mpvw Wiki" />
+            </MenuBarItem>
+        </MenuBar>
 
         <Grid
             x:Name="PlaylistContainer"
@@ -184,82 +321,25 @@
                 <RowDefinition Height="44" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <local:ResizeGrip
-                x:Name="PlaylistResizeGrip"
-                Grid.RowSpan="2"
-                Width="6"
-                HorizontalAlignment="Left"
-                PointerCanceled="PlaylistResizeGrip_PointerReleased"
-                PointerCaptureLost="PlaylistResizeGrip_PointerReleased"
-                PointerMoved="PlaylistResizeGrip_PointerMoved"
-                PointerPressed="PlaylistResizeGrip_PointerPressed"
-                PointerReleased="PlaylistResizeGrip_PointerReleased" />
-            <Grid
+            <CommandBar
+                x:Name="PlaylistToolBar"
                 Grid.Row="0"
                 Height="44"
-                Margin="8,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBox
-                    x:Name="PlaylistFilterBox"
-                    Height="30"
-                    MaxWidth="220"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Left"
-                    TextChanged="PlaylistFilterBox_TextChanged" />
-                <StackPanel
-                    x:Name="PlaylistToolBar"
+                Margin="8,0"
+                HorizontalAlignment="Right"
+                DefaultLabelPosition="Collapsed"
+                IsDynamicOverflowEnabled="False">
+                <AppBarButton
                     Grid.Column="1"
-                    Height="44"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="4">
-                <Button
-                    x:Name="PlaylistOntopButton"
-                    Click="TopBarOntop_Click"
-                    Style="{StaticResource TopBarIconButtonStyle}"
-                    ToolTipService.ToolTip="Always on top">
-                    <FontIcon
-                        x:Name="PlaylistOntopIcon"
-                        FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
-                        FontSize="18"
-                        Glyph="&#xF602;" />
-                </Button>
-                <Button
-                    x:Name="PlaylistScreenshotButton"
-                    Click="TopBarScreenshot_Click"
-                    Style="{StaticResource TopBarIconButtonStyle}"
-                    ToolTipService.ToolTip="Screenshot">
-                    <FontIcon
-                        FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
-                        FontSize="18"
-                        Glyph="&#xF255;" />
-                </Button>
-                <Button
-                    x:Name="PlaylistCloseButton"
+                    Width="40"
                     Click="ClosePlaylist_Click"
-                    Style="{StaticResource TopBarIconButtonStyle}"
-                    ToolTipService.ToolTip="Toggle Playlist">
-                    <FontIcon
-                        FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
-                        FontSize="18"
-                        Glyph="&#xE8C3;" />
-                </Button>
-                <Button
-                    x:Name="PlaylistRefreshButton"
+                    Icon="ClosePane" />
+                <AppBarButton
+                    Grid.Column="1"
+                    Width="40"
                     Click="RefreshPlaylist_Click"
-                    Style="{StaticResource TopBarIconButtonStyle}"
-                    ToolTipService.ToolTip="Refresh">
-                    <FontIcon
-                        FontFamily="ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular"
-                        FontSize="18"
-                        Glyph="&#xF13E;" />
-                </Button>
-            </StackPanel>
-            </Grid>
+                    Icon="Refresh" />
+            </CommandBar>
 
             <ListView
                 x:Name="PlaylistView"
@@ -270,7 +350,7 @@
                 ContextRequested="PlaylistView_ContextRequested"
                 IsItemClickEnabled="True"
                 ItemClick="PlaylistView_ItemClick"
-                ItemsSource="{x:Bind FilteredPlaylistItems, Mode=OneWay}"
+                ItemsSource="{x:Bind PlaylistItems, Mode=OneWay}"
                 SelectionMode="Single">
                 <ListView.ItemContainerStyle>
                     <Style
@@ -308,32 +388,24 @@
                                 FontSize="14"
                                 Glyph="&#xE8B2;"
                                 Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent)}" />
-                            <StackPanel
+                            <TextBlock
                                 Grid.Row="0"
                                 Grid.Column="1"
-                                Orientation="Horizontal">
-                                <TextBlock FontSize="12">
-                                    <Run Text="{x:Bind Index}" />
-                                    <Run Text=". " />
-                                </TextBlock>
-                                <hx:HighlightTextBlock
-                                    FontSize="12"
-                                    Query="{x:Bind Query}"
-                                    Text="{x:Bind Title}"
-                                    ToolTipService.ToolTip="{x:Bind Title}" />
-                            </StackPanel>
+                                FontSize="12"
+                                TextTrimming="CharacterEllipsis"
+                                ToolTipService.ToolTip="{x:Bind Title}">
+                                <Run Text="{x:Bind Index}" />
+                                <Run Text="." />
+                                <Run Text="{x:Bind Title}" />
+                            </TextBlock>
                             <TextBlock
                                 Grid.Row="1"
                                 Grid.Column="1"
                                 FontSize="10"
                                 Opacity="0.8"
+                                Text="{x:Bind Filename}"
                                 TextTrimming="CharacterEllipsis"
-                                ToolTipService.ToolTip="{x:Bind Filename}">
-                                <Run Text="{x:Bind Filename}" />
-                                <Run Text="   " />
-                                <Run Text="{x:Bind DurationText}" />
-                                <Run Text="{x:Bind ResolutionText}" />
-                            </TextBlock>
+                                ToolTipService.ToolTip="{x:Bind Filename}" />
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
@@ -341,49 +413,40 @@
         </Grid>
 
         <Grid
+            x:Name="VideoContainer"
             Grid.Row="1"
             Grid.Column="0"
             AllowDrop="True"
             Background="#22000000"
             DragEnter="OnDragEnter"
             DragOver="OnDragOver"
-            Drop="OnDrop"
-            PointerMoved="VideoArea_PointerMoved"
-            PointerWheelChanged="VideoArea_PointerWheelChanged">
+            Drop="OnDrop">
             <SwapChainPanel
                 x:Name="PlayerView"
-                ContextRequested="PlayerView_ContextRequested"
-                DoubleTapped="PlayerView_DoubleTapped"
-                Tapped="PlayerView_Tapped">
+                ContextRequested="PlayerView_ContextRequested">
                 <Border Background="Transparent" />
             </SwapChainPanel>
-            <Border
-                x:Name="PreviewCard"
-                AutomationProperties.Name="Video preview"
-                AutomationProperties.AutomationId="PreviewCard"
-                Padding="4"
+            <preview:MpvSoftwarePreviewControl
+                x:Name="MpvPreview"
+                Width="192"
+                Height="108"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="8"
+                x:Load="{x:Bind _enableBuiltInPreview}"
+                Canvas.ZIndex="2"
                 IsHitTestVisible="False"
                 Visibility="Collapsed">
-                <Image
-                    x:Name="PreviewImage"
-                    Width="240"
-                    Height="135"
-                    Stretch="Fill" />
-            </Border>
+                <preview:MpvSoftwarePreviewControl.RenderTransform>
+                    <TranslateTransform x:Name="PreviewControlTranslation" />
+                </preview:MpvSoftwarePreviewControl.RenderTransform>
+            </preview:MpvSoftwarePreviewControl>
         </Grid>
 
-        <local:PlayerControl
+        <pc:PlayerControl
             x:Name="PlayerControl"
             Grid.Row="2"
             Grid.Column="0"
             VerticalAlignment="Stretch"
-            FullWindowButtonVisibility="Visible"
             NextTrackButtonVisibility="Visible"
             OnFullScreenRequest="PlayerControl_OnFullScreenRequest"
             OnFullWindowRequest="PlayerControl_OnFullWindowRequest"
@@ -391,14 +454,12 @@
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState x:Name="HidePlaylist">
-                    <VisualState.Setters>
-                        <Setter Target="TopBarButtons.Visibility" Value="Visible" />
-                    </VisualState.Setters>
+                    <VisualState.Setters />
                 </VisualState>
                 <VisualState x:Name="ShowPlaylist">
                     <VisualState.Setters>
                         <Setter Target="PlaylistContainer.Visibility" Value="Visible" />
-                        <Setter Target="TopBarButtons.Visibility" Value="Collapsed" />
+                        <Setter Target="PlaylistColumn.Width" Value="1*" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

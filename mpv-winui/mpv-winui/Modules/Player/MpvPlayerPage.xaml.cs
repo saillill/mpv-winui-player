@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 
 namespace mpv_winui.Modules.Player
 {
-    public sealed partial class MpvPlayerPage : Page, IParameterRefreshSupportView
+    public sealed partial class MpvPlayerPage : Page, IParameterRefreshSupportView, IMpvOptionApplySupport, IMpvCommandApplySupport
     {
         private static readonly Logger _logger = LogManager.GetLogger("MpvPlayer");
         private const string MpvConfigFolderName = "mpv";
-        private readonly MpvMediaPlayer _mediaPlayer = new();
+        private readonly MpvPlayer _mediaPlayer = new();
         private bool _isPlayerInitialized;
         private static WeakReference<MpvPlayerPage>? _selfWeakReference;
 
@@ -58,14 +58,13 @@ namespace mpv_winui.Modules.Player
             if (_isPlayerInitialized)
             {
                 SetupPlayerView();
+                SetupPlayControl();
 
-                PlayerControl.MediaPlayer = _mediaPlayer;
-
-                _mediaPlayer.Native.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
-                _mediaPlayer.Native.VolumeChanged += MediaPlayer_VolumeChanged;
-                _mediaPlayer.Native.WindowChanged += MpvPlayerPage_WindowChanged;
+                _mediaPlayer.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
+                _mediaPlayer.VolumeChanged += MpvPlayerPage_VolumeChanged;
+                _mediaPlayer.WindowChanged += MpvPlayerPage_WindowChanged;
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
-                _mediaPlayer.StartListen();
+                _mediaPlayer.DiscMenuActiveChanged += MpvPlayerPage_DiscMenuActiveChanged;
 
                 AppContext.RunMpvCommand = cmd => _ = _mediaPlayer.EnqueueCommand(cmd);
                 AppContext.SetMpvLogLevel = level => _mediaPlayer.SetLogLevel(level);
@@ -99,10 +98,18 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer.MediaOpened += MpvPlayerPage_ApplyHdrModeOnce;
 
                 SetupKeyboardInput();
-                AppContext.SettingChanged += AppContext_SettingChanged;
-                AppContext.LanguageChanged += AppContext_LanguageChanged;
-                BuildMainMenuBar();
-                SetupPreview();
+                SetupMouseInput();
+
+                if (AppContext.AppSetting.EnableVideoPreview)
+                {
+                    SetupPreview();
+                }
+                if (AppContext.AppSetting.EnableVideoBuiltInPreview)
+                {
+                    SetupBuiltInPreview();
+                }
+
+                SetupCustomMenuBarItems();
 
                 OpenPendingPath().FireAndForget(OnException);
 
@@ -138,17 +145,20 @@ namespace mpv_winui.Modules.Player
             CleanupDisplayInfo();
             CleanupPlaylistRefresh();
 
-            _mediaPlayer.Native.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
-            _mediaPlayer.Native.VolumeChanged -= MediaPlayer_VolumeChanged;
-            _mediaPlayer.Native.WindowChanged -= MpvPlayerPage_WindowChanged;
+            _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
+            _mediaPlayer.VolumeChanged -= MpvPlayerPage_VolumeChanged;
+            _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
-            _mediaPlayer.StopListen();
+            _mediaPlayer.DiscMenuActiveChanged -= MpvPlayerPage_DiscMenuActiveChanged;
+
             TeardownPlayerView();
             CleanupKeyboardInput();
+            CleanupMouseInput();
             CleanupPreview();
             ClosePiPWindow();
-            _mediaPlayer.MediaOpened -= MpvPlayerPage_ApplyHdrModeOnce;
-            _mediaPlayer.Close();
+            CleanupPlayControl();
+            CleanupBuiltInPreview();
+            _mediaPlayer.Destroy();
         }
 
         private void MpvPlayerPage_ApplyHdrModeOnce(MpvMediaPlayer player, object? args)
@@ -252,6 +262,9 @@ namespace mpv_winui.Modules.Player
             _logger.Debug("CreateAsync: player initialized at {}ms", sw.ElapsedMilliseconds);
         }
 
+        private void MpvPlayerPage_VolumeChanged(VolumeChangedEventArgs args)
+        {
+            AppContext.AppSetting.LastVideoVolume = (int)args.Volume;
         // A drop (or menu open) landing while CreateAsync is still running
         // used to enqueue loadfile into a native handle that silently no-ops
         // before initialization, losing the request. Callers now await this.
@@ -260,11 +273,6 @@ namespace mpv_winui.Modules.Player
         private Task WaitForPlayerReadyAsync()
         {
             return _isPlayerInitialized ? Task.CompletedTask : _playerReadyTcs.Task;
-        }
-
-        private void MediaPlayer_VolumeChanged(VolumeChangedEventArgs args)
-        {
-            AppContext.AppSetting.LastVideoVolume = (int)args.Volume;
         }
 
         private void PlayerView_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
@@ -374,6 +382,29 @@ namespace mpv_winui.Modules.Player
                 _pendingPaths = paths;
                 OpenPendingPath().FireAndForget(OnException);
             }
+        }
+
+        async Task IMpvOptionApplySupport.ApplyMpvOptionAsync(string key, string value)
+        {
+            if (!_isPlayerInitialized || string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+
+            await Task.Run(() =>
+            {
+                _mediaPlayer.Command(["set", key, value ?? string.Empty]);
+            });
+        }
+
+        async Task IMpvCommandApplySupport.ApplyMpvCommandAsync(string command)
+        {
+            if (!_isPlayerInitialized || string.IsNullOrEmpty(command))
+            {
+                return;
+            }
+
+            await _mediaPlayer.RunCommandAsync(command);
         }
     }
 }

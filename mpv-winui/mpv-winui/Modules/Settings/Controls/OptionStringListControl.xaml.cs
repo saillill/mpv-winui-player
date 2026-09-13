@@ -25,27 +25,8 @@ public sealed partial class OptionStringListControl : OptionControlBase
     {
         if (newValue is null)
         {
-            return;
-        }
-
-        LabelText.Text = newValue.Label;
-        UpdateDescription(DescriptionText);
-        Combo.IsEnabled = newValue.IsEnabled;
-
-        _loading = true;
-        try
-        {
-            _choices = newValue.ChoicesProvider?.Invoke()?.ToList()
-                       ?? newValue.Choices?.ToList()
-                       ?? [];
-            if (_choices.Count == 0 && newValue.Options is not null)
-            {
-                _choices = newValue.Options.Select(o => new OptionChoice(o, o)).ToList();
-            }
-            if (newValue.AllowCustom)
-            {
-                _choices.Add(new OptionChoice(CustomKey, mpv_winui.AppContext.AppLang.OptionValueCustom));
-            }
+            ApplyText(LabelText, DescriptionText, newValue);
+            ApplyIcon(TypeIcon, newValue);
 
             Combo.Items.Clear();
             foreach (var choice in _choices)

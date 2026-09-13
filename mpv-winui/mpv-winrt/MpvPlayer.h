@@ -42,8 +42,10 @@ namespace winrt::mpv_winrt::implementation
         LoopFile = 10,
         LoopPlaylist = 11,
         Shuffle = 12,
+        PausedForCache = 13,
+        MenuData = 41,
         Playlist = 42,
-        VoConfigured = 50,
+        DiscMenuActive = 50,
 
         // donot change
         Fullscreen = 201,
@@ -60,6 +62,7 @@ namespace winrt::mpv_winrt::implementation
         ~MpvPlayer();
 
         void Initialize(hstring const& configPath, uint32_t width, uint32_t height, int32_t volume, winrt::mpv_winrt::DisplayColorKind colorKind, int32_t refreshRate);
+        void InitializeForPreview(uint32_t width, uint32_t height);
         void Destroy();
         void AttachSwapChain(winrt::Microsoft::UI::Xaml::Controls::SwapChainPanel const& panel);
         void UpdateSwapChainScale(float scaleX, float scaleY);
@@ -87,10 +90,18 @@ namespace winrt::mpv_winrt::implementation
         uint64_t ObserveProperty(hstring const& name, winrt::mpv_winrt::MpvPropertyChangedEventHandler const& handler);
         void UnobserveProperty(uint64_t handle);
 
+        void PlaylistPlayIndex(int32_t index);
+        void PlaylistMove(int32_t from, int32_t to);
+        void PlaylistRemove(int32_t index);
+        void PlaylistNext();
+        void PlaylistPrevious();
+        void PlaylistShuffle();
+
         winrt::hstring GetWatchHistoryPath();
         winrt::hstring GetWatchLaterFolderPath();
         winrt::hstring GetCurrentFilePath();
         bool SaveWatchHistory();
+        winrt::hstring GetCurrentPath();
 
         double Volume();
         void Volume(double value);
@@ -135,28 +146,65 @@ namespace winrt::mpv_winrt::implementation
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvAudioDevice> GetAudioDevices();
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvGpuAdapter> GetGpuAdapters();
         int32_t CurrentChapter();
+        int32_t Edition();
+        void Edition(int32_t value);
         int32_t CurrentEdition();
+        winrt::hstring GetDiscPath(winrt::mpv_winrt::DiscType type);
+        void SetDiscPath(winrt::mpv_winrt::DiscType type, winrt::hstring const& path);
 
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvMenuItem> GetMenu();
-        winrt::hstring GetSubtitleExtensions();
+        winrt::Windows::Foundation::Collections::IVectorView<winrt::hstring> GetSubtitleExtensions();
+        winrt::hstring GetVersion();
 
-        MPVWINRT_EVENT(MediaLoaded, MediaLoadedEventHandler, mediaLoaded)
-        MPVWINRT_EVENT(PlaybackFailed, PlaybackFailedEventHandler, playbackFailed)
-        MPVWINRT_EVENT(Seeked, SeekEventHandler, seeked)
-        MPVWINRT_EVENT(FileLoaded, FileLoadedEventHandler, fileLoaded)
+        winrt::event_token FileStarted(winrt::mpv_winrt::FileStartedEventHandler const& handler);
+        void FileStarted(winrt::event_token const& token) noexcept;
+        winrt::event_token FileLoaded(winrt::mpv_winrt::FileLoadedEventHandler const& handler);
+        void FileLoaded(winrt::event_token const& token) noexcept;
+        winrt::event_token FileFailed(winrt::mpv_winrt::FileFailedEventHandler const& handler);
+        void FileFailed(winrt::event_token const& token) noexcept;
+        winrt::event_token FileEnded(winrt::mpv_winrt::FileEndedEventHandler const& handler);
+        void FileEnded(winrt::event_token const& token) noexcept;
+        winrt::event_token FileStopped(winrt::mpv_winrt::FileStoppedEventHandler const& handler);
+        void FileStopped(winrt::event_token const& token) noexcept;
+        winrt::event_token SeekStarted(winrt::mpv_winrt::SeekStartedEventHandler const& handler);
+        void SeekStarted(winrt::event_token const& token) noexcept;
+        winrt::event_token PlaybackRestarted(winrt::mpv_winrt::PlaybackRestartedEventHandler const& handler);
+        void PlaybackRestarted(winrt::event_token const& token) noexcept;
+        winrt::event_token SwapChainChanged(winrt::mpv_winrt::SwapChainChangedEventHandler const& handler);
+        void SwapChainChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token TrackChanged(winrt::mpv_winrt::TrackChangedEventHandler const& handler);
+        void TrackChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token BufferingChanged(winrt::mpv_winrt::BufferingChangedEventHandler const& handler);
+        void BufferingChanged(winrt::event_token const& token) noexcept;
 
-        MPVWINRT_EVENT(PlaybackStateChanged, PlaybackStateChangedEventHandler, playbackStateChanged)
-        MPVWINRT_EVENT(VolumeChanged, VolumeChangedEventHandler, volumeChanged)
-        MPVWINRT_EVENT(PositionChanged, PositionChangedEventHandler, positionChanged)
-        MPVWINRT_EVENT(SpeedChanged, SpeedChangedEventHandler, speedChanged)
-        MPVWINRT_EVENT(MediaInfoChanged, MediaInfoChangedEventHandler, mediaInfoChanged)
-        MPVWINRT_EVENT(VoConfigured, VoConfiguredEventHandler, voConfigured)
-        MPVWINRT_EVENT(WindowChanged, WindowChangedEventHandler, windowChanged)
-        MPVWINRT_EVENT(LoopFileChanged, LoopFileChangedEventHandler, loopFileChanged)
-        MPVWINRT_EVENT(LoopPlaylistChanged, LoopPlaylistChangedEventHandler, loopPlaylistChanged)
-        MPVWINRT_EVENT(ShuffleChanged, ShuffleChangedEventHandler, shuffleChanged)
-        MPVWINRT_EVENT(PlaylistChanged, PlaylistChangedEventHandler, playlistChanged)
-        MPVWINRT_EVENT(LogMessage, MpvLogEventHandler, logMessage)
+        winrt::event_token PlaybackStateChanged(winrt::mpv_winrt::PlaybackStateChangedEventHandler const& handler);
+        void PlaybackStateChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token VolumeChanged(winrt::mpv_winrt::VolumeChangedEventHandler const& handler);
+        void VolumeChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token PositionChanged(winrt::mpv_winrt::PositionChangedEventHandler const& handler);
+        void PositionChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token SpeedChanged(winrt::mpv_winrt::SpeedChangedEventHandler const& handler);
+        void SpeedChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token MediaInfoChanged(winrt::mpv_winrt::MediaInfoChangedEventHandler const& handler);
+        void MediaInfoChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token NetworkInfoChanged(winrt::mpv_winrt::NetworkInfoChangedEventHandler const& handler);
+        void NetworkInfoChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token TrackListChanged(winrt::mpv_winrt::TrackListChangedEventHandler const& handler);
+        void TrackListChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token TrackListCountChanged(winrt::mpv_winrt::TrackListCountChangedEventHandler const& handler);
+        void TrackListCountChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token WindowChanged(winrt::mpv_winrt::WindowChangedEventHandler const& handler);
+        void WindowChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token DiscMenuActiveChanged(winrt::mpv_winrt::DiscMenuActiveChangedEventHandler const& handler);
+        void DiscMenuActiveChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token LoopFileChanged(winrt::mpv_winrt::LoopFileChangedEventHandler const& handler);
+        void LoopFileChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token LoopPlaylistChanged(winrt::mpv_winrt::LoopPlaylistChangedEventHandler const& handler);
+        void LoopPlaylistChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token ShuffleChanged(winrt::mpv_winrt::ShuffleChangedEventHandler const& handler);
+        void ShuffleChanged(winrt::event_token const& token) noexcept;
+        winrt::event_token PlaylistChanged(winrt::mpv_winrt::PlaylistChangedEventHandler const& handler);
+        void PlaylistChanged(winrt::event_token const& token) noexcept;
 
     private:
         static mpv_node* FindMapField(mpv_node* map, const char* key);
@@ -174,7 +222,7 @@ namespace winrt::mpv_winrt::implementation
         double GetDoubleProperty(const char* name);
         int64_t GetInt64Property(const char* name);
         winrt::hstring GetHStringProperty(const char* name);
-        bool GetFlagProperty(const char* name);
+        bool GetFlagProperty(const char* name, bool defaultValue);
         bool IsStringPropertyEqual(const char* name, std::string_view expected);
         void SetDoubleProperty(const char* name, double value);
         void SetInt64Property(const char* name, int64_t value);
@@ -208,18 +256,27 @@ namespace winrt::mpv_winrt::implementation
         std::atomic<bool> m_eventThreadRunning{false};
         double m_lastDuration{0.0};
 
-        winrt::event<winrt::mpv_winrt::MediaLoadedEventHandler> m_mediaLoadedEvent;
-        winrt::event<winrt::mpv_winrt::PlaybackFailedEventHandler> m_playbackFailedEvent;
-        winrt::event<winrt::mpv_winrt::SeekEventHandler> m_seekedEvent;
+        winrt::event<winrt::mpv_winrt::FileStartedEventHandler> m_fileStartedEvent;
         winrt::event<winrt::mpv_winrt::FileLoadedEventHandler> m_fileLoadedEvent;
+        winrt::event<winrt::mpv_winrt::FileFailedEventHandler> m_fileFailedEvent;
+        winrt::event<winrt::mpv_winrt::FileEndedEventHandler> m_fileEndedEvent;
+        winrt::event<winrt::mpv_winrt::FileStoppedEventHandler> m_fileStoppedEvent;
+        winrt::event<winrt::mpv_winrt::SeekStartedEventHandler> m_seekStartedEvent;
+        winrt::event<winrt::mpv_winrt::PlaybackRestartedEventHandler> m_playbackRestartedEvent;
+        winrt::event<winrt::mpv_winrt::SwapChainChangedEventHandler> m_swapChainChangedEvent;
+        winrt::event<winrt::mpv_winrt::TrackChangedEventHandler> m_trackChangedEvent;
+        winrt::event<winrt::mpv_winrt::BufferingChangedEventHandler> m_bufferingChangedEvent;
 
         winrt::event<winrt::mpv_winrt::PlaybackStateChangedEventHandler> m_playbackStateChangedEvent;
         winrt::event<winrt::mpv_winrt::VolumeChangedEventHandler> m_volumeChangedEvent;
         winrt::event<winrt::mpv_winrt::PositionChangedEventHandler> m_positionChangedEvent;
         winrt::event<winrt::mpv_winrt::SpeedChangedEventHandler> m_speedChangedEvent;
         winrt::event<winrt::mpv_winrt::MediaInfoChangedEventHandler> m_mediaInfoChangedEvent;
-        winrt::event<winrt::mpv_winrt::VoConfiguredEventHandler> m_voConfiguredEvent;
+        winrt::event<winrt::mpv_winrt::NetworkInfoChangedEventHandler> m_networkInfoChangedEvent;
+        winrt::event<winrt::mpv_winrt::TrackListChangedEventHandler> m_trackListChangedEvent;
+        winrt::event<winrt::mpv_winrt::TrackListCountChangedEventHandler> m_trackListCountChangedEvent;
         winrt::event<winrt::mpv_winrt::WindowChangedEventHandler> m_windowChangedEvent;
+        winrt::event<winrt::mpv_winrt::DiscMenuActiveChangedEventHandler> m_discMenuActiveChangedEvent;
         winrt::event<winrt::mpv_winrt::LoopFileChangedEventHandler> m_loopFileChangedEvent;
         winrt::event<winrt::mpv_winrt::LoopPlaylistChangedEventHandler> m_loopPlaylistChangedEvent;
         winrt::event<winrt::mpv_winrt::ShuffleChangedEventHandler> m_shuffleChangedEvent;

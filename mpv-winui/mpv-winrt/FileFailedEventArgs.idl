@@ -1,0 +1,7 @@
+namespace mpv_winrt
+{
+	runtimeclass FileFailedEventArgs
+	{
+		String Message { get; };
+	};
+}

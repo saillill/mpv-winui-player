@@ -13,12 +13,7 @@
 
 namespace winrt::mpv_winrt::implementation
 {
-    // Thumbfast-style seek preview worker: a second libmpv instance that
-    // answers hover requests with cheap keyframe seeks. Renders are gated on
-    // seek completion (the "seeking" flag), requests issued before the media
-    // finishes loading are deferred until MPV reports FILE_LOADED, and a
-    // demuxer cache keeps back-and-forth scrubbing off the disk.
-    struct MpvPreviewer : MpvPreviewerT<MpvPreviewer>
+    struct MpvPreviewer: MpvPreviewerT<MpvPreviewer>
     {
         MpvPreviewer();
         ~MpvPreviewer();
@@ -28,17 +23,16 @@ namespace winrt::mpv_winrt::implementation
         void LoadFile(winrt::hstring const& url);
         void SetPosition(double position);
         void Pause();
+        void SetEdition(int32_t edition);
+        void SetDiscPath(winrt::mpv_winrt::DiscType type, winrt::hstring const& path);
+        void SetVideoTrack(int32_t value);
 
     private:
         void CreateContext();
         void SetOption(std::string const& name, std::string const& value);
         void CreateRenderContext();
-        void WorkerLoop();
-        void DrainEvents();
-        void OnFileLoaded();
-        void RequestSeek(double position);
+        void RenderLoop();
         void RenderFrame();
-        void RequestRender();
         static void SwRenderUpdateCallback(void* cb_ctx);
         void NotifyFrameReady();
 
@@ -55,7 +49,7 @@ namespace winrt::mpv_winrt::implementation
         size_t m_stride{0};
         size_t m_size{0};
 
-        std::thread m_workerThread;
+        std::thread m_renderThread;
         std::mutex m_renderMutex;
         std::mutex m_lifecycleMutex;
         std::condition_variable m_renderCv;
@@ -63,30 +57,12 @@ namespace winrt::mpv_winrt::implementation
         bool m_quit{false};
         bool m_initialized{false};
         bool m_destroyed{false};
-
-        // Preview media state, guarded by m_renderMutex (written on the
-        // worker thread, read from caller threads via LoadFile/SetPosition).
-        bool m_mediaReady{false};
-        double m_pendingPos{-1};
-
-        // Worker-thread only. Set when a pass has to run even though libmpv
-        // queued no new frame (the first draw after loadfile, and the forced
-        // passes RequestRender() schedules). mpv_render_context_render()
-        // redraws the previous frame when the queue is empty, so a missed pass
-        // would leave the thumbnail stale until the next queued frame.
-        bool m_renderNeeded{false};
-
-        // There is deliberately no cached "seeking" mirror here. Gating the
-        // render pass on it was measured to cost ~200ms per hover: libmpv's
-        // render API hands a frame to the client and waits for it to be
-        // consumed, so skipping the pass stalls the core and the seek does not
-        // settle. See RenderFrame.
     };
 }
 
 namespace winrt::mpv_winrt::factory_implementation
 {
-    struct MpvPreviewer : MpvPreviewerT<MpvPreviewer, implementation::MpvPreviewer>
+    struct MpvPreviewer: MpvPreviewerT<MpvPreviewer, implementation::MpvPreviewer>
     {
     };
 }

@@ -66,8 +66,11 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private static FontFamily CreateCategoryIconFont() => new("Segoe Fluent Icons");
 
+    private readonly bool _isUnpackaged;
+
     public SettingsPage()
     {
+        _isUnpackaged = !PackageHelper.IsPackaged;
         InitializeComponent();
         _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
         WarmDeviceChoices();

@@ -14,7 +14,7 @@ namespace mpv_winui.Modules.Player
         {
             var size = new ViewSize(PlayerView.ActualWidth, PlayerView.ActualHeight, PlayerView.CompositionScaleX, PlayerView.CompositionScaleY);
             UpdatePlayerViewSize(size);
-            _mediaPlayer.UpdatePanel(PlayerView);
+            _mediaPlayer.AttachSwapChain(PlayerView);
             _playerViewLoaded = true;
 
             // Throttle, not debounce: during a drag-resize the panel size
@@ -46,7 +46,7 @@ namespace mpv_winui.Modules.Player
                 {
                     var size = new ViewSize(PlayerView.ActualWidth, PlayerView.ActualHeight, PlayerView.CompositionScaleX, PlayerView.CompositionScaleY);
                     UpdatePlayerViewSize(size);
-                    _mediaPlayer.UpdatePanel(PlayerView);
+                    _mediaPlayer.AttachSwapChain(PlayerView);
                 }
             });
         }
@@ -98,7 +98,7 @@ namespace mpv_winui.Modules.Player
                 _lastCompositionScaleX = sender.CompositionScaleX;
                 _lastCompositionScaleY = sender.CompositionScaleY;
 
-                _mediaPlayer?.UpdatePanelScale(sender.CompositionScaleX, sender.CompositionScaleY);
+                _mediaPlayer?.UpdateSwapChainScale(sender.CompositionScaleX, sender.CompositionScaleY);
 
                 var size = new ViewSize(sender.ActualWidth, sender.ActualHeight, sender.CompositionScaleX, sender.CompositionScaleY);
                 _sizeChangedAction?.Invoke(size);

@@ -496,7 +496,7 @@ namespace mpv_winui.Modules.Player
                     _lastRefreshRate = rate;
                     if (ShouldAutoApplyRefreshRate())
                     {
-                        _mediaPlayer?.UpdateDisplayRefreshRate(rate);
+                        _mediaPlayer?.UpdateDisplayRefreshRate((int)rate);
                     }
                 }
                 ApplyDisplayPeak();

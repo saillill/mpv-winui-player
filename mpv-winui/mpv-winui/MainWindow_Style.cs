@@ -1,33 +1,19 @@
-using Microsoft.UI.Xaml;
 using mpv_winui.Modules.Common.View;
 
 namespace mpv_winui
 {
-    public sealed partial class MainWindow : Window
+    public sealed partial class MainWindow : BaseWindow
     {
-        private WindowStyleManager? _styleManager;
-
-        private void SetupStyle()
+        public override void UpdateTheme()
         {
-            _styleManager = new WindowStyleManager(this);
-            _styleManager?.Setup();
+            base.UpdateTheme();
+            _windowsManager.UpdateTheme();
         }
 
-        private void CleanupStyle()
+        public override void UpdateBackdrop()
         {
-            _styleManager?.Dispose();
-            _styleManager = null;
-        }
-
-        public void UpdateCurrentTheme()
-        {
-            var theme = _styleManager?.GetThemeType();
-            if (theme is not null)
-            {
-                _styleManager?.UpdateTheme(theme.Value);
-            }
-
-            _settingsWindow?.UpdateCurrentTheme();
+            base.UpdateBackdrop();
+            _windowsManager.UpdateBackdrop();
         }
 
         private void MainWindow_SettingChanged(string key, object? value)

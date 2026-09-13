@@ -15,22 +15,22 @@ namespace mpv_winui.Modules.Player
                     switch (args.PropertyId)
                     {
                         case 201:
-                            HandleFullscreenProperty(args.Value);
+                            SetFullScreen(args.Value);
                             break;
                         case 202:
-                            HandleOnTopProperty(args.Value);
+                            SetAlwaysOnTop(args.Value);
                             break;
                         case 203:
-                            HandleWindowMinimizedProperty(args.Value);
+                            SetWindowMinimized(args.Value);
                             break;
                         case 204:
-                            HandleWindowMaximizedProperty(args.Value);
+                            SetWindowMaximized(args.Value);
                             break;
                         case 205:
-                            HandleTitleBarProperty(args.Value);
+                            SetFullWindow(args.Value);
                             break;
                         case 206:
-                            HandleBorderProperty(args.Value);
+                            SetWindowBorder(args.Value);
                             break;
                     }
                 }
@@ -41,7 +41,7 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        private void HandleFullscreenProperty(bool fullscreen)
+        private void SetFullScreen(bool fullscreen)
         {
             // State-based (not toggle-based): the mpv "fullscreen" property is
             // the source of truth, so "set fullscreen no" (ESC) and repeated
@@ -81,7 +81,7 @@ namespace mpv_winui.Modules.Player
             PlayerControl.RefreshAdaptiveState();
         }
 
-        private void HandleOnTopProperty(bool enable)
+        private void SetAlwaysOnTop(bool enable)
         {
             if (_appWindow.Presenter is OverlappedPresenter presenter)
             {
@@ -98,7 +98,15 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void HandleWindowMinimizedProperty(bool minimized)
+        private void ToggleAlwaysOnTop()
+        {
+            if (_appWindow.Presenter is OverlappedPresenter presenter)
+            {
+                presenter.IsAlwaysOnTop = !presenter.IsAlwaysOnTop;
+            }
+        }
+
+        private void SetWindowMinimized(bool minimized)
         {
             if (_appWindow.Presenter is OverlappedPresenter presenter)
             {
@@ -113,7 +121,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void HandleWindowMaximizedProperty(bool maximized)
+        private void SetWindowMaximized(bool maximized)
         {
             if (_appWindow.Presenter is OverlappedPresenter presenter)
             {
@@ -128,7 +136,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void HandleTitleBarProperty(bool showTitleBar)
+        private void SetFullWindow(bool showTitleBar)
         {
             // mpv's title-bar property maps to the app's full-window state;
             // apply the requested state instead of blindly toggling.
@@ -138,7 +146,7 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void HandleBorderProperty(bool hasBorder)
+        private void SetWindowBorder(bool hasBorder)
         {
             if (_appWindow.Presenter is OverlappedPresenter presenter)
             {

@@ -44,3 +44,5 @@ ImmAssociateContext
 VIRTUAL_KEY
 SetLayeredWindowAttributes
 LAYERED_WINDOW_ATTRIBUTES_FLAGS
+CommandLineToArgvW
+LocalFree

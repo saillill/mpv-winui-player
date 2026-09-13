@@ -14,6 +14,7 @@ namespace mpv_winui.Modules.Language
         public string Add { get; set; } = "Add";
         public string Remove { get; set; } = "Remove";
         public string Cancel { get; set; } = "Cancel";
+        public string Close { get; set; } = "Close";
         public string Help { get; set; } = "Help";
         public string Off { get; set; } = "Off";
         public string Ok { get; set; } = "OK";

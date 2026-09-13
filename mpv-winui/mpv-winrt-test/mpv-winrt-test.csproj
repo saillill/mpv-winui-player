@@ -1,46 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+        <WindowsSdkPackageVersion>10.0.26100.87</WindowsSdkPackageVersion>
         <RootNamespace>mpv_winrt_test</RootNamespace>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <PlatformTarget>x64</PlatformTarget>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-        <NativeArch Condition="'$(NativeArch)' == ''">x64</NativeArch>
-        <CsWinRTIncludes>mpv_winrt</CsWinRTIncludes>
-        <WindowsAppSdkSelfContained>true</WindowsAppSdkSelfContained>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="6.0.4" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
-        <PackageReference Include="NUnit" Version="4.3.2" />
-        <PackageReference Include="NUnit.Analyzers" Version="4.7.0" />
-        <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
-        <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.3.1" />
-        <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.2">
-            <PrivateAssets>all</PrivateAssets>
+        <PackageReference Include="coverlet.collector" Version="10.0.1">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+        <PackageReference Include="NUnit" Version="4.6.1" />
+        <PackageReference Include="NUnit.Analyzers" Version="4.14.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="NUnit3TestAdapter" Version="6.2.0" />
     </ItemGroup>
 
-    <!--
-      Local (default): reference the mpv_winrt winmd built by build.ps1, so
-      `dotnet test` works without a full Visual Studio install (dotnet cannot
-      build the C++ project).
-      CI: pass /p:BuildMpvWinrtWithReference=true to build the C++/projection
-      chain as ProjectReferences (matches upstream GitHub Actions / msbuild).
-    -->
-    <ItemGroup Condition="'$(BuildMpvWinrtWithReference)' == 'true'">
+    <ItemGroup>
         <ProjectReference Include="..\mpv-winrt-projection\mpv-winrt-projection.csproj" />
-    </ItemGroup>
-    <ItemGroup Condition="'$(BuildMpvWinrtWithReference)' != 'true'">
-        <Reference Include="mpv_winrt.winmd">
-            <HintPath>..\bin\$(NativeArch)\$(Configuration)\mpv_winrt\mpv_winrt.winmd</HintPath>
-        </Reference>
-        <Content Include="..\bin\$(NativeArch)\$(Configuration)\mpv_winrt\mpv_winrt.dll" Link="mpv_winrt.dll" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="..\libs\bin\mpv-2.dll" Link="mpv-2.dll" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <ItemGroup>
@@ -49,14 +33,13 @@
         <Using Include="System.Threading.Tasks" />
     </ItemGroup>
 
-    <!--
-      The control-bar layout grammar is UI-free, so the app's exact source
-      file is compiled into this assembly via a link. Tests exercise the same
-      code that ships (see ControlBarLayoutGrammarTests.cs); no reference to
-      the WinUI exe project is needed.
-    -->
     <ItemGroup>
-        <Compile Include="..\mpv-winui\Modules\Player\ControlBarLayoutGrammar.cs"
-                 Link="LinkedSources\ControlBarLayoutGrammar.cs" />
+        <Content Include="..\libs\bin\mpv-2.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="..\x64\Debug\mpv-winrt\mpv_winrt.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
+
 </Project>
