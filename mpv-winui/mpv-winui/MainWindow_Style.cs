@@ -2,7 +2,7 @@ using mpv_winui.Modules.Common.View;
 
 namespace mpv_winui
 {
-    public sealed partial class MainWindow : BaseWindow
+    public sealed partial class MainWindow
     {
         public override void UpdateTheme()
         {
