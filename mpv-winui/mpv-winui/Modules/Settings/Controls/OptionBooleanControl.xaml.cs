@@ -17,8 +17,11 @@ public sealed partial class OptionBooleanControl : OptionControlBase
     {
         if (newValue is not null)
         {
-            ApplyText(LabelText, DescriptionText, newValue);
-            ApplyIcon(TypeIcon, newValue);
+            LabelText.Text = newValue.Label;
+            UpdateDescription(DescriptionText);
+            // Bare Windows-settings switch: the control carries no on/off
+            // captions at all — the track alone, right-aligned, does the job.
+            ToggleSwitch.IsEnabled = newValue.IsEnabled;
 
             _loading = true;
             try

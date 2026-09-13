@@ -95,7 +95,7 @@ namespace mpv_winui.Modules.Player
                 // hdr_auto registers its script-message handler after mpv
                 // scripts load; the startup batch races that registration, so
                 // the saved HDR mode is applied once the first file loads.
-                _mediaPlayer.MediaOpened += MpvPlayerPage_ApplyHdrModeOnce;
+                _mediaPlayer.FileLoaded += MpvPlayerPage_ApplyHdrModeOnce;
 
                 SetupKeyboardInput();
                 SetupMouseInput();
@@ -161,7 +161,7 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer.Destroy();
         }
 
-        private void MpvPlayerPage_ApplyHdrModeOnce(mpv_winrt.MpvPlayer player, object? args)
+        private void MpvPlayerPage_ApplyHdrModeOnce()
         {
             if (_hdrModeAppliedOnce)
             {

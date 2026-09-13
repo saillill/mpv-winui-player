@@ -168,11 +168,11 @@ public sealed partial class PiPWindow : Window
         }
         if (_player is not null)
         {
-            _player.MediaOpened -= PiPPlayer_MediaLoaded;
+            _player.FileLoaded -= PiPPlayer_MediaLoaded;
             _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
         }
         _player = player;
-        _player.MediaOpened += PiPPlayer_MediaLoaded;
+        _player.FileLoaded += PiPPlayer_MediaLoaded;
         _player.MediaInfoChanged += PiPPlayer_MediaInfoChanged;
         PiPControls.MediaPlayer = player;
         PiPControls.IsPiPHost = true;
@@ -182,7 +182,7 @@ public sealed partial class PiPWindow : Window
     {
         if (_player is not null)
         {
-            _player.MediaOpened -= PiPPlayer_MediaLoaded;
+            _player.FileLoaded -= PiPPlayer_MediaLoaded;
             _player.MediaInfoChanged -= PiPPlayer_MediaInfoChanged;
             PiPControls.MediaPlayer = null;
             _player = null;

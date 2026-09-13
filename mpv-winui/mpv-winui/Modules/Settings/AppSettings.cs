@@ -1,4 +1,4 @@
-using mpv_winui.Modules.AppModel;
+﻿using mpv_winui.Modules.AppModel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -262,6 +262,17 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(EnableVideoPreview), false);
             set => _dataSetting.SetValue(nameof(EnableVideoPreview), value);
+        }
+        public bool EnableVideoBuiltInPreview
+        {
+            get => _dataSetting.GetValue(nameof(EnableVideoBuiltInPreview), true);
+            set => _dataSetting.SetValue(nameof(EnableVideoBuiltInPreview), value);
+        }
+
+        public bool EnableSaveBackup
+        {
+            get => _dataSetting.GetValue(nameof(EnableSaveBackup), true);
+            set => _dataSetting.SetValue(nameof(EnableSaveBackup), value);
         }
 
         public int Volume

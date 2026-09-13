@@ -224,5 +224,18 @@ namespace mpv_winui.Modules.Player
 
             return false;
         }
+
+    /// <summary>Fork convenience overload: native Command only takes a single IVector<string>;
+    /// fork callers historically passed multiple scalar arguments. This wraps them into the
+    /// single vector the native side expects, preserving all 48 QuickControlPanel call sites.</summary>
+    public static void Command(this MpvPlayer player, params string[] args)
+    {
+        var vec = new System.Collections.Generic.List<string>(args.Length);
+        for (int i = 0; i < args.Length; i++)
+        {
+            vec.Add(args[i] ?? string.Empty);
+        }
+        player.Command(vec);
+    }
     }
 }

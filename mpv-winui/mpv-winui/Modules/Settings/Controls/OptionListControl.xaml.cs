@@ -49,35 +49,102 @@ public sealed partial class OptionListControl : UserControl
     {
         if (d is OptionListControl self)
         {
-            if (e.NewValue is List<Option> list)
+            self.ApplyItemsSource();
+        }
+    }
+
+    private void ApplyItemsSource()
+    {
+        // Every option renders through the same common templates (the
+        // OptionTemplateSelector below); no tier filtering. Group headers
+        // appear only when the page actually spans two or more sections —
+        // a single-section page repeating its own name is pure noise.
+        var visible = new List<Option>(OptionList.Count);
+        foreach (var option in OptionList)
+        {
+            if (option.IsVisible)
             {
-                self.OptionListSource.Source = BuildGroups(list);
+                visible.Add(option);
             }
-            else
+        }
+
+        var sectionCount = visible
+            .Where(o => !string.IsNullOrEmpty(o.Section))
+            .Select(o => o.Section)
+            .Distinct(StringComparer.Ordinal)
+            .Count();
+        var showHeaders = sectionCount >= 2;
+
+        var items = new List<object>(visible.Count + 8);
+        string? lastSection = null;
+        foreach (var option in visible)
+        {
+            if (showHeaders && !string.IsNullOrEmpty(option.Section) && option.Section != lastSection)
             {
-                self.OptionListSource.Source = (List<Option>)[];
+                items.Add(new SectionHeaderItem { Caption = option.Section });
+                lastSection = option.Section;
+            }
+
+            items.Add(option);
+        }
+
+        OptionListView.ItemsSource = items;
+    }
+
+    /// <summary>Rebuilds the list (e.g. after an option becomes visible/hidden).</summary>
+    public void Refresh()
+    {
+        var offset = GetScrollOffset();
+        ApplyItemsSource();
+        if (offset > 0)
+        {
+            DispatcherQueue.TryEnqueue(() => SetScrollOffset(offset));
+        }
+    }
+
+    /// <summary>Returns the current vertical offset of the options list.</summary>
+    public double GetScrollOffset()
+    {
+        return FindScrollViewer(OptionListView)?.VerticalOffset ?? 0;
+    }
+
+    /// <summary>Restores the vertical offset after the list is rebuilt.</summary>
+    public void SetScrollOffset(double offset)
+    {
+        var viewer = FindScrollViewer(OptionListView);
+        if (viewer is not null && offset > 0)
+        {
+            viewer.ChangeView(null, offset, null, disableAnimation: true);
+        }
+    }
+
+    /// <summary>Scrolls the option with the given key into view (settings search).</summary>
+    public void ScrollToOption(string key)
+    {
+        foreach (var option in OptionList)
+        {
+            if (option.Key == key)
+            {
+                OptionListView.ScrollIntoView(option);
+                return;
             }
         }
     }
 
-    private static IReadOnlyList<OptionGroup> BuildGroups(List<Option> options)
+    private static ScrollViewer? FindScrollViewer(DependencyObject root)
     {
-        return options.GroupBy(
-                o => string.IsNullOrEmpty(o.GroupKey) ? Option.GroupOtherKey : o.GroupKey,
-                (k, r) => new OptionGroup(k, r.First()?.GroupLabel, r.ToArray())
-               ).ToArray();
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is ScrollViewer viewer)
+            {
+                return viewer;
+            }
+            if (FindScrollViewer(child) is { } nested)
+            {
+                return nested;
+            }
+        }
+        return null;
     }
-
-    public object? Footer
-    {
-        get => GetValue(FooterProperty);
-        set => SetValue(FooterProperty, value);
-    }
-
-    public static readonly DependencyProperty FooterProperty = DependencyProperty.Register(
-            nameof(Footer),
-            typeof(object),
-            typeof(OptionListControl),
-            new PropertyMetadata(null)
-            );
 }
