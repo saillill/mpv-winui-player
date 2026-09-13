@@ -14,7 +14,52 @@ namespace mpv_winui.Modules.Settings
             //HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\ikas-mc\mpvw\app
             var application = ApplicationData.GetForUnpackaged(AppData.AppDataPublisher, AppData.AppDataId);
             _container = application.LocalSettings.CreateContainer(typeName, ApplicationDataCreateDisposition.Always);
+            MigrateLegacyContainer(typeName);
         }
+
+        /// <summary>
+        /// Installs created before the upstream identity (ikas-mc / mpvw) was
+        /// adopted keep every setting under the old "mpv-winui" publisher and
+        /// app id. Adopting the new identity would otherwise silently orphan
+        /// them — the app would come up in English on a fresh store with all
+        /// options blank. Copy each legacy key that this container does not
+        /// define yet, then remember that the migration ran.
+        /// </summary>
+        private void MigrateLegacyContainer(string typeName)
+        {
+            const string migratedKey = "LegacySettingsMigrated";
+            try
+            {
+                if (_container.Values.ContainsKey(migratedKey))
+                {
+                    return;
+                }
+
+                var legacy = ApplicationData.GetForUnpackaged(LegacyPublisher, LegacyAppId)
+                    .LocalSettings.CreateContainer(typeName, ApplicationDataCreateDisposition.Always);
+
+                foreach (var item in legacy.Values)
+                {
+                    // Only fill gaps: a value already stored under the current
+                    // identity is newer and wins.
+                    if (!_container.Values.ContainsKey(item.Key) && item.Value is not null)
+                    {
+                        _container.Values[item.Key] = item.Value;
+                    }
+                }
+
+                _container.Values[migratedKey] = "true";
+            }
+            catch (Exception)
+            {
+                // A missing/inaccessible legacy store is the normal case for a
+                // clean install; never block startup on it.
+            }
+        }
+
+        /// <summary>Publisher / app id used before the upstream rename.</summary>
+        private const string LegacyPublisher = "mpv-winui";
+        private const string LegacyAppId = "mpv-winui";
 
         public T GetValue<T>(string propertyName, T defaultValue)
         {
