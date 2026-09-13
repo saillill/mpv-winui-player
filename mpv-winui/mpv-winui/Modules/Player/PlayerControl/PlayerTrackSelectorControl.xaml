@@ -28,17 +28,17 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <FontIcon
-                            FontFamily="{StaticResource MpvIconFontFamily}"
                             FontSize="16"
-                            Glyph="&#xEBCD;" />
+                            Glyph="&#xED1E;" />
                         <TextBlock
-                            x:Name="SubtitleHeaderText"
                             VerticalAlignment="Center"
-                            FontSize="12" />
+                            FontSize="12">
+                            Subtile
+                        </TextBlock>
                         <TextBlock
                             VerticalAlignment="Center"
                             FontSize="10"
-                                Text="{x:Bind SubtitleListView.SelectedIndex, Mode=OneWay}" />
+                            Text="{x:Bind SubtitleListView.SelectedIndex}" />
                     </StackPanel>
                 </PivotItem.Header>
                 <ListView
@@ -69,17 +69,17 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <FontIcon
-                            FontFamily="{StaticResource MpvIconFontFamily}"
                             FontSize="16"
-                            Glyph="&#xEBCD;" />
+                            Glyph="&#xED1E;" />
                         <TextBlock
-                            x:Name="SecondSubHeaderText"
                             VerticalAlignment="Center"
-                            FontSize="12" />
+                            FontSize="12">
+                            Subtile Sec
+                        </TextBlock>
                         <TextBlock
                             VerticalAlignment="Center"
                             FontSize="10"
-                                Text="{x:Bind SecondSubListView.SelectedIndex, Mode=OneWay}" />
+                            Text="{x:Bind SecondSubListView.SelectedIndex}" />
                     </StackPanel>
                 </PivotItem.Header>
                 <ListView
@@ -110,17 +110,17 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <FontIcon
-                            FontFamily="{StaticResource MpvIconFontFamily}"
                             FontSize="16"
-                            Glyph="&#xF850;" />
+                            Glyph="&#xE8B2;" />
                         <TextBlock
-                            x:Name="VideoHeaderText"
                             VerticalAlignment="Center"
-                            FontSize="12" />
+                            FontSize="12">
+                            Video
+                        </TextBlock>
                         <TextBlock
                             VerticalAlignment="Center"
                             FontSize="10"
-                                Text="{x:Bind VideoListView.SelectedIndex, Mode=OneWay}" />
+                            Text="{x:Bind VideoListView.SelectedIndex}" />
                     </StackPanel>
                 </PivotItem.Header>
                 <ListView
@@ -151,17 +151,17 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <FontIcon
-                            FontFamily="{StaticResource MpvIconFontFamily}"
                             FontSize="16"
-                            Glyph="&#xE855;" />
+                            Glyph="&#xE8D6;" />
                         <TextBlock
-                            x:Name="AudioHeaderText"
                             VerticalAlignment="Center"
-                            FontSize="12" />
+                            FontSize="12">
+                            Audio
+                        </TextBlock>
                         <TextBlock
                             VerticalAlignment="Center"
                             FontSize="10"
-                                Text="{x:Bind AudioListView.SelectedIndex, Mode=OneWay}" />
+                            Text="{x:Bind AudioListView.SelectedIndex}" />
                     </StackPanel>
                 </PivotItem.Header>
                 <ListView

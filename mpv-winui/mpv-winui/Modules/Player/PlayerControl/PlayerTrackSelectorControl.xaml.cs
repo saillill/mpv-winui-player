@@ -28,10 +28,6 @@ namespace mpv_winui.Modules.Player.PlayerControl
         public PlayerTrackSelectorControl()
         {
             InitializeComponent();
-            SubtitleHeaderText.Text = mpv_winui.AppContext.AppLang.Subtitles;
-            SecondSubHeaderText.Text = mpv_winui.AppContext.AppLang.SecondSubtitle;
-            VideoHeaderText.Text = mpv_winui.AppContext.AppLang.VideoTracks;
-            AudioHeaderText.Text = mpv_winui.AppContext.AppLang.AudioTracks;
         }
 
         public void LoadVideoTracks(IReadOnlyList<MpvTrack> tracks)
