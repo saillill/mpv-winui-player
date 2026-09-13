@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -22,7 +22,7 @@ namespace mpv_winui.Modules.Player
     /// Overlay panel show/hide animation (windowed and PiP paths).
     /// Split from PlayerControl.xaml.cs (audit C5); content is byte-identical.
     /// </summary>
-    public partial class PlayerControl
+    public sealed partial class PlayerControl
     {
         // Shared panel animation timing. Windowed show/hide use 180/150ms;
         // overlay (fullscreen/PiP) intentionally keeps 180ms for both

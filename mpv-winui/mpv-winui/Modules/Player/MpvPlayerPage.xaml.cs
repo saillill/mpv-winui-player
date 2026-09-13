@@ -221,7 +221,7 @@ namespace mpv_winui.Modules.Player
             {
                 ApplyLocalizedStrings();
                 PlayerControl.ApplyLocalizedStrings();
-                BuildMainMenuBar();
+                RebuildMenuBar();
             });
         }
 
@@ -251,7 +251,7 @@ namespace mpv_winui.Modules.Player
             await AppContext.WaitAll();
             _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
-            _mediaPlayer.Native.VoConfigured += MpvPlayer_SwapChainChanged;
+            _mediaPlayer.VoConfigured += MpvPlayer_SwapChainChanged;
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
                 ? AppContext.AppSetting.OverrideDisplayFps
                 : _lastRefreshRate;
@@ -307,7 +307,7 @@ namespace mpv_winui.Modules.Player
             try
             {
                 _mediaPlayer.Command(["quit-watch-later"]);
-                _ = _mediaPlayer.SaveWatchHistory;
+                _ = _mediaPlayer.SaveWatchHistory();
             }
             catch (Exception ex)
             {

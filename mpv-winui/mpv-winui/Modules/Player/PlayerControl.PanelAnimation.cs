@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -22,7 +22,7 @@ namespace mpv_winui.Modules.Player
     /// <summary>
     /// Overlay mode plus the gradient panel show/hide animation state machine.
     /// </summary>
-    public partial class PlayerControl
+    public sealed partial class PlayerControl
     {
             public bool IsVisible()
             {

@@ -7,7 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:mpv_winui.Modules.Player"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:pc="using:mpv_winui.Modules.Player.PlayerControl"
+    xmlns:pc="using:mpv_winui.Modules.Player"
     xmlns:preview="using:mpv_winui.Modules.Player.BuiltInPreview"
     mc:Ignorable="d">
 

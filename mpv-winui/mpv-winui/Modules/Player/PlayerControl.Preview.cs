@@ -22,7 +22,7 @@ namespace mpv_winui.Modules.Player
     /// <summary>
     /// Seek-bar hover preview request pipeline (pointer tracking and hooks).
     /// </summary>
-    public partial class PlayerControl
+    public sealed partial class PlayerControl
     {
             private void ProgressSlider_PointerEntered(object sender, PointerRoutedEventArgs e)
             {
@@ -79,7 +79,7 @@ namespace mpv_winui.Modules.Player
     
             private void UpdatePreview(PointerRoutedEventArgs e)
             {
-                if (MediaPlayer == null || MediaPlayer.Duration <= 0)
+                if (MediaPlayer == null || MediaPlayer.Duration() <= 0)
                 {
                     return;
                 }
@@ -90,13 +90,13 @@ namespace mpv_winui.Modules.Player
     
             private void UpdatePreview(double fraction)
             {
-                if (MediaPlayer == null || MediaPlayer.Duration <= 0)
+                if (MediaPlayer == null || MediaPlayer.Duration() <= 0)
                 {
                     return;
                 }
     
                 fraction = Math.Clamp(fraction, 0, 1);
-                var hoverSec = fraction * MediaPlayer.Duration;
+                var hoverSec = fraction * MediaPlayer.Duration();
                 var controlPoint = ProgressSlider.TransformToVisual(this).TransformPoint(new Point(fraction * ProgressSlider.ActualWidth, 0));
     
                 PreviewUpdateRequested?.Invoke(this, (hoverSec, controlPoint.X, controlPoint.Y));

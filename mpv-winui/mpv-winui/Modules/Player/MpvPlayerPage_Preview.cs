@@ -1,4 +1,5 @@
 using System;
+using Microsoft.UI.Dispatching;
 
 namespace mpv_winui.Modules.Player
 {
@@ -11,6 +12,10 @@ namespace mpv_winui.Modules.Player
         {
             if (AppContext.AppSetting.EnableVideoPreview)
             {
+                // Materialise the throttle timer so the ThumbnailUpdateInterval
+                // setting has a live target while previews are enabled.
+                EnsurePreviewThrottleTimer();
+
                 PlayerControl.PreviewUpdateRequested += PlayerControl_PreviewUpdateRequested;
                 PlayerControl.PreviewClearRequested += PlayerControl_PreviewClearRequested;
             }
@@ -20,6 +25,12 @@ namespace mpv_winui.Modules.Player
         {
             PlayerControl.PreviewUpdateRequested -= PlayerControl_PreviewUpdateRequested;
             PlayerControl.PreviewClearRequested -= PlayerControl_PreviewClearRequested;
+
+            if (_previewThrottleTimer is { } timer)
+            {
+                timer.Stop();
+                _previewThrottleTimer = null;
+            }
         }
 
         private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double X, double Y) args)

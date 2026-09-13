@@ -139,7 +139,7 @@ public sealed partial class PiPWindow
         try
         {
             _player?.Command(["quit-watch-later"]);
-            _ = _player?.SaveWatchHistory;
+            _ = _player?.SaveWatchHistory();
         }
         catch (Exception)
         {

@@ -22,7 +22,7 @@ namespace mpv_winui.Modules.Player
     /// <summary>
     /// Chapter tick and A/B-loop markers drawn over the progress slider.
     /// </summary>
-    public partial class PlayerControl
+    public sealed partial class PlayerControl
     {
             private void AbLoopButton_Click(object sender, RoutedEventArgs e)
             {
@@ -34,9 +34,9 @@ namespace mpv_winui.Modules.Player
             /// <summary>Positions the A/B markers on the progress bar from mpv's ab-loop properties.</summary>
             private void UpdateAbLoopMarks()
             {
-                var duration = MediaPlayer?.Duration ?? 0;
-                var a = MediaPlayer?.AbLoopA ?? -1;
-                var b = MediaPlayer?.AbLoopB ?? -1;
+                var duration = MediaPlayer?.Duration() ?? 0;
+                var a = MediaPlayer?.AbLoopA() ?? -1;
+                var b = MediaPlayer?.AbLoopB() ?? -1;
                 var width = ProgressSlider.ActualWidth;
                 if (width <= 0)
                 {
@@ -78,7 +78,7 @@ namespace mpv_winui.Modules.Player
     
             private void UpdateChapterMarks(bool force = false)
             {
-                var duration = MediaPlayer?.Duration ?? 0;
+                var duration = MediaPlayer?.Duration() ?? 0;
                 var width = ProgressSlider.ActualWidth;
                 if (width <= 0 || duration <= 0)
                 {

@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
@@ -11,7 +11,7 @@ namespace mpv_winui.Modules.Player
     /// builders live in the QuickControlPanel.* partials; this file only
     /// wires the host and composes the Pivot shell.
     /// </summary>
-    public partial class PlayerControl
+    public sealed partial class PlayerControl
     {
         private bool _panelBuilt;
         private Pivot? _panelPivot;

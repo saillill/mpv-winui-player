@@ -275,6 +275,46 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(EnableSaveBackup), value);
         }
 
+        // ------------------------------------------------------------
+        // Fork-owned settings dropped in the upstream merge. Declarations and
+        // defaults are restored from the fork history (afa6ebf, 72dca0f) so the
+        // fork's partial classes keep compiling against this file.
+        // ------------------------------------------------------------
+
+        public bool KeepVideoBuiltInPreviewAlive
+        {
+            get => _dataSetting.GetValue(nameof(KeepVideoBuiltInPreviewAlive), false);
+            set => _dataSetting.SetValue(nameof(KeepVideoBuiltInPreviewAlive), value);
+        }
+
+        public int BuiltInPreviewAliveTimeout
+        {
+            get => _dataSetting.GetValue(nameof(BuiltInPreviewAliveTimeout), 20);
+            set => _dataSetting.SetValue(nameof(BuiltInPreviewAliveTimeout), value);
+        }
+
+        public bool EnableMouseInput
+        {
+            get => _dataSetting.GetValue(nameof(EnableMouseInput), true);
+            set => _dataSetting.SetValue(nameof(EnableMouseInput), value);
+        }
+
+        public bool EnableMouseInputDiscNavOnly
+        {
+            get => _dataSetting.GetValue(nameof(EnableMouseInputDiscNavOnly), false);
+            set => _dataSetting.SetValue(nameof(EnableMouseInputDiscNavOnly), value);
+        }
+
+        public const string PlayerStyle_Default = "Default";
+        public const string PlayerStyle_Center = "Center";
+        public const string PlayerStyle_Compact = "Compact";
+
+        public string PlayerStyle
+        {
+            get => _dataSetting.GetValue(nameof(PlayerStyle), PlayerStyle_Default);
+            set => _dataSetting.SetValue(nameof(PlayerStyle), value);
+        }
+
         public int Volume
         {
             get => _dataSetting.GetValue(nameof(Volume), 100);

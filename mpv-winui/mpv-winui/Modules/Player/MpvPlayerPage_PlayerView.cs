@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using mpv_winui.Modules.Common.Utils;
 using System;
 
@@ -35,7 +35,7 @@ namespace mpv_winui.Modules.Player
             _sizeChangedAction = null;
             PlayerView.SizeChanged -= PlayerView_SizeChanged;
             PlayerView.CompositionScaleChanged -= PlayerView_CompositionScaleChanged;
-            _mediaPlayer.Native.VoConfigured -= MpvPlayer_SwapChainChanged;
+            _mediaPlayer.VoConfigured -= MpvPlayer_SwapChainChanged;
         }
 
         private void MpvPlayer_SwapChainChanged()

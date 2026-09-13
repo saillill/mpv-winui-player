@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Modules.AppModel;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
 using mpv_winui.Modules.Player;
@@ -388,7 +389,7 @@ public sealed partial class SettingsPage : Page
         MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
         if (App.Window is MainWindow mainWindow)
         {
-            mainWindow.UpdateCurrentTheme();
+            mainWindow.UpdateTheme();
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), AppContext.AppSetting.BackdropType);
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.EnableDebugLog), AppContext.AppSetting.EnableDebugLog);
         }

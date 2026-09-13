@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
@@ -12,7 +12,7 @@ namespace mpv_winui.Modules.Player;
 /// Equalizer / audio-subtitle delay / custom playback-rate flyout handlers.
 /// Split from PlayerControl.xaml.cs (audit C5) without behavior changes.
 /// </summary>
-public partial class PlayerControl
+public sealed partial class PlayerControl
 {
     // ===== Equalizer =====
     private static readonly string[] EqualizerBands =

@@ -23,7 +23,7 @@ namespace mpv_winui.Modules.Player
     /// Control-bar composition: PiP bar switching, layout/zones application,
     /// width-adaptive states and the narrow-window overflow menu.
     /// </summary>
-    public partial class PlayerControl
+    public sealed partial class PlayerControl
     {
             private void OnPiPClick(object sender, RoutedEventArgs e)
             {
@@ -92,7 +92,7 @@ namespace mpv_winui.Modules.Player
                     SetHidden(false, VolumeSliderContainer);
                     TimeTextGrid.Visibility = Visibility.Collapsed;
                     CompactTimeContainer.Visibility = Visibility.Visible;
-                    UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
+                    UpdateTimeTexts(MediaPlayer?.Position() ?? 0, MediaPlayer?.Duration() ?? 0);
                     return;
                 }
     
@@ -569,6 +569,28 @@ namespace mpv_winui.Modules.Player
             {
                 UpdateToolbarVisibility(ActualWidth);
             }
-    
+
+            /// <summary>
+            /// Converts a point expressed relative to the control bar into the
+            /// coordinate space of <paramref name="target"/> (the video panel).
+            /// Used to place the seek-bar hover thumbnail over the video surface.
+            /// </summary>
+            public Point TransformSliderPoint(UIElement target, double x, double y)
+            {
+                return TransformToVisual(target).TransformPoint(new Point(x, y));
+            }
+
+            /// <summary>Flips the overlay control panel between shown and hidden.</summary>
+            public void ToggleControlPanel()
+            {
+                if (_controlPanelIsVisible)
+                {
+                    HideControlPanel();
+                }
+                else
+                {
+                    ShowControlPanel();
+                }
+            }
     }
 }

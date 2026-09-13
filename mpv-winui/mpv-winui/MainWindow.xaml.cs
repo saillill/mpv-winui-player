@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Windowing;
+using Windows.Graphics;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using mpv_winui.Modules.Activation;
