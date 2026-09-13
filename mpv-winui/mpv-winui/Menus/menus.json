@@ -10,10 +10,17 @@
       { "separator": true },
       { "id": "open-dvd", "labelKey": "FileOpenDvd", "action": "open-dvd" },
       { "id": "open-bd", "labelKey": "FileOpenBd", "action": "open-bd" },
+      { "id": "open-cdda", "labelKey": "FileOpenCdda", "action": "open-cdda" },
+      { "id": "open-dvda", "labelKey": "FileOpenDvda", "action": "open-dvda" },
+      { "id": "open-cd-img", "labelKey": "FileOpenCdImage", "action": "open-cd-img" },
+      { "id": "open-dvd-img", "labelKey": "FileOpenDvdImage", "action": "open-dvd-img" },
+      { "id": "open-dvda-img", "labelKey": "FileOpenDvdaImage", "action": "open-dvda-img" },
+      { "id": "open-bd-img", "labelKey": "FileOpenBdImage", "action": "open-bd-img" },
       { "separator": true },
       { "id": "open-watch-history", "labelKey": "FileOpenWatchHistory", "action": "open-watch-history" },
       { "id": "open-watch-later", "labelKey": "FileOpenWatchLater", "action": "open-watch-later" },
       { "separator": true },
+      { "id": "load-subtitle", "labelKey": "FileLoadSubtitle", "action": "load-subtitle" },
       { "id": "screenshot", "labelKey": "FileScreenshot", "action": "screenshot" },
       { "id": "screenshot-no-sub", "labelKey": "FileScreenshotNoSub", "action": "screenshot-no-sub" },
       { "separator": true },
@@ -35,7 +42,8 @@
       { "id": "playlist-export", "labelKey": "PlaylistExport", "action": "playlist-export" },
       { "separator": true },
       { "id": "fullwindow", "labelKey": "ViewFullWindow", "action": "fullwindow" },
-      { "id": "fullscreen", "labelKey": "ViewFullScreen", "action": "fullscreen" }
+      { "id": "fullscreen", "labelKey": "ViewFullScreen", "action": "fullscreen" },
+      { "id": "ontop", "labelKey": "ViewAlwaysOnTop", "action": "ontop" }
     ]
   },
   {
@@ -70,11 +78,24 @@
     "labelKey": "MenuTools",
     "children": [
       { "id": "options", "labelKey": "ViewOptions", "action": "options" },
+      { "id": "conf-edit", "labelKey": "ViewMpvConfEditor", "action": "conf-edit" },
+      { "separator": true },
+      { "id": "edit-menu-mpv", "labelKey": "ViewMpvMenuEditor", "action": "edit-menu-mpv" },
+      { "id": "edit-menu-menubar", "labelKey": "ViewMenuBarEditor", "action": "edit-menu-menubar" },
+      { "separator": true },
       { "id": "mpv-command", "labelKey": "SettingsCommandMenuItem", "action": "mpv-command" },
       { "id": "shortcut-search", "labelKey": "ShortcutSearchTitle", "action": "shortcut-search" },
+      { "id": "media-info", "labelKey": "ViewMediaInfo", "action": "media-info" },
       { "separator": true },
       { "id": "conf-folder", "labelKey": "ViewConfFolder", "action": "conf-folder" },
-      { "id": "mpv-folder", "labelKey": "ViewMpvFolder", "action": "mpv-folder" }
+      { "id": "mpv-folder", "labelKey": "ViewMpvFolder", "action": "mpv-folder" },
+      { "separator": true },
+      { "id": "open-mpv-conf", "labelKey": "ViewMpvConf", "action": "open-mpv-conf" },
+      { "id": "open-mpvw-conf", "labelKey": "ViewMpvwConf", "action": "open-mpvw-conf" },
+      { "id": "open-input-conf", "labelKey": "ViewInputConf", "action": "open-input-conf" },
+      { "id": "open-menu-conf", "labelKey": "ViewMenuConf", "action": "open-menu-conf" },
+      { "id": "open-mpv-log", "labelKey": "ViewMpvLog", "action": "open-mpv-log" },
+      { "id": "open-mpwv-menu-conf", "labelKey": "ViewMpvwMenuConf", "action": "open-mpwv-menu-conf" }
     ]
   },
   {
@@ -82,7 +103,12 @@
     "labelKey": "MenuHelp",
     "children": [
       { "id": "display-info", "labelKey": "DisplayInfo", "action": "display-info" },
-      { "id": "mpv-docs", "labelKey": "HelpMpvDocs", "action": "mpv-docs" },
+      { "separator": true },
+      { "id": "link-mpv-wiki", "labelKey": "LinkMpvWiki", "action": "link-mpv-wiki" },
+      { "id": "link-mpv-manual", "labelKey": "LinkMpvManual", "action": "link-mpv-manual" },
+      { "id": "link-mpv-manual-stable", "labelKey": "LinkMpvManualStable", "action": "link-mpv-manual-stable" },
+      { "id": "link-mpvw-wiki", "labelKey": "LinkMpvwWiki", "action": "link-mpvw-wiki" },
+      { "separator": true },
       { "id": "about", "labelKey": "HelpAbout", "action": "about" }
     ]
   }

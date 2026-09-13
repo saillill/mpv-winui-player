@@ -1,8 +1,5 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using System;
-using System.Threading;
-using mpv_winrt;
 
 namespace mpv_winui.Modules.Player
 {
@@ -17,8 +14,6 @@ namespace mpv_winui.Modules.Player
     /// </summary>
     public sealed partial class MpvPlayerPage
     {
-        // --------------------------------------------------------- localization
-
         /// <summary>
         /// Re-applies localized text to this page's own chrome. The control bar
         /// and menu bar have their own re-localization entry points that the
@@ -36,31 +31,6 @@ namespace mpv_winui.Modules.Player
             {
                 PlayerControl.ApplyLocalizedStrings();
             }
-        }
-
-        // -------------------------------------------------------------- menu bar
-
-        /// <summary>
-        /// Rebuilds the custom menu bar entries. The merged code base loads the
-        /// definitions through <c>SetupCustomMenuBarItems</c>; this is the
-        /// "rebuild after a definition or language change" entry point that the
-        /// language-changed handler and MainWindow call.
-        /// </summary>
-        public void RebuildMenuBar()
-        {
-            if (MainMenuBar is null)
-            {
-                return;
-            }
-
-            // Drop the previously injected custom items (everything between the
-            // built-in head and the trailing item) before re-adding them.
-            while (MainMenuBar.Items.Count > 3)
-            {
-                MainMenuBar.Items.RemoveAt(MainMenuBar.Items.Count - 2);
-            }
-
-            SetupCustomMenuBarItems();
         }
     }
 }

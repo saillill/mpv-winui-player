@@ -285,6 +285,30 @@ namespace mpv_winui.Modules.Language
         public string MenuAudio { get; set; } = "Audio";
         public string MenuSubtitles { get; set; } = "Subtitles";
         public string MenuTools { get; set; } = "Tools";
+        // Menu entries that were authored inline in the old XAML menu bar and
+        // never had a language key; added so the config-driven menu
+        // (Menus/menus.json) can render them localized.
+        public string FileOpenDvda { get; set; } = "Open DVDA";
+        public string FileOpenCdda { get; set; } = "Open CD";
+        public string FileOpenCdImage { get; set; } = "Open CD Img";
+        public string FileOpenDvdImage { get; set; } = "Open DVD Img";
+        public string FileOpenDvdaImage { get; set; } = "Open DVDA Img";
+        public string FileOpenBdImage { get; set; } = "Open BD Img";
+        public string ViewAlwaysOnTop { get; set; } = "Always On Top";
+        public string ViewMpvConfEditor { get; set; } = "Mpv Conf Editor";
+        public string ViewMpvMenuEditor { get; set; } = "Mpv Menu Editor";
+        public string ViewMenuBarEditor { get; set; } = "Menu Bar Editor";
+        public string ViewMpvConf { get; set; } = "mpv.conf";
+        public string ViewMpvwConf { get; set; } = "mpvw.conf";
+        public string ViewInputConf { get; set; } = "input.conf";
+        public string ViewMenuConf { get; set; } = "menu.conf";
+        public string ViewMpvLog { get; set; } = "mpv.log";
+        public string ViewMpvwMenuConf { get; set; } = "mpvw-menu.conf";
+        public string ViewMediaInfo { get; set; } = "Media Info";
+        public string LinkMpvWiki { get; set; } = "Mpv Wiki";
+        public string LinkMpvManual { get; set; } = "Mpv Manual";
+        public string LinkMpvManualStable { get; set; } = "Mpv Manual (Stable)";
+        public string LinkMpvwWiki { get; set; } = "Mpvw Wiki";
         public string PlaybackPlayPause { get; set; } = "Play / Pause";
         public string PlaybackPrevious { get; set; } = "Previous";
         public string PlaybackNext { get; set; } = "Next";

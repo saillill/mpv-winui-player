@@ -105,6 +105,9 @@ namespace mpv_winui.Modules.Player
                     SetupPreview();
                 }
 
+                // Config-driven menu bar (Menus/menus.json + user override).
+                // Falls back to the XAML-declared items when no definition loads.
+                BuildMainMenuBar();
                 SetupCustomMenuBarItems();
 
                 OpenPendingPath().FireAndForget(OnException);
