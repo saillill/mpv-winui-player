@@ -1,9 +1,9 @@
+using Microsoft.UI.Dispatching;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Input;
 using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
@@ -33,7 +33,7 @@ namespace mpv_winui.Modules.Player
         public readonly double Duration => item.Duration;
 
         /// <summary>
-        /// "· WxH" for the currently playing row — mpv only exposes video
+        /// " · WxH" for the currently playing row - mpv only exposes video
         /// dimensions for the playing entry, so every other row stays empty.
         /// </summary>
         public string ResolutionText { get; set; } = string.Empty;
@@ -60,9 +60,10 @@ namespace mpv_winui.Modules.Player
 
     public sealed partial class MpvPlayerPage
     {
+        /// <summary>All rows as mpv reports them (unfiltered).</summary>
         public ObservableCollection<PlaylistItem> PlaylistItems { get; } = [];
 
-        /// <summary>Visible playlist rows (PlaylistItems filtered by <see cref="PlaylistFilterBox"/>).</summary>
+        /// <summary>Rows actually rendered: <see cref="PlaylistItems"/> narrowed by the filter box.</summary>
         public ObservableCollection<PlaylistItem> FilteredPlaylistItems { get; } = [];
 
         private readonly List<PlaylistItem> _allPlaylistItems = [];
@@ -76,7 +77,8 @@ namespace mpv_winui.Modules.Player
 
         private void RefreshPlaylistAsync()
         {
-            // Coalesce bursty mpv playlist events into one refresh.
+            // Coalesce bursty mpv playlist events (a loadlist can emit one
+            // PlaylistChanged per entry) into a single refresh.
             _playlistRefreshPending = true;
             _playlistRefreshTimer ??= CreatePlaylistRefreshTimer();
             _playlistRefreshTimer.Start();
@@ -90,9 +92,13 @@ namespace mpv_winui.Modules.Player
             return timer;
         }
 
-        private void PlaylistRefreshTimer_Tick(DispatcherQueueTimer sender, object args)
+        private void PlaylistRefreshTimer_Tick(object? sender, object args)
         {
-            sender.Stop();
+            if (sender is DispatcherQueueTimer timer)
+            {
+                timer.Stop();
+            }
+
             if (!_playlistRefreshPending)
             {
                 return;
@@ -118,7 +124,7 @@ namespace mpv_winui.Modules.Player
             // thread: reads here stay atomic and at worst one refresh stale.
             var videoWidth = _videoWidth;
             var videoHeight = _videoHeight;
-            var items = await Task.Run(() => _mediaPlayer.Playlist().Select(x => new PlaylistItem(x)
+            var items = await Task.Run(() => _mediaPlayer.GetPlaylist().Select(x => new PlaylistItem(x)
             {
                 ResolutionText = x.IsCurrent && videoWidth > 0
                     ? $" · {videoWidth}×{videoHeight}"
@@ -133,7 +139,9 @@ namespace mpv_winui.Modules.Player
         /// <summary>
         /// Updates the two playlist collections by diff instead of clearing
         /// and re-adding every entry: stale ids are removed, moved ids are
-        /// relocated, and only changed entries are replaced in place.
+        /// relocated, and only changed entries are replaced in place. Clearing
+        /// the collection would reset the scroll position and drop the
+        /// selection on every mpv event.
         /// </summary>
         private void ApplyPlaylistDiff(IReadOnlyList<PlaylistItem> newItems)
         {
@@ -214,7 +222,8 @@ namespace mpv_winui.Modules.Player
                 || a.Title != b.Title
                 || a.Path != b.Path
                 || a.Duration != b.Duration
-                || a.Query != b.Query;
+                || a.Query != b.Query
+                || a.ResolutionText != b.ResolutionText;
         }
 
         private void ApplyPlaylistFilter()
@@ -299,9 +308,9 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void PlaylistFilterBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void PlaylistFilterBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
-            _playlistFilter = PlaylistFilterBox.Text;
+            _playlistFilter = PlaylistFilterBox.Text ?? string.Empty;
             ApplyPlaylistFilter();
             SelectCurrentPlayListItem(force: true);
         }
@@ -319,7 +328,8 @@ namespace mpv_winui.Modules.Player
             }
 
             // Only scroll when the current row actually changed; playlist
-            // refresh events otherwise keep re-scrolling the same row.
+            // refresh events otherwise keep re-scrolling the same row and
+            // fight the user's own scrolling.
             if (!force && currentIndex == _lastCurrentPlaylistIndex)
             {
                 return;
@@ -386,7 +396,17 @@ namespace mpv_winui.Modules.Player
             AppContext.AppLogger.Info($"exported playlist ({PlaylistItems.Count} items): {file.Path}");
         }
 
-        private async void RefreshPlaylist_Click(object sender, RoutedEventArgs e)
+        private void ImportPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            ImportPlaylistAsync().FireAndForget(OnException);
+        }
+
+        private void ExportPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            ExportPlaylistAsync().FireAndForget(OnException);
+        }
+
+        private void RefreshPlaylist_Click(object sender, RoutedEventArgs e)
         {
             RefreshPlaylistAsync();
         }
@@ -589,7 +609,7 @@ namespace mpv_winui.Modules.Player
         // and release moves the item to the row under the cursor (or to the
         // end when dropped on empty space). A plain press+release stays a
         // click and is handled by ItemClick.
-        private const double DRAG_THRESHOLD = 12.0;
+        private const double DragThreshold = 12.0;
         private int _dragSourceIndex = -1;
         private Point _dragStartPoint;
         private bool _dragActive;
@@ -604,7 +624,7 @@ namespace mpv_winui.Modules.Player
             _dragSetup = true;
             // Handlers are attached to the container, not the ListView:
             // ListViewItem captures the pointer on press, and captured
-            // pointer events are routed to the capturer's ancestor chain —
+            // pointer events are routed to the capturer's ancestor chain -
             // they never reach a handler on the ListView itself. The
             // container is on that chain, so move/release still arrive.
             PlaylistContainer.AddHandler(PointerPressedEvent, new PointerEventHandler(PlaylistView_PointerPressed), true);
@@ -629,7 +649,7 @@ namespace mpv_winui.Modules.Player
 
         private void PlaylistView_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            if (e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Mouse)
+            if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
             {
                 return;
             }
@@ -654,7 +674,7 @@ namespace mpv_winui.Modules.Player
             if (!_dragActive)
             {
                 var delta = new Point(position.X - _dragStartPoint.X, position.Y - _dragStartPoint.Y);
-                if (Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y) < DRAG_THRESHOLD)
+                if (Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y) < DragThreshold)
                 {
                     return;
                 }

@@ -332,7 +332,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         {
             if (App.Window is MainWindow mainWindow)
             {
-                mainWindow.UpdateCurrentTheme();
+                mainWindow.UpdateTheme();
             }
         });
     }

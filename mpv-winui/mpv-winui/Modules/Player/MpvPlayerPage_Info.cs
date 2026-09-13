@@ -11,7 +11,7 @@ namespace mpv_winui.Modules.Player
         private uint _videoHeight;
         private DispatcherQueueTimer? _aspectFitTimer;
 
-        private void MpvPlayerPage_MediaInfoChanged(MpvMediaPlayer player, MediaInfoChangedEventArgs args)
+        private void MpvPlayerPage_MediaInfoChanged(MediaInfoChangedEventArgs args)
         {
             // Diagnostics for the aspect lock: this handler is the only place
             // that publishes the video ratio, so log what actually arrives.

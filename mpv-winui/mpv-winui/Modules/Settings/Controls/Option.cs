@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -73,8 +73,25 @@ public sealed class OptionLayoutChoice
 
 public sealed class Option : INotifyPropertyChanged
 {
+    public const string GroupOtherKey = "other";
     public string Key { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
+
+    public string GroupKey
+    {
+        get; set;
+    } = GroupOtherKey;
+
+    public string GroupLabel
+    {
+        get; set;
+    } = string.Empty;
+
+    public string? Icon
+    {
+        get; set;
+    }
+
     public string Category { get; set; } = "General";
 
     /// <summary>
