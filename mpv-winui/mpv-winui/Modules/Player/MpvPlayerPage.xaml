@@ -92,7 +92,7 @@
         </MenuFlyout>
     </Page.Resources>
 
-    <Grid>
+    <Grid x:Name="PageRoot">
         <Grid.RowDefinitions>
             <RowDefinition
                 x:Name="MenuRow"
@@ -107,7 +107,7 @@
             <ColumnDefinition
                 x:Name="PlaylistColumn"
                 Width="0"
-                MaxWidth="300" />
+                MaxWidth="420" />
         </Grid.ColumnDefinitions>
         <MenuBar
             x:Name="MainMenuBar"
@@ -319,6 +319,7 @@
             Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="44" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <CommandBar
@@ -337,20 +338,40 @@
                 <AppBarButton
                     Grid.Column="1"
                     Width="40"
+                    Click="ImportPlaylist_Click"
+                    Icon="OpenFile" />
+                <AppBarButton
+                    Grid.Column="1"
+                    Width="40"
+                    Click="ExportPlaylist_Click"
+                    Icon="Save" />
+                <AppBarButton
+                    Grid.Column="1"
+                    Width="40"
                     Click="RefreshPlaylist_Click"
                     Icon="Refresh" />
             </CommandBar>
 
+            <AutoSuggestBox
+                x:Name="PlaylistFilterBox"
+                Grid.Row="1"
+                Height="32"
+                Margin="8,0,8,6"
+                VerticalAlignment="Center"
+                PlaceholderText="Filter"
+                QueryIcon="Find"
+                TextChanged="PlaylistFilterBox_TextChanged" />
+
             <ListView
                 x:Name="PlaylistView"
-                Grid.Row="1"
+                Grid.Row="2"
                 Padding="4,0,8,4"
                 Background="Transparent"
                 BorderThickness="0"
                 ContextRequested="PlaylistView_ContextRequested"
                 IsItemClickEnabled="True"
                 ItemClick="PlaylistView_ItemClick"
-                ItemsSource="{x:Bind PlaylistItems, Mode=OneWay}"
+                ItemsSource="{x:Bind FilteredPlaylistItems, Mode=OneWay}"
                 SelectionMode="Single">
                 <ListView.ItemContainerStyle>
                     <Style
@@ -369,6 +390,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition />
@@ -406,10 +428,31 @@
                                 Text="{x:Bind Filename}"
                                 TextTrimming="CharacterEllipsis"
                                 ToolTipService.ToolTip="{x:Bind Filename}" />
+                            <TextBlock
+                                Grid.RowSpan="2"
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                FontSize="10"
+                                Opacity="0.8"
+                                Text="{x:Bind DurationText}"
+                                ToolTipService.ToolTip="{x:Bind ResolutionText}" />
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+
+            <!-- Right-edge drag grip: resizes the playlist column (280-420px,
+                 persisted in AppSetting.PlaylistWidth). -->
+            <Border
+                x:Name="PlaylistResizeGrip"
+                Grid.Row="0"
+                Grid.RowSpan="3"
+                Width="8"
+                HorizontalAlignment="Left"
+                Background="Transparent"
+                PointerMoved="PlaylistResizeGrip_PointerMoved"
+                PointerPressed="PlaylistResizeGrip_PointerPressed"
+                PointerReleased="PlaylistResizeGrip_PointerReleased" />
         </Grid>
 
         <Grid
@@ -454,12 +497,13 @@
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState x:Name="HidePlaylist">
-                    <VisualState.Setters />
+                    <VisualState.Setters>
+                        <Setter Target="PlaylistColumn.Width" Value="0" />
+                    </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="ShowPlaylist">
                     <VisualState.Setters>
                         <Setter Target="PlaylistContainer.Visibility" Value="Visible" />
-                        <Setter Target="PlaylistColumn.Width" Value="1*" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
