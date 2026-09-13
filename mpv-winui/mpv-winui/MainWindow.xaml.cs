@@ -1,5 +1,4 @@
-﻿using Microsoft.UI.Windowing;
-using Windows.Graphics;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using mpv_winui.Modules.Activation;
@@ -124,33 +123,9 @@ namespace mpv_winui
             AppWindow.Title = effective;
         }
 
-        private SettingsWindow? _settingsWindow;
         public void OpenSettingWindow()
         {
-            if (null == _settingsWindow)
-            {
-                _settingsWindow = new SettingsWindow();
-                _settingsWindow.Closed += SettingsWindow_Closed;
-            }
-
-            var position = AppWindow.Position;
-            var size = AppWindow.Size;
-            var rect = new RectInt32(
-                (int)(position.X + (size.Width * 0.1)),
-                (int)(position.Y + (size.Height * 0.1)),
-                (int)(size.Width * 0.8),
-                (int)(size.Height * 0.8));
-            _settingsWindow?.MoveAndResize(rect);
-            _settingsWindow?.ShowWindow();
-        }
-
-        private void SettingsWindow_Closed(object sender, WindowEventArgs args)
-        {
-            if (_settingsWindow is not null)
-            {
-                _settingsWindow.Closed -= SettingsWindow_Closed;
-            }
-            _settingsWindow = null;
+            _windowsManager.Open("settings", () => new SettingsWindow(), this, 0.8, 320, 200);
         }
 
         public void OpenMpvConfigWindow()

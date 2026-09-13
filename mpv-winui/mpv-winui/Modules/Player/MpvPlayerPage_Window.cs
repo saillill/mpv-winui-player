@@ -87,10 +87,15 @@ namespace mpv_winui.Modules.Player
             {
                 presenter.IsAlwaysOnTop = enable;
             }
-
-            // The upstream UI drives "always on top" from a menu item rather than
-            // the fork's top-bar pin buttons, so there is no glyph to flip here.
-            // The menu item reads its check state from the presenter directly.
+            if (TopBarOntopIcon is not null)
+            {
+                // Fluent pin glyphs: F602 = pin (unpinned), F604 = pin off (pinned).
+                TopBarOntopIcon.Glyph = enable ? "\uF604" : "\uF602";
+            }
+            if (PlaylistOntopIcon is not null)
+            {
+                PlaylistOntopIcon.Glyph = enable ? "\uF604" : "\uF602";
+            }
         }
 
         private void ToggleAlwaysOnTop()

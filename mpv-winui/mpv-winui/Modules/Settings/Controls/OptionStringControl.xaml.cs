@@ -41,10 +41,8 @@ public sealed partial class OptionStringControl : OptionControlBase
     {
         if (newValue is not null)
         {
-            LabelText.Text = newValue.Label;
-            UpdateDescription(DescriptionText);
-            InputBox.PlaceholderText = newValue.Placeholder ?? string.Empty;
-            _pathMode = newValue.PickFolder || newValue.PickFile || newValue.OpenFolder;
+            ApplyText(LabelText, DescriptionText, newValue);
+            ApplyIcon(TypeIcon, newValue);
 
             BrowseButton.Content = mpv_winui.AppContext.AppLang.Browse;
             BrowseButton.Visibility = newValue.PickFolder || newValue.PickFile ? Visibility.Visible : Visibility.Collapsed;

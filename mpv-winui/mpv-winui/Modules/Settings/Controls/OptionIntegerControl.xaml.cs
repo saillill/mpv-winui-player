@@ -39,9 +39,8 @@ public sealed partial class OptionIntegerControl : OptionControlBase
     {
         if (newValue is not null)
         {
-            LabelText.Text = newValue.Label;
-            UpdateDescription(DescriptionText);
-            NumberBox.IsEnabled = newValue.IsEnabled;
+            ApplyText(LabelText, DescriptionText, newValue);
+            ApplyIcon(TypeIcon, newValue);
 
             if (newValue.Min.HasValue)
             {
@@ -61,7 +60,7 @@ public sealed partial class OptionIntegerControl : OptionControlBase
             _suppressValueChanged = true;
             try
             {
-                if (newValue.Getter is Func<object?> func && func() is double value)
+                if (func() is int value)
                 {
                     NumberBox.Value = value;
                 }

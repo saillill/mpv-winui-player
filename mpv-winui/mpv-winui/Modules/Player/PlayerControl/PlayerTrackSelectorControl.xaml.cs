@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace mpv_winui.Modules.Player
+namespace mpv_winui.Modules.Player.PlayerControl
 {
     public class TrackItem(int index, string label)
     {
@@ -28,6 +28,10 @@ namespace mpv_winui.Modules.Player
         public PlayerTrackSelectorControl()
         {
             InitializeComponent();
+            SubtitleHeaderText.Text = mpv_winui.AppContext.AppLang.Subtitles;
+            SecondSubHeaderText.Text = mpv_winui.AppContext.AppLang.SecondSubtitle;
+            VideoHeaderText.Text = mpv_winui.AppContext.AppLang.VideoTracks;
+            AudioHeaderText.Text = mpv_winui.AppContext.AppLang.AudioTracks;
         }
 
         public void LoadVideoTracks(IReadOnlyList<MpvTrack> tracks)

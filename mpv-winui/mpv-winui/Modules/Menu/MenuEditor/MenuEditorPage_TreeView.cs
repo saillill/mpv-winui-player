@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
@@ -119,7 +119,7 @@ public sealed partial class MenuEditorPage
                     _logger.Debug("menu command executed on player, command={}", command);
                 }
 
-                AppContext.RunMpvCommand(command);
+                window.RunMpvCommand(command);
                 ShowMessage($"Executed: {command}");
             }
         }

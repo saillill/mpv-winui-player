@@ -46,10 +46,11 @@ namespace mpv_winui.Modules.Common.View
 
         public virtual void UpdateBackdrop()
         {
-            // The upstream WindowStyleManager re-reads the backdrop material from
-            // the current setting itself (ApplyBackdrop), so there is no longer a
-            // material argument to thread through here.
-            _styleManager?.UpdateBackdrop();
+            var backdropType = _styleManager?.GetBackdropType();
+            if (!string.IsNullOrEmpty(backdropType))
+            {
+                _styleManager?.UpdateBackdrop(backdropType);
+            }
         }
     }
 }

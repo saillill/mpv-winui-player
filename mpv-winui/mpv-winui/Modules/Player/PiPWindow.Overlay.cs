@@ -81,7 +81,7 @@ public sealed partial class PiPWindow
         e.Handled = true;
     }
 
-    private void PiPPlayer_MediaLoaded()
+    private void PiPPlayer_MediaLoaded(MpvMediaPlayer player, object? args)
     {
         DispatcherQueue.TryEnqueue(() =>
         {
@@ -92,7 +92,7 @@ public sealed partial class PiPWindow
         });
     }
 
-    private void PiPPlayer_MediaInfoChanged(MediaInfoChangedEventArgs args)
+    private void PiPPlayer_MediaInfoChanged(MpvMediaPlayer player, MediaInfoChangedEventArgs args)
     {
         // Keep the aspect lock in sync with the current video (dwidth/dheight
         // are reported by mpv on VIDEO_RECONFIG).
@@ -139,7 +139,7 @@ public sealed partial class PiPWindow
         try
         {
             _player?.Command(["quit-watch-later"]);
-            _ = _player?.SaveWatchHistory();
+            _ = _player?.SaveWatchHistory;
         }
         catch (Exception)
         {
