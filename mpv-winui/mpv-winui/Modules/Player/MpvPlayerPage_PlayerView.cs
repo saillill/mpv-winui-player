@@ -17,7 +17,12 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer.UpdatePanel(PlayerView);
             _playerViewLoaded = true;
 
-            _sizeChangedAction = DebounceUtil.Debounce<ViewSize>(UpdatePlayerViewSize, TimeSpan.FromMilliseconds(100));
+            // Throttle, not debounce: during a drag-resize the panel size
+            // changes continuously and the composition swapchain must track it
+            // in near-real-time. The old 100ms debounce restarted on every
+            // change, so the video only caught up ~100ms after the pointer
+            // stopped - which read as "the picture lags the window".
+            _sizeChangedAction = DebounceUtil.Throttle<ViewSize>(UpdatePlayerViewSize, TimeSpan.FromMilliseconds(16));
             PlayerView.SizeChanged += PlayerView_SizeChanged;
 
             _lastCompositionScaleX = PlayerView.CompositionScaleX;
@@ -74,6 +79,13 @@ namespace mpv_winui.Modules.Player
             {
                 height = 1;
             }
+
+            // Publish the panel's physical size: the window aspect fit must
+            // target the panel (menu row + control row take the rest of the
+            // client), not the whole client.
+            MainWindow.VideoPanelPhysicalWidth = width;
+            MainWindow.VideoPanelPhysicalHeight = height;
+
             _mediaPlayer?.UpdateSize(width, height);
         }
 

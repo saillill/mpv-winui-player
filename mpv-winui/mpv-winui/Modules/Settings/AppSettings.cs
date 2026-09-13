@@ -459,7 +459,10 @@ namespace mpv_winui.Modules.Settings
         /// </summary>
         public int ThumbnailUpdateInterval
         {
-            get => _dataSetting.GetValue(nameof(ThumbnailUpdateInterval), 150);
+            // 60ms: a preview seek settles in ~5ms once the render pass is not
+            // gated on "seeking", so a 150ms sampling interval was the dominant
+            // remaining latency. Range 40-600, step 20.
+            get => _dataSetting.GetValue(nameof(ThumbnailUpdateInterval), 60);
             set => _dataSetting.SetValue(nameof(ThumbnailUpdateInterval), value);
         }
 

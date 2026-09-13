@@ -76,7 +76,6 @@ namespace mpv_winui.Modules.Player
                     // bar — no popup), transport centered, subtitle toggle
                     // on the far right.
                     _currentSegment = 0;
-                    VisualStateManager.GoToState(this, "Wide", false);
                     var pipRight = PiPRightToggle is { } toggle
                         ? new ICommandBarElement[] { BuildPiPRightItem(toggle) }
                         : [];
@@ -104,25 +103,68 @@ namespace mpv_winui.Modules.Player
                     ? AppContext.AppSetting.ControlBarHiddenIconsModernX
                     : AppContext.AppSetting.ControlBarHiddenIconsClassic;
                 var hidden = ControlBarLayoutGrammar.ParseHiddenIcons(hiddenValue);
-    
-                // Restore the buttons the PiP compact pass collapses.
-                SetHidden(false,
-                    PreviousTrackButton, NextTrackButton, RepeatButton,
-                    TrackSelectionButton, ShuffleButton, PlaybackRateButton,
-                    ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
-                    VolumeMuteButton, VolumeSliderContainer);
-    
-                // Playback controls are always shown and cannot be hidden.
-                SetHidden(hidden.Contains("volume"), VolumeMuteButton, VolumeSliderContainer);
-                SetHidden(hidden.Contains("tracks"), TrackSelectionButton);
-                SetHidden(hidden.Contains("random"), ShuffleButton);
-                SetHidden(hidden.Contains("panel"), ControlPanelButton);
-                SetHidden(hidden.Contains("aspect"), ZoomButton);
-                SetHidden(hidden.Contains("fullwindow"), FullWindowButton);
-                SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
-                SetHidden(hidden.Contains("pip"), PiPButton);
+
+                // Single decision point: the user's hidden-icon preference and
+                // the width tier both feed ApplyControlBarVisibility. Rebuilding
+                // the bars is ApplyControlBarOrder's job (it is skipped when
+                // nothing moved), so this only sets Visibility.
+                ApplyControlBarVisibility(ControlBarAdaptiveLayout.TierFor(ActualWidth), hidden);
             }
-    
+
+            /// <summary>
+            /// Control id -> the elements it controls. Ids match the ones the
+            /// settings channel uses ("volume", "tracks", ...) plus ids for the
+            /// fixed transport, so one table drives both writers.
+            /// </summary>
+            private IEnumerable<(string Id, FrameworkElement[] Elements)> AdaptiveControlMap()
+            {
+                yield return ("play", [PlayPauseButton]);
+                yield return ("previous", [PreviousTrackButton]);
+                yield return ("next", [NextTrackButton]);
+                yield return ("skip-back", [SkipBackwardButton]);
+                yield return ("skip-forward", [SkipForwardButton]);
+                yield return ("rate", [PlaybackRateButton]);
+                yield return ("random", [ShuffleButton]);
+                yield return (ControlBarAdaptiveLayout.VolumeId, [VolumeMuteButton]);
+                yield return (ControlBarAdaptiveLayout.VolumeSliderId, [VolumeSliderContainer]);
+                yield return ("tracks", [TrackSelectionButton]);
+                yield return ("panel", [ControlPanelButton]);
+                yield return ("aspect", [ZoomButton]);
+                yield return ("pip", [PiPButton]);
+                yield return ("fullwindow", [FullWindowButton]);
+                yield return ("fullscreen", [FullScreenButton]);
+            }
+
+            /// <summary>
+            /// Applies the resolved visibility to every control-bar button and
+            /// shows the overflow button whenever something is hidden (by the
+            /// user or by the width tier) so no action is ever unreachable.
+            /// </summary>
+            private void ApplyControlBarVisibility(ControlBarTier tier, IReadOnlySet<string> userHidden)
+            {
+                foreach (var (id, elements) in AdaptiveControlMap())
+                {
+                    var visible = ControlBarAdaptiveLayout.IsVisible(id, tier, userHidden);
+
+                    // The settings channel only knows "volume" and hides the
+                    // mute button and its slider together; the tier treats the
+                    // slider separately, so merge the two here.
+                    if (visible
+                        && string.Equals(id, ControlBarAdaptiveLayout.VolumeSliderId, StringComparison.OrdinalIgnoreCase)
+                        && userHidden.Contains(ControlBarAdaptiveLayout.VolumeId))
+                    {
+                        visible = false;
+                    }
+
+                    SetHidden(!visible, elements);
+                }
+
+                // Hysteresis-free: the overflow button appears as soon as the
+                // width tier (or the user) hides anything at all.
+                var anythingHidden = tier != ControlBarTier.Wide || userHidden.Count > 0;
+                SetHidden(!anythingHidden, MoreButton);
+            }
+
             /// <summary>
             /// True when this control is hosted in the dedicated PiP window. The
             /// bar switches to the centered layout and shows only volume plus the
@@ -420,6 +462,39 @@ namespace mpv_winui.Modules.Player
                 AddOverflowItem(AppContext.AppLang.MoreNextTrack, NextTrackButton, () => NextTrackButton_Click(null, null), userHidden);
                 AddOverflowItem(AppContext.AppLang.MoreFullWindow, FullWindowButton, () => ToggleFullWindow(), userHidden, "fullwindow");
                 AddOverflowItem(AppContext.AppLang.MoreFullScreen, FullScreenButton, () => ToggleFullScreen(), userHidden, "fullscreen");
+
+                // Controls the width tiers collapse at Narrow and below. Without
+                // these entries a portrait/narrow window would lose them
+                // entirely: they used to be visible at every width.
+                AddOverflowItem(AppContext.AppLang.ControlBarIconTracks, TrackSelectionButton, ShowTracksFromMore, userHidden, "tracks");
+                AddOverflowItem(AppContext.AppLang.ControlBarIconPanel, ControlPanelButton, ShowControlPanelFromMore, userHidden, "panel");
+                AddOverflowItem(AppContext.AppLang.ControlBarIconPiP, PiPButton, () => OnPiPClick(this, new RoutedEventArgs()), userHidden, "pip");
+            }
+
+            /// <summary>Loads the track lists and then opens the track flyout anchored on the overflow button.</summary>
+            private void ShowTracksFromMore()
+            {
+                // The handler only fills the track lists; the flyout itself is
+                // declared on the button, so anchor it on the overflow button.
+                TrackSelectionButton_Click(TrackSelectionButton, new RoutedEventArgs());
+                ShowFromMore(TrackSelectionFlyout);
+            }
+
+            /// <summary>Opens the control-panel flyout anchored on the overflow button.</summary>
+            private void ShowControlPanelFromMore()
+            {
+                ShowFromMore(ControlPanelFlyout);
+            }
+
+            /// <summary>
+            /// A flyout cannot be shown while the MenuFlyout that triggered it is
+            /// still open, so close the menu first and open the flyout on the
+            /// next dispatcher pass, anchored on the overflow button.
+            /// </summary>
+            private void ShowFromMore(FlyoutBase flyout)
+            {
+                MoreFlyout.Hide();
+                DispatcherQueue.TryEnqueue(() => flyout.ShowAt(MoreButton));
             }
     
             private void AddOverflowItem(
@@ -466,38 +541,29 @@ namespace mpv_winui.Modules.Player
                 return submenu;
             }
     
-            private void UpdateToolbarVisibility(double w)
+        private void UpdateToolbarVisibility(double w)
             {
                 if (_isPiPHost)
                 {
-                    // PiP hosts the compact centered bar; the adaptive states would
-                    // collapse the transport buttons at small widths.
+                    // PiP hosts the compact centered bar; the adaptive tiers
+                    // would collapse the transport buttons at small widths.
                     if (_currentSegment != 0)
                     {
                         _currentSegment = 0;
-                        VisualStateManager.GoToState(this, "Wide", false);
                     }
                     return;
                 }
-    
-                int newSegment = w >= 700 ? 0 : w >= 500 ? 1 : w >= 280 ? 2 : 3;
-                if (newSegment == _currentSegment)
+
+                var tier = ControlBarAdaptiveLayout.TierFor(w);
+                if ((int)tier == _currentSegment)
                 {
                     return;
                 }
-    
-                _currentSegment = newSegment;
-    
-                string name = newSegment switch
-                {
-                    0 => "Wide",
-                    1 => "Medium",
-                    2 => "Compact",
-                    _ => "Narrow"
-                };
-                VisualStateManager.GoToState(this, name, false);
+
+                _currentSegment = (int)tier;
+                ApplyControlBarVisibility(tier, CurrentHiddenIconIds());
             }
-    
+
             /// <summary>Re-applies the width-adaptive state after a layout mode change.</summary>
             public void RefreshAdaptiveState()
             {

@@ -337,6 +337,14 @@ namespace mpv_winui.Modules.Player
 
         private const int DefaultDisplayPeakNits = 1000;
 
+        // Last pair pushed to mpv. The 15s fallback timer calls ApplyDisplayPeak
+        // unconditionally, so without this every tick rewrote identical
+        // properties - four log lines a minute for the whole session, and each
+        // write re-runs mpv's auto-profile condition evaluation.
+        // int.MinValue forces the first call through.
+        private int _lastAppliedDisplayPeak = int.MinValue;
+        private int _lastAppliedTargetPeak = int.MinValue;
+
         /// <summary>
         /// Applies the effective display peak: user <see cref="AppSettings.DisplayPeak"/>
         /// wins over detection; the legacy advanced TargetPeak, when set, wins over
@@ -348,20 +356,43 @@ namespace mpv_winui.Modules.Player
             try
             {
                 var detected = ReadDisplayPeakNits();
-                var displayPeak = AppContext.AppSetting.DisplayPeak > 0
-                    ? AppContext.AppSetting.DisplayPeak
-                    : detected;
-                if (displayPeak <= 0)
+                var userPeak = AppContext.AppSetting.DisplayPeak;
+                var userTarget = AppContext.AppSetting.TargetPeak;
+
+                int displayPeak;
+                int targetPeak;
+                if (detected <= 0 && userPeak <= 0)
                 {
-                    displayPeak = DefaultDisplayPeakNits;
+                    // SDR display (or Windows HDR off): mpv's auto handling is
+                    // correct here. Publishing 0 also keeps the [mpvw-hdr]
+                    // profile from triggering on an SDR display — the previous
+                    // code published the panel's 1000-nit max regardless of the
+                    // HDR toggle, which made mpv render SDR content for a
+                    // 1000-nit display (dark picture).
+                    displayPeak = 0;
+                    targetPeak = userTarget > 0 ? userTarget : 0;
+                }
+                else
+                {
+                    displayPeak = userPeak > 0 ? userPeak : detected;
+                    if (displayPeak <= 0)
+                    {
+                        displayPeak = DefaultDisplayPeakNits;
+                    }
+
+                    targetPeak = userTarget > 0 ? userTarget : displayPeak;
                 }
 
-                var targetPeak = AppContext.AppSetting.TargetPeak > 0
-                    ? AppContext.AppSetting.TargetPeak
-                    : displayPeak;
+                if (displayPeak == _lastAppliedDisplayPeak && targetPeak == _lastAppliedTargetPeak)
+                {
+                    return;
+                }
 
                 AppContext.SendMpvCommand($"no-osd set user-data/mpvw/display-peak {displayPeak}");
                 AppContext.SendMpvCommand($"no-osd set target-peak {targetPeak}");
+
+                _lastAppliedDisplayPeak = displayPeak;
+                _lastAppliedTargetPeak = targetPeak;
 
                 if (_logger.IsDebugEnabled)
                 {
@@ -381,6 +412,18 @@ namespace mpv_winui.Modules.Player
             {
                 var colorInfo = _displayInfo?.GetAdvancedColorInfo();
                 if (colorInfo is null || colorInfo.MaxLuminanceInNits <= 0)
+                {
+                    return 0;
+                }
+
+                // CRITICAL: MaxLuminanceInNits reports the PANEL's capability and
+                // is non-zero even while Windows HDR is turned off. Using it in
+                // SDR mode made mpv render for a 1000-nit display, which is why
+                // SDR videos looked dark (the previewer instance never sets
+                // target-peak and rendered correctly). Only trust the peak while
+                // advanced color is actually on.
+                if (colorInfo.CurrentAdvancedColorKind
+                    != Microsoft.Graphics.Display.DisplayAdvancedColorKind.HighDynamicRange)
                 {
                     return 0;
                 }

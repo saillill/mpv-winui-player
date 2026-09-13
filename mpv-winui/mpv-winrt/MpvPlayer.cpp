@@ -148,6 +148,10 @@ namespace winrt::mpv_winrt::implementation
         mpv_request_log_messages(m_mpv, "warn");
 
         UpdateDisplayColorInfo(colorKind);
+        // The pre-init call above could only set override-display-fps: a
+        // user-data key does not exist before mpv_initialize(), so the
+        // refresh-rate property has to be published now that the core is up.
+        UpdateDisplayRefreshRate(refreshRate);
 
         mpv_observe_property(m_mpv, MpvObserveId::Pause, "pause", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::Duration, "duration", MPV_FORMAT_DOUBLE);
@@ -1212,6 +1216,50 @@ namespace winrt::mpv_winrt::implementation
         mpv_set_property(m_mpv, name, MPV_FORMAT_STRING, &str);
     }
 
+    // Publishes a user-data/<key> property.
+    //
+    // This MUST go through the command parser rather than mpv_set_property():
+    // for a user-data key mpv_set_property() (MPV_FORMAT_STRING as well as
+    // MPV_FORMAT_INT64) returns 0 but stores nothing. Verified against the
+    // shipped mpv-2.dll - after the write the value reads back as garbage and
+    // an MPV_FORMAT_NODE read returns MPV_ERROR_PROPERTY_UNAVAILABLE (-9),
+    // while the same value written as "no-osd set user-data/..." reads back
+    // correctly and immediately activates a profile whose profile-cond reads
+    // it. That silent no-op is what left user-data/mpvw/color-kind unset, so
+    // no [mpvw-*] output-colorspace profile ever activated and hdr_auto.lua
+    // always concluded the display was not HDR - RTX Video HDR never engaged.
+    //
+    // Unlike a real option, a user-data key does not exist before
+    // mpv_initialize(); writes are ignored until the core is up.
+    void MpvPlayer::SetUserData(const char* key, const std::string& value)
+    {
+        if (!m_mpv || !m_initialized.load())
+        {
+            return;
+        }
+
+        // mpv_command_string() parses C-style escapes inside quotes, so a value
+        // containing spaces or backslashes has to be escaped.
+        std::string quoted;
+        quoted.reserve(value.size() + 2);
+        quoted += '"';
+        for (const char ch : value)
+        {
+            if (ch == '\\' || ch == '"')
+            {
+                quoted += '\\';
+            }
+            quoted += ch;
+        }
+        quoted += '"';
+
+        std::string command = "no-osd set user-data/";
+        command += key;
+        command += " ";
+        command += quoted;
+        mpv_command_string(m_mpv, command.c_str());
+    }
+
     void MpvPlayer::SetOption(std::string const& name, std::string const& value)
     {
         mpv_set_option_string(m_mpv, name.c_str(), value.c_str());
@@ -1759,7 +1807,9 @@ namespace winrt::mpv_winrt::implementation
                 cs = "SDR";
                 break;
         }
-        SetStringProperty("user-data/mpvw/color-kind", cs);
+        // user-data, not a real option: SetStringProperty() would silently fail
+        // here (see SetUserData).
+        SetUserData("mpvw/color-kind", cs);
     }
 
     void MpvPlayer::UpdateDisplayRefreshRate(int32_t refreshRate)
@@ -1777,6 +1827,6 @@ namespace winrt::mpv_winrt::implementation
             // up to date for profiles/scripts.
             SetOption("override-display-fps", rate);
         }
-        SetInt64Property("user-data/mpvw/refresh-rate", refreshRate);
+        SetUserData("mpvw/refresh-rate", rate);
     }
 } // namespace winrt::mpv_winrt::implementation

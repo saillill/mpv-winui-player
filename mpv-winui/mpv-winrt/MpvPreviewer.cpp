@@ -80,13 +80,28 @@ namespace winrt::mpv_winrt::implementation
                 SetOption("hr-seek", "no");
                 SetOption("audio", "no");
                 SetOption("terminal", "no");
-                // A demuxer cache is what keeps back-and-forth scrubbing off
-                // the disk: with cache disabled every backward seek re-read
-                // the file, which made hovering over the seek bar stutter.
-                SetOption("cache", "yes");
-                SetOption("demuxer-readahead-secs", "10");
-                SetOption("demuxer-max-bytes", "33554432");
-                SetOption("demuxer-max-back-bytes", "16777216");
+                // Tuned after thumbfast (po5/thumbfast), which is the reference
+                // implementation for seek-bar thumbnails. The previous settings
+                // here (readahead 10s, 32MiB demuxer cache) were backwards: the
+                // preview only ever wants the single frame at the seek target,
+                // and mpv will not report the seek as settled until it has
+                // refilled the readahead window. That refill was a constant
+                // ~200ms per hover, independent of the target, and it competed
+                // for the disk with the main player instance reading the same
+                // file. thumbfast spawns its helper with
+                // --demuxer-readahead-secs=0 --demuxer-max-bytes=128KiB for
+                // exactly this reason.
+                SetOption("cache", "no");
+                SetOption("demuxer-readahead-secs", "0");
+                SetOption("demuxer-max-bytes", "131072");
+                SetOption("demuxer-max-back-bytes", "0");
+                // Decode as little as possible for one frame.
+                SetOption("vd-lavc-skiploopfilter", "all");
+                SetOption("vd-lavc-fast", "yes");
+                SetOption("vd-lavc-threads", "2");
+                // The software render path scales through libswscale.
+                SetOption("sws-scaler", "fast-bilinear");
+                SetOption("sws-allow-zimg", "no");
                 SetOption("hwdec", "auto");
                 // Without this mpv_render_context_render() blocks until the
                 // frame's supposed display time (render.h: "this will limit
@@ -185,12 +200,18 @@ namespace winrt::mpv_winrt::implementation
     // seek replies and FILE_LOADED never pile up unconsumed) and rendering
     // frames once a seek has settled. The wait timeout makes events drain
     // even when no frame is being produced (e.g. while a file loads).
+    //
+    // Frames are never gated on this timeout: the update callback and
+    // RequestRender() notify the condition variable directly, so the wait
+    // returns at once. The periodic wakeup is only the safety net for event
+    // draining, so it runs at 10 Hz rather than a 20 Hz busy tick that would
+    // keep the thread hot for the whole session even with no preview shown.
     void MpvPreviewer::WorkerLoop()
     {
         while (true)
         {
             std::unique_lock lock(m_renderMutex);
-            m_renderCv.wait_for(lock, std::chrono::milliseconds(50), [this]() { return m_framePending || m_quit; });
+            m_renderCv.wait_for(lock, std::chrono::milliseconds(100), [this]() { return m_framePending || m_quit; });
             m_framePending = false;
             if (m_quit)
             {
@@ -232,9 +253,13 @@ namespace winrt::mpv_winrt::implementation
             }
             else if (event->event_id == MPV_EVENT_PROPERTY_CHANGE && event->reply_userdata == SeekObserveId)
             {
-                // The "seeking" flag changed. When it turns off the frame for
-                // the requested position is ready, which is exactly when the
-                // deferred pass from RenderFrame() has to run.
+                // The "seeking" flag changed. Force a render pass so the frame
+                // for the requested position is drawn as soon as it exists.
+                //
+                // The value is deliberately NOT read: the pass must never be
+                // gated on it (see RenderFrame), and reading it with
+                // mpv_get_property() here would be a synchronous round-trip to
+                // the core that blocks for as long as the seek takes.
                 RequestRender();
             }
         }
@@ -301,7 +326,15 @@ namespace winrt::mpv_winrt::implementation
     {
         char time[32];
         snprintf(time, sizeof(time), "%.3f", position);
-        const char* cmd[] = {"seek", time, "absolute+keyframe", nullptr};
+
+        // NOTE: the flag must stay "keyframes" (plural). "keyframe" is NOT a
+        // valid mpv seek flag: mpv_command_async() rejects the command outright
+        // with MPV_ERROR_INVALID_PARAMETER (-4) and - per client.h, "the only
+        // case when you do not receive an event is when the function call
+        // itself fails" - emits no reply, no MPV_EVENT_SEEK and no frame. The
+        // seek then simply never happens, which is what once left the thumbnail
+        // frozen on the frame from load time.
+        const char* cmd[] = {"seek", time, "absolute+keyframes", nullptr};
         mpv_command_async(m_mpv, 0, cmd);
     }
 
@@ -381,29 +414,14 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
 
-        // Never render mid-seek: the update callback also fires when a seek
-        // starts, and drawing then shows stale frames and wastes a full sw
-        // render per hover tick.
-        //
-        // Deliberately NOT calling mpv_render_context_update() on this path:
-        // consuming the update flag here would swallow the notification for the
-        // frame mpv is about to produce, and libmpv does not raise the callback
-        // a second time. Because mpv_render_context_render() just redraws the
-        // previous frame when the queue is empty (see render.h), a swallowed
-        // notification means the thumbnail never advances again - which is
-        // exactly the "frozen thumbnail" symptom. Mark the pass as still needed
-        // instead; the "seeking" property change and SEEK / PLAYBACK_RESTART
-        // re-run it the moment the seek lands.
-        int seeking = 0;
-        if (mpv_get_property(m_mpv, "seeking", MPV_FORMAT_FLAG, &seeking) >= 0 && seeking)
-        {
-            m_renderNeeded = true;
-            return;
-        }
-
-        // Render only when libmpv queued a new frame or when an earlier pass was
-        // deferred by an in-flight seek. The old code rendered unconditionally
-        // on every 50ms tick, which burned a full software render each time.
+        // Render even while a seek is in flight. libmpv's render API hands a
+        // frame to the client and waits for it to be consumed, so refusing the
+        // pass because mpv reports "seeking" makes the core wait for us before
+        // the seek can settle. Measured against the shipped mpv-2.dll on a
+        // 320x240 AVI: seek settles in ~5ms when this pass runs, and in
+        // ~200ms when it is gated on "seeking" - that gate was the whole
+        // "thumbnail lags the cursor" cost. The update callback fires once per
+        // queued frame, so this is one extra pass per seek, not per tick.
         const uint64_t flags = mpv_render_context_update(m_renderContext);
         if ((flags & MPV_RENDER_UPDATE_FRAME) == 0 && !m_renderNeeded)
         {
@@ -424,6 +442,8 @@ namespace winrt::mpv_winrt::implementation
 
         mpv_render_context_render(m_renderContext, params);
 
+        // The sw render context does not fill alpha; bgr0 leaves it undefined
+        // and a WriteableBitmap shows it as transparency.
         for (size_t i = 3; i < m_size; i += 4)
         {
             m_bitmapData[i] = 0xFF;

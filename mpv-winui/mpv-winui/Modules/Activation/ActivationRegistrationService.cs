@@ -70,6 +70,7 @@ namespace mpv_winui.Modules.Activation
                 }
 
                 EnsureShellCommand(ComputeAppId() + ".File");
+                RegisterOpenWithProgids(fileTypes);
             });
         }
 
@@ -211,11 +212,13 @@ namespace mpv_winui.Modules.Activation
 
         /// <summary>
         /// Makes sure HKCU\Software\Classes\&lt;progId&gt;\shell\open\command has a
-        /// launch command. WindowsAppSDK's RegisterForFileTypeActivation /
+        /// launch command, and that DefaultIcon points at the current exe.
+        /// WindowsAppSDK's RegisterForFileTypeActivation /
         /// RegisterForProtocolActivation create the association entry under
         /// ...\WindowsAppRuntimeApplications but on some unpackaged setups the
         /// ProgId's shell verb command is left empty, so Windows cannot start
-        /// the app from a file/protocol. We repair that here.
+        /// the app from a file/protocol. We repair that here, and also refresh
+        /// a command that points at a previous install location.
         /// </summary>
         private static void EnsureShellCommand(string progId)
         {
@@ -225,15 +228,19 @@ namespace mpv_winui.Modules.Activation
                 var commandKeyPath = $@"Software\Classes\{progId}\shell\open\command";
 
                 var existing = Registry.GetValue($@"HKEY_CURRENT_USER\{commandKeyPath}", null, null) as string;
-                if (string.IsNullOrWhiteSpace(existing))
+                if (!string.Equals(existing, command, StringComparison.Ordinal))
                 {
+                    // Empty (nothing for Windows to launch with) or stale - the
+                    // exe moved since the association was created. Both leave
+                    // "open with" pointing at something that cannot start, so
+                    // repair instead of only filling in a missing value.
                     using var commandKey = Registry.CurrentUser.CreateSubKey(commandKeyPath);
                     commandKey?.SetValue(null, command);
                 }
 
                 var defaultIconKeyPath = $@"Software\Classes\{progId}\DefaultIcon";
                 var defaultIcon = Registry.GetValue($@"HKEY_CURRENT_USER\{defaultIconKeyPath}", null, null) as string;
-                if (string.IsNullOrWhiteSpace(defaultIcon))
+                if (!string.Equals(defaultIcon, LogoPath, StringComparison.Ordinal))
                 {
                     using var defaultIconKey = Registry.CurrentUser.CreateSubKey(defaultIconKeyPath);
                     defaultIconKey?.SetValue(null, LogoPath);
@@ -272,6 +279,43 @@ namespace mpv_winui.Modules.Activation
             {
                 AppContext.AppLogger.Error(ex, "shell command probe failed");
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Re-runs the HKCU repair for the file-association ProgId. RegisterForFileTypeActivation
+        /// can succeed (association entries written) while leaving the ProgId's
+        /// shell verb empty or missing; callers should re-run this and re-verify
+        /// before reporting a failure, because the repair fixes the gap without
+        /// requiring elevation.
+        /// </summary>
+        public static void RepairShellCommand()
+        {
+            var progId = ComputeAppId() + ".File";
+            AppContext.AppLogger.Debug("repairing file-association shell command for {}", progId);
+            EnsureShellCommand(progId);
+        }
+
+        /// <summary>
+        /// Adds the per-extension OpenWithProgids entries that make the player
+        /// show up in Explorer's "Open with" list. WindowsAppSDK's registration
+        /// does not create these for unpackaged apps.
+        /// </summary>
+        private static void RegisterOpenWithProgids(IReadOnlyList<string> extensions)
+        {
+            try
+            {
+                var progId = ComputeAppId() + ".File";
+                foreach (var raw in extensions)
+                {
+                    var ext = raw.StartsWith('.') ? raw : "." + raw;
+                    using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{ext}\OpenWithProgids");
+                    key?.SetValue(progId, string.Empty, RegistryValueKind.String);
+                }
+            }
+            catch (Exception ex)
+            {
+                AppContext.AppLogger.Error(ex, "RegisterOpenWithProgids failed");
             }
         }
     }

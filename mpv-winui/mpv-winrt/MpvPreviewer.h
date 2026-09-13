@@ -69,13 +69,18 @@ namespace winrt::mpv_winrt::implementation
         bool m_mediaReady{false};
         double m_pendingPos{-1};
 
-        // Worker-thread only. Set when a render pass was skipped because a
-        // seek was still in flight. mpv_render_context_render() redraws the
-        // previous frame when no new one is queued, so a frame dropped during
-        // a seek is lost forever unless something re-runs the pass - the
-        // "seeking" property change and SEEK/PLAYBACK_RESTART do exactly that
-        // via RequestRender().
+        // Worker-thread only. Set when a pass has to run even though libmpv
+        // queued no new frame (the first draw after loadfile, and the forced
+        // passes RequestRender() schedules). mpv_render_context_render()
+        // redraws the previous frame when the queue is empty, so a missed pass
+        // would leave the thumbnail stale until the next queued frame.
         bool m_renderNeeded{false};
+
+        // There is deliberately no cached "seeking" mirror here. Gating the
+        // render pass on it was measured to cost ~200ms per hover: libmpv's
+        // render API hands a frame to the client and waits for it to be
+        // consumed, so skipping the pass stalls the core and the seek does not
+        // settle. See RenderFrame.
     };
 }
 

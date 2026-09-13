@@ -31,6 +31,9 @@ namespace mpv_winui.Modules.Player
         private Point _lastPreviewPoint;
         private DispatcherQueueTimer? _previewThrottleTimer;
         private (double HoverSec, double RelativeX, double RelativeY)? _pendingPreview;
+        // Consecutive timer ticks that found no new hover position; used to stop
+        // the sampler once the pointer is at rest.
+        private int _previewIdleTicks;
 
         // In-process software preview: a second libmpv instance renders into
         // PreviewImage via mpv_render_context (no external mpv.exe / thumbfast).
@@ -56,6 +59,9 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
                 _previewThrottleTimer = DispatcherQueue.CreateTimer();
                 _previewThrottleTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(mpv_winui.AppContext.AppSetting.ThumbnailUpdateInterval, 40, 600));
+                // Repeating: the sampler keeps its cadence while the pointer
+                // moves and stops itself after a few idle ticks.
+                _previewThrottleTimer.IsRepeating = true;
                 _previewThrottleTimer.Tick += PreviewThrottleTick;
             }
         }
@@ -122,29 +128,42 @@ namespace mpv_winui.Modules.Player
         private void PlayerControl_PreviewUpdateRequested(object? sender, (double HoverSec, double RelativeX, double RelativeY) args)
         {
             // Coalesce the high-frequency pointer stream; only the latest hover
-            // position is sent to the previewer (max ~25 updates/sec).
+            // position is sent to the previewer. The timer samples at a fixed
+            // cadence and is only started here - restarting it on every move
+            // postponed the tick for as long as the pointer kept moving, which
+            // is what made the thumbnail trail the cursor.
             _pendingPreview = args;
-            _previewThrottleTimer?.Start();
+            if (_previewThrottleTimer is { IsRunning: false } timer)
+            {
+                _previewIdleTicks = 0;
+                timer.Start();
+            }
         }
 
         private void PlayerControl_PreviewClearRequested(object? sender, EventArgs e)
         {
             _pendingPreview = null;
+            _previewIdleTicks = 0;
             _previewThrottleTimer?.Stop();
             HidePreview();
         }
 
         private void PreviewThrottleTick(DispatcherQueueTimer sender, object args)
         {
-            sender.Stop();
-            if (_pendingPreview is not { } preview)
+            if (_pendingPreview is { } preview)
             {
+                _pendingPreview = null;
+                _previewIdleTicks = 0;
+                _lastPreviewPoint = PlayerControl.TransformToVisual(PlayerView).TransformPoint(new Point(preview.RelativeX, preview.RelativeY));
+                ShowPreviewAt(preview.HoverSec);
                 return;
             }
 
-            _pendingPreview = null;
-            _lastPreviewPoint = PlayerControl.TransformToVisual(PlayerView).TransformPoint(new Point(preview.RelativeX, preview.RelativeY));
-            ShowPreviewAt(preview.HoverSec);
+            // No new hover position for a few ticks: stop until the next move.
+            if (++_previewIdleTicks >= 3)
+            {
+                sender.Stop();
+            }
         }
 
         private void ShowPreviewAt(double hoverSec)

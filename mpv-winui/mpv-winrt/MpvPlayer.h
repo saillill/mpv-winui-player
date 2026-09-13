@@ -179,6 +179,7 @@ namespace winrt::mpv_winrt::implementation
         void SetDoubleProperty(const char* name, double value);
         void SetInt64Property(const char* name, int64_t value);
         void SetStringProperty(const char* name, const std::string& value);
+        void SetUserData(const char* key, const std::string& value);
 
         mpv_handle* m_mpv{nullptr};
         std::atomic<IDXGISwapChain*> m_swapChain{nullptr};

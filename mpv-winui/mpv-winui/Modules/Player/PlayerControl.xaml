@@ -805,51 +805,20 @@
                 <VisualState x:Name="ControlPanelFadeOut" />
             </VisualStateGroup>
 
+            <!--
+                Width adaptation no longer lives here. The states are kept (the
+                names are referenced elsewhere) but carry no setters: visibility
+                is decided by ControlBarAdaptiveLayout + ApplyControlBarVisibility,
+                which sets every button explicitly at every tier. Keeping setters
+                here made two writers fight - the state only ever added
+                "Collapsed", and the empty Wide state left showing a control
+                again up to the framework.
+            -->
             <VisualStateGroup x:Name="WidthAdaptiveStates">
                 <VisualState x:Name="Wide" />
-                <VisualState x:Name="Medium">
-                    <VisualState.Setters>
-                        <Setter Target="SkipBackwardButton.Visibility" Value="Collapsed" />
-                        <Setter Target="SkipForwardButton.Visibility" Value="Collapsed" />
-                        <Setter Target="ShuffleButton.Visibility" Value="Collapsed" />
-                        <Setter Target="RepeatButton.Visibility" Value="Collapsed" />
-                        <Setter Target="PlaybackRateButton.Visibility" Value="Collapsed" />
-                        <Setter Target="ZoomButton.Visibility" Value="Collapsed" />
-                        <Setter Target="MoreButton.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="Compact">
-                    <VisualState.Setters>
-                        <Setter Target="SkipBackwardButton.Visibility" Value="Collapsed" />
-                        <Setter Target="SkipForwardButton.Visibility" Value="Collapsed" />
-                        <Setter Target="ShuffleButton.Visibility" Value="Collapsed" />
-                        <Setter Target="RepeatButton.Visibility" Value="Collapsed" />
-                        <Setter Target="PlaybackRateButton.Visibility" Value="Collapsed" />
-                        <Setter Target="ZoomButton.Visibility" Value="Collapsed" />
-                        <Setter Target="PreviousTrackButton.Visibility" Value="Collapsed" />
-                        <Setter Target="NextTrackButton.Visibility" Value="Collapsed" />
-                        <Setter Target="FullWindowButton.Visibility" Value="Collapsed" />
-                        <Setter Target="MoreButton.Visibility" Value="Visible" />
-
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="Narrow">
-                    <VisualState.Setters>
-                        <Setter Target="SkipBackwardButton.Visibility" Value="Collapsed" />
-                        <Setter Target="SkipForwardButton.Visibility" Value="Collapsed" />
-                        <Setter Target="ShuffleButton.Visibility" Value="Collapsed" />
-                        <Setter Target="RepeatButton.Visibility" Value="Collapsed" />
-                        <Setter Target="PlaybackRateButton.Visibility" Value="Collapsed" />
-                        <Setter Target="ZoomButton.Visibility" Value="Collapsed" />
-                        <Setter Target="PreviousTrackButton.Visibility" Value="Collapsed" />
-                        <Setter Target="NextTrackButton.Visibility" Value="Collapsed" />
-                        <Setter Target="FullWindowButton.Visibility" Value="Collapsed" />
-                        <Setter Target="FullScreenButton.Visibility" Value="Collapsed" />
-                        <Setter Target="VolumeSliderContainer.Visibility" Value="Collapsed" />
-                        <Setter Target="MoreButton.Visibility" Value="Visible" />
-
-                    </VisualState.Setters>
-                </VisualState>
+                <VisualState x:Name="Medium" />
+                <VisualState x:Name="Compact" />
+                <VisualState x:Name="Narrow" />
             </VisualStateGroup>
 
         </VisualStateManager.VisualStateGroups>

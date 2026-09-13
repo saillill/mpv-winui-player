@@ -288,7 +288,14 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpWindowAspectRatioLock,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.WindowAspectRatioLock,
-                Setter = v => AppContext.AppSetting.WindowAspectRatioLock = (bool)v!
+                // NotifySettingChanged matters here: MainWindow listens for it to
+                // re-fit the open window the moment the lock is turned on
+                // (otherwise the change only applies to the next video).
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowAspectRatioLock = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowAspectRatioLock), v);
+                }
             },
 
             new Option

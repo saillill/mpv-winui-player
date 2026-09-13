@@ -143,6 +143,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpUnassociateFiles { get; set; } = "Remove the media file associations registered by this player.";
         public string SettingsAssociateDone { get; set; } = "File associations created.";
         public string SettingsUnassociateDone { get; set; } = "File associations removed.";
+        public string SettingsAssociatePackaged { get; set; } = "This build is installed as an app package, so Windows takes the file list from the package manifest. Rebuild and reinstall the package to change it.";
+        public string SettingsAssociateFailed { get; set; } = "Windows did not accept the file association. Check the log for details.";
         public string SectionProgramConfig { get; set; } = "Configuration";
         public string SectionDescProgramConfig { get; set; } = "Update check, configuration files";
         public string SettingsExportConfig { get; set; } = "Export settings";
@@ -347,8 +349,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpPictureSharpen { get; set; } = "Sharpening strength (0-5). gpu-next only.";
         public string SettingsAutoWindowResize { get; set; } = "Auto-fit window to video";
         public string SettingsHelpAutoWindowResize { get; set; } = "Resize the window when video resolution changes.";
-        public string SettingsWindowAspectRatioLock { get; set; } = "Lock window aspect ratio";
-        public string SettingsHelpWindowAspectRatioLock { get; set; } = "Keep the video aspect ratio while drag-resizing the window.";
+        public string SettingsWindowAspectRatioLock { get; set; } = "Lock aspect ratio to the video";
+        public string SettingsHelpWindowAspectRatioLock { get; set; } = "On: the window follows the video aspect ratio - corrected when a video opens and while dragging. Off: resize the window freely.";
         public string SettingsAdLavcDownmix { get; set; } = "Decoder stereo downmix";
         public string SettingsHelpAdLavcDownmix { get; set; } = "Downmix multichannel audio to stereo at decoder level.";
         public string MoreSkipBackward { get; set; } = "Skip Backward";

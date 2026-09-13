@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Activation;
+using mpv_winui.Modules.AppModel;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
@@ -278,6 +279,8 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => lang.WarningBlendSubtitlesMargins,
             nameof(AppSettings.SubFallback) when string.IsNullOrWhiteSpace(s.SubtitleLanguage) => lang.WarningSubFallbackNoLanguage,
             nameof(AppSettings.SeekHoldEnabled) when !s.VsrAutoEnabled && s.HdrAutoMode == "off" => lang.WarningSeekHoldInactive,
+            // Explains why the file association checklist is disabled.
+            FileAssociationCheckListKey when PackageHelper.IsPackaged => lang.SettingsAssociatePackaged,
             _ => null,
         };
     }
@@ -315,6 +318,10 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             nameof(AppSettings.SubAssForceMargins) when s.BlendSubtitles != "no" => false,
             // mpv: linear-upscaling and sigmoid-upscaling are mutually exclusive.
             nameof(AppSettings.LinearUpscaling) when s.SigmoidUpscaling => false,
+            // A packaged build answers file activation from its appx manifest,
+            // so this checklist cannot change what Windows does. Disable it
+            // instead of letting a click look like it worked.
+            FileAssociationCheckListKey when PackageHelper.IsPackaged => false,
             _ => true,
         };
     }
@@ -329,6 +336,9 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             }
         });
     }
+
+    /// <summary>Option key of the file-association checklist card.</summary>
+    private const string FileAssociationCheckListKey = "FileAssociationCheckList";
 
     private static readonly string[] AssociationExtensions =
     [
@@ -384,6 +394,19 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
     {
         try
         {
+            // A packaged build answers file activation from its package
+            // manifest: ActivationRegistrationManager does nothing there, so
+            // this used to report success while Windows never learned about the
+            // selection. The checkbox state is still persisted (it is what the
+            // unpackaged build and the exit-time review read), but the result
+            // has to be stated honestly instead of claiming "created".
+            if (PackageHelper.IsPackaged)
+            {
+                _actionStatus = AppContext.AppLang.SettingsAssociatePackaged;
+                OptionsControl.Refresh();
+                return;
+            }
+
             var service = ActivationRegistrationService.Instance;
             var selected = ParseTokenList(AppContext.AppSetting.FileAssociationExts).ToHashSet(StringComparer.OrdinalIgnoreCase);
             var toRegister = AssociationExtensions.Where(selected.Contains).ToList();
@@ -410,11 +433,47 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                 await service.RegisterProtocolAsync("mpv-winui");
             }
 
-            _actionStatus = AppContext.AppLang.SettingsAssociateDone;
+            // Registering is not proof of success: WindowsAppSDK can leave the
+            // ProgId without a usable shell verb (Windows then lists the player
+            // but cannot start it from a file), and an extension can fail on
+            // its own. Read the real state back; when the shell verb is missing,
+            // run the HKCU repair once and verify again before failing.
+            var registered = await service.GetRegisteredExtensionsAsync();
+            var missing = toRegister
+                .Where(ext => !registered.Contains(ext, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+            var shellOk = ActivationRegistrationService.HasUsableShellCommand();
+
+            if (missing.Count > 0 || !shellOk)
+            {
+                ActivationRegistrationService.RepairShellCommand();
+                registered = await service.GetRegisteredExtensionsAsync();
+                missing = toRegister
+                    .Where(ext => !registered.Contains(ext, StringComparer.OrdinalIgnoreCase))
+                    .ToList();
+                shellOk = ActivationRegistrationService.HasUsableShellCommand();
+            }
+
+            if (missing.Count > 0 || !shellOk)
+            {
+                AppContext.AppLogger.Warn(
+                    "file association apply incomplete, missing={} systemShell={}",
+                    string.Join(",", missing),
+                    ActivationRegistrationService.HasUsableShellCommand());
+                _actionStatus = AppContext.AppLang.SettingsAssociateFailed;
+            }
+            else
+            {
+                _actionStatus = AppContext.AppLang.SettingsAssociateDone;
+            }
+
+            OptionsControl.Refresh();
         }
         catch (Exception ex)
         {
             AppContext.AppLogger.Error(ex, "file association apply failed");
+            _actionStatus = AppContext.AppLang.SettingsAssociateFailed;
+            OptionsControl.Refresh();
         }
     }
 
@@ -427,6 +486,17 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
     {
         try
         {
+            // Same packaged-build caveat as ApplyAssociationsAsync: the
+            // registration API has no effect, so only the stored selection can
+            // be cleared here.
+            if (PackageHelper.IsPackaged)
+            {
+                AppContext.AppSetting.FileAssociationExts = string.Empty;
+                _actionStatus = AppContext.AppLang.SettingsAssociatePackaged;
+                OptionsControl.Refresh();
+                return;
+            }
+
             var extensions = ParseTokenList(AppContext.AppSetting.FileAssociationExts).ToList();
             if (extensions.Count > 0)
             {
@@ -436,10 +506,13 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             await ActivationRegistrationService.Instance.UnregisterProtocolAsync("mpv-winui");
             AppContext.AppSetting.FileAssociationExts = string.Empty;
             _actionStatus = AppContext.AppLang.SettingsUnassociateDone;
+            OptionsControl.Refresh();
         }
         catch (Exception ex)
         {
             AppContext.AppLogger.Error(ex, "file association unregister failed");
+            _actionStatus = AppContext.AppLang.SettingsAssociateFailed;
+            OptionsControl.Refresh();
         }
     }
 
