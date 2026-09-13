@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -57,7 +57,7 @@ public sealed partial class QuickControlPanel : UserControl
     public ObservableCollection<EqualizerBand> EqualizerBands { get; } = [];
 
     /// <summary>Player wiring set by PlayerControl before the panel is built.</summary>
-    public MpvMediaPlayer? MediaPlayer
+    public mpv_winrt.MpvPlayer? MediaPlayer
     {
         get;
         set;

@@ -1,15 +1,19 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "MpvPlayer.h"
 #include "MpvPlayer.g.cpp"
 #include "MediaInfoChangedEventArgs.h"
 #include "MpvAudioDevice.h"
 #include "MpvChapter.h"
+#include "MpvProfile.h"
+#include "MpvEdition.h"
 #include "MpvGpuAdapter.h"
 #include "MpvLogEventArgs.h"
 #include "MpvMenuItem.h"
 #include "MpvPlaylistItem.h"
 #include "MpvTrack.h"
 #include "PlaybackFailedEventArgs.h"
+#include "NetworkInfoChangedEventArgs.h"
+#include "FileFailedEventArgs.h"
 #include "PlaybackStateChangedEventArgs.h"
 #include "PositionChangedEventArgs.h"
 #include "SpeedChangedEventArgs.h"
@@ -27,6 +31,32 @@ using namespace Windows::Foundation::Collections;
 
 namespace winrt::mpv_winrt::implementation
 {
+    namespace
+    {
+        // mpv_node -> flat string for the generic ObserveProperty surface.
+        // Nested maps/arrays and NONE (property unavailable) render empty.
+        winrt::hstring NodeToHString(const mpv_node* node)
+        {
+            if (!node)
+            {
+                return winrt::hstring{};
+            }
+            switch (node->format)
+            {
+                case MPV_FORMAT_STRING:
+                    return node->u.string ? winrt::to_hstring(node->u.string) : winrt::hstring{};
+                case MPV_FORMAT_FLAG:
+                    return winrt::hstring(node->u.flag != 0 ? L"yes" : L"no");
+                case MPV_FORMAT_INT64:
+                    return winrt::to_hstring(node->u.int64);
+                case MPV_FORMAT_DOUBLE:
+                    return winrt::to_hstring(node->u.double_);
+                default:
+                    return winrt::hstring{};
+            }
+        }
+    }
+
     MpvPlayer::MpvPlayer()
     {
     }
@@ -39,6 +69,11 @@ namespace winrt::mpv_winrt::implementation
             mpv_terminate_destroy(m_mpv);
             m_mpv = nullptr;
             m_swapChain = nullptr;
+        }
+        {
+            std::lock_guard lock(m_targetPanelMutex);
+            m_targetPanel = nullptr;
+            m_targetPanelDispatcher = nullptr;
         }
     }
 
@@ -61,6 +96,15 @@ namespace winrt::mpv_winrt::implementation
         }
         m_swapChain.store(nullptr);
         m_initialized.store(false);
+        {
+            std::lock_guard lock(m_targetPanelMutex);
+            m_targetPanel = nullptr;
+            m_targetPanelDispatcher = nullptr;
+        }
+        {
+            std::lock_guard lock(m_observersMutex);
+            m_propertyObservers.clear();
+        }
     }
 
     void MpvPlayer::Initialize(hstring const& configPath, uint32_t width, uint32_t height, int32_t volume, winrt::mpv_winrt::DisplayColorKind colorKind, int32_t refreshRate)
@@ -108,8 +152,13 @@ namespace winrt::mpv_winrt::implementation
         mpv_request_log_messages(m_mpv, "warn");
 
         UpdateDisplayColorInfo(colorKind);
+        // The pre-init call above could only set override-display-fps: a
+        // user-data key does not exist before mpv_initialize(), so the
+        // refresh-rate property has to be published now that the core is up.
+        UpdateDisplayRefreshRate(refreshRate);
 
         mpv_observe_property(m_mpv, MpvObserveId::Pause, "pause", MPV_FORMAT_FLAG);
+        mpv_observe_property(m_mpv, MpvObserveId::PausedForCache, "paused-for-cache", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::Duration, "duration", MPV_FORMAT_DOUBLE);
         mpv_observe_property(m_mpv, MpvObserveId::TimePos, "time-pos", MPV_FORMAT_DOUBLE);
 
@@ -132,6 +181,50 @@ namespace winrt::mpv_winrt::implementation
         mpv_observe_property(m_mpv, MpvObserveId::WindowMaximized, "window-maximized", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::TitleBar, "title-bar", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::Border, "border", MPV_FORMAT_FLAG);
+        mpv_observe_property(m_mpv, MpvObserveId::DiscMenuActive, "disc-menu-active", MPV_FORMAT_FLAG);
+
+        // Generic observers registered before Initialize could run.
+        StartPropertyObservers();
+
+        StartEventThread();
+    }
+
+    void MpvPlayer::InitializeForPreview(uint32_t width, uint32_t height)
+    {
+        CreateContext();
+
+        SetOption("config", "no");
+        SetOption("msg-level", "all=no");
+        SetOption("profile", "fast");
+        SetOption("osc", "no");
+        SetOption("load-scripts", "no");
+        SetOption("idle", "yes");
+        SetOption("keep-open", "yes");
+        SetOption("pause", "yes");
+        SetOption("really-quiet", "yes");
+        SetOption("load-stats-overlay", "no");
+        SetOption("load-stats-console", "no");
+        SetOption("load-auto-profiles", "no");
+        SetOption("sub", "no");
+        SetOption("hr-seek", "no");
+        SetOption("audio", "no");
+        SetOption("input-default-bindings", "no");
+        SetOption("input-media-keys", "no");
+        SetOption("media-controls", "no");
+        SetOption("terminal", "no");
+        SetOption("cache", "no");
+
+        SetOption("force-window", "yes");
+        SetOption("gpu-api", "d3d11");
+        SetOption("d3d11-output-mode", "composition");
+        SetOption("auto-window-resize", "no");
+        SetOption("d3d11-composition-size", std::to_string(width) + "x" + std::to_string(height));
+
+
+        if (mpv_initialize(m_mpv) < 0)
+        {
+            throw hresult_error(E_FAIL, L"Failed to initialize mpv for preview");
+        }
 
         StartEventThread();
     }
@@ -196,31 +289,40 @@ namespace winrt::mpv_winrt::implementation
     {
         switch (event->event_id)
         {
+            case MPV_EVENT_START_FILE:
+                {
+                    m_fileStartedEvent();
+                    break;
+                }
+
             case MPV_EVENT_FILE_LOADED:
                 {
                     m_fileLoadedEvent();
                     break;
                 }
 
-            case MPV_EVENT_START_FILE:
-                {
-                    break;
-                }
-
             case MPV_EVENT_PLAYBACK_RESTART:
                 {
-                    m_mediaLoadedEvent();
+                    m_playbackRestartedEvent();
                     break;
                 }
 
             case MPV_EVENT_END_FILE:
                 {
                     auto end_file = static_cast<mpv_event_end_file*>(event->data);
-                    if (end_file->reason == MPV_END_FILE_REASON_ERROR)
+                    if (end_file->reason == MPV_END_FILE_REASON_EOF)
                     {
-                        auto args = winrt::make<implementation::PlaybackFailedEventArgs>(
+                        m_fileEndedEvent();
+                    }
+                    else if (end_file->reason == MPV_END_FILE_REASON_ERROR)
+                    {
+                        auto args = winrt::make<implementation::FileFailedEventArgs>(
                             winrt::to_hstring(mpv_error_string(end_file->error)));
-                        m_playbackFailedEvent(args);
+                        m_fileFailedEvent(args);
+                    }
+                    else if (end_file->reason == MPV_END_FILE_REASON_STOP)
+                    {
+                        m_fileStoppedEvent();
                     }
                     break;
                 }
@@ -242,7 +344,7 @@ namespace winrt::mpv_winrt::implementation
 
             case MPV_EVENT_SEEK:
                 {
-                    m_seekedEvent();
+                    m_seekStartedEvent();
                     break;
                 }
 
@@ -253,8 +355,13 @@ namespace winrt::mpv_winrt::implementation
                     if (swapChain != m_swapChain.load())
                     {
                         m_swapChain.store(swapChain);
-                        m_voConfiguredEvent();
+                        m_swapChainChangedEvent();
                     }
+                    // A panel recorded by AttachSwapChain while the vo had no
+                    // chain (startup race, PiP enter before the first frame)
+                    // is attached here once the chain exists — the caller does
+                    // not have to re-drive the attach around vo readiness.
+                    CompletePendingSwapChainAttach();
                     // Video dimensions are only current at this point: the
                     // media-title property change fires at start-file, before
                     // the new video is configured, so the PiP window would
@@ -280,6 +387,15 @@ namespace winrt::mpv_winrt::implementation
 
                     switch (event->reply_userdata)
                     {
+                        case MpvObserveId::CoreIdle:
+                            break;
+
+                        case MpvObserveId::PausedForCache:
+                            {
+                                int buffering = prop->data ? *static_cast<int*>(prop->data) : 0;
+                                m_bufferingChangedEvent(buffering != 0);
+                                break;
+                            }
                         case MpvObserveId::Pause:
                             {
                                 int video_paused = prop->data ? *static_cast<int*>(prop->data) : 0;
@@ -385,7 +501,38 @@ namespace winrt::mpv_winrt::implementation
                                 break;
                             }
 
+                        case MpvObserveId::DiscMenuActive:
+                            {
+                                bool active = prop->data ? *static_cast<int*>(prop->data) != 0 : false;
+                                m_discMenuActiveChangedEvent(active);
+                                break;
+                            }
+
                         default:
+                            // Generic ObserveProperty subscriptions: handles
+                            // are allocated above every MpvObserveId value.
+                            if (event->reply_userdata >= kDynamicObserveBase)
+                            {
+                                std::pair<winrt::hstring, winrt::mpv_winrt::MpvPropertyChangedEventHandler> entry;
+                                {
+                                    std::lock_guard lock(m_observersMutex);
+                                    auto it = m_propertyObservers.find(event->reply_userdata);
+                                    if (it != m_propertyObservers.end())
+                                    {
+                                        entry = it->second;
+                                    }
+                                }
+                                if (entry.second)
+                                {
+                                    // MPV_FORMAT_NODE keeps the event data
+                                    // self-describing: mpv degrades the format
+                                    // to NONE (data invalid) when the property
+                                    // is unavailable, which NodeToHString
+                                    // renders as an empty string.
+                                    winrt::hstring value = NodeToHString(static_cast<const mpv_node*>(prop->data));
+                                    entry.second(entry.first, value);
+                                }
+                            }
                             break;
                     }
                     break;
@@ -393,6 +540,249 @@ namespace winrt::mpv_winrt::implementation
         }
     }
 
+    winrt::event_token MpvPlayer::FileStarted(winrt::mpv_winrt::FileStartedEventHandler const& handler)
+    {
+        return m_fileStartedEvent.add(handler);
+    }
+
+    void MpvPlayer::FileStarted(winrt::event_token const& token) noexcept
+    {
+        m_fileStartedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::FileEnded(winrt::mpv_winrt::FileEndedEventHandler const& handler)
+    {
+        return m_fileEndedEvent.add(handler);
+    }
+
+    void MpvPlayer::FileEnded(winrt::event_token const& token) noexcept
+    {
+        m_fileEndedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::FileFailed(winrt::mpv_winrt::FileFailedEventHandler const& handler)
+    {
+        return m_fileFailedEvent.add(handler);
+    }
+
+    void MpvPlayer::FileFailed(winrt::event_token const& token) noexcept
+    {
+        m_fileFailedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::SeekStarted(winrt::mpv_winrt::SeekStartedEventHandler const& handler)
+    {
+        return m_seekStartedEvent.add(handler);
+    }
+
+    void MpvPlayer::SeekStarted(winrt::event_token const& token) noexcept
+    {
+        m_seekStartedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::FileLoaded(winrt::mpv_winrt::FileLoadedEventHandler const& handler)
+    {
+        return m_fileLoadedEvent.add(handler);
+    }
+
+    void MpvPlayer::FileLoaded(winrt::event_token const& token) noexcept
+    {
+        m_fileLoadedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::FileStopped(winrt::mpv_winrt::FileStoppedEventHandler const& handler)
+    {
+        return m_fileStoppedEvent.add(handler);
+    }
+
+    void MpvPlayer::FileStopped(winrt::event_token const& token) noexcept
+    {
+        m_fileStoppedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::PlaybackRestarted(winrt::mpv_winrt::PlaybackRestartedEventHandler const& handler)
+    {
+        return m_playbackRestartedEvent.add(handler);
+    }
+
+    void MpvPlayer::PlaybackRestarted(winrt::event_token const& token) noexcept
+    {
+        m_playbackRestartedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::TrackChanged(winrt::mpv_winrt::TrackChangedEventHandler const& handler)
+    {
+        return m_trackChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::TrackChanged(winrt::event_token const& token) noexcept
+    {
+        m_trackChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::BufferingChanged(winrt::mpv_winrt::BufferingChangedEventHandler const& handler)
+    {
+        return m_bufferingChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::BufferingChanged(winrt::event_token const& token) noexcept
+    {
+        m_bufferingChangedEvent.remove(token);
+    }
+
+
+
+    winrt::event_token MpvPlayer::PlaybackStateChanged(
+        winrt::mpv_winrt::PlaybackStateChangedEventHandler const& handler)
+    {
+        return m_playbackStateChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::PlaybackStateChanged(winrt::event_token const& token) noexcept
+    {
+        m_playbackStateChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::VolumeChanged(winrt::mpv_winrt::VolumeChangedEventHandler const& handler)
+    {
+        return m_volumeChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::VolumeChanged(winrt::event_token const& token) noexcept
+    {
+        m_volumeChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::PositionChanged(winrt::mpv_winrt::PositionChangedEventHandler const& handler)
+    {
+        return m_positionChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::PositionChanged(winrt::event_token const& token) noexcept
+    {
+        m_positionChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::SpeedChanged(winrt::mpv_winrt::SpeedChangedEventHandler const& handler)
+    {
+        return m_speedChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::SpeedChanged(winrt::event_token const& token) noexcept
+    {
+        m_speedChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::MediaInfoChanged(winrt::mpv_winrt::MediaInfoChangedEventHandler const& handler)
+    {
+        return m_mediaInfoChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::MediaInfoChanged(winrt::event_token const& token) noexcept
+    {
+        m_mediaInfoChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::NetworkInfoChanged(winrt::mpv_winrt::NetworkInfoChangedEventHandler const& handler)
+    {
+        return m_networkInfoChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::NetworkInfoChanged(winrt::event_token const& token) noexcept
+    {
+        m_networkInfoChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::TrackListChanged(winrt::mpv_winrt::TrackListChangedEventHandler const& handler)
+    {
+        return m_trackListChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::TrackListChanged(winrt::event_token const& token) noexcept
+    {
+        m_trackListChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::TrackListCountChanged(
+        winrt::mpv_winrt::TrackListCountChangedEventHandler const& handler)
+    {
+        return m_trackListCountChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::TrackListCountChanged(winrt::event_token const& token) noexcept
+    {
+        m_trackListCountChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::SwapChainChanged(winrt::mpv_winrt::SwapChainChangedEventHandler const& handler)
+    {
+        return m_swapChainChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::SwapChainChanged(winrt::event_token const& token) noexcept
+    {
+        m_swapChainChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::WindowChanged(winrt::mpv_winrt::WindowChangedEventHandler const& handler)
+    {
+        return m_windowChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::WindowChanged(winrt::event_token const& token) noexcept
+    {
+        m_windowChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::DiscMenuActiveChanged(winrt::mpv_winrt::DiscMenuActiveChangedEventHandler const& handler)
+    {
+        return m_discMenuActiveChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::DiscMenuActiveChanged(winrt::event_token const& token) noexcept
+    {
+        m_discMenuActiveChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::LoopFileChanged(winrt::mpv_winrt::LoopFileChangedEventHandler const& handler)
+    {
+        return m_loopFileChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::LoopFileChanged(winrt::event_token const& token) noexcept
+    {
+        m_loopFileChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::LoopPlaylistChanged(winrt::mpv_winrt::LoopPlaylistChangedEventHandler const& handler)
+    {
+        return m_loopPlaylistChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::LoopPlaylistChanged(winrt::event_token const& token) noexcept
+    {
+        m_loopPlaylistChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::ShuffleChanged(winrt::mpv_winrt::ShuffleChangedEventHandler const& handler)
+    {
+        return m_shuffleChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::ShuffleChanged(winrt::event_token const& token) noexcept
+    {
+        m_shuffleChangedEvent.remove(token);
+    }
+
+    winrt::event_token MpvPlayer::PlaylistChanged(winrt::mpv_winrt::PlaylistChangedEventHandler const& handler)
+    {
+        return m_playlistChangedEvent.add(handler);
+    }
+
+    void MpvPlayer::PlaylistChanged(winrt::event_token const& token) noexcept
+    {
+        m_playlistChangedEvent.remove(token);
+    }
     void MpvPlayer::UpdateSize(uint32_t width, uint32_t height)
     {
         if (!m_mpv)
@@ -480,11 +870,11 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
 
+        const size_t count = args.Size();
         std::vector<std::string> utf8Args;
-        utf8Args.reserve(args.Size());
-
         std::vector<const char*> cArgs;
-        cArgs.reserve(args.Size() + 1);
+        utf8Args.reserve(count);
+        cArgs.reserve(count + 1);
 
         for (auto const& item : args)
         {
@@ -579,7 +969,12 @@ namespace winrt::mpv_winrt::implementation
 
     bool MpvPlayer::SaveWatchHistory()
     {
-        return GetFlagProperty("save-watch-history");
+        return GetFlagProperty("save-watch-history", false);
+    }
+
+    winrt::hstring MpvPlayer::GetCurrentPath()
+    {
+        return GetHStringProperty("path");
     }
 
     bool MpvPlayer::IsPaused()
@@ -588,7 +983,19 @@ namespace winrt::mpv_winrt::implementation
         {
             return true;
         }
-        return IsStringPropertyEqual("pause", "yes");
+
+        int idleActiveFlag = 0;
+        if (mpv_get_property(m_mpv, "idle-active", MPV_FORMAT_FLAG, &idleActiveFlag) < 0 || idleActiveFlag != 0)
+        {
+            return true;
+        }
+
+        int pauseFlag = 0;
+        if (mpv_get_property(m_mpv, "pause", MPV_FORMAT_FLAG, &pauseFlag) < 0)
+        {
+            return true;
+        }
+        return pauseFlag != 0;
     }
 
     // Volume control methods
@@ -873,6 +1280,63 @@ namespace winrt::mpv_winrt::implementation
         return !IsStringPropertyEqual("shuffle", "no");
     }
 
+    void MpvPlayer::PlaylistPlayIndex(int32_t index)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        const auto cmd = std::format("playlist-play-index {}", index);
+        mpv_command_string(m_mpv, cmd.c_str());
+    }
+
+    void MpvPlayer::PlaylistMove(int32_t from, int32_t to)
+    {
+        if (!m_mpv || from == to || to < 0)
+        {
+            return;
+        }
+
+        const auto cmd = std::format("playlist-move {} {}", from, from < to ? to + 1 : to);
+        mpv_command_string(m_mpv, cmd.c_str());
+    }
+
+    void MpvPlayer::PlaylistRemove(int32_t index)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        const auto cmd = std::format("playlist-remove {}", index);
+        mpv_command_string(m_mpv, cmd.c_str());
+    }
+
+    void MpvPlayer::PlaylistNext()
+    {
+        if (m_mpv)
+        {
+            mpv_command_string(m_mpv, "playlist-next");
+        }
+    }
+
+    void MpvPlayer::PlaylistPrevious()
+    {
+        if (m_mpv)
+        {
+            mpv_command_string(m_mpv, "playlist-prev");
+        }
+    }
+
+    void MpvPlayer::PlaylistShuffle()
+    {
+        if (m_mpv)
+        {
+            mpv_command_string(m_mpv, "playlist-shuffle");
+        }
+    }
+
     void MpvPlayer::SetAspectRatio(hstring const& ratio)
     {
         if (!m_mpv)
@@ -884,6 +1348,30 @@ namespace winrt::mpv_winrt::implementation
         SetStringProperty("video-aspect-override", aspectRatio);
     }
 
+    namespace
+    {
+        // Matrix + panel binding shared by the immediate and the deferred
+        // attach paths; must run on the panel's UI thread.
+        void SetSwapChainOnPanel(winrt::Microsoft::UI::Xaml::Controls::SwapChainPanel const& panel, IDXGISwapChain* swapChain)
+        {
+            winrt::com_ptr<IDXGISwapChain2> swapChain2{nullptr};
+            if (S_OK == swapChain->QueryInterface(swapChain2.put()))
+            {
+                DXGI_MATRIX_3X2_F inverseScale{};
+                inverseScale._11 = 1.0f / panel.CompositionScaleX();
+                inverseScale._22 = 1.0f / panel.CompositionScaleY();
+                swapChain2->SetMatrixTransform(&inverseScale);
+            };
+
+            winrt::com_ptr<ISwapChainPanelNative> nativePanel{nullptr};
+            if (panel.try_as(nativePanel))
+            {
+#pragma warning(suppress : 6387)
+                nativePanel->SetSwapChain(swapChain);
+            }
+        }
+    }
+
     void MpvPlayer::AttachSwapChain(SwapChainPanel const& panel)
     {
         if (!m_mpv)
@@ -891,32 +1379,111 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
 
+        // Always record the target panel and its dispatcher first: when the
+        // vo has not produced a swap chain yet (startup, PiP enter before the
+        // first frame) the attach is completed by
+        // CompletePendingSwapChainAttach on the next VIDEO_RECONFIG, so
+        // callers never have to re-drive AttachSwapChain around vo readiness
+        // themselves.
+        {
+            std::lock_guard lock(m_targetPanelMutex);
+            m_targetPanel = panel;
+            m_targetPanelDispatcher = panel.DispatcherQueue();
+        }
+
         IDXGISwapChain* swapChain = nullptr;
         mpv_get_property(m_mpv, "display-swapchain", MPV_FORMAT_INT64, &swapChain);
 
         // Guard against attaching before the vo has produced a swap chain:
         // SetSwapChain(nullptr) would detach a currently attached chain and
-        // leave the panel black. AttachSwapChain is re-driven by VoConfigured
-        // (raised when the chain appears/reappears), so skipping is safe here.
+        // leave the panel black. The deferred path above completes it.
         if (!swapChain)
         {
             return;
         }
 
-        winrt::com_ptr<IDXGISwapChain2> swapChain2{nullptr};
-        if (S_OK == swapChain->QueryInterface(swapChain2.put()))
-        {
-            DXGI_MATRIX_3X2_F inverseScale{};
-            inverseScale._11 = 1.0f / panel.CompositionScaleX();
-            inverseScale._22 = 1.0f / panel.CompositionScaleY();
-            swapChain2->SetMatrixTransform(&inverseScale);
-        };
+        SetSwapChainOnPanel(panel, swapChain);
+    }
 
-        winrt::com_ptr<ISwapChainPanelNative> nativePanel{nullptr};
-        if (panel.try_as(nativePanel))
+    void MpvPlayer::CompletePendingSwapChainAttach()
+    {
+        if (!m_mpv)
         {
-#pragma warning(suppress : 6387)
-            nativePanel->SetSwapChain(swapChain);
+            return;
+        }
+
+        winrt::Microsoft::UI::Xaml::Controls::SwapChainPanel panel{nullptr};
+        winrt::Microsoft::UI::Dispatching::DispatcherQueue dispatcher{nullptr};
+        {
+            std::lock_guard lock(m_targetPanelMutex);
+            panel = m_targetPanel;
+            dispatcher = m_targetPanelDispatcher;
+        }
+        if (!panel || !dispatcher)
+        {
+            return;
+        }
+
+        IDXGISwapChain* swapChain = nullptr;
+        mpv_get_property(m_mpv, "display-swapchain", MPV_FORMAT_INT64, &swapChain);
+        if (!swapChain)
+        {
+            return;
+        }
+
+        // The chain pointer lives inside mpv's vo: hold our own reference so
+        // it cannot die between this event-thread call and the dispatched
+        // lambda. TryEnqueue is safe from any thread; SetSwapChain runs on
+        // the panel's UI thread.
+        winrt::com_ptr<IDXGISwapChain> chainRef{nullptr};
+        chainRef.copy_from(swapChain);
+        dispatcher.TryEnqueue([panel, chainRef]()
+        {
+            SetSwapChainOnPanel(panel, chainRef.get());
+        });
+    }
+
+    uint64_t MpvPlayer::ObserveProperty(hstring const& name, winrt::mpv_winrt::MpvPropertyChangedEventHandler const& handler)
+    {
+        uint64_t handle = m_nextObserverHandle.fetch_add(1);
+        {
+            std::lock_guard lock(m_observersMutex);
+            m_propertyObservers.emplace(handle, std::make_pair(name, handler));
+        }
+        if (m_mpv)
+        {
+            mpv_observe_property(m_mpv, handle, winrt::to_string(name).c_str(), MPV_FORMAT_NODE);
+        }
+        return handle;
+    }
+
+    void MpvPlayer::UnobserveProperty(uint64_t handle)
+    {
+        {
+            std::lock_guard lock(m_observersMutex);
+            m_propertyObservers.erase(handle);
+        }
+        if (m_mpv)
+        {
+            mpv_unobserve_property(m_mpv, handle);
+        }
+    }
+
+    void MpvPlayer::StartPropertyObservers()
+    {
+        // Registered while mpv was down: attach them now that the core exists.
+        std::vector<std::pair<uint64_t, std::string>> pending;
+        {
+            std::lock_guard lock(m_observersMutex);
+            pending.reserve(m_propertyObservers.size());
+            for (auto const& [handle, entry] : m_propertyObservers)
+            {
+                pending.emplace_back(handle, winrt::to_string(entry.first));
+            }
+        }
+        for (auto const& [handle, name] : pending)
+        {
+            mpv_observe_property(m_mpv, handle, name.c_str(), MPV_FORMAT_NODE);
         }
     }
 
@@ -979,15 +1546,19 @@ namespace winrt::mpv_winrt::implementation
         return L"";
     }
 
-    bool MpvPlayer::GetFlagProperty(const char* name)
+    bool MpvPlayer::GetFlagProperty(const char* name, bool defaultValue)
     {
         if (!m_mpv)
         {
-            return false;
+            return defaultValue;
         }
 
         int flag = 0;
-        return mpv_get_property(m_mpv, name, MPV_FORMAT_FLAG, &flag) >= 0 && flag != 0;
+        if (mpv_get_property(m_mpv, name, MPV_FORMAT_FLAG, &flag) < 0)
+        {
+            return defaultValue;
+        }
+        return flag != 0;
     }
 
     bool MpvPlayer::IsStringPropertyEqual(const char* name, std::string_view expected)
@@ -1035,6 +1606,50 @@ namespace winrt::mpv_winrt::implementation
         }
         const char* str = value.c_str();
         mpv_set_property(m_mpv, name, MPV_FORMAT_STRING, &str);
+    }
+
+    // Publishes a user-data/<key> property.
+    //
+    // This MUST go through the command parser rather than mpv_set_property():
+    // for a user-data key mpv_set_property() (MPV_FORMAT_STRING as well as
+    // MPV_FORMAT_INT64) returns 0 but stores nothing. Verified against the
+    // shipped mpv-2.dll - after the write the value reads back as garbage and
+    // an MPV_FORMAT_NODE read returns MPV_ERROR_PROPERTY_UNAVAILABLE (-9),
+    // while the same value written as "no-osd set user-data/..." reads back
+    // correctly and immediately activates a profile whose profile-cond reads
+    // it. That silent no-op is what left user-data/mpvw/color-kind unset, so
+    // no [mpvw-*] output-colorspace profile ever activated and hdr_auto.lua
+    // always concluded the display was not HDR - RTX Video HDR never engaged.
+    //
+    // Unlike a real option, a user-data key does not exist before
+    // mpv_initialize(); writes are ignored until the core is up.
+    void MpvPlayer::SetUserData(const char* key, const std::string& value)
+    {
+        if (!m_mpv || !m_initialized.load())
+        {
+            return;
+        }
+
+        // mpv_command_string() parses C-style escapes inside quotes, so a value
+        // containing spaces or backslashes has to be escaped.
+        std::string quoted;
+        quoted.reserve(value.size() + 2);
+        quoted += '"';
+        for (const char ch : value)
+        {
+            if (ch == '\\' || ch == '"')
+            {
+                quoted += '\\';
+            }
+            quoted += ch;
+        }
+        quoted += '"';
+
+        std::string command = "no-osd set user-data/";
+        command += key;
+        command += " ";
+        command += quoted;
+        mpv_command_string(m_mpv, command.c_str());
     }
 
     void MpvPlayer::SetOption(std::string const& name, std::string const& value)
@@ -1455,7 +2070,66 @@ namespace winrt::mpv_winrt::implementation
 
     int32_t MpvPlayer::CurrentEdition()
     {
+        if (!m_mpv)
+        {
+            return -1;
+        }
+
+        int64_t value = -1;
+        if (mpv_get_property(m_mpv, "current-edition", MPV_FORMAT_INT64, &value) < 0)
+        {
+            return -1;
+        }
+        return static_cast<int32_t>(value);
+    }
+
+    int32_t MpvPlayer::Edition()
+    {
         return static_cast<int32_t>(GetInt64Property("edition"));
+    }
+
+    void MpvPlayer::Edition(int32_t value)
+    {
+        SetInt64Property("edition", value);
+    }
+
+    winrt::hstring MpvPlayer::GetDiscPath(winrt::mpv_winrt::DiscType type)
+    {
+        switch (type)
+        {
+            case winrt::mpv_winrt::DiscType::Dvd:
+                return GetHStringProperty("dvd-device");
+            case winrt::mpv_winrt::DiscType::Bd:
+                return GetHStringProperty("bluray-device");
+            case winrt::mpv_winrt::DiscType::Dvda:
+                return GetHStringProperty("dvda-device");
+            case winrt::mpv_winrt::DiscType::Cdda:
+                return GetHStringProperty("cdda-device");
+            default:
+                return L"";
+        }
+    }
+
+    void MpvPlayer::SetDiscPath(winrt::mpv_winrt::DiscType type, winrt::hstring const& path)
+    {
+        std::string pathStr = winrt::to_string(path);
+        switch (type)
+        {
+            case winrt::mpv_winrt::DiscType::Dvd:
+                SetStringProperty("dvd-device", pathStr);
+                break;
+            case winrt::mpv_winrt::DiscType::Bd:
+                SetStringProperty("bluray-device", pathStr);
+                break;
+            case winrt::mpv_winrt::DiscType::Dvda:
+                SetStringProperty("dvda-device", pathStr);
+                break;
+            case winrt::mpv_winrt::DiscType::Cdda:
+                SetStringProperty("cdda-device", pathStr);
+                break;
+            default:
+                break;
+        }
     }
 
     static winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvMenuItem> ParseMenuNode(mpv_node* node)
@@ -1541,9 +2215,46 @@ namespace winrt::mpv_winrt::implementation
         return items.GetView();
     }
 
-    winrt::hstring MpvPlayer::GetSubtitleExtensions()
+    winrt::Windows::Foundation::Collections::IVectorView<winrt::hstring> MpvPlayer::GetSubtitleExtensions()
     {
-        return GetHStringProperty("sub-auto-exts");
+        auto extensions = winrt::single_threaded_vector<winrt::hstring>();
+        if (!m_mpv)
+        {
+            return extensions.GetView();
+        }
+
+        mpv_node node;
+        if (mpv_get_property(m_mpv, "sub-auto-exts", MPV_FORMAT_NODE, &node) < 0)
+        {
+            return extensions.GetView();
+        }
+
+        if (node.format == MPV_FORMAT_NODE_ARRAY)
+        {
+            for (int i = 0; i < node.u.list->num; i++)
+            {
+                mpv_node& value = node.u.list->values[i];
+                if (value.format != MPV_FORMAT_STRING || !value.u.string)
+                {
+                    continue;
+                }
+
+                const char* ext = value.u.string;
+                if (ext[0] == '.')
+                {
+                    ext++;
+                }
+                extensions.Append(winrt::to_hstring(ext));
+            }
+        }
+
+        mpv_free_node_contents(&node);
+        return extensions.GetView();
+    }
+
+    winrt::hstring MpvPlayer::GetVersion()
+    {
+        return GetHStringProperty("mpv-version");
     }
 
     winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvMenuItem> MpvPlayer::GetMenu()
@@ -1584,7 +2295,9 @@ namespace winrt::mpv_winrt::implementation
                 cs = "SDR";
                 break;
         }
-        SetStringProperty("user-data/mpvw/color-kind", cs);
+        // user-data, not a real option: SetStringProperty() would silently fail
+        // here (see SetUserData).
+        SetUserData("mpvw/color-kind", cs);
     }
 
     void MpvPlayer::UpdateDisplayRefreshRate(int32_t refreshRate)
@@ -1602,6 +2315,169 @@ namespace winrt::mpv_winrt::implementation
             // up to date for profiles/scripts.
             SetOption("override-display-fps", rate);
         }
-        SetInt64Property("user-data/mpvw/refresh-rate", refreshRate);
+        SetUserData("mpvw/refresh-rate", rate);
+    }
+/* --- restored from upstream during the merge: the projection generated
+   from the merged idl declares these members, our conflict resolution
+   dropped their implementations --- */
+    void MpvPlayer::LoadList(hstring const& url)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        std::string path = winrt::to_string(url);
+        const char* args[] = {"loadlist", path.c_str(), nullptr};
+        mpv_command(m_mpv, args);
+    }
+    void MpvPlayer::TogglePlayPause()
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+        const char* args[] = {"cycle", "pause", nullptr};
+        mpv_command(m_mpv, args);
+    }
+    void MpvPlayer::SetHoverSec(double sec)
+    {
+        SetDoubleProperty("user-data/osc/hover-sec", sec);
+    }
+    void MpvPlayer::SetDrawPreview(int32_t x, int32_t y, int32_t w, int32_t h)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        mpv_node node{};
+        mpv_node_list list{};
+        mpv_node values[4]{};
+        const char* keyPtrs[4] = {"x", "y", "w", "h"};
+
+        values[0].format = MPV_FORMAT_INT64;
+        values[0].u.int64 = static_cast<int64_t>(x);
+
+        values[1].format = MPV_FORMAT_INT64;
+        values[1].u.int64 = static_cast<int64_t>(y);
+
+        values[2].format = MPV_FORMAT_INT64;
+        values[2].u.int64 = static_cast<int64_t>(w);
+
+        values[3].format = MPV_FORMAT_INT64;
+        values[3].u.int64 = static_cast<int64_t>(h);
+
+        list.num = 4;
+        list.keys = (char**)keyPtrs;
+        list.values = values;
+
+        node.format = MPV_FORMAT_NODE_MAP;
+        node.u.list = &list;
+
+        mpv_set_property(m_mpv, "user-data/osc/draw-preview", MPV_FORMAT_NODE, &node);
+    }
+    void MpvPlayer::ClearPreview()
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        mpv_node null_node{};
+        null_node.format = MPV_FORMAT_NONE;
+        mpv_set_property(m_mpv, "user-data/osc/draw-preview", MPV_FORMAT_NODE, &null_node);
+        mpv_del_property(m_mpv, "user-data/osc/hover-sec");
+    }
+    winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvEdition> MpvPlayer::GetEditions()
+    {
+        auto editions = winrt::single_threaded_vector<winrt::mpv_winrt::MpvEdition>();
+        if (!m_mpv)
+        {
+            return editions.GetView();
+        }
+
+        mpv_node node;
+        if (mpv_get_property(m_mpv, "edition-list", MPV_FORMAT_NODE, &node) < 0)
+        {
+            return editions.GetView();
+        }
+
+        if (node.format == MPV_FORMAT_NODE_ARRAY)
+        {
+            for (int i = 0; i < node.u.list->num; i++)
+            {
+                mpv_node* entry = &node.u.list->values[i];
+                if (entry->format != MPV_FORMAT_NODE_MAP)
+                {
+                    continue;
+                }
+
+                int32_t id = i;
+                std::string title;
+
+                for (int j = 0; j < entry->u.list->num; j++)
+                {
+                    auto& key = entry->u.list->keys[j];
+                    auto& value = entry->u.list->values[j];
+
+                    if (strcmp(key, "title") == 0 && value.format == MPV_FORMAT_STRING)
+                    {
+                        title = value.u.string ? value.u.string : "";
+                    }
+                }
+
+                auto edition = winrt::make<implementation::MpvEdition>(id, winrt::to_hstring(title));
+                editions.Append(edition);
+            }
+        }
+
+        mpv_free_node_contents(&node);
+        return editions.GetView();
+    }
+    winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvProfile> MpvPlayer::GetProfiles()
+    {
+        auto profiles = winrt::single_threaded_vector<winrt::mpv_winrt::MpvProfile>();
+        if (!m_mpv)
+        {
+            return profiles.GetView();
+        }
+
+        mpv_node node;
+        if (mpv_get_property(m_mpv, "profile-list", MPV_FORMAT_NODE, &node) < 0)
+        {
+            return profiles.GetView();
+        }
+
+        if (node.format == MPV_FORMAT_NODE_ARRAY)
+        {
+            for (int i = 0; i < node.u.list->num; i++)
+            {
+                mpv_node* entry = &node.u.list->values[i];
+                if (entry->format != MPV_FORMAT_NODE_MAP)
+                {
+                    continue;
+                }
+
+                std::string name;
+
+                for (int j = 0; j < entry->u.list->num; j++)
+                {
+                    auto& key = entry->u.list->keys[j];
+                    auto& value = entry->u.list->values[j];
+
+                    if (strcmp(key, "name") == 0 && value.format == MPV_FORMAT_STRING)
+                    {
+                        name = value.u.string ? value.u.string : "";
+                    }
+                }
+
+                auto profile = winrt::make<implementation::MpvProfile>(winrt::to_hstring(name));
+                profiles.Append(profile);
+            }
+        }
+
+        mpv_free_node_contents(&node);
+        return profiles.GetView();
     }
 } // namespace winrt::mpv_winrt::implementation

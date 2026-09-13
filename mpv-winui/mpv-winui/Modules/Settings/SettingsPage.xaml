@@ -2,10 +2,30 @@
     x:Class="mpv_winui.Modules.Settings.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ar="using:mpv_winui.Modules.ActivationRegistration"
     xmlns:ctl="using:mpv_winui.Modules.Settings.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+
+    <Page.Resources>
+        <!-- Mirrors OptionListViewItemStyle: section cards must sit in the
+             same padded content area as the option cards, not inside the
+             ListView's default 12px item chrome. -->
+        <Style
+            x:Key="SectionCardListViewItemStyle"
+            BasedOn="{StaticResource DefaultListViewItemStyle}"
+            TargetType="ListViewItem">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="IsTabStop" Value="False" />
+        </Style>
+    </Page.Resources>
 
     <!--
         WinUI 3 settings shell: NavigationView (icon pane) on the left,
@@ -21,6 +41,13 @@
         OpenPaneLength="240"
         PaneDisplayMode="Left"
         SelectionChanged="CategoryNav_SelectionChanged">
+        <NavigationView.Resources>
+            <!-- One surface for pane and content: no inner grey layers, the
+                 window background shows through on both sides. -->
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+        </NavigationView.Resources>
         <NavigationView.Content>
             <Grid>
                 <Grid.RowDefinitions>
@@ -29,26 +56,94 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <AutoSuggestBox
-                    x:Name="SearchBox"
+                <!-- Windows-Settings-style sub-page breadcrumb: back chevron +
+                     "category > section", shown on every option page (built
+                     in UpdateOptions). The search box lives in the window's
+                     top bar, outside this page. -->
+                <Grid
+                    x:Name="BreadcrumbBar"
                     Grid.Row="0"
-                    Margin="12,10,12,4"
-                    PlaceholderText="Search"
-                    QueryIcon="Find"
-                    QuerySubmitted="SearchBox_QuerySubmitted"
-                    SuggestionChosen="SearchBox_SuggestionChosen"
-                    TextChanged="SearchBox_TextChanged" />
+                    MaxWidth="1060"
+                    HorizontalAlignment="Stretch"
+                    Margin="12,4,12,12"
+                    ColumnSpacing="10"
+                    Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        x:Name="BreadcrumbBackButton"
+                        Grid.Column="0"
+                        MinWidth="32"
+                        MinHeight="32"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="BreadcrumbBack_Click">
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="16" Glyph="&#xE72B;" />
+                    </Button>
+                    <StackPanel
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Spacing="10">
+                        <Button
+                            x:Name="BreadcrumbCategoryLink"
+                            Padding="0"
+                            Margin="0"
+                            MinWidth="0"
+                            MinHeight="0"
+                            HorizontalContentAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            FontSize="24"
+                            FontWeight="SemiBold"
+                            Click="BreadcrumbCategory_Click"
+                            Visibility="Collapsed" />
+                        <TextBlock
+                            x:Name="BreadcrumbSeparator"
+                            VerticalAlignment="Center"
+                            FontSize="26"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                            Text="&#x203A;"
+                            Visibility="Collapsed" />
+                        <TextBlock
+                            x:Name="BreadcrumbSection"
+                            VerticalAlignment="Center"
+                            FontSize="24"
+                            FontWeight="SemiBold"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Grid>
 
-                <ctl:OptionListControl
-                    x:Name="OptionsControl"
-                    Grid.Row="1"
-                    ShowHeaders="False" />
+                <!-- Sub-category overview: section cards shown instead of the
+                     option list when a category holds more than one section. -->
+                <!-- One scrolling surface per category page: common options
+                     directly on the overview, then the advanced entry cards. -->
+                <ScrollViewer Grid.Row="1" Padding="12,4,12,0">
+                    <StackPanel MaxWidth="1060" HorizontalAlignment="Stretch">
+                        <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
+                        <ListView
+                            x:Name="SectionsHost"
+                            Margin="8,4,32,0"
+                            Padding="0"
+                            HorizontalAlignment="Stretch"
+                            SelectionMode="None"
+                            IsItemClickEnabled="False"
+                            ItemContainerStyle="{StaticResource SectionCardListViewItemStyle}"
+                            Visibility="Collapsed" />
+                    </StackPanel>
+                </ScrollViewer>
 
                 <Border
                     Grid.Row="2"
                     Padding="16,10"
-                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                    BorderThickness="0,1,0,0">
+                    BorderThickness="0">
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />

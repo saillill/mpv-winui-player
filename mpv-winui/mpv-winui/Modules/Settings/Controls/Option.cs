@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -73,9 +73,36 @@ public sealed class OptionLayoutChoice
 
 public sealed class Option : INotifyPropertyChanged
 {
+    public const string GroupOtherKey = "other";
     public string Key { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
+
+    public string GroupKey
+    {
+        get; set;
+    } = GroupOtherKey;
+
+    public string GroupLabel
+    {
+        get; set;
+    } = string.Empty;
+
+    public string? Icon
+    {
+        get; set;
+    }
+
     public string Category { get; set; } = "General";
+
+    /// <summary>
+    /// True when the option's section is an advanced/complex one that stays
+    /// behind a section entry card; false (common) options are laid out
+    /// directly on the category overview page.
+    /// </summary>
+    public bool AdvancedSection
+    {
+        get; set;
+    }
 
     /// <summary>Placeholder text shown when the value is empty (e.g. the built-in default path).</summary>
     public string? Placeholder

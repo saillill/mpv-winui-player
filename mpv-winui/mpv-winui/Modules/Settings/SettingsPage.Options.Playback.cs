@@ -205,6 +205,35 @@ public sealed partial class SettingsPage
 
             new Option
             {
+                Key = nameof(AppContext.AppSetting.WindowPiPAspectRatioLock),
+                Label = lang.SettingsPiPAspectRatioLock,
+                Category = window,
+                Description = lang.SettingsHelpPiPAspectRatioLock,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiPAspectRatioLock,
+                Setter = v => AppContext.AppSetting.WindowPiPAspectRatioLock = (bool)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPAnchor),
+                Label = lang.SettingsPiPAnchor,
+                Category = window,
+                Description = lang.SettingsHelpPiPAnchor,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("bottom-right", lang.OptionValuePiPAnchorBottomRight),
+                    new OptionChoice("bottom-left", lang.OptionValuePiPAnchorBottomLeft),
+                    new OptionChoice("top-right", lang.OptionValuePiPAnchorTopRight),
+                    new OptionChoice("top-left", lang.OptionValuePiPAnchorTopLeft),
+                ],
+                Getter = () => AppContext.AppSetting.WindowPiPAnchor,
+                Setter = v => AppContext.AppSetting.WindowPiPAnchor = (string)v!
+            },
+
+            new Option
+            {
                 Key = nameof(AppContext.AppSetting.WindowPiPShowTopButtons),
                 Label = lang.SettingsPiPTopButtons,
                 Category = window,
@@ -248,6 +277,24 @@ public sealed partial class SettingsPage
                 {
                     AppContext.AppSetting.WindowPiPOpacity = Convert.ToDouble(v);
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPOpacity), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowAspectRatioLock),
+                Label = lang.SettingsWindowAspectRatioLock,
+                Category = window,
+                Description = lang.SettingsHelpWindowAspectRatioLock,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowAspectRatioLock,
+                // NotifySettingChanged matters here: MainWindow listens for it to
+                // re-fit the open window the moment the lock is turned on
+                // (otherwise the change only applies to the next video).
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowAspectRatioLock = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowAspectRatioLock), v);
                 }
             },
 
@@ -728,9 +775,14 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsDirectoryFilterTypes,
                 Category = playback,
                 Description = lang.SettingsHelpDirectoryFilterTypes,
-                Type = OptionType.MultiList,
+                Type = OptionType.CheckList,
                 ListSeparator = ',',
                 AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.DirectoryFilterTypes,
+                    KnownDirectoryFilterTypes,
+                    group: lang.SettingsCategoryPlayback),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
                 Getter = () => AppContext.AppSetting.DirectoryFilterTypes,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DirectoryFilterTypes), AppContext.AppSetting.DirectoryFilterTypes = (string)v!)
             },
@@ -741,9 +793,14 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsVideoExts,
                 Category = playback,
                 Description = lang.SettingsHelpVideoExts,
-                Type = OptionType.MultiList,
+                Type = OptionType.CheckList,
                 ListSeparator = ',',
                 AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.VideoExts,
+                    KnownVideoExtensions,
+                    group: lang.FileAssociationGroupVideo),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
                 Getter = () => AppContext.AppSetting.VideoExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoExts), AppContext.AppSetting.VideoExts = (string)v!)
             },
@@ -754,9 +811,14 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpImageExts,
                 Label = lang.SettingsImageExts,
                 Category = playback,
-                Type = OptionType.MultiList,
+                Type = OptionType.CheckList,
                 ListSeparator = ',',
                 AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.ImageExts,
+                    KnownImageExtensions,
+                    group: lang.FileAssociationGroupImage),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
                 Getter = () => AppContext.AppSetting.ImageExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ImageExts), AppContext.AppSetting.ImageExts = (string)v!)
             },
@@ -781,9 +843,14 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpAudioExts,
                 Label = lang.SettingsAudioExts,
                 Category = audio,
-                Type = OptionType.MultiList,
+                Type = OptionType.CheckList,
                 ListSeparator = ',',
                 AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.AudioExts,
+                    KnownAudioExtensions,
+                    group: lang.FileAssociationGroupAudio),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
                 Getter = () => AppContext.AppSetting.AudioExts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioExts), AppContext.AppSetting.AudioExts = (string)v!)
             },
@@ -856,5 +923,67 @@ public sealed partial class SettingsPage
             },
 
         ];
+    }
+
+    private static readonly string[] KnownVideoExtensions =
+        "3g2,3gp,avi,flv,m2ts,m4v,mj2,mkv,mov,mp4,mpeg,mpg,ogv,rmvb,ts,webm,wmv,y4m,rm".Split(',');
+
+    private static readonly string[] KnownImageExtensions =
+        "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,tga,tif,tiff,webp".Split(',');
+
+    private static readonly string[] KnownAudioExtensions =
+        "aac,ac3,alac,ape,dsf,dts,flac,m4a,mka,mp3,ogg,opus,tak,tta,wav,wma,wv".Split(',');
+
+    private static readonly string[] KnownCoverArtNames =
+        "cover,folder,album,front,thumb,back".Split(',');
+
+    private static readonly string[] KnownDirectoryFilterTypes =
+        ["video", "audio", "image", "sub", "playlist"];
+
+    private static List<OptionCheckItem> BuildExtensionCheckItems(
+        string? current,
+        IEnumerable<string> known,
+        string? group,
+        char separator = ',')
+    {
+        var knownList = known as IReadOnlyList<string> ?? known.ToList();
+        var currentSet = new HashSet<string>(
+            (current ?? string.Empty).Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            StringComparer.OrdinalIgnoreCase);
+        var knownSet = new HashSet<string>(knownList, StringComparer.OrdinalIgnoreCase);
+
+        var items = knownList
+            .Select(ext => new OptionCheckItem(ext, ext, currentSet.Contains(ext), group: group))
+            .ToList();
+
+        // Keep any custom/unknown extensions the user has already entered.
+        foreach (var ext in currentSet.Where(e => !knownSet.Contains(e)).OrderBy(e => e, StringComparer.OrdinalIgnoreCase))
+        {
+            items.Add(new OptionCheckItem(ext, ext, true, group: "Custom"));
+        }
+
+        return items;
+    }
+
+    private static void UpdateExtensionOption(Option option, string ext, bool isChecked)
+    {
+        var separator = option.ListSeparator == '\0' ? ',' : option.ListSeparator;
+        var current = (option.Getter?.Invoke() as string) ?? string.Empty;
+        var set = new HashSet<string>(
+            current.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            StringComparer.OrdinalIgnoreCase);
+
+        if (isChecked)
+        {
+            set.Add(ext);
+        }
+        else
+        {
+            set.Remove(ext);
+        }
+
+        var value = string.Join(separator, set);
+        option.Setter?.Invoke(value);
+        option.NotifyChanged();
     }
 }

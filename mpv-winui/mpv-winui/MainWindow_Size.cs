@@ -7,7 +7,7 @@ using WinRT;
 
 namespace mpv_winui
 {
-    public sealed partial class MainWindow : Window
+    public sealed partial class MainWindow
     {
         public const int MIN_LOGICAL_WIDTH = 250;
         public const int MIN_LOGICAL_HEIGHT = 250;
@@ -70,6 +70,7 @@ namespace mpv_winui
 
             AppWindow.Changed += Size_AppWindow_Changed;
             Closed += Size_Window_Closed;
+            InstallAspectRatioSubclass();
         }
 
         private void Size_AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
@@ -104,6 +105,7 @@ namespace mpv_winui
         {
             Closed -= Size_Window_Closed;
             AppWindow.Changed -= Size_AppWindow_Changed;
+            RemoveAspectRatioSubclass();
 
             SaveWindowPositionAndSize();
         }

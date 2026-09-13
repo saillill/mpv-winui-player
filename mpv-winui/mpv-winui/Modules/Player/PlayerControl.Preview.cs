@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -26,7 +26,7 @@ namespace mpv_winui.Modules.Player
     {
             private void ProgressSlider_PointerEntered(object sender, PointerRoutedEventArgs e)
             {
-                _isDragging = true;
+                _isHoveringProgress = true;
             }
     
             private void ProgressSlider_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -64,21 +64,22 @@ namespace mpv_winui.Modules.Player
     
             private void ProgressSlider_PointerMoved(object sender, PointerRoutedEventArgs e)
             {
-                if (_isDragging)
+                if (_isHoveringProgress)
                 {
                     UpdatePreview(e);
                 }
             }
-    
+
             private void ProgressSlider_PointerExited(object sender, PointerRoutedEventArgs e)
             {
                 _isDragging = false;
+                _isHoveringProgress = false;
                 ClearPreview();
             }
     
             private void UpdatePreview(PointerRoutedEventArgs e)
             {
-                if (MediaPlayer == null || MediaPlayer.Duration <= 0)
+                if (MediaPlayer == null || MediaPlayer.Duration() <= 0)
                 {
                     return;
                 }
@@ -89,13 +90,13 @@ namespace mpv_winui.Modules.Player
     
             private void UpdatePreview(double fraction)
             {
-                if (MediaPlayer == null || MediaPlayer.Duration <= 0)
+                if (MediaPlayer == null || MediaPlayer.Duration() <= 0)
                 {
                     return;
                 }
     
                 fraction = Math.Clamp(fraction, 0, 1);
-                var hoverSec = fraction * MediaPlayer.Duration;
+                var hoverSec = fraction * MediaPlayer.Duration();
                 var controlPoint = ProgressSlider.TransformToVisual(this).TransformPoint(new Point(fraction * ProgressSlider.ActualWidth, 0));
     
                 PreviewUpdateRequested?.Invoke(this, (hoverSec, controlPoint.X, controlPoint.Y));
@@ -121,6 +122,7 @@ namespace mpv_winui.Modules.Player
                     ProgressSlider.PointerMoved -= ProgressSlider_PointerMoved;
                     ProgressSlider.PointerExited -= ProgressSlider_PointerExited;
                     _isDragging = false;
+                    _isHoveringProgress = false;
                     ClearPreview();
                 }
             }

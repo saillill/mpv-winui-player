@@ -43,10 +43,10 @@ namespace mpv_winui.Modules.Player
             };
             var urlDialog = new ContentDialog
             {
-                Title = AppContext.AppLang.FileOpenUrl,
+                Title = "Open URL",
                 Content = urlBox,
-                PrimaryButtonText = AppContext.AppLang.Ok,
-                CloseButtonText = AppContext.AppLang.Cancel,
+                PrimaryButtonText = "Open",
+                CloseButtonText = "Cancel",
                 XamlRoot = XamlRoot
             };
 
@@ -96,50 +96,17 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-
-
-        private async Task OpenDvdAsync()
-        {
-            // DVD: pick the drive root (or VIDEO_TS folder), point mpv's
-            // dvd-device at it, then open dvd://.
-            var folder = await PickDiscRootAsync();
-            if (string.IsNullOrEmpty(folder))
-            {
-                return;
-            }
-            await _mediaPlayer.RunCommandAsync(["set", "dvd-device", folder]);
-            await _mediaPlayer.RunCommandAsync(["osd-auto", "loadfile", "dvd://"]);
-        }
-
-        private async Task OpenBdAsync()
-        {
-            // Blu-ray: same device flow with bd:// (bluray-device option).
-            var folder = await PickDiscRootAsync();
-            if (string.IsNullOrEmpty(folder))
-            {
-                return;
-            }
-            await _mediaPlayer.RunCommandAsync(["set", "bluray-device", folder]);
-            await _mediaPlayer.RunCommandAsync(["osd-auto", "loadfile", "bd://"]);
-        }
-
-        private async Task<string?> PickDiscRootAsync()
-        {
-            var picker = new FolderPicker(_appWindow.Id);
-            var folder = await picker.PickSingleFolderAsync();
-            return folder?.Path;
-        }
-
         private async Task LoadSubtitleAsync()
         {
             var subPicker = new FileOpenPicker(_appWindow.Id);
             var subFile = await subPicker.PickSingleFileAsync();
             if (!string.IsNullOrEmpty(subFile?.Path))
             {
-                _mediaPlayer.AddSubtitle(subFile.Path, true);
+                _mediaPlayer.AddSubtitle(subFile.Path, true, "");
             }
         }
 
+        //TODO list
         private IReadOnlyList<FileItem>? _pendingPaths;
         private async ValueTask OpenPendingPath()
         {
@@ -158,38 +125,37 @@ namespace mpv_winui.Modules.Player
                 .Select(x => new FileItem(x.Path, x.IsOfType(Windows.Storage.StorageItemTypes.File) ? FileType.File : FileType.Folder))
                 .ToList();
 
-            // Early-drop diagnosis: a drop landing while CreateAsync is still
-            // initializing the native player used to vanish silently.
-            AppContext.AppLogger.Debug("play storage items, count={0}, initialized={1}, paths={2}",
-                items.Count, _isPlayerInitialized, string.Join(" | ", items.Select(i => $"{i.Type}:{i.Path}")));
-
             if (items?.Count > 0)
             {
-                await WaitForPlayerReadyAsync();
                 await _mediaPlayer.OpenAsync(items, openMode);
             }
         }
 
         private async ValueTask PlayFiles(IReadOnlyList<string> files, OpenMode openMode)
         {
-            await WaitForPlayerReadyAsync();
             var items = files.Select(file => new FileItem(file, FileType.File)).ToList();
-            await _mediaPlayer.OpenAsync(items, openMode);
+            await _mediaPlayer.OpenAsync(items, OpenMode.Replace);
         }
 
         private async ValueTask PlayFolders(IReadOnlyList<string> folders, OpenMode openMode)
         {
-            await WaitForPlayerReadyAsync();
             var items = folders.Select(file => new FileItem(file, FileType.Folder)).ToList();
-            await _mediaPlayer.OpenAsync(items, openMode);
+            await _mediaPlayer.OpenAsync(items, OpenMode.Replace);
         }
 
         private async ValueTask PlayUrl(string url, OpenMode openMode)
         {
-            await WaitForPlayerReadyAsync();
             await _mediaPlayer.OpenAsync((FileItem[])[new FileItem(url, FileType.Url)], openMode);
         }
 
+        private async ValueTask PlayFile(string file, OpenMode openMode)
+        {
+            await _mediaPlayer.OpenAsync((FileItem[])[new FileItem(file, FileType.File)], openMode);
+        }
 
+        private async ValueTask PlayFolder(string folder, OpenMode openMode)
+        {
+            await _mediaPlayer.OpenAsync((FileItem[])[new FileItem(folder, FileType.Folder)], openMode);
+        }
     }
 }

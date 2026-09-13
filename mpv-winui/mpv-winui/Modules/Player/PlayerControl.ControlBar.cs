@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -71,10 +71,11 @@ namespace mpv_winui.Modules.Player
     
                 if (_compactMode)
                 {
-                    // PiP: volume on the far left (flyout slider), transport
-                    // centered, subtitle toggle on the far right.
+                    // PiP: volume button + always-visible horizontal slider
+                    // on the far left (the same strip as the main status
+                    // bar — no popup), transport centered, subtitle toggle
+                    // on the far right.
                     _currentSegment = 0;
-                    VisualStateManager.GoToState(this, "Wide", false);
                     var pipRight = PiPRightToggle is { } toggle
                         ? new ICommandBarElement[] { BuildPiPRightItem(toggle) }
                         : [];
@@ -82,16 +83,16 @@ namespace mpv_winui.Modules.Player
                         LeftCommandBar,
                         MiddleCommandBar,
                         RightCommandBar,
-                        [VolumeMuteButton, CompactTimeContainer],
+                        [VolumeMuteButton, VolumeSliderContainer, CompactTimeContainer],
                         [SkipBackwardButton, PlayPauseButton, SkipForwardButton],
                         pipRight);
                     SetHidden(true, PreviousTrackButton, NextTrackButton, RepeatButton,
                                TrackSelectionButton, ShuffleButton, PlaybackRateButton,
-                               ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
-                               VolumeSliderContainer);
+                               ZoomButton, PiPButton, FullWindowButton, FullScreenButton);
+                    SetHidden(false, VolumeSliderContainer);
                     TimeTextGrid.Visibility = Visibility.Collapsed;
                     CompactTimeContainer.Visibility = Visibility.Visible;
-                    UpdateTimeTexts(MediaPlayer?.Position ?? 0, MediaPlayer?.Duration ?? 0);
+                    UpdateTimeTexts(MediaPlayer?.Position() ?? 0, MediaPlayer?.Duration() ?? 0);
                     return;
                 }
     
@@ -102,25 +103,68 @@ namespace mpv_winui.Modules.Player
                     ? AppContext.AppSetting.ControlBarHiddenIconsModernX
                     : AppContext.AppSetting.ControlBarHiddenIconsClassic;
                 var hidden = ControlBarLayoutGrammar.ParseHiddenIcons(hiddenValue);
-    
-                // Restore the buttons the PiP compact pass collapses.
-                SetHidden(false,
-                    PreviousTrackButton, NextTrackButton, RepeatButton,
-                    TrackSelectionButton, ShuffleButton, PlaybackRateButton,
-                    ZoomButton, PiPButton, FullWindowButton, FullScreenButton,
-                    VolumeMuteButton, VolumeSliderContainer);
-    
-                // Playback controls are always shown and cannot be hidden.
-                SetHidden(hidden.Contains("volume"), VolumeMuteButton, VolumeSliderContainer);
-                SetHidden(hidden.Contains("tracks"), TrackSelectionButton);
-                SetHidden(hidden.Contains("random"), ShuffleButton);
-                SetHidden(hidden.Contains("panel"), ControlPanelButton);
-                SetHidden(hidden.Contains("aspect"), ZoomButton);
-                SetHidden(hidden.Contains("fullwindow"), FullWindowButton);
-                SetHidden(hidden.Contains("fullscreen"), FullScreenButton);
-                SetHidden(hidden.Contains("pip"), PiPButton);
+
+                // Single decision point: the user's hidden-icon preference and
+                // the width tier both feed ApplyControlBarVisibility. Rebuilding
+                // the bars is ApplyControlBarOrder's job (it is skipped when
+                // nothing moved), so this only sets Visibility.
+                ApplyControlBarVisibility(ControlBarAdaptiveLayout.TierFor(ActualWidth), hidden);
             }
-    
+
+            /// <summary>
+            /// Control id -> the elements it controls. Ids match the ones the
+            /// settings channel uses ("volume", "tracks", ...) plus ids for the
+            /// fixed transport, so one table drives both writers.
+            /// </summary>
+            private IEnumerable<(string Id, FrameworkElement[] Elements)> AdaptiveControlMap()
+            {
+                yield return ("play", [PlayPauseButton]);
+                yield return ("previous", [PreviousTrackButton]);
+                yield return ("next", [NextTrackButton]);
+                yield return ("skip-back", [SkipBackwardButton]);
+                yield return ("skip-forward", [SkipForwardButton]);
+                yield return ("rate", [PlaybackRateButton]);
+                yield return ("random", [ShuffleButton]);
+                yield return (ControlBarAdaptiveLayout.VolumeId, [VolumeMuteButton]);
+                yield return (ControlBarAdaptiveLayout.VolumeSliderId, [VolumeSliderContainer]);
+                yield return ("tracks", [TrackSelectionButton]);
+                yield return ("panel", [ControlPanelButton]);
+                yield return ("aspect", [ZoomButton]);
+                yield return ("pip", [PiPButton]);
+                yield return ("fullwindow", [FullWindowButton]);
+                yield return ("fullscreen", [FullScreenButton]);
+            }
+
+            /// <summary>
+            /// Applies the resolved visibility to every control-bar button and
+            /// shows the overflow button whenever something is hidden (by the
+            /// user or by the width tier) so no action is ever unreachable.
+            /// </summary>
+            private void ApplyControlBarVisibility(ControlBarTier tier, IReadOnlySet<string> userHidden)
+            {
+                foreach (var (id, elements) in AdaptiveControlMap())
+                {
+                    var visible = ControlBarAdaptiveLayout.IsVisible(id, tier, userHidden);
+
+                    // The settings channel only knows "volume" and hides the
+                    // mute button and its slider together; the tier treats the
+                    // slider separately, so merge the two here.
+                    if (visible
+                        && string.Equals(id, ControlBarAdaptiveLayout.VolumeSliderId, StringComparison.OrdinalIgnoreCase)
+                        && userHidden.Contains(ControlBarAdaptiveLayout.VolumeId))
+                    {
+                        visible = false;
+                    }
+
+                    SetHidden(!visible, elements);
+                }
+
+                // Hysteresis-free: the overflow button appears as soon as the
+                // width tier (or the user) hides anything at all.
+                var anythingHidden = tier != ControlBarTier.Wide || userHidden.Count > 0;
+                SetHidden(!anythingHidden, MoreButton);
+            }
+
             /// <summary>
             /// True when this control is hosted in the dedicated PiP window. The
             /// bar switches to the centered layout and shows only volume plus the
@@ -297,34 +341,58 @@ namespace mpv_winui.Modules.Player
                 }
             }
     
-            private AppBarToggleButton BuildPiPRightItem(ToggleButton source)
+            private AppBarButton BuildPiPRightItem(ToggleButton source)
             {
                 // A ToggleButton that has already been realized in the XAML tree
                 // cannot be reparented into the command bar (Content setter throws
-                // E_INVALIDARG), so build a fresh AppBarToggleButton each time and
-                // forward the click through PiPRightToggleAction. Using the same
-                // AppBarToggleButton style as the rest of the bar keeps the CC
-                // icon at the same height and gives it the checked accent state.
+                // E_INVALIDARG), so build a fresh button each time and forward the
+                // click through PiPRightToggleAction. The active state tints the
+                // glyph with the accent color instead of the AppBarToggleButton
+                // checked pill, which paints the whole 40px slot.
                 var icon = source.Content as FontIcon;
-                var toggle = new AppBarToggleButton
+                var buttonIcon = new FontIcon
                 {
-                    Icon = new FontIcon
-                    {
-                        Glyph = icon?.Glyph ?? "\uF2E3",
-                        FontSize = 16,
-                        FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
-                    },
-                    IsChecked = source.IsChecked,
-                    Style = (Style)RootGrid.Resources["AppBarToggleButtonStyle"],
+                    Glyph = icon?.Glyph ?? "\uF2E3",
+                    FontSize = 19,
+                    FontFamily = new FontFamily(IconFonts.FluentSystemIconsUri),
+                };
+                var activeBrush = (Brush)RootGrid.Resources["PiPSubtitleActiveBrush"];
+                var button = new AppBarButton
+                {
+                    Icon = buttonIcon,
+                    Style = (Style)RootGrid.Resources["AppBarButtonStyle"],
                     Visibility = Visibility.Visible,
                 };
-                AutomationProperties.SetName(toggle, AppContext.AppLang.Subtitles);
-                ToolTipService.SetToolTip(toggle, AppContext.AppLang.Subtitles);
-                if (PiPRightToggleAction is { } action)
+                AutomationProperties.SetName(button, AppContext.AppLang.Subtitles);
+                ToolTipService.SetToolTip(button, AppContext.AppLang.Subtitles);
+                var active = source.IsChecked == true;
+                SetPiPSubtitleTint(buttonIcon, activeBrush, active);
+                button.Click += (_, _) =>
                 {
-                    toggle.Click += (_, _) => action(toggle.IsChecked == true);
+                    active = !active;
+                    SetPiPSubtitleTint(buttonIcon, activeBrush, active);
+                    if (PiPRightToggleAction is { } action)
+                    {
+                        action(active);
+                    }
+                };
+                return button;
+            }
+
+            /// <summary>Tints the active glyph with the accent; when off, the
+            /// local value must be cleared (not set to null) so the theme
+            /// style's foreground applies again — a local null would override
+            /// it and render the glyph near-invisible black.</summary>
+            private static void SetPiPSubtitleTint(FontIcon icon, Brush activeBrush, bool active)
+            {
+                if (active)
+                {
+                    icon.Foreground = activeBrush;
                 }
-                return toggle;
+                else
+                {
+                    icon.ClearValue(FontIcon.ForegroundProperty);
+                }
             }
     
             private static bool SameElements(IList<ICommandBarElement> current, ICommandBarElement[] desired)
@@ -394,6 +462,39 @@ namespace mpv_winui.Modules.Player
                 AddOverflowItem(AppContext.AppLang.MoreNextTrack, NextTrackButton, () => NextTrackButton_Click(null, null), userHidden);
                 AddOverflowItem(AppContext.AppLang.MoreFullWindow, FullWindowButton, () => ToggleFullWindow(), userHidden, "fullwindow");
                 AddOverflowItem(AppContext.AppLang.MoreFullScreen, FullScreenButton, () => ToggleFullScreen(), userHidden, "fullscreen");
+
+                // Controls the width tiers collapse at Narrow and below. Without
+                // these entries a portrait/narrow window would lose them
+                // entirely: they used to be visible at every width.
+                AddOverflowItem(AppContext.AppLang.ControlBarIconTracks, TrackSelectionButton, ShowTracksFromMore, userHidden, "tracks");
+                AddOverflowItem(AppContext.AppLang.ControlBarIconPanel, ControlPanelButton, ShowControlPanelFromMore, userHidden, "panel");
+                AddOverflowItem(AppContext.AppLang.ControlBarIconPiP, PiPButton, () => OnPiPClick(this, new RoutedEventArgs()), userHidden, "pip");
+            }
+
+            /// <summary>Loads the track lists and then opens the track flyout anchored on the overflow button.</summary>
+            private void ShowTracksFromMore()
+            {
+                // The handler only fills the track lists; the flyout itself is
+                // declared on the button, so anchor it on the overflow button.
+                TrackSelectionButton_Click(TrackSelectionButton, new RoutedEventArgs());
+                ShowFromMore(TrackSelectionFlyout);
+            }
+
+            /// <summary>Opens the control-panel flyout anchored on the overflow button.</summary>
+            private void ShowControlPanelFromMore()
+            {
+                ShowFromMore(ControlPanelFlyout);
+            }
+
+            /// <summary>
+            /// A flyout cannot be shown while the MenuFlyout that triggered it is
+            /// still open, so close the menu first and open the flyout on the
+            /// next dispatcher pass, anchored on the overflow button.
+            /// </summary>
+            private void ShowFromMore(FlyoutBase flyout)
+            {
+                MoreFlyout.Hide();
+                DispatcherQueue.TryEnqueue(() => flyout.ShowAt(MoreButton));
             }
     
             private void AddOverflowItem(
@@ -440,43 +541,56 @@ namespace mpv_winui.Modules.Player
                 return submenu;
             }
     
-            private void UpdateToolbarVisibility(double w)
+        private void UpdateToolbarVisibility(double w)
             {
                 if (_isPiPHost)
                 {
-                    // PiP hosts the compact centered bar; the adaptive states would
-                    // collapse the transport buttons at small widths.
+                    // PiP hosts the compact centered bar; the adaptive tiers
+                    // would collapse the transport buttons at small widths.
                     if (_currentSegment != 0)
                     {
                         _currentSegment = 0;
-                        VisualStateManager.GoToState(this, "Wide", false);
                     }
                     return;
                 }
-    
-                int newSegment = w >= 700 ? 0 : w >= 500 ? 1 : w >= 280 ? 2 : 3;
-                if (newSegment == _currentSegment)
+
+                var tier = ControlBarAdaptiveLayout.TierFor(w);
+                if ((int)tier == _currentSegment)
                 {
                     return;
                 }
-    
-                _currentSegment = newSegment;
-    
-                string name = newSegment switch
-                {
-                    0 => "Wide",
-                    1 => "Medium",
-                    2 => "Compact",
-                    _ => "Narrow"
-                };
-                VisualStateManager.GoToState(this, name, false);
+
+                _currentSegment = (int)tier;
+                ApplyControlBarVisibility(tier, CurrentHiddenIconIds());
             }
-    
+
             /// <summary>Re-applies the width-adaptive state after a layout mode change.</summary>
             public void RefreshAdaptiveState()
             {
                 UpdateToolbarVisibility(ActualWidth);
             }
-    
+
+            /// <summary>
+            /// Converts a point expressed relative to the control bar into the
+            /// coordinate space of <paramref name="target"/> (the video panel).
+            /// Used to place the seek-bar hover thumbnail over the video surface.
+            /// </summary>
+            public Point TransformSliderPoint(UIElement target, double x, double y)
+            {
+                return TransformToVisual(target).TransformPoint(new Point(x, y));
+            }
+
+            /// <summary>Flips the overlay control panel between shown and hidden.</summary>
+            public void ToggleControlPanel()
+            {
+                if (_controlPanelIsVisible)
+                {
+                    HideControlPanel();
+                }
+                else
+                {
+                    ShowControlPanel();
+                }
+            }
     }
 }

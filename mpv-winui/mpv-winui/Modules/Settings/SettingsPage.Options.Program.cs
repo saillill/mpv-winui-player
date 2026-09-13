@@ -196,7 +196,7 @@ public sealed partial class SettingsPage
 
             new Option
             {
-                Key = "FileAssociationCheckList",
+                Key = FileAssociationCheckListKey,
                 Label = lang.SettingsAssociateFiles,
                 Category = program,
                 Description = lang.SettingsHelpFileAssociations,

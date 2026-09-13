@@ -1,4 +1,4 @@
-using mpv_winui.Modules.AppModel;
+﻿using mpv_winui.Modules.AppModel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -263,6 +263,57 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(EnableVideoPreview), false);
             set => _dataSetting.SetValue(nameof(EnableVideoPreview), value);
         }
+        public bool EnableVideoBuiltInPreview
+        {
+            get => _dataSetting.GetValue(nameof(EnableVideoBuiltInPreview), true);
+            set => _dataSetting.SetValue(nameof(EnableVideoBuiltInPreview), value);
+        }
+
+        public bool EnableSaveBackup
+        {
+            get => _dataSetting.GetValue(nameof(EnableSaveBackup), true);
+            set => _dataSetting.SetValue(nameof(EnableSaveBackup), value);
+        }
+
+        // ------------------------------------------------------------
+        // Fork-owned settings dropped in the upstream merge. Declarations and
+        // defaults are restored from the fork history (afa6ebf, 72dca0f) so the
+        // fork's partial classes keep compiling against this file.
+        // ------------------------------------------------------------
+
+        public bool KeepVideoBuiltInPreviewAlive
+        {
+            get => _dataSetting.GetValue(nameof(KeepVideoBuiltInPreviewAlive), false);
+            set => _dataSetting.SetValue(nameof(KeepVideoBuiltInPreviewAlive), value);
+        }
+
+        public int BuiltInPreviewAliveTimeout
+        {
+            get => _dataSetting.GetValue(nameof(BuiltInPreviewAliveTimeout), 20);
+            set => _dataSetting.SetValue(nameof(BuiltInPreviewAliveTimeout), value);
+        }
+
+        public bool EnableMouseInput
+        {
+            get => _dataSetting.GetValue(nameof(EnableMouseInput), true);
+            set => _dataSetting.SetValue(nameof(EnableMouseInput), value);
+        }
+
+        public bool EnableMouseInputDiscNavOnly
+        {
+            get => _dataSetting.GetValue(nameof(EnableMouseInputDiscNavOnly), false);
+            set => _dataSetting.SetValue(nameof(EnableMouseInputDiscNavOnly), value);
+        }
+
+        public const string PlayerStyle_Default = "Default";
+        public const string PlayerStyle_Center = "Center";
+        public const string PlayerStyle_Compact = "Compact";
+
+        public string PlayerStyle
+        {
+            get => _dataSetting.GetValue(nameof(PlayerStyle), PlayerStyle_Default);
+            set => _dataSetting.SetValue(nameof(PlayerStyle), value);
+        }
 
         public int Volume
         {
@@ -391,6 +442,27 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(WindowPiPSize), value);
         }
 
+        /// <summary>Keep the video aspect ratio while resizing the PiP window (both the native and pointer resize paths).</summary>
+        public bool WindowPiPAspectRatioLock
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPAspectRatioLock), true);
+            set => _dataSetting.SetValue(nameof(WindowPiPAspectRatioLock), value);
+        }
+
+        /// <summary>Screen corner the PiP window claims on entry ("top-left"/"top-right"/"bottom-left"/"bottom-right").</summary>
+        public string WindowPiPAnchor
+        {
+            get => _dataSetting.GetValue(nameof(WindowPiPAnchor), "bottom-right");
+            set => _dataSetting.SetValue(nameof(WindowPiPAnchor), value);
+        }
+
+        /// <summary>Keep the video aspect ratio while drag-resizing the main window.</summary>
+        public bool WindowAspectRatioLock
+        {
+            get => _dataSetting.GetValue(nameof(WindowAspectRatioLock), true);
+            set => _dataSetting.SetValue(nameof(WindowAspectRatioLock), value);
+        }
+
         /// <summary>Last PiP window position+size ("x,y,w,h"); empty restores the default bottom-right placement.</summary>
         /// <summary>Show the top overlay buttons (back / exit) in the PiP window.</summary>
         public bool WindowPiPShowTopButtons
@@ -430,10 +502,18 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ThumbnailPreviewWidth), value);
         }
 
-        /// <summary>Preview refresh interval while hovering, ms (40..600).</summary>
+        /// <summary>
+        /// Preview refresh interval while hovering, ms (40..600). 150 default:
+        /// every tick is a keyframe seek of the preview instance whose decode
+        /// and I/O compete with playback — 25/s (the old default) made the
+        /// main video stutter on slower storage; ~7/s keeps the strip fluid.
+        /// </summary>
         public int ThumbnailUpdateInterval
         {
-            get => _dataSetting.GetValue(nameof(ThumbnailUpdateInterval), 40);
+            // 60ms: a preview seek settles in ~5ms once the render pass is not
+            // gated on "seeking", so a 150ms sampling interval was the dominant
+            // remaining latency. Range 40-600, step 20.
+            get => _dataSetting.GetValue(nameof(ThumbnailUpdateInterval), 60);
             set => _dataSetting.SetValue(nameof(ThumbnailUpdateInterval), value);
         }
 

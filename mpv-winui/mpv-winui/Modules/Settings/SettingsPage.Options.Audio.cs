@@ -353,8 +353,15 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsCoverArtNames,
                 Category = audio,
                 Description = lang.SettingsHelpCoverArtNames,
-                Type = OptionType.String,
+                Type = OptionType.CheckList,
+                ListSeparator = ';',
                 AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.CoverArtNames,
+                    KnownCoverArtNames,
+                    group: lang.SectionAudioCoverArt,
+                    separator: ';'),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
                 Getter = () => AppContext.AppSetting.CoverArtNames,
                 Setter = v =>
                 {
@@ -369,8 +376,15 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpCoverArtImageExts,
                 Label = lang.SettingsCoverArtImageExts,
                 Category = audio,
-                Type = OptionType.String,
+                Type = OptionType.CheckList,
+                ListSeparator = ';',
                 AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.CoverArtImageExts,
+                    KnownImageExtensions,
+                    group: lang.SectionAudioCoverArt,
+                    separator: ';'),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
                 Getter = () => AppContext.AppSetting.CoverArtImageExts,
                 Setter = v =>
                 {

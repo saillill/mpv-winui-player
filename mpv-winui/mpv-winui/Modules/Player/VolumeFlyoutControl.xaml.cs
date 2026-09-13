@@ -1,5 +1,4 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using mpv_winrt;
@@ -8,95 +7,52 @@ using System;
 
 namespace mpv_winui.Modules.Player
 {
+    //TODO use state
     public sealed partial class VolumeFlyoutControl : UserControl
     {
-        private readonly WeakReference<MpvMediaPlayer?> _player = new(null);
-        private MpvMediaPlayer? _subscribedPlayer;
-        private bool _updating;
+        private readonly WeakReference<MpvPlayer?> _player = new(null);
 
-        public VolumeFlyoutControl(MpvMediaPlayer player)
+        public VolumeFlyoutControl(MpvPlayer player)
         {
             this.InitializeComponent();
             _player.SetTarget(player);
-            _subscribedPlayer = player;
-            player.Native.VolumeChanged += OnPlayerVolumeChanged;
-            Unloaded += VolumeFlyoutControl_Unloaded;
-            VolumeSlider.Value = player.Volume;
-            VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
-            UpdateVolumeIcon(player.IsMuted, player.Volume);
-            // Localized names for keyboard/screen-reader access (XAML defaults
-            // are English placeholders; unpackaged WinUI has no x:Uid).
-            AutomationProperties.SetName(MuteButton, mpv_winui.AppContext.AppLang.PiPMute);
-            AutomationProperties.SetName(VolumeSlider, mpv_winui.AppContext.AppLang.ControlBarIconVolume);
+            VolumeSlider.Value = player.Volume();
+            UpdateVolumeIcon(player.IsMuted(), player.Volume());
         }
 
         private void MuteButton_Click(object sender, RoutedEventArgs e)
         {
             if (_player.TryGetTarget(out var player))
             {
-                player.IsMuted = !player.IsMuted;
-                UpdateVolumeIcon(player.IsMuted, player.Volume);
+                player.IsMuted(!player.IsMuted());
+                UpdateVolumeIcon(player.IsMuted(), player.Volume());
             }
         }
 
         private void VolumeSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
-            if (_updating)
-            {
-                return;
-            }
             if (_player.TryGetTarget(out var player))
             {
-                player.Volume = e.NewValue;
-                UpdateVolumeIcon(player.IsMuted, e.NewValue);
+                player.Volume(e.NewValue);
+                UpdateVolumeIcon(player.IsMuted(), e.NewValue);
             }
         }
 
-        private void OnPlayerVolumeChanged(VolumeChangedEventArgs args)
+        //TODO use state
+        private void UpdateVolumeIcon(bool isMuted, double volume)
         {
             DispatcherQueue.RunAsync(() =>
             {
-                if (_updating)
+                if (isMuted)
                 {
-                    return;
+                    VolumeIcon.Glyph = "\uE74F";
                 }
-                _updating = true;
-                try
+                else
                 {
-                    var volume = (int)args.Volume;
-                    VolumeSlider.Value = volume;
-                    if (_player.TryGetTarget(out var player))
-                    {
-                        UpdateVolumeIcon(player.IsMuted, volume);
-                    }
-                }
-                finally
-                {
-                    _updating = false;
+                    var vol = volume;
+                    VolumeIcon.Glyph = vol < 1 ? "\uE992" : vol < 34 ? "\uE993" : vol < 67 ? "\uE994" : "\uE995";
                 }
             });
-        }
-
-        private void VolumeFlyoutControl_Unloaded(object sender, RoutedEventArgs e)
-        {
-            if (_subscribedPlayer is { } player)
-            {
-                player.Native.VolumeChanged -= OnPlayerVolumeChanged;
-                _subscribedPlayer = null;
-            }
-        }
-
-        private void UpdateVolumeIcon(bool isMuted, double volume)
-        {
-            if (isMuted)
-            {
-                VolumeIcon.Glyph = "\uEB4B";
-            }
-            else
-            {
-                var vol = volume;
-                VolumeIcon.Glyph = vol < 1 ? "\uF6F9" : vol < 34 ? "\uF6FB" : "\uEB43";
-            }
         }
     }
 }

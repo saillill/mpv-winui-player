@@ -33,12 +33,19 @@
                 TextWrapping="Wrap"
                 Visibility="Collapsed" />
         </StackPanel>
+        <!-- Stock WinUI toggle: the official template's track is already a
+             40x20 rounded pill pinned to the right of the control; the wide
+             default MinWidth (with room for a beside-track caption) is what
+             made it drift off the card edge. MinWidth=0 collapses that room
+             so the track alone hugs the card's right edge. No custom
+             template: copying the WinUI2 template styles broke at runtime,
+             since those theme keys do not exist in Windows App SDK. -->
         <ToggleSwitch
             x:Name="ToggleSwitch"
             Grid.Column="1"
+            MinWidth="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            FlowDirection="RightToLeft"
             Toggled="OnToggled" />
     </Grid>
 </local:OptionControlBase>

@@ -72,6 +72,49 @@ namespace mpv_winrt_test
             }
         }
 
+        [Test]
+        public async Task ObservePropertyRaisesHandlerOnPropertyChange()
+        {
+            MpvPlayer mpvPlayer = new();
+            mpvPlayer.Initialize("", 1, 1, 30, DisplayColorKind.SDR, 60);
+
+            // Registration itself fires an initial report with the current
+            // value, so collect everything and assert on the change arriving.
+            var received = new List<(string Name, string Value)>();
+            var handle = mpvPlayer.ObserveProperty("volume", (name, value) =>
+            {
+                lock (received)
+                {
+                    received.Add((name, value));
+                    Console.WriteLine($"OBS name='{name}' value-len={value?.Length.ToString() ?? "null"} bytes={string.Join(',', System.Text.Encoding.UTF8.GetBytes(value ?? ""))}");
+                }
+            });
+
+            mpvPlayer.CommandString("set volume 55");
+            var deadline = Task.Delay(5000);
+            bool got55 = false;
+            while (!got55)
+            {
+                if (await Task.WhenAny(Task.Delay(100), deadline) == deadline)
+                {
+                    Assert.Fail("no volume=55 callback within 5s");
+                }
+                lock (received)
+                {
+                    got55 = received.Any(r => r.Name == "volume" && Math.Abs(double.Parse(r.Value) - 55) < 0.5);
+                }
+            }
+
+            mpvPlayer.UnobserveProperty(handle);
+            mpvPlayer.CommandString("set volume 60");
+            await Task.Delay(700);
+            lock (received)
+            {
+                Assert.That(received.Any(r => r.Name == "volume" && Math.Abs(double.Parse(r.Value) - 60) < 0.5),
+                    Is.False, "handler fired after UnobserveProperty");
+            }
+        }
+
         private static string CreateToneWav(string path)
         {
             const int sampleRate = 8000;

@@ -117,6 +117,8 @@ if mode ~= "auto" and mode ~= "on" and mode ~= "off" then
 end
 
 local updating = false
+-- 窗口拖动缩放中（App 在 WM_ENTERSIZEMOVE/EXITSIZEMOVE 发布）
+local window_resizing_hdr = false
 local saved_opts = nil
 local hdr_source_notified = false
 local seek_suspended = false
@@ -163,7 +165,11 @@ local function display_hdr()
 	end
 	-- WinUI composition 渲染模式下拿不到 video-target-params，
 	-- 回退到 App 写入的 user-data/mpvw/color-kind（DisplayColorKind.HDR）。
-	return mp.get_property("user-data/mpvw/color-kind") == "HDR"
+	--
+	-- 必须用 get_property_native：字符串形式的 mp.get_property() 对 user-data
+	-- 返回的是**带引号**的文本（"HDR"），与 "HDR" 比较永远为假，RTX HDR 因此
+	-- 在 composition 模式下完全不会启用。
+	return mp.get_property_native("user-data/mpvw/color-kind") == "HDR"
 end
 
 -- 当前片源是否为 HDR（与 profiles.conf 的 HDR_generic 判定一致）
@@ -233,12 +239,31 @@ local function sync_hdr()
 
 	local vf = vf_list()
 	local has = has_hdr(vf)
+
+	-- seek 期间保持 @hdr：每次 seek 摘挂会让整条链路重配置（进度条拖动的
+	-- 卡顿来源），且 d3d11vpp 对 seek 本身是安全的。seek 结束后 sync_hdr
+	-- 会再次运行，按最终状态重新判定。
+	if seek_suspended then
+		updating = false
+		return
+	end
+
+	-- 窗口拖动缩放期间摘掉 @hdr：d3d11vpp 让每次链路重配置贵得多，
+	-- 拖动结束后会自动重新挂载。
+	if window_resizing_hdr then
+		if has then
+			mp.commandv("vf", "remove", "@hdr")
+			msg.verbose("窗口缩放中，已移除 @hdr")
+		end
+		updating = false
+		return
+	end
 	local video_no = mp.get_property("video") == "no"
 	local src_hdr = source_is_hdr()
 	local want = not video_no and not seek_suspended and src_hdr == false and
 		(mode == "on" or (mode == "auto" and display_hdr()))
 	local diag_line = "sync mode=" .. tostring(mode) ..
-		" kind=" .. tostring(mp.get_property("user-data/mpvw/color-kind")) ..
+		" kind=" .. tostring(mp.get_property_native("user-data/mpvw/color-kind")) ..
 		" src=" .. tostring(src_hdr) .. " want=" .. tostring(want) .. " has=" .. tostring(has) ..
 		" dh=" .. tostring(display_hdr())
 	if diag_line ~= last_diag then
@@ -285,7 +310,13 @@ local function sync_hdr()
 end
 
 mp.observe_property("video-target-params", "native", sync_hdr)
-mp.observe_property("user-data/mpvw/color-kind", "native", function(_, val)
+-- NOTE: the first parameter must NOT be named "_": that would shadow the
+-- translation helper defined above, and _("...") inside this callback then
+-- raises "attempt to call local '_' (a string value)". The observer died on
+-- every color-kind change, so in composition mode - where color-kind is the
+-- only way to tell that the display is HDR - sync_hdr() was never reached and
+-- RTX Video HDR never engaged.
+mp.observe_property("user-data/mpvw/color-kind", "native", function(_name, val)
 	if mode == "auto" then
 		mp.commandv("show-text", _("RTX HDR 自动：屏幕检测 ") .. tostring(val), 1500)
 	end
@@ -297,6 +328,10 @@ mp.register_event("file-loaded", sync_hdr)
 
 -- 跳转/拖拽期间临时摘掉 @hdr：精确 seek 不再被 RTX HDR 拖慢，
 -- 拖拽（ModernX 会暂停播放）期间保持摘除，恢复播放时挂回。
+mp.observe_property("user-data/mpvw/window-resizing", "native", function(_, val)
+	window_resizing_hdr = (val == true) or (val == "yes")
+	sync_hdr()
+end)
 mp.observe_property("seeking", "native", function(_, val)
 	if val == true then
 		if not seek_suspended then
@@ -324,7 +359,7 @@ mp.register_script_message("mode", function(new_mode)
 	set_mode_prop()
 	sync_hdr()
 	if mode == "auto" then
-		local kind = mp.get_property("user-data/mpvw/color-kind") or _("未知")
+		local kind = mp.get_property_native("user-data/mpvw/color-kind") or _("未知")
 		mp.commandv("show-text", string.format(_("RTX HDR：自动（屏幕检测 %s）"), tostring(kind)), 2000)
 	elseif mode == "on" then
 		if not display_hdr() then
@@ -339,4 +374,4 @@ end)
 
 set_mode_prop()
 diag("loaded", "mode=" .. tostring(mode),
-	"kind=" .. tostring(mp.get_property("user-data/mpvw/color-kind")))
+	"kind=" .. tostring(mp.get_property_native("user-data/mpvw/color-kind")))

@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="mpv_winui.Modules.Settings.Controls.OptionListControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10,11 +10,13 @@
     <UserControl.Resources>
         <DataTemplate x:Key="BooleanTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionBooleanControl
                     Setting="{x:Bind}"
@@ -24,11 +26,13 @@
 
         <DataTemplate x:Key="TextTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionStringControl
                     Setting="{x:Bind}"
@@ -38,11 +42,13 @@
 
         <DataTemplate x:Key="IntegerTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionIntegerControl
                     Setting="{x:Bind}"
@@ -52,11 +58,13 @@
 
         <DataTemplate x:Key="DoubleTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionDoubleControl
                     Setting="{x:Bind}"
@@ -66,11 +74,13 @@
 
         <DataTemplate x:Key="TextListTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionStringListControl
                     Setting="{x:Bind}"
@@ -80,11 +90,13 @@
 
         <DataTemplate x:Key="ColorTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionColorControl
                     Setting="{x:Bind}"
@@ -94,11 +106,13 @@
 
         <DataTemplate x:Key="ActionTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionActionControl
                     Setting="{x:Bind}"
@@ -108,11 +122,13 @@
 
         <DataTemplate x:Key="CheckListTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionCheckListControl
                     Setting="{x:Bind}"
@@ -122,11 +138,13 @@
 
         <DataTemplate x:Key="LayoutTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionLayoutControl
                     Setting="{x:Bind}"
@@ -136,11 +154,13 @@
 
         <DataTemplate x:Key="MultiListTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionMultiListControl
                     Setting="{x:Bind}"
@@ -150,11 +170,13 @@
 
         <DataTemplate x:Key="ShaderListTemplate" x:DataType="ctl:Option">
             <Border
-                MinHeight="60"
-                Margin="0,0,0,12"
+                MinHeight="72"
+                Margin="0,0,0,8"
                 Padding="16,16,16,16"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
                 CornerRadius="4">
                 <ctl:OptionShaderListControl
                     Setting="{x:Bind}"
@@ -163,19 +185,12 @@
         </DataTemplate>
 
         <DataTemplate x:Key="SectionHeaderTemplate" x:DataType="ctl:SectionHeaderItem">
-            <Grid Margin="4,12,4,8">
-                <StackPanel>
-                    <TextBlock
-                        FontSize="14"
-                        FontWeight="SemiBold"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="{x:Bind Caption}" />
-                    <Border
-                        Height="1"
-                        Margin="0,8,0,0"
-                        Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
-                </StackPanel>
-            </Grid>
+            <TextBlock
+                Margin="4,16,4,8"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                Text="{x:Bind Caption}" />
         </DataTemplate>
 
         <ctl:OptionTemplateSelector

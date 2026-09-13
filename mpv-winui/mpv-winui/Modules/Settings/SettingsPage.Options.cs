@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
@@ -97,6 +97,46 @@ private List<Option> BuildSettings()
 
         options.AddRange(BuildShortcutOptions(shortcuts));
 
+        // The overview carries the sections people tune regularly;
+        // fine-grained, seldom-batch-adjusted sections (decoding details,
+        // GPU internals, HDR/color math, OSD look, screenshot quality, ...)
+        // go behind entry cards. Per-option pins pull the handful of common
+        // switches back onto the overview even when they live in an advanced
+        // section, so e.g. the hardware-decode switch stays on the Video
+        // overview while its codec/decode-detail mates hide in the card.
+        var advancedSections = new HashSet<string>(StringComparer.Ordinal)
+        {
+            sProgramAssociations, sProgramTesting, sProgramConfig,
+            sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback, sWatchLaterStorage,
+            sVideoDecode, sVideoImage, sVideoFilters, sVideoSync, sColorManagement,
+            sGpuScaling, sGpuInterpolation, sGpuShaders, sGpuBackground,
+            sToneMapping, sTargetColorspace,
+            sAudioOutput, sAudioExternal, sAudioCoverArt,
+            sSubtitleText, sSubtitlePosition, sSubtitleAss, sSubtitleImage,
+            sTrackSelection, sTrackLanguage, sTrackFallback,
+            sOsdBehavior, sOsdAppearance, sOsdPosition, sOsdMetadata,
+            sScreenshotQuality,
+            sNetworkHttp, sNetworkCurl, sNetworkYtdlp,
+            sCache, sDemuxerBuffering, sDemuxerPlaylist,
+        };
+        // Entries people reach for daily: language switch, update check,
+        // theme, hardware decode, resume-on-quit, output device, subtitle
+        // font size, stay-on-top, cache switch, OSD level.
+        var pinnedOverviewOptions = new HashSet<string>(StringComparer.Ordinal)
+        {
+            nameof(AppSettings.CurrentLanguage),   // language
+            nameof(AppSettings.CheckForUpdates),   // update toggle
+            nameof(AppSettings.ThemeType),         // theme mode
+            nameof(AppSettings.Hwdec),             // hardware decoding
+            nameof(AppSettings.SavePositionOnQuit),// resume on exit
+            nameof(AppSettings.AudioDevice),       // output device
+            nameof(AppSettings.SubFontSize),       // subtitle font size
+            nameof(AppSettings.AlwaysOnTop),       // keep window on top
+            nameof(AppSettings.CacheEnabled),      // cache switch
+            nameof(AppSettings.OsdLevel),          // OSD visibility level
+            nameof(AppSettings.EnableVideoPreview),// seek preview switch
+        };
+
         foreach (var option in options)
         {
             if (RedundantDescriptions.Contains(option.Key))
@@ -106,6 +146,14 @@ private List<Option> BuildSettings()
             if (NoCustomOptions.Contains(option.Key))
             {
                 option.AllowCustom = false;
+            }
+            if (advancedSections.Contains(option.Section))
+            {
+                option.AdvancedSection = true;
+            }
+            if (pinnedOverviewOptions.Contains(option.Key))
+            {
+                option.AdvancedSection = false;
             }
         }
 
@@ -316,9 +364,12 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.WindowPiPShowControls)] = 193,
             [nameof(AppSettings.WindowPiPShowTopButtons)] = 193,
             [nameof(AppSettings.WindowPiPSize)] = 194,
+            [nameof(AppSettings.WindowPiPAspectRatioLock)] = 194,
+            [nameof(AppSettings.WindowPiPAnchor)] = 194,
             [nameof(AppSettings.WindowPiPOpacity)] = 195,
             [nameof(AppSettings.WindowStartMaximized)] = 195,
             [nameof(AppSettings.WindowRememberSize)] = 196,
+            [nameof(AppSettings.WindowAspectRatioLock)] = 196,
             [nameof(AppSettings.YtdlFormat)] = 197,
             [nameof(AppSettings.YtdlPath)] = 198,
             [nameof(AppSettings.YtdlTryFirst)] = 199,
@@ -403,11 +454,18 @@ private List<Option> BuildSettings()
             optionOrder[o.Key] = shortcutOrder++;
         }
 
+// Section display order within a category. Values that collide are
+        // harmless: ordering groups first by category, then by the minimum
+        // option order inside the group, so an equal section index only
+        // matters between two sections of the same category. The single-option
+        // sections (testing, interpolation, track language/fallback, ...) were
+        // folded into their neighbours, so their keys no longer appear here.
         var sectionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
         {
             [sProgramInterface] = 0,
             [sProgramLanguageLog] = 1,
-            [sTrackSelection] = 2,
+            [sProgramConfig] = 2,
+            [sProgramAssociations] = 3,
             [sPlayback] = 3,
             [sReversePlayback] = 4,
             [sPlaybackSeeking] = 5,
@@ -418,8 +476,6 @@ private List<Option> BuildSettings()
             [sVideoImage] = 8,
             [sVideoFilters] = 9,
             [sGpuScaling] = 10,
-            [sGpuColor] = 11,
-            [sGpuInterpolation] = 12,
             [sGpuBackground] = 13,
             [sGpuD3d11] = 14,
             [sGpuShaders] = 15,
@@ -428,11 +484,12 @@ private List<Option> BuildSettings()
             [sAudioVolume] = 18,
             [sAudioExternal] = 19,
             [sAudioCoverArt] = 20,
-            [sTrackLanguage] = 21,
-            [sTrackFallback] = 22,
-            [sSubtitleText] = 23,
-            [sSubtitleAss] = 24,
-            [sSubtitleImage] = 25,
+            [sSubtitleStyle] = 26,
+            [sSubtitlePosition] = 27,
+            [sSubtitleBehavior] = 28,
+            [sSubtitleText] = 29,
+            [sSubtitleAss] = 30,
+            [sSubtitleImage] = 31,
             [sWindow] = 26,
             [sDemuxerPlaylist] = 27,
             [sDemuxerBuffering] = 28,
@@ -441,22 +498,18 @@ private List<Option> BuildSettings()
             [sOsdMetadata] = 33,
             [sScreenshotLocation] = 34,
             [sScreenshotQuality] = 35,
-            [sProgramTesting] = 36,
             [sNetworkYtdlp] = 39,
             [sNetworkHttp] = 40,
             [sNetworkCurl] = 41,
-
-            [sSubtitleStyle] = 230,
-            [sSubtitlePosition] = 231,
-            [sSubtitleBehavior] = 232,
             [sToneMapping] = 130,
             [sTargetColorspace] = 131,
             [sColorManagement] = 132,
             [sOsdAppearance] = 320,
             [sOsdBehavior] = 321,
-            [sOsdPosition] = 322,            [sWindowPiP] = 42,
-            [sProgramAssociations] = 43,
-            [sProgramConfig] = 44,
+            [sOsdPosition] = 322,
+            [sWindowPiP] = 42,
+            [sProgramConfig] = 2,
+            [sProgramAssociations] = 3,
         };
 
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -503,7 +556,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.PictureContrast)] = sVideoImage,
             [nameof(AppSettings.PictureBrightness)] = sVideoImage,
             [nameof(AppSettings.HdrAutoMode)] = sVideoFilters,
-            [nameof(AppSettings.HdrOverrideMode)] = sGpuColor,
+            [nameof(AppSettings.HdrOverrideMode)] = sToneMapping,
             [nameof(AppSettings.HdrAutoLog)] = sVideoFilters,
             [nameof(AppSettings.VsrAutoEnabled)] = sVideoFilters,
             [nameof(AppSettings.Scale)] = sGpuScaling,
@@ -543,7 +596,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.IccCache)] = sColorManagement,
             [nameof(AppSettings.IccCacheDir)] = sColorManagement,
             [nameof(AppSettings.D3d11OutputCsp)] = sColorManagement,
-            [nameof(AppSettings.Interpolation)] = sGpuInterpolation,
+            [nameof(AppSettings.Interpolation)] = sVideoSync,
             [nameof(AppSettings.BackgroundTileColor0)] = sGpuBackground,
             [nameof(AppSettings.BackgroundTileColor1)] = sGpuBackground,
             [nameof(AppSettings.BackgroundTileSize)] = sGpuBackground,
@@ -589,9 +642,9 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CoverArtNames)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtImageExts)] = sAudioCoverArt,
             // subtitles
-            [nameof(AppSettings.AudioLanguage)] = sTrackSelection,
-            [nameof(AppSettings.SubtitleLanguage)] = sTrackLanguage,
-            [nameof(AppSettings.SubFallback)] = sTrackFallback,
+            [nameof(AppSettings.AudioLanguage)] = sAudioOutput,
+            [nameof(AppSettings.SubtitleLanguage)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubFallback)] = sSubtitleBehavior,
             [nameof(AppSettings.SubFontSize)] = sSubtitleStyle,
             [nameof(AppSettings.SubFont)] = sSubtitleStyle,
             [nameof(AppSettings.SubFontFile)] = sSubtitleStyle,
@@ -643,8 +696,11 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.WindowPiPShowControls)] = sWindowPiP,
             [nameof(AppSettings.WindowPiPShowTopButtons)] = sWindowPiP,
             [nameof(AppSettings.WindowPiPOpacity)] = sWindowPiP,
+            [nameof(AppSettings.WindowPiPAspectRatioLock)] = sWindowPiP,
+            [nameof(AppSettings.WindowPiPAnchor)] = sWindowPiP,
             [nameof(AppSettings.WindowPiPSize)] = sWindowPiP,
             [nameof(AppSettings.WindowStartMaximized)] = sWindow,
+            [nameof(AppSettings.WindowAspectRatioLock)] = sWindow,
             [nameof(AppSettings.WindowRememberSize)] = sWindow,
             // demuxer
             [nameof(AppSettings.AutoCreatePlaylist)] = sDemuxerPlaylist,
@@ -748,9 +804,9 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.ScreenshotTagColorspace)] = sScreenshotQuality,
             [nameof(AppSettings.ScreenshotSw)] = sScreenshotQuality,
             // testing
-            [nameof(AppSettings.TestMpvCommandLog)] = sProgramTesting,
-            [nameof(AppSettings.TestOsdMessage)] = sProgramTesting,
-            [nameof(AppSettings.TestSignal)] = sProgramTesting,
+            [nameof(AppSettings.TestMpvCommandLog)] = sProgramLanguageLog,
+            [nameof(AppSettings.TestOsdMessage)] = sOsdBehavior,
+            [nameof(AppSettings.TestSignal)] = sPlayback,
         };
 
         // Category is set inline on each Option (single source of truth);

@@ -14,6 +14,7 @@ namespace mpv_winui.Modules.Player
     public sealed partial class PlayerControl
     {
         private bool _panelBuilt;
+        private Pivot? _panelPivot;
 
         private void OnLanguageChanged()
         {
@@ -29,6 +30,57 @@ namespace mpv_winui.Modules.Player
         private void ControlPanelFlyout_Opened(object sender, object e)
         {
             EnsureControlPanel();
+        }
+
+        /// <summary>
+        /// XAML popups clip at the window edge instead of repositioning, and
+        /// the panel's 440-DIP pivot plus bar do not fit a small or high-DPI
+        /// window (maximized at 175% scale leaves ~425 DIP above the bar) —
+        /// the panel top was silently cut off. Build the presenter style per
+        /// open with a MaxHeight capped to the space actually available above
+        /// the button (Opening runs before the presenter is created); pages
+        /// that no longer fit scroll inside instead of clipping, and the
+        /// height stays identical across the three tabs.
+        /// </summary>
+        private void ControlPanelFlyout_Opening(object sender, object e)
+        {
+            var available = AvailableAbove(ControlPanelButton);
+            if (_panelPivot is not null)
+            {
+                _panelPivot.Height = Math.Max(300, available - 8);
+            }
+            ControlPanelFlyout.FlyoutPresenterStyle = BuildPresenterStyle(
+                (Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
+                available, 560);
+        }
+
+        /// <summary>Same window-edge clip protection for the track selector.</summary>
+        private void TrackSelectionFlyout_Opening(object sender, object e)
+        {
+            TrackSelectionFlyout.FlyoutPresenterStyle = BuildPresenterStyle(
+                (Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
+                AvailableAbove(TrackSelectionButton), 480);
+        }
+
+        private static Style BuildPresenterStyle(Style basedOn, double maxHeight, double maxWidth) => new(typeof(FlyoutPresenter))
+        {
+            BasedOn = basedOn,
+            Setters =
+            {
+                new Setter(FlyoutPresenter.PaddingProperty, new Thickness(0)),
+                new Setter(FlyoutPresenter.MaxWidthProperty, maxWidth),
+                new Setter(FlyoutPresenter.MaxHeightProperty, maxHeight),
+            },
+        };
+
+        /// <summary>DIPs from the window content top to the element top, minus a margin.</summary>
+        private static double AvailableAbove(FrameworkElement anchor)
+        {
+            if (anchor.XamlRoot?.Content is UIElement contentRoot)
+            {
+                return Math.Max(320, anchor.TransformToVisual(contentRoot).TransformPoint(new Windows.Foundation.Point(0, 0)).Y - 12);
+            }
+            return 480;
         }
 
         private void EnsureControlPanel()
@@ -51,17 +103,20 @@ namespace mpv_winui.Modules.Player
             var pivot = new Pivot
             {
                 // Fixed height keeps the flyout the same size across the
-                // audio/video/subtitle tabs; content taller than this scrolls
-                // inside the ScrollViewer instead of resizing the popup.
-                // User preference: ~400px gives the panel a roomier feel while
-                // staying fixed so tabs never resize the flyout.
-                Height = 400,
+                // audio/video/subtitle tabs. 440 gives all three pages
+                // enough room to render without their inner scrollbars
+                // (audio's EQ card is the tallest) while staying inside
+                // the flyout presenter's 480 cap.
+                // User preference: roomy panel with fixed size so tabs
+                // never resize the flyout.
+                Height = 440,
                 Padding = new Thickness(0),
                 IsHeaderItemsCarouselEnabled = false,
                 IsTabStop = false,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch,
             };
+            _panelPivot = pivot;
             var pages = new (string Text, string Glyph, Action<StackPanel> Build)[]
             {
                 (lang.SettingsCategoryAudio, "\uF472", root => ControlPanelHost.BuildAudio(root)),

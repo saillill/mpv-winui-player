@@ -55,16 +55,19 @@
                             ToolTipService.ToolTip="{x:Bind Path}" />
                         <Button
                             Grid.Column="2"
+                            Loaded="MoveUpButton_Loaded"
                             Content="&#xE70E;"
                             Tag="{x:Bind}"
                             Click="MoveUp_Click" />
                         <Button
                             Grid.Column="3"
+                            Loaded="MoveDownButton_Loaded"
                             Content="&#xE70D;"
                             Tag="{x:Bind}"
                             Click="MoveDown_Click" />
                         <Button
                             Grid.Column="4"
+                            Loaded="RemoveButton_Loaded"
                             Content="&#xE711;"
                             Tag="{x:Bind}"
                             Click="Remove_Click" />

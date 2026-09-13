@@ -1,9 +1,11 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Modules.AppModel;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
 using mpv_winui.Modules.Player;
@@ -32,6 +34,13 @@ public sealed partial class SettingsPage : Page
     private string _actionStatus = string.Empty;
     private int _resetStatusGeneration;
 
+    /// <summary>
+    /// Section currently drilled into (localized label), null while the
+    /// category shows its section overview. Reset on category/language
+    /// switches: section labels change with the language.
+    /// </summary>
+    private string? _selectedSection;
+
     /// <summary>Stable category keys, parallel to the localized category order.</summary>
     private static readonly string[] CategoryKeys =
     [
@@ -58,8 +67,11 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private static FontFamily CreateCategoryIconFont() => new("Segoe Fluent Icons");
 
+    private readonly bool _isUnpackaged;
+
     public SettingsPage()
     {
+        _isUnpackaged = !PackageHelper.IsPackaged;
         InitializeComponent();
         _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
         WarmDeviceChoices();
@@ -95,6 +107,9 @@ public sealed partial class SettingsPage : Page
     {
         var selectedKey = CurrentCategoryKey;
         var offset = OptionsControl.GetScrollOffset();
+        // Section labels are localized; a drilled-in section cannot survive
+        // a rebuild (language switch / reset) — fall back to the overview.
+        _selectedSection = null;
         _rebuildingContent = true;
         try
         {
@@ -119,7 +134,13 @@ public sealed partial class SettingsPage : Page
             RebuildNavigationItems(selectedKey);
             ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
             ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
-            SearchBox.PlaceholderText = AppContext.AppLang.Search;
+            if (SearchBox is not null)
+            {
+                SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
+                AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
+            }
+            var backTip = AppContext.AppLang.CommonBack;            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
+            AutomationProperties.SetName(BreadcrumbBackButton, backTip);
             RefreshWarningsAndEnabled();
             UpdateOptions();
         }
@@ -173,6 +194,11 @@ public sealed partial class SettingsPage : Page
     /// (used at construction and whenever an active query is cleared).</summary>
     private void RestoreSearchHistorySuggestions()
     {
+        // The constructor path runs before the window hands over the search box.
+        if (SearchBox is null)
+        {
+            return;
+        }
         var history = AppContext.AppSetting.SettingsSearchHistory
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(DecodeHistoryEntry)
@@ -363,7 +389,7 @@ public sealed partial class SettingsPage : Page
         MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
         if (App.Window is MainWindow mainWindow)
         {
-            mainWindow.UpdateCurrentTheme();
+            mainWindow.UpdateTheme();
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), AppContext.AppSetting.BackdropType);
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.EnableDebugLog), AppContext.AppSetting.EnableDebugLog);
         }
@@ -405,10 +431,45 @@ public sealed partial class SettingsPage : Page
             SearchBox.Text = string.Empty;
             RestoreSearchHistorySuggestions();
         }
+        // Category switches always land on the section overview (section
+        // labels are localized, so a drilled-in section cannot survive).
+        _selectedSection = null;
         UpdateOptions();
     }
 
-    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    private void BreadcrumbBack_Click(object sender, RoutedEventArgs e)
+    {
+        _selectedSection = null;
+        UpdateOptions();
+    }
+
+    private void BreadcrumbCategory_Click(object sender, RoutedEventArgs e)
+    {
+        _selectedSection = null;
+        UpdateOptions();
+    }
+
+    /// <summary>The search box lives in the settings window's top bar;
+    /// SettingsWindow hands it over before navigation so all search
+    /// behaviour (history, debounce, suggestions) stays on this page.</summary>
+    internal AutoSuggestBox? SearchBox { get; private set; }
+
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        // The constructor rebuilds content before the box exists (the frame
+        // instantiates the page by type); the top-bar box arrives here, and
+        // the bits the constructor skipped get applied now.
+        if (SearchBox is null && e.Parameter is AutoSuggestBox box)
+        {
+            SearchBox = box;
+            SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
+            AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
+            RestoreSearchHistorySuggestions();
+        }
+    }
+
+    internal void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
         {
@@ -433,6 +494,9 @@ public sealed partial class SettingsPage : Page
 
     private void ApplySearchQuery(string query)
     {
+        // Searching leaves the section drill-down: the global result list
+        // spans sections, so a stale _selectedSection would filter it away.
+        _selectedSection = null;
         // Global results: every matching option across categories is shown in
         // one flat list for now; grouping/highlighting arrives with the
         // search-results view in the next stage.
@@ -443,12 +507,15 @@ public sealed partial class SettingsPage : Page
             .Where(o => FuzzyMatchOption(query, o))
             .ToList();
         OptionsControl.OptionList = optionMatches;
+        SectionsHost.Visibility = Visibility.Collapsed;
+        BreadcrumbBar.Visibility = Visibility.Collapsed;
+        OptionsControl.Visibility = Visibility.Visible;
         SearchBox.ItemsSource = categoryMatches.Count > 0
             ? categoryMatches
             : optionMatches.Select(o => o.Category).Distinct().ToList();
     }
 
-    private void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    internal void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
     {
         if (args.SelectedItem is string category && Categories.Contains(category))
         {
@@ -457,7 +524,7 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    internal void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
         _searchDebounceTimer.Stop();
 
@@ -673,21 +740,227 @@ public sealed partial class SettingsPage : Page
 
     private void UpdateOptions()
     {
-        var query = SearchBox.Text?.Trim() ?? string.Empty;
+        // Can run from the constructor (the navigation's initial
+        // SelectionChanged) before the top-bar search box is handed over.
+        var query = SearchBox?.Text?.Trim() ?? string.Empty;
         if (!string.IsNullOrEmpty(query))
         {
-            // Global search results span categories, so "reset current
-            // category" has no visible target until the query is cleared.
+            // Global search results span categories and sections, so the
+            // drill-down state and "reset current category" have no visible
+            // target until the query is cleared.
             ResetButton.IsEnabled = false;
+            SectionsHost.Visibility = Visibility.Collapsed;
+            BreadcrumbBar.Visibility = Visibility.Collapsed;
+            OptionsControl.Visibility = Visibility.Visible;
             OptionsControl.OptionList = Settings.Where(o => FuzzyMatchOption(query, o)).ToList();
             return;
         }
 
         ResetButton.IsEnabled = true;
         var selected = CurrentCategory;
-        OptionsControl.OptionList = selected is null
+        var categoryOptions = selected is null
             ? Settings
             : Settings.Where(o => o.Category == selected).ToList();
+        var sections = SectionSummaries(categoryOptions);
+
+        // Windows-Settings flow: common options live directly on the
+        // category overview; advanced/complex sections stay behind entry
+        // cards. Categories with a single section go straight to their
+        // options.
+        var showOverview = _selectedSection is null && sections.Count > 1;
+        SectionsHost.Visibility = showOverview ? Visibility.Visible : Visibility.Collapsed;
+        OptionsControl.Visibility = Visibility.Visible;
+
+        if (showOverview)
+        {
+            // The overview also carries the trail — category name only.
+            BreadcrumbBar.Visibility = Visibility.Visible;
+            BreadcrumbCategoryLink.Visibility = Visibility.Collapsed;
+            BreadcrumbSeparator.Visibility = Visibility.Collapsed;
+            BreadcrumbSection.Text = selected ?? string.Empty;
+
+            var primaryOptions = categoryOptions.Where(o => !o.AdvancedSection).ToList();
+            var advancedSections = sections.Where(s => s.Advanced).ToList();
+
+            OptionsControl.Visibility = primaryOptions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            OptionsControl.OptionList = primaryOptions;
+            SectionsHost.ItemsSource = advancedSections.Count > 0
+                ? BuildSectionCards(advancedSections)
+                : Array.Empty<FrameworkElement>();
+            return;
+        }
+
+
+        if (_selectedSection is not null)
+        {
+            BreadcrumbBar.Visibility = Visibility.Visible;
+            // Windows-settings breadcrumb: the category segment is a live
+            // button jumping back to the section overview; only the trailing
+            // section is plain text.
+            BreadcrumbCategoryLink.Content = selected;
+            BreadcrumbCategoryLink.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
+            BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
+            BreadcrumbSection.Text = _selectedSection ?? string.Empty;
+            OptionsControl.OptionList = categoryOptions
+                .Where(o => o.Section == _selectedSection)
+                .ToList();
+            return;
+        }
+
+        // Single-section category or the section overview: show the trail
+        // with just the category name — nothing above it to link back to.
+        BreadcrumbBar.Visibility = Visibility.Visible;
+        BreadcrumbCategoryLink.Visibility = Visibility.Collapsed;
+        BreadcrumbSeparator.Visibility = Visibility.Collapsed;
+        BreadcrumbSection.Text = selected ?? string.Empty;
+        OptionsControl.OptionList = categoryOptions;
+    }
+
+    /// <summary>Ordered summaries of a category's sections; options arrive
+    /// pre-clustered so first-seen order is the page order.</summary>
+    private static List<(string Label, int Count, bool Advanced)> SectionSummaries(IEnumerable<Option> categoryOptions) =>
+        categoryOptions
+            .Where(o => !string.IsNullOrEmpty(o.Section))
+            .GroupBy(o => o.Section!, StringComparer.Ordinal)
+            .Select(g => (g.Key, g.Count(), g.First().AdvancedSection))
+            .ToList();
+
+
+    /// <summary>One entry card per advanced section, straight to that
+    /// section's options (Windows-settings flow: common options sit on
+    /// the overview, each remaining topic is one drill-in card).</summary>
+    private List<FrameworkElement> BuildSectionCards(
+        IReadOnlyList<(string Label, int Count, bool Advanced)> advancedSections) =>
+        advancedSections.Select(s => BuildSectionCard(s.Label)).ToList();
+
+    /// <summary>Windows-Settings-like navigation card for one section: a
+    /// leading glyph, title with a secondary description line, chevron.</summary>
+    private FrameworkElement BuildSectionCard(string label)
+    {
+        var (icon, description) = SectionMeta(label);
+        var card = new Button
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            MinHeight = 72,
+            Padding = new Thickness(16, 16, 16, 16),
+            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
+            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(4),
+            Margin = new Thickness(0, 0, 0, 8),
+            Content = new Grid { ColumnSpacing = 18 },
+        };
+        if (card.Content is Grid grid)
+        {
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            grid.Children.Add(new FontIcon
+            {
+                Glyph = icon,
+                FontSize = 20,
+                FontFamily = new FontFamily("Segoe Fluent Icons"),
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+
+            var textStack = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
+            textStack.Children.Add(new TextBlock { Text = label, FontSize = 14 });
+            if (!string.IsNullOrEmpty(description))
+            {
+                textStack.Children.Add(new TextBlock
+                {
+                    Text = description,
+                    FontSize = 12,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                });
+            }
+            Grid.SetColumn(textStack, 1);
+            grid.Children.Add(textStack);
+
+            var chevron = new FontIcon
+            {
+                Glyph = "\uE76C",
+                FontSize = 12,
+                FontFamily = new FontFamily("Segoe Fluent Icons"),
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+            };
+            Grid.SetColumn(chevron, 2);
+            grid.Children.Add(chevron);
+        }
+        AutomationProperties.SetName(card, string.IsNullOrEmpty(description) ? label : $"{label}, {description}");
+        card.Click += (_, _) =>
+        {
+            _selectedSection = label;
+            UpdateOptions();
+        };
+        return card;
+    }
+
+    /// <summary>Icon glyph and description line for a section card, keyed by
+    /// the localized section label so no extra identifier has to travel with
+    /// Option. Unlisted labels fall back to a generic folder card.</summary>
+    private static (string Icon, string Description) SectionMeta(string label)
+    {
+        var lang = AppContext.AppLang;
+        return label switch
+        {
+            var l when l == lang.SectionProgramInterface => ("\uE771", lang.SectionDescProgramInterface),
+            var l when l == lang.SectionProgramLanguageLog => ("\uE8C1", lang.SectionDescProgramLanguageLog),
+            var l when l == lang.SectionProgramConfig => ("\uECC5", lang.SectionDescProgramConfig),
+            var l when l == lang.SectionProgramAssociations => ("\uE8E5", lang.SectionDescProgramAssociations),
+            var l when l == lang.SectionProgramTesting => ("\uE9D9", lang.SectionDescProgramTesting),
+            var l when l == lang.SectionPlayback => ("\uE102", lang.SectionDescPlayback),
+            var l when l == lang.SectionPlaybackSeeking => ("\uE786", lang.SectionDescPlaybackSeeking),
+            var l when l == lang.SectionPlaybackSeekPreview => ("\uE720", lang.SectionDescPlaybackSeekPreview),
+            var l when l == lang.SectionReversePlayback => ("\uE8AB", lang.SectionDescReversePlayback),
+            var l when l == lang.SectionWatchLaterResume => ("\uE8E6", lang.SectionDescWatchLaterResume),
+            var l when l == lang.SectionWatchLaterStorage => ("\uE8B7", lang.SectionDescWatchLaterStorage),
+            var l when l == lang.SectionVideoDecode => ("\uE714", lang.SectionDescVideoDecode),
+            var l when l == lang.SectionVideoImage => ("\uE7F4", lang.SectionDescVideoImage),
+            var l when l == lang.SectionVideoFilters => ("\uE70F", lang.SectionDescVideoFilters),
+            var l when l == lang.SectionVideoSync => ("\uE895", lang.SectionDescVideoSync),
+            var l when l == lang.SectionGpuScaling => ("\uE71D", lang.SectionDescGpuScaling),
+            var l when l == lang.SectionGpuInterpolation => ("\uEDD5", lang.SectionDescGpuInterpolation),
+            var l when l == lang.SectionColorManagement => ("\uE790", lang.SectionDescColorManagement),
+            var l when l == lang.SectionGpuShaders => ("\uE9D2", lang.SectionDescGpuShaders),
+            var l when l == lang.SectionGpuBackground => ("\uE756", lang.SectionDescGpuBackground),
+            var l when l == lang.SectionToneMapping => ("\uE706", lang.SectionDescToneMapping),
+            var l when l == lang.SectionTargetColorspace => ("\uE914", lang.SectionDescTargetColorspace),
+            var l when l == lang.SectionTrackLanguage => ("\uE7F8", lang.SectionDescTrackLanguage),
+            var l when l == lang.SectionDemuxerBuffering => ("\uEC4E", lang.SectionDescDemuxerBuffering),
+            var l when l == lang.SectionDemuxerPlaylist => ("\uE8FD", lang.SectionDescDemuxerPlaylist),
+            var l when l == lang.SectionCache => ("\uE74E", lang.SectionDescCache),
+            var l when l == lang.SectionNetworkHttp => ("\uE702", lang.SectionDescNetworkHttp),
+            var l when l == lang.SectionNetworkCurl => ("\uE8EA", lang.SectionDescNetworkCurl),
+            var l when l == lang.SectionNetworkYtdlp => ("\uE717", lang.SectionDescNetworkYtdlp),
+            var l when l == lang.SectionAudioVolume => ("\uE76E", lang.SectionDescAudioVolume),
+            var l when l == lang.SectionAudioOutput => ("\uE7F6", lang.SectionDescAudioOutput),
+            var l when l == lang.SectionAudioExternal => ("\uE8D6", lang.SectionDescAudioExternal),
+            var l when l == lang.SectionAudioCoverArt => ("\uEB9F", lang.SectionDescAudioCoverArt),
+            var l when l == lang.SectionSubtitleBehavior => ("\uE7DE", lang.SectionDescSubtitleBehavior),
+            var l when l == lang.SectionSubtitleText => ("\uE90B", lang.SectionDescSubtitleText),
+            var l when l == lang.SectionSubtitleStyle => ("\uE8D2", lang.SectionDescSubtitleStyle),
+            var l when l == lang.SectionSubtitlePosition => ("\uE787", lang.SectionDescSubtitlePosition),
+            var l when l == lang.SectionSubtitleAss => ("\uE7DE", lang.SectionDescSubtitleAss),
+            var l when l == lang.SectionSubtitleImage => ("\uE91B", lang.SectionDescSubtitleImage),
+            var l when l == lang.SectionTrackSelection => ("\uE142", lang.SectionDescTrackSelection),
+            var l when l == lang.SectionTrackFallback => ("\uE72E", lang.SectionDescTrackFallback),
+            var l when l == lang.SectionOsd => ("\uE932", lang.SectionDescOsd),
+            var l when l == lang.SectionOsdBehavior => ("\uE7EE", lang.SectionDescOsdBehavior),
+            var l when l == lang.SectionOsdAppearance => ("\uE8D2", lang.SectionDescOsdAppearance),
+            var l when l == lang.SectionOsdPosition => ("\uE787", lang.SectionDescOsdPosition),
+            var l when l == lang.SectionOsdMetadata => ("\uEA8F", lang.SectionDescOsdMetadata),
+            var l when l == lang.SectionScreenshotLocation => ("\uE8B5", lang.SectionDescScreenshotLocation),
+            var l when l == lang.SectionScreenshotQuality => ("\uE740", lang.SectionDescScreenshotQuality),
+            var l when l == lang.SectionWindow => ("\uE745", lang.SectionDescWindow),
+            var l when l == lang.SectionWindowPiP => ("\uEE49", lang.SectionDescWindowPiP),
+            _ => ("\uE8B7", string.Empty),
+        };
     }
 
     }

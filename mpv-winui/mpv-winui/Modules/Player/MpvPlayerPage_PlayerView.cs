@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using mpv_winui.Modules.Common.Utils;
 using System;
 
@@ -14,10 +14,15 @@ namespace mpv_winui.Modules.Player
         {
             var size = new ViewSize(PlayerView.ActualWidth, PlayerView.ActualHeight, PlayerView.CompositionScaleX, PlayerView.CompositionScaleY);
             UpdatePlayerViewSize(size);
-            _mediaPlayer.UpdatePanel(PlayerView);
+            _mediaPlayer.AttachSwapChain(PlayerView);
             _playerViewLoaded = true;
 
-            _sizeChangedAction = DebounceUtil.Debounce<ViewSize>(UpdatePlayerViewSize, TimeSpan.FromMilliseconds(100));
+            // Throttle, not debounce: during a drag-resize the panel size
+            // changes continuously and the composition swapchain must track it
+            // in near-real-time. The old 100ms debounce restarted on every
+            // change, so the video only caught up ~100ms after the pointer
+            // stopped - which read as "the picture lags the window".
+            _sizeChangedAction = DebounceUtil.Throttle<ViewSize>(UpdatePlayerViewSize, TimeSpan.FromMilliseconds(16));
             PlayerView.SizeChanged += PlayerView_SizeChanged;
 
             _lastCompositionScaleX = PlayerView.CompositionScaleX;
@@ -30,7 +35,7 @@ namespace mpv_winui.Modules.Player
             _sizeChangedAction = null;
             PlayerView.SizeChanged -= PlayerView_SizeChanged;
             PlayerView.CompositionScaleChanged -= PlayerView_CompositionScaleChanged;
-            _mediaPlayer.Native.VoConfigured -= MpvPlayer_SwapChainChanged;
+            _mediaPlayer.VoConfigured -= MpvPlayer_SwapChainChanged;
         }
 
         private void MpvPlayer_SwapChainChanged()
@@ -41,7 +46,7 @@ namespace mpv_winui.Modules.Player
                 {
                     var size = new ViewSize(PlayerView.ActualWidth, PlayerView.ActualHeight, PlayerView.CompositionScaleX, PlayerView.CompositionScaleY);
                     UpdatePlayerViewSize(size);
-                    _mediaPlayer.UpdatePanel(PlayerView);
+                    _mediaPlayer.AttachSwapChain(PlayerView);
                 }
             });
         }
@@ -74,6 +79,13 @@ namespace mpv_winui.Modules.Player
             {
                 height = 1;
             }
+
+            // Publish the panel's physical size: the window aspect fit must
+            // target the panel (menu row + control row take the rest of the
+            // client), not the whole client.
+            MainWindow.VideoPanelPhysicalWidth = width;
+            MainWindow.VideoPanelPhysicalHeight = height;
+
             _mediaPlayer?.UpdateSize(width, height);
         }
 
@@ -86,7 +98,7 @@ namespace mpv_winui.Modules.Player
                 _lastCompositionScaleX = sender.CompositionScaleX;
                 _lastCompositionScaleY = sender.CompositionScaleY;
 
-                _mediaPlayer?.UpdatePanelScale(sender.CompositionScaleX, sender.CompositionScaleY);
+                _mediaPlayer?.UpdateSwapChainScale(sender.CompositionScaleX, sender.CompositionScaleY);
 
                 var size = new ViewSize(sender.ActualWidth, sender.ActualHeight, sender.CompositionScaleX, sender.CompositionScaleY);
                 _sizeChangedAction?.Invoke(size);

@@ -1,4 +1,4 @@
-using Microsoft.Graphics.Display;
+﻿using Microsoft.Graphics.Display;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -22,6 +22,10 @@ namespace mpv_winui.Modules.Player
         private HMONITOR? _lastMonitor;
         private DispatcherTimerDebouncer<int>? _displayInfoDebouncer;
         private DispatcherQueueTimer? _displayInfoTimer;
+        // Last advanced-color read failure written to display-info.log, so a
+        // persistently broken detection logs its reason once instead of on
+        // every 15s polling tick.
+        private string? _lastDisplayFailureReason;
 
         private void InitDisplayInfo()
         {
@@ -112,14 +116,75 @@ namespace mpv_winui.Modules.Player
                     {
                         TryLogDisplayInfo(kind, colorInfo);
                     }
+                    _lastDisplayFailureReason = null;
                     return kind;
+                }
+
+                if (log)
+                {
+                    TryLogDisplayInfoFailure(
+                        "GetAdvancedColorInfo returned null - DisplayInformation is null or its WindowId is stale");
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error(ex);
+                if (log)
+                {
+                    TryLogDisplayInfoFailure("GetAdvancedColorInfo threw: " + ex.Message);
+                }
             }
-            return mpv_winrt.DisplayColorKind.SDR;
+
+            // Keep the last known kind instead of hard-falling back to SDR.
+            // A transient read failure used to pin the player to SDR, which
+            // activates the [mpvw-sdr] profile (d3d11-output-csp=srgb) and
+            // silently disables RTX Video HDR - hdr_auto.lua only engages when
+            // the output colorspace is PQ. A genuine "display is SDR" reading
+            // is a successful read and still applies normally.
+            return _lastColorKind;
+        }
+
+        // Writes a diagnostic line when the advanced-color state could not be
+        // read at all. display-info.log used to contain successful reads only,
+        // so "the display really is SDR" and "detection is broken" looked
+        // identical - which is what made the RTX Video HDR chain so hard to
+        // diagnose.
+        private void TryLogDisplayInfoFailure(string reason)
+        {
+            try
+            {
+                // Log each distinct reason once: the 15s fallback timer would
+                // otherwise append the same line thousands of times a day.
+                if (string.Equals(_lastDisplayFailureReason, reason, System.StringComparison.Ordinal))
+                {
+                    return;
+                }
+                _lastDisplayFailureReason = reason;
+
+                var logDir = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "mpv-winui", "logs");
+                var logPath = System.IO.Path.Combine(logDir, "display-info.log");
+                var monitorText = _lastMonitor?.ToString();
+                var monitor = string.IsNullOrEmpty(monitorText) ? "<unresolved>" : monitorText!;
+                var line = $"{DateTime.Now:HH:mm:ss.fff} kind=FAIL advanced=<unavailable> " +
+                           $"reason={reason} " +
+                           $"monitor={monitor} windowId={_appWindow.Id.Value}\n";
+                _ = System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        System.IO.Directory.CreateDirectory(logDir);
+                        System.IO.File.AppendAllText(logPath, line);
+                    }
+                    catch
+                    {
+                    }
+                });
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>Opens a dialog with the current display/HDR detection results.</summary>
@@ -192,7 +257,7 @@ namespace mpv_winui.Modules.Player
                 _lastRefreshRate = rate;
                 if (ShouldAutoApplyRefreshRate())
                 {
-                    _mediaPlayer?.UpdateDisplayRefreshRate(rate);
+                    _mediaPlayer?.UpdateDisplayRefreshRate((int)rate);
                 }
             }
             ApplyDisplayPeak();
@@ -272,6 +337,14 @@ namespace mpv_winui.Modules.Player
 
         private const int DefaultDisplayPeakNits = 1000;
 
+        // Last pair pushed to mpv. The 15s fallback timer calls ApplyDisplayPeak
+        // unconditionally, so without this every tick rewrote identical
+        // properties - four log lines a minute for the whole session, and each
+        // write re-runs mpv's auto-profile condition evaluation.
+        // int.MinValue forces the first call through.
+        private int _lastAppliedDisplayPeak = int.MinValue;
+        private int _lastAppliedTargetPeak = int.MinValue;
+
         /// <summary>
         /// Applies the effective display peak: user <see cref="AppSettings.DisplayPeak"/>
         /// wins over detection; the legacy advanced TargetPeak, when set, wins over
@@ -283,20 +356,43 @@ namespace mpv_winui.Modules.Player
             try
             {
                 var detected = ReadDisplayPeakNits();
-                var displayPeak = AppContext.AppSetting.DisplayPeak > 0
-                    ? AppContext.AppSetting.DisplayPeak
-                    : detected;
-                if (displayPeak <= 0)
+                var userPeak = AppContext.AppSetting.DisplayPeak;
+                var userTarget = AppContext.AppSetting.TargetPeak;
+
+                int displayPeak;
+                int targetPeak;
+                if (detected <= 0 && userPeak <= 0)
                 {
-                    displayPeak = DefaultDisplayPeakNits;
+                    // SDR display (or Windows HDR off): mpv's auto handling is
+                    // correct here. Publishing 0 also keeps the [mpvw-hdr]
+                    // profile from triggering on an SDR display — the previous
+                    // code published the panel's 1000-nit max regardless of the
+                    // HDR toggle, which made mpv render SDR content for a
+                    // 1000-nit display (dark picture).
+                    displayPeak = 0;
+                    targetPeak = userTarget > 0 ? userTarget : 0;
+                }
+                else
+                {
+                    displayPeak = userPeak > 0 ? userPeak : detected;
+                    if (displayPeak <= 0)
+                    {
+                        displayPeak = DefaultDisplayPeakNits;
+                    }
+
+                    targetPeak = userTarget > 0 ? userTarget : displayPeak;
                 }
 
-                var targetPeak = AppContext.AppSetting.TargetPeak > 0
-                    ? AppContext.AppSetting.TargetPeak
-                    : displayPeak;
+                if (displayPeak == _lastAppliedDisplayPeak && targetPeak == _lastAppliedTargetPeak)
+                {
+                    return;
+                }
 
                 AppContext.SendMpvCommand($"no-osd set user-data/mpvw/display-peak {displayPeak}");
                 AppContext.SendMpvCommand($"no-osd set target-peak {targetPeak}");
+
+                _lastAppliedDisplayPeak = displayPeak;
+                _lastAppliedTargetPeak = targetPeak;
 
                 if (_logger.IsDebugEnabled)
                 {
@@ -316,6 +412,18 @@ namespace mpv_winui.Modules.Player
             {
                 var colorInfo = _displayInfo?.GetAdvancedColorInfo();
                 if (colorInfo is null || colorInfo.MaxLuminanceInNits <= 0)
+                {
+                    return 0;
+                }
+
+                // CRITICAL: MaxLuminanceInNits reports the PANEL's capability and
+                // is non-zero even while Windows HDR is turned off. Using it in
+                // SDR mode made mpv render for a 1000-nit display, which is why
+                // SDR videos looked dark (the previewer instance never sets
+                // target-peak and rendered correctly). Only trust the peak while
+                // advanced color is actually on.
+                if (colorInfo.CurrentAdvancedColorKind
+                    != Microsoft.Graphics.Display.DisplayAdvancedColorKind.HighDynamicRange)
                 {
                     return 0;
                 }
@@ -388,7 +496,7 @@ namespace mpv_winui.Modules.Player
                     _lastRefreshRate = rate;
                     if (ShouldAutoApplyRefreshRate())
                     {
-                        _mediaPlayer?.UpdateDisplayRefreshRate(rate);
+                        _mediaPlayer?.UpdateDisplayRefreshRate((int)rate);
                     }
                 }
                 ApplyDisplayPeak();
