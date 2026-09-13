@@ -81,7 +81,7 @@ public sealed partial class PiPWindow
         e.Handled = true;
     }
 
-    private void PiPPlayer_MediaLoaded(MpvMediaPlayer player, object? args)
+    private void PiPPlayer_MediaLoaded(mpv_winrt.MpvPlayer player, object? args)
     {
         DispatcherQueue.TryEnqueue(() =>
         {
@@ -92,7 +92,7 @@ public sealed partial class PiPWindow
         });
     }
 
-    private void PiPPlayer_MediaInfoChanged(MpvMediaPlayer player, MediaInfoChangedEventArgs args)
+    private void PiPPlayer_MediaInfoChanged(mpv_winrt.MpvPlayer player, MediaInfoChangedEventArgs args)
     {
         // Keep the aspect lock in sync with the current video (dwidth/dheight
         // are reported by mpv on VIDEO_RECONFIG).

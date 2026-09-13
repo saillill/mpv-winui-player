@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -61,7 +61,7 @@ public static class MpvSettings
             nameof(AppSettings.CurlMaxRequestSize) => $"set curl-max-request-size {value}",
             // The patched native autocreate-playlist scans the file's whole
             // directory synchronously inside loadfile (minutes on huge
-            // dirs). Always disable it here; MpvMediaPlayer fills the playlist
+            // dirs). Always disable it here; mpv_winrt.MpvPlayer fills the playlist
             // lazily in the background instead, driven by the same setting.
             nameof(AppSettings.PictureBrightness) => $"set brightness {(int)AppContext.AppSetting.PictureBrightness}",
             nameof(AppSettings.PictureContrast) => $"set contrast {(int)AppContext.AppSetting.PictureContrast}",

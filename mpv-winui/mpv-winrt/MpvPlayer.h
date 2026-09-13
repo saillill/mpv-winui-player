@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "MpvPlayer.g.h"
 #include <atomic>
 #include <d3d11_4.h>
@@ -176,6 +176,11 @@ namespace winrt::mpv_winrt::implementation
         void TrackChanged(winrt::event_token const& token) noexcept;
         winrt::event_token BufferingChanged(winrt::mpv_winrt::BufferingChangedEventHandler const& handler);
         void BufferingChanged(winrt::event_token const& token) noexcept;
+        MPVWINRT_EVENT(LogMessage, MpvLogEventHandler, logMessage)
+        MPVWINRT_EVENT(MediaLoaded, MediaLoadedEventHandler, mediaLoaded)
+        MPVWINRT_EVENT(PlaybackFailed, PlaybackFailedEventHandler, playbackFailed)
+        MPVWINRT_EVENT(Seeked, SeekEventHandler, seeked)
+        MPVWINRT_EVENT(VoConfigured, VoConfiguredEventHandler, voConfigured)
 
         winrt::event_token PlaybackStateChanged(winrt::mpv_winrt::PlaybackStateChangedEventHandler const& handler);
         void PlaybackStateChanged(winrt::event_token const& token) noexcept;
@@ -206,7 +211,18 @@ namespace winrt::mpv_winrt::implementation
         winrt::event_token PlaylistChanged(winrt::mpv_winrt::PlaylistChangedEventHandler const& handler);
         void PlaylistChanged(winrt::event_token const& token) noexcept;
 
-    private:
+    // restored from upstream during the merge (declarations were lost with the conflict resolution)
+        void LoadList(hstring const& url);
+        void TogglePlayPause();
+        void SetHoverSec(double sec);
+        void SetDrawPreview(int32_t x, int32_t y, int32_t w, int32_t h);
+        void ClearPreview();
+        winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvEdition> GetEditions();
+        winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvProfile> GetProfiles();
+
+        
+
+        private:
         static mpv_node* FindMapField(mpv_node* map, const char* key);
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvTrack> GetTracks(const char* type);
         void CreateContext();
@@ -282,6 +298,10 @@ namespace winrt::mpv_winrt::implementation
         winrt::event<winrt::mpv_winrt::ShuffleChangedEventHandler> m_shuffleChangedEvent;
         winrt::event<winrt::mpv_winrt::PlaylistChangedEventHandler> m_playlistChangedEvent;
         winrt::event<winrt::mpv_winrt::MpvLogEventHandler> m_logMessageEvent;
+        winrt::event<winrt::mpv_winrt::MediaLoadedEventHandler> m_mediaLoadedEvent;
+        winrt::event<winrt::mpv_winrt::PlaybackFailedEventHandler> m_playbackFailedEvent;
+        winrt::event<winrt::mpv_winrt::SeekEventHandler> m_seekedEvent;
+        winrt::event<winrt::mpv_winrt::VoConfiguredEventHandler> m_voConfiguredEvent;
     };
 
     #undef MPVWINRT_EVENT

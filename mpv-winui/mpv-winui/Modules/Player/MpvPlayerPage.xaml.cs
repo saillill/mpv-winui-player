@@ -161,7 +161,7 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer.Destroy();
         }
 
-        private void MpvPlayerPage_ApplyHdrModeOnce(MpvMediaPlayer player, object? args)
+        private void MpvPlayerPage_ApplyHdrModeOnce(mpv_winrt.MpvPlayer player, object? args)
         {
             if (_hdrModeAppliedOnce)
             {
@@ -265,6 +265,8 @@ namespace mpv_winui.Modules.Player
         private void MpvPlayerPage_VolumeChanged(VolumeChangedEventArgs args)
         {
             AppContext.AppSetting.LastVideoVolume = (int)args.Volume;
+        }
+
         // A drop (or menu open) landing while CreateAsync is still running
         // used to enqueue loadfile into a native handle that silently no-ops
         // before initialization, losing the request. Callers now await this.

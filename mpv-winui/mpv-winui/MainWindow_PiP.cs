@@ -1,11 +1,11 @@
-using Microsoft.UI.Windowing;
+﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using mpv_winui.Modules.Player;
 using Windows.Graphics;
 
 namespace mpv_winui;
 
-public sealed partial class MainWindow : Window
+public sealed partial class MainWindow
 {
     /// <summary>
     /// Applies picture-in-picture mode. The video moves to a dedicated PiP

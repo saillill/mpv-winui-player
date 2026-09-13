@@ -75,7 +75,7 @@ public sealed partial class PiPCursorSurface : SwapChainPanel
 /// </summary>
 public sealed partial class PiPWindow : Window
 {
-    private MpvMediaPlayer? _player;
+    private mpv_winrt.MpvPlayer? _player;
     private bool _closing;
     private bool _tearingDown;
     private bool _topButtonsShow;
@@ -160,7 +160,7 @@ public sealed partial class PiPWindow : Window
     /// <summary>The video surface that libmpv renders into.</summary>
     public SwapChainPanel VideoPanel => PiPView;
 
-    public void Attach(MpvMediaPlayer player)
+    public void Attach(mpv_winrt.MpvPlayer player)
     {
         if (_player == player)
         {

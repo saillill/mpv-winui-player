@@ -1,4 +1,4 @@
-import "DisplayColorKind.idl";
+﻿import "DisplayColorKind.idl";
 import "DiscType.idl";
 import "MpvPlaylistItem.idl";
 import "MpvChapter.idl";
@@ -18,8 +18,20 @@ import "TrackListChangedEventArgs.idl";
 import "TrackListCountChangedEventArgs.idl";
 import "WindowChangedEventArgs.idl";
 
+import "MpvLogEventArgs.idl";
+
+import "MpvGpuAdapter.idl";
+
+import "PlaybackFailedEventArgs.idl";
+
 namespace mpv_winrt
 {
+	delegate void MediaLoadedEventHandler();
+	delegate void PlaybackFailedEventHandler(PlaybackFailedEventArgs args);
+	delegate void SeekEventHandler();
+	delegate void VoConfiguredEventHandler();
+	delegate void MpvLogEventHandler(MpvLogEventArgs args);
+	delegate void MpvPropertyChangedEventHandler(String name, String value);
 	delegate void FileStartedEventHandler();
 	delegate void FileLoadedEventHandler();
 	delegate void FileFailedEventHandler(FileFailedEventArgs args);
@@ -68,6 +80,14 @@ namespace mpv_winrt
 
 		void Command(Windows.Foundation.Collections.IVector<String> args);
 		void CommandString(String cmd);
+		void ApplyCommandStrings(Windows.Foundation.Collections.IVector<String> commands);
+		UInt64 ObserveProperty(String name, MpvPropertyChangedEventHandler handler);
+		void UnobserveProperty(UInt64 handle);
+		void SetLogLevel(String level);
+		String GetCurrentFilePath();
+		Double AbLoopA();
+		Double AbLoopB();
+		Windows.Foundation.Collections.IVectorView<MpvGpuAdapter> GetGpuAdapters();
 
 		void PlaylistPlayIndex(Int32 index);
 		void PlaylistMove(Int32 from, Int32 to);
@@ -162,5 +182,10 @@ namespace mpv_winrt
 		event LoopPlaylistChangedEventHandler LoopPlaylistChanged;
 		event ShuffleChangedEventHandler ShuffleChanged;
 		event PlaylistChangedEventHandler PlaylistChanged;
+		event MediaLoadedEventHandler MediaLoaded;
+		event PlaybackFailedEventHandler PlaybackFailed;
+		event SeekEventHandler Seeked;
+		event VoConfiguredEventHandler VoConfigured;
+		event MpvLogEventHandler LogMessage;
 	};
 }

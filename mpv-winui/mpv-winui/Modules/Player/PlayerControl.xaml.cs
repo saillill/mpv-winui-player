@@ -69,7 +69,7 @@ namespace mpv_winui.Modules.Player
         private double _lastChapterMarkWidth = double.NaN;
         private SolidColorBrush? _chapterTickBrush;
 
-        private MpvMediaPlayer? _mediaPlayer;
+        private mpv_winrt.MpvPlayer? _mediaPlayer;
 
         public static readonly DependencyProperty FullWindowButtonVisibilityProperty = DependencyProperty.Register("FullWindowButtonVisibility", typeof(Visibility), typeof(PlayerControl), new PropertyMetadata(Visibility.Collapsed, (DependencyObject d, DependencyPropertyChangedEventArgs e) =>
         {
@@ -251,7 +251,7 @@ namespace mpv_winui.Modules.Player
         }
 
 
-        public MpvMediaPlayer? MediaPlayer
+        public mpv_winrt.MpvPlayer? MediaPlayer
         {
             get
             {
@@ -683,7 +683,7 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.Position -= 10;
         }
 
-        private void PlaybackSession_PlaybackStateChanged(MpvMediaPlayer sender, bool args)
+        private void PlaybackSession_PlaybackStateChanged(mpv_winrt.MpvPlayer sender, bool args)
         {
             DispatcherQueue.RunAsync(() =>
             {
@@ -700,7 +700,7 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        private void MediaPlayer_MediaOpened(MpvMediaPlayer sender, object? args)
+        private void MediaPlayer_MediaOpened(mpv_winrt.MpvPlayer sender, object? args)
         {
             _hasError = false;
             _sourceLoaded = true;
@@ -720,7 +720,7 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        private void MediaPlayer_Seeked(MpvMediaPlayer sender, object? args)
+        private void MediaPlayer_Seeked(mpv_winrt.MpvPlayer sender, object? args)
         {
             DispatcherQueue.RunAsync(() =>
             {
@@ -760,7 +760,7 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        private void PlaybackSession_SeekingStarted(MpvMediaPlayer sender, object? args)
+        private void PlaybackSession_SeekingStarted(mpv_winrt.MpvPlayer sender, object? args)
         {
             // Local files briefly enter mpv's buffering state when seeking;
             // do not flash the loading strip for user-initiated scrubs.
@@ -772,7 +772,7 @@ namespace mpv_winui.Modules.Player
             DispatcherQueue.RunAsync(() => { UpdatePlaybackStatusUI(true); });
         }
 
-        private void PlaybackSession_SeekingEnded(MpvMediaPlayer sender, object? args)
+        private void PlaybackSession_SeekingEnded(mpv_winrt.MpvPlayer sender, object? args)
         {
             _isBuffering = false;
             DispatcherQueue.RunAsync(() => { UpdatePlaybackStatusUI(true); });
@@ -787,12 +787,12 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        private void MediaPlayer_RepeatStateChanged(MpvMediaPlayer sender, RepeatState state)
+        private void MediaPlayer_RepeatStateChanged(mpv_winrt.MpvPlayer sender, RepeatState state)
         {
             DispatcherQueue.RunAsync(UpdatePlaybackModeUI);
         }
 
-        private void MediaPlayer_ShuffleEnabledChanged(MpvMediaPlayer sender, bool enabled)
+        private void MediaPlayer_ShuffleEnabledChanged(mpv_winrt.MpvPlayer sender, bool enabled)
         {
             DispatcherQueue.RunAsync(UpdatePlaybackModeUI);
         }

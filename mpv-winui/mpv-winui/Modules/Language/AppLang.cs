@@ -36,7 +36,6 @@ namespace mpv_winui.Modules.Language
         public string Expand { get; set; } = "Expand";
         public string Collapse { get; set; } = "Collapse";
         public string Apply { get; set; } = "Apply";
-        public string Close { get; set; } = "Close";
         public string Search { get; set; } = "Search";
         public string SearchPlaceholder { get; set; } = "Find a setting";
         public string AdvancedSettings { get; set; } = "Advanced settings";

@@ -1,9 +1,11 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "MpvPlayer.h"
 #include "MpvPlayer.g.cpp"
 #include "MediaInfoChangedEventArgs.h"
 #include "MpvAudioDevice.h"
 #include "MpvChapter.h"
+#include "MpvProfile.h"
+#include "MpvEdition.h"
 #include "MpvGpuAdapter.h"
 #include "MpvLogEventArgs.h"
 #include "MpvMenuItem.h"
@@ -627,6 +629,8 @@ namespace winrt::mpv_winrt::implementation
     {
         m_bufferingChangedEvent.remove(token);
     }
+
+
 
     winrt::event_token MpvPlayer::PlaybackStateChanged(
         winrt::mpv_winrt::PlaybackStateChangedEventHandler const& handler)
@@ -2312,5 +2316,168 @@ namespace winrt::mpv_winrt::implementation
             SetOption("override-display-fps", rate);
         }
         SetUserData("mpvw/refresh-rate", rate);
+    }
+/* --- restored from upstream during the merge: the projection generated
+   from the merged idl declares these members, our conflict resolution
+   dropped their implementations --- */
+    void MpvPlayer::LoadList(hstring const& url)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        std::string path = winrt::to_string(url);
+        const char* args[] = {"loadlist", path.c_str(), nullptr};
+        mpv_command(m_mpv, args);
+    }
+    void MpvPlayer::TogglePlayPause()
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+        const char* args[] = {"cycle", "pause", nullptr};
+        mpv_command(m_mpv, args);
+    }
+    void MpvPlayer::SetHoverSec(double sec)
+    {
+        SetDoubleProperty("user-data/osc/hover-sec", sec);
+    }
+    void MpvPlayer::SetDrawPreview(int32_t x, int32_t y, int32_t w, int32_t h)
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        mpv_node node{};
+        mpv_node_list list{};
+        mpv_node values[4]{};
+        const char* keyPtrs[4] = {"x", "y", "w", "h"};
+
+        values[0].format = MPV_FORMAT_INT64;
+        values[0].u.int64 = static_cast<int64_t>(x);
+
+        values[1].format = MPV_FORMAT_INT64;
+        values[1].u.int64 = static_cast<int64_t>(y);
+
+        values[2].format = MPV_FORMAT_INT64;
+        values[2].u.int64 = static_cast<int64_t>(w);
+
+        values[3].format = MPV_FORMAT_INT64;
+        values[3].u.int64 = static_cast<int64_t>(h);
+
+        list.num = 4;
+        list.keys = (char**)keyPtrs;
+        list.values = values;
+
+        node.format = MPV_FORMAT_NODE_MAP;
+        node.u.list = &list;
+
+        mpv_set_property(m_mpv, "user-data/osc/draw-preview", MPV_FORMAT_NODE, &node);
+    }
+    void MpvPlayer::ClearPreview()
+    {
+        if (!m_mpv)
+        {
+            return;
+        }
+
+        mpv_node null_node{};
+        null_node.format = MPV_FORMAT_NONE;
+        mpv_set_property(m_mpv, "user-data/osc/draw-preview", MPV_FORMAT_NODE, &null_node);
+        mpv_del_property(m_mpv, "user-data/osc/hover-sec");
+    }
+    winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvEdition> MpvPlayer::GetEditions()
+    {
+        auto editions = winrt::single_threaded_vector<winrt::mpv_winrt::MpvEdition>();
+        if (!m_mpv)
+        {
+            return editions.GetView();
+        }
+
+        mpv_node node;
+        if (mpv_get_property(m_mpv, "edition-list", MPV_FORMAT_NODE, &node) < 0)
+        {
+            return editions.GetView();
+        }
+
+        if (node.format == MPV_FORMAT_NODE_ARRAY)
+        {
+            for (int i = 0; i < node.u.list->num; i++)
+            {
+                mpv_node* entry = &node.u.list->values[i];
+                if (entry->format != MPV_FORMAT_NODE_MAP)
+                {
+                    continue;
+                }
+
+                int32_t id = i;
+                std::string title;
+
+                for (int j = 0; j < entry->u.list->num; j++)
+                {
+                    auto& key = entry->u.list->keys[j];
+                    auto& value = entry->u.list->values[j];
+
+                    if (strcmp(key, "title") == 0 && value.format == MPV_FORMAT_STRING)
+                    {
+                        title = value.u.string ? value.u.string : "";
+                    }
+                }
+
+                auto edition = winrt::make<implementation::MpvEdition>(id, winrt::to_hstring(title));
+                editions.Append(edition);
+            }
+        }
+
+        mpv_free_node_contents(&node);
+        return editions.GetView();
+    }
+    winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvProfile> MpvPlayer::GetProfiles()
+    {
+        auto profiles = winrt::single_threaded_vector<winrt::mpv_winrt::MpvProfile>();
+        if (!m_mpv)
+        {
+            return profiles.GetView();
+        }
+
+        mpv_node node;
+        if (mpv_get_property(m_mpv, "profile-list", MPV_FORMAT_NODE, &node) < 0)
+        {
+            return profiles.GetView();
+        }
+
+        if (node.format == MPV_FORMAT_NODE_ARRAY)
+        {
+            for (int i = 0; i < node.u.list->num; i++)
+            {
+                mpv_node* entry = &node.u.list->values[i];
+                if (entry->format != MPV_FORMAT_NODE_MAP)
+                {
+                    continue;
+                }
+
+                std::string name;
+
+                for (int j = 0; j < entry->u.list->num; j++)
+                {
+                    auto& key = entry->u.list->keys[j];
+                    auto& value = entry->u.list->values[j];
+
+                    if (strcmp(key, "name") == 0 && value.format == MPV_FORMAT_STRING)
+                    {
+                        name = value.u.string ? value.u.string : "";
+                    }
+                }
+
+                auto profile = winrt::make<implementation::MpvProfile>(winrt::to_hstring(name));
+                profiles.Append(profile);
+            }
+        }
+
+        mpv_free_node_contents(&node);
+        return profiles.GetView();
     }
 } // namespace winrt::mpv_winrt::implementation
