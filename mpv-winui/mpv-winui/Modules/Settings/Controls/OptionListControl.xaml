@@ -193,87 +193,9 @@
                 Text="{x:Bind Caption}" />
         </DataTemplate>
 
-        <!-- Customize mode's 2nd-level row: a section (column) the user can
-             move or hide as a unit, exactly like a sidebar category. -->
-        <DataTemplate x:Key="CustomizeSectionTemplate" x:DataType="ctl:SectionHeaderItem">
-            <Border
-                x:Name="SectionDragSurface"
-                Margin="0,12,0,8"
-                Padding="12,8,12,8"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <FontIcon
-                        Grid.Column="0"
-                        VerticalAlignment="Center"
-                        FontSize="16"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Glyph="&#xE8A5;" />
-                    <TextBlock
-                        Grid.Column="1"
-                        VerticalAlignment="Center"
-                        FontSize="16"
-                        FontWeight="SemiBold"
-                        Text="{x:Bind Caption}"
-                        TextWrapping="Wrap" />
-                    <Button
-                        Grid.Column="2"
-                        VerticalAlignment="Center"
-                        AutomationProperties.Name="{x:Bind Edit.DeleteAutomationName}"
-                        ToolTipService.ToolTip="{x:Bind Edit.SectionTooltip}">
-                        <FontIcon FontSize="14" Glyph="&#xE712;" />
-                        <Button.Flyout>
-                            <MenuFlyout>
-                                <MenuFlyoutItem Click="RenameSection_Click" Text="{x:Bind Edit.RenameCaption}" />
-                                <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Click="SectionMoveUp_Click" Text="{x:Bind Edit.MoveUpCaption}" />
-                                <MenuFlyoutItem Click="SectionMoveDown_Click" Text="{x:Bind Edit.MoveDownCaption}" />
-                                <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Click="SectionHide_Click" Text="{x:Bind Edit.HideSectionCaption}" />
-                                <!-- Only a folder the user made can be deleted;
-                                     IsCustom gates it so no built-in section is
-                                     ever offered a destructive action. -->
-                                <MenuFlyoutItem
-                                    Click="SectionDelete_Click"
-                                    Text="{x:Bind Edit.DeleteSectionCaption}"
-                                    Visibility="{x:Bind DeleteVisibility}" />
-                            </MenuFlyout>
-                        </Button.Flyout>
-                    </Button>
-                </Grid>
-            </Border>
-        </DataTemplate>
-
-        <!-- A bare separator card between the folder's own members and the
-             cards that live outside every folder, so the two groups read as
-             different things instead of one long run. -->
-        <DataTemplate x:Key="CustomizeSplitterTemplate" x:DataType="ctl:SectionHeaderItem">
-            <Grid Margin="0,16,0,4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Text="{x:Bind Caption}" />
-            </Grid>
-        </DataTemplate>
-
-        <!-- Inline customize mode row: drag to reorder, drag onto a folder to
-             move it there, or hide / restore it. Label/description stay
-             read-only: they are localized. -->
+        <!-- Inline customize mode row: drag to reorder, edit the label /
+             description, see and override the raw mpv key + value, and delete
+             the row (hide it, or restore it to its default). -->
         <DataTemplate x:Key="CustomizeTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
@@ -283,43 +205,49 @@
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
-                CornerRadius="4"
-                ContextFlyout="{x:Bind Edit.RowMenu}">
+                CornerRadius="4">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Double-bar drag handle: the row's own affordance for
-                         "this can be dragged". -->
                     <FontIcon
                         Grid.Column="0"
-                        VerticalAlignment="Top"
-                        Margin="0,2,0,0"
-                        FontSize="14"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                        Glyph="&#xE76F;"
-                        ToolTipService.ToolTip="{x:Bind Edit.DragHandleTip}" />
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE76F;" />
 
                     <StackPanel Grid.Column="1" Spacing="6">
-                        <!-- Label/description are the built-in localized text
-                             (or the user's own override); editing them opens
-                             the rename dialog, which stores an override instead
-                             of touching the language files. -->
-                        <StackPanel Spacing="2">
-                            <TextBlock
-                                FontWeight="SemiBold"
-                                Text="{x:Bind Label}"
-                                TextWrapping="Wrap" />
-                            <TextBlock
-                                FontSize="12"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="{x:Bind Description}"
-                                TextWrapping="Wrap" />
-                        </StackPanel>
+                        <TextBox
+                            Header="{x:Bind Edit.NameCaption}"
+                            Text="{x:Bind Label, Mode=TwoWay}"
+                            LostFocus="EditLabel_LostFocus" />
+                        <TextBox
+                            Header="{x:Bind Edit.DescriptionCaption}"
+                            PlaceholderText="{x:Bind Edit.DescriptionPlaceholder}"
+                            Text="{x:Bind Description, Mode=TwoWay}"
+                            LostFocus="EditDescription_LostFocus" />
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox
+                                Grid.Column="0"
+                                Header="{x:Bind Edit.RawKeyCaption}"
+                                PlaceholderText="{x:Bind Edit.RawKeyPlaceholder}"
+                                Text="{x:Bind MpvKey, Mode=TwoWay}"
+                                LostFocus="EditRawKey_LostFocus" />
+                            <TextBox
+                                Grid.Column="1"
+                                Header="{x:Bind Edit.RawCaption}"
+                                PlaceholderText="{x:Bind Edit.RawPlaceholder}"
+                                Text="{x:Bind MpvValue, Mode=TwoWay}"
+                                LostFocus="EditRawValue_LostFocus" />
+                        </Grid>
                         <TextBlock
                             FontSize="11"
                             Foreground="{ThemeResource TextFillColorTertiaryBrush}"
@@ -327,37 +255,14 @@
                             TextWrapping="Wrap" />
                     </StackPanel>
 
-                    <!-- Inline pencil: the edit entry is visible rather than
-                         hidden behind the overflow button. -->
                     <Button
                         Grid.Column="2"
-                        MinWidth="0"
-                        Padding="8,4"
-                        VerticalAlignment="Top"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Click="EditRowInline_Click"
-                        ToolTipService.ToolTip="{x:Bind Edit.EditItemTip}">
-                        <FontIcon FontSize="14" Glyph="&#xE70F;" />
-                    </Button>
-
-                    <Button
-                        Grid.Column="3"
-                        MinWidth="0"
-                        Padding="8,4"
                         VerticalAlignment="Top"
                         AutomationProperties.Name="{x:Bind Edit.DeleteAutomationName}"
                         ToolTipService.ToolTip="{x:Bind Edit.DeleteTooltip}">
-                        <FontIcon FontSize="14" Glyph="&#xE712;" />
+                        <FontIcon FontSize="14" Glyph="&#xE74D;" />
                         <Button.Flyout>
                             <MenuFlyout>
-                                <MenuFlyoutItem Click="RenameRow_Click" Text="{x:Bind Edit.RenameCaption}" />
-                                <MenuFlyoutItem Click="EditAdvanced_Click" Text="{x:Bind Edit.EditAdvancedCaption}" />
-                                <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Click="CopyRow_Click" Text="{x:Bind Edit.CopyItemCaption}" />
-                                <MenuFlyoutItem Click="PasteRow_Click" Text="{x:Bind Edit.PasteItemCaption}" />
-                                <MenuFlyoutItem Click="DuplicateRow_Click" Text="{x:Bind Edit.DuplicateItemCaption}" />
-                                <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Click="HideRow_Click" Text="{x:Bind Edit.HideCaption}" />
                                 <MenuFlyoutItem Click="ResetRow_Click" Text="{x:Bind Edit.ResetCaption}" />
                             </MenuFlyout>
@@ -373,9 +278,6 @@
             BooleanTemplate="{StaticResource BooleanTemplate}"
             CheckListTemplate="{StaticResource CheckListTemplate}"
             ColorTemplate="{StaticResource ColorTemplate}"
-            CustomizeOptionTemplate="{StaticResource CustomizeTemplate}"
-            CustomizeSectionTemplate="{StaticResource CustomizeSectionTemplate}"
-            CustomizeSplitterTemplate="{StaticResource CustomizeSplitterTemplate}"
             DoubleTemplate="{StaticResource DoubleTemplate}"
             IntegerTemplate="{StaticResource IntegerTemplate}"
             LayoutTemplate="{StaticResource LayoutTemplate}"
@@ -401,57 +303,11 @@
     </UserControl.Resources>
 
     <Grid x:Name="Root">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <!-- Customize-mode-only toolbar: create a 2nd-level folder (which cards
-             can be dragged into), or define a new option backed by an mpv key. -->
-        <Grid
-            x:Name="CustomizeBar"
-            Grid.Row="0"
-            Margin="8,4,32,4"
-            ColumnSpacing="8"
-            Visibility="Collapsed">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <Button
-                x:Name="NewSectionButton"
-                Grid.Column="0"
-                HorizontalAlignment="Stretch"
-                Click="CreateSection_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon FontSize="14" Glyph="&#xE8F4;" />
-                    <TextBlock x:Name="NewSectionButtonText" />
-                </StackPanel>
-            </Button>
-
-            <Button
-                x:Name="AddAdvancedButton"
-                Grid.Column="1"
-                Click="AddAdvanced_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon FontSize="14" Glyph="&#xE710;" />
-                    <TextBlock x:Name="AddAdvancedButtonText" />
-                </StackPanel>
-            </Button>
-        </Grid>
-
         <ListView
             x:Name="OptionListView"
             Grid.Row="1"
             Padding="8,0,32,0"
-            AllowDrop="True"
-            CanDragItems="True"
-            CanReorderItems="True"
             DragItemsCompleted="OptionListView_DragItemsCompleted"
-            DragItemsStarting="OptionListView_DragItemsStarting"
-            DragOver="OptionListView_DragOver"
-            Drop="OptionListView_Drop"
             IsItemClickEnabled="False"
             ItemContainerStyle="{StaticResource OptionListViewItemStyle}"
             ItemTemplateSelector="{StaticResource TemplateSelector}"

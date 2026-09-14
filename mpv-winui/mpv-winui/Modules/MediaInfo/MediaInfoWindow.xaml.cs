@@ -8,9 +8,7 @@ public sealed partial class MediaInfoWindow : BaseWindow
     {
         InitializeComponent();
 
-        var lang = global::mpv_winui.AppContext.AppLang;
-        WindowTitleText.Text = lang.MediaInfoTitle;
-        AppWindow.Title = lang.MediaInfoTitle;
+        AppWindow.Title = "Media Info";
         AppWindow.SetIcon("App.ico");
         AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
 

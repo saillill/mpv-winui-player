@@ -34,8 +34,6 @@ public sealed partial class SettingsPage
             return;
         }
 
-        var language = ActiveLanguageKey;
-
         foreach (var option in options)
         {
             if (!_layout.Entries.TryGetValue(option.Key, out var entry))
@@ -43,20 +41,19 @@ public sealed partial class SettingsPage
                 continue;
             }
 
-            // Renames are stored as an override, never written into the
-            // language files: the built-in caption keeps changing with the UI
-            // language underneath, and this simply wins when it applies.
-            // A null result means "no override for this language", so the
-            // built-in text stands; an empty string is a deliberate blank.
-            if (LabelOverrides.ResolveLabel(entry, language) is { } label)
+            // Only fill in what the user actually overrode: an empty string is
+            // a deliberate "make it blank", null means "keep the built-in text".
+            if (entry.Label is not null)
             {
-                option.Label = label;
+                option.Label = entry.Label;
+            }
+            if (entry.Description is not null)
+            {
+                option.Description = entry.Description;
             }
 
-            if (LabelOverrides.ResolveDescription(entry, language) is { } description)
-            {
-                option.Description = description;
-            }
+            option.MpvKey = entry.MpvKey;
+            option.MpvValue = entry.MpvValue;
 
             // Hidden rows are filtered out of the normal list by IsVisible; the
             // customize mode ignores that flag so they can be brought back.
@@ -91,58 +88,43 @@ public sealed partial class SettingsPage
         options.AddRange(ordered);
     }
 
-    /// <summary>
-    /// UI language overrides are keyed against, normalized so a missing or
-    /// malformed setting cannot silently match nothing.
-    /// </summary>
-    private static string ActiveLanguageKey
-    {
-        get
-        {
-            var language = AppContext.AppSetting.CurrentLanguage;
-            return string.IsNullOrWhiteSpace(language) ? "en-US" : language;
-        }
-    }
-
     /// <summary>Persists the current customization.</summary>
     internal void SaveLayout() => SettingsLayoutStore.Save(_layout);
-
-    /// <summary>
-    /// Sidebar glyph for a stable category key. A built-in key indexes the
-    /// fixed glyph table; a key the user created resolves to the icon they
-    /// picked when they made the category, falling back to a folder.
-    /// </summary>
-    private string GlyphForCategoryKey(string key)
-    {
-        var builtIn = Array.IndexOf(CategoryKeys, key);
-        if (builtIn >= 0 && builtIn < CategoryGlyphs.Length)
-        {
-            return CategoryGlyphs[builtIn];
-        }
-
-        return _layout.FindCategory(key)?.Glyph ?? "\uE8B7";
-    }
-
-    /// <summary>
-    /// Localized caption for a stable category key, covering the categories
-    /// the user created (which have no AppLang caption to look up).
-    /// </summary>
-    private string? CategoryCaptionForKey(string? key)
-    {
-        if (string.IsNullOrEmpty(key))
-        {
-            return null;
-        }
-
-        return _layout.FindCategory(key)?.DisplayFor(ActiveLanguageKey)
-            ?? SettingsSectionIds.CategoryCaptionFor(key);
-    }
 
     /// <summary>Records the visible order so a drag-reorder survives a rebuild.</summary>
     internal void StoreOrder(IEnumerable<string> keysInDisplayOrder)
     {
         _layout.Order = keysInDisplayOrder.ToList();
         SaveLayout();
+    }
+
+    /// <summary>Stores a label/description override; null removes the override.</summary>
+    internal void StoreText(Option option, string? label, string? description)
+    {
+        var entry = _layout.EntryFor(option.Key);
+        entry.Label = label;
+        entry.Description = description;
+        _layout.Prune(option.Key);
+        SaveLayout();
+    }
+
+    /// <summary>Stores the raw mpv key/value override and pushes it to the player.</summary>
+    internal void StoreMpvOverride(Option option, string? mpvKey, string? mpvValue)
+    {
+        var entry = _layout.EntryFor(option.Key);
+        entry.MpvKey = string.IsNullOrWhiteSpace(mpvKey) ? null : mpvKey.Trim();
+        entry.MpvValue = mpvValue;
+        _layout.Prune(option.Key);
+        SaveLayout();
+        option.MpvKey = entry.MpvKey;
+        option.MpvValue = entry.MpvValue;
+
+        // A raw value is authoritative: apply it immediately so the user sees
+        // the effect without leaving the settings page.
+        if (!string.IsNullOrWhiteSpace(entry.MpvKey) && !string.IsNullOrWhiteSpace(entry.MpvValue))
+        {
+            AppContext.SendMpvCommand($"no-osd set {entry.MpvKey} {entry.MpvValue}");
+        }
     }
 
     /// <summary>Hides a row (its stored setting value is kept) or brings it back.</summary>
@@ -172,6 +154,35 @@ public sealed partial class SettingsPage
         }
 
         option.IsVisible = true;
+        option.MpvKey = null;
+        option.MpvValue = null;
+    }
+
+    /// <summary>The raw mpv command the row currently publishes, for display.</summary>
+    internal static string DescribeRawCommand(Option option)
+    {
+        if (!string.IsNullOrWhiteSpace(option.MpvKey))
+        {
+            return $"set {option.MpvKey} {option.MpvValue}";
+        }
+
+        try
+        {
+            var value = option.Getter?.Invoke();
+            return value is null ? string.Empty : MpvSettings.ToCommand(option.Key, value) ?? string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>Lazily suggests the raw mpv option name for a row, e.g. "hwdec".</summary>
+    internal static string SuggestMpvKey(Option option)
+    {
+        var command = DescribeRawCommand(option);
+        var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 && parts[0] == "set" ? parts[1] : string.Empty;
     }
 
     // ===== sidebar (category pane) customization =====
@@ -236,38 +247,6 @@ public sealed partial class SettingsPage
         SaveLayout();
     }
 
-    /// <summary>Stable key of the pane entry currently shown at the given index.</summary>
-    private string? DisplayedCategoryKeyAt(int index) =>
-        index >= 0 && index < _displayedCategoryKeys.Count ? _displayedCategoryKeys[index] : null;
-
-    /// <summary>
-    /// Sidebar drag reorder: moves the pane entry at <paramref name="from"/> to
-    /// <paramref name="to"/> and records the full order. The pane is a
-    /// NavigationView, which has no built-in drag, so the gesture is
-    /// implemented by hand and lands here as a pair of indices.
-    /// </summary>
-    internal void MoveCategoryTo(int from, int to)
-    {
-        if (from < 0 || from >= _displayedCategoryKeys.Count
-            || to < 0 || to >= _displayedCategoryKeys.Count
-            || from == to)
-        {
-            return;
-        }
-
-        var keys = _displayedCategoryKeys.ToList();
-        var moved = keys[from];
-        keys.RemoveAt(from);
-        keys.Insert(to, moved);
-
-        // Store the full order (hidden ones appended) so unlisted categories do
-        // not snap back to their built-in position on the next launch.
-        _layout.CategoryOrder = keys
-            .Concat(CategoryKeys.Where(k => !keys.Contains(k)))
-            .ToList();
-        SaveLayout();
-    }
-
     /// <summary>Hides or restores a sidebar category.</summary>
     internal void SetCategoryHidden(string key, bool hidden)
     {
@@ -279,341 +258,116 @@ public sealed partial class SettingsPage
         SaveLayout();
     }
 
-    // ===== section (2nd-level / column) customization =====
+    // ===== user-added options =====
 
     /// <summary>
-    /// Applies the folders: rows the user moved into another folder are
-    /// re-labelled, then hidden folders are dropped, then folders are
-    /// re-emitted in the stored order. Runs before the per-row ordering so an
-    /// explicitly ranked row still wins over its folder's position.
+    /// Materializes the user's hand-added options as real rows. They carry their
+    /// own Getter/Setter pair, so they behave like built-in rows while their
+    /// value lives in settings-layout.json instead of the AppSettings store.
     /// </summary>
-    private void ApplySectionLayout(List<Option> options)
+    private void AppendCustomOptions(List<Option> options)
     {
-        // 1) Row -> folder assignments, including folders the user created.
-        foreach (var option in options)
-        {
-            if (!_layout.Entries.TryGetValue(option.Key, out var entry) || entry.SectionId is null)
-            {
-                continue;
-            }
-
-            if (_layout.FindSection(entry.SectionId) is { } custom)
-            {
-                option.Section = custom.Name;
-                option.SectionId = custom.Id;
-            }
-            else if (SettingsSectionIds.CaptionFor(entry.SectionId) is { } caption)
-            {
-                option.Section = caption;
-                option.SectionId = entry.SectionId;
-            }
-        }
-
-        if (_layout.SectionOrder.Count == 0
-            && _layout.HiddenSections.Count == 0
-            && _layout.CustomSections.Count == 0)
-        {
-            // Nothing structural at all: no ordering to apply, no hidden
-            // folder to drop and no user folder that needs a header. Applying
-            // while CustomSections is non-empty matters even when SectionOrder
-            // is still empty — that is exactly the state right after the first
-            // folder is created in a category that had no stored order, and
-            // returning here left the new folder invisible.
-            return;
-        }
-
-        if (_layout.HiddenSections.Count > 0)
-        {
-            options.RemoveAll(o => o.SectionId is { } id && _layout.HiddenSections.Contains(id));
-        }
-
-        // 2) Folders hold contiguous runs; re-emit them in the stored order.
-        var rank = new Dictionary<string, int>(StringComparer.Ordinal);
-        for (var i = 0; i < _layout.SectionOrder.Count; i++)
-        {
-            rank[_layout.SectionOrder[i]] = i;
-        }
-
-        var reordered = options
-            .Select((option, index) => (option, index,
-                rankKey: option.SectionId is { } id && rank.TryGetValue(id, out var r) ? r : int.MaxValue))
-            .OrderBy(x => x.rankKey)
-            .ThenBy(x => x.index)
-            .Select(x => x.option)
-            .ToList();
-
-        options.Clear();
-        options.AddRange(reordered);
-
-        RecomputeSectionHeaders(options);
-
-        // 3) An empty user-created folder must still be visible, otherwise it
-        //    cannot be dragged into or removed.
-        AppendEmptyCustomFolders(options);
-    }
-
-    /// <summary>Re-flags which row starts each section run, after reordering.</summary>
-    private static void RecomputeSectionHeaders(List<Option> options)
-    {
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var option in options)
-        {
-            option.ShowSectionHeader = option.SectionId is not null && seen.Add(option.SectionId);
-        }
-    }
-
-    /// <summary>Adds a bare header row for each created folder that holds nothing yet.</summary>
-    private void AppendEmptyCustomFolders(List<Option> options)
-    {
-        if (_layout.CustomSections.Count == 0)
+        if (_layout.Added.Count == 0)
         {
             return;
         }
 
-        var populated = new HashSet<string>(
-            options.Where(o => o.SectionId is not null).Select(o => o.SectionId!),
-            StringComparer.Ordinal);
-
-        foreach (var section in _layout.CustomSections)
+        foreach (var added in _layout.Added)
         {
-            if (populated.Contains(section.Id))
+            if (string.IsNullOrWhiteSpace(added.MpvKey))
             {
                 continue;
             }
 
-            var categoryName = SettingsSectionIds.CategoryCaptionFor(section.CategoryKey);
-            if (categoryName is null
-                || !options.Any(o => string.Equals(o.Category, categoryName, StringComparison.Ordinal)))
+            var option = new Option
             {
-                continue;
+                Key = added.Id,
+                Label = added.Label,
+                Description = added.Description,
+                Section = added.Section,
+                MpvKey = added.MpvKey,
+                MpvValue = added.Value,
+                Getter = () => added.Value,
+                Setter = value =>
+                {
+                    added.Value = value as string ?? string.Empty;
+                    SaveLayout();
+                    AppContext.SendMpvCommand($"no-osd set {added.MpvKey} {added.Value}");
+                },
+            };
+
+            switch (added.Kind)
+            {
+                case CustomOptionKinds.Boolean:
+                    option.Type = OptionType.Boolean;
+                    // Boolean rows carry a real bool, so the toggle control works.
+                    option.Getter = () => string.Equals(added.Value, "yes", StringComparison.OrdinalIgnoreCase);
+                    option.Setter = value =>
+                    {
+                        added.Value = value is true ? "yes" : "no";
+                        SaveLayout();
+                        AppContext.SendMpvCommand($"no-osd set {added.MpvKey} {added.Value}");
+                    };
+                    break;
+
+                case CustomOptionKinds.Choice:
+                    option.Type = OptionType.StringList;
+                    option.Choices = added.Choices
+                        .Where(c => !string.IsNullOrWhiteSpace(c))
+                        .Select(c => new OptionChoice(c, c))
+                        .ToList();
+                    option.AllowCustom = false;
+                    break;
+
+                default:
+                    option.Type = OptionType.String;
+                    break;
             }
 
-            // A placeholder row so an empty folder still renders and stays a
-            // drop target. Action rows render as a labelled entry with no
-            // value control, which is exactly what a bare folder needs.
-            options.Add(new Option
-            {
-                Key = "custom-section:" + section.Id,
-                Label = section.Name,
-                Description = AppContext.AppLang.CustomizeEmptySection,
-                Category = categoryName,
-                Section = section.Name,
-                SectionId = section.Id,
-                Type = OptionType.Action,
-                IsVisible = true,
-                ShowSectionHeader = true,
-                Getter = () => null,
-                Setter = _ => { },
-            });
+            option.Category = ResolveCategoryName(added.CategoryKey) ?? CategoryOrder.FirstOrDefault() ?? "General";
+            option.Edit.Refresh();
+            options.Add(option);
         }
     }
 
-    /// <summary>Creates a 2nd-level folder in the given category.</summary>
-    internal void CreateSection(string categoryKey, string name)
+    /// <summary>Maps a stable category key back to its localized display name.</summary>
+    private string? ResolveCategoryName(string categoryKey)
     {
-        if (string.IsNullOrWhiteSpace(name) || string.IsNullOrEmpty(categoryKey))
+        var index = Array.IndexOf(CategoryKeys, categoryKey);
+        return index >= 0 && index < CategoryOrder.Count ? CategoryOrder[index] : null;
+    }
+
+    /// <summary>Adds a hand-written option and persists it.</summary>
+    internal void AddCustomOption(string categoryKey, string label, string description, string mpvKey, string kind, IEnumerable<string> choices)
+    {
+        if (string.IsNullOrWhiteSpace(mpvKey))
         {
             return;
         }
 
-        var id = "sec:" + name.Trim();
-        _layout.CustomSections.RemoveAll(s => string.Equals(s.Id, id, StringComparison.Ordinal));
-        _layout.CustomSections.Add(new CustomSection
+        var id = "custom:" + mpvKey.Trim();
+        _layout.Added.RemoveAll(a => string.Equals(a.Id, id, StringComparison.Ordinal));
+        _layout.Added.Add(new CustomOption
         {
             Id = id,
             CategoryKey = categoryKey,
-            Name = name.Trim(),
+            Label = string.IsNullOrWhiteSpace(label) ? mpvKey.Trim() : label.Trim(),
+            Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
+            MpvKey = mpvKey.Trim(),
+            Kind = CustomOptionKinds.All.Contains(kind) ? kind : CustomOptionKinds.Text,
+            Choices = choices.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => c.Trim()).ToList(),
+            Value = string.Empty,
         });
 
-        // New folders go last so they do not jump above the built-in ones.
-        if (!_layout.SectionOrder.Contains(id))
-        {
-            _layout.SectionOrder.Add(id);
-        }
-
         SaveLayout();
     }
 
-    /// <summary>
-    /// Creates a top-level sidebar category.
-    ///
-    /// The id is derived from the name so re-adding the same name updates the
-    /// existing category instead of stacking a second one — and so a category
-    /// the user made is addressable by a stable key everywhere the layout
-    /// stores per-category data (folder order, hidden state).
-    /// </summary>
-    internal void CreateCategory(string name, string glyph)
+    /// <summary>Removes a hand-added option.</summary>
+    internal void RemoveCustomOption(string id)
     {
-        var trimmed = name.Trim();
-        if (trimmed.Length == 0)
-        {
-            return;
-        }
-
-        var id = "cat:" + trimmed;
-        if (_layout.FindCategory(id) is { } existing)
-        {
-            existing.Name = trimmed;
-            existing.Glyph = glyph;
-        }
-        else
-        {
-            _layout.CustomCategories.Add(new CustomCategory
-            {
-                Id = id,
-                Name = trimmed,
-                Glyph = glyph,
-            });
-        }
-
-        // New categories go last in the sidebar so nothing already placed moves.
-        if (!_layout.CategoryOrder.Contains(id))
-        {
-            _layout.CategoryOrder.Add(id);
-        }
-
+        _layout.Added.RemoveAll(a => string.Equals(a.Id, id, StringComparison.Ordinal));
+        _layout.Order.Remove(id);
+        _layout.Entries.Remove(id);
         SaveLayout();
     }
-
-    /// <summary>
-    /// Moves a row into a folder, or back out of every folder when
-    /// <paramref name="sectionId"/> is null.
-    /// </summary>
-    internal void MoveRowToSection(string optionKey, string? sectionId)
-    {
-        if (string.IsNullOrEmpty(optionKey))
-        {
-            return;
-        }
-
-        var entry = _layout.EntryFor(optionKey);
-        entry.SectionId = sectionId;
-
-        // A row with nothing else overridden must not leave an empty entry
-        // behind: those accumulate and are invisible in the file.
-        if (entry.Label is null && entry.Description is null && entry.SectionId is null)
-        {
-            _layout.Entries.Remove(optionKey);
-        }
-
-        SaveLayout();
-    }
-
-    /// <summary>Removes a folder the user created; its rows fall back to their own section.</summary>
-    internal void DeleteSection(string sectionId)
-    {
-        _layout.CustomSections.RemoveAll(s => string.Equals(s.Id, sectionId, StringComparison.Ordinal));
-        _layout.SectionOrder.Remove(sectionId);
-        _layout.HiddenSections.Remove(sectionId);
-
-        foreach (var key in _layout.Entries
-            .Where(p => string.Equals(p.Value.SectionId, sectionId, StringComparison.Ordinal))
-            .Select(p => p.Key)
-            .ToList())
-        {
-            _layout.Entries[key].SectionId = null;
-        }
-
-        SaveLayout();
-    }
-
-    /// <summary>Ranks the folders of the current category in display order.</summary>
-    internal void StoreSectionOrder(IEnumerable<string> sectionIdsInDisplayOrder)
-    {
-        // Deduplicate first: a repeated id would otherwise be appended to the
-        // stored order a second time, and the file would grow a phantom entry
-        // that no folder ever matches again.
-        var order = sectionIdsInDisplayOrder
-            .Where(id => !string.IsNullOrEmpty(id))
-            .Distinct(StringComparer.Ordinal)
-            .ToList();
-        if (order.Count == 0)
-        {
-            return;
-        }
-
-        // The stored order is global (folders from every category share one
-        // list), so a reorder only rewrites the slots the moved folders occupy
-        // and leaves the other categories' entries where they were.
-        var moved = new HashSet<string>(order, StringComparer.Ordinal);
-        var queue = new Queue<string>(order);
-        var rebuilt = new List<string>();
-        foreach (var id in _layout.SectionOrder)
-        {
-            if (moved.Contains(id))
-            {
-                // Guard rather than assert: a stale stored order can carry more
-                // slots for a set than the live list has members, and Dequeue on
-                // an empty queue would take the settings page down.
-                if (queue.Count > 0)
-                {
-                    rebuilt.Add(queue.Dequeue());
-                }
-            }
-            else
-            {
-                rebuilt.Add(id);
-            }
-        }
-        while (queue.Count > 0)
-        {
-            rebuilt.Add(queue.Dequeue());
-        }
-
-        _layout.SectionOrder = rebuilt.Distinct(StringComparer.Ordinal).ToList();
-        SaveLayout();
-    }
-
-    /// <summary>Section ids of a category, in display order.</summary>
-    internal List<string> SectionIdsOf(string category)
-    {
-        var ids = new List<string>();
-        foreach (var option in Settings.Where(o => string.Equals(o.Category, category, StringComparison.Ordinal)))
-        {
-            if (option.SectionId is { } id && !ids.Contains(id))
-            {
-                ids.Add(id);
-            }
-        }
-        return ids;
-    }
-
-    /// <summary>Moves a section one slot up or down within its category.</summary>
-    internal void MoveSection(string sectionId, int delta)
-    {
-        if (CurrentCategory is not { } category)
-        {
-            return;
-        }
-
-        var order = SectionIdsOf(category);
-        var index = order.IndexOf(sectionId);
-        var target = index + delta;
-        if (index < 0 || target < 0 || target >= order.Count)
-        {
-            return;
-        }
-
-        (order[index], order[target]) = (order[target], order[index]);
-        StoreSectionOrder(order);
-    }
-
-    /// <summary>Hides or restores a whole section.</summary>
-    internal void SetSectionHidden(string sectionId, bool hidden)
-    {
-        _layout.HiddenSections.Remove(sectionId);
-        if (hidden)
-        {
-            _layout.HiddenSections.Add(sectionId);
-        }
-        SaveLayout();
-    }
-
-    /// <summary>Restores every section the customize mode hid.</summary>
-    internal void RestoreHiddenSections()
-    {
-        _layout.HiddenSections.Clear();
-        SaveLayout();
-    }
-
 }

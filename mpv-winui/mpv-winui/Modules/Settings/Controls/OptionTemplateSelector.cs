@@ -18,39 +18,8 @@ public partial class OptionTemplateSelector : DataTemplateSelector
     public DataTemplate MultiListTemplate { get; set; } = null!;
     public DataTemplate ShaderListTemplate { get; set; } = null!;
 
-    /// <summary>
-    /// While the inline customize mode is on, every row renders through the
-    /// edit templates instead of its value control, so the mode covers sections
-    /// (2nd level) and options alike with one selector.
-    /// </summary>
-    public bool CustomizeMode { get; set; }
-
-    public DataTemplate? CustomizeOptionTemplate { get; set; }
-    public DataTemplate? CustomizeSectionTemplate { get; set; }
-
-    /// <summary>The bare separator between a folder's members and the un-filed cards.</summary>
-    public DataTemplate? CustomizeSplitterTemplate { get; set; }
-
     protected override DataTemplate SelectTemplateCore(object item)
     {
-        if (CustomizeMode)
-        {
-            // The splitter must be checked before the generic section case: it
-            // is a SectionHeaderItem too, just one with no folder behind it.
-            if (item is SectionHeaderItem { IsSplitter: true } && CustomizeSplitterTemplate is not null)
-            {
-                return CustomizeSplitterTemplate;
-            }
-            if (item is SectionHeaderItem && CustomizeSectionTemplate is not null)
-            {
-                return CustomizeSectionTemplate;
-            }
-            if (item is Option && CustomizeOptionTemplate is not null)
-            {
-                return CustomizeOptionTemplate;
-            }
-        }
-
         if (item is SectionHeaderItem)
         {
             return SectionHeaderTemplate;

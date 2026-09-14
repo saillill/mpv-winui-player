@@ -341,11 +341,23 @@ public sealed class Option : INotifyPropertyChanged
     public OptionEditText Edit { get; } = new();
 
     /// <summary>
-    /// Stable id of the section (2nd-level folder) this row sits in. Section
-    /// captions are localized, so ordering and "move into folder" key on this
-    /// instead of on <see cref="Section"/>.
+    /// Raw mpv option name this row publishes, as shown/edited by the
+    /// customize mode (e.g. "hwdec"). Null while the row uses the mapping
+    /// derived from <see cref="Key"/>.
     /// </summary>
-    public string? SectionId { get; set; }
+    public string? MpvKey
+    {
+        get; set;
+    }
+
+    /// <summary>
+    /// Raw value forced for <see cref="MpvKey"/>. When set it is sent verbatim
+    /// and wins over whatever the row's own value control would send.
+    /// </summary>
+    public string? MpvValue
+    {
+        get; set;
+    }
 
     public bool AllowEmpty
     {
