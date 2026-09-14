@@ -59,14 +59,37 @@ public sealed partial class OptionListControl : UserControl
         // OptionTemplateSelector below); no tier filtering. Group headers
         // appear only when the page actually spans two or more sections —
         // a single-section page repeating its own name is pure noise.
+        //
+        // The inline customize mode is the exception: it renders one edit
+        // template for every row and keeps hidden rows on screen (flagged), so
+        // the user has something to drag, rename and bring back.
         var visible = new List<Option>(OptionList.Count);
         foreach (var option in OptionList)
         {
-            if (option.IsVisible)
+            if (CustomizeMode || option.IsVisible)
             {
                 visible.Add(option);
             }
         }
+
+        if (CustomizeMode)
+        {
+            OptionListView.ItemTemplateSelector = null;
+            OptionListView.ItemTemplate = (DataTemplate)Resources["CustomizeTemplate"];
+
+            // An ObservableCollection is what ListView's built-in reorder can
+            // write back into; a plain List would accept the drag but lose it.
+            var editable = new System.Collections.ObjectModel.ObservableCollection<object>();
+            foreach (var option in visible)
+            {
+                editable.Add(option);
+            }
+            OptionListView.ItemsSource = editable;
+            return;
+        }
+
+        OptionListView.ItemTemplate = null;
+        OptionListView.ItemTemplateSelector = (DataTemplateSelector)Resources["TemplateSelector"];
 
         var sectionCount = visible
             .Where(o => !string.IsNullOrEmpty(o.Section))
@@ -89,6 +112,115 @@ public sealed partial class OptionListControl : UserControl
         }
 
         OptionListView.ItemsSource = items;
+    }
+
+    /// <summary>
+    /// Inline customize mode: drag to reorder, edit text, override the raw mpv
+    /// value, hide or restore each row. The page owns the persisted layout and
+    /// subscribes to these notifications.
+    /// </summary>
+    public bool CustomizeMode
+    {
+        get => (bool)GetValue(CustomizeModeProperty);
+        set => SetValue(CustomizeModeProperty, value);
+    }
+
+    public static readonly DependencyProperty CustomizeModeProperty = DependencyProperty.Register(
+        nameof(CustomizeMode),
+        typeof(bool),
+        typeof(OptionListControl),
+        new PropertyMetadata(false, (d, e) =>
+        {
+            if (d is OptionListControl self)
+            {
+                // Reorder only makes sense while the edit template is showing.
+                self.OptionListView.CanReorderItems = (bool)e.NewValue;
+                self.OptionListView.AllowDrop = (bool)e.NewValue;
+                self.ApplyItemsSource();
+            }
+        }));
+
+    /// <summary>Raised when the row's label / description text changed.</summary>
+    public event Action<Option, string?, string?>? TextEdited;
+
+    /// <summary>Raised when the raw mpv value for a row was edited.</summary>
+    public event Action<Option, string?>? RawValueEdited;
+
+    /// <summary>Raised when the user picks "hide" on a row.</summary>
+    public event Action<Option>? HideRequested;
+
+    /// <summary>Raised when the user picks "restore default" on a row.</summary>
+    public event Action<Option>? ResetRequested;
+
+    /// <summary>Raised after a drag-reorder, with the new key order.</summary>
+    public event Action<IReadOnlyList<string>>? OrderChanged;
+
+    private static Option? RowOption(object sender) =>
+        (sender as FrameworkElement)?.DataContext as Option;
+
+    // x:Bind writes the TextBox into the Option as the user types, but the
+    // commit (and the layout save behind it) waits for focus to leave the
+    // field, so typing does not rewrite settings-layout.json per keystroke.
+    private void EditLabel_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            TextEdited?.Invoke(option, option.Label, option.Description);
+        }
+    }
+
+    private void EditDescription_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            TextEdited?.Invoke(option, option.Label, option.Description);
+        }
+    }
+
+    private void EditRawValue_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            RawValueEdited?.Invoke(option, option.MpvValue);
+        }
+    }
+
+    private void HideRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            HideRequested?.Invoke(option);
+        }
+    }
+
+    private void ResetRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            ResetRequested?.Invoke(option);
+        }
+    }
+
+    private void OptionListView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+    {
+        if (!CustomizeMode)
+        {
+            return;
+        }
+
+        var order = new List<string>(sender.Items.Count);
+        foreach (var item in sender.Items)
+        {
+            if (item is Option option)
+            {
+                order.Add(option.Key);
+            }
+        }
+
+        if (order.Count > 0)
+        {
+            OrderChanged?.Invoke(order);
+        }
     }
 
     /// <summary>Rebuilds the list (e.g. after an option becomes visible/hidden).</summary>

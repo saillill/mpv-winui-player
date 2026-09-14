@@ -863,6 +863,17 @@ private List<Option> BuildSettings()
 
         CategoryOrder.AddRange(categoryOrder);
 
+        // Customize-mode captions are localized, so refresh them with the rest
+        // of the page before the stored layout is merged in.
+        foreach (var option in options)
+        {
+            option.Edit.Refresh();
+        }
+
+        // The user's stored customization (order, hidden rows, renamed labels,
+        // raw mpv key/value) is merged last so it wins over the built-in tree.
+        ApplyLayout(options);
+
         return options;
     }
 }

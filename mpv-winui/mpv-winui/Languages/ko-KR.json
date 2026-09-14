@@ -1153,5 +1153,16 @@
   "ViewMpvLog": "mpv.log",
   "ViewMpvMenuEditor": "mpv 메뉴 편집기",
   "ViewMpvwConf": "mpvw.conf",
-  "ViewMpvwMenuConf": "mpvw-menu.conf"
+  "ViewMpvwMenuConf": "mpvw-menu.conf",
+  "CustomizeDelete": "이 항목 삭제",
+  "CustomizeDeleteTip": "숨기기 / 기본값 복원",
+  "CustomizeFieldDescription": "설명",
+  "CustomizeFieldDescriptionHint": "(비우면 설명을 숨깁니다)",
+  "CustomizeFieldName": "이름",
+  "CustomizeFieldRaw": "원시 mpv 키/값",
+  "CustomizeFieldRawHint": "원시 mpv 옵션 값, 예: d3d11va",
+  "CustomizeHide": "화면에서 숨기기(값 유지)",
+  "CustomizeReset": "기본값 복원(사용자 지정 제거 및 항목 초기화)",
+  "SettingsCustomize": "사용자 지정",
+  "SettingsCustomizeHint": "끌어서 순서 변경, 이름 변경, 원시 mpv 값 편집, 항목 숨기기/복원."
 }

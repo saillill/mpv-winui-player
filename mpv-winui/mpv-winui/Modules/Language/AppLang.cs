@@ -1247,6 +1247,19 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpVideoRotate { get; set; } = "Rotate the video by 90-degree steps.";
         public string SettingsHelpDitherDepth { get; set; } = "Target bit depth for dithered output; Auto matches the video.";
 
+        // ===== Settings: inline customize mode =====
+        public string SettingsCustomize { get; set; } = "Customize";
+        public string SettingsCustomizeHint { get; set; } = "Reorder by dragging, rename, edit the raw mpv value, hide or restore each settings entry.";
+        public string CustomizeFieldName { get; set; } = "Name";
+        public string CustomizeFieldDescription { get; set; } = "Description";
+        public string CustomizeFieldDescriptionHint { get; set; } = "(leave empty to hide the description)";
+        public string CustomizeFieldRaw { get; set; } = "Raw mpv key / value";
+        public string CustomizeFieldRawHint { get; set; } = "raw mpv option value, e.g. d3d11va";
+        public string CustomizeDelete { get; set; } = "Delete this entry";
+        public string CustomizeDeleteTip { get; set; } = "Hide / restore default";
+        public string CustomizeHide { get; set; } = "Hide from the page (keeps the value)";
+        public string CustomizeReset { get; set; } = "Restore default (clears customization and resets this entry)";
+
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)
         {

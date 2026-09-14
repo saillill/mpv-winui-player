@@ -1153,5 +1153,16 @@
   "ViewMpvLog": "mpv.log",
   "ViewMpvMenuEditor": "Mpv Menu Editor",
   "ViewMpvwConf": "mpvw.conf",
-  "ViewMpvwMenuConf": "mpvw-menu.conf"
+  "ViewMpvwMenuConf": "mpvw-menu.conf",
+  "CustomizeDelete": "Delete this entry",
+  "CustomizeDeleteTip": "Hide / restore default",
+  "CustomizeFieldDescription": "Description",
+  "CustomizeFieldDescriptionHint": "(leave empty to hide the description)",
+  "CustomizeFieldName": "Name",
+  "CustomizeFieldRaw": "Raw mpv key / value",
+  "CustomizeFieldRawHint": "raw mpv option value, e.g. d3d11va",
+  "CustomizeHide": "Hide from the page (keeps the value)",
+  "CustomizeReset": "Restore default (clears customization and resets this entry)",
+  "SettingsCustomize": "Customize",
+  "SettingsCustomizeHint": "Reorder by dragging, rename, edit the raw mpv value, hide or restore each settings entry."
 }

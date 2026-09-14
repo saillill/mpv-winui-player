@@ -193,6 +193,72 @@
                 Text="{x:Bind Caption}" />
         </DataTemplate>
 
+        <!-- Inline customize mode row: drag to reorder, edit the label /
+             description, see and override the raw mpv key + value, and delete
+             the row (hide it, or restore it to its default). -->
+        <DataTemplate x:Key="CustomizeTemplate" x:DataType="ctl:Option">
+            <Border
+                MinHeight="72"
+                Margin="0,0,0,8"
+                Padding="12,12,12,12"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE76F;" />
+
+                    <StackPanel Grid.Column="1" Spacing="6">
+                        <TextBox
+                            Header="{x:Bind Edit.NameCaption}"
+                            Text="{x:Bind Label, Mode=TwoWay}"
+                            LostFocus="EditLabel_LostFocus" />
+                        <TextBox
+                            Header="{x:Bind Edit.DescriptionCaption}"
+                            PlaceholderText="{x:Bind Edit.DescriptionPlaceholder}"
+                            Text="{x:Bind Description, Mode=TwoWay}"
+                            LostFocus="EditDescription_LostFocus" />
+                        <TextBox
+                            Header="{x:Bind Edit.RawCaption}"
+                            PlaceholderText="{x:Bind Edit.RawPlaceholder}"
+                            Text="{x:Bind MpvValue, Mode=TwoWay}"
+                            LostFocus="EditRawValue_LostFocus" />
+                        <TextBlock
+                            FontSize="11"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            Text="{x:Bind Key}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Button
+                        Grid.Column="2"
+                        VerticalAlignment="Top"
+                        AutomationProperties.Name="{x:Bind Edit.DeleteAutomationName}"
+                        ToolTipService.ToolTip="{x:Bind Edit.DeleteTooltip}">
+                        <FontIcon FontSize="14" Glyph="&#xE74D;" />
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Click="HideRow_Click" Text="{x:Bind Edit.HideCaption}" />
+                                <MenuFlyoutItem Click="ResetRow_Click" Text="{x:Bind Edit.ResetCaption}" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
         <ctl:OptionTemplateSelector
             x:Key="TemplateSelector"
             ActionTemplate="{StaticResource ActionTemplate}"
@@ -228,6 +294,7 @@
             x:Name="OptionListView"
             Grid.Row="1"
             Padding="8,0,32,0"
+            DragItemsCompleted="OptionListView_DragItemsCompleted"
             IsItemClickEnabled="False"
             ItemContainerStyle="{StaticResource OptionListViewItemStyle}"
             ItemTemplateSelector="{StaticResource TemplateSelector}"

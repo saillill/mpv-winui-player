@@ -1153,5 +1153,16 @@
   "ViewMpvLog": "mpv.log",
   "ViewMpvMenuEditor": "mpv 菜单编辑器",
   "ViewMpvwConf": "mpvw.conf",
-  "ViewMpvwMenuConf": "mpvw-menu.conf"
+  "ViewMpvwMenuConf": "mpvw-menu.conf",
+  "CustomizeDelete": "删除此项",
+  "CustomizeDeleteTip": "隐藏 / 恢复默认",
+  "CustomizeFieldDescription": "描述",
+  "CustomizeFieldDescriptionHint": "（留空则不显示描述）",
+  "CustomizeFieldName": "名称",
+  "CustomizeFieldRaw": "原始键值",
+  "CustomizeFieldRawHint": "原始 mpv 选项的值，例如 d3d11va",
+  "CustomizeHide": "从界面隐藏（保留已设的值）",
+  "CustomizeReset": "恢复默认（清除自定义并重置该项）",
+  "SettingsCustomize": "自定义",
+  "SettingsCustomizeHint": "拖动排序、改名、编辑原始 mpv 值，隐藏或恢复每一项设置。"
 }

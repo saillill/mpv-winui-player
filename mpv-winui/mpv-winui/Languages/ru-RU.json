@@ -1153,5 +1153,16 @@
   "ViewMpvLog": "mpv.log",
   "ViewMpvMenuEditor": "Редактор меню mpv",
   "ViewMpvwConf": "mpvw.conf",
-  "ViewMpvwMenuConf": "mpvw-menu.conf"
+  "ViewMpvwMenuConf": "mpvw-menu.conf",
+  "CustomizeDelete": "Удалить этот пункт",
+  "CustomizeDeleteTip": "Скрыть / вернуть по умолчанию",
+  "CustomizeFieldDescription": "Описание",
+  "CustomizeFieldDescriptionHint": "(оставьте пустым, чтобы скрыть описание)",
+  "CustomizeFieldName": "Название",
+  "CustomizeFieldRaw": "Исходный ключ / значение mpv",
+  "CustomizeFieldRawHint": "исходное значение опции mpv, например d3d11va",
+  "CustomizeHide": "Скрыть со страницы (значение сохраняется)",
+  "CustomizeReset": "Вернуть по умолчанию (сбросить настройку этого пункта)",
+  "SettingsCustomize": "Настроить",
+  "SettingsCustomizeHint": "Перетаскивайте для сортировки, переименовывайте, правьте исходное значение mpv, скрывайте и возвращайте пункты."
 }

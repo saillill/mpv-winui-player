@@ -1153,5 +1153,16 @@
   "ViewMpvLog": "mpv.log",
   "ViewMpvMenuEditor": "mpv-Menüeditor",
   "ViewMpvwConf": "mpvw.conf",
-  "ViewMpvwMenuConf": "mpvw-menu.conf"
+  "ViewMpvwMenuConf": "mpvw-menu.conf",
+  "CustomizeDelete": "Diesen Eintrag löschen",
+  "CustomizeDeleteTip": "Ausblenden / Standard wiederherstellen",
+  "CustomizeFieldDescription": "Beschreibung",
+  "CustomizeFieldDescriptionHint": "(leer lassen, um die Beschreibung auszublenden)",
+  "CustomizeFieldName": "Name",
+  "CustomizeFieldRaw": "Roher mpv-Schlüssel / -Wert",
+  "CustomizeFieldRawHint": "roher mpv-Optionswert, z. B. d3d11va",
+  "CustomizeHide": "Auf der Seite ausblenden (Wert bleibt erhalten)",
+  "CustomizeReset": "Standard wiederherstellen (Anpassung löschen und Eintrag zurücksetzen)",
+  "SettingsCustomize": "Anpassen",
+  "SettingsCustomizeHint": "Per Ziehen sortieren, umbenennen, den rohen mpv-Wert bearbeiten, Einträge ausblenden oder wiederherstellen."
 }

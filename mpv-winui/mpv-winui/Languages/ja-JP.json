@@ -1153,5 +1153,16 @@
   "ViewMpvLog": "mpv.log",
   "ViewMpvMenuEditor": "mpv メニューエディター",
   "ViewMpvwConf": "mpvw.conf",
-  "ViewMpvwMenuConf": "mpvw-menu.conf"
+  "ViewMpvwMenuConf": "mpvw-menu.conf",
+  "CustomizeDelete": "この項目を削除",
+  "CustomizeDeleteTip": "非表示 / 既定に戻す",
+  "CustomizeFieldDescription": "説明",
+  "CustomizeFieldDescriptionHint": "（空欄にすると説明を非表示）",
+  "CustomizeFieldName": "名前",
+  "CustomizeFieldRaw": "mpv の生のキー／値",
+  "CustomizeFieldRawHint": "生の mpv オプション値（例: d3d11va）",
+  "CustomizeHide": "画面から非表示（値は保持）",
+  "CustomizeReset": "既定に戻す（カスタマイズを消去してこの項目をリセット）",
+  "SettingsCustomize": "カスタマイズ",
+  "SettingsCustomizeHint": "ドラッグで並べ替え、名前の変更、mpv の生の値の編集、項目の非表示／復元ができます。"
 }

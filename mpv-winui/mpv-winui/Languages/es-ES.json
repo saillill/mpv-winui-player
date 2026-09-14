@@ -1153,5 +1153,16 @@
   "ViewMpvLog": "mpv.log",
   "ViewMpvMenuEditor": "Editor de menús mpv",
   "ViewMpvwConf": "mpvw.conf",
-  "ViewMpvwMenuConf": "mpvw-menu.conf"
+  "ViewMpvwMenuConf": "mpvw-menu.conf",
+  "CustomizeDelete": "Eliminar esta entrada",
+  "CustomizeDeleteTip": "Ocultar / restaurar predeterminado",
+  "CustomizeFieldDescription": "Descripción",
+  "CustomizeFieldDescriptionHint": "(déjalo vacío para ocultar la descripción)",
+  "CustomizeFieldName": "Nombre",
+  "CustomizeFieldRaw": "Clave / valor mpv sin procesar",
+  "CustomizeFieldRawHint": "valor de opción mpv sin procesar, p. ej. d3d11va",
+  "CustomizeHide": "Ocultar de la página (conserva el valor)",
+  "CustomizeReset": "Restaurar predeterminado (borra la personalización y restablece esta entrada)",
+  "SettingsCustomize": "Personalizar",
+  "SettingsCustomizeHint": "Reordena arrastrando, cambia el nombre, edita el valor mpv sin procesar, oculta o restaura cada entrada."
 }

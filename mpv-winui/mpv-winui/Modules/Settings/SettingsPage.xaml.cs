@@ -73,6 +73,7 @@ public sealed partial class SettingsPage : Page
     {
         _isUnpackaged = !PackageHelper.IsPackaged;
         InitializeComponent();
+        InitCustomizeMode();
         _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
         WarmDeviceChoices();
         LoadSearchHistory();
@@ -134,6 +135,7 @@ public sealed partial class SettingsPage : Page
             RebuildNavigationItems(selectedKey);
             ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
             ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
+            UpdateCustomizeToggleText();
             if (SearchBox is not null)
             {
                 SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
