@@ -87,6 +87,12 @@ public sealed partial class SettingsPage
 
         OptionsControl.EditAdvancedRequested += async optionKey => await EditAdvancedOptionAsync(optionKey);
 
+        // Clipboard-style row operations, so one card's customization can be
+        // applied to another without retyping it.
+        OptionsControl.CopyRowRequested += CopyRowCustomization;
+        OptionsControl.PasteRowRequested += PasteRowCustomization;
+        OptionsControl.DuplicateRowRequested += DuplicateRow;
+
         // The right pane of the two-pane view: a card dropped into it joins the
         // folder that pane is showing.
         CustomizeOptionsControl.PaneJoinRequested += (optionKey, sectionId) =>
@@ -94,6 +100,11 @@ public sealed partial class SettingsPage
             MoveRowToSection(optionKey, sectionId);
             RequestDeferredRebuild();
         };
+
+        // The pane's cards carry the same edit menu, so it subscribes too.
+        CustomizeOptionsControl.CopyRowRequested += CopyRowCustomization;
+        CustomizeOptionsControl.PasteRowRequested += PasteRowCustomization;
+        CustomizeOptionsControl.DuplicateRowRequested += DuplicateRow;
 
         UpdateCustomizeToggleText();
     }
@@ -160,7 +171,23 @@ public sealed partial class SettingsPage
         {
             XamlRoot = XamlRoot,
             Title = lang.CustomizeDeleteSection,
-            Content = new TextBlock { Text = caption, TextWrapping = TextWrapping.Wrap },
+            Content = new StackPanel
+            {
+                Spacing = 8,
+                Children =
+                {
+                    new TextBlock { Text = caption, TextWrapping = TextWrapping.Wrap },
+                    // A warning, not a question: the consequence is what the
+                    // user needs to know before pressing the destructive button.
+                    new InfoBar
+                    {
+                        IsClosable = false,
+                        IsOpen = true,
+                        Severity = InfoBarSeverity.Warning,
+                        Message = lang.CustomizeDeleteConfirmBody,
+                    },
+                },
+            },
             PrimaryButtonText = lang.Confirm,
             CloseButtonText = lang.Cancel,
             DefaultButton = ContentDialogButton.Close,
@@ -171,6 +198,7 @@ public sealed partial class SettingsPage
             return;
         }
 
+        PushCustomizeEdit();
         DeleteSection(sectionId);
 
         // The deleted node may have been the selection, so drop back to the
@@ -181,6 +209,7 @@ public sealed partial class SettingsPage
             _treeSelectedIsSection = false;
         }
 
+        CommitCustomizeEdit();
         RequestDeferredRebuild();
     }
 
@@ -508,21 +537,89 @@ public sealed partial class SettingsPage
 
     private void OnCustomizeToggleClick(object sender, RoutedEventArgs e)
     {
-        _customizeMode = CustomizeToggle.IsChecked == true;
-        OptionsControl.CustomizeMode = _customizeMode;
-        CustomizeOptionsControl.CustomizeMode = _customizeMode;
+        var entering = CustomizeToggle.IsChecked == true;
+        _customizeMode = entering;
+        OptionsControl.CustomizeMode = entering;
+        CustomizeOptionsControl.CustomizeMode = entering;
 
         // Customize mode swaps the flat card list for the bookmark-manager
         // surface: a folder tree on the left, the selected node's cards on the
         // right. Leaving it swaps back, which is why both hosts are toggled
         // here rather than left to the option list.
-        CustomizeHost.Visibility = _customizeMode ? Visibility.Visible : Visibility.Collapsed;
-        BrowseHost.Visibility = _customizeMode ? Visibility.Collapsed : Visibility.Visible;
+        CustomizeRoot.Visibility = entering ? Visibility.Visible : Visibility.Collapsed;
+        BrowseHost.Visibility = entering ? Visibility.Collapsed : Visibility.Visible;
+
+        // The tree lists the same categories the NavigationView pane does, so
+        // while it is up the pane is redundant: two identical sidebars read as
+        // a bug. The pane returns on exit, so the page's own navigation is
+        // untouched.
+        CategoryNav.IsPaneVisible = !entering;
+
+        if (entering)
+        {
+            BeginCustomizeSession();
+            ApplyCustomizeChrome();
+
+            // A fresh session starts expanded: a collapsed rail with no cards
+            // on screen would look empty.
+            SetSidebarCollapsed(false);
+        }
+        else
+        {
+            EndCustomizeSession();
+        }
 
         // Rebuild either way: entering the mode is what attaches the pane's own
         // edit menus and fills the tree, and leaving it is what drops them.
         RebuildLocalizedContent();
         UpdateCustomizeToggleText();
+    }
+
+
+    /// <summary>Fills the customize mode's own captions from the current language.</summary>
+    private void ApplyCustomizeChrome()
+    {
+        var lang = AppContext.AppLang;
+        CustomizeScopeBar.Title = lang.CustomizeScopeBannerTitle;
+        CustomizeScopeBar.Message = $"{lang.CustomizeReadOnlyNotice} {lang.CustomizeScopeLanguageNote}";
+        AddCategoryButtonText.Text = lang.CustomizeAddTopLevel;
+        ToolTipService.SetToolTip(AddCategoryButton, lang.CustomizeAddTopLevelHint);
+        TreeHintText.Text = lang.CustomizeAddTopLevelHint;
+        ToolTipService.SetToolTip(CollapseSidebarButton, lang.CustomizeCollapseSidebarTip);
+        ToolTipService.SetToolTip(ExpandSidebarButton, lang.CustomizeExpandSidebarTip);
+
+        // The footer is a different set of jobs while customizing, so the
+        // browsing buttons step aside rather than sitting next to controls that
+        // mean something else. Without this swap the customize buttons stay
+        // collapsed and the footer still offers only the two reset actions.
+        BrowseActions.Visibility = Visibility.Collapsed;
+        CustomizeActions.Visibility = Visibility.Visible;
+
+        CustomizeUndoButton.Content = lang.CustomizeUndo;
+        CustomizeRedoButton.Content = lang.CustomizeRedo;
+        CustomizeDiscardButton.Content = lang.CustomizeDiscardSession;
+        CustomizeApplyButtonText.Text = lang.ApplyAndExit;
+        CustomizeExitButton.Content = lang.CustomizeExit;
+
+        ToolTipService.SetToolTip(CustomizeUndoButton, lang.CustomizeUndoTip);
+        ToolTipService.SetToolTip(CustomizeRedoButton, lang.CustomizeRedoTip);
+        ToolTipService.SetToolTip(CustomizeDiscardButton, lang.CustomizeResetSessionTip);
+        ToolTipService.SetToolTip(CustomizeApplyButton, lang.CustomizeApplyTip);
+        ToolTipService.SetToolTip(CustomizeExitButton, lang.CustomizeExitTip);
+    }
+
+    /// <summary>Restores the browsing footer after the customize mode closes.</summary>
+    private void RestoreBrowseChrome()
+    {
+        BrowseActions.Visibility = Visibility.Visible;
+        CustomizeActions.Visibility = Visibility.Collapsed;
+
+        // Leaving reports its outcome once, then the line goes back to being
+        // the browse footer's status area.
+        if (!_draft.IsDirty)
+        {
+            ShowCustomizeStatus(CustomizeStatus.None);
+        }
     }
 
     private void UpdateCustomizeToggleText()
@@ -657,6 +754,9 @@ public sealed partial class SettingsPage
     {
         if (CurrentCategoryKey is not { } categoryKey)
         {
+            // Silence here is what read as "the button does nothing". Say why
+            // instead: there is genuinely nowhere to put the row.
+            ShowCustomizeNotice(AppContext.AppLang.CustomizeNoSelectionBody, caution: true);
             return;
         }
 
@@ -666,6 +766,12 @@ public sealed partial class SettingsPage
             return;
         }
 
+        // Half of these dialogs are opened from a folder node, where the row
+        // belongs in that folder rather than loose in the category.
+        var sectionId = _customizeMode && _treeSelectedIsSection ? _treeSelectedKey : null;
+
+        PushCustomizeEdit();
+
         // Ids are derived from the mpv key so re-adding the same key updates
         // the existing row instead of stacking a second one on top of it.
         var id = AdvancedOptionId(result.MpvKey);
@@ -674,6 +780,7 @@ public sealed partial class SettingsPage
         {
             Id = id,
             CategoryKey = categoryKey,
+            Section = sectionId,
             Label = result.Label,
             Description = string.IsNullOrEmpty(result.Description) ? null : result.Description,
             MpvKey = result.MpvKey,
@@ -688,6 +795,8 @@ public sealed partial class SettingsPage
         }
 
         SaveLayout();
+        CommitCustomizeEdit();
+        ShowCustomizeNotice(AppContext.AppLang.CustomizeSavedNotice);
         RequestDeferredRebuild();
     }
 
@@ -701,6 +810,14 @@ public sealed partial class SettingsPage
 
         if (CurrentCategoryKey is not { } categoryKey)
         {
+            // An edit keeps the row where it already lives, so the pane's
+            // selection is only needed for a built-in row being promoted.
+            categoryKey = _layout.FindAdded(optionKey)?.CategoryKey ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(categoryKey))
+        {
+            ShowCustomizeNotice(AppContext.AppLang.CustomizeNoSelectionBody, caution: true);
             return;
         }
 
@@ -710,6 +827,8 @@ public sealed partial class SettingsPage
         {
             return;
         }
+
+        PushCustomizeEdit();
 
         if (existing is null)
         {
@@ -739,6 +858,8 @@ public sealed partial class SettingsPage
         }
 
         SaveLayout();
+        CommitCustomizeEdit();
+        ShowCustomizeNotice(AppContext.AppLang.CustomizeSavedNotice);
         RequestDeferredRebuild();
     }
 

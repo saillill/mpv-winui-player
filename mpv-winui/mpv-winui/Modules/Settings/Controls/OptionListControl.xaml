@@ -252,6 +252,25 @@
             </Border>
         </DataTemplate>
 
+        <!-- A bare separator card between the folder's own members and the
+             cards that live outside every folder, so the two groups read as
+             different things instead of one long run. -->
+        <DataTemplate x:Key="CustomizeSplitterTemplate" x:DataType="ctl:SectionHeaderItem">
+            <Grid Margin="0,16,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Text="{x:Bind Caption}" />
+            </Grid>
+        </DataTemplate>
+
         <!-- Inline customize mode row: drag to reorder, drag onto a folder to
              move it there, or hide / restore it. Label/description stay
              read-only: they are localized. -->
@@ -264,20 +283,26 @@
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
-                CornerRadius="4">
+                CornerRadius="4"
+                ContextFlyout="{x:Bind Edit.RowMenu}">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
+                    <!-- Double-bar drag handle: the row's own affordance for
+                         "this can be dragged". -->
                     <FontIcon
                         Grid.Column="0"
-                        VerticalAlignment="Center"
-                        FontSize="18"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Glyph="&#xE76F;" />
+                        VerticalAlignment="Top"
+                        Margin="0,2,0,0"
+                        FontSize="14"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Glyph="&#xE76F;"
+                        ToolTipService.ToolTip="{x:Bind Edit.DragHandleTip}" />
 
                     <StackPanel Grid.Column="1" Spacing="6">
                         <!-- Label/description are the built-in localized text
@@ -302,16 +327,36 @@
                             TextWrapping="Wrap" />
                     </StackPanel>
 
+                    <!-- Inline pencil: the edit entry is visible rather than
+                         hidden behind the overflow button. -->
                     <Button
                         Grid.Column="2"
+                        MinWidth="0"
+                        Padding="8,4"
+                        VerticalAlignment="Top"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="EditRowInline_Click"
+                        ToolTipService.ToolTip="{x:Bind Edit.EditItemTip}">
+                        <FontIcon FontSize="14" Glyph="&#xE70F;" />
+                    </Button>
+
+                    <Button
+                        Grid.Column="3"
+                        MinWidth="0"
+                        Padding="8,4"
                         VerticalAlignment="Top"
                         AutomationProperties.Name="{x:Bind Edit.DeleteAutomationName}"
                         ToolTipService.ToolTip="{x:Bind Edit.DeleteTooltip}">
-                        <FontIcon FontSize="14" Glyph="&#xE74D;" />
+                        <FontIcon FontSize="14" Glyph="&#xE712;" />
                         <Button.Flyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Click="RenameRow_Click" Text="{x:Bind Edit.RenameCaption}" />
                                 <MenuFlyoutItem Click="EditAdvanced_Click" Text="{x:Bind Edit.EditAdvancedCaption}" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Click="CopyRow_Click" Text="{x:Bind Edit.CopyItemCaption}" />
+                                <MenuFlyoutItem Click="PasteRow_Click" Text="{x:Bind Edit.PasteItemCaption}" />
+                                <MenuFlyoutItem Click="DuplicateRow_Click" Text="{x:Bind Edit.DuplicateItemCaption}" />
                                 <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Click="HideRow_Click" Text="{x:Bind Edit.HideCaption}" />
                                 <MenuFlyoutItem Click="ResetRow_Click" Text="{x:Bind Edit.ResetCaption}" />
@@ -330,6 +375,7 @@
             ColorTemplate="{StaticResource ColorTemplate}"
             CustomizeOptionTemplate="{StaticResource CustomizeTemplate}"
             CustomizeSectionTemplate="{StaticResource CustomizeSectionTemplate}"
+            CustomizeSplitterTemplate="{StaticResource CustomizeSplitterTemplate}"
             DoubleTemplate="{StaticResource DoubleTemplate}"
             IntegerTemplate="{StaticResource IntegerTemplate}"
             LayoutTemplate="{StaticResource LayoutTemplate}"

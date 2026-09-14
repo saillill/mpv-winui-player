@@ -3,45 +3,181 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:mpv_winui.Modules.MediaInfo"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Loaded="OnLoaded"
     mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <!-- One settings-style label/value pair: label column fixed so every
+             value lines up down the card, which is what the raw monospaced
+             dump never did. -->
+        <DataTemplate x:Key="MediaInfoRowTemplate" x:DataType="local:MediaInfoRow">
+            <Grid
+                MinHeight="32"
+                Padding="0,6,0,6"
+                ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Top"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="{x:Bind Label}"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Top"
+                    AutomationProperties.Name="{x:Bind AutomationName}"
+                    IsTextSelectionEnabled="True"
+                    Text="{x:Bind Value}"
+                    TextWrapping="Wrap" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- One MediaInfo section (General / Video #1 / ...) as a WinUI card.
+             The header mirrors the Windows settings "设备规格" card: icon,
+             title, a track count and a per-card copy button. -->
+        <DataTemplate x:Key="MediaInfoSectionTemplate" x:DataType="local:MediaInfoSection">
+            <Border
+                Margin="0,0,0,12"
+                Padding="4,4,4,8"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <StackPanel>
+                    <Grid
+                        MinHeight="44"
+                        Padding="12,4,8,4"
+                        ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            FontSize="16"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Glyph="{x:Bind Glyph}" />
+                        <StackPanel
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Text="{x:Bind DisplayName}"
+                                TextTrimming="CharacterEllipsis" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                Text="{x:Bind RowCountText}" />
+                        </StackPanel>
+                        <Button
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="{x:Bind CopyLabel}"
+                            Click="CopySection_Click"
+                            Tag="{x:Bind}"
+                            ToolTipService.ToolTip="{x:Bind CopyLabel}">
+                            <FontIcon FontSize="14" Glyph="&#xE8C8;" />
+                        </Button>
+                    </Grid>
+
+                    <ItemsControl
+                        Margin="12,0,12,4"
+                        ItemTemplate="{StaticResource MediaInfoRowTemplate}"
+                        ItemsSource="{x:Bind Rows}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="16" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <ScrollViewer
+
+        <!-- Scoped notice: the same "only affects this file" framing Windows
+             uses for anything read-only, so the window never looks editable. -->
+        <InfoBar
+            x:Name="ScopeBar"
             Grid.Row="0"
-            Padding="0,0,16,16"
-            HorizontalScrollBarVisibility="Auto"
-            HorizontalScrollMode="Auto"
+            Margin="16,12,16,4"
+            IsClosable="False"
+            IsOpen="True"
+            Severity="Informational" />
+
+        <!-- Scrollable card column. Empty / error / loading states all live
+             here so the window never shows a blank pane. -->
+        <ScrollViewer
+            x:Name="ContentScroller"
+            Grid.Row="1"
+            Padding="16,4,16,8"
             VerticalScrollBarVisibility="Auto"
             VerticalScrollMode="Auto">
-            <TextBlock
-                x:Name="InfoText"
-                FontFamily="Consolas"
-                FontSize="12"
-                IsTextSelectionEnabled="True"
-                TextWrapping="NoWrap" />
+            <StackPanel MaxWidth="1060" HorizontalAlignment="Stretch">
+                <ProgressRing
+                    x:Name="LoadingRing"
+                    Width="36"
+                    Height="36"
+                    Margin="0,48,0,48"
+                    HorizontalAlignment="Center"
+                    IsActive="False"
+                    Visibility="Collapsed" />
+                <TextBlock
+                    x:Name="LoadingText"
+                    Margin="0,0,0,32"
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Visibility="Collapsed" />
+                <InfoBar
+                    x:Name="StateBar"
+                    Margin="0,8,0,12"
+                    IsClosable="False"
+                    IsOpen="False" />
+                <ItemsControl
+                    x:Name="SectionsList"
+                    ItemTemplate="{StaticResource MediaInfoSectionTemplate}" />
+            </StackPanel>
         </ScrollViewer>
-        <ProgressRing
-            x:Name="LoadingRing"
-            Grid.Row="0"
-            Grid.RowSpan="2"
-            Width="40"
-            Height="40"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            IsActive="False"
-            Visibility="Collapsed" />
-        <HyperlinkButton
-            Padding="0"
-            Grid.Row="1"
-            VerticalAlignment="Bottom"
-            Content="By MediaInfoLib"
-            NavigateUri="https://github.com/MediaArea/MediaInfoLib"
-            FontFamily="Consolas"
-            FontSize="10" />
+
+        <Grid
+            Grid.Row="2"
+            Padding="16,8,16,12"
+            ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <HyperlinkButton
+                x:Name="PoweredByLink"
+                Grid.Column="0"
+                Padding="0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                FontSize="12"
+                NavigateUri="https://github.com/MediaArea/MediaInfoLib" />
+            <Button
+                x:Name="CopyAllButton"
+                Grid.Column="1"
+                Click="CopyAll_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="14" Glyph="&#xE8C8;" />
+                    <TextBlock x:Name="CopyAllText" />
+                </StackPanel>
+            </Button>
+        </Grid>
     </Grid>
 </UserControl>

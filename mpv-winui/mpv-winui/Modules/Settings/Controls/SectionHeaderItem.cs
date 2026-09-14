@@ -23,6 +23,13 @@ public sealed class SectionHeaderItem
     public bool IsCustom { get; set; }
 
     /// <summary>
+    /// True for the bare separator that marks where the folder's own cards end
+    /// and the cards outside every folder begin. A splitter carries no folder,
+    /// so it gets no edit affordances.
+    /// </summary>
+    public bool IsSplitter { get; set; }
+
+    /// <summary>
     /// <see cref="IsCustom"/> as a Visibility, so the XAML can bind the delete
     /// entry directly. WinUI has no built-in bool-to-Visibility converter here
     /// and x:Bind cannot apply one implicitly.

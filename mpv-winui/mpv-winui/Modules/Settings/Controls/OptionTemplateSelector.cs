@@ -28,10 +28,19 @@ public partial class OptionTemplateSelector : DataTemplateSelector
     public DataTemplate? CustomizeOptionTemplate { get; set; }
     public DataTemplate? CustomizeSectionTemplate { get; set; }
 
+    /// <summary>The bare separator between a folder's members and the un-filed cards.</summary>
+    public DataTemplate? CustomizeSplitterTemplate { get; set; }
+
     protected override DataTemplate SelectTemplateCore(object item)
     {
         if (CustomizeMode)
         {
+            // The splitter must be checked before the generic section case: it
+            // is a SectionHeaderItem too, just one with no folder behind it.
+            if (item is SectionHeaderItem { IsSplitter: true } && CustomizeSplitterTemplate is not null)
+            {
+                return CustomizeSplitterTemplate;
+            }
             if (item is SectionHeaderItem && CustomizeSectionTemplate is not null)
             {
                 return CustomizeSectionTemplate;

@@ -101,7 +101,34 @@ public sealed partial class OptionListControl : UserControl
                 .Select(o => (o.SectionId!, o.Section))
                 .Distinct());
 
+            // The pane stands for one folder: its members come first, then the
+            // cards that are in no folder. Without a break between the two runs
+            // the user cannot tell filed cards from un-filed ones, so a bare
+            // separator row marks the boundary.
+            var filed = new List<Option>();
+            var unfiled = new List<Option>();
             foreach (var option in visible)
+            {
+                if (!string.IsNullOrEmpty(option.Section))
+                {
+                    filed.Add(option);
+                }
+                else
+                {
+                    unfiled.Add(option);
+                }
+            }
+
+            var splitLabel = AppContext.AppLang.CustomizeUnfiledHeader;
+            var ordered = new List<Option>(visible.Count);
+            ordered.AddRange(filed);
+            if (filed.Count > 0 && unfiled.Count > 0)
+            {
+                editable.Add(new SectionHeaderItem { Caption = splitLabel, IsSplitter = true });
+            }
+            ordered.AddRange(unfiled);
+
+            foreach (var option in ordered)
             {
                 if (!string.IsNullOrEmpty(option.Section) && option.SectionId != editLastSection)
                 {
@@ -119,6 +146,9 @@ public sealed partial class OptionListControl : UserControl
                     editLastSection = option.SectionId;
                 }
 
+                // The card's context menu lives on the row model, so the row
+                // needs a way back into this control for its handlers.
+                option.Edit.RowAction = InvokeRowAction;
                 editable.Add(option);
             }
 
@@ -376,6 +406,15 @@ public sealed partial class OptionListControl : UserControl
     /// <summary>Raised when the user asks for the "add option" dialog.</summary>
     public event Action? AddAdvancedRequested;
 
+    /// <summary>Raised when the user copies a row's customization to the clipboard.</summary>
+    public event Action<string>? CopyRowRequested;
+
+    /// <summary>Raised when the user pastes copied customization onto a row (option key).</summary>
+    public event Action<string>? PasteRowRequested;
+
+    /// <summary>Raised when the user duplicates a row (option key).</summary>
+    public event Action<string>? DuplicateRowRequested;
+
     // ===== the bookmark-manager right pane =====
 
     /// <summary>
@@ -486,6 +525,76 @@ public sealed partial class OptionListControl : UserControl
         if (RowOption(sender) is { } option)
         {
             ResetRequested?.Invoke(option);
+        }
+    }
+
+    private void CopyRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            CopyRowRequested?.Invoke(option.Key);
+        }
+    }
+
+    private void PasteRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            PasteRowRequested?.Invoke(option.Key);
+        }
+    }
+
+    private void DuplicateRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            DuplicateRowRequested?.Invoke(option.Key);
+        }
+    }
+
+    /// <summary>The card's inline pencil: same destination as "rename".</summary>
+    private void EditRowInline_Click(object sender, RoutedEventArgs e) => RenameRow_Click(sender, e);
+
+    /// <summary>
+    /// Runs one of the card's own menu actions from a context-menu item.
+    ///
+    /// The context menu is built on the row's model (a DataTemplate cannot
+    /// reach the control), so it calls back in here by name instead of
+    /// duplicating the handlers. Invoked on the control instance the row
+    /// belongs to, via <see cref="OptionEditText.RowAction"/>.
+    /// </summary>
+    internal void InvokeRowAction(object sender, string action)
+    {
+        if (RowOption(sender) is null)
+        {
+            return;
+        }
+
+        // The handler names are the same as the ⋯ menu's click handlers, so
+        // there is exactly one implementation per action.
+        switch (action)
+        {
+            case nameof(RenameRow_Click):
+                RenameRow_Click(sender, new RoutedEventArgs());
+                break;
+            case nameof(EditAdvanced_Click):
+                EditAdvanced_Click(sender, new RoutedEventArgs());
+                break;
+            case nameof(CopyRow_Click):
+                CopyRow_Click(sender, new RoutedEventArgs());
+                break;
+            case nameof(PasteRow_Click):
+                PasteRow_Click(sender, new RoutedEventArgs());
+                break;
+            case nameof(DuplicateRow_Click):
+                DuplicateRow_Click(sender, new RoutedEventArgs());
+                break;
+            case nameof(HideRow_Click):
+                HideRow_Click(sender, new RoutedEventArgs());
+                break;
+            case nameof(ResetRow_Click):
+                ResetRow_Click(sender, new RoutedEventArgs());
+                break;
         }
     }
 

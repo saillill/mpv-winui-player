@@ -33,6 +33,9 @@
         search + options + reset footer in the content area. The category
         items are built in code so their labels follow AppLang on language
         switches without rebuilding the page.
+
+        The pane is hidden while customizing: the folder tree already lists
+        the same categories, and showing both reads as a duplicated sidebar.
     -->
     <NavigationView
         x:Name="CategoryNav"
@@ -147,92 +150,218 @@
                          tree on the left, the cards of the selected folder on
                          the right. Cards are dragged from right to left to file
                          them, and folders are reordered within the tree. -->
-                    <Grid x:Name="CustomizeHost" Visibility="Collapsed" ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="260" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                    <Grid
+                        x:Name="CustomizeRoot"
+                        Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                        <!-- Left: categories (1st level) each holding their
-                             folders (2nd level). -->
-                        <Border
-                            Grid.Column="0"
-                            Margin="12,4,0,12"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="4">
-                            <Grid>
+                        <!-- Scope notice: this whole mode is presentation-only,
+                             and a rename is per-language unless told otherwise.
+                             Both facts are easy to get wrong, so they are stated
+                             up front rather than buried in a dialog. -->
+                        <InfoBar
+                            x:Name="CustomizeScopeBar"
+                            Grid.Row="0"
+                            Margin="12,0,12,8"
+                            IsClosable="True"
+                            IsOpen="True"
+                            Severity="Informational" />
+
+                        <Grid
+                            x:Name="CustomizeHost"
+                            Grid.Row="1"
+                            ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="SidebarColumn" Width="272" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left: categories (1st level) each holding their
+                                 folders (2nd level). Collapsible to the arrow
+                                 rail on the far left. -->
+                            <Border
+                                x:Name="SidebarPanel"
+                                Grid.Column="0"
+                                Margin="12,4,0,12"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Header: caption + "add" button. The
+                                         button opens a menu of what can be
+                                         added, rather than claiming a single
+                                         action it cannot honour. -->
+                                    <Grid
+                                        Grid.Row="0"
+                                        Margin="12,8,8,4"
+                                        ColumnSpacing="6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            x:Name="TreeTitleText"
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            FontWeight="SemiBold"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <Button
+                                            x:Name="AddCategoryButton"
+                                            Grid.Column="1"
+                                            MinWidth="0"
+                                            Padding="8,4"
+                                            Click="AddCategoryButton_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon FontSize="14" Glyph="&#xE710;" />
+                                                <TextBlock x:Name="AddCategoryButtonText" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button
+                                            x:Name="CollapseSidebarButton"
+                                            Grid.Column="2"
+                                            MinWidth="0"
+                                            Padding="8,4"
+                                            Click="CollapseSidebar_Click">
+                                            <FontIcon FontSize="14" Glyph="&#xE76B;" />
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Hint under the header, so "add" does not
+                                         have to explain itself in the caption. -->
+                                    <TextBlock
+                                        x:Name="TreeHintText"
+                                        Grid.Row="1"
+                                        Margin="12,0,12,8"
+                                        FontSize="12"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                        TextWrapping="Wrap" />
+
+                                    <ScrollViewer Grid.Row="2" Padding="4,0,4,8">
+                                        <!-- The template is declared against
+                                             TreeViewNode, which is what a TreeView
+                                             over RootNodes actually hands its
+                                             template. Declaring it against the
+                                             payload type instead is what crashed the
+                                             page: the generated binding component
+                                             then hard-casts the TreeViewNode, and
+                                             NavigationView's MenuItems.Clear()
+                                             re-enters that component with the wrong
+                                             object, throwing InvalidCastException.
+                                             Content stays typed as object here, so
+                                             ToString() is a plain virtual call and
+                                             cannot fail. -->
+                                        <TreeView
+                                            x:Name="FolderTree"
+                                            AllowDrop="True"
+                                            CanDragItems="True"
+                                            CanReorderItems="True"
+                                            DragItemsCompleted="FolderTree_DragItemsCompleted"
+                                            ItemInvoked="FolderTree_ItemInvoked"
+                                            SelectionMode="Single"
+                                            SelectionChanged="FolderTree_SelectionChanged">
+                                            <TreeView.ItemTemplate>
+                                                <DataTemplate x:DataType="TreeViewNode">
+                                                    <Grid
+                                                        MinHeight="32"
+                                                        ColumnSpacing="8"
+                                                        ContextFlyout="{x:Bind local:TreeHelpers.MenuFor(Content)}">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <!-- Double-bar drag handle:
+                                                             the affordance itself
+                                                             signals the row can be
+                                                             reordered. -->
+                                                        <FontIcon
+                                                            Grid.Column="0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="12"
+                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                            Glyph="&#xE76F;"
+                                                            ToolTipService.ToolTip="{x:Bind local:TreeHelpers.DragTip(Content)}" />
+                                                        <FontIcon
+                                                            Grid.Column="1"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                            Glyph="{x:Bind local:TreeHelpers.GlyphFor(Content)}" />
+                                                        <TextBlock
+                                                            Grid.Column="2"
+                                                            VerticalAlignment="Center"
+                                                            Text="{x:Bind local:TreeHelpers.TextFor(Content)}"
+                                                            TextTrimming="CharacterEllipsis" />
+                                                        <!-- Custom folders only:
+                                                             an inline pencil, so the
+                                                             rename entry is visible
+                                                             instead of hidden in the
+                                                             context menu. -->
+                                                        <Button
+                                                            Grid.Column="3"
+                                                            MinWidth="0"
+                                                            Padding="6,2"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            Click="EditTreeNode_Click"
+                                                            Tag="{x:Bind}"
+                                                            ToolTipService.ToolTip="{x:Bind local:TreeHelpers.EditTip(Content)}"
+                                                            Visibility="{x:Bind local:TreeHelpers.EditVisibility(Content)}">
+                                                            <FontIcon FontSize="12" Glyph="&#xE70F;" />
+                                                        </Button>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </TreeView.ItemTemplate>
+                                        </TreeView>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Border>
+
+                            <!-- Collapsed rail: a single arrow that brings the
+                                 tree back. Kept in the same column slot so the
+                                 right pane does not jump. -->
+                            <Button
+                                x:Name="ExpandSidebarButton"
+                                Grid.Column="0"
+                                Width="32"
+                                Height="32"
+                                Margin="12,4,0,0"
+                                Padding="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Click="ExpandSidebar_Click"
+                                Visibility="Collapsed">
+                                <FontIcon FontSize="14" Glyph="&#xE76C;" />
+                            </Button>
+
+                            <!-- Right: the cards of whatever is selected on the left. -->
+                            <Grid Grid.Column="1">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
                                 <TextBlock
-                                    x:Name="TreeTitleText"
+                                    x:Name="CustomizePaneTitle"
                                     Grid.Row="0"
-                                    Margin="12,10,12,6"
-                                    FontSize="14"
-                                    FontWeight="SemiBold" />
-                                <ScrollViewer Grid.Row="1" Padding="4,0,4,8">
-                                    <!-- The template is declared against
-                                         TreeViewNode, which is what a TreeView
-                                         over RootNodes actually hands its
-                                         template. Declaring it against the
-                                         payload type instead is what crashed the
-                                         page: the generated binding component
-                                         then hard-casts the TreeViewNode, and
-                                         NavigationView's MenuItems.Clear()
-                                         re-enters that component with the wrong
-                                         object, throwing InvalidCastException.
-                                         Content stays typed as object here, so
-                                         ToString() is a plain virtual call and
-                                         cannot fail. -->
-                                    <TreeView
-                                        x:Name="FolderTree"
-                                        AllowDrop="True"
-                                        CanDragItems="True"
-                                        CanReorderItems="True"
-                                        DragItemsCompleted="FolderTree_DragItemsCompleted"
-                                        ItemInvoked="FolderTree_ItemInvoked"
-                                        SelectionMode="Single"
-                                        SelectionChanged="FolderTree_SelectionChanged">
-                                        <TreeView.ItemTemplate>
-                                            <DataTemplate x:DataType="TreeViewNode">
-                                                <StackPanel
-                                                    Orientation="Horizontal"
-                                                    Spacing="8"
-                                                    ContextFlyout="{x:Bind local:TreeHelpers.MenuFor(Content)}">
-                                                    <FontIcon
-                                                        VerticalAlignment="Center"
-                                                        FontSize="14"
-                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Glyph="{x:Bind local:TreeHelpers.GlyphFor(Content)}" />
-                                                    <TextBlock
-                                                        VerticalAlignment="Center"
-                                                        Text="{x:Bind local:TreeHelpers.TextFor(Content)}"
-                                                        TextTrimming="CharacterEllipsis" />
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </TreeView.ItemTemplate>
-                                    </TreeView>
-                                </ScrollViewer>
+                                    Margin="4,6,32,6"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    TextWrapping="Wrap" />
+                                <ctl:OptionListControl x:Name="CustomizeOptionsControl" Grid.Row="1" ShowHeaders="False" />
                             </Grid>
-                        </Border>
-
-                        <!-- Right: the cards of whatever is selected on the left. -->
-                        <Grid Grid.Column="1">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <TextBlock
-                                x:Name="CustomizePaneTitle"
-                                Grid.Row="0"
-                                Margin="4,6,32,6"
-                                FontSize="16"
-                                FontWeight="SemiBold"
-                                TextWrapping="Wrap" />
-                            <ctl:OptionListControl x:Name="CustomizeOptionsControl" Grid.Row="1" ShowHeaders="False" />
                         </Grid>
                     </Grid>
                 </Grid>
@@ -245,36 +374,83 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
+
+                        <!-- Status line: reset confirmations, apply/discard
+                             feedback and the unsaved-changes warning share it. -->
                         <TextBlock
                             x:Name="SaveStatusText"
                             Grid.Column="0"
                             VerticalAlignment="Center"
+                            TextWrapping="Wrap"
                             Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                        <!-- Inline customize mode: turns the rows above into
-                             drag-reorderable, editable, deletable entries. -->
-                        <ToggleButton
-                            x:Name="CustomizeToggle"
+
+                        <!-- Browsing footer: the two reset actions, unchanged. -->
+                        <StackPanel
+                            x:Name="BrowseActions"
                             Grid.Column="1"
-                            MinWidth="96"
-                            Click="OnCustomizeToggleClick">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontSize="14" Glyph="&#xE70F;" />
-                                <TextBlock x:Name="CustomizeToggleText" />
-                            </StackPanel>
-                        </ToggleButton>
-                        <Button
-                            x:Name="ResetButton"
-                            Grid.Column="2"
-                            MinWidth="96"
-                            Click="OnResetClick" />
-                        <Button
-                            x:Name="ResetAllButton"
-                            Grid.Column="3"
-                            MinWidth="96"
-                            Click="OnResetAllClick" />
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <ToggleButton
+                                x:Name="CustomizeToggle"
+                                MinWidth="96"
+                                Click="OnCustomizeToggleClick">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontSize="14" Glyph="&#xE70F;" />
+                                    <TextBlock x:Name="CustomizeToggleText" />
+                                </StackPanel>
+                            </ToggleButton>
+                            <Button
+                                x:Name="ResetButton"
+                                MinWidth="96"
+                                Click="OnResetClick" />
+                            <Button
+                                x:Name="ResetAllButton"
+                                MinWidth="96"
+                                Click="OnResetAllClick" />
+                        </StackPanel>
+
+                        <!-- Customize footer: a different job, so a different
+                             set of buttons. Undo/redo step through the session,
+                             discard drops it, apply keeps it and exits. -->
+                        <StackPanel
+                            x:Name="CustomizeActions"
+                            Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            Visibility="Collapsed">
+                            <Button
+                                x:Name="CustomizeUndoButton"
+                                MinWidth="0"
+                                Padding="10,6"
+                                Click="CustomizeUndo_Click">
+                                <FontIcon FontSize="14" Glyph="&#xE7A7;" />
+                            </Button>
+                            <Button
+                                x:Name="CustomizeRedoButton"
+                                MinWidth="0"
+                                Padding="10,6"
+                                Click="CustomizeRedo_Click">
+                                <FontIcon FontSize="14" Glyph="&#xE7A6;" />
+                            </Button>
+                            <Button
+                                x:Name="CustomizeDiscardButton"
+                                MinWidth="96"
+                                Click="CustomizeDiscard_Click" />
+                            <Button
+                                x:Name="CustomizeApplyButton"
+                                MinWidth="116"
+                                Click="CustomizeApply_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontSize="14" Glyph="&#xE73E;" />
+                                    <TextBlock x:Name="CustomizeApplyButtonText" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                x:Name="CustomizeExitButton"
+                                MinWidth="96"
+                                Click="CustomizeExit_Click" />
+                        </StackPanel>
                     </Grid>
                 </Border>
             </Grid>

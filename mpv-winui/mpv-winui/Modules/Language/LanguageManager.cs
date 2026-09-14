@@ -64,7 +64,15 @@ namespace mpv_winui.Modules.Language
         /// <summary>Loads the language strings for <paramref name="code"/> into <paramref name="lang"/>.</summary>
         public static void Load(AppLang lang, string code)
         {
-            lang.LoadFromJson(ResolveFilePath(code));
+            var path = ResolveFilePath(code);
+            lang.LoadFromJson(path);
+
+            // Some customize-mode captions have no settable property — they are
+            // read by name, because AppLang resolves its own properties through
+            // reflection and a JSON entry named like one would overwrite the
+            // property rather than accompany it. Those keys need the file read
+            // a second time, here, where the active path is known.
+            CustomizeStrings.Load(path);
         }
     }
 }

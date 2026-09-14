@@ -155,6 +155,31 @@ public static class CustomOptionKinds
 }
 
 /// <summary>
+/// A top-level sidebar category the user created from the customize mode.
+///
+/// Built-in categories are fixed by AppLang; a custom one has no localized
+/// caption, so its name is content and is stored as-is (like a custom
+/// folder). Its stable <see cref="Id"/> keys the layout, so renaming it later
+/// does not orphan anything filed under it.
+/// </summary>
+public sealed class CustomCategory
+{
+    /// <summary>Stable id, e.g. "custom-category:1699...".</summary>
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Segoe Fluent Icons glyph shown in the sidebar.</summary>
+    [JsonPropertyName("glyph")]
+    public string Glyph { get; set; } = "\uE8B7";
+
+    /// <summary>Name shown right now. Custom categories are not localized.</summary>
+    public string DisplayFor(string activeLanguage) => Name;
+}
+
+/// <summary>
 /// Persisted customization of the settings page, stored next to menus.json in
 /// the mpv config folder so it travels with the rest of the user's config and
 /// stays editable by hand.
@@ -204,6 +229,10 @@ public sealed class SettingsLayout
     [JsonPropertyName("customSections")]
     public List<CustomSection> CustomSections { get; set; } = [];
 
+    /// <summary>Top-level sidebar categories the user created.</summary>
+    [JsonPropertyName("customCategories")]
+    public List<CustomCategory> CustomCategories { get; set; } = [];
+
     /// <summary>True when nothing was customized, so callers can skip the work.</summary>
     [JsonIgnore]
     public bool IsEmpty =>
@@ -214,11 +243,16 @@ public sealed class SettingsLayout
         && Added.Count == 0
         && SectionOrder.Count == 0
         && HiddenSections.Count == 0
-        && CustomSections.Count == 0;
+        && CustomSections.Count == 0
+        && CustomCategories.Count == 0;
 
     /// <summary>The user-created folder with this id, if any.</summary>
     public CustomSection? FindSection(string? id) =>
         id is null ? null : CustomSections.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.Ordinal));
+
+    /// <summary>The user-created sidebar category with this id, if any.</summary>
+    public CustomCategory? FindCategory(string? id) =>
+        id is null ? null : CustomCategories.FirstOrDefault(c => string.Equals(c.Id, id, StringComparison.Ordinal));
 
     public CustomOption? FindAdded(string id) =>
         Added.FirstOrDefault(a => string.Equals(a.Id, id, StringComparison.Ordinal));
@@ -322,12 +356,10 @@ public static class SettingsLayoutStore
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "mpv-winui", "mpv", "settings-layout.json");
 
-    private static readonly JsonSerializerOptions WriteOptions = new()
-    {
-        WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
-
+    // Serialization goes through SettingsLayoutJsonContext: the app is trimmed
+    // and AOT-compatible, so the reflection-based overloads throw rather than
+    // fall back. These options are only for the tolerant read path below, which
+    // still has to accept a file written by an older or newer build.
     public static SettingsLayout Load()
     {
         try
@@ -338,7 +370,7 @@ public static class SettingsLayoutStore
                 return new SettingsLayout();
             }
 
-            var layout = JsonSerializer.Deserialize<SettingsLayout>(File.ReadAllText(path));
+            var layout = JsonSerializer.Deserialize(File.ReadAllText(path), SettingsLayoutJsonContext.Default.SettingsLayout);
             if (layout is null)
             {
                 return new SettingsLayout();
@@ -355,6 +387,7 @@ public static class SettingsLayoutStore
             layout.SectionOrder ??= [];
             layout.HiddenSections ??= [];
             layout.CustomSections ??= [];
+            layout.CustomCategories ??= [];
             return layout;
         }
         catch
@@ -386,7 +419,7 @@ public static class SettingsLayoutStore
             }
 
             layout.Version = SettingsLayout.CurrentVersion;
-            File.WriteAllText(path, JsonSerializer.Serialize(layout, WriteOptions));
+            File.WriteAllText(path, JsonSerializer.Serialize(layout, SettingsLayoutPrettyJsonContext.Default.SettingsLayout));
         }
         catch
         {

@@ -143,6 +143,15 @@ public sealed partial class SettingsPage : Page
                 pairs.Add((CategoryKeys[i], label));
             }
 
+            // Categories the user created sit alongside the built-in ones. They
+            // start empty, so they are appended after the layout pass: the
+            // built-in filter above drops a category with no options, which
+            // would also drop a freshly made one.
+            foreach (var category in _layout.CustomCategories)
+            {
+                pairs.Add((category.Id, category.DisplayFor(ActiveLanguageKey)));
+            }
+
             ApplyCategoryLayout(pairs);
 
             foreach (var pair in pairs)
@@ -156,12 +165,19 @@ public sealed partial class SettingsPage : Page
             ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
             ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
             UpdateCustomizeToggleText();
+            if (_customizeMode)
+            {
+                ApplyCustomizeChrome();
+                UpdateCustomizeFooter();
+                ShowCustomizeStatus(_draft.IsDirty ? CustomizeStatus.Dirty : CustomizeStatus.None);
+            }
             if (SearchBox is not null)
             {
                 SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
                 AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
             }
-            var backTip = AppContext.AppLang.CommonBack;            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
+            var backTip = AppContext.AppLang.CommonBack;
+            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
             AutomationProperties.SetName(BreadcrumbBackButton, backTip);
             RefreshWarningsAndEnabled();
             UpdateOptions();
@@ -288,8 +304,57 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private string? CurrentCategoryKey =>
-        CategoryNav.SelectedItem is NavigationViewItem item ? item.Tag as string : null;
+    /// <summary>
+    /// Stable key of the category a new row would go into. While customizing,
+    /// the NavigationView pane is hidden and the folder tree is what the user
+    /// is actually navigating, so the tree's selection wins. Falling back to
+    /// the pane there is what made "new option" a no-op: the tree had moved on
+    /// while the pane still pointed at whatever it held when it was hidden.
+    /// </summary>
+    private string? CurrentCategoryKey
+    {
+        get
+        {
+            if (_customizeMode && ResolveTreeCategoryKey() is { } fromTree)
+            {
+                return fromTree;
+            }
+
+            return CategoryNav.SelectedItem is NavigationViewItem item ? item.Tag as string : null;
+        }
+    }
+
+    /// <summary>
+    /// The category the tree selection belongs to. A selected folder resolves
+    /// to its parent category, so adding while a folder is open files the new
+    /// row where the user is looking rather than silently doing nothing.
+    /// </summary>
+    private string? ResolveTreeCategoryKey()
+    {
+        if (FolderTree.SelectedNode?.Content is not TreeViewNodeContent content)
+        {
+            return null;
+        }
+
+        if (!content.IsSection)
+        {
+            return content.CategoryKey;
+        }
+
+        // A folder node carries no category of its own; look up its parent.
+        foreach (var root in FolderTree.RootNodes)
+        {
+            foreach (var child in root.Children)
+            {
+                if (ReferenceEquals(child, FolderTree.SelectedNode))
+                {
+                    return (root.Content as TreeViewNodeContent)?.CategoryKey;
+                }
+            }
+        }
+
+        return null;
+    }
 
     /// <summary>The current vertical scroll offset of the options list.</summary>
     public double CurrentScrollOffset => OptionsControl.GetScrollOffset();
@@ -313,7 +378,7 @@ public sealed partial class SettingsPage : Page
                 Tag = key,
                 Icon = new FontIcon
                 {
-                    Glyph = CategoryGlyphs[Array.IndexOf(CategoryKeys, key)],
+                    Glyph = GlyphForCategoryKey(key),
                     FontFamily = CreateCategoryIconFont(),
                 },
             };
@@ -794,12 +859,23 @@ public sealed partial class SettingsPage : Page
         // set follows the current option tree.
         if (_customizeMode)
         {
-            ResetButton.IsEnabled = true;
-            SectionsHost.Visibility = Visibility.Collapsed;
+            // UpdateOptions runs on every rebuild — the constructor, a language
+            // switch, a reset, the customize toggle — and the browsing branch
+            // below re-shows BreadcrumbBar unconditionally. Re-assert the mode's
+            // own visibility here so a rebuild triggered while customizing
+            // cannot leave the trail sitting on top of the tree.
+            BrowseHost.Visibility = Visibility.Collapsed;
+            CustomizeRoot.Visibility = Visibility.Visible;
             BreadcrumbBar.Visibility = Visibility.Collapsed;
-            OptionsControl.Visibility = Visibility.Visible;
+            SectionsHost.Visibility = Visibility.Collapsed;
+            ResetButton.IsEnabled = true;
             BuildCustomizeTree();
             UpdateCustomizePane();
+
+            // Both hosts must lay out before the cards can be measured; the
+            // pane is filled here and its containers are realised on the next
+            // pass.
+            CustomizeRoot.UpdateLayout();
             return;
         }
 

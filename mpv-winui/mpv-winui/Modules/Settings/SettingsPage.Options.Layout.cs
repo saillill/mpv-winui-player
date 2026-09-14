@@ -107,6 +107,37 @@ public sealed partial class SettingsPage
     /// <summary>Persists the current customization.</summary>
     internal void SaveLayout() => SettingsLayoutStore.Save(_layout);
 
+    /// <summary>
+    /// Sidebar glyph for a stable category key. A built-in key indexes the
+    /// fixed glyph table; a key the user created resolves to the icon they
+    /// picked when they made the category, falling back to a folder.
+    /// </summary>
+    private string GlyphForCategoryKey(string key)
+    {
+        var builtIn = Array.IndexOf(CategoryKeys, key);
+        if (builtIn >= 0 && builtIn < CategoryGlyphs.Length)
+        {
+            return CategoryGlyphs[builtIn];
+        }
+
+        return _layout.FindCategory(key)?.Glyph ?? "\uE8B7";
+    }
+
+    /// <summary>
+    /// Localized caption for a stable category key, covering the categories
+    /// the user created (which have no AppLang caption to look up).
+    /// </summary>
+    private string? CategoryCaptionForKey(string? key)
+    {
+        if (string.IsNullOrEmpty(key))
+        {
+            return null;
+        }
+
+        return _layout.FindCategory(key)?.DisplayFor(ActiveLanguageKey)
+            ?? SettingsSectionIds.CategoryCaptionFor(key);
+    }
+
     /// <summary>Records the visible order so a drag-reorder survives a rebuild.</summary>
     internal void StoreOrder(IEnumerable<string> keysInDisplayOrder)
     {
@@ -398,6 +429,47 @@ public sealed partial class SettingsPage
         if (!_layout.SectionOrder.Contains(id))
         {
             _layout.SectionOrder.Add(id);
+        }
+
+        SaveLayout();
+    }
+
+    /// <summary>
+    /// Creates a top-level sidebar category.
+    ///
+    /// The id is derived from the name so re-adding the same name updates the
+    /// existing category instead of stacking a second one — and so a category
+    /// the user made is addressable by a stable key everywhere the layout
+    /// stores per-category data (folder order, hidden state).
+    /// </summary>
+    internal void CreateCategory(string name, string glyph)
+    {
+        var trimmed = name.Trim();
+        if (trimmed.Length == 0)
+        {
+            return;
+        }
+
+        var id = "cat:" + trimmed;
+        if (_layout.FindCategory(id) is { } existing)
+        {
+            existing.Name = trimmed;
+            existing.Glyph = glyph;
+        }
+        else
+        {
+            _layout.CustomCategories.Add(new CustomCategory
+            {
+                Id = id,
+                Name = trimmed,
+                Glyph = glyph,
+            });
+        }
+
+        // New categories go last in the sidebar so nothing already placed moves.
+        if (!_layout.CategoryOrder.Contains(id))
+        {
+            _layout.CategoryOrder.Add(id);
         }
 
         SaveLayout();

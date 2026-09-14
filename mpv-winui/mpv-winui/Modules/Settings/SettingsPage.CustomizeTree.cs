@@ -30,7 +30,7 @@ public sealed partial class SettingsPage
     private void BuildCustomizeTree()
     {
         FolderTree.RootNodes.Clear();
-        TreeTitleText.Text = AppContext.AppLang.CustomizeNewSection;
+        TreeTitleText.Text = AppContext.AppLang.CustomizeAddCategory;
 
         // Root = one node per category. Children = that category's folders
         // (both the built-in ones and the folders the user created), so the
@@ -136,7 +136,7 @@ public sealed partial class SettingsPage
         // discovered from, so it is appended from the stored list.
         foreach (var section in _layout.CustomSections)
         {
-            if (SettingsSectionIds.CategoryCaptionFor(section.CategoryKey) is not { } categoryCaption
+            if (CategoryCaptionForKey(section.CategoryKey) is not { } categoryCaption
                 || !string.Equals(categoryCaption, category, StringComparison.Ordinal)
                 || !seen.Add(section.Id))
             {
@@ -285,7 +285,7 @@ public sealed partial class SettingsPage
                 ? SectionDisplayName(_treeSelectedKey, builtIn)
                 : _layout.FindSection(_treeSelectedKey)?.DisplayFor(ActiveLanguageKey) ?? string.Empty;
 
-            var categoryCaption = category is null ? null : SettingsSectionIds.CategoryCaptionFor(category);
+            var categoryCaption = category is null ? null : CategoryCaptionForKey(category);
 
             var members = all
                 .Where(o => string.Equals(o.SectionId, _treeSelectedKey, StringComparison.Ordinal))
@@ -302,7 +302,7 @@ public sealed partial class SettingsPage
             return (sectionCaption, members.Concat(unFiled).ToList());
         }
 
-        var selectedCategory = SettingsSectionIds.CategoryCaptionFor(_treeSelectedKey);
+        var selectedCategory = CategoryCaptionForKey(_treeSelectedKey);
         var inCategory = selectedCategory is null
             ? all
             : all.Where(o => string.Equals(o.Category, selectedCategory, StringComparison.Ordinal)).ToList();
@@ -383,6 +383,16 @@ public sealed partial class SettingsPage
     }
 
     /// <summary>Maps a localized category caption back to its stable key.</summary>
-    private static string? CategoryKeyForCaption(string caption) =>
-        SettingsSectionIds.CategoryKeyFor(caption);
+    private string? CategoryKeyForCaption(string caption)
+    {
+        // A category the user made has no AppLang caption, so it resolves by
+        // its own name; that is the only thing the sidebar and the layout both
+        // know about it.
+        if (_layout.CustomCategories.FirstOrDefault(c => string.Equals(c.DisplayFor(ActiveLanguageKey), caption, StringComparison.Ordinal)) is { } custom)
+        {
+            return custom.Id;
+        }
+
+        return SettingsSectionIds.CategoryKeyFor(caption);
+    }
 }
