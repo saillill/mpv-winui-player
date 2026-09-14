@@ -98,17 +98,12 @@ public sealed partial class SettingsPage
         SaveLayout();
     }
 
-    /// <summary>Stores a label/description override; null removes the override.</summary>
-    internal void StoreText(Option option, string? label, string? description)
-    {
-        var entry = _layout.EntryFor(option.Key);
-        entry.Label = label;
-        entry.Description = description;
-        _layout.Prune(option.Key);
-        SaveLayout();
-    }
-
-    /// <summary>Stores the raw mpv key/value override and pushes it to the player.</summary>
+    /// <summary>
+    /// Stores the raw mpv key/value override and pushes it to the player.
+    /// Label/description are deliberately NOT writable here: they come from the
+    /// language files, so a user rewrite would be overwritten (or would fight)
+    /// the localization on the next language switch.
+    /// </summary>
     internal void StoreMpvOverride(Option option, string? mpvKey, string? mpvValue)
     {
         var entry = _layout.EntryFor(option.Key);
@@ -335,6 +330,110 @@ public sealed partial class SettingsPage
     {
         var index = Array.IndexOf(CategoryKeys, categoryKey);
         return index >= 0 && index < CategoryOrder.Count ? CategoryOrder[index] : null;
+    }
+
+    // ===== section (2nd-level / column) customization =====
+
+    /// <summary>Section ids in the order the given options present them.</summary>
+    internal static List<string> SectionIdsInDisplayOrder(IEnumerable<Option> options)
+    {
+        var ids = new List<string>();
+        foreach (var option in options)
+        {
+            var id = SettingsSectionIds.IdFor(option.Section);
+            if (id is not null && !ids.Contains(id))
+            {
+                ids.Add(id);
+            }
+        }
+        return ids;
+    }
+
+    /// <summary>
+    /// Applies section hiding and reordering. Sections are contiguous in the
+    /// tree already (the build clusters by category+section), so reordering is a
+    /// matter of re-emitting each section's run in the stored section order.
+    /// </summary>
+    private void ApplySectionLayout(List<Option> options)
+    {
+        if (_layout.SectionOrder.Count == 0 && _layout.HiddenSections.Count == 0)
+        {
+            return;
+        }
+
+        if (_layout.HiddenSections.Count > 0)
+        {
+            options.RemoveAll(o =>
+                SettingsSectionIds.IdFor(o.Section) is { } id && _layout.HiddenSections.Contains(id));
+        }
+
+        if (_layout.SectionOrder.Count == 0)
+        {
+            return;
+        }
+
+        var rank = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (var i = 0; i < _layout.SectionOrder.Count; i++)
+        {
+            rank[_layout.SectionOrder[i]] = i;
+        }
+
+        // Rank each option by its section, then keep the original relative order
+        // inside a section and between unlisted ones.
+        var reordered = options
+            .Select((option, index) => (option, index,
+                rankKey: SettingsSectionIds.IdFor(option.Section) is { } id && rank.TryGetValue(id, out var r)
+                    ? r
+                    : int.MaxValue))
+            .OrderBy(x => x.rankKey)
+            .ThenBy(x => x.index)
+            .Select(x => x.option)
+            .ToList();
+
+        options.Clear();
+        options.AddRange(reordered);
+
+        // The section captions must keep matching their (now reordered) runs.
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var option in options)
+        {
+            option.ShowSectionHeader = !string.IsNullOrEmpty(option.Section) && seen.Add(option.Section);
+        }
+    }
+
+    /// <summary>Moves a section one slot up or down within its category.</summary>
+    internal void MoveSection(string sectionId, int delta)
+    {
+        var order = SectionIdsInDisplayOrder(
+            CurrentCategory is null ? Settings : Settings.Where(o => o.Category == CurrentCategory));
+        var index = order.IndexOf(sectionId);
+        var target = index + delta;
+        if (index < 0 || target < 0 || target >= order.Count)
+        {
+            return;
+        }
+
+        (order[index], order[target]) = (order[target], order[index]);
+        _layout.SectionOrder = order;
+        SaveLayout();
+    }
+
+    /// <summary>Hides or restores a whole section.</summary>
+    internal void SetSectionHidden(string sectionId, bool hidden)
+    {
+        _layout.HiddenSections.Remove(sectionId);
+        if (hidden)
+        {
+            _layout.HiddenSections.Add(sectionId);
+        }
+        SaveLayout();
+    }
+
+    /// <summary>Restores every section the customize mode hid.</summary>
+    internal void RestoreHiddenSections()
+    {
+        _layout.HiddenSections.Clear();
+        SaveLayout();
     }
 
     /// <summary>Adds a hand-written option and persists it.</summary>

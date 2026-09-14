@@ -16,9 +16,6 @@ public sealed partial class SettingsPage
     /// <summary>Subscribes to the option list's customize-mode notifications.</summary>
     private void InitCustomizeMode()
     {
-        OptionsControl.TextEdited += (option, label, description) =>
-            StoreText(option, label, description);
-
         OptionsControl.RawEdited += (option, rawKey, rawValue) =>
         {
             // A hand-added row owns its mpv key outright; a built-in row falls
@@ -51,6 +48,26 @@ public sealed partial class SettingsPage
             // Rebuild so the new order is the one the normal (non-customize)
             // view shows when the user leaves the mode.
             RebuildLocalizedContent();
+        };
+
+        // 2nd-level (section / column) editing. Captions are localized, so they
+        // are resolved to a stable AppLang property name before being stored.
+        OptionsControl.SectionMoveRequested += (caption, delta) =>
+        {
+            if (SettingsSectionIds.IdFor(caption) is { } id)
+            {
+                MoveSection(id, delta);
+                RebuildLocalizedContent();
+            }
+        };
+
+        OptionsControl.SectionHideRequested += caption =>
+        {
+            if (SettingsSectionIds.IdFor(caption) is { } id)
+            {
+                SetSectionHidden(id, true);
+                RebuildLocalizedContent();
+            }
         };
 
         UpdateCustomizeToggleText();

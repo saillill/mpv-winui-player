@@ -18,8 +18,30 @@ public partial class OptionTemplateSelector : DataTemplateSelector
     public DataTemplate MultiListTemplate { get; set; } = null!;
     public DataTemplate ShaderListTemplate { get; set; } = null!;
 
+    /// <summary>
+    /// While the inline customize mode is on, every row renders through the
+    /// edit templates instead of its value control, so the mode covers sections
+    /// (2nd level) and options alike with one selector.
+    /// </summary>
+    public bool CustomizeMode { get; set; }
+
+    public DataTemplate? CustomizeOptionTemplate { get; set; }
+    public DataTemplate? CustomizeSectionTemplate { get; set; }
+
     protected override DataTemplate SelectTemplateCore(object item)
     {
+        if (CustomizeMode)
+        {
+            if (item is SectionHeaderItem && CustomizeSectionTemplate is not null)
+            {
+                return CustomizeSectionTemplate;
+            }
+            if (item is Option && CustomizeOptionTemplate is not null)
+            {
+                return CustomizeOptionTemplate;
+            }
+        }
+
         if (item is SectionHeaderItem)
         {
             return SectionHeaderTemplate;

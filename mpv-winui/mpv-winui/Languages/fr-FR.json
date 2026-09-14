@@ -1180,5 +1180,7 @@
   "CustomizeKindText": "Zone de texte",
   "CustomizeMoveDown": "Descendre",
   "CustomizeMoveUp": "Monter",
-  "CustomizeRestoreCategories": "Restaurer les catégories masquées"
+  "CustomizeRestoreCategories": "Restaurer les catégories/sections masquées",
+  "CustomizeHideSection": "Masquer cette section",
+  "CustomizeSectionTip": "Déplacer ou masquer cette section"
 }

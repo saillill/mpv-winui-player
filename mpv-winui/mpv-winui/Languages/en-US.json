@@ -1180,5 +1180,7 @@
   "CustomizeKindText": "Text box",
   "CustomizeMoveDown": "Move down",
   "CustomizeMoveUp": "Move up",
-  "CustomizeRestoreCategories": "Restore hidden categories"
+  "CustomizeRestoreCategories": "Restore hidden categories/sections",
+  "CustomizeHideSection": "Hide this section",
+  "CustomizeSectionTip": "Move or hide this section"
 }

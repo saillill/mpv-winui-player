@@ -8,9 +8,6 @@ namespace mpv_winui.Modules.Settings.Controls;
 /// </summary>
 public sealed class OptionEditText
 {
-    public string NameCaption { get; private set; } = "Name";
-    public string DescriptionCaption { get; private set; } = "Description";
-    public string DescriptionPlaceholder { get; private set; } = "(leave empty to hide the description)";
     public string RawCaption { get; private set; } = "Raw mpv value";
     public string RawPlaceholder { get; private set; } = "raw mpv option value, e.g. d3d11va";
     public string RawKeyCaption { get; private set; } = "Raw mpv key";
@@ -19,14 +16,15 @@ public sealed class OptionEditText
     public string DeleteAutomationName { get; private set; } = "Delete this entry";
     public string HideCaption { get; private set; } = "Hide from the page (keeps the value)";
     public string ResetCaption { get; private set; } = "Restore default (clears customization and resets this entry)";
+    public string MoveUpCaption { get; private set; } = "Move up";
+    public string MoveDownCaption { get; private set; } = "Move down";
+    public string HideSectionCaption { get; private set; } = "Hide this section";
+    public string SectionTooltip { get; private set; } = "Move or hide this section";
 
     /// <summary>Pulls the current language into the captions.</summary>
     public void Refresh()
     {
         var lang = AppContext.AppLang;
-        NameCaption = lang.CustomizeFieldName;
-        DescriptionCaption = lang.CustomizeFieldDescription;
-        DescriptionPlaceholder = lang.CustomizeFieldDescriptionHint;
         RawCaption = lang.CustomizeFieldRaw;
         RawPlaceholder = lang.CustomizeFieldRawHint;
         RawKeyCaption = lang.CustomizeFieldRawKey;
@@ -35,5 +33,9 @@ public sealed class OptionEditText
         DeleteAutomationName = lang.CustomizeDelete;
         HideCaption = lang.CustomizeHide;
         ResetCaption = lang.CustomizeReset;
+        MoveUpCaption = lang.CustomizeMoveUp;
+        MoveDownCaption = lang.CustomizeMoveDown;
+        HideSectionCaption = lang.CustomizeHideSection;
+        SectionTooltip = lang.CustomizeSectionTip;
     }
 }

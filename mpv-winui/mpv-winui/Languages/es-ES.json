@@ -1180,5 +1180,7 @@
   "CustomizeKindText": "Cuadro de texto",
   "CustomizeMoveDown": "Bajar",
   "CustomizeMoveUp": "Subir",
-  "CustomizeRestoreCategories": "Restaurar categorías ocultas"
+  "CustomizeRestoreCategories": "Restaurar categorías/secciones ocultas",
+  "CustomizeHideSection": "Ocultar esta sección",
+  "CustomizeSectionTip": "Mover u ocultar esta sección"
 }

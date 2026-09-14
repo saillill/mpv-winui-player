@@ -1180,5 +1180,7 @@
   "CustomizeKindText": "Текстовое поле",
   "CustomizeMoveDown": "Вниз",
   "CustomizeMoveUp": "Вверх",
-  "CustomizeRestoreCategories": "Вернуть скрытые категории"
+  "CustomizeRestoreCategories": "Вернуть скрытые категории/разделы",
+  "CustomizeHideSection": "Скрыть этот раздел",
+  "CustomizeSectionTip": "Переместить или скрыть этот раздел"
 }

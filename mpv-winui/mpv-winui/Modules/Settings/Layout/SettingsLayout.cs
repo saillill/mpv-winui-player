@@ -113,6 +113,18 @@ public sealed class SettingsLayout
     [JsonPropertyName("added")]
     public List<CustomOption> Added { get; set; } = [];
 
+    /// <summary>
+    /// Section (2nd-level) order, by stable section id — the AppLang property
+    /// name (e.g. "SectionVideoDecode"), NOT the localized caption. Keying on
+    /// the caption would break the layout on a language switch.
+    /// </summary>
+    [JsonPropertyName("sectionOrder")]
+    public List<string> SectionOrder { get; set; } = [];
+
+    /// <summary>Sections the user removed from the page, by stable section id.</summary>
+    [JsonPropertyName("hiddenSections")]
+    public List<string> HiddenSections { get; set; } = [];
+
     /// <summary>True when nothing was customized, so callers can skip the work.</summary>
     [JsonIgnore]
     public bool IsEmpty =>
@@ -120,7 +132,9 @@ public sealed class SettingsLayout
         && Entries.Count == 0
         && CategoryOrder.Count == 0
         && HiddenCategories.Count == 0
-        && Added.Count == 0;
+        && Added.Count == 0
+        && SectionOrder.Count == 0
+        && HiddenSections.Count == 0;
 
     public CustomOption? FindAdded(string id) =>
         Added.FirstOrDefault(a => string.Equals(a.Id, id, StringComparison.Ordinal));
@@ -192,6 +206,8 @@ public static class SettingsLayoutStore
             layout.CategoryOrder ??= [];
             layout.HiddenCategories ??= [];
             layout.Added ??= [];
+            layout.SectionOrder ??= [];
+            layout.HiddenSections ??= [];
             return layout;
         }
         catch

@@ -1180,5 +1180,7 @@
   "CustomizeKindText": "입력 상자",
   "CustomizeMoveDown": "아래로",
   "CustomizeMoveUp": "위로",
-  "CustomizeRestoreCategories": "숨긴 분류 복원"
+  "CustomizeRestoreCategories": "숨긴 분류/구역 복원",
+  "CustomizeHideSection": "이 구역 숨기기",
+  "CustomizeSectionTip": "이 구역 이동 또는 숨기기"
 }

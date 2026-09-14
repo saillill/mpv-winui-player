@@ -874,8 +874,10 @@ private List<Option> BuildSettings()
             option.Edit.Refresh();
         }
 
-        // The user's stored customization (order, hidden rows, renamed labels,
-        // raw mpv key/value) is merged last so it wins over the built-in tree.
+        // Section (2nd-level) hiding/reordering first, then the per-row
+        // customization: an explicitly ranked row still wins over its section's
+        // position, which is the more specific intent.
+        ApplySectionLayout(options);
         ApplyLayout(options);
 
         return options;

@@ -106,6 +106,12 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private void RebuildLocalizedContent()
     {
+        // Section captions are localized, and the caption -> stable-id map is
+        // cached: a language switch changes every caption, so the cache has to
+        // go before the tree is rebuilt.
+        // Fully qualified because the page also exposes a `Layout` property,
+        // which shadows the namespace of the same name inside this class.
+        global::mpv_winui.Modules.Settings.Layout.SettingsSectionIds.Invalidate();
         var selectedKey = CurrentCategoryKey;
         var offset = OptionsControl.GetScrollOffset();
         // Section labels are localized; a drilled-in section cannot survive
@@ -323,10 +329,10 @@ public sealed partial class SettingsPage : Page
             CategoryNav.MenuItems.Add(item);
         }
 
-        // A hidden category must be recoverable, otherwise hiding one would be
+        // A hidden category or section must be recoverable, otherwise hiding is
         // a one-way trip. The restore entry only exists while customizing.
         CategoryNav.FooterMenuItems.Clear();
-        if (_customizeMode && _layout.HiddenCategories.Count > 0)
+        if (_customizeMode && (_layout.HiddenCategories.Count > 0 || _layout.HiddenSections.Count > 0))
         {
             var restore = new NavigationViewItem
             {
@@ -336,6 +342,7 @@ public sealed partial class SettingsPage : Page
             restore.Tapped += (_, _) =>
             {
                 RestoreHiddenCategories();
+                RestoreHiddenSections();
                 RebuildLocalizedContent();
             };
             CategoryNav.FooterMenuItems.Add(restore);

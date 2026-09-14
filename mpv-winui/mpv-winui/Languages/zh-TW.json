@@ -1173,5 +1173,7 @@
   "CustomizeKindText": "輸入框",
   "CustomizeMoveDown": "下移",
   "CustomizeMoveUp": "上移",
-  "CustomizeRestoreCategories": "還原已隱藏的分類"
+  "CustomizeRestoreCategories": "還原已隱藏的分類/分欄",
+  "CustomizeHideSection": "隱藏此分欄",
+  "CustomizeSectionTip": "移動或隱藏此分欄"
 }

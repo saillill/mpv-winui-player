@@ -1180,5 +1180,7 @@
   "CustomizeKindText": "输入框",
   "CustomizeMoveDown": "下移",
   "CustomizeMoveUp": "上移",
-  "CustomizeRestoreCategories": "恢复已隐藏的分类"
+  "CustomizeRestoreCategories": "恢复已隐藏的分类/分栏",
+  "CustomizeHideSection": "隐藏此分栏",
+  "CustomizeSectionTip": "移动或隐藏此分栏"
 }

@@ -74,22 +74,36 @@ public sealed partial class OptionListControl : UserControl
 
         if (CustomizeMode)
         {
-            OptionListView.ItemTemplateSelector = null;
-            OptionListView.ItemTemplate = (DataTemplate)Resources["CustomizeTemplate"];
+            // Sections stay visible as their own rows so the 2nd level is
+            // editable too; each header carries its own move/hide menu.
+            var selector = (OptionTemplateSelector)Resources["TemplateSelector"];
+            selector.CustomizeMode = true;
+            OptionListView.ItemTemplate = null;
+            OptionListView.ItemTemplateSelector = selector;
 
-            // An ObservableCollection is what ListView's built-in reorder can
-            // write back into; a plain List would accept the drag but lose it.
             var editable = new System.Collections.ObjectModel.ObservableCollection<object>();
+            string? editLastSection = null;
             foreach (var option in visible)
             {
+                if (!string.IsNullOrEmpty(option.Section) && option.Section != editLastSection)
+                {
+                    var header = new SectionHeaderItem { Caption = option.Section };
+                    header.Edit.Refresh();
+                    editable.Add(header);
+                    editLastSection = option.Section;
+                }
+
                 editable.Add(option);
             }
+
             OptionListView.ItemsSource = editable;
             return;
         }
 
+        var defaultSelector = (OptionTemplateSelector)Resources["TemplateSelector"];
+        defaultSelector.CustomizeMode = false;
         OptionListView.ItemTemplate = null;
-        OptionListView.ItemTemplateSelector = (DataTemplateSelector)Resources["TemplateSelector"];
+        OptionListView.ItemTemplateSelector = defaultSelector;
 
         var sectionCount = visible
             .Where(o => !string.IsNullOrEmpty(o.Section))
@@ -140,9 +154,6 @@ public sealed partial class OptionListControl : UserControl
             }
         }));
 
-    /// <summary>Raised when the row's label / description text changed.</summary>
-    public event Action<Option, string?, string?>? TextEdited;
-
     /// <summary>Raised when the raw mpv key and/or value for a row was edited.</summary>
     public event Action<Option, string?, string?>? RawEdited;
 
@@ -155,28 +166,44 @@ public sealed partial class OptionListControl : UserControl
     /// <summary>Raised after a drag-reorder, with the new key order.</summary>
     public event Action<IReadOnlyList<string>>? OrderChanged;
 
+    /// <summary>Raised when the user moves a section; the caption identifies it.</summary>
+    public event Action<string, int>? SectionMoveRequested;
+
+    /// <summary>Raised when the user hides a section.</summary>
+    public event Action<string>? SectionHideRequested;
+
+    private static string? SectionCaption(object sender) =>
+        ((sender as FrameworkElement)?.DataContext as SectionHeaderItem)?.Caption;
+
+    private void SectionMoveUp_Click(object sender, RoutedEventArgs e)
+    {
+        if (SectionCaption(sender) is { } caption)
+        {
+            SectionMoveRequested?.Invoke(caption, -1);
+        }
+    }
+
+    private void SectionMoveDown_Click(object sender, RoutedEventArgs e)
+    {
+        if (SectionCaption(sender) is { } caption)
+        {
+            SectionMoveRequested?.Invoke(caption, 1);
+        }
+    }
+
+    private void SectionHide_Click(object sender, RoutedEventArgs e)
+    {
+        if (SectionCaption(sender) is { } caption)
+        {
+            SectionHideRequested?.Invoke(caption);
+        }
+    }
+
     private static Option? RowOption(object sender) =>
         (sender as FrameworkElement)?.DataContext as Option;
 
-    // x:Bind writes the TextBox into the Option as the user types, but the
-    // commit (and the layout save behind it) waits for focus to leave the
-    // field, so typing does not rewrite settings-layout.json per keystroke.
-    private void EditLabel_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (RowOption(sender) is { } option)
-        {
-            TextEdited?.Invoke(option, option.Label, option.Description);
-        }
-    }
-
-    private void EditDescription_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (RowOption(sender) is { } option)
-        {
-            TextEdited?.Invoke(option, option.Label, option.Description);
-        }
-    }
-
+    // The raw key/value commit waits for focus to leave the field, so typing
+    // does not rewrite settings-layout.json (or poke mpv) per keystroke.
     private void EditRawKey_LostFocus(object sender, RoutedEventArgs e)
     {
         if (RowOption(sender) is { } option)

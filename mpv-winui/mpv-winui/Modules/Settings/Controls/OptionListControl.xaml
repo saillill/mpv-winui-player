@@ -193,9 +193,58 @@
                 Text="{x:Bind Caption}" />
         </DataTemplate>
 
-        <!-- Inline customize mode row: drag to reorder, edit the label /
-             description, see and override the raw mpv key + value, and delete
-             the row (hide it, or restore it to its default). -->
+        <!-- Customize mode's 2nd-level row: a section (column) the user can
+             move or hide as a unit, exactly like a sidebar category. -->
+        <DataTemplate x:Key="CustomizeSectionTemplate" x:DataType="ctl:SectionHeaderItem">
+            <Border
+                Margin="0,12,0,8"
+                Padding="12,8,12,8"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        FontSize="16"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE8A5;" />
+                    <TextBlock
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Text="{x:Bind Caption}"
+                        TextWrapping="Wrap" />
+                    <Button
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="{x:Bind Edit.DeleteAutomationName}"
+                        ToolTipService.ToolTip="{x:Bind Edit.SectionTooltip}">
+                        <FontIcon FontSize="14" Glyph="&#xE712;" />
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Click="SectionMoveUp_Click" Text="{x:Bind Edit.MoveUpCaption}" />
+                                <MenuFlyoutItem Click="SectionMoveDown_Click" Text="{x:Bind Edit.MoveDownCaption}" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Click="SectionHide_Click" Text="{x:Bind Edit.HideSectionCaption}" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- Inline customize mode row: drag to reorder and edit the raw mpv
+             key/value, or delete the row (hide it, or restore it to its
+             default). Label/description stay read-only: they are localized. -->
         <DataTemplate x:Key="CustomizeTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
@@ -221,15 +270,20 @@
                         Glyph="&#xE76F;" />
 
                     <StackPanel Grid.Column="1" Spacing="6">
-                        <TextBox
-                            Header="{x:Bind Edit.NameCaption}"
-                            Text="{x:Bind Label, Mode=TwoWay}"
-                            LostFocus="EditLabel_LostFocus" />
-                        <TextBox
-                            Header="{x:Bind Edit.DescriptionCaption}"
-                            PlaceholderText="{x:Bind Edit.DescriptionPlaceholder}"
-                            Text="{x:Bind Description, Mode=TwoWay}"
-                            LostFocus="EditDescription_LostFocus" />
+                        <!-- The label/description are shown read-only: they come
+                             from the language files, so letting the user rewrite
+                             them here would fight the localization. -->
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                FontWeight="SemiBold"
+                                Text="{x:Bind Label}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind Description}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -278,6 +332,8 @@
             BooleanTemplate="{StaticResource BooleanTemplate}"
             CheckListTemplate="{StaticResource CheckListTemplate}"
             ColorTemplate="{StaticResource ColorTemplate}"
+            CustomizeOptionTemplate="{StaticResource CustomizeTemplate}"
+            CustomizeSectionTemplate="{StaticResource CustomizeSectionTemplate}"
             DoubleTemplate="{StaticResource DoubleTemplate}"
             IntegerTemplate="{StaticResource IntegerTemplate}"
             LayoutTemplate="{StaticResource LayoutTemplate}"

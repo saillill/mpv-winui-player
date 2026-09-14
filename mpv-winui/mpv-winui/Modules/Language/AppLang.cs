@@ -1278,6 +1278,8 @@ namespace mpv_winui.Modules.Language
         public string CustomizeMoveUp { get; set; } = "Move up";
         public string CustomizeMoveDown { get; set; } = "Move down";
         public string CustomizeHideCategory { get; set; } = "Hide this category";
+        public string CustomizeHideSection { get; set; } = "Hide this section";
+        public string CustomizeSectionTip { get; set; } = "Move or hide this section";
         public string CustomizeRestoreCategories { get; set; } = "Restore hidden categories";
 
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>

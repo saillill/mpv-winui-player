@@ -1180,5 +1180,7 @@
   "CustomizeKindText": "Textfeld",
   "CustomizeMoveDown": "Nach unten",
   "CustomizeMoveUp": "Nach oben",
-  "CustomizeRestoreCategories": "Ausgeblendete Kategorien wiederherstellen"
+  "CustomizeRestoreCategories": "Ausgeblendete Kategorien/Abschnitte wiederherstellen",
+  "CustomizeHideSection": "Diesen Abschnitt ausblenden",
+  "CustomizeSectionTip": "Diesen Abschnitt verschieben oder ausblenden"
 }

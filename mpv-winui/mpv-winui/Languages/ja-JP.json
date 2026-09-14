@@ -1180,5 +1180,7 @@
   "CustomizeKindText": "テキストボックス",
   "CustomizeMoveDown": "下へ",
   "CustomizeMoveUp": "上へ",
-  "CustomizeRestoreCategories": "非表示のカテゴリを復元"
+  "CustomizeRestoreCategories": "非表示のカテゴリ／セクションを復元",
+  "CustomizeHideSection": "このセクションを非表示",
+  "CustomizeSectionTip": "このセクションを移動または非表示"
 }
