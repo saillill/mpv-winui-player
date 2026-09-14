@@ -32,6 +32,92 @@ internal static class SettingsSectionIds
         return Map().TryGetValue(caption, out var id) ? id : null;
     }
 
+    /// <summary>Current-language caption for a stable section id.</summary>
+    internal static string? CaptionFor(string? id)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            return null;
+        }
+
+        foreach (var pair in Map())
+        {
+            if (string.Equals(pair.Value, id, StringComparison.Ordinal))
+            {
+                return pair.Key;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Stable key of the settings category a section belongs to. Mirrors
+    /// <c>SettingsPage.CategoryKeys</c>; kept here so a user-created folder can
+    /// record which category it lives in by stable key rather than by a
+    /// localized label.
+    /// </summary>
+    private static readonly string[] CategoryKeys =
+    [
+        "program", "playback", "video", "audio", "subtitles",
+        "window", "network", "shortcuts", "osd", "screenshot",
+    ];
+
+    /// <summary>Stable id for a category caption (a localized label), or null.</summary>
+    internal static string? CategoryKeyFor(string? caption)
+    {
+        if (string.IsNullOrEmpty(caption))
+        {
+            return null;
+        }
+
+        var lang = AppContext.AppLang;
+        var captions = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [lang.SettingsCategoryProgram] = CategoryKeys[0],
+            [lang.SettingsCategoryPlayback] = CategoryKeys[1],
+            [lang.SettingsCategoryVideo] = CategoryKeys[2],
+            [lang.SettingsCategoryAudio] = CategoryKeys[3],
+            [lang.SettingsCategorySubtitles] = CategoryKeys[4],
+            [lang.SettingsCategoryWindow] = CategoryKeys[5],
+            [lang.SettingsCategoryNetwork] = CategoryKeys[6],
+            [lang.SettingsCategoryShortcuts] = CategoryKeys[7],
+            [lang.SettingsCategoryOsd] = CategoryKeys[8],
+            [lang.SettingsCategoryScreenshot] = CategoryKeys[9],
+        };
+
+        return captions.TryGetValue(caption, out var key) ? key : null;
+    }
+
+    /// <summary>Current-language caption for a stable category key, or null.</summary>
+    internal static string? CategoryCaptionFor(string? key)
+    {
+        if (string.IsNullOrEmpty(key))
+        {
+            return null;
+        }
+
+        var index = Array.IndexOf(CategoryKeys, key);
+        if (index < 0)
+        {
+            return null;
+        }
+
+        var lang = AppContext.AppLang;
+        return index switch
+        {
+            0 => lang.SettingsCategoryProgram,
+            1 => lang.SettingsCategoryPlayback,
+            2 => lang.SettingsCategoryVideo,
+            3 => lang.SettingsCategoryAudio,
+            4 => lang.SettingsCategorySubtitles,
+            5 => lang.SettingsCategoryWindow,
+            6 => lang.SettingsCategoryNetwork,
+            7 => lang.SettingsCategoryShortcuts,
+            8 => lang.SettingsCategoryOsd,
+            _ => lang.SettingsCategoryScreenshot,
+        };
+    }
+
     private static Dictionary<string, string> Map()
     {
         if (_byCaption is not null)

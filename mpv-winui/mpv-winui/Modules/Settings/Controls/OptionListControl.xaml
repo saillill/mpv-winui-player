@@ -197,6 +197,7 @@
              move or hide as a unit, exactly like a sidebar category. -->
         <DataTemplate x:Key="CustomizeSectionTemplate" x:DataType="ctl:SectionHeaderItem">
             <Border
+                x:Name="SectionDragSurface"
                 Margin="0,12,0,8"
                 Padding="12,8,12,8"
                 HorizontalAlignment="Stretch"
@@ -235,6 +236,7 @@
                                 <MenuFlyoutItem Click="SectionMoveDown_Click" Text="{x:Bind Edit.MoveDownCaption}" />
                                 <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Click="SectionHide_Click" Text="{x:Bind Edit.HideSectionCaption}" />
+                                <MenuFlyoutItem Click="SectionDelete_Click" Text="{x:Bind Edit.DeleteSectionCaption}" />
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
@@ -242,9 +244,9 @@
             </Border>
         </DataTemplate>
 
-        <!-- Inline customize mode row: drag to reorder and edit the raw mpv
-             key/value, or delete the row (hide it, or restore it to its
-             default). Label/description stay read-only: they are localized. -->
+        <!-- Inline customize mode row: drag to reorder, drag onto a folder to
+             move it there, or hide / restore it. Label/description stay
+             read-only: they are localized. -->
         <DataTemplate x:Key="CustomizeTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
@@ -342,11 +344,37 @@
     </UserControl.Resources>
 
     <Grid x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Customize-mode-only: creates a 2nd-level folder in the category
+             currently shown, which cards can then be dragged into. -->
+        <Button
+            x:Name="NewSectionButton"
+            Grid.Row="0"
+            Margin="8,4,32,4"
+            HorizontalAlignment="Stretch"
+            Click="CreateSection_Click"
+            Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <FontIcon FontSize="14" Glyph="&#xE8F4;" />
+                <TextBlock x:Name="NewSectionButtonText" />
+            </StackPanel>
+        </Button>
+
         <ListView
             x:Name="OptionListView"
             Grid.Row="1"
             Padding="8,0,32,0"
+            AllowDrop="True"
+            CanDragItems="True"
+            CanReorderItems="True"
             DragItemsCompleted="OptionListView_DragItemsCompleted"
+            DragItemsStarting="OptionListView_DragItemsStarting"
+            DragOver="OptionListView_DragOver"
+            Drop="OptionListView_Drop"
             IsItemClickEnabled="False"
             ItemContainerStyle="{StaticResource OptionListViewItemStyle}"
             ItemTemplateSelector="{StaticResource TemplateSelector}"

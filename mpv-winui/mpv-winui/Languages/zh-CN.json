@@ -1164,7 +1164,7 @@
   "CustomizeHide": "从界面隐藏（保留已设的值）",
   "CustomizeReset": "恢复默认（清除自定义并重置该项）",
   "SettingsCustomize": "自定义",
-  "SettingsCustomizeHint": "拖动排序、改名、编辑原始 mpv 值，隐藏或恢复每一项设置。",
+  "SettingsCustomizeHint": "拖动排序、把卡片拖进二级文件夹、隐藏或恢复每一项设置。",
   "CustomizeAdd": "添加选项",
   "CustomizeAddCategory": "分类",
   "CustomizeAddChoices": "选择框的可选值",
@@ -1182,5 +1182,10 @@
   "CustomizeMoveUp": "上移",
   "CustomizeRestoreCategories": "恢复已隐藏的分类/分栏",
   "CustomizeHideSection": "隐藏此分栏",
-  "CustomizeSectionTip": "移动或隐藏此分栏"
+  "CustomizeSectionTip": "移动或隐藏此分栏",
+  "CustomizeNewSection": "新建文件夹",
+  "CustomizeNewSectionHint": "之后可以把卡片拖进这个文件夹。",
+  "CustomizeEmptySection": "空文件夹 —— 把卡片拖到这里",
+  "CustomizeDeleteSection": "删除此文件夹",
+  "CustomizeMoveToSection": "移入文件夹"
 }

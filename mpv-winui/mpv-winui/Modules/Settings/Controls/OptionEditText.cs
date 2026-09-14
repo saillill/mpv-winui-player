@@ -16,6 +16,8 @@ public sealed class OptionEditText
     public string MoveDownCaption { get; private set; } = "Move down";
     public string HideSectionCaption { get; private set; } = "Hide this section";
     public string SectionTooltip { get; private set; } = "Move or hide this section";
+    public string DeleteSectionCaption { get; private set; } = "Delete this folder";
+    public string MoveToSectionCaption { get; private set; } = "Move into a folder";
 
     /// <summary>Pulls the current language into the captions.</summary>
     public void Refresh()
@@ -29,5 +31,7 @@ public sealed class OptionEditText
         MoveDownCaption = lang.CustomizeMoveDown;
         HideSectionCaption = lang.CustomizeHideSection;
         SectionTooltip = lang.CustomizeSectionTip;
+        DeleteSectionCaption = lang.CustomizeDeleteSection;
+        MoveToSectionCaption = lang.CustomizeMoveToSection;
     }
 }

@@ -7,6 +7,7 @@ using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
 using mpv_winui.Modules.Player;
 using mpv_winui.Modules.Settings.Controls;
+using mpv_winui.Modules.Settings.Layout;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -833,6 +834,11 @@ private List<Option> BuildSettings()
             {
                 option.Section = section;
             }
+
+            // Section captions are localized, so the layout keys on a stable id.
+            // Resolved once here (the map is already cached) and carried on the
+            // row, because a user-created folder has no caption in AppLang.
+            option.SectionId = SettingsSectionIds.IdFor(option.Section);
         }
 
         var categoryOrderIndex = categoryOrder

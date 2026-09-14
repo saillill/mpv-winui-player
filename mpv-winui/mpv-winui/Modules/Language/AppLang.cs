@@ -1282,6 +1282,21 @@ namespace mpv_winui.Modules.Language
         public string CustomizeSectionTip { get; set; } = "Move or hide this section";
         public string CustomizeRestoreCategories { get; set; } = "Restore hidden categories";
 
+        /// <summary>Create a 2nd-level folder (section) of the user's own.</summary>
+        public string CustomizeNewSection { get; set; } = "New folder";
+
+        /// <summary>Body of the create-folder dialog.</summary>
+        public string CustomizeNewSectionHint { get; set; } = "Rows can then be dragged into it.";
+
+        /// <summary>Shown under a folder that holds no row yet.</summary>
+        public string CustomizeEmptySection { get; set; } = "Empty folder — drag a card here";
+
+        /// <summary>Removes a folder the user created.</summary>
+        public string CustomizeDeleteSection { get; set; } = "Delete this folder";
+
+        /// <summary>Tooltip of the per-row "move into folder" button.</summary>
+        public string CustomizeMoveToSection { get; set; } = "Move into a folder";
+
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)
         {

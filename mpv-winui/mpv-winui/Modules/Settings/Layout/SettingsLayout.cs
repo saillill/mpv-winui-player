@@ -34,6 +34,29 @@ public sealed class SettingsLayoutEntry
 
     /// <summary>Row hidden from the page (its stored setting value is kept).</summary>
     public bool Hidden { get; set; }
+
+    /// <summary>
+    /// Section (2nd-level folder) this row was moved into, by stable section id.
+    /// Null while the row stays in the section the code assigned it.
+    /// </summary>
+    public string? SectionId { get; set; }
+}
+
+/// <summary>
+/// A section (2nd-level folder) the user created. Its name is the user's own
+/// text, so unlike the built-in sections it is not translatable — acceptable
+/// because it is content rather than a label the app owns.
+/// </summary>
+public sealed class CustomSection
+{
+    /// <summary>Stable id; also what rows store in <see cref="SettingsLayoutEntry.SectionId"/>.</summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>Category the folder lives in, by stable category key.</summary>
+    public string CategoryKey { get; set; } = "program";
+
+    /// <summary>Folder name shown to the user.</summary>
+    public string Name { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -125,6 +148,10 @@ public sealed class SettingsLayout
     [JsonPropertyName("hiddenSections")]
     public List<string> HiddenSections { get; set; } = [];
 
+    /// <summary>Sections (2nd-level folders) the user created.</summary>
+    [JsonPropertyName("customSections")]
+    public List<CustomSection> CustomSections { get; set; } = [];
+
     /// <summary>True when nothing was customized, so callers can skip the work.</summary>
     [JsonIgnore]
     public bool IsEmpty =>
@@ -134,7 +161,12 @@ public sealed class SettingsLayout
         && HiddenCategories.Count == 0
         && Added.Count == 0
         && SectionOrder.Count == 0
-        && HiddenSections.Count == 0;
+        && HiddenSections.Count == 0
+        && CustomSections.Count == 0;
+
+    /// <summary>The user-created folder with this id, if any.</summary>
+    public CustomSection? FindSection(string? id) =>
+        id is null ? null : CustomSections.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.Ordinal));
 
     public CustomOption? FindAdded(string id) =>
         Added.FirstOrDefault(a => string.Equals(a.Id, id, StringComparison.Ordinal));
@@ -208,6 +240,7 @@ public static class SettingsLayoutStore
             layout.Added ??= [];
             layout.SectionOrder ??= [];
             layout.HiddenSections ??= [];
+            layout.CustomSections ??= [];
             return layout;
         }
         catch

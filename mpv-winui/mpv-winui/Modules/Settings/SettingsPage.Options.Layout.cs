@@ -186,6 +186,38 @@ public sealed partial class SettingsPage
         SaveLayout();
     }
 
+    /// <summary>Stable key of the pane entry currently shown at the given index.</summary>
+    private string? DisplayedCategoryKeyAt(int index) =>
+        index >= 0 && index < _displayedCategoryKeys.Count ? _displayedCategoryKeys[index] : null;
+
+    /// <summary>
+    /// Sidebar drag reorder: moves the pane entry at <paramref name="from"/> to
+    /// <paramref name="to"/> and records the full order. The pane is a
+    /// NavigationView, which has no built-in drag, so the gesture is
+    /// implemented by hand and lands here as a pair of indices.
+    /// </summary>
+    internal void MoveCategoryTo(int from, int to)
+    {
+        if (from < 0 || from >= _displayedCategoryKeys.Count
+            || to < 0 || to >= _displayedCategoryKeys.Count
+            || from == to)
+        {
+            return;
+        }
+
+        var keys = _displayedCategoryKeys.ToList();
+        var moved = keys[from];
+        keys.RemoveAt(from);
+        keys.Insert(to, moved);
+
+        // Store the full order (hidden ones appended) so unlisted categories do
+        // not snap back to their built-in position on the next launch.
+        _layout.CategoryOrder = keys
+            .Concat(CategoryKeys.Where(k => !keys.Contains(k)))
+            .ToList();
+        SaveLayout();
+    }
+
     /// <summary>Hides or restores a sidebar category.</summary>
     internal void SetCategoryHidden(string key, bool hidden)
     {
@@ -199,57 +231,56 @@ public sealed partial class SettingsPage
 
     // ===== section (2nd-level / column) customization =====
 
-    /// <summary>Section ids in the order the given options present them.</summary>
-    internal static List<string> SectionIdsInDisplayOrder(IEnumerable<Option> options)
-    {
-        var ids = new List<string>();
-        foreach (var option in options)
-        {
-            var id = SettingsSectionIds.IdFor(option.Section);
-            if (id is not null && !ids.Contains(id))
-            {
-                ids.Add(id);
-            }
-        }
-        return ids;
-    }
-
     /// <summary>
-    /// Applies section hiding and reordering. Sections are contiguous in the
-    /// tree already (the build clusters by category+section), so reordering is a
-    /// matter of re-emitting each section's run in the stored section order.
+    /// Applies the folders: rows the user moved into another folder are
+    /// re-labelled, then hidden folders are dropped, then folders are
+    /// re-emitted in the stored order. Runs before the per-row ordering so an
+    /// explicitly ranked row still wins over its folder's position.
     /// </summary>
     private void ApplySectionLayout(List<Option> options)
     {
-        if (_layout.SectionOrder.Count == 0 && _layout.HiddenSections.Count == 0)
+        // 1) Row -> folder assignments, including folders the user created.
+        foreach (var option in options)
+        {
+            if (!_layout.Entries.TryGetValue(option.Key, out var entry) || entry.SectionId is null)
+            {
+                continue;
+            }
+
+            if (_layout.FindSection(entry.SectionId) is { } custom)
+            {
+                option.Section = custom.Name;
+                option.SectionId = custom.Id;
+            }
+            else if (SettingsSectionIds.CaptionFor(entry.SectionId) is { } caption)
+            {
+                option.Section = caption;
+                option.SectionId = entry.SectionId;
+            }
+        }
+
+        if (_layout.SectionOrder.Count == 0
+            && _layout.HiddenSections.Count == 0
+            && !HasCustomSections(options))
         {
             return;
         }
 
         if (_layout.HiddenSections.Count > 0)
         {
-            options.RemoveAll(o =>
-                SettingsSectionIds.IdFor(o.Section) is { } id && _layout.HiddenSections.Contains(id));
+            options.RemoveAll(o => o.SectionId is { } id && _layout.HiddenSections.Contains(id));
         }
 
-        if (_layout.SectionOrder.Count == 0)
-        {
-            return;
-        }
-
+        // 2) Folders hold contiguous runs; re-emit them in the stored order.
         var rank = new Dictionary<string, int>(StringComparer.Ordinal);
         for (var i = 0; i < _layout.SectionOrder.Count; i++)
         {
             rank[_layout.SectionOrder[i]] = i;
         }
 
-        // Rank each option by its section, then keep the original relative order
-        // inside a section and between unlisted ones.
         var reordered = options
             .Select((option, index) => (option, index,
-                rankKey: SettingsSectionIds.IdFor(option.Section) is { } id && rank.TryGetValue(id, out var r)
-                    ? r
-                    : int.MaxValue))
+                rankKey: option.SectionId is { } id && rank.TryGetValue(id, out var r) ? r : int.MaxValue))
             .OrderBy(x => x.rankKey)
             .ThenBy(x => x.index)
             .Select(x => x.option)
@@ -258,19 +289,213 @@ public sealed partial class SettingsPage
         options.Clear();
         options.AddRange(reordered);
 
-        // The section captions must keep matching their (now reordered) runs.
+        RecomputeSectionHeaders(options);
+
+        // 3) An empty user-created folder must still be visible, otherwise it
+        //    cannot be dragged into or removed.
+        AppendEmptyCustomFolders(options);
+    }
+
+    /// <summary>True when the current category holds a folder the user created.</summary>
+    private bool HasCustomSections(List<Option> options) =>
+        _layout.CustomSections.Count > 0
+        && _layout.CustomSections.Any(s => SettingsSectionIds.CategoryCaptionFor(s.CategoryKey) is { } caption
+            && options.Any(o => string.Equals(o.Category, caption, StringComparison.Ordinal)));
+
+    /// <summary>Re-flags which row starts each section run, after reordering.</summary>
+    private static void RecomputeSectionHeaders(List<Option> options)
+    {
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var option in options)
         {
-            option.ShowSectionHeader = !string.IsNullOrEmpty(option.Section) && seen.Add(option.Section);
+            option.ShowSectionHeader = option.SectionId is not null && seen.Add(option.SectionId);
         }
+    }
+
+    /// <summary>Adds a bare header row for each created folder that holds nothing yet.</summary>
+    private void AppendEmptyCustomFolders(List<Option> options)
+    {
+        if (_layout.CustomSections.Count == 0)
+        {
+            return;
+        }
+
+        var populated = new HashSet<string>(
+            options.Where(o => o.SectionId is not null).Select(o => o.SectionId!),
+            StringComparer.Ordinal);
+
+        foreach (var section in _layout.CustomSections)
+        {
+            if (populated.Contains(section.Id))
+            {
+                continue;
+            }
+
+            var categoryName = SettingsSectionIds.CategoryCaptionFor(section.CategoryKey);
+            if (categoryName is null
+                || !options.Any(o => string.Equals(o.Category, categoryName, StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            // A placeholder row so an empty folder still renders and stays a
+            // drop target. Action rows render as a labelled entry with no
+            // value control, which is exactly what a bare folder needs.
+            options.Add(new Option
+            {
+                Key = "custom-section:" + section.Id,
+                Label = section.Name,
+                Description = AppContext.AppLang.CustomizeEmptySection,
+                Category = categoryName,
+                Section = section.Name,
+                SectionId = section.Id,
+                Type = OptionType.Action,
+                IsVisible = true,
+                ShowSectionHeader = true,
+                Getter = () => null,
+                Setter = _ => { },
+            });
+        }
+    }
+
+    /// <summary>Creates a 2nd-level folder in the given category.</summary>
+    internal void CreateSection(string categoryKey, string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || string.IsNullOrEmpty(categoryKey))
+        {
+            return;
+        }
+
+        var id = "sec:" + name.Trim();
+        _layout.CustomSections.RemoveAll(s => string.Equals(s.Id, id, StringComparison.Ordinal));
+        _layout.CustomSections.Add(new CustomSection
+        {
+            Id = id,
+            CategoryKey = categoryKey,
+            Name = name.Trim(),
+        });
+
+        // New folders go last so they do not jump above the built-in ones.
+        if (!_layout.SectionOrder.Contains(id))
+        {
+            _layout.SectionOrder.Add(id);
+        }
+
+        SaveLayout();
+    }
+
+    /// <summary>
+    /// Moves a row into a folder, or back out of every folder when
+    /// <paramref name="sectionId"/> is null.
+    /// </summary>
+    internal void MoveRowToSection(string optionKey, string? sectionId)
+    {
+        if (string.IsNullOrEmpty(optionKey))
+        {
+            return;
+        }
+
+        var entry = _layout.EntryFor(optionKey);
+        entry.SectionId = sectionId;
+
+        // A row with nothing else overridden must not leave an empty entry
+        // behind: those accumulate and are invisible in the file.
+        if (entry.Label is null && entry.Description is null && entry.SectionId is null)
+        {
+            _layout.Entries.Remove(optionKey);
+        }
+
+        SaveLayout();
+    }
+
+    /// <summary>Removes a folder the user created; its rows fall back to their own section.</summary>
+    internal void DeleteSection(string sectionId)
+    {
+        _layout.CustomSections.RemoveAll(s => string.Equals(s.Id, sectionId, StringComparison.Ordinal));
+        _layout.SectionOrder.Remove(sectionId);
+        _layout.HiddenSections.Remove(sectionId);
+
+        foreach (var key in _layout.Entries
+            .Where(p => string.Equals(p.Value.SectionId, sectionId, StringComparison.Ordinal))
+            .Select(p => p.Key)
+            .ToList())
+        {
+            _layout.Entries[key].SectionId = null;
+        }
+
+        SaveLayout();
+    }
+
+    /// <summary>Ranks the folders of the current category in display order.</summary>
+    internal void StoreSectionOrder(IEnumerable<string> sectionIdsInDisplayOrder)
+    {
+        // Deduplicate first: a repeated id would otherwise be appended to the
+        // stored order a second time, and the file would grow a phantom entry
+        // that no folder ever matches again.
+        var order = sectionIdsInDisplayOrder
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        if (order.Count == 0)
+        {
+            return;
+        }
+
+        // The stored order is global (folders from every category share one
+        // list), so a reorder only rewrites the slots the moved folders occupy
+        // and leaves the other categories' entries where they were.
+        var moved = new HashSet<string>(order, StringComparer.Ordinal);
+        var queue = new Queue<string>(order);
+        var rebuilt = new List<string>();
+        foreach (var id in _layout.SectionOrder)
+        {
+            if (moved.Contains(id))
+            {
+                // Guard rather than assert: a stale stored order can carry more
+                // slots for a set than the live list has members, and Dequeue on
+                // an empty queue would take the settings page down.
+                if (queue.Count > 0)
+                {
+                    rebuilt.Add(queue.Dequeue());
+                }
+            }
+            else
+            {
+                rebuilt.Add(id);
+            }
+        }
+        while (queue.Count > 0)
+        {
+            rebuilt.Add(queue.Dequeue());
+        }
+
+        _layout.SectionOrder = rebuilt.Distinct(StringComparer.Ordinal).ToList();
+        SaveLayout();
+    }
+
+    /// <summary>Section ids of a category, in display order.</summary>
+    internal List<string> SectionIdsOf(string category)
+    {
+        var ids = new List<string>();
+        foreach (var option in Settings.Where(o => string.Equals(o.Category, category, StringComparison.Ordinal)))
+        {
+            if (option.SectionId is { } id && !ids.Contains(id))
+            {
+                ids.Add(id);
+            }
+        }
+        return ids;
     }
 
     /// <summary>Moves a section one slot up or down within its category.</summary>
     internal void MoveSection(string sectionId, int delta)
     {
-        var order = SectionIdsInDisplayOrder(
-            CurrentCategory is null ? Settings : Settings.Where(o => o.Category == CurrentCategory));
+        if (CurrentCategory is not { } category)
+        {
+            return;
+        }
+
+        var order = SectionIdsOf(category);
         var index = order.IndexOf(sectionId);
         var target = index + delta;
         if (index < 0 || target < 0 || target >= order.Count)
@@ -279,8 +504,7 @@ public sealed partial class SettingsPage
         }
 
         (order[index], order[target]) = (order[target], order[index]);
-        _layout.SectionOrder = order;
-        SaveLayout();
+        StoreSectionOrder(order);
     }
 
     /// <summary>Hides or restores a whole section.</summary>

@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using mpv_winui.Modules.Settings.Layout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,6 +75,10 @@ public sealed partial class OptionListControl : UserControl
 
         if (CustomizeMode)
         {
+            NewSectionButton.Visibility = Visibility.Visible;
+            NewSectionButtonText.Text = AppContext.AppLang.CustomizeNewSection;
+            ToolTipService.SetToolTip(NewSectionButton, AppContext.AppLang.CustomizeNewSectionHint);
+
             // Sections stay visible as their own rows so the 2nd level is
             // editable too; each header carries its own move/hide menu.
             var selector = (OptionTemplateSelector)Resources["TemplateSelector"];
@@ -83,14 +88,24 @@ public sealed partial class OptionListControl : UserControl
 
             var editable = new System.Collections.ObjectModel.ObservableCollection<object>();
             string? editLastSection = null;
+
+            // User-created folders have no AppLang caption, so a drop onto one
+            // has to resolve by name: record the names currently on screen.
+            SetCustomSections(visible
+                .Where(o => o.SectionId is not null
+                    && SettingsSectionIds.IdFor(o.Section) is null
+                    && !string.IsNullOrEmpty(o.Section))
+                .Select(o => (o.SectionId!, o.Section))
+                .Distinct());
+
             foreach (var option in visible)
             {
-                if (!string.IsNullOrEmpty(option.Section) && option.Section != editLastSection)
+                if (!string.IsNullOrEmpty(option.Section) && option.SectionId != editLastSection)
                 {
                     var header = new SectionHeaderItem { Caption = option.Section };
                     header.Edit.Refresh();
                     editable.Add(header);
-                    editLastSection = option.Section;
+                    editLastSection = option.SectionId;
                 }
 
                 editable.Add(option);
@@ -99,6 +114,8 @@ public sealed partial class OptionListControl : UserControl
             OptionListView.ItemsSource = editable;
             return;
         }
+
+        NewSectionButton.Visibility = Visibility.Collapsed;
 
         var defaultSelector = (OptionTemplateSelector)Resources["TemplateSelector"];
         defaultSelector.CustomizeMode = false;
@@ -168,6 +185,134 @@ public sealed partial class OptionListControl : UserControl
 
     /// <summary>Raised when the user hides a section.</summary>
     public event Action<string>? SectionHideRequested;
+
+    /// <summary>Raised when the user deletes a folder they created.</summary>
+    public event Action<string>? SectionDeleteRequested;
+
+    // ===== drag a card into a 2nd-level folder =====
+
+    private const string RowDragFormat = "mpvwinui.settings.row";
+
+    /// <summary>Row being dragged, so the drop knows what to reassign.</summary>
+    private string? _draggedRowKey;
+
+    /// <summary>Section id the dragged row came from, so "back out" is possible.</summary>
+    private string? _draggedRowSectionId;
+
+    private void OptionListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+    {
+        if (!CustomizeMode)
+        {
+            return;
+        }
+
+        foreach (var item in e.Items)
+        {
+            // Only option rows define the payload: a section header can also be
+            // dragged (ListView reorder), and that gesture stores the new run
+            // order through OrderChanged instead of moving anything.
+            if (item is Option option)
+            {
+                e.Data.SetText(RowDragFormat + "\n" + option.Key);
+                _draggedRowKey = option.Key;
+                _draggedRowSectionId = option.SectionId;
+            }
+            else if (item is SectionHeaderItem)
+            {
+                // A section header is dragged too (to reorder its folder). It
+                // carries no payload of its own: the drop handler sees the new
+                // run order in the ListView and stores it through OrderChanged.
+                _draggedRowKey = null;
+                _draggedRowSectionId = null;
+            }
+        }
+
+        e.Data.RequestedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+    }
+
+    private void OptionListView_DragOver(object sender, DragEventArgs e)
+    {
+        if (!CustomizeMode || _draggedRowKey is null)
+        {
+            // Reordering a section run is the ListView's own business; only a
+            // card being carried into a folder needs the "move here" hint.
+            e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+            return;
+        }
+
+        e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+        e.DragUIOverride.IsCaptionVisible = true;
+        e.DragUIOverride.Caption = AppContext.AppLang.CustomizeMoveToSection;
+        e.DragUIOverride.IsGlyphVisible = true;
+    }
+
+    private void OptionListView_Drop(object sender, DragEventArgs e)
+    {
+        var optionKey = _draggedRowKey;
+        var fromSectionId = _draggedRowSectionId;
+        _draggedRowKey = null;
+        _draggedRowSectionId = null;
+
+        if (!CustomizeMode || optionKey is null)
+        {
+            return;
+        }
+
+        // The drop lands on whatever row is under the pointer: another card
+        // (join its folder) or a folder header (join that folder). Dropping on
+        // empty space means "no folder".
+        var target = (e.OriginalSource as FrameworkElement)?.DataContext;
+        var targetSectionId = target switch
+        {
+            Option targetOption => targetOption.SectionId,
+            SectionHeaderItem header => SettingsSectionIds.IdFor(header.Caption)
+                ?? _customSectionIdsByCaption.GetValueOrDefault(header.Caption),
+            _ => null,
+        };
+
+        if (string.Equals(targetSectionId, fromSectionId, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        MoveRowRequested?.Invoke(optionKey, targetSectionId);
+    }
+
+    /// <summary>
+    /// Caption -> id for the folders this list was built from, so a drop onto a
+    /// user-created folder resolves without the page having to be consulted.
+    /// </summary>
+    private readonly Dictionary<string, string> _customSectionIdsByCaption = new(StringComparer.Ordinal);
+
+    /// <summary>Registers the user-created folders currently on screen.</summary>
+    public void SetCustomSections(IEnumerable<(string Id, string Name)> sections)
+    {
+        _customSectionIdsByCaption.Clear();
+        foreach (var (id, name) in sections)
+        {
+            _customSectionIdsByCaption[name] = id;
+        }
+    }
+
+    /// <summary>
+    /// Raised when a row is dropped onto another row or a folder header:
+    /// the key of the moved row and the section it should join (null = out of
+    /// every folder).
+    /// </summary>
+    public event Action<string, string?>? MoveRowRequested;
+
+    /// <summary>Raised when the user picks "new folder" in the customize bar.</summary>
+    public event Action? CreateSectionRequested;
+
+    private void CreateSection_Click(object sender, RoutedEventArgs e) => CreateSectionRequested?.Invoke();
+
+    private void SectionDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (SectionCaption(sender) is { } caption)
+        {
+            SectionDeleteRequested?.Invoke(caption);
+        }
+    }
 
     private static string? SectionCaption(object sender) =>
         ((sender as FrameworkElement)?.DataContext as SectionHeaderItem)?.Caption;

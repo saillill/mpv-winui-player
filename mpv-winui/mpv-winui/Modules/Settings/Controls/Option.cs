@@ -340,6 +340,13 @@ public sealed class Option : INotifyPropertyChanged
     /// <summary>Localized captions used by the inline customize-mode row.</summary>
     public OptionEditText Edit { get; } = new();
 
+    /// <summary>
+    /// Stable id of the section (2nd-level folder) this row sits in. Section
+    /// captions are localized, so ordering and "move into folder" key on this
+    /// instead of on <see cref="Section"/>.
+    /// </summary>
+    public string? SectionId { get; set; }
+
     public bool AllowEmpty
     {
         get; set;

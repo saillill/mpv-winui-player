@@ -323,8 +323,10 @@ public sealed partial class SettingsPage : Page
             }
 
             // In customize mode the pane entries carry their own edit menu
-            // (move up/down, hide), so the sidebar is customizable too.
+            // (move up/down, hide), and can be dragged onto each other to
+            // reorder, so the sidebar is customizable too.
             ApplyCategoryEditMenu(item, key, i);
+            AttachCategoryDrag(item, i);
 
             CategoryNav.MenuItems.Add(item);
         }
