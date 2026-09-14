@@ -78,10 +78,6 @@
     "labelKey": "MenuTools",
     "children": [
       { "id": "options", "labelKey": "ViewOptions", "action": "options" },
-      { "id": "conf-edit", "labelKey": "ViewMpvConfEditor", "action": "conf-edit" },
-      { "separator": true },
-      { "id": "edit-menu-mpv", "labelKey": "ViewMpvMenuEditor", "action": "edit-menu-mpv" },
-      { "id": "edit-menu-menubar", "labelKey": "ViewMenuBarEditor", "action": "edit-menu-menubar" },
       { "separator": true },
       { "id": "mpv-command", "labelKey": "SettingsCommandMenuItem", "action": "mpv-command" },
       { "id": "shortcut-search", "labelKey": "ShortcutSearchTitle", "action": "shortcut-search" },
