@@ -30,6 +30,13 @@ namespace mpv_winui.Modules.Settings
             const string migratedKey = "LegacySettingsMigrated";
             try
             {
+                // AppDataId is back on the fork identity, so the container above
+                // already IS the legacy one: nothing to carry over.
+                if (AppData.AppDataPublisher == LegacyPublisher && AppData.AppDataId == LegacyAppId)
+                {
+                    return;
+                }
+
                 if (_container.Values.ContainsKey(migratedKey))
                 {
                     return;
