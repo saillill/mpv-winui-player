@@ -75,9 +75,12 @@ public sealed partial class OptionListControl : UserControl
 
         if (CustomizeMode)
         {
-            NewSectionButton.Visibility = Visibility.Visible;
-            NewSectionButtonText.Text = AppContext.AppLang.CustomizeNewSection;
-            ToolTipService.SetToolTip(NewSectionButton, AppContext.AppLang.CustomizeNewSectionHint);
+            var lang = AppContext.AppLang;
+            CustomizeBar.Visibility = Visibility.Visible;
+            NewSectionButtonText.Text = lang.CustomizeNewSection;
+            ToolTipService.SetToolTip(NewSectionButton, lang.CustomizeNewSectionHint);
+            AddAdvancedButtonText.Text = lang.CustomizeAddAdvanced;
+            ToolTipService.SetToolTip(AddAdvancedButton, lang.CustomizeAddHint);
 
             // Sections stay visible as their own rows so the 2nd level is
             // editable too; each header carries its own move/hide menu.
@@ -102,7 +105,15 @@ public sealed partial class OptionListControl : UserControl
             {
                 if (!string.IsNullOrEmpty(option.Section) && option.SectionId != editLastSection)
                 {
-                    var header = new SectionHeaderItem { Caption = option.Section };
+                    var header = new SectionHeaderItem
+                    {
+                        Caption = option.Section,
+                        SectionId = option.SectionId,
+                        // A folder with no AppLang caption is one the user made,
+                        // and only those may be deleted.
+                        IsCustom = option.SectionId is not null
+                            && SettingsSectionIds.IdFor(option.Section) is null,
+                    };
                     header.Edit.Refresh();
                     editable.Add(header);
                     editLastSection = option.SectionId;
@@ -116,6 +127,7 @@ public sealed partial class OptionListControl : UserControl
         }
 
         NewSectionButton.Visibility = Visibility.Collapsed;
+        CustomizeBar.Visibility = Visibility.Collapsed;
 
         var defaultSelector = (OptionTemplateSelector)Resources["TemplateSelector"];
         defaultSelector.CustomizeMode = false;
@@ -206,6 +218,8 @@ public sealed partial class OptionListControl : UserControl
             return;
         }
 
+        _folderJoinHandled = false;
+
         foreach (var item in e.Items)
         {
             // Only option rows define the payload: a section header can also be
@@ -232,18 +246,26 @@ public sealed partial class OptionListControl : UserControl
 
     private void OptionListView_DragOver(object sender, DragEventArgs e)
     {
-        if (!CustomizeMode || _draggedRowKey is null)
+        if (!CustomizeMode)
         {
-            // Reordering a section run is the ListView's own business; only a
-            // card being carried into a folder needs the "move here" hint.
             e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
             return;
         }
 
+        // Always accept the move. Declining here (the old None branch for a
+        // header drag) also vetoes the ListView's own reorder commit, which is
+        // why dragging a row or a folder header never changed the order: the
+        // drop was rejected before CanReorderItems could act on it.
         e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
-        e.DragUIOverride.IsCaptionVisible = true;
-        e.DragUIOverride.Caption = AppContext.AppLang.CustomizeMoveToSection;
-        e.DragUIOverride.IsGlyphVisible = true;
+
+        // The "move into folder" caption only applies while a card is being
+        // carried; a plain reorder drag needs no extra chrome.
+        if (_draggedRowKey is not null)
+        {
+            e.DragUIOverride.IsCaptionVisible = true;
+            e.DragUIOverride.Caption = AppContext.AppLang.CustomizeMoveToSection;
+            e.DragUIOverride.IsGlyphVisible = true;
+        }
     }
 
     private void OptionListView_Drop(object sender, DragEventArgs e)
@@ -255,6 +277,26 @@ public sealed partial class OptionListControl : UserControl
 
         if (!CustomizeMode || optionKey is null)
         {
+            // A header drag (or a drag that carried no card) is a pure reorder:
+            // DragItemsCompleted commits it, so there is nothing to do here.
+            return;
+        }
+
+        // Mark the gesture so DragItemsCompleted knows a folder-join was
+        // already handled and must not also write the run order on top of it.
+        _folderJoinHandled = true;
+
+        if (_paneDrop)
+        {
+            // The pane *is* the folder, so the drop position carries no
+            // meaning: whatever was dragged in joins the folder on display.
+            if (string.Equals(_paneSectionId, fromSectionId, StringComparison.Ordinal))
+            {
+                _folderJoinHandled = false;
+                return;
+            }
+
+            PaneJoinRequested?.Invoke(optionKey, _paneSectionId);
             return;
         }
 
@@ -272,11 +314,21 @@ public sealed partial class OptionListControl : UserControl
 
         if (string.Equals(targetSectionId, fromSectionId, StringComparison.Ordinal))
         {
+            // Dropped back where it started: still a no-op for the folder, but
+            // the reorder that came with it must stand.
+            _folderJoinHandled = false;
             return;
         }
 
         MoveRowRequested?.Invoke(optionKey, targetSectionId);
     }
+
+    /// <summary>
+    /// Set while a drop is being handled as a folder-join, so the reorder
+    /// commit that follows does not overwrite it. Cleared on the next
+    /// DragItemsStarting.
+    /// </summary>
+    private bool _folderJoinHandled;
 
     /// <summary>
     /// Caption -> id for the folders this list was built from, so a drop onto a
@@ -304,7 +356,84 @@ public sealed partial class OptionListControl : UserControl
     /// <summary>Raised when the user picks "new folder" in the customize bar.</summary>
     public event Action? CreateSectionRequested;
 
+    /// <summary>
+    /// Raised when the user renames a row. The page owns the dialog and the
+    /// override store; the control only reports which row and its current
+    /// visible label so the dialog can be pre-filled.
+    /// </summary>
+    public event Action<string, string>? RenameRowRequested;
+
+    /// <summary>Raised when the user renames a folder (option key, current label).</summary>
+    public event Action<string, string>? RenameSectionRequested;
+
+    /// <summary>
+    /// Raised when the user opens the advanced editor for a row. Carries the
+    /// option key; the page decides whether this edits an existing custom row
+    /// or creates a new one from the row's current state.
+    /// </summary>
+    public event Action<string>? EditAdvancedRequested;
+
+    /// <summary>Raised when the user asks for the "add option" dialog.</summary>
+    public event Action? AddAdvancedRequested;
+
+    // ===== the bookmark-manager right pane =====
+
+    /// <summary>
+    /// In the two-pane view the list no longer owns a drop target of its own:
+    /// the pane it sits in is the folder, so a card dropped anywhere in the
+    /// list joins the folder currently open instead of whichever row happens
+    /// to be under the pointer.
+    /// </summary>
+    private string? _paneSectionId;
+
+    /// <summary>Whether the list is the bookmark-manager's right pane.</summary>
+    private bool _paneDrop;
+
+    /// <summary>
+    /// Points the list at a folder: cards dropped in it join that folder.
+    /// Pass null for a category page, where dropping re-files nothing.
+    /// </summary>
+    public void SetPaneDropTarget(string? sectionId)
+    {
+        _paneSectionId = sectionId;
+        _paneDrop = true;
+    }
+
+    /// <summary>Raised when a card is dropped into the pane's folder.</summary>
+    public event Action<string, string?>? PaneJoinRequested;
+
+    /// <summary>Reverts the list to owning its own per-row drop targets.</summary>
+    public void ClearPaneDropTarget() => _paneDrop = false;
+
     private void CreateSection_Click(object sender, RoutedEventArgs e) => CreateSectionRequested?.Invoke();
+
+    private void AddAdvanced_Click(object sender, RoutedEventArgs e) => AddAdvancedRequested?.Invoke();
+
+    private void RenameRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            RenameRowRequested?.Invoke(option.Key, option.Label);
+        }
+    }
+
+    private void EditAdvanced_Click(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            EditAdvancedRequested?.Invoke(option.Key);
+        }
+    }
+
+    /// <summary>Renames a folder. The header carries its stable id, not just its caption.</summary>
+    private void RenameSection_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is SectionHeaderItem header
+            && header.SectionId is { } id)
+        {
+            RenameSectionRequested?.Invoke(id, header.Caption);
+        }
+    }
 
     private void SectionDelete_Click(object sender, RoutedEventArgs e)
     {
@@ -364,6 +493,15 @@ public sealed partial class OptionListControl : UserControl
     {
         if (!CustomizeMode)
         {
+            return;
+        }
+
+        // A folder-join already reassigned the row; writing the run order on
+        // top of it would immediately undo the move (the row would be ranked
+        // back into the run it just left).
+        if (_folderJoinHandled)
+        {
+            _folderJoinHandled = false;
             return;
         }
 

@@ -14,11 +14,31 @@ namespace mpv_winui.Modules.Settings.Layout;
 /// </summary>
 public sealed class SettingsLayoutEntry
 {
-    /// <summary>Localized label the user typed, overriding the built-in one.</summary>
+    /// <summary>
+    /// Label the user typed, overriding the built-in (localized) one. Null
+    /// keeps the built-in text; empty string deliberately blanks it.
+    /// </summary>
     public string? Label { get; set; }
 
     /// <summary>Description the user typed, overriding the built-in one.</summary>
     public string? Description { get; set; }
+
+    /// <summary>
+    /// "all" when the rename above should apply to every UI language, null (or
+    /// "current") when it applies only to the language that was active when it
+    /// was typed. Localized builds need both: a user who renames "Video decode"
+    /// usually means it in their own language, but someone who wants a stable
+    /// name should be able to pin it across languages.
+    /// </summary>
+    public string? Scope { get; set; }
+
+    /// <summary>
+    /// UI language the rename was made in ("zh-CN"). Only meaningful while
+    /// <see cref="Scope"/> is not "all": it is what lets the override show in
+    /// the language it was written for and fall back to the built-in text
+    /// everywhere else.
+    /// </summary>
+    public string? Language { get; set; }
 
     /// <summary>
     /// Raw mpv option the row publishes, e.g. "hwdec". Empty when the row has
@@ -55,9 +75,41 @@ public sealed class CustomSection
     /// <summary>Category the folder lives in, by stable category key.</summary>
     public string CategoryKey { get; set; } = "program";
 
-    /// <summary>Folder name shown to the user.</summary>
+    /// <summary>
+    /// Folder name shown to the user. This is the original name given when the
+    /// folder was created and never changes, so a rename does not have to
+    /// rewrite the id (and therefore every row pointing at it).
+    /// </summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name to display instead of <see cref="Name"/>. Kept separate so the id —
+    /// which rows reference — stays stable across a rename. Falls back to
+    /// <see cref="Name"/> when unset.
+    /// </summary>
+    public string? DisplayName { get; set; }
+
+    /// <summary>
+    /// "all" to show <see cref="DisplayName"/> in every UI language, null to
+    /// show it only in <see cref="Language"/>. Mirrors the scope on
+    /// <see cref="SettingsLayoutEntry"/> so folders and rows rename alike — but
+    /// note a folder's own name is user content, so an unscoped folder rename
+    /// still shows everywhere (there is no built-in text to fall back to).
+    /// </summary>
+    public string? Scope { get; set; }
+
+    /// <summary>UI language the rename was made in, when <see cref="Scope"/> is not "all".</summary>
+    public string? Language { get; set; }
+
+    /// <summary>
+    /// Name to render right now. A folder the user made has no localized
+    /// fallback, so its rename is content and applies regardless of scope; the
+    /// scope only matters for folders whose name came from the app.
+    /// </summary>
+    public string DisplayFor(string activeLanguage) =>
+        !string.IsNullOrEmpty(DisplayName) ? DisplayName : Name;
 }
+
 
 /// <summary>
 /// An option the user added from the customize mode. It is not backed by an
@@ -187,12 +239,74 @@ public sealed class SettingsLayout
         if (Entries.TryGetValue(key, out var entry)
             && entry.Label is null
             && entry.Description is null
+            && entry.Scope is null
+            && entry.Language is null
             && entry.MpvKey is null
             && entry.MpvValue is null
+            && entry.SectionId is null
             && !entry.Hidden)
         {
             Entries.Remove(key);
         }
+    }
+}
+
+/// <summary>Scope values stored in <see cref="SettingsLayoutEntry.Scope"/>.</summary>
+public static class RenameScopes
+{
+    /// <summary>Override applies to every UI language.</summary>
+    public const string All = "all";
+
+    /// <summary>Override applies only to the language it was written in.</summary>
+    public const string Current = "current";
+}
+
+/// <summary>
+/// User overrides for the localized labels the app owns, resolved against the
+/// active UI language.
+///
+/// Built-in captions live in the language files, so writing a rename straight
+/// into them would be destroyed by the next language switch. Instead the
+/// override is stored here and consulted first; the built-in text is never
+/// touched, which keeps one mechanism for built-in rows, user-created folders
+/// and hand-added options alike.
+/// </summary>
+public static class LabelOverrides
+{
+    /// <summary>
+    /// The override to show for this entry in the active language, or null when
+    /// the built-in text should be used.
+    ///
+    /// A global override wins everywhere. A language-scoped override is only
+    /// returned while the active language matches the one it was written in;
+    /// in any other language the row falls back to its built-in caption rather
+    /// than showing a name the user did not write for that language.
+    ///
+    /// Note the empty string is a meaningful value ("blank this label"), so
+    /// callers must distinguish null (no override) from "" (blanked).
+    /// </summary>
+    public static string? ResolveLabel(SettingsLayoutEntry? entry, string activeLanguage) =>
+        Resolve(entry?.Label, entry?.Scope, entry?.Language, activeLanguage);
+
+    /// <summary>Same contract as <see cref="ResolveLabel"/>, for the description line.</summary>
+    public static string? ResolveDescription(SettingsLayoutEntry? entry, string activeLanguage) =>
+        Resolve(entry?.Description, entry?.Scope, entry?.Language, activeLanguage);
+
+    private static string? Resolve(string? value, string? scope, string? language, string activeLanguage)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        if (string.Equals(scope, RenameScopes.All, StringComparison.Ordinal))
+        {
+            return value;
+        }
+
+        return string.Equals(language, activeLanguage, StringComparison.OrdinalIgnoreCase)
+            ? value
+            : null;
     }
 }
 

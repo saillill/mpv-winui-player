@@ -788,18 +788,18 @@ public sealed partial class SettingsPage : Page
 
     private void UpdateOptions()
     {
-        // Customize mode owns the layout: one flat list of the current
-        // category's rows, no section cards and no breadcrumb trail. Returning
-        // early keeps the normal overview/drill-down logic from undoing it.
+        // Customize mode owns the layout: the bookmark-manager surface (folder
+        // tree + the selected node's cards) replaces the browsing view. The
+        // tree is rebuilt here so its labels follow the language and its node
+        // set follows the current option tree.
         if (_customizeMode)
         {
             ResetButton.IsEnabled = true;
             SectionsHost.Visibility = Visibility.Collapsed;
             BreadcrumbBar.Visibility = Visibility.Collapsed;
             OptionsControl.Visibility = Visibility.Visible;
-            OptionsControl.OptionList = CurrentCategory is null
-                ? Settings
-                : Settings.Where(o => o.Category == CurrentCategory).ToList();
+            BuildCustomizeTree();
+            UpdateCustomizePane();
             return;
         }
 

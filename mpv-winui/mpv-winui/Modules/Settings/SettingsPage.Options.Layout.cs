@@ -34,6 +34,8 @@ public sealed partial class SettingsPage
             return;
         }
 
+        var language = ActiveLanguageKey;
+
         foreach (var option in options)
         {
             if (!_layout.Entries.TryGetValue(option.Key, out var entry))
@@ -41,15 +43,19 @@ public sealed partial class SettingsPage
                 continue;
             }
 
-            // Only fill in what the user actually overrode: an empty string is
-            // a deliberate "make it blank", null means "keep the built-in text".
-            if (entry.Label is not null)
+            // Renames are stored as an override, never written into the
+            // language files: the built-in caption keeps changing with the UI
+            // language underneath, and this simply wins when it applies.
+            // A null result means "no override for this language", so the
+            // built-in text stands; an empty string is a deliberate blank.
+            if (LabelOverrides.ResolveLabel(entry, language) is { } label)
             {
-                option.Label = entry.Label;
+                option.Label = label;
             }
-            if (entry.Description is not null)
+
+            if (LabelOverrides.ResolveDescription(entry, language) is { } description)
             {
-                option.Description = entry.Description;
+                option.Description = description;
             }
 
             // Hidden rows are filtered out of the normal list by IsVisible; the
@@ -83,6 +89,19 @@ public sealed partial class SettingsPage
 
         options.Clear();
         options.AddRange(ordered);
+    }
+
+    /// <summary>
+    /// UI language overrides are keyed against, normalized so a missing or
+    /// malformed setting cannot silently match nothing.
+    /// </summary>
+    private static string ActiveLanguageKey
+    {
+        get
+        {
+            var language = AppContext.AppSetting.CurrentLanguage;
+            return string.IsNullOrWhiteSpace(language) ? "en-US" : language;
+        }
     }
 
     /// <summary>Persists the current customization.</summary>
@@ -261,8 +280,14 @@ public sealed partial class SettingsPage
 
         if (_layout.SectionOrder.Count == 0
             && _layout.HiddenSections.Count == 0
-            && !HasCustomSections(options))
+            && _layout.CustomSections.Count == 0)
         {
+            // Nothing structural at all: no ordering to apply, no hidden
+            // folder to drop and no user folder that needs a header. Applying
+            // while CustomSections is non-empty matters even when SectionOrder
+            // is still empty — that is exactly the state right after the first
+            // folder is created in a category that had no stored order, and
+            // returning here left the new folder invisible.
             return;
         }
 
@@ -295,12 +320,6 @@ public sealed partial class SettingsPage
         //    cannot be dragged into or removed.
         AppendEmptyCustomFolders(options);
     }
-
-    /// <summary>True when the current category holds a folder the user created.</summary>
-    private bool HasCustomSections(List<Option> options) =>
-        _layout.CustomSections.Count > 0
-        && _layout.CustomSections.Any(s => SettingsSectionIds.CategoryCaptionFor(s.CategoryKey) is { } caption
-            && options.Any(o => string.Equals(o.Category, caption, StringComparison.Ordinal)));
 
     /// <summary>Re-flags which row starts each section run, after reordering.</summary>
     private static void RecomputeSectionHeaders(List<Option> options)

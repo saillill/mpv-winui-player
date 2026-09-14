@@ -232,11 +232,19 @@
                         <FontIcon FontSize="14" Glyph="&#xE712;" />
                         <Button.Flyout>
                             <MenuFlyout>
+                                <MenuFlyoutItem Click="RenameSection_Click" Text="{x:Bind Edit.RenameCaption}" />
+                                <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Click="SectionMoveUp_Click" Text="{x:Bind Edit.MoveUpCaption}" />
                                 <MenuFlyoutItem Click="SectionMoveDown_Click" Text="{x:Bind Edit.MoveDownCaption}" />
                                 <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Click="SectionHide_Click" Text="{x:Bind Edit.HideSectionCaption}" />
-                                <MenuFlyoutItem Click="SectionDelete_Click" Text="{x:Bind Edit.DeleteSectionCaption}" />
+                                <!-- Only a folder the user made can be deleted;
+                                     IsCustom gates it so no built-in section is
+                                     ever offered a destructive action. -->
+                                <MenuFlyoutItem
+                                    Click="SectionDelete_Click"
+                                    Text="{x:Bind Edit.DeleteSectionCaption}"
+                                    Visibility="{x:Bind DeleteVisibility}" />
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
@@ -272,10 +280,10 @@
                         Glyph="&#xE76F;" />
 
                     <StackPanel Grid.Column="1" Spacing="6">
-                        <!-- Label/description are read-only: they come from the
-                             language files. There is deliberately no key/value
-                             editor here either — this mode only rearranges the
-                             page, it does not retarget options. -->
+                        <!-- Label/description are the built-in localized text
+                             (or the user's own override); editing them opens
+                             the rename dialog, which stores an override instead
+                             of touching the language files. -->
                         <StackPanel Spacing="2">
                             <TextBlock
                                 FontWeight="SemiBold"
@@ -302,6 +310,9 @@
                         <FontIcon FontSize="14" Glyph="&#xE74D;" />
                         <Button.Flyout>
                             <MenuFlyout>
+                                <MenuFlyoutItem Click="RenameRow_Click" Text="{x:Bind Edit.RenameCaption}" />
+                                <MenuFlyoutItem Click="EditAdvanced_Click" Text="{x:Bind Edit.EditAdvancedCaption}" />
+                                <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Click="HideRow_Click" Text="{x:Bind Edit.HideCaption}" />
                                 <MenuFlyoutItem Click="ResetRow_Click" Text="{x:Bind Edit.ResetCaption}" />
                             </MenuFlyout>
@@ -349,20 +360,40 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Customize-mode-only: creates a 2nd-level folder in the category
-             currently shown, which cards can then be dragged into. -->
-        <Button
-            x:Name="NewSectionButton"
+        <!-- Customize-mode-only toolbar: create a 2nd-level folder (which cards
+             can be dragged into), or define a new option backed by an mpv key. -->
+        <Grid
+            x:Name="CustomizeBar"
             Grid.Row="0"
             Margin="8,4,32,4"
-            HorizontalAlignment="Stretch"
-            Click="CreateSection_Click"
+            ColumnSpacing="8"
             Visibility="Collapsed">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <FontIcon FontSize="14" Glyph="&#xE8F4;" />
-                <TextBlock x:Name="NewSectionButtonText" />
-            </StackPanel>
-        </Button>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button
+                x:Name="NewSectionButton"
+                Grid.Column="0"
+                HorizontalAlignment="Stretch"
+                Click="CreateSection_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="14" Glyph="&#xE8F4;" />
+                    <TextBlock x:Name="NewSectionButtonText" />
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="AddAdvancedButton"
+                Grid.Column="1"
+                Click="AddAdvanced_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="14" Glyph="&#xE710;" />
+                    <TextBlock x:Name="AddAdvancedButtonText" />
+                </StackPanel>
+            </Button>
+        </Grid>
 
         <ListView
             x:Name="OptionListView"

@@ -876,6 +876,11 @@ private List<Option> BuildSettings()
             option.Edit.Refresh();
         }
 
+        // Hand-added options are materialized into real rows before the layout
+        // runs, so they participate in ordering, folder moves and renaming
+        // exactly like a built-in row.
+        options.AddRange(BuildAddedOptions());
+
         // Section (2nd-level) hiding/reordering first, then the per-row
         // customization: an explicitly ranked row still wins over its section's
         // position, which is the more specific intent.
@@ -883,5 +888,78 @@ private List<Option> BuildSettings()
         ApplyLayout(options);
 
         return options;
+    }
+
+    /// <summary>
+    /// Turns each stored <see cref="CustomOption"/> into a settings row.
+    ///
+    /// These have no AppSettings property behind them: the value lives in the
+    /// layout file and is pushed straight to mpv through the raw key, which is
+    /// what lets an arbitrary mpv option be reachable without a code change.
+    /// </summary>
+    private List<Option> BuildAddedOptions()
+    {
+        if (_layout.Added.Count == 0)
+        {
+            return [];
+        }
+
+        var added = new List<Option>(_layout.Added.Count);
+        foreach (var custom in _layout.Added)
+        {
+            var category = SettingsSectionIds.CategoryCaptionFor(custom.CategoryKey);
+            if (category is null)
+            {
+                // The category no longer exists (a build removed it): skip the
+                // row rather than invent a category nobody can navigate to.
+                continue;
+            }
+
+            var mpvKey = custom.MpvKey;
+            var option = new Option
+            {
+                Key = custom.Id,
+                Label = custom.Label,
+                Description = custom.Description,
+                Category = category,
+                Type = custom.Kind switch
+                {
+                    CustomOptionKinds.Boolean => OptionType.Boolean,
+                    CustomOptionKinds.Choice => OptionType.String,
+                    _ => OptionType.String,
+                },
+                // The value lives in the layout file, not in AppSettings, so the
+                // getter reads the stored copy: there is no built-in property to
+                // consult for an option the user invented.
+                Getter = () => custom.Value,
+                Setter = v =>
+                {
+                    var text = v?.ToString() ?? string.Empty;
+                    custom.Value = text;
+                    SaveLayout();
+                    AppContext.SendMpvCommand($"set {mpvKey} {text}");
+                },
+            };
+
+            if (custom.Kind == CustomOptionKinds.Choice && custom.Choices.Count > 0)
+            {
+                option.Choices = custom.Choices
+                    .Select(choice => new OptionChoice(choice, choice))
+                    .ToList();
+                // The presets are the whole vocabulary of the option, so no
+                // free-text escape hatch is offered.
+                option.AllowCustom = false;
+            }
+
+            // Keep the placeholder meaningful when no value has been set yet.
+            if (custom.Kind != CustomOptionKinds.Boolean)
+            {
+                option.Placeholder = custom.Value;
+            }
+
+            added.Add(option);
+        }
+
+        return added;
     }
 }

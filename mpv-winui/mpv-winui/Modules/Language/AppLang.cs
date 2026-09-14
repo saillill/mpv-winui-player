@@ -1297,6 +1297,82 @@ namespace mpv_winui.Modules.Language
         /// <summary>Tooltip of the per-row "move into folder" button.</summary>
         public string CustomizeMoveToSection { get; set; } = "Move into a folder";
 
+        // ===== Settings: rename (built-in and user-created entries) =====
+
+        /// <summary>Title of the rename dialog.</summary>
+        public string CustomizeRename { get; set; } = "Rename";
+
+        /// <summary>Placeholder of the rename box.</summary>
+        public string CustomizeRenamePlaceholder { get; set; } = "leave empty to restore the built-in name";
+
+        /// <summary>Placeholder of the description box in the rename dialog.</summary>
+        public string CustomizeRenameDescriptionPlaceholder { get; set; } = "optional single-line note";
+
+        /// <summary>Explains the scope choice for a built-in (localized) entry.</summary>
+        public string CustomizeRenameHint { get; set; } = "Built-in names come from the language files, so this is stored as your own override. Leaving the name empty restores the built-in one.";
+
+        /// <summary>Hint shown when renaming a folder the user created.</summary>
+        public string CustomizeRenameFolderHint { get; set; } = "This folder is yours, so the name is stored as content and applies in every language.";
+
+        /// <summary>Header of the scope switch.</summary>
+        public string CustomizeScope { get; set; } = "Applies to";
+
+        /// <summary>Scope: only the language in use right now.</summary>
+        public string CustomizeScopeCurrent { get; set; } = "This language";
+
+        /// <summary>Scope: every language.</summary>
+        public string CustomizeScopeAll { get; set; } = "All languages";
+
+        // ===== Settings: advanced option editor =====
+
+        /// <summary>Opens the advanced editor for an option.</summary>
+        public string CustomizeEditAdvanced { get; set; } = "Edit option…";
+
+        /// <summary>Opens the advanced editor to add a new option.</summary>
+        public string CustomizeAddAdvanced { get; set; } = "Add option…";
+
+        /// <summary>Hint under the advanced editor's title.</summary>
+        public string CustomizeAdvancedHint { get; set; } = "Define a settings row of your own, backed by any mpv option.";
+
+        /// <summary>Field: raw mpv option name.</summary>
+        public string CustomizeFieldMpvKey { get; set; } = "mpv option";
+
+        /// <summary>Placeholder for the mpv option name.</summary>
+        public string CustomizeFieldMpvKeyPlaceholder { get; set; } = "e.g. hwdec";
+
+        /// <summary>Field: default value.</summary>
+        public string CustomizeFieldDefault { get; set; } = "Default value";
+
+        /// <summary>Field: dropdown choices.</summary>
+        public string CustomizeFieldChoices { get; set; } = "Dropdown values";
+
+        /// <summary>Validation: the mpv option name is required.</summary>
+        public string CustomizeErrorKeyRequired { get; set; } = "Enter the mpv option name.";
+
+        /// <summary>Validation: the mpv option name has illegal characters.</summary>
+        public string CustomizeErrorKeyInvalid { get; set; } = "An mpv option name may only contain letters, digits, '-', '_' and '.'.";
+
+        /// <summary>Validation: that mpv option is already bound by another row.</summary>
+        public string CustomizeErrorKeyDuplicate { get; set; } = "Another row already edits this mpv option.";
+
+        /// <summary>Validation: the label is too long.</summary>
+        public string CustomizeErrorLabelTooLong { get; set; } = "The name is too long (max {0} characters).";
+
+        /// <summary>Validation: the description is too long.</summary>
+        public string CustomizeErrorDescriptionTooLong { get; set; } = "The description is too long (max {0} characters).";
+
+        /// <summary>Validation: a dropdown needs at least two values.</summary>
+        public string CustomizeErrorChoicesTooFew { get; set; } = "A dropdown needs at least two values, separated by commas.";
+
+        /// <summary>Validation: the default value is not one of the dropdown values.</summary>
+        public string CustomizeErrorDefaultNotInChoices { get; set; } = "The default must be one of the dropdown values.";
+
+        /// <summary>Validation: a boolean default must be yes or no.</summary>
+        public string CustomizeErrorBooleanDefault { get; set; } = "A switch default must be yes or no.";
+
+        /// <summary>Validation: a numeric default is malformed.</summary>
+        public string CustomizeErrorNumberDefault { get; set; } = "The default must be a number.";
+
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)
         {
