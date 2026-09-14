@@ -1414,7 +1414,10 @@ namespace mpv_winui.Modules.Player
 
 
 
-                UpdatePlayPauseUI(!(MediaPlayer?.IsPaused() ?? true), true);
+                // The parameter is "is the playback paused"; passing the negated
+                // value made PlayState/PauseState swap, so the button showed a
+                // play glyph while playing and a pause glyph while paused.
+                UpdatePlayPauseUI(MediaPlayer?.IsPaused() ?? true, true);
 
             });
 

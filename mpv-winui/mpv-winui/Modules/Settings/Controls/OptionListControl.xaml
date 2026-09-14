@@ -230,11 +230,24 @@
                             PlaceholderText="{x:Bind Edit.DescriptionPlaceholder}"
                             Text="{x:Bind Description, Mode=TwoWay}"
                             LostFocus="EditDescription_LostFocus" />
-                        <TextBox
-                            Header="{x:Bind Edit.RawCaption}"
-                            PlaceholderText="{x:Bind Edit.RawPlaceholder}"
-                            Text="{x:Bind MpvValue, Mode=TwoWay}"
-                            LostFocus="EditRawValue_LostFocus" />
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox
+                                Grid.Column="0"
+                                Header="{x:Bind Edit.RawKeyCaption}"
+                                PlaceholderText="{x:Bind Edit.RawKeyPlaceholder}"
+                                Text="{x:Bind MpvKey, Mode=TwoWay}"
+                                LostFocus="EditRawKey_LostFocus" />
+                            <TextBox
+                                Grid.Column="1"
+                                Header="{x:Bind Edit.RawCaption}"
+                                PlaceholderText="{x:Bind Edit.RawPlaceholder}"
+                                Text="{x:Bind MpvValue, Mode=TwoWay}"
+                                LostFocus="EditRawValue_LostFocus" />
+                        </Grid>
                         <TextBlock
                             FontSize="11"
                             Foreground="{ThemeResource TextFillColorTertiaryBrush}"

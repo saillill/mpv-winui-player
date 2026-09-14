@@ -120,7 +120,13 @@ public sealed partial class SettingsPage : Page
             Settings.AddRange(options);
             Categories.Clear();
             ActiveCategoryKeys.Clear();
+            _displayedCategoryKeys.Clear();
             var categoryCount = Math.Min(CategoryOrder.Count, CategoryKeys.Length);
+
+            // Pair each stable key with its localized label first: the sidebar
+            // customization reorders and hides pairs, and the two public lists
+            // have to stay index-aligned.
+            var pairs = new List<(string Key, string Label)>(categoryCount);
             for (var i = 0; i < categoryCount; i++)
             {
                 var label = CategoryOrder[i];
@@ -128,8 +134,16 @@ public sealed partial class SettingsPage : Page
                 {
                     continue;
                 }
-                Categories.Add(label);
-                ActiveCategoryKeys.Add(CategoryKeys[i]);
+                pairs.Add((CategoryKeys[i], label));
+            }
+
+            ApplyCategoryLayout(pairs);
+
+            foreach (var pair in pairs)
+            {
+                Categories.Add(pair.Label);
+                ActiveCategoryKeys.Add(pair.Key);
+                _displayedCategoryKeys.Add(pair.Key);
             }
             RebuildSearchIndex();
             RebuildNavigationItems(selectedKey);
@@ -301,7 +315,30 @@ public sealed partial class SettingsPage : Page
             {
                 selectedItem = item;
             }
+
+            // In customize mode the pane entries carry their own edit menu
+            // (move up/down, hide), so the sidebar is customizable too.
+            ApplyCategoryEditMenu(item, key, i);
+
             CategoryNav.MenuItems.Add(item);
+        }
+
+        // A hidden category must be recoverable, otherwise hiding one would be
+        // a one-way trip. The restore entry only exists while customizing.
+        CategoryNav.FooterMenuItems.Clear();
+        if (_customizeMode && _layout.HiddenCategories.Count > 0)
+        {
+            var restore = new NavigationViewItem
+            {
+                Content = AppContext.AppLang.CustomizeRestoreCategories,
+                Icon = new FontIcon { Glyph = "\uE72C" },
+            };
+            restore.Tapped += (_, _) =>
+            {
+                RestoreHiddenCategories();
+                RebuildLocalizedContent();
+            };
+            CategoryNav.FooterMenuItems.Add(restore);
         }
 
         CategoryNav.SelectedItem = selectedItem
@@ -742,6 +779,21 @@ public sealed partial class SettingsPage : Page
 
     private void UpdateOptions()
     {
+        // Customize mode owns the layout: one flat list of the current
+        // category's rows, no section cards and no breadcrumb trail. Returning
+        // early keeps the normal overview/drill-down logic from undoing it.
+        if (_customizeMode)
+        {
+            ResetButton.IsEnabled = true;
+            SectionsHost.Visibility = Visibility.Collapsed;
+            BreadcrumbBar.Visibility = Visibility.Collapsed;
+            OptionsControl.Visibility = Visibility.Visible;
+            OptionsControl.OptionList = CurrentCategory is null
+                ? Settings
+                : Settings.Where(o => o.Category == CurrentCategory).ToList();
+            return;
+        }
+
         // Can run from the constructor (the navigation's initial
         // SelectionChanged) before the top-bar search box is handed over.
         var query = SearchBox?.Text?.Trim() ?? string.Empty;

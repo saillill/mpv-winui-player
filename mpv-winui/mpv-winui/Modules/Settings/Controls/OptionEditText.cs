@@ -11,8 +11,10 @@ public sealed class OptionEditText
     public string NameCaption { get; private set; } = "Name";
     public string DescriptionCaption { get; private set; } = "Description";
     public string DescriptionPlaceholder { get; private set; } = "(leave empty to hide the description)";
-    public string RawCaption { get; private set; } = "Raw mpv key / value";
+    public string RawCaption { get; private set; } = "Raw mpv value";
     public string RawPlaceholder { get; private set; } = "raw mpv option value, e.g. d3d11va";
+    public string RawKeyCaption { get; private set; } = "Raw mpv key";
+    public string RawKeyPlaceholder { get; private set; } = "raw mpv option name, e.g. hwdec";
     public string DeleteTooltip { get; private set; } = "Hide / restore default";
     public string DeleteAutomationName { get; private set; } = "Delete this entry";
     public string HideCaption { get; private set; } = "Hide from the page (keeps the value)";
@@ -27,6 +29,8 @@ public sealed class OptionEditText
         DescriptionPlaceholder = lang.CustomizeFieldDescriptionHint;
         RawCaption = lang.CustomizeFieldRaw;
         RawPlaceholder = lang.CustomizeFieldRawHint;
+        RawKeyCaption = lang.CustomizeFieldRawKey;
+        RawKeyPlaceholder = lang.CustomizeFieldRawKeyHint;
         DeleteTooltip = lang.CustomizeDeleteTip;
         DeleteAutomationName = lang.CustomizeDelete;
         HideCaption = lang.CustomizeHide;

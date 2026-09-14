@@ -1253,12 +1253,32 @@ namespace mpv_winui.Modules.Language
         public string CustomizeFieldName { get; set; } = "Name";
         public string CustomizeFieldDescription { get; set; } = "Description";
         public string CustomizeFieldDescriptionHint { get; set; } = "(leave empty to hide the description)";
-        public string CustomizeFieldRaw { get; set; } = "Raw mpv key / value";
+        public string CustomizeFieldRaw { get; set; } = "Raw mpv value";
         public string CustomizeFieldRawHint { get; set; } = "raw mpv option value, e.g. d3d11va";
+        public string CustomizeFieldRawKey { get; set; } = "Raw mpv key";
+        public string CustomizeFieldRawKeyHint { get; set; } = "raw mpv option name, e.g. hwdec";
         public string CustomizeDelete { get; set; } = "Delete this entry";
         public string CustomizeDeleteTip { get; set; } = "Hide / restore default";
         public string CustomizeHide { get; set; } = "Hide from the page (keeps the value)";
         public string CustomizeReset { get; set; } = "Restore default (clears customization and resets this entry)";
+
+        // ===== Settings: add a custom option =====
+        public string CustomizeAdd { get; set; } = "Add option";
+        public string CustomizeAddHint { get; set; } = "Add a settings row backed by any mpv option.";
+        public string CustomizeAddKind { get; set; } = "Control type";
+        public string CustomizeKindText { get; set; } = "Text box";
+        public string CustomizeKindChoice { get; set; } = "Dropdown";
+        public string CustomizeKindBoolean { get; set; } = "Switch (yes/no)";
+        public string CustomizeAddCategory { get; set; } = "Category";
+        public string CustomizeAddLabelHint { get; set; } = "shown in the list; defaults to the mpv key";
+        public string CustomizeAddChoices { get; set; } = "Dropdown values";
+        public string CustomizeAddChoicesHint { get; set; } = "comma separated, e.g. yes,no,auto";
+
+        // ===== Settings: sidebar customization =====
+        public string CustomizeMoveUp { get; set; } = "Move up";
+        public string CustomizeMoveDown { get; set; } = "Move down";
+        public string CustomizeHideCategory { get; set; } = "Hide this category";
+        public string CustomizeRestoreCategories { get; set; } = "Restore hidden categories";
 
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)

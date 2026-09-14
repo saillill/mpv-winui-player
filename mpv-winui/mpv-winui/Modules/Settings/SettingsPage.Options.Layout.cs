@@ -184,4 +184,190 @@ public sealed partial class SettingsPage
         var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return parts.Length >= 2 && parts[0] == "set" ? parts[1] : string.Empty;
     }
+
+    // ===== sidebar (category pane) customization =====
+
+    /// <summary>
+    /// Reorders/hides the pane entries to match the stored layout. The pairs are
+    /// (stable category key, localized label) so both lists stay in lockstep.
+    /// </summary>
+    private void ApplyCategoryLayout(List<(string Key, string Label)> categories)
+    {
+        if (_layout.CategoryOrder.Count == 0 && _layout.HiddenCategories.Count == 0)
+        {
+            return;
+        }
+
+        // Hidden categories are dropped from the pane entirely; their options
+        // still exist, they are just not reachable from the sidebar.
+        categories.RemoveAll(c => _layout.HiddenCategories.Contains(c.Key));
+
+        if (_layout.CategoryOrder.Count == 0)
+        {
+            return;
+        }
+
+        var rank = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (var i = 0; i < _layout.CategoryOrder.Count; i++)
+        {
+            rank[_layout.CategoryOrder[i]] = i;
+        }
+
+        var ordered = categories
+            .Select((c, index) => (c, index, rankKey: rank.TryGetValue(c.Key, out var r) ? r : int.MaxValue))
+            .OrderBy(x => x.rankKey)
+            .ThenBy(x => x.index)
+            .Select(x => x.c)
+            .ToList();
+
+        categories.Clear();
+        categories.AddRange(ordered);
+    }
+
+    /// <summary>Keys currently shown in the pane, in display order.</summary>
+    private readonly List<string> _displayedCategoryKeys = [];
+
+    /// <summary>Moves a sidebar category one slot up or down.</summary>
+    internal void MoveCategory(int index, int delta)
+    {
+        var target = index + delta;
+        if (index < 0 || index >= _displayedCategoryKeys.Count || target < 0 || target >= _displayedCategoryKeys.Count)
+        {
+            return;
+        }
+
+        var keys = _displayedCategoryKeys.ToList();
+        (keys[index], keys[target]) = (keys[target], keys[index]);
+
+        // Store the full order (hidden ones appended) so unlisted categories do
+        // not snap back to their built-in position on the next launch.
+        _layout.CategoryOrder = keys
+            .Concat(CategoryKeys.Where(k => !keys.Contains(k)))
+            .ToList();
+        SaveLayout();
+    }
+
+    /// <summary>Hides or restores a sidebar category.</summary>
+    internal void SetCategoryHidden(string key, bool hidden)
+    {
+        _layout.HiddenCategories.Remove(key);
+        if (hidden)
+        {
+            _layout.HiddenCategories.Add(key);
+        }
+        SaveLayout();
+    }
+
+    // ===== user-added options =====
+
+    /// <summary>
+    /// Materializes the user's hand-added options as real rows. They carry their
+    /// own Getter/Setter pair, so they behave like built-in rows while their
+    /// value lives in settings-layout.json instead of the AppSettings store.
+    /// </summary>
+    private void AppendCustomOptions(List<Option> options)
+    {
+        if (_layout.Added.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var added in _layout.Added)
+        {
+            if (string.IsNullOrWhiteSpace(added.MpvKey))
+            {
+                continue;
+            }
+
+            var option = new Option
+            {
+                Key = added.Id,
+                Label = added.Label,
+                Description = added.Description,
+                Section = added.Section,
+                MpvKey = added.MpvKey,
+                MpvValue = added.Value,
+                Getter = () => added.Value,
+                Setter = value =>
+                {
+                    added.Value = value as string ?? string.Empty;
+                    SaveLayout();
+                    AppContext.SendMpvCommand($"no-osd set {added.MpvKey} {added.Value}");
+                },
+            };
+
+            switch (added.Kind)
+            {
+                case CustomOptionKinds.Boolean:
+                    option.Type = OptionType.Boolean;
+                    // Boolean rows carry a real bool, so the toggle control works.
+                    option.Getter = () => string.Equals(added.Value, "yes", StringComparison.OrdinalIgnoreCase);
+                    option.Setter = value =>
+                    {
+                        added.Value = value is true ? "yes" : "no";
+                        SaveLayout();
+                        AppContext.SendMpvCommand($"no-osd set {added.MpvKey} {added.Value}");
+                    };
+                    break;
+
+                case CustomOptionKinds.Choice:
+                    option.Type = OptionType.StringList;
+                    option.Choices = added.Choices
+                        .Where(c => !string.IsNullOrWhiteSpace(c))
+                        .Select(c => new OptionChoice(c, c))
+                        .ToList();
+                    option.AllowCustom = false;
+                    break;
+
+                default:
+                    option.Type = OptionType.String;
+                    break;
+            }
+
+            option.Category = ResolveCategoryName(added.CategoryKey) ?? CategoryOrder.FirstOrDefault() ?? "General";
+            option.Edit.Refresh();
+            options.Add(option);
+        }
+    }
+
+    /// <summary>Maps a stable category key back to its localized display name.</summary>
+    private string? ResolveCategoryName(string categoryKey)
+    {
+        var index = Array.IndexOf(CategoryKeys, categoryKey);
+        return index >= 0 && index < CategoryOrder.Count ? CategoryOrder[index] : null;
+    }
+
+    /// <summary>Adds a hand-written option and persists it.</summary>
+    internal void AddCustomOption(string categoryKey, string label, string description, string mpvKey, string kind, IEnumerable<string> choices)
+    {
+        if (string.IsNullOrWhiteSpace(mpvKey))
+        {
+            return;
+        }
+
+        var id = "custom:" + mpvKey.Trim();
+        _layout.Added.RemoveAll(a => string.Equals(a.Id, id, StringComparison.Ordinal));
+        _layout.Added.Add(new CustomOption
+        {
+            Id = id,
+            CategoryKey = categoryKey,
+            Label = string.IsNullOrWhiteSpace(label) ? mpvKey.Trim() : label.Trim(),
+            Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
+            MpvKey = mpvKey.Trim(),
+            Kind = CustomOptionKinds.All.Contains(kind) ? kind : CustomOptionKinds.Text,
+            Choices = choices.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => c.Trim()).ToList(),
+            Value = string.Empty,
+        });
+
+        SaveLayout();
+    }
+
+    /// <summary>Removes a hand-added option.</summary>
+    internal void RemoveCustomOption(string id)
+    {
+        _layout.Added.RemoveAll(a => string.Equals(a.Id, id, StringComparison.Ordinal));
+        _layout.Order.Remove(id);
+        _layout.Entries.Remove(id);
+        SaveLayout();
+    }
 }

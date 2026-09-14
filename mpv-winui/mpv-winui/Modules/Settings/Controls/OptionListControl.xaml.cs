@@ -143,8 +143,8 @@ public sealed partial class OptionListControl : UserControl
     /// <summary>Raised when the row's label / description text changed.</summary>
     public event Action<Option, string?, string?>? TextEdited;
 
-    /// <summary>Raised when the raw mpv value for a row was edited.</summary>
-    public event Action<Option, string?>? RawValueEdited;
+    /// <summary>Raised when the raw mpv key and/or value for a row was edited.</summary>
+    public event Action<Option, string?, string?>? RawEdited;
 
     /// <summary>Raised when the user picks "hide" on a row.</summary>
     public event Action<Option>? HideRequested;
@@ -177,11 +177,19 @@ public sealed partial class OptionListControl : UserControl
         }
     }
 
+    private void EditRawKey_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (RowOption(sender) is { } option)
+        {
+            RawEdited?.Invoke(option, option.MpvKey, option.MpvValue);
+        }
+    }
+
     private void EditRawValue_LostFocus(object sender, RoutedEventArgs e)
     {
         if (RowOption(sender) is { } option)
         {
-            RawValueEdited?.Invoke(option, option.MpvValue);
+            RawEdited?.Invoke(option, option.MpvKey, option.MpvValue);
         }
     }
 
