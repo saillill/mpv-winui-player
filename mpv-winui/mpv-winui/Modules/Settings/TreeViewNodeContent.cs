@@ -1,13 +1,24 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
 
 namespace mpv_winui.Modules.Settings;
 
 /// <summary>
-/// Payload of a folder-tree node in the customize mode's bookmark-manager view.
+/// Row shown in the customize mode's folder tree.
 ///
-/// A node is either a category (1st level) or a folder inside one (2nd level);
-/// both carry the stable key they stand for so a rename or a reorder resolves
-/// without going through the localized caption.
+/// Deliberately a plain payload with no DataTemplate behind it. A TreeView
+/// built from <c>RootNodes</c> hands its template a <see cref="TreeViewNode"/>,
+/// not this object, so an ItemTemplate that binds to this type has to be
+/// declared against the wrong data type and the compiler-generated binding
+/// component then hard-casts a TreeViewNode to it. NavigationView's
+/// <c>MenuItems.Clear()</c> re-enters that component and the bad cast throws an
+/// InvalidCastException, which takes the whole settings page down whenever
+/// customize mode rebuilds the sidebar.
+///
+/// Without a template the TreeView falls back to ToString(), so that is what
+/// produces the label.
 /// </summary>
 public sealed class TreeViewNodeContent
 {
@@ -39,20 +50,20 @@ public sealed class TreeViewNodeContent
     public Controls.OptionEditText Edit { get; set; } = new();
 
     /// <summary>Delete is only meaningful for a folder the user made.</summary>
-    public Microsoft.UI.Xaml.Visibility DeleteVisibility =>
-        IsSection && IsCustom
-            ? Microsoft.UI.Xaml.Visibility.Visible
-            : Microsoft.UI.Xaml.Visibility.Collapsed;
+    public Visibility DeleteVisibility =>
+        IsSection && IsCustom ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>"New folder" only applies to a category node.</summary>
-    public Microsoft.UI.Xaml.Visibility AddFolderVisibility =>
-        CanAddFolder
-            ? Microsoft.UI.Xaml.Visibility.Visible
-            : Microsoft.UI.Xaml.Visibility.Collapsed;
+    public Visibility AddFolderVisibility =>
+        CanAddFolder ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>A category node cannot be renamed (its name is a localized label).</summary>
-    public Microsoft.UI.Xaml.Visibility RenameVisibility =>
-        IsSection
-            ? Microsoft.UI.Xaml.Visibility.Visible
-            : Microsoft.UI.Xaml.Visibility.Collapsed;
+    public Visibility RenameVisibility =>
+        IsSection ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>
+    /// What the tree shows. Also what the UIA name ends up being, so the row
+    /// reads as its label to assistive tech instead of as a type name.
+    /// </summary>
+    public override string ToString() => Text;
 }

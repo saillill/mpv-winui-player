@@ -174,9 +174,19 @@
                                     FontSize="14"
                                     FontWeight="SemiBold" />
                                 <ScrollViewer Grid.Row="1" Padding="4,0,4,8">
-                                    <!-- Content template only: the TreeView
-                                         generates its own containers, so the
-                                         template must not be a TreeViewItem. -->
+                                    <!-- The template is declared against
+                                         TreeViewNode, which is what a TreeView
+                                         over RootNodes actually hands its
+                                         template. Declaring it against the
+                                         payload type instead is what crashed the
+                                         page: the generated binding component
+                                         then hard-casts the TreeViewNode, and
+                                         NavigationView's MenuItems.Clear()
+                                         re-enters that component with the wrong
+                                         object, throwing InvalidCastException.
+                                         Content stays typed as object here, so
+                                         ToString() is a plain virtual call and
+                                         cannot fail. -->
                                     <TreeView
                                         x:Name="FolderTree"
                                         AllowDrop="True"
@@ -187,28 +197,23 @@
                                         SelectionMode="Single"
                                         SelectionChanged="FolderTree_SelectionChanged">
                                         <TreeView.ItemTemplate>
-                                            <DataTemplate x:DataType="local:TreeViewNodeContent">
-                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <DataTemplate x:DataType="TreeViewNode">
+                                                <StackPanel
+                                                    Orientation="Horizontal"
+                                                    Spacing="8"
+                                                    ContextFlyout="{x:Bind local:TreeHelpers.MenuFor(Content)}">
                                                     <FontIcon
                                                         VerticalAlignment="Center"
                                                         FontSize="14"
                                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Glyph="{x:Bind Glyph}" />
+                                                        Glyph="{x:Bind local:TreeHelpers.GlyphFor(Content)}" />
                                                     <TextBlock
                                                         VerticalAlignment="Center"
-                                                        Text="{x:Bind Text}"
+                                                        Text="{x:Bind local:TreeHelpers.TextFor(Content)}"
                                                         TextTrimming="CharacterEllipsis" />
                                                 </StackPanel>
                                             </DataTemplate>
                                         </TreeView.ItemTemplate>
-                                        <TreeView.ItemContainerStyle>
-                                            <!-- The node carries its own flyout,
-                                                 built by the page; the container
-                                                 just exposes it. -->
-                                            <Style TargetType="TreeViewItem">
-                                                <Setter Property="ContextFlyout" Value="{Binding Edit.Menu}" />
-                                            </Style>
-                                        </TreeView.ItemContainerStyle>
                                     </TreeView>
                                 </ScrollViewer>
                             </Grid>
