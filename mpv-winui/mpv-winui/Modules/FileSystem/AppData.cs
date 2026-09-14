@@ -13,9 +13,15 @@ namespace mpv_winui.Modules.FileSystem
 
         public static AppData Current => _lazy.Value;
 
-        public const string AppDataId = "mpvw";
+        // ApplicationData identity. The upstream merge briefly adopted the
+        // upstream values ("ikas-mc" / "mpvw"), which silently moved the
+        // settings registry container AND the local-data folder (logs,
+        // caches). Installs created by this fork keep both under
+        // "mpv-winui", and so do the helper components that read those
+        // paths, so keep the fork identity here.
+        public const string AppDataId = "mpv-winui";
 
-        public const string AppDataPublisher = "ikas-mc";
+        public const string AppDataPublisher = "mpv-winui";
 
         private static readonly Lazy<StorageFolder> _localFolder = new(EnsureLocalFolder, true);
 

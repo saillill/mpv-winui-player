@@ -1,4 +1,4 @@
-using Microsoft.UI.Input;
+﻿using Microsoft.UI.Input;
 using Microsoft.UI.Xaml.Input;
 using mpv;
 using System;
@@ -260,7 +260,7 @@ namespace mpv_winui.Modules.Player
 
             if (_logger.IsTraceEnabled)
             {
-                var keyName = Keycodes.mp_input_get_key_name(button);
+                var keyName = $"btn{button}";
                 _logger.Debug("Send Mouse Wheel, x={}, y={}, key={}, count={}", x, y, keyName, count);
             }
         }

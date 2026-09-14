@@ -1,4 +1,4 @@
-using Microsoft.Graphics.Display;
+﻿using Microsoft.Graphics.Display;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -257,7 +257,7 @@ namespace mpv_winui.Modules.Player
                 _lastRefreshRate = rate;
                 if (ShouldAutoApplyRefreshRate())
                 {
-                    _mediaPlayer?.UpdateDisplayRefreshRate(rate);
+                    _mediaPlayer?.UpdateDisplayRefreshRate((int)rate);
                 }
             }
             ApplyDisplayPeak();

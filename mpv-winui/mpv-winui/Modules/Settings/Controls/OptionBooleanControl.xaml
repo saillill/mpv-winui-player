@@ -7,44 +7,45 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid ColumnSpacing="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Grid VerticalAlignment="Center">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="24" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <FontIcon
-            x:Name="TypeIcon"
-            Grid.RowSpan="2"
+        <StackPanel
+            Grid.Column="0"
             VerticalAlignment="Center"
-            FontSize="20"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Glyph="&#xE713;" />
-        <TextBlock
-            x:Name="LabelText"
-            Grid.Column="1"
-            Style="{StaticResource BodyTextBlockStyle}"
-            TextWrapping="Wrap" />
-        <TextBlock
-            x:Name="DescriptionText"
-            Grid.Row="1"
-            Grid.Column="1"
-            Margin="0,2,0,0"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
+            Spacing="2">
+            <TextBlock
+                x:Name="LabelText"
+                Style="{StaticResource BodyTextBlockStyle}"
+                TextWrapping="Wrap" />
+            <TextBlock
+                x:Name="DescriptionText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+            <TextBlock
+                x:Name="WarningText"
+                Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+        </StackPanel>
+        <!-- Stock WinUI toggle: the official template's track is already a
+             40x20 rounded pill pinned to the right of the control; the wide
+             default MinWidth (with room for a beside-track caption) is what
+             made it drift off the card edge. MinWidth=0 collapses that room
+             so the track alone hugs the card's right edge. No custom
+             template: copying the WinUI2 template styles broke at runtime,
+             since those theme keys do not exist in Windows App SDK. -->
         <ToggleSwitch
             x:Name="ToggleSwitch"
-            Grid.RowSpan="2"
-            Grid.Column="2"
+            Grid.Column="1"
+            MinWidth="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            Style="{StaticResource LeftContentToggleSwitchStyle}"
             Toggled="OnToggled" />
     </Grid>
 </local:OptionControlBase>

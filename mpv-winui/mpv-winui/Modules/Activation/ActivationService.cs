@@ -140,30 +140,6 @@ namespace mpv_winui.Modules.Activation
         {
             switch (activatedArgs.Kind)
             {
-                case ExtendedActivationKind.Launch:
-                {
-                    if (activatedArgs.Data is ILaunchActivatedEventArgs launchArgs)
-                    {
-                        string arguments = launchArgs.Arguments;
-                        if (AppContext.AppLogger.IsDebugEnabled)
-                        {
-                            AppContext.AppLogger.Debug("app launch, Arguments={}", arguments);
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(arguments))
-                        {
-                            var args = await Win32CommandLineParser.ParseAsync(arguments, true);
-                            if (args.Count > 0 && !string.IsNullOrEmpty(args[0]))
-                            {
-                                var item = await ParseUriToFileItem(args[0]);
-                                return item == null ? [] : (FileItem[])[item];
-                            }
-                        }
-                    }
-
-                    break;
-                }
-
                 case ExtendedActivationKind.File:
                 {
                     if (activatedArgs.Data is Windows.ApplicationModel.Activation.IFileActivatedEventArgs fileArgs)

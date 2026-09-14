@@ -37,8 +37,9 @@ public sealed partial class OptionDoubleControl : OptionControlBase
     {
         if (newValue is not null)
         {
-            ApplyText(LabelText, DescriptionText, newValue);
-            ApplyIcon(TypeIcon, newValue);
+            LabelText.Text = newValue.Label;
+            UpdateDescription(DescriptionText);
+            NumberBox.IsEnabled = newValue.IsEnabled;
 
             if (newValue.Min.HasValue)
             {

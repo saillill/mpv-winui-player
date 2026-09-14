@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
@@ -243,7 +243,7 @@ public sealed partial class MpvConfEditorPage : Page
                     _logger.Debug("option applied to player, key={}, value={}", item.Key, value);
                 }
 
-                window.ApplyMpvOption(item.Key, value);
+                AppContext.SendMpvCommand($"no-osd set {item.Key} {value}");
                 ShowMessage($"Applied {item.Key}={value} to player.");
             }
         }

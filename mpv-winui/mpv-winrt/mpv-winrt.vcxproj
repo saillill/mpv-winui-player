@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.props" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.props')" />
   <Import Project="..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.props" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.props')" />
@@ -18,8 +18,6 @@
     <DefaultLanguage>zh-CN</DefaultLanguage>
     <MinimumVisualStudioVersion>16.0</MinimumVisualStudioVersion>
     <AppContainerApplication>false</AppContainerApplication>
-    <ApplicationType>Windows Store</ApplicationType>
-    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
     <WindowsTargetPlatformVersion Condition=" '$(WindowsTargetPlatformVersion)' == '' ">10.0.26100.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.22000.0</WindowsTargetPlatformMinVersion>
     <DesktopCompatible>true</DesktopCompatible>
@@ -81,9 +79,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>mpv_winrt</TargetName>
+    <OutDir>$(ProjectDir)..\bin\$(Platform)\$(Configuration)\mpv_winrt\</OutDir>
+    <IntDir>$(ProjectDir)..\obj\$(Platform)\$(Configuration)\mpv_winrt\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>mpv_winrt</TargetName>
+    <OutDir>$(ProjectDir)..\bin\$(Platform)\$(Configuration)\mpv_winrt\</OutDir>
+    <IntDir>$(ProjectDir)..\obj\$(Platform)\$(Configuration)\mpv_winrt\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -91,8 +93,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level4</WarningLevel>
-      <LanguageStandard Condition="'$(VisualStudioVersion)' &gt;= '18.0'">stdcpp20</LanguageStandard>
-      <LanguageStandard Condition="'$(VisualStudioVersion)' &lt; '18.0'">stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>%(AdditionalOptions) /bigobj /utf-8</AdditionalOptions>
       <PreprocessorDefinitions>_WINRT_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>$(WindowsSDK_WindowsMetadata);$(AdditionalUsingDirectories)</AdditionalUsingDirectories>
@@ -106,7 +107,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(MSBuildThisFileDirectory)..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)Generated Files\sources;$(MSBuildThisFileDirectory)..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
@@ -117,7 +118,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(MSBuildThisFileDirectory)..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)Generated Files\sources;$(MSBuildThisFileDirectory)..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -136,6 +137,7 @@
     <ClInclude Include="MpvProfile.h" />
     <ClInclude Include="MpvMenuItem.h" />
     <ClInclude Include="MpvTrack.h" />
+    <ClInclude Include="PlaybackFailedEventArgs.h" />
     <ClInclude Include="PlaybackStateChangedEventArgs.h" />
     <ClInclude Include="VolumeChangedEventArgs.h" />
     <ClInclude Include="PositionChangedEventArgs.h" />
@@ -157,6 +159,10 @@
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Midl Include="MpvGpuAdapter.idl" />
+    <Midl Include="MpvLogEventArgs.idl" />
+    <Midl Include="PlaybackFailedEventArgs.idl" />
+
     <Midl Include="DisplayColorKind.idl" />
     <Midl Include="DiscType.idl" />
     <Midl Include="TrackType.idl" />
@@ -191,6 +197,13 @@
       <DeploymentContent>false</DeploymentContent>
     </Text>
   </ItemGroup>
+  <!-- WebView2: 仅保留 winmd 引用供 cppwinrt 投影（WinUI 的 IWebView2 依赖其类型）；
+       不导入其 build targets，避免 C++ 侧再产出一份 WebView2Loader.dll 造成重复部署。 -->
+  <ItemGroup>
+    <Reference Include="Microsoft.Web.WebView2.Core">
+      <HintPath>..\packages\Microsoft.Web.WebView2.1.0.4129.50\lib\Microsoft.Web.WebView2.Core.winmd</HintPath>
+    </Reference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.targets" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.targets')" />
@@ -198,7 +211,6 @@
     <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
     <Import Project="..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets" Condition="Exists('..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets')" />
     <Import Project="..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.targets" Condition="Exists('..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.targets')" />
-    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.4129.50\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.4129.50\build\native\Microsoft.Web.WebView2.targets')" />
     <Import Project="..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.targets" Condition="Exists('..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.targets')" />
     <Import Project="..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets')" />
     <Import Project="..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.targets" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.targets')" />
@@ -217,7 +229,6 @@
     <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets'))" />
     <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.props'))" />
     <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.4129.50\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.4129.50\build\native\Microsoft.Web.WebView2.targets'))" />
     <Error Condition="!Exists('..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.props'))" />
     <Error Condition="!Exists('..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.targets'))" />
     <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props'))" />

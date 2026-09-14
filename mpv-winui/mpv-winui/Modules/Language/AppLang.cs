@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
@@ -36,7 +36,6 @@ namespace mpv_winui.Modules.Language
         public string Expand { get; set; } = "Expand";
         public string Collapse { get; set; } = "Collapse";
         public string Apply { get; set; } = "Apply";
-        public string Close { get; set; } = "Close";
         public string Search { get; set; } = "Search";
         public string SearchPlaceholder { get; set; } = "Find a setting";
         public string AdvancedSettings { get; set; } = "Advanced settings";
@@ -286,6 +285,48 @@ namespace mpv_winui.Modules.Language
         public string MenuAudio { get; set; } = "Audio";
         public string MenuSubtitles { get; set; } = "Subtitles";
         public string MenuTools { get; set; } = "Tools";
+        // Menu entries that were authored inline in the old XAML menu bar and
+        // never had a language key; added so the config-driven menu
+        // (Menus/menus.json) can render them localized.
+        public string FileOpenDvda { get; set; } = "Open DVDA";
+        public string FileOpenCdda { get; set; } = "Open CD";
+        public string FileOpenCdImage { get; set; } = "Open CD Img";
+        public string FileOpenDvdImage { get; set; } = "Open DVD Img";
+        public string FileOpenDvdaImage { get; set; } = "Open DVDA Img";
+        public string FileOpenBdImage { get; set; } = "Open BD Img";
+        public string ViewAlwaysOnTop { get; set; } = "Always On Top";
+        public string ViewMpvConfEditor { get; set; } = "Mpv Conf Editor";
+        public string ViewMpvMenuEditor { get; set; } = "Mpv Menu Editor";
+        public string ViewMenuBarEditor { get; set; } = "Menu Bar Editor";
+        public string ViewMpvConf { get; set; } = "mpv.conf";
+        public string ViewMpvwConf { get; set; } = "mpvw.conf";
+        public string ViewInputConf { get; set; } = "input.conf";
+        public string ViewMenuConf { get; set; } = "menu.conf";
+        public string ViewMpvLog { get; set; } = "mpv.log";
+        public string ViewMpvwMenuConf { get; set; } = "mpvw-menu.conf";
+        public string ViewMediaInfo { get; set; } = "Media Info";
+
+        // ===== Media info window =====
+        public string MediaInfoTitle { get; set; } = "Media info";
+        public string MediaInfoNoFile { get; set; } = "Nothing is playing, so there is no media to inspect.";
+        public string MediaInfoLoading { get; set; } = "Reading media info…";
+        public string MediaInfoFailed { get; set; } = "Could not read the media info for this file.";
+        public string MediaInfoGeneral { get; set; } = "General";
+        public string MediaInfoVideo { get; set; } = "Video";
+        public string MediaInfoAudio { get; set; } = "Audio";
+        public string MediaInfoText { get; set; } = "Subtitles";
+        public string MediaInfoMenuSection { get; set; } = "Menu";
+        public string MediaInfoOther { get; set; } = "Other";
+        public string MediaInfoCopyAll { get; set; } = "Copy all";
+        public string MediaInfoCopied { get; set; } = "Copied to the clipboard.";
+        public string MediaInfoEmptySection { get; set; } = "No details reported.";
+        public string MediaInfoPoweredBy { get; set; } = "Media info provided by MediaInfoLib";
+        public string MediaInfoTrackCount { get; set; } = "tracks";
+
+        public string LinkMpvWiki { get; set; } = "Mpv Wiki";
+        public string LinkMpvManual { get; set; } = "Mpv Manual";
+        public string LinkMpvManualStable { get; set; } = "Mpv Manual (Stable)";
+        public string LinkMpvwWiki { get; set; } = "Mpvw Wiki";
         public string PlaybackPlayPause { get; set; } = "Play / Pause";
         public string PlaybackPrevious { get; set; } = "Previous";
         public string PlaybackNext { get; set; } = "Next";
@@ -1224,6 +1265,132 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpVideoRotate { get; set; } = "Rotate the video by 90-degree steps.";
         public string SettingsHelpDitherDepth { get; set; } = "Target bit depth for dithered output; Auto matches the video.";
 
+        // ===== Settings: inline customize mode =====
+        public string SettingsCustomize { get; set; } = "Customize";
+        public string SettingsCustomizeHint { get; set; } = "Reorder by dragging, rename, edit the raw mpv value, hide or restore each settings entry.";
+        public string CustomizeFieldName { get; set; } = "Name";
+        public string CustomizeFieldDescription { get; set; } = "Description";
+        public string CustomizeFieldDescriptionHint { get; set; } = "(leave empty to hide the description)";
+        public string CustomizeFieldRaw { get; set; } = "Raw mpv value";
+        public string CustomizeFieldRawHint { get; set; } = "raw mpv option value, e.g. d3d11va";
+        public string CustomizeFieldRawKey { get; set; } = "Raw mpv key";
+        public string CustomizeFieldRawKeyHint { get; set; } = "raw mpv option name, e.g. hwdec";
+        public string CustomizeDelete { get; set; } = "Delete this entry";
+        public string CustomizeDeleteTip { get; set; } = "Hide / restore default";
+        public string CustomizeHide { get; set; } = "Hide from the page (keeps the value)";
+        public string CustomizeReset { get; set; } = "Restore default (clears customization and resets this entry)";
+
+        // ===== Settings: add a custom option =====
+        public string CustomizeAdd { get; set; } = "Add option";
+        public string CustomizeAddHint { get; set; } = "Add a settings row backed by any mpv option.";
+        public string CustomizeAddKind { get; set; } = "Control type";
+        public string CustomizeKindText { get; set; } = "Text box";
+        public string CustomizeKindChoice { get; set; } = "Dropdown";
+        public string CustomizeKindBoolean { get; set; } = "Switch (yes/no)";
+        public string CustomizeAddCategory { get; set; } = "Category";
+        public string CustomizeAddLabelHint { get; set; } = "shown in the list; defaults to the mpv key";
+        public string CustomizeAddChoices { get; set; } = "Dropdown values";
+        public string CustomizeAddChoicesHint { get; set; } = "comma separated, e.g. yes,no,auto";
+
+        // ===== Settings: sidebar customization =====
+        public string CustomizeMoveUp { get; set; } = "Move up";
+        public string CustomizeMoveDown { get; set; } = "Move down";
+        public string CustomizeHideCategory { get; set; } = "Hide this category";
+        public string CustomizeHideSection { get; set; } = "Hide this section";
+        public string CustomizeSectionTip { get; set; } = "Move or hide this section";
+        public string CustomizeRestoreCategories { get; set; } = "Restore hidden categories";
+
+        /// <summary>Create a 2nd-level folder (section) of the user's own.</summary>
+        public string CustomizeNewSection { get; set; } = "New folder";
+
+        /// <summary>Body of the create-folder dialog.</summary>
+        public string CustomizeNewSectionHint { get; set; } = "Rows can then be dragged into it.";
+
+        /// <summary>Shown under a folder that holds no row yet.</summary>
+        public string CustomizeEmptySection { get; set; } = "Empty folder — drag a card here";
+
+        /// <summary>Removes a folder the user created.</summary>
+        public string CustomizeDeleteSection { get; set; } = "Delete this folder";
+
+        /// <summary>Tooltip of the per-row "move into folder" button.</summary>
+        public string CustomizeMoveToSection { get; set; } = "Move into a folder";
+
+        // ===== Settings: rename (built-in and user-created entries) =====
+
+        /// <summary>Title of the rename dialog.</summary>
+        public string CustomizeRename { get; set; } = "Rename";
+
+        /// <summary>Placeholder of the rename box.</summary>
+        public string CustomizeRenamePlaceholder { get; set; } = "leave empty to restore the built-in name";
+
+        /// <summary>Placeholder of the description box in the rename dialog.</summary>
+        public string CustomizeRenameDescriptionPlaceholder { get; set; } = "optional single-line note";
+
+        /// <summary>Explains the scope choice for a built-in (localized) entry.</summary>
+        public string CustomizeRenameHint { get; set; } = "Built-in names come from the language files, so this is stored as your own override. Leaving the name empty restores the built-in one.";
+
+        /// <summary>Hint shown when renaming a folder the user created.</summary>
+        public string CustomizeRenameFolderHint { get; set; } = "This folder is yours, so the name is stored as content and applies in every language.";
+
+        /// <summary>Header of the scope switch.</summary>
+        public string CustomizeScope { get; set; } = "Applies to";
+
+        /// <summary>Scope: only the language in use right now.</summary>
+        public string CustomizeScopeCurrent { get; set; } = "This language";
+
+        /// <summary>Scope: every language.</summary>
+        public string CustomizeScopeAll { get; set; } = "All languages";
+
+        // ===== Settings: advanced option editor =====
+
+        /// <summary>Opens the advanced editor for an option.</summary>
+        public string CustomizeEditAdvanced { get; set; } = "Edit option…";
+
+        /// <summary>Opens the advanced editor to add a new option.</summary>
+        public string CustomizeAddAdvanced { get; set; } = "Add option…";
+
+        /// <summary>Hint under the advanced editor's title.</summary>
+        public string CustomizeAdvancedHint { get; set; } = "Define a settings row of your own, backed by any mpv option.";
+
+        /// <summary>Field: raw mpv option name.</summary>
+        public string CustomizeFieldMpvKey { get; set; } = "mpv option";
+
+        /// <summary>Placeholder for the mpv option name.</summary>
+        public string CustomizeFieldMpvKeyPlaceholder { get; set; } = "e.g. hwdec";
+
+        /// <summary>Field: default value.</summary>
+        public string CustomizeFieldDefault { get; set; } = "Default value";
+
+        /// <summary>Field: dropdown choices.</summary>
+        public string CustomizeFieldChoices { get; set; } = "Dropdown values";
+
+        /// <summary>Validation: the mpv option name is required.</summary>
+        public string CustomizeErrorKeyRequired { get; set; } = "Enter the mpv option name.";
+
+        /// <summary>Validation: the mpv option name has illegal characters.</summary>
+        public string CustomizeErrorKeyInvalid { get; set; } = "An mpv option name may only contain letters, digits, '-', '_' and '.'.";
+
+        /// <summary>Validation: that mpv option is already bound by another row.</summary>
+        public string CustomizeErrorKeyDuplicate { get; set; } = "Another row already edits this mpv option.";
+
+        /// <summary>Validation: the label is too long.</summary>
+        public string CustomizeErrorLabelTooLong { get; set; } = "The name is too long (max {0} characters).";
+
+        /// <summary>Validation: the description is too long.</summary>
+        public string CustomizeErrorDescriptionTooLong { get; set; } = "The description is too long (max {0} characters).";
+
+        /// <summary>Validation: a dropdown needs at least two values.</summary>
+        public string CustomizeErrorChoicesTooFew { get; set; } = "A dropdown needs at least two values, separated by commas.";
+
+        /// <summary>Validation: the default value is not one of the dropdown values.</summary>
+        public string CustomizeErrorDefaultNotInChoices { get; set; } = "The default must be one of the dropdown values.";
+
+        /// <summary>Validation: a boolean default must be yes or no.</summary>
+        public string CustomizeErrorBooleanDefault { get; set; } = "A switch default must be yes or no.";
+
+        /// <summary>Validation: a numeric default is malformed.</summary>
+        public string CustomizeErrorNumberDefault { get; set; } = "The default must be a number.";
+
         /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
         public void LoadFromJson(string path)
         {
@@ -1246,5 +1413,424 @@ namespace mpv_winui.Modules.Language
                 // A broken language file falls back to defaults.
             }
         }
+
+        // ===== Customize mode shell =====
+        // The customize mode owns its own vocabulary: a draft boundary,
+        // a folder tree, and prompts for the things it can add.
+        public string ApplyAndExit
+        {
+            get => CustomizeStrings.Get(nameof(ApplyAndExit)) ?? _fallback_ApplyAndExit;
+            set => _fallback_ApplyAndExit = value;
+        }
+
+        private string _fallback_ApplyAndExit = "Apply & exit";
+
+        public string CustomizeUndoTip
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeUndoTip)) ?? _fallback_CustomizeUndoTip;
+            set => _fallback_CustomizeUndoTip = value;
+        }
+
+        private string _fallback_CustomizeUndoTip = "Undo the last change";
+
+        public string CustomizeRedoTip
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeRedoTip)) ?? _fallback_CustomizeRedoTip;
+            set => _fallback_CustomizeRedoTip = value;
+        }
+
+        private string _fallback_CustomizeRedoTip = "Redo the change you just undid";
+
+        public string CustomizeResetSessionTip
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeResetSessionTip)) ?? _fallback_CustomizeResetSessionTip;
+            set => _fallback_CustomizeResetSessionTip = value;
+        }
+
+        private string _fallback_CustomizeResetSessionTip = "Discard every change made in this session";
+
+        public string CustomizeDirtyNotice
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeDirtyNotice)) ?? _fallback_CustomizeDirtyNotice;
+            set => _fallback_CustomizeDirtyNotice = value;
+        }
+
+        private string _fallback_CustomizeDirtyNotice = "You have unsaved changes. Apply them before leaving, or discard them.";
+
+        public string CustomizeSavedNotice
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeSavedNotice)) ?? _fallback_CustomizeSavedNotice;
+            set => _fallback_CustomizeSavedNotice = value;
+        }
+
+        private string _fallback_CustomizeSavedNotice = "Changes applied.";
+
+        public string CustomizeDiscardedNotice
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeDiscardedNotice)) ?? _fallback_CustomizeDiscardedNotice;
+            set => _fallback_CustomizeDiscardedNotice = value;
+        }
+
+        private string _fallback_CustomizeDiscardedNotice = "Changes discarded.";
+
+        public string CustomizeExitTitle
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeExitTitle)) ?? _fallback_CustomizeExitTitle;
+            set => _fallback_CustomizeExitTitle = value;
+        }
+
+        private string _fallback_CustomizeExitTitle = "Leave customize mode?";
+
+        public string CustomizeExitBody
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeExitBody)) ?? _fallback_CustomizeExitBody;
+            set => _fallback_CustomizeExitBody = value;
+        }
+
+        private string _fallback_CustomizeExitBody = "You have changes that have not been applied. Leaving now keeps them unapplied until you save.";
+
+        public string CustomizeExitApply
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeExitApply)) ?? _fallback_CustomizeExitApply;
+            set => _fallback_CustomizeExitApply = value;
+        }
+
+        private string _fallback_CustomizeExitApply = "Apply and exit";
+
+        public string CustomizeExitDiscard
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeExitDiscard)) ?? _fallback_CustomizeExitDiscard;
+            set => _fallback_CustomizeExitDiscard = value;
+        }
+
+        private string _fallback_CustomizeExitDiscard = "Discard and exit";
+
+        public string CustomizeReadOnlyNotice
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeReadOnlyNotice)) ?? _fallback_CustomizeReadOnlyNotice;
+            set => _fallback_CustomizeReadOnlyNotice = value;
+        }
+
+        private string _fallback_CustomizeReadOnlyNotice = "This view only changes how the settings page looks on this device. It never changes an option's value.";
+
+        public string CustomizeScopeBannerTitle
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeScopeBannerTitle)) ?? _fallback_CustomizeScopeBannerTitle;
+            set => _fallback_CustomizeScopeBannerTitle = value;
+        }
+
+        private string _fallback_CustomizeScopeBannerTitle = "Local layout only";
+
+        public string CustomizeScopeLanguageNote
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeScopeLanguageNote)) ?? _fallback_CustomizeScopeLanguageNote;
+            set => _fallback_CustomizeScopeLanguageNote = value;
+        }
+
+        private string _fallback_CustomizeScopeLanguageNote = "Renames are saved for the current language unless you choose “all languages”.";
+
+        public string CustomizeAddTopLevel
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeAddTopLevel)) ?? _fallback_CustomizeAddTopLevel;
+            set => _fallback_CustomizeAddTopLevel = value;
+        }
+
+        private string _fallback_CustomizeAddTopLevel = "Add category";
+
+        public string CustomizeAddTopLevelHint
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeAddTopLevelHint)) ?? _fallback_CustomizeAddTopLevelHint;
+            set => _fallback_CustomizeAddTopLevelHint = value;
+        }
+
+        private string _fallback_CustomizeAddTopLevelHint = "Add a group to the sidebar, or define a new option.";
+
+        public string CustomizeAddIconOption
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeAddIconOption)) ?? _fallback_CustomizeAddIconOption;
+            set => _fallback_CustomizeAddIconOption = value;
+        }
+
+        private string _fallback_CustomizeAddIconOption = "Add a new option…";
+
+        public string CustomizeAddIconOptionHint
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeAddIconOptionHint)) ?? _fallback_CustomizeAddIconOptionHint;
+            set => _fallback_CustomizeAddIconOptionHint = value;
+        }
+
+        private string _fallback_CustomizeAddIconOptionHint = "Define a setting row backed by any mpv option.";
+
+        public string CustomizeAddFolderOption
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeAddFolderOption)) ?? _fallback_CustomizeAddFolderOption;
+            set => _fallback_CustomizeAddFolderOption = value;
+        }
+
+        private string _fallback_CustomizeAddFolderOption = "Add a folder";
+
+        public string CustomizeAddFolderOptionHint
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeAddFolderOptionHint)) ?? _fallback_CustomizeAddFolderOptionHint;
+            set => _fallback_CustomizeAddFolderOptionHint = value;
+        }
+
+        private string _fallback_CustomizeAddFolderOptionHint = "Create a folder inside the selected category.";
+
+        public string CustomizeAddCategoryOption
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeAddCategoryOption)) ?? _fallback_CustomizeAddCategoryOption;
+            set => _fallback_CustomizeAddCategoryOption = value;
+        }
+
+        private string _fallback_CustomizeAddCategoryOption = "Add a sidebar category…";
+
+        public string CustomizeAddCategoryOptionHint
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeAddCategoryOptionHint)) ?? _fallback_CustomizeAddCategoryOptionHint;
+            set => _fallback_CustomizeAddCategoryOptionHint = value;
+        }
+
+        private string _fallback_CustomizeAddCategoryOptionHint = "Create a new top-level category for the sidebar.";
+
+        public string CustomizeNewCategory
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeNewCategory)) ?? _fallback_CustomizeNewCategory;
+            set => _fallback_CustomizeNewCategory = value;
+        }
+
+        private string _fallback_CustomizeNewCategory = "New category";
+
+        public string CustomizeNewCategoryHint
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeNewCategoryHint)) ?? _fallback_CustomizeNewCategoryHint;
+            set => _fallback_CustomizeNewCategoryHint = value;
+        }
+
+        private string _fallback_CustomizeNewCategoryHint = "The category appears in the sidebar and can hold cards and folders.";
+
+        public string CustomizeNewCategoryIcon
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeNewCategoryIcon)) ?? _fallback_CustomizeNewCategoryIcon;
+            set => _fallback_CustomizeNewCategoryIcon = value;
+        }
+
+        private string _fallback_CustomizeNewCategoryIcon = "Icon";
+
+        public string CustomizeDragHandleTip
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeDragHandleTip)) ?? _fallback_CustomizeDragHandleTip;
+            set => _fallback_CustomizeDragHandleTip = value;
+        }
+
+        private string _fallback_CustomizeDragHandleTip = "Drag to reorder";
+
+        public string CustomizeUnfiledHeader
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeUnfiledHeader)) ?? _fallback_CustomizeUnfiledHeader;
+            set => _fallback_CustomizeUnfiledHeader = value;
+        }
+
+        private string _fallback_CustomizeUnfiledHeader = "Not in any folder";
+
+        public string CustomizeUnfiledHint
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeUnfiledHint)) ?? _fallback_CustomizeUnfiledHint;
+            set => _fallback_CustomizeUnfiledHint = value;
+        }
+
+        private string _fallback_CustomizeUnfiledHint = "These cards are outside every folder. Drag one up into a folder to file it.";
+
+        public string CustomizeSectionHeader
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeSectionHeader)) ?? _fallback_CustomizeSectionHeader;
+            set => _fallback_CustomizeSectionHeader = value;
+        }
+
+        private string _fallback_CustomizeSectionHeader = "In this folder";
+
+        public string CustomizeSectionHeaderHint
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeSectionHeaderHint)) ?? _fallback_CustomizeSectionHeaderHint;
+            set => _fallback_CustomizeSectionHeaderHint = value;
+        }
+
+        private string _fallback_CustomizeSectionHeaderHint = "Cards filed in this folder.";
+
+        public string CustomizeCollapseSidebarTip
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeCollapseSidebarTip)) ?? _fallback_CustomizeCollapseSidebarTip;
+            set => _fallback_CustomizeCollapseSidebarTip = value;
+        }
+
+        private string _fallback_CustomizeCollapseSidebarTip = "Collapse the sidebar";
+
+        public string CustomizeExpandSidebarTip
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeExpandSidebarTip)) ?? _fallback_CustomizeExpandSidebarTip;
+            set => _fallback_CustomizeExpandSidebarTip = value;
+        }
+
+        private string _fallback_CustomizeExpandSidebarTip = "Expand the sidebar";
+
+        public string CustomizeEditItem
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeEditItem)) ?? _fallback_CustomizeEditItem;
+            set => _fallback_CustomizeEditItem = value;
+        }
+
+        private string _fallback_CustomizeEditItem = "Edit";
+
+        public string CustomizeEditItemTip
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeEditItemTip)) ?? _fallback_CustomizeEditItemTip;
+            set => _fallback_CustomizeEditItemTip = value;
+        }
+
+        private string _fallback_CustomizeEditItemTip = "Edit the name, description and mpv key";
+
+        public string CustomizeCopyItem
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeCopyItem)) ?? _fallback_CustomizeCopyItem;
+            set => _fallback_CustomizeCopyItem = value;
+        }
+
+        private string _fallback_CustomizeCopyItem = "Copy settings";
+
+        public string CustomizePasteItem
+        {
+            get => CustomizeStrings.Get(nameof(CustomizePasteItem)) ?? _fallback_CustomizePasteItem;
+            set => _fallback_CustomizePasteItem = value;
+        }
+
+        private string _fallback_CustomizePasteItem = "Paste settings";
+
+        public string CustomizePasteEmpty
+        {
+            get => CustomizeStrings.Get(nameof(CustomizePasteEmpty)) ?? _fallback_CustomizePasteEmpty;
+            set => _fallback_CustomizePasteEmpty = value;
+        }
+
+        private string _fallback_CustomizePasteEmpty = "Nothing has been copied yet.";
+
+        public string CustomizeDuplicateItem
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeDuplicateItem)) ?? _fallback_CustomizeDuplicateItem;
+            set => _fallback_CustomizeDuplicateItem = value;
+        }
+
+        private string _fallback_CustomizeDuplicateItem = "Duplicate";
+
+        public string CustomizeItemCopied
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeItemCopied)) ?? _fallback_CustomizeItemCopied;
+            set => _fallback_CustomizeItemCopied = value;
+        }
+
+        private string _fallback_CustomizeItemCopied = "Copied. Right-click another card to paste.";
+
+        public string CustomizeDeleteConfirmTitle
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeDeleteConfirmTitle)) ?? _fallback_CustomizeDeleteConfirmTitle;
+            set => _fallback_CustomizeDeleteConfirmTitle = value;
+        }
+
+        private string _fallback_CustomizeDeleteConfirmTitle = "Remove this card?";
+
+        public string CustomizeDeleteConfirmBody
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeDeleteConfirmBody)) ?? _fallback_CustomizeDeleteConfirmBody;
+            set => _fallback_CustomizeDeleteConfirmBody = value;
+        }
+
+        private string _fallback_CustomizeDeleteConfirmBody = "The card is hidden from the settings page. Its value is kept and you can restore it later.";
+
+        public string CustomizeHideNotice
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeHideNotice)) ?? _fallback_CustomizeHideNotice;
+            set => _fallback_CustomizeHideNotice = value;
+        }
+
+        private string _fallback_CustomizeHideNotice = "Card hidden. Use “Restore hidden” in the sidebar to bring it back.";
+
+        public string CustomizeRestoredNotice
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeRestoredNotice)) ?? _fallback_CustomizeRestoredNotice;
+            set => _fallback_CustomizeRestoredNotice = value;
+        }
+
+        private string _fallback_CustomizeRestoredNotice = "Hidden cards restored.";
+
+        public string CustomizeInvalidValueTitle
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeInvalidValueTitle)) ?? _fallback_CustomizeInvalidValueTitle;
+            set => _fallback_CustomizeInvalidValueTitle = value;
+        }
+
+        private string _fallback_CustomizeInvalidValueTitle = "That value will not work";
+
+        public string CustomizeNoSelectionTitle
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeNoSelectionTitle)) ?? _fallback_CustomizeNoSelectionTitle;
+            set => _fallback_CustomizeNoSelectionTitle = value;
+        }
+
+        private string _fallback_CustomizeNoSelectionTitle = "Select a folder first";
+
+        public string CustomizeNoSelectionBody
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeNoSelectionBody)) ?? _fallback_CustomizeNoSelectionBody;
+            set => _fallback_CustomizeNoSelectionBody = value;
+        }
+
+        private string _fallback_CustomizeNoSelectionBody = "Pick a category or folder on the left, then add.";
+
+        public string CustomizeUndo
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeUndo)) ?? _fallback_CustomizeUndo;
+            set => _fallback_CustomizeUndo = value;
+        }
+
+        private string _fallback_CustomizeUndo = "Undo";
+
+        public string CustomizeRedo
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeRedo)) ?? _fallback_CustomizeRedo;
+            set => _fallback_CustomizeRedo = value;
+        }
+
+        private string _fallback_CustomizeRedo = "Redo";
+
+        public string CustomizeDiscardSession
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeDiscardSession)) ?? _fallback_CustomizeDiscardSession;
+            set => _fallback_CustomizeDiscardSession = value;
+        }
+
+        private string _fallback_CustomizeDiscardSession = "Discard changes";
+
+        public string CustomizeExit
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeExit)) ?? _fallback_CustomizeExit;
+            set => _fallback_CustomizeExit = value;
+        }
+
+        private string _fallback_CustomizeExit = "Exit";
+
+        public string CustomizeApplyTip
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeApplyTip)) ?? _fallback_CustomizeApplyTip;
+            set => _fallback_CustomizeApplyTip = value;
+        }
+
+        private string _fallback_CustomizeApplyTip = "Save this session's layout changes and leave customize mode";
+
+        public string CustomizeExitTip
+        {
+            get => CustomizeStrings.Get(nameof(CustomizeExitTip)) ?? _fallback_CustomizeExitTip;
+            set => _fallback_CustomizeExitTip = value;
+        }
+
+        private string _fallback_CustomizeExitTip = "Leave customize mode; unsaved changes are confirmed first";
     }
 }

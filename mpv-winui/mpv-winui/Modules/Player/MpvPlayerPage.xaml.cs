@@ -95,20 +95,19 @@ namespace mpv_winui.Modules.Player
                 // hdr_auto registers its script-message handler after mpv
                 // scripts load; the startup batch races that registration, so
                 // the saved HDR mode is applied once the first file loads.
-                _mediaPlayer.MediaOpened += MpvPlayerPage_ApplyHdrModeOnce;
+                _mediaPlayer.FileLoaded += MpvPlayerPage_ApplyHdrModeOnce;
 
                 SetupKeyboardInput();
                 SetupMouseInput();
 
-                if (AppContext.AppSetting.EnableVideoPreview)
+                if (AppContext.AppSetting.EnableVideoPreview || AppContext.AppSetting.EnableVideoBuiltInPreview)
                 {
                     SetupPreview();
                 }
-                if (AppContext.AppSetting.EnableVideoBuiltInPreview)
-                {
-                    SetupBuiltInPreview();
-                }
 
+                // Config-driven menu bar (Menus/menus.json + user override).
+                // Falls back to the XAML-declared items when no definition loads.
+                BuildMainMenuBar();
                 SetupCustomMenuBarItems();
 
                 OpenPendingPath().FireAndForget(OnException);
@@ -157,11 +156,10 @@ namespace mpv_winui.Modules.Player
             CleanupPreview();
             ClosePiPWindow();
             CleanupPlayControl();
-            CleanupBuiltInPreview();
             _mediaPlayer.Destroy();
         }
 
-        private void MpvPlayerPage_ApplyHdrModeOnce(MpvMediaPlayer player, object? args)
+        private void MpvPlayerPage_ApplyHdrModeOnce()
         {
             if (_hdrModeAppliedOnce)
             {
@@ -173,19 +171,40 @@ namespace mpv_winui.Modules.Player
 
         private void AppContext_SettingChanged(string key, object? value)
         {
-            if (key == nameof(AppContext.AppSetting.EnableVideoPreview))
+            if (key == nameof(AppContext.AppSetting.EnableVideoPreview)
+                || key == nameof(AppContext.AppSetting.EnableVideoBuiltInPreview))
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    var enabled = value is bool b && b;
+                    var enabled = key == nameof(AppContext.AppSetting.EnableVideoBuiltInPreview)
+                        ? (value is bool b2 && b2) || AppContext.AppSetting.EnableVideoPreview
+                        : (value is bool b && b) || AppContext.AppSetting.EnableVideoBuiltInPreview;
+
                     PlayerControl.EnablePreviewEvents(enabled);
+                    CleanupPreview();
                     if (enabled)
                     {
                         SetupPreview();
                     }
-                    else
+                });
+            }
+            else if (key == nameof(AppContext.AppSetting.KeepVideoBuiltInPreviewAlive))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (MpvPreview is not null)
                     {
-                        CleanupPreview();
+                        MpvPreview.KeepAlive = value is bool b && b;
+                    }
+                });
+            }
+            else if (key == nameof(AppContext.AppSetting.BuiltInPreviewAliveTimeout))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (MpvPreview is not null)
+                    {
+                        MpvPreview.KeepAliveTimeout = Convert.ToInt32(value);
                     }
                 });
             }
@@ -221,7 +240,7 @@ namespace mpv_winui.Modules.Player
             {
                 ApplyLocalizedStrings();
                 PlayerControl.ApplyLocalizedStrings();
-                BuildMainMenuBar();
+                RebuildMenuBar();
             });
         }
 
@@ -251,7 +270,7 @@ namespace mpv_winui.Modules.Player
             await AppContext.WaitAll();
             _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
-            _mediaPlayer.Native.VoConfigured += MpvPlayer_SwapChainChanged;
+            _mediaPlayer.VoConfigured += MpvPlayer_SwapChainChanged;
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
                 ? AppContext.AppSetting.OverrideDisplayFps
                 : _lastRefreshRate;
@@ -265,6 +284,8 @@ namespace mpv_winui.Modules.Player
         private void MpvPlayerPage_VolumeChanged(VolumeChangedEventArgs args)
         {
             AppContext.AppSetting.LastVideoVolume = (int)args.Volume;
+        }
+
         // A drop (or menu open) landing while CreateAsync is still running
         // used to enqueue loadfile into a native handle that silently no-ops
         // before initialization, losing the request. Callers now await this.
@@ -305,7 +326,7 @@ namespace mpv_winui.Modules.Player
             try
             {
                 _mediaPlayer.Command(["quit-watch-later"]);
-                _ = _mediaPlayer.SaveWatchHistory;
+                _ = _mediaPlayer.SaveWatchHistory();
             }
             catch (Exception ex)
             {

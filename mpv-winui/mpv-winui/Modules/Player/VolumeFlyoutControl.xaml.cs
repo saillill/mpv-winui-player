@@ -5,7 +5,7 @@ using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using System;
 
-namespace mpv_winui.Modules.Player.PlayerControl
+namespace mpv_winui.Modules.Player
 {
     //TODO use state
     public sealed partial class VolumeFlyoutControl : UserControl

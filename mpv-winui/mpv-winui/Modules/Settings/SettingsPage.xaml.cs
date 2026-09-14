@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Modules.AppModel;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
 using mpv_winui.Modules.Player;
@@ -72,6 +73,7 @@ public sealed partial class SettingsPage : Page
     {
         _isUnpackaged = !PackageHelper.IsPackaged;
         InitializeComponent();
+        InitCustomizeMode();
         _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
         WarmDeviceChoices();
         LoadSearchHistory();
@@ -104,6 +106,12 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private void RebuildLocalizedContent()
     {
+        // Section captions are localized, and the caption -> stable-id map is
+        // cached: a language switch changes every caption, so the cache has to
+        // go before the tree is rebuilt.
+        // Fully qualified because the page also exposes a `Layout` property,
+        // which shadows the namespace of the same name inside this class.
+        global::mpv_winui.Modules.Settings.Layout.SettingsSectionIds.Invalidate();
         var selectedKey = CurrentCategoryKey;
         var offset = OptionsControl.GetScrollOffset();
         // Section labels are localized; a drilled-in section cannot survive
@@ -118,7 +126,13 @@ public sealed partial class SettingsPage : Page
             Settings.AddRange(options);
             Categories.Clear();
             ActiveCategoryKeys.Clear();
+            _displayedCategoryKeys.Clear();
             var categoryCount = Math.Min(CategoryOrder.Count, CategoryKeys.Length);
+
+            // Pair each stable key with its localized label first: the sidebar
+            // customization reorders and hides pairs, and the two public lists
+            // have to stay index-aligned.
+            var pairs = new List<(string Key, string Label)>(categoryCount);
             for (var i = 0; i < categoryCount; i++)
             {
                 var label = CategoryOrder[i];
@@ -126,19 +140,44 @@ public sealed partial class SettingsPage : Page
                 {
                     continue;
                 }
-                Categories.Add(label);
-                ActiveCategoryKeys.Add(CategoryKeys[i]);
+                pairs.Add((CategoryKeys[i], label));
+            }
+
+            // Categories the user created sit alongside the built-in ones. They
+            // start empty, so they are appended after the layout pass: the
+            // built-in filter above drops a category with no options, which
+            // would also drop a freshly made one.
+            foreach (var category in _layout.CustomCategories)
+            {
+                pairs.Add((category.Id, category.DisplayFor(ActiveLanguageKey)));
+            }
+
+            ApplyCategoryLayout(pairs);
+
+            foreach (var pair in pairs)
+            {
+                Categories.Add(pair.Label);
+                ActiveCategoryKeys.Add(pair.Key);
+                _displayedCategoryKeys.Add(pair.Key);
             }
             RebuildSearchIndex();
             RebuildNavigationItems(selectedKey);
             ResetButton.Content = AppContext.AppLang.ResetCurrentCategory;
             ResetAllButton.Content = AppContext.AppLang.ResetAllSettings;
+            UpdateCustomizeToggleText();
+            if (_customizeMode)
+            {
+                ApplyCustomizeChrome();
+                UpdateCustomizeFooter();
+                ShowCustomizeStatus(_draft.IsDirty ? CustomizeStatus.Dirty : CustomizeStatus.None);
+            }
             if (SearchBox is not null)
             {
                 SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
                 AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
             }
-            var backTip = AppContext.AppLang.CommonBack;            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
+            var backTip = AppContext.AppLang.CommonBack;
+            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
             AutomationProperties.SetName(BreadcrumbBackButton, backTip);
             RefreshWarningsAndEnabled();
             UpdateOptions();
@@ -265,8 +304,57 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private string? CurrentCategoryKey =>
-        CategoryNav.SelectedItem is NavigationViewItem item ? item.Tag as string : null;
+    /// <summary>
+    /// Stable key of the category a new row would go into. While customizing,
+    /// the NavigationView pane is hidden and the folder tree is what the user
+    /// is actually navigating, so the tree's selection wins. Falling back to
+    /// the pane there is what made "new option" a no-op: the tree had moved on
+    /// while the pane still pointed at whatever it held when it was hidden.
+    /// </summary>
+    private string? CurrentCategoryKey
+    {
+        get
+        {
+            if (_customizeMode && ResolveTreeCategoryKey() is { } fromTree)
+            {
+                return fromTree;
+            }
+
+            return CategoryNav.SelectedItem is NavigationViewItem item ? item.Tag as string : null;
+        }
+    }
+
+    /// <summary>
+    /// The category the tree selection belongs to. A selected folder resolves
+    /// to its parent category, so adding while a folder is open files the new
+    /// row where the user is looking rather than silently doing nothing.
+    /// </summary>
+    private string? ResolveTreeCategoryKey()
+    {
+        if (FolderTree.SelectedNode?.Content is not TreeViewNodeContent content)
+        {
+            return null;
+        }
+
+        if (!content.IsSection)
+        {
+            return content.CategoryKey;
+        }
+
+        // A folder node carries no category of its own; look up its parent.
+        foreach (var root in FolderTree.RootNodes)
+        {
+            foreach (var child in root.Children)
+            {
+                if (ReferenceEquals(child, FolderTree.SelectedNode))
+                {
+                    return (root.Content as TreeViewNodeContent)?.CategoryKey;
+                }
+            }
+        }
+
+        return null;
+    }
 
     /// <summary>The current vertical scroll offset of the options list.</summary>
     public double CurrentScrollOffset => OptionsControl.GetScrollOffset();
@@ -290,7 +378,7 @@ public sealed partial class SettingsPage : Page
                 Tag = key,
                 Icon = new FontIcon
                 {
-                    Glyph = CategoryGlyphs[Array.IndexOf(CategoryKeys, key)],
+                    Glyph = GlyphForCategoryKey(key),
                     FontFamily = CreateCategoryIconFont(),
                 },
             };
@@ -298,7 +386,33 @@ public sealed partial class SettingsPage : Page
             {
                 selectedItem = item;
             }
+
+            // In customize mode the pane entries carry their own edit menu
+            // (move up/down, hide), and can be dragged onto each other to
+            // reorder, so the sidebar is customizable too.
+            ApplyCategoryEditMenu(item, key, i);
+            AttachCategoryDrag(item, i);
+
             CategoryNav.MenuItems.Add(item);
+        }
+
+        // A hidden category or section must be recoverable, otherwise hiding is
+        // a one-way trip. The restore entry only exists while customizing.
+        CategoryNav.FooterMenuItems.Clear();
+        if (_customizeMode && (_layout.HiddenCategories.Count > 0 || _layout.HiddenSections.Count > 0))
+        {
+            var restore = new NavigationViewItem
+            {
+                Content = AppContext.AppLang.CustomizeRestoreCategories,
+                Icon = new FontIcon { Glyph = "\uE72C" },
+            };
+            restore.Tapped += (_, _) =>
+            {
+                RestoreHiddenCategories();
+                RestoreHiddenSections();
+                RebuildLocalizedContent();
+            };
+            CategoryNav.FooterMenuItems.Add(restore);
         }
 
         CategoryNav.SelectedItem = selectedItem
@@ -388,7 +502,7 @@ public sealed partial class SettingsPage : Page
         MpvSettings.ApplyAll(cmd => AppContext.SendMpvCommand(cmd));
         if (App.Window is MainWindow mainWindow)
         {
-            mainWindow.UpdateCurrentTheme();
+            mainWindow.UpdateTheme();
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.BackdropType), AppContext.AppSetting.BackdropType);
             AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.EnableDebugLog), AppContext.AppSetting.EnableDebugLog);
         }
@@ -739,6 +853,32 @@ public sealed partial class SettingsPage : Page
 
     private void UpdateOptions()
     {
+        // Customize mode owns the layout: the bookmark-manager surface (folder
+        // tree + the selected node's cards) replaces the browsing view. The
+        // tree is rebuilt here so its labels follow the language and its node
+        // set follows the current option tree.
+        if (_customizeMode)
+        {
+            // UpdateOptions runs on every rebuild — the constructor, a language
+            // switch, a reset, the customize toggle — and the browsing branch
+            // below re-shows BreadcrumbBar unconditionally. Re-assert the mode's
+            // own visibility here so a rebuild triggered while customizing
+            // cannot leave the trail sitting on top of the tree.
+            BrowseHost.Visibility = Visibility.Collapsed;
+            CustomizeRoot.Visibility = Visibility.Visible;
+            BreadcrumbBar.Visibility = Visibility.Collapsed;
+            SectionsHost.Visibility = Visibility.Collapsed;
+            ResetButton.IsEnabled = true;
+            BuildCustomizeTree();
+            UpdateCustomizePane();
+
+            // Both hosts must lay out before the cards can be measured; the
+            // pane is filled here and its containers are realised on the next
+            // pass.
+            CustomizeRoot.UpdateLayout();
+            return;
+        }
+
         // Can run from the constructor (the navigation's initial
         // SelectionChanged) before the top-bar search box is handed over.
         var query = SearchBox?.Text?.Trim() ?? string.Empty;

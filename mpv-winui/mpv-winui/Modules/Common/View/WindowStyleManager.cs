@@ -1,4 +1,4 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -38,7 +38,7 @@ public sealed class WindowStyleManager : IDisposable
     {
         _theme = GetThemeType();
         UpdateTitleBarColors(_theme);
-        UpdateContentTheme(_theme);
+        SetContentTheme(_theme);
         UpdateUiFont();
 
         ApplyBackdrop();
@@ -111,7 +111,7 @@ public sealed class WindowStyleManager : IDisposable
         }
 
         _theme = theme;
-        UpdateContentTheme(theme);
+        SetContentTheme(theme);
         UpdateTitleBarColors(theme);
     }
 
@@ -132,42 +132,6 @@ public sealed class WindowStyleManager : IDisposable
         });
     }
 
-    private void SetBackdrop(string backdropType)
-    {
-        _micaController?.RemoveAllSystemBackdropTargets();
-        _acrylicController?.RemoveAllSystemBackdropTargets();
-
-        switch (backdropType)
-        {
-            case AppSettings.BackdropType_Mica:
-            {
-                if (MicaController.IsSupported())
-                {
-                    if (null == _micaController)
-                    {
-                        _micaController = new MicaController();
-                        _micaController?.SetSystemBackdropConfiguration(_configurationSource);
-                    }
-                    _micaController?.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
-                }
-
-                break;
-            }
-            default:
-            {
-                if (DesktopAcrylicController.IsSupported())
-                {
-                    if (null == _acrylicController)
-                    {
-                        _acrylicController = new DesktopAcrylicController();
-                        _acrylicController?.SetSystemBackdropConfiguration(_configurationSource);
-                    }
-                    _acrylicController?.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
-                }
-                break;
-            }
-        }
-    }
 
     private void SetContentTheme(ElementTheme theme)
     {
