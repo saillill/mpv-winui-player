@@ -52,9 +52,6 @@ public sealed partial class SettingsPage
                 option.Description = entry.Description;
             }
 
-            option.MpvKey = entry.MpvKey;
-            option.MpvValue = entry.MpvValue;
-
             // Hidden rows are filtered out of the normal list by IsVisible; the
             // customize mode ignores that flag so they can be brought back.
             if (entry.Hidden)
@@ -98,30 +95,6 @@ public sealed partial class SettingsPage
         SaveLayout();
     }
 
-    /// <summary>
-    /// Stores the raw mpv key/value override and pushes it to the player.
-    /// Label/description are deliberately NOT writable here: they come from the
-    /// language files, so a user rewrite would be overwritten (or would fight)
-    /// the localization on the next language switch.
-    /// </summary>
-    internal void StoreMpvOverride(Option option, string? mpvKey, string? mpvValue)
-    {
-        var entry = _layout.EntryFor(option.Key);
-        entry.MpvKey = string.IsNullOrWhiteSpace(mpvKey) ? null : mpvKey.Trim();
-        entry.MpvValue = mpvValue;
-        _layout.Prune(option.Key);
-        SaveLayout();
-        option.MpvKey = entry.MpvKey;
-        option.MpvValue = entry.MpvValue;
-
-        // A raw value is authoritative: apply it immediately so the user sees
-        // the effect without leaving the settings page.
-        if (!string.IsNullOrWhiteSpace(entry.MpvKey) && !string.IsNullOrWhiteSpace(entry.MpvValue))
-        {
-            AppContext.SendMpvCommand($"no-osd set {entry.MpvKey} {entry.MpvValue}");
-        }
-    }
-
     /// <summary>Hides a row (its stored setting value is kept) or brings it back.</summary>
     internal void SetHidden(Option option, bool hidden)
     {
@@ -149,35 +122,6 @@ public sealed partial class SettingsPage
         }
 
         option.IsVisible = true;
-        option.MpvKey = null;
-        option.MpvValue = null;
-    }
-
-    /// <summary>The raw mpv command the row currently publishes, for display.</summary>
-    internal static string DescribeRawCommand(Option option)
-    {
-        if (!string.IsNullOrWhiteSpace(option.MpvKey))
-        {
-            return $"set {option.MpvKey} {option.MpvValue}";
-        }
-
-        try
-        {
-            var value = option.Getter?.Invoke();
-            return value is null ? string.Empty : MpvSettings.ToCommand(option.Key, value) ?? string.Empty;
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-
-    /// <summary>Lazily suggests the raw mpv option name for a row, e.g. "hwdec".</summary>
-    internal static string SuggestMpvKey(Option option)
-    {
-        var command = DescribeRawCommand(option);
-        var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return parts.Length >= 2 && parts[0] == "set" ? parts[1] : string.Empty;
     }
 
     // ===== sidebar (category pane) customization =====
@@ -251,85 +195,6 @@ public sealed partial class SettingsPage
             _layout.HiddenCategories.Add(key);
         }
         SaveLayout();
-    }
-
-    // ===== user-added options =====
-
-    /// <summary>
-    /// Materializes the user's hand-added options as real rows. They carry their
-    /// own Getter/Setter pair, so they behave like built-in rows while their
-    /// value lives in settings-layout.json instead of the AppSettings store.
-    /// </summary>
-    private void AppendCustomOptions(List<Option> options)
-    {
-        if (_layout.Added.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var added in _layout.Added)
-        {
-            if (string.IsNullOrWhiteSpace(added.MpvKey))
-            {
-                continue;
-            }
-
-            var option = new Option
-            {
-                Key = added.Id,
-                Label = added.Label,
-                Description = added.Description,
-                Section = added.Section,
-                MpvKey = added.MpvKey,
-                MpvValue = added.Value,
-                Getter = () => added.Value,
-                Setter = value =>
-                {
-                    added.Value = value as string ?? string.Empty;
-                    SaveLayout();
-                    AppContext.SendMpvCommand($"no-osd set {added.MpvKey} {added.Value}");
-                },
-            };
-
-            switch (added.Kind)
-            {
-                case CustomOptionKinds.Boolean:
-                    option.Type = OptionType.Boolean;
-                    // Boolean rows carry a real bool, so the toggle control works.
-                    option.Getter = () => string.Equals(added.Value, "yes", StringComparison.OrdinalIgnoreCase);
-                    option.Setter = value =>
-                    {
-                        added.Value = value is true ? "yes" : "no";
-                        SaveLayout();
-                        AppContext.SendMpvCommand($"no-osd set {added.MpvKey} {added.Value}");
-                    };
-                    break;
-
-                case CustomOptionKinds.Choice:
-                    option.Type = OptionType.StringList;
-                    option.Choices = added.Choices
-                        .Where(c => !string.IsNullOrWhiteSpace(c))
-                        .Select(c => new OptionChoice(c, c))
-                        .ToList();
-                    option.AllowCustom = false;
-                    break;
-
-                default:
-                    option.Type = OptionType.String;
-                    break;
-            }
-
-            option.Category = ResolveCategoryName(added.CategoryKey) ?? CategoryOrder.FirstOrDefault() ?? "General";
-            option.Edit.Refresh();
-            options.Add(option);
-        }
-    }
-
-    /// <summary>Maps a stable category key back to its localized display name.</summary>
-    private string? ResolveCategoryName(string categoryKey)
-    {
-        var index = Array.IndexOf(CategoryKeys, categoryKey);
-        return index >= 0 && index < CategoryOrder.Count ? CategoryOrder[index] : null;
     }
 
     // ===== section (2nd-level / column) customization =====
@@ -436,37 +301,4 @@ public sealed partial class SettingsPage
         SaveLayout();
     }
 
-    /// <summary>Adds a hand-written option and persists it.</summary>
-    internal void AddCustomOption(string categoryKey, string label, string description, string mpvKey, string kind, IEnumerable<string> choices)
-    {
-        if (string.IsNullOrWhiteSpace(mpvKey))
-        {
-            return;
-        }
-
-        var id = "custom:" + mpvKey.Trim();
-        _layout.Added.RemoveAll(a => string.Equals(a.Id, id, StringComparison.Ordinal));
-        _layout.Added.Add(new CustomOption
-        {
-            Id = id,
-            CategoryKey = categoryKey,
-            Label = string.IsNullOrWhiteSpace(label) ? mpvKey.Trim() : label.Trim(),
-            Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
-            MpvKey = mpvKey.Trim(),
-            Kind = CustomOptionKinds.All.Contains(kind) ? kind : CustomOptionKinds.Text,
-            Choices = choices.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => c.Trim()).ToList(),
-            Value = string.Empty,
-        });
-
-        SaveLayout();
-    }
-
-    /// <summary>Removes a hand-added option.</summary>
-    internal void RemoveCustomOption(string id)
-    {
-        _layout.Added.RemoveAll(a => string.Equals(a.Id, id, StringComparison.Ordinal));
-        _layout.Order.Remove(id);
-        _layout.Entries.Remove(id);
-        SaveLayout();
-    }
 }

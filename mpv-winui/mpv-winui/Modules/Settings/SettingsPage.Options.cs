@@ -863,10 +863,6 @@ private List<Option> BuildSettings()
 
         CategoryOrder.AddRange(categoryOrder);
 
-        // Rows the user added by hand; their value lives in the layout file and
-        // is pushed to mpv directly, so they behave like built-in rows.
-        AppendCustomOptions(options);
-
         // Customize-mode captions are localized, so refresh them with the rest
         // of the page before the stored layout is merged in.
         foreach (var option in options)

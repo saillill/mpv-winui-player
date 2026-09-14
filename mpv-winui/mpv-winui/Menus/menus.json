@@ -84,14 +84,7 @@
       { "id": "media-info", "labelKey": "ViewMediaInfo", "action": "media-info" },
       { "separator": true },
       { "id": "conf-folder", "labelKey": "ViewConfFolder", "action": "conf-folder" },
-      { "id": "mpv-folder", "labelKey": "ViewMpvFolder", "action": "mpv-folder" },
-      { "separator": true },
-      { "id": "open-mpv-conf", "labelKey": "ViewMpvConf", "action": "open-mpv-conf" },
-      { "id": "open-mpvw-conf", "labelKey": "ViewMpvwConf", "action": "open-mpvw-conf" },
-      { "id": "open-input-conf", "labelKey": "ViewInputConf", "action": "open-input-conf" },
-      { "id": "open-menu-conf", "labelKey": "ViewMenuConf", "action": "open-menu-conf" },
-      { "id": "open-mpv-log", "labelKey": "ViewMpvLog", "action": "open-mpv-log" },
-      { "id": "open-mpwv-menu-conf", "labelKey": "ViewMpvwMenuConf", "action": "open-mpwv-menu-conf" }
+      { "id": "mpv-folder", "labelKey": "ViewMpvFolder", "action": "mpv-folder" }
     ]
   },
   {

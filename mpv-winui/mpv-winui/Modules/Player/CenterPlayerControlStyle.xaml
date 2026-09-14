@@ -133,7 +133,7 @@
                                     <Button.Content>
                                         <FontIcon
                                             x:Name="AudioMuteSymbol"
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xE995;" />
                                     </Button.Content>
                                 </Button>
@@ -180,7 +180,7 @@
                                     Visibility="Collapsed">
                                     <Button.Content>
                                         <FontIcon
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xF8AC;" />
                                     </Button.Content>
                                 </Button>
@@ -189,7 +189,7 @@
                                     Style="{StaticResource SquareIconButtonStyle}">
                                     <Button.Content>
                                         <FontIcon
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xED3C;" />
                                     </Button.Content>
                                 </Button>
@@ -217,7 +217,7 @@
                                     Style="{StaticResource SquareIconButtonStyle}">
                                     <Button.Content>
                                         <FontIcon
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xED3D;" />
                                     </Button.Content>
                                 </Button>
@@ -227,7 +227,7 @@
                                     Visibility="Collapsed">
                                     <Button.Content>
                                         <FontIcon
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xF8AD;" />
                                     </Button.Content>
                                 </Button>
@@ -237,7 +237,7 @@
                                     <Button.Content>
                                         <FontIcon
                                             x:Name="RepeatSymbol"
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xE8EE;" />
                                     </Button.Content>
                                 </Button>
@@ -263,7 +263,7 @@
                                     Style="{StaticResource SquareIconButtonStyle}">
                                     <Button.Content>
                                         <FontIcon
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xEC57;" />
                                     </Button.Content>
                                     <Button.Flyout>
@@ -313,7 +313,7 @@
                                     <Button.Content>
                                         <FontIcon
                                             FontFamily="Segoe Fluent Icons"
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xED1F;" />
                                     </Button.Content>
                                     <Button.Flyout>
@@ -342,7 +342,7 @@
                                     Style="{StaticResource SquareIconButtonStyle}">
                                     <Button.Content>
                                         <FontIcon
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xE799;" />
                                     </Button.Content>
                                     <Button.Flyout>
@@ -357,7 +357,7 @@
                                     <Button.Content>
                                         <FontIcon
                                             x:Name="FullWindowSymbol"
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xF16B;" />
                                     </Button.Content>
                                 </Button>
@@ -367,7 +367,7 @@
                                     <Button.Content>
                                         <FontIcon
                                             x:Name="FullScreenSymbol"
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xE740;" />
                                     </Button.Content>
                                 </Button>
@@ -378,7 +378,7 @@
                                     Visibility="Collapsed">
                                     <Button.Content>
                                         <FontIcon
-                                            FontSize="16"
+                                            FontSize="22"
                                             Glyph="&#xE10C;" />
                                     </Button.Content>
                                     <Button.Flyout>

@@ -270,9 +270,10 @@
                         Glyph="&#xE76F;" />
 
                     <StackPanel Grid.Column="1" Spacing="6">
-                        <!-- The label/description are shown read-only: they come
-                             from the language files, so letting the user rewrite
-                             them here would fight the localization. -->
+                        <!-- Label/description are read-only: they come from the
+                             language files. There is deliberately no key/value
+                             editor here either — this mode only rearranges the
+                             page, it does not retarget options. -->
                         <StackPanel Spacing="2">
                             <TextBlock
                                 FontWeight="SemiBold"
@@ -284,24 +285,6 @@
                                 Text="{x:Bind Description}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBox
-                                Grid.Column="0"
-                                Header="{x:Bind Edit.RawKeyCaption}"
-                                PlaceholderText="{x:Bind Edit.RawKeyPlaceholder}"
-                                Text="{x:Bind MpvKey, Mode=TwoWay}"
-                                LostFocus="EditRawKey_LostFocus" />
-                            <TextBox
-                                Grid.Column="1"
-                                Header="{x:Bind Edit.RawCaption}"
-                                PlaceholderText="{x:Bind Edit.RawPlaceholder}"
-                                Text="{x:Bind MpvValue, Mode=TwoWay}"
-                                LostFocus="EditRawValue_LostFocus" />
-                        </Grid>
                         <TextBlock
                             FontSize="11"
                             Foreground="{ThemeResource TextFillColorTertiaryBrush}"

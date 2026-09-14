@@ -70,7 +70,7 @@
                                 <Button.Content>
                                     <FontIcon
                                         x:Name="PlayPauseSymbol"
-                                        FontSize="16"
+                                        FontSize="20"
                                         Glyph="&#xF5B0;" />
                                 </Button.Content>
                             </Button>
@@ -79,7 +79,7 @@
                                 Style="{StaticResource SquareIconButtonStyle}">
                                 <Button.Content>
                                     <FontIcon
-                                        FontSize="16"
+                                        FontSize="20"
                                         Glyph="&#xF8AC;" />
                                 </Button.Content>
                             </Button>
@@ -88,7 +88,7 @@
                                 Style="{StaticResource SquareIconButtonStyle}">
                                 <Button.Content>
                                     <FontIcon
-                                        FontSize="16"
+                                        FontSize="20"
                                         Glyph="&#xF8AD;" />
                                 </Button.Content>
                             </Button>
@@ -155,7 +155,7 @@
                                 <Button.Content>
                                     <FontIcon
                                         x:Name="AudioMuteSymbol"
-                                        FontSize="16"
+                                        FontSize="20"
                                         Glyph="&#xE995;" />
                                 </Button.Content>
                             </Button>
@@ -165,7 +165,7 @@
                                 <Button.Content>
                                     <FontIcon
                                         x:Name="FullWindowSymbol"
-                                        FontSize="16"
+                                        FontSize="20"
                                         Glyph="&#xF16B;" />
                                 </Button.Content>
                             </Button>
@@ -175,7 +175,7 @@
                                 <Button.Content>
                                     <FontIcon
                                         x:Name="FullScreenSymbol"
-                                        FontSize="16"
+                                        FontSize="20"
                                         Glyph="&#xE740;" />
                                 </Button.Content>
                             </Button>
@@ -185,7 +185,7 @@
                                 Style="{StaticResource SquareIconButtonStyle}">
                                 <Button.Content>
                                     <FontIcon
-                                        FontSize="16"
+                                        FontSize="20"
                                         Glyph="&#xE10C;" />
                                 </Button.Content>
                                 <Button.Flyout>

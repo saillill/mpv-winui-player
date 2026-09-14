@@ -150,7 +150,6 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock
                             x:Name="SaveStatusText"
@@ -170,24 +169,13 @@
                             </StackPanel>
                         </ToggleButton>
                         <Button
-                            x:Name="AddOptionButton"
-                            Grid.Column="2"
-                            MinWidth="96"
-                            Click="OnAddOptionClick"
-                            Visibility="Collapsed">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontSize="14" Glyph="&#xE710;" />
-                                <TextBlock x:Name="AddOptionButtonText" />
-                            </StackPanel>
-                        </Button>
-                        <Button
                             x:Name="ResetButton"
-                            Grid.Column="3"
+                            Grid.Column="2"
                             MinWidth="96"
                             Click="OnResetClick" />
                         <Button
                             x:Name="ResetAllButton"
-                            Grid.Column="4"
+                            Grid.Column="3"
                             MinWidth="96"
                             Click="OnResetAllClick" />
                     </Grid>

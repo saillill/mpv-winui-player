@@ -8,10 +8,6 @@ namespace mpv_winui.Modules.Settings.Controls;
 /// </summary>
 public sealed class OptionEditText
 {
-    public string RawCaption { get; private set; } = "Raw mpv value";
-    public string RawPlaceholder { get; private set; } = "raw mpv option value, e.g. d3d11va";
-    public string RawKeyCaption { get; private set; } = "Raw mpv key";
-    public string RawKeyPlaceholder { get; private set; } = "raw mpv option name, e.g. hwdec";
     public string DeleteTooltip { get; private set; } = "Hide / restore default";
     public string DeleteAutomationName { get; private set; } = "Delete this entry";
     public string HideCaption { get; private set; } = "Hide from the page (keeps the value)";
@@ -25,10 +21,6 @@ public sealed class OptionEditText
     public void Refresh()
     {
         var lang = AppContext.AppLang;
-        RawCaption = lang.CustomizeFieldRaw;
-        RawPlaceholder = lang.CustomizeFieldRawHint;
-        RawKeyCaption = lang.CustomizeFieldRawKey;
-        RawKeyPlaceholder = lang.CustomizeFieldRawKeyHint;
         DeleteTooltip = lang.CustomizeDeleteTip;
         DeleteAutomationName = lang.CustomizeDelete;
         HideCaption = lang.CustomizeHide;

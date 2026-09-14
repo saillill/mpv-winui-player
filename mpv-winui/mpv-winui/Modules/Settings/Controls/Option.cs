@@ -340,25 +340,6 @@ public sealed class Option : INotifyPropertyChanged
     /// <summary>Localized captions used by the inline customize-mode row.</summary>
     public OptionEditText Edit { get; } = new();
 
-    /// <summary>
-    /// Raw mpv option name this row publishes, as shown/edited by the
-    /// customize mode (e.g. "hwdec"). Null while the row uses the mapping
-    /// derived from <see cref="Key"/>.
-    /// </summary>
-    public string? MpvKey
-    {
-        get; set;
-    }
-
-    /// <summary>
-    /// Raw value forced for <see cref="MpvKey"/>. When set it is sent verbatim
-    /// and wins over whatever the row's own value control would send.
-    /// </summary>
-    public string? MpvValue
-    {
-        get; set;
-    }
-
     public bool AllowEmpty
     {
         get; set;

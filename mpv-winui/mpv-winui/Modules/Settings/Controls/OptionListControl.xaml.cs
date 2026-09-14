@@ -154,9 +154,6 @@ public sealed partial class OptionListControl : UserControl
             }
         }));
 
-    /// <summary>Raised when the raw mpv key and/or value for a row was edited.</summary>
-    public event Action<Option, string?, string?>? RawEdited;
-
     /// <summary>Raised when the user picks "hide" on a row.</summary>
     public event Action<Option>? HideRequested;
 
@@ -201,24 +198,6 @@ public sealed partial class OptionListControl : UserControl
 
     private static Option? RowOption(object sender) =>
         (sender as FrameworkElement)?.DataContext as Option;
-
-    // The raw key/value commit waits for focus to leave the field, so typing
-    // does not rewrite settings-layout.json (or poke mpv) per keystroke.
-    private void EditRawKey_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (RowOption(sender) is { } option)
-        {
-            RawEdited?.Invoke(option, option.MpvKey, option.MpvValue);
-        }
-    }
-
-    private void EditRawValue_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (RowOption(sender) is { } option)
-        {
-            RawEdited?.Invoke(option, option.MpvKey, option.MpvValue);
-        }
-    }
 
     private void HideRow_Click(object sender, RoutedEventArgs e)
     {
