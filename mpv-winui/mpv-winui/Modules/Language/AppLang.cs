@@ -1341,17 +1341,6 @@ namespace mpv_winui.Modules.Language
         /// <summary>Scope: every language.</summary>
         public string CustomizeScopeAll { get; set; } = "All languages";
 
-        // ===== Settings: advanced option editor =====
-
-        /// <summary>Opens the advanced editor for an option.</summary>
-        public string CustomizeEditAdvanced { get; set; } = "Edit option…";
-
-        /// <summary>Opens the advanced editor to add a new option.</summary>
-        public string CustomizeAddAdvanced { get; set; } = "Add option…";
-
-        /// <summary>Hint under the advanced editor's title.</summary>
-        public string CustomizeAdvancedHint { get; set; } = "Define a settings row of your own, backed by any mpv option.";
-
         /// <summary>Field: raw mpv option name.</summary>
         public string CustomizeFieldMpvKey { get; set; } = "mpv option";
 
@@ -1680,54 +1669,6 @@ namespace mpv_winui.Modules.Language
         }
 
         private string _fallback_CustomizeEditItem = "Edit";
-
-        public string CustomizeEditItemTip
-        {
-            get => CustomizeStrings.Get(nameof(CustomizeEditItemTip)) ?? _fallback_CustomizeEditItemTip;
-            set => _fallback_CustomizeEditItemTip = value;
-        }
-
-        private string _fallback_CustomizeEditItemTip = "Edit the name, description and mpv key";
-
-        public string CustomizeCopyItem
-        {
-            get => CustomizeStrings.Get(nameof(CustomizeCopyItem)) ?? _fallback_CustomizeCopyItem;
-            set => _fallback_CustomizeCopyItem = value;
-        }
-
-        private string _fallback_CustomizeCopyItem = "Copy settings";
-
-        public string CustomizePasteItem
-        {
-            get => CustomizeStrings.Get(nameof(CustomizePasteItem)) ?? _fallback_CustomizePasteItem;
-            set => _fallback_CustomizePasteItem = value;
-        }
-
-        private string _fallback_CustomizePasteItem = "Paste settings";
-
-        public string CustomizePasteEmpty
-        {
-            get => CustomizeStrings.Get(nameof(CustomizePasteEmpty)) ?? _fallback_CustomizePasteEmpty;
-            set => _fallback_CustomizePasteEmpty = value;
-        }
-
-        private string _fallback_CustomizePasteEmpty = "Nothing has been copied yet.";
-
-        public string CustomizeDuplicateItem
-        {
-            get => CustomizeStrings.Get(nameof(CustomizeDuplicateItem)) ?? _fallback_CustomizeDuplicateItem;
-            set => _fallback_CustomizeDuplicateItem = value;
-        }
-
-        private string _fallback_CustomizeDuplicateItem = "Duplicate";
-
-        public string CustomizeItemCopied
-        {
-            get => CustomizeStrings.Get(nameof(CustomizeItemCopied)) ?? _fallback_CustomizeItemCopied;
-            set => _fallback_CustomizeItemCopied = value;
-        }
-
-        private string _fallback_CustomizeItemCopied = "Copied. Right-click another card to paste.";
 
         public string CustomizeDeleteConfirmTitle
         {

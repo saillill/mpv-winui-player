@@ -16,7 +16,6 @@ public sealed class OptionEditText
     public string DeleteTooltip { get; private set; } = "Hide / restore default";
     public string DeleteAutomationName { get; private set; } = "Delete this entry";
     public string HideCaption { get; private set; } = "Hide from the page (keeps the value)";
-    public string ResetCaption { get; private set; } = "Restore default (clears customization and resets this entry)";
     public string MoveUpCaption { get; private set; } = "Move up";
     public string MoveDownCaption { get; private set; } = "Move down";
     public string HideSectionCaption { get; private set; } = "Hide this section";
@@ -24,13 +23,8 @@ public sealed class OptionEditText
     public string DeleteSectionCaption { get; private set; } = "Delete this folder";
     public string MoveToSectionCaption { get; private set; } = "Move into a folder";
     public string RenameCaption { get; private set; } = "Rename…";
-    public string EditAdvancedCaption { get; private set; } = "Edit option…";
     public string DragHandleTip { get; private set; } = "Drag to reorder";
-    public string EditTip { get; private set; } = "Edit";
-    public string EditItemTip { get; private set; } = "Edit the name, description and mpv key";
-    public string CopyItemCaption { get; private set; } = "Copy settings";
-    public string PasteItemCaption { get; private set; } = "Paste settings";
-    public string DuplicateItemCaption { get; private set; } = "Duplicate";
+    public string EditTip { get; private set; } = "Rename this entry";
 
     /// <summary>
     /// Context menu for a customize-mode card. Same entries as the row's own
@@ -59,7 +53,6 @@ public sealed class OptionEditText
         DeleteTooltip = lang.CustomizeDeleteTip;
         DeleteAutomationName = lang.CustomizeDelete;
         HideCaption = lang.CustomizeHide;
-        ResetCaption = lang.CustomizeReset;
         MoveUpCaption = lang.CustomizeMoveUp;
         MoveDownCaption = lang.CustomizeMoveDown;
         HideSectionCaption = lang.CustomizeHideSection;
@@ -67,19 +60,19 @@ public sealed class OptionEditText
         DeleteSectionCaption = lang.CustomizeDeleteSection;
         MoveToSectionCaption = lang.CustomizeMoveToSection;
         RenameCaption = lang.CustomizeRename;
-        EditAdvancedCaption = lang.CustomizeEditAdvanced;
         DragHandleTip = lang.CustomizeDragHandleTip;
-        EditTip = lang.CustomizeEditItemTip;
-        EditItemTip = lang.CustomizeEditItemTip;
-        CopyItemCaption = lang.CustomizeCopyItem;
-        PasteItemCaption = lang.CustomizePasteItem;
-        DuplicateItemCaption = lang.CustomizeDuplicateItem;
+        EditTip = lang.CustomizeRename;
         BuildRowMenu();
     }
 
     /// <summary>
     /// Builds the card's context menu. Each entry forwards its own name to the
     /// owning list control, so a right-click and the ⋯ button share handlers.
+    ///
+    /// Only re-labelling and hiding are offered. Retyping a row's mpv key, and
+    /// the copy/paste/duplicate trio that also produced rows, are deliberately
+    /// absent: the customize surface arranges the rows the app defines, it does
+    /// not author new ones.
     /// </summary>
     private void BuildRowMenu()
     {
@@ -97,14 +90,8 @@ public sealed class OptionEditText
         }
 
         Add(RenameCaption, "\uE8AC", "RenameRow_Click");
-        Add(EditAdvancedCaption, "\uE70F", "EditAdvanced_Click");
-        menu.Items.Add(new MenuFlyoutSeparator());
-        Add(CopyItemCaption, "\uE8C8", "CopyRow_Click");
-        Add(PasteItemCaption, "\uE77F", "PasteRow_Click");
-        Add(DuplicateItemCaption, "\uE8C8", "DuplicateRow_Click");
         menu.Items.Add(new MenuFlyoutSeparator());
         Add(HideCaption, "\uE738", "HideRow_Click");
-        Add(ResetCaption, "\uE7A7", "ResetRow_Click");
 
         RowMenu = menu;
     }

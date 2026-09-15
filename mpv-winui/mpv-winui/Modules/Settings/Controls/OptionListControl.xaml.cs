@@ -85,12 +85,9 @@ public sealed partial class OptionListControl : UserControl
             // once on creation and nothing ever turned it back on.
             CustomizeBar.Visibility = Visibility.Visible;
             NewSectionButton.Visibility = Visibility.Visible;
-            AddAdvancedButton.Visibility = Visibility.Visible;
 
             NewSectionButtonText.Text = lang.CustomizeNewSection;
             ToolTipService.SetToolTip(NewSectionButton, lang.CustomizeNewSectionHint);
-            AddAdvancedButtonText.Text = lang.CustomizeAddAdvanced;
-            ToolTipService.SetToolTip(AddAdvancedButton, lang.CustomizeAddHint);
 
             // Sections stay visible as their own rows so the 2nd level is
             // editable too; each header carries its own move/hide menu.
@@ -167,7 +164,6 @@ public sealed partial class OptionListControl : UserControl
         }
 
         NewSectionButton.Visibility = Visibility.Collapsed;
-        AddAdvancedButton.Visibility = Visibility.Collapsed;
         CustomizeBar.Visibility = Visibility.Collapsed;
 
         var defaultSelector = (OptionTemplateSelector)Resources["TemplateSelector"];
@@ -240,9 +236,6 @@ public sealed partial class OptionListControl : UserControl
 
     /// <summary>Raised when the user picks "hide" on a row.</summary>
     public event Action<Option>? HideRequested;
-
-    /// <summary>Raised when the user picks "restore default" on a row.</summary>
-    public event Action<Option>? ResetRequested;
 
     /// <summary>Raised after a drag-reorder, with the new key order.</summary>
     public event Action<IReadOnlyList<string>>? OrderChanged;
@@ -421,25 +414,6 @@ public sealed partial class OptionListControl : UserControl
     /// <summary>Raised when the user renames a folder (option key, current label).</summary>
     public event Action<string, string>? RenameSectionRequested;
 
-    /// <summary>
-    /// Raised when the user opens the advanced editor for a row. Carries the
-    /// option key; the page decides whether this edits an existing custom row
-    /// or creates a new one from the row's current state.
-    /// </summary>
-    public event Action<string>? EditAdvancedRequested;
-
-    /// <summary>Raised when the user asks for the "add option" dialog.</summary>
-    public event Action? AddAdvancedRequested;
-
-    /// <summary>Raised when the user copies a row's customization to the clipboard.</summary>
-    public event Action<string>? CopyRowRequested;
-
-    /// <summary>Raised when the user pastes copied customization onto a row (option key).</summary>
-    public event Action<string>? PasteRowRequested;
-
-    /// <summary>Raised when the user duplicates a row (option key).</summary>
-    public event Action<string>? DuplicateRowRequested;
-
     // ===== the bookmark-manager right pane =====
 
     /// <summary>
@@ -471,21 +445,11 @@ public sealed partial class OptionListControl : UserControl
 
     private void CreateSection_Click(object sender, RoutedEventArgs e) => CreateSectionRequested?.Invoke();
 
-    private void AddAdvanced_Click(object sender, RoutedEventArgs e) => AddAdvancedRequested?.Invoke();
-
     private void RenameRow_Click(object sender, RoutedEventArgs e)
     {
         if (RowOption(sender) is { } option)
         {
             RenameRowRequested?.Invoke(option.Key, option.Label);
-        }
-    }
-
-    private void EditAdvanced_Click(object sender, RoutedEventArgs e)
-    {
-        if (RowOption(sender) is { } option)
-        {
-            EditAdvancedRequested?.Invoke(option.Key);
         }
     }
 
@@ -545,38 +509,6 @@ public sealed partial class OptionListControl : UserControl
         }
     }
 
-    private void ResetRow_Click(object sender, RoutedEventArgs e)
-    {
-        if (RowOption(sender) is { } option)
-        {
-            ResetRequested?.Invoke(option);
-        }
-    }
-
-    private void CopyRow_Click(object sender, RoutedEventArgs e)
-    {
-        if (RowOption(sender) is { } option)
-        {
-            CopyRowRequested?.Invoke(option.Key);
-        }
-    }
-
-    private void PasteRow_Click(object sender, RoutedEventArgs e)
-    {
-        if (RowOption(sender) is { } option)
-        {
-            PasteRowRequested?.Invoke(option.Key);
-        }
-    }
-
-    private void DuplicateRow_Click(object sender, RoutedEventArgs e)
-    {
-        if (RowOption(sender) is { } option)
-        {
-            DuplicateRowRequested?.Invoke(option.Key);
-        }
-    }
-
     /// <summary>The card's inline pencil: same destination as "rename".</summary>
     private void EditRowInline_Click(object sender, RoutedEventArgs e) => RenameRow_Click(sender, e);
 
@@ -602,23 +534,8 @@ public sealed partial class OptionListControl : UserControl
             case nameof(RenameRow_Click):
                 RenameRow_Click(sender, new RoutedEventArgs());
                 break;
-            case nameof(EditAdvanced_Click):
-                EditAdvanced_Click(sender, new RoutedEventArgs());
-                break;
-            case nameof(CopyRow_Click):
-                CopyRow_Click(sender, new RoutedEventArgs());
-                break;
-            case nameof(PasteRow_Click):
-                PasteRow_Click(sender, new RoutedEventArgs());
-                break;
-            case nameof(DuplicateRow_Click):
-                DuplicateRow_Click(sender, new RoutedEventArgs());
-                break;
             case nameof(HideRow_Click):
                 HideRow_Click(sender, new RoutedEventArgs());
-                break;
-            case nameof(ResetRow_Click):
-                ResetRow_Click(sender, new RoutedEventArgs());
                 break;
         }
     }

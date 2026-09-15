@@ -155,25 +155,6 @@ public sealed partial class SettingsPage
         SaveLayout();
     }
 
-    /// <summary>
-    /// "Restore default" for a single row: drop every override bought in the
-    /// customize mode and reset the stored value, matching the category-level
-    /// reset (which is itself just ResetKeys over the category's keys).
-    /// </summary>
-    internal void ResetRowToDefault(Option option)
-    {
-        _layout.Entries.Remove(option.Key);
-        _layout.Order.Remove(option.Key);
-        SaveLayout();
-
-        if (!option.Key.StartsWith("Shortcut:", StringComparison.Ordinal))
-        {
-            AppContext.AppSetting.ResetKeys([option.Key]);
-        }
-
-        option.IsVisible = true;
-    }
-
     // ===== sidebar (category pane) customization =====
 
     /// <summary>

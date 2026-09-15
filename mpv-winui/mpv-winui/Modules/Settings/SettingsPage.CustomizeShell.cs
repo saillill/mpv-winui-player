@@ -261,22 +261,16 @@ public sealed partial class SettingsPage
     // ===== sidebar "add" menu =====
 
     /// <summary>
-    /// The sidebar's add button: a menu rather than one action, because the
-    /// thing a user wants to add here can be a folder, a new option or a whole
-    /// top-level category.
+    /// The sidebar's add button: a menu rather than one action, because what a
+    /// user can add here is a folder or a whole top-level category.
+    ///
+    /// Adding a single option is deliberately not on the menu — customizing
+    /// arranges the options the app ships, it does not author new ones.
     /// </summary>
     private void AddCategoryButton_Click(object sender, RoutedEventArgs e)
     {
         var lang = AppContext.AppLang;
         var flyout = new MenuFlyout();
-
-        var addOption = new MenuFlyoutItem
-        {
-            Text = lang.CustomizeAddIconOption,
-            Icon = new FontIcon { Glyph = "\uE710" },
-        };
-        addOption.Click += async (_, _) => await AddAdvancedOptionAsync();
-        flyout.Items.Add(addOption);
 
         var addFolder = new MenuFlyoutItem
         {
@@ -421,126 +415,4 @@ public sealed partial class SettingsPage
         await RenameSectionInteractiveAsync(id, node.Content is TreeViewNodeContent content ? content.Text : string.Empty);
     }
 
-    // ===== card clipboard: copy / paste / duplicate =====
-
-    /// <summary>
-    /// One card's customization, held in memory for pasting onto another. Only
-    /// the presentation is carried (name, description, mpv key, value type,
-    /// choices); the row's identity and folder are the target's business.
-    /// </summary>
-    private sealed class CopiedRow
-    {
-        public string Label { get; init; } = string.Empty;
-        public string? Description { get; init; }
-        public string? MpvKey { get; init; }
-        public string? MpvValue { get; init; }
-    }
-
-    private CopiedRow? _copiedRow;
-
-    /// <summary>Copies a row's customization so it can be pasted onto another.</summary>
-    private void CopyRowCustomization(string optionKey)
-    {
-        var option = Settings.FirstOrDefault(o => string.Equals(o.Key, optionKey, StringComparison.Ordinal));
-        if (option is null)
-        {
-            return;
-        }
-
-        var entry = _layout.Entries.TryGetValue(optionKey, out var e) ? e : null;
-        _copiedRow = new CopiedRow
-        {
-            Label = LabelOverrides.ResolveLabel(entry, ActiveLanguageKey) ?? option.Label ?? string.Empty,
-            Description = LabelOverrides.ResolveDescription(entry, ActiveLanguageKey) ?? option.Description,
-            MpvKey = entry?.MpvKey,
-            MpvValue = entry?.MpvValue,
-        };
-
-        ShowCustomizeStatus(CustomizeStatus.None);
-        SaveStatusText.Text = AppContext.AppLang.CustomizeItemCopied;
-        SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
-    }
-
-    /// <summary>
-    /// Applies the copied customization to another row. The label and
-    /// description become that row's overrides; the raw mpv key/value are only
-    /// carried over when the source had them, so pasting a built-in row does
-    /// not blank the target's own binding.
-    /// </summary>
-    private void PasteRowCustomization(string optionKey)
-    {
-        var option = Settings.FirstOrDefault(o => string.Equals(o.Key, optionKey, StringComparison.Ordinal));
-        if (option is null)
-        {
-            return;
-        }
-
-        if (_copiedRow is null)
-        {
-            SaveStatusText.Text = AppContext.AppLang.CustomizePasteEmpty;
-            SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCautionBrush"];
-            return;
-        }
-
-        PushCustomizeEdit();
-        var entry = _layout.EntryFor(optionKey);
-        entry.Label = string.IsNullOrEmpty(_copiedRow.Label)
-            || string.Equals(_copiedRow.Label, option.Label, StringComparison.Ordinal)
-                ? null
-                : _copiedRow.Label;
-        entry.Description = _copiedRow.Description;
-        entry.Scope = RenameScopes.Current;
-        entry.Language = ActiveLanguageKey;
-        if (_copiedRow.MpvKey is not null)
-        {
-            entry.MpvKey = _copiedRow.MpvKey;
-        }
-        if (_copiedRow.MpvValue is not null)
-        {
-            entry.MpvValue = _copiedRow.MpvValue;
-        }
-        _layout.Prune(optionKey);
-
-        SaveLayout();
-        CommitCustomizeEdit();
-        RequestDeferredRebuild();
-    }
-
-    /// <summary>
-    /// Duplicates a hand-added row under a fresh id. Only a row the user added
-    /// can be duplicated: a built-in row is one the app owns, and a second copy
-    /// of it would have no distinct key to store under.
-    /// </summary>
-    private void DuplicateRow(string optionKey)
-    {
-        if (_layout.FindAdded(optionKey) is not { } source)
-        {
-            SaveStatusText.Text = AppContext.AppLang.CustomizeInvalidValueTitle;
-            SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCautionBrush"];
-            return;
-        }
-
-        PushCustomizeEdit();
-        var id = $"{source.Id}:copy{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-        _layout.Added.Add(new CustomOption
-        {
-            Id = id,
-            CategoryKey = source.CategoryKey,
-            Section = source.Section,
-            Label = source.Label + " (2)",
-            Description = source.Description,
-            MpvKey = source.MpvKey,
-            Kind = source.Kind,
-            Choices = [.. source.Choices],
-            Value = source.Value,
-        });
-        if (!_layout.Order.Contains(id))
-        {
-            _layout.Order.Add(id);
-        }
-
-        SaveLayout();
-        CommitCustomizeEdit();
-        RequestDeferredRebuild();
-    }
 }

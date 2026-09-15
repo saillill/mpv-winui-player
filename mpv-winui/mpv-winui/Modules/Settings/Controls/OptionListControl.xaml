@@ -327,8 +327,9 @@
                             TextWrapping="Wrap" />
                     </StackPanel>
 
-                    <!-- Inline pencil: the edit entry is visible rather than
-                         hidden behind the overflow button. -->
+                    <!-- The inline pencil is the rename gesture: the row's
+                         name is the one thing about a card the user owns.
+                         Everything else sits behind the ⋯ menu. -->
                     <Button
                         Grid.Column="2"
                         MinWidth="0"
@@ -336,8 +337,9 @@
                         VerticalAlignment="Top"
                         Background="Transparent"
                         BorderThickness="0"
+                        AutomationProperties.Name="{x:Bind Edit.RenameCaption}"
                         Click="EditRowInline_Click"
-                        ToolTipService.ToolTip="{x:Bind Edit.EditItemTip}">
+                        ToolTipService.ToolTip="{x:Bind Edit.EditTip}">
                         <FontIcon FontSize="14" Glyph="&#xE70F;" />
                     </Button>
 
@@ -350,16 +352,14 @@
                         ToolTipService.ToolTip="{x:Bind Edit.DeleteTooltip}">
                         <FontIcon FontSize="14" Glyph="&#xE712;" />
                         <Button.Flyout>
+                            <!-- Customizing a row means re-labelling it, hiding
+                                 it, or moving it. Nothing here creates or
+                                 retypes an mpv key: the set of rows belongs to
+                                 the app, only their presentation is the user's. -->
                             <MenuFlyout>
                                 <MenuFlyoutItem Click="RenameRow_Click" Text="{x:Bind Edit.RenameCaption}" />
-                                <MenuFlyoutItem Click="EditAdvanced_Click" Text="{x:Bind Edit.EditAdvancedCaption}" />
-                                <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Click="CopyRow_Click" Text="{x:Bind Edit.CopyItemCaption}" />
-                                <MenuFlyoutItem Click="PasteRow_Click" Text="{x:Bind Edit.PasteItemCaption}" />
-                                <MenuFlyoutItem Click="DuplicateRow_Click" Text="{x:Bind Edit.DuplicateItemCaption}" />
                                 <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Click="HideRow_Click" Text="{x:Bind Edit.HideCaption}" />
-                                <MenuFlyoutItem Click="ResetRow_Click" Text="{x:Bind Edit.ResetCaption}" />
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
@@ -407,11 +407,14 @@
         </Grid.RowDefinitions>
 
         <!-- Customize-mode-only toolbar. The pane's own caption sits on the
-             left and the two things that can be created sit on the right — a
-             2nd-level folder (which cards can then be dragged into) or a new
-             option backed by an mpv key. All three share one row and one
-             vertical centre, so the caption and the buttons line up instead of
-             the caption floating on a row of its own. -->
+             left and the one thing that can be created sits on the right — a
+             2nd-level folder, which cards can then be dragged into. They share
+             one row and one vertical centre, so the caption and the button line
+             up instead of the caption floating on a row of its own.
+
+             Creating a new option from an mpv key is deliberately NOT offered:
+             the customize surface manages the layout of the rows that exist
+             (rename, hide, reorder), not the set of rows. -->
         <Grid
             x:Name="CustomizeBar"
             Grid.Row="0"
@@ -421,7 +424,6 @@
             Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
@@ -441,17 +443,6 @@
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon FontSize="14" Glyph="&#xE8F4;" />
                     <TextBlock x:Name="NewSectionButtonText" />
-                </StackPanel>
-            </Button>
-
-            <Button
-                x:Name="AddAdvancedButton"
-                Grid.Column="2"
-                VerticalAlignment="Center"
-                Click="AddAdvanced_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon FontSize="14" Glyph="&#xE710;" />
-                    <TextBlock x:Name="AddAdvancedButtonText" />
                 </StackPanel>
             </Button>
         </Grid>
