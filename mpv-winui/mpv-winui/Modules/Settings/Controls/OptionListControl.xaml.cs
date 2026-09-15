@@ -76,7 +76,17 @@ public sealed partial class OptionListControl : UserControl
         if (CustomizeMode)
         {
             var lang = AppContext.AppLang;
+
+            // Both branches below run for the same control instance over its
+            // lifetime (a mode switch only flips CustomizeMode), and the
+            // non-customize branch Collapses these. So the customize branch has
+            // to re-assert them: leaving it out is what kept "New folder"
+            // permanently invisible, because the pane rendered non-customize
+            // once on creation and nothing ever turned it back on.
             CustomizeBar.Visibility = Visibility.Visible;
+            NewSectionButton.Visibility = Visibility.Visible;
+            AddAdvancedButton.Visibility = Visibility.Visible;
+
             NewSectionButtonText.Text = lang.CustomizeNewSection;
             ToolTipService.SetToolTip(NewSectionButton, lang.CustomizeNewSectionHint);
             AddAdvancedButtonText.Text = lang.CustomizeAddAdvanced;
@@ -157,6 +167,7 @@ public sealed partial class OptionListControl : UserControl
         }
 
         NewSectionButton.Visibility = Visibility.Collapsed;
+        AddAdvancedButton.Visibility = Visibility.Collapsed;
         CustomizeBar.Visibility = Visibility.Collapsed;
 
         var defaultSelector = (OptionTemplateSelector)Resources["TemplateSelector"];
@@ -212,6 +223,20 @@ public sealed partial class OptionListControl : UserControl
                 self.ApplyItemsSource();
             }
         }));
+
+    /// <summary>
+    /// Caption at the leading edge of the customize toolbar: the category or
+    /// folder the pane is showing.
+    ///
+    /// It lives on the control rather than in a separate row of the host page
+    /// so the caption and the toolbar's buttons share one row and one vertical
+    /// centre — split across two rows they never line up.
+    /// </summary>
+    public string HeaderText
+    {
+        get => PaneTitleText.Text;
+        set => PaneTitleText.Text = value;
+    }
 
     /// <summary>Raised when the user picks "hide" on a row.</summary>
     public event Action<Option>? HideRequested;

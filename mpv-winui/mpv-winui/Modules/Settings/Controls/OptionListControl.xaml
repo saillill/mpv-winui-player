@@ -406,23 +406,37 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Customize-mode-only toolbar: create a 2nd-level folder (which cards
-             can be dragged into), or define a new option backed by an mpv key. -->
+        <!-- Customize-mode-only toolbar. The pane's own caption sits on the
+             left and the two things that can be created sit on the right — a
+             2nd-level folder (which cards can then be dragged into) or a new
+             option backed by an mpv key. All three share one row and one
+             vertical centre, so the caption and the buttons line up instead of
+             the caption floating on a row of its own. -->
         <Grid
             x:Name="CustomizeBar"
             Grid.Row="0"
+            MinHeight="40"
             Margin="8,4,32,4"
             ColumnSpacing="8"
             Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+
+            <TextBlock
+                x:Name="PaneTitleText"
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                FontSize="16"
+                FontWeight="SemiBold"
+                TextTrimming="CharacterEllipsis" />
 
             <Button
                 x:Name="NewSectionButton"
-                Grid.Column="0"
-                HorizontalAlignment="Stretch"
+                Grid.Column="1"
+                VerticalAlignment="Center"
                 Click="CreateSection_Click">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon FontSize="14" Glyph="&#xE8F4;" />
@@ -432,7 +446,8 @@
 
             <Button
                 x:Name="AddAdvancedButton"
-                Grid.Column="1"
+                Grid.Column="2"
+                VerticalAlignment="Center"
                 Click="AddAdvanced_Click">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon FontSize="14" Glyph="&#xE710;" />

@@ -347,21 +347,15 @@
                                 <FontIcon FontSize="14" Glyph="&#xE76C;" />
                             </Button>
 
-                            <!-- Right: the cards of whatever is selected on the left. -->
-                            <Grid Grid.Column="1">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <TextBlock
-                                    x:Name="CustomizePaneTitle"
-                                    Grid.Row="0"
-                                    Margin="4,6,32,6"
-                                    FontSize="16"
-                                    FontWeight="SemiBold"
-                                    TextWrapping="Wrap" />
-                                <ctl:OptionListControl x:Name="CustomizeOptionsControl" Grid.Row="1" ShowHeaders="False" />
-                            </Grid>
+                            <!-- Right: the cards of whatever is selected on the
+                                 left. The pane's caption and its two create
+                                 actions live inside the control's own toolbar,
+                                 so they share one row instead of the caption
+                                 sitting on a row of its own above it. -->
+                            <ctl:OptionListControl
+                                x:Name="CustomizeOptionsControl"
+                                Grid.Column="1"
+                                ShowHeaders="False" />
                         </Grid>
                     </Grid>
                 </Grid>

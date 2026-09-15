@@ -244,7 +244,10 @@ public sealed partial class SettingsPage
 
         var nodes = CurrentRepositoryList();
         var (title, options) = ResolvePaneContents(nodes);
-        CustomizePaneTitle.Text = title;
+
+        // The caption rides on the control's toolbar so it shares a row with
+        // the create buttons; see OptionListControl.HeaderText.
+        CustomizeOptionsControl.HeaderText = title;
 
         // The right pane is the same control type as the browsing list, so it
         // needs the mode flag and its own item source.

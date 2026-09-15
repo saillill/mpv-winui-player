@@ -16,22 +16,40 @@ namespace mpv_winui.Modules.Settings;
 /// </summary>
 public sealed partial class SettingsPage
 {
-    /// <summary>Subscribes to the option list's customize-mode notifications.</summary>
+    /// <summary>
+    /// Subscribes to the option list's customize-mode notifications.
+    ///
+    /// Two lists can render the editing affordances: the browsing page's list
+    /// and the customize pane's. Only the pane is on screen while customizing
+    /// (the browse host is collapsed), so wiring the browsing list alone is
+    /// what made "add option" and "edit" behave like dead buttons — the click
+    /// was raised on a control nobody had subscribed to. Both are wired here so
+    /// a mode switch can never leave a visible list without a listener.
+    /// </summary>
     private void InitCustomizeMode()
     {
-        OptionsControl.HideRequested += option =>
+        WireCustomizeEvents(OptionsControl);
+        WireCustomizeEvents(CustomizeOptionsControl);
+
+        UpdateCustomizeToggleText();
+    }
+
+    /// <summary>Binds one option list's edit events to this page's handlers.</summary>
+    private void WireCustomizeEvents(Controls.OptionListControl list)
+    {
+        list.HideRequested += option =>
         {
             SetHidden(option, true);
             RebuildLocalizedContent();
         };
 
-        OptionsControl.ResetRequested += option =>
+        list.ResetRequested += option =>
         {
             ResetRowToDefault(option);
             RebuildLocalizedContent();
         };
 
-        OptionsControl.OrderChanged += keys =>
+        list.OrderChanged += keys =>
         {
             // Store only. A drag already left the ListView in the new order, so
             // rebuilding here would tear the list down and repaint it right
@@ -44,7 +62,7 @@ public sealed partial class SettingsPage
         // 2nd-level (section / column) editing. Captions are localized, so they
         // are resolved to a stable id before being stored. User-created folders
         // have no caption in AppLang, so they resolve by their own name.
-        OptionsControl.SectionMoveRequested += (caption, delta) =>
+        list.SectionMoveRequested += (caption, delta) =>
         {
             if (ResolveSectionId(caption) is { } id)
             {
@@ -53,7 +71,7 @@ public sealed partial class SettingsPage
             }
         };
 
-        OptionsControl.SectionHideRequested += caption =>
+        list.SectionHideRequested += caption =>
         {
             if (ResolveSectionId(caption) is { } id)
             {
@@ -62,7 +80,7 @@ public sealed partial class SettingsPage
             }
         };
 
-        OptionsControl.SectionDeleteRequested += caption =>
+        list.SectionDeleteRequested += caption =>
         {
             if (ResolveSectionId(caption) is { } id)
             {
@@ -71,42 +89,35 @@ public sealed partial class SettingsPage
             }
         };
 
-        OptionsControl.MoveRowRequested += (optionKey, sectionId) =>
+        list.MoveRowRequested += (optionKey, sectionId) =>
         {
             MoveRowToSection(optionKey, sectionId);
             RequestDeferredRebuild();
         };
-
-        OptionsControl.CreateSectionRequested += async () => await CreateSectionInteractiveAsync();
-
-        OptionsControl.RenameRowRequested += async (optionKey, current) => await RenameRowInteractiveAsync(optionKey, current);
-
-        OptionsControl.RenameSectionRequested += async (sectionId, current) => await RenameSectionInteractiveAsync(sectionId, current);
-
-        OptionsControl.AddAdvancedRequested += async () => await AddAdvancedOptionAsync();
-
-        OptionsControl.EditAdvancedRequested += async optionKey => await EditAdvancedOptionAsync(optionKey);
-
-        // Clipboard-style row operations, so one card's customization can be
-        // applied to another without retyping it.
-        OptionsControl.CopyRowRequested += CopyRowCustomization;
-        OptionsControl.PasteRowRequested += PasteRowCustomization;
-        OptionsControl.DuplicateRowRequested += DuplicateRow;
 
         // The right pane of the two-pane view: a card dropped into it joins the
         // folder that pane is showing.
-        CustomizeOptionsControl.PaneJoinRequested += (optionKey, sectionId) =>
+        list.PaneJoinRequested += (optionKey, sectionId) =>
         {
             MoveRowToSection(optionKey, sectionId);
             RequestDeferredRebuild();
         };
 
-        // The pane's cards carry the same edit menu, so it subscribes too.
-        CustomizeOptionsControl.CopyRowRequested += CopyRowCustomization;
-        CustomizeOptionsControl.PasteRowRequested += PasteRowCustomization;
-        CustomizeOptionsControl.DuplicateRowRequested += DuplicateRow;
+        list.CreateSectionRequested += async () => await CreateSectionInteractiveAsync();
 
-        UpdateCustomizeToggleText();
+        list.RenameRowRequested += async (optionKey, current) => await RenameRowInteractiveAsync(optionKey, current);
+
+        list.RenameSectionRequested += async (sectionId, current) => await RenameSectionInteractiveAsync(sectionId, current);
+
+        list.AddAdvancedRequested += async () => await AddAdvancedOptionAsync();
+
+        list.EditAdvancedRequested += async optionKey => await EditAdvancedOptionAsync(optionKey);
+
+        // Clipboard-style row operations, so one card's customization can be
+        // applied to another without retyping it.
+        list.CopyRowRequested += CopyRowCustomization;
+        list.PasteRowRequested += PasteRowCustomization;
+        list.DuplicateRowRequested += DuplicateRow;
     }
 
     /// <summary>
