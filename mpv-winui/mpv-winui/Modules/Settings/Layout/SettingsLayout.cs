@@ -102,6 +102,15 @@ public sealed class CustomSection
     public string? Language { get; set; }
 
     /// <summary>
+    /// True for a grouping bar that exists only inside the card pane. A plain
+    /// folder is both a pane grouping and a sidebar node; a column is just the
+    /// grouping, for a user who wants to stack related cards together without
+    /// growing the sidebar tree. The flag is additive: a layout written before
+    /// it existed simply has no columns.
+    /// </summary>
+    public bool PaneOnly { get; set; }
+
+    /// <summary>
     /// Name to render right now. A folder the user made has no localized
     /// fallback, so its rename is content and applies regardless of scope; the
     /// scope only matters for folders whose name came from the app.
@@ -171,12 +180,26 @@ public sealed class CustomCategory
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Name to show instead of <see cref="Name"/> after a rename. Kept apart
+    /// for the same reason <see cref="CustomSection.DisplayName"/> is: the id
+    /// — which the sidebar order and the foldered rows are keyed on — must not
+    /// change, and re-adding the category under its original name must not
+    /// silently undo the rename.
+    /// </summary>
+    [JsonPropertyName("displayName")]
+    public string? DisplayName { get; set; }
+
     /// <summary>Segoe Fluent Icons glyph shown in the sidebar.</summary>
     [JsonPropertyName("glyph")]
     public string Glyph { get; set; } = "\uE8B7";
 
-    /// <summary>Name shown right now. Custom categories are not localized.</summary>
-    public string DisplayFor(string activeLanguage) => Name;
+    /// <summary>
+    /// Name shown right now. A category the user made has no localized caption
+    /// to fall back to, so its rename is content and applies in every language.
+    /// </summary>
+    public string DisplayFor(string activeLanguage) =>
+        !string.IsNullOrEmpty(DisplayName) ? DisplayName : Name;
 }
 
 /// <summary>

@@ -43,6 +43,14 @@ public sealed class TreeViewNodeContent
     /// <summary>True when the folder was created by the user and can be deleted.</summary>
     public bool IsCustom { get; set; }
 
+    /// <summary>
+    /// True when the folder is hidden: its cards stay in the page model but are
+    /// set aside. The node is dimmed here rather than dropped, so the structure
+    /// reads as "still there, switched off" — and so there is something left on
+    /// screen offering to switch it back on.
+    /// </summary>
+    public bool IsHidden { get; set; }
+
     /// <summary>A category node can create a folder under itself.</summary>
     public bool CanAddFolder { get; set; }
 

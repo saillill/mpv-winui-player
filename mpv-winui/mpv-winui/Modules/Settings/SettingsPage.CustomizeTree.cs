@@ -35,10 +35,15 @@ public sealed partial class SettingsPage
         // Root = one node per category. Children = that category's folders
         // (both the built-in ones and the folders the user created), so the
         // two levels of the bookmark manager map onto one tree.
-        foreach (var category in Categories)
+        //
+        // The key is taken from the index-aligned key list rather than by
+        // mapping the caption back, because a renamed category no longer
+        // matches its built-in caption — and a node whose key never resolves
+        // would silently drop out of the tree.
+        for (var i = 0; i < Categories.Count; i++)
         {
-            var categoryKey = CategoryKeyForCaption(category);
-            if (categoryKey is null)
+            var category = Categories[i];
+            if (i >= ActiveCategoryKeys.Count || ActiveCategoryKeys[i] is not { Length: > 0 } categoryKey)
             {
                 continue;
             }
@@ -48,7 +53,7 @@ public sealed partial class SettingsPage
                 Content = BuildTreeNodeContent(category, isSection: false, categoryKey: categoryKey),
             };
 
-            foreach (var (sectionId, caption, isCustom) in SectionsOf(category))
+            foreach (var (sectionId, caption, isCustom) in SectionsOf(categoryKey))
             {
                 root.Children.Add(new TreeViewNode
                 {
@@ -84,50 +89,92 @@ public sealed partial class SettingsPage
             CategoryKey = categoryKey,
             SectionId = sectionId,
             IsCustom = isCustom,
+            IsHidden = isSection && sectionId is not null && _layout.HiddenSections.Contains(sectionId),
             Edit = edit,
         };
 
         if (!isSection)
         {
-            // A category node offers "new folder" — that is how a 2nd-level
-            // folder comes into being, exactly like adding a bookmark folder.
+            // A category node offers "new submenu" and rename — the 2nd-level
+            // folder comes into being from here, exactly like adding a bookmark
+            // folder, and the category's own name is editable like any other
+            // label the app owns.
+            //
+            // The menu items are built from plain delegates, so the dialog a
+            // handler opens is fire-and-forget: the click has already returned
+            // by the time the ContentDialog is shown. Assigning to a discard
+            // says that on purpose instead of leaving an unawaited task behind.
             content.CanAddFolder = true;
             edit.BuildMenu(
-                isSection: false,
                 canAddFolder: true,
                 canDelete: false,
-                addFolder: () => CreateSectionInteractiveAsync(),
-                rename: null,
+                addFolder: () => _ = CreateSectionInteractiveAsync(categoryKey),
+                rename: categoryKey is null ? null : () => _ = RenameCategoryInteractiveAsync(categoryKey, caption),
                 delete: null);
         }
         else
         {
+            // A folder node carries the same three jobs as a card: rename it,
+            // set it aside or bring it back, and — only for a folder the user
+            // made — delete it. Hide is a toggle because the tree keeps listing
+            // a hidden folder: that is what makes hiding reversible.
+            var hidden = sectionId is not null && _layout.HiddenSections.Contains(sectionId);
             edit.BuildMenu(
-                isSection: true,
                 canAddFolder: false,
                 canDelete: isCustom,
                 addFolder: null,
-                rename: () => RenameSectionInteractiveAsync(sectionId!, caption),
-                delete: () => DeleteSectionInteractiveAsync(sectionId!, caption));
+                rename: () => _ = RenameSectionInteractiveAsync(sectionId!, caption),
+                delete: () => _ = DeleteSectionInteractiveAsync(sectionId!, caption),
+                toggleHide: () =>
+                {
+                    SetSectionHidden(sectionId!, !hidden);
+                    RebuildLocalizedContent();
+                },
+                isHidden: hidden);
         }
 
         return content;
     }
 
-    /// <summary>Folders of a category, in display order, with their display names.</summary>
-    private List<(string Id, string Caption, bool IsCustom)> SectionsOf(string category)
+    /// <summary>
+    /// Folders of a category, in display order, with their display names.
+    ///
+    /// Keyed by the stable category key rather than by its caption: a category
+    /// the user renamed no longer matches its built-in text, and looking a
+    /// user-created folder up by caption is what would silently drop it from
+    /// the tree.
+    /// </summary>
+    private List<(string Id, string Caption, bool IsCustom)> SectionsOf(string categoryKey)
     {
         var result = new List<(string, string, bool)>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var option in Settings.Where(o => string.Equals(o.Category, category, StringComparison.Ordinal)))
+        // Rows carry the caption the category shows, which is the renamed one
+        // when the user renamed it — RenameCategoryRows keeps the two in step.
+        var categoryCaption = CategoryCaptionForKey(categoryKey);
+
+        foreach (var option in Settings.Where(o => string.Equals(o.Category, categoryCaption, StringComparison.Ordinal)))
         {
             if (option.SectionId is not { } id || !seen.Add(id))
             {
                 continue;
             }
 
-            var isCustom = SettingsSectionIds.IdFor(option.Section) is null;
+            // A folder the layout holds is one the user made; a built-in folder
+            // has no record there. Testing the id instead of the caption is what
+            // keeps a *renamed* built-in folder from looking user-made — and
+            // therefore from being offered a delete it must never have.
+            var isCustom = _layout.FindSection(id) is not null;
+
+            // A column is a pane-only grouping: it must not become a tree node,
+            // or "keep it out of the sidebar" would be exactly what it fails to
+            // do. It is still filtered out of `seen` above so the second pass
+            // does not add it back either.
+            if (isCustom && _layout.FindSection(id)?.PaneOnly == true)
+            {
+                continue;
+            }
+
             var caption = SectionDisplayName(id, option.Section ?? string.Empty);
             result.Add((id, caption, isCustom));
         }
@@ -136,8 +183,8 @@ public sealed partial class SettingsPage
         // discovered from, so it is appended from the stored list.
         foreach (var section in _layout.CustomSections)
         {
-            if (CategoryCaptionForKey(section.CategoryKey) is not { } categoryCaption
-                || !string.Equals(categoryCaption, category, StringComparison.Ordinal)
+            if (section.PaneOnly
+                || !string.Equals(section.CategoryKey, categoryKey, StringComparison.Ordinal)
                 || !seen.Add(section.Id))
             {
                 continue;
@@ -383,19 +430,5 @@ public sealed partial class SettingsPage
         {
             SaveLayout();
         }
-    }
-
-    /// <summary>Maps a localized category caption back to its stable key.</summary>
-    private string? CategoryKeyForCaption(string caption)
-    {
-        // A category the user made has no AppLang caption, so it resolves by
-        // its own name; that is the only thing the sidebar and the layout both
-        // know about it.
-        if (_layout.CustomCategories.FirstOrDefault(c => string.Equals(c.DisplayFor(ActiveLanguageKey), caption, StringComparison.Ordinal)) is { } custom)
-        {
-            return custom.Id;
-        }
-
-        return SettingsSectionIds.CategoryKeyFor(caption);
     }
 }

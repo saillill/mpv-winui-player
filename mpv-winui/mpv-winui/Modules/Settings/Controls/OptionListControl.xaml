@@ -227,8 +227,8 @@
                     <Button
                         Grid.Column="2"
                         VerticalAlignment="Center"
-                        AutomationProperties.Name="{x:Bind Edit.DeleteAutomationName}"
-                        ToolTipService.ToolTip="{x:Bind Edit.SectionTooltip}">
+                        AutomationProperties.Name="{x:Bind Edit.MoreAutomationName}"
+                        ToolTipService.ToolTip="{x:Bind Edit.SectionMoreTip}">
                         <FontIcon FontSize="14" Glyph="&#xE712;" />
                         <Button.Flyout>
                             <MenuFlyout>
@@ -237,7 +237,11 @@
                                 <MenuFlyoutItem Click="SectionMoveUp_Click" Text="{x:Bind Edit.MoveUpCaption}" />
                                 <MenuFlyoutItem Click="SectionMoveDown_Click" Text="{x:Bind Edit.MoveDownCaption}" />
                                 <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Click="SectionHide_Click" Text="{x:Bind Edit.HideSectionCaption}" />
+                                <!-- One slot for both directions: the caption
+                                     comes from the folder's state, so a hidden
+                                     folder offers a way back instead of
+                                     offering to hide itself again. -->
+                                <MenuFlyoutItem Click="SectionHide_Click" Text="{x:Bind HideToggleCaption}" />
                                 <!-- Only a folder the user made can be deleted;
                                      IsCustom gates it so no built-in section is
                                      ever offered a destructive action. -->
@@ -272,8 +276,9 @@
         </DataTemplate>
 
         <!-- Inline customize mode row: drag to reorder, drag onto a folder to
-             move it there, or hide / restore it. Label/description stay
-             read-only: they are localized. -->
+             move it there, or hide it. A hidden row keeps its normal opacity
+             until the "show hidden" switch is on, at which point it comes back
+             faded so it reads as set aside rather than present. -->
         <DataTemplate x:Key="CustomizeTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
@@ -283,8 +288,9 @@
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
+                ContextFlyout="{x:Bind Edit.RowMenu}"
                 CornerRadius="4"
-                ContextFlyout="{x:Bind Edit.RowMenu}">
+                Opacity="{x:Bind CardOpacity, Mode=OneWay}">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -348,18 +354,26 @@
                         MinWidth="0"
                         Padding="8,4"
                         VerticalAlignment="Top"
-                        AutomationProperties.Name="{x:Bind Edit.DeleteAutomationName}"
-                        ToolTipService.ToolTip="{x:Bind Edit.DeleteTooltip}">
+                        AutomationProperties.Name="{x:Bind Edit.MoreAutomationName}"
+                        ToolTipService.ToolTip="{x:Bind Edit.MoreTip}">
                         <FontIcon FontSize="14" Glyph="&#xE712;" />
                         <Button.Flyout>
                             <!-- Customizing a row means re-labelling it, hiding
                                  it, or moving it. Nothing here creates or
                                  retypes an mpv key: the set of rows belongs to
-                                 the app, only their presentation is the user's. -->
+                                 the app, only their presentation is the user's.
+
+                                 Text-only, matching the card's right-click
+                                 menu: one row offering two menus that look
+                                 different reads as two different menus. -->
                             <MenuFlyout>
                                 <MenuFlyoutItem Click="RenameRow_Click" Text="{x:Bind Edit.RenameCaption}" />
                                 <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Click="HideRow_Click" Text="{x:Bind Edit.HideCaption}" />
+                                <!-- One slot for both directions: the caption
+                                     comes from the row's state, so a hidden row
+                                     offers a way back instead of offering to
+                                     hide itself again. -->
+                                <MenuFlyoutItem Click="ToggleRowHidden_Click" Text="{x:Bind Edit.HideToggleCaption, Mode=OneWay}" />
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
@@ -407,11 +421,15 @@
         </Grid.RowDefinitions>
 
         <!-- Customize-mode-only toolbar. The pane's own caption sits on the
-             left and the one thing that can be created sits on the right — a
-             2nd-level folder, which cards can then be dragged into. They share
-             one row and one vertical centre, so the caption and the button line
-             up instead of the caption floating on a row of its own.
+             left; the right side carries the two structural gestures plus the
+             switch that makes hidden rows reachable again.
 
+             The two create buttons are NOT the same thing:
+               * 分栏 is a grouping bar that lives only in this card pane — it
+                 never becomes a sidebar node, so a user who merely wants to
+                 stack cards up does not grow the tree.
+               * 二级菜单 is a real 2nd-level folder: it appears here AND as a
+                 child node of the category in the sidebar.
              Creating a new option from an mpv key is deliberately NOT offered:
              the customize surface manages the layout of the rows that exist
              (rename, hide, reorder), not the set of rows. -->
@@ -425,6 +443,8 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <TextBlock
@@ -435,9 +455,31 @@
                 FontWeight="SemiBold"
                 TextTrimming="CharacterEllipsis" />
 
+            <ToggleButton
+                x:Name="ShowHiddenToggle"
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Click="ShowHiddenToggle_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="14" Glyph="&#xE7B3;" />
+                    <TextBlock x:Name="ShowHiddenToggleText" />
+                </StackPanel>
+            </ToggleButton>
+
+            <Button
+                x:Name="NewColumnButton"
+                Grid.Column="2"
+                VerticalAlignment="Center"
+                Click="CreateColumn_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="14" Glyph="&#xE8A5;" />
+                    <TextBlock x:Name="NewColumnButtonText" />
+                </StackPanel>
+            </Button>
+
             <Button
                 x:Name="NewSectionButton"
-                Grid.Column="1"
+                Grid.Column="3"
                 VerticalAlignment="Center"
                 Click="CreateSection_Click">
                 <StackPanel Orientation="Horizontal" Spacing="8">

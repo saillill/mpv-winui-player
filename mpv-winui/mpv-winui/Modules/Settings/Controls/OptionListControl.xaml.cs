@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using mpv_winui.Modules.Settings.Layout;
@@ -64,10 +65,14 @@ public sealed partial class OptionListControl : UserControl
         // The inline customize mode is the exception: it renders one edit
         // template for every row and keeps hidden rows on screen (flagged), so
         // the user has something to drag, rename and bring back.
+        // Inline customize mode is the exception: with its "show hidden" switch
+        // on it lists the rows the user hid too, so there is something to bring
+        // back. Those rows render faded — see Option.CardOpacity.
+        var showHidden = CustomizeMode && ShowHidden;
         var visible = new List<Option>(OptionList.Count);
         foreach (var option in OptionList)
         {
-            if (CustomizeMode || option.IsVisible)
+            if (option.IsVisible || showHidden)
             {
                 visible.Add(option);
             }
@@ -84,10 +89,31 @@ public sealed partial class OptionListControl : UserControl
             // permanently invisible, because the pane rendered non-customize
             // once on creation and nothing ever turned it back on.
             CustomizeBar.Visibility = Visibility.Visible;
+            NewColumnButton.Visibility = Visibility.Visible;
             NewSectionButton.Visibility = Visibility.Visible;
+            ShowHiddenToggle.Visibility = Visibility.Visible;
 
-            NewSectionButtonText.Text = lang.CustomizeNewSection;
-            ToolTipService.SetToolTip(NewSectionButton, lang.CustomizeNewSectionHint);
+            NewColumnButtonText.Text = lang.CustomizeNewColumn;
+            ToolTipService.SetToolTip(NewColumnButton, lang.CustomizeNewColumnHint);
+            NewSectionButtonText.Text = lang.CustomizeNewSubmenu;
+            ToolTipService.SetToolTip(NewSectionButton, lang.CustomizeNewSubmenuHint);
+            ShowHiddenToggleText.Text = lang.CustomizeShowHidden;
+            ToolTipService.SetToolTip(ShowHiddenToggle, lang.CustomizeShowHiddenHint);
+
+            // Each of these three is a glyph plus a TextBlock, and UIA does not
+            // compose an accessible name out of a StackPanel's children -- the
+            // buttons report as unnamed. Naming them explicitly keeps the
+            // toolbar readable to a screen reader without moving the caption
+            // out of the button's own content.
+            AutomationProperties.SetName(ShowHiddenToggle, lang.CustomizeShowHidden);
+            AutomationProperties.SetName(NewColumnButton, lang.CustomizeNewColumn);
+            AutomationProperties.SetName(NewSectionButton, lang.CustomizeNewSubmenu);
+
+            // Asserted from the control's own flag, not left as the button was
+            // last clicked: the pane is rebuilt on every edit, and a toggle that
+            // re-reads its state from its own tick would drift out of sync with
+            // the list it is supposed to be filtering.
+            ShowHiddenToggle.IsChecked = ShowHidden;
 
             // Sections stay visible as their own rows so the 2nd level is
             // editable too; each header carries its own move/hide menu.
@@ -102,10 +128,8 @@ public sealed partial class OptionListControl : UserControl
             // User-created folders have no AppLang caption, so a drop onto one
             // has to resolve by name: record the names currently on screen.
             SetCustomSections(visible
-                .Where(o => o.SectionId is not null
-                    && SettingsSectionIds.IdFor(o.Section) is null
-                    && !string.IsNullOrEmpty(o.Section))
-                .Select(o => (o.SectionId!, o.Section))
+                .Where(o => o.IsCustomSection && !string.IsNullOrEmpty(o.Section))
+                .Select(o => (o.SectionId!, o.Section ?? string.Empty))
                 .Distinct());
 
             // The pane stands for one folder: its members come first, then the
@@ -144,9 +168,14 @@ public sealed partial class OptionListControl : UserControl
                         Caption = option.Section,
                         SectionId = option.SectionId,
                         // A folder with no AppLang caption is one the user made,
-                        // and only those may be deleted.
-                        IsCustom = option.SectionId is not null
-                            && SettingsSectionIds.IdFor(option.Section) is null,
+                        // and only those may be deleted. Read off the row rather
+                        // than re-derived from the caption, which a rename would
+                        // no longer match.
+                        IsCustom = option.IsCustomSection,
+                        // A folder is only listed here while hidden when the
+                        // "show hidden" switch is on, and then it has to offer
+                        // the way back rather than a second hide.
+                        IsHidden = option.IsHiddenSection,
                     };
                     header.Edit.Refresh();
                     editable.Add(header);
@@ -163,8 +192,10 @@ public sealed partial class OptionListControl : UserControl
             return;
         }
 
-        NewSectionButton.Visibility = Visibility.Collapsed;
         CustomizeBar.Visibility = Visibility.Collapsed;
+        NewColumnButton.Visibility = Visibility.Collapsed;
+        NewSectionButton.Visibility = Visibility.Collapsed;
+        ShowHiddenToggle.Visibility = Visibility.Collapsed;
 
         var defaultSelector = (OptionTemplateSelector)Resources["TemplateSelector"];
         defaultSelector.CustomizeMode = false;
@@ -184,7 +215,7 @@ public sealed partial class OptionListControl : UserControl
         {
             if (showHeaders && !string.IsNullOrEmpty(option.Section) && option.Section != lastSection)
             {
-                items.Add(new SectionHeaderItem { Caption = option.Section });
+                items.Add(new SectionHeaderItem { Caption = option.Section, SectionId = option.SectionId });
                 lastSection = option.Section;
             }
 
@@ -237,14 +268,46 @@ public sealed partial class OptionListControl : UserControl
     /// <summary>Raised when the user picks "hide" on a row.</summary>
     public event Action<Option>? HideRequested;
 
+    /// <summary>
+    /// Raised when the user picks "show this row again" on a row that is
+    /// currently hidden. A separate event rather than a flag on
+    /// <see cref="HideRequested"/> because hiding and restoring are different
+    /// intents on the page side, and a bool-carrying event invites callers to
+    /// forget which way it points.
+    /// </summary>
+    public event Action<Option>? UnhideRequested;
+
+    /// <summary>
+    /// Whether the pane is listing rows the user hid. Off by default: a hidden
+    /// row is meant to be out of the way, and only someone tidying up wants to
+    /// see them. While on, hidden rows render faded, so "listed" and "shown"
+    /// stay distinguishable.
+    /// </summary>
+    public bool ShowHidden { get; private set; }
+
+    /// <summary>Raised when the user asks to create a grouping bar (pane-only).</summary>
+    public event Action? CreateColumnRequested;
+
     /// <summary>Raised after a drag-reorder, with the new key order.</summary>
     public event Action<IReadOnlyList<string>>? OrderChanged;
 
-    /// <summary>Raised when the user moves a section; the caption identifies it.</summary>
+    /// <summary>
+    /// Raised when the user moves a folder; the stable section id identifies it.
+    ///
+    /// The id travels, not the caption, because a built-in folder's caption is
+    /// renamable: once the user renames it, the caption no longer maps back to
+    /// the id, and every command that reported a caption would silently stop
+    /// finding its folder.
+    /// </summary>
     public event Action<string, int>? SectionMoveRequested;
 
-    /// <summary>Raised when the user hides a section.</summary>
-    public event Action<string>? SectionHideRequested;
+    /// <summary>
+    /// Raised when the user flips a folder between hidden and shown, by stable
+    /// section id. Carries the state the folder should end up in, so the one
+    /// menu slot serves both directions and the page never has to work out which
+    /// way the click pointed.
+    /// </summary>
+    public event Action<string, bool>? SectionHiddenChanged;
 
     /// <summary>Raised when the user deletes a folder they created.</summary>
     public event Action<string>? SectionDeleteRequested;
@@ -351,11 +414,16 @@ public sealed partial class OptionListControl : UserControl
         // The drop lands on whatever row is under the pointer: another card
         // (join its folder) or a folder header (join that folder). Dropping on
         // empty space means "no folder".
+        //
+        // A header answers with the id it already carries; the caption lookups
+        // are the fallback for a header built without one, and cannot resolve a
+        // renamed built-in folder — hence the id first.
         var target = (e.OriginalSource as FrameworkElement)?.DataContext;
         var targetSectionId = target switch
         {
             Option targetOption => targetOption.SectionId,
-            SectionHeaderItem header => SettingsSectionIds.IdFor(header.Caption)
+            SectionHeaderItem header => header.SectionId
+                ?? SettingsSectionIds.IdFor(header.Caption)
                 ?? _customSectionIdsByCaption.GetValueOrDefault(header.Caption),
             _ => null,
         };
@@ -445,6 +513,21 @@ public sealed partial class OptionListControl : UserControl
 
     private void CreateSection_Click(object sender, RoutedEventArgs e) => CreateSectionRequested?.Invoke();
 
+    /// <summary>The toolbar's "new column": a grouping bar that stays in this pane.</summary>
+    private void CreateColumn_Click(object sender, RoutedEventArgs e) => CreateColumnRequested?.Invoke();
+
+    /// <summary>
+    /// Flips the pane between "the rows you kept" and "everything, with the
+    /// hidden ones faded". The flag is kept on the control (not read back off
+    /// the toggle) so a rebuild re-asserts the button from the state rather
+    /// than the state from the button.
+    /// </summary>
+    private void ShowHiddenToggle_Click(object sender, RoutedEventArgs e)
+    {
+        ShowHidden = ShowHiddenToggle.IsChecked == true;
+        Refresh();
+    }
+
     private void RenameRow_Click(object sender, RoutedEventArgs e)
     {
         if (RowOption(sender) is { } option)
@@ -465,45 +548,65 @@ public sealed partial class OptionListControl : UserControl
 
     private void SectionDelete_Click(object sender, RoutedEventArgs e)
     {
-        if (SectionCaption(sender) is { } caption)
+        if (SectionIdOf(sender) is { } id)
         {
-            SectionDeleteRequested?.Invoke(caption);
+            SectionDeleteRequested?.Invoke(id);
         }
     }
 
-    private static string? SectionCaption(object sender) =>
-        ((sender as FrameworkElement)?.DataContext as SectionHeaderItem)?.Caption;
+    /// <summary>
+    /// Stable section id behind a folder-row menu item. Read off the header's
+    /// own id rather than resolved from its caption, which a rename breaks.
+    /// </summary>
+    private static string? SectionIdOf(object sender) =>
+        ((sender as FrameworkElement)?.DataContext as SectionHeaderItem)?.SectionId;
 
     private void SectionMoveUp_Click(object sender, RoutedEventArgs e)
     {
-        if (SectionCaption(sender) is { } caption)
+        if (SectionIdOf(sender) is { } id)
         {
-            SectionMoveRequested?.Invoke(caption, -1);
+            SectionMoveRequested?.Invoke(id, -1);
         }
     }
 
     private void SectionMoveDown_Click(object sender, RoutedEventArgs e)
     {
-        if (SectionCaption(sender) is { } caption)
+        if (SectionIdOf(sender) is { } id)
         {
-            SectionMoveRequested?.Invoke(caption, 1);
+            SectionMoveRequested?.Invoke(id, 1);
         }
     }
 
     private void SectionHide_Click(object sender, RoutedEventArgs e)
     {
-        if (SectionCaption(sender) is { } caption)
+        if ((sender as FrameworkElement)?.DataContext is not SectionHeaderItem { SectionId: { } id } header)
         {
-            SectionHideRequested?.Invoke(caption);
+            return;
         }
+
+        // The direction is read off the header rather than off the caption, so
+        // the action is right even if the caption lagged a rebuild behind.
+        SectionHiddenChanged?.Invoke(id, !header.IsHidden);
     }
 
     private static Option? RowOption(object sender) =>
         (sender as FrameworkElement)?.DataContext as Option;
 
-    private void HideRow_Click(object sender, RoutedEventArgs e)
+    private void ToggleRowHidden_Click(object sender, RoutedEventArgs e)
     {
-        if (RowOption(sender) is { } option)
+        if (RowOption(sender) is not { } option)
+        {
+            return;
+        }
+
+        // The menu carries one entry for both directions, so the direction is
+        // read off the row rather than off the caption. That keeps the action
+        // correct even if the caption lagged a rebuild behind the state.
+        if (option.IsHiddenByUser)
+        {
+            UnhideRequested?.Invoke(option);
+        }
+        else
         {
             HideRequested?.Invoke(option);
         }
@@ -534,8 +637,8 @@ public sealed partial class OptionListControl : UserControl
             case nameof(RenameRow_Click):
                 RenameRow_Click(sender, new RoutedEventArgs());
                 break;
-            case nameof(HideRow_Click):
-                HideRow_Click(sender, new RoutedEventArgs());
+            case nameof(ToggleRowHidden_Click):
+                ToggleRowHidden_Click(sender, new RoutedEventArgs());
                 break;
         }
     }

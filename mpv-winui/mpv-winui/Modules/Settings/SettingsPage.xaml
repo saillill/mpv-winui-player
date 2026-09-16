@@ -276,7 +276,8 @@
                                                     <Grid
                                                         MinHeight="32"
                                                         ColumnSpacing="8"
-                                                        ContextFlyout="{x:Bind local:TreeHelpers.MenuFor(Content)}">
+                                                        ContextFlyout="{x:Bind local:TreeHelpers.MenuFor(Content)}"
+                                                        Opacity="{x:Bind local:TreeHelpers.OpacityFor(Content)}">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto" />
                                                             <ColumnDefinition Width="Auto" />
@@ -405,8 +406,11 @@
                         </StackPanel>
 
                         <!-- Customize footer: a different job, so a different
-                             set of buttons. Undo/redo step through the session,
-                             discard drops it, apply keeps it and exits. -->
+                             set of buttons. Undo/redo step through the session
+                             as bare icons; apply keeps what is on screen and
+                             exits. There is deliberately no "don't save" button
+                             — closing asks the question, and offers discarding
+                             as one of its answers. -->
                         <StackPanel
                             x:Name="CustomizeActions"
                             Grid.Column="1"
@@ -427,10 +431,6 @@
                                 Click="CustomizeRedo_Click">
                                 <FontIcon FontSize="14" Glyph="&#xE7A6;" />
                             </Button>
-                            <Button
-                                x:Name="CustomizeDiscardButton"
-                                MinWidth="96"
-                                Click="CustomizeDiscard_Click" />
                             <Button
                                 x:Name="CustomizeApplyButton"
                                 MinWidth="116"

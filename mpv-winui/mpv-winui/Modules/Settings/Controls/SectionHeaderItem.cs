@@ -23,6 +23,21 @@ public sealed class SectionHeaderItem
     public bool IsCustom { get; set; }
 
     /// <summary>
+    /// True when the folder is hidden: its cards are set aside and the header is
+    /// only on screen because the customize pane is listing hidden things. The
+    /// header then offers to bring the folder back instead of hiding it again.
+    /// </summary>
+    public bool IsHidden { get; set; }
+
+    /// <summary>
+    /// Caption of the folder's hide entry. One menu slot covers both
+    /// directions, so a hidden folder offers a way back rather than offering to
+    /// hide itself a second time.
+    /// </summary>
+    public string HideToggleCaption =>
+        IsHidden ? AppContext.AppLang.CustomizeUnhideSection : AppContext.AppLang.CustomizeHideSection;
+
+    /// <summary>
     /// True for the bare separator that marks where the folder's own cards end
     /// and the cards outside every folder begin. A splitter carries no folder,
     /// so it gets no edit affordances.

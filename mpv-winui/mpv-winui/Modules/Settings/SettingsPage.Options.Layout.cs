@@ -59,10 +59,16 @@ public sealed partial class SettingsPage
             }
 
             // Hidden rows are filtered out of the normal list by IsVisible; the
-            // customize mode ignores that flag so they can be brought back.
+            // customize mode can list them again (behind its "show hidden"
+            // toggle) so they can be brought back. The caption is refreshed
+            // here rather than with the rest of the page because the hide flag
+            // is applied after that pass, and the entry has to read "show
+            // again" the moment the row is known to be hidden.
             if (entry.Hidden)
             {
                 option.IsVisible = false;
+                option.IsHiddenByUser = true;
+                option.Edit.Refresh(hiddenByUser: true);
             }
         }
 
@@ -125,7 +131,8 @@ public sealed partial class SettingsPage
 
     /// <summary>
     /// Localized caption for a stable category key, covering the categories
-    /// the user created (which have no AppLang caption to look up).
+    /// the user created (which have no AppLang caption to look up) and the
+    /// rename the user may have put on top of a built-in one.
     /// </summary>
     private string? CategoryCaptionForKey(string? key)
     {
@@ -134,8 +141,56 @@ public sealed partial class SettingsPage
             return null;
         }
 
+        // A rename is an override on the built-in caption, exactly like a row's
+        // or a folder's, so it is consulted before the language file. An empty
+        // override (a deliberately blank name) keeps the built-in text, because
+        // a nameless entry in the sidebar is unreachable rather than tidy.
+        if (LabelOverrides.ResolveLabel(
+                _layout.Entries.TryGetValue(CategoryEntryKey(key), out var entry) ? entry : null,
+                ActiveLanguageKey) is { Length: > 0 } renamed)
+        {
+            return renamed;
+        }
+
         return _layout.FindCategory(key)?.DisplayFor(ActiveLanguageKey)
             ?? SettingsSectionIds.CategoryCaptionFor(key);
+    }
+
+    /// <summary>
+    /// Key a category rename is stored under. Prefixed so it cannot collide
+    /// with a real option key, matching <c>SectionEntryKey</c>.
+    /// </summary>
+    private static string CategoryEntryKey(string categoryKey) => "category-label:" + categoryKey;
+
+    /// <summary>
+    /// Re-labels the rows of every renamed category so <c>option.Category</c>
+    /// and the sidebar label stay one string.
+    ///
+    /// A category's rows are grouped and filtered by their own Category field,
+    /// not by the stable key — the sidebar label, the bookmark pane, the search
+    /// index and the per-category reset all compare against it. Renaming the
+    /// sidebar alone would leave those four looking for a name no row carries
+    /// any more, so the rows move with the label, the same way
+    /// <c>ApplySectionLayout</c> moves a row into a renamed folder.
+    /// </summary>
+    private void RenameCategoryRows(List<(string Key, string Label)> categories)
+    {
+        foreach (var (key, label) in categories)
+        {
+            if (SettingsSectionIds.CategoryCaptionFor(key) is not { } builtIn
+                || string.Equals(builtIn, label, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            foreach (var option in Settings)
+            {
+                if (string.Equals(option.Category, builtIn, StringComparison.Ordinal))
+                {
+                    option.Category = label;
+                }
+            }
+        }
     }
 
     /// <summary>Records the visible order so a drag-reorder survives a rebuild.</summary>
@@ -152,6 +207,11 @@ public sealed partial class SettingsPage
         entry.Hidden = hidden;
         _layout.Prune(option.Key);
         option.IsVisible = !hidden;
+        option.IsHiddenByUser = hidden;
+
+        // The row's own menu carries one entry that flips between "hide" and
+        // "show again", so its caption has to follow the new state.
+        option.Edit.Refresh(hiddenByUser: hidden);
         SaveLayout();
     }
 
@@ -278,14 +338,19 @@ public sealed partial class SettingsPage
                 continue;
             }
 
+            // The caption put on the row is the folder's *display* name, so a
+            // renamed folder is renamed in the card pane as well as in the tree.
+            // Which kind of folder it is travels as a flag, not as a caption
+            // test: after a rename the caption no longer matches AppLang.
             if (_layout.FindSection(entry.SectionId) is { } custom)
             {
-                option.Section = custom.Name;
+                option.Section = custom.DisplayFor(ActiveLanguageKey);
                 option.SectionId = custom.Id;
+                option.IsCustomSection = true;
             }
             else if (SettingsSectionIds.CaptionFor(entry.SectionId) is { } caption)
             {
-                option.Section = caption;
+                option.Section = SectionDisplayName(entry.SectionId, caption);
                 option.SectionId = entry.SectionId;
             }
         }
@@ -305,7 +370,23 @@ public sealed partial class SettingsPage
 
         if (_layout.HiddenSections.Count > 0)
         {
-            options.RemoveAll(o => o.SectionId is { } id && _layout.HiddenSections.Contains(id));
+            // A hidden folder's rows stay in the model and are marked invisible,
+            // exactly like a hidden row — they are not removed. Removing them is
+            // what made hiding a folder a one-way trip: with no row left to be
+            // discovered from, the folder also vanished from the tree, so nothing
+            // was left on screen to bring it back. Kept, they are still the
+            // folder's members, and the customize mode can list them (behind its
+            // "show hidden" switch) with a header that offers "show again".
+            foreach (var option in options)
+            {
+                if (option.SectionId is { } id && _layout.HiddenSections.Contains(id))
+                {
+                    option.IsVisible = false;
+                    option.IsHiddenByUser = true;
+                    option.IsHiddenSection = true;
+                    option.Edit.Refresh(hiddenByUser: true);
+                }
+            }
         }
 
         // 2) Folders hold contiguous runs; re-emit them in the stored order.
@@ -375,22 +456,27 @@ public sealed partial class SettingsPage
             options.Add(new Option
             {
                 Key = "custom-section:" + section.Id,
-                Label = section.Name,
+                Label = section.DisplayFor(ActiveLanguageKey),
                 Description = AppContext.AppLang.CustomizeEmptySection,
                 Category = categoryName,
-                Section = section.Name,
+                Section = section.DisplayFor(ActiveLanguageKey),
                 SectionId = section.Id,
+                IsCustomSection = true,
                 Type = OptionType.Action,
                 IsVisible = true,
                 ShowSectionHeader = true,
-                Getter = () => null,
+                Getter = () => null!,
                 Setter = _ => { },
             });
         }
     }
 
-    /// <summary>Creates a 2nd-level folder in the given category.</summary>
-    internal void CreateSection(string categoryKey, string name)
+    /// <summary>
+    /// Creates a 2nd-level grouping. <paramref name="paneOnly"/> separates the
+    /// two gestures the toolbar offers: a plain folder also becomes a sidebar
+    /// node, while a column groups cards in the pane and stays out of the tree.
+    /// </summary>
+    internal void CreateSection(string categoryKey, string name, bool paneOnly = false)
     {
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrEmpty(categoryKey))
         {
@@ -404,6 +490,7 @@ public sealed partial class SettingsPage
             Id = id,
             CategoryKey = categoryKey,
             Name = name.Trim(),
+            PaneOnly = paneOnly,
         });
 
         // New folders go last so they do not jump above the built-in ones.

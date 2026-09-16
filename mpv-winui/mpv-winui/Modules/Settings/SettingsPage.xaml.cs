@@ -132,6 +132,12 @@ public sealed partial class SettingsPage : Page
             // Pair each stable key with its localized label first: the sidebar
             // customization reorders and hides pairs, and the two public lists
             // have to stay index-aligned.
+            //
+            // The empty-category gate compares against the caption the rows were
+            // built with, but the pair carries the caption to *show*, which is
+            // the user's own name when they renamed the category. The rows are
+            // re-labelled to match right after, so one string still identifies a
+            // category for everything downstream.
             var pairs = new List<(string Key, string Label)>(categoryCount);
             for (var i = 0; i < categoryCount; i++)
             {
@@ -140,8 +146,10 @@ public sealed partial class SettingsPage : Page
                 {
                     continue;
                 }
-                pairs.Add((CategoryKeys[i], label));
+                pairs.Add((CategoryKeys[i], CategoryCaptionForKey(CategoryKeys[i]) ?? label));
             }
+
+            RenameCategoryRows(pairs);
 
             // Categories the user created sit alongside the built-in ones. They
             // start empty, so they are appended after the layout pass: the

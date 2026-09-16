@@ -49,6 +49,14 @@ public sealed partial class SettingsPage
             RebuildLocalizedContent();
         };
 
+        // The card menu carries one entry that flips between "hide" and "show
+        // again", so the page has to handle the way back as its own intent.
+        list.UnhideRequested += option =>
+        {
+            SetHidden(option, false);
+            RebuildLocalizedContent();
+        };
+
         list.OrderChanged += keys =>
         {
             // Store only. A drag already left the ListView in the new order, so
@@ -59,35 +67,24 @@ public sealed partial class SettingsPage
             StoreOrder(keys);
         };
 
-        // 2nd-level (section / column) editing. Captions are localized, so they
-        // are resolved to a stable id before being stored. User-created folders
-        // have no caption in AppLang, so they resolve by their own name.
-        list.SectionMoveRequested += (caption, delta) =>
+        // 2nd-level (folder / column) editing. The pane reports the folder's
+        // stable id rather than its caption, because the caption is exactly what
+        // a rename changes: a command that had to resolve the caption back into
+        // an id would quietly stop doing anything once the user renamed the
+        // folder it was pointed at.
+        list.SectionMoveRequested += (sectionId, delta) =>
         {
-            if (ResolveSectionId(caption) is { } id)
-            {
-                MoveSection(id, delta);
-                RebuildLocalizedContent();
-            }
+            MoveSection(sectionId, delta);
+            RebuildLocalizedContent();
         };
 
-        list.SectionHideRequested += caption =>
+        list.SectionHiddenChanged += (sectionId, hidden) =>
         {
-            if (ResolveSectionId(caption) is { } id)
-            {
-                SetSectionHidden(id, true);
-                RebuildLocalizedContent();
-            }
+            SetSectionHidden(sectionId, hidden);
+            RebuildLocalizedContent();
         };
 
-        list.SectionDeleteRequested += caption =>
-        {
-            if (ResolveSectionId(caption) is { } id)
-            {
-                DeleteSection(id);
-                RebuildLocalizedContent();
-            }
-        };
+        list.SectionDeleteRequested += sectionId => _ = DeleteSectionInteractiveAsync(sectionId, SectionNameFor(sectionId));
 
         list.MoveRowRequested += (optionKey, sectionId) =>
         {
@@ -104,6 +101,10 @@ public sealed partial class SettingsPage
         };
 
         list.CreateSectionRequested += async () => await CreateSectionInteractiveAsync();
+
+        // A column groups cards here and nowhere else, so it is created as a
+        // pane-only section: no sidebar node grows out of it.
+        list.CreateColumnRequested += async () => await CreatePaneColumnInteractiveAsync();
 
         list.RenameRowRequested += async (optionKey, current) => await RenameRowInteractiveAsync(optionKey, current);
 
@@ -137,25 +138,12 @@ public sealed partial class SettingsPage
     }
 
     /// <summary>
-    /// Resolves a section caption to its stable id, covering the folders the
-    /// user created themselves (which have no AppLang caption to look up).
+    /// Resolves a folder id to the name it currently shows, for the dialogs that
+    /// have to name it. Covers both a built-in folder (its own caption, or the
+    /// user's override) and one the user created (which has no AppLang caption).
     /// </summary>
-    private string? ResolveSectionId(string? caption)
-    {
-        if (string.IsNullOrEmpty(caption))
-        {
-            return null;
-        }
-
-        if (SettingsSectionIds.IdFor(caption) is { } builtIn)
-        {
-            return builtIn;
-        }
-
-        return _layout.CustomSections
-            .FirstOrDefault(s => string.Equals(s.Name, caption, StringComparison.Ordinal))
-            ?.Id;
-    }
+    private string SectionNameFor(string sectionId) =>
+        SectionDisplayName(sectionId, SettingsSectionIds.CaptionFor(sectionId) ?? string.Empty);
 
     /// <summary>
     /// Deletes a folder the user created, after confirming.
@@ -217,15 +205,22 @@ public sealed partial class SettingsPage
     /// <summary>Asks for a name and creates a 2nd-level folder in this category.</summary>
     private async Task CreateSectionInteractiveAsync() => await CreateSectionInteractiveAsync(null);
 
+    /// <summary>Asks for a name and creates a pane-only grouping column.</summary>
+    private async Task CreatePaneColumnInteractiveAsync() =>
+        await CreateSectionInteractiveAsync(CurrentCategoryKey, paneOnly: true);
+
     /// <summary>
-    /// Asks for a name and creates a 2nd-level folder.
+    /// Asks for a name and creates a 2nd-level grouping.
     ///
     /// The two-pane view knows the category from the tree node that was
     /// right-clicked rather than from the page's current category, so the
     /// caller may pass it explicitly; browsing mode passes null and falls back
     /// to whatever category the page is showing.
+    ///
+    /// <paramref name="paneOnly"/> picks between the toolbar's two gestures:
+    /// a folder (also a sidebar node) and a column (pane grouping only).
     /// </summary>
-    private async Task CreateSectionInteractiveAsync(string? categoryKey)
+    private async Task CreateSectionInteractiveAsync(string? categoryKey, bool paneOnly = false)
     {
         categoryKey ??= CurrentCategoryKey;
         if (categoryKey is null)
@@ -234,16 +229,17 @@ public sealed partial class SettingsPage
         }
 
         var lang = AppContext.AppLang;
+        var title = paneOnly ? lang.CustomizeNewColumn : lang.CustomizeNewSubmenu;
         var input = new TextBox
         {
-            PlaceholderText = lang.CustomizeNewSection,
-            Header = lang.CustomizeNewSection,
+            PlaceholderText = title,
+            Header = title,
         };
 
         var dialog = new ContentDialog
         {
             XamlRoot = XamlRoot,
-            Title = lang.CustomizeNewSection,
+            Title = title,
             Content = new StackPanel
             {
                 Spacing = 8,
@@ -252,12 +248,13 @@ public sealed partial class SettingsPage
                     input,
                     new TextBlock
                     {
-                        Text = lang.CustomizeNewSectionHint,
+                        Text = paneOnly ? lang.CustomizeNewColumnHint : lang.CustomizeNewSubmenuHint,
                         Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                        TextWrapping = TextWrapping.Wrap,
                     },
                 },
             },
-            PrimaryButtonText = lang.CustomizeNewSection,
+            PrimaryButtonText = lang.Save,
             CloseButtonText = lang.Cancel,
             DefaultButton = ContentDialogButton.Primary,
         };
@@ -267,7 +264,12 @@ public sealed partial class SettingsPage
             return;
         }
 
-        CreateSection(categoryKey, input.Text);
+        // Wrapped in the draft boundary like every other edit: without it the
+        // folder appeared but could not be undone, because undo only ever walks
+        // the recorded steps.
+        PushCustomizeEdit();
+        CreateSection(categoryKey, input.Text, paneOnly);
+        CommitCustomizeEdit();
         RebuildLocalizedContent();
     }
 
@@ -523,6 +525,151 @@ public sealed partial class SettingsPage
     /// </summary>
     private static string SectionEntryKey(string sectionId) => "section-label:" + sectionId;
 
+    /// <summary>
+    /// Renames a sidebar category, reached from the pane's own menu or from the
+    /// matching node in the bookmark tree.
+    ///
+    /// A built-in category's caption lives in the language files, so — exactly
+    /// like a row or a folder — the rename is stored as an override on top of it
+    /// and offers the same "this language / all languages" scope. A category the
+    /// user created has no built-in text to fall back to, so its name is content
+    /// and applies everywhere.
+    ///
+    /// The stable key is never touched: the sidebar order, the folder order and
+    /// the hidden flags are all stored against it, which is the whole reason the
+    /// key and the caption are separate fields.
+    /// </summary>
+    private async Task RenameCategoryInteractiveAsync(string categoryKey, string currentCaption)
+    {
+        var lang = AppContext.AppLang;
+
+        var custom = _layout.FindCategory(categoryKey);
+        var builtInCaption = SettingsSectionIds.CategoryCaptionFor(categoryKey);
+        if (custom is null && builtInCaption is null)
+        {
+            return;
+        }
+
+        var labelBox = new TextBox
+        {
+            Text = currentCaption,
+            PlaceholderText = lang.CustomizeRenamePlaceholder,
+            Header = lang.CustomizeFieldName,
+            MaxLength = MaxLabelLength,
+        };
+
+        var errorText = new TextBlock
+        {
+            Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"],
+            TextWrapping = TextWrapping.Wrap,
+            Visibility = Visibility.Collapsed,
+        };
+
+        var panel = new StackPanel
+        {
+            Spacing = 12,
+            MinWidth = 420,
+            Children =
+            {
+                labelBox,
+                new TextBlock
+                {
+                    Text = builtInCaption is null ? lang.CustomizeRenameFolderHint : lang.CustomizeRenameHint,
+                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                    TextWrapping = TextWrapping.Wrap,
+                },
+                errorText,
+            },
+        };
+
+        ToggleSwitch? scopeToggle = null;
+        if (builtInCaption is not null)
+        {
+            scopeToggle = new ToggleSwitch
+            {
+                IsOn = string.Equals(
+                    _layout.Entries.TryGetValue(CategoryEntryKey(categoryKey), out var e) ? e.Scope : null,
+                    RenameScopes.All,
+                    StringComparison.Ordinal),
+                OnContent = lang.CustomizeScopeAll,
+                OffContent = lang.CustomizeScopeCurrent,
+                Header = lang.CustomizeScope,
+            };
+            panel.Children.Insert(1, scopeToggle);
+        }
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = lang.CustomizeRename,
+            Content = panel,
+            PrimaryButtonText = lang.Save,
+            CloseButtonText = lang.Cancel,
+            DefaultButton = ContentDialogButton.Primary,
+        };
+
+        // Two categories wearing one name cannot be told apart in the sidebar,
+        // and every lookup that goes through a caption would resolve to whichever
+        // came first — so the clash is refused rather than stored.
+        dialog.PrimaryButtonClick += (_, args) =>
+        {
+            var typed = labelBox.Text.Trim();
+
+            if (typed.Length > MaxLabelLength)
+            {
+                errorText.Text = string.Format(lang.CustomizeErrorLabelTooLong, MaxLabelLength);
+                errorText.Visibility = Visibility.Visible;
+                args.Cancel = true;
+                return;
+            }
+
+            // The category's own current name is not a clash: keeping it is a
+            // legitimate "no change", so every entry showing it is skipped.
+            if (typed.Length > 0
+                && Categories
+                    .Where(shown => !string.Equals(shown, currentCaption, StringComparison.Ordinal))
+                    .Any(shown => string.Equals(shown, typed, StringComparison.Ordinal)))
+            {
+                errorText.Text = string.Format(lang.CustomizeErrorNameTaken, typed);
+                errorText.Visibility = Visibility.Visible;
+                args.Cancel = true;
+            }
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        var name = labelBox.Text.Trim();
+
+        PushCustomizeEdit();
+        if (custom is not null)
+        {
+            // The user's own text, so it applies in every language; DisplayName
+            // carries it without disturbing the id or the original name.
+            custom.DisplayName = string.Equals(name, custom.Name, StringComparison.Ordinal) ? null : name;
+        }
+        else
+        {
+            var entry = _layout.EntryFor(CategoryEntryKey(categoryKey));
+
+            // Empty, or typed back to the built-in caption, means "no override":
+            // clearing it is how the user gets the app's own name back, which is
+            // what the placeholder promises.
+            entry.Label = name.Length == 0 || string.Equals(name, builtInCaption, StringComparison.Ordinal)
+                ? null
+                : name;
+            entry.Scope = scopeToggle?.IsOn == true ? RenameScopes.All : RenameScopes.Current;
+            entry.Language = scopeToggle?.IsOn == true ? null : ActiveLanguageKey;
+            _layout.Prune(CategoryEntryKey(categoryKey));
+        }
+
+        SaveLayout();
+        CommitCustomizeEdit();
+        RebuildLocalizedContent();
+    }
+
     /// <summary>Current display name of a folder, honouring any rename.</summary>
     private string SectionDisplayName(string sectionId, string fallbackCaption)
     {
@@ -596,15 +743,16 @@ public sealed partial class SettingsPage
         BrowseActions.Visibility = Visibility.Collapsed;
         CustomizeActions.Visibility = Visibility.Visible;
 
-        CustomizeUndoButton.Content = lang.CustomizeUndo;
-        CustomizeRedoButton.Content = lang.CustomizeRedo;
-        CustomizeDiscardButton.Content = lang.CustomizeDiscardSession;
+        // Undo and redo are icon-only buttons: their whole meaning fits in the
+        // two curved arrows that are the universal gesture for them, and the
+        // footer already carries two text buttons. Setting Content here is what
+        // used to replace the XAML's FontIcon with the word, so only the
+        // tooltips are refreshed now.
         CustomizeApplyButtonText.Text = lang.ApplyAndExit;
         CustomizeExitButton.Content = lang.CustomizeExit;
 
         ToolTipService.SetToolTip(CustomizeUndoButton, lang.CustomizeUndoTip);
         ToolTipService.SetToolTip(CustomizeRedoButton, lang.CustomizeRedoTip);
-        ToolTipService.SetToolTip(CustomizeDiscardButton, lang.CustomizeResetSessionTip);
         ToolTipService.SetToolTip(CustomizeApplyButton, lang.CustomizeApplyTip);
         ToolTipService.SetToolTip(CustomizeExitButton, lang.CustomizeExitTip);
     }
@@ -632,7 +780,22 @@ public sealed partial class SettingsPage
 
     // ===== sidebar (category pane) commands =====
 
-    /// <summary>Attaches the sidebar edit menu to a pane item while customizing.</summary>
+    /// <summary>
+    /// Attaches the browse-mode sidebar's edit menu to a pane item.
+    ///
+    /// NOTE: this is currently unreachable. The menu is only attached while
+    /// customizing, and customizing is exactly when the pane is hidden in favour
+    /// of the folder tree (see <c>CategoryNav.IsPaneVisible</c>), so nothing on
+    /// screen can open it. The tree's category node — which offers rename and
+    /// "new submenu" — is what the user actually reaches, and a category is
+    /// hidden from the tree's own menu.
+    ///
+    /// Kept rather than deleted because the same two operations are the pane's
+    /// own reorder and hide, and reviving the pane (or the drag below) is a
+    /// decision about the customize layout, not a cleanup. Deleting it is safe
+    /// today if that decision goes the other way; the folder tree does not use
+    /// any of it.
+    /// </summary>
     internal void ApplyCategoryEditMenu(NavigationViewItem item, string categoryKey, int index)
     {
         if (!_customizeMode)

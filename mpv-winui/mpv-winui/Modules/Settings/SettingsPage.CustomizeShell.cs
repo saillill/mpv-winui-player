@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using mpv_winui.Modules.Settings.Layout;
 using System;
@@ -80,16 +81,27 @@ public sealed partial class SettingsPage
     {
         var lang = AppContext.AppLang;
         CustomizeApplyButtonText.Text = lang.ApplyAndExit;
-        CustomizeDiscardButton.Content = lang.Discard;
         CustomizeExitButton.Content = lang.Close;
         ToolTipService.SetToolTip(CustomizeApplyButton, lang.ApplyAndExit);
+
+        // Undo/redo keep their XAML FontIcon: their Content is never assigned,
+        // because assigning it is what replaces the icon with text.
         ToolTipService.SetToolTip(CustomizeUndoButton, lang.CustomizeUndoTip);
         ToolTipService.SetToolTip(CustomizeRedoButton, lang.CustomizeRedoTip);
-        ToolTipService.SetToolTip(CustomizeDiscardButton, lang.CustomizeResetSessionTip);
+
+        // An icon-only button has no text for a screen reader to fall back on,
+        // so the tooltip is not a convenience here, it is the only label these
+        // two buttons have. Naming them is what keeps "show undo/redo as icons"
+        // from meaning "show them as two anonymous buttons".
+        AutomationProperties.SetName(CustomizeUndoButton, lang.CustomizeUndoTip);
+        AutomationProperties.SetName(CustomizeRedoButton, lang.CustomizeRedoTip);
+
+        // Same reason, one row over: apply is a glyph plus a TextBlock, so it
+        // is named from the caption it shows rather than from its children.
+        AutomationProperties.SetName(CustomizeApplyButton, lang.ApplyAndExit);
 
         CustomizeUndoButton.IsEnabled = _draft.CanUndo;
         CustomizeRedoButton.IsEnabled = _draft.CanRedo;
-        CustomizeDiscardButton.IsEnabled = _draft.IsDirty;
     }
 
     /// <summary>Shows (or clears) the unsaved-changes line in the footer.</summary>
@@ -168,23 +180,15 @@ public sealed partial class SettingsPage
         ExitCustomizeMode();
     }
 
-    private void CustomizeDiscard_Click(object sender, RoutedEventArgs e)
-    {
-        if (!_draft.Discard(_layout))
-        {
-            return;
-        }
-
-        SaveLayout();
-        RebuildLocalizedContent();
-        UpdateCustomizeFooter();
-        ShowCustomizeStatus(CustomizeStatus.Discarded);
-    }
-
     /// <summary>
     /// Leaves the mode. With unsaved changes this asks first and offers to
     /// apply them, discard them, or stay; the dialog is the "save?" card the
     /// exit path needs.
+    ///
+    /// This dialog is also why the footer has no separate "don't save" button:
+    /// closing is the only gesture that needs a decision, so it is the only
+    /// place the decision is asked. A third button in the footer that did the
+    /// same thing as this dialog's middle option just made the footer longer.
     /// </summary>
     private async void CustomizeExit_Click(object sender, RoutedEventArgs e)
     {

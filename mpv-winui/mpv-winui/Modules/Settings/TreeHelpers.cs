@@ -48,5 +48,13 @@ namespace mpv_winui.Modules.Settings
             content is TreeViewNodeContent { IsSection: true, IsCustom: true }
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+
+        /// <summary>
+        /// Dimming for a hidden folder's node. A hidden folder stays listed (so
+        /// it can be brought back) and is faded instead of badged, so "set
+        /// aside" is legible at a glance next to the folders that are on.
+        /// </summary>
+        public static double OpacityFor(object? content) =>
+            content is TreeViewNodeContent { IsHidden: true } ? 0.45 : 1.0;
     }
 }

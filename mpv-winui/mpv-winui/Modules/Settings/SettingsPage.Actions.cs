@@ -250,7 +250,18 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         {
             var warning = ComputeWarning(option, s);
             var enabled = ComputeEnabled(option, s);
-            var visible = ComputeVisible(option, s);
+
+            // ComputeVisible answers "is this row applicable right now", which is
+            // a different question from "did the user set this row aside" -- and
+            // the user's answer is recorded in the same IsVisible flag (see
+            // Option.IsHiddenByUser). Writing the applicability verdict straight
+            // back therefore un-hid everything the user had hidden: the row, and
+            // every row of a hidden folder, reappeared on the next refresh, which
+            // runs at the end of every rebuild. The user's hide is not the app's
+            // to undo; only the app's own visibility rules may be recomputed here.
+            var applicable = ComputeVisible(option, s);
+            var visible = option.IsHiddenByUser ? false : applicable;
+
             changed |= option.Warning != warning;
             changed |= option.IsEnabled != enabled;
             changed |= option.IsVisible != visible;

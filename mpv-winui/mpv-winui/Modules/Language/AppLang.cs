@@ -1275,8 +1275,16 @@ namespace mpv_winui.Modules.Language
         public string CustomizeFieldRawHint { get; set; } = "raw mpv option value, e.g. d3d11va";
         public string CustomizeFieldRawKey { get; set; } = "Raw mpv key";
         public string CustomizeFieldRawKeyHint { get; set; } = "raw mpv option name, e.g. hwdec";
-        public string CustomizeDelete { get; set; } = "Delete this entry";
-        public string CustomizeDeleteTip { get; set; } = "Hide / restore default";
+        /// <summary>
+        /// Accessible name of the card's overflow (⋯) button. It must describe
+        /// the menu that actually opens -- rename and hide/restore -- and not
+        /// the delete glyph the button used to carry, or a screen reader
+        /// announces a destructive action that the button does not perform.
+        /// </summary>
+        public string CustomizeMore { get; set; } = "More actions";
+
+        /// <summary>Tooltip of the card's overflow (⋯) button.</summary>
+        public string CustomizeMoreTip { get; set; } = "Rename, hide or restore this row";
         public string CustomizeHide { get; set; } = "Hide from the page (keeps the value)";
         public string CustomizeReset { get; set; } = "Restore default (clears customization and resets this entry)";
 
@@ -1297,14 +1305,47 @@ namespace mpv_winui.Modules.Language
         public string CustomizeMoveDown { get; set; } = "Move down";
         public string CustomizeHideCategory { get; set; } = "Hide this category";
         public string CustomizeHideSection { get; set; } = "Hide this section";
-        public string CustomizeSectionTip { get; set; } = "Move or hide this section";
+
+        /// <summary>
+        /// The folder's hide entry once the folder is hidden. One menu slot
+        /// covers both directions, so a hidden folder always offers a way back.
+        /// </summary>
+        public string CustomizeUnhideSection { get; set; } = "Show this folder again";
+
+        /// <summary>Tooltip of the folder header's overflow (⋯) button.</summary>
+        public string CustomizeSectionMoreTip { get; set; } = "Rename, move or hide this section";
         public string CustomizeRestoreCategories { get; set; } = "Restore hidden categories";
 
-        /// <summary>Create a 2nd-level folder (section) of the user's own.</summary>
-        public string CustomizeNewSection { get; set; } = "New folder";
+        /// <summary>
+        /// The customize toolbar's first structural gesture: a grouping bar that
+        /// lives only in the card pane and never grows a sidebar node.
+        /// </summary>
+        public string CustomizeNewColumn { get; set; } = "New column";
 
-        /// <summary>Body of the create-folder dialog.</summary>
-        public string CustomizeNewSectionHint { get; set; } = "Rows can then be dragged into it.";
+        /// <summary>Body of the create-column dialog, and the button's tooltip.</summary>
+        public string CustomizeNewColumnHint { get; set; } = "Groups cards here only; the sidebar does not grow a node for it.";
+
+        /// <summary>
+        /// The customize toolbar's second structural gesture: a real 2nd-level
+        /// folder, which appears both in the card pane and in the sidebar.
+        /// </summary>
+        public string CustomizeNewSubmenu { get; set; } = "New submenu";
+
+        /// <summary>Body of the create-folder dialog, and the button's tooltip.</summary>
+        public string CustomizeNewSubmenuHint { get; set; } = "Creates a folder shown here and in the sidebar; cards can then be dragged into it.";
+
+        /// <summary>
+        /// Entry that brings a hidden row back. One menu slot covers both
+        /// directions, so this is the caption that slot takes once the row is
+        /// hidden.
+        /// </summary>
+        public string CustomizeUnhide { get; set; } = "Show this row again";
+
+        /// <summary>The customize toolbar's switch that lists the rows the user hid.</summary>
+        public string CustomizeShowHidden { get; set; } = "Show hidden";
+
+        /// <summary>Tooltip of the "show hidden" switch.</summary>
+        public string CustomizeShowHiddenHint { get; set; } = "Lists the rows you hid, faded, so they can be brought back.";
 
         /// <summary>Shown under a folder that holds no row yet.</summary>
         public string CustomizeEmptySection { get; set; } = "Empty folder — drag a card here";
@@ -1368,6 +1409,9 @@ namespace mpv_winui.Modules.Language
         /// <summary>Validation: the description is too long.</summary>
         public string CustomizeErrorDescriptionTooLong { get; set; } = "The description is too long (max {0} characters).";
 
+        /// <summary>Validation: another entry (row, folder or category) shows that name.</summary>
+        public string CustomizeErrorNameTaken { get; set; } = "Another entry is already called “{0}”.";
+
         /// <summary>Validation: a dropdown needs at least two values.</summary>
         public string CustomizeErrorChoicesTooFew { get; set; } = "A dropdown needs at least two values, separated by commas.";
 
@@ -1429,14 +1473,6 @@ namespace mpv_winui.Modules.Language
         }
 
         private string _fallback_CustomizeRedoTip = "Redo the change you just undid";
-
-        public string CustomizeResetSessionTip
-        {
-            get => CustomizeStrings.Get(nameof(CustomizeResetSessionTip)) ?? _fallback_CustomizeResetSessionTip;
-            set => _fallback_CustomizeResetSessionTip = value;
-        }
-
-        private string _fallback_CustomizeResetSessionTip = "Discard every change made in this session";
 
         public string CustomizeDirtyNotice
         {
@@ -1725,30 +1761,6 @@ namespace mpv_winui.Modules.Language
         }
 
         private string _fallback_CustomizeNoSelectionBody = "Pick a category or folder on the left, then add.";
-
-        public string CustomizeUndo
-        {
-            get => CustomizeStrings.Get(nameof(CustomizeUndo)) ?? _fallback_CustomizeUndo;
-            set => _fallback_CustomizeUndo = value;
-        }
-
-        private string _fallback_CustomizeUndo = "Undo";
-
-        public string CustomizeRedo
-        {
-            get => CustomizeStrings.Get(nameof(CustomizeRedo)) ?? _fallback_CustomizeRedo;
-            set => _fallback_CustomizeRedo = value;
-        }
-
-        private string _fallback_CustomizeRedo = "Redo";
-
-        public string CustomizeDiscardSession
-        {
-            get => CustomizeStrings.Get(nameof(CustomizeDiscardSession)) ?? _fallback_CustomizeDiscardSession;
-            set => _fallback_CustomizeDiscardSession = value;
-        }
-
-        private string _fallback_CustomizeDiscardSession = "Discard changes";
 
         public string CustomizeExit
         {
