@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using mpv_winui.Modules.Common.Utils;
 using NLog;
@@ -48,6 +49,9 @@ namespace mpv_winui.Modules.MediaInfo
             PoweredByLink.Content = "MediaInfoLib";
             CopyAllText.Text = lang.MediaInfoCopyAll;
             ToolTipService.SetToolTip(CopyAllButton, lang.MediaInfoCopyAll);
+            // The button's caption lives in a child TextBlock, which UIA does
+            // not fold into the button, so it needs the name set explicitly.
+            AutomationProperties.SetName(CopyAllButton, lang.MediaInfoCopyAll);
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)

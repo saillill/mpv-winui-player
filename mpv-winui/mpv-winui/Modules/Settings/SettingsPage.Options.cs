@@ -148,7 +148,7 @@ private List<Option> BuildSettings()
             {
                 option.AllowCustom = false;
             }
-            if (advancedSections.Contains(option.Section))
+            if (option.Section is { } section && advancedSections.Contains(section))
             {
                 option.AdvancedSection = true;
             }

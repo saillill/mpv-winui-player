@@ -241,14 +241,6 @@
                                             Glyph="&#xE8EE;" />
                                     </Button.Content>
                                 </Button>
-                                <Button
-                                    x:Name="StopButton"
-                                    Style="{StaticResource SquareIconButtonStyle}"
-                                    Visibility="Collapsed">
-                                    <Button.Content>
-                                        <SymbolIcon Symbol="Stop" />
-                                    </Button.Content>
-                                </Button>
                             </StackPanel>
 
                             <StackPanel

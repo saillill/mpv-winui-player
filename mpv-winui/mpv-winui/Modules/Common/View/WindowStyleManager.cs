@@ -26,7 +26,6 @@ public sealed class WindowStyleManager : IDisposable
     private readonly FrameworkElement _contentRoot;
     private readonly UISettings _uiSettings = new();
     private ElementTheme _theme;
-    private string? _backdropType;
 
     public WindowStyleManager(Window window)
     {

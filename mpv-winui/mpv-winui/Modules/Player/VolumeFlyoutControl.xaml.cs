@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using mpv_winrt;
@@ -15,9 +16,22 @@ namespace mpv_winui.Modules.Player
         public VolumeFlyoutControl(MpvPlayer player)
         {
             this.InitializeComponent();
+            ApplyLocalizedChrome();
             _player.SetTarget(player);
             VolumeSlider.Value = player.Volume();
             UpdateVolumeIcon(player.IsMuted(), player.Volume());
+        }
+
+        /// <summary>
+        /// The mute button is icon-only and its glyph changes with the volume,
+        /// so it cannot carry a caption: the tooltip and the accessible name
+        /// are the only places its meaning can live.
+        /// </summary>
+        private void ApplyLocalizedChrome()
+        {
+            var lang = AppContext.AppLang;
+            ToolTipService.SetToolTip(MuteButton, lang.AudioMute);
+            AutomationProperties.SetName(MuteButton, lang.AudioMute);
         }
 
         private void MuteButton_Click(object sender, RoutedEventArgs e)

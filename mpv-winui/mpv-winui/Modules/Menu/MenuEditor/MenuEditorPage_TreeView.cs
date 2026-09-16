@@ -112,15 +112,22 @@ public sealed partial class MenuEditorPage
 
         try
         {
-            if (App.Window is MainWindow window)
+            // The command is only meaningful once the player page is up, and it
+            // is the player page that attaches the handler; testing both keeps
+            // the "nothing ran" case from being reported as "Executed".
+            if (App.Window is MainWindow && AppContext.RunMpvCommand is { } runCommand)
             {
                 if (_logger.IsDebugEnabled)
                 {
                     _logger.Debug("menu command executed on player, command={}", command);
                 }
 
-                AppContext.RunMpvCommand(command);
+                runCommand(command);
                 ShowMessage($"Executed: {command}");
+            }
+            else
+            {
+                ShowMessage($"Player is not ready; cannot run '{command}'.");
             }
         }
         catch (Exception ex)

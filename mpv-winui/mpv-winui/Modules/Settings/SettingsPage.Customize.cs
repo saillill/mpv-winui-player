@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using mpv_winui.Modules.Settings.Layout;
@@ -736,6 +737,14 @@ public sealed partial class SettingsPage
         ToolTipService.SetToolTip(CollapseSidebarButton, lang.CustomizeCollapseSidebarTip);
         ToolTipService.SetToolTip(ExpandSidebarButton, lang.CustomizeExpandSidebarTip);
 
+        // The "add" button is a glyph plus a TextBlock, and the two sidebar
+        // arrows and the toolbar switch are icon-only: none of them exposes a
+        // UIA name on its own, so the tooltip text doubles as the accessible
+        // name or a screen reader announces them all as "button".
+        AutomationProperties.SetName(AddCategoryButton, lang.CustomizeAddTopLevel);
+        AutomationProperties.SetName(CollapseSidebarButton, lang.CustomizeCollapseSidebarTip);
+        AutomationProperties.SetName(ExpandSidebarButton, lang.CustomizeExpandSidebarTip);
+
         // The footer is a different set of jobs while customizing, so the
         // browsing buttons step aside rather than sitting next to controls that
         // mean something else. Without this swap the customize buttons stay
@@ -776,6 +785,7 @@ public sealed partial class SettingsPage
         var lang = AppContext.AppLang;
         CustomizeToggleText.Text = lang.SettingsCustomize;
         ToolTipService.SetToolTip(CustomizeToggle, lang.SettingsCustomizeHint);
+        AutomationProperties.SetName(CustomizeToggle, lang.SettingsCustomize);
     }
 
     // ===== sidebar (category pane) commands =====

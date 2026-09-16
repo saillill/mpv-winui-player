@@ -334,22 +334,26 @@
                     Grid.Column="1"
                     Width="40"
                     Click="ClosePlaylist_Click"
-                    Icon="ClosePane" />
+                    Icon="ClosePane"
+                    Label="Close pane" />
                 <AppBarButton
                     Grid.Column="1"
                     Width="40"
                     Click="ImportPlaylist_Click"
-                    Icon="OpenFile" />
+                    Icon="OpenFile"
+                    Label="Import playlist" />
                 <AppBarButton
                     Grid.Column="1"
                     Width="40"
                     Click="ExportPlaylist_Click"
-                    Icon="Save" />
+                    Icon="Save"
+                    Label="Export playlist" />
                 <AppBarButton
                     Grid.Column="1"
                     Width="40"
                     Click="RefreshPlaylist_Click"
-                    Icon="Refresh" />
+                    Icon="Refresh"
+                    Label="Refresh playlist" />
             </CommandBar>
 
             <AutoSuggestBox

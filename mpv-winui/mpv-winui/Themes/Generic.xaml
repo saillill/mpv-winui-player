@@ -136,28 +136,6 @@
                                     </Button.Content>
                                 </Button>
                                 <Button
-                                    x:Name="RewindButton"
-                                    IsTabStop="False"
-                                    Style="{StaticResource SquareIconButtonStyle}"
-                                    Visibility="Collapsed">
-                                    <Button.Content>
-                                        <FontIcon
-                                            FontSize="16"
-                                            Glyph="&#xE627;" />
-                                    </Button.Content>
-                                </Button>
-                                <Button
-                                    x:Name="FastForwardButton"
-                                    IsTabStop="False"
-                                    Style="{StaticResource SquareIconButtonStyle}"
-                                    Visibility="Collapsed">
-                                    <Button.Content>
-                                        <FontIcon
-                                            FontSize="16"
-                                            Glyph="&#xE628;" />
-                                    </Button.Content>
-                                </Button>
-                                <Button
                                     x:Name="PreviousTrackButton"
                                     IsTabStop="False"
                                     Style="{StaticResource SquareIconButtonStyle}"
@@ -197,15 +175,6 @@
                                         <FontIcon
                                             FontSize="16"
                                             Glyph="&#xED3D;" />
-                                    </Button.Content>
-                                </Button>
-                                <Button
-                                    x:Name="StopButton"
-                                    IsTabStop="False"
-                                    Style="{StaticResource SquareIconButtonStyle}"
-                                    Visibility="Collapsed">
-                                    <Button.Content>
-                                        <SymbolIcon Symbol="Stop" />
                                     </Button.Content>
                                 </Button>
                                 <Button

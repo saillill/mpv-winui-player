@@ -4,7 +4,6 @@ using Microsoft.UI.Windowing;
 using mpv_winui.Modules.Common.View;
 using mpv_winui;
 using System;
-using Windows.Graphics;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -13,7 +12,6 @@ public sealed partial class SettingsWindow : BaseWindow
     /// <summary>The currently open settings window (used to own folder/file pickers).</summary>
     public static SettingsWindow? Instance { get; private set; }
 
-    private WindowStyleManager? _styleManager;
     public SettingsWindow()
     {
         Instance = this;
@@ -33,8 +31,9 @@ public sealed partial class SettingsWindow : BaseWindow
             presenter.PreferredMinimumHeight = 480;
         }
 
-        _styleManager = new WindowStyleManager(this);
-        _styleManager?.Setup();
+        // WindowStyleManager and the theme/backdrop plumbing live on BaseWindow;
+        // this window only has to opt in.
+        SetupStyle();
     }
 
     private void SettingsWindow_Closed(object sender, WindowEventArgs args)
@@ -45,8 +44,7 @@ public sealed partial class SettingsWindow : BaseWindow
         }
         Closed -= SettingsWindow_Closed;
         AppContext.LanguageChanged -= SettingsWindow_LanguageChanged;
-        _styleManager?.Dispose();
-        _styleManager = null;
+        // The style manager is disposed by BaseWindow's own Closed handler.
     }
 
     private void PageFrame_Loaded(object sender, RoutedEventArgs e)
@@ -68,21 +66,8 @@ public sealed partial class SettingsWindow : BaseWindow
     private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         => (PageFrame.Content as SettingsPage)?.SearchBox_QuerySubmitted(sender, args);
 
-    public void MoveAndResize(RectInt32 rect)
-    {
-        AppWindow?.MoveAndResize(rect);
-    }
-
-    public void UpdateCurrentTheme()
-    {
-        _styleManager?.UpdateTheme(_styleManager.GetThemeType());
-    }
-
-    public void UpdateBackdrop()
-    {
-        _styleManager?.UpdateBackdrop();
-    }
-
+    // MoveAndResize, UpdateTheme and UpdateBackdrop are BaseWindow's; this window
+    // only adds the one refresh BaseWindow does not know about.
     public void UpdateUiFont()
     {
         _styleManager?.UpdateUiFont();

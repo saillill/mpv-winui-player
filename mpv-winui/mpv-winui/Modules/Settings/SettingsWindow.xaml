@@ -60,7 +60,15 @@
                                             BorderBrush="{ThemeResource AutoSuggestBoxSuggestionsListBorderBrush}"
                                             Background="{ThemeResource AutoSuggestBoxSuggestionsListBackground}"
                                             CornerRadius="{ThemeResource OverlayCornerRadius}">
+                                        <!-- WMC1510: these TemplateBindings are
+                                             lifted verbatim from the framework's
+                                             own AutoSuggestBox template, so the
+                                             property paths are already annotated
+                                             for trimming; the warning is only
+                                             emitted because the copy lives in the
+                                             app instead of the framework. -->
                                         <ListView x:Name="SuggestionsList"
+                                                  x:SuppressXamlTrimWarnings="True"
                                                   DisplayMemberPath="{TemplateBinding DisplayMemberPath}"
                                                   IsItemClickEnabled="True"
                                                   ItemTemplate="{TemplateBinding ItemTemplate}"

@@ -78,6 +78,7 @@
                 Padding="0"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
+                AutomationProperties.Name="Copy"
                 Click="OnCopyClicked"
                 ToolTipService.ToolTip="Copy">
                 <FontIcon
@@ -92,6 +93,7 @@
                 Padding="0"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
+                AutomationProperties.Name="Apply to player"
                 Click="OnApplyClicked"
                 ToolTipService.ToolTip="Apply to player">
                 <FontIcon

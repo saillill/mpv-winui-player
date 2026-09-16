@@ -545,7 +545,7 @@ public sealed partial class SettingsPage : Page
     {
         // A user click on a category ends an active search: the list switches
         // to that category, so what is shown matches the footer's reset target.
-        if (!_rebuildingContent && !string.IsNullOrEmpty(SearchBox.Text))
+        if (!_rebuildingContent && !string.IsNullOrEmpty(SearchBox?.Text))
         {
             _searchDebounceTimer.Stop();
             _pendingSearchQuery = string.Empty;
@@ -597,7 +597,7 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        var query = SearchBox.Text?.Trim() ?? string.Empty;
+        var query = SearchBox?.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(query))
         {
             _searchDebounceTimer.Stop();
@@ -615,6 +615,14 @@ public sealed partial class SettingsPage : Page
 
     private void ApplySearchQuery(string query)
     {
+        // The search box belongs to the window's top bar, so it can be absent
+        // while this page is still coming up; without it there is no query to
+        // show results for.
+        if (SearchBox is null)
+        {
+            return;
+        }
+
         // Searching leaves the section drill-down: the global result list
         // spans sections, so a stale _selectedSection would filter it away.
         _selectedSection = null;
@@ -638,6 +646,13 @@ public sealed partial class SettingsPage : Page
 
     internal void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
     {
+        // The search box belongs to the window's top bar and arrives as a
+        // navigation parameter, so it can still be missing here.
+        if (SearchBox is null)
+        {
+            return;
+        }
+
         if (args.SelectedItem is string category && Categories.Contains(category))
         {
             SearchBox.Text = string.Empty;
@@ -647,6 +662,11 @@ public sealed partial class SettingsPage : Page
 
     internal void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
+        if (SearchBox is null)
+        {
+            return;
+        }
+
         _searchDebounceTimer.Stop();
 
         if (args.ChosenSuggestion is string suggested && Categories.Contains(suggested))

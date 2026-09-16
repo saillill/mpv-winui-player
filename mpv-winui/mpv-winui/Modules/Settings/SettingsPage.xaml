@@ -310,13 +310,19 @@
                                                              an inline pencil, so the
                                                              rename entry is visible
                                                              instead of hidden in the
-                                                             context menu. -->
+                                                             context menu. The button
+                                                             carries no text of its
+                                                             own, so the rename
+                                                             caption is both its
+                                                             tooltip and its
+                                                             accessible name. -->
                                                         <Button
                                                             Grid.Column="3"
                                                             MinWidth="0"
                                                             Padding="6,2"
                                                             Background="Transparent"
                                                             BorderThickness="0"
+                                                            AutomationProperties.Name="{x:Bind local:TreeHelpers.EditTip(Content)}"
                                                             Click="EditTreeNode_Click"
                                                             Tag="{x:Bind}"
                                                             ToolTipService.ToolTip="{x:Bind local:TreeHelpers.EditTip(Content)}"
