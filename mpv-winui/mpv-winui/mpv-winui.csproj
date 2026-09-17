@@ -204,4 +204,66 @@
         <Copy SourceFiles="$(OutputPath)resources.pri" DestinationFiles="$(OutputPath)$(AssemblyName).pri" SkipUnchangedFiles="true" />
         <Copy SourceFiles="$(OutputPath)resources.pri" DestinationFiles="$(PublishDir)$(AssemblyName).pri" SkipUnchangedFiles="true" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
     </Target>
+
+    <!--
+      Framework localization trimming.
+
+      Windows App SDK ships WinUI's .mui resources once per culture, and each
+      culture lands in its own folder in the output - 87 folders holding two
+      .mui files each, which is most of the directory count in a deployment
+      whose actual app content is a handful of folders.
+
+      The app's own UI strings do not come from there: they come from
+      Languages\*.json (the nine files below). What the .mui files localize is
+      framework-internal text, so keeping exactly the cultures the app ships
+      leaves no supported locale without its framework resources and drops 78
+      near-empty folders from the output.
+
+      Implemented as a post-build sweep rather than by excluding items from the
+      Windows App SDK payload target: that target is an internal name, and an
+      AfterTargets hook on a name that later changes would silently stop
+      running, whereas this one is driven by what is actually on disk.
+    -->
+    <PropertyGroup>
+        <ShippedLocaleCultures>en-us;de-DE;es-ES;fr-FR;ja-JP;ko-KR;ru-RU;zh-CN;zh-TW</ShippedLocaleCultures>
+    </PropertyGroup>
+
+    <Target Name="TrimFrameworkLocales" AfterTargets="Build;Publish">
+        <ItemGroup>
+            <!-- Derive the folders from the .mui files themselves: file globs are
+                 reliable, directory globs are not. -->
+            <_LocaleMuiFile Include="$(OutDir)*\*.mui" />
+            <_LocaleMuiFile Include="$(PublishDir)*\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleDir Include="@(_LocaleMuiFile->'%(RootDir)%(Directory)')" />
+
+            <!-- The kept folders must be spelled the same way as the ones being
+                 filtered: both sides go through %(RootDir)%(Directory), so the
+                 comparison is absolute-vs-absolute. $(OutDir) is relative to the
+                 project directory, and mixing the two silently matches nothing -
+                 which deletes the languages that were supposed to be kept. -->
+            <_LocaleKeep Include="$(OutDir)en-us\*.mui" />
+            <_LocaleKeep Include="$(OutDir)de-DE\*.mui" />
+            <_LocaleKeep Include="$(OutDir)es-ES\*.mui" />
+            <_LocaleKeep Include="$(OutDir)fr-FR\*.mui" />
+            <_LocaleKeep Include="$(OutDir)ja-JP\*.mui" />
+            <_LocaleKeep Include="$(OutDir)ko-KR\*.mui" />
+            <_LocaleKeep Include="$(OutDir)ru-RU\*.mui" />
+            <_LocaleKeep Include="$(OutDir)zh-CN\*.mui" />
+            <_LocaleKeep Include="$(OutDir)zh-TW\*.mui" />
+            <_LocaleKeep Include="$(PublishDir)en-us\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleKeep Include="$(PublishDir)de-DE\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleKeep Include="$(PublishDir)es-ES\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleKeep Include="$(PublishDir)fr-FR\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleKeep Include="$(PublishDir)ja-JP\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleKeep Include="$(PublishDir)ko-KR\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleKeep Include="$(PublishDir)ru-RU\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleKeep Include="$(PublishDir)zh-CN\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleKeep Include="$(PublishDir)zh-TW\*.mui" Condition="'$(PublishDir)' != '' and Exists('$(PublishDir)')" />
+            <_LocaleKeepDir Include="@(_LocaleKeep->'%(RootDir)%(Directory)')" />
+
+            <_LocaleDir Remove="@(_LocaleKeepDir)" />
+        </ItemGroup>
+        <RemoveDir Directories="@(_LocaleDir)" />
+        <Message Importance="normal" Text="Trimmed @(_LocaleDir->Count()) unused framework locale folder(s); kept: $(ShippedLocaleCultures)" />
+    </Target>
 </Project>

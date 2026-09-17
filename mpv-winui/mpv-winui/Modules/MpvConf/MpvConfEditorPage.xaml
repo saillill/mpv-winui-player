@@ -101,6 +101,7 @@
                         x:Name="SourceFilter"
                         MinWidth="100"
                         Padding="8"
+                        AutomationProperties.Name="Filter by source"
                         SelectionChanged="SourceFilter_SelectionChanged">
                         <ComboBoxItem
                             Content="All"

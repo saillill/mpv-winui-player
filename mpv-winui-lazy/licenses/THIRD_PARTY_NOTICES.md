@@ -2,7 +2,8 @@
 
 This config layer (`mpv-winui-lazy/`) bundles third-party components. Their
 licenses are stated in their file headers / upstream repositories and
-summarized below. Full license texts for fonts and MediaInfo ship in
+summarized below. Paths are relative to the layer root. Full license texts for
+fonts and MediaInfo ship in
 `fonts/OFL-1.1.txt` and `licenses/MediaInfo-BSD-2-Clause.txt`.
 
 ## Scripts
@@ -20,7 +21,7 @@ summarized below. Full license texts for fonts and MediaInfo ship in
 
 | Component | Source | License |
 |---|---|---|
-| `MediaInfo.exe` | [MediaArea/MediaInfo](https://mediaarea.net/en/MediaInfo) v26.05 | BSD-2-Clause (full text in `licenses/MediaInfo-BSD-2-Clause.txt`; SHA-256 `30F2828A45A1895B033C3CD7784581033327E7B393033C55F4A03BB15CAB0D89`) |
+| `tools/MediaInfo.exe` | [MediaArea/MediaInfo](https://mediaarea.net/en/MediaInfo) v26.05 | BSD-2-Clause (full text in `licenses/MediaInfo-BSD-2-Clause.txt`; SHA-256 `30F2828A45A1895B033C3CD7784581033327E7B393033C55F4A03BB15CAB0D89`) |
 
 ## Fonts
 

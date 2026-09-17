@@ -1,28 +1,32 @@
-﻿import "DisplayColorKind.idl";
-import "DiscType.idl";
-import "MpvPlaylistItem.idl";
-import "MpvChapter.idl";
-import "MpvEdition.idl";
-import "MpvAudioDevice.idl";
-import "MpvProfile.idl";
-import "MpvMenuItem.idl";
-import "MpvTrack.idl";
-import "PlaybackStateChangedEventArgs.idl";
-import "VolumeChangedEventArgs.idl";
-import "PositionChangedEventArgs.idl";
-import "SpeedChangedEventArgs.idl";
-import "MediaInfoChangedEventArgs.idl";
-import "NetworkInfoChangedEventArgs.idl";
-import "FileFailedEventArgs.idl";
-import "TrackListChangedEventArgs.idl";
-import "TrackListCountChangedEventArgs.idl";
-import "WindowChangedEventArgs.idl";
+﻿// Value types live in Types\, event argument types in Events\; the runtime
+// classes (MpvPlayer / MpvPreviewer) stay at the project root. MIDL resolves
+// these relative to this file, and the generated .g.h / .winmd are emitted by
+// name into the intermediate directory, so the grouping is source-only.
+import "Types/DisplayColorKind.idl";
+import "Types/DiscType.idl";
+import "Types/MpvPlaylistItem.idl";
+import "Types/MpvChapter.idl";
+import "Types/MpvEdition.idl";
+import "Types/MpvAudioDevice.idl";
+import "Types/MpvProfile.idl";
+import "Types/MpvMenuItem.idl";
+import "Types/MpvTrack.idl";
+import "Events/PlaybackStateChangedEventArgs.idl";
+import "Events/VolumeChangedEventArgs.idl";
+import "Events/PositionChangedEventArgs.idl";
+import "Events/SpeedChangedEventArgs.idl";
+import "Events/MediaInfoChangedEventArgs.idl";
+import "Events/NetworkInfoChangedEventArgs.idl";
+import "Events/FileFailedEventArgs.idl";
+import "Events/TrackListChangedEventArgs.idl";
+import "Events/TrackListCountChangedEventArgs.idl";
+import "Events/WindowChangedEventArgs.idl";
 
-import "MpvLogEventArgs.idl";
+import "Events/MpvLogEventArgs.idl";
 
-import "MpvGpuAdapter.idl";
+import "Types/MpvGpuAdapter.idl";
 
-import "PlaybackFailedEventArgs.idl";
+import "Events/PlaybackFailedEventArgs.idl";
 
 namespace mpv_winrt
 {

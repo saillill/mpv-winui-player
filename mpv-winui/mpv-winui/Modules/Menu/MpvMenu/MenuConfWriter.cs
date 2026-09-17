@@ -20,7 +20,11 @@ namespace mpv_winui.Modules.Menu.MpvMenu
             {
                 if (item.IsSeparator)
                 {
-                    builder.AppendLine();
+                    // '\n', not AppendLine(): AppendLine emits the platform's
+                    // newline, so on Windows the file came out CRLF while mpv
+                    // (and the fallback / shared copies) use LF. Write the one
+                    // byte we mean instead of whatever the OS prefers.
+                    builder.Append('\n');
                     continue;
                 }
 
@@ -37,7 +41,8 @@ namespace mpv_winui.Modules.Menu.MpvMenu
                 AppendState(builder, "disabled", item.Disabled);
                 AppendState(builder, "checked", item.Checked);
 
-                builder.AppendLine();
+                // See the separator branch: LF only, never AppendLine().
+                builder.Append('\n');
 
                 if (item.Children is { Count: > 0 })
                 {

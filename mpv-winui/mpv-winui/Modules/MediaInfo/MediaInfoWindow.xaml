@@ -9,12 +9,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <TextBlock
+            x:Name="WindowTitleText"
             Grid.Row="0"
             Margin="12,0,0,0"
             VerticalAlignment="Center"
             FontSize="16"
-            FontWeight="SemiBold"
-            Text="Media Info" />
+            FontWeight="SemiBold" />
         <Grid
             x:Name="ContentHost"
             Grid.Row="1"

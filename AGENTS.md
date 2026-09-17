@@ -5,6 +5,36 @@ WinUI 3 player embedding libmpv. Three parts: the C# WinUI app
 and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 `README.md`; this file is for agents changing the code.
 
+## Layout
+
+```
+mpv-winui/mpv-winui/        C# app
+  App.xaml(.cs) Program.cs  entry points — must stay at the project root
+  Shell/                    MainWindow.*, AppContext.cs
+  Modules/<Area>/           one folder per feature area
+  Assets/ Languages/ Menus/ Styles/ Themes/   app resources, copied to output
+  NativeMethods.* app.manifest Package.appxmanifest   MSBuild conventions, stay rooted
+mpv-winui/mpv-winrt/        C++/WinRT component
+  MpvPlayer.* MpvPreviewer.*   the runtime classes
+  Types/  Events/             value types and event-arg types
+  pch.*  *.vcxproj  .def      MSBuild conventions, stay rooted
+mpv-winui-lazy/             config layer; mpv requires its main configs at the root
+tools/                      self-checks (localization, settings drift, UI tooltips)
+appdata-sample/             manual samples for %LOCALAPPDATA%\mpv-winui — see its README
+docs/                       audit, localization, upstream comparison, deploy layout
+```
+
+Two rules that bite when files move:
+
+- **XAML moves are free but self-propagating.** A `.xaml` in a subfolder compiles to a
+  `.xbf` at the same relative path, and the app loads pages by resource URI
+  (`ms-appx:///Shell/MainWindow.xaml`). Move the source and the output follows; never
+  hand-move a `.xbf` in the output.
+- **MIDL resolves `import` relative to the project directory, not the importing file.**
+  So `Types/MpvTrack.idl` must import `"Types/TrackType.idl"`, not `"TrackType.idl"`.
+  Generated `.g.h` / `.winmd` are emitted by name into the intermediate directory, so
+  source folders never change generated paths.
+
 ## Work loop
 
 1. **Build** — run `.\build.ps1 -Configuration Release -Platform x64` from the repo root (VS MSBuild for the C++ component, then `dotnet build` for the app). Use full parameter names: `-Release x64` silently falls back to Debug.
@@ -69,7 +99,7 @@ and the config layer (`mpv-winui-lazy/`). User-facing docs live in
 - dyn_menu.lua is GPL-2.0-only source with a documented local patch; dialog.lua
   was removed (no menu references it anymore) — see
   `mpv-winui-lazy/scripts/LOCAL-PATCHES.md`.
-- Update `mpv-winui-lazy/THIRD_PARTY_NOTICES.md` when adding third-party components.
+- Update `mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md` when adding third-party components.
 
 ## Pointers
 

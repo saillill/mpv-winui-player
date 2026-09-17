@@ -11,7 +11,12 @@
         <DataTemplate
             x:Key="FileAssociationItemTemplate"
             x:DataType="local:FileAssociationItem">
-            <CheckBox IsChecked="{x:Bind IsChecked, Mode=TwoWay}">
+            <!-- The row's only text is the extension inside the box, and UIA
+                 does not fold a child's text into the CheckBox, so the
+                 extension doubles as the accessible name. -->
+            <CheckBox
+                AutomationProperties.Name="{x:Bind Extension, Mode=OneWay}"
+                IsChecked="{x:Bind IsChecked, Mode=TwoWay}">
                 <StackPanel
                     Orientation="Horizontal"
                     Spacing="4">

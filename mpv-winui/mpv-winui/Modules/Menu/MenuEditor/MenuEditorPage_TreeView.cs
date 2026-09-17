@@ -17,6 +17,7 @@ public sealed partial class MenuEditorPage
         };
         Nodes.Add(node);
         SelectNode(node);
+        SelectNodeInTree(node);
     }
 
 
@@ -112,15 +113,22 @@ public sealed partial class MenuEditorPage
 
         try
         {
-            if (App.Window is MainWindow window)
+            // The command is only meaningful once the player page is up, and it
+            // is the player page that attaches the handler; testing both keeps
+            // the "nothing ran" case from being reported as "Executed".
+            if (App.Window is MainWindow && AppContext.RunMpvCommand is { } runCommand)
             {
                 if (_logger.IsDebugEnabled)
                 {
                     _logger.Debug("menu command executed on player, command={}", command);
                 }
 
-                AppContext.RunMpvCommand(command);
+                runCommand(command);
                 ShowMessage($"Executed: {command}");
+            }
+            else
+            {
+                ShowMessage($"Player is not ready; cannot run '{command}'.");
             }
         }
         catch (Exception ex)
@@ -141,7 +149,9 @@ public sealed partial class MenuEditorPage
         var child = new MenuTreeItem { Name = "New item", Parent = node };
         node.Children.Add(child);
         node.Kind = MenuTreeItemKind.Menu;
+        ExpandNodeInTree(node);
         SelectNode(child);
+        SelectNodeInTree(child);
     }
 
     private void RemoveNode(MenuTreeItem node)
@@ -153,6 +163,26 @@ public sealed partial class MenuEditorPage
     private IList<MenuTreeItem> GetSiblings(MenuTreeItem node)
     {
         return node.Parent?.Children ?? Nodes;
+    }
+
+    /// <summary>
+    /// Opens the ancestors of <paramref name="item"/> so a node that was just
+    /// created is actually visible: <see cref="SelectNode"/> only moves the
+    /// editor's selection, it does not touch the tree, so without this a new
+    /// child appeared "nowhere" inside a collapsed parent.
+    /// </summary>
+    private void ExpandNodeInTree(MenuTreeItem item)
+    {
+        if (MenuTree.ContainerFromItem(item) is UIElement container && MenuTree.NodeFromContainer(container) is { } node)
+        {
+            node.IsExpanded = true;
+        }
+    }
+
+    /// <summary>Mirrors the editor's selection into the tree control itself.</summary>
+    private void SelectNodeInTree(MenuTreeItem item)
+    {
+        MenuTree.SelectedItem = item;
     }
 
 }

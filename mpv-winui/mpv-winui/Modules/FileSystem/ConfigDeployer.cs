@@ -27,7 +27,11 @@ namespace mpv_winui.Modules.FileSystem
     ///    manifest exists yet - a legacy install whose layer was written by an
     ///    older build;
     ///  - anything overwritten that was not ours is first preserved next to it
-    ///    as "&lt;name&gt;.bak-&lt;timestamp&gt;", so a local edit is recoverable.
+    ///    as "&lt;name&gt;.bak-&lt;timestamp&gt;", so a local edit is recoverable;
+    ///  - a file this class deployed and that the bundle no longer ships is
+    ///    removed again (see <see cref="PruneRemoved"/>), so a layout change -
+    ///    a file moving into a subdirectory, say - reaches existing installs
+    ///    instead of leaving the old copy behind forever.
     /// </summary>
     public static class ConfigDeployer
     {
@@ -194,15 +198,119 @@ namespace mpv_winui.Modules.FileSystem
                 }
             }
 
+            var pruned = PruneRemoved(targetDir, deployed, current);
             WriteManifest(manifestPath, current);
 
             if (firstRun)
             {
                 _logger.Info("mpv config layer deployed to {} ({} files)", targetDir, added);
             }
-            else if (updated > 0 || added > 0)
+            else if (updated > 0 || added > 0 || pruned > 0)
             {
-                _logger.Info("mpv config layer synced to {} ({} updated, {} added)", targetDir, updated, added);
+                _logger.Info("mpv config layer synced to {} ({} updated, {} added, {} removed)",
+                    targetDir, updated, added, pruned);
+            }
+        }
+
+        /// <summary>
+        /// Removes files this class deployed earlier that the bundle no longer
+        /// ships - the other half of a layout change. Adding and updating alone
+        /// would leave the old copy in place forever, so moving a file into a
+        /// subdirectory would silently double it on every existing install
+        /// (a 9 MB tool binary is the obvious case).
+        ///
+        /// Only "ours and untouched" is ever deleted: the path must be in the
+        /// previous manifest, the file must still hash to what was deployed, and
+        /// user-owned names and directories are skipped outright. A file whose
+        /// contents changed is somebody's edit and is kept - and, like the
+        /// update path, is then no longer claimed as ours.
+        ///
+        /// A legacy install with no manifest cannot be pruned, because there is
+        /// no record of which files were ours; that is the conservative reading
+        /// and matches how the update path treats the same situation.
+        /// </summary>
+        private static int PruneRemoved(
+            string targetDir,
+            Dictionary<string, string> deployed,
+            Dictionary<string, string> current)
+        {
+            var pruned = 0;
+            foreach (var (rel, deployedHash) in deployed)
+            {
+                if (current.ContainsKey(rel))
+                {
+                    continue;   // still part of the bundle
+                }
+
+                // Same exclusions as the copy path: runtime state must never be
+                // created, copied or removed.
+                if (IsExcludedDir(rel))
+                {
+                    continue;
+                }
+
+                var parts = rel.Split(Path.DirectorySeparatorChar);
+                var userOwned = Array.IndexOf(UserOwnedDirs, parts[0]) >= 0
+                    || Array.IndexOf(UserOwnedFiles, Path.GetFileName(rel)) >= 0;
+                if (userOwned)
+                {
+                    continue;
+                }
+
+                var target = Path.Combine(targetDir, rel);
+                try
+                {
+                    if (!File.Exists(target))
+                    {
+                        continue;
+                    }
+
+                    if (!string.Equals(HashFile(target), deployedHash, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.Info("config layer file no longer shipped, kept as user-modified: {}", rel);
+                        continue;
+                    }
+
+                    File.Delete(target);
+                    RemoveEmptyParentDirs(targetDir, target);
+                    _logger.Info("config layer file removed, no longer shipped: {}", rel);
+                    pruned++;
+                }
+                catch (Exception ex)
+                {
+                    // A locked file must not abort the sync, same as the copy path.
+                    _logger.Warn(ex, "config layer file could not be removed: {}", rel);
+                }
+            }
+
+            return pruned;
+        }
+
+        /// <summary>
+        /// Deletes directories this prune just emptied, and no others:
+        /// <see cref="Directory.Delete(string, bool)"/> with recursive=false
+        /// throws while a directory still has content, which is the guard.
+        /// Stops at the target root so the config directory itself survives.
+        /// </summary>
+        private static void RemoveEmptyParentDirs(string targetDir, string filePath)
+        {
+            var root = targetDir.TrimEnd(Path.DirectorySeparatorChar);
+            var dir = Path.GetDirectoryName(filePath);
+            while (!string.IsNullOrEmpty(dir) && dir.Length > root.Length)
+            {
+                try
+                {
+                    Directory.Delete(dir, recursive: false);
+                }
+                catch (IOException)
+                {
+                    return;   // still has content, or still in use
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return;
+                }
+                dir = Path.GetDirectoryName(dir);
             }
         }
 

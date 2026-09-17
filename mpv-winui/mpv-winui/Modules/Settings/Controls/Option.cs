@@ -206,6 +206,42 @@ public sealed class Option : INotifyPropertyChanged
     }
     private bool _isVisible = true;
 
+    /// <summary>
+    /// True when <see cref="IsVisible"/> is false because the *user* hid this
+    /// row in the customize mode, rather than because the app judged it
+    /// ineffective. Only the user's own hide is reversible from the UI, so the
+    /// two reasons cannot share one flag: offering "show again" on a row the
+    /// app hid would promise something the app would immediately undo.
+    /// </summary>
+    public bool IsHiddenByUser
+    {
+        get => _isHiddenByUser;
+        set
+        {
+            Set(ref _isHiddenByUser, value);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CardOpacity)));
+        }
+    }
+    private bool _isHiddenByUser;
+
+    /// <summary>
+    /// True when this row is hidden because its *folder* was hidden, rather than
+    /// by a hide on the row itself.
+    ///
+    /// The two states behave identically for the card (both are set aside), but
+    /// the folder's own header has to know whether it is offering "hide" or
+    /// "show again", and one flag cannot answer that for a whole folder.
+    /// </summary>
+    public bool IsHiddenSection { get; set; }
+
+    /// <summary>
+    /// Row opacity while customize mode is listing hidden rows: a hidden card
+    /// stays readable but visibly set aside, so "this is hidden" is legible
+    /// without a badge. WinUI x:Bind cannot apply a converter here, hence the
+    /// computed property.
+    /// </summary>
+    public double CardOpacity => _isHiddenByUser ? 0.45 : 1.0;
+
     /// <summary>Read-only display (e.g. shortcut bindings); the value can still be selected and copied.</summary>
     public bool ReadOnly
     {
@@ -341,23 +377,23 @@ public sealed class Option : INotifyPropertyChanged
     public OptionEditText Edit { get; } = new();
 
     /// <summary>
-    /// Raw mpv option name this row publishes, as shown/edited by the
-    /// customize mode (e.g. "hwdec"). Null while the row uses the mapping
-    /// derived from <see cref="Key"/>.
+    /// Stable id of the section (2nd-level folder) this row sits in. Section
+    /// captions are localized, so ordering and "move into folder" key on this
+    /// instead of on <see cref="Section"/>.
     /// </summary>
-    public string? MpvKey
-    {
-        get; set;
-    }
+    public string? SectionId { get; set; }
 
     /// <summary>
-    /// Raw value forced for <see cref="MpvKey"/>. When set it is sent verbatim
-    /// and wins over whatever the row's own value control would send.
+    /// True when <see cref="Section"/> is a folder the user created rather than
+    /// one the app defines.
+    ///
+    /// It is a flag rather than something callers work out from the caption,
+    /// because a built-in folder's caption is renamable: once it is renamed it
+    /// no longer matches anything in AppLang, and a caption test would then
+    /// offer to *delete* a folder the app owns. The page knows which folders are
+    /// its own, so it says so here once.
     /// </summary>
-    public string? MpvValue
-    {
-        get; set;
-    }
+    public bool IsCustomSection { get; set; }
 
     public bool AllowEmpty
     {
