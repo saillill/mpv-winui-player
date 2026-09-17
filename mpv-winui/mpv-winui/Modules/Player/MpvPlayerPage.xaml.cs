@@ -66,10 +66,10 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.DiscMenuActiveChanged += MpvPlayerPage_DiscMenuActiveChanged;
 
-                AppContext.RunMpvCommand = cmd => _ = _mediaPlayer.EnqueueCommand(cmd);
+                AppContext.RunMpvCommand = cmd => _ = _mediaPlayer.RunCommandAsync(cmd);
                 AppContext.SetMpvLogLevel = level => _mediaPlayer.SetLogLevel(level);
-                AppContext.GetAudioDevices = () => _mediaPlayer.AudioDevices();
-                AppContext.GetGpuAdapters = () => _mediaPlayer.GpuAdapters();
+                AppContext.GetAudioDevices = () => _mediaPlayer.GetAudioDevices();
+                AppContext.GetGpuAdapters = () => _mediaPlayer.GetGpuAdapters();
                 // LoggerHelper may have run before this hook existed; sync the
                 // native mpv log level once the player is available.
                 AppContext.SetMpvLogLevel(AppContext.AppSetting.EnableDebugLog ? "info" : "warn");
@@ -80,7 +80,7 @@ namespace mpv_winui.Modules.Player
                 var applyCommands = MpvSettings.BuildApplyAllCommands();
                 if (applyCommands.Count > 0)
                 {
-                    await _mediaPlayer.EnqueueCommands(applyCommands);
+                    await _mediaPlayer.RunCommandAsync(applyCommands);
                 }
 
                 // Playback speed is a persistent setting but is intentionally
@@ -91,7 +91,9 @@ namespace mpv_winui.Modules.Player
                 {
                     AppContext.SendMpvCommand($"no-osd set speed {AppContext.AppSetting.Speed}");
                 }
-                await _mediaPlayer.DrainCommandsAsync();
+                // No drain step: the native player runs each command synchronously
+                // inside RunCommandAsync, so by the time the await above returns
+                // the whole batch has already been applied.
                 // hdr_auto registers its script-message handler after mpv
                 // scripts load; the startup batch races that registration, so
                 // the saved HDR mode is applied once the first file loads.
@@ -238,10 +240,27 @@ namespace mpv_winui.Modules.Player
         {
             DispatcherQueue.TryEnqueue(() =>
             {
+                // ApplyLocalizedStrings already re-localizes the control bar;
+                // calling it a second time here used to run
+                // PlayerControl.ApplyLocalizedStrings unguarded, which dereferences
+                // AppLang and would have thrown if it were ever null.
                 ApplyLocalizedStrings();
-                PlayerControl.ApplyLocalizedStrings();
                 RebuildMenuBar();
             });
+        }
+
+        /// <summary>
+        /// Re-applies localized text to this page's own chrome. The menu bar has
+        /// its own entry point that the caller invokes separately.
+        /// </summary>
+        private void ApplyLocalizedStrings()
+        {
+            if (AppContext.AppLang is null)
+            {
+                return;
+            }
+
+            PlayerControl?.ApplyLocalizedStrings();
         }
 
         private async Task CreateAsync()

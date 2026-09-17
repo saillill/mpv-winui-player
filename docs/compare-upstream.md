@@ -1,11 +1,12 @@
 # upstream-merge 与上游的差异清单
 
 > 基线（2026-09-17 实测）：
-> - 本地 `upstream-merge` = `3048aeb`
+> - 本地 `main` = `7b502ad`，之后的上游对齐与原生迁移见 §6
 > - 上游 `origin/main`（ikas-mc/mpv-winui-player）= `276a7e0`
 > - 共同基点（merge-base）= `2b74e2a`
 >
 > 本文全部结论来自逐文件对比与全库 grep，未沿用任何旧结论。
+> §2–§5 是**对齐前**的差异快照；§6 记录哪些已经按上游修掉。
 
 ## 1. 规模
 
@@ -97,7 +98,7 @@ fork 专有的辅助函数只能集中挪到新文件里放回。
 另外，`Modules/Mpv/Keycodes.cs` 的裁剪（见 3.3）虽然也是"改动上游文件"，
 但改的是上游可以删掉的东西，不构成逻辑偏离。
 
-## 5. 建议
+## 5. 建议（均已执行，见 §6）
 
 按性价比排序：
 
@@ -107,3 +108,58 @@ fork 专有的辅助函数只能集中挪到新文件里放回。
 3. **想让下一次合并上游更省事，再动 `MpvPlayerCompat.cs`**：
    逐步把调用点迁到原生 API，迁完删掉垫片，同时把 `ForkCompat` 里的函数归回各自的 partial。
 4. 其余差异（设置界面、本地化、控制栏、配置层）是本分支的主动选择，保持即可。
+
+## 6. 本轮对齐（2026-09-17 已落地）
+
+以上 §3.1、§3.2、§4 里的问题已全部处理，方向按上游。
+
+### 6.1 上游三个提交
+
+| 上游提交 | 落地内容 |
+| :--- | :--- |
+| `276a7e0` | `PlayerTrackSelectorControl.xaml` 4 处绑定补 `Mode=OneWay`，与上游改动后逐字节一致（只差我们的目录拍平带来的命名空间） |
+| `753cabf` | ① `MenuConfWriter` 两处 `AppendLine()` → `Append('\n')`，并删掉测试里的 `NormalizeNewLines`（测试类加了注释禁止再引入）；② 补上 `SelectNodeInTree` / `ExpandNodeInTree`，在 `AddRootButton_Click` 与 `AddChild` 的同一位置调用 |
+| `3ec602c` | README 已整体重写，无需再合 |
+
+`753cabf` 里我们的 `ExecuteNode` 比上游多一层 `AppContext.RunMpvCommand` 判空（上游直接调
+`window.RunMpvCommand`），那是本分支的改进，保留。
+
+### 6.2 原生迁移：垫片已删除
+
+按上游方向，把 wrapper 时代的调用点全部迁到原生 `MpvPlayer` API：
+
+| 原调用（wrapper 形状） | 现调用（原生） | 调用点 |
+| :--- | :--- | :--- |
+| `EnqueueCommand(cmd)` | `RunCommandAsync(cmd)` | `MpvPlayerPage.xaml.cs` |
+| `EnqueueCommands(list)` | `RunCommandAsync(list)` | 同上 |
+| `DrainCommandsAsync()` | 删除 —— 原生 `Command` 同步执行，没有待排空的队列 | 同上 |
+| `VideoTracks()` / `AudioTracks()` / `SubtitleTracks()` | `GetVideoTracks()` / `GetAudioTracks()` / `GetSubtitleTracks()` | `PlayerControl.xaml.cs` |
+| `SecondSubtitleTracks()` | `GetSubtitleTracks()`（第二个字幕槽复用同一份原生列表） | 同上 |
+| `Chapters()` | `GetChapters()` | `PlayerControl.ProgressMarks.cs` |
+| `AudioDevices()` / `GpuAdapters()` | `GetAudioDevices()` / `GetGpuAdapters()` | `MpvPlayerPage.xaml.cs` |
+| `ShuffleEnabled()` / `ShuffleEnabled(v)` | `Shuffle()` / `SetShuffle(v)` | `PlayerControl.xaml.cs` |
+| `GetRepeatMode()` / `SetRepeatMode(s)` | `GetRepeatState()` / `SetRepeatState(s)` | 同上 |
+| `ToggleAbLoop()` | 就地实现为私有 `ToggleAbLoop()`，用原生 `AbLoopA/B` + `Command(["..."])` | `PlayerControl.ProgressMarks.cs` |
+
+结果：
+- `MpvPlayerCompat.cs`（200 行 / 19 个扩展方法）**整个删除**；
+- `MpvPlayerPage.ForkCompat.cs` 删除，其唯一的 `ApplyLocalizedStrings` 归回
+  `MpvPlayerPage.xaml.cs`（它的两个调用点都在那里）；
+- `GetRepeatMode`/`SetRepeatMode` 原本与 `MpvPlayerExtensions.GetRepeatState`/`SetRepeatState`
+  是**同一套逻辑的重复实现**，现在只保留后者；
+- 删掉的 `Playing()` 与 `PlaybackRate()` 是死代码（全库零调用）。
+
+顺带修掉一处合并产物：`AppContext_LanguageChanged` 里原本同时调用
+`ApplyLocalizedStrings()` 和 `PlayerControl.ApplyLocalizedStrings()`，而前者已经转发给后者；
+多出来的那次调用**没有 null 保护**（`PlayerControl.ApplyLocalizedStrings` 直接解引用
+`AppContext.AppLang`），是一条潜在的 NRE，已删除。
+
+### 6.3 验证到了什么程度
+
+- C# 层构建：**0 警告 / 0 错误**；
+- `mpv-conf-test`：**258/258 通过**（断言现在直接比原始字节，CRLF 会失败）；
+- 启动冒烟（`probe/smoke_launch.py`，只启动不点击）：窗口正常出现、进程存活、日志无 ERROR；
+- **未做**交互式验证（轨道列表、循环/随机循环、A-B 循环、菜单编辑器选中）——
+  按用户要求不再跑合成点击探针。这几条路径的迁移是逐点等价改写，
+  循环状态的三态映射已逐分支比对确认与原来一致。
+

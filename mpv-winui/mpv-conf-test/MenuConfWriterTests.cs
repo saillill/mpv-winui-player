@@ -2,6 +2,12 @@ using mpv_winui.Modules.Menu.MpvMenu;
 
 namespace mpv_conf_test;
 
+/// <summary>
+/// The expected strings below contain bare "\n" and are compared against the
+/// raw file contents on purpose: the writer must emit LF on every platform, and
+/// the reads used to be normalised before asserting, which hid a CRLF file.
+/// Do not reintroduce a normalising helper here - the CRLF form has to fail.
+/// </summary>
 [TestFixture]
 public class MenuConfWriterTests
 {
@@ -30,11 +36,6 @@ public class MenuConfWriterTests
         return path;
     }
 
-    private static string NormalizeNewLines(string text)
-    {
-        return text.Replace("\r\n", "\n");
-    }
-
     [Test]
     public async Task Save_WritesItemsWithTabIndentation()
     {
@@ -52,7 +53,7 @@ public class MenuConfWriterTests
         };
 
         var path = await WriteTemp(items);
-        var text = NormalizeNewLines(File.ReadAllText(path));
+        var text = File.ReadAllText(path);
 
         Assert.That(text, Is.EqualTo("Menu\n\tPlay\tplaylist-play\n\tFullscreen\tcycle fullscreen\n"));
     }
@@ -67,7 +68,7 @@ public class MenuConfWriterTests
 
         var path = await WriteTemp(items);
 
-        Assert.That(NormalizeNewLines(File.ReadAllText(path)), Is.EqualTo("Item\tcmd\thidden=h\tdisabled=d\tchecked=c\n"));
+        Assert.That(File.ReadAllText(path), Is.EqualTo("Item\tcmd\thidden=h\tdisabled=d\tchecked=c\n"));
     }
 
     [Test]
@@ -82,7 +83,7 @@ public class MenuConfWriterTests
 
         var path = await WriteTemp(items);
 
-        Assert.That(NormalizeNewLines(File.ReadAllText(path)), Is.EqualTo("Play\tplaylist-play\n\nStop\tstop\n"));
+        Assert.That(File.ReadAllText(path), Is.EqualTo("Play\tplaylist-play\n\nStop\tstop\n"));
     }
 
     [Test]
@@ -95,7 +96,7 @@ public class MenuConfWriterTests
 
         var path = await WriteTemp(items);
 
-        Assert.That(NormalizeNewLines(File.ReadAllText(path)), Is.EqualTo("Item\tcmd\n"));
+        Assert.That(File.ReadAllText(path), Is.EqualTo("Item\tcmd\n"));
     }
 
     [Test]
@@ -122,7 +123,7 @@ public class MenuConfWriterTests
 
         var path = await WriteTemp(items);
 
-        Assert.That(NormalizeNewLines(File.ReadAllText(path)), Is.EqualTo("Menu\n\tSub\n\t\tLeaf\tcmd\n"));
+        Assert.That(File.ReadAllText(path), Is.EqualTo("Menu\n\tSub\n\t\tLeaf\tcmd\n"));
     }
 
     [Test]
@@ -151,7 +152,7 @@ public class MenuConfWriterTests
 
         await MenuConfWriter.SaveAsync(path, new List<MpvMenuItem> { new() { Name = "Play", CommandString = "play" } });
 
-        Assert.That(NormalizeNewLines(File.ReadAllText(path)), Is.EqualTo("Play\tplay\n"));
+        Assert.That(File.ReadAllText(path), Is.EqualTo("Play\tplay\n"));
     }
 
     [Test]

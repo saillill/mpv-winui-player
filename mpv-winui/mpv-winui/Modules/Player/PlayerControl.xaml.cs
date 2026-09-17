@@ -1118,7 +1118,7 @@ namespace mpv_winui.Modules.Player
 
                 TrackSelectorControl.VideoTrackSelected -= TrackSelectorControl_VideoTrackSelected;
 
-                TrackSelectorControl.LoadVideoTracks(_mediaPlayer?.VideoTracks() ?? []);
+                TrackSelectorControl.LoadVideoTracks(_mediaPlayer?.GetVideoTracks() ?? []);
 
                 TrackSelectorControl.VideoTrackSelected += TrackSelectorControl_VideoTrackSelected;
 
@@ -1140,7 +1140,7 @@ namespace mpv_winui.Modules.Player
 
                 TrackSelectorControl.SubtitleTrackSelected -= TrackSelectorControl_SubtitleTrackSelected;
 
-                TrackSelectorControl.LoadSubtitleTracks(_mediaPlayer?.SubtitleTracks() ?? [], AppContext.AppLang.Off);
+                TrackSelectorControl.LoadSubtitleTracks(_mediaPlayer?.GetSubtitleTracks() ?? [], AppContext.AppLang.Off);
 
                 TrackSelectorControl.SubtitleTrackSelected += TrackSelectorControl_SubtitleTrackSelected;
 
@@ -1162,7 +1162,7 @@ namespace mpv_winui.Modules.Player
 
                 TrackSelectorControl.AudioTrackSelected -= TrackSelectorControl_AudioTrackSelected;
 
-                TrackSelectorControl.LoadAudioTracks(_mediaPlayer?.AudioTracks() ?? []);
+                TrackSelectorControl.LoadAudioTracks(_mediaPlayer?.GetAudioTracks() ?? []);
 
                 TrackSelectorControl.AudioTrackSelected += TrackSelectorControl_AudioTrackSelected;
 
@@ -1184,7 +1184,9 @@ namespace mpv_winui.Modules.Player
 
                 TrackSelectorControl.SecondSubTrackSelected -= TrackSelectorControl_SecondSubTrackSelected;
 
-                TrackSelectorControl.LoadSecondSubtitleTracks(_mediaPlayer?.SecondSubtitleTracks() ?? [], _mediaPlayer?.CurrentSecondSubtitleTrack() ?? -1, AppContext.AppLang.Off);
+                // The second-subtitle picker is a second slot over the same
+                // native subtitle track list; mpv has no separate list for it.
+                TrackSelectorControl.LoadSecondSubtitleTracks(_mediaPlayer?.GetSubtitleTracks() ?? [], _mediaPlayer?.CurrentSecondSubtitleTrack() ?? -1, AppContext.AppLang.Off);
 
                 TrackSelectorControl.SecondSubTrackSelected += TrackSelectorControl_SecondSubTrackSelected;
 
@@ -1840,55 +1842,36 @@ namespace mpv_winui.Modules.Player
             {
 
                 // Cycle: no repeat -> sequential -> single loop -> shuffle.
-
                 // "No repeat" runs the playlist in order and stops at the
-
                 // end; "sequential" loops the list in order; "single loop"
-
                 // repeats the current file; shuffle hands ordering to the
-
                 // patched mpv shuffle state.
-
-                if (player.ShuffleEnabled())
-
+                //
+                // mpv keeps the two repeat states in separate flags;
+                // GetRepeatState/SetRepeatState (MpvPlayerExtensions) are the
+                // tri-state view over them.
+                if (player.Shuffle())
                 {
-
-                    player.ShuffleEnabled(false);
-
-                    player.SetRepeatMode(RepeatState.None);
-
+                    player.SetShuffle(false);
+                    player.SetRepeatState(RepeatState.None);
                 }
-
                 else
-
                 {
-
-                    switch (player.GetRepeatMode())
-
+                    switch (player.GetRepeatState())
                     {
-
                         case RepeatState.None:
-
-                            player.SetRepeatMode(RepeatState.All);
-
+                            player.SetRepeatState(RepeatState.All);
                             break;
 
                         case RepeatState.All:
-
-                            player.SetRepeatMode(RepeatState.One);
-
+                            player.SetRepeatState(RepeatState.One);
                             break;
 
                         default:
-
-                            player.ShuffleEnabled(true);
-
-                            player.SetRepeatMode(RepeatState.None);
-
+                            player.SetShuffle(true);
+                            player.SetRepeatState(RepeatState.None);
                             break;
-
                     }
-
                 }
 
                 UpdatePlaybackModeUI();
@@ -2153,50 +2136,30 @@ namespace mpv_winui.Modules.Player
 
             string label;
 
-            if (MediaPlayer?.ShuffleEnabled() == true)
-
+            if (MediaPlayer?.Shuffle() == true)
             {
-
                 stateName = "ModeShuffle";
-
                 label = lang.MoreShuffle;
-
             }
-
             else
-
             {
-
-                switch (MediaPlayer?.GetRepeatMode())
-
+                switch (MediaPlayer?.GetRepeatState())
                 {
-
                     case RepeatState.All:
-
                         stateName = "ModeSequence";
-
                         label = lang.ControlBarModeSequence;
-
                         break;
 
                     case RepeatState.One:
-
                         stateName = "ModeRepeatOne";
-
                         label = lang.ControlBarModeRepeatOne;
-
                         break;
 
                     default:
-
                         stateName = "ModeNoRepeat";
-
                         label = lang.ControlBarModeNoRepeat;
-
                         break;
-
                 }
-
             }
 
 
