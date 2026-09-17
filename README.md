@@ -1,99 +1,81 @@
-# mpv-winui-player（自用分支）
+# mpv-winui-player
 
-基于 [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player) 的 mpv WinUI 3 前端。
+A video player for Windows that combines the mpv engine with a native WinUI 3
+interface. Playback is performed by mpv itself; the interface is built with
+Windows App SDK, so everyday use requires neither a command line nor hand-editing
+configuration files.
 
-**这是我自用的分支**：按自己的使用习惯改，不追求通用性，也不保证与上游同步。
-播放内核就是 mpv 本体，界面用 WinUI 3 重写，不需要命令行，常用操作都在界面上。
+This repository is a fork of
+[ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player), maintained
+for personal use. Upstream remains the reference point: where the two differ, this
+fork follows the direction upstream has taken, and upstream changes are adopted
+rather than reinvented. The work here concentrates on the areas that matter most in
+daily use.
 
-## 已实现功能
+## Differences from the original
 
-**播放**
+The most noticeable change is the settings window. The original presents a single
+flat list of options. Here the options are organised into cards and second-level
+folders, and the arrangement is adjustable: rows can be reordered, moved between
+folders, renamed or hidden, so the settings that are actually used stay close at
+hand. The mpv configuration editor, the menu editor and the file-association
+section follow the same approach.
 
-- 自研控制栏：自适应布局引擎、进度条标记、面板动画
-- 快速控制面板（音频 / 字幕 / 视频）、轨道选择、音量飞出
-- 画中画（PiP），可拖动调整大小
-- 宽高比 / 裁剪，按面板实际尺寸锁定
-- 内置缩略图预览，兼容 `osc-preview-api` 插件提供的预览
+The interface is also fully localised. The original ships English text only,
+whereas this fork provides nine languages covering roughly 1,200 user-facing
+strings, with consistency verified by checks included in the repository.
 
-**菜单**
+Playback gained a control bar designed for this fork, with an adaptive layout,
+chapter and A–B loop markers on the progress bar, and animated panels. Alongside it
+are quick panels for audio, subtitles and video, a track selector, picture-in-picture
+with a resizable window, and aspect-ratio and cropping controls that respect the
+actual size of the video panel. Thumbnail preview is built in and additionally
+supports plugins that implement the `osc-preview-api`.
 
-- 菜单栏 + 菜单编辑器：树形编辑、拖动排序，改动写回 `menus.conf`
-- 播放列表右键菜单、快捷键提示
+Finally, the bundled mpv configuration is treated as maintained content rather than
+a one-time drop. It is installed on first run and kept current afterwards, and it
+includes scripts for automatic HDR and VSR switching, cover art, recently opened
+files, playback statistics and console output, together with a set of shaders.
 
-**设置**
+## Relationship to upstream
 
-- 选项以卡片 + 二级文件夹组织，可拖动排序、新建文件夹、隐藏/显示、重命名
-- 主题、界面字体、窗口背景材质
-- mpv.conf 编辑器（按 schema 分类，支持 profile）
-- 媒体信息（MediaInfo）、播放历史 / 稍后观看
-- 文件关联与协议注册
-- 9 种界面语言，1225 条文案（另有自定义模式的一批键，来自 JSON 而非 AppLang）
+The two are best described as a superset with a shared direction. Every capability
+exposed by upstream is present here, the interface between the two has no gap in
+either direction, and the recent compatibility work has been carried in the direction
+upstream chose rather than around it. The outstanding fixes from upstream have been
+adopted as well.
 
-**配置层**
+A detailed comparison, including the parts of upstream that are still under
+consideration, is kept in [`docs/compare-upstream.md`](docs/compare-upstream.md).
 
-- 自带一份 mpv 配置（`mpv-winui-lazy/`）：`mpv.conf` / `input.conf` / `profiles.conf`、
-  一组脚本（HDR / VSR 自动切换、封面、最近打开、stats、console、select …）、shader 与工具
-- 启动时同步到 `%LOCALAPPDATA%\mpv-winui\mpv`：属于我们的文件会被更新；
-  用户改过的文件只备份、不覆盖；我们不再提供的文件会被清理
+## Current limitations
 
-## 已知限制
-
-播放使用 `d3d11-output-mode=composition`，mpv 拿不到显示信息，靠自定义属性补偿：
+Playback uses mpv's composition output mode, in which mpv cannot obtain display
+information directly. The characteristics of the display are therefore supplied
+explicitly, and may be set in a profile:
 
 ```
 user-data/mpvw/color-kind    : SDR / WCG / HDR
 user-data/mpvw/refresh-rate  : 60
 ```
 
-部分 mpv 命令不支持（退出、窗口相关等）。只维护 Windows x64。
+A number of mpv commands are intentionally not supported, most notably those that
+terminate the player or manipulate its own window. Only Windows x64 is maintained.
 
-## 与上游的关系
+## Building
 
-差异清单见 [`docs/compare-upstream.md`](docs/compare-upstream.md)。简单说：
-
-- **比上游多**：设置界面的整套改造、本地化（上游基本没有）、自研控制栏与快速面板、
-  菜单编辑器、配置层与部署清理，以及一套自检脚本（`tools/`）
-- **已按上游对齐**：原先为了兼容而保留的一层 wrapper 垫片已经拆掉，调用点全部改为直连原生
-  `MpvPlayer` API；上游三个未合并的提交（轨道选择器绑定、菜单编辑器、README）也已并入
-
-目前与上游的关系是"功能超集 + 架构同向"：原生层是严格超集（`MpvPlayer.idl` 101 条声明
-对上游 87 条，上游没有任何我们没有的 API），改动方向也与上游一致。
-
-## 目录结构
-
-```
-mpv-winui/mpv-winui/     C# 应用（App.xaml / Program.cs 在根，Shell/ 放主窗与全局上下文，
-                         功能各在 Modules/<区域>/）
-mpv-winui/mpv-winrt/     C++/WinRT 组件（MpvPlayer.* 在根，Types/ 值类型，Events/ 事件参数）
-mpv-winui-lazy/          配置层（mpv 要求主配置留在根，其余分组到 tools/ docs/ licenses/）
-tools/                   自检脚本
-appdata-sample/          手动拷进 %LOCALAPPDATA%\mpv-winui 的样例，见其 README
-docs/                    审计、本地化、上游差异、部署布局
-```
-
-构建输出/部署目录根下那 240 多个 dll **不能**收进子目录 —— 它们是自包含部署与
-WinRT 激活强制要求的。原因与逐条依据见 [`docs/deploy-layout.md`](docs/deploy-layout.md)。
-
-## 开发
+Building requires the .NET SDK, the Windows SDK and the Visual Studio C++ build
+tools. A Release build is produced with:
 
 ```bash
-# 只编 C# 层（约 30 秒，不编 C++）
-dotnet build mpv-winui/mpv-winui/mpv-winui.csproj -c Release -p:Platform=x64 \
-    -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false
-
-# 完整构建（含 C++ 原生层）
-./build.ps1
+./build.ps1 -Configuration Release -Platform x64
 ```
 
-自检脚本：
+Consistency checks for localisation, settings and interface text are available under
+`tools/`. Documentation intended for contributors is in `docs/` and `AGENTS.md`.
 
-```bash
-python tools/check-localization.py     # 各语言键一致性
-python tools/check-settings-drift.py   # 设置项与映射漂移
-python tools/check-ui-tooltips.py      # 界面提示文案
-```
+## Licence
 
-## 许可
-
-LGPL-2.1，与上游一致。第三方组件与来源见
-[`mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md`](mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md)。
+The application code is licensed under LGPL-2.1, as upstream. Third-party components
+and their licences are listed in
+[`mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md`](mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md).
