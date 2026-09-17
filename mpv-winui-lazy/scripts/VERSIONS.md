@@ -44,4 +44,4 @@ the file header comment repeats it.
 
 > Shaders (`shaders/`), VapourSynth templates (`vs/`) and fonts come from
 > mpv-lazy / upstream projects with their own provenance; see
-> `THIRD_PARTY_NOTICES.md` for licenses.
+> `../licenses/THIRD_PARTY_NOTICES.md` for licenses.

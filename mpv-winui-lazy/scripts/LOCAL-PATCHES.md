@@ -33,7 +33,7 @@ git diff --no-index <upstream-dyn_menu.lua> scripts/dyn_menu.lua > dyn_menu.patc
 
 ## Why this matters
 
-`THIRD_PARTY_NOTICES.md` documents the GPL carve-out: the WinUI app talks
+`../licenses/THIRD_PARTY_NOTICES.md` documents the GPL carve-out: the WinUI app talks
 to these scripts only via public `menu-data` / `script-message`
 interfaces, so the GPL does not extend to the app. Keeping the patch as a
 reviewable delta preserves that boundary and makes license audits

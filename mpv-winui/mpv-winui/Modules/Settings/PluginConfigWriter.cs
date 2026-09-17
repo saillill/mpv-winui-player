@@ -53,8 +53,21 @@ public static class PluginConfigWriter
             {
                 ["mode"] = "",
             },
+            // Only mediainfo_path is owned here: the layer moved MediaInfo.exe
+            // from the config root into tools/, and script-opts/ is a
+            // user-owned directory that ConfigDeployer never overwrites, so an
+            // install made before the move would keep pointing at the old path
+            // -- or at a file the deployer's cleanup has just removed. The
+            // remaining keys (font_mono, font_size*) stay the user's.
+            ["stats_mediainfo.conf"] = new()
+            {
+                ["mediainfo_path"] = MediaInfoToolPath,
+            },
         };
     }
+
+    /// <summary>MediaInfo CLI inside the deployed config layer, as mpv sees it.</summary>
+    private const string MediaInfoToolPath = "~~/tools/MediaInfo.exe";
 
     public static async Task WriteAllAsync()
     {

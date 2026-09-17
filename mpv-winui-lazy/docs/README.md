@@ -23,18 +23,27 @@ mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com
 
 ## 目录
 
+分层原则：**mpv 强制要求放在配置根的文件留在根**（`mpv.conf`、`input.conf` 由 mpv 硬编码读取，
+`profiles.conf`、`script-opts.conf` 由 `mpv.conf` 的 `include` 引用，`deploy-config.ps1` 必须与
+部署目标同级才能用 `$PSScriptRoot` 定位源目录）；其余按用途归入子目录。
+
 | 路径 | 说明 |
 |---|---|
-| `mpv.conf` / `profiles.conf` / `input.conf` | mpv 主配置、条件配置、按键绑定 |
+| `mpv.conf` | mpv 主配置（根，mpv 固定读取） |
+| `input.conf` | 按键绑定（根，mpv 固定读取） |
+| `profiles.conf` | 条件配置组（根，被 `mpv.conf` include） |
+| `script-opts.conf` | 脚本选项追加（根，被 `mpv.conf` include） |
+| `deploy-config.ps1` | 手动部署脚本（根，`$PSScriptRoot` 即本层根目录） |
 | `scripts/` | Lua 脚本（mpv-menu-plugin 的 `dyn_menu.lua` 为 GPL-2.0-only；已移除随附的 `menu.dll` 二进制，当前 mpv 走自带 `menu-data` 渲染路径） |
 | `script-opts/` | 脚本选项（`dyn_menu.conf` 控制菜单数据通道与标题长度上限） |
 | `shaders/` | 可选着色器，许可证见各文件头 |
 | `vs/` | 可选 VapourSynth 脚本（需自行安装 VapourSynth 运行库） |
 | `fonts/` | 随包可选字体（Source Han Sans / LXGW WenKai）；OSD 与字幕默认使用系统 `sans-serif`，可在设置中切换 |
-| `MediaInfo.exe` | MediaInfo CLI v26.05（BSD-2-Clause，`工具 > MediaInfo` 用） |
-| `licenses/` | 随包第三方许可证全文（MediaInfo BSD-2-Clause） |
+| `tools/` | 随包命令行工具：`MediaInfo.exe`（MediaInfo CLI v26.05，`工具 > MediaInfo` 用；脚本里引用为 `~~/tools/MediaInfo.exe`） |
+| `licenses/` | 本层许可证：`LICENSE.md`（自创内容 LGPL-2.1-or-later）、`THIRD_PARTY_NOTICES.md`（第三方汇总）、`MediaInfo-BSD-2-Clause.txt`（MediaInfo 全文） |
+| `docs/` | 本文件 |
 
-历史菜单整理与当前审计记录见 [`docs/audit-and-roadmap-20260828.md`](../docs/audit-and-roadmap-20260828.md)。
+历史菜单整理与当前审计记录见 [`../../docs/audit-and-roadmap-20260828.md`](../../docs/audit-and-roadmap-20260828.md)。
 
 ## 部署
 
@@ -54,4 +63,4 @@ powershell -File mpv-winui-lazy\deploy-config.ps1
 ## 许可证
 
 自创内容以 LGPL-2.1-or-later 发布（与主程序一致）；第三方组件版权归原作者，
-见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+见 [`licenses/THIRD_PARTY_NOTICES.md`](../licenses/THIRD_PARTY_NOTICES.md)。
