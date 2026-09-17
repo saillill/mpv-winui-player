@@ -8,6 +8,14 @@
     <Filter Include="Generated Files">
       <UniqueIdentifier>{926ab91d-31b4-48c3-b9a4-e681349f27f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Types">
+      <UniqueIdentifier>{6d1e2b74-1f3a-4c8b-9d21-8a5c0f3e7b64}</UniqueIdentifier>
+      <Extensions>h;idl</Extensions>
+    </Filter>
+    <Filter Include="Events">
+      <UniqueIdentifier>{3f7a9c25-6b48-4e19-a2d3-5c8e1b43f907}</UniqueIdentifier>
+      <Extensions>h;idl</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -19,47 +27,139 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="MpvPlayer.h" />
     <ClInclude Include="MpvPreviewer.h" />
-    <ClInclude Include="MpvPlaylistItem.h" />
-    <ClInclude Include="MpvChapter.h" />
-    <ClInclude Include="MpvEdition.h" />
-    <ClInclude Include="MpvAudioDevice.h" />
-    <ClInclude Include="MpvProfile.h" />
-    <ClInclude Include="MpvMenuItem.h" />
-    <ClInclude Include="MpvTrack.h" />
-    <ClInclude Include="PlaybackStateChangedEventArgs.h" />
-    <ClInclude Include="VolumeChangedEventArgs.h" />
-    <ClInclude Include="PositionChangedEventArgs.h" />
-    <ClInclude Include="SpeedChangedEventArgs.h" />
-    <ClInclude Include="MediaInfoChangedEventArgs.h" />
-    <ClInclude Include="NetworkInfoChangedEventArgs.h" />
-    <ClInclude Include="FileFailedEventArgs.h" />
-    <ClInclude Include="TrackListChangedEventArgs.h" />
-    <ClInclude Include="TrackListCountChangedEventArgs.h" />
-    <ClInclude Include="WindowChangedEventArgs.h" />
+    <ClInclude Include="Types\MpvPlaylistItem.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\MpvChapter.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\MpvEdition.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\MpvAudioDevice.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\MpvProfile.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\MpvMenuItem.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\MpvTrack.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\MpvGpuAdapter.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\MpvLogEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\PlaybackFailedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\PlaybackStateChangedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\VolumeChangedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\PositionChangedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\SpeedChangedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\MediaInfoChangedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\NetworkInfoChangedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\FileFailedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\TrackListChangedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\TrackListCountChangedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\WindowChangedEventArgs.h">
+      <Filter>Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="MpvPlayer.idl" />
     <Midl Include="MpvPreviewer.idl" />
-    <Midl Include="TrackType.idl" />
-    <Midl Include="MpvPlaylistItem.idl" />
-    <Midl Include="MpvChapter.idl" />
-    <Midl Include="MpvEdition.idl" />
-    <Midl Include="MpvAudioDevice.idl" />
-    <Midl Include="MpvProfile.idl" />
-    <Midl Include="MpvMenuItem.idl" />
-    <Midl Include="MpvTrack.idl" />
-    <Midl Include="PlaybackStateChangedEventArgs.idl" />
-    <Midl Include="VolumeChangedEventArgs.idl" />
-    <Midl Include="PositionChangedEventArgs.idl" />
-    <Midl Include="SpeedChangedEventArgs.idl" />
-    <Midl Include="MediaInfoChangedEventArgs.idl" />
-    <Midl Include="NetworkInfoChangedEventArgs.idl" />
-    <Midl Include="FileFailedEventArgs.idl" />
-    <Midl Include="TrackListChangedEventArgs.idl" />
-    <Midl Include="TrackListCountChangedEventArgs.idl" />
-    <Midl Include="WindowChangedEventArgs.idl" />
-    <Midl Include="DisplayColorKind.idl" />
-    <Midl Include="DiscType.idl" />
+    <Midl Include="Types\TrackType.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\DisplayColorKind.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\DiscType.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\MpvPlaylistItem.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\MpvChapter.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\MpvEdition.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\MpvAudioDevice.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\MpvProfile.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\MpvMenuItem.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\MpvTrack.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Types\MpvGpuAdapter.idl">
+      <Filter>Types</Filter>
+    </Midl>
+    <Midl Include="Events\MpvLogEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\PlaybackFailedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\PlaybackStateChangedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\VolumeChangedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\PositionChangedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\SpeedChangedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\MediaInfoChangedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\NetworkInfoChangedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\FileFailedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\TrackListChangedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\TrackListCountChangedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
+    <Midl Include="Events\WindowChangedEventArgs.idl">
+      <Filter>Events</Filter>
+    </Midl>
   </ItemGroup>
   <ItemGroup>
     <None Include="mpv_winrt.def" />

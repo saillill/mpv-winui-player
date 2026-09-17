@@ -17,7 +17,7 @@
 | 本地化 | 9 个 JSON + `AppLang.cs` 1789 行 | 无 JSON，`AppLang.cs` 54 行 |
 | 自检脚本（`tools/`） | 6 个 | 无 |
 | 原生 API 声明（`MpvPlayer.idl`） | 101 | 87 |
-| `data/` | 8 个文件 | 8 个文件（内容一致） |
+| `appdata-sample/`（上游叫 `data/`） | 8 个文件 | 8 个文件（内容一致） |
 
 ## 2. 我们比上游强的地方
 
@@ -30,12 +30,12 @@
    `PlayerControl.Preview` / `PlayerControl.ProgressMarks` / `PlayerControl.PanelAnimation` 等。
 4. **快速控制面板**。`QuickControlPanel.{Audio,Video,Subtitles,Builders}`，上游没有对应实现。
 5. **菜单编辑器**。`MenuEditorPage_{TreeView,Drag,Preview,Conf}` + `MenuConfWriter`，
-   上游只有更薄的 `data/menu.json` 方案。
+   上游只有更薄的 `appdata-sample/menu.json` 方案。
 6. **原生层是严格超集**。101 vs 87 条声明，且上游**没有任何我们没有的 API**。
    我们多出 `AbLoopA/B`、`ApplyCommandStrings`、`GetCurrentFilePath`、`GetGpuAdapters`、
    `ObserveProperty`/`UnobserveProperty`、`SetLogLevel`、`VoConfigured` 及一批事件。
 7. **配置层的工程化**。`ConfigDeployer` 按 manifest 区分"我们部署的 / 用户改过的"，
-   增量更新并清理不再提供的文件；上游的 `data/mpv/*` 只是静态拷贝。
+   增量更新并清理不再提供的文件；上游的 `appdata-sample/mpv/*` 只是静态拷贝，需手动复制到 AppData。
 8. **自检工具**。`tools/` 下 6 个脚本（本地化、设置漂移、界面文案、分类表生成等），上游没有。
 
 ## 3. 上游比我们强的地方

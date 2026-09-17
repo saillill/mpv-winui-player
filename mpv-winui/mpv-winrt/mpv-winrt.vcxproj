@@ -128,27 +128,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <!-- Runtime classes stay at the root; the data types they expose are
+         grouped under Types\ (value types) and Events\ (event args). -->
     <ClInclude Include="MpvPlayer.h" />
     <ClInclude Include="MpvPreviewer.h" />
-    <ClInclude Include="MpvPlaylistItem.h" />
-    <ClInclude Include="MpvChapter.h" />
-    <ClInclude Include="MpvEdition.h" />
-    <ClInclude Include="MpvAudioDevice.h" />
-    <ClInclude Include="MpvProfile.h" />
-    <ClInclude Include="MpvMenuItem.h" />
-    <ClInclude Include="MpvTrack.h" />
-    <ClInclude Include="PlaybackFailedEventArgs.h" />
-    <ClInclude Include="PlaybackStateChangedEventArgs.h" />
-    <ClInclude Include="VolumeChangedEventArgs.h" />
-    <ClInclude Include="PositionChangedEventArgs.h" />
-    <ClInclude Include="SpeedChangedEventArgs.h" />
-    <ClInclude Include="MediaInfoChangedEventArgs.h" />
-    <ClInclude Include="NetworkInfoChangedEventArgs.h" />
-    <ClInclude Include="FileFailedEventArgs.h" />
-    <ClInclude Include="TrackListChangedEventArgs.h" />
-    <ClInclude Include="TrackListCountChangedEventArgs.h" />
-    <ClInclude Include="WindowChangedEventArgs.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Types\MpvPlaylistItem.h" />
+    <ClInclude Include="Types\MpvChapter.h" />
+    <ClInclude Include="Types\MpvEdition.h" />
+    <ClInclude Include="Types\MpvAudioDevice.h" />
+    <ClInclude Include="Types\MpvProfile.h" />
+    <ClInclude Include="Types\MpvMenuItem.h" />
+    <ClInclude Include="Types\MpvTrack.h" />
+    <ClInclude Include="Events\PlaybackFailedEventArgs.h" />
+    <ClInclude Include="Events\PlaybackStateChangedEventArgs.h" />
+    <ClInclude Include="Events\VolumeChangedEventArgs.h" />
+    <ClInclude Include="Events\PositionChangedEventArgs.h" />
+    <ClInclude Include="Events\SpeedChangedEventArgs.h" />
+    <ClInclude Include="Events\MediaInfoChangedEventArgs.h" />
+    <ClInclude Include="Events\NetworkInfoChangedEventArgs.h" />
+    <ClInclude Include="Events\FileFailedEventArgs.h" />
+    <ClInclude Include="Events\TrackListChangedEventArgs.h" />
+    <ClInclude Include="Events\TrackListCountChangedEventArgs.h" />
+    <ClInclude Include="Events\WindowChangedEventArgs.h" />
+    <ClInclude Include="Events\MpvLogEventArgs.h" />
+    <ClInclude Include="Types\MpvGpuAdapter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MpvPlayer.cpp" />
@@ -159,30 +163,33 @@
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="MpvGpuAdapter.idl" />
-    <Midl Include="MpvLogEventArgs.idl" />
-    <Midl Include="PlaybackFailedEventArgs.idl" />
+    <!-- MIDL still emits <name>.winmd / <name>.g.h by name into the
+         intermediate directory, so the source folders below do not change
+         any generated path. -->
+    <Midl Include="Types\MpvGpuAdapter.idl" />
+    <Midl Include="Events\MpvLogEventArgs.idl" />
+    <Midl Include="Events\PlaybackFailedEventArgs.idl" />
 
-    <Midl Include="DisplayColorKind.idl" />
-    <Midl Include="DiscType.idl" />
-    <Midl Include="TrackType.idl" />
-    <Midl Include="MpvPlaylistItem.idl" />
-    <Midl Include="MpvChapter.idl" />
-    <Midl Include="MpvEdition.idl" />
-    <Midl Include="MpvAudioDevice.idl" />
-    <Midl Include="MpvProfile.idl" />
-    <Midl Include="MpvMenuItem.idl" />
-    <Midl Include="MpvTrack.idl" />
-    <Midl Include="PlaybackStateChangedEventArgs.idl" />
-    <Midl Include="VolumeChangedEventArgs.idl" />
-    <Midl Include="PositionChangedEventArgs.idl" />
-    <Midl Include="SpeedChangedEventArgs.idl" />
-    <Midl Include="MediaInfoChangedEventArgs.idl" />
-    <Midl Include="NetworkInfoChangedEventArgs.idl" />
-    <Midl Include="FileFailedEventArgs.idl" />
-    <Midl Include="TrackListChangedEventArgs.idl" />
-    <Midl Include="TrackListCountChangedEventArgs.idl" />
-    <Midl Include="WindowChangedEventArgs.idl" />
+    <Midl Include="Types\DisplayColorKind.idl" />
+    <Midl Include="Types\DiscType.idl" />
+    <Midl Include="Types\TrackType.idl" />
+    <Midl Include="Types\MpvPlaylistItem.idl" />
+    <Midl Include="Types\MpvChapter.idl" />
+    <Midl Include="Types\MpvEdition.idl" />
+    <Midl Include="Types\MpvAudioDevice.idl" />
+    <Midl Include="Types\MpvProfile.idl" />
+    <Midl Include="Types\MpvMenuItem.idl" />
+    <Midl Include="Types\MpvTrack.idl" />
+    <Midl Include="Events\PlaybackStateChangedEventArgs.idl" />
+    <Midl Include="Events\VolumeChangedEventArgs.idl" />
+    <Midl Include="Events\PositionChangedEventArgs.idl" />
+    <Midl Include="Events\SpeedChangedEventArgs.idl" />
+    <Midl Include="Events\MediaInfoChangedEventArgs.idl" />
+    <Midl Include="Events\NetworkInfoChangedEventArgs.idl" />
+    <Midl Include="Events\FileFailedEventArgs.idl" />
+    <Midl Include="Events\TrackListChangedEventArgs.idl" />
+    <Midl Include="Events\TrackListCountChangedEventArgs.idl" />
+    <Midl Include="Events\WindowChangedEventArgs.idl" />
     <Midl Include="MpvPlayer.idl" />
     <Midl Include="MpvPreviewer.idl" />
   </ItemGroup>

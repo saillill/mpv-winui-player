@@ -1,4 +1,4 @@
-import "DiscType.idl";
+import "Types/DiscType.idl";
 
 namespace mpv_winrt
 {

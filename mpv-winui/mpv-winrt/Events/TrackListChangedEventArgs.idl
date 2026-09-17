@@ -1,4 +1,4 @@
-import "MpvTrack.idl";
+import "Types/MpvTrack.idl";
 
 namespace mpv_winrt
 {

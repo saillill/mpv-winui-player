@@ -59,6 +59,21 @@ user-data/mpvw/refresh-rate  : 60
 目前与上游的关系是"功能超集 + 架构同向"：原生层是严格超集（`MpvPlayer.idl` 101 条声明
 对上游 87 条，上游没有任何我们没有的 API），改动方向也与上游一致。
 
+## 目录结构
+
+```
+mpv-winui/mpv-winui/     C# 应用（App.xaml / Program.cs 在根，Shell/ 放主窗与全局上下文，
+                         功能各在 Modules/<区域>/）
+mpv-winui/mpv-winrt/     C++/WinRT 组件（MpvPlayer.* 在根，Types/ 值类型，Events/ 事件参数）
+mpv-winui-lazy/          配置层（mpv 要求主配置留在根，其余分组到 tools/ docs/ licenses/）
+tools/                   自检脚本
+appdata-sample/          手动拷进 %LOCALAPPDATA%\mpv-winui 的样例，见其 README
+docs/                    审计、本地化、上游差异、部署布局
+```
+
+构建输出/部署目录根下那 240 多个 dll **不能**收进子目录 —— 它们是自包含部署与
+WinRT 激活强制要求的。原因与逐条依据见 [`docs/deploy-layout.md`](docs/deploy-layout.md)。
+
 ## 开发
 
 ```bash
