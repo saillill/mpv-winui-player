@@ -1,76 +1,80 @@
-# mpv-winui-player
+# mpv-winui-player（自用分支）
 
-[![License: LGPL-2.1](https://img.shields.io/badge/License-LGPL--2.1-blue.svg)](LICENSE.txt)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20x64-0078d6.svg)]()
-[![Release](https://img.shields.io/github/v/release/saillill/mpv-winui-player)](https://github.com/saillill/mpv-winui-player/releases)
+基于 [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player) 的 mpv WinUI 3 前端。
 
-## Screenshot
+**这是我自用的分支**：按自己的使用习惯改，不追求通用性，也不保证与上游同步。
+播放内核就是 mpv 本体，界面用 WinUI 3 重写，不需要命令行，常用操作都在界面上。
 
-<img src="https://raw.githubusercontent.com/ikas-mc/mpv-winui-player/main/screenshot/screenshot.png" width="600" />
+## 已实现功能
 
-## Download
-[Github Actions](https://github.com/ikas-mc/mpv-winui-player/actions/workflows/build.yml)
+**播放**
 
-[Github Releases](https://github.com/ikas-mc/mpv-winui-player/releases)
+- 自研控制栏：自适应布局引擎、进度条标记、面板动画
+- 快速控制面板（音频 / 字幕 / 视频）、轨道选择、音量飞出
+- 画中画（PiP），可拖动调整大小
+- 宽高比 / 裁剪，按面板实际尺寸锁定
+- 内置缩略图预览，兼容 `osc-preview-api` 插件提供的预览
 
+**菜单**
 
-## Limitation
+- 菜单栏 + 菜单编辑器：树形编辑、拖动排序，改动写回 `menus.conf`
+- 播放列表右键菜单、快捷键提示
 
-> A graphical mpv player for Windows, forked from
-> [ikas-mc/mpv-winui-player](https://github.com/ikas-mc/mpv-winui-player). The
-> playback engine is the real mpv, wrapped in a clean WinUI 3 interface — no
-> command line required, and the things you use every day are one click away.
+**设置**
 
-Some commands aren't supported, like quit and window related cmd...
+- 选项以卡片 + 二级文件夹组织，可拖动排序、新建文件夹、隐藏/显示、重命名
+- 主题、界面字体、窗口背景材质
+- mpv.conf 编辑器（按 schema 分类，支持 profile）
+- 媒体信息（MediaInfo）、播放历史 / 稍后观看
+- 文件关联与协议注册
+- 9 种界面语言，1225 条文案（另有自定义模式的一批键，来自 JSON 而非 AppLang）
 
-- **Installer**: download `mpv-winui-setup-x64-<version>.msi` and double-click.
-  No administrator rights needed, a Start Menu shortcut is created
-  automatically; newer versions upgrade in place, and uninstalling never
-  touches your playback history or config.
-- **Portable**: download `mpv-winui-win-x64-Release.zip`, extract and run
-  `mpv-winui.exe`.
+**配置层**
 
-The player uses the `d3d11-output-mode=composition` mode, mpv can't get display information.
+- 自带一份 mpv 配置（`mpv-winui-lazy/`）：`mpv.conf` / `input.conf` / `profiles.conf`、
+  一组脚本（HDR / VSR 自动切换、封面、最近打开、stats、console、select …）、shader 与工具
+- 启动时同步到 `%LOCALAPPDATA%\mpv-winui\mpv`：属于我们的文件会被更新；
+  用户改过的文件只备份、不覆盖；我们不再提供的文件会被清理
 
-Use these custom properties as a workaround
+## 已知限制
+
+播放使用 `d3d11-output-mode=composition`，mpv 拿不到显示信息，靠自定义属性补偿：
 
 ```
-user-data/mpvw/color-kind : SDR, WCG, HDR
-user-data/mpvw/refresh-rate : 60
+user-data/mpvw/color-kind    : SDR / WCG / HDR
+user-data/mpvw/refresh-rate  : 60
 ```
 
-example:
+部分 mpv 命令不支持（退出、窗口相关等）。只维护 Windows x64。
 
+## 与上游的关系
+
+差异清单见 [`docs/compare-upstream.md`](docs/compare-upstream.md)。简单说：
+
+- **比上游多**：设置界面的整套改造、本地化（上游基本没有）、自研控制栏与快速面板、
+  菜单编辑器、配置层与部署清理，以及一套自检脚本（`tools/`）
+- **上游更好**：架构更干净（原生 API 直连，没有兼容垫片）；另外有三个上游修复没合过来
+
+## 开发
+
+```bash
+# 只编 C# 层（约 30 秒，不编 C++）
+dotnet build mpv-winui/mpv-winui/mpv-winui.csproj -c Release -p:Platform=x64 \
+    -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false
+
+# 完整构建（含 C++ 原生层）
+./build.ps1
 ```
-[mpvw-sdr]
-profile-cond=p["user-data/mpvw/color-kind"] == "SDR"
-profile-restore=copy
-d3d11-output-csp=srgb
-d3d11-output-format=rgb10_a2
+
+自检脚本：
+
+```bash
+python tools/check-localization.py     # 各语言键一致性
+python tools/check-settings-drift.py   # 设置项与映射漂移
+python tools/check-ui-tooltips.py      # 界面提示文案
 ```
-## Thumbnail Preview
 
-* Built-in preview
-* Supports plugins using [osc-preview-api](https://mpv.io/manual/master/#osc-preview-api)
+## 许可
 
-
-## Msix or Unpackaged
-
-|  | Msix | Unpackaged |
-| :--- | :--- | :--- |
-| **Data** | `C:\Users\user\AppData\Local\Packages\--\LocalState` | `C:\Users\user\AppData\Local\ikas-mc\mpvw` |
-| **Settings** | `C:\Users\user\AppData\Local\Packages\--\Settings` | `HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\ikas-mc\mpvw\app` |
-| **File Association** | Auto | Register in the settings page |
-| **Protocol** | mpvw://?file=[path] | Register in the settings page |
-| **Command Line** | mpvw [path] | [App Folder]\mpvw.exe [path] |
-
-
-## Mpv Conf Editor
-
-https://github.com/ikas-mc/mpv-winui-player/wiki/Mpv-Conf-Editor
-
-## License
-
-- The app code is LGPL-2.1; see [LICENSE.txt](LICENSE.txt).
-- Third-party components and licenses:
-  [mpv-winui-lazy/THIRD_PARTY_NOTICES.md](mpv-winui-lazy/THIRD_PARTY_NOTICES.md).
+LGPL-2.1，与上游一致。第三方组件与来源见
+[`mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md`](mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md)。
