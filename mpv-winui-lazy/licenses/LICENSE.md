@@ -12,7 +12,7 @@
 
 以 **LGPL-2.1-or-later** 发布（与上游 mpv-winui-player 的 LICENSE.txt 一致）。
 
-第三方脚本、字体、着色器、二进制文件版权归原作者所有，许可证以其文件头/上游仓库为准，
+第三方脚本、字体、二进制文件版权归原作者所有，许可证以其文件头/上游仓库为准，
 汇总见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 本配置层基于 [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)（mpv-lazy）。

@@ -23,7 +23,7 @@ the `osc-preview-api`.
 The bundled mpv configuration is maintained rather than a one-time drop: it is
 installed on first run and kept current afterwards, including scripts for automatic
 HDR and VSR switching, cover art, recently opened files, playback statistics and
-console output, together with a set of shaders.
+console output.
 
 ## Building
 
