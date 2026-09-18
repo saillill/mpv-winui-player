@@ -1246,6 +1246,7 @@
   "WarningLinearUpscalingSigmoid": "Lineare Helligkeits-Hochskalierung ist aktiv; beide Optionen schließen sich aus.",
   "WarningSaveWithoutResume": "Wiedergabe-Fortsetzung ist deaktiviert; gespeicherte Positionen werden nicht wiederhergestellt.",
   "WarningSeekHoldInactive": "Auto-VSR und RTX Video HDR sind beide aus; die Option hat keine Wirkung.",
+  "WarningOverriddenByMpvConf": "mpv.conf legt diese Option fest und hat daher Vorrang vor diesem Wert. Änderbar im Block „user overrides“ in mpv.conf.",
   "WarningSubFallbackNoLanguage": "Keine bevorzugte Untertitelsprache gesetzt; Fallback hat keine Wirkung.",
   "WarningTscaleInterpolation": "Nur bei aktivierter Frame-Interpolation wirksam.",
   "WatchHistoryClearConfirm": "Möchten Sie den Verlauf wirklich löschen?",

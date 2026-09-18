@@ -1246,6 +1246,7 @@
   "WarningLinearUpscalingSigmoid": "Linear light upscaling is enabled; the two options are mutually exclusive.",
   "WarningSaveWithoutResume": "Playback resume is disabled, so saved positions will not be restored.",
   "WarningSeekHoldInactive": "Both auto VSR and RTX Video HDR are off; this option has no effect.",
+  "WarningOverriddenByMpvConf": "mpv.conf sets this option, so it overrides this value. Edit it in the mpv.conf [user overrides] block.",
   "WarningSubFallbackNoLanguage": "No preferred subtitle language is set, so fallback has no effect.",
   "WarningTscaleInterpolation": "Only effective while frame interpolation is enabled.",
   "WatchHistoryClearConfirm": "Are you sure you want to clear the history?",

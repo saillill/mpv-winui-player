@@ -1,0 +1,209 @@
+# mpv.conf 优先级模型（D 项决策）
+
+状态：**已定稿**，实现待做。
+决定：**界面写入 `mpv.conf`；用户手改的内容为最高优先级。**
+
+---
+
+## 1. 为什么要先定这个
+
+设置界面和 `mpv.conf` 是两套独立的真值来源，而 mpv 只有一个配置空间。
+不定优先级，就会出现三种谁都无法解释的现象：
+
+- 界面改了某项，重启后变回去了（`mpv.conf` 后读覆盖了界面）
+- 界面改了某项，当场生效，重启后是另一个值（运行时 `set` 生效、文件里是旧值）
+- 用户手写一行，界面里显示的却是另一个值（界面读自己的 JSON，与文件无关）
+
+这三个现象在本项目里**现在都存在**，因为没有任何一处代码定义过优先级。
+
+---
+
+## 2. 现状（读代码得出的，不是推测）
+
+### 2.1 三条写入路径
+
+| 路径 | 写入位置 | 时机 | 覆盖范围 |
+|---|---|---|---|
+| `MpvSettings.ToCommand` | mpv 运行时（`set` 命令） | 改动即时 + 启动批量 | 约 200 项，绝大多数选项 |
+| `ManagedMpvConfig.WriteAsync` | `%LOCALAPPDATA%\mpv-winui\mpv\mpv.conf` 的**标记块内** | 启动 + 改动时（仅 ytdl/override-display-fps） | 8 行 |
+| `PluginConfigWriter.WriteAllAsync` | `script-opts/*.conf` | 启动 + 改动时 | 插件选项 |
+
+### 2.2 标记块
+
+`ManagedMpvConfig` 已经有一套正确的机制，只是用得极少：
+
+```
+# === mpv-winui managed options (do not edit) ===
+script-opts=ytdl_hook-try_ytdl_first="no"
+...
+# === end mpv-winui managed options ===
+```
+
+它按标记**原地替换**块内容，不碰块外任何东西。**这就是方案 1 需要的全部基础设施** ——
+不需要新机制，只需要把写入范围从 8 行扩大到"界面里所有 config-only 选项"。
+
+### 2.3 阻断点：`ConfigDeployer` 把 `mpv.conf` 视为用户所有
+
+```csharp
+private static readonly string[] UserOwnedFiles =
+{
+    "mpv.conf", "input.conf", "menus.json", ...
+};
+```
+
+`mpv.conf` 一旦存在就永不被配置层刷新。**这是对的，也是必须保留的** ——
+它正是"用户手改最高优先级"的实现方式。但它有个副作用：**仓库里
+`mpv-winui-lazy/mpv.conf` 的改进永远到不了已有安装**（该文件顶部的注释记录了
+这个曾经的 bug）。
+
+**结论：不能靠"刷新 mpv.conf"来分发新选项，只能靠让界面写进标记块。**
+这反过来加强了方案 1 的正确性。
+
+### 2.4 `mpv.conf` 不是 app 生成的，是手工编写的中文注释配置
+
+`mpv-winui-lazy/mpv.conf` 共 295 行，每行都带中文注释，还带自己的 include 链：
+
+```
+ include = "~~/profiles.conf"
+ include = "~~/script-opts.conf"
+```
+
+**任何"程序化重写整个文件"的方案都会摧毁它。** 只允许改标记块内部。
+
+---
+
+## 3. 决定：三档优先级
+
+```
+高  ┌─────────────────────────────────────────────┐
+    │ 用户手改的 mpv.conf 标记块之外的内容          │  ← 最高，永不覆盖
+    ├─────────────────────────────────────────────┤
+    │ 用户手改的 mpv.conf 标记块之内的内容          │  ← 检测到即让路 + 提示
+    ├─────────────────────────────────────────────┤
+    │ 界面设置 → 标记块内                          │  ← 常态写入区
+    ├─────────────────────────────────────────────┤
+    │ 界面设置 → 运行时 set                        │  ← 最低，会话级、重启即失效
+低  └─────────────────────────────────────────────┘
+```
+
+关键点：**"运行时 set 最低"是 mpv 的固有行为，不是设计选择。**
+mpv 先读配置文件、再接受 IPC `set`。所以只要同一项同时出现在两者里，
+配置文件赢。这一条不需要写代码，但必须写进文档 —— 否则下一个人会以为
+"我在界面里改了、当场生效了、文件里也写了"，而实际重启后是文件赢。
+
+**因此规则是：一个选项只能有一条写入路径。**
+
+---
+
+## 4. 标记块的所有权与让路规则
+
+### 4.1 写入前必须校验块未被手改
+
+`ManagedMpvConfig` 现在无条件覆盖块内容。这会让"用户手改标记块"静默丢失。
+新增一步：
+
+1. 读出块内文本
+2. 与**上次我们写入的内容**比对（需要记住它）
+3. 一致 → 直接覆盖
+4. 不一致 → **不覆盖**，改为：
+   - 把用户那版原样保留
+   - 把我们的值写成一个新块，并加注释说明被谁覆盖
+   - 在设置界面该选项旁显示一个"已被 `mpv.conf` 覆盖"标记
+   - 记一条 warn 日志
+
+"上次我们写入的内容"存在哪：`mpv.conf` 旁的 `mpv-winui-managed.json`
+（纯文本，非 AOT 敏感的 `System.Text.Json` 也可以，但沿用 `ConfigDeployer`
+的 `hash\tpath` 纯文本风格更一致，且无依赖）。
+
+> **注意**：`ConfigDeployer` 已有一个 manifest 机制（`mpv-winui-deploy.manifest`），
+> 但它记录的是**配置层文件**的哈希，且被 `UserOwnedFiles` 排除掉了 `mpv.conf`。
+> 不要复用它 —— 混在一起会让"这个文件属于谁"变得无法推理。
+> 新开一个只服务于标记块的文件。
+
+### 4.2 让路 ≠ 报错
+
+用户手改标记块是**合法行为**，只是他自己承担后果（他写的值会赢）。
+所以：不弹窗、不阻止、不还原。只在设置界面给一个可见标记。
+
+### 4.3 为什么不直接删掉标记块机制
+
+可以问：既然用户手改最高，为什么还要程序写这个块？
+答：因为有一部分选项**只能在启动时读**（`ConfigOnlyKeys`：`input-ipc-server`、
+`icc-cache-dir`、`gpu-shader-cache-dir`、`demuxer-cache-dir`、`override-display-fps`，
+以及所有 `script-opts`）。这些用运行时 `set` 改不动，必须落文件。
+用户不会去手写 `script-opts=ytdl_hook-*`，所以必须由程序维护。
+
+---
+
+## 5. 对 C 项的直接约束
+
+这一节是 D 决策真正的产出 —— C 项的设计不能违反这些：
+
+### 5.1 原始选项逃生口的位置
+
+必须是 `mpv.conf` 标记块**之外**的一个被管理块。理由：
+标记块内会被程序重写，用户写在那儿等于没写。
+
+**建议布局**（放在 `mpv.conf` 末尾追加）：
+
+```
+# === mpv-winui managed options (do not edit) ===   ← 程序写，会重写
+...
+# === end mpv-winui managed options ===
+
+# === mpv-winui user overrides (edit freely) ===     ← 用户写，永不触碰
+# 这里的内容优先于界面设置。界面里被覆盖的项会显示标记。
+# === end mpv-winui user overrides ===
+```
+
+两个块都在文件末尾，**用户块在后** —— mpv 由上往下读，后者赢。
+这让"用户手改最高优先级"变成一个**文件内位置关系**，不需要任何代码去仲裁，
+也让用户能一眼看懂机制。
+
+### 5.2 界面必须显示"被覆盖"
+
+每个选项有一个"被 `mpv.conf` 覆盖"的标记（复用现有的 warning 行机制，
+`RefreshWarningsAndEnabled` 已经在做类似的事）。
+
+判定方式：解析用户块 + 标记块外的顶层赋值行，得到"文件里显式写了的 mpv 选项集合"，
+与界面选项的 mpv 选项名求交集。
+
+### 5.3 高级项开关
+
+`advancedSections`（`SettingsPage.Options.cs:107`）已经在做这件事，
+C 项是把它从"隐藏"改成"可见的开关"，不是新建机制 —— 现在被推进去的高级项
+是**永久**看不见的，只能靠 `pinnedOverviewOptions` 一个个捞回来。
+
+### 5.4 顶层收敛到 9 类
+
+`SettingsSections.Categories` 现在是 10 类：program / playback / video / audio /
+subtitles / window / network / shortcuts / osd / screenshot。
+
+**注意**：`osd` 类现在只剩 `SectionOsdBehavior`/`Appearance`/`Position`/`Metadata`
+四个子区；`SectionOsd` 已在本轮 A 项删除。收敛时 `osd` 是最自然的合并候选
+（合进 playback 或独立保留，取决于 C 项的信息架构决定）。
+
+---
+
+## 6. 需要新增的代码（按依赖顺序）
+
+1. `ManagedMpvConfig` 记住上次写入内容（新文件 `mpv-winui-managed.json`）
+2. `ManagedMpvConfig` 写入前校验 + 让路 + 日志
+3. 新块 `user overrides` 的创建（仅当不存在时创建，含注释）
+4. 解析器：读出"文件里显式赋值过的 mpv 选项名集合"
+5. 设置界面：被覆盖标记（接进 `RefreshWarningsAndEnabled`）
+6. `ConfigOnlyKeys` 扩容 —— 目前只有 5 项，注释里写着
+   "Keep this set conservative until each entry is verified against the manual (audit A5)"，
+   **A5 审计未做**，这是 D 项落地后第一个该补的技术债
+
+---
+
+## 7. 明确不做的事
+
+- **不重写整个 `mpv.conf`**。295 行手工中文注释是资产，不是噪音。
+- **不把界面设置"导出"成 `mpv.conf`**。那会让文件变成程序产物，
+  用户就不敢改了，正好违背"用户手改最高"。
+- **不在启动时把界面值回写到文件里**（除非该选项是 config-only）。
+  现在运行时 `set` 已经做了这件事，再写一遍文件只会制造上面 §3 的
+  "同一项两条写入路径"问题。
+- **不删除标记块机制**。见 §4.3。

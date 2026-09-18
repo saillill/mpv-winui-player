@@ -278,7 +278,10 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
     private static string? ComputeWarning(Option option, AppSettings s)
     {
         var lang = AppContext.AppLang;
-        return option.Key switch
+        // A state-specific warning explains more than the generic config-file
+        // one, and a row has a single warning slot, so it wins. The override is
+        // still true, but restating it here would hide the actionable reason.
+        var stateWarning = option.Key switch
         {
             nameof(AppSettings.Interpolation) when s.VideoSync != "display-resample" => lang.WarningInterpolationVideoSync,
             nameof(AppSettings.Tscale) when !s.Interpolation => lang.WarningTscaleInterpolation,
@@ -294,6 +297,23 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             FileAssociationCheckListKey when PackageHelper.IsPackaged => lang.SettingsAssociatePackaged,
             _ => null,
         };
+        if (stateWarning is not null)
+        {
+            return stateWarning;
+        }
+
+        // mpv reads its config before accepting IPC commands, so an option named
+        // in mpv.conf beats the runtime value this row writes. Saying so is the
+        // whole point of the precedence model: otherwise the window shows a
+        // value that is not in effect (docs/mpv-conf-precedence.md).
+        return IsOverriddenByConfigFile(option.Key) ? lang.WarningOverriddenByMpvConf : null;
+    }
+
+    /// <summary>True when mpv.conf names the same mpv option this settings row writes.</summary>
+    private static bool IsOverriddenByConfigFile(string optionKey)
+    {
+        var mpvName = MpvSettings.ToMpvOptionName(optionKey);
+        return mpvName is not null && MpvConfOverrides.Names.Contains(mpvName);
     }
 
     private static bool ComputeVisible(Option option, AppSettings s)

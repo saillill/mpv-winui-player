@@ -63,7 +63,11 @@ namespace mpv_winui
         /// <summary>Writes config-only options (ytdl_hook script options) into the deployed mpv.conf.</summary>
         public static void WriteManagedMpvConfig()
         {
-            _ = ConfigWriteQueue.Enqueue(ManagedMpvConfig.WriteAsync);
+            // Re-read the override set once the write lands: the managed block
+            // names mpv options, and every one of them makes the matching
+            // settings row unable to win - so the badge has to be recomputed.
+            _ = ConfigWriteQueue.Enqueue(ManagedMpvConfig.WriteAsync)
+                .ContinueWith(_ => MpvConfOverrides.Refresh(), TaskScheduler.Default);
         }
 
         public static void NotifySettingChanged(string key, object? value)
@@ -98,6 +102,12 @@ namespace mpv_winui
                 loggerTask,
                 ConfigWriteQueue.EnqueueCoalescing(PluginConfigWriter.WriteAllAsync),
                 ConfigWriteQueue.Enqueue(ManagedMpvConfig.WriteAsync));
+            // Which mpv options the config file already names decides whether a
+            // settings-window change can actually take effect, so the read has
+            // to land after the managed block is written.
+            _ = _task.ContinueWith(
+                _ => MpvConfOverrides.Refresh(),
+                TaskScheduler.Default);
         }
 
         private static void OnSettingChanged(string key, object? value)

@@ -1246,6 +1246,7 @@
   "WarningLinearUpscalingSigmoid": "El escalado en luz lineal está activo; ambas opciones son mutuamente excluyentes.",
   "WarningSaveWithoutResume": "La reanudación está desactivada; las posiciones guardadas no se restaurarán.",
   "WarningSeekHoldInactive": "Auto VSR y RTX Video HDR están desactivados; esta opción no tiene efecto.",
+  "WarningOverriddenByMpvConf": "mpv.conf define esta opción, por lo que prevalece sobre este valor. Editable en el bloque «user overrides» de mpv.conf.",
   "WarningSubFallbackNoLanguage": "No hay idioma preferido definido; el respaldo no tiene efecto.",
   "WarningTscaleInterpolation": "Solo efectivo con la interpolación de fotogramas activa.",
   "WatchHistoryClearConfirm": "¿Seguro que desea borrar el historial?",

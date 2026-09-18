@@ -1246,6 +1246,7 @@
   "WarningLinearUpscalingSigmoid": "リニアライトアップスケーリングが有効です。両者は併用できません。",
   "WarningSaveWithoutResume": "再生位置の復元が無効のため、保存した位置は復元されません。",
   "WarningSeekHoldInactive": "自動VSRとRTX Video HDRが両方オフのため、このオプションは効果がありません。",
+  "WarningOverriddenByMpvConf": "mpv.conf でこの項目が指定されているため、ここの値より優先されます。mpv.conf の「ユーザー上書き」ブロックで変更できます。",
   "WarningSubFallbackNoLanguage": "優先字幕言語が未設定のため、フォールバックは機能しません。",
   "WarningTscaleInterpolation": "フレーム補間を有効にしているときのみ有効です。",
   "WatchHistoryClearConfirm": "履歴をクリアしてもよろしいですか？",

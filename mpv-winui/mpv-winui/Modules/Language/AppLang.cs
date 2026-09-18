@@ -754,6 +754,7 @@ namespace mpv_winui.Modules.Language
         public string OptionValueTestSignalVideo { get; set; } = "Test video (test pattern)";
         public string OptionValueTestSignalAudio { get; set; } = "Test audio (1 kHz)";
         public string WarningSeekHoldInactive { get; set; } = "Both auto VSR and RTX Video HDR are off; this option has no effect.";
+        public string WarningOverriddenByMpvConf { get; set; } = "mpv.conf sets this option, so it overrides this value. Edit it in the mpv.conf [user overrides] block.";
 
         // ===== Localized option values (raw mpv values stay machine-readable) =====
         public string OptionValueAuto { get; set; } = "Auto";

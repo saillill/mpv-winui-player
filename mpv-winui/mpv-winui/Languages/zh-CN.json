@@ -1246,6 +1246,7 @@
   "WarningLinearUpscalingSigmoid": "已启用线性光上采样，两者互斥。",
   "WarningSaveWithoutResume": "播放进度恢复已关闭，保存的进度不会被恢复。",
   "WarningSeekHoldInactive": "自动 VSR 与 RTX Video HDR 均已关闭，此选项无实际效果。",
+  "WarningOverriddenByMpvConf": "mpv.conf 已指定此项，它的值优先于此处的设置。可在 mpv.conf 的「用户覆盖」块中修改。",
   "WarningSubFallbackNoLanguage": "未设置首选字幕语言，回退逻辑不生效。",
   "WarningTscaleInterpolation": "仅在启用帧插值时有效。",
   "WatchHistoryClearConfirm": "确定要清空观看历史吗？",

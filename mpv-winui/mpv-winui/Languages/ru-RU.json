@@ -1246,6 +1246,7 @@
   "WarningLinearUpscalingSigmoid": "Включён апскейлинг в линейном свете; эти опции взаимоисключающие.",
   "WarningSaveWithoutResume": "Восстановление отключено, сохранённые позиции не будут восстановлены.",
   "WarningSeekHoldInactive": "Авто VSR и RTX Video HDR выключены; параметр не действует.",
+  "WarningOverriddenByMpvConf": "Параметр задан в mpv.conf и имеет приоритет над этим значением. Изменяется в блоке «user overrides» в mpv.conf.",
   "WarningSubFallbackNoLanguage": "Предпочитаемый язык не задан, резерв не действует.",
   "WarningTscaleInterpolation": "Действует только при включённой интерполяции кадров.",
   "WatchHistoryClearConfirm": "Вы уверены, что хотите очистить историю?",
