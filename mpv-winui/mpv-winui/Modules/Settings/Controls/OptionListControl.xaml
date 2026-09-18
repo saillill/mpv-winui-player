@@ -8,16 +8,25 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
+        <!-- One card shell for every option row. Eleven templates used to
+             restate this same nine-line Border around a different control, so
+             a change to the row's radius, padding or background meant eleven
+             edits and any missed one was an invisible inconsistency. The shell
+             now lives here once; each template says which control it hosts by
+             setting the hosted control as its content. -->
+        <Style x:Key="OptionCardStyle" TargetType="Border">
+            <Setter Property="MinHeight" Value="72" />
+            <Setter Property="Margin" Value="{StaticResource MpvOptionRowMargin}" />
+            <Setter Property="Padding" Value="{StaticResource MpvCardPadding}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
         <DataTemplate x:Key="BooleanTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionBooleanControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -25,15 +34,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="TextTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionStringControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -41,15 +42,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="IntegerTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionIntegerControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -57,15 +50,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="DoubleTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionDoubleControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -73,15 +58,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="TextListTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionStringListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -89,15 +66,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ColorTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionColorControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -105,15 +74,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ActionTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionActionControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -121,15 +82,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="CheckListTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionCheckListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -137,15 +90,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="LayoutTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionLayoutControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -153,15 +98,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="MultiListTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionMultiListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -169,15 +106,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ShaderListTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="{StaticResource MpvOptionRowMargin}"
-                Padding="{StaticResource MpvCardPadding}"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionShaderListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
