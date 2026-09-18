@@ -837,7 +837,7 @@ private List<Option> BuildSettings()
             // Section captions are localized, so the layout keys on a stable id.
             // Resolved once here (the map is already cached) and carried on the
             // row, because a user-created folder has no caption in AppLang.
-            option.SectionId = SettingsSectionIds.IdFor(option.Section);
+            option.SectionId = SettingsSections.IdFor(option.Section);
         }
 
         var categoryOrderIndex = categoryOrder
@@ -906,7 +906,7 @@ private List<Option> BuildSettings()
         var added = new List<Option>(_layout.Added.Count);
         foreach (var custom in _layout.Added)
         {
-            var category = SettingsSectionIds.CategoryCaptionFor(custom.CategoryKey);
+            var category = SettingsSections.CategoryCaptionFor(custom.CategoryKey);
             if (category is null)
             {
                 // The category no longer exists (a build removed it): skip the

@@ -423,7 +423,7 @@ public sealed partial class OptionListControl : UserControl
         {
             Option targetOption => targetOption.SectionId,
             SectionHeaderItem header => header.SectionId
-                ?? SettingsSectionIds.IdFor(header.Caption)
+                ?? SettingsSections.IdFor(header.Caption)
                 ?? _customSectionIdsByCaption.GetValueOrDefault(header.Caption),
             _ => null,
         };

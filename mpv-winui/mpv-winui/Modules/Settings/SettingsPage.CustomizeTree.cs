@@ -331,7 +331,7 @@ public sealed partial class SettingsPage
             // shown alongside it.
             var category = CategoryKeyOfSection(_treeSelectedKey);
 
-            var sectionCaption = SettingsSectionIds.CaptionFor(_treeSelectedKey) is { } builtIn
+            var sectionCaption = SettingsSections.CaptionFor(_treeSelectedKey) is { } builtIn
                 ? SectionDisplayName(_treeSelectedKey, builtIn)
                 : _layout.FindSection(_treeSelectedKey)?.DisplayFor(ActiveLanguageKey) ?? string.Empty;
 
@@ -367,7 +367,7 @@ public sealed partial class SettingsPage
             return custom.CategoryKey;
         }
 
-        var caption = SettingsSectionIds.CaptionFor(sectionId);
+        var caption = SettingsSections.CaptionFor(sectionId);
         if (caption is null)
         {
             return null;
@@ -377,7 +377,7 @@ public sealed partial class SettingsPage
         {
             if (string.Equals(option.Section, caption, StringComparison.Ordinal))
             {
-                return SettingsSectionIds.CategoryKeyFor(option.Category);
+                return SettingsSections.CategoryKeyFor(option.Category);
             }
         }
 
