@@ -113,6 +113,16 @@
         </Content>
     </ItemGroup>
 
+    <!-- Option metadata for the mpv.conf editor, generated from the mpv build's
+         own --list-options output by tools/gen-mpv-options.py. Shipped so the
+         editor has definitions on a fresh install; a user-supplied
+         mpv-conf-editor directory still takes precedence at runtime. -->
+    <ItemGroup>
+        <Content Include="MpvConfOptions\mpv-options.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
     <!-- Bundled mpv config layer: copied next to the exe so ConfigDeployer can
          seed %LOCALAPPDATA%\mpv-winui\mpv on first run (portable zip + MSI).
          Runtime dirs (cache) and the user-override menus.json are excluded. -->

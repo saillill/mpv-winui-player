@@ -68,7 +68,7 @@ public sealed partial class MpvConfEditorPage : Page
             _schema = await Task.Run(() =>
             {
                 var definitionDirectory = AppData.Current.ResolveLocalData(MpvConfSchemaService.DefinitionDirectoryName);
-                return MpvConfSchemaService.LoadFromDirectory(definitionDirectory);
+                return MpvConfSchemaService.LoadFromDirectoryOrBundled(definitionDirectory);
             });
         }
         catch (Exception ex)
