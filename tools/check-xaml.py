@@ -28,13 +28,33 @@ ROOT = REPO / "mpv-winui"
 
 COMMENT = re.compile(r"<!--(.*?)-->", re.S)
 
+# Build output trees contain copies of the shipped XAML, and the Windows App
+# SDK drops a directory called Microsoft.UI.Xaml next to the exe. The rglob
+# matches that directory too, and reading it raised PermissionError the first
+# time this check ran after a build.
+SKIP_DIRS = {"bin", "obj", "packages", ".vs", "node_modules"}
+
+
+def xaml_files():
+    for path in sorted(ROOT.rglob("*.xaml")):
+        if SKIP_DIRS & set(path.relative_to(ROOT).parts):
+            continue
+        if not path.is_file():
+            continue
+        yield path
+
 
 def main():
     problems = 0
 
-    for path in sorted(ROOT.rglob("*.xaml")):
+    for path in xaml_files():
         rel = path.relative_to(REPO)
-        text = path.read_text(encoding="utf-8", errors="replace")
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError as exc:
+            print(f"ERROR: {rel}: unreadable: {exc}", file=sys.stderr)
+            problems += 1
+            continue
 
         try:
             ET.fromstring(text)
@@ -61,7 +81,7 @@ def main():
     if problems:
         return 1
 
-    count = len(list(ROOT.rglob("*.xaml")))
+    count = len(list(xaml_files()))
     print(f"OK: {count} XAML files well-formed, no illegal comment content")
     return 0
 

@@ -114,7 +114,7 @@
     </ItemGroup>
 
     <!-- Option metadata for the mpv.conf editor, generated from the mpv build's
-         own --list-options output by tools/gen-mpv-options.py. Shipped so the
+         own list-options output by tools/gen-mpv-options.py. Shipped so the
          editor has definitions on a fresh install; a user-supplied
          mpv-conf-editor directory still takes precedence at runtime. -->
     <ItemGroup>
