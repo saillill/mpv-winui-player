@@ -512,6 +512,8 @@
   "SectionDescProgramInterface": "테마, 배경 재질, UI 글꼴",
   "SectionDescProgramLanguageLog": "인터페이스 언어, 디버그 로그",
   "SectionDescProgramTesting": "실험적·진단 옵션",
+  "SectionCardOptionCount": "{0}개 설정",
+  "SectionCardOptionCountOne": "1개 설정",
   "SectionDescReversePlayback": "역재생 버퍼",
   "SectionDescScreenshotLocation": "폴더와 파일 이름 템플릿",
   "SectionDescScreenshotQuality": "형식과 품질",

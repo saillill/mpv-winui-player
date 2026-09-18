@@ -512,6 +512,8 @@
   "SectionDescProgramInterface": "Thème, matériau d'arrière-plan, police de l'interface",
   "SectionDescProgramLanguageLog": "Langue de l'interface, journal de débogage",
   "SectionDescProgramTesting": "Options expérimentales et de diagnostic",
+  "SectionCardOptionCount": "{0} options",
+  "SectionCardOptionCountOne": "1 option",
   "SectionDescReversePlayback": "Mémoires tampons de lecture arrière",
   "SectionDescScreenshotLocation": "Dossier et modèle de nom de fichier",
   "SectionDescScreenshotQuality": "Format et qualité",

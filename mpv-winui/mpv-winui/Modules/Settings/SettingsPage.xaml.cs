@@ -75,10 +75,30 @@ public sealed partial class SettingsPage : Page
         _isUnpackaged = !PackageHelper.IsPackaged;
         InitializeComponent();
         InitCustomizeMode();
+        OptionsControl.SectionCardClicked += OnSectionCardClicked;
         _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
         WarmDeviceChoices();
         LoadSearchHistory();
         RebuildLocalizedContent();
+    }
+
+    /// <summary>A folded section's card was opened: drill in.
+    ///
+    /// The card carries the stable id, while drill-down keys on the localized
+    /// caption, so the id is resolved here -- the reverse of how rows on the
+    /// option list store both.</summary>
+    private void OnSectionCardClicked(string sectionId)
+    {
+        var caption = Settings.Where(o => o.SectionId == sectionId)
+            .Select(o => o.Section)
+            .FirstOrDefault(s => !string.IsNullOrEmpty(s));
+        if (caption is null)
+        {
+            return;
+        }
+
+        _selectedSection = caption;
+        UpdateOptions();
     }
 
     /// <summary>Debounces keystroke-level search filtering (audit A4).</summary>
@@ -1099,14 +1119,24 @@ public sealed partial class SettingsPage : Page
             BreadcrumbSeparator.Visibility = Visibility.Collapsed;
             BreadcrumbSection.Text = selected ?? string.Empty;
 
-            var primaryOptions = categoryOptions.Where(o => !o.AdvancedSection).ToList();
-            var advancedSections = sections.Where(s => s.Advanced).ToList();
+            // Folded sections do NOT all sit at the bottom. They are emitted as
+            // cards at the position their section occupies, so the page reads in
+            // section order end to end: a card for section 3 appears above the
+            // rows of section 8 instead of trailing the whole category. That
+            // ordering is the one reason for the exercise -- everything landing
+            // at the end is what made a category look like "common stuff, then
+            // a dumping ground".
+            var advancedCards = BuildSectionCardItems(sections.Where(s => s.Advanced).ToList());
+            var advancedIds = new HashSet<string>(
+                advancedCards.Select(c => c.SectionId!).Where(id => id is not null),
+                StringComparer.Ordinal);
 
-            OptionsControl.Visibility = primaryOptions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-            OptionsControl.OptionList = primaryOptions;
-            SectionsHost.ItemsSource = advancedSections.Count > 0
-                ? BuildSectionCards(advancedSections)
-                : Array.Empty<FrameworkElement>();
+            SectionsHost.ItemsSource = Array.Empty<FrameworkElement>();
+            SectionsHost.Visibility = Visibility.Collapsed;
+            OptionsControl.Visibility = Visibility.Visible;
+            OptionsControl.SetSectionCards(advancedCards);
+            OptionsControl.CollapsedSectionIds = advancedIds;
+            OptionsControl.OptionList = categoryOptions;
             return;
         }
 
@@ -1146,79 +1176,44 @@ public sealed partial class SettingsPage : Page
             .ToList();
 
 
-    /// <summary>One entry card per advanced section, straight to that
-    /// section's options (Windows-settings flow: common options sit on
-    /// the overview, each remaining topic is one drill-in card).</summary>
-    private List<FrameworkElement> BuildSectionCards(
-        IReadOnlyList<(string Label, int Count, bool Advanced)> advancedSections) =>
-        advancedSections.Select(s => BuildSectionCard(s.Label)).ToList();
-
-    /// <summary>Windows-Settings-like navigation card for one section: a
-    /// leading glyph, title with a secondary description line, chevron.</summary>
-    private FrameworkElement BuildSectionCard(string label)
+    /// <summary>One drill-in model per folded section.
+    ///
+    /// These replace the entry cards that used to be built as controls and
+    /// stacked below every option row. A model is emitted into the list at the
+    /// position its section occupies, so the card inherits its place from the
+    /// section order instead of being appended after everything else.
+    ///
+    /// Each carries the resolution live reconcile currently needs: the glyph
+    /// and count line are resolved here, once, from the section catalog.</summary>
+    private List<SectionCardItem> BuildSectionCardItems(
+        IReadOnlyList<(string Label, int Count, bool Advanced)> foldedSections)
     {
-        var (icon, description) = SettingsSections.MetaFor(label);
-        var card = new Button
+        var cards = new List<SectionCardItem>(foldedSections.Count);
+        foreach (var section in foldedSections)
         {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            MinHeight = 72,
-            Padding = new Thickness(16, 16, 16, 16),
-            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
-            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(4),
-            Margin = new Thickness(0, 0, 0, 8),
-            Content = new Grid { ColumnSpacing = 18 },
-        };
-        if (card.Content is Grid grid)
-        {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            grid.Children.Add(new FontIcon
+            var id = SettingsSections.IdFor(section.Label);
+            if (id is null)
             {
-                Glyph = icon,
-                FontSize = 20,
-                FontFamily = new FontFamily("Segoe Fluent Icons"),
-                VerticalAlignment = VerticalAlignment.Center,
-            });
-
-            var textStack = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
-            textStack.Children.Add(new TextBlock { Text = label, FontSize = 14 });
-            if (!string.IsNullOrEmpty(description))
-            {
-                textStack.Children.Add(new TextBlock
-                {
-                    Text = description,
-                    FontSize = 12,
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-                });
+                continue;
             }
-            Grid.SetColumn(textStack, 1);
-            grid.Children.Add(textStack);
 
-            var chevron = new FontIcon
+            var (icon, description) = SettingsSections.MetaFor(section.Label);
+            cards.Add(new SectionCardItem
             {
-                Glyph = "\uE76C",
-                FontSize = 12,
-                FontFamily = new FontFamily("Segoe Fluent Icons"),
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-            };
-            Grid.SetColumn(chevron, 2);
-            grid.Children.Add(chevron);
+                Caption = section.Label,
+                SectionId = id,
+                Icon = icon,
+                Description = description,
+                Count = section.Count,
+                CountText = section.Count == 1
+                    ? AppContext.AppLang.SectionCardOptionCountOne
+                    : string.Format(
+                        System.Globalization.CultureInfo.CurrentUICulture,
+                        AppContext.AppLang.SectionCardOptionCount,
+                        section.Count),
+            });
         }
-        AutomationProperties.SetName(card, string.IsNullOrEmpty(description) ? label : $"{label}, {description}");
-        card.Click += (_, _) =>
-        {
-            _selectedSection = label;
-            UpdateOptions();
-        };
-        return card;
-    }
 
+        return cards;
     }
+}

@@ -512,6 +512,8 @@
   "SectionDescProgramInterface": "主題、背景材質、介面字體",
   "SectionDescProgramLanguageLog": "介面語言、除錯日誌",
   "SectionDescProgramTesting": "實驗性與診斷選項",
+  "SectionCardOptionCount": "{0} 個選項",
+  "SectionCardOptionCountOne": "1 個選項",
   "SectionDescReversePlayback": "倒放緩衝",
   "SectionDescScreenshotLocation": "目錄與檔案名稱範本",
   "SectionDescScreenshotQuality": "格式與品質",

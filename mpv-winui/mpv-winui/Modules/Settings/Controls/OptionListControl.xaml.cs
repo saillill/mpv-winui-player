@@ -34,6 +34,67 @@ public sealed partial class OptionListControl : UserControl
             }
         }));
 
+    /// <summary>
+    /// Sections rendered as a single drill-in card instead of all their rows.
+    /// Keyed by stable section id.
+    ///
+    /// Set by the category overview, which knows which sections a category
+    /// keeps folded. Empty everywhere else, where rows are what you want.
+    /// </summary>
+    public IReadOnlySet<string> CollapsedSectionIds
+    {
+        get => (IReadOnlySet<string>)GetValue(CollapsedSectionIdsProperty);
+        set => SetValue(CollapsedSectionIdsProperty, value);
+    }
+
+    public static readonly DependencyProperty CollapsedSectionIdsProperty =
+        DependencyProperty.Register(
+            nameof(CollapsedSectionIds),
+            typeof(IReadOnlySet<string>),
+            typeof(OptionListControl),
+            new PropertyMetadata(
+                (IReadOnlySet<string>)new HashSet<string>(StringComparer.Ordinal),
+                (d, e) =>
+                {
+                    if (d is OptionListControl self)
+                    {
+                        self.ApplyItemsSource();
+                    }
+                }));
+
+    /// <summary>Raised when a collapsed section's card is opened, carrying the
+    /// stable section id. Navigation belongs to the page, not this control.</summary>
+    public event Action<string>? SectionCardClicked;
+
+    /// <summary>Card models by section id, so A+B navigation has something to
+    /// open without the control knowing what a "section" means.</summary>
+    private readonly Dictionary<string, SectionCardItem> _sectionCards =
+        new(StringComparer.Ordinal);
+
+    /// <summary>Registers the card models for the current list. Called by the
+    /// page right before assigning <see cref="OptionList"/>.</summary>
+    public void SetSectionCards(IEnumerable<SectionCardItem> cards)
+    {
+        _sectionCards.Clear();
+        foreach (var card in cards)
+        {
+            if (card.SectionId is { } id)
+            {
+                _sectionCards[id] = card;
+            }
+        }
+
+        ApplyItemsSource();
+    }
+
+    private void SectionCard_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: string id } && !string.IsNullOrEmpty(id))
+        {
+            SectionCardClicked?.Invoke(id);
+        }
+    }
+
     public List<Option> OptionList
     {
         get => (List<Option>)GetValue(SettingProperty);
@@ -211,15 +272,37 @@ public sealed partial class OptionListControl : UserControl
 
         var items = new List<object>(visible.Count + 8);
         string? lastSection = null;
+        var collapsing = false;
         foreach (var option in visible)
         {
-            if (showHeaders && !string.IsNullOrEmpty(option.Section) && option.Section != lastSection)
+            if (!string.IsNullOrEmpty(option.Section) && option.Section != lastSection)
             {
-                items.Add(new SectionHeaderItem { Caption = option.Section, SectionId = option.SectionId });
                 lastSection = option.Section;
+
+                // A collapsed section contributes exactly one item: its card,
+                // right here, at the position its options would have filled.
+                // Sections arrive clustered (the page orders them that way), so
+                // one card per run is enough and every later option of the same
+                // section is skipped until the next run starts.
+                SectionCardItem? card = null;
+                collapsing = option.SectionId is { } sectionId
+                    && CollapsedSectionIds.Contains(sectionId)
+                    && _sectionCards.TryGetValue(sectionId, out card);
+
+                if (collapsing)
+                {
+                    items.Add(card!);
+                }
+                else if (showHeaders)
+                {
+                    items.Add(new SectionHeaderItem { Caption = option.Section, SectionId = option.SectionId });
+                }
             }
 
-            items.Add(option);
+            if (!collapsing)
+            {
+                items.Add(option);
+            }
         }
 
         OptionListView.ItemsSource = items;

@@ -512,6 +512,8 @@
   "SectionDescProgramInterface": "主题、背景材质、界面字体",
   "SectionDescProgramLanguageLog": "界面语言、调试日志",
   "SectionDescProgramTesting": "实验性与诊断选项",
+  "SectionCardOptionCount": "{0} 个选项",
+  "SectionCardOptionCountOne": "1 个选项",
   "SectionDescReversePlayback": "倒放缓冲",
   "SectionDescScreenshotLocation": "目录与文件名模板",
   "SectionDescScreenshotQuality": "格式与质量",

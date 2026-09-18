@@ -512,6 +512,8 @@
   "SectionDescProgramInterface": "Theme, backdrop material, UI font",
   "SectionDescProgramLanguageLog": "Interface language, debug logging",
   "SectionDescProgramTesting": "Experimental and diagnostic options",
+  "SectionCardOptionCount": "{0} options",
+  "SectionCardOptionCountOne": "1 option",
   "SectionDescReversePlayback": "Backward playback buffers",
   "SectionDescScreenshotLocation": "Folder and filename template",
   "SectionDescScreenshotQuality": "Format and quality",

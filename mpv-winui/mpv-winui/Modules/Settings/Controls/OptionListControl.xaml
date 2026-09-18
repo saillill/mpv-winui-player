@@ -320,6 +320,62 @@
             </Border>
         </DataTemplate>
 
+        <!-- A collapsed section: same shape the overview cards always had
+             (glyph, title, description, chevron), now emitted inline at the
+             position the section occupies rather than appended after every
+             option row. x:Bind needs the concrete type, so it is declared with
+             one; x:DataType only affects binding validation. -->
+        <DataTemplate x:Key="SectionCardTemplate" x:DataType="ctl:SectionCardItem">
+            <Button
+                MinHeight="72"
+                Margin="0,8,0,8"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Center"
+                AutomationProperties.Name="{x:Bind AccessibleName}"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                Click="SectionCard_Click"
+                CornerRadius="4"
+                Tag="{x:Bind SectionId}">
+                <Grid ColumnSpacing="18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe Fluent Icons"
+                        FontSize="20"
+                        Glyph="{x:Bind Icon}" />
+
+                    <StackPanel
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Spacing="2">
+                        <TextBlock FontSize="14" Text="{x:Bind Caption}" />
+                        <TextBlock
+                            FontSize="12"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="{x:Bind CountText}"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+
+                    <FontIcon
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe Fluent Icons"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE76C;" />
+                </Grid>
+            </Button>
+        </DataTemplate>
+
         <ctl:OptionTemplateSelector
             x:Key="TemplateSelector"
             ActionTemplate="{StaticResource ActionTemplate}"
@@ -333,6 +389,7 @@
             IntegerTemplate="{StaticResource IntegerTemplate}"
             LayoutTemplate="{StaticResource LayoutTemplate}"
             MultiListTemplate="{StaticResource MultiListTemplate}"
+            SectionCardTemplate="{StaticResource SectionCardTemplate}"
             SectionHeaderTemplate="{StaticResource SectionHeaderTemplate}"
             ShaderListTemplate="{StaticResource ShaderListTemplate}"
             TextListTemplate="{StaticResource TextListTemplate}"

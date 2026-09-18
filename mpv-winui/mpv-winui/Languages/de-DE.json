@@ -512,6 +512,8 @@
   "SectionDescProgramInterface": "Design, Hintergrundmaterial, UI-Schriftart",
   "SectionDescProgramLanguageLog": "Sprache der Oberfläche, Debugprotokoll",
   "SectionDescProgramTesting": "Experimentelle und Diagnoseoptionen",
+  "SectionCardOptionCount": "{0} Optionen",
+  "SectionCardOptionCountOne": "1 Option",
   "SectionDescReversePlayback": "Puffer für Rückwärtswiedergabe",
   "SectionDescScreenshotLocation": "Ordner und Dateinamenvorlage",
   "SectionDescScreenshotQuality": "Format und Qualität",

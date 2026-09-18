@@ -6,6 +6,11 @@ namespace mpv_winui.Modules.Settings.Controls;
 public partial class OptionTemplateSelector : DataTemplateSelector
 {
     public DataTemplate SectionHeaderTemplate { get; set; } = null!;
+
+    /// <summary>Renders a collapsed section as a drill-in card inline in the
+    /// list, at the position the section occupies.</summary>
+    public DataTemplate? SectionCardTemplate { get; set; }
+
     public DataTemplate BooleanTemplate { get; set; } = null!;
     public DataTemplate TextTemplate { get; set; } = null!;
     public DataTemplate IntegerTemplate { get; set; } = null!;
@@ -55,6 +60,16 @@ public partial class OptionTemplateSelector : DataTemplateSelector
         {
             return SectionHeaderTemplate;
         }
+
+        // Before the generic Option case: a collapsed section arrives as its
+        // own list item so the card can sit where its options would have.
+        // The template is optional because it lives in OptionListControl's
+        // resources; another host may not define one.
+        if (item is SectionCardItem && SectionCardTemplate is not null)
+        {
+            return SectionCardTemplate;
+        }
+
         if (item is Option option)
         {
             return option.Type switch

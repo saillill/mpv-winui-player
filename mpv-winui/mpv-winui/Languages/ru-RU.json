@@ -512,6 +512,8 @@
   "SectionDescProgramInterface": "Тема, материал фона, шрифт интерфейса",
   "SectionDescProgramLanguageLog": "Язык интерфейса, журнал отладки",
   "SectionDescProgramTesting": "Экспериментальные и диагностические параметры",
+  "SectionCardOptionCount": "{0} настроек",
+  "SectionCardOptionCountOne": "1 настройка",
   "SectionDescReversePlayback": "Буферы обратного воспроизведения",
   "SectionDescScreenshotLocation": "Папка и шаблон имени файла",
   "SectionDescScreenshotQuality": "Формат и качество",

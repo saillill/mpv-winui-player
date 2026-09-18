@@ -512,6 +512,8 @@
   "SectionDescProgramInterface": "テーマ、背景素材、UI フォント",
   "SectionDescProgramLanguageLog": "表示言語、デバッグログ",
   "SectionDescProgramTesting": "実験的・診断オプション",
+  "SectionCardOptionCount": "{0} 個の設定",
+  "SectionCardOptionCountOne": "1 個の設定",
   "SectionDescReversePlayback": "逆再生バッファ",
   "SectionDescScreenshotLocation": "フォルダーとファイル名テンプレート",
   "SectionDescScreenshotQuality": "形式と品質",

@@ -512,6 +512,8 @@
   "SectionDescProgramInterface": "Tema, material de fondo, fuente de la interfaz",
   "SectionDescProgramLanguageLog": "Idioma de la interfaz, registro de depuración",
   "SectionDescProgramTesting": "Opciones experimentales y de diagnóstico",
+  "SectionCardOptionCount": "{0} opciones",
+  "SectionCardOptionCountOne": "1 opción",
   "SectionDescReversePlayback": "Búferes de reproducción inversa",
   "SectionDescScreenshotLocation": "Carpeta y plantilla de nombre",
   "SectionDescScreenshotQuality": "Formato y calidad",
