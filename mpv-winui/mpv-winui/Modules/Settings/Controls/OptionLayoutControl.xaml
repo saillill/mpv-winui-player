@@ -17,16 +17,8 @@
         <StackPanel
             Grid.Row="0"
             Spacing="2">
-            <TextBlock
-                x:Name="LabelText"
-                Style="{StaticResource BodyTextBlockStyle}"
-                TextWrapping="Wrap" />
-            <TextBlock
-                x:Name="DescriptionText"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                TextWrapping="Wrap"
-                Visibility="Collapsed" />
+            <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
+            <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
         </StackPanel>
         <ItemsControl
             x:Name="StyleCards"

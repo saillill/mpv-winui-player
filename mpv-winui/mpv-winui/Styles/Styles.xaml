@@ -888,6 +888,39 @@
         <Setter Property="Margin" Value="4,16,4,8" />
     </Style>
 
+    <!-- The three text roles of an option card: the option's name, the one-line
+         description under it, and the caution line under that. Every option
+         control used to restate the ramp step, the foreground, the wrapping and
+         the initial visibility of each role inline: eleven copies of the label
+         and description, nine of the warning, all byte-identical, which is the
+         state that drifts. Both Collapsed defaults are overridden at runtime
+         (local values win over style setters), so a control that has something
+         to say still shows it. -->
+    <Style
+        x:Key="MpvOptionLabelStyle"
+        BasedOn="{StaticResource BodyTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style
+        x:Key="MpvOptionDescriptionStyle"
+        BasedOn="{StaticResource CaptionTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Visibility" Value="Collapsed" />
+    </Style>
+
+    <Style
+        x:Key="MpvOptionWarningStyle"
+        BasedOn="{StaticResource CaptionTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource SystemFillColorCautionBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Visibility" Value="Collapsed" />
+    </Style>
+
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
          consuming flyout via BasedOn. -->

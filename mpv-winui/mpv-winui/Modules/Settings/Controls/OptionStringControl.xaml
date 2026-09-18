@@ -19,27 +19,14 @@
             Grid.Column="0"
             VerticalAlignment="Center"
             Spacing="2">
-            <TextBlock
-                x:Name="LabelText"
-                Style="{StaticResource BodyTextBlockStyle}"
-                TextWrapping="Wrap" />
-            <TextBlock
-                x:Name="DescriptionText"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                TextWrapping="Wrap"
-                Visibility="Collapsed" />
+            <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
+            <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
             <TextBlock
                 x:Name="ErrorText"
                 Foreground="{ThemeResource SystemErrorTextColor}"
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Visibility="Collapsed" />
-            <TextBlock
-                x:Name="WarningText"
-                Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                TextWrapping="Wrap"
-                Visibility="Collapsed" />
+            <TextBlock x:Name="WarningText" Style="{StaticResource MpvOptionWarningStyle}" />
         </StackPanel>
         <Grid Grid.Column="1" VerticalAlignment="Center">
             <TextBox
