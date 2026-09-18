@@ -92,7 +92,7 @@ public sealed partial class SettingsPage : Page
     /// flattened searchable text of every option are computed once per
     /// settings rebuild instead of per keystroke burst.</summary>
     private readonly Dictionary<string, string[]> _categoryAliasCache = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, string> _optionSearchTextCache = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, OptionSearchEntry> _optionSearchIndex = new(StringComparer.Ordinal);
 
     private void SearchDebounceTimer_Tick(object? sender, object e)
     {
@@ -203,7 +203,7 @@ public sealed partial class SettingsPage : Page
     private void RebuildSearchIndex()
     {
         _categoryAliasCache.Clear();
-        _optionSearchTextCache.Clear();
+        _optionSearchIndex.Clear();
 
         foreach (var category in Categories)
         {
@@ -214,14 +214,148 @@ public sealed partial class SettingsPage : Page
 
         foreach (var option in Settings)
         {
-            var text = string.Join(
-                "\n",
-                option.Label,
-                option.Description ?? string.Empty,
-                option.Category,
-                string.Join("\n", GetCategoryAliases(option.Category)));
-            _optionSearchTextCache[option.Key] = text;
+            _optionSearchIndex[option.Key] = BuildSearchEntry(option);
         }
+    }
+
+    /// <summary>
+    /// One option's searchable fields, split into tiers so that a match can be
+    /// ranked. <see cref="Text"/> is the flat concatenation used by the cheap
+    /// membership test; the tiers decide ordering.
+    /// </summary>
+    private sealed record OptionSearchEntry(
+        string Label,
+        string Description,
+        string MpvName,
+        string Context,
+        string Values,
+        string Text);
+
+    /// <summary>
+    /// Builds an option's search entry.
+    ///
+    /// The mpv option name is the term people actually arrive with: anyone
+    /// carrying settings over from an mpv.conf, or reading the manual, knows
+    /// <c>sub-font-size</c> rather than whatever this UI labels it in their
+    /// language. Leaving it out made search useless precisely for the users
+    /// who knew what they wanted.
+    ///
+    /// Choice values and labels land in their own low-ranked tier so that
+    /// "auto" or "vulkan" finds every switch accepting them, while a row whose
+    /// *name* matches still sorts above one that merely offers the value.
+    /// </summary>
+    private OptionSearchEntry BuildSearchEntry(Option option)
+    {
+        var context = string.Join(
+            "\n",
+            option.Category,
+            string.Join("\n", GetCategoryAliases(option.Category)),
+            option.Section ?? string.Empty);
+
+        var lines = new List<string>(64);
+        foreach (var choice in option.Choices ?? SafeInvoke(option.ChoicesProvider) ?? [])
+        {
+            lines.Add(choice.Value);
+            lines.Add(choice.Label);
+        }
+
+        foreach (var item in option.CheckItems ?? [])
+        {
+            lines.Add(item.Value);
+            lines.Add(item.Label);
+        }
+
+        var values = string.Join("\n", lines);
+        var mpvName = MpvSettings.ToMpvOptionName(option.Key) ?? string.Empty;
+        var label = option.Label;
+        var description = option.Description ?? string.Empty;
+
+        // Shortcut keys are generated from input.conf and carry the binding
+        // as their Key ("Shortcut:Space"), so that text belongs in the index:
+        // searching "space" should find the Space binding.
+        var text = string.Join("\n", label, description, mpvName, context, values);
+        if (option.Key.StartsWith("Shortcut:", StringComparison.Ordinal))
+        {
+            text = string.Join("\n", text, option.Key);
+        }
+
+        return new OptionSearchEntry(label, description, mpvName, context, values, text);
+    }
+
+    /// <summary>A lazy choice provider may touch the disk or the registry;
+    /// search must never fail because one row is expensive to expand.</summary>
+    private static IList<OptionChoice>? SafeInvoke(Func<IList<OptionChoice>>? provider)
+    {
+        if (provider is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return provider();
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Warn(ex, "Search index: a choice provider threw while building the index");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Lower is better. Ranking is what keeps indexing values from flooding
+    /// the results: tier 4 only wins when nothing else matched.
+    /// </summary>
+    private const int RankLabelPrefix = 0;
+    private const int RankLabelContains = 1;
+    private const int RankMpvName = 2;
+    private const int RankDescription = 3;
+    private const int RankContext = 4;
+    private const int RankValues = 5;
+    private const int RankFuzzy = 6;
+    private const int RankNone = int.MaxValue;
+
+    private int RankOptionCore(string query, OptionSearchEntry entry)
+    {
+        if (entry.Label.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankLabelPrefix;
+        }
+
+        if (entry.Label.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankLabelContains;
+        }
+
+        if (entry.MpvName.Length > 0 && entry.MpvName.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankMpvName;
+        }
+
+        if (entry.Description.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankDescription;
+        }
+
+        if (entry.Context.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankContext;
+        }
+
+        if (entry.Values.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankValues;
+        }
+
+        return RankNone;
+    }
+
+    /// <summary>Best tier this option matches on, falling back to subsequence
+    /// matching so the typos and partials people actually type still hit.</summary>
+    private int RankOption(string query, OptionSearchEntry entry)
+    {
+        var exact = RankOptionCore(query, entry);
+        return exact != RankNone ? exact : (ContainsFuzzy(query, entry.Text) ? RankFuzzy : RankNone);
     }
 
     private IReadOnlyList<string> GetCategoryAliases(string category)
@@ -631,9 +765,11 @@ public sealed partial class SettingsPage : Page
         var categoryMatches = Categories
             .Where(c => FuzzyMatch(query, c))
             .ToList();
-        var optionMatches = Settings
-            .Where(o => FuzzyMatchOption(query, o))
-            .ToList();
+        // Ranked, then stable by page order: search now indexes choice values
+        // and mpv option names, which multiplies the hits for a common query.
+        // Ordering by tier keeps "auto" from burying the rows actually named
+        // "Auto" under every switch that merely accepts auto.
+        var optionMatches = RankedSearchMatches(query);
         OptionsControl.OptionList = optionMatches;
         SectionsHost.Visibility = Visibility.Collapsed;
         BreadcrumbBar.Visibility = Visibility.Collapsed;
@@ -687,8 +823,9 @@ public sealed partial class SettingsPage : Page
         }
 
         // Option-level query: keep the global results list and scroll to the
-        // first hit.
-        var option = Settings.FirstOrDefault(o => FuzzyMatchOption(query, o));
+        // best hit -- the same ranking the list uses, so Enter always lands on
+        // the row the user sees first rather than the earliest in page order.
+        var option = TopSearchMatch(query);
         if (option is not null)
         {
             ApplySearchQuery(query);
@@ -714,18 +851,35 @@ public sealed partial class SettingsPage : Page
         return false;
     }
 
-    private bool FuzzyMatchOption(string query, Option option)
-    {
-        if (_optionSearchTextCache.TryGetValue(option.Key, out var searchText))
-        {
-            return ContainsFuzzy(query, searchText);
-        }
+    /// <summary>Every option matching the query, best tier first then in page
+    /// order. Both entry points (live typing and state restore) funnel through
+    /// this so they cannot drift into ranking results differently.</summary>
+    private List<Option> RankedSearchMatches(string query) =>
+        Settings
+            .Select(o => (Option: o, Rank: RankOption(query, o)))
+            .Where(x => x.Rank != RankNone)
+            .OrderBy(x => x.Rank)
+            .Select(x => x.Option)
+            .ToList();
 
-        // Index not built yet (e.g. mid-rebuild): fall back to the direct
-        // fields so search never drops a result.
-        return FuzzyMatch(query, option.Label)
-            || (option.Description is not null && FuzzyMatch(query, option.Description));
-    }
+    /// <summary>The single best match, or null. Enter-to-scroll uses this so
+    /// it lands on the row the user sees at the top of the list.</summary>
+    private Option? TopSearchMatch(string query) => RankedSearchMatches(query).FirstOrDefault();
+
+    /// <summary>Rank for an option the index has no entry for yet (a rebuild
+    /// caught mid-flight); keeping hits alive matters more than ranking them
+    /// precisely, and the index catches up on the next rebuild.</summary>
+    private int RankOptionFallback(string query, Option option) =>
+        Math.Min(
+            ContainsFuzzy(query, option.Label) ? RankLabelContains : RankNone,
+            option.Description is not null && ContainsFuzzy(query, option.Description)
+                ? RankDescription
+                : RankNone);
+
+    private int RankOption(string query, Option option) =>
+        _optionSearchIndex.TryGetValue(option.Key, out var entry)
+            ? RankOption(query, entry)
+            : RankOptionFallback(query, option);
 
     private static bool ContainsFuzzy(string query, string target)
     {
@@ -918,7 +1072,7 @@ public sealed partial class SettingsPage : Page
             SectionsHost.Visibility = Visibility.Collapsed;
             BreadcrumbBar.Visibility = Visibility.Collapsed;
             OptionsControl.Visibility = Visibility.Visible;
-            OptionsControl.OptionList = Settings.Where(o => FuzzyMatchOption(query, o)).ToList();
+            OptionsControl.OptionList = RankedSearchMatches(query);
             return;
         }
 
