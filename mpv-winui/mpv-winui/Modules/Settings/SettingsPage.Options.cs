@@ -77,7 +77,6 @@ private List<Option> BuildSettings()
         var sScreenshotLocation = AppContext.AppLang.SectionScreenshotLocation;
         var sScreenshotQuality = AppContext.AppLang.SectionScreenshotQuality;
         var sGpuScaling = AppContext.AppLang.SectionGpuScaling;
-        var sGpuColor = AppContext.AppLang.SectionGpuColor;
         var sGpuInterpolation = AppContext.AppLang.SectionGpuInterpolation;
         var sGpuBackground = AppContext.AppLang.SectionGpuBackground;
         var sGpuD3d11 = AppContext.AppLang.SectionGpuD3d11;

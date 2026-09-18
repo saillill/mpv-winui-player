@@ -1093,6 +1093,7 @@ public sealed partial class SettingsPage : Page
             var l when l == lang.SectionVideoSync => ("\uE895", lang.SectionDescVideoSync),
             var l when l == lang.SectionGpuScaling => ("\uE71D", lang.SectionDescGpuScaling),
             var l when l == lang.SectionGpuInterpolation => ("\uEDD5", lang.SectionDescGpuInterpolation),
+            var l when l == lang.SectionGpuD3d11 => ("\uE964", lang.SectionDescGpuD3d11),
             var l when l == lang.SectionColorManagement => ("\uE790", lang.SectionDescColorManagement),
             var l when l == lang.SectionGpuShaders => ("\uE9D2", lang.SectionDescGpuShaders),
             var l when l == lang.SectionGpuBackground => ("\uE756", lang.SectionDescGpuBackground),

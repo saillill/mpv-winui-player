@@ -449,11 +449,9 @@ namespace mpv_winui.Modules.Language
         public string SettingsCategorySubtitles { get; set; } = "Subtitles";
         public string SettingsCategoryWindow { get; set; } = "Window";
         public string SettingsCategoryNetwork { get; set; } = "Network";
-        public string SettingsCategoryInput { get; set; } = "Input";
         public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
         public string SettingsCategoryOsd { get; set; } = "OSD";
         public string SettingsCategoryScreenshot { get; set; } = "Screenshot";
-        public string SettingsCategoryTesting { get; set; } = "Testing";
 
         // Section captions split each category into topic groups.
         public string SectionProgramInterface { get; set; } = "Interface";
@@ -516,12 +514,12 @@ namespace mpv_winui.Modules.Language
         public string SectionDescScreenshotQuality { get; set; } = "Format and quality";
         public string SectionGpuScaling { get; set; } = "Scaling & dithering";
         public string SectionDescGpuScaling { get; set; } = "Scaling algorithm and quality";
-        public string SectionGpuColor { get; set; } = "Color & HDR";
         public string SectionGpuInterpolation { get; set; } = "Motion interpolation";
         public string SectionDescGpuInterpolation { get; set; } = "Motion interpolation";
         public string SectionGpuBackground { get; set; } = "Background";
         public string SectionDescGpuBackground { get; set; } = "Background color";
         public string SectionGpuD3d11 { get; set; } = "Direct3D 11";
+        public string SectionDescGpuD3d11 { get; set; } = "Exclusive fullscreen, flip and adapter";
         public string SectionGpuShaders { get; set; } = "Shaders & cache";
         public string SectionDescGpuShaders { get; set; } = "Custom shader passes";
         public string SectionVideoSync { get; set; } = "Video sync";
