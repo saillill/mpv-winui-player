@@ -235,8 +235,9 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         nameof(AppSettings.SubtitleLanguage),
         nameof(AppSettings.VsrAutoEnabled),
         nameof(AppSettings.HdrAutoMode),
-        nameof(AppSettings.ThemeType),
-        nameof(AppSettings.BackdropType),
+        // ThemeType and BackdropType are deliberately NOT here: no rule reads
+        // them, so listing them only made a refresh produce identical results.
+        // tools/check-conflict-rules.py fails if this set drifts from the rules.
         nameof(AppSettings.WindowPiP),
         nameof(AppSettings.ScreenshotFormat),
     };
