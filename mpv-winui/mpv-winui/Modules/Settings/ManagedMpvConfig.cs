@@ -84,12 +84,6 @@ public static class ManagedMpvConfig
         var lines = new List<string>
         {
             BeginMarker,
-            ScriptOpt("ytdl_hook-ytdl_path", s.YtdlPath),
-            ScriptOpt("ytdl_hook-try_ytdl_first", s.YtdlTryFirst ? "yes" : "no"),
-            ScriptOpt("ytdl_hook-all_formats", s.YtdlAllFormats ? "yes" : "no"),
-            ScriptOpt("ytdl_hook-use_manifests", s.YtdlUseManifests ? "yes" : "no"),
-            ScriptOpt("ytdl_hook-thumbnails", s.YtdlThumbnails),
-            ScriptOpt("ytdl_hook-exclude", s.YtdlExclude),
             MpvOption("override-display-fps", s.OverrideDisplayFps),
             EndMarker,
         };
@@ -98,7 +92,7 @@ public static class ManagedMpvConfig
         if (!File.Exists(path))
         {
             // Config is normally deployed by deploy-config.ps1; without it the
-            // ytdl_hook options cannot take effect, so surface the condition.
+            // script options cannot take effect, so surface the condition.
             AppContext.AppLogger.Warn("mpv.conf not found at {}, managed options skipped", path);
             return;
         }
@@ -278,8 +272,6 @@ public static class ManagedMpvConfig
     /// <summary>mpv option names this class writes - the ones a hand edit can shadow.</summary>
     private static readonly string[] ManagedOptionNames =
     {
-        "ytdl_hook-ytdl_path", "ytdl_hook-try_ytdl_first", "ytdl_hook-all_formats",
-        "ytdl_hook-use_manifests", "ytdl_hook-thumbnails", "ytdl_hook-exclude",
         "override-display-fps",
     };
 

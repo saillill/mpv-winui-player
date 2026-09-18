@@ -62,6 +62,34 @@ public sealed partial class OptionListControl : UserControl
                     }
                 }));
 
+    /// <summary>
+    /// Caption of the category these options belong to, when the list is one
+    /// category's page.
+    ///
+    /// Used for exactly one thing: a section whose caption is the same string
+    /// as its category renders "播放" under a "播放" heading, which reads as a
+    /// submenu of itself. The general bucket of a category is not a subtopic,
+    /// so its header is dropped.
+    /// </summary>
+    public string? CategoryCaption
+    {
+        get => (string?)GetValue(CategoryCaptionProperty);
+        set => SetValue(CategoryCaptionProperty, value);
+    }
+
+    public static readonly DependencyProperty CategoryCaptionProperty =
+        DependencyProperty.Register(
+            nameof(CategoryCaption),
+            typeof(string),
+            typeof(OptionListControl),
+            new PropertyMetadata(null, (d, e) =>
+            {
+                if (d is OptionListControl self)
+                {
+                    self.ApplyItemsSource();
+                }
+            }));
+
     /// <summary>Raised when a collapsed section's card is opened, carrying the
     /// stable section id. Navigation belongs to the page, not this control.</summary>
     public event Action<string>? SectionCardClicked;
@@ -279,6 +307,11 @@ public sealed partial class OptionListControl : UserControl
             {
                 lastSection = option.Section;
 
+                // The general bucket of a category is not a subtopic; a header
+                // repeating the category name only makes it look like one.
+                var repeatsCategory = !string.IsNullOrEmpty(CategoryCaption)
+                    && string.Equals(option.Section, CategoryCaption, StringComparison.Ordinal);
+
                 // A collapsed section contributes exactly one item: its card,
                 // right here, at the position its options would have filled.
                 // Sections arrive clustered (the page orders them that way), so
@@ -293,7 +326,7 @@ public sealed partial class OptionListControl : UserControl
                 {
                     items.Add(card!);
                 }
-                else if (showHeaders)
+                else if (showHeaders && !repeatsCategory)
                 {
                     items.Add(new SectionHeaderItem { Caption = option.Section, SectionId = option.SectionId });
                 }

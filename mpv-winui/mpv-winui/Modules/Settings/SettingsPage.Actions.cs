@@ -51,7 +51,6 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         nameof(AppContext.AppSetting.TargetColorspaceHintMode),
         nameof(AppContext.AppSetting.OsdOnSeek),
         nameof(AppContext.AppSetting.HdrAutoMode),
-        nameof(AppContext.AppSetting.YtdlThumbnails),
         nameof(AppContext.AppSetting.WindowPiPSize),
         nameof(AppContext.AppSetting.ControlBarLayout),
     };

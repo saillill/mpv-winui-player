@@ -87,7 +87,6 @@ internal static class SettingsSections
         new("SectionCache", "\uE74E", l => l.SectionCache, l => l.SectionDescCache),
         new("SectionNetworkHttp", "\uE702", l => l.SectionNetworkHttp, l => l.SectionDescNetworkHttp),
         new("SectionNetworkCurl", "\uE8EA", l => l.SectionNetworkCurl, l => l.SectionDescNetworkCurl),
-        new("SectionNetworkYtdlp", "\uE717", l => l.SectionNetworkYtdlp, l => l.SectionDescNetworkYtdlp),
         new("SectionAudioVolume", "\uE76E", l => l.SectionAudioVolume, l => l.SectionDescAudioVolume),
         new("SectionAudioOutput", "\uE7F6", l => l.SectionAudioOutput, l => l.SectionDescAudioOutput),
         new("SectionAudioExternal", "\uE8D6", l => l.SectionAudioExternal, l => l.SectionDescAudioExternal),

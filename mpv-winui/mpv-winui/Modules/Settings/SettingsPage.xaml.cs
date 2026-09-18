@@ -1092,6 +1092,10 @@ public sealed partial class SettingsPage : Page
             SectionsHost.Visibility = Visibility.Collapsed;
             BreadcrumbBar.Visibility = Visibility.Collapsed;
             OptionsControl.Visibility = Visibility.Visible;
+
+            // Results span categories, so no caption is "the page itself" --
+            // every section header is useful context here.
+            OptionsControl.CategoryCaption = null;
             OptionsControl.OptionList = RankedSearchMatches(query);
             return;
         }
@@ -1108,8 +1112,13 @@ public sealed partial class SettingsPage : Page
         // cards. Categories with a single section go straight to their
         // options.
         var showOverview = _selectedSection is null && sections.Count > 1;
-        SectionsHost.Visibility = showOverview ? Visibility.Visible : Visibility.Collapsed;
+        SectionsHost.Visibility = Visibility.Collapsed;
         OptionsControl.Visibility = Visibility.Visible;
+
+        // Tells the list which caption is "the page itself", so it can drop a
+        // section header that would otherwise repeat it (Playback inside
+        // Playback). Set on every branch that assigns an option list.
+        OptionsControl.CategoryCaption = selected;
 
         if (showOverview)
         {
@@ -1131,9 +1140,6 @@ public sealed partial class SettingsPage : Page
                 advancedCards.Select(c => c.SectionId!).Where(id => id is not null),
                 StringComparer.Ordinal);
 
-            SectionsHost.ItemsSource = Array.Empty<FrameworkElement>();
-            SectionsHost.Visibility = Visibility.Collapsed;
-            OptionsControl.Visibility = Visibility.Visible;
             OptionsControl.SetSectionCards(advancedCards);
             OptionsControl.CollapsedSectionIds = advancedIds;
             OptionsControl.OptionList = categoryOptions;
@@ -1206,10 +1212,10 @@ public sealed partial class SettingsPage : Page
                 Description = description,
                 Count = section.Count,
                 CountText = section.Count == 1
-                    ? AppContext.AppLang.SectionCardOptionCountOne
+                    ? AppContext.AppLang.CardOptionCountOne
                     : string.Format(
                         System.Globalization.CultureInfo.CurrentUICulture,
-                        AppContext.AppLang.SectionCardOptionCount,
+                        AppContext.AppLang.CardOptionCount,
                         section.Count),
             });
         }

@@ -57,7 +57,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsGroupSubtitleImage { get; set; } = "Image subtitles";
         public string SettingsGroupWindowBehavior { get; set; } = "Window behavior";
         public string SettingsGroupWindowPip { get; set; } = "Picture-in-picture";
-        public string SettingsGroupNetworkYtdlp { get; set; } = "yt-dlp";
         public string SettingsGroupNetworkHttpCurl { get; set; } = "HTTP / curl";
         public string SettingsGroupCache { get; set; } = "Cache";
         public string SettingsGroupOsdAppearance { get; set; } = "OSD appearance";
@@ -162,28 +161,10 @@ namespace mpv_winui.Modules.Language
         public string ResetShortcutsMissing { get; set; } = "Bundled input.conf not found.";
 
         // Network
-        public string SectionNetworkYtdlp { get; set; } = "yt-dlp (YouTube / Bilibili)";
-        public string SectionDescNetworkYtdlp { get; set; } = "yt-dlp integration";
         public string SectionNetworkHttp { get; set; } = "HTTP";
         public string SectionDescNetworkHttp { get; set; } = "HTTP streaming options";
         public string SectionNetworkCurl { get; set; } = "libcurl backend";
         public string SectionDescNetworkCurl { get; set; } = "cURL network options";
-        public string SettingsYtdlFormat { get; set; } = "yt-dlp format";
-        public string SettingsHelpYtdlFormat { get; set; } = "Format string passed to yt-dlp, e.g. bestvideo+bestaudio/best, mp4, webm. Leave empty for yt-dlp defaults.";
-        public string SettingsYtdlPath { get; set; } = "yt-dlp executable";
-        public string SettingsHelpYtdlPath { get; set; } = "Path(s) to yt-dlp (semicolon separated). Leave empty to search PATH.";
-        public string SettingsYtdlTryFirst { get; set; } = "Try yt-dlp first";
-        public string SettingsHelpYtdlTryFirst { get; set; } = "Parse URLs with yt-dlp before letting mpv open them directly.";
-        public string SettingsYtdlAllFormats { get; set; } = "List all formats as tracks";
-        public string SettingsHelpYtdlAllFormats { get; set; } = "Add every format reported by yt-dlp as a switchable track.";
-        public string SettingsYtdlUseManifests { get; set; } = "Use master manifest (HLS/DASH)";
-        public string SettingsHelpYtdlUseManifests { get; set; } = "Use the master manifest URL when available so audio/video can be switched at runtime.";
-        public string SettingsYtdlThumbnails { get; set; } = "yt-dlp thumbnails";
-        public string SettingsHelpYtdlThumbnails { get; set; } = "Add video thumbnails as tracks: none, best, or all.";
-        public string OptionValueYtdlThumbnailBest { get; set; } = "Best";
-        public string OptionValueYtdlThumbnailAll { get; set; } = "All";
-        public string SettingsYtdlExclude { get; set; } = "Excluded URLs";
-        public string SettingsHelpYtdlExclude { get; set; } = "URL patterns that should not be sent to yt-dlp, separated by |.";
         public string SettingsUserAgent { get; set; } = "User-Agent";
         public string SettingsHelpUserAgent { get; set; } = "User agent used for HTTP streaming. Leave empty for the default.";
         public string SettingsReferrer { get; set; } = "Referrer";
@@ -464,8 +445,8 @@ namespace mpv_winui.Modules.Language
 
         /// <summary>Count line under a folded section's card. {0} is the number
         /// of options behind it; the singular form avoids "1 options".</summary>
-        public string SectionCardOptionCount { get; set; } = "{0} options";
-        public string SectionCardOptionCountOne { get; set; } = "1 option";
+        public string CardOptionCount { get; set; } = "{0} options";
+        public string CardOptionCountOne { get; set; } = "1 option";
         public string SectionPlayback { get; set; } = "Playback";
         public string SectionDescPlayback { get; set; } = "Speed, loop, shuffle";
         public string SectionReversePlayback { get; set; } = "Reverse playback";
@@ -557,8 +538,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsCacheSecs { get; set; } = "Network cache (s)";
         public string SettingsCacheEnabled { get; set; } = "Network cache";
         public string SettingsDemuxerReadahead { get; set; } = "Demuxer read-ahead (s)";
-        public string SettingsYtdl { get; set; } = "Resolve URLs with yt-dlp";
-        public string SettingsYtdlRawOptionsAppend { get; set; } = "yt-dlp extra options";
         public string SettingsAutoCreatePlaylist { get; set; } = "Auto-add files to playlist";
         public string SettingsDirectoryMode { get; set; } = "Folder open mode";
         public string SettingsDirectoryFilterTypes { get; set; } = "Playlist file types";
@@ -995,7 +974,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpHdrAutoMode { get; set; } = "RTX Video HDR (NVIDIA only).";
         public string SettingsHelpSeekHold { get; set; } = "Keep the window size fixed while seeking so filter reattachment does not resize the window.";
         public string SettingsHelpDemuxerReadahead { get; set; } = "Seconds of data the demuxer reads ahead. Larger values help network streams but use more memory.";
-        public string SettingsHelpYtdl { get; set; } = "Resolve online video URLs (YouTube, Bilibili, etc.) with yt-dlp before playback. Requires yt-dlp to be installed.";
         public string SettingsHelpAutoCreatePlaylist { get; set; } = "Automatically add files from the same folder to the playlist when opening a file.";
         public string SettingsHelpTscale { get; set; } = "Temporal interpolation algorithm used when frame interpolation is enabled.";
         public string SettingsHelpLinearUpscaling { get; set; } = "Upscale in linear light for better color accuracy. Not compatible with sigmoid upscaling.";
@@ -1036,7 +1014,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpSubAssUseVideoData { get; set; } = "Video stream information passed to libass. All matches VSFilter behavior.";
         public string SettingsHelpSubAssVsfilterColorCompat { get; set; } = "How ASS subtitle colors are converted for compatibility with VSFilter.";
         public string SettingsHelpAudioGapless { get; set; } = "Keep the audio output open between files for gapless playback; Weak only keeps it between audio files.";
-        public string SettingsHelpYtdlRawOptionsAppend { get; set; } = "Extra options passed to yt-dlp, e.g. sub-langs=-danmaku.";
         public string SettingsHelpInputIpcServer { get; set; } = "Named pipe for external programs to control mpv. Leave empty to disable.";
         public string SettingsHelpDirectoryFilterTypes { get; set; } = "File types collected for the playlist when a folder is opened: video,audio,image,archive,playlist.";
         public string SettingsHelpVideoExts { get; set; } = "Video extensions recognized when collecting playlist files, comma-separated.";

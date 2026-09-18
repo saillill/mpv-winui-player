@@ -37,7 +37,6 @@ private List<Option> BuildSettings()
         var sProgramAssociations = AppContext.AppLang.SectionProgramAssociations;
         var sProgramConfig = AppContext.AppLang.SectionProgramConfig;
         var sWindowPiP = AppContext.AppLang.SectionWindowPiP;
-        var sNetworkYtdlp = AppContext.AppLang.SectionNetworkYtdlp;
         var sNetworkHttp = AppContext.AppLang.SectionNetworkHttp;
         var sNetworkCurl = AppContext.AppLang.SectionNetworkCurl;
         var sPlayback = AppContext.AppLang.SectionPlayback;
@@ -114,8 +113,19 @@ private List<Option> BuildSettings()
             sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback,
             sWatchLaterStorage,
 
-            sVideoDecode, sVideoFilters, sVideoSync,
-            sColorManagement, sGpuScaling, sGpuShaders, sGpuBackground,
+            // Picture controls everyone recognises: brightness, contrast,
+            // saturation, hue, sharpen, rotate. Those stay on the overview,
+            // and so does hardware decoding -- it is the one Video setting
+            // people are told to look for.
+            //
+            // Everything else in Video is a tuning knob and belongs behind a
+            // card: D3D11 internals (adapter, warp, flip model), scaling and
+            // chroma-upsampling algorithms, frame interpolation, tone-mapping
+            // maths (peak decay rate, scene thresholds), colour-space targets
+            // and shader paths. None of those are recognisable to a normal
+            // user, so none of them earn a first-level row.
+            sVideoFilters, sVideoSync,
+            sColorManagement, sGpuScaling, sGpuShaders, sGpuBackground, sGpuD3d11,
             sToneMapping, sTargetColorspace,
 
             sAudioExternal, sAudioCoverArt,
@@ -202,8 +212,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.TestSignal)] = 8,
             [nameof(AppSettings.CurrentLanguage)] = 9,
             [nameof(AppSettings.EnableDebugLog)] = 10,
-            [nameof(AppSettings.Ytdl)] = 11,
-            [nameof(AppSettings.YtdlRawOptionsAppend)] = 12,
             [nameof(AppSettings.Speed)] = 15,
             [nameof(AppSettings.LoopPlaylist)] = 13,
             [nameof(AppSettings.LoopFile)] = 14,
@@ -388,13 +396,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.WindowStartMaximized)] = 195,
             [nameof(AppSettings.WindowRememberSize)] = 196,
             [nameof(AppSettings.WindowAspectRatioLock)] = 196,
-            [nameof(AppSettings.YtdlFormat)] = 197,
-            [nameof(AppSettings.YtdlPath)] = 198,
-            [nameof(AppSettings.YtdlTryFirst)] = 199,
-            [nameof(AppSettings.YtdlAllFormats)] = 200,
-            [nameof(AppSettings.YtdlUseManifests)] = 201,
-            [nameof(AppSettings.YtdlThumbnails)] = 202,
-            [nameof(AppSettings.YtdlExclude)] = 203,
             [nameof(AppSettings.UserAgent)] = 204,
             [nameof(AppSettings.Referrer)] = 205,
             [nameof(AppSettings.HttpHeaderFields)] = 206,
@@ -540,7 +541,6 @@ private List<Option> BuildSettings()
             [sDemuxerPlaylist] = 2,
             [sNetworkHttp] = 3,
             [sNetworkCurl] = 4,
-            [sNetworkYtdlp] = 5,
 
             // osd
             [sOsdBehavior] = 0,
@@ -766,15 +766,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CachePauseInitial)] = sCache,
             [nameof(AppSettings.CachePauseWait)] = sCache,
                         // network
-            [nameof(AppSettings.Ytdl)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlRawOptionsAppend)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlFormat)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlPath)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlTryFirst)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlAllFormats)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlUseManifests)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlThumbnails)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlExclude)] = sNetworkYtdlp,
             [nameof(AppSettings.UserAgent)] = sNetworkHttp,
             [nameof(AppSettings.Referrer)] = sNetworkHttp,
             [nameof(AppSettings.HttpHeaderFields)] = sNetworkHttp,
@@ -854,7 +845,11 @@ private List<Option> BuildSettings()
             // testing
             [nameof(AppSettings.TestMpvCommandLog)] = sProgramLanguageLog,
             [nameof(AppSettings.TestOsdMessage)] = sOsdBehavior,
-            [nameof(AppSettings.TestSignal)] = sPlayback,
+            // TestSignal rides with the other experimental switches, not with
+            // plain Playback: the general playback section holds speed and
+            // loop modes that people use constantly, and a diagnostic tone
+            // generator does not belong beside them.
+            [nameof(AppSettings.TestSignal)] = sProgramTesting,
         };
 
         // Category is set inline on each Option (single source of truth);
