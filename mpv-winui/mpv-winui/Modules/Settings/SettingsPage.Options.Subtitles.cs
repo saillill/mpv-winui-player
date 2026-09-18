@@ -226,8 +226,8 @@ public sealed partial class SettingsPage
             },
 
             // Track language: the preferred audio language lives in the audio
-            // category (SectionTrackSelection); only the subtitle language
-            // stays with the subtitle settings.
+            // category; only the subtitle language stays with the subtitle
+            // settings.
             new Option
             {
                 Key = nameof(AppContext.AppSetting.SubtitleLanguage),

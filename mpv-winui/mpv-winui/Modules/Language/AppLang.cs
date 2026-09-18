@@ -165,8 +165,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescNetworkHttp { get; set; } = "HTTP streaming options";
         public string SectionNetworkCurl { get; set; } = "libcurl backend";
         public string SectionDescNetworkCurl { get; set; } = "cURL network options";
-        public string SectionTrackSelection { get; set; } = "Track selection";
-        public string SectionDescTrackSelection { get; set; } = "Default audio/video/subtitle tracks";
         public string SettingsYtdlFormat { get; set; } = "yt-dlp format";
         public string SettingsHelpYtdlFormat { get; set; } = "Format string passed to yt-dlp, e.g. bestvideo+bestaudio/best, mp4, webm. Leave empty for yt-dlp defaults.";
         public string SettingsYtdlPath { get; set; } = "yt-dlp executable";
@@ -468,10 +466,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescPlaybackSeeking { get; set; } = "Accurate seeks, seek hold";
         public string SectionPlaybackSeekPreview { get; set; } = "Thumbnails";
         public string SectionDescPlaybackSeekPreview { get; set; } = "Thumbnail preview on the seek bar";
-        public string SectionTrackLanguage { get; set; } = "Preferred languages";
-        public string SectionDescTrackLanguage { get; set; } = "Preferred track languages";
-        public string SectionTrackFallback { get; set; } = "Fallback";
-        public string SectionDescTrackFallback { get; set; } = "Fallback order";
         public string SectionWatchLaterResume { get; set; } = "Resume";
         public string SectionDescWatchLaterResume { get; set; } = "Save position on quit, resume on launch";
         public string SectionWatchLaterStorage { get; set; } = "Storage";
@@ -490,8 +484,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescAudioExternal { get; set; } = "External audio tracks";
         public string SectionAudioCoverArt { get; set; } = "Music cover art";
         public string SectionDescAudioCoverArt { get; set; } = "Cover art display";
-        public string SectionSubtitleText { get; set; } = "Text subtitles";
-        public string SectionDescSubtitleText { get; set; } = "Encoding, margins";
         public string SectionSubtitleAss { get; set; } = "ASS subtitles";
         public string SectionDescSubtitleAss { get; set; } = "ASS effect rendering";
         public string SectionSubtitleImage { get; set; } = "Image subtitles";
@@ -504,8 +496,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescDemuxerBuffering { get; set; } = "Demuxer cache and buffering";
         public string SectionCache { get; set; } = "Cache";
         public string SectionDescCache { get; set; } = "Cache size and location";
-        public string SectionOsd { get; set; } = "OSD";
-        public string SectionDescOsd { get; set; } = "On-screen display";
         public string SectionOsdMetadata { get; set; } = "Metadata overlay";
         public string SectionDescOsdMetadata { get; set; } = "Media info on screen";
         public string SectionScreenshotLocation { get; set; } = "Location & naming";
@@ -514,8 +504,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescScreenshotQuality { get; set; } = "Format and quality";
         public string SectionGpuScaling { get; set; } = "Scaling & dithering";
         public string SectionDescGpuScaling { get; set; } = "Scaling algorithm and quality";
-        public string SectionGpuInterpolation { get; set; } = "Motion interpolation";
-        public string SectionDescGpuInterpolation { get; set; } = "Motion interpolation";
         public string SectionGpuBackground { get; set; } = "Background";
         public string SectionDescGpuBackground { get; set; } = "Background color";
         public string SectionGpuD3d11 { get; set; } = "Direct3D 11";

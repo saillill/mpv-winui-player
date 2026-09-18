@@ -44,9 +44,6 @@ private List<Option> BuildSettings()
         var sReversePlayback = AppContext.AppLang.SectionReversePlayback;
         var sPlaybackSeeking = AppContext.AppLang.SectionPlaybackSeeking;
         var sPlaybackSeekPreview = AppContext.AppLang.SectionPlaybackSeekPreview;
-        var sTrackSelection = AppContext.AppLang.SectionTrackSelection;
-        var sTrackLanguage = AppContext.AppLang.SectionTrackLanguage;
-        var sTrackFallback = AppContext.AppLang.SectionTrackFallback;
         var sWatchLaterResume = AppContext.AppLang.SectionWatchLaterResume;
         var sWatchLaterStorage = AppContext.AppLang.SectionWatchLaterStorage;
         var sVideoDecode = AppContext.AppLang.SectionVideoDecode;
@@ -56,7 +53,6 @@ private List<Option> BuildSettings()
         var sAudioVolume = AppContext.AppLang.SectionAudioVolume;
         var sAudioExternal = AppContext.AppLang.SectionAudioExternal;
         var sAudioCoverArt = AppContext.AppLang.SectionAudioCoverArt;
-        var sSubtitleText = AppContext.AppLang.SectionSubtitleText;
         var sSubtitleAss = AppContext.AppLang.SectionSubtitleAss;
         var sSubtitleImage = AppContext.AppLang.SectionSubtitleImage;
         var sSubtitleStyle = AppContext.AppLang.SectionSubtitleStyle;
@@ -72,12 +68,10 @@ private List<Option> BuildSettings()
         var sDemuxerPlaylist = AppContext.AppLang.SectionDemuxerPlaylist;
         var sDemuxerBuffering = AppContext.AppLang.SectionDemuxerBuffering;
         var sCache = AppContext.AppLang.SectionCache;
-        var sOsd = AppContext.AppLang.SectionOsd;
         var sOsdMetadata = AppContext.AppLang.SectionOsdMetadata;
         var sScreenshotLocation = AppContext.AppLang.SectionScreenshotLocation;
         var sScreenshotQuality = AppContext.AppLang.SectionScreenshotQuality;
         var sGpuScaling = AppContext.AppLang.SectionGpuScaling;
-        var sGpuInterpolation = AppContext.AppLang.SectionGpuInterpolation;
         var sGpuBackground = AppContext.AppLang.SectionGpuBackground;
         var sGpuD3d11 = AppContext.AppLang.SectionGpuD3d11;
         var sGpuShaders = AppContext.AppLang.SectionGpuShaders;
@@ -109,11 +103,10 @@ private List<Option> BuildSettings()
             sProgramAssociations, sProgramTesting, sProgramConfig,
             sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback, sWatchLaterStorage,
             sVideoDecode, sVideoImage, sVideoFilters, sVideoSync, sColorManagement,
-            sGpuScaling, sGpuInterpolation, sGpuShaders, sGpuBackground,
+            sGpuScaling, sGpuShaders, sGpuBackground,
             sToneMapping, sTargetColorspace,
             sAudioOutput, sAudioExternal, sAudioCoverArt,
-            sSubtitleText, sSubtitlePosition, sSubtitleAss, sSubtitleImage,
-            sTrackSelection, sTrackLanguage, sTrackFallback,
+            sSubtitlePosition, sSubtitleAss, sSubtitleImage,
             sOsdBehavior, sOsdAppearance, sOsdPosition, sOsdMetadata,
             sScreenshotQuality,
             sNetworkHttp, sNetworkCurl, sNetworkYtdlp,
@@ -487,14 +480,12 @@ private List<Option> BuildSettings()
             [sSubtitleStyle] = 26,
             [sSubtitlePosition] = 27,
             [sSubtitleBehavior] = 28,
-            [sSubtitleText] = 29,
             [sSubtitleAss] = 30,
             [sSubtitleImage] = 31,
             [sWindow] = 26,
             [sDemuxerPlaylist] = 27,
             [sDemuxerBuffering] = 28,
             [sCache] = 29,
-            [sOsd] = 32,
             [sOsdMetadata] = 33,
             [sScreenshotLocation] = 34,
             [sScreenshotQuality] = 35,
