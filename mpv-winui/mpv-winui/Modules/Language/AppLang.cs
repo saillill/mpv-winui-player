@@ -466,8 +466,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescPlaybackSeeking { get; set; } = "Accurate seeks, seek hold";
         public string SectionPlaybackSeekPreview { get; set; } = "Thumbnails";
         public string SectionDescPlaybackSeekPreview { get; set; } = "Thumbnail preview on the seek bar";
-        public string SectionWatchLaterResume { get; set; } = "Resume";
-        public string SectionDescWatchLaterResume { get; set; } = "Save position on quit, resume on launch";
         public string SectionWatchLaterStorage { get; set; } = "Storage";
         public string SectionDescWatchLaterStorage { get; set; } = "Watch-later folder and files";
         public string SectionVideoDecode { get; set; } = "Decoding";

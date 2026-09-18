@@ -70,7 +70,6 @@ internal static class SettingsSections
         new("SectionPlaybackSeeking", "\uE786", l => l.SectionPlaybackSeeking, l => l.SectionDescPlaybackSeeking),
         new("SectionPlaybackSeekPreview", "\uE720", l => l.SectionPlaybackSeekPreview, l => l.SectionDescPlaybackSeekPreview),
         new("SectionReversePlayback", "\uE8AB", l => l.SectionReversePlayback, l => l.SectionDescReversePlayback),
-        new("SectionWatchLaterResume", "\uE8E6", l => l.SectionWatchLaterResume, l => l.SectionDescWatchLaterResume),
         new("SectionWatchLaterStorage", "\uE8B7", l => l.SectionWatchLaterStorage, l => l.SectionDescWatchLaterStorage),
         new("SectionVideoDecode", "\uE714", l => l.SectionVideoDecode, l => l.SectionDescVideoDecode),
         new("SectionVideoImage", "\uE7F4", l => l.SectionVideoImage, l => l.SectionDescVideoImage),

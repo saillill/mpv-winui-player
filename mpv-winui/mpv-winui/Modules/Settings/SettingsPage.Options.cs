@@ -44,7 +44,6 @@ private List<Option> BuildSettings()
         var sReversePlayback = AppContext.AppLang.SectionReversePlayback;
         var sPlaybackSeeking = AppContext.AppLang.SectionPlaybackSeeking;
         var sPlaybackSeekPreview = AppContext.AppLang.SectionPlaybackSeekPreview;
-        var sWatchLaterResume = AppContext.AppLang.SectionWatchLaterResume;
         var sWatchLaterStorage = AppContext.AppLang.SectionWatchLaterStorage;
         var sVideoDecode = AppContext.AppLang.SectionVideoDecode;
         var sVideoImage = AppContext.AppLang.SectionVideoImage;
@@ -98,19 +97,45 @@ private List<Option> BuildSettings()
         // switches back onto the overview even when they live in an advanced
         // section, so e.g. the hardware-decode switch stays on the Video
         // overview while its codec/decode-detail mates hide in the card.
+        //
+        // That makes the COMPLEMENT the load-bearing half: every section not
+        // listed here puts its options straight on the overview, and a
+        // category whose sections are all listed opens to an empty page with
+        // nothing but cards. Network and OSD both used to look like that --
+        // two categories you could not actually set anything from.
         var advancedSections = new HashSet<string>(StringComparer.Ordinal)
         {
             sProgramAssociations, sProgramTesting, sProgramConfig,
-            sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback, sWatchLaterStorage,
-            sVideoDecode, sVideoImage, sVideoFilters, sVideoSync, sColorManagement,
-            sGpuScaling, sGpuShaders, sGpuBackground,
+
+            // Seeking/reverse/continue-watching are reach-time settings with
+            // their own vocabulary; the plain "Playback" section is the one
+            // that stays on the overview. Resume-on-quit is the exception --
+            // people flip it the moment they notice playback does not resume.
+            sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback,
+            sWatchLaterStorage,
+
+            sVideoDecode, sVideoFilters, sVideoSync,
+            sColorManagement, sGpuScaling, sGpuShaders, sGpuBackground,
             sToneMapping, sTargetColorspace,
-            sAudioOutput, sAudioExternal, sAudioCoverArt,
+
+            sAudioExternal, sAudioCoverArt,
+
             sSubtitlePosition, sSubtitleAss, sSubtitleImage,
-            sOsdBehavior, sOsdAppearance, sOsdPosition, sOsdMetadata,
+
+            // OsdLevel and the font/colour knobs are reached constantly, so
+            // Appearance stays on the overview even though the section is
+            // large. The metadata driver is the opposite: twelve switches
+            // that only matter while watching something with tags.
+            sOsdBehavior, sOsdPosition, sOsdMetadata,
+
             sScreenshotQuality,
-            sNetworkHttp, sNetworkCurl, sNetworkYtdlp,
-            sCache, sDemuxerBuffering, sDemuxerPlaylist,
+            // "Cache" is a switch people flip per-file, and yt-dlp is the
+            // reason half of the user base is here at all -- both stay
+            // visible. The transport plumbing (curl knobs, HTTP headers)
+            // is the part nobody opens twice.
+            sNetworkCurl,
+            sDemuxerBuffering, sDemuxerPlaylist,
+            sNetworkHttp,
         };
         // Entries people reach for daily: language switch, update check,
         // theme, hardware decode, resume-on-quit, output device, subtitle
@@ -453,54 +478,75 @@ private List<Option> BuildSettings()
         // matters between two sections of the same category. The single-option
         // sections (testing, interpolation, track language/fallback, ...) were
         // folded into their neighbours, so their keys no longer appear here.
+        // Order within each category. The value only ever compares against
+        // another section from the SAME category (the options are grouped by
+        // category first), so the numbers are a per-category sequence, not a
+        // global one. Blocked by category, and every section of a category
+        // gets a number, so a newly added section cannot silently fall to
+        // int.MaxValue and jump to the bottom of its category.
         var sectionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
         {
+            // program
             [sProgramInterface] = 0,
             [sProgramLanguageLog] = 1,
             [sProgramConfig] = 2,
             [sProgramAssociations] = 3,
-            [sPlayback] = 3,
-            [sReversePlayback] = 4,
-            [sPlaybackSeeking] = 5,
-            [sPlaybackSeekPreview] = 6,
-            [sWatchLaterResume] = 7,
-            [sWatchLaterStorage] = 8,
-            [sVideoDecode] = 7,
-            [sVideoImage] = 8,
-            [sVideoFilters] = 9,
-            [sGpuScaling] = 10,
-            [sGpuBackground] = 13,
-            [sGpuD3d11] = 14,
-            [sGpuShaders] = 15,
-            [sVideoSync] = 16,
-            [sAudioOutput] = 17,
-            [sAudioVolume] = 18,
-            [sAudioExternal] = 19,
-            [sAudioCoverArt] = 20,
-            [sSubtitleStyle] = 26,
-            [sSubtitlePosition] = 27,
-            [sSubtitleBehavior] = 28,
-            [sSubtitleAss] = 30,
-            [sSubtitleImage] = 31,
-            [sWindow] = 26,
-            [sDemuxerPlaylist] = 27,
-            [sDemuxerBuffering] = 28,
-            [sCache] = 29,
-            [sOsdMetadata] = 33,
-            [sScreenshotLocation] = 34,
-            [sScreenshotQuality] = 35,
-            [sNetworkYtdlp] = 39,
-            [sNetworkHttp] = 40,
-            [sNetworkCurl] = 41,
-            [sToneMapping] = 130,
-            [sTargetColorspace] = 131,
-            [sColorManagement] = 132,
-            [sOsdAppearance] = 320,
-            [sOsdBehavior] = 321,
-            [sOsdPosition] = 322,
-            [sWindowPiP] = 42,
-            [sProgramConfig] = 2,
-            [sProgramAssociations] = 3,
+            [sProgramTesting] = 4,
+
+            // playback
+            [sPlayback] = 0,
+            [sReversePlayback] = 1,
+            [sPlaybackSeeking] = 2,
+            [sPlaybackSeekPreview] = 3,
+            [sWatchLaterStorage] = 5,
+
+            // video
+            [sVideoDecode] = 0,
+            [sVideoImage] = 1,
+            [sVideoFilters] = 2,
+            [sVideoSync] = 3,
+            [sGpuScaling] = 4,
+            [sGpuBackground] = 5,
+            [sGpuD3d11] = 6,
+            [sGpuShaders] = 7,
+            [sToneMapping] = 8,
+            [sTargetColorspace] = 9,
+            [sColorManagement] = 10,
+
+            // audio
+            [sAudioOutput] = 0,
+            [sAudioVolume] = 1,
+            [sAudioExternal] = 2,
+            [sAudioCoverArt] = 3,
+
+            // subtitles
+            [sSubtitleStyle] = 0,
+            [sSubtitlePosition] = 1,
+            [sSubtitleBehavior] = 2,
+            [sSubtitleAss] = 3,
+            [sSubtitleImage] = 4,
+
+            // window
+            [sWindow] = 0,
+            [sWindowPiP] = 1,
+
+            // network
+            [sCache] = 0,
+            [sDemuxerBuffering] = 1,
+            [sDemuxerPlaylist] = 2,
+            [sNetworkHttp] = 3,
+            [sNetworkCurl] = 4,
+            [sNetworkYtdlp] = 5,
+
+            // osd
+            [sOsdBehavior] = 0,
+            [sOsdAppearance] = 1,
+            [sOsdPosition] = 2,
+            [sOsdMetadata] = 3,
+
+            // screenshot
+            [sScreenshotLocation] = 0,
+            [sScreenshotQuality] = 1,
         };
 
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -525,9 +571,12 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.EnableVideoPreview)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbnailPreviewWidth)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbnailUpdateInterval)] = sPlaybackSeekPreview,
+            // Resume playback rides with plain Playback, not with the
+            // watch-later storage section: it is the switch, the storage
+            // section is where the file goes.
+            [nameof(AppSettings.SavePositionOnQuit)] = sPlayback,
+            [nameof(AppSettings.ResumePlayback)] = sPlayback,
             // watchLater
-            [nameof(AppSettings.SavePositionOnQuit)] = sWatchLaterResume,
-            [nameof(AppSettings.ResumePlayback)] = sWatchLaterResume,
             [nameof(AppSettings.WatchLaterOptions)] = sWatchLaterStorage,
             [nameof(AppSettings.WatchLaterDir)] = sWatchLaterStorage,
             // video
@@ -780,7 +829,10 @@ private List<Option> BuildSettings()
             // screenshot
             [nameof(AppSettings.ScreenshotDirectory)] = sScreenshotLocation,
             [nameof(AppSettings.ScreenshotTemplate)] = sScreenshotLocation,
-            [nameof(AppSettings.ScreenshotFormat)] = sScreenshotQuality,
+            // Format sits with location, not with the per-codec quality
+            // knobs: choosing png vs jpg is the one screenshot decision
+            // everyone makes, tuning jxl effort is not.
+            [nameof(AppSettings.ScreenshotFormat)] = sScreenshotLocation,
             [nameof(AppSettings.ScreenshotJpegQuality)] = sScreenshotQuality,
             [nameof(AppSettings.ScreenshotJpegSourceChroma)] = sScreenshotQuality,
             [nameof(AppSettings.ScreenshotPngCompression)] = sScreenshotQuality,
