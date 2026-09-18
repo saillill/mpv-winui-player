@@ -185,10 +185,11 @@
         </DataTemplate>
 
         <DataTemplate x:Key="SectionHeaderTemplate" x:DataType="ctl:SectionHeaderItem">
+            <!-- Size, weight and margin come from MpvSectionHeaderStyle, which
+                 derives from Body Strong; the ramp step was previously
+                 restated here as a literal 16px (not a step on the ramp). -->
             <TextBlock
-                Margin="4,16,4,8"
-                FontSize="16"
-                FontWeight="SemiBold"
+                Style="{StaticResource MpvSectionHeaderStyle}"
                 Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                 Text="{x:Bind Caption}" />
         </DataTemplate>
@@ -217,11 +218,14 @@
                         FontSize="16"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Glyph="&#xE8A5;" />
+                    <!-- Same element as SectionHeaderTemplate above (a section
+                         caption), so it takes the same style rather than
+                         restating its own size and weight. -->
                     <TextBlock
                         Grid.Column="1"
                         VerticalAlignment="Center"
-                        FontSize="16"
-                        FontWeight="SemiBold"
+                        Style="{StaticResource MpvSectionHeaderStyle}"
+                        Margin="0"
                         Text="{x:Bind Caption}"
                         TextWrapping="Wrap" />
                     <Button
@@ -317,17 +321,23 @@
                              of touching the language files. -->
                         <StackPanel Spacing="2">
                             <TextBlock
+                                Style="{StaticResource BodyTextBlockStyle}"
                                 FontWeight="SemiBold"
                                 Text="{x:Bind Label}"
                                 TextWrapping="Wrap" />
                             <TextBlock
-                                FontSize="12"
+                                Style="{StaticResource CaptionTextBlockStyle}"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Text="{x:Bind Description}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
+                        <!-- The setting's own key, shown only in customize mode
+                             as the diagnostic under the card's real name. It
+                             used to be set to 11px, below the 12px regular
+                             floor the type guidance cites for legible UI text;
+                             Caption is 12/16. -->
                         <TextBlock
-                            FontSize="11"
+                            Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                             Text="{x:Bind Key}"
                             TextWrapping="Wrap" />

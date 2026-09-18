@@ -68,7 +68,7 @@
                 CornerRadius="4">
                 <TextBlock
                     x:Name="GroupText"
-                    FontSize="11" />
+                    Style="{StaticResource CaptionTextBlockStyle}" />
             </Border>
             <Button
                 x:Name="CopyButton"

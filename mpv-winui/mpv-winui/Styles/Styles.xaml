@@ -875,15 +875,17 @@
         <Setter Property="Padding" Value="12,8" />
     </Style>
 
-    <Style x:Key="MpvSectionHeaderStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
-        <Setter Property="Margin" Value="0,8,0,4" />
-    </Style>
-
-    <Style x:Key="MpvCaptionTextStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11" />
-        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+    <!-- Section caption above a group of option cards. The Windows design
+         guidance names Body Strong for section headers, so this derives from
+         that ramp step (14/20 semibold) instead of restating a size: the
+         previous definition here was 12px regular, which sits at the floor
+         for legible UI text rather than at the style the guidance asks for,
+         and nothing consumed it anyway. -->
+    <Style
+        x:Key="MpvSectionHeaderStyle"
+        BasedOn="{StaticResource BodyStrongTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="Margin" Value="4,16,4,8" />
     </Style>
 
     <!-- Shared acrylic shell for the player popups (control panel, track

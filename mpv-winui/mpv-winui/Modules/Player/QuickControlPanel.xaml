@@ -36,7 +36,7 @@
                 </Slider>
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontSize="11"
+                    Style="{StaticResource CaptionTextBlockStyle}"
                     Margin="0,0,0,6"
                     Text="{x:Bind Band}" />
             </StackPanel>
