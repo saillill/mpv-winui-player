@@ -21,7 +21,10 @@ if ($SkipPublish) {
 }
 
 $pub = $publishDir.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
-if (-not (Test-Path -LiteralPath "$pub\mpv-winui.exe")) {
+# The assembly (and therefore the launcher) is named mpvw, not mpv-winui - see
+# AssemblyName in mpv-winui.csproj. Checking the wrong name made this script
+# fail on a perfectly good publish output.
+if (-not (Test-Path -LiteralPath "$pub\mpvw.exe")) {
     Write-Error "Publish output not found: $pub (run build.ps1 + publish first, or omit -SkipPublish)"
 }
 
