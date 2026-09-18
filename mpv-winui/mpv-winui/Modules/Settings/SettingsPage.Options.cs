@@ -411,6 +411,10 @@ private List<Option> BuildSettings()
             ["ActionUnassociateFiles"] = 217,
             ["ActionExportConfig"] = 218,
             ["ActionImportConfig"] = 219,
+            // Ties with Import: the escape hatch is declared right after it in
+            // BuildProgramBehaviorOptions, and OrderBy is stable, so this keeps
+            // the two config-file buttons adjacent without renumbering 220+.
+            ["ActionOpenMpvConf"] = 219,
             [nameof(AppSettings.CheckForUpdates)] = 220,
             [nameof(AppSettings.ControlBarLayout)] = 220,
             [nameof(AppSettings.ControlBarHiddenIcons)] = 221,
@@ -792,6 +796,7 @@ private List<Option> BuildSettings()
             ["ActionUnassociateFiles"] = sProgramAssociations,
             ["ActionExportConfig"] = sProgramConfig,
             ["ActionImportConfig"] = sProgramConfig,
+            ["ActionOpenMpvConf"] = sProgramConfig,
             [nameof(AppSettings.ControlBarLayout)] = sProgramInterface,
             [nameof(AppSettings.ControlBarHiddenIcons)] = sProgramInterface,
             // osd

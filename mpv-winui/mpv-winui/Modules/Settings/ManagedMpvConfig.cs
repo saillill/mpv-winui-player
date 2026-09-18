@@ -47,6 +47,25 @@ public static class ManagedMpvConfig
     /// <summary>Matches the manifest convention in ConfigDeployer: "&lt;sha256&gt;\t&lt;block name&gt;".</summary>
     private const string StateFileName = "mpv-winui-managed.json";
 
+    /// <summary>
+    /// The deployed mpv.conf this class rewrites, and therefore the one file
+    /// whose lines outrank everything the settings window does at runtime.
+    ///
+    /// Exposed deliberately: the "open mpv.conf" escape hatch has to point at
+    /// exactly this file. Deriving the path independently would risk sending
+    /// someone to edit a different mpv.conf than the app maintains, which is
+    /// the one failure mode that would make the precedence promise a lie.
+    /// </summary>
+    public static string MpvConfPath { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "mpv-winui",
+        "mpv",
+        "mpv.conf");
+
+    /// <summary>True when the deployed config exists, so the UI can disable a
+    /// control whose target is missing rather than failing on click.</summary>
+    public static bool MpvConfExists => File.Exists(MpvConfPath);
+
     public static async Task WriteAsync()
     {
         try
@@ -75,11 +94,7 @@ public static class ManagedMpvConfig
             EndMarker,
         };
 
-        var path = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "mpv-winui",
-            "mpv",
-            "mpv.conf");
+        var path = MpvConfPath;
         if (!File.Exists(path))
         {
             // Config is normally deployed by deploy-config.ps1; without it the

@@ -153,6 +153,9 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpImportConfig { get; set; } = "Restore settings from a settings file.";
         public string SettingsConfigExported { get; set; } = "Settings exported.";
         public string SettingsConfigImported { get; set; } = "Settings imported. Some options take effect on the next launch.";
+        public string SettingsOpenMpvConf { get; set; } = "Edit mpv.conf";
+        public string SettingsHelpOpenMpvConf { get; set; } = "Open mpv.conf in your text editor. Lines here override the settings window — anything you write wins.";
+        public string SettingsOpenMpvConfMissing { get; set; } = "mpv.conf was not found. Launch the player once so it can create it.";
         // Shortcuts
         public string KeyCapturePlaceholder { get; set; } = "Press any key...";
         public string ResetShortcutsDone { get; set; } = "Shortcuts reset. Takes effect on the next launch.";

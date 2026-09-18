@@ -10,6 +10,7 @@ using mpv_winui.Modules.Player;
 using mpv_winui.Modules.Settings.Controls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -112,6 +113,53 @@ public sealed partial class SettingsPage
         catch (System.Exception ex)
         {
             AppContext.AppLogger.Error(ex, "Import config failed");
+        }
+    }
+
+    /// <summary>
+    /// Opens the deployed mpv.conf in whatever the user associates with .conf.
+    ///
+    /// This is the raw escape hatch the settings window promises: mpv.conf is
+    /// the authority, so tens of options that have no row here are still
+    /// reachable, and a hand-written line always beats both the managed block
+    /// and everything the UI does at runtime.
+    ///
+    /// The file is opened through the shell rather than launched as a storage
+    /// item: the whole point is editing it as text, and LaunchFileAsync would
+    /// hand it to whatever app "opens" it, which for a .conf is often nothing
+    /// or a browser instead of an editor.
+    /// </summary>
+    private void FireAndForgetOpenMpvConf()
+    {
+        _ = OpenMpvConfAsync();
+    }
+
+    private async Task OpenMpvConfAsync()
+    {
+        try
+        {
+            if (!ManagedMpvConfig.MpvConfExists)
+            {
+                // Nothing to edit. Saying so beats an explorer stub that would
+                // leave the user staring at an empty folder.
+                _actionStatus = AppContext.AppLang.SettingsOpenMpvConfMissing;
+                return;
+            }
+
+            await Task.Run(() => Process.Start(new ProcessStartInfo
+            {
+                FileName = ManagedMpvConfig.MpvConfPath,
+                UseShellExecute = true,
+            }));
+
+            // Re-read what the file now names, so rows the user has just taken
+            // over pick up their "overridden by mpv.conf" marker without
+            // waiting for a restart.
+            MpvConfOverrides.Refresh();
+        }
+        catch (System.Exception ex)
+        {
+            AppContext.AppLogger.Error(ex, "Open mpv.conf failed");
         }
     }
 }

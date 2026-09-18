@@ -248,6 +248,23 @@ public sealed partial class SettingsPage
                 ActionStatus = () => _actionStatus,
             },
 
+            // The escape hatch. mpv.conf is the authority (see
+            // docs/mpv-conf-precedence.md), so the UI needs a way in -- not
+            // because the settings window is incomplete, but because some
+            // options only exist in the manual and a line here always wins.
+            new Option
+            {
+                Key = "ActionOpenMpvConf",
+                Label = lang.SettingsOpenMpvConf,
+                Category = program,
+                Description = lang.SettingsHelpOpenMpvConf,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.SettingsOpenMpvConf,
+                ActionHandler = _ => FireAndForgetOpenMpvConf(),
+                ActionStatus = () => _actionStatus,
+            },
+
             new Option
             {
                 Key = nameof(AppContext.AppSetting.AlwaysOnTop),
