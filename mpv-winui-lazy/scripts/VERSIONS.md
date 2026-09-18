@@ -12,7 +12,7 @@ the file header comment repeats it.
 | `hdr_auto.lua` | RTX Video HDR auto-attach |
 | `vsr_auto.lua` | NVIDIA VSR auto-attach |
 | `seek_hold.lua` | freeze window resize during seeks |
-| `dynamic_menu.lua` | dynamic shader/VSR/HDR submenus |
+| `dynamic_menu.lua` | dynamic VSR/HDR submenus |
 | `mpvw_hdr_override.lua` | color-kind manual override |
 | `save_global_props.lua` | persist volume/mute |
 | `auto_sub_fonts_dir.lua` | auto-load adjacent fonts dir |
@@ -42,6 +42,6 @@ the file header comment repeats it.
 3. Update the `COMMIT_`/pin in the file header **and** this table.
 4. Re-run `deploy-config.ps1` and smoke the affected feature.
 
-> Shaders (`shaders/`), VapourSynth templates (`vs/`) and fonts come from
+> VapourSynth templates (`vs/`) and fonts come from
 > mpv-lazy / upstream projects with their own provenance; see
 > `../licenses/THIRD_PARTY_NOTICES.md` for licenses.

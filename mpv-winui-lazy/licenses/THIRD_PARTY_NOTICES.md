@@ -43,21 +43,6 @@ pin codepoints matching zydezu/ModernX's usage. ModernX publishes no LICENSE
 file, so the app bundles the official MIT-licensed Microsoft font that
 contains the same outlines instead of ModernX's repackaged copy.
 
-## Shaders (`shaders/`)
-
-Licenses are declared in each file header:
-
-| Shader | License |
-|---|---|
-| `Adaptive_sharpen/Adaptive_sharpen_lite_RT.glsl` | BSD-style (c) 2015-2021 bacondither |
-| `Ani/Ani4Kv2_ArtCNN_C4F32_i2_dx.glsl`, `Ani/AniSD_ArtCNN_C4F32_i4_dx.glsl` | Model weights CC BY-NC 4.0 (non-commercial, trained by Sirosky); ArtCNN architecture MIT |
-| `Anime4K/Anime4K_Restore_CNN_L.glsl`, `Anime4K/Anime4K_Upscale_GAN_x2_M.glsl` | MIT (c) 2019-2021 bloc97 |
-| `EDI/nnedi3_nns64_win8x4.glsl` | LGPL-3.0 |
-| `ESRGAN/k7_modernAnime_FHD_x2.glsl`, `ESRGAN/k7_modernAnime_DT_FHD_x2.glsl` | MIT (c) 2026 hooke007 |
-| `FSRCNNX/FSRCNNX_x2_16_0_4_1.glsl` | LGPL-2.1+ (c) 2017-2021 igv |
-| `NV/NVScaler_RT.glsl`, `NV/NVScaler_rgb_RT.glsl`, `NV/NVSharpen_RT.glsl`, `NV/NVSharpen_rgb_RT.glsl` | MIT (c) 2022 NVIDIA CORPORATION & AFFILIATES |
-| `QCOM/QCOM_SGEDS_ms_RT.glsl` | See file header |
-
 ## VapourSynth scripts (`vs/`)
 
 `vs/*.vpy` are VapourSynth templates maintained by the mpv-lazy project

@@ -127,11 +127,6 @@ local hdr_menu_data = {
 }
 
 -- =========================================================================
---  配置区域 2：Shaders 滤镜菜单（精简：复杂滤镜已移除，仅保留 VSR/HDR）
--- =========================================================================
-local shader_menu_data = {}
-
--- =========================================================================
 --  核心逻辑
 -- =========================================================================
 local function is_active(prop_name, keyword)
@@ -140,12 +135,6 @@ local function is_active(prop_name, keyword)
 
     if prop_name == "user-data/hdr-auto/mode" then
         return tostring(prop) == keyword
-    end
-
-    if prop_name == "glsl-shaders" and type(prop) == "table" then
-        for _, path in ipairs(prop) do
-            if string.find(path, keyword, 1, true) then return true end
-        end
     end
 
     if prop_name == "vf" and type(prop) == "table" then
@@ -198,13 +187,9 @@ local function update_menus()
 
     local hdr_json = utils.format_json({ type = "submenu", submenu = build_json(hdr_menu_data) })
     mp.commandv('script-message-to', 'dyn_menu', 'update', 'hdr_menu', hdr_json)
-
-    local shader_json = utils.format_json({ type = "submenu", submenu = build_json(shader_menu_data) })
-    mp.commandv('script-message-to', 'dyn_menu', 'update', 'shader_menu', shader_json)
 end
 
 mp.register_script_message('menu-ready', update_menus)
-mp.observe_property("glsl-shaders", "native", update_menus)
 mp.observe_property("vf", "native", update_menus)
 mp.observe_property("user-data/hdr-auto/mode", "native", update_menus)
 mp.observe_property('user-data/mpvw/language', 'string', function()

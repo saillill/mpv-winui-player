@@ -41,7 +41,7 @@ return MpvConfSchemaService.LoadFromDirectory(definitionDirectory);
 | | `mpv-winui-lazy/` | `appdata-sample/` |
 | :--- | :--- | :--- |
 | 谁在用 | 构建会打包，`ConfigDeployer` 启动时自动同步到 AppData | 无人引用，纯手动样例 |
-| 内容 | 完整的 mpv 配置 + 脚本 + shader + 工具 | 上游早期的精简样例 |
+| 内容 | 完整的 mpv 配置 + 脚本 + 工具 | 上游早期的精简样例 |
 | 改了会怎样 | 影响所有安装（自动部署并清理旧文件） | 什么都不影响 |
 
 `mpv/` 子目录属于上游遗留：本分支的 `ConfigDeployer` 已经会用 `mpv-winui-lazy/`
