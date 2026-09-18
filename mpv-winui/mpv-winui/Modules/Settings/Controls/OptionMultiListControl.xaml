@@ -15,7 +15,7 @@
         <StackPanel
             Grid.Column="0"
             VerticalAlignment="Center"
-            Spacing="2">
+            Spacing="{StaticResource MpvSpaceXxs}">
             <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
             <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
             <TextBlock
@@ -28,6 +28,6 @@
             x:Name="RowsPanel"
             Grid.Column="1"
             VerticalAlignment="Center"
-            Spacing="6" />
+            Spacing="{StaticResource MpvSpaceCompact}" />
     </Grid>
 </local:OptionControlBase>

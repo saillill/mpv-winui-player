@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
         <StackPanel
             Grid.Row="0"
-            Spacing="2">
+            Spacing="{StaticResource MpvSpaceXxs}">
             <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
             <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
         </StackPanel>
@@ -26,7 +26,7 @@
             Margin="0,12,0,0">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <StackPanel Spacing="10" />
+                    <StackPanel Spacing="{StaticResource MpvSpaceM}" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ItemsControl>

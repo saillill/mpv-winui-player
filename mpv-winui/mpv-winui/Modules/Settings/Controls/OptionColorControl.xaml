@@ -26,7 +26,7 @@
             <StackPanel
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Spacing="2">
+                Spacing="{StaticResource MpvSpaceXxs}">
                 <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
                 <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
                 <TextBlock x:Name="WarningText" Style="{StaticResource MpvOptionWarningStyle}" />
@@ -35,7 +35,7 @@
                 Grid.Column="1"
                 Orientation="Horizontal"
                 VerticalAlignment="Center"
-                Spacing="8">
+                Spacing="{StaticResource MpvSpaceS}">
                 <Border
                     x:Name="ColorSwatch"
                     Width="32"
@@ -58,7 +58,7 @@
             x:Name="ExpandedPanel"
             Grid.Row="1"
             Margin="0,12,0,0"
-            Spacing="8"
+            Spacing="{StaticResource MpvSpaceS}"
             Visibility="Collapsed">
             <TextBlock
                 x:Name="RecentLabel"
@@ -66,16 +66,16 @@
                 Text="Recent colors" />
             <Grid
                 x:Name="RecentGrid"
-                ColumnSpacing="8"
-                RowSpacing="8" />
+                ColumnSpacing="{StaticResource MpvSpaceS}"
+                RowSpacing="{StaticResource MpvSpaceS}" />
             <TextBlock
                 x:Name="WindowsLabel"
                 FontWeight="SemiBold"
                 Text="Windows colors" />
             <Grid
                 x:Name="WindowsGrid"
-                ColumnSpacing="8"
-                RowSpacing="8" />
+                ColumnSpacing="{StaticResource MpvSpaceS}"
+                RowSpacing="{StaticResource MpvSpaceS}" />
             <Button
                 x:Name="CustomButton"
                 MinWidth="120"

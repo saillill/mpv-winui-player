@@ -16,7 +16,7 @@
         <StackPanel
             Grid.Column="0"
             VerticalAlignment="Center"
-            Spacing="2">
+            Spacing="{StaticResource MpvSpaceXxs}">
             <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
             <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
             <TextBlock

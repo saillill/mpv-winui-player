@@ -7,8 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Spacing="8">
-        <StackPanel Spacing="2">
+    <StackPanel Spacing="{StaticResource MpvSpaceS}">
+        <StackPanel Spacing="{StaticResource MpvSpaceXxs}">
             <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
             <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
             <TextBlock x:Name="WarningText" Style="{StaticResource MpvOptionWarningStyle}" />
@@ -19,7 +19,7 @@
                 <DataTemplate x:DataType="local:ShaderEntry">
                     <Grid
                         Margin="0,2"
-                        ColumnSpacing="6">
+                        ColumnSpacing="{StaticResource MpvSpaceCompact}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />

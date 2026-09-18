@@ -921,6 +921,46 @@
         <Setter Property="Visibility" Value="Collapsed" />
     </Style>
 
+    <!-- Spacing scale.
+         Two scales, because there are genuinely two jobs. The Windows guidance
+         gives 8 / 12 / 16 for spacing between surfaces, content areas and edge
+         text; gaps *inside* a control (a glyph and the label beside it) are
+         tighter than that and are a separate scale. Naming both is the point:
+         the settings pages had accumulated hand-typed 2s, 3s, 6s, 10s and
+         one-off Thickness literals, so a value that happened to look right
+         became the convention for the next control. Now a spacing value is
+         picked from here or it is deliberate and commented.
+
+         A literal 0 stays a literal 0: "no spacing" is not a step on a
+         scale. -->
+    <x:Double x:Key="MpvSpaceXxs">2</x:Double>
+    <x:Double x:Key="MpvSpaceXs">4</x:Double>
+    <x:Double x:Key="MpvSpaceCompact">6</x:Double>
+    <x:Double x:Key="MpvSpaceS">8</x:Double>
+    <x:Double x:Key="MpvSpaceM">12</x:Double>
+    <x:Double x:Key="MpvSpaceL">16</x:Double>
+    <x:Double x:Key="MpvSpaceXl">24</x:Double>
+
+    <!-- The two repeated Thickness shapes in the settings list: the gap under
+         an option row, and the padding inside a section card. -->
+    <Thickness x:Key="MpvOptionRowMargin">0,0,0,8</Thickness>
+    <Thickness x:Key="MpvCardPadding">16,16,16,16</Thickness>
+    <!-- The remaining repeated Thickness shapes in the settings surfaces, named
+         so a shape that reads the same is written the same. Every value here
+         is exactly what the consuming site had inline: this batch moved
+         spacing onto the scale, it did not re-tune it. The two off-scale pairs
+         (a 6/2 button inset, a 16/10 footer bar) keep their numbers because
+         their heights are hand-matched to controls sitting beside them, and a
+         comment at each site says so. -->
+    <Thickness x:Key="MpvCompactButtonPadding">8,4</Thickness>
+    <Thickness x:Key="MpvTinyButtonPadding">6,2</Thickness>
+    <Thickness x:Key="MpvCardPaddingWide">16,10</Thickness>
+    <Thickness x:Key="MpvTitleBarPadding">16,5</Thickness>
+    <Thickness x:Key="MpvOptionRowMarginXl">0,12,0,8</Thickness>
+    <Thickness x:Key="MpvSplitterMargin">0,16,0,4</Thickness>
+    <Thickness x:Key="MpvBreadcrumbBarMargin">12,4,12,12</Thickness>
+    <Thickness x:Key="MpvSearchGlyphMargin">14,0,0,0</Thickness>
+
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
          consuming flyout via BasedOn. -->

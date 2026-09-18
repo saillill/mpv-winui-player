@@ -11,8 +11,8 @@
         <DataTemplate x:Key="BooleanTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -27,8 +27,8 @@
         <DataTemplate x:Key="TextTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -43,8 +43,8 @@
         <DataTemplate x:Key="IntegerTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -59,8 +59,8 @@
         <DataTemplate x:Key="DoubleTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -75,8 +75,8 @@
         <DataTemplate x:Key="TextListTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -91,8 +91,8 @@
         <DataTemplate x:Key="ColorTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -107,8 +107,8 @@
         <DataTemplate x:Key="ActionTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -123,8 +123,8 @@
         <DataTemplate x:Key="CheckListTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -139,8 +139,8 @@
         <DataTemplate x:Key="LayoutTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -155,8 +155,8 @@
         <DataTemplate x:Key="MultiListTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -171,8 +171,8 @@
         <DataTemplate x:Key="ShaderListTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
+                Margin="{StaticResource MpvOptionRowMargin}"
+                Padding="{StaticResource MpvCardPadding}"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -199,14 +199,14 @@
         <DataTemplate x:Key="CustomizeSectionTemplate" x:DataType="ctl:SectionHeaderItem">
             <Border
                 x:Name="SectionDragSurface"
-                Margin="0,12,0,8"
+                Margin="{StaticResource MpvOptionRowMarginXl}"
                 Padding="12,8,12,8"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
+                <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -264,7 +264,7 @@
              cards that live outside every folder, so the two groups read as
              different things instead of one long run. -->
         <DataTemplate x:Key="CustomizeSplitterTemplate" x:DataType="ctl:SectionHeaderItem">
-            <Grid Margin="0,16,0,4">
+            <Grid Margin="{StaticResource MpvSplitterMargin}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -286,7 +286,7 @@
         <DataTemplate x:Key="CustomizeTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
+                Margin="{StaticResource MpvOptionRowMargin}"
                 Padding="12,12,12,12"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -295,7 +295,7 @@
                 ContextFlyout="{x:Bind Edit.RowMenu}"
                 CornerRadius="4"
                 Opacity="{x:Bind CardOpacity, Mode=OneWay}">
-                <Grid ColumnSpacing="12">
+                <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -314,12 +314,12 @@
                         Glyph="&#xE76F;"
                         ToolTipService.ToolTip="{x:Bind Edit.DragHandleTip}" />
 
-                    <StackPanel Grid.Column="1" Spacing="6">
+                    <StackPanel Grid.Column="1" Spacing="{StaticResource MpvSpaceCompact}">
                         <!-- Label/description are the built-in localized text
                              (or the user's own override); editing them opens
                              the rename dialog, which stores an override instead
                              of touching the language files. -->
-                        <StackPanel Spacing="2">
+                        <StackPanel Spacing="{StaticResource MpvSpaceXxs}">
                             <TextBlock
                                 Style="{StaticResource BodyTextBlockStyle}"
                                 FontWeight="SemiBold"
@@ -349,7 +349,7 @@
                     <Button
                         Grid.Column="2"
                         MinWidth="0"
-                        Padding="8,4"
+                        Padding="{StaticResource MpvCompactButtonPadding}"
                         VerticalAlignment="Top"
                         Background="Transparent"
                         BorderThickness="0"
@@ -362,7 +362,7 @@
                     <Button
                         Grid.Column="3"
                         MinWidth="0"
-                        Padding="8,4"
+                        Padding="{StaticResource MpvCompactButtonPadding}"
                         VerticalAlignment="Top"
                         AutomationProperties.Name="{x:Bind Edit.MoreAutomationName}"
                         ToolTipService.ToolTip="{x:Bind Edit.MoreTip}">
@@ -448,7 +448,7 @@
             Grid.Row="0"
             MinHeight="40"
             Margin="8,4,32,4"
-            ColumnSpacing="8"
+            ColumnSpacing="{StaticResource MpvSpaceS}"
             Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -470,7 +470,7 @@
                 Grid.Column="1"
                 VerticalAlignment="Center"
                 Click="ShowHiddenToggle_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceS}">
                     <FontIcon FontSize="14" Glyph="&#xE7B3;" />
                     <TextBlock x:Name="ShowHiddenToggleText" />
                 </StackPanel>
@@ -481,7 +481,7 @@
                 Grid.Column="2"
                 VerticalAlignment="Center"
                 Click="CreateColumn_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceS}">
                     <FontIcon FontSize="14" Glyph="&#xE8A5;" />
                     <TextBlock x:Name="NewColumnButtonText" />
                 </StackPanel>
@@ -492,7 +492,7 @@
                 Grid.Column="3"
                 VerticalAlignment="Center"
                 Click="CreateSection_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceS}">
                     <FontIcon FontSize="14" Glyph="&#xE8F4;" />
                     <TextBlock x:Name="NewSectionButtonText" />
                 </StackPanel>
