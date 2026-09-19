@@ -119,21 +119,24 @@ private List<Option> BuildSettings()
         // decision rather than left as "not listed here".
         var advancedSections = new HashSet<string>(StringComparer.Ordinal)
         {
-            sProgramAssociations, sProgramTesting,
-
-            // Playback: Seeking (3) and DemuxerPlaylist (6) stay folded. The
-            // three that used to sit here did not survive the floor --
-            // SeekPreview keeps only 2 rows past its pinned switch, and
-            // ReversePlayback and WatchLaterStorage are 2 rows each, so all
-            // three are now listed as flat below.
+            // Program: both of these were cards until the floor was counted
+            // properly. Associations keeps two rows and Testing one, so each
+            // was a click that revealed less than its own header -- the exact
+            // submenu the floor exists to prevent. TestSignal, the two file
+            // association rows and UnassociateFiles now sit on the overview.
             //
-            // sPlayback itself was flat until it was measured: 8 rows of
-            // resume-on-quit, A/B loop marks and playlist looping. Speed and
-            // SavePositionOnQuit are pinned back below, so folding it leaves
-            // the two rows people actually reach for on the overview and
-            // moves the loop plumbing behind a card.
+            // Playback: DemuxerPlaylist (6) stays folded. Seeking (3) does
+            // not: three rows is under the floor, so it is flat. The three
+            // that used to sit here did not survive either -- SeekPreview
+            // keeps only 2 rows past its pinned switch, and ReversePlayback
+            // and WatchLaterStorage are 2 rows each.
+            //
+            // sPlayback itself is folded: 8 rows of resume-on-quit, A/B loop
+            // marks and playlist looping. Speed and SavePositionOnQuit are
+            // pinned back below, so folding it leaves the two rows people
+            // actually reach for on the overview and moves the loop plumbing
+            // behind a card.
             sPlayback,
-            sPlaybackSeeking,
 
             // Picture controls everyone recognises: brightness, contrast,
             // saturation, hue, sharpen, rotate. Those stay on the overview,
@@ -147,15 +150,19 @@ private List<Option> BuildSettings()
             // and shader paths. None of those are recognisable to a normal
             // user, so none of them earn a first-level row.
             //
-            // VideoDecode used to be folded to hide the single row left over
-            // beside the pinned Hwdec switch. With only HwdecCodecs behind it
-            // that is a one-row card, so it is flat now and its rows sit
-            // beside Hwdec where they belong.
-            sVideoFilters, sVideoSync,
-            sColorManagement, sGpuScaling, sGpuShaders, sGpuBackground, sGpuD3d11,
+            // VideoDecode and VideoFilters are flat: three rows each is under
+            // the floor. VideoDecode used to be folded to hide the single row
+            // left beside the pinned Hwdec switch, and still only has Hwdec-
+            // Codecs behind it, which is a one-row card.
+            //
+            // GpuBackground is flat for the same reason -- three rows.
+            sVideoSync,
+            sColorManagement, sGpuScaling, sGpuShaders, sGpuD3d11,
             sToneMapping, sTargetColorspace, sVideoImage,
 
-            sAudioExternal, sAudioCoverArt,
+            // AudioExternal is flat: three rows is under the floor. CoverArt
+            // (7) keeps its card.
+            sAudioCoverArt,
 
             // Subtitles used to keep Style (18) and Behavior (12) on the
             // overview on the argument that they carry font size, colour and
@@ -212,6 +219,17 @@ private List<Option> BuildSettings()
             sWindow,
         };
 
+        // The fold set was a list of sections; it is now a lower bound applied
+        // to each section's final row count, because a list cannot know how
+        // many rows survive the pins. The two failures that produced this:
+        // ProgramTesting ended up a card holding ONE row (TestSignal) after
+        // its switches were pinned, and ProgramAssociations held TWO -- a
+        // card with one row behind it is a click that costs more than the row
+        // it hides. Both were listed as advanced and measured only by eye.
+        //
+        // So the decision is made by ApplyFoldFloor below, once the pins and
+        // the sections are both known.
+
         // Sections that must NOT fold even though they share a category with
         // ones that do. There is no such set today -- the floor decided
         // everything -- but the flat ones are named here rather than left
@@ -246,6 +264,11 @@ private List<Option> BuildSettings()
             nameof(AppSettings.OsdLevel),          // OSD visibility level
             nameof(AppSettings.EnableVideoPreview),// seek preview switch
         };
+
+        // Whether a section folds is read off its FINAL row count, so it is
+        // decided after sectionMap resolves every row's Section and after the
+        // pins are applied -- see ApplyFoldFloor below. Deciding it here, from
+        // the section list alone, is what left a one-row card behind.
 
         foreach (var option in options)
         {
@@ -1160,6 +1183,12 @@ private List<Option> BuildSettings()
 
         CategoryOrder.AddRange(categoryOrder);
 
+        // Every row now knows its Section (resolved from sectionMap above) and
+        // every row knows whether it is pinned to the overview (applied in the
+        // loop above). That is exactly the input the fold decision needs, so
+        // it happens here rather than where the section list was written.
+        ApplyFoldFloor(options, advancedSections, pinnedOverviewOptions);
+
         // Customize-mode captions are localized, so refresh them with the rest
         // of the page before the stored layout is merged in.
         foreach (var option in options)
@@ -1179,6 +1208,64 @@ private List<Option> BuildSettings()
         ApplyLayout(options);
 
         return options;
+    }
+
+    /// <summary>
+    /// Minimum rows a section must keep on the overview for its card to be
+    /// worth opening. Below this the section is flattened into the category.
+    /// </summary>
+    private const int FoldFloor = 4;
+
+    /// <summary>
+    /// Drops sections whose card would hold fewer than <see cref="FoldFloor"/>
+    /// rows, so the second-level menu never opens onto one or two options.
+    ///
+    /// The check runs on the row count that actually survives the pins, not on
+    /// the section's raw size. Those differ whenever a pinned row is the only
+    /// reason a section had a card: ProgramTesting was listed as advanced and
+    /// held four rows, three of which are pinned to the overview -- so the
+    /// card opened onto TestSignal alone. Counting the survivors is the only
+    /// way to see that, and it needs the rows to have their final Section,
+    /// which is why this runs after sectionMap rather than beside the list.
+    ///
+    /// One-way: a section can lose the fold mark here but never gain it. The
+    /// list in BuildSettings is the intent -- a large section nobody asked to
+    /// fold stays flat -- and this only vetoes.
+    /// </summary>
+    private static void ApplyFoldFloor(
+        List<Option> options,
+        ISet<string> advancedSections,
+        ISet<string> pinnedOverviewOptions)
+    {
+        var rowsBySection = options
+            .Where(o => o.Section is not null)
+            .GroupBy(o => o.Section!, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.Ordinal);
+        var pinnedBySection = options
+            .Where(o => o.Section is not null && pinnedOverviewOptions.Contains(o.Key))
+            .GroupBy(o => o.Section!, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.Ordinal);
+
+        foreach (var section in advancedSections.ToList())
+        {
+            var behindTheCard = rowsBySection.GetValueOrDefault(section)
+                                - pinnedBySection.GetValueOrDefault(section);
+            if (behindTheCard < FoldFloor)
+            {
+                advancedSections.Remove(section);
+
+                // The rows were marked advanced when the section was; clear it
+                // so they actually render on the overview. Leaving the flag set
+                // would hide them behind a card the section no longer has.
+                foreach (var option in options.Where(o => o.Section == section))
+                {
+                    if (!pinnedOverviewOptions.Contains(option.Key))
+                    {
+                        option.AdvancedSection = false;
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>

@@ -27,8 +27,20 @@ public sealed partial class SettingsWindow : BaseWindow
 
         if (AppWindow.Presenter is OverlappedPresenter presenter)
         {
+            // The floor is set here because this is the only window whose
+            // content is a two-column list. Each row is a label and a
+            // one-line description on the left, a control on the right, with a
+            // 24 px gap between the columns; below roughly 640 logical px the
+            // text column is narrower than the longest option label and every
+            // description ends in an ellipsis a few characters in. The list
+            // then reads as noise rather than as truncated text.
+            //
+            // 720 was already the width; the height is what moves, because
+            // 480 leaves room for about six rows -- fewer than one category
+            // holds, so the wheel becomes the only way to see a section.
+            // 720 x 560 shows a full screen of rows at the default UI font.
             presenter.PreferredMinimumWidth = 720;
-            presenter.PreferredMinimumHeight = 480;
+            presenter.PreferredMinimumHeight = 560;
         }
 
         // WindowStyleManager and the theme/backdrop plumbing live on BaseWindow;

@@ -900,12 +900,12 @@
         x:Key="MpvOptionLabelStyle"
         BasedOn="{StaticResource BodyTextBlockStyle}"
         TargetType="TextBlock">
-        <Setter Property="TextWrapping" Value="Wrap" />
-        <!-- Same reasoning as the description below: an option name is a
-             label, not a paragraph, and a long one wrapping to four lines in a
-             narrow window is what actually bends the row out of shape. Two is
-             generous for a name and enough for the longest in the tree. -->
-        <Setter Property="MaxLines" Value="2" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+        <!-- One line, matching the description below: a wrapping label makes
+             the row taller and the control beside it off-centre, and the
+             longer names in the generated set (a schema option name can run
+             past 30 characters) would otherwise wrap at any realistic width. -->
+        <Setter Property="MaxLines" Value="1" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
 
@@ -915,16 +915,19 @@
         TargetType="TextBlock">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
-        <!-- Two lines, then an ellipsis. Without MaxLines a narrow window just
-             keeps wrapping, and because the description sits in the same
-             two-column grid as the control, every extra line pushes the row
-             taller and drags the control off the vertical centre. Capping at
-             two keeps a row the same height at any width, which is what makes
-             the list scannable when the window is snapped. MaxLines plus
-             TextTrimming is the only combination that both stops the growth
-             and shows that there is more text; either alone leaves a silently
-             clipped or endlessly growing line. -->
-        <Setter Property="MaxLines" Value="2" />
+        <!-- One line, then an ellipsis.
+             The row height is the thing being protected. The description sits
+             in a two-column grid beside the control, so every extra line it
+             wraps to pushes the row taller and drags the control off the
+             vertical centre, and at two lines the list stops being scannable
+             when the window is snapped, which is exactly when it matters.
+             One line makes every row the same height at any width. MaxLines
+             plus TextTrimming is the only combination that both stops the
+             growth and shows there is more text; either alone leaves a
+             silently clipped or endlessly growing line. The help text in
+             Languages/*.json is the place for the rest, and it is already
+             trimmed to be short enough to fit. -->
+        <Setter Property="MaxLines" Value="1" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         <Setter Property="Visibility" Value="Collapsed" />
     </Style>
