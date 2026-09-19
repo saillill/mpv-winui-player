@@ -108,6 +108,7 @@ internal static class SettingsSections
         new("SectionSubtitleImage", "\uE91B", l => l.SectionSubtitleImage, l => l.SectionDescSubtitleImage),
         new("SectionOsdBehavior", "\uE7EE", l => l.SectionOsdBehavior, l => l.SectionDescOsdBehavior),
         new("SectionOsdAppearance", "\uE2B1", l => l.SectionOsdAppearance, l => l.SectionDescOsdAppearance),
+        new("SectionOsdText", "\uED1F", l => l.SectionOsdText, l => l.SectionDescOsdText),
         new("SectionOsdPosition", "\uE787", l => l.SectionOsdPosition, l => l.SectionDescOsdPosition),
         new("SectionOsdMetadata", "\uEA8F", l => l.SectionOsdMetadata, l => l.SectionDescOsdMetadata),
         new("SectionScreenshotLocation", "\uE8B5", l => l.SectionScreenshotLocation, l => l.SectionDescScreenshotLocation),

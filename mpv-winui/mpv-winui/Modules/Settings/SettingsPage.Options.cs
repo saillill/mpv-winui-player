@@ -63,6 +63,7 @@ private List<Option> BuildSettings()
         var sOsdBehavior = AppContext.AppLang.SectionOsdBehavior;
         var sOsdPosition = AppContext.AppLang.SectionOsdPosition;
         var sWindow = AppContext.AppLang.SectionWindow;
+        var sOsdText = AppContext.AppLang.SectionOsdText;
         var sSubBehavior = AppContext.AppLang.SectionSubtitleBehavior;
         var sSubStyle = AppContext.AppLang.SectionSubtitleStyle;
         var sSubPosition = AppContext.AppLang.SectionSubtitlePosition;
@@ -221,6 +222,20 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.TestMpvCommandLog)] = 6,
             [nameof(AppSettings.TestOsdMessage)] = 7,
             [nameof(AppSettings.TestSignal)] = 8,
+            [nameof(AppSettings.OsdScale)] = 2201,
+            [nameof(AppSettings.OsdSpacing)] = 2202,
+            [nameof(AppSettings.OsdBold)] = 2203,
+            [nameof(AppSettings.OsdItalic)] = 2204,
+            [nameof(AppSettings.OsdJustify)] = 2205,
+            [nameof(AppSettings.OsdShadowOffset)] = 2206,
+            [nameof(AppSettings.OsdFontsDir)] = 2207,
+            [nameof(AppSettings.OsdFontProvider)] = 2208,
+            [nameof(AppSettings.OsdShaper)] = 2209,
+            [nameof(AppSettings.OsdBackColor)] = 2301,
+            [nameof(AppSettings.OsdSelectedColor)] = 2302,
+            [nameof(AppSettings.OsdSelectedOutlineColor)] = 2303,
+            [nameof(AppSettings.OsdScaleByWindow)] = 2401,
+            [nameof(AppSettings.OsdMarginYOffset)] = 2501,
             [nameof(AppSettings.SubVisibility)] = 1501,
             [nameof(AppSettings.SubFixTiming)] = 1502,
             [nameof(AppSettings.SubFixTimingThreshold)] = 1503,
@@ -901,6 +916,20 @@ private List<Option> BuildSettings()
             // loop modes that people use constantly, and a diagnostic tone
             // generator does not belong beside them.
             [nameof(AppSettings.TestSignal)] = sProgramTesting,
+            [nameof(AppSettings.OsdScale)] = sOsdText,
+            [nameof(AppSettings.OsdSpacing)] = sOsdText,
+            [nameof(AppSettings.OsdBold)] = sOsdText,
+            [nameof(AppSettings.OsdItalic)] = sOsdText,
+            [nameof(AppSettings.OsdJustify)] = sOsdText,
+            [nameof(AppSettings.OsdShadowOffset)] = sOsdText,
+            [nameof(AppSettings.OsdFontsDir)] = sOsdText,
+            [nameof(AppSettings.OsdFontProvider)] = sOsdText,
+            [nameof(AppSettings.OsdShaper)] = sOsdText,
+            [nameof(AppSettings.OsdBackColor)] = sOsdAppearance,
+            [nameof(AppSettings.OsdSelectedColor)] = sOsdAppearance,
+            [nameof(AppSettings.OsdSelectedOutlineColor)] = sOsdAppearance,
+            [nameof(AppSettings.OsdScaleByWindow)] = sOsdBehavior,
+            [nameof(AppSettings.OsdMarginYOffset)] = sOsdPosition,
             [nameof(AppSettings.SubVisibility)] = sSubBehavior,
             [nameof(AppSettings.SubFixTiming)] = sSubBehavior,
             [nameof(AppSettings.SubFixTimingThreshold)] = sSubBehavior,

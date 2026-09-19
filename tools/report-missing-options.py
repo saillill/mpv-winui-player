@@ -39,6 +39,7 @@ REASON_ZH = {
     "Legacy or superseded": "过时或被取代",
     "Disc / capture hardware": "光盘 / 采集硬件",
     "Command-line-shaped or runtime state": "命令行形态或运行时状态",
+    "Replaced by the app's own control bar": "已由应用自带控制条取代",
     "Feature removed from this build": "本版本已删除的功能",
     "Already written, just not by a one-value mapping": "已在写入，只是不是单值映射",
     "Superseded by an app setting": "已有对应的应用设置",
@@ -139,6 +140,10 @@ EXCLUDED: list[tuple[str, list[str]]] = [
          r"^pause$", r"^border-background$"],
     ),
     (
+        "Replaced by the app's own control bar",
+        [r"^osd-bar(-align-x|-align-y|-marker-style)?$", r"^osd-bar-(w|h)$"],
+    ),
+    (
         "Superseded by an app setting",
         [r"^backdrop-type$", r"^sub-scale-with-window$", r"^window-maximized$",
          r"^sub-ass$", r"^osc$", r"^force-media-title$", r"^force-window",
@@ -235,24 +240,6 @@ CANDIDATES: dict[str, tuple[str, str]] = {
     "sub-ass-styles": ("Subtitles", "ASS 字幕使用的样式。"),
 
     # --- OSD -----------------------------------------------------------------
-    "osd-scale": ("OSD", "OSD 整体大小。"),
-    "osd-scale-by-window": ("OSD", "OSD 随窗口缩放。"),
-    "osd-margin-y-offset": ("OSD", "OSD 上下留白的偏移量。"),
-    "osd-back-color": ("OSD", "OSD 文字背后的底色。"),
-    "osd-bold": ("OSD", "OSD 文字加粗。"),
-    "osd-italic": ("OSD", "OSD 文字倾斜。"),
-    "osd-justify": ("OSD", "OSD 文字对齐方式。"),
-    "osd-spacing": ("OSD", "OSD 字距。"),
-    "osd-shadow-offset": ("OSD", "OSD 文字阴影。"),
-    "osd-selected-color": ("OSD", "OSD 里选中项的高亮色。"),
-    "osd-selected-outline-color": ("OSD", "选中项高亮的描边色。"),
-    "osd-bar": ("OSD", "是否显示进度条。"),
-    "osd-bar-align-x": ("OSD", "进度条的水平位置。"),
-    "osd-bar-align-y": ("OSD", "进度条的垂直位置。"),
-    "osd-bar-marker-style": ("OSD", "进度条上章节标记的样式。"),
-    "osd-fonts-dir": ("OSD", "OSD 的额外字体目录。"),
-    "osd-font-provider": ("OSD", "OSD 字形用哪个字体后端。"),
-    "osd-shaper": ("OSD", "OSD 的字形整形。"),
 
     # --- Network -------------------------------------------------------------
     "cookies": ("Network", "是否发送 Cookie（我们只暴露了文件路径）。"),
