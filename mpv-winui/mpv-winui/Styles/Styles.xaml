@@ -901,6 +901,12 @@
         BasedOn="{StaticResource BodyTextBlockStyle}"
         TargetType="TextBlock">
         <Setter Property="TextWrapping" Value="Wrap" />
+        <!-- Same reasoning as the description below: an option name is a
+             label, not a paragraph, and a long one wrapping to four lines in a
+             narrow window is what actually bends the row out of shape. Two is
+             generous for a name and enough for the longest in the tree. -->
+        <Setter Property="MaxLines" Value="2" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
 
     <Style
@@ -909,6 +915,17 @@
         TargetType="TextBlock">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
+        <!-- Two lines, then an ellipsis. Without MaxLines a narrow window just
+             keeps wrapping, and because the description sits in the same
+             two-column grid as the control, every extra line pushes the row
+             taller and drags the control off the vertical centre. Capping at
+             two keeps a row the same height at any width, which is what makes
+             the list scannable when the window is snapped. MaxLines plus
+             TextTrimming is the only combination that both stops the growth
+             and shows that there is more text; either alone leaves a silently
+             clipped or endlessly growing line. -->
+        <Setter Property="MaxLines" Value="2" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         <Setter Property="Visibility" Value="Collapsed" />
     </Style>
 
@@ -940,6 +957,16 @@
     <x:Double x:Key="MpvSpaceM">12</x:Double>
     <x:Double x:Key="MpvSpaceL">16</x:Double>
     <x:Double x:Key="MpvSpaceXl">24</x:Double>
+
+    <!-- The gap between an option's text block and the control that sets it.
+         Deliberately its own token rather than a step on the scale above: it
+         is the one gap in the list that has to read as a separation, not as
+         internal spacing, and it sits between two columns that both grow.
+         Most rows previously declared no ColumnSpacing at all, so the
+         description ran flush into the control and the two read as one
+         wrapped paragraph. 24 keeps a full M-step of air on either side of
+         the boundary. -->
+    <x:Double x:Key="MpvOptionControlGap">24</x:Double>
 
     <!-- The two repeated Thickness shapes in the settings list: the gap under
          an option row, and the padding inside a section card. -->

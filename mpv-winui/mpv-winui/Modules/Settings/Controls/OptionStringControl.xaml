@@ -8,6 +8,7 @@
     mc:Ignorable="d">
 
     <Grid
+        ColumnSpacing="{StaticResource MpvOptionControlGap}"
         VerticalAlignment="Center"
         Background="Transparent">
             <Grid.ColumnDefinitions>

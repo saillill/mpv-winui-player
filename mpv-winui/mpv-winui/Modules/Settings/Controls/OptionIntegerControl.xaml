@@ -8,7 +8,7 @@
     xmlns:ws="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d">
 
-    <Grid VerticalAlignment="Center">
+    <Grid ColumnSpacing="{StaticResource MpvOptionControlGap}" VerticalAlignment="Center">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="180" />

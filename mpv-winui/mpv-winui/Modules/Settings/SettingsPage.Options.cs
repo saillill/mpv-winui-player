@@ -103,16 +103,23 @@ private List<Option> BuildSettings()
         // category whose sections are all listed opens to an empty page with
         // nothing but cards. Network and OSD both used to look like that --
         // two categories you could not actually set anything from.
+        // A section belongs here only if it presents three or more rows once
+        // the pins below are taken out. One or two rows behind a card cost a
+        // click and a breadcrumb to reveal almost nothing, and the card is
+        // itself a row, so a two-row card is longer than the rows it hides.
+        // Below that floor the section is flattened instead -- see the
+        // separate list further down for why flattening is written as its own
+        // decision rather than left as "not listed here".
         var advancedSections = new HashSet<string>(StringComparer.Ordinal)
         {
-            sProgramAssociations, sProgramTesting, sProgramConfig,
+            sProgramAssociations, sProgramTesting,
 
-            // Seeking/reverse/continue-watching are reach-time settings with
-            // their own vocabulary; the plain "Playback" section is the one
-            // that stays on the overview. Resume-on-quit is the exception --
-            // people flip it the moment they notice playback does not resume.
-            sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback,
-            sWatchLaterStorage,
+            // Playback: Seeking (3) and DemuxerPlaylist (6) stay folded. The
+            // three that used to sit here did not survive the floor --
+            // SeekPreview keeps only 2 rows past its pinned switch, and
+            // ReversePlayback and WatchLaterStorage are 2 rows each, so all
+            // three are now listed as flat below.
+            sPlaybackSeeking,
 
             // Picture controls everyone recognises: brightness, contrast,
             // saturation, hue, sharpen, rotate. Those stay on the overview,
@@ -125,20 +132,29 @@ private List<Option> BuildSettings()
             // maths (peak decay rate, scene thresholds), colour-space targets
             // and shader paths. None of those are recognisable to a normal
             // user, so none of them earn a first-level row.
+            //
+            // VideoDecode used to be folded to hide the single row left over
+            // beside the pinned Hwdec switch. With only HwdecCodecs behind it
+            // that is a one-row card, so it is flat now and its rows sit
+            // beside Hwdec where they belong.
             sVideoFilters, sVideoSync,
             sColorManagement, sGpuScaling, sGpuShaders, sGpuBackground, sGpuD3d11,
-            sToneMapping, sTargetColorspace,
+            sToneMapping, sTargetColorspace, sVideoImage,
 
             sAudioExternal, sAudioCoverArt,
 
-            // Subtitles: Style (17) and Behavior (12) stay on the overview --
-            // between them they carry font size, colour, and which track gets
-            // picked, which is what people come to this category for. The
-            // other three sections go behind cards (Position 15, Filter 8,
-            // Ass 14). Both numbers are over the 8-row guideline, and that is
-            // deliberate: pushing them behind cards too would leave the
-            // category with nothing to set on open, which is the exact
-            // complaint Network and OSD used to draw.
+            // Subtitles used to keep Style (18) and Behavior (12) on the
+            // overview on the argument that they carry font size, colour and
+            // track selection, and leaving nothing to set on open would
+            // reproduce the complaint Network and OSD once drew.
+            //
+            // At 30 rows that argument stops holding: the "nothing to set"
+            // failure needs the category to open empty, and it does not --
+            // SubFontSize is pinned onto the overview, and the four other
+            // sections are cards. Style in particular is 18 rows of font
+            // metrics and colour pickers, which is the wall of rows the fold
+            // exists to prevent, not a shortcut anyone scans.
+            sSubtitleStyle, sSubtitleBehavior,
             sSubtitlePosition, sSubtitleFilter, sSubtitleAss,
 
             // OSD is a decorative overlay, and every one of its sections is
@@ -168,14 +184,24 @@ private List<Option> BuildSettings()
             sDemuxerBuffering, sDemuxerPlaylist,
             sNetworkHttp,
 
-            // VideoImage and VideoDecode carry one row each besides the
-            // pinned Hwdec switch, and both of those rows are codec/detail
-            // knobs rather than picture controls. Leaving a section unfolded
-            // for a single trailing row is worse than folding it: the row
-            // shows up on the overview with a section header of its own,
-            // reading as an orphan between two unrelated groups.
-            sVideoImage, sVideoDecode,
+            // AudioOutput is 15 rows of device, exclusive-mode, channel-map
+            // and buffer tuning. AudioDevice is pinned, so the picker people
+            // actually use stays on the overview and the rest folds.
+            sAudioOutput,
         };
+
+        // Sections that must NOT fold even though they share a category with
+        // ones that do. There is no such set today -- the floor decided
+        // everything -- but the flat ones are named here rather than left
+        // implicit, because "absent from the set above" was how a section
+        // ended up with a one-row card that nobody measured.
+        //
+        // Flat by the three-row floor:
+        //   sPlaybackSeekPreview  (2 left  after the pinned preview switch)
+        //   sReversePlayback      (2 rows)
+        //   sWatchLaterStorage    (2 rows)
+        //   sProgramConfig        (2 left  after the pinned update check)
+        //   sVideoDecode          (1 left  after the pinned Hwdec switch)
         // Entries people reach for daily: language switch, update check,
         // theme, hardware decode, resume-on-quit, output device, subtitle
         // font size, stay-on-top, cache switch, OSD level.
