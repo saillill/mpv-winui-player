@@ -18,6 +18,10 @@ That only holds if the table and AppLang agree, which is what this checks:
   * every SettingsCategory* property has a row, and vice versa;
   * every language file carries a real translation for every section and
     category caption -- see below;
+  * every option the settings tree builds has a sectionMap entry, which is the
+    same condition BuildSettings() throws on. A missing entry kills the app the
+    moment someone opens Settings, so this is checked here rather than
+    discovered by a user;
   * repeated option sort keys are surfaced as warnings, because optionOrder is
     deliberately both an ordering key and a grouping label.
 
@@ -56,6 +60,8 @@ CATALOG = SRC / "Modules" / "Settings" / "Layout" / "SettingsSections.cs"
 LANGUAGES = SRC / "Languages"
 OPTIONS = (SRC / "Modules" / "Settings" / "SettingsPage.Options.cs",
            SRC / "Modules" / "Settings" / "SettingsPage.Options.Program.cs")
+OPTION_FILES = tuple(sorted((SRC / "Modules" / "Settings").glob("SettingsPage.Options*.cs")))
+CORE_OPTIONS = SRC / "Modules" / "Settings" / "SettingsPage.Options.cs"
 
 
 def applang_props():
@@ -110,6 +116,72 @@ def option_sort_keys():
                 r'\[nameof\(AppSettings\.(\w+)\)\]\s*=\s*(\d+),', text):
             keys.setdefault(int(value), []).append(name)
     return keys
+
+
+def option_keys():
+    """Every option key the settings tree actually builds.
+
+    This mirrors BuildSettings()'s own scan. Keys come in three spellings --
+    nameof(AppContext.AppSetting.X), nameof(AppSettings.X), and a plain string
+    (or a string constant, as FileAssociationCheckList uses) -- and all three
+    are real options, so all three have to be recognised here. An earlier
+    version of this script only understood nameof(...) and reported two live
+    options as orphans.
+
+    Shortcut:N keys are generated at runtime from input.conf and have no
+    static row, so they never appear in a source file.
+    """
+    consts = {}
+    # Constants can live outside the options files -- FileAssociationCheckListKey
+    # is declared in SettingsPage.Actions.cs -- so sweep the whole Settings
+    # folder rather than just the files that build options.
+    for path in sorted((SRC / "Modules" / "Settings").glob("*.cs")):
+        for name, value in re.findall(
+                r'const\s+string\s+(\w+)\s*=\s*"([^"]+)"',
+                path.read_text(encoding="utf-8-sig")):
+            consts[name] = value
+
+    keys = set()
+    for path in OPTION_FILES:
+        text = path.read_text(encoding="utf-8-sig")
+        # Option initializers are `new Option { ... }`; the closing brace is
+        # indented, which is what keeps the match from running past one block.
+        for block in re.findall(r'new Option\s*\{(.*?)\n\s*\},', text, re.S):
+            match = (re.search(r'Key\s*=\s*nameof\([A-Za-z_.]*\.(\w+)\)', block)
+                     or re.search(r'Key\s*=\s*"([^"]+)"', block)
+                     or re.search(r'Key\s*=\s*(\w+)\s*,', block))
+            if not match:
+                continue
+            keys.add(consts.get(match.group(1), match.group(1)))
+    return keys, consts
+
+
+def section_map_keys():
+    """The keys of the sectionMap dictionary in SettingsPage.Options.cs.
+
+    Brace matching rather than a regex to the end of file, because the map is
+    followed by more code and an over-broad match would pick up optionOrder's
+    keys as well.
+    """
+    text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
+    parts = text.split("var sectionMap = new Dictionary<string, string>", 1)
+    if len(parts) < 2:
+        return None
+    body = parts[1]
+    depth = 0
+    end = None
+    for i, ch in enumerate(body):
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    if end is None:
+        return None
+    return {a or b for a, b in re.findall(
+        r'\[(?:nameof\([A-Za-z_.]*\.(\w+)\)|"([^"]+)")', body[:end])}
 
 
 def main():
@@ -179,6 +251,35 @@ def main():
             warnings.append(f"{name}: {len(untranslated)} caption(s) still in English: "
                             f"{', '.join(untranslated[:5])}"
                             + (" ..." if len(untranslated) > 5 else ""))
+
+    # --- BuildSettings()'s own guards, mirrored ------------------------------
+    # The app refuses to open the settings window when either of these is
+    # unsatisfied: BuildSettings() throws InvalidOperationException, which
+    # surfaces as a stowed exception in Microsoft.UI.Xaml.dll and kills the
+    # process -- no managed stack, no log line, just "clicking Settings closes
+    # the app". That happened for real: rebuilding the subtitles map dropped
+    # SubHdrPeak while the option itself stayed, and the only symptom was a
+    # crash on click. The runtime guard is correct; this is the same guard run
+    # at commit time so the crash never reaches a user.
+    keys, consts = option_keys()
+    mapped = section_map_keys()
+    if mapped is None:
+        errors.append("could not find sectionMap in SettingsPage.Options.cs")
+    else:
+        unmapped = sorted(k for k in keys if k not in mapped)
+        if unmapped:
+            errors.append(
+                f"{len(unmapped)} option(s) have no sectionMap entry, which makes "
+                f"BuildSettings() throw on open: {', '.join(unmapped[:6])}"
+                + (" ..." if len(unmapped) > 6 else ""))
+        # The reverse is not a failure: a map entry for an option that no longer
+        # exists is dead weight, but it never breaks the tree. Reported as a
+        # warning so the stale entries get cleaned up rather than accumulating.
+        stale = sorted(k for k in mapped if k not in keys)
+        if stale:
+            warnings.append(
+                f"{len(stale)} sectionMap entry/entries name no built option: "
+                f"{', '.join(stale[:6])}" + (" ..." if len(stale) > 6 else ""))
 
     # --- sort keys -----------------------------------------------------------
     # A repeated sort key is NOT an error here. optionOrder is deliberately

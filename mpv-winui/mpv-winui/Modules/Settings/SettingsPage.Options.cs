@@ -807,6 +807,13 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.SubSpacing)] = sSubtitleStyle,
             [nameof(AppSettings.SubLineSpacing)] = sSubtitleStyle,
             [nameof(AppSettings.SubHinting)] = sSubtitleStyle,
+            // The brightness a text subtitle is drawn at on an HDR output is a
+            // property of how the text looks, so it sits with the colours above
+            // rather than with the track-selection knobs. It used to be filed
+            // under Behavior; that is how it went missing when the subtitles
+            // map was rebuilt -- the entry was dropped while the option itself
+            // stayed, and BuildSettings() throws on exactly that mismatch.
+            [nameof(AppSettings.SubHdrPeak)] = sSubtitleStyle,
             // position -- including the ASS layout knobs and the second track's
             // placement, which are about where a line lands, not what it looks
             // like.
