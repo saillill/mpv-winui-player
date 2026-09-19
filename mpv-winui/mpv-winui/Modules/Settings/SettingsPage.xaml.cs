@@ -10,6 +10,7 @@ using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
 using mpv_winui.Modules.Player;
 using mpv_winui.Modules.Settings.Controls;
+using mpv_winui.Modules.Settings.Layout;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -74,10 +75,30 @@ public sealed partial class SettingsPage : Page
         _isUnpackaged = !PackageHelper.IsPackaged;
         InitializeComponent();
         InitCustomizeMode();
+        OptionsControl.SectionCardClicked += OnSectionCardClicked;
         _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
         WarmDeviceChoices();
         LoadSearchHistory();
         RebuildLocalizedContent();
+    }
+
+    /// <summary>A folded section's card was opened: drill in.
+    ///
+    /// The card carries the stable id, while drill-down keys on the localized
+    /// caption, so the id is resolved here -- the reverse of how rows on the
+    /// option list store both.</summary>
+    private void OnSectionCardClicked(string sectionId)
+    {
+        var caption = Settings.Where(o => o.SectionId == sectionId)
+            .Select(o => o.Section)
+            .FirstOrDefault(s => !string.IsNullOrEmpty(s));
+        if (caption is null)
+        {
+            return;
+        }
+
+        _selectedSection = caption;
+        UpdateOptions();
     }
 
     /// <summary>Debounces keystroke-level search filtering (audit A4).</summary>
@@ -91,7 +112,7 @@ public sealed partial class SettingsPage : Page
     /// flattened searchable text of every option are computed once per
     /// settings rebuild instead of per keystroke burst.</summary>
     private readonly Dictionary<string, string[]> _categoryAliasCache = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, string> _optionSearchTextCache = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, OptionSearchEntry> _optionSearchIndex = new(StringComparer.Ordinal);
 
     private void SearchDebounceTimer_Tick(object? sender, object e)
     {
@@ -109,9 +130,7 @@ public sealed partial class SettingsPage : Page
         // Section captions are localized, and the caption -> stable-id map is
         // cached: a language switch changes every caption, so the cache has to
         // go before the tree is rebuilt.
-        // Fully qualified because the page also exposes a `Layout` property,
-        // which shadows the namespace of the same name inside this class.
-        global::mpv_winui.Modules.Settings.Layout.SettingsSectionIds.Invalidate();
+        SettingsSections.Invalidate();
         var selectedKey = CurrentCategoryKey;
         var offset = OptionsControl.GetScrollOffset();
         // Section labels are localized; a drilled-in section cannot survive
@@ -204,7 +223,7 @@ public sealed partial class SettingsPage : Page
     private void RebuildSearchIndex()
     {
         _categoryAliasCache.Clear();
-        _optionSearchTextCache.Clear();
+        _optionSearchIndex.Clear();
 
         foreach (var category in Categories)
         {
@@ -215,14 +234,148 @@ public sealed partial class SettingsPage : Page
 
         foreach (var option in Settings)
         {
-            var text = string.Join(
-                "\n",
-                option.Label,
-                option.Description ?? string.Empty,
-                option.Category,
-                string.Join("\n", GetCategoryAliases(option.Category)));
-            _optionSearchTextCache[option.Key] = text;
+            _optionSearchIndex[option.Key] = BuildSearchEntry(option);
         }
+    }
+
+    /// <summary>
+    /// One option's searchable fields, split into tiers so that a match can be
+    /// ranked. <see cref="Text"/> is the flat concatenation used by the cheap
+    /// membership test; the tiers decide ordering.
+    /// </summary>
+    private sealed record OptionSearchEntry(
+        string Label,
+        string Description,
+        string MpvName,
+        string Context,
+        string Values,
+        string Text);
+
+    /// <summary>
+    /// Builds an option's search entry.
+    ///
+    /// The mpv option name is the term people actually arrive with: anyone
+    /// carrying settings over from an mpv.conf, or reading the manual, knows
+    /// <c>sub-font-size</c> rather than whatever this UI labels it in their
+    /// language. Leaving it out made search useless precisely for the users
+    /// who knew what they wanted.
+    ///
+    /// Choice values and labels land in their own low-ranked tier so that
+    /// "auto" or "vulkan" finds every switch accepting them, while a row whose
+    /// *name* matches still sorts above one that merely offers the value.
+    /// </summary>
+    private OptionSearchEntry BuildSearchEntry(Option option)
+    {
+        var context = string.Join(
+            "\n",
+            option.Category,
+            string.Join("\n", GetCategoryAliases(option.Category)),
+            option.Section ?? string.Empty);
+
+        var lines = new List<string>(64);
+        foreach (var choice in option.Choices ?? SafeInvoke(option.ChoicesProvider) ?? [])
+        {
+            lines.Add(choice.Value);
+            lines.Add(choice.Label);
+        }
+
+        foreach (var item in option.CheckItems ?? [])
+        {
+            lines.Add(item.Value);
+            lines.Add(item.Label);
+        }
+
+        var values = string.Join("\n", lines);
+        var mpvName = MpvSettings.ToMpvOptionName(option.Key) ?? string.Empty;
+        var label = option.Label;
+        var description = option.Description ?? string.Empty;
+
+        // Shortcut keys are generated from input.conf and carry the binding
+        // as their Key ("Shortcut:Space"), so that text belongs in the index:
+        // searching "space" should find the Space binding.
+        var text = string.Join("\n", label, description, mpvName, context, values);
+        if (option.Key.StartsWith("Shortcut:", StringComparison.Ordinal))
+        {
+            text = string.Join("\n", text, option.Key);
+        }
+
+        return new OptionSearchEntry(label, description, mpvName, context, values, text);
+    }
+
+    /// <summary>A lazy choice provider may touch the disk or the registry;
+    /// search must never fail because one row is expensive to expand.</summary>
+    private static IList<OptionChoice>? SafeInvoke(Func<IList<OptionChoice>>? provider)
+    {
+        if (provider is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return provider();
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Warn(ex, "Search index: a choice provider threw while building the index");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Lower is better. Ranking is what keeps indexing values from flooding
+    /// the results: tier 4 only wins when nothing else matched.
+    /// </summary>
+    private const int RankLabelPrefix = 0;
+    private const int RankLabelContains = 1;
+    private const int RankMpvName = 2;
+    private const int RankDescription = 3;
+    private const int RankContext = 4;
+    private const int RankValues = 5;
+    private const int RankFuzzy = 6;
+    private const int RankNone = int.MaxValue;
+
+    private int RankOptionCore(string query, OptionSearchEntry entry)
+    {
+        if (entry.Label.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankLabelPrefix;
+        }
+
+        if (entry.Label.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankLabelContains;
+        }
+
+        if (entry.MpvName.Length > 0 && entry.MpvName.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankMpvName;
+        }
+
+        if (entry.Description.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankDescription;
+        }
+
+        if (entry.Context.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankContext;
+        }
+
+        if (entry.Values.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return RankValues;
+        }
+
+        return RankNone;
+    }
+
+    /// <summary>Best tier this option matches on, falling back to subsequence
+    /// matching so the typos and partials people actually type still hit.</summary>
+    private int RankOption(string query, OptionSearchEntry entry)
+    {
+        var exact = RankOptionCore(query, entry);
+        return exact != RankNone ? exact : (ContainsFuzzy(query, entry.Text) ? RankFuzzy : RankNone);
     }
 
     private IReadOnlyList<string> GetCategoryAliases(string category)
@@ -632,9 +785,11 @@ public sealed partial class SettingsPage : Page
         var categoryMatches = Categories
             .Where(c => FuzzyMatch(query, c))
             .ToList();
-        var optionMatches = Settings
-            .Where(o => FuzzyMatchOption(query, o))
-            .ToList();
+        // Ranked, then stable by page order: search now indexes choice values
+        // and mpv option names, which multiplies the hits for a common query.
+        // Ordering by tier keeps "auto" from burying the rows actually named
+        // "Auto" under every switch that merely accepts auto.
+        var optionMatches = RankedSearchMatches(query);
         OptionsControl.OptionList = optionMatches;
         SectionsHost.Visibility = Visibility.Collapsed;
         BreadcrumbBar.Visibility = Visibility.Collapsed;
@@ -688,8 +843,9 @@ public sealed partial class SettingsPage : Page
         }
 
         // Option-level query: keep the global results list and scroll to the
-        // first hit.
-        var option = Settings.FirstOrDefault(o => FuzzyMatchOption(query, o));
+        // best hit -- the same ranking the list uses, so Enter always lands on
+        // the row the user sees first rather than the earliest in page order.
+        var option = TopSearchMatch(query);
         if (option is not null)
         {
             ApplySearchQuery(query);
@@ -715,18 +871,35 @@ public sealed partial class SettingsPage : Page
         return false;
     }
 
-    private bool FuzzyMatchOption(string query, Option option)
-    {
-        if (_optionSearchTextCache.TryGetValue(option.Key, out var searchText))
-        {
-            return ContainsFuzzy(query, searchText);
-        }
+    /// <summary>Every option matching the query, best tier first then in page
+    /// order. Both entry points (live typing and state restore) funnel through
+    /// this so they cannot drift into ranking results differently.</summary>
+    private List<Option> RankedSearchMatches(string query) =>
+        Settings
+            .Select(o => (Option: o, Rank: RankOption(query, o)))
+            .Where(x => x.Rank != RankNone)
+            .OrderBy(x => x.Rank)
+            .Select(x => x.Option)
+            .ToList();
 
-        // Index not built yet (e.g. mid-rebuild): fall back to the direct
-        // fields so search never drops a result.
-        return FuzzyMatch(query, option.Label)
-            || (option.Description is not null && FuzzyMatch(query, option.Description));
-    }
+    /// <summary>The single best match, or null. Enter-to-scroll uses this so
+    /// it lands on the row the user sees at the top of the list.</summary>
+    private Option? TopSearchMatch(string query) => RankedSearchMatches(query).FirstOrDefault();
+
+    /// <summary>Rank for an option the index has no entry for yet (a rebuild
+    /// caught mid-flight); keeping hits alive matters more than ranking them
+    /// precisely, and the index catches up on the next rebuild.</summary>
+    private int RankOptionFallback(string query, Option option) =>
+        Math.Min(
+            ContainsFuzzy(query, option.Label) ? RankLabelContains : RankNone,
+            option.Description is not null && ContainsFuzzy(query, option.Description)
+                ? RankDescription
+                : RankNone);
+
+    private int RankOption(string query, Option option) =>
+        _optionSearchIndex.TryGetValue(option.Key, out var entry)
+            ? RankOption(query, entry)
+            : RankOptionFallback(query, option);
 
     private static bool ContainsFuzzy(string query, string target)
     {
@@ -919,7 +1092,11 @@ public sealed partial class SettingsPage : Page
             SectionsHost.Visibility = Visibility.Collapsed;
             BreadcrumbBar.Visibility = Visibility.Collapsed;
             OptionsControl.Visibility = Visibility.Visible;
-            OptionsControl.OptionList = Settings.Where(o => FuzzyMatchOption(query, o)).ToList();
+
+            // Results span categories, so no caption is "the page itself" --
+            // every section header is useful context here.
+            OptionsControl.CategoryCaption = null;
+            OptionsControl.OptionList = RankedSearchMatches(query);
             return;
         }
 
@@ -935,8 +1112,13 @@ public sealed partial class SettingsPage : Page
         // cards. Categories with a single section go straight to their
         // options.
         var showOverview = _selectedSection is null && sections.Count > 1;
-        SectionsHost.Visibility = showOverview ? Visibility.Visible : Visibility.Collapsed;
+        SectionsHost.Visibility = Visibility.Collapsed;
         OptionsControl.Visibility = Visibility.Visible;
+
+        // Tells the list which caption is "the page itself", so it can drop a
+        // section header that would otherwise repeat it (Playback inside
+        // Playback). Set on every branch that assigns an option list.
+        OptionsControl.CategoryCaption = selected;
 
         if (showOverview)
         {
@@ -946,14 +1128,21 @@ public sealed partial class SettingsPage : Page
             BreadcrumbSeparator.Visibility = Visibility.Collapsed;
             BreadcrumbSection.Text = selected ?? string.Empty;
 
-            var primaryOptions = categoryOptions.Where(o => !o.AdvancedSection).ToList();
-            var advancedSections = sections.Where(s => s.Advanced).ToList();
+            // Folded sections do NOT all sit at the bottom. They are emitted as
+            // cards at the position their section occupies, so the page reads in
+            // section order end to end: a card for section 3 appears above the
+            // rows of section 8 instead of trailing the whole category. That
+            // ordering is the one reason for the exercise -- everything landing
+            // at the end is what made a category look like "common stuff, then
+            // a dumping ground".
+            var advancedCards = BuildSectionCardItems(sections.Where(s => s.Advanced).ToList());
+            var advancedIds = new HashSet<string>(
+                advancedCards.Select(c => c.SectionId!).Where(id => id is not null),
+                StringComparer.Ordinal);
 
-            OptionsControl.Visibility = primaryOptions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-            OptionsControl.OptionList = primaryOptions;
-            SectionsHost.ItemsSource = advancedSections.Count > 0
-                ? BuildSectionCards(advancedSections)
-                : Array.Empty<FrameworkElement>();
+            OptionsControl.SetSectionCards(advancedCards);
+            OptionsControl.CollapsedSectionIds = advancedIds;
+            OptionsControl.OptionList = categoryOptions;
             return;
         }
 
@@ -993,141 +1182,44 @@ public sealed partial class SettingsPage : Page
             .ToList();
 
 
-    /// <summary>One entry card per advanced section, straight to that
-    /// section's options (Windows-settings flow: common options sit on
-    /// the overview, each remaining topic is one drill-in card).</summary>
-    private List<FrameworkElement> BuildSectionCards(
-        IReadOnlyList<(string Label, int Count, bool Advanced)> advancedSections) =>
-        advancedSections.Select(s => BuildSectionCard(s.Label)).ToList();
-
-    /// <summary>Windows-Settings-like navigation card for one section: a
-    /// leading glyph, title with a secondary description line, chevron.</summary>
-    private FrameworkElement BuildSectionCard(string label)
+    /// <summary>One drill-in model per folded section.
+    ///
+    /// These replace the entry cards that used to be built as controls and
+    /// stacked below every option row. A model is emitted into the list at the
+    /// position its section occupies, so the card inherits its place from the
+    /// section order instead of being appended after everything else.
+    ///
+    /// Each carries the resolution live reconcile currently needs: the glyph
+    /// and count line are resolved here, once, from the section catalog.</summary>
+    private List<SectionCardItem> BuildSectionCardItems(
+        IReadOnlyList<(string Label, int Count, bool Advanced)> foldedSections)
     {
-        var (icon, description) = SectionMeta(label);
-        var card = new Button
+        var cards = new List<SectionCardItem>(foldedSections.Count);
+        foreach (var section in foldedSections)
         {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            MinHeight = 72,
-            Padding = new Thickness(16, 16, 16, 16),
-            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
-            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(4),
-            Margin = new Thickness(0, 0, 0, 8),
-            Content = new Grid { ColumnSpacing = 18 },
-        };
-        if (card.Content is Grid grid)
-        {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            grid.Children.Add(new FontIcon
+            var id = SettingsSections.IdFor(section.Label);
+            if (id is null)
             {
-                Glyph = icon,
-                FontSize = 20,
-                FontFamily = new FontFamily("Segoe Fluent Icons"),
-                VerticalAlignment = VerticalAlignment.Center,
-            });
-
-            var textStack = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
-            textStack.Children.Add(new TextBlock { Text = label, FontSize = 14 });
-            if (!string.IsNullOrEmpty(description))
-            {
-                textStack.Children.Add(new TextBlock
-                {
-                    Text = description,
-                    FontSize = 12,
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-                });
+                continue;
             }
-            Grid.SetColumn(textStack, 1);
-            grid.Children.Add(textStack);
 
-            var chevron = new FontIcon
+            var (icon, description) = SettingsSections.MetaFor(section.Label);
+            cards.Add(new SectionCardItem
             {
-                Glyph = "\uE76C",
-                FontSize = 12,
-                FontFamily = new FontFamily("Segoe Fluent Icons"),
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-            };
-            Grid.SetColumn(chevron, 2);
-            grid.Children.Add(chevron);
+                Caption = section.Label,
+                SectionId = id,
+                Icon = icon,
+                Description = description,
+                Count = section.Count,
+                CountText = section.Count == 1
+                    ? AppContext.AppLang.CardOptionCountOne
+                    : string.Format(
+                        System.Globalization.CultureInfo.CurrentUICulture,
+                        AppContext.AppLang.CardOptionCount,
+                        section.Count),
+            });
         }
-        AutomationProperties.SetName(card, string.IsNullOrEmpty(description) ? label : $"{label}, {description}");
-        card.Click += (_, _) =>
-        {
-            _selectedSection = label;
-            UpdateOptions();
-        };
-        return card;
-    }
 
-    /// <summary>Icon glyph and description line for a section card, keyed by
-    /// the localized section label so no extra identifier has to travel with
-    /// Option. Unlisted labels fall back to a generic folder card.</summary>
-    private static (string Icon, string Description) SectionMeta(string label)
-    {
-        var lang = AppContext.AppLang;
-        return label switch
-        {
-            var l when l == lang.SectionProgramInterface => ("\uE771", lang.SectionDescProgramInterface),
-            var l when l == lang.SectionProgramLanguageLog => ("\uE8C1", lang.SectionDescProgramLanguageLog),
-            var l when l == lang.SectionProgramConfig => ("\uECC5", lang.SectionDescProgramConfig),
-            var l when l == lang.SectionProgramAssociations => ("\uE8E5", lang.SectionDescProgramAssociations),
-            var l when l == lang.SectionProgramTesting => ("\uE9D9", lang.SectionDescProgramTesting),
-            var l when l == lang.SectionPlayback => ("\uE102", lang.SectionDescPlayback),
-            var l when l == lang.SectionPlaybackSeeking => ("\uE786", lang.SectionDescPlaybackSeeking),
-            var l when l == lang.SectionPlaybackSeekPreview => ("\uE720", lang.SectionDescPlaybackSeekPreview),
-            var l when l == lang.SectionReversePlayback => ("\uE8AB", lang.SectionDescReversePlayback),
-            var l when l == lang.SectionWatchLaterResume => ("\uE8E6", lang.SectionDescWatchLaterResume),
-            var l when l == lang.SectionWatchLaterStorage => ("\uE8B7", lang.SectionDescWatchLaterStorage),
-            var l when l == lang.SectionVideoDecode => ("\uE714", lang.SectionDescVideoDecode),
-            var l when l == lang.SectionVideoImage => ("\uE7F4", lang.SectionDescVideoImage),
-            var l when l == lang.SectionVideoFilters => ("\uE70F", lang.SectionDescVideoFilters),
-            var l when l == lang.SectionVideoSync => ("\uE895", lang.SectionDescVideoSync),
-            var l when l == lang.SectionGpuScaling => ("\uE71D", lang.SectionDescGpuScaling),
-            var l when l == lang.SectionGpuInterpolation => ("\uEDD5", lang.SectionDescGpuInterpolation),
-            var l when l == lang.SectionColorManagement => ("\uE790", lang.SectionDescColorManagement),
-            var l when l == lang.SectionGpuShaders => ("\uE9D2", lang.SectionDescGpuShaders),
-            var l when l == lang.SectionGpuBackground => ("\uE756", lang.SectionDescGpuBackground),
-            var l when l == lang.SectionToneMapping => ("\uE706", lang.SectionDescToneMapping),
-            var l when l == lang.SectionTargetColorspace => ("\uE914", lang.SectionDescTargetColorspace),
-            var l when l == lang.SectionTrackLanguage => ("\uE7F8", lang.SectionDescTrackLanguage),
-            var l when l == lang.SectionDemuxerBuffering => ("\uEC4E", lang.SectionDescDemuxerBuffering),
-            var l when l == lang.SectionDemuxerPlaylist => ("\uE8FD", lang.SectionDescDemuxerPlaylist),
-            var l when l == lang.SectionCache => ("\uE74E", lang.SectionDescCache),
-            var l when l == lang.SectionNetworkHttp => ("\uE702", lang.SectionDescNetworkHttp),
-            var l when l == lang.SectionNetworkCurl => ("\uE8EA", lang.SectionDescNetworkCurl),
-            var l when l == lang.SectionNetworkYtdlp => ("\uE717", lang.SectionDescNetworkYtdlp),
-            var l when l == lang.SectionAudioVolume => ("\uE76E", lang.SectionDescAudioVolume),
-            var l when l == lang.SectionAudioOutput => ("\uE7F6", lang.SectionDescAudioOutput),
-            var l when l == lang.SectionAudioExternal => ("\uE8D6", lang.SectionDescAudioExternal),
-            var l when l == lang.SectionAudioCoverArt => ("\uEB9F", lang.SectionDescAudioCoverArt),
-            var l when l == lang.SectionSubtitleBehavior => ("\uE7DE", lang.SectionDescSubtitleBehavior),
-            var l when l == lang.SectionSubtitleText => ("\uE90B", lang.SectionDescSubtitleText),
-            var l when l == lang.SectionSubtitleStyle => ("\uE8D2", lang.SectionDescSubtitleStyle),
-            var l when l == lang.SectionSubtitlePosition => ("\uE787", lang.SectionDescSubtitlePosition),
-            var l when l == lang.SectionSubtitleAss => ("\uE7DE", lang.SectionDescSubtitleAss),
-            var l when l == lang.SectionSubtitleImage => ("\uE91B", lang.SectionDescSubtitleImage),
-            var l when l == lang.SectionTrackSelection => ("\uE142", lang.SectionDescTrackSelection),
-            var l when l == lang.SectionTrackFallback => ("\uE72E", lang.SectionDescTrackFallback),
-            var l when l == lang.SectionOsd => ("\uE932", lang.SectionDescOsd),
-            var l when l == lang.SectionOsdBehavior => ("\uE7EE", lang.SectionDescOsdBehavior),
-            var l when l == lang.SectionOsdAppearance => ("\uE8D2", lang.SectionDescOsdAppearance),
-            var l when l == lang.SectionOsdPosition => ("\uE787", lang.SectionDescOsdPosition),
-            var l when l == lang.SectionOsdMetadata => ("\uEA8F", lang.SectionDescOsdMetadata),
-            var l when l == lang.SectionScreenshotLocation => ("\uE8B5", lang.SectionDescScreenshotLocation),
-            var l when l == lang.SectionScreenshotQuality => ("\uE740", lang.SectionDescScreenshotQuality),
-            var l when l == lang.SectionWindow => ("\uE745", lang.SectionDescWindow),
-            var l when l == lang.SectionWindowPiP => ("\uEE49", lang.SectionDescWindowPiP),
-            _ => ("\uE8B7", string.Empty),
-        };
+        return cards;
     }
-
-    }
+}

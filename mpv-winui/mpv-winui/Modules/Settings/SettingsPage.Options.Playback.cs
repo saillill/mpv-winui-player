@@ -20,6 +20,8 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildPlaybackControlOptions()
     {
+        var sPlayback = AppContext.AppLang.SectionPlayback;
+
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var window = AppContext.AppLang.SettingsCategoryWindow;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
@@ -57,6 +59,7 @@ public sealed partial class SettingsPage
                 Category = video,
                 Description = lang.SettingsHelpHwdecCodecs,
                 Type = OptionType.String,
+Placeholder = "h264,hevc,vp9,av1",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.HwdecCodecs,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HwdecCodecs), AppContext.AppSetting.HwdecCodecs = (string)v!)
@@ -125,6 +128,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsWindowTitle,
                 Category = window,
                 Type = OptionType.String,
+Placeholder = "${media-title} - mpv-winui",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.WindowTitle,
                 Setter = v =>
@@ -423,155 +427,14 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerReadahead), AppContext.AppSetting.DemuxerReadahead = (double)v!)
             },
 
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.Ytdl),
-                Label = lang.SettingsYtdl,
-                Category = network,
-                Description = lang.SettingsHelpYtdl,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Ytdl,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Ytdl), AppContext.AppSetting.Ytdl = (bool)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.YtdlRawOptionsAppend),
-                Label = lang.SettingsYtdlRawOptionsAppend,
-                Category = network,
-                Description = lang.SettingsHelpYtdlRawOptionsAppend,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.YtdlRawOptionsAppend,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.YtdlRawOptionsAppend), AppContext.AppSetting.YtdlRawOptionsAppend = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.YtdlFormat),
-                Label = lang.SettingsYtdlFormat,
-                Category = network,
-                Description = lang.SettingsHelpYtdlFormat,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("", lang.OptionValueAuto),
-                    new OptionChoice("bv*+ba/b", "bv*+ba/b"),
-                    new OptionChoice("bv*+ba", "bv*+ba"),
-                    new OptionChoice("best", "best"),
-                    new OptionChoice("mp4", "mp4"),
-                    new OptionChoice("webm", "webm"),
-                ],
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.YtdlFormat,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.YtdlFormat), AppContext.AppSetting.YtdlFormat = (string)v!)
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.YtdlPath),
-                Label = lang.SettingsYtdlPath,
-                Category = network,
-                Description = lang.SettingsHelpYtdlPath,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.YtdlPath,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.YtdlPath = (string)v!;
-                    AppContext.WriteManagedMpvConfig();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.YtdlTryFirst),
-                Label = lang.SettingsYtdlTryFirst,
-                Category = network,
-                Description = lang.SettingsHelpYtdlTryFirst,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.YtdlTryFirst,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.YtdlTryFirst = (bool)v!;
-                    AppContext.WriteManagedMpvConfig();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.YtdlAllFormats),
-                Label = lang.SettingsYtdlAllFormats,
-                Category = network,
-                Description = lang.SettingsHelpYtdlAllFormats,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.YtdlAllFormats,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.YtdlAllFormats = (bool)v!;
-                    AppContext.WriteManagedMpvConfig();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.YtdlUseManifests),
-                Label = lang.SettingsYtdlUseManifests,
-                Category = network,
-                Description = lang.SettingsHelpYtdlUseManifests,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.YtdlUseManifests,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.YtdlUseManifests = (bool)v!;
-                    AppContext.WriteManagedMpvConfig();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.YtdlThumbnails),
-                Label = lang.SettingsYtdlThumbnails,
-                Category = network,
-                Description = lang.SettingsHelpYtdlThumbnails,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice("none", lang.OptionValueNo),
-                    new OptionChoice("best", lang.OptionValueYtdlThumbnailBest),
-                    new OptionChoice("all", lang.OptionValueYtdlThumbnailAll),
-                ],
-                Getter = () => AppContext.AppSetting.YtdlThumbnails,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.YtdlThumbnails = (string)v!;
-                    AppContext.WriteManagedMpvConfig();
-                }
-            },
-
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.YtdlExclude),
-                Label = lang.SettingsYtdlExclude,
-                Category = network,
-                Description = lang.SettingsHelpYtdlExclude,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.YtdlExclude,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.YtdlExclude = (string)v!;
-                    AppContext.WriteManagedMpvConfig();
-                }
-            },
-
-            new Option
+                                                                                                                        new Option
             {
                 Key = nameof(AppContext.AppSetting.UserAgent),
                 Label = lang.SettingsUserAgent,
                 Category = network,
                 Description = lang.SettingsHelpUserAgent,
                 Type = OptionType.String,
+Placeholder = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.UserAgent,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.UserAgent), AppContext.AppSetting.UserAgent = (string)v!)
@@ -584,6 +447,7 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpReferrer,
                 Type = OptionType.String,
+Placeholder = "https://example.com/",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.Referrer,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Referrer), AppContext.AppSetting.Referrer = (string)v!)
@@ -596,6 +460,7 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpHttpHeaderFields,
                 Type = OptionType.String,
+Placeholder = "Accept-Language: zh-CN,Referer: https://example.com/",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.HttpHeaderFields,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HttpHeaderFields), AppContext.AppSetting.HttpHeaderFields = (string)v!)
@@ -608,6 +473,7 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpHttpProxy,
                 Type = OptionType.String,
+Placeholder = "http://127.0.0.1:7890",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.HttpProxy,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HttpProxy), AppContext.AppSetting.HttpProxy = (string)v!)
@@ -620,6 +486,10 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpCookiesFile,
                 Type = OptionType.String,
+                // No placeholder: this is a path-mode field, and those show the
+                // placeholder as the current value when empty. An example path
+                // would read as a configured one. There is no real default to
+                // show either, so the empty box plus Browse is the honest state.
                 AllowEmpty = true,
                 PickFile = true,
                 OpenFolder = true,
@@ -920,6 +790,51 @@ public sealed partial class SettingsPage
                     AppContext.AppSetting.ThumbnailUpdateInterval = Convert.ToInt32(v);
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ThumbnailUpdateInterval), v);
                 }
+            },
+
+            // Added in the advanced batch: ab-loop-a
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AbLoopA),
+                Label = lang.SettingsAbLoopA,
+                Category = playback,
+                Description = lang.SettingsHelpAbLoopA,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100000,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.AbLoopA,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AbLoopA), AppContext.AppSetting.AbLoopA = (double)v!)
+            },
+
+            // Added in the advanced batch: ab-loop-b
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AbLoopB),
+                Label = lang.SettingsAbLoopB,
+                Category = playback,
+                Description = lang.SettingsHelpAbLoopB,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100000,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.AbLoopB,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AbLoopB), AppContext.AppSetting.AbLoopB = (double)v!)
+            },
+
+            // Added in the advanced batch: ab-loop-count
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AbLoopCount),
+                Label = lang.SettingsAbLoopCount,
+                Category = playback,
+                Description = lang.SettingsHelpAbLoopCount,
+                Type = OptionType.Integer,
+                Min = -1,
+                Max = 9999,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.AbLoopCount,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AbLoopCount), AppContext.AppSetting.AbLoopCount = (int)v!)
             },
 
         ];

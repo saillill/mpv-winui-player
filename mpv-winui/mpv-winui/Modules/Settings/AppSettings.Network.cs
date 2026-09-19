@@ -5,59 +5,14 @@ namespace mpv_winui.Modules.Settings
     /// </summary>
     public partial class AppSettings
     {
-        public bool Ytdl
-        {
-            get => _dataSetting.GetValue(nameof(Ytdl), true);
-            set => _dataSetting.SetValue(nameof(Ytdl), value);
-        }
 
-        public string YtdlRawOptionsAppend
-        {
-            get => _dataSetting.GetValue(nameof(YtdlRawOptionsAppend), string.Empty);
-            set => _dataSetting.SetValue(nameof(YtdlRawOptionsAppend), value);
-        }
 
-        public string YtdlFormat
-        {
-            get => _dataSetting.GetValue(nameof(YtdlFormat), string.Empty);
-            set => _dataSetting.SetValue(nameof(YtdlFormat), value);
-        }
 
-        public string YtdlPath
-        {
-            get => _dataSetting.GetValue(nameof(YtdlPath), string.Empty);
-            set => _dataSetting.SetValue(nameof(YtdlPath), value);
-        }
 
-        public bool YtdlTryFirst
-        {
-            get => _dataSetting.GetValue(nameof(YtdlTryFirst), false);
-            set => _dataSetting.SetValue(nameof(YtdlTryFirst), value);
-        }
 
-        public bool YtdlAllFormats
-        {
-            get => _dataSetting.GetValue(nameof(YtdlAllFormats), true);
-            set => _dataSetting.SetValue(nameof(YtdlAllFormats), value);
-        }
 
-        public bool YtdlUseManifests
-        {
-            get => _dataSetting.GetValue(nameof(YtdlUseManifests), false);
-            set => _dataSetting.SetValue(nameof(YtdlUseManifests), value);
-        }
 
-        public string YtdlThumbnails
-        {
-            get => _dataSetting.GetValue(nameof(YtdlThumbnails), "none");
-            set => _dataSetting.SetValue(nameof(YtdlThumbnails), value);
-        }
 
-        public string YtdlExclude
-        {
-            get => _dataSetting.GetValue(nameof(YtdlExclude), string.Empty);
-            set => _dataSetting.SetValue(nameof(YtdlExclude), value);
-        }
 
         public string UserAgent
         {

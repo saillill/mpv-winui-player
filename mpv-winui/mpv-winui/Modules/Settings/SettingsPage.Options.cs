@@ -30,24 +30,19 @@ private List<Option> BuildSettings()
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
-        var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
+        var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var sProgramAssociations = AppContext.AppLang.SectionProgramAssociations;
         var sProgramConfig = AppContext.AppLang.SectionProgramConfig;
         var sWindowPiP = AppContext.AppLang.SectionWindowPiP;
-        var sNetworkYtdlp = AppContext.AppLang.SectionNetworkYtdlp;
         var sNetworkHttp = AppContext.AppLang.SectionNetworkHttp;
         var sNetworkCurl = AppContext.AppLang.SectionNetworkCurl;
         var sPlayback = AppContext.AppLang.SectionPlayback;
         var sReversePlayback = AppContext.AppLang.SectionReversePlayback;
         var sPlaybackSeeking = AppContext.AppLang.SectionPlaybackSeeking;
         var sPlaybackSeekPreview = AppContext.AppLang.SectionPlaybackSeekPreview;
-        var sTrackSelection = AppContext.AppLang.SectionTrackSelection;
-        var sTrackLanguage = AppContext.AppLang.SectionTrackLanguage;
-        var sTrackFallback = AppContext.AppLang.SectionTrackFallback;
-        var sWatchLaterResume = AppContext.AppLang.SectionWatchLaterResume;
         var sWatchLaterStorage = AppContext.AppLang.SectionWatchLaterStorage;
         var sVideoDecode = AppContext.AppLang.SectionVideoDecode;
         var sVideoImage = AppContext.AppLang.SectionVideoImage;
@@ -56,12 +51,11 @@ private List<Option> BuildSettings()
         var sAudioVolume = AppContext.AppLang.SectionAudioVolume;
         var sAudioExternal = AppContext.AppLang.SectionAudioExternal;
         var sAudioCoverArt = AppContext.AppLang.SectionAudioCoverArt;
-        var sSubtitleText = AppContext.AppLang.SectionSubtitleText;
         var sSubtitleAss = AppContext.AppLang.SectionSubtitleAss;
-        var sSubtitleImage = AppContext.AppLang.SectionSubtitleImage;
         var sSubtitleStyle = AppContext.AppLang.SectionSubtitleStyle;
         var sSubtitlePosition = AppContext.AppLang.SectionSubtitlePosition;
         var sSubtitleBehavior = AppContext.AppLang.SectionSubtitleBehavior;
+        var sSubtitleFilter = AppContext.AppLang.SectionSubtitleFilter;
         var sToneMapping = AppContext.AppLang.SectionToneMapping;
         var sTargetColorspace = AppContext.AppLang.SectionTargetColorspace;
         var sColorManagement = AppContext.AppLang.SectionColorManagement;
@@ -69,21 +63,22 @@ private List<Option> BuildSettings()
         var sOsdBehavior = AppContext.AppLang.SectionOsdBehavior;
         var sOsdPosition = AppContext.AppLang.SectionOsdPosition;
         var sWindow = AppContext.AppLang.SectionWindow;
+        var sOsdText = AppContext.AppLang.SectionOsdText;
+        var sWindowBehavior = AppContext.AppLang.SectionWindowBehavior;
+        var sVideoGeometry = AppContext.AppLang.SectionVideoGeometry;
+        var sAdvRenderer = AppContext.AppLang.SectionAdvancedRenderer;
+        var sAdvScaler = AppContext.AppLang.SectionAdvancedScaler;
         var sDemuxerPlaylist = AppContext.AppLang.SectionDemuxerPlaylist;
         var sDemuxerBuffering = AppContext.AppLang.SectionDemuxerBuffering;
         var sCache = AppContext.AppLang.SectionCache;
-        var sOsd = AppContext.AppLang.SectionOsd;
         var sOsdMetadata = AppContext.AppLang.SectionOsdMetadata;
         var sScreenshotLocation = AppContext.AppLang.SectionScreenshotLocation;
         var sScreenshotQuality = AppContext.AppLang.SectionScreenshotQuality;
         var sGpuScaling = AppContext.AppLang.SectionGpuScaling;
-        var sGpuColor = AppContext.AppLang.SectionGpuColor;
-        var sGpuInterpolation = AppContext.AppLang.SectionGpuInterpolation;
         var sGpuBackground = AppContext.AppLang.SectionGpuBackground;
         var sGpuD3d11 = AppContext.AppLang.SectionGpuD3d11;
         var sGpuShaders = AppContext.AppLang.SectionGpuShaders;
         var sVideoSync = AppContext.AppLang.SectionVideoSync;
-        var lang = AppContext.AppLang;
 
         var options = new List<Option>();
         options.AddRange(BuildProgramBehaviorOptions());
@@ -105,20 +100,64 @@ private List<Option> BuildSettings()
         // switches back onto the overview even when they live in an advanced
         // section, so e.g. the hardware-decode switch stays on the Video
         // overview while its codec/decode-detail mates hide in the card.
+        //
+        // That makes the COMPLEMENT the load-bearing half: every section not
+        // listed here puts its options straight on the overview, and a
+        // category whose sections are all listed opens to an empty page with
+        // nothing but cards. Network and OSD both used to look like that --
+        // two categories you could not actually set anything from.
         var advancedSections = new HashSet<string>(StringComparer.Ordinal)
         {
             sProgramAssociations, sProgramTesting, sProgramConfig,
-            sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback, sWatchLaterStorage,
-            sVideoDecode, sVideoImage, sVideoFilters, sVideoSync, sColorManagement,
-            sGpuScaling, sGpuInterpolation, sGpuShaders, sGpuBackground,
+
+            // Seeking/reverse/continue-watching are reach-time settings with
+            // their own vocabulary; the plain "Playback" section is the one
+            // that stays on the overview. Resume-on-quit is the exception --
+            // people flip it the moment they notice playback does not resume.
+            sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback,
+            sWatchLaterStorage,
+
+            // Picture controls everyone recognises: brightness, contrast,
+            // saturation, hue, sharpen, rotate. Those stay on the overview,
+            // and so does hardware decoding -- it is the one Video setting
+            // people are told to look for.
+            //
+            // Everything else in Video is a tuning knob and belongs behind a
+            // card: D3D11 internals (adapter, warp, flip model), scaling and
+            // chroma-upsampling algorithms, frame interpolation, tone-mapping
+            // maths (peak decay rate, scene thresholds), colour-space targets
+            // and shader paths. None of those are recognisable to a normal
+            // user, so none of them earn a first-level row.
+            sVideoFilters, sVideoSync,
+            sColorManagement, sGpuScaling, sGpuShaders, sGpuBackground, sGpuD3d11,
             sToneMapping, sTargetColorspace,
-            sAudioOutput, sAudioExternal, sAudioCoverArt,
-            sSubtitleText, sSubtitlePosition, sSubtitleAss, sSubtitleImage,
-            sTrackSelection, sTrackLanguage, sTrackFallback,
-            sOsdBehavior, sOsdAppearance, sOsdPosition, sOsdMetadata,
+
+            sAudioExternal, sAudioCoverArt,
+
+            // Subtitles: Style (17) and Behavior (12) stay on the overview --
+            // between them they carry font size, colour, and which track gets
+            // picked, which is what people come to this category for. The
+            // other three sections go behind cards (Position 15, Filter 8,
+            // Ass 14). Both numbers are over the 8-row guideline, and that is
+            // deliberate: pushing them behind cards too would leave the
+            // category with nothing to set on open, which is the exact
+            // complaint Network and OSD used to draw.
+            sSubtitlePosition, sSubtitleFilter, sSubtitleAss,
+
+            // OsdLevel and the font/colour knobs are reached constantly, so
+            // Appearance stays on the overview even though the section is
+            // large. The metadata driver is the opposite: twelve switches
+            // that only matter while watching something with tags.
+            sOsdBehavior, sOsdPosition, sOsdMetadata,
+
             sScreenshotQuality,
-            sNetworkHttp, sNetworkCurl, sNetworkYtdlp,
-            sCache, sDemuxerBuffering, sDemuxerPlaylist,
+            // "Cache" is a switch people flip per-file, and yt-dlp is the
+            // reason half of the user base is here at all -- both stay
+            // visible. The transport plumbing (curl knobs, HTTP headers)
+            // is the part nobody opens twice.
+            sNetworkCurl,
+            sDemuxerBuffering, sDemuxerPlaylist,
+            sNetworkHttp,
         };
         // Entries people reach for daily: language switch, update check,
         // theme, hardware decode, resume-on-quit, output device, subtitle
@@ -158,9 +197,11 @@ private List<Option> BuildSettings()
             }
         }
 
-        // WinUI 3 settings shell: 10 top-level categories. "Input" is merged
-        // into Shortcuts and "Testing" items live inside their related
-        // categories (Program/OSD/Playback) as experimental sections.
+        // WinUI 3 settings shell: 9 top-level categories. "Input" is merged
+        // into Shortcuts and Screenshot folded into Video rather than standing
+        // beside it. Advanced is deliberately last: the file associations and
+        // the diagnostic switches used to sit under Program, where they read as
+        // ordinary preferences.
         var categoryOrder = new[]
         {
             program,
@@ -172,7 +213,7 @@ private List<Option> BuildSettings()
             network,
             shortcuts,
             osd,
-            screenshot,
+            advanced,
         };
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
@@ -183,10 +224,65 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.TestMpvCommandLog)] = 6,
             [nameof(AppSettings.TestOsdMessage)] = 7,
             [nameof(AppSettings.TestSignal)] = 8,
+            [nameof(AppSettings.OsdScale)] = 2201,
+            [nameof(AppSettings.OsdSpacing)] = 2202,
+            [nameof(AppSettings.OsdBold)] = 2203,
+            [nameof(AppSettings.OsdItalic)] = 2204,
+            [nameof(AppSettings.OsdJustify)] = 2205,
+            [nameof(AppSettings.OsdShadowOffset)] = 2206,
+            [nameof(AppSettings.OsdFontsDir)] = 2207,
+            [nameof(AppSettings.OsdFontProvider)] = 2208,
+            [nameof(AppSettings.OsdShaper)] = 2209,
+            [nameof(AppSettings.OsdBackColor)] = 2301,
+            [nameof(AppSettings.OsdSelectedColor)] = 2302,
+            [nameof(AppSettings.OsdSelectedOutlineColor)] = 2303,
+            [nameof(AppSettings.OsdScaleByWindow)] = 2401,
+            [nameof(AppSettings.OsdMarginYOffset)] = 2501,
+            // Order keys are only compared within a section, so the leading
+            // two digits name the section (15 behavior, 16 style, 17 position,
+            // 18 filter, 19 ass) and the last two order rows inside it.
+            [nameof(AppSettings.SubVisibility)] = 1501,
+            [nameof(AppSettings.SubsMatchOsLanguage)] = 1502,
+            [nameof(AppSettings.SubsWithMatchingAudio)] = 1503,
+            [nameof(AppSettings.SubsFallbackForced)] = 1504,
+            [nameof(AppSettings.SubScale)] = 1601,
+            [nameof(AppSettings.SubSpacing)] = 1602,
+            [nameof(AppSettings.SubOutlineColor)] = 1603,
+            [nameof(AppSettings.SubGauss)] = 1604,
+            [nameof(AppSettings.SubMarginYOffset)] = 1701,
+            [nameof(AppSettings.SubAssJustify)] = 1702,
+            [nameof(AppSettings.SubAssPruneDelay)] = 1703,
+            [nameof(AppSettings.SubFixTiming)] = 1801,
+            [nameof(AppSettings.SubFixTimingThreshold)] = 1802,
+            [nameof(AppSettings.SubForcedEventsOnly)] = 1803,
+            [nameof(AppSettings.SubShaper)] = 1804,
+            [nameof(AppSettings.SubBitmapMaxSize)] = 1805,
+            [nameof(AppSettings.SubFilterSdh)] = 1806,
+            [nameof(AppSettings.SubFilterSdhEnclosures)] = 1807,
+            [nameof(AppSettings.SubFilterSdhHarder)] = 1808,
+            [nameof(AppSettings.SecondarySubAssOverride)] = 1901,
+            [nameof(AppSettings.AbLoopA)] = 1001,
+            [nameof(AppSettings.AbLoopB)] = 1002,
+            [nameof(AppSettings.AbLoopCount)] = 1003,
+            [nameof(AppSettings.CursorAutohide)] = 1101,
+            [nameof(AppSettings.CursorAutohideFsOnly)] = 1102,
+            [nameof(AppSettings.WindowBorder)] = 1103,
+            [nameof(AppSettings.TitleBar)] = 1104,
+            [nameof(AppSettings.VideoZoom)] = 1201,
+            [nameof(AppSettings.VideoPanX)] = 1202,
+            [nameof(AppSettings.VideoPanY)] = 1203,
+            [nameof(AppSettings.VideoAlignX)] = 1204,
+            [nameof(AppSettings.VideoAlignY)] = 1205,
+            [nameof(AppSettings.SecondarySubVisibility)] = 1301,
+            [nameof(AppSettings.SecondarySubDelay)] = 1302,
+            [nameof(AppSettings.SecondarySubPos)] = 1303,
+            [nameof(AppSettings.SecondarySubScale)] = 1304,
+            [nameof(AppSettings.GpuApi)] = 1401,
+            [nameof(AppSettings.GpuContext)] = 1402,
+            [nameof(AppSettings.ScaleAntiring)] = 1403,
+            [nameof(AppSettings.CscaleAntiring)] = 1404,
             [nameof(AppSettings.CurrentLanguage)] = 9,
             [nameof(AppSettings.EnableDebugLog)] = 10,
-            [nameof(AppSettings.Ytdl)] = 11,
-            [nameof(AppSettings.YtdlRawOptionsAppend)] = 12,
             [nameof(AppSettings.Speed)] = 15,
             [nameof(AppSettings.LoopPlaylist)] = 13,
             [nameof(AppSettings.LoopFile)] = 14,
@@ -371,13 +467,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.WindowStartMaximized)] = 195,
             [nameof(AppSettings.WindowRememberSize)] = 196,
             [nameof(AppSettings.WindowAspectRatioLock)] = 196,
-            [nameof(AppSettings.YtdlFormat)] = 197,
-            [nameof(AppSettings.YtdlPath)] = 198,
-            [nameof(AppSettings.YtdlTryFirst)] = 199,
-            [nameof(AppSettings.YtdlAllFormats)] = 200,
-            [nameof(AppSettings.YtdlUseManifests)] = 201,
-            [nameof(AppSettings.YtdlThumbnails)] = 202,
-            [nameof(AppSettings.YtdlExclude)] = 203,
             [nameof(AppSettings.UserAgent)] = 204,
             [nameof(AppSettings.Referrer)] = 205,
             [nameof(AppSettings.HttpHeaderFields)] = 206,
@@ -394,6 +483,10 @@ private List<Option> BuildSettings()
             ["ActionUnassociateFiles"] = 217,
             ["ActionExportConfig"] = 218,
             ["ActionImportConfig"] = 219,
+            // Ties with Import: the escape hatch is declared right after it in
+            // BuildProgramBehaviorOptions, and OrderBy is stable, so this keeps
+            // the two config-file buttons adjacent without renumbering 220+.
+            ["ActionOpenMpvConf"] = 219,
             [nameof(AppSettings.CheckForUpdates)] = 220,
             [nameof(AppSettings.ControlBarLayout)] = 220,
             [nameof(AppSettings.ControlBarHiddenIcons)] = 221,
@@ -461,55 +554,81 @@ private List<Option> BuildSettings()
         // matters between two sections of the same category. The single-option
         // sections (testing, interpolation, track language/fallback, ...) were
         // folded into their neighbours, so their keys no longer appear here.
+        // Order within each category. The value only ever compares against
+        // another section from the SAME category (the options are grouped by
+        // category first), so the numbers are a per-category sequence, not a
+        // global one. Blocked by category, and every section of a category
+        // gets a number, so a newly added section cannot silently fall to
+        // int.MaxValue and jump to the bottom of its category.
         var sectionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
         {
+            // program -- Associations and Testing moved to Advanced, so only
+            // the three sections a normal user recognises remain.
             [sProgramInterface] = 0,
             [sProgramLanguageLog] = 1,
             [sProgramConfig] = 2,
-            [sProgramAssociations] = 3,
-            [sPlayback] = 3,
-            [sReversePlayback] = 4,
-            [sPlaybackSeeking] = 5,
-            [sPlaybackSeekPreview] = 6,
-            [sWatchLaterResume] = 7,
-            [sWatchLaterStorage] = 8,
-            [sVideoDecode] = 7,
-            [sVideoImage] = 8,
-            [sVideoFilters] = 9,
-            [sGpuScaling] = 10,
-            [sGpuBackground] = 13,
-            [sGpuD3d11] = 14,
-            [sGpuShaders] = 15,
-            [sVideoSync] = 16,
-            [sAudioOutput] = 17,
-            [sAudioVolume] = 18,
-            [sAudioExternal] = 19,
-            [sAudioCoverArt] = 20,
-            [sSubtitleStyle] = 26,
-            [sSubtitlePosition] = 27,
-            [sSubtitleBehavior] = 28,
-            [sSubtitleText] = 29,
-            [sSubtitleAss] = 30,
-            [sSubtitleImage] = 31,
-            [sWindow] = 26,
-            [sDemuxerPlaylist] = 27,
-            [sDemuxerBuffering] = 28,
-            [sCache] = 29,
-            [sOsd] = 32,
-            [sOsdMetadata] = 33,
-            [sScreenshotLocation] = 34,
-            [sScreenshotQuality] = 35,
-            [sNetworkYtdlp] = 39,
-            [sNetworkHttp] = 40,
-            [sNetworkCurl] = 41,
-            [sToneMapping] = 130,
-            [sTargetColorspace] = 131,
-            [sColorManagement] = 132,
-            [sOsdAppearance] = 320,
-            [sOsdBehavior] = 321,
-            [sOsdPosition] = 322,
-            [sWindowPiP] = 42,
-            [sProgramConfig] = 2,
+
+            // playback
+            [sPlayback] = 0,
+            [sReversePlayback] = 1,
+            [sPlaybackSeeking] = 2,
+            [sPlaybackSeekPreview] = 3,
+            [sWatchLaterStorage] = 5,
+
+            // video
+            [sVideoDecode] = 0,
+            [sVideoImage] = 1,
+            [sVideoFilters] = 2,
+            [sVideoSync] = 3,
+            [sGpuScaling] = 4,
+            [sGpuBackground] = 5,
+            [sGpuD3d11] = 6,
+            [sGpuShaders] = 7,
+            [sToneMapping] = 8,
+            [sTargetColorspace] = 9,
+            [sColorManagement] = 10,
+            [sScreenshotLocation] = 11,
+            [sScreenshotQuality] = 12,
+
+            // audio
+            [sAudioOutput] = 0,
+            [sAudioVolume] = 1,
+            [sAudioExternal] = 2,
+            [sAudioCoverArt] = 3,
+
+            // subtitles -- five sections. Style and Behavior stay on the
+            // overview (font size and track choice are the two things people
+            // actually open Subtitles for); Position, Filter and Ass are past
+            // the point where a section reads as one screen and go behind
+            // cards.
+            [sSubtitleStyle] = 0,
+            [sSubtitleBehavior] = 1,
+            [sSubtitlePosition] = 2,
+            [sSubtitleFilter] = 3,
+            [sSubtitleAss] = 4,
+
+            // window
+            [sWindow] = 0,
+            [sWindowPiP] = 1,
+
+            // network
+            [sCache] = 0,
+            [sDemuxerBuffering] = 1,
+            [sDemuxerPlaylist] = 2,
+            [sNetworkHttp] = 3,
+            [sNetworkCurl] = 4,
+
+            // osd
+            [sOsdBehavior] = 0,
+            [sOsdAppearance] = 1,
+            [sOsdPosition] = 2,
+            [sOsdMetadata] = 3,
+
+            // advanced -- renderer and scaler internals, plus the two
+            // developer-facing sections that used to sit in Program.
+            [sAdvRenderer] = 0,
+            [sAdvScaler] = 1,
+            [sProgramTesting] = 2,
             [sProgramAssociations] = 3,
         };
 
@@ -535,9 +654,12 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.EnableVideoPreview)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbnailPreviewWidth)] = sPlaybackSeekPreview,
             [nameof(AppSettings.ThumbnailUpdateInterval)] = sPlaybackSeekPreview,
+            // Resume playback rides with plain Playback, not with the
+            // watch-later storage section: it is the switch, the storage
+            // section is where the file goes.
+            [nameof(AppSettings.SavePositionOnQuit)] = sPlayback,
+            [nameof(AppSettings.ResumePlayback)] = sPlayback,
             // watchLater
-            [nameof(AppSettings.SavePositionOnQuit)] = sWatchLaterResume,
-            [nameof(AppSettings.ResumePlayback)] = sWatchLaterResume,
             [nameof(AppSettings.WatchLaterOptions)] = sWatchLaterStorage,
             [nameof(AppSettings.WatchLaterDir)] = sWatchLaterStorage,
             // video
@@ -642,51 +764,93 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CoverArtPreload)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtNames)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtImageExts)] = sAudioCoverArt,
-            // subtitles
+            // subtitles -- five sections grouped by what the option changes,
+            // not by the mpv prefix alone: the bare `sub-` prefix covers
+            // 52 options spanning three different concerns, so "style",
+            // "placement" and "loading" split on meaning. `secondary-sub-*`
+            // and the bare `subs-*` matchers live with the section they
+            // belong to semantically rather than getting headings of their
+            // own; both used to be two- and four-option sections.
+            //
+            // Note this file used to declare two parallel alias sets
+            // (sSubtitle* and sSub*) for the same AppLang strings, which is
+            // how a section ended up with two spellings and how the option
+            // count above reported doubled numbers. One id per section now.
             [nameof(AppSettings.AudioLanguage)] = sAudioOutput,
             [nameof(AppSettings.SubtitleLanguage)] = sSubtitleBehavior,
             [nameof(AppSettings.SubFallback)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubsFallbackForced)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubsMatchOsLanguage)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubsWithMatchingAudio)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubAuto)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubFilePaths)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubDelay)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubVisibility)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubClearOnSeek)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubCodePage)] = sSubtitleBehavior,
+            [nameof(AppSettings.SecondarySubVisibility)] = sSubtitleBehavior,
+            // style
             [nameof(AppSettings.SubFontSize)] = sSubtitleStyle,
             [nameof(AppSettings.SubFont)] = sSubtitleStyle,
             [nameof(AppSettings.SubFontFile)] = sSubtitleStyle,
             [nameof(AppSettings.SubFontProvider)] = sSubtitleStyle,
-            [nameof(AppSettings.SubCodePage)] = sSubtitleBehavior,
             [nameof(AppSettings.SubColor)] = sSubtitleStyle,
             [nameof(AppSettings.SubBackColor)] = sSubtitleStyle,
             [nameof(AppSettings.SubBorderColor)] = sSubtitleStyle,
+            [nameof(AppSettings.SubOutlineColor)] = sSubtitleStyle,
             [nameof(AppSettings.SubOutlineSize)] = sSubtitleStyle,
             [nameof(AppSettings.SubShadowOffset)] = sSubtitleStyle,
-            [nameof(AppSettings.SubBlur)] = sSubtitleStyle,
-            [nameof(AppSettings.SubPos)] = sSubtitlePosition,
             [nameof(AppSettings.SubBold)] = sSubtitleStyle,
             [nameof(AppSettings.SubItalic)] = sSubtitleStyle,
+            [nameof(AppSettings.SubBlur)] = sSubtitleStyle,
+            [nameof(AppSettings.SubGauss)] = sSubtitleStyle,
+            [nameof(AppSettings.SubSpacing)] = sSubtitleStyle,
+            [nameof(AppSettings.SubLineSpacing)] = sSubtitleStyle,
+            [nameof(AppSettings.SubHinting)] = sSubtitleStyle,
+            // position -- including the ASS layout knobs and the second track's
+            // placement, which are about where a line lands, not what it looks
+            // like.
+            [nameof(AppSettings.SubPos)] = sSubtitlePosition,
             [nameof(AppSettings.SubAlignX)] = sSubtitlePosition,
             [nameof(AppSettings.SubAlignY)] = sSubtitlePosition,
-            [nameof(AppSettings.SubScaleByWindow)] = sSubtitlePosition,
-            [nameof(AppSettings.SubLineSpacing)] = sSubtitleBehavior,
             [nameof(AppSettings.SubJustify)] = sSubtitlePosition,
-            [nameof(AppSettings.SubClearOnSeek)] = sSubtitleBehavior,
-            [nameof(AppSettings.SubHinting)] = sSubtitleStyle,
             [nameof(AppSettings.SubMarginX)] = sSubtitlePosition,
             [nameof(AppSettings.SubMarginY)] = sSubtitlePosition,
-            [nameof(AppSettings.SubDelay)] = sSubtitleBehavior,
-            [nameof(AppSettings.SubScaleSigns)] = sSubtitlePosition,
+            [nameof(AppSettings.SubMarginYOffset)] = sSubtitlePosition,
             [nameof(AppSettings.SubUseMargins)] = sSubtitlePosition,
-            [nameof(AppSettings.SubAuto)] = sSubtitleBehavior,
-            [nameof(AppSettings.SubFilePaths)] = sSubtitleBehavior,
-            [nameof(AppSettings.SubHdrPeak)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubScale)] = sSubtitlePosition,
+            [nameof(AppSettings.SubScaleByWindow)] = sSubtitlePosition,
+            [nameof(AppSettings.SubScaleSigns)] = sSubtitlePosition,
+            [nameof(AppSettings.SubAssJustify)] = sSubtitlePosition,
+            [nameof(AppSettings.SubAssScaleWithWindow)] = sSubtitlePosition,
+            [nameof(AppSettings.SubAssForceMargins)] = sSubtitlePosition,
+            [nameof(AppSettings.SubAssPruneDelay)] = sSubtitlePosition,
+            // filter -- accessibility clean-up, timing repair, and the ceiling
+            // on bitmap subtitle size.
+            [nameof(AppSettings.SubFilterSdh)] = sSubtitleFilter,
+            [nameof(AppSettings.SubFilterSdhEnclosures)] = sSubtitleFilter,
+            [nameof(AppSettings.SubFilterSdhHarder)] = sSubtitleFilter,
+            [nameof(AppSettings.SubFixTiming)] = sSubtitleFilter,
+            [nameof(AppSettings.SubFixTimingThreshold)] = sSubtitleFilter,
+            [nameof(AppSettings.SubForcedEventsOnly)] = sSubtitleFilter,
+            [nameof(AppSettings.SubShaper)] = sSubtitleFilter,
+            [nameof(AppSettings.SubBitmapMaxSize)] = sSubtitleFilter,
+            // ass -- renderer-specific overrides that only matter for styled
+            // subtitles, plus image-subtitle handling.
             [nameof(AppSettings.SubAssOverride)] = sSubtitleAss,
             [nameof(AppSettings.SubAssStyleOverrides)] = sSubtitleAss,
-            [nameof(AppSettings.SubAssForceMargins)] = sSubtitleAss,
-            [nameof(AppSettings.SubAssScaleWithWindow)] = sSubtitleAss,
             [nameof(AppSettings.SubAssUseVideoData)] = sSubtitleAss,
             [nameof(AppSettings.SubAssVideoAspectOverride)] = sSubtitleAss,
             [nameof(AppSettings.SubAssVsfilterColorCompat)] = sSubtitleAss,
             [nameof(AppSettings.SubEmbeddedFonts)] = sSubtitleAss,
             [nameof(AppSettings.BlendSubtitles)] = sSubtitleAss,
-            [nameof(AppSettings.StretchImageSubsToScreen)] = sSubtitleImage,
-            [nameof(AppSettings.ImageSubsVideoResolution)] = sSubtitleImage,
-            [nameof(AppSettings.ImageSubsHdrPeak)] = sSubtitleImage,
+            [nameof(AppSettings.StretchImageSubsToScreen)] = sSubtitleAss,
+            [nameof(AppSettings.ImageSubsVideoResolution)] = sSubtitleAss,
+            [nameof(AppSettings.ImageSubsHdrPeak)] = sSubtitleAss,
+            [nameof(AppSettings.SecondarySubAssOverride)] = sSubtitleAss,
+            [nameof(AppSettings.SecondarySubDelay)] = sSubtitleAss,
+            [nameof(AppSettings.SecondarySubPos)] = sSubtitleAss,
+            [nameof(AppSettings.SecondarySubScale)] = sSubtitleAss,
             // window
             [nameof(AppSettings.AlwaysOnTop)] = sWindow,
             [nameof(AppSettings.KeepOpen)] = sWindow,
@@ -723,15 +887,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CachePauseInitial)] = sCache,
             [nameof(AppSettings.CachePauseWait)] = sCache,
                         // network
-            [nameof(AppSettings.Ytdl)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlRawOptionsAppend)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlFormat)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlPath)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlTryFirst)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlAllFormats)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlUseManifests)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlThumbnails)] = sNetworkYtdlp,
-            [nameof(AppSettings.YtdlExclude)] = sNetworkYtdlp,
             [nameof(AppSettings.UserAgent)] = sNetworkHttp,
             [nameof(AppSettings.Referrer)] = sNetworkHttp,
             [nameof(AppSettings.HttpHeaderFields)] = sNetworkHttp,
@@ -753,6 +908,7 @@ private List<Option> BuildSettings()
             ["ActionUnassociateFiles"] = sProgramAssociations,
             ["ActionExportConfig"] = sProgramConfig,
             ["ActionImportConfig"] = sProgramConfig,
+            ["ActionOpenMpvConf"] = sProgramConfig,
             [nameof(AppSettings.ControlBarLayout)] = sProgramInterface,
             [nameof(AppSettings.ControlBarHiddenIcons)] = sProgramInterface,
             // osd
@@ -790,7 +946,10 @@ private List<Option> BuildSettings()
             // screenshot
             [nameof(AppSettings.ScreenshotDirectory)] = sScreenshotLocation,
             [nameof(AppSettings.ScreenshotTemplate)] = sScreenshotLocation,
-            [nameof(AppSettings.ScreenshotFormat)] = sScreenshotQuality,
+            // Format sits with location, not with the per-codec quality
+            // knobs: choosing png vs jpg is the one screenshot decision
+            // everyone makes, tuning jxl effort is not.
+            [nameof(AppSettings.ScreenshotFormat)] = sScreenshotLocation,
             [nameof(AppSettings.ScreenshotJpegQuality)] = sScreenshotQuality,
             [nameof(AppSettings.ScreenshotJpegSourceChroma)] = sScreenshotQuality,
             [nameof(AppSettings.ScreenshotPngCompression)] = sScreenshotQuality,
@@ -807,7 +966,41 @@ private List<Option> BuildSettings()
             // testing
             [nameof(AppSettings.TestMpvCommandLog)] = sProgramLanguageLog,
             [nameof(AppSettings.TestOsdMessage)] = sOsdBehavior,
-            [nameof(AppSettings.TestSignal)] = sPlayback,
+            // TestSignal rides with the other experimental switches, not with
+            // plain Playback: the general playback section holds speed and
+            // loop modes that people use constantly, and a diagnostic tone
+            // generator does not belong beside them.
+            [nameof(AppSettings.TestSignal)] = sProgramTesting,
+            [nameof(AppSettings.OsdScale)] = sOsdText,
+            [nameof(AppSettings.OsdSpacing)] = sOsdText,
+            [nameof(AppSettings.OsdBold)] = sOsdText,
+            [nameof(AppSettings.OsdItalic)] = sOsdText,
+            [nameof(AppSettings.OsdJustify)] = sOsdText,
+            [nameof(AppSettings.OsdShadowOffset)] = sOsdText,
+            [nameof(AppSettings.OsdFontsDir)] = sOsdText,
+            [nameof(AppSettings.OsdFontProvider)] = sOsdText,
+            [nameof(AppSettings.OsdShaper)] = sOsdText,
+            [nameof(AppSettings.OsdBackColor)] = sOsdAppearance,
+            [nameof(AppSettings.OsdSelectedColor)] = sOsdAppearance,
+            [nameof(AppSettings.OsdSelectedOutlineColor)] = sOsdAppearance,
+            [nameof(AppSettings.OsdScaleByWindow)] = sOsdBehavior,
+            [nameof(AppSettings.OsdMarginYOffset)] = sOsdPosition,
+            [nameof(AppSettings.AbLoopA)] = sPlayback,
+            [nameof(AppSettings.AbLoopB)] = sPlayback,
+            [nameof(AppSettings.AbLoopCount)] = sPlayback,
+            [nameof(AppSettings.CursorAutohide)] = sWindowBehavior,
+            [nameof(AppSettings.CursorAutohideFsOnly)] = sWindowBehavior,
+            [nameof(AppSettings.WindowBorder)] = sWindowBehavior,
+            [nameof(AppSettings.TitleBar)] = sWindowBehavior,
+            [nameof(AppSettings.VideoZoom)] = sVideoGeometry,
+            [nameof(AppSettings.VideoPanX)] = sVideoGeometry,
+            [nameof(AppSettings.VideoPanY)] = sVideoGeometry,
+            [nameof(AppSettings.VideoAlignX)] = sVideoGeometry,
+            [nameof(AppSettings.VideoAlignY)] = sVideoGeometry,
+            [nameof(AppSettings.GpuApi)] = sAdvRenderer,
+            [nameof(AppSettings.GpuContext)] = sAdvRenderer,
+            [nameof(AppSettings.ScaleAntiring)] = sAdvScaler,
+            [nameof(AppSettings.CscaleAntiring)] = sAdvScaler,
         };
 
         // Category is set inline on each Option (single source of truth);
@@ -838,7 +1031,7 @@ private List<Option> BuildSettings()
             // Section captions are localized, so the layout keys on a stable id.
             // Resolved once here (the map is already cached) and carried on the
             // row, because a user-created folder has no caption in AppLang.
-            option.SectionId = SettingsSectionIds.IdFor(option.Section);
+            option.SectionId = SettingsSections.IdFor(option.Section);
         }
 
         var categoryOrderIndex = categoryOrder
@@ -907,7 +1100,7 @@ private List<Option> BuildSettings()
         var added = new List<Option>(_layout.Added.Count);
         foreach (var custom in _layout.Added)
         {
-            var category = SettingsSectionIds.CategoryCaptionFor(custom.CategoryKey);
+            var category = SettingsSections.CategoryCaptionFor(custom.CategoryKey);
             if (category is null)
             {
                 // The category no longer exists (a build removed it): skip the

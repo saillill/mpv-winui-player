@@ -44,9 +44,6 @@ public static class MpvSettings
             nameof(AppSettings.LoopFile) => $"set loop-file {(value is true ? "inf" : "no")}",
             nameof(AppSettings.CacheEnabled) => $"set cache {(string)value}",
             nameof(AppSettings.DemuxerReadahead) => $"set demuxer-readahead-secs {(double)value}",
-            nameof(AppSettings.Ytdl) => $"set ytdl {(value is true ? "yes" : "no")}",
-            nameof(AppSettings.YtdlRawOptionsAppend) => string.IsNullOrWhiteSpace((string)value) ? null : $"set ytdl-raw-options-append {Q((string)value)}",
-            nameof(AppSettings.YtdlFormat) => string.IsNullOrWhiteSpace((string)value) ? null : $"set ytdl-format {Q((string)value)}",
             nameof(AppSettings.UserAgent) => string.IsNullOrWhiteSpace((string)value) ? null : $"set user-agent {Q((string)value)}",
             nameof(AppSettings.Referrer) => string.IsNullOrWhiteSpace((string)value) ? null : $"set referrer {Q((string)value)}",
             nameof(AppSettings.HttpHeaderFields) => string.IsNullOrWhiteSpace((string)value) ? null : $"set http-header-fields {Q((string)value)}",
@@ -254,6 +251,60 @@ public static class MpvSettings
             nameof(AppSettings.VsrAutoEnabled) => $"set user-data/mpvw/vsr-auto {(value is true ? "yes" : "no")}",
             nameof(AppSettings.HdrAutoMode) => $"script-message-to hdr_auto mode {(string)value}",
             nameof(AppSettings.SeekHoldEnabled) => $"set user-data/mpvw/seek-hold {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.OsdScale) => $"set osd-scale {(double)value}",
+            nameof(AppSettings.OsdSpacing) => $"set osd-spacing {(double)value}",
+            nameof(AppSettings.OsdBold) => $"set osd-bold {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.OsdItalic) => $"set osd-italic {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.OsdJustify) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-justify {(string)value}",
+            nameof(AppSettings.OsdShadowOffset) => $"set osd-shadow-offset {(double)value}",
+            nameof(AppSettings.OsdFontsDir) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-fonts-dir {(string)value}",
+            nameof(AppSettings.OsdFontProvider) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-font-provider {(string)value}",
+            nameof(AppSettings.OsdShaper) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-shaper {(string)value}",
+            nameof(AppSettings.OsdBackColor) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-back-color {(string)value}",
+            nameof(AppSettings.OsdSelectedColor) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-selected-color {(string)value}",
+            nameof(AppSettings.OsdSelectedOutlineColor) => string.IsNullOrWhiteSpace((string)value) ? null : $"set osd-selected-outline-color {(string)value}",
+            nameof(AppSettings.OsdScaleByWindow) => $"set osd-scale-by-window {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.OsdMarginYOffset) => $"set osd-margin-y-offset {(int)value}",
+            nameof(AppSettings.SubVisibility) => $"set sub-visibility {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.SubFixTiming) => $"set sub-fix-timing {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.SubFixTimingThreshold) => $"set sub-fix-timing-threshold {(int)value}",
+            nameof(AppSettings.SubsMatchOsLanguage) => $"set subs-match-os-language {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.SubsWithMatchingAudio) => string.IsNullOrWhiteSpace((string)value) ? null : $"set subs-with-matching-audio {(string)value}",
+            nameof(AppSettings.SubsFallbackForced) => string.IsNullOrWhiteSpace((string)value) ? null : $"set subs-fallback-forced {(string)value}",
+            nameof(AppSettings.SubForcedEventsOnly) => $"set sub-forced-events-only {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.SubShaper) => string.IsNullOrWhiteSpace((string)value) ? null : $"set sub-shaper {(string)value}",
+            nameof(AppSettings.SubScale) => $"set sub-scale {(double)value}",
+            nameof(AppSettings.SubSpacing) => $"set sub-spacing {(double)value}",
+            nameof(AppSettings.SubOutlineColor) => string.IsNullOrWhiteSpace((string)value) ? null : $"set sub-outline-color {(string)value}",
+            nameof(AppSettings.SubGauss) => $"set sub-gauss {(double)value}",
+            nameof(AppSettings.SubMarginYOffset) => $"set sub-margin-y-offset {(int)value}",
+            nameof(AppSettings.SubAssJustify) => $"set sub-ass-justify {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.SubAssPruneDelay) => $"set sub-ass-prune-delay {(double)value}",
+            nameof(AppSettings.SubBitmapMaxSize) => $"set sub-bitmap-max-size {(int)value}",
+            nameof(AppSettings.SecondarySubAssOverride) => string.IsNullOrWhiteSpace((string)value) ? null : $"set secondary-sub-ass-override {(string)value}",
+            nameof(AppSettings.SubFilterSdh) => $"set sub-filter-sdh {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.SubFilterSdhEnclosures) => string.IsNullOrWhiteSpace((string)value) ? null : $"set sub-filter-sdh-enclosures {(string)value}",
+            nameof(AppSettings.SubFilterSdhHarder) => $"set sub-filter-sdh-harder {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.AbLoopA) => ((double)value > 0 ? $"set ab-loop-a {(double)value}" : "set ab-loop-a no"),
+            nameof(AppSettings.AbLoopB) => ((double)value > 0 ? $"set ab-loop-b {(double)value}" : "set ab-loop-b no"),
+            nameof(AppSettings.AbLoopCount) => ((int)value < 0 ? "set ab-loop-count inf" : $"set ab-loop-count {(int)value}"),
+            nameof(AppSettings.CursorAutohide) => string.IsNullOrWhiteSpace((string)value) ? null : $"set cursor-autohide {(string)value}",
+            nameof(AppSettings.CursorAutohideFsOnly) => $"set cursor-autohide-fs-only {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.WindowBorder) => $"set border {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.TitleBar) => string.IsNullOrWhiteSpace((string)value) ? null : $"set title-bar {(string)value}",
+            nameof(AppSettings.VideoZoom) => $"set video-zoom {(double)value}",
+            nameof(AppSettings.VideoPanX) => $"set video-pan-x {(double)value}",
+            nameof(AppSettings.VideoPanY) => $"set video-pan-y {(double)value}",
+            nameof(AppSettings.VideoAlignX) => $"set video-align-x {(double)value}",
+            nameof(AppSettings.VideoAlignY) => $"set video-align-y {(double)value}",
+            nameof(AppSettings.SecondarySubVisibility) => $"set secondary-sub-visibility {(value is true ? "yes" : "no")}",
+            nameof(AppSettings.SecondarySubDelay) => $"set secondary-sub-delay {(double)value}",
+            nameof(AppSettings.SecondarySubPos) => $"set secondary-sub-pos {(double)value}",
+            nameof(AppSettings.SecondarySubScale) => $"set secondary-sub-scale {(double)value}",
+            nameof(AppSettings.GpuApi) => string.IsNullOrWhiteSpace((string)value) ? null : $"set gpu-api {(string)value}",
+            nameof(AppSettings.GpuContext) => string.IsNullOrWhiteSpace((string)value) ? null : $"set gpu-context {(string)value}",
+            nameof(AppSettings.ScaleAntiring) => $"set scale-antiring {(double)value}",
+            nameof(AppSettings.CscaleAntiring) => $"set cscale-antiring {(double)value}",
             _ => null,
         };
 
@@ -297,6 +348,16 @@ public static class MpvSettings
                 continue;
             }
 
+            // A hand-written line in mpv.conf wins. mpv has already applied it
+            // at startup, so sending our own value here would silently undo the
+            // user's edit - the one thing the precedence model promises not to
+            // do. Skipping is what makes "edited mpv.conf before launch" mean
+            // "mpv.conf decides".
+            if (MpvConfOverrides.IsUserOwned(ToMpvOptionName(prop.Name)))
+            {
+                continue;
+            }
+
             // Commands that target scripts must wait until the scripts are
             // actually loaded (first FileLoaded); sending them during the
             // startup batch races script registration and silently fails.
@@ -335,6 +396,445 @@ public static class MpvSettings
             run(cmd);
         }
     }
+
+    /// <summary>
+    /// The mpv option a settings key writes, or null when the key does not map
+    /// to one (a script message, a config-only entry). Callers use it to ask
+    /// whether mpv.conf already names that option.
+    /// </summary>
+    public static string? ToMpvOptionName(string key) =>
+        MpvOptionNames.TryGetValue(key, out var name) ? name : null;
+
+    /// <summary>
+    /// A real mpv.conf option name: lowercase, digits and dashes, nothing else.
+    ///
+    /// The filter matters. <see cref="MpvOptionNames"/> also carries the
+    /// script-communication keys (<c>user-data/mpvw/vsr-auto</c> and friends),
+    /// which are runtime properties, not options. Writing them into mpv.conf
+    /// would append lines mpv cannot parse, so they are rejected here.
+    /// </summary>
+    private static readonly System.Text.RegularExpressions.Regex ConfigOptionName =
+        new("^[a-z0-9][a-z0-9-]*$",
+            System.Text.RegularExpressions.RegexOptions.Compiled
+            | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// One <c>name=value</c> line for mpv.conf, or null when the key cannot be
+    /// written there.
+    ///
+    /// Derived from <see cref="ToCommand"/> rather than restating names and
+    /// value grammar: the command already quotes strings, spells booleans
+    /// yes/no and maps enums, and the config syntax accepts the same value
+    /// grammar after <c>name=</c>. Reformatting that output keeps one source of
+    /// truth, so a new ToCommand case is automatically persistable.
+    /// </summary>
+    public static string? ToConfLine(string key, object? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        var name = ToMpvOptionName(key);
+        if (name is null || !ConfigOptionName.IsMatch(name))
+        {
+            return null;
+        }
+
+        // Startup-only options have no runtime command by design, so ToCommand
+        // cannot format them. They are still options the window owns, so they
+        // get their line from here - otherwise they would be silently dropped
+        // from the file the moment they became config-only.
+        if (ConfigOnlyConfLine(key, value) is { } configOnly)
+        {
+            return configOnly;
+        }
+
+        if (ToCommand(key, value) is not { } command)
+        {
+            return null;
+        }
+
+        // ToCommand prefixes "no-osd " to suppress mpv's per-set OSD, and that
+        // prefix is a runtime concern with no meaning in a config file.
+        const string osdPrefix = "no-osd ";
+        var set = command.StartsWith(osdPrefix, StringComparison.Ordinal)
+            ? command[osdPrefix.Length..]
+            : command;
+
+        const string setPrefix = "set ";
+        if (!set.StartsWith(setPrefix, StringComparison.Ordinal))
+        {
+            // script-message-to and friends: not an option assignment.
+            return null;
+        }
+
+        var body = set[setPrefix.Length..];
+        var space = body.IndexOf(' ');
+        if (space <= 0 || space == body.Length - 1)
+        {
+            return null;
+        }
+
+        return body[..space] + "=" + body[(space + 1)..];
+    }
+
+    /// <summary>
+    /// Config line for an option that is deliberately absent from
+    /// <see cref="ToCommand"/> because it only takes effect at mpv start.
+    ///
+    /// Returns null when the value means "leave it alone", so no line is written
+    /// and mpv's own default stands - the same meaning the old writer gave a
+    /// commented-out placeholder, without the dead line.
+    /// </summary>
+    private static string? ConfigOnlyConfLine(string key, object value)
+    {
+        return key switch
+        {
+            // 0 is mpv's "off"; anything above it is a forced frame rate, and
+            // mpv wants the number as written (1000/1001 is a valid value).
+            nameof(AppSettings.OverrideDisplayFps) =>
+                (double)value > 0
+                    ? "override-display-fps="
+                      + ((double)value).ToString(CultureInfo.InvariantCulture)
+                    : null,
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// Every mpv.conf line the settings window owns, sorted by option name.
+    ///
+    /// Sorted because the block is rewritten on every change and compared
+    /// against what was written last time; a stable order means an unchanged
+    /// setting produces a byte-identical block rather than a reshuffle. It also
+    /// makes the file readable.
+    /// </summary>
+    public static List<string> BuildConfigLines()
+    {
+        var settings = AppContext.AppSetting;
+        var lines = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var prop in typeof(AppSettings).GetProperties(
+                     BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (!prop.CanRead || !prop.CanWrite)
+            {
+                continue;
+            }
+
+            object? value;
+            try
+            {
+                value = prop.GetValue(settings);
+            }
+            catch
+            {
+                // One failing getter must not cost the whole file.
+                continue;
+            }
+
+            if (ToConfLine(prop.Name, value) is not { } line)
+            {
+                continue;
+            }
+
+            // Two settings can map to the same option (a bool and its detail
+            // field); the first wins so the file never carries a duplicate.
+            var name = line[..line.IndexOf('=')];
+            if (seen.Add(name))
+            {
+                lines.Add(line);
+            }
+        }
+
+        lines.Sort(StringComparer.Ordinal);
+        return lines;
+    }
+
+    /// <summary>
+    /// Maps a settings key to the mpv option name it writes through
+    /// <see cref="ToCommand"/>. Derived from that switch, not a second source of
+    /// truth: it exists so the settings window can ask whether mpv.conf already
+    /// names the same option, and so the config writer can name the line it
+    /// persists.
+    ///
+    /// Keys with no mpv option - script messages - are absent and report as
+    /// unmapped. The startup-only entries ARE here: they have no runtime
+    /// command, but they are options the window owns and writes to the file.
+    /// </summary>
+    private static readonly Dictionary<string, string> MpvOptionNames = new(StringComparer.Ordinal)
+    {
+        [nameof(AppSettings.Hwdec)] = "hwdec",
+        [nameof(AppSettings.HwdecCodecs)] = "hwdec-codecs",
+        [nameof(AppSettings.OverrideDisplayFps)] = "override-display-fps",
+        [nameof(AppSettings.AlwaysOnTop)] = "ontop",
+        [nameof(AppSettings.InputIme)] = "input-ime",
+        [nameof(AppSettings.StartFullscreen)] = "fullscreen",
+        [nameof(AppSettings.D3d11OutputCsp)] = "d3d11-output-csp",
+        [nameof(AppSettings.D3d11OutputFormat)] = "d3d11-output-format",
+        [nameof(AppSettings.D3d11SyncInterval)] = "d3d11-sync-interval",
+        [nameof(AppSettings.D3d11Warp)] = "d3d11-warp",
+        [nameof(AppSettings.D3d11ExclusiveFs)] = "d3d11-exclusive-fs",
+        [nameof(AppSettings.D3d11Flip)] = "d3d11-flip",
+        [nameof(AppSettings.D3d11Adapter)] = "d3d11-adapter",
+        [nameof(AppSettings.VolumeMax)] = "volume-max",
+        [nameof(AppSettings.AudioGapless)] = "gapless-audio",
+        [nameof(AppSettings.KeepOpen)] = "keep-open",
+        [nameof(AppSettings.LoopPlaylist)] = "loop-playlist",
+        [nameof(AppSettings.LoopFile)] = "loop-file",
+        [nameof(AppSettings.CacheEnabled)] = "cache",
+        [nameof(AppSettings.DemuxerReadahead)] = "demuxer-readahead-secs",
+        [nameof(AppSettings.UserAgent)] = "user-agent",
+        [nameof(AppSettings.Referrer)] = "referrer",
+        [nameof(AppSettings.HttpHeaderFields)] = "http-header-fields",
+        [nameof(AppSettings.HttpProxy)] = "http-proxy",
+        [nameof(AppSettings.CookiesFile)] = "cookies-file",
+        [nameof(AppSettings.TlsVerify)] = "tls-verify",
+        [nameof(AppSettings.NetworkTimeout)] = "network-timeout",
+        [nameof(AppSettings.CurlMaxRedirects)] = "curl-max-redirects",
+        [nameof(AppSettings.CurlMaxRetries)] = "curl-max-retries",
+        [nameof(AppSettings.CurlConnectTimeout)] = "curl-connect-timeout",
+        [nameof(AppSettings.CurlBufferSize)] = "curl-buffer-size",
+        [nameof(AppSettings.CurlMaxRequestSize)] = "curl-max-request-size",
+        [nameof(AppSettings.PictureBrightness)] = "brightness",
+        [nameof(AppSettings.PictureContrast)] = "contrast",
+        [nameof(AppSettings.PictureSaturation)] = "saturation",
+        [nameof(AppSettings.PictureGamma)] = "gamma",
+        [nameof(AppSettings.PictureHue)] = "hue",
+        [nameof(AppSettings.PictureSharpen)] = "sharpen",
+        [nameof(AppSettings.AutoWindowResize)] = "auto-window-resize",
+        [nameof(AppSettings.AdLavcDownmix)] = "ad-lavc-downmix",
+        [nameof(AppSettings.AutoCreatePlaylist)] = "autocreate-playlist",
+        [nameof(AppSettings.DirectoryMode)] = "directory-mode",
+        [nameof(AppSettings.DirectoryFilterTypes)] = "directory-filter-types",
+        [nameof(AppSettings.VideoExts)] = "video-exts",
+        [nameof(AppSettings.ImageExts)] = "image-exts",
+        [nameof(AppSettings.AudioExts)] = "audio-exts",
+        [nameof(AppSettings.InputIpcServer)] = "input-ipc-server",
+        [nameof(AppSettings.WatchLaterDir)] = "watch-later-dir",
+        [nameof(AppSettings.WatchLaterOptions)] = "watch-later-options",
+        [nameof(AppSettings.IccCacheDir)] = "icc-cache-dir",
+        [nameof(AppSettings.GpuShaderCacheDir)] = "gpu-shader-cache-dir",
+        [nameof(AppSettings.Deinterlace)] = "deinterlace",
+        [nameof(AppSettings.AspectRatio)] = "video-aspect-override",
+        [nameof(AppSettings.Cscale)] = "cscale",
+        [nameof(AppSettings.Tscale)] = "tscale",
+        [nameof(AppSettings.LinearUpscaling)] = "linear-upscaling",
+        [nameof(AppSettings.Dither)] = "dither",
+        [nameof(AppSettings.Panscan)] = "panscan",
+        [nameof(AppSettings.VideoUnscaled)] = "video-unscaled",
+        [nameof(AppSettings.BackgroundTileColor0)] = "background-tile-color-0",
+        [nameof(AppSettings.BackgroundTileColor1)] = "background-tile-color-1",
+        [nameof(AppSettings.BackgroundTileSize)] = "background-tile-size",
+        [nameof(AppSettings.SubFontSize)] = "sub-font-size",
+        [nameof(AppSettings.SubScaleByWindow)] = "sub-scale-by-window",
+        [nameof(AppSettings.SubLineSpacing)] = "sub-line-spacing",
+        [nameof(AppSettings.SubJustify)] = "sub-justify",
+        [nameof(AppSettings.SubClearOnSeek)] = "sub-clear-on-seek",
+        [nameof(AppSettings.SubHinting)] = "sub-hinting",
+        [nameof(AppSettings.SubDelay)] = "sub-delay",
+        [nameof(AppSettings.SubPos)] = "sub-pos",
+        [nameof(AppSettings.AudioLanguage)] = "alang",
+        [nameof(AppSettings.SubtitleLanguage)] = "slang",
+        [nameof(AppSettings.SubFilePaths)] = "sub-file-paths",
+        [nameof(AppSettings.SubHdrPeak)] = "sub-hdr-peak",
+        [nameof(AppSettings.ImageSubsHdrPeak)] = "image-subs-hdr-peak",
+        [nameof(AppSettings.ImageSubsVideoResolution)] = "image-subs-video-resolution",
+        [nameof(AppSettings.SubAssStyleOverrides)] = "sub-ass-style-overrides",
+        [nameof(AppSettings.SubColor)] = "sub-color",
+        [nameof(AppSettings.SubBackColor)] = "sub-back-color",
+        [nameof(AppSettings.SubBorderColor)] = "sub-border-color",
+        [nameof(AppSettings.SubScaleSigns)] = "sub-scale-signs",
+        [nameof(AppSettings.SubAssUseVideoData)] = "sub-ass-use-video-data",
+        [nameof(AppSettings.SubAssVideoAspectOverride)] = "sub-ass-video-aspect-override",
+        [nameof(AppSettings.SubAssVsfilterColorCompat)] = "sub-ass-vsfilter-color-compat",
+        [nameof(AppSettings.AudioDevice)] = "audio-device",
+        [nameof(AppSettings.ScreenshotDirectory)] = "screenshot-directory",
+        [nameof(AppSettings.ScreenshotTemplate)] = "screenshot-template",
+        [nameof(AppSettings.SavePositionOnQuit)] = "save-position-on-quit",
+        [nameof(AppSettings.ResumePlayback)] = "resume-playback",
+        [nameof(AppSettings.ScreenshotFormat)] = "screenshot-format",
+        [nameof(AppSettings.ScreenshotJpegQuality)] = "screenshot-jpeg-quality",
+        [nameof(AppSettings.ScreenshotJpegSourceChroma)] = "screenshot-jpeg-source-chroma",
+        [nameof(AppSettings.VideoSync)] = "video-sync",
+        [nameof(AppSettings.VideoSyncMaxVideoChange)] = "video-sync-max-video-change",
+        [nameof(AppSettings.Interpolation)] = "interpolation",
+        [nameof(AppSettings.CorrectDownscaling)] = "correct-downscaling",
+        [nameof(AppSettings.Scale)] = "scale",
+        [nameof(AppSettings.DScale)] = "dscale",
+        [nameof(AppSettings.VideoRotate)] = "video-rotate",
+        [nameof(AppSettings.Deband)] = "deband",
+        [nameof(AppSettings.LinearDownscaling)] = "linear-downscaling",
+        [nameof(AppSettings.SigmoidUpscaling)] = "sigmoid-upscaling",
+        [nameof(AppSettings.ToneMapping)] = "tone-mapping",
+        [nameof(AppSettings.TargetGamut)] = "target-gamut",
+        [nameof(AppSettings.ToneMappingMaxBoost)] = "tone-mapping-max-boost",
+        [nameof(AppSettings.HdrComputePeak)] = "hdr-compute-peak",
+        [nameof(AppSettings.HdrPeakDecayRate)] = "hdr-peak-decay-rate",
+        [nameof(AppSettings.HdrSceneThresholdLow)] = "hdr-scene-threshold-low",
+        [nameof(AppSettings.HdrSceneThresholdHigh)] = "hdr-scene-threshold-high",
+        [nameof(AppSettings.HdrContrastRecovery)] = "hdr-contrast-recovery",
+        [nameof(AppSettings.HdrContrastSmoothness)] = "hdr-contrast-smoothness",
+        [nameof(AppSettings.InverseToneMapping)] = "inverse-tone-mapping",
+        [nameof(AppSettings.ToneMappingVisualize)] = "tone-mapping-visualize",
+        [nameof(AppSettings.VideoReversalBuffer)] = "video-reversal-buffer",
+        [nameof(AppSettings.AudioReversalBuffer)] = "audio-reversal-buffer",
+        [nameof(AppSettings.DitherDepth)] = "dither-depth",
+        [nameof(AppSettings.HrSeek)] = "hr-seek",
+        [nameof(AppSettings.HrSeekFramedrop)] = "hr-seek-framedrop",
+        [nameof(AppSettings.CacheOnDisk)] = "cache-on-disk",
+        [nameof(AppSettings.TargetColorspaceHint)] = "target-colorspace-hint",
+        [nameof(AppSettings.TargetColorspaceHintMode)] = "target-colorspace-hint-mode",
+        [nameof(AppSettings.TargetColorspaceHintStrict)] = "target-colorspace-hint-strict",
+        [nameof(AppSettings.TargetPrim)] = "target-prim",
+        [nameof(AppSettings.TargetTrc)] = "target-trc",
+        [nameof(AppSettings.TargetPeak)] = "target-peak",
+        [nameof(AppSettings.GamutMappingMode)] = "gamut-mapping-mode",
+        [nameof(AppSettings.VideoOutputLevels)] = "video-output-levels",
+        [nameof(AppSettings.VideoDecodeDirect)] = "vd-lavc-dr",
+        [nameof(AppSettings.IccProfileAuto)] = "icc-profile-auto",
+        [nameof(AppSettings.IccProfile)] = "icc-profile",
+        [nameof(AppSettings.IccForceContrast)] = "icc-force-contrast",
+        [nameof(AppSettings.IccCache)] = "icc-cache",
+        [nameof(AppSettings.Icc3dlutSize)] = "icc-3dlut-size",
+        [nameof(AppSettings.DemuxerMaxBytes)] = "demuxer-max-bytes",
+        [nameof(AppSettings.DemuxerMaxBackBytes)] = "demuxer-max-back-bytes",
+        [nameof(AppSettings.GpuShaderCache)] = "gpu-shader-cache",
+        [nameof(AppSettings.GlslShadersAppend)] = "glsl-shaders-append",
+        [nameof(AppSettings.GlslShaderOpts)] = "glsl-shader-opts",
+        [nameof(AppSettings.AudioChannels)] = "audio-channels",
+        [nameof(AppSettings.AudioFormat)] = "audio-format",
+        [nameof(AppSettings.AudioSampleRate)] = "audio-samplerate",
+        [nameof(AppSettings.AudioStreamSilence)] = "audio-stream-silence",
+        [nameof(AppSettings.AudioWaitOpen)] = "audio-wait-open",
+        [nameof(AppSettings.AudioBuffer)] = "audio-buffer",
+        [nameof(AppSettings.AudioSpdif)] = "audio-spdif",
+        [nameof(AppSettings.Replaygain)] = "replaygain",
+        [nameof(AppSettings.OsdLevel)] = "osd-level",
+        [nameof(AppSettings.ImageDisplayDuration)] = "image-display-duration",
+        [nameof(AppSettings.CachePause)] = "cache-pause",
+        [nameof(AppSettings.CachePauseInitial)] = "cache-pause-initial",
+        [nameof(AppSettings.CachePauseWait)] = "cache-pause-wait",
+        [nameof(AppSettings.PrefetchPlaylist)] = "prefetch-playlist",
+        [nameof(AppSettings.SubBold)] = "sub-bold",
+        [nameof(AppSettings.SubItalic)] = "sub-italic",
+        [nameof(AppSettings.SubAlignX)] = "sub-align-x",
+        [nameof(AppSettings.SubAlignY)] = "sub-align-y",
+        [nameof(AppSettings.SubMarginX)] = "sub-margin-x",
+        [nameof(AppSettings.SubMarginY)] = "sub-margin-y",
+        [nameof(AppSettings.OsdAlignX)] = "osd-align-x",
+        [nameof(AppSettings.OsdAlignY)] = "osd-align-y",
+        [nameof(AppSettings.OsdMarginX)] = "osd-margin-x",
+        [nameof(AppSettings.OsdMarginY)] = "osd-margin-y",
+        [nameof(AppSettings.DemuxerHysteresisSecs)] = "demuxer-hysteresis-secs",
+        [nameof(AppSettings.DemuxerCacheDir)] = "demuxer-cache-dir",
+        [nameof(AppSettings.AudioExclusive)] = "audio-exclusive",
+        [nameof(AppSettings.AudioPitchCorrection)] = "audio-pitch-correction",
+        [nameof(AppSettings.AudioNormalizeDownmix)] = "audio-normalize-downmix",
+        [nameof(AppSettings.AudioFileAuto)] = "audio-file-auto",
+        [nameof(AppSettings.AudioFilePaths)] = "audio-file-paths",
+        [nameof(AppSettings.AudioDisplay)] = "audio-display",
+        [nameof(AppSettings.AudioDelay)] = "audio-delay",
+        [nameof(AppSettings.SubAssOverride)] = "sub-ass-override",
+        [nameof(AppSettings.SubBlur)] = "sub-blur",
+        [nameof(AppSettings.SubAuto)] = "sub-auto",
+        [nameof(AppSettings.SubFont)] = "sub-font",
+        [nameof(AppSettings.SubFontProvider)] = "sub-font-provider",
+        [nameof(AppSettings.SubFontFile)] = "sub-fonts-dir",
+        [nameof(AppSettings.SubAssScaleWithWindow)] = "sub-ass-scale-with-window",
+        [nameof(AppSettings.BlendSubtitles)] = "blend-subtitles",
+        [nameof(AppSettings.SubFallback)] = "subs-fallback",
+        [nameof(AppSettings.SubCodePage)] = "sub-codepage",
+        [nameof(AppSettings.SubOutlineSize)] = "sub-outline-size",
+        [nameof(AppSettings.SubShadowOffset)] = "sub-shadow-offset",
+        [nameof(AppSettings.SubEmbeddedFonts)] = "embeddedfonts",
+        [nameof(AppSettings.SubUseMargins)] = "sub-use-margins",
+        [nameof(AppSettings.SubAssForceMargins)] = "sub-ass-force-margins",
+        [nameof(AppSettings.OsdScale)] = "osd-scale",
+        [nameof(AppSettings.OsdSpacing)] = "osd-spacing",
+        [nameof(AppSettings.OsdBold)] = "osd-bold",
+        [nameof(AppSettings.OsdItalic)] = "osd-italic",
+        [nameof(AppSettings.OsdJustify)] = "osd-justify",
+        [nameof(AppSettings.OsdShadowOffset)] = "osd-shadow-offset",
+        [nameof(AppSettings.OsdFontsDir)] = "osd-fonts-dir",
+        [nameof(AppSettings.OsdFontProvider)] = "osd-font-provider",
+        [nameof(AppSettings.OsdShaper)] = "osd-shaper",
+        [nameof(AppSettings.OsdBackColor)] = "osd-back-color",
+        [nameof(AppSettings.OsdSelectedColor)] = "osd-selected-color",
+        [nameof(AppSettings.OsdSelectedOutlineColor)] = "osd-selected-outline-color",
+        [nameof(AppSettings.OsdScaleByWindow)] = "osd-scale-by-window",
+        [nameof(AppSettings.OsdMarginYOffset)] = "osd-margin-y-offset",
+        [nameof(AppSettings.SubVisibility)] = "sub-visibility",
+        [nameof(AppSettings.SubFixTiming)] = "sub-fix-timing",
+        [nameof(AppSettings.SubFixTimingThreshold)] = "sub-fix-timing-threshold",
+        [nameof(AppSettings.SubsMatchOsLanguage)] = "subs-match-os-language",
+        [nameof(AppSettings.SubsWithMatchingAudio)] = "subs-with-matching-audio",
+        [nameof(AppSettings.SubsFallbackForced)] = "subs-fallback-forced",
+        [nameof(AppSettings.SubForcedEventsOnly)] = "sub-forced-events-only",
+        [nameof(AppSettings.SubShaper)] = "sub-shaper",
+        [nameof(AppSettings.SubScale)] = "sub-scale",
+        [nameof(AppSettings.SubSpacing)] = "sub-spacing",
+        [nameof(AppSettings.SubOutlineColor)] = "sub-outline-color",
+        [nameof(AppSettings.SubGauss)] = "sub-gauss",
+        [nameof(AppSettings.SubMarginYOffset)] = "sub-margin-y-offset",
+        [nameof(AppSettings.SubAssJustify)] = "sub-ass-justify",
+        [nameof(AppSettings.SubAssPruneDelay)] = "sub-ass-prune-delay",
+        [nameof(AppSettings.SubBitmapMaxSize)] = "sub-bitmap-max-size",
+        [nameof(AppSettings.SecondarySubAssOverride)] = "secondary-sub-ass-override",
+        [nameof(AppSettings.SubFilterSdh)] = "sub-filter-sdh",
+        [nameof(AppSettings.SubFilterSdhEnclosures)] = "sub-filter-sdh-enclosures",
+        [nameof(AppSettings.SubFilterSdhHarder)] = "sub-filter-sdh-harder",
+        [nameof(AppSettings.AbLoopA)] = "ab-loop-a",
+        [nameof(AppSettings.AbLoopB)] = "ab-loop-b",
+        [nameof(AppSettings.AbLoopCount)] = "ab-loop-count",
+        [nameof(AppSettings.CursorAutohide)] = "cursor-autohide",
+        [nameof(AppSettings.CursorAutohideFsOnly)] = "cursor-autohide-fs-only",
+        [nameof(AppSettings.WindowBorder)] = "border",
+        [nameof(AppSettings.TitleBar)] = "title-bar",
+        [nameof(AppSettings.VideoZoom)] = "video-zoom",
+        [nameof(AppSettings.VideoPanX)] = "video-pan-x",
+        [nameof(AppSettings.VideoPanY)] = "video-pan-y",
+        [nameof(AppSettings.VideoAlignX)] = "video-align-x",
+        [nameof(AppSettings.VideoAlignY)] = "video-align-y",
+        [nameof(AppSettings.SecondarySubVisibility)] = "secondary-sub-visibility",
+        [nameof(AppSettings.SecondarySubDelay)] = "secondary-sub-delay",
+        [nameof(AppSettings.SecondarySubPos)] = "secondary-sub-pos",
+        [nameof(AppSettings.SecondarySubScale)] = "secondary-sub-scale",
+        [nameof(AppSettings.GpuApi)] = "gpu-api",
+        [nameof(AppSettings.GpuContext)] = "gpu-context",
+        [nameof(AppSettings.ScaleAntiring)] = "scale-antiring",
+        [nameof(AppSettings.CscaleAntiring)] = "cscale-antiring",
+        [nameof(AppSettings.StretchImageSubsToScreen)] = "stretch-image-subs-to-screen",
+        [nameof(AppSettings.OsdFontSize)] = "osd-font-size",
+        [nameof(AppSettings.OsdFont)] = "osd-font",
+        [nameof(AppSettings.OsdColor)] = "osd-color",
+        [nameof(AppSettings.OsdOutlineColor)] = "osd-outline-color",
+        [nameof(AppSettings.OsdPlayingMsg)] = "osd-playing-msg",
+        [nameof(AppSettings.OsdPlayingMsgDuration)] = "osd-playing-msg-duration",
+        [nameof(AppSettings.OsdBarWidth)] = "osd-bar-w",
+        [nameof(AppSettings.OsdBarHeight)] = "osd-bar-h",
+        [nameof(AppSettings.OsdBlur)] = "osd-blur",
+        [nameof(AppSettings.OsdOutlineSize)] = "osd-outline-size",
+        [nameof(AppSettings.OsdFractions)] = "osd-fractions",
+        [nameof(AppSettings.OsdOnSeek)] = "osd-on-seek",
+        [nameof(AppSettings.OsdDuration)] = "osd-duration",
+        [nameof(AppSettings.CacheSecs)] = "cache-secs",
+        [nameof(AppSettings.ScreenshotPngCompression)] = "screenshot-png-compression",
+        [nameof(AppSettings.ScreenshotPngFilter)] = "screenshot-png-filter",
+        [nameof(AppSettings.ScreenshotWebpQuality)] = "screenshot-webp-quality",
+        [nameof(AppSettings.ScreenshotWebpLossless)] = "screenshot-webp-lossless",
+        [nameof(AppSettings.ScreenshotWebpCompression)] = "screenshot-webp-compression",
+        [nameof(AppSettings.ScreenshotJxlDistance)] = "screenshot-jxl-distance",
+        [nameof(AppSettings.ScreenshotJxlEffort)] = "screenshot-jxl-effort",
+        [nameof(AppSettings.ScreenshotAvifEncoder)] = "screenshot-avif-encoder",
+        [nameof(AppSettings.ScreenshotHighBitDepth)] = "screenshot-high-bit-depth",
+        [nameof(AppSettings.ScreenshotTagColorspace)] = "screenshot-tag-colorspace",
+        [nameof(AppSettings.ScreenshotSw)] = "screenshot-sw",
+        [nameof(AppSettings.VsrAutoEnabled)] = "user-data/mpvw/vsr-auto",
+        [nameof(AppSettings.SeekHoldEnabled)] = "user-data/mpvw/seek-hold",
+    };
 
     /// <summary>AppSettings mapped to mpv options that only take effect at startup.</summary>
     private static readonly HashSet<string> ConfigOnlyKeys = new(StringComparer.Ordinal)

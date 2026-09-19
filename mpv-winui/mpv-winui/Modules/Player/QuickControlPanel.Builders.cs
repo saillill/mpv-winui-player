@@ -9,9 +9,8 @@ using System;
 namespace mpv_winui.Modules.Player;
 
 /// <summary>
-/// Shared control factories for the quick-control sections. Cards and labels
-/// use the app-wide MpvCardStyle / MpvCaptionTextStyle so the panel stays
-/// consistent with the rest of the UI.
+/// Shared control factories for the quick-control sections. Cards use the
+/// app-wide MpvCardStyle so the panel stays consistent with the rest of the UI.
 /// </summary>
 public sealed partial class QuickControlPanel
 {

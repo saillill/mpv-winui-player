@@ -15,17 +15,9 @@
         <StackPanel
             Grid.Column="0"
             VerticalAlignment="Center"
-            Spacing="2">
-            <TextBlock
-                x:Name="LabelText"
-                Style="{StaticResource BodyTextBlockStyle}"
-                TextWrapping="Wrap" />
-            <TextBlock
-                x:Name="DescriptionText"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                TextWrapping="Wrap"
-                Visibility="Collapsed" />
+            Spacing="{StaticResource MpvSpaceXxs}">
+            <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
+            <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
             <TextBlock
                 x:Name="ErrorText"
                 Foreground="{ThemeResource SystemErrorTextColor}"
@@ -36,6 +28,6 @@
             x:Name="RowsPanel"
             Grid.Column="1"
             VerticalAlignment="Center"
-            Spacing="6" />
+            Spacing="{StaticResource MpvSpaceCompact}" />
     </Grid>
 </local:OptionControlBase>

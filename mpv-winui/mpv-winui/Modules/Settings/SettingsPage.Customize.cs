@@ -144,7 +144,7 @@ public sealed partial class SettingsPage
     /// user's override) and one the user created (which has no AppLang caption).
     /// </summary>
     private string SectionNameFor(string sectionId) =>
-        SectionDisplayName(sectionId, SettingsSectionIds.CaptionFor(sectionId) ?? string.Empty);
+        SectionDisplayName(sectionId, SettingsSections.CaptionFor(sectionId) ?? string.Empty);
 
     /// <summary>
     /// Deletes a folder the user created, after confirming.
@@ -437,7 +437,7 @@ public sealed partial class SettingsPage
         // Built-in folders keep their localized caption underneath, so they get
         // the same scope choice as a row. A folder the user created has no
         // built-in text, so its name is pure content and always applies.
-        var builtIn = SettingsSectionIds.CaptionFor(sectionId) is not null;
+        var builtIn = SettingsSections.CaptionFor(sectionId) is not null;
         var custom = _layout.FindSection(sectionId);
 
         var labelBox = new TextBox
@@ -545,7 +545,7 @@ public sealed partial class SettingsPage
         var lang = AppContext.AppLang;
 
         var custom = _layout.FindCategory(categoryKey);
-        var builtInCaption = SettingsSectionIds.CategoryCaptionFor(categoryKey);
+        var builtInCaption = SettingsSections.CategoryCaptionFor(categoryKey);
         if (custom is null && builtInCaption is null)
         {
             return;

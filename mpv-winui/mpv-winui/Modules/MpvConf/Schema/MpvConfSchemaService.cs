@@ -74,6 +74,32 @@ public static class MpvConfSchemaService
         return options.Count == 0 ? MpvConfSchema.Empty : new MpvConfSchema(options, ordered);
     }
 
+    /// <summary>
+    /// The schema the app ships: generated from the mpv build's own option
+    /// listing, so the editor has something to show on a fresh install instead
+    /// of the empty page a bare user directory produced.
+    /// </summary>
+    public static string BundledSchemaPath => Path.Combine(
+        System.AppContext.BaseDirectory, "MpvConfOptions", "mpv-options.json");
+
+    public static MpvConfSchema LoadBundled()
+    {
+        string path = BundledSchemaPath;
+        return File.Exists(path) ? LoadFromFile(path) : MpvConfSchema.Empty;
+    }
+
+    /// <summary>
+    /// User definitions first, bundled ones only when the user has none. Same
+    /// precedence as the language files: a directory someone has filled in is
+    /// presumably deliberate, and silently mixing the generated list into it
+    /// would bury their edits among eight hundred entries.
+    /// </summary>
+    public static MpvConfSchema LoadFromDirectoryOrBundled(string directory)
+    {
+        MpvConfSchema user = LoadFromDirectory(directory);
+        return user.Count > 0 ? user : LoadBundled();
+    }
+
 
     public static MpvConfSchema Merge(MpvConfSchema primary, MpvConfSchema added)
     {

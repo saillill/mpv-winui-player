@@ -20,7 +20,7 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildScreenshotOptions()
     {
-        var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
+        var video = AppContext.AppLang.SettingsCategoryVideo;
         var lang = AppContext.AppLang;
 
         return
@@ -31,7 +31,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.ScreenshotDirectory),
                 Description = lang.SettingsHelpScreenshotDirectory,
                 Label = lang.SettingsScreenshotDirectory,
-                Category = screenshot,
+                Category = video,
                 Type = OptionType.String,
                 AllowEmpty = true,
                 Placeholder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Screenshots"),
@@ -45,7 +45,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotTemplate),
                 Label = lang.SettingsScreenshotTemplate,
-                Category = screenshot,
+                Category = video,
                 Description = lang.SettingsHelpScreenshotTemplate,
                 Type = OptionType.StringList,
                 Choices =
@@ -65,7 +65,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.ScreenshotFormat),
                 Description = lang.SettingsHelpScreenshotFormat,
                 Label = lang.SettingsScreenshotFormat,
-                Category = screenshot,
+                Category = video,
                 Type = OptionType.StringList,
                 Choices =
                 [
@@ -83,7 +83,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotJpegQuality),
                 Label = lang.SettingsScreenshotJpegQuality,
-                Category = screenshot,
+                Category = video,
                 Description = lang.SettingsHelpScreenshotJpegQuality,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -98,7 +98,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.ScreenshotJpegSourceChroma),
                 Description = lang.SettingsHelpScreenshotJpegSourceChroma,
                 Label = lang.SettingsScreenshotJpegSourceChroma,
-                Category = screenshot,
+                Category = video,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ScreenshotJpegSourceChroma,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotJpegSourceChroma), AppContext.AppSetting.ScreenshotJpegSourceChroma = (bool)v!)
@@ -108,7 +108,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotPngCompression),
                 Label = lang.SettingsScreenshotPngCompression,
-                Category = screenshot,
+                Category = video,
                 Description = lang.SettingsHelpScreenshotPngCompression,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -123,7 +123,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.ScreenshotPngFilter),
                 Description = lang.SettingsHelpScreenshotPngFilter,
                 Label = lang.SettingsScreenshotPngFilter,
-                Category = screenshot,
+                Category = video,
                 Type = OptionType.Integer,
                 Min = 0,
                 Max = 5,
@@ -136,7 +136,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotWebpQuality),
                 Label = lang.SettingsScreenshotWebpQuality,
-                Category = screenshot,
+                Category = video,
                 Description = lang.SettingsHelpScreenshotWebpQuality,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -150,7 +150,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotWebpLossless),
                 Label = lang.SettingsScreenshotWebpLossless,
-                Category = screenshot,
+                Category = video,
                 Description = lang.SettingsHelpScreenshotWebpLossless,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ScreenshotWebpLossless,
@@ -162,7 +162,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.ScreenshotWebpCompression),
                 Description = lang.SettingsHelpScreenshotWebpCompression,
                 Label = lang.SettingsScreenshotWebpCompression,
-                Category = screenshot,
+                Category = video,
                 Type = OptionType.Integer,
                 Min = 0,
                 Max = 6,
@@ -175,7 +175,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotJxlDistance),
                 Label = lang.SettingsScreenshotJxlDistance,
-                Category = screenshot,
+                Category = video,
                 Description = lang.SettingsHelpScreenshotJxlDistance,
                 Type = OptionType.Integer,
                 Min = 0,
@@ -190,7 +190,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.ScreenshotJxlEffort),
                 Description = lang.SettingsHelpScreenshotJxlEffort,
                 Label = lang.SettingsScreenshotJxlEffort,
-                Category = screenshot,
+                Category = video,
                 Type = OptionType.Integer,
                 Min = 1,
                 Max = 9,
@@ -204,8 +204,9 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.ScreenshotAvifEncoder),
                 Description = lang.SettingsHelpScreenshotAvifEncoder,
                 Label = lang.SettingsScreenshotAvifEncoder,
-                Category = screenshot,
+                Category = video,
                 Type = OptionType.String,
+Placeholder = "auto",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.ScreenshotAvifEncoder,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotAvifEncoder), AppContext.AppSetting.ScreenshotAvifEncoder = (string)v!)
@@ -215,7 +216,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotHighBitDepth),
                 Label = lang.SettingsScreenshotHighBitDepth,
-                Category = screenshot,
+                Category = video,
                 Description = lang.SettingsHelpScreenshotHighBitDepth,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ScreenshotHighBitDepth,
@@ -227,7 +228,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.ScreenshotTagColorspace),
                 Description = lang.SettingsHelpScreenshotTagColorspace,
                 Label = lang.SettingsScreenshotTagColorspace,
-                Category = screenshot,
+                Category = video,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ScreenshotTagColorspace,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotTagColorspace), AppContext.AppSetting.ScreenshotTagColorspace = (bool)v!)
@@ -237,7 +238,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.ScreenshotSw),
                 Label = lang.SettingsScreenshotSw,
-                Category = screenshot,
+                Category = video,
                 Description = lang.SettingsHelpScreenshotSw,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.ScreenshotSw,

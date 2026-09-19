@@ -119,5 +119,89 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(OsdMarginY), 16);
             set => _dataSetting.SetValue(nameof(OsdMarginY), value);
         }
+        public double OsdScale
+        {
+            get => _dataSetting.GetValue(nameof(OsdScale), 1.0);
+            set => _dataSetting.SetValue(nameof(OsdScale), value);
+        }
+
+        public double OsdSpacing
+        {
+            get => _dataSetting.GetValue(nameof(OsdSpacing), 0.0);
+            set => _dataSetting.SetValue(nameof(OsdSpacing), value);
+        }
+
+        public bool OsdBold
+        {
+            get => _dataSetting.GetValue(nameof(OsdBold), false);
+            set => _dataSetting.SetValue(nameof(OsdBold), value);
+        }
+
+        public bool OsdItalic
+        {
+            get => _dataSetting.GetValue(nameof(OsdItalic), false);
+            set => _dataSetting.SetValue(nameof(OsdItalic), value);
+        }
+
+        public string OsdJustify
+        {
+            get => _dataSetting.GetValue(nameof(OsdJustify), "auto");
+            set => _dataSetting.SetValue(nameof(OsdJustify), value);
+        }
+
+        public double OsdShadowOffset
+        {
+            get => _dataSetting.GetValue(nameof(OsdShadowOffset), 0.0);
+            set => _dataSetting.SetValue(nameof(OsdShadowOffset), value);
+        }
+
+        public string OsdFontsDir
+        {
+            get => _dataSetting.GetValue(nameof(OsdFontsDir), "");
+            set => _dataSetting.SetValue(nameof(OsdFontsDir), value);
+        }
+
+        public string OsdFontProvider
+        {
+            get => _dataSetting.GetValue(nameof(OsdFontProvider), "auto");
+            set => _dataSetting.SetValue(nameof(OsdFontProvider), value);
+        }
+
+        public string OsdShaper
+        {
+            get => _dataSetting.GetValue(nameof(OsdShaper), "complex");
+            set => _dataSetting.SetValue(nameof(OsdShaper), value);
+        }
+
+        public string OsdBackColor
+        {
+            get => _dataSetting.GetValue(nameof(OsdBackColor), "#AF000000");
+            set => _dataSetting.SetValue(nameof(OsdBackColor), value);
+        }
+
+        public string OsdSelectedColor
+        {
+            get => _dataSetting.GetValue(nameof(OsdSelectedColor), "#FFFABD2F");
+            set => _dataSetting.SetValue(nameof(OsdSelectedColor), value);
+        }
+
+        public string OsdSelectedOutlineColor
+        {
+            get => _dataSetting.GetValue(nameof(OsdSelectedOutlineColor), "#FF000000");
+            set => _dataSetting.SetValue(nameof(OsdSelectedOutlineColor), value);
+        }
+
+        public bool OsdScaleByWindow
+        {
+            get => _dataSetting.GetValue(nameof(OsdScaleByWindow), true);
+            set => _dataSetting.SetValue(nameof(OsdScaleByWindow), value);
+        }
+
+        public int OsdMarginYOffset
+        {
+            get => _dataSetting.GetValue(nameof(OsdMarginYOffset), 0);
+            set => _dataSetting.SetValue(nameof(OsdMarginYOffset), value);
+        }
+
     }
 }

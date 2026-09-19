@@ -64,7 +64,7 @@
                             Grid.Row="0"
                             Grid.Column="1"
                             VerticalAlignment="Center"
-                            FontSize="11"
+                            Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Text="{x:Bind bc:BindConvertor.FormatDate(Time)}" />
                         <TextBlock

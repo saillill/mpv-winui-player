@@ -20,6 +20,16 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildAdvancedOptions()
     {
+        var sOsdText = AppContext.AppLang.SectionOsdText;
+        var sOsdAppearance = AppContext.AppLang.SectionOsdAppearance;
+        var sOsdBehavior = AppContext.AppLang.SectionOsdBehavior;
+        var sOsdPosition = AppContext.AppLang.SectionOsdPosition;
+
+        var sAdvScaler = AppContext.AppLang.SectionAdvancedScaler;
+
+        var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
+        var sAdvRenderer = AppContext.AppLang.SectionAdvancedRenderer;
+
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var program = AppContext.AppLang.SettingsCategoryProgram;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
@@ -182,6 +192,13 @@ public sealed partial class SettingsPage
                 Category = video,
                 Description = lang.SettingsHelpIccProfile,
                 Type = OptionType.String,
+                // No placeholder. Path-mode fields show the placeholder AS the
+                // current value when empty (OptionStringControl
+                // .UpdatePathDisplay), so an example path here would read as a
+                // path the user had configured. Existing path options get away
+                // with it because their placeholder is the real resolved
+                // default; this one has none, and an empty box with a Browse
+                // button is the honest state.
                 AllowEmpty = true,
                 PickFile = true,
                 OpenFolder = true,
@@ -380,6 +397,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsTargetGamut,
                 Category = video,
                 Type = OptionType.String,
+Placeholder = "bt.709",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.TargetGamut,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.TargetGamut), AppContext.AppSetting.TargetGamut = (string)v!)
@@ -644,6 +662,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsGlslShaderOpts,
                 Category = video,
                 Type = OptionType.String,
+Placeholder = "param1=2,param2=0.5",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.GlslShaderOpts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GlslShaderOpts), AppContext.AppSetting.GlslShaderOpts = (string)v!)
@@ -684,6 +703,7 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpDemuxerCacheDir,
                 Type = OptionType.String,
+Placeholder = "D:\\mpv-cache",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.DemuxerCacheDir,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerCacheDir), AppContext.AppSetting.DemuxerCacheDir = (string)v!)
@@ -786,6 +806,7 @@ public sealed partial class SettingsPage
                 Category = osd,
                 Description = lang.SettingsHelpOsdPlayingMsg,
                 Type = OptionType.String,
+Placeholder = "${filename}",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.OsdPlayingMsg,
                 Setter = v =>
@@ -1257,6 +1278,277 @@ public sealed partial class SettingsPage
                 Placeholder = @"\\.\pipe\mpvipc",
                 Getter = () => AppContext.AppSetting.InputIpcServer,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InputIpcServer), AppContext.AppSetting.InputIpcServer = (string)v!)
+            },
+
+            // Added in the advanced batch: gpu-api
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.GpuApi),
+                Label = lang.SettingsGpuApi,
+                Category = advanced,
+                Description = lang.SettingsHelpGpuApi,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("d3d11", "d3d11"),
+                    new OptionChoice("vulkan", "vulkan"),
+                    new OptionChoice("opengl", "opengl"),
+                ],
+                Getter = () => AppContext.AppSetting.GpuApi,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GpuApi), AppContext.AppSetting.GpuApi = (string)v!)
+            },
+
+            // Added in the advanced batch: gpu-context
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.GpuContext),
+                Label = lang.SettingsGpuContext,
+                Category = advanced,
+                Description = lang.SettingsHelpGpuContext,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("win", "win"),
+                    new OptionChoice("winvk", "winvk"),
+                ],
+                Getter = () => AppContext.AppSetting.GpuContext,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GpuContext), AppContext.AppSetting.GpuContext = (string)v!)
+            },
+
+            // Added in the advanced batch: scale-antiring
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ScaleAntiring),
+                Label = lang.SettingsScaleAntiring,
+                Category = advanced,
+                Description = lang.SettingsHelpScaleAntiring,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 1,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.ScaleAntiring,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScaleAntiring), AppContext.AppSetting.ScaleAntiring = (double)v!)
+            },
+
+            // Added in the advanced batch: cscale-antiring
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CscaleAntiring),
+                Label = lang.SettingsCscaleAntiring,
+                Category = advanced,
+                Description = lang.SettingsHelpCscaleAntiring,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 1,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.CscaleAntiring,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CscaleAntiring), AppContext.AppSetting.CscaleAntiring = (double)v!)
+            },
+
+            // Added with the OSD batch: osd-scale
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdScale),
+                Label = lang.SettingsOsdScale,
+                Category = osd,
+                Description = lang.SettingsHelpOsdScale,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.OsdScale,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdScale), AppContext.AppSetting.OsdScale = (double)v!)
+            },
+
+            // Added with the OSD batch: osd-spacing
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdSpacing),
+                Label = lang.SettingsOsdSpacing,
+                Category = osd,
+                Description = lang.SettingsHelpOsdSpacing,
+                Type = OptionType.Double,
+                Min = -10,
+                Max = 10,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.OsdSpacing,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdSpacing), AppContext.AppSetting.OsdSpacing = (double)v!)
+            },
+
+            // Added with the OSD batch: osd-bold
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdBold),
+                Label = lang.SettingsOsdBold,
+                Category = osd,
+                Description = lang.SettingsHelpOsdBold,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.OsdBold,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdBold), AppContext.AppSetting.OsdBold = (bool)v!)
+            },
+
+            // Added with the OSD batch: osd-italic
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdItalic),
+                Label = lang.SettingsOsdItalic,
+                Category = osd,
+                Description = lang.SettingsHelpOsdItalic,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.OsdItalic,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdItalic), AppContext.AppSetting.OsdItalic = (bool)v!)
+            },
+
+            // Added with the OSD batch: osd-justify
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdJustify),
+                Label = lang.SettingsOsdJustify,
+                Category = osd,
+                Description = lang.SettingsHelpOsdJustify,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("left", lang.OptionValueAlignLeft),
+                    new OptionChoice("center", lang.OptionValueAlignCenter),
+                    new OptionChoice("right", lang.OptionValueAlignRight),
+                ],
+                Getter = () => AppContext.AppSetting.OsdJustify,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdJustify), AppContext.AppSetting.OsdJustify = (string)v!)
+            },
+
+            // Added with the OSD batch: osd-shadow-offset
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdShadowOffset),
+                Label = lang.SettingsOsdShadowOffset,
+                Category = osd,
+                Description = lang.SettingsHelpOsdShadowOffset,
+                Type = OptionType.Double,
+                Min = -10,
+                Max = 10,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.OsdShadowOffset,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdShadowOffset), AppContext.AppSetting.OsdShadowOffset = (double)v!)
+            },
+
+            // Added with the OSD batch: osd-fonts-dir
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdFontsDir),
+                Label = lang.SettingsOsdFontsDir,
+                Category = osd,
+                Description = lang.SettingsHelpOsdFontsDir,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                PickFolder = true,
+                OpenFolder = true,
+                Getter = () => AppContext.AppSetting.OsdFontsDir,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdFontsDir), AppContext.AppSetting.OsdFontsDir = (string)v!)
+            },
+
+            // Added with the OSD batch: osd-font-provider
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdFontProvider),
+                Label = lang.SettingsOsdFontProvider,
+                Category = osd,
+                Description = lang.SettingsHelpOsdFontProvider,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueFontProviderAuto),
+                    new OptionChoice("none", lang.OptionValueFontProviderNone),
+                    new OptionChoice("fontconfig", lang.OptionValueFontProviderFontconfig),
+                ],
+                Getter = () => AppContext.AppSetting.OsdFontProvider,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdFontProvider), AppContext.AppSetting.OsdFontProvider = (string)v!)
+            },
+
+            // Added with the OSD batch: osd-shaper
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdShaper),
+                Label = lang.SettingsOsdShaper,
+                Category = osd,
+                Description = lang.SettingsHelpOsdShaper,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("simple", "simple"),
+                    new OptionChoice("complex", "complex"),
+                ],
+                Getter = () => AppContext.AppSetting.OsdShaper,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdShaper), AppContext.AppSetting.OsdShaper = (string)v!)
+            },
+
+            // Added with the OSD batch: osd-back-color
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdBackColor),
+                Label = lang.SettingsOsdBackColor,
+                Category = osd,
+                Description = lang.SettingsHelpOsdBackColor,
+                Type = OptionType.Color,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.OsdBackColor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdBackColor), AppContext.AppSetting.OsdBackColor = (string)v!)
+            },
+
+            // Added with the OSD batch: osd-selected-color
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdSelectedColor),
+                Label = lang.SettingsOsdSelectedColor,
+                Category = osd,
+                Description = lang.SettingsHelpOsdSelectedColor,
+                Type = OptionType.Color,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.OsdSelectedColor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdSelectedColor), AppContext.AppSetting.OsdSelectedColor = (string)v!)
+            },
+
+            // Added with the OSD batch: osd-selected-outline-color
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdSelectedOutlineColor),
+                Label = lang.SettingsOsdSelectedOutlineColor,
+                Category = osd,
+                Description = lang.SettingsHelpOsdSelectedOutlineColor,
+                Type = OptionType.Color,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.OsdSelectedOutlineColor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdSelectedOutlineColor), AppContext.AppSetting.OsdSelectedOutlineColor = (string)v!)
+            },
+
+            // Added with the OSD batch: osd-scale-by-window
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdScaleByWindow),
+                Label = lang.SettingsOsdScaleByWindow,
+                Category = osd,
+                Description = lang.SettingsHelpOsdScaleByWindow,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.OsdScaleByWindow,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdScaleByWindow), AppContext.AppSetting.OsdScaleByWindow = (bool)v!)
+            },
+
+            // Added with the OSD batch: osd-margin-y-offset
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.OsdMarginYOffset),
+                Label = lang.SettingsOsdMarginYOffset,
+                Category = osd,
+                Description = lang.SettingsHelpOsdMarginYOffset,
+                Type = OptionType.Integer,
+                Min = -1000,
+                Max = 1000,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.OsdMarginYOffset,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.OsdMarginYOffset), AppContext.AppSetting.OsdMarginYOffset = (int)v!)
             },
 
         ];

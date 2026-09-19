@@ -8,16 +8,25 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
+        <!-- One card shell for every option row. Eleven templates used to
+             restate this same nine-line Border around a different control, so
+             a change to the row's radius, padding or background meant eleven
+             edits and any missed one was an invisible inconsistency. The shell
+             now lives here once; each template says which control it hosts by
+             setting the hosted control as its content. -->
+        <Style x:Key="OptionCardStyle" TargetType="Border">
+            <Setter Property="MinHeight" Value="72" />
+            <Setter Property="Margin" Value="{StaticResource MpvOptionRowMargin}" />
+            <Setter Property="Padding" Value="{StaticResource MpvCardPadding}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
         <DataTemplate x:Key="BooleanTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionBooleanControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -25,15 +34,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="TextTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionStringControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -41,15 +42,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="IntegerTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionIntegerControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -57,15 +50,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="DoubleTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionDoubleControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -73,15 +58,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="TextListTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionStringListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -89,15 +66,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ColorTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionColorControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -105,15 +74,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ActionTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionActionControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -121,15 +82,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="CheckListTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionCheckListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -137,15 +90,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="LayoutTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionLayoutControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -153,15 +98,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="MultiListTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionMultiListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -169,15 +106,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ShaderListTemplate" x:DataType="ctl:Option">
-            <Border
-                MinHeight="72"
-                Margin="0,0,0,8"
-                Padding="16,16,16,16"
-                HorizontalAlignment="Stretch"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <ctl:OptionShaderListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
@@ -185,10 +114,11 @@
         </DataTemplate>
 
         <DataTemplate x:Key="SectionHeaderTemplate" x:DataType="ctl:SectionHeaderItem">
+            <!-- Size, weight and margin come from MpvSectionHeaderStyle, which
+                 derives from Body Strong; the ramp step was previously
+                 restated here as a literal 16px (not a step on the ramp). -->
             <TextBlock
-                Margin="4,16,4,8"
-                FontSize="16"
-                FontWeight="SemiBold"
+                Style="{StaticResource MpvSectionHeaderStyle}"
                 Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                 Text="{x:Bind Caption}" />
         </DataTemplate>
@@ -198,14 +128,14 @@
         <DataTemplate x:Key="CustomizeSectionTemplate" x:DataType="ctl:SectionHeaderItem">
             <Border
                 x:Name="SectionDragSurface"
-                Margin="0,12,0,8"
+                Margin="{StaticResource MpvOptionRowMarginXl}"
                 Padding="12,8,12,8"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid ColumnSpacing="12">
+                <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -217,11 +147,14 @@
                         FontSize="16"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Glyph="&#xE8A5;" />
+                    <!-- Same element as SectionHeaderTemplate above (a section
+                         caption), so it takes the same style rather than
+                         restating its own size and weight. -->
                     <TextBlock
                         Grid.Column="1"
                         VerticalAlignment="Center"
-                        FontSize="16"
-                        FontWeight="SemiBold"
+                        Style="{StaticResource MpvSectionHeaderStyle}"
+                        Margin="0"
                         Text="{x:Bind Caption}"
                         TextWrapping="Wrap" />
                     <Button
@@ -260,7 +193,7 @@
              cards that live outside every folder, so the two groups read as
              different things instead of one long run. -->
         <DataTemplate x:Key="CustomizeSplitterTemplate" x:DataType="ctl:SectionHeaderItem">
-            <Grid Margin="0,16,0,4">
+            <Grid Margin="{StaticResource MpvSplitterMargin}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -282,7 +215,7 @@
         <DataTemplate x:Key="CustomizeTemplate" x:DataType="ctl:Option">
             <Border
                 MinHeight="72"
-                Margin="0,0,0,8"
+                Margin="{StaticResource MpvOptionRowMargin}"
                 Padding="12,12,12,12"
                 HorizontalAlignment="Stretch"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -291,7 +224,7 @@
                 ContextFlyout="{x:Bind Edit.RowMenu}"
                 CornerRadius="4"
                 Opacity="{x:Bind CardOpacity, Mode=OneWay}">
-                <Grid ColumnSpacing="12">
+                <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -310,24 +243,30 @@
                         Glyph="&#xE76F;"
                         ToolTipService.ToolTip="{x:Bind Edit.DragHandleTip}" />
 
-                    <StackPanel Grid.Column="1" Spacing="6">
+                    <StackPanel Grid.Column="1" Spacing="{StaticResource MpvSpaceCompact}">
                         <!-- Label/description are the built-in localized text
                              (or the user's own override); editing them opens
                              the rename dialog, which stores an override instead
                              of touching the language files. -->
-                        <StackPanel Spacing="2">
+                        <StackPanel Spacing="{StaticResource MpvSpaceXxs}">
                             <TextBlock
+                                Style="{StaticResource BodyTextBlockStyle}"
                                 FontWeight="SemiBold"
                                 Text="{x:Bind Label}"
                                 TextWrapping="Wrap" />
                             <TextBlock
-                                FontSize="12"
+                                Style="{StaticResource CaptionTextBlockStyle}"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Text="{x:Bind Description}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
+                        <!-- The setting's own key, shown only in customize mode
+                             as the diagnostic under the card's real name. It
+                             used to be set to 11px, below the 12px regular
+                             floor the type guidance cites for legible UI text;
+                             Caption is 12/16. -->
                         <TextBlock
-                            FontSize="11"
+                            Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                             Text="{x:Bind Key}"
                             TextWrapping="Wrap" />
@@ -339,7 +278,7 @@
                     <Button
                         Grid.Column="2"
                         MinWidth="0"
-                        Padding="8,4"
+                        Padding="{StaticResource MpvCompactButtonPadding}"
                         VerticalAlignment="Top"
                         Background="Transparent"
                         BorderThickness="0"
@@ -352,7 +291,7 @@
                     <Button
                         Grid.Column="3"
                         MinWidth="0"
-                        Padding="8,4"
+                        Padding="{StaticResource MpvCompactButtonPadding}"
                         VerticalAlignment="Top"
                         AutomationProperties.Name="{x:Bind Edit.MoreAutomationName}"
                         ToolTipService.ToolTip="{x:Bind Edit.MoreTip}">
@@ -381,6 +320,62 @@
             </Border>
         </DataTemplate>
 
+        <!-- A collapsed section: same shape the overview cards always had
+             (glyph, title, description, chevron), now emitted inline at the
+             position the section occupies rather than appended after every
+             option row. x:Bind needs the concrete type, so it is declared with
+             one; x:DataType only affects binding validation. -->
+        <DataTemplate x:Key="SectionCardTemplate" x:DataType="ctl:SectionCardItem">
+            <Button
+                MinHeight="72"
+                Margin="0,8,0,8"
+                Padding="16,16,16,16"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Center"
+                AutomationProperties.Name="{x:Bind AccessibleName}"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                Click="SectionCard_Click"
+                CornerRadius="4"
+                Tag="{x:Bind SectionId}">
+                <Grid ColumnSpacing="18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe Fluent Icons"
+                        FontSize="20"
+                        Glyph="{x:Bind Icon}" />
+
+                    <StackPanel
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Spacing="2">
+                        <TextBlock FontSize="14" Text="{x:Bind Caption}" />
+                        <TextBlock
+                            FontSize="12"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="{x:Bind CountText}"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+
+                    <FontIcon
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe Fluent Icons"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE76C;" />
+                </Grid>
+            </Button>
+        </DataTemplate>
+
         <ctl:OptionTemplateSelector
             x:Key="TemplateSelector"
             ActionTemplate="{StaticResource ActionTemplate}"
@@ -394,6 +389,7 @@
             IntegerTemplate="{StaticResource IntegerTemplate}"
             LayoutTemplate="{StaticResource LayoutTemplate}"
             MultiListTemplate="{StaticResource MultiListTemplate}"
+            SectionCardTemplate="{StaticResource SectionCardTemplate}"
             SectionHeaderTemplate="{StaticResource SectionHeaderTemplate}"
             ShaderListTemplate="{StaticResource ShaderListTemplate}"
             TextListTemplate="{StaticResource TextListTemplate}"
@@ -438,7 +434,7 @@
             Grid.Row="0"
             MinHeight="40"
             Margin="8,4,32,4"
-            ColumnSpacing="8"
+            ColumnSpacing="{StaticResource MpvSpaceS}"
             Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -460,7 +456,7 @@
                 Grid.Column="1"
                 VerticalAlignment="Center"
                 Click="ShowHiddenToggle_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceS}">
                     <FontIcon FontSize="14" Glyph="&#xE7B3;" />
                     <TextBlock x:Name="ShowHiddenToggleText" />
                 </StackPanel>
@@ -471,7 +467,7 @@
                 Grid.Column="2"
                 VerticalAlignment="Center"
                 Click="CreateColumn_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceS}">
                     <FontIcon FontSize="14" Glyph="&#xE8A5;" />
                     <TextBlock x:Name="NewColumnButtonText" />
                 </StackPanel>
@@ -482,7 +478,7 @@
                 Grid.Column="3"
                 VerticalAlignment="Center"
                 Click="CreateSection_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceS}">
                     <FontIcon FontSize="14" Glyph="&#xE8F4;" />
                     <TextBlock x:Name="NewSectionButtonText" />
                 </StackPanel>

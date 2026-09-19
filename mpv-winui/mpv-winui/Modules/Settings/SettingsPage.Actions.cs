@@ -51,7 +51,6 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         nameof(AppContext.AppSetting.TargetColorspaceHintMode),
         nameof(AppContext.AppSetting.OsdOnSeek),
         nameof(AppContext.AppSetting.HdrAutoMode),
-        nameof(AppContext.AppSetting.YtdlThumbnails),
         nameof(AppContext.AppSetting.WindowPiPSize),
         nameof(AppContext.AppSetting.ControlBarLayout),
     };
@@ -210,10 +209,30 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
 
     private void ApplyMpv(string key, object value)
     {
-        if (MpvSettings.ToCommand(key, value) is { } cmd)
+        // A hand-written mpv.conf line owns this option, so the file's value is
+        // already in effect and sending ours would undo the user's edit. The
+        // row is disabled in this state (ComputeEnabled), so this is the guard
+        // for paths that bypass the UI, not the normal case.
+        var ownedByConfig = MpvConfOverrides.IsUserOwned(MpvSettings.ToMpvOptionName(key));
+
+        if (!ownedByConfig && MpvSettings.ToCommand(key, value) is { } cmd)
         {
             AppContext.SendMpvCommand(cmd);
         }
+
+        // Persist to mpv.conf: the window is its editor, so a change has to
+        // survive the session, not just reach the running player. The writer
+        // skips options a hand edit owns, so this is safe to call regardless.
+        //
+        // The re-evaluation is chained onto the write rather than run now: a
+        // write can newly discover that the file has been edited behind us
+        // (the mpv.conf escape hatch is a live editor), and that verdict is what
+        // decides both the badge and whether a row is editable.
+        _ = AppContext.WriteManagedMpvConfig()
+            .ContinueWith(
+                _ => DispatcherQueue.TryEnqueue(RefreshWarningsAndEnabled),
+                TaskScheduler.Default);
+
         // Only settings that feed warning/visibility/enabled rules require the
         // full O(N) re-evaluation; everything else skips it (audit A1).
         if (WarningDependencyKeys.Contains(key))
@@ -235,8 +254,9 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         nameof(AppSettings.SubtitleLanguage),
         nameof(AppSettings.VsrAutoEnabled),
         nameof(AppSettings.HdrAutoMode),
-        nameof(AppSettings.ThemeType),
-        nameof(AppSettings.BackdropType),
+        // ThemeType and BackdropType are deliberately NOT here: no rule reads
+        // them, so listing them only made a refresh produce identical results.
+        // tools/check-conflict-rules.py fails if this set drifts from the rules.
         nameof(AppSettings.WindowPiP),
         nameof(AppSettings.ScreenshotFormat),
     };
@@ -278,7 +298,10 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
     private static string? ComputeWarning(Option option, AppSettings s)
     {
         var lang = AppContext.AppLang;
-        return option.Key switch
+        // A state-specific warning explains more than the generic config-file
+        // one, and a row has a single warning slot, so it wins. The override is
+        // still true, but restating it here would hide the actionable reason.
+        var stateWarning = option.Key switch
         {
             nameof(AppSettings.Interpolation) when s.VideoSync != "display-resample" => lang.WarningInterpolationVideoSync,
             nameof(AppSettings.Tscale) when !s.Interpolation => lang.WarningTscaleInterpolation,
@@ -294,7 +317,24 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             FileAssociationCheckListKey when PackageHelper.IsPackaged => lang.SettingsAssociatePackaged,
             _ => null,
         };
+        if (stateWarning is not null)
+        {
+            return stateWarning;
+        }
+
+        // The window now persists its own values into mpv.conf, so "the file
+        // names this option" is true for almost every row and says nothing. The
+        // row is only overridden when the file owns the option by hand - a line
+        // the app did not write. That is also exactly the set the runtime apply
+        // skips, so the badge and the behaviour come from one verdict
+        // (docs/mpv-conf-precedence.md).
+        return IsOverriddenByConfigFile(option.Key) ? lang.WarningOverriddenByMpvConf : null;
     }
+
+    /// <summary>True when a hand-written mpv.conf line owns this row's option,
+    /// so the window neither writes nor sends its own value.</summary>
+    private static bool IsOverriddenByConfigFile(string optionKey) =>
+        MpvConfOverrides.IsUserOwned(MpvSettings.ToMpvOptionName(optionKey));
 
     private static bool ComputeVisible(Option option, AppSettings s)
     {
@@ -323,6 +363,14 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
 
     private static bool ComputeEnabled(Option option, AppSettings s)
     {
+        // A hand-written mpv.conf line owns this option. The row shows the
+        // badge explaining why, so leaving it interactive would be a control
+        // that accepts input and changes nothing.
+        if (IsOverriddenByConfigFile(option.Key))
+        {
+            return false;
+        }
+
         return option.Key switch
         {
             // mpv: sub-ass-force-margins is ignored when blend-subtitles=yes/video.

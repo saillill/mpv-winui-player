@@ -153,7 +153,7 @@ public sealed partial class SettingsPage
         }
 
         return _layout.FindCategory(key)?.DisplayFor(ActiveLanguageKey)
-            ?? SettingsSectionIds.CategoryCaptionFor(key);
+            ?? SettingsSections.CategoryCaptionFor(key);
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public sealed partial class SettingsPage
     {
         foreach (var (key, label) in categories)
         {
-            if (SettingsSectionIds.CategoryCaptionFor(key) is not { } builtIn
+            if (SettingsSections.CategoryCaptionFor(key) is not { } builtIn
                 || string.Equals(builtIn, label, StringComparison.Ordinal))
             {
                 continue;
@@ -348,7 +348,7 @@ public sealed partial class SettingsPage
                 option.SectionId = custom.Id;
                 option.IsCustomSection = true;
             }
-            else if (SettingsSectionIds.CaptionFor(entry.SectionId) is { } caption)
+            else if (SettingsSections.CaptionFor(entry.SectionId) is { } caption)
             {
                 option.Section = SectionDisplayName(entry.SectionId, caption);
                 option.SectionId = entry.SectionId;
@@ -443,7 +443,7 @@ public sealed partial class SettingsPage
                 continue;
             }
 
-            var categoryName = SettingsSectionIds.CategoryCaptionFor(section.CategoryKey);
+            var categoryName = SettingsSections.CategoryCaptionFor(section.CategoryKey);
             if (categoryName is null
                 || !options.Any(o => string.Equals(o.Category, categoryName, StringComparison.Ordinal)))
             {

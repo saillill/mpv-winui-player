@@ -633,5 +633,47 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(ControlBarZonesClassic), string.Empty);
             set => _dataSetting.SetValue(nameof(ControlBarZonesClassic), value);
         }
+        public double AbLoopA
+        {
+            get => _dataSetting.GetValue(nameof(AbLoopA), 0.0);
+            set => _dataSetting.SetValue(nameof(AbLoopA), value);
+        }
+
+        public double AbLoopB
+        {
+            get => _dataSetting.GetValue(nameof(AbLoopB), 0.0);
+            set => _dataSetting.SetValue(nameof(AbLoopB), value);
+        }
+
+        public int AbLoopCount
+        {
+            get => _dataSetting.GetValue(nameof(AbLoopCount), -1);
+            set => _dataSetting.SetValue(nameof(AbLoopCount), value);
+        }
+
+        public string CursorAutohide
+        {
+            get => _dataSetting.GetValue(nameof(CursorAutohide), "1000");
+            set => _dataSetting.SetValue(nameof(CursorAutohide), value);
+        }
+
+        public bool CursorAutohideFsOnly
+        {
+            get => _dataSetting.GetValue(nameof(CursorAutohideFsOnly), false);
+            set => _dataSetting.SetValue(nameof(CursorAutohideFsOnly), value);
+        }
+
+        public bool WindowBorder
+        {
+            get => _dataSetting.GetValue(nameof(WindowBorder), true);
+            set => _dataSetting.SetValue(nameof(WindowBorder), value);
+        }
+
+        public string TitleBar
+        {
+            get => _dataSetting.GetValue(nameof(TitleBar), "yes");
+            set => _dataSetting.SetValue(nameof(TitleBar), value);
+        }
+
     }
 }

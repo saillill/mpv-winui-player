@@ -23,10 +23,8 @@ public sealed partial class SettingsPage
     private List<Option> BuildProgramBehaviorOptions()
     {
         var program = AppContext.AppLang.SettingsCategoryProgram;
-        var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
-        var osd = AppContext.AppLang.SettingsCategoryOsd;
-        var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var window = AppContext.AppLang.SettingsCategoryWindow;
+        var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var lang = AppContext.AppLang;
 
@@ -122,8 +120,10 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestMpvCommandLog),
                 Label = lang.SettingsTestMpvCommandLog,
-                // Developer/diagnostic option, grouped under Program.
-                Category = program,
+                // Developer/diagnostic option. Moved out of Program: a
+                // diagnostic switch does not belong beside the theme and the
+                // update check.
+                Category = advanced,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestMpvCommandLog,
                 Type = OptionType.Boolean,
@@ -135,7 +135,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestOsdMessage),
                 Label = lang.SettingsTestOsdMessage,
-                Category = osd,
+                Category = advanced,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestOsdMessage,
                 // One-shot test is an action, not a toggle: a button keeps the
@@ -152,7 +152,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.TestSignal),
                 Description = lang.SettingsHelpTestSignal,
                 Label = lang.SettingsTestSignal,
-                Category = playback,
+                Category = advanced,
                 Section = sProgramTesting,
                 Type = OptionType.StringList,
                 AllowCustom = false,
@@ -198,7 +198,10 @@ public sealed partial class SettingsPage
             {
                 Key = FileAssociationCheckListKey,
                 Label = lang.SettingsAssociateFiles,
-                Category = program,
+                // Registry writes, not a player preference: grouped under
+                // Advanced with the other things that are exposed because the
+                // feature exists rather than because someone tunes it.
+                Category = advanced,
                 Description = lang.SettingsHelpFileAssociations,
                 Type = OptionType.CheckList,
                 CheckExpandLabel = lang.Expand,
@@ -213,7 +216,7 @@ public sealed partial class SettingsPage
             {
                 Key = "ActionUnassociateFiles",
                 Label = lang.SettingsUnassociateFiles,
-                Category = program,
+                Category = advanced,
                 Description = lang.SettingsHelpUnassociateFiles,
                 Type = OptionType.Action,
                 ActionKind = OptionActionKind.Button,
@@ -245,6 +248,23 @@ public sealed partial class SettingsPage
                 ActionKind = OptionActionKind.Button,
                 ActionLabel = lang.SettingsImportConfig,
                 ActionHandler = _ => FireAndForgetImport(),
+                ActionStatus = () => _actionStatus,
+            },
+
+            // The escape hatch. mpv.conf is the authority (see
+            // docs/mpv-conf-precedence.md), so the UI needs a way in -- not
+            // because the settings window is incomplete, but because some
+            // options only exist in the manual and a line here always wins.
+            new Option
+            {
+                Key = "ActionOpenMpvConf",
+                Label = lang.SettingsOpenMpvConf,
+                Category = program,
+                Description = lang.SettingsHelpOpenMpvConf,
+                Type = OptionType.Action,
+                ActionKind = OptionActionKind.Button,
+                ActionLabel = lang.SettingsOpenMpvConf,
+                ActionHandler = _ => FireAndForgetOpenMpvConf(),
                 ActionStatus = () => _actionStatus,
             },
 
@@ -304,6 +324,68 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.CheckForUpdates,
                 Setter = v => AppContext.AppSetting.CheckForUpdates = (bool)v!
+            },
+
+            // Added in the advanced batch: cursor-autohide
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CursorAutohide),
+                Label = lang.SettingsCursorAutohide,
+                Category = window,
+                Description = lang.SettingsHelpCursorAutohide,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("1000", lang.OptionValueCursorAutohide1s),
+                    new OptionChoice("2000", lang.OptionValueCursorAutohide2s),
+                    new OptionChoice("3000", lang.OptionValueCursorAutohide3s),
+                    new OptionChoice("always", lang.OptionValueCursorAutohideAlways),
+                    new OptionChoice("no", lang.OptionValueCursorAutohideNever),
+                ],
+                Getter = () => AppContext.AppSetting.CursorAutohide,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CursorAutohide), AppContext.AppSetting.CursorAutohide = (string)v!)
+            },
+
+            // Added in the advanced batch: cursor-autohide-fs-only
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CursorAutohideFsOnly),
+                Label = lang.SettingsCursorAutohideFsOnly,
+                Category = window,
+                Description = lang.SettingsHelpCursorAutohideFsOnly,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CursorAutohideFsOnly,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CursorAutohideFsOnly), AppContext.AppSetting.CursorAutohideFsOnly = (bool)v!)
+            },
+
+            // Added in the advanced batch: border
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowBorder),
+                Label = lang.SettingsWindowBorder,
+                Category = window,
+                Description = lang.SettingsHelpWindowBorder,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowBorder,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.WindowBorder), AppContext.AppSetting.WindowBorder = (bool)v!)
+            },
+
+            // Added in the advanced batch: title-bar
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.TitleBar),
+                Label = lang.SettingsTitleBar,
+                Category = window,
+                Description = lang.SettingsHelpTitleBar,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("yes", lang.OptionValueYes),
+                    new OptionChoice("no", lang.OptionValueNo),
+                ],
+                Getter = () => AppContext.AppSetting.TitleBar,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.TitleBar), AppContext.AppSetting.TitleBar = (string)v!)
             },
 
         ];

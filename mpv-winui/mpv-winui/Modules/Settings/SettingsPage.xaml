@@ -69,8 +69,8 @@
                     Grid.Row="0"
                     MaxWidth="1060"
                     HorizontalAlignment="Stretch"
-                    Margin="12,4,12,12"
-                    ColumnSpacing="10"
+                    Margin="{StaticResource MpvBreadcrumbBarMargin}"
+                    ColumnSpacing="{StaticResource MpvSpaceM}"
                     Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -92,7 +92,7 @@
                         Grid.Column="2"
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
-                        Spacing="10">
+                        Spacing="{StaticResource MpvSpaceM}">
                         <Button
                             x:Name="BreadcrumbCategoryLink"
                             Padding="0"
@@ -173,7 +173,7 @@
                         <Grid
                             x:Name="CustomizeHost"
                             Grid.Row="1"
-                            ColumnSpacing="12">
+                            ColumnSpacing="{StaticResource MpvSpaceM}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition x:Name="SidebarColumn" Width="272" />
                                 <ColumnDefinition Width="*" />
@@ -204,7 +204,7 @@
                                     <Grid
                                         Grid.Row="0"
                                         Margin="12,8,8,4"
-                                        ColumnSpacing="6">
+                                        ColumnSpacing="{StaticResource MpvSpaceCompact}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
@@ -221,9 +221,9 @@
                                             x:Name="AddCategoryButton"
                                             Grid.Column="1"
                                             MinWidth="0"
-                                            Padding="8,4"
+                                            Padding="{StaticResource MpvCompactButtonPadding}"
                                             Click="AddCategoryButton_Click">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceCompact}">
                                                 <FontIcon FontSize="14" Glyph="&#xE710;" />
                                                 <TextBlock x:Name="AddCategoryButtonText" />
                                             </StackPanel>
@@ -232,7 +232,7 @@
                                             x:Name="CollapseSidebarButton"
                                             Grid.Column="2"
                                             MinWidth="0"
-                                            Padding="8,4"
+                                            Padding="{StaticResource MpvCompactButtonPadding}"
                                             Click="CollapseSidebar_Click">
                                             <FontIcon FontSize="14" Glyph="&#xE76B;" />
                                         </Button>
@@ -275,7 +275,7 @@
                                                 <DataTemplate x:DataType="TreeViewNode">
                                                     <Grid
                                                         MinHeight="32"
-                                                        ColumnSpacing="8"
+                                                        ColumnSpacing="{StaticResource MpvSpaceS}"
                                                         ContextFlyout="{x:Bind local:TreeHelpers.MenuFor(Content)}"
                                                         Opacity="{x:Bind local:TreeHelpers.OpacityFor(Content)}">
                                                         <Grid.ColumnDefinitions>
@@ -315,11 +315,17 @@
                                                              own, so the rename
                                                              caption is both its
                                                              tooltip and its
-                                                             accessible name. -->
+                                                             accessible name.
+                                                             The padding is not a
+                                                             scale step: it is
+                                                             sized so this button
+                                                             keeps the row height
+                                                             of the tree row it
+                                                             sits in. -->
                                                         <Button
                                                             Grid.Column="3"
                                                             MinWidth="0"
-                                                            Padding="6,2"
+                                                            Padding="{StaticResource MpvTinyButtonPadding}"
                                                             Background="Transparent"
                                                             BorderThickness="0"
                                                             AutomationProperties.Name="{x:Bind local:TreeHelpers.EditTip(Content)}"
@@ -367,11 +373,14 @@
                     </Grid>
                 </Grid>
 
+                <!-- The customize footer bar. Its 16/10 padding is not a scale
+                     step: it is the optical match to the breadcrumb row above
+                     it, vertically centred against the same 32px controls. -->
                 <Border
                     Grid.Row="2"
-                    Padding="16,10"
+                    Padding="{StaticResource MpvCardPaddingWide}"
                     BorderThickness="0">
-                    <Grid ColumnSpacing="8">
+                    <Grid ColumnSpacing="{StaticResource MpvSpaceS}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -391,12 +400,12 @@
                             x:Name="BrowseActions"
                             Grid.Column="1"
                             Orientation="Horizontal"
-                            Spacing="8">
+                            Spacing="{StaticResource MpvSpaceS}">
                             <ToggleButton
                                 x:Name="CustomizeToggle"
                                 MinWidth="96"
                                 Click="OnCustomizeToggleClick">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceS}">
                                     <FontIcon FontSize="14" Glyph="&#xE70F;" />
                                     <TextBlock x:Name="CustomizeToggleText" />
                                 </StackPanel>
@@ -421,19 +430,19 @@
                             x:Name="CustomizeActions"
                             Grid.Column="1"
                             Orientation="Horizontal"
-                            Spacing="8"
+                            Spacing="{StaticResource MpvSpaceS}"
                             Visibility="Collapsed">
                             <Button
                                 x:Name="CustomizeUndoButton"
                                 MinWidth="0"
-                                Padding="10,6"
+                                Padding="{StaticResource MpvCompactButtonPadding}"
                                 Click="CustomizeUndo_Click">
                                 <FontIcon FontSize="14" Glyph="&#xE7A7;" />
                             </Button>
                             <Button
                                 x:Name="CustomizeRedoButton"
                                 MinWidth="0"
-                                Padding="10,6"
+                                Padding="{StaticResource MpvCompactButtonPadding}"
                                 Click="CustomizeRedo_Click">
                                 <FontIcon FontSize="14" Glyph="&#xE7A6;" />
                             </Button>
@@ -441,7 +450,7 @@
                                 x:Name="CustomizeApplyButton"
                                 MinWidth="116"
                                 Click="CustomizeApply_Click">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceS}">
                                     <FontIcon FontSize="14" Glyph="&#xE73E;" />
                                     <TextBlock x:Name="CustomizeApplyButtonText" />
                                 </StackPanel>

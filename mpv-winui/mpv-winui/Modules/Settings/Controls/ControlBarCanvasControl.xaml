@@ -8,7 +8,7 @@
     mc:Ignorable="d">
 
     <Grid x:Name="RootPanel">
-        <StackPanel Spacing="8">
+        <StackPanel Spacing="{StaticResource MpvSpaceS}">
             <TextBlock
                 x:Name="BarHint"
                 FontSize="12"
@@ -41,7 +41,7 @@
                         x:Name="ZoneLeft"
                         Grid.Column="0"
                         Orientation="Horizontal"
-                        Spacing="3"
+                        Spacing="{StaticResource MpvSpaceXs}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center">
                         <StackPanel.Transitions>
@@ -54,7 +54,7 @@
                         x:Name="ZoneCenter"
                         Grid.Column="1"
                         Orientation="Horizontal"
-                        Spacing="3"
+                        Spacing="{StaticResource MpvSpaceXs}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center">
                         <StackPanel.Transitions>
@@ -67,7 +67,7 @@
                         x:Name="ZoneRight"
                         Grid.Column="2"
                         Orientation="Horizontal"
-                        Spacing="3"
+                        Spacing="{StaticResource MpvSpaceXs}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center">
                         <StackPanel.Transitions>

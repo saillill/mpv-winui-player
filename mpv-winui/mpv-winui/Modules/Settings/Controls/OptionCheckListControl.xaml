@@ -15,7 +15,7 @@
                 Orientation="Horizontal" />
         </ItemsPanelTemplate>
         <ItemsPanelTemplate x:Key="CheckListPanel">
-            <StackPanel Spacing="4" />
+            <StackPanel Spacing="{StaticResource MpvSpaceXs}" />
         </ItemsPanelTemplate>
     </UserControl.Resources>
 
@@ -35,23 +35,10 @@
             <StackPanel
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Spacing="2">
-                <TextBlock
-                    x:Name="LabelText"
-                    Style="{StaticResource BodyTextBlockStyle}"
-                    TextWrapping="Wrap" />
-                <TextBlock
-                    x:Name="DescriptionText"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    TextWrapping="Wrap"
-                    Visibility="Collapsed" />
-                <TextBlock
-                    x:Name="WarningText"
-                    Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    TextWrapping="Wrap"
-                    Visibility="Collapsed" />
+                Spacing="{StaticResource MpvSpaceXxs}">
+                <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
+                <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
+                <TextBlock x:Name="WarningText" Style="{StaticResource MpvOptionWarningStyle}" />
             </StackPanel>
             <FontIcon
                 x:Name="ExpandIcon"
@@ -73,7 +60,7 @@
             <StackPanel
                 x:Name="CheckItemsControl"
                 Grid.Row="0"
-                Spacing="4" />
+                Spacing="{StaticResource MpvSpaceXs}" />
             <Button
                 x:Name="ApplyButton"
                 Grid.Row="1"
