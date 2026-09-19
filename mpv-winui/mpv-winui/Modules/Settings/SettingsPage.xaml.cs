@@ -1096,6 +1096,11 @@ public sealed partial class SettingsPage : Page
             // Results span categories, so no caption is "the page itself" --
             // every section header is useful context here.
             OptionsControl.CategoryCaption = null;
+            // Search results are individual rows. Leaving the overview's fold
+            // set in place would collapse any result that happened to land in
+            // a folded section, which is most of them.
+            OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
+            OptionsControl.SetSectionCards([]);
             OptionsControl.OptionList = RankedSearchMatches(query);
             return;
         }
@@ -1157,6 +1162,19 @@ public sealed partial class SettingsPage : Page
             BreadcrumbCategoryLink.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSection.Text = _selectedSection ?? string.Empty;
+
+            // The fold list has to be cleared, and forgetting it is what made
+            // a card open onto another card.
+            //
+            // CollapsedSectionIds is set by the overview branch above and is a
+            // sticky dependency property: nothing resets it on the way here.
+            // The drilled-in list is filtered down to the one section that was
+            // clicked, and that section is by definition a member of the fold
+            // set -- so ApplyItemsSource saw a single section, all of whose
+            // rows were collapsed, and emitted the card for it again. The page
+            // looked like a folder that contained only itself.
+            OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
+            OptionsControl.SetSectionCards([]);
             OptionsControl.OptionList = categoryOptions
                 .Where(o => o.Section == _selectedSection)
                 .ToList();
@@ -1169,6 +1187,11 @@ public sealed partial class SettingsPage : Page
         BreadcrumbCategoryLink.Visibility = Visibility.Collapsed;
         BreadcrumbSeparator.Visibility = Visibility.Collapsed;
         BreadcrumbSection.Text = selected ?? string.Empty;
+        // Same staleness as the branches above: a single-section category has
+        // nothing to fold, so it must not inherit the previous category's fold
+        // set and render its only section as a card.
+        OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
+        OptionsControl.SetSectionCards([]);
         OptionsControl.OptionList = categoryOptions;
     }
 

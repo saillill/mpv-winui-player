@@ -141,20 +141,40 @@ private List<Option> BuildSettings()
             // complaint Network and OSD used to draw.
             sSubtitlePosition, sSubtitleFilter, sSubtitleAss,
 
-            // OsdLevel and the font/colour knobs are reached constantly, so
-            // Appearance stays on the overview even though the section is
-            // large. The metadata driver is the opposite: twelve switches
-            // that only matter while watching something with tags.
-            sOsdBehavior, sOsdPosition, sOsdMetadata,
+            // OSD is a decorative overlay, and every one of its sections is
+            // tuning: the level row is the one thing people change, and it is
+            // pinned back onto the overview below. Appearance (11), Text (9),
+            // Behavior (8), Position (5) and Metadata (12) are all font
+            // metrics, colours and tag switches -- 45 rows in one category,
+            // which is exactly the wall of rows the fold exists to prevent.
+            // Only Appearance was previously listed, on the theory that the
+            // font knobs are reached often; at 11 rows next to 9 more of the
+            // same thing one click away, the split was arbitrary rather than
+            // useful, and the user reported the leftover rows as the problem.
+            sOsdBehavior, sOsdAppearance, sOsdText, sOsdPosition, sOsdMetadata,
 
             sScreenshotQuality,
             // "Cache" is a switch people flip per-file, and yt-dlp is the
             // reason half of the user base is here at all -- both stay
             // visible. The transport plumbing (curl knobs, HTTP headers)
             // is the part nobody opens twice.
+            //
+            // CacheEnabled is pinned below, so folding the section costs the
+            // switch nothing; the three rows that leave the overview with it
+            // (cache-on-disk, its size and its directory) are setup you do
+            // once, not a per-file toggle.
+            sCache,
             sNetworkCurl,
             sDemuxerBuffering, sDemuxerPlaylist,
             sNetworkHttp,
+
+            // VideoImage and VideoDecode carry one row each besides the
+            // pinned Hwdec switch, and both of those rows are codec/detail
+            // knobs rather than picture controls. Leaving a section unfolded
+            // for a single trailing row is worse than folding it: the row
+            // shows up on the overview with a section header of its own,
+            // reading as an orphan between two unrelated groups.
+            sVideoImage, sVideoDecode,
         };
         // Entries people reach for daily: language switch, update check,
         // theme, hardware decode, resume-on-quit, output device, subtitle
