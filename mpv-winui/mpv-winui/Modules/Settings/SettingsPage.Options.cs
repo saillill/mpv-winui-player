@@ -30,7 +30,6 @@ private List<Option> BuildSettings()
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
-        var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
@@ -66,8 +65,6 @@ private List<Option> BuildSettings()
         var sOsdText = AppContext.AppLang.SectionOsdText;
         var sWindowBehavior = AppContext.AppLang.SectionWindowBehavior;
         var sVideoGeometry = AppContext.AppLang.SectionVideoGeometry;
-        var sAdvRenderer = AppContext.AppLang.SectionAdvancedRenderer;
-        var sAdvScaler = AppContext.AppLang.SectionAdvancedScaler;
         var sDemuxerPlaylist = AppContext.AppLang.SectionDemuxerPlaylist;
         var sDemuxerBuffering = AppContext.AppLang.SectionDemuxerBuffering;
         var sCache = AppContext.AppLang.SectionCache;
@@ -202,6 +199,12 @@ private List<Option> BuildSettings()
         // beside it. Advanced is deliberately last: the file associations and
         // the diagnostic switches used to sit under Program, where they read as
         // ordinary preferences.
+        // No "advanced" category. Every option is filed by subject, and the ones
+        // that are genuinely obscure sit in a section that folds away inside the
+        // category they belong to. A catch-all bucket was the thing that made
+        // those options hard to find: nobody looks for the graphics API under a
+        // heading called Advanced, and the heading itself said nothing about what
+        // was in it.
         var categoryOrder = new[]
         {
             program,
@@ -213,7 +216,6 @@ private List<Option> BuildSettings()
             network,
             shortcuts,
             osd,
-            advanced,
         };
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
@@ -624,10 +626,18 @@ private List<Option> BuildSettings()
             [sOsdPosition] = 2,
             [sOsdMetadata] = 3,
 
-            // advanced -- renderer and scaler internals, plus the two
-            // developer-facing sections that used to sit in Program.
-            [sAdvRenderer] = 0,
-            [sAdvScaler] = 1,
+            // osd
+            [sOsdBehavior] = 0,
+            [sOsdAppearance] = 1,
+            [sOsdPosition] = 2,
+            [sOsdMetadata] = 3,
+
+            // The "advanced" category is gone, so these two sections no longer
+            // order anything: their options moved to the sections they describe
+            // (the graphics API to the D3D11/output group, the antiringing knobs
+            // to the scaler group). The entries that remain here are Program's
+            // two folding sections, which now sort within Program - the order
+            // below is the order they appear in that category.
             [sProgramTesting] = 2,
             [sProgramAssociations] = 3,
         };
@@ -1004,10 +1014,10 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.VideoPanY)] = sVideoGeometry,
             [nameof(AppSettings.VideoAlignX)] = sVideoGeometry,
             [nameof(AppSettings.VideoAlignY)] = sVideoGeometry,
-            [nameof(AppSettings.GpuApi)] = sAdvRenderer,
-            [nameof(AppSettings.GpuContext)] = sAdvRenderer,
-            [nameof(AppSettings.ScaleAntiring)] = sAdvScaler,
-            [nameof(AppSettings.CscaleAntiring)] = sAdvScaler,
+            [nameof(AppSettings.GpuApi)] = sGpuD3d11,
+            [nameof(AppSettings.GpuContext)] = sGpuD3d11,
+            [nameof(AppSettings.ScaleAntiring)] = sGpuScaling,
+            [nameof(AppSettings.CscaleAntiring)] = sGpuScaling,
         };
 
         // Category is set inline on each Option (single source of truth);

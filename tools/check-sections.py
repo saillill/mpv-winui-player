@@ -184,6 +184,45 @@ def section_map_keys():
         r'\[(?:nameof\([A-Za-z_.]*\.(\w+)\)|"([^"]+)")', body[:end])}
 
 
+def section_variables():
+    """Local section variable -> the AppLang property it aliases.
+
+    sectionMap is keyed by the local variable (sGpuScaling), while the catalog
+    and AppLang use the property name (SectionGpuScaling). Both directions of the
+    empty-section check need the translation, so it is built once here.
+
+    Only the declarations in SettingsPage.Options.cs are read: that is where the
+    variables are introduced, and a second declaration elsewhere would mean two
+    different things under one name -- which this check should not paper over.
+    """
+    text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
+    return dict(re.findall(
+        r'\bvar\s+(s[A-Za-z0-9]+)\s*=\s*AppContext\.AppLang\.(Section[A-Za-z0-9]+)\s*;',
+        text))
+
+
+def sections_used_by_options():
+    """Every section variable sectionMap assigns an option to."""
+    text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
+    parts = text.split("var sectionMap = new Dictionary<string, string>", 1)
+    if len(parts) < 2:
+        return None, None
+    body = parts[1]
+    depth = 0
+    end = None
+    for i, ch in enumerate(body):
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    if end is None:
+        return None, None
+    return set(re.findall(r'\]\s*=\s*(s[A-Za-z0-9]+)\s*,', body[:end])), body[:end]
+
+
 def main():
     sections, descs, categories = applang_props()
     rows, cats = catalog_rows()
@@ -280,6 +319,37 @@ def main():
             warnings.append(
                 f"{len(stale)} sectionMap entry/entries name no built option: "
                 f"{', '.join(stale[:6])}" + (" ..." if len(stale) > 6 else ""))
+
+    # --- sections that no option belongs to ----------------------------------
+    # A section is only rendered when an option claims it, so a declared-but-empty
+    # section is invisible: it sits in the catalog, the language files and the
+    # icon table, and nothing ever shows it. That is how a section outlives its
+    # options when they are moved to a better home, and it is the same failure
+    # shape as the crash this script already guards against -- the declaration and
+    # the content drifting apart, with the mismatch silent either way.
+    #
+    # Reported as an error rather than a warning because a stale section is never
+    # intentional: it means the last edit that emptied it forgot to remove it.
+    #
+    # Measured against the catalog's own rows, NOT against AppLang: a section
+    # emptied by an edit is usually stripped from AppLang in the same commit, and
+    # keying this off AppLang would make the check go quiet exactly when it is
+    # needed. (Verified by injecting a stale row back into the catalog.)
+    variables = section_variables()
+    used, _ = sections_used_by_options()
+    if variables and used is not None:
+        used_props = {variables.get(v) for v in used} - {None}
+        for name in sorted({r[2] for r in rows} - used_props):
+            errors.append(
+                f"{name} is declared in SettingsSections but no option maps to it, "
+                f"so it can never be shown -- remove the declaration, or point the "
+                f"options that belong there at it")
+
+        # The other direction: sectionMap naming a variable that is not a section.
+        for var in sorted(v for v in used if v not in variables):
+            errors.append(
+                f"sectionMap assigns options to {var}, which is not a declared "
+                f"section variable in {CORE_OPTIONS.name}")
 
     # --- sort keys -----------------------------------------------------------
     # A repeated sort key is NOT an error here. optionOrder is deliberately

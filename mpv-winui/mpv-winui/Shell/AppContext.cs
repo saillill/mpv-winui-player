@@ -99,11 +99,32 @@ namespace mpv_winui
                 "mpv-winui", "mpv");
             ConfigDeployer.EnsureDeployed(mpvDir);
 
-            var loggerTask = Task.Run(LoggerHelper.SetupLogger);
+            // Get the logger up before the read, not after. The read is the one
+            // startup step that can fail in ways nothing else reveals - an
+            // unreadable file, a value the property will not accept - and those
+            // are reported through AppLogger. With the logger still unconfigured
+            // every one of them was written into a target that did not exist yet
+            // and vanished, which is indistinguishable from the read never having
+            // run at all. Synchronous, so "before" is guaranteed and not merely
+            // likely: it is a single load-configuration call, and the write it
+            // would otherwise overlap with is queued below anyway.
+            LoggerHelper.SetupLogger();
+
+            // Read the file into the settings BEFORE anything writes it back.
+            //
+            // Order matters, and this is the only order that is lossless. Every
+            // value the window can express already lives in mpv.conf, so the file
+            // is the authority; loading it first makes the write below a no-op for
+            // everything that already agrees, and for a hand edit - including one
+            // made while the app was closed - it means the edit is carried into
+            // memory and written back unchanged rather than clobbered by a stale
+            // default. Doing it the other way round would overwrite the edit
+            // first and have nothing left to read.
+            MpvSettings.LoadFromConfig();
+
             // Enqueue the config writes on the same serialized queue so the
             // startup path can await them before mpv reads the config dir.
             _task = Task.WhenAll(
-                loggerTask,
                 ConfigWriteQueue.EnqueueCoalescing(PluginConfigWriter.WriteAllAsync),
                 ConfigWriteQueue.Enqueue(ManagedMpvConfig.WriteAsync));
             // Which mpv options the config file already names decides whether a

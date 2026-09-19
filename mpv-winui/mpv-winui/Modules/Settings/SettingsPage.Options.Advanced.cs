@@ -25,11 +25,6 @@ public sealed partial class SettingsPage
         var sOsdBehavior = AppContext.AppLang.SectionOsdBehavior;
         var sOsdPosition = AppContext.AppLang.SectionOsdPosition;
 
-        var sAdvScaler = AppContext.AppLang.SectionAdvancedScaler;
-
-        var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
-        var sAdvRenderer = AppContext.AppLang.SectionAdvancedRenderer;
-
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var program = AppContext.AppLang.SettingsCategoryProgram;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
@@ -1280,12 +1275,15 @@ Placeholder = "${filename}",
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InputIpcServer), AppContext.AppSetting.InputIpcServer = (string)v!)
             },
 
-            // Added in the advanced batch: gpu-api
+            // Which graphics API mpv talks to the GPU through. Filed with the
+            // rest of the output chain rather than under a category of its own:
+            // it is the first decision in that chain, and someone changing
+            // d3d11-output-csp wants it in the same place.
             new Option
             {
                 Key = nameof(AppContext.AppSetting.GpuApi),
                 Label = lang.SettingsGpuApi,
-                Category = advanced,
+                Category = video,
                 Description = lang.SettingsHelpGpuApi,
                 Type = OptionType.StringList,
                 Choices =
@@ -1299,12 +1297,12 @@ Placeholder = "${filename}",
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GpuApi), AppContext.AppSetting.GpuApi = (string)v!)
             },
 
-            // Added in the advanced batch: gpu-context
+            // The window-system backend the API above renders into.
             new Option
             {
                 Key = nameof(AppContext.AppSetting.GpuContext),
                 Label = lang.SettingsGpuContext,
-                Category = advanced,
+                Category = video,
                 Description = lang.SettingsHelpGpuContext,
                 Type = OptionType.StringList,
                 Choices =
@@ -1317,12 +1315,13 @@ Placeholder = "${filename}",
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GpuContext), AppContext.AppSetting.GpuContext = (string)v!)
             },
 
-            // Added in the advanced batch: scale-antiring
+            // Antiringing for the upscaler. Sits beside the upscaler choice it
+            // modifies, which is what makes the pair readable.
             new Option
             {
                 Key = nameof(AppContext.AppSetting.ScaleAntiring),
                 Label = lang.SettingsScaleAntiring,
-                Category = advanced,
+                Category = video,
                 Description = lang.SettingsHelpScaleAntiring,
                 Type = OptionType.Double,
                 Min = 0,
@@ -1332,12 +1331,12 @@ Placeholder = "${filename}",
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScaleAntiring), AppContext.AppSetting.ScaleAntiring = (double)v!)
             },
 
-            // Added in the advanced batch: cscale-antiring
+            // Antiringing for the chroma upscaler, same rule.
             new Option
             {
                 Key = nameof(AppContext.AppSetting.CscaleAntiring),
                 Label = lang.SettingsCscaleAntiring,
-                Category = advanced,
+                Category = video,
                 Description = lang.SettingsHelpCscaleAntiring,
                 Type = OptionType.Double,
                 Min = 0,

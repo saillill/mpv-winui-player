@@ -50,13 +50,16 @@ internal static class SettingsSections
         // two-section, sixteen-option topic the same weight as Video. It is a
         // picture feature: the sections now live inside Video, and the category
         // is gone.
-        // Last on purpose. Everything here is exposed because the option
-        // exists and works, not because a normal user would want it: renderer
-        // internals, scaler tuning parameters. Keeping it one category rather
-        // than scattering the same options through Video is what lets the rest
-        // of the tree stay a description of what the player does rather than a
-        // copy of the mpv manual.
-        new("advanced", l => l.SettingsCategoryAdvanced),
+        //
+        // "Advanced" went the same way, for a different reason. It was a bucket
+        // of renderer internals and scaler tuning, and a bucket is precisely what
+        // makes an option hard to find: the graphics API is a fact about the
+        // output chain, not about being advanced, and someone looking for it
+        // looks under Video. Every option it held now sits in the section it
+        // describes - gpu-api and gpu-context with the output chain, the
+        // antiringing knobs with the scaler, the testing and file-association
+        // rows in Program's own folding sections. Nobody has to know the app has
+        // an "advanced" tier to find any of them.
     ];
 
     /// <summary>
@@ -117,8 +120,10 @@ internal static class SettingsSections
         new("SectionWindow", "\uE745", l => l.SectionWindow, l => l.SectionDescWindow),
         new("SectionWindowBehavior", "\uE7A6", l => l.SectionWindowBehavior, l => l.SectionDescWindowBehavior),
         new("SectionWindowPiP", "\uEE49", l => l.SectionWindowPiP, l => l.SectionDescWindowPiP),
-        new("SectionAdvancedRenderer", "\uE7B3", l => l.SectionAdvancedRenderer, l => l.SectionDescAdvancedRenderer),
-        new("SectionAdvancedScaler", "\uE8F4", l => l.SectionAdvancedScaler, l => l.SectionDescAdvancedScaler),
+        // SectionAdvancedRenderer and SectionAdvancedScaler were removed with the
+        // category they belonged to. gpu-api and gpu-context are now in the D3D11
+        // section, and the two antiringing knobs in the scaler section - a section
+        // that exists to describe them, which the old pair only half did.
     ];
 
     /// <summary>Fallback glyph for a caption the table does not know.</summary>

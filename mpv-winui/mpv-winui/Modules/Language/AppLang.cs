@@ -440,7 +440,10 @@ namespace mpv_winui.Modules.Language
         public string SettingsCategoryNetwork { get; set; } = "Network";
         public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
         public string SettingsCategoryOsd { get; set; } = "OSD";
-        public string SettingsCategoryAdvanced { get; set; } = "Advanced";
+        // There is no SettingsCategoryAdvanced: the category was removed and its
+        // options filed by subject. The language files still carry the string, and
+        // that is deliberate - a stale caption costs nothing, while deleting it
+        // would make every existing translation report as an orphan key.
 
         // Section captions split each category into topic groups.
         public string SectionProgramInterface { get; set; } = "Interface";
@@ -502,8 +505,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescGpuD3d11 { get; set; } = "Exclusive fullscreen, flip and adapter";
         public string SectionGpuShaders { get; set; } = "Shaders & cache";
         public string SectionDescGpuShaders { get; set; } = "Custom shader passes";
-        public string SectionAdvancedRenderer { get; set; } = "Renderer";
-        public string SectionDescAdvancedRenderer { get; set; } = "Graphics API, output and buffers";
         public string SettingsGpuApi { get; set; } = "Graphics API";
         public string SettingsHelpGpuApi { get; set; } = "Which graphics interface renders the picture. Auto lets mpv pick the best fit and is recommended. d3d11 is the usual choice on Windows; vulkan has more features but also more driver trouble; opengl is the oldest fallback. A wrong value usually shows up as a black window or a failed start.";
         public string SettingsGpuContext { get; set; } = "Graphics context";
@@ -512,8 +513,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpScaleAntiring { get; set; } = "Anti-ringing strength when enlarging (0-1). It softens the halo around edges at the cost of a slightly softer picture. 0 is off; around 0.75 is a common compromise.";
         public string SettingsCscaleAntiring { get; set; } = "Chroma anti-ringing";
         public string SettingsHelpCscaleAntiring { get; set; } = "Anti-ringing strength during chroma upscaling (0-1). Narrower in scope than the option above - it only affects colour edges.";
-        public string SectionAdvancedScaler { get; set; } = "Scaler parameters";
-        public string SectionDescAdvancedScaler { get; set; } = "Per-algorithm tuning knobs";
         public string SectionVideoSync { get; set; } = "Video sync";
         public string SectionDescVideoSync { get; set; } = "Video sync mode and timing";
         public string SectionVideoGeometry { get; set; } = "Geometry";
