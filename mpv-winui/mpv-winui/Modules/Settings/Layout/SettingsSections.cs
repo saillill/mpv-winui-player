@@ -46,7 +46,10 @@ internal static class SettingsSections
         new("network", l => l.SettingsCategoryNetwork),
         new("shortcuts", l => l.SettingsCategoryShortcuts),
         new("osd", l => l.SettingsCategoryOsd),
-        new("screenshot", l => l.SettingsCategoryScreenshot),
+        // Screenshots used to be their own top-level category, which gave a
+        // two-section, sixteen-option topic the same weight as Video. It is a
+        // picture feature: the sections now live inside Video, and the category
+        // is gone.
         // Last on purpose. Everything here is exposed because the option
         // exists and works, not because a normal user would want it: renderer
         // internals, scaler tuning parameters. Keeping it one category rather
@@ -100,12 +103,10 @@ internal static class SettingsSections
         new("SectionAudioExternal", "\uE8D6", l => l.SectionAudioExternal, l => l.SectionDescAudioExternal),
         new("SectionAudioCoverArt", "\uEB9F", l => l.SectionAudioCoverArt, l => l.SectionDescAudioCoverArt),
         new("SectionSubtitleBehavior", "\uE7DE", l => l.SectionSubtitleBehavior, l => l.SectionDescSubtitleBehavior),
-        new("SectionSubtitleSecondary", "\uE8B1", l => l.SectionSubtitleSecondary, l => l.SectionDescSubtitleSecondary),
-        new("SectionSubtitleFilter", "\uE8D4", l => l.SectionSubtitleFilter, l => l.SectionDescSubtitleFilter),
         new("SectionSubtitleStyle", "\uE8D2", l => l.SectionSubtitleStyle, l => l.SectionDescSubtitleStyle),
         new("SectionSubtitlePosition", "\uE7C4", l => l.SectionSubtitlePosition, l => l.SectionDescSubtitlePosition),
+        new("SectionSubtitleFilter", "\uE8D4", l => l.SectionSubtitleFilter, l => l.SectionDescSubtitleFilter),
         new("SectionSubtitleAss", "\uE713", l => l.SectionSubtitleAss, l => l.SectionDescSubtitleAss),
-        new("SectionSubtitleImage", "\uE91B", l => l.SectionSubtitleImage, l => l.SectionDescSubtitleImage),
         new("SectionOsdBehavior", "\uE7EE", l => l.SectionOsdBehavior, l => l.SectionDescOsdBehavior),
         new("SectionOsdAppearance", "\uE2B1", l => l.SectionOsdAppearance, l => l.SectionDescOsdAppearance),
         new("SectionOsdText", "\uED1F", l => l.SectionOsdText, l => l.SectionDescOsdText),

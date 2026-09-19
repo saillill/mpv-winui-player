@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
 """Regenerate the settings category/section maps in SettingsPage.Options.cs.
 
+OUT OF DATE -- this script refuses to run (see the guard near the bottom).
+Its MAP still describes the pre-regroup layout: fifteen categories including
+watchLater, demuxer, cache, input and testing, and section variables such as
+sSubtitleText, sTrackLanguage, sOsd and sGpuColor that no longer exist. The
+maps in SettingsPage.Options.cs are hand-maintained for now, and guarded by
+tools/check-sections.py and tools/check-empty-sections.py. Update MAP to the
+current shape before trusting anything this script prints.
+
+Original intent follows.
+
 The settings window follows the option layout of the mpv manual
-(DOCS/man/options.rst). This script is the single source of truth for:
+(DOCS/man/options.rst). This script was the source of truth for:
 
   * the official categories (categoryOrder / categoryMap),
   * the per-category section captions (sectionOrder / sectionMap),
@@ -300,9 +310,24 @@ MAP = {
 missing = [k for k in keys if k not in MAP]
 extra = [k for k in MAP if k not in keys]
 if missing or extra:
-    print(f"WARNING: MAP/key drift — MAP={len(MAP)} keys, Options files={len(keys)} keys", file=sys.stderr)
-    print(f"  missing from MAP: {missing}", file=sys.stderr)
-    print(f"  extra in MAP:     {extra}", file=sys.stderr)
+    # This script has been out of date since the settings tree was regrouped
+    # (nine categories, stable section ids, options filed by meaning rather
+    # than by manual chapter). Its MAP still names sections that no longer
+    # exist -- sSubtitleText, sTrackLanguage, sOsd, sInput, sGpuColor -- and
+    # misses every option added since. Running it would silently overwrite the
+    # live maps with that stale shape, so refuse instead of warning.
+    #
+    # The maps in SettingsPage.Options.cs are maintained by hand for now;
+    # check-sections.py and check-empty-sections.py are what guard them.
+    print("REFUSING TO GENERATE: MAP is out of date and would clobber "
+          "SettingsPage.Options.cs.", file=sys.stderr)
+    print(f"  MAP knows {len(MAP)} keys; the options files declare {len(keys)}.",
+          file=sys.stderr)
+    print(f"  missing from MAP ({len(missing)}): {missing[:10]}...", file=sys.stderr)
+    print(f"  extra in MAP ({len(extra)}): {extra}", file=sys.stderr)
+    print("  Regenerate means: update MAP to the current sections first.",
+          file=sys.stderr)
+    sys.exit(1)
 
 CAT_ORDER = ["program", "playback", "watchLater", "video", "audio", "subtitles",
              "window", "demuxer", "cache", "network", "input", "shortcuts",

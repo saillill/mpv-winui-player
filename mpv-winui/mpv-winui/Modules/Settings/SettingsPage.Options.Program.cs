@@ -22,13 +22,9 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildProgramBehaviorOptions()
     {
-        var sWindowBehavior = AppContext.AppLang.SectionWindowBehavior;
-
         var program = AppContext.AppLang.SettingsCategoryProgram;
-        var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
-        var osd = AppContext.AppLang.SettingsCategoryOsd;
-        var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var window = AppContext.AppLang.SettingsCategoryWindow;
+        var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var lang = AppContext.AppLang;
 
@@ -124,8 +120,10 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestMpvCommandLog),
                 Label = lang.SettingsTestMpvCommandLog,
-                // Developer/diagnostic option, grouped under Program.
-                Category = program,
+                // Developer/diagnostic option. Moved out of Program: a
+                // diagnostic switch does not belong beside the theme and the
+                // update check.
+                Category = advanced,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestMpvCommandLog,
                 Type = OptionType.Boolean,
@@ -137,7 +135,7 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.TestOsdMessage),
                 Label = lang.SettingsTestOsdMessage,
-                Category = osd,
+                Category = advanced,
                 Section = sProgramTesting,
                 Description = lang.SettingsHelpTestOsdMessage,
                 // One-shot test is an action, not a toggle: a button keeps the
@@ -154,7 +152,7 @@ public sealed partial class SettingsPage
                 Key = nameof(AppContext.AppSetting.TestSignal),
                 Description = lang.SettingsHelpTestSignal,
                 Label = lang.SettingsTestSignal,
-                Category = playback,
+                Category = advanced,
                 Section = sProgramTesting,
                 Type = OptionType.StringList,
                 AllowCustom = false,
@@ -200,7 +198,10 @@ public sealed partial class SettingsPage
             {
                 Key = FileAssociationCheckListKey,
                 Label = lang.SettingsAssociateFiles,
-                Category = program,
+                // Registry writes, not a player preference: grouped under
+                // Advanced with the other things that are exposed because the
+                // feature exists rather than because someone tunes it.
+                Category = advanced,
                 Description = lang.SettingsHelpFileAssociations,
                 Type = OptionType.CheckList,
                 CheckExpandLabel = lang.Expand,
@@ -215,7 +216,7 @@ public sealed partial class SettingsPage
             {
                 Key = "ActionUnassociateFiles",
                 Label = lang.SettingsUnassociateFiles,
-                Category = program,
+                Category = advanced,
                 Description = lang.SettingsHelpUnassociateFiles,
                 Type = OptionType.Action,
                 ActionKind = OptionActionKind.Button,

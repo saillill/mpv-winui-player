@@ -350,10 +350,8 @@ namespace mpv_winui.Modules.Language
         public string SectionDescSubtitlePosition { get; set; } = "Position and alignment";
         public string SectionSubtitleBehavior { get; set; } = "Behavior && loading";
         public string SectionDescSubtitleBehavior { get; set; } = "Loading and track choice";
-        public string SectionSubtitleFilter { get; set; } = "Subtitle filtering";
-        public string SectionDescSubtitleFilter { get; set; } = "Clean non-dialogue text out of accessibility subtitles";
-        public string SectionSubtitleSecondary { get; set; } = "Second subtitle track";
-        public string SectionDescSubtitleSecondary { get; set; } = "An extra track shown at the same time";
+        public string SectionSubtitleFilter { get; set; } = "Filtering && timing";
+        public string SectionDescSubtitleFilter { get; set; } = "Accessibility filters and timing repair";
         public string SectionToneMapping { get; set; } = "Tone mapping";
         public string SectionDescToneMapping { get; set; } = "HDR tone mapping";
         public string SectionTargetColorspace { get; set; } = "Target color space";
@@ -442,7 +440,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsCategoryNetwork { get; set; } = "Network";
         public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
         public string SettingsCategoryOsd { get; set; } = "OSD";
-        public string SettingsCategoryScreenshot { get; set; } = "Screenshot";
         public string SettingsCategoryAdvanced { get; set; } = "Advanced";
 
         // Section captions split each category into topic groups.
@@ -483,8 +480,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescAudioCoverArt { get; set; } = "Cover art display";
         public string SectionSubtitleAss { get; set; } = "ASS subtitles";
         public string SectionDescSubtitleAss { get; set; } = "ASS effect rendering";
-        public string SectionSubtitleImage { get; set; } = "Image subtitles";
-        public string SectionDescSubtitleImage { get; set; } = "Image-based subtitles";
         public string SectionWindow { get; set; } = "Window";
         public string SectionDescWindow { get; set; } = "Always on top, resizing, aspect lock";
         public string SectionDemuxerPlaylist { get; set; } = "Playlist & directories";

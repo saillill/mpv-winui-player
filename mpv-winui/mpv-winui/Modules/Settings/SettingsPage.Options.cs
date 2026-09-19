@@ -30,7 +30,7 @@ private List<Option> BuildSettings()
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
-        var screenshot = AppContext.AppLang.SettingsCategoryScreenshot;
+        var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
@@ -52,10 +52,10 @@ private List<Option> BuildSettings()
         var sAudioExternal = AppContext.AppLang.SectionAudioExternal;
         var sAudioCoverArt = AppContext.AppLang.SectionAudioCoverArt;
         var sSubtitleAss = AppContext.AppLang.SectionSubtitleAss;
-        var sSubtitleImage = AppContext.AppLang.SectionSubtitleImage;
         var sSubtitleStyle = AppContext.AppLang.SectionSubtitleStyle;
         var sSubtitlePosition = AppContext.AppLang.SectionSubtitlePosition;
         var sSubtitleBehavior = AppContext.AppLang.SectionSubtitleBehavior;
+        var sSubtitleFilter = AppContext.AppLang.SectionSubtitleFilter;
         var sToneMapping = AppContext.AppLang.SectionToneMapping;
         var sTargetColorspace = AppContext.AppLang.SectionTargetColorspace;
         var sColorManagement = AppContext.AppLang.SectionColorManagement;
@@ -64,15 +64,8 @@ private List<Option> BuildSettings()
         var sOsdPosition = AppContext.AppLang.SectionOsdPosition;
         var sWindow = AppContext.AppLang.SectionWindow;
         var sOsdText = AppContext.AppLang.SectionOsdText;
-        var sSubBehavior = AppContext.AppLang.SectionSubtitleBehavior;
-        var sSubStyle = AppContext.AppLang.SectionSubtitleStyle;
-        var sSubPosition = AppContext.AppLang.SectionSubtitlePosition;
-        var sSubAss = AppContext.AppLang.SectionSubtitleAss;
-        var sSubImage = AppContext.AppLang.SectionSubtitleImage;
-        var sSubFilter = AppContext.AppLang.SectionSubtitleFilter;
         var sWindowBehavior = AppContext.AppLang.SectionWindowBehavior;
         var sVideoGeometry = AppContext.AppLang.SectionVideoGeometry;
-        var sSubSecondary = AppContext.AppLang.SectionSubtitleSecondary;
         var sAdvRenderer = AppContext.AppLang.SectionAdvancedRenderer;
         var sAdvScaler = AppContext.AppLang.SectionAdvancedScaler;
         var sDemuxerPlaylist = AppContext.AppLang.SectionDemuxerPlaylist;
@@ -86,7 +79,6 @@ private List<Option> BuildSettings()
         var sGpuD3d11 = AppContext.AppLang.SectionGpuD3d11;
         var sGpuShaders = AppContext.AppLang.SectionGpuShaders;
         var sVideoSync = AppContext.AppLang.SectionVideoSync;
-        var lang = AppContext.AppLang;
 
         var options = new List<Option>();
         options.AddRange(BuildProgramBehaviorOptions());
@@ -142,7 +134,15 @@ private List<Option> BuildSettings()
 
             sAudioExternal, sAudioCoverArt,
 
-            sSubtitlePosition, sSubtitleAss, sSubtitleImage,
+            // Subtitles: Style (17) and Behavior (12) stay on the overview --
+            // between them they carry font size, colour, and which track gets
+            // picked, which is what people come to this category for. The
+            // other three sections go behind cards (Position 15, Filter 8,
+            // Ass 14). Both numbers are over the 8-row guideline, and that is
+            // deliberate: pushing them behind cards too would leave the
+            // category with nothing to set on open, which is the exact
+            // complaint Network and OSD used to draw.
+            sSubtitlePosition, sSubtitleFilter, sSubtitleAss,
 
             // OsdLevel and the font/colour knobs are reached constantly, so
             // Appearance stays on the overview even though the section is
@@ -197,9 +197,11 @@ private List<Option> BuildSettings()
             }
         }
 
-        // WinUI 3 settings shell: 10 top-level categories. "Input" is merged
-        // into Shortcuts and "Testing" items live inside their related
-        // categories (Program/OSD/Playback) as experimental sections.
+        // WinUI 3 settings shell: 9 top-level categories. "Input" is merged
+        // into Shortcuts and Screenshot folded into Video rather than standing
+        // beside it. Advanced is deliberately last: the file associations and
+        // the diagnostic switches used to sit under Program, where they read as
+        // ordinary preferences.
         var categoryOrder = new[]
         {
             program,
@@ -211,7 +213,7 @@ private List<Option> BuildSettings()
             network,
             shortcuts,
             osd,
-            screenshot,
+            advanced,
         };
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
@@ -236,26 +238,29 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.OsdSelectedOutlineColor)] = 2303,
             [nameof(AppSettings.OsdScaleByWindow)] = 2401,
             [nameof(AppSettings.OsdMarginYOffset)] = 2501,
+            // Order keys are only compared within a section, so the leading
+            // two digits name the section (15 behavior, 16 style, 17 position,
+            // 18 filter, 19 ass) and the last two order rows inside it.
             [nameof(AppSettings.SubVisibility)] = 1501,
-            [nameof(AppSettings.SubFixTiming)] = 1502,
-            [nameof(AppSettings.SubFixTimingThreshold)] = 1503,
-            [nameof(AppSettings.SubsMatchOsLanguage)] = 1504,
-            [nameof(AppSettings.SubsWithMatchingAudio)] = 1505,
-            [nameof(AppSettings.SubsFallbackForced)] = 1506,
-            [nameof(AppSettings.SubForcedEventsOnly)] = 1507,
-            [nameof(AppSettings.SubShaper)] = 1508,
+            [nameof(AppSettings.SubsMatchOsLanguage)] = 1502,
+            [nameof(AppSettings.SubsWithMatchingAudio)] = 1503,
+            [nameof(AppSettings.SubsFallbackForced)] = 1504,
             [nameof(AppSettings.SubScale)] = 1601,
             [nameof(AppSettings.SubSpacing)] = 1602,
             [nameof(AppSettings.SubOutlineColor)] = 1603,
             [nameof(AppSettings.SubGauss)] = 1604,
             [nameof(AppSettings.SubMarginYOffset)] = 1701,
-            [nameof(AppSettings.SubAssJustify)] = 1801,
-            [nameof(AppSettings.SubAssPruneDelay)] = 1802,
-            [nameof(AppSettings.SubBitmapMaxSize)] = 1901,
-            [nameof(AppSettings.SecondarySubAssOverride)] = 2001,
-            [nameof(AppSettings.SubFilterSdh)] = 2101,
-            [nameof(AppSettings.SubFilterSdhEnclosures)] = 2102,
-            [nameof(AppSettings.SubFilterSdhHarder)] = 2103,
+            [nameof(AppSettings.SubAssJustify)] = 1702,
+            [nameof(AppSettings.SubAssPruneDelay)] = 1703,
+            [nameof(AppSettings.SubFixTiming)] = 1801,
+            [nameof(AppSettings.SubFixTimingThreshold)] = 1802,
+            [nameof(AppSettings.SubForcedEventsOnly)] = 1803,
+            [nameof(AppSettings.SubShaper)] = 1804,
+            [nameof(AppSettings.SubBitmapMaxSize)] = 1805,
+            [nameof(AppSettings.SubFilterSdh)] = 1806,
+            [nameof(AppSettings.SubFilterSdhEnclosures)] = 1807,
+            [nameof(AppSettings.SubFilterSdhHarder)] = 1808,
+            [nameof(AppSettings.SecondarySubAssOverride)] = 1901,
             [nameof(AppSettings.AbLoopA)] = 1001,
             [nameof(AppSettings.AbLoopB)] = 1002,
             [nameof(AppSettings.AbLoopCount)] = 1003,
@@ -557,12 +562,11 @@ private List<Option> BuildSettings()
         // int.MaxValue and jump to the bottom of its category.
         var sectionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
         {
-            // program
+            // program -- Associations and Testing moved to Advanced, so only
+            // the three sections a normal user recognises remain.
             [sProgramInterface] = 0,
             [sProgramLanguageLog] = 1,
             [sProgramConfig] = 2,
-            [sProgramAssociations] = 3,
-            [sProgramTesting] = 4,
 
             // playback
             [sPlayback] = 0,
@@ -583,6 +587,8 @@ private List<Option> BuildSettings()
             [sToneMapping] = 8,
             [sTargetColorspace] = 9,
             [sColorManagement] = 10,
+            [sScreenshotLocation] = 11,
+            [sScreenshotQuality] = 12,
 
             // audio
             [sAudioOutput] = 0,
@@ -590,12 +596,16 @@ private List<Option> BuildSettings()
             [sAudioExternal] = 2,
             [sAudioCoverArt] = 3,
 
-            // subtitles
+            // subtitles -- five sections. Style and Behavior stay on the
+            // overview (font size and track choice are the two things people
+            // actually open Subtitles for); Position, Filter and Ass are past
+            // the point where a section reads as one screen and go behind
+            // cards.
             [sSubtitleStyle] = 0,
-            [sSubtitlePosition] = 1,
-            [sSubtitleBehavior] = 2,
-            [sSubtitleAss] = 3,
-            [sSubtitleImage] = 4,
+            [sSubtitleBehavior] = 1,
+            [sSubtitlePosition] = 2,
+            [sSubtitleFilter] = 3,
+            [sSubtitleAss] = 4,
 
             // window
             [sWindow] = 0,
@@ -614,9 +624,12 @@ private List<Option> BuildSettings()
             [sOsdPosition] = 2,
             [sOsdMetadata] = 3,
 
-            // screenshot
-            [sScreenshotLocation] = 0,
-            [sScreenshotQuality] = 1,
+            // advanced -- renderer and scaler internals, plus the two
+            // developer-facing sections that used to sit in Program.
+            [sAdvRenderer] = 0,
+            [sAdvScaler] = 1,
+            [sProgramTesting] = 2,
+            [sProgramAssociations] = 3,
         };
 
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -751,51 +764,93 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CoverArtPreload)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtNames)] = sAudioCoverArt,
             [nameof(AppSettings.CoverArtImageExts)] = sAudioCoverArt,
-            // subtitles
+            // subtitles -- five sections grouped by what the option changes,
+            // not by the mpv prefix alone: the bare `sub-` prefix covers
+            // 52 options spanning three different concerns, so "style",
+            // "placement" and "loading" split on meaning. `secondary-sub-*`
+            // and the bare `subs-*` matchers live with the section they
+            // belong to semantically rather than getting headings of their
+            // own; both used to be two- and four-option sections.
+            //
+            // Note this file used to declare two parallel alias sets
+            // (sSubtitle* and sSub*) for the same AppLang strings, which is
+            // how a section ended up with two spellings and how the option
+            // count above reported doubled numbers. One id per section now.
             [nameof(AppSettings.AudioLanguage)] = sAudioOutput,
             [nameof(AppSettings.SubtitleLanguage)] = sSubtitleBehavior,
             [nameof(AppSettings.SubFallback)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubsFallbackForced)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubsMatchOsLanguage)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubsWithMatchingAudio)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubAuto)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubFilePaths)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubDelay)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubVisibility)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubClearOnSeek)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubCodePage)] = sSubtitleBehavior,
+            [nameof(AppSettings.SecondarySubVisibility)] = sSubtitleBehavior,
+            // style
             [nameof(AppSettings.SubFontSize)] = sSubtitleStyle,
             [nameof(AppSettings.SubFont)] = sSubtitleStyle,
             [nameof(AppSettings.SubFontFile)] = sSubtitleStyle,
             [nameof(AppSettings.SubFontProvider)] = sSubtitleStyle,
-            [nameof(AppSettings.SubCodePage)] = sSubtitleBehavior,
             [nameof(AppSettings.SubColor)] = sSubtitleStyle,
             [nameof(AppSettings.SubBackColor)] = sSubtitleStyle,
             [nameof(AppSettings.SubBorderColor)] = sSubtitleStyle,
+            [nameof(AppSettings.SubOutlineColor)] = sSubtitleStyle,
             [nameof(AppSettings.SubOutlineSize)] = sSubtitleStyle,
             [nameof(AppSettings.SubShadowOffset)] = sSubtitleStyle,
-            [nameof(AppSettings.SubBlur)] = sSubtitleStyle,
-            [nameof(AppSettings.SubPos)] = sSubtitlePosition,
             [nameof(AppSettings.SubBold)] = sSubtitleStyle,
             [nameof(AppSettings.SubItalic)] = sSubtitleStyle,
+            [nameof(AppSettings.SubBlur)] = sSubtitleStyle,
+            [nameof(AppSettings.SubGauss)] = sSubtitleStyle,
+            [nameof(AppSettings.SubSpacing)] = sSubtitleStyle,
+            [nameof(AppSettings.SubLineSpacing)] = sSubtitleStyle,
+            [nameof(AppSettings.SubHinting)] = sSubtitleStyle,
+            // position -- including the ASS layout knobs and the second track's
+            // placement, which are about where a line lands, not what it looks
+            // like.
+            [nameof(AppSettings.SubPos)] = sSubtitlePosition,
             [nameof(AppSettings.SubAlignX)] = sSubtitlePosition,
             [nameof(AppSettings.SubAlignY)] = sSubtitlePosition,
-            [nameof(AppSettings.SubScaleByWindow)] = sSubtitlePosition,
-            [nameof(AppSettings.SubLineSpacing)] = sSubtitleBehavior,
             [nameof(AppSettings.SubJustify)] = sSubtitlePosition,
-            [nameof(AppSettings.SubClearOnSeek)] = sSubtitleBehavior,
-            [nameof(AppSettings.SubHinting)] = sSubtitleStyle,
             [nameof(AppSettings.SubMarginX)] = sSubtitlePosition,
             [nameof(AppSettings.SubMarginY)] = sSubtitlePosition,
-            [nameof(AppSettings.SubDelay)] = sSubtitleBehavior,
-            [nameof(AppSettings.SubScaleSigns)] = sSubtitlePosition,
+            [nameof(AppSettings.SubMarginYOffset)] = sSubtitlePosition,
             [nameof(AppSettings.SubUseMargins)] = sSubtitlePosition,
-            [nameof(AppSettings.SubAuto)] = sSubtitleBehavior,
-            [nameof(AppSettings.SubFilePaths)] = sSubtitleBehavior,
-            [nameof(AppSettings.SubHdrPeak)] = sSubtitleBehavior,
+            [nameof(AppSettings.SubScale)] = sSubtitlePosition,
+            [nameof(AppSettings.SubScaleByWindow)] = sSubtitlePosition,
+            [nameof(AppSettings.SubScaleSigns)] = sSubtitlePosition,
+            [nameof(AppSettings.SubAssJustify)] = sSubtitlePosition,
+            [nameof(AppSettings.SubAssScaleWithWindow)] = sSubtitlePosition,
+            [nameof(AppSettings.SubAssForceMargins)] = sSubtitlePosition,
+            [nameof(AppSettings.SubAssPruneDelay)] = sSubtitlePosition,
+            // filter -- accessibility clean-up, timing repair, and the ceiling
+            // on bitmap subtitle size.
+            [nameof(AppSettings.SubFilterSdh)] = sSubtitleFilter,
+            [nameof(AppSettings.SubFilterSdhEnclosures)] = sSubtitleFilter,
+            [nameof(AppSettings.SubFilterSdhHarder)] = sSubtitleFilter,
+            [nameof(AppSettings.SubFixTiming)] = sSubtitleFilter,
+            [nameof(AppSettings.SubFixTimingThreshold)] = sSubtitleFilter,
+            [nameof(AppSettings.SubForcedEventsOnly)] = sSubtitleFilter,
+            [nameof(AppSettings.SubShaper)] = sSubtitleFilter,
+            [nameof(AppSettings.SubBitmapMaxSize)] = sSubtitleFilter,
+            // ass -- renderer-specific overrides that only matter for styled
+            // subtitles, plus image-subtitle handling.
             [nameof(AppSettings.SubAssOverride)] = sSubtitleAss,
             [nameof(AppSettings.SubAssStyleOverrides)] = sSubtitleAss,
-            [nameof(AppSettings.SubAssForceMargins)] = sSubtitleAss,
-            [nameof(AppSettings.SubAssScaleWithWindow)] = sSubtitleAss,
             [nameof(AppSettings.SubAssUseVideoData)] = sSubtitleAss,
             [nameof(AppSettings.SubAssVideoAspectOverride)] = sSubtitleAss,
             [nameof(AppSettings.SubAssVsfilterColorCompat)] = sSubtitleAss,
             [nameof(AppSettings.SubEmbeddedFonts)] = sSubtitleAss,
             [nameof(AppSettings.BlendSubtitles)] = sSubtitleAss,
-            [nameof(AppSettings.StretchImageSubsToScreen)] = sSubtitleImage,
-            [nameof(AppSettings.ImageSubsVideoResolution)] = sSubtitleImage,
-            [nameof(AppSettings.ImageSubsHdrPeak)] = sSubtitleImage,
+            [nameof(AppSettings.StretchImageSubsToScreen)] = sSubtitleAss,
+            [nameof(AppSettings.ImageSubsVideoResolution)] = sSubtitleAss,
+            [nameof(AppSettings.ImageSubsHdrPeak)] = sSubtitleAss,
+            [nameof(AppSettings.SecondarySubAssOverride)] = sSubtitleAss,
+            [nameof(AppSettings.SecondarySubDelay)] = sSubtitleAss,
+            [nameof(AppSettings.SecondarySubPos)] = sSubtitleAss,
+            [nameof(AppSettings.SecondarySubScale)] = sSubtitleAss,
             // window
             [nameof(AppSettings.AlwaysOnTop)] = sWindow,
             [nameof(AppSettings.KeepOpen)] = sWindow,
@@ -930,26 +985,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.OsdSelectedOutlineColor)] = sOsdAppearance,
             [nameof(AppSettings.OsdScaleByWindow)] = sOsdBehavior,
             [nameof(AppSettings.OsdMarginYOffset)] = sOsdPosition,
-            [nameof(AppSettings.SubVisibility)] = sSubBehavior,
-            [nameof(AppSettings.SubFixTiming)] = sSubBehavior,
-            [nameof(AppSettings.SubFixTimingThreshold)] = sSubBehavior,
-            [nameof(AppSettings.SubsMatchOsLanguage)] = sSubBehavior,
-            [nameof(AppSettings.SubsWithMatchingAudio)] = sSubBehavior,
-            [nameof(AppSettings.SubsFallbackForced)] = sSubBehavior,
-            [nameof(AppSettings.SubForcedEventsOnly)] = sSubBehavior,
-            [nameof(AppSettings.SubShaper)] = sSubBehavior,
-            [nameof(AppSettings.SubScale)] = sSubStyle,
-            [nameof(AppSettings.SubSpacing)] = sSubStyle,
-            [nameof(AppSettings.SubOutlineColor)] = sSubStyle,
-            [nameof(AppSettings.SubGauss)] = sSubStyle,
-            [nameof(AppSettings.SubMarginYOffset)] = sSubPosition,
-            [nameof(AppSettings.SubAssJustify)] = sSubAss,
-            [nameof(AppSettings.SubAssPruneDelay)] = sSubAss,
-            [nameof(AppSettings.SubBitmapMaxSize)] = sSubImage,
-            [nameof(AppSettings.SecondarySubAssOverride)] = sSubSecondary,
-            [nameof(AppSettings.SubFilterSdh)] = sSubFilter,
-            [nameof(AppSettings.SubFilterSdhEnclosures)] = sSubFilter,
-            [nameof(AppSettings.SubFilterSdhHarder)] = sSubFilter,
             [nameof(AppSettings.AbLoopA)] = sPlayback,
             [nameof(AppSettings.AbLoopB)] = sPlayback,
             [nameof(AppSettings.AbLoopCount)] = sPlayback,
@@ -962,10 +997,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.VideoPanY)] = sVideoGeometry,
             [nameof(AppSettings.VideoAlignX)] = sVideoGeometry,
             [nameof(AppSettings.VideoAlignY)] = sVideoGeometry,
-            [nameof(AppSettings.SecondarySubVisibility)] = sSubSecondary,
-            [nameof(AppSettings.SecondarySubDelay)] = sSubSecondary,
-            [nameof(AppSettings.SecondarySubPos)] = sSubSecondary,
-            [nameof(AppSettings.SecondarySubScale)] = sSubSecondary,
             [nameof(AppSettings.GpuApi)] = sAdvRenderer,
             [nameof(AppSettings.GpuContext)] = sAdvRenderer,
             [nameof(AppSettings.ScaleAntiring)] = sAdvScaler,

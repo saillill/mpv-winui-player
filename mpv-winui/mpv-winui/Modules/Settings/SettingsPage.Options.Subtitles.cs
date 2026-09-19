@@ -20,16 +20,9 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildSubtitlesOptions()
     {
-        var sSubBehavior = AppContext.AppLang.SectionSubtitleBehavior;
-        var sSubStyle = AppContext.AppLang.SectionSubtitleStyle;
-        var sSubPosition = AppContext.AppLang.SectionSubtitlePosition;
-        var sSubAss = AppContext.AppLang.SectionSubtitleAss;
-        var sSubImage = AppContext.AppLang.SectionSubtitleImage;
-        var sSubFilter = AppContext.AppLang.SectionSubtitleFilter;
-
-        var sSubSecondary = AppContext.AppLang.SectionSubtitleSecondary;
-
         var subtitles = AppContext.AppLang.SettingsCategorySubtitles;
+        var sSubtitlePosition = AppContext.AppLang.SectionSubtitlePosition;
+        var sSubtitleBehavior = AppContext.AppLang.SectionSubtitleBehavior;
         var sSubtitleAss = AppContext.AppLang.SectionSubtitleAss;
         var lang = AppContext.AppLang;
 
@@ -576,7 +569,7 @@ Placeholder = "Fontname=Microsoft YaHei,Fontsize=24",
                 Key = nameof(AppContext.AppSetting.SubAssForceMargins),
                 Label = lang.SettingsSubAssForceMargins,
                 Category = subtitles,
-                Section = sSubtitleAss,
+                Section = sSubtitlePosition,
                 Description = lang.SettingsHelpSubAssForceMargins,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SubAssForceMargins,
@@ -588,7 +581,7 @@ Placeholder = "Fontname=Microsoft YaHei,Fontsize=24",
                 Key = nameof(AppContext.AppSetting.SubAssScaleWithWindow),
                 Label = lang.SettingsSubAssScaleWithWindow,
                 Category = subtitles,
-                Section = sSubtitleAss,
+                Section = sSubtitlePosition,
                 Description = lang.SettingsHelpSubAssScaleWithWindow,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.SubAssScaleWithWindow,
@@ -630,7 +623,7 @@ Placeholder = "Fontname=Microsoft YaHei,Fontsize=24",
                 Key = nameof(AppContext.AppSetting.SubFallback),
                 Label = lang.SettingsSubFallback,
                 Category = subtitles,
-                Section = sSubtitleAss,
+                Section = sSubtitleBehavior,
                 Description = lang.SettingsHelpSubFallback,
                 Type = OptionType.StringList,
                 Choices =
