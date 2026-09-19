@@ -119,6 +119,13 @@ private List<Option> BuildSettings()
             // SeekPreview keeps only 2 rows past its pinned switch, and
             // ReversePlayback and WatchLaterStorage are 2 rows each, so all
             // three are now listed as flat below.
+            //
+            // sPlayback itself was flat until it was measured: 8 rows of
+            // resume-on-quit, A/B loop marks and playlist looping. Speed and
+            // SavePositionOnQuit are pinned back below, so folding it leaves
+            // the two rows people actually reach for on the overview and
+            // moves the loop plumbing behind a card.
+            sPlayback,
             sPlaybackSeeking,
 
             // Picture controls everyone recognises: brightness, contrast,
@@ -188,6 +195,14 @@ private List<Option> BuildSettings()
             // and buffer tuning. AudioDevice is pinned, so the picker people
             // actually use stays on the overview and the rest folds.
             sAudioOutput,
+
+            // Window is the other 8-row section that was flat: fullscreen-on-
+            // launch, border, title bar, aspect-ratio lock, auto resize. All
+            // of them are set once and forgotten, and AlwaysOnTop is pinned
+            // below, so the one toggle worth a first-level row survives the
+            // fold. WindowBehavior (4) and WindowPiP (7) sit next to it on
+            // the overview and are what people come to this category for.
+            sWindow,
         };
 
         // Sections that must NOT fold even though they share a category with
@@ -202,6 +217,11 @@ private List<Option> BuildSettings()
         //   sWatchLaterStorage    (2 rows)
         //   sProgramConfig        (2 left  after the pinned update check)
         //   sVideoDecode          (1 left  after the pinned Hwdec switch)
+        //
+        // Flat because the category would open empty otherwise: AudioVolume
+        // (2), ProgramLanguageLog (2) and ProgramInterface (4) are the only
+        // non-card sections their categories have left, and a category with
+        // one card and no rows reads as broken.
         // Entries people reach for daily: language switch, update check,
         // theme, hardware decode, resume-on-quit, output device, subtitle
         // font size, stay-on-top, cache switch, OSD level.
