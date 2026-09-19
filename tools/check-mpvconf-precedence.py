@@ -63,6 +63,29 @@ def declared_map(src: str) -> dict[str, str]:
     return dict(TABLE_ENTRY.findall(src[start:end]))
 
 
+def config_only_keys(src: str) -> set[str]:
+    """Keys that only take effect at mpv start.
+
+    They map to a real option (the config writer persists them) but have no
+    runtime command, so their absence from ToCommand's map is by design rather
+    than a stale entry.
+    """
+    m = re.search(r"ConfigOnlyKeys\s*=\s*new", src)
+    if not m:
+        return set()
+    i = src.index("{", m.start())
+    depth = 0
+    while i < len(src):
+        if src[i] == "{":
+            depth += 1
+        elif src[i] == "}":
+            depth -= 1
+            if depth == 0:
+                break
+        i += 1
+    return set(re.findall(r"nameof\(AppSettings\.(\w+)\)", src[src.index("{", m.start()):i + 1]))
+
+
 def appsettings_properties() -> set[str]:
     """Property names across the partial AppSettings files, plus the interfaces."""
     names: set[str] = set()
@@ -89,7 +112,7 @@ def main() -> int:
             + ", ".join(missing)
         )
 
-    stale = sorted(set(table) - set(live))
+    stale = sorted(set(table) - set(live) - config_only_keys(src))
     if stale:
         problems.append(
             f"{len(stale)} key(s) are in MpvOptionNames but no longer write an mpv "

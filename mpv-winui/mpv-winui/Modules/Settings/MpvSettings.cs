@@ -294,6 +294,16 @@ public static class MpvSettings
                 continue;
             }
 
+            // A hand-written line in mpv.conf wins. mpv has already applied it
+            // at startup, so sending our own value here would silently undo the
+            // user's edit - the one thing the precedence model promises not to
+            // do. Skipping is what makes "edited mpv.conf before launch" mean
+            // "mpv.conf decides".
+            if (MpvConfOverrides.IsUserOwned(ToMpvOptionName(prop.Name)))
+            {
+                continue;
+            }
+
             // Commands that target scripts must wait until the scripts are
             // actually loaded (first FileLoaded); sending them during the
             // startup batch races script registration and silently fails.
@@ -342,17 +352,169 @@ public static class MpvSettings
         MpvOptionNames.TryGetValue(key, out var name) ? name : null;
 
     /// <summary>
+    /// A real mpv.conf option name: lowercase, digits and dashes, nothing else.
+    ///
+    /// The filter matters. <see cref="MpvOptionNames"/> also carries the
+    /// script-communication keys (<c>user-data/mpvw/vsr-auto</c> and friends),
+    /// which are runtime properties, not options. Writing them into mpv.conf
+    /// would append lines mpv cannot parse, so they are rejected here.
+    /// </summary>
+    private static readonly System.Text.RegularExpressions.Regex ConfigOptionName =
+        new("^[a-z0-9][a-z0-9-]*$",
+            System.Text.RegularExpressions.RegexOptions.Compiled
+            | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// One <c>name=value</c> line for mpv.conf, or null when the key cannot be
+    /// written there.
+    ///
+    /// Derived from <see cref="ToCommand"/> rather than restating names and
+    /// value grammar: the command already quotes strings, spells booleans
+    /// yes/no and maps enums, and the config syntax accepts the same value
+    /// grammar after <c>name=</c>. Reformatting that output keeps one source of
+    /// truth, so a new ToCommand case is automatically persistable.
+    /// </summary>
+    public static string? ToConfLine(string key, object? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        var name = ToMpvOptionName(key);
+        if (name is null || !ConfigOptionName.IsMatch(name))
+        {
+            return null;
+        }
+
+        // Startup-only options have no runtime command by design, so ToCommand
+        // cannot format them. They are still options the window owns, so they
+        // get their line from here - otherwise they would be silently dropped
+        // from the file the moment they became config-only.
+        if (ConfigOnlyConfLine(key, value) is { } configOnly)
+        {
+            return configOnly;
+        }
+
+        if (ToCommand(key, value) is not { } command)
+        {
+            return null;
+        }
+
+        // ToCommand prefixes "no-osd " to suppress mpv's per-set OSD, and that
+        // prefix is a runtime concern with no meaning in a config file.
+        const string osdPrefix = "no-osd ";
+        var set = command.StartsWith(osdPrefix, StringComparison.Ordinal)
+            ? command[osdPrefix.Length..]
+            : command;
+
+        const string setPrefix = "set ";
+        if (!set.StartsWith(setPrefix, StringComparison.Ordinal))
+        {
+            // script-message-to and friends: not an option assignment.
+            return null;
+        }
+
+        var body = set[setPrefix.Length..];
+        var space = body.IndexOf(' ');
+        if (space <= 0 || space == body.Length - 1)
+        {
+            return null;
+        }
+
+        return body[..space] + "=" + body[(space + 1)..];
+    }
+
+    /// <summary>
+    /// Config line for an option that is deliberately absent from
+    /// <see cref="ToCommand"/> because it only takes effect at mpv start.
+    ///
+    /// Returns null when the value means "leave it alone", so no line is written
+    /// and mpv's own default stands - the same meaning the old writer gave a
+    /// commented-out placeholder, without the dead line.
+    /// </summary>
+    private static string? ConfigOnlyConfLine(string key, object value)
+    {
+        return key switch
+        {
+            // 0 is mpv's "off"; anything above it is a forced frame rate, and
+            // mpv wants the number as written (1000/1001 is a valid value).
+            nameof(AppSettings.OverrideDisplayFps) =>
+                (double)value > 0
+                    ? "override-display-fps="
+                      + ((double)value).ToString(CultureInfo.InvariantCulture)
+                    : null,
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// Every mpv.conf line the settings window owns, sorted by option name.
+    ///
+    /// Sorted because the block is rewritten on every change and compared
+    /// against what was written last time; a stable order means an unchanged
+    /// setting produces a byte-identical block rather than a reshuffle. It also
+    /// makes the file readable.
+    /// </summary>
+    public static List<string> BuildConfigLines()
+    {
+        var settings = AppContext.AppSetting;
+        var lines = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var prop in typeof(AppSettings).GetProperties(
+                     BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (!prop.CanRead || !prop.CanWrite)
+            {
+                continue;
+            }
+
+            object? value;
+            try
+            {
+                value = prop.GetValue(settings);
+            }
+            catch
+            {
+                // One failing getter must not cost the whole file.
+                continue;
+            }
+
+            if (ToConfLine(prop.Name, value) is not { } line)
+            {
+                continue;
+            }
+
+            // Two settings can map to the same option (a bool and its detail
+            // field); the first wins so the file never carries a duplicate.
+            var name = line[..line.IndexOf('=')];
+            if (seen.Add(name))
+            {
+                lines.Add(line);
+            }
+        }
+
+        lines.Sort(StringComparer.Ordinal);
+        return lines;
+    }
+
+    /// <summary>
     /// Maps a settings key to the mpv option name it writes through
     /// <see cref="ToCommand"/>. Derived from that switch, not a second source of
     /// truth: it exists so the settings window can ask whether mpv.conf already
-    /// names the same option, which is what decides if a row can win
-    /// (docs/mpv-conf-precedence.md). Keys with no mpv option - script messages,
-    /// config-only entries - are absent and report as not overridden.
+    /// names the same option, and so the config writer can name the line it
+    /// persists.
+    ///
+    /// Keys with no mpv option - script messages - are absent and report as
+    /// unmapped. The startup-only entries ARE here: they have no runtime
+    /// command, but they are options the window owns and writes to the file.
     /// </summary>
     private static readonly Dictionary<string, string> MpvOptionNames = new(StringComparer.Ordinal)
     {
         [nameof(AppSettings.Hwdec)] = "hwdec",
         [nameof(AppSettings.HwdecCodecs)] = "hwdec-codecs",
+        [nameof(AppSettings.OverrideDisplayFps)] = "override-display-fps",
         [nameof(AppSettings.AlwaysOnTop)] = "ontop",
         [nameof(AppSettings.InputIme)] = "input-ime",
         [nameof(AppSettings.StartFullscreen)] = "fullscreen",

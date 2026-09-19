@@ -186,10 +186,12 @@ public sealed partial class SettingsPage
                 Getter = () => AppContext.AppSetting.OverrideDisplayFps,
                 Setter = v =>
                 {
+                    // This one is a startup-only option, so ApplyMpv cannot
+                    // reach it through a runtime `set`. It still persists by the
+                    // same route as everything else: ApplyMpv writes the whole
+                    // block, and ConfigOnlyKeys keeps it out of the IPC batch.
                     AppContext.AppSetting.OverrideDisplayFps = (double)v!;
                     ApplyMpv(nameof(AppContext.AppSetting.OverrideDisplayFps), AppContext.AppSetting.OverrideDisplayFps);
-                    // Startup-only option: persist into mpv.conf for the next start.
-                    AppContext.WriteManagedMpvConfig();
                 }
             },
 

@@ -60,15 +60,19 @@ namespace mpv_winui
             _ = ConfigWriteQueue.EnqueueCoalescing(PluginConfigWriter.WriteAllAsync);
         }
 
-        /// <summary>Writes config-only options (ytdl_hook script options) into the deployed mpv.conf.</summary>
-        public static void WriteManagedMpvConfig()
-        {
-            // Re-read the override set once the write lands: the managed block
-            // names mpv options, and every one of them makes the matching
-            // settings row unable to win - so the badge has to be recomputed.
-            _ = ConfigWriteQueue.Enqueue(ManagedMpvConfig.WriteAsync)
-                .ContinueWith(_ => MpvConfOverrides.Refresh(), TaskScheduler.Default);
-        }
+        /// <summary>
+        /// Persists the settings window's values into the deployed mpv.conf.
+        ///
+        /// This is the write half of "mpv.conf is the source of truth": the
+        /// window is its editor, so a change lands in the file rather than only
+        /// reaching the running player. Coalesced because a slider drag fires
+        /// per step and each write rewrites the whole block.
+        ///
+        /// The returned task completes after the write AND the ownership
+        /// re-read, so a caller that needs the new verdict can chain onto it.
+        /// </summary>
+        public static Task WriteManagedMpvConfig() =>
+            ConfigWriteQueue.Enqueue(ManagedMpvConfig.WriteAsync);
 
         public static void NotifySettingChanged(string key, object? value)
         {
@@ -116,6 +120,12 @@ namespace mpv_winui
             {
                 LoggerHelper.ApplyLogLevel();
             }
+
+            // mpv.conf is the source of truth for every setting the file can
+            // carry, so a change made anywhere - a context-menu toggle, not just
+            // a settings row - has to land there. Coalesced, so a burst of
+            // changes still costs one rewrite.
+            WriteManagedMpvConfig();
         }
 
         public static void SwitchLanguage(string code)
