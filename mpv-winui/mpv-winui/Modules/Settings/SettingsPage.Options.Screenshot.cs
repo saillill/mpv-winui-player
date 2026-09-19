@@ -206,6 +206,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsScreenshotAvifEncoder,
                 Category = screenshot,
                 Type = OptionType.String,
+Placeholder = "auto",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.ScreenshotAvifEncoder,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScreenshotAvifEncoder), AppContext.AppSetting.ScreenshotAvifEncoder = (string)v!)

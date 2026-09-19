@@ -385,6 +385,7 @@ public sealed partial class SettingsPage
                 Category = subtitles,
                 Section = sSubtitleAss,
                 Type = OptionType.String,
+Placeholder = "16:9",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.SubAssVideoAspectOverride,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssVideoAspectOverride), AppContext.AppSetting.SubAssVideoAspectOverride = (string)v!)
@@ -418,6 +419,7 @@ public sealed partial class SettingsPage
                 Section = sSubtitleAss,
                 Description = lang.SettingsHelpSubAssStyleOverrides,
                 Type = OptionType.String,
+Placeholder = "Fontname=Microsoft YaHei,Fontsize=24",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.SubAssStyleOverrides,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssStyleOverrides), AppContext.AppSetting.SubAssStyleOverrides = (string)v!)

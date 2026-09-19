@@ -182,6 +182,13 @@ public sealed partial class SettingsPage
                 Category = video,
                 Description = lang.SettingsHelpIccProfile,
                 Type = OptionType.String,
+                // No placeholder. Path-mode fields show the placeholder AS the
+                // current value when empty (OptionStringControl
+                // .UpdatePathDisplay), so an example path here would read as a
+                // path the user had configured. Existing path options get away
+                // with it because their placeholder is the real resolved
+                // default; this one has none, and an empty box with a Browse
+                // button is the honest state.
                 AllowEmpty = true,
                 PickFile = true,
                 OpenFolder = true,
@@ -380,6 +387,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsTargetGamut,
                 Category = video,
                 Type = OptionType.String,
+Placeholder = "bt.709",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.TargetGamut,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.TargetGamut), AppContext.AppSetting.TargetGamut = (string)v!)
@@ -644,6 +652,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsGlslShaderOpts,
                 Category = video,
                 Type = OptionType.String,
+Placeholder = "param1=2,param2=0.5",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.GlslShaderOpts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GlslShaderOpts), AppContext.AppSetting.GlslShaderOpts = (string)v!)
@@ -684,6 +693,7 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpDemuxerCacheDir,
                 Type = OptionType.String,
+Placeholder = "D:\\mpv-cache",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.DemuxerCacheDir,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerCacheDir), AppContext.AppSetting.DemuxerCacheDir = (string)v!)
@@ -786,6 +796,7 @@ public sealed partial class SettingsPage
                 Category = osd,
                 Description = lang.SettingsHelpOsdPlayingMsg,
                 Type = OptionType.String,
+Placeholder = "${filename}",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.OsdPlayingMsg,
                 Setter = v =>

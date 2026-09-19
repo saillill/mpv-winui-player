@@ -57,6 +57,7 @@ public sealed partial class SettingsPage
                 Category = video,
                 Description = lang.SettingsHelpHwdecCodecs,
                 Type = OptionType.String,
+Placeholder = "h264,hevc,vp9,av1",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.HwdecCodecs,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HwdecCodecs), AppContext.AppSetting.HwdecCodecs = (string)v!)
@@ -125,6 +126,7 @@ public sealed partial class SettingsPage
                 Label = lang.SettingsWindowTitle,
                 Category = window,
                 Type = OptionType.String,
+Placeholder = "${media-title} - mpv-winui",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.WindowTitle,
                 Setter = v =>
@@ -430,6 +432,7 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpUserAgent,
                 Type = OptionType.String,
+Placeholder = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.UserAgent,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.UserAgent), AppContext.AppSetting.UserAgent = (string)v!)
@@ -442,6 +445,7 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpReferrer,
                 Type = OptionType.String,
+Placeholder = "https://example.com/",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.Referrer,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Referrer), AppContext.AppSetting.Referrer = (string)v!)
@@ -454,6 +458,7 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpHttpHeaderFields,
                 Type = OptionType.String,
+Placeholder = "Accept-Language: zh-CN,Referer: https://example.com/",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.HttpHeaderFields,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HttpHeaderFields), AppContext.AppSetting.HttpHeaderFields = (string)v!)
@@ -466,6 +471,7 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpHttpProxy,
                 Type = OptionType.String,
+Placeholder = "http://127.0.0.1:7890",
                 AllowEmpty = true,
                 Getter = () => AppContext.AppSetting.HttpProxy,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HttpProxy), AppContext.AppSetting.HttpProxy = (string)v!)
@@ -478,6 +484,10 @@ public sealed partial class SettingsPage
                 Category = network,
                 Description = lang.SettingsHelpCookiesFile,
                 Type = OptionType.String,
+                // No placeholder: this is a path-mode field, and those show the
+                // placeholder as the current value when empty. An example path
+                // would read as a configured one. There is no real default to
+                // show either, so the empty box plus Browse is the honest state.
                 AllowEmpty = true,
                 PickFile = true,
                 OpenFolder = true,
