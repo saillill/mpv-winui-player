@@ -526,6 +526,21 @@ public sealed partial class SettingsPage : Page
         RebuildLocalizedContent();
     }
 
+    /// <summary>Re-runs the passes that read mpv.conf after the file was edited
+    /// by hand while the window was open.
+    ///
+    /// The values themselves need nothing here: they were written into the
+    /// settings by MpvSettings.LoadFromConfig before this is called, and the
+    /// rows are bound, so the displayed text is already current. What does not
+    /// follow from a setting change is anything derived from which options the
+    /// file owns - that moved because the file changed, not because a value did,
+    /// so it has to be recomputed explicitly. On the UI thread by contract; the
+    /// caller marshals.</summary>
+    public void OnExternalConfigChanged()
+    {
+        RefreshWarningsAndEnabled();
+    }
+
     private void RebuildNavigationItems(string? selectedKey)
     {
         CategoryNav.MenuItems.Clear();

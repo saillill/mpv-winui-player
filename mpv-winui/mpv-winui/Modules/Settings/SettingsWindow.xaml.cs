@@ -20,6 +20,13 @@ public sealed partial class SettingsWindow : BaseWindow
 
         Closed += SettingsWindow_Closed;
         AppContext.LanguageChanged += SettingsWindow_LanguageChanged;
+        // The window is the only UI that renders a settings row, so it is the
+        // only thing that can act on a hand edit to mpv.conf. It subscribes on
+        // construction and the watcher stops with it, because the reload writes
+        // into settings the page owns and running it against a torn-down page
+        // would refresh a tree nothing displays.
+        MpvConfWatcher.Reloaded += SettingsWindow_ConfigReloaded;
+        MpvConfWatcher.Start();
 
         AppWindow.Title = AppContext.AppLang.SettingsTitle;
         AppWindow.SetIcon("App.ico");
@@ -56,7 +63,26 @@ public sealed partial class SettingsWindow : BaseWindow
         }
         Closed -= SettingsWindow_Closed;
         AppContext.LanguageChanged -= SettingsWindow_LanguageChanged;
+        MpvConfWatcher.Reloaded -= SettingsWindow_ConfigReloaded;
+        MpvConfWatcher.Stop();
         // The style manager is disposed by BaseWindow's own Closed handler.
+    }
+
+    /// <summary>Handles a hand edit to mpv.conf that the watcher has already
+    /// read into the settings.
+    ///
+    /// Raised on a worker thread, so it marshals: touching the option tree or
+    /// the list control from here would throw. The page is reached through the
+    /// frame because the page is created by navigation, not held as a field.</summary>
+    private void SettingsWindow_ConfigReloaded()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (PageFrame.Content is SettingsPage page)
+            {
+                page.OnExternalConfigChanged();
+            }
+        });
     }
 
     private void PageFrame_Loaded(object sender, RoutedEventArgs e)

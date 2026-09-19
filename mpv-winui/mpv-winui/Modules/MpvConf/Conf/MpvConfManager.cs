@@ -1,4 +1,5 @@
 using mpv_winui.Modules.FileSystem;
+using mpv_winui.Modules.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -55,6 +56,17 @@ public sealed class MpvConfManager
             .ToHashSet(StringComparer.Ordinal);
         var present = _lines.Where(l => l.Status != MpvConfLineStatus.Deleted && !removedSections.Contains(l.Section)).ToList();
         var content = string.Join("\n", present.Select(l => l.Raw)) + "\n";
+        // This editor writes the same file the settings window watches. Stamping
+        // the write generation keeps the save from being read back as a hand
+        // edit: without it the settings window would reload a moment after every
+        // save here and log a change nobody made. Only when the two paths are the
+        // same file - this manager can be pointed at a different mpv.conf, and a
+        // write to some other file is nobody else's business.
+        if (PathsEqual(_filePath, ManagedMpvConfig.MpvConfPath))
+        {
+            MpvConfWatcher.NoteOwnWrite();
+        }
+
         await FileService.Instance.BackAndSaveAsync(_filePath, content, backup, limit).ConfigureAwait(false);
 
         _lines.Clear();
@@ -66,6 +78,35 @@ public sealed class MpvConfManager
         }
 
         Reindex();
+    }
+
+    /// <summary>Whether two paths name the same file.
+    ///
+    /// Compared resolved rather than as strings: the two callers build the path
+    /// independently and can differ in separators, casing or a relative segment
+    /// while still naming one file. A false negative here is a spurious reload
+    /// of our own save; a false positive would be worse but is not reachable by
+    /// construction, since one side is always the deployed config.</summary>
+    private static bool PathsEqual(string? a, string? b)
+    {
+        if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b))
+        {
+            return false;
+        }
+
+        try
+        {
+            return string.Equals(
+                Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar),
+                Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar),
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception)
+        {
+            // A malformed path cannot be the deployed config, which is always
+            // well-formed, so "not the same file" is the safe answer.
+            return false;
+        }
     }
 
     public MpvConfLine? Get(string key, string? section = null)

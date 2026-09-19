@@ -289,6 +289,12 @@ public static class ManagedMpvConfig
         if (changed)
         {
             text = CollapseBlankLines(text, nl);
+            // Stamped before the write, not after: the watcher's reload reads
+            // this counter at its start and again at its end, and a reload that
+            // sees the same value twice ran entirely inside our write. Stamping
+            // after would let the reload's start land on the old value and the
+            // change be mistaken for a hand edit.
+            MpvConfWatcher.NoteOwnWrite();
             await File.WriteAllTextAsync(path, text, new UTF8Encoding(false));
         }
 

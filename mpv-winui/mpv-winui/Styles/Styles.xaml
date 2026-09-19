@@ -914,7 +914,13 @@
         BasedOn="{StaticResource CaptionTextBlockStyle}"
         TargetType="TextBlock">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
-        <Setter Property="TextWrapping" Value="Wrap" />
+        <!-- NoWrap, not Wrap: with MaxLines=1 a wrapping TextBlock still
+             breaks the text at the last word that fits, so the ellipsis lands
+             wherever that break fell and the line ends ragged at an arbitrary
+             column. NoWrap keeps the line whole and puts the ellipsis exactly
+             at the column edge, which is what makes a list of one-line
+             descriptions line up. -->
+        <Setter Property="TextWrapping" Value="NoWrap" />
         <!-- One line, then an ellipsis.
              The row height is the thing being protected. The description sits
              in a two-column grid beside the control, so every extra line it
