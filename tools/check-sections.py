@@ -62,10 +62,20 @@ OPTIONS = (SRC / "Modules" / "Settings" / "SettingsPage.Options.cs",
            SRC / "Modules" / "Settings" / "SettingsPage.Options.Program.cs")
 OPTION_FILES = tuple(sorted((SRC / "Modules" / "Settings").glob("SettingsPage.Options*.cs")))
 CORE_OPTIONS = SRC / "Modules" / "Settings" / "SettingsPage.Options.cs"
+GEN_SECTIONS = SRC / "Modules" / "Settings" / "SettingsPage.Sections.Gen.cs"
 
 
 def applang_props():
+    """Section and category property names AppLang declares.
+
+    Read from the hand-written AppLang.cs plus the generated partials. The
+    generated half is where the schema sections' captions live, and it is
+    still AppLang: a check that only read AppLang.cs would call every
+    generated section undeclared.
+    """
     text = APPLANG.read_text(encoding="utf-8-sig")
+    for gen in sorted(APPLANG.parent.glob("AppLang*.Gen.cs")):
+        text += "\n" + gen.read_text(encoding="utf-8-sig")
     names = re.findall(r'public string ([A-Za-z0-9_]+) \{ get; set; \}', text)
     sections = {n for n in names
                 if n.startswith("Section") and not n.startswith("SectionDesc")}
@@ -162,6 +172,12 @@ def section_map_keys():
     Brace matching rather than a regex to the end of file, because the map is
     followed by more code and an over-broad match would pick up optionOrder's
     keys as well.
+
+    The schema-generated rows register through RegisterGeneratedSections()
+    instead of appearing inline, so the literal scan below cannot see them.
+    Their entries are read from SettingsPage.Sections.Gen.cs and unioned in:
+    the two halves are one map at runtime, and a check that only knew about
+    the hand-written half would report all 549 generated keys as unmapped.
     """
     text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
     parts = text.split("var sectionMap = new Dictionary<string, string>", 1)
@@ -180,8 +196,35 @@ def section_map_keys():
                 break
     if end is None:
         return None
-    return {a or b for a, b in re.findall(
+    inline = {a or b for a, b in re.findall(
         r'\[(?:nameof\([A-Za-z_.]*\.(\w+)\)|"([^"]+)")', body[:end])}
+    return inline | generated_section_map_keys()
+
+
+def generated_section_map_keys():
+    """Keys RegisterGeneratedSections() writes into sectionMap.
+
+    Absent (not an error) when the generator has not been run: a checkout
+    without the generated files is a legitimate state, and the pages that
+    need them do not build either.
+    """
+    if not GEN_SECTIONS.exists():
+        return set()
+    text = GEN_SECTIONS.read_text(encoding="utf-8-sig")
+    return {m for m in re.findall(
+        r'sectionMap\[nameof\([A-Za-z_.]*\.(\w+)\)\]', text)}
+
+
+def generated_sections_used():
+    """Section AppLang properties RegisterGeneratedSections() registers.
+
+    Returned as property names (SectionGenAudio), not the local variables the
+    hand-written half uses, because that is the form the catalog compares in.
+    """
+    if not GEN_SECTIONS.exists():
+        return set()
+    text = GEN_SECTIONS.read_text(encoding="utf-8-sig")
+    return {m for m in re.findall(r'advancedSections\.Add\(lang\.(\w+)\)', text)}
 
 
 def section_variables():
@@ -339,6 +382,10 @@ def main():
     used, _ = sections_used_by_options()
     if variables and used is not None:
         used_props = {variables.get(v) for v in used} - {None}
+        # The generated registration names its sections by AppLang property
+        # directly (lang.SectionGenAudio), with no local variable in between,
+        # so they join the used set as-is.
+        used_props |= generated_sections_used()
         for name in sorted({r[2] for r in rows} - used_props):
             errors.append(
                 f"{name} is declared in SettingsSections but no option maps to it, "

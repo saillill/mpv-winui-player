@@ -10,7 +10,7 @@ namespace mpv_winui.Modules.Settings;
 /// <summary>
 /// 设置项 → mpv 命令 的映射：设置页改动时即时下发，播放器初始化后批量应用。
 /// </summary>
-public static class MpvSettings
+public static partial class MpvSettings
 {
     /// <summary>
     /// Quote a value for mpv's command string parser. mpv_command_string uses
@@ -305,7 +305,19 @@ public static class MpvSettings
             nameof(AppSettings.GpuContext) => string.IsNullOrWhiteSpace((string)value) ? null : $"set gpu-context {(string)value}",
             nameof(AppSettings.ScaleAntiring) => $"set scale-antiring {(double)value}",
             nameof(AppSettings.CscaleAntiring) => $"set cscale-antiring {(double)value}",
-            _ => null,
+
+            // Everything else is a schema-generated row. Those 549 options
+            // share one grammar, so they share one branch instead of 549:
+            // the schema declared the type, the generator wrote the typed
+            // AppSettings property, and the literal is written here from
+            // that property's runtime type. Adding a generated row needs no
+            // change to this method at all.
+            //
+            // The curated cases above win, which is what makes it safe to
+            // generate a row for an option and later hand-write a better
+            // one: deleting the generated row is enough, and until then the
+            // hand-written case is the one that runs.
+            _ => GeneratedCommand(key, value),
         };
 
         // mpv shows an OSD for every property change made with "set" (e.g.
@@ -398,12 +410,51 @@ public static class MpvSettings
     }
 
     /// <summary>
+    /// Command for a schema-generated row, or null when the key is not a
+    /// generated one.
+    ///
+    /// Splitting this out of the switch keeps the switch a list of curated
+    /// decisions. The generated rows share one grammar -- the schema declared
+    /// the type and the generator wrote the typed property -- so the literal
+    /// is written once from the property's runtime type instead of 549 times
+    /// by hand. A type the schema cannot currently produce returns null
+    /// rather than emitting a guess, so an unknown value never reaches mpv as
+    /// a malformed command.
+    /// </summary>
+    private static string? GeneratedCommand(string key, object value)
+    {
+        if (!GeneratedOptionNames.TryGetValue(key, out var option))
+        {
+            return null;
+        }
+
+        return value switch
+        {
+            // mpv's config and command grammars both spell a flag yes/no.
+            bool b => $"set {option} {(b ? "yes" : "no")}",
+            int i => $"set {option} {i.ToString(CultureInfo.InvariantCulture)}",
+            double d => $"set {option} {d.ToString("0.0#####", CultureInfo.InvariantCulture)}",
+            // An empty string is how the models express "leave it to mpv",
+            // and `set option ""` would instead pin it to an empty value.
+            string s when string.IsNullOrWhiteSpace(s) => $"set {option} ",
+            string s => $"set {option} {Q(s)}",
+            _ => null,
+        };
+    }
+
+    /// <summary>
     /// The mpv option a settings key writes, or null when the key does not map
     /// to one (a script message, a config-only entry). Callers use it to ask
     /// whether mpv.conf already names that option.
     /// </summary>
     public static string? ToMpvOptionName(string key) =>
-        MpvOptionNames.TryGetValue(key, out var name) ? name : null;
+        MpvOptionNames.TryGetValue(key, out var name)
+            ? name
+            // The generated rows live in their own dictionary so an mpv
+            // upgrade rewrites one file. Both are consulted here so callers
+            // keep asking one question -- "does this key name an option?" --
+            // rather than having to know which half a key came from.
+            : GeneratedOptionNames.TryGetValue(key, out var generated) ? generated : null;
 
     /// <summary>
     /// A real mpv.conf option name: lowercase, digits and dashes, nothing else.

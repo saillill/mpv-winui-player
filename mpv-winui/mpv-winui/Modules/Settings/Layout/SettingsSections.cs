@@ -124,6 +124,29 @@ internal static class SettingsSections
         // category they belonged to. gpu-api and gpu-context are now in the D3D11
         // section, and the two antiringing knobs in the scaler section - a section
         // that exists to describe them, which the old pair only half did.
+
+        // ---- schema-generated sections ----
+        // One per mpv option group, holding the 549 options that have no
+        // hand-written row. They are listed here rather than in the generator
+        // because the icon and the description are choices, not data: the
+        // schema says which group an option belongs to but nothing about how
+        // it should read in this window.
+        //
+        // The glyphs are free ones, not the nine their categories already
+        // use: the same table serves the icon for both the section card and
+        // the category rail, so a generated section reusing its category's
+        // glyph would show two identical icons a level apart. These nine are
+        // picked from the codepoints the hand-written 46 do not occupy, so
+        // `check-sections.py` stays green without one of them having to move.
+        new("SectionGenVideoRendering", "\uE700", l => l.SectionGenVideoRendering, l => l.SectionDescGenVideoRendering),
+        new("SectionGenColourHdr", "\uE701", l => l.SectionGenColourHdr, l => l.SectionDescGenColourHdr),
+        new("SectionGenSubtitles", "\uE703", l => l.SectionGenSubtitles, l => l.SectionDescGenSubtitles),
+        new("SectionGenOsd", "\uE704", l => l.SectionGenOsd, l => l.SectionDescGenOsd),
+        new("SectionGenAudio", "\uE705", l => l.SectionGenAudio, l => l.SectionDescGenAudio),
+        new("SectionGenStreaming", "\uE707", l => l.SectionGenStreaming, l => l.SectionDescGenStreaming),
+        new("SectionGenTracks", "\uE708", l => l.SectionGenTracks, l => l.SectionDescGenTracks),
+        new("SectionGenPlayerWindow", "\uE709", l => l.SectionGenPlayerWindow, l => l.SectionDescGenPlayerWindow),
+        new("SectionGenGeneral", "\uE70A", l => l.SectionGenGeneral, l => l.SectionDescGenGeneral),
     ];
 
     /// <summary>Fallback glyph for a caption the table does not know.</summary>

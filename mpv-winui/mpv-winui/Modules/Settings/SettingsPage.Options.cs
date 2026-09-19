@@ -90,6 +90,13 @@ private List<Option> BuildSettings()
 
         options.AddRange(BuildShortcutOptions(shortcuts));
 
+        // The schema-generated rows. 549 mpv options that no hand-written
+        // row covers, one Option each, built by GeneratedOptions.cs. They
+        // arrive with Category, Section and AdvancedSection already set --
+        // the generator knows the group, not us -- so they only need to be
+        // in the list before the sectionMap pass below resolves SectionId.
+        options.AddRange(BuildGeneratedOptions());
+
         // The overview carries the sections people tune regularly;
         // fine-grained, seldom-batch-adjusted sections (decoding details,
         // GPU internals, HDR/color math, OSD look, screenshot quality, ...)
@@ -1085,6 +1092,14 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.ScaleAntiring)] = sGpuScaling,
             [nameof(AppSettings.CscaleAntiring)] = sGpuScaling,
         };
+
+        // The generated rows bring their own entries. It is one call rather
+        // than 549 lines here because the entries are a function of the mpv
+        // schema: regenerating is how they stay current, and a hand-edited
+        // copy in this file would be the one thing the generator cannot
+        // refresh. Everything the method writes -- section map, section
+        // order, fold set -- is consumed by the code below.
+        RegisterGeneratedSections(sectionMap, sectionOrder, advancedSections);
 
         // Category is set inline on each Option (single source of truth);
         // sectionMap is the single source for sections (they are not declared

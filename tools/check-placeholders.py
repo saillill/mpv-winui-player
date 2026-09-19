@@ -59,9 +59,21 @@ def main() -> int:
             name = (key.group(1) or key.group(2)) if key else "<unnamed>"
             has_hint = "Placeholder" in block
             is_path = bool(re.search(r"PickFolder|PickFile|OpenFolder", block))
+            # A generated row carries no authored help, so its only guidance is
+            # the schema's own desc string, shown as the Description. That
+            # counts as "the user is not staring at an unexplained box" only
+            # when the desc says more than the type name -- for the 42 rows
+            # whose whole desc is the word "String", nothing is explained and
+            # the row is reported below like any other bare box.
+            gen_desc = re.search(r'Description = lang\.SchemaDesc_(\w+),', block) \
+                and "Options.Gen.cs" in path
+            explains = gen_desc and not re.search(
+                r'(?:SchemaDesc_\w+ \} = ")(?:String|"$)', block)
 
             if not has_hint:
-                if not is_path:
+                if is_path or explains:
+                    (path_with_default if is_path else example_hints).append(name)
+                else:
                     missing.append((name, path.split("/")[-1]))
                 continue
 
