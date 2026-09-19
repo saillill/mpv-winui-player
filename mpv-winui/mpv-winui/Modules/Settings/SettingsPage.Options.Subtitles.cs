@@ -20,6 +20,13 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildSubtitlesOptions()
     {
+        var sSubBehavior = AppContext.AppLang.SectionSubtitleBehavior;
+        var sSubStyle = AppContext.AppLang.SectionSubtitleStyle;
+        var sSubPosition = AppContext.AppLang.SectionSubtitlePosition;
+        var sSubAss = AppContext.AppLang.SectionSubtitleAss;
+        var sSubImage = AppContext.AppLang.SectionSubtitleImage;
+        var sSubFilter = AppContext.AppLang.SectionSubtitleFilter;
+
         var sSubSecondary = AppContext.AppLang.SectionSubtitleSecondary;
 
         var subtitles = AppContext.AppLang.SettingsCategorySubtitles;
@@ -702,6 +709,295 @@ Placeholder = "Fontname=Microsoft YaHei,Fontsize=24",
                 Step = 0.05,
                 Getter = () => AppContext.AppSetting.SecondarySubScale,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SecondarySubScale), AppContext.AppSetting.SecondarySubScale = (double)v!)
+            },
+
+            // Added with the subtitle batch: sub-visibility
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubVisibility),
+                Label = lang.SettingsSubVisibility,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubVisibility,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubVisibility,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubVisibility), AppContext.AppSetting.SubVisibility = (bool)v!)
+            },
+
+            // Added with the subtitle batch: sub-fix-timing
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubFixTiming),
+                Label = lang.SettingsSubFixTiming,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubFixTiming,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubFixTiming,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFixTiming), AppContext.AppSetting.SubFixTiming = (bool)v!)
+            },
+
+            // Added with the subtitle batch: sub-fix-timing-threshold
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubFixTimingThreshold),
+                Label = lang.SettingsSubFixTimingThreshold,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubFixTimingThreshold,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 10000,
+                Step = 10,
+                Getter = () => AppContext.AppSetting.SubFixTimingThreshold,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFixTimingThreshold), AppContext.AppSetting.SubFixTimingThreshold = (int)v!)
+            },
+
+            // Added with the subtitle batch: subs-match-os-language
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubsMatchOsLanguage),
+                Label = lang.SettingsSubsMatchOsLanguage,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubsMatchOsLanguage,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubsMatchOsLanguage,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubsMatchOsLanguage), AppContext.AppSetting.SubsMatchOsLanguage = (bool)v!)
+            },
+
+            // Added with the subtitle batch: subs-with-matching-audio
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubsWithMatchingAudio),
+                Label = lang.SettingsSubsWithMatchingAudio,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubsWithMatchingAudio,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueNo),
+                    new OptionChoice("forced", lang.OptionValueMatchingAudioForced),
+                    new OptionChoice("yes", lang.OptionValueYes),
+                ],
+                Getter = () => AppContext.AppSetting.SubsWithMatchingAudio,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubsWithMatchingAudio), AppContext.AppSetting.SubsWithMatchingAudio = (string)v!)
+            },
+
+            // Added with the subtitle batch: subs-fallback-forced
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubsFallbackForced),
+                Label = lang.SettingsSubsFallbackForced,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubsFallbackForced,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueNo),
+                    new OptionChoice("yes", lang.OptionValueYes),
+                    new OptionChoice("always", lang.OptionValueForcedAlways),
+                ],
+                Getter = () => AppContext.AppSetting.SubsFallbackForced,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubsFallbackForced), AppContext.AppSetting.SubsFallbackForced = (string)v!)
+            },
+
+            // Added with the subtitle batch: sub-forced-events-only
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubForcedEventsOnly),
+                Label = lang.SettingsSubForcedEventsOnly,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubForcedEventsOnly,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubForcedEventsOnly,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubForcedEventsOnly), AppContext.AppSetting.SubForcedEventsOnly = (bool)v!)
+            },
+
+            // Added with the subtitle batch: sub-shaper
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubShaper),
+                Label = lang.SettingsSubShaper,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubShaper,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("simple", "simple"),
+                    new OptionChoice("complex", "complex"),
+                ],
+                Getter = () => AppContext.AppSetting.SubShaper,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubShaper), AppContext.AppSetting.SubShaper = (string)v!)
+            },
+
+            // Added with the subtitle batch: sub-scale
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubScale),
+                Label = lang.SettingsSubScale,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubScale,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.SubScale,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubScale), AppContext.AppSetting.SubScale = (double)v!)
+            },
+
+            // Added with the subtitle batch: sub-spacing
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubSpacing),
+                Label = lang.SettingsSubSpacing,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubSpacing,
+                Type = OptionType.Double,
+                Min = -10,
+                Max = 10,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.SubSpacing,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubSpacing), AppContext.AppSetting.SubSpacing = (double)v!)
+            },
+
+            // Added with the subtitle batch: sub-outline-color
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubOutlineColor),
+                Label = lang.SettingsSubOutlineColor,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubOutlineColor,
+                Type = OptionType.Color,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.SubOutlineColor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubOutlineColor), AppContext.AppSetting.SubOutlineColor = (string)v!)
+            },
+
+            // Added with the subtitle batch: sub-gauss
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubGauss),
+                Label = lang.SettingsSubGauss,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubGauss,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 3,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.SubGauss,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubGauss), AppContext.AppSetting.SubGauss = (double)v!)
+            },
+
+            // Added with the subtitle batch: sub-margin-y-offset
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubMarginYOffset),
+                Label = lang.SettingsSubMarginYOffset,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubMarginYOffset,
+                Type = OptionType.Integer,
+                Min = -1000,
+                Max = 1000,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.SubMarginYOffset,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubMarginYOffset), AppContext.AppSetting.SubMarginYOffset = (int)v!)
+            },
+
+            // Added with the subtitle batch: sub-ass-justify
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAssJustify),
+                Label = lang.SettingsSubAssJustify,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubAssJustify,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubAssJustify,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssJustify), AppContext.AppSetting.SubAssJustify = (bool)v!)
+            },
+
+            // Added with the subtitle batch: sub-ass-prune-delay
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubAssPruneDelay),
+                Label = lang.SettingsSubAssPruneDelay,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubAssPruneDelay,
+                Type = OptionType.Double,
+                Min = -1,
+                Max = 10000,
+                Step = 0.5,
+                Getter = () => AppContext.AppSetting.SubAssPruneDelay,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubAssPruneDelay), AppContext.AppSetting.SubAssPruneDelay = (double)v!)
+            },
+
+            // Added with the subtitle batch: sub-bitmap-max-size
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubBitmapMaxSize),
+                Label = lang.SettingsSubBitmapMaxSize,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubBitmapMaxSize,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 100000000,
+                Step = 1000,
+                Getter = () => AppContext.AppSetting.SubBitmapMaxSize,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubBitmapMaxSize), AppContext.AppSetting.SubBitmapMaxSize = (int)v!)
+            },
+
+            // Added with the subtitle batch: secondary-sub-ass-override
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SecondarySubAssOverride),
+                Label = lang.SettingsSecondarySubAssOverride,
+                Category = subtitles,
+                Description = lang.SettingsHelpSecondarySubAssOverride,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueAssOverrideNo),
+                    new OptionChoice("yes", lang.OptionValueAssOverrideYes),
+                    new OptionChoice("scale", lang.OptionValueAssOverrideScale),
+                    new OptionChoice("force", lang.OptionValueAssOverrideForce),
+                    new OptionChoice("strip", lang.OptionValueAssOverrideStrip),
+                ],
+                Getter = () => AppContext.AppSetting.SecondarySubAssOverride,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SecondarySubAssOverride), AppContext.AppSetting.SecondarySubAssOverride = (string)v!)
+            },
+
+            // Added with the subtitle batch: sub-filter-sdh
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubFilterSdh),
+                Label = lang.SettingsSubFilterSdh,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubFilterSdh,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubFilterSdh,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFilterSdh), AppContext.AppSetting.SubFilterSdh = (bool)v!)
+            },
+
+            // Added with the subtitle batch: sub-filter-sdh-enclosures
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubFilterSdhEnclosures),
+                Label = lang.SettingsSubFilterSdhEnclosures,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubFilterSdhEnclosures,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "(),[],（）",
+                Getter = () => AppContext.AppSetting.SubFilterSdhEnclosures,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFilterSdhEnclosures), AppContext.AppSetting.SubFilterSdhEnclosures = (string)v!)
+            },
+
+            // Added with the subtitle batch: sub-filter-sdh-harder
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SubFilterSdhHarder),
+                Label = lang.SettingsSubFilterSdhHarder,
+                Category = subtitles,
+                Description = lang.SettingsHelpSubFilterSdhHarder,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SubFilterSdhHarder,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SubFilterSdhHarder), AppContext.AppSetting.SubFilterSdhHarder = (bool)v!)
             },
 
         ];

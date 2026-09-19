@@ -284,5 +284,125 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(SecondarySubScale), value);
         }
 
+        public bool SubVisibility
+        {
+            get => _dataSetting.GetValue(nameof(SubVisibility), true);
+            set => _dataSetting.SetValue(nameof(SubVisibility), value);
+        }
+
+        public bool SubFixTiming
+        {
+            get => _dataSetting.GetValue(nameof(SubFixTiming), false);
+            set => _dataSetting.SetValue(nameof(SubFixTiming), value);
+        }
+
+        public int SubFixTimingThreshold
+        {
+            get => _dataSetting.GetValue(nameof(SubFixTimingThreshold), 210);
+            set => _dataSetting.SetValue(nameof(SubFixTimingThreshold), value);
+        }
+
+        public bool SubsMatchOsLanguage
+        {
+            get => _dataSetting.GetValue(nameof(SubsMatchOsLanguage), true);
+            set => _dataSetting.SetValue(nameof(SubsMatchOsLanguage), value);
+        }
+
+        public string SubsWithMatchingAudio
+        {
+            get => _dataSetting.GetValue(nameof(SubsWithMatchingAudio), "yes");
+            set => _dataSetting.SetValue(nameof(SubsWithMatchingAudio), value);
+        }
+
+        public string SubsFallbackForced
+        {
+            get => _dataSetting.GetValue(nameof(SubsFallbackForced), "yes");
+            set => _dataSetting.SetValue(nameof(SubsFallbackForced), value);
+        }
+
+        public bool SubForcedEventsOnly
+        {
+            get => _dataSetting.GetValue(nameof(SubForcedEventsOnly), false);
+            set => _dataSetting.SetValue(nameof(SubForcedEventsOnly), value);
+        }
+
+        public string SubShaper
+        {
+            get => _dataSetting.GetValue(nameof(SubShaper), "complex");
+            set => _dataSetting.SetValue(nameof(SubShaper), value);
+        }
+
+        public double SubScale
+        {
+            get => _dataSetting.GetValue(nameof(SubScale), 1.0);
+            set => _dataSetting.SetValue(nameof(SubScale), value);
+        }
+
+        public double SubSpacing
+        {
+            get => _dataSetting.GetValue(nameof(SubSpacing), 0.0);
+            set => _dataSetting.SetValue(nameof(SubSpacing), value);
+        }
+
+        public string SubOutlineColor
+        {
+            get => _dataSetting.GetValue(nameof(SubOutlineColor), "#FF000000");
+            set => _dataSetting.SetValue(nameof(SubOutlineColor), value);
+        }
+
+        public double SubGauss
+        {
+            get => _dataSetting.GetValue(nameof(SubGauss), 0.0);
+            set => _dataSetting.SetValue(nameof(SubGauss), value);
+        }
+
+        public int SubMarginYOffset
+        {
+            get => _dataSetting.GetValue(nameof(SubMarginYOffset), 0);
+            set => _dataSetting.SetValue(nameof(SubMarginYOffset), value);
+        }
+
+        public bool SubAssJustify
+        {
+            get => _dataSetting.GetValue(nameof(SubAssJustify), false);
+            set => _dataSetting.SetValue(nameof(SubAssJustify), value);
+        }
+
+        public double SubAssPruneDelay
+        {
+            get => _dataSetting.GetValue(nameof(SubAssPruneDelay), -1.0);
+            set => _dataSetting.SetValue(nameof(SubAssPruneDelay), value);
+        }
+
+        public int SubBitmapMaxSize
+        {
+            get => _dataSetting.GetValue(nameof(SubBitmapMaxSize), 0);
+            set => _dataSetting.SetValue(nameof(SubBitmapMaxSize), value);
+        }
+
+        public string SecondarySubAssOverride
+        {
+            get => _dataSetting.GetValue(nameof(SecondarySubAssOverride), "strip");
+            set => _dataSetting.SetValue(nameof(SecondarySubAssOverride), value);
+        }
+
+        public bool SubFilterSdh
+        {
+            get => _dataSetting.GetValue(nameof(SubFilterSdh), false);
+            set => _dataSetting.SetValue(nameof(SubFilterSdh), value);
+        }
+
+        public string SubFilterSdhEnclosures
+        {
+            get => _dataSetting.GetValue(nameof(SubFilterSdhEnclosures), "(),[],（）");
+            set => _dataSetting.SetValue(nameof(SubFilterSdhEnclosures), value);
+        }
+
+        public bool SubFilterSdhHarder
+        {
+            get => _dataSetting.GetValue(nameof(SubFilterSdhHarder), false);
+            set => _dataSetting.SetValue(nameof(SubFilterSdhHarder), value);
+        }
+
     }
 }

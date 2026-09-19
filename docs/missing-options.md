@@ -6,41 +6,15 @@
 ## 总量
 
 - mpv 选项目录：**820** 条
-- 设置界面已暴露：**232** 条
+- 设置界面已暴露：**252** 条
 - 已废弃、跳过：**8** 条
-- 未暴露且未废弃：**584** 条
+- 未暴露且未废弃：**564** 条
   - 其中**不建议暴露**：**474** 条（理由见下）
-  - 其中**建议补充**：**110** 条
+  - 其中**建议补充**：**90** 条
 
-## 一、建议补充的选项（110）
+## 一、建议补充的选项（90）
 
 按归属分类。这些是普通用户能看懂、也确实会想改的项。
-
-### Subtitles（21）
-
-| mpv 选项 | 为什么值得加 |
-|---|---|
-| `secondary-sub-ass-override` | 第二字幕是否套用 ASS 样式。 |
-| `sub-ass-justify` | ASS 字幕的对齐方式。 |
-| `sub-ass-prune-delay` | 离屏 ASS 事件保留多久。 |
-| `sub-ass-styles` | ASS 字幕使用的样式。 |
-| `sub-bitmap-max-size` | 位图字幕解码后的体积上限。 |
-| `sub-filter-sdh` | 过滤掉 SDH 字幕里的音效描述。 |
-| `sub-filter-sdh-enclosures` | 辨别 SDH 文本用哪对括号。 |
-| `sub-filter-sdh-harder` | SDH 过滤的激进程度。 |
-| `sub-fix-timing` | 修正字幕时间轴重叠。 |
-| `sub-fix-timing-threshold` | 两条字幕多近才合并。 |
-| `sub-forced-events-only` | 只显示强制字幕事件。 |
-| `sub-gauss` | 字幕边缘的模糊。 |
-| `sub-margin-y-offset` | 字幕上下留白的偏移量。 |
-| `sub-outline-color` | 字幕描边颜色。 |
-| `sub-scale` | 字幕整体大小的倍数。 |
-| `sub-shaper` | 字形整形，复杂文种会用到。 |
-| `sub-spacing` | 字幕字距。 |
-| `sub-visibility` | 字幕的总开关。 |
-| `subs-fallback-forced` | 实在没有时用强制字幕兜底。 |
-| `subs-match-os-language` | 优先选与界面语言一致的字幕。 |
-| `subs-with-matching-audio` | 优先选与音轨语言一致的字幕。 |
 
 ### Video（20）
 
@@ -170,6 +144,12 @@
 | mpv 选项 | 为什么值得加 |
 |---|---|
 | `hr-seek-demuxer-offset` | 为结构特殊的容器微调定位点。 |
+
+### Subtitles（1）
+
+| mpv 选项 | 为什么值得加 |
+|---|---|
+| `sub-ass-styles` | ASS 字幕使用的样式。 |
 
 ## 二、不建议暴露的选项（474）
 

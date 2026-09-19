@@ -101,6 +101,7 @@ internal static class SettingsSections
         new("SectionAudioCoverArt", "\uEB9F", l => l.SectionAudioCoverArt, l => l.SectionDescAudioCoverArt),
         new("SectionSubtitleBehavior", "\uE7DE", l => l.SectionSubtitleBehavior, l => l.SectionDescSubtitleBehavior),
         new("SectionSubtitleSecondary", "\uE8B1", l => l.SectionSubtitleSecondary, l => l.SectionDescSubtitleSecondary),
+        new("SectionSubtitleFilter", "\uE8D4", l => l.SectionSubtitleFilter, l => l.SectionDescSubtitleFilter),
         new("SectionSubtitleStyle", "\uE8D2", l => l.SectionSubtitleStyle, l => l.SectionDescSubtitleStyle),
         new("SectionSubtitlePosition", "\uE7C4", l => l.SectionSubtitlePosition, l => l.SectionDescSubtitlePosition),
         new("SectionSubtitleAss", "\uE713", l => l.SectionSubtitleAss, l => l.SectionDescSubtitleAss),

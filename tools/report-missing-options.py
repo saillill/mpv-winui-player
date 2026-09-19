@@ -232,27 +232,7 @@ CANDIDATES: dict[str, tuple[str, str]] = {
     "replaygain-fallback": ("Audio", "文件没有 ReplayGain 标签时的回退增益。"),
 
     # --- Subtitles -----------------------------------------------------------
-    "secondary-sub-ass-override": ("Subtitles", "第二字幕是否套用 ASS 样式。"),
-    "sub-visibility": ("Subtitles", "字幕的总开关。"),
-    "sub-scale": ("Subtitles", "字幕整体大小的倍数。"),
-    "sub-spacing": ("Subtitles", "字幕字距。"),
-    "sub-outline-color": ("Subtitles", "字幕描边颜色。"),
-    "sub-margin-y-offset": ("Subtitles", "字幕上下留白的偏移量。"),
-    "sub-ass-justify": ("Subtitles", "ASS 字幕的对齐方式。"),
     "sub-ass-styles": ("Subtitles", "ASS 字幕使用的样式。"),
-    "sub-ass-prune-delay": ("Subtitles", "离屏 ASS 事件保留多久。"),
-    "sub-fix-timing": ("Subtitles", "修正字幕时间轴重叠。"),
-    "sub-fix-timing-threshold": ("Subtitles", "两条字幕多近才合并。"),
-    "sub-forced-events-only": ("Subtitles", "只显示强制字幕事件。"),
-    "subs-match-os-language": ("Subtitles", "优先选与界面语言一致的字幕。"),
-    "subs-with-matching-audio": ("Subtitles", "优先选与音轨语言一致的字幕。"),
-    "subs-fallback-forced": ("Subtitles", "实在没有时用强制字幕兜底。"),
-    "sub-filter-sdh": ("Subtitles", "过滤掉 SDH 字幕里的音效描述。"),
-    "sub-filter-sdh-enclosures": ("Subtitles", "辨别 SDH 文本用哪对括号。"),
-    "sub-filter-sdh-harder": ("Subtitles", "SDH 过滤的激进程度。"),
-    "sub-bitmap-max-size": ("Subtitles", "位图字幕解码后的体积上限。"),
-    "sub-gauss": ("Subtitles", "字幕边缘的模糊。"),
-    "sub-shaper": ("Subtitles", "字形整形，复杂文种会用到。"),
 
     # --- OSD -----------------------------------------------------------------
     "osd-scale": ("OSD", "OSD 整体大小。"),
