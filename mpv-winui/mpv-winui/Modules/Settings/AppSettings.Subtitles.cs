@@ -260,5 +260,29 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(SubMarginY), 34);
             set => _dataSetting.SetValue(nameof(SubMarginY), value);
         }
+        public bool SecondarySubVisibility
+        {
+            get => _dataSetting.GetValue(nameof(SecondarySubVisibility), true);
+            set => _dataSetting.SetValue(nameof(SecondarySubVisibility), value);
+        }
+
+        public double SecondarySubDelay
+        {
+            get => _dataSetting.GetValue(nameof(SecondarySubDelay), 0.0);
+            set => _dataSetting.SetValue(nameof(SecondarySubDelay), value);
+        }
+
+        public double SecondarySubPos
+        {
+            get => _dataSetting.GetValue(nameof(SecondarySubPos), 100.0);
+            set => _dataSetting.SetValue(nameof(SecondarySubPos), value);
+        }
+
+        public double SecondarySubScale
+        {
+            get => _dataSetting.GetValue(nameof(SecondarySubScale), 1.0);
+            set => _dataSetting.SetValue(nameof(SecondarySubScale), value);
+        }
+
     }
 }

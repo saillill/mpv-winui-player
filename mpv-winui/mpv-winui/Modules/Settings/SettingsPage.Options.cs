@@ -63,6 +63,11 @@ private List<Option> BuildSettings()
         var sOsdBehavior = AppContext.AppLang.SectionOsdBehavior;
         var sOsdPosition = AppContext.AppLang.SectionOsdPosition;
         var sWindow = AppContext.AppLang.SectionWindow;
+        var sWindowBehavior = AppContext.AppLang.SectionWindowBehavior;
+        var sVideoGeometry = AppContext.AppLang.SectionVideoGeometry;
+        var sSubSecondary = AppContext.AppLang.SectionSubtitleSecondary;
+        var sAdvRenderer = AppContext.AppLang.SectionAdvancedRenderer;
+        var sAdvScaler = AppContext.AppLang.SectionAdvancedScaler;
         var sDemuxerPlaylist = AppContext.AppLang.SectionDemuxerPlaylist;
         var sDemuxerBuffering = AppContext.AppLang.SectionDemuxerBuffering;
         var sCache = AppContext.AppLang.SectionCache;
@@ -210,6 +215,26 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.TestMpvCommandLog)] = 6,
             [nameof(AppSettings.TestOsdMessage)] = 7,
             [nameof(AppSettings.TestSignal)] = 8,
+            [nameof(AppSettings.AbLoopA)] = 1001,
+            [nameof(AppSettings.AbLoopB)] = 1002,
+            [nameof(AppSettings.AbLoopCount)] = 1003,
+            [nameof(AppSettings.CursorAutohide)] = 1101,
+            [nameof(AppSettings.CursorAutohideFsOnly)] = 1102,
+            [nameof(AppSettings.WindowBorder)] = 1103,
+            [nameof(AppSettings.TitleBar)] = 1104,
+            [nameof(AppSettings.VideoZoom)] = 1201,
+            [nameof(AppSettings.VideoPanX)] = 1202,
+            [nameof(AppSettings.VideoPanY)] = 1203,
+            [nameof(AppSettings.VideoAlignX)] = 1204,
+            [nameof(AppSettings.VideoAlignY)] = 1205,
+            [nameof(AppSettings.SecondarySubVisibility)] = 1301,
+            [nameof(AppSettings.SecondarySubDelay)] = 1302,
+            [nameof(AppSettings.SecondarySubPos)] = 1303,
+            [nameof(AppSettings.SecondarySubScale)] = 1304,
+            [nameof(AppSettings.GpuApi)] = 1401,
+            [nameof(AppSettings.GpuContext)] = 1402,
+            [nameof(AppSettings.ScaleAntiring)] = 1403,
+            [nameof(AppSettings.CscaleAntiring)] = 1404,
             [nameof(AppSettings.CurrentLanguage)] = 9,
             [nameof(AppSettings.EnableDebugLog)] = 10,
             [nameof(AppSettings.Speed)] = 15,
@@ -850,6 +875,26 @@ private List<Option> BuildSettings()
             // loop modes that people use constantly, and a diagnostic tone
             // generator does not belong beside them.
             [nameof(AppSettings.TestSignal)] = sProgramTesting,
+            [nameof(AppSettings.AbLoopA)] = sPlayback,
+            [nameof(AppSettings.AbLoopB)] = sPlayback,
+            [nameof(AppSettings.AbLoopCount)] = sPlayback,
+            [nameof(AppSettings.CursorAutohide)] = sWindowBehavior,
+            [nameof(AppSettings.CursorAutohideFsOnly)] = sWindowBehavior,
+            [nameof(AppSettings.WindowBorder)] = sWindowBehavior,
+            [nameof(AppSettings.TitleBar)] = sWindowBehavior,
+            [nameof(AppSettings.VideoZoom)] = sVideoGeometry,
+            [nameof(AppSettings.VideoPanX)] = sVideoGeometry,
+            [nameof(AppSettings.VideoPanY)] = sVideoGeometry,
+            [nameof(AppSettings.VideoAlignX)] = sVideoGeometry,
+            [nameof(AppSettings.VideoAlignY)] = sVideoGeometry,
+            [nameof(AppSettings.SecondarySubVisibility)] = sSubSecondary,
+            [nameof(AppSettings.SecondarySubDelay)] = sSubSecondary,
+            [nameof(AppSettings.SecondarySubPos)] = sSubSecondary,
+            [nameof(AppSettings.SecondarySubScale)] = sSubSecondary,
+            [nameof(AppSettings.GpuApi)] = sAdvRenderer,
+            [nameof(AppSettings.GpuContext)] = sAdvRenderer,
+            [nameof(AppSettings.ScaleAntiring)] = sAdvScaler,
+            [nameof(AppSettings.CscaleAntiring)] = sAdvScaler,
         };
 
         // Category is set inline on each Option (single source of truth);

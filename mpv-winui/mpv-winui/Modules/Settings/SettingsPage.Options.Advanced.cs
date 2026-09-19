@@ -20,6 +20,11 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildAdvancedOptions()
     {
+        var sAdvScaler = AppContext.AppLang.SectionAdvancedScaler;
+
+        var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
+        var sAdvRenderer = AppContext.AppLang.SectionAdvancedRenderer;
+
         var audio = AppContext.AppLang.SettingsCategoryAudio;
         var program = AppContext.AppLang.SettingsCategoryProgram;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
@@ -1268,6 +1273,73 @@ Placeholder = "${filename}",
                 Placeholder = @"\\.\pipe\mpvipc",
                 Getter = () => AppContext.AppSetting.InputIpcServer,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.InputIpcServer), AppContext.AppSetting.InputIpcServer = (string)v!)
+            },
+
+            // Added in the advanced batch: gpu-api
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.GpuApi),
+                Label = lang.SettingsGpuApi,
+                Category = advanced,
+                Description = lang.SettingsHelpGpuApi,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("d3d11", "d3d11"),
+                    new OptionChoice("vulkan", "vulkan"),
+                    new OptionChoice("opengl", "opengl"),
+                ],
+                Getter = () => AppContext.AppSetting.GpuApi,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GpuApi), AppContext.AppSetting.GpuApi = (string)v!)
+            },
+
+            // Added in the advanced batch: gpu-context
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.GpuContext),
+                Label = lang.SettingsGpuContext,
+                Category = advanced,
+                Description = lang.SettingsHelpGpuContext,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("win", "win"),
+                    new OptionChoice("winvk", "winvk"),
+                ],
+                Getter = () => AppContext.AppSetting.GpuContext,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.GpuContext), AppContext.AppSetting.GpuContext = (string)v!)
+            },
+
+            // Added in the advanced batch: scale-antiring
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ScaleAntiring),
+                Label = lang.SettingsScaleAntiring,
+                Category = advanced,
+                Description = lang.SettingsHelpScaleAntiring,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 1,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.ScaleAntiring,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ScaleAntiring), AppContext.AppSetting.ScaleAntiring = (double)v!)
+            },
+
+            // Added in the advanced batch: cscale-antiring
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CscaleAntiring),
+                Label = lang.SettingsCscaleAntiring,
+                Category = advanced,
+                Description = lang.SettingsHelpCscaleAntiring,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 1,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.CscaleAntiring,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CscaleAntiring), AppContext.AppSetting.CscaleAntiring = (double)v!)
             },
 
         ];

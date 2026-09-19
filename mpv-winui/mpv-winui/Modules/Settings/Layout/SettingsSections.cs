@@ -47,6 +47,13 @@ internal static class SettingsSections
         new("shortcuts", l => l.SettingsCategoryShortcuts),
         new("osd", l => l.SettingsCategoryOsd),
         new("screenshot", l => l.SettingsCategoryScreenshot),
+        // Last on purpose. Everything here is exposed because the option
+        // exists and works, not because a normal user would want it: renderer
+        // internals, scaler tuning parameters. Keeping it one category rather
+        // than scattering the same options through Video is what lets the rest
+        // of the tree stay a description of what the player does rather than a
+        // copy of the mpv manual.
+        new("advanced", l => l.SettingsCategoryAdvanced),
     ];
 
     /// <summary>
@@ -75,6 +82,7 @@ internal static class SettingsSections
         new("SectionVideoImage", "\uE7F4", l => l.SectionVideoImage, l => l.SectionDescVideoImage),
         new("SectionVideoFilters", "\uE70F", l => l.SectionVideoFilters, l => l.SectionDescVideoFilters),
         new("SectionVideoSync", "\uE895", l => l.SectionVideoSync, l => l.SectionDescVideoSync),
+        new("SectionVideoGeometry", "\uE7C2", l => l.SectionVideoGeometry, l => l.SectionDescVideoGeometry),
         new("SectionGpuScaling", "\uE71D", l => l.SectionGpuScaling, l => l.SectionDescGpuScaling),
         new("SectionGpuD3d11", "\uE964", l => l.SectionGpuD3d11, l => l.SectionDescGpuD3d11),
         new("SectionColorManagement", "\uE790", l => l.SectionColorManagement, l => l.SectionDescColorManagement),
@@ -92,6 +100,7 @@ internal static class SettingsSections
         new("SectionAudioExternal", "\uE8D6", l => l.SectionAudioExternal, l => l.SectionDescAudioExternal),
         new("SectionAudioCoverArt", "\uEB9F", l => l.SectionAudioCoverArt, l => l.SectionDescAudioCoverArt),
         new("SectionSubtitleBehavior", "\uE7DE", l => l.SectionSubtitleBehavior, l => l.SectionDescSubtitleBehavior),
+        new("SectionSubtitleSecondary", "\uE8B1", l => l.SectionSubtitleSecondary, l => l.SectionDescSubtitleSecondary),
         new("SectionSubtitleStyle", "\uE8D2", l => l.SectionSubtitleStyle, l => l.SectionDescSubtitleStyle),
         new("SectionSubtitlePosition", "\uE7C4", l => l.SectionSubtitlePosition, l => l.SectionDescSubtitlePosition),
         new("SectionSubtitleAss", "\uE713", l => l.SectionSubtitleAss, l => l.SectionDescSubtitleAss),
@@ -103,7 +112,10 @@ internal static class SettingsSections
         new("SectionScreenshotLocation", "\uE8B5", l => l.SectionScreenshotLocation, l => l.SectionDescScreenshotLocation),
         new("SectionScreenshotQuality", "\uE740", l => l.SectionScreenshotQuality, l => l.SectionDescScreenshotQuality),
         new("SectionWindow", "\uE745", l => l.SectionWindow, l => l.SectionDescWindow),
+        new("SectionWindowBehavior", "\uE7A6", l => l.SectionWindowBehavior, l => l.SectionDescWindowBehavior),
         new("SectionWindowPiP", "\uEE49", l => l.SectionWindowPiP, l => l.SectionDescWindowPiP),
+        new("SectionAdvancedRenderer", "\uE7B3", l => l.SectionAdvancedRenderer, l => l.SectionDescAdvancedRenderer),
+        new("SectionAdvancedScaler", "\uE8F4", l => l.SectionAdvancedScaler, l => l.SectionDescAdvancedScaler),
     ];
 
     /// <summary>Fallback glyph for a caption the table does not know.</summary>

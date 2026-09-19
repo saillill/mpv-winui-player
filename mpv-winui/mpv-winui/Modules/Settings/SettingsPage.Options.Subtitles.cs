@@ -20,6 +20,8 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildSubtitlesOptions()
     {
+        var sSubSecondary = AppContext.AppLang.SectionSubtitleSecondary;
+
         var subtitles = AppContext.AppLang.SettingsCategorySubtitles;
         var sSubtitleAss = AppContext.AppLang.SectionSubtitleAss;
         var lang = AppContext.AppLang;
@@ -643,6 +645,63 @@ Placeholder = "Fontname=Microsoft YaHei,Fontsize=24",
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.StretchImageSubsToScreen,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.StretchImageSubsToScreen), AppContext.AppSetting.StretchImageSubsToScreen = (bool)v!)
+            },
+
+            // Added in the advanced batch: secondary-sub-visibility
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SecondarySubVisibility),
+                Label = lang.SettingsSecondarySubVisibility,
+                Category = subtitles,
+                Description = lang.SettingsHelpSecondarySubVisibility,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SecondarySubVisibility,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SecondarySubVisibility), AppContext.AppSetting.SecondarySubVisibility = (bool)v!)
+            },
+
+            // Added in the advanced batch: secondary-sub-delay
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SecondarySubDelay),
+                Label = lang.SettingsSecondarySubDelay,
+                Category = subtitles,
+                Description = lang.SettingsHelpSecondarySubDelay,
+                Type = OptionType.Double,
+                Min = -10,
+                Max = 10,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.SecondarySubDelay,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SecondarySubDelay), AppContext.AppSetting.SecondarySubDelay = (double)v!)
+            },
+
+            // Added in the advanced batch: secondary-sub-pos
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SecondarySubPos),
+                Label = lang.SettingsSecondarySubPos,
+                Category = subtitles,
+                Description = lang.SettingsHelpSecondarySubPos,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 150,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.SecondarySubPos,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SecondarySubPos), AppContext.AppSetting.SecondarySubPos = (double)v!)
+            },
+
+            // Added in the advanced batch: secondary-sub-scale
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SecondarySubScale),
+                Label = lang.SettingsSecondarySubScale,
+                Category = subtitles,
+                Description = lang.SettingsHelpSecondarySubScale,
+                Type = OptionType.Double,
+                Min = 0.1,
+                Max = 10,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.SecondarySubScale,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SecondarySubScale), AppContext.AppSetting.SecondarySubScale = (double)v!)
             },
 
         ];

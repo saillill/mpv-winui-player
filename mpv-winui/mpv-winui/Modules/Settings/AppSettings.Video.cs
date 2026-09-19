@@ -394,5 +394,59 @@ namespace mpv_winui.Modules.Settings
             get => _dataSetting.GetValue(nameof(ImageDisplayDuration), 5.0);
             set => _dataSetting.SetValue(nameof(ImageDisplayDuration), value);
         }
+        public double VideoZoom
+        {
+            get => _dataSetting.GetValue(nameof(VideoZoom), 0.0);
+            set => _dataSetting.SetValue(nameof(VideoZoom), value);
+        }
+
+        public double VideoPanX
+        {
+            get => _dataSetting.GetValue(nameof(VideoPanX), 0.0);
+            set => _dataSetting.SetValue(nameof(VideoPanX), value);
+        }
+
+        public double VideoPanY
+        {
+            get => _dataSetting.GetValue(nameof(VideoPanY), 0.0);
+            set => _dataSetting.SetValue(nameof(VideoPanY), value);
+        }
+
+        public double VideoAlignX
+        {
+            get => _dataSetting.GetValue(nameof(VideoAlignX), 0.0);
+            set => _dataSetting.SetValue(nameof(VideoAlignX), value);
+        }
+
+        public double VideoAlignY
+        {
+            get => _dataSetting.GetValue(nameof(VideoAlignY), 0.0);
+            set => _dataSetting.SetValue(nameof(VideoAlignY), value);
+        }
+
+        public string GpuApi
+        {
+            get => _dataSetting.GetValue(nameof(GpuApi), "auto");
+            set => _dataSetting.SetValue(nameof(GpuApi), value);
+        }
+
+        public string GpuContext
+        {
+            get => _dataSetting.GetValue(nameof(GpuContext), "d3d11");
+            set => _dataSetting.SetValue(nameof(GpuContext), value);
+        }
+
+        public double ScaleAntiring
+        {
+            get => _dataSetting.GetValue(nameof(ScaleAntiring), 0.0);
+            set => _dataSetting.SetValue(nameof(ScaleAntiring), value);
+        }
+
+        public double CscaleAntiring
+        {
+            get => _dataSetting.GetValue(nameof(CscaleAntiring), 0.0);
+            set => _dataSetting.SetValue(nameof(CscaleAntiring), value);
+        }
+
     }
 }

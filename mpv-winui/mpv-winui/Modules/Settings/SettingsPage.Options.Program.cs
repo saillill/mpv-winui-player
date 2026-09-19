@@ -22,6 +22,8 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildProgramBehaviorOptions()
     {
+        var sWindowBehavior = AppContext.AppLang.SectionWindowBehavior;
+
         var program = AppContext.AppLang.SettingsCategoryProgram;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
@@ -321,6 +323,68 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.CheckForUpdates,
                 Setter = v => AppContext.AppSetting.CheckForUpdates = (bool)v!
+            },
+
+            // Added in the advanced batch: cursor-autohide
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CursorAutohide),
+                Label = lang.SettingsCursorAutohide,
+                Category = window,
+                Description = lang.SettingsHelpCursorAutohide,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("1000", lang.OptionValueCursorAutohide1s),
+                    new OptionChoice("2000", lang.OptionValueCursorAutohide2s),
+                    new OptionChoice("3000", lang.OptionValueCursorAutohide3s),
+                    new OptionChoice("always", lang.OptionValueCursorAutohideAlways),
+                    new OptionChoice("no", lang.OptionValueCursorAutohideNever),
+                ],
+                Getter = () => AppContext.AppSetting.CursorAutohide,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CursorAutohide), AppContext.AppSetting.CursorAutohide = (string)v!)
+            },
+
+            // Added in the advanced batch: cursor-autohide-fs-only
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CursorAutohideFsOnly),
+                Label = lang.SettingsCursorAutohideFsOnly,
+                Category = window,
+                Description = lang.SettingsHelpCursorAutohideFsOnly,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CursorAutohideFsOnly,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CursorAutohideFsOnly), AppContext.AppSetting.CursorAutohideFsOnly = (bool)v!)
+            },
+
+            // Added in the advanced batch: border
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowBorder),
+                Label = lang.SettingsWindowBorder,
+                Category = window,
+                Description = lang.SettingsHelpWindowBorder,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowBorder,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.WindowBorder), AppContext.AppSetting.WindowBorder = (bool)v!)
+            },
+
+            // Added in the advanced batch: title-bar
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.TitleBar),
+                Label = lang.SettingsTitleBar,
+                Category = window,
+                Description = lang.SettingsHelpTitleBar,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("yes", lang.OptionValueYes),
+                    new OptionChoice("no", lang.OptionValueNo),
+                ],
+                Getter = () => AppContext.AppSetting.TitleBar,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.TitleBar), AppContext.AppSetting.TitleBar = (string)v!)
             },
 
         ];

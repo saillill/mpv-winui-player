@@ -20,6 +20,8 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildPlaybackControlOptions()
     {
+        var sPlayback = AppContext.AppLang.SectionPlayback;
+
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var window = AppContext.AppLang.SettingsCategoryWindow;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
@@ -788,6 +790,51 @@ Placeholder = "http://127.0.0.1:7890",
                     AppContext.AppSetting.ThumbnailUpdateInterval = Convert.ToInt32(v);
                     AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ThumbnailUpdateInterval), v);
                 }
+            },
+
+            // Added in the advanced batch: ab-loop-a
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AbLoopA),
+                Label = lang.SettingsAbLoopA,
+                Category = playback,
+                Description = lang.SettingsHelpAbLoopA,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100000,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.AbLoopA,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AbLoopA), AppContext.AppSetting.AbLoopA = (double)v!)
+            },
+
+            // Added in the advanced batch: ab-loop-b
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AbLoopB),
+                Label = lang.SettingsAbLoopB,
+                Category = playback,
+                Description = lang.SettingsHelpAbLoopB,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100000,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.AbLoopB,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AbLoopB), AppContext.AppSetting.AbLoopB = (double)v!)
+            },
+
+            // Added in the advanced batch: ab-loop-count
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AbLoopCount),
+                Label = lang.SettingsAbLoopCount,
+                Category = playback,
+                Description = lang.SettingsHelpAbLoopCount,
+                Type = OptionType.Integer,
+                Min = -1,
+                Max = 9999,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.AbLoopCount,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AbLoopCount), AppContext.AppSetting.AbLoopCount = (int)v!)
             },
 
         ];

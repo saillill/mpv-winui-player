@@ -158,11 +158,6 @@ EXCLUDED: list[tuple[str, list[str]]] = [
 # mpv option -> (where it belongs, why a user would want it)
 CANDIDATES: dict[str, tuple[str, str]] = {
     # --- Player --------------------------------------------------------------
-    "ab-loop-a": ("Player", "A-B 循环的起点。用户会主动去找的功能。"),
-    "ab-loop-b": ("Player", "A-B 循环的终点。"),
-    "ab-loop-count": ("Player", "A-B 区间重复几次后继续往下播。"),
-    "cursor-autohide": ("Player", "播放时自动隐藏鼠标指针。长期被要求的功能。"),
-    "cursor-autohide-fs-only": ("Player", "只在全屏时隐藏指针。"),
     "shuffle": ("Player", "随机播放整个播放列表。"),
     "resume-playback-check-mtime": ("Player", "文件被改过就不恢复上次进度。"),
     "ignore-path-in-watch-later-config": ("Player", "阻止每个文件自己的配置覆盖全局设置。"),
@@ -173,8 +168,6 @@ CANDIDATES: dict[str, tuple[str, str]] = {
     # --- Window --------------------------------------------------------------
     "fs-screen": ("Window", "全屏用哪块显示器。多屏时很有用。"),
     "window-scale": ("Window", "按视频尺寸的几分之一开窗。"),
-    "border": ("Window", "关掉窗口边框。"),
-    "title-bar": ("Window", "隐藏系统标题栏。"),
     "ontop-level": ("Window", "把窗口钉在最上层。"),
     "corner-rounding": ("Window", "Windows 11 窗口圆角半径。"),
     "window-corners": ("Window", "系统是否给窗口加圆角。"),
@@ -195,11 +188,6 @@ CANDIDATES: dict[str, tuple[str, str]] = {
     "snap-window": ("Window", "移动到屏幕边缘时自动吸附。"),
 
     # --- Video ---------------------------------------------------------------
-    "video-zoom": ("Video", "缩放画面，与平移配套。"),
-    "video-pan-x": ("Video", "水平平移画面。"),
-    "video-pan-y": ("Video", "垂直平移画面。"),
-    "video-align-x": ("Video", "窗口比画面宽时画面靠哪边。"),
-    "video-align-y": ("Video", "窗口比画面高时画面靠哪边。"),
     "video-scale-x": ("Video", "额外的水平缩放。"),
     "video-scale-y": ("Video", "额外的垂直缩放。"),
     "video-recenter": ("Video", "把缩放和平移复位到居中。"),
@@ -244,10 +232,6 @@ CANDIDATES: dict[str, tuple[str, str]] = {
     "replaygain-fallback": ("Audio", "文件没有 ReplayGain 标签时的回退增益。"),
 
     # --- Subtitles -----------------------------------------------------------
-    "secondary-sub-delay": ("Subtitles", "第二字幕轨的延迟。"),
-    "secondary-sub-pos": ("Subtitles", "第二字幕的垂直位置。"),
-    "secondary-sub-scale": ("Subtitles", "第二字幕的大小。"),
-    "secondary-sub-visibility": ("Subtitles", "显示或隐藏第二字幕轨。"),
     "secondary-sub-ass-override": ("Subtitles", "第二字幕是否套用 ASS 样式。"),
     "sub-visibility": ("Subtitles", "字幕的总开关。"),
     "sub-scale": ("Subtitles", "字幕整体大小的倍数。"),
@@ -390,6 +374,13 @@ def main() -> int:
     bogus = sorted(set(CANDIDATES) - catalogue)
     if bogus:
         print(f"FAIL: curated names that are not mpv options: {bogus}")
+        return 1
+
+    # A curated name that is already exposed is finished work still sitting
+    # in the to-do list, which overstates the remaining effort.
+    shipped = sorted(n for n in CANDIDATES if n in exposed)
+    if shipped:
+        print(f"FAIL: curated but already exposed: {shipped}")
         return 1
 
     # Two piles at once means the rule and the curation disagree.

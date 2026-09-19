@@ -24,6 +24,7 @@ namespace mpv_winui.Modules.Language
         public string AppSetting { get; set; } = "Settings";
         public string AppSettingTheme { get; set; } = "Theme";
         public string SettingsAlwaysOnTop { get; set; } = "Always on top";
+        public string SettingsCursorAutohide { get; set; } = "Hide the pointer";
         public string ThemeDarkName { get; set; } = "Dark";
         public string ThemeLightName { get; set; } = "Light";
         public string SettingsUiFont { get; set; } = "UI font";
@@ -103,6 +104,8 @@ namespace mpv_winui.Modules.Language
         public string OptionValuePiPAnchorBottomRight { get; set; } = "Bottom right";
         public string SectionWindowPiP { get; set; } = "Picture-in-picture";
         public string SectionDescWindowPiP { get; set; } = "Picture-in-picture window";
+        public string SectionWindowBehavior { get; set; } = "Window behavior";
+        public string SectionDescWindowBehavior { get; set; } = "Cursor, frame, taskbar and screen";
         public string OptionValuePiPSmall { get; set; } = "Small (320x180)";
         public string OptionValuePiPMedium { get; set; } = "Medium (480x270)";
         public string OptionValuePiPLarge { get; set; } = "Large (640x360)";
@@ -347,6 +350,8 @@ namespace mpv_winui.Modules.Language
         public string SectionDescSubtitlePosition { get; set; } = "Position and alignment";
         public string SectionSubtitleBehavior { get; set; } = "Behavior && loading";
         public string SectionDescSubtitleBehavior { get; set; } = "Loading and track choice";
+        public string SectionSubtitleSecondary { get; set; } = "Second subtitle track";
+        public string SectionDescSubtitleSecondary { get; set; } = "An extra track shown at the same time";
         public string SectionToneMapping { get; set; } = "Tone mapping";
         public string SectionDescToneMapping { get; set; } = "HDR tone mapping";
         public string SectionTargetColorspace { get; set; } = "Target color space";
@@ -434,6 +439,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
         public string SettingsCategoryOsd { get; set; } = "OSD";
         public string SettingsCategoryScreenshot { get; set; } = "Screenshot";
+        public string SettingsCategoryAdvanced { get; set; } = "Advanced";
 
         // Section captions split each category into topic groups.
         public string SectionProgramInterface { get; set; } = "Interface";
@@ -497,9 +503,26 @@ namespace mpv_winui.Modules.Language
         public string SectionDescGpuD3d11 { get; set; } = "Exclusive fullscreen, flip and adapter";
         public string SectionGpuShaders { get; set; } = "Shaders & cache";
         public string SectionDescGpuShaders { get; set; } = "Custom shader passes";
+        public string SectionAdvancedRenderer { get; set; } = "Renderer";
+        public string SectionDescAdvancedRenderer { get; set; } = "Graphics API, output and buffers";
+        public string SettingsGpuApi { get; set; } = "Graphics API";
+        public string SettingsHelpGpuApi { get; set; } = "Which graphics interface renders the picture. Auto lets mpv pick the best fit and is recommended. d3d11 is the usual choice on Windows; vulkan has more features but also more driver trouble; opengl is the oldest fallback. A wrong value usually shows up as a black window or a failed start.";
+        public string SettingsGpuContext { get; set; } = "Graphics context";
+        public string SettingsHelpGpuContext { get; set; } = "Which window backend the API above runs on; normally chosen in pairs with it, such as d3d11 with win or vulkan with winvk. Auto lets mpv decide. A mismatch with the API gives a black window - set it back to auto to recover.";
+        public string SettingsScaleAntiring { get; set; } = "Upscale anti-ringing";
+        public string SettingsHelpScaleAntiring { get; set; } = "Anti-ringing strength when enlarging (0-1). It softens the halo around edges at the cost of a slightly softer picture. 0 is off; around 0.75 is a common compromise.";
+        public string SettingsCscaleAntiring { get; set; } = "Chroma anti-ringing";
+        public string SettingsHelpCscaleAntiring { get; set; } = "Anti-ringing strength during chroma upscaling (0-1). Narrower in scope than the option above - it only affects colour edges.";
+        public string SectionAdvancedScaler { get; set; } = "Scaler parameters";
+        public string SectionDescAdvancedScaler { get; set; } = "Per-algorithm tuning knobs";
         public string SectionVideoSync { get; set; } = "Video sync";
         public string SectionDescVideoSync { get; set; } = "Video sync mode and timing";
+        public string SectionVideoGeometry { get; set; } = "Geometry";
+        public string SectionDescVideoGeometry { get; set; } = "Zoom, pan and alignment";
         public string SettingsSpeed { get; set; } = "Default speed";
+        public string SettingsAbLoopA { get; set; } = "A-B repeat start (s)";
+        public string SettingsAbLoopB { get; set; } = "A-B repeat end (s)";
+        public string SettingsAbLoopCount { get; set; } = "A-B repeat count";
         public string SettingsSubPos { get; set; } = "Subtitle position (%)";
         public string SettingsAudioLanguage { get; set; } = "Preferred audio language";
         public string SettingsSubtitleLanguage { get; set; } = "Preferred subtitle language";
@@ -872,6 +895,11 @@ namespace mpv_winui.Modules.Language
         public string SettingsBackgroundTileSize { get; set; } = "Background tile size";
         public string SettingsDScale { get; set; } = "Downscaling algorithm";
         public string SettingsVideoRotate { get; set; } = "Video rotation";
+        public string SettingsVideoZoom { get; set; } = "Zoom";
+        public string SettingsVideoPanX { get; set; } = "Pan horizontally";
+        public string SettingsVideoPanY { get; set; } = "Pan vertically";
+        public string SettingsVideoAlignX { get; set; } = "Horizontal alignment";
+        public string SettingsVideoAlignY { get; set; } = "Vertical alignment";
         public string SettingsDeband { get; set; } = "Deband";
         public string SettingsLinearDownscaling { get; set; } = "Linear downscaling";
         public string SettingsSigmoidUpscaling { get; set; } = "Sigmoid upscaling";
@@ -1197,6 +1225,9 @@ namespace mpv_winui.Modules.Language
         public string TimeShowTotal { get; set; } = "Show total duration";
         public string SettingsHelpSavePositionOnQuit { get; set; } = "Remember the playback position when quitting so the file can resume later.";
         public string SettingsHelpSpeed { get; set; } = "Playback speed saved for the next launch (1.0 is normal).";
+        public string SettingsHelpAbLoopA { get; set; } = "Start of the A-B repeat range. 0 means this end is not set.";
+        public string SettingsHelpAbLoopB { get; set; } = "End of the A-B repeat range. The loop starts once both ends are set.";
+        public string SettingsHelpAbLoopCount { get; set; } = "How many times the A-B range repeats before playback continues. -1 repeats forever.";
         public string SettingsHelpCacheEnabled { get; set; } = "Network cache: Off disables, Auto caches only when needed, Yes always caches.";
         public string SettingsHelpDirectoryMode { get; set; } = "How subfolders are handled when opening a directory: lazy adds on demand, recursive adds everything.";
         public string SettingsHelpImageExts { get; set; } = "Extensions treated as images for playlists, separated by commas.";
@@ -1204,6 +1235,18 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpUiFont { get; set; } = "Font used for the app's menus and interface.";
         public string SettingsHelpTestSignal { get; set; } = "Play a test signal for debugging audio output.";
         public string SettingsHelpAlwaysOnTop { get; set; } = "Keep the player window above other windows.";
+        public string SettingsHelpCursorAutohide { get; set; } = "How long the pointer must stay still before it hides. Always hides it as soon as the picture appears; moving the mouse brings it back.";
+        public string OptionValueCursorAutohideNever { get; set; } = "Never";
+        public string OptionValueCursorAutohide1s { get; set; } = "After 1 s";
+        public string OptionValueCursorAutohide2s { get; set; } = "After 2 s";
+        public string OptionValueCursorAutohide3s { get; set; } = "After 3 s";
+        public string OptionValueCursorAutohideAlways { get; set; } = "Always";
+        public string SettingsCursorAutohideFsOnly { get; set; } = "Only in fullscreen";
+        public string SettingsHelpCursorAutohideFsOnly { get; set; } = "Hide the pointer only in fullscreen. In windowed mode it stays visible, which makes dragging and resizing easier.";
+        public string SettingsWindowBorder { get; set; } = "Window border";
+        public string SettingsHelpWindowBorder { get; set; } = "Turning this off removes the border and shadow, which suits a small window parked in a corner.";
+        public string SettingsTitleBar { get; set; } = "Title bar";
+        public string SettingsHelpTitleBar { get; set; } = "Hides the native title bar. The window's close button goes with it, so use a shortcut or the menu instead.";
         public string SettingsHelpInputIme { get; set; } = "Enable the Windows input method editor for text fields.";
         public string SettingsHelpScreenshotDirectory { get; set; } = "Folder where screenshots are saved.";
         public string SettingsHelpScreenshotFormat { get; set; } = "Image format used for screenshots.";
@@ -1215,6 +1258,14 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpScreenshotTagColorspace { get; set; } = "Tag the screenshot with the correct color space when the format supports it.";
         public string SettingsHelpSubFontSize { get; set; } = "Subtitle font size.";
         public string SettingsHelpSubDelay { get; set; } = "Shift subtitles earlier or later, in seconds.";
+        public string SettingsSecondarySubVisibility { get; set; } = "Show the second track";
+        public string SettingsHelpSecondarySubVisibility { get; set; } = "Master switch for the second subtitle track. The file has to carry one for the selected subtitle - common with bilingual releases.";
+        public string SettingsSecondarySubDelay { get; set; } = "Second track delay (s)";
+        public string SettingsHelpSecondarySubDelay { get; set; } = "Shifts only the second track's timing; positive delays it. Use it to line the two tracks up when they disagree.";
+        public string SettingsSecondarySubPos { get; set; } = "Second track position (%)";
+        public string SettingsHelpSecondarySubPos { get; set; } = "Vertical position of the second track, where 100 sits at the bottom. A value above the main subtitle keeps the two from overlapping.";
+        public string SettingsSecondarySubScale { get; set; } = "Second track size";
+        public string SettingsHelpSecondarySubScale { get; set; } = "Scale of the second track relative to the main one. 1 means the same size.";
         public string SettingsHelpSubPos { get; set; } = "Vertical subtitle position: 100 is the bottom edge, 0 the top edge.";
         public string SettingsHelpAudioLanguage { get; set; } = "Preferred language for audio tracks; Auto matches the system language.";
         public string SettingsHelpSubtitleLanguage { get; set; } = "Preferred language for subtitle tracks; Auto matches the system language.";
@@ -1233,6 +1284,11 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpCorrectDownscaling { get; set; } = "Use higher-quality color conversion when shrinking video.";
         public string SettingsHelpDither { get; set; } = "Dithering algorithm for color depth conversion.";
         public string SettingsHelpVideoRotate { get; set; } = "Rotate the video by 90-degree steps.";
+        public string SettingsHelpVideoZoom { get; set; } = "Scales the whole picture. 0 is the original size; combine it with panning below to look at one part of the frame.";
+        public string SettingsHelpVideoPanX { get; set; } = "Moves the picture sideways, as a fraction of its width. Only visible once zoomed in.";
+        public string SettingsHelpVideoPanY { get; set; } = "Moves the picture up or down, as a fraction of its height. Only visible once zoomed in.";
+        public string SettingsHelpVideoAlignX { get; set; } = "Which side the picture sits on when the window is wider than it. -1 left, 0 centred, 1 right.";
+        public string SettingsHelpVideoAlignY { get; set; } = "Which side the picture sits on when the window is taller than it. -1 top, 0 centred, 1 bottom.";
         public string SettingsHelpDitherDepth { get; set; } = "Target bit depth for dithered output; Auto matches the video.";
 
         // ===== Settings: inline customize mode =====

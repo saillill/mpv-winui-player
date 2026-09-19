@@ -20,6 +20,8 @@ public sealed partial class SettingsPage
 {
     private List<Option> BuildVideoOptions()
     {
+        var sVideoGeometry = AppContext.AppLang.SectionVideoGeometry;
+
         var video = AppContext.AppLang.SettingsCategoryVideo;
         var playback = AppContext.AppLang.SettingsCategoryPlayback;
         var lang = AppContext.AppLang;
@@ -491,6 +493,81 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.HrSeekFramedrop,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HrSeekFramedrop), AppContext.AppSetting.HrSeekFramedrop = (bool)v!)
+            },
+
+            // Added in the advanced batch: video-zoom
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VideoZoom),
+                Label = lang.SettingsVideoZoom,
+                Category = video,
+                Description = lang.SettingsHelpVideoZoom,
+                Type = OptionType.Double,
+                Min = -10,
+                Max = 10,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.VideoZoom,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoZoom), AppContext.AppSetting.VideoZoom = (double)v!)
+            },
+
+            // Added in the advanced batch: video-pan-x
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VideoPanX),
+                Label = lang.SettingsVideoPanX,
+                Category = video,
+                Description = lang.SettingsHelpVideoPanX,
+                Type = OptionType.Double,
+                Min = -10,
+                Max = 10,
+                Step = 0.01,
+                Getter = () => AppContext.AppSetting.VideoPanX,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoPanX), AppContext.AppSetting.VideoPanX = (double)v!)
+            },
+
+            // Added in the advanced batch: video-pan-y
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VideoPanY),
+                Label = lang.SettingsVideoPanY,
+                Category = video,
+                Description = lang.SettingsHelpVideoPanY,
+                Type = OptionType.Double,
+                Min = -10,
+                Max = 10,
+                Step = 0.01,
+                Getter = () => AppContext.AppSetting.VideoPanY,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoPanY), AppContext.AppSetting.VideoPanY = (double)v!)
+            },
+
+            // Added in the advanced batch: video-align-x
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VideoAlignX),
+                Label = lang.SettingsVideoAlignX,
+                Category = video,
+                Description = lang.SettingsHelpVideoAlignX,
+                Type = OptionType.Double,
+                Min = -1,
+                Max = 1,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.VideoAlignX,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoAlignX), AppContext.AppSetting.VideoAlignX = (double)v!)
+            },
+
+            // Added in the advanced batch: video-align-y
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VideoAlignY),
+                Label = lang.SettingsVideoAlignY,
+                Category = video,
+                Description = lang.SettingsHelpVideoAlignY,
+                Type = OptionType.Double,
+                Min = -1,
+                Max = 1,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.VideoAlignY,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoAlignY), AppContext.AppSetting.VideoAlignY = (double)v!)
             },
 
         ];

@@ -6,25 +6,21 @@
 ## 总量
 
 - mpv 选项目录：**820** 条
-- 设置界面已暴露：**212** 条
+- 设置界面已暴露：**232** 条
 - 已废弃、跳过：**8** 条
-- 未暴露且未废弃：**604** 条
-  - 其中**不建议暴露**：**478** 条（理由见下）
-  - 其中**建议补充**：**126** 条
+- 未暴露且未废弃：**584** 条
+  - 其中**不建议暴露**：**474** 条（理由见下）
+  - 其中**建议补充**：**110** 条
 
-## 一、建议补充的选项（126）
+## 一、建议补充的选项（110）
 
 按归属分类。这些是普通用户能看懂、也确实会想改的项。
 
-### Subtitles（25）
+### Subtitles（21）
 
 | mpv 选项 | 为什么值得加 |
 |---|---|
 | `secondary-sub-ass-override` | 第二字幕是否套用 ASS 样式。 |
-| `secondary-sub-delay` | 第二字幕轨的延迟。 |
-| `secondary-sub-pos` | 第二字幕的垂直位置。 |
-| `secondary-sub-scale` | 第二字幕的大小。 |
-| `secondary-sub-visibility` | 显示或隐藏第二字幕轨。 |
 | `sub-ass-justify` | ASS 字幕的对齐方式。 |
 | `sub-ass-prune-delay` | 离屏 ASS 事件保留多久。 |
 | `sub-ass-styles` | ASS 字幕使用的样式。 |
@@ -46,7 +42,7 @@
 | `subs-match-os-language` | 优先选与界面语言一致的字幕。 |
 | `subs-with-matching-audio` | 优先选与音轨语言一致的字幕。 |
 
-### Video（25）
+### Video（20）
 
 | mpv 选项 | 为什么值得加 |
 |---|---|
@@ -61,29 +57,23 @@
 | `framedrop` | 是否允许丢帧以保持音画同步。 |
 | `hwdec-software-fallback` | 硬解失败时回退到软解。 |
 | `swapchain-depth` | 缓冲帧数；调低可能减少延迟。 |
-| `video-align-x` | 窗口比画面宽时画面靠哪边。 |
-| `video-align-y` | 窗口比画面高时画面靠哪边。 |
 | `video-aspect-method` | 覆盖宽高比时用哪种算法计算。 |
 | `video-crop` | 裁剪画面，例如切掉压制进去的黑边。 |
 | `video-margin-ratio-bottom` | 底部留白。 |
 | `video-margin-ratio-left` | 左侧留白，给 OSD 和字幕用。 |
 | `video-margin-ratio-right` | 右侧留白。 |
 | `video-margin-ratio-top` | 顶部留白。 |
-| `video-pan-x` | 水平平移画面。 |
-| `video-pan-y` | 垂直平移画面。 |
 | `video-recenter` | 把缩放和平移复位到居中。 |
 | `video-scale-x` | 额外的水平缩放。 |
 | `video-scale-y` | 额外的垂直缩放。 |
-| `video-zoom` | 缩放画面，与平移配套。 |
 
-### Window（22）
+### Window（20）
 
 | mpv 选项 | 为什么值得加 |
 |---|---|
 | `autofit` | 窗口最大不超过屏幕的某个比例。 |
 | `autofit-larger` | autofit 的上限。 |
 | `autofit-smaller` | autofit 的下限。 |
-| `border` | 关掉窗口边框。 |
 | `corner-rounding` | Windows 11 窗口圆角半径。 |
 | `drag-and-drop` | 拖文件到窗口时是否打开。 |
 | `fs-screen` | 全屏用哪块显示器。多屏时很有用。 |
@@ -98,7 +88,6 @@
 | `snap-window` | 移动到屏幕边缘时自动吸附。 |
 | `stop-screensaver` | 播放时不让屏幕休眠。 |
 | `taskbar-progress` | 在任务栏按钮上显示播放进度。 |
-| `title-bar` | 隐藏系统标题栏。 |
 | `window-corners` | 系统是否给窗口加圆角。 |
 | `window-dragging` | 按住画面拖动窗口。 |
 | `window-scale` | 按视频尺寸的几分之一开窗。 |
@@ -142,21 +131,6 @@
 | `tone-mapping-param` | 需要参数的色调映射曲线用的那个参数。 |
 | `use-embedded-icc-profile` | 采用文件内嵌的 ICC 配置。 |
 
-### Player（10）
-
-| mpv 选项 | 为什么值得加 |
-|---|---|
-| `ab-loop-a` | A-B 循环的起点。用户会主动去找的功能。 |
-| `ab-loop-b` | A-B 循环的终点。 |
-| `ab-loop-count` | A-B 区间重复几次后继续往下播。 |
-| `cursor-autohide` | 播放时自动隐藏鼠标指针。长期被要求的功能。 |
-| `cursor-autohide-fs-only` | 只在全屏时隐藏指针。 |
-| `ignore-path-in-watch-later-config` | 阻止每个文件自己的配置覆盖全局设置。 |
-| `keep-open-pause` | 播完最后一帧时暂停，而不是停住不动。 |
-| `play-direction` | 正向或反向播放。 |
-| `resume-playback-check-mtime` | 文件被改过就不恢复上次进度。 |
-| `shuffle` | 随机播放整个播放列表。 |
-
 ### Audio（7）
 
 | mpv 选项 | 为什么值得加 |
@@ -181,13 +155,23 @@
 | `tls-cert-file` | 客户端证书。 |
 | `tls-key-file` | 客户端证书私钥。 |
 
+### Player（5）
+
+| mpv 选项 | 为什么值得加 |
+|---|---|
+| `ignore-path-in-watch-later-config` | 阻止每个文件自己的配置覆盖全局设置。 |
+| `keep-open-pause` | 播完最后一帧时暂停，而不是停住不动。 |
+| `play-direction` | 正向或反向播放。 |
+| `resume-playback-check-mtime` | 文件被改过就不恢复上次进度。 |
+| `shuffle` | 随机播放整个播放列表。 |
+
 ### Playback（1）
 
 | mpv 选项 | 为什么值得加 |
 |---|---|
 | `hr-seek-demuxer-offset` | 为结构特殊的容器微调定位点。 |
 
-## 二、不建议暴露的选项（478）
+## 二、不建议暴露的选项（474）
 
 每一类都给了理由。这不是「暂时没做」，而是「设计上不该出现在设置界面」。
 
@@ -195,8 +179,8 @@
 |---|---|
 | 编码 / 封装输出 | 24 |
 | 终端与字符界面输出 | 40 |
-| 图形 API 内部项 | 51 |
-| 缩放算法微调参数 | 70 |
+| 图形 API 内部项 | 49 |
+| 缩放算法微调参数 | 68 |
 | 解码器微调 | 36 |
 | 解复用 / 探测内部项 | 39 |
 | 脚本与配置管线 | 58 |
