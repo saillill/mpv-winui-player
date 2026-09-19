@@ -630,6 +630,26 @@ check-settings-drift  7 ERROR  ← 改动前就是 7 条，未受影响
 0 警告 0 错误；完整 `build.ps1` 约 22 秒，两层产物（`mpv_winrt.dll` + `mpvw.dll`）
 都出，同样 0 警告 0 错误。
 
+构建产物在仓库内：
+
+```
+mpv-winui/mpv-winui/bin/x64/Release/net10.0-windows10.0.26100.0/win-x64/
+```
+
+部署（可直接运行）目录在本会话工作区：
+
+```
+C:\Users\z2637\WorkBuddy\2026-09-19-14-59-27\outputs\mpvw-test\
+```
+
+419 个文件 / 42 个 `.xbf`。`robocopy /MIR /XF *.pdb` 同步，`robocopy_exit=1`
+表示"有文件被复制"= 成功。同步后核对 `mpvw.dll` 与构建输出的**时间戳是否同批**
+（`mpvw.dll` 与 `Modules/Settings/SettingsPage.xbf` 必须一起更新，
+只拷 dll 会造成 `InvalidCastException` 让页面直接消失）。
+
+注意：源码未变时重复编译产出的 `mpvw.dll` **md5 也不同**（.NET 会嵌入
+MVID/时间戳），所以 **md5 不一致不能当作"代码变了"的证据** —— 看时间戳批量对齐。
+
 **2. 运行期冒烟。** 部署后带 596 秒的 `1.mp4` 启动，观察 60 秒：
 始终 **1 个** `mpvw.exe` 进程、**1 个** `WinUIDesktopWin32WindowClass` 窗口、
 存活到底、当日日志**无新增 Error**（Release 下不写日志 = 零 Error，
@@ -641,6 +661,17 @@ check-settings-drift  7 ERROR  ← 改动前就是 7 条，未受影响
 > **Windows 系统「设置」应用**（pid 27332 / 12496，类名也不是 WinUI 的）。
 > `MainWindowTitle` 和进程计数都会给出假信号 —— **判据只能是
 > 「按可执行名过滤的进程」+「窗口类名」**。
+
+> ⚠️ **还有第二个假失败来源，更隐蔽：单实例锁没释放。** `Program.Main` 注册的是
+> AppInstance 键 `"main"`，第二次启动会把激活**重定向给第一个进程**。所以
+> "杀掉旧的 → 立刻启动新的"会让新进程的激活交给一个仍在拆除中的实例，新进程随即退出。
+> 实测**同一个二进制**在多次独立运行里的寿命是 `15s / 22s / 24s / 40s / 53.8s` ——
+> 看起来像极不稳定的崩溃，其实全是这个原因。把间隔改成**轮询确认进程真的消失**
+> 之后，连续三次运行全部跑满 120 秒观察上限、`exit_code=None`（从未退出）。
+>
+> **寿命随机变化几乎可以断定是环境/时序问题，不是确定性缺陷** —— 这条判据比任何
+> 单次日志都可靠。三份"应用早退"的假象（窗口标题、进程计数、单实例锁）都已
+> 固化进 `watch_mpvw.py`，用那个脚本就不会踩。
 
 诚实的边界：**设置页内部的点击驱动没能做**。`SetCursorPos` 在本沙箱被系统拒绝
 （`pywintypes.error`, 'No module named...' 一类空消息），所以"打开设置、看新树长什么样"
