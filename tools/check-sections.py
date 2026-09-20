@@ -18,6 +18,10 @@ That only holds if the table and AppLang agree, which is what this checks:
   * every SettingsCategory* property has a row, and vice versa;
   * every language file carries a real translation for every section and
     category caption -- see below;
+  * every option the settings tree builds has a sectionMap entry, which is the
+    same condition BuildSettings() throws on. A missing entry kills the app the
+    moment someone opens Settings, so this is checked here rather than
+    discovered by a user;
   * repeated option sort keys are surfaced as warnings, because optionOrder is
     deliberately both an ordering key and a grouping label.
 
@@ -56,10 +60,22 @@ CATALOG = SRC / "Modules" / "Settings" / "Layout" / "SettingsSections.cs"
 LANGUAGES = SRC / "Languages"
 OPTIONS = (SRC / "Modules" / "Settings" / "SettingsPage.Options.cs",
            SRC / "Modules" / "Settings" / "SettingsPage.Options.Program.cs")
+OPTION_FILES = tuple(sorted((SRC / "Modules" / "Settings").glob("SettingsPage.Options*.cs")))
+CORE_OPTIONS = SRC / "Modules" / "Settings" / "SettingsPage.Options.cs"
+GEN_SECTIONS = SRC / "Modules" / "Settings" / "SettingsPage.Sections.Gen.cs"
 
 
 def applang_props():
+    """Section and category property names AppLang declares.
+
+    Read from the hand-written AppLang.cs plus the generated partials. The
+    generated half is where the schema sections' captions live, and it is
+    still AppLang: a check that only read AppLang.cs would call every
+    generated section undeclared.
+    """
     text = APPLANG.read_text(encoding="utf-8-sig")
+    for gen in sorted(APPLANG.parent.glob("AppLang*.Gen.cs")):
+        text += "\n" + gen.read_text(encoding="utf-8-sig")
     names = re.findall(r'public string ([A-Za-z0-9_]+) \{ get; set; \}', text)
     sections = {n for n in names
                 if n.startswith("Section") and not n.startswith("SectionDesc")}
@@ -110,6 +126,233 @@ def option_sort_keys():
                 r'\[nameof\(AppSettings\.(\w+)\)\]\s*=\s*(\d+),', text):
             keys.setdefault(int(value), []).append(name)
     return keys
+
+
+# Option keys the settings tree builds at runtime instead of declaring in a
+# static row. BuildSettings() exempts them from the sectionMap guard (they carry
+# their own inline Section), so a check that mirrors that guard has to exempt
+# them too -- and by prefix, because the suffixes are per-user data:
+#   Shortcut:       built from input.conf bindings
+#   custom-section: one placeholder row per folder the user created
+RUNTIME_KEY_PREFIXES = ("Shortcut:", "custom-section:")
+
+
+def option_blocks(text):
+    """The body of every `new Option { ... }` initializer in one source text.
+
+    Brace matching, not a line regex. The regex this replaced required the
+    closing `},` to start its own line, which the generator's output never does:
+    SettingsPage.Options.Gen.cs closes all 549 of its blocks with `});` at the
+    end of the last property line, so the pattern matched ZERO of them. The
+    option keys therefore came out 322 short, and every generated key was then
+    reported by the reverse check below as a sectionMap entry "naming no built
+    option" -- 549 false warnings that buried the one genuine stale key
+    (ControlBarHiddenIcons, since removed).
+
+    Matching braces cannot be fooled by how the block is closed. It also stops
+    at the initializer's own brace rather than at the first `},`, so a nested
+    object initializer inside an Option would not truncate the block.
+    """
+    blocks = []
+    start = 0
+    while True:
+        i = text.find("new Option", start)
+        if i < 0:
+            return blocks
+        j = text.find("{", i)
+        if j < 0:
+            return blocks
+        depth = 0
+        k = j
+        while k < len(text):
+            if text[k] == "{":
+                depth += 1
+            elif text[k] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            k += 1
+        blocks.append(text[j:k + 1])
+        start = k + 1
+
+
+def option_keys():
+    """Every option key the settings tree actually builds.
+
+    This mirrors BuildSettings()'s own scan. Keys come in three spellings --
+    nameof(AppContext.AppSetting.X), nameof(AppSettings.X), and a plain string
+    (or a string constant, as FileAssociationCheckList uses) -- and all three
+    are real options, so all three have to be recognised here. An earlier
+    version of this script only understood nameof(...) and reported two live
+    options as orphans.
+
+    The hand-written half and the generated half both have to be read: the 548
+    schema rows are real rows on the same list, and a check that knew only about
+    the hand-written half would report all 548 of their sectionMap entries as
+    dead. See option_blocks() for the failure that actually happened here.
+
+    Shortcut:N keys are generated at runtime from input.conf and have no
+    static row, so they never appear in a source file.
+    """
+    consts = {}
+    # Constants can live outside the options files -- FileAssociationCheckListKey
+    # is declared in SettingsPage.Actions.cs -- so sweep the whole Settings
+    # folder rather than just the files that build options.
+    for path in sorted((SRC / "Modules" / "Settings").glob("*.cs")):
+        for name, value in re.findall(
+                r'const\s+string\s+(\w+)\s*=\s*"([^"]+)"',
+                path.read_text(encoding="utf-8-sig")):
+            consts[name] = value
+
+    keys = set()
+    for path in OPTION_FILES:
+        text = path.read_text(encoding="utf-8-sig")
+        for block in option_blocks(text):
+            match = (re.search(r'Key\s*=\s*nameof\([A-Za-z_.]*\.(\w+)\)', block)
+                     or re.search(r'Key\s*=\s*"([^"]+)"', block)
+                     or re.search(r'Key\s*=\s*(\w+)\s*,', block))
+            if not match:
+                continue
+            key = consts.get(match.group(1), match.group(1))
+            # Runtime-generated keys are exempt from the sectionMap guard, and
+            # the exemption has to be mirrored here or this checker reports a
+            # crash that cannot happen. `custom-section:` is the second such
+            # family: SettingsPage.Options.Layout.cs builds one placeholder row
+            # per user-created folder, keyed by that folder's id, and the row
+            # carries its own inline Section -- which is precisely the condition
+            # BuildSettings() exempts. `Shortcut:` is the same idea, built from
+            # input.conf. Both are exempted by prefix, never by name: the
+            # suffixes do not exist until the user makes a folder or a binding.
+            if key.startswith(RUNTIME_KEY_PREFIXES):
+                continue
+            keys.add(key)
+    return keys, consts
+
+
+def section_map_keys():
+    """The keys of the sectionMap dictionary in SettingsPage.Options.cs.
+
+    Brace matching rather than a regex to the end of file, because the map is
+    followed by more code and an over-broad match would pick up optionOrder's
+    keys as well.
+
+    The schema-generated rows register through RegisterGeneratedSections()
+    instead of appearing inline, so the literal scan below cannot see them.
+    Their entries are read from SettingsPage.Sections.Gen.cs and unioned in:
+    the two halves are one map at runtime, and a check that only knew about
+    the hand-written half would report all 549 generated keys as unmapped.
+    """
+    text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
+    parts = text.split("var sectionMap = new Dictionary<string, string>", 1)
+    if len(parts) < 2:
+        return None
+    body = parts[1]
+    depth = 0
+    end = None
+    for i, ch in enumerate(body):
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    if end is None:
+        return None
+    inline = {a or b for a, b in re.findall(
+        r'\[(?:nameof\([A-Za-z_.]*\.(\w+)\)|"([^"]+)")', body[:end])}
+    return inline | generated_section_map_keys()
+
+
+def generated_section_map_keys():
+    """Keys RegisterGeneratedSections() writes into sectionMap.
+
+    Absent (not an error) when the generator has not been run: a checkout
+    without the generated files is a legitimate state, and the pages that
+    need them do not build either.
+    """
+    if not GEN_SECTIONS.exists():
+        return set()
+    text = GEN_SECTIONS.read_text(encoding="utf-8-sig")
+    return {m for m in re.findall(
+        r'sectionMap\[nameof\([A-Za-z_.]*\.(\w+)\)\]', text)}
+
+
+def generated_sections_used():
+    """Section AppLang properties RegisterGeneratedSections() registers.
+
+    Returned as property names (SectionGenAudio), not the local variables the
+    hand-written half uses, because that is the form the catalog compares in.
+    """
+    if not GEN_SECTIONS.exists():
+        return set()
+    text = GEN_SECTIONS.read_text(encoding="utf-8-sig")
+    return {m for m in re.findall(r'advancedSections\.Add\(lang\.(\w+)\)', text)}
+
+
+def section_variables():
+    """Local section variable -> the AppLang property it aliases.
+
+    sectionMap is keyed by the local variable (sGpuScaling), while the catalog
+    and AppLang use the property name (SectionGpuScaling). Both directions of the
+    empty-section check need the translation, so it is built once here.
+
+    Only the declarations in SettingsPage.Options.cs are read: that is where the
+    variables are introduced, and a second declaration elsewhere would mean two
+    different things under one name -- which this check should not paper over.
+    """
+    text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
+    return dict(re.findall(
+        r'\bvar\s+(s[A-Za-z0-9]+)\s*=\s*AppContext\.AppLang\.(Section[A-Za-z0-9]+)\s*;',
+        text))
+
+
+def sections_used_by_options():
+    """Every section variable sectionMap assigns an option to."""
+    text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
+    parts = text.split("var sectionMap = new Dictionary<string, string>", 1)
+    if len(parts) < 2:
+        return None, None
+    body = parts[1]
+    depth = 0
+    end = None
+    for i, ch in enumerate(body):
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    if end is None:
+        return None, None
+    return set(re.findall(r'\]\s*=\s*(s[A-Za-z0-9]+)\s*,', body[:end])), body[:end]
+
+
+def section_order_names():
+    """AppLang property names declared in the sectionOrder dictionary.
+
+    Keyed by local variable (sGpuScaling), so callers translate through
+    section_variables() -- same two-step as sectionMap.
+    """
+    text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
+    parts = text.split("var sectionOrder = new Dictionary<string, int>", 1)
+    if len(parts) < 2:
+        return None
+    body = parts[1]
+    depth = 0
+    end = None
+    for i, ch in enumerate(body):
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    if end is None:
+        return None
+    return set(re.findall(r'\[(s[A-Za-z0-9]+)\]\s*=\s*\d+\s*,', body[:end]))
 
 
 def main():
@@ -179,6 +422,99 @@ def main():
             warnings.append(f"{name}: {len(untranslated)} caption(s) still in English: "
                             f"{', '.join(untranslated[:5])}"
                             + (" ..." if len(untranslated) > 5 else ""))
+
+    # --- BuildSettings()'s own guards, mirrored ------------------------------
+    # The app refuses to open the settings window when either of these is
+    # unsatisfied: BuildSettings() throws InvalidOperationException, which
+    # surfaces as a stowed exception in Microsoft.UI.Xaml.dll and kills the
+    # process -- no managed stack, no log line, just "clicking Settings closes
+    # the app". That happened for real: rebuilding the subtitles map dropped
+    # SubHdrPeak while the option itself stayed, and the only symptom was a
+    # crash on click. The runtime guard is correct; this is the same guard run
+    # at commit time so the crash never reaches a user.
+    keys, consts = option_keys()
+    mapped = section_map_keys()
+    if mapped is None:
+        errors.append("could not find sectionMap in SettingsPage.Options.cs")
+    else:
+        unmapped = sorted(k for k in keys if k not in mapped)
+        if unmapped:
+            errors.append(
+                f"{len(unmapped)} option(s) have no sectionMap entry, which makes "
+                f"BuildSettings() throw on open: {', '.join(unmapped[:6])}"
+                + (" ..." if len(unmapped) > 6 else ""))
+        # The reverse is not a failure: a map entry for an option that no longer
+        # exists is dead weight, but it never breaks the tree. Reported as a
+        # warning so the stale entries get cleaned up rather than accumulating.
+        stale = sorted(k for k in mapped if k not in keys)
+        if stale:
+            warnings.append(
+                f"{len(stale)} sectionMap entry/entries name no built option: "
+                f"{', '.join(stale[:6])}" + (" ..." if len(stale) > 6 else ""))
+
+    # --- sections that no option belongs to ----------------------------------
+    # A section is only rendered when an option claims it, so a declared-but-empty
+    # section is invisible: it sits in the catalog, the language files and the
+    # icon table, and nothing ever shows it. That is how a section outlives its
+    # options when they are moved to a better home, and it is the same failure
+    # shape as the crash this script already guards against -- the declaration and
+    # the content drifting apart, with the mismatch silent either way.
+    #
+    # Reported as an error rather than a warning because a stale section is never
+    # intentional: it means the last edit that emptied it forgot to remove it.
+    #
+    # Measured against the catalog's own rows, NOT against AppLang: a section
+    # emptied by an edit is usually stripped from AppLang in the same commit, and
+    # keying this off AppLang would make the check go quiet exactly when it is
+    # needed. (Verified by injecting a stale row back into the catalog.)
+    variables = section_variables()
+    used, _ = sections_used_by_options()
+    if variables and used is not None:
+        used_props = {variables.get(v) for v in used} - {None}
+        # The generated registration names its sections by AppLang property
+        # directly (lang.SectionGenAudio), with no local variable in between,
+        # so they join the used set as-is.
+        used_props |= generated_sections_used()
+        for name in sorted({r[2] for r in rows} - used_props):
+            errors.append(
+                f"{name} is declared in SettingsSections but no option maps to it, "
+                f"so it can never be shown -- remove the declaration, or point the "
+                f"options that belong there at it")
+
+        # The other direction: sectionMap naming a variable that is not a section.
+        for var in sorted(v for v in used if v not in variables):
+            errors.append(
+                f"sectionMap assigns options to {var}, which is not a declared "
+                f"section variable in {CORE_OPTIONS.name}")
+
+    # --- every used section must have an order key ---------------------------
+    # A section a row maps to, but which sectionOrder never mentions, does not
+    # fail and does not warn: BuildSettings falls back to int.MaxValue, so the
+    # section sorts to the BOTTOM of its category. Three sections were in that
+    # state -- sVideoGeometry, sOsdText and sWindowBehavior, 18 rows between
+    # them -- and sOsdText was the worst of the three, because it landed past
+    # Metadata on the far side of the very sections it supplies the font metrics
+    # for. Nothing else in this script looked at sectionOrder at all.
+    #
+    # It is an error rather than a warning because "no order" is never a
+    # decision: sectionOrder is per-category (options group by category first),
+    # so a section without a key has no defined place among its siblings and the
+    # resulting order is an accident of a missing line.
+    order_vars = section_order_names()
+    if order_vars is not None and variables is not None and used is not None:
+        # Recompute rather than reuse used_props from the block above: that one is
+        # scoped to its own conditional, and depending on it would make this check
+        # silently skip whenever the earlier guard did not run.
+        used_for_order = {variables.get(v) for v in used} - {None}
+        used_for_order |= generated_sections_used()
+        ordered_props = {variables.get(v) for v in order_vars} - {None}
+        # Generated sections register their order in their own file, by AppLang
+        # property name; same union as the empty-section check above.
+        ordered_props |= generated_sections_used()
+        for name in sorted(used_for_order - ordered_props):
+            errors.append(
+                f"{name} is used by sectionMap but has no sectionOrder entry, so it "
+                f"silently sorts to the end of its category -- add it to sectionOrder")
 
     # --- sort keys -----------------------------------------------------------
     # A repeated sort key is NOT an error here. optionOrder is deliberately

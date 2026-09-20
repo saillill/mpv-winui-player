@@ -1,4 +1,4 @@
-using mpv_winui.Modules.Language;
+﻿using mpv_winui.Modules.Language;
 using System;
 using System.Collections.Generic;
 
@@ -50,13 +50,16 @@ internal static class SettingsSections
         // two-section, sixteen-option topic the same weight as Video. It is a
         // picture feature: the sections now live inside Video, and the category
         // is gone.
-        // Last on purpose. Everything here is exposed because the option
-        // exists and works, not because a normal user would want it: renderer
-        // internals, scaler tuning parameters. Keeping it one category rather
-        // than scattering the same options through Video is what lets the rest
-        // of the tree stay a description of what the player does rather than a
-        // copy of the mpv manual.
-        new("advanced", l => l.SettingsCategoryAdvanced),
+        //
+        // "Advanced" went the same way, for a different reason. It was a bucket
+        // of renderer internals and scaler tuning, and a bucket is precisely what
+        // makes an option hard to find: the graphics API is a fact about the
+        // output chain, not about being advanced, and someone looking for it
+        // looks under Video. Every option it held now sits in the section it
+        // describes - gpu-api and gpu-context with the output chain, the
+        // antiringing knobs with the scaler, the testing and file-association
+        // rows in Program's own folding sections. Nobody has to know the app has
+        // an "advanced" tier to find any of them.
     ];
 
     /// <summary>
@@ -117,8 +120,49 @@ internal static class SettingsSections
         new("SectionWindow", "\uE745", l => l.SectionWindow, l => l.SectionDescWindow),
         new("SectionWindowBehavior", "\uE7A6", l => l.SectionWindowBehavior, l => l.SectionDescWindowBehavior),
         new("SectionWindowPiP", "\uEE49", l => l.SectionWindowPiP, l => l.SectionDescWindowPiP),
-        new("SectionAdvancedRenderer", "\uE7B3", l => l.SectionAdvancedRenderer, l => l.SectionDescAdvancedRenderer),
-        new("SectionAdvancedScaler", "\uE8F4", l => l.SectionAdvancedScaler, l => l.SectionDescAdvancedScaler),
+        // SectionAdvancedRenderer and SectionAdvancedScaler were removed with the
+        // category they belonged to. gpu-api and gpu-context are now in the D3D11
+        // section, and the two antiringing knobs in the scaler section - a section
+        // that exists to describe them, which the old pair only half did.
+
+        // ---- schema-generated sections ----
+        // One per mpv option group, holding the 548 options that have no
+        // hand-written row. They are listed here rather than in the generator
+        // because the icon and the description are choices, not data: the
+        // schema says which group an option belongs to but nothing about how
+        // it should read in this window.
+        //
+        // The glyphs are free ones, not the nine their categories already
+        // use: the same table serves the icon for both the section card and
+        // the category rail, so a generated section reusing its category's
+        // glyph would show two identical icons a level apart. These are
+        // picked from the codepoints the hand-written 46 do not occupy, so
+        // `check-sections.py` stays green without one of them having to move.
+        new("SectionGenVideoRendering", "\uE700", l => l.SectionGenVideoRendering, l => l.SectionDescGenVideoRendering),
+        new("SectionGenColourHdr", "\uE701", l => l.SectionGenColourHdr, l => l.SectionDescGenColourHdr),
+        new("SectionGenSubtitles", "\uE703", l => l.SectionGenSubtitles, l => l.SectionDescGenSubtitles),
+        new("SectionGenOsd", "\uE704", l => l.SectionGenOsd, l => l.SectionDescGenOsd),
+        new("SectionGenAudio", "\uE705", l => l.SectionGenAudio, l => l.SectionDescGenAudio),
+        new("SectionGenStreaming", "\uE707", l => l.SectionGenStreaming, l => l.SectionDescGenStreaming),
+        new("SectionGenTracks", "\uE708", l => l.SectionGenTracks, l => l.SectionDescGenTracks),
+        new("SectionGenPlayerWindow", "\uE709", l => l.SectionGenPlayerWindow, l => l.SectionDescGenPlayerWindow),
+
+        // mpv's `General` group split into themes. It was one folder called
+        // 常规选项 holding 100 rows that had nothing in common -- encoder
+        // output beside terminal verbosity beside X11 names beside Lua paths
+        // -- and it was the only card on the Program page, so 桌面 opened
+        // onto six real settings and then a bin. That is the old Advanced
+        // bucket again, which the hand-written tree spent several rounds
+        // removing; the generator had quietly put it back.
+        //
+        // The split is drawn along lines mpv's own vocabulary already
+        // contains, and every one of the 100 options lands in exactly one
+        // theme (the generator reports any that do not).
+        new("SectionGenGeneralEncoding", "\uE718", l => l.SectionGenGeneralEncoding, l => l.SectionDescGenGeneralEncoding),
+        new("SectionGenGeneralTerminal", "\uE715", l => l.SectionGenGeneralTerminal, l => l.SectionDescGenGeneralTerminal),
+        new("SectionGenGeneralPlatform", "\uE717", l => l.SectionGenGeneralPlatform, l => l.SectionDescGenGeneralPlatform),
+        new("SectionGenGeneralScripting", "\uE716", l => l.SectionGenGeneralScripting, l => l.SectionDescGenGeneralScripting),
+        new("SectionGenGeneralRendering", "\uE719", l => l.SectionGenGeneralRendering, l => l.SectionDescGenGeneralRendering),
     ];
 
     /// <summary>Fallback glyph for a caption the table does not know.</summary>

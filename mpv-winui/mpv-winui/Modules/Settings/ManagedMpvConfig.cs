@@ -51,6 +51,41 @@ public static class ManagedMpvConfig
     /// <summary>Matches the manifest convention in ConfigDeployer: "&lt;sha256&gt;\t&lt;block name&gt;".</summary>
     private const string StateFileName = "mpv-winui-managed.json";
 
+    /// <summary>State key holding the lines this class wrote into the managed block.</summary>
+    private const string StateKeyManaged = "managed";
+
+    /// <summary>
+    /// State key holding the shipped body as first deployed.
+    ///
+    /// Only written by builds that predate <see cref="BundledBodyPath"/>. The
+    /// bundled template is now the preferred baseline, since it travels with the
+    /// app and needs no recording; this key is still read first so an install
+    /// that did record one keeps the body it was actually deployed with.
+    /// </summary>
+    private const string StateKeyBody = "body";
+
+    /// <summary>
+    /// The config body this build ships, used as the ownership baseline for the
+    /// region above the managed block.
+    ///
+    /// <para>Read live from the bundled layer rather than recorded in the state
+    /// file, which buys two things. The baseline cannot drift from what the app
+    /// actually ships, and an install that predates the baseline feature needs no
+    /// migration - the file has been sitting next to the executable the whole
+    /// time.</para>
+    ///
+    /// <para>Null when the layer is absent (a source checkout run without the
+    /// bundle). The caller then falls back to the recorded state, and finally to
+    /// treating the body as the user's - see
+    /// <see cref="ReadRecordedBody"/>.</para>
+    ///
+    /// <para>Fully qualified on purpose: <c>System.AppContext</c> is the
+    /// framework type holding <c>BaseDirectory</c>, and it shares its name with
+    /// this app's own class.</para>
+    /// </summary>
+    private static string BundledBodyPath =>
+        Path.Combine(System.AppContext.BaseDirectory, "mpv-winui-lazy", "mpv.conf");
+
     /// <summary>
     /// Lines an older build wrote into the managed block that this version no
     /// longer owns, so an upgrade does not strand them.
@@ -123,6 +158,12 @@ public static class ManagedMpvConfig
         // are excluded from the block below so only the user's copy exists and
         // therefore wins.
         var userOwned = new HashSet<string>(MpvConfOverrides.Names, StringComparer.OrdinalIgnoreCase);
+
+        // Options the shipped body already carries verbatim. Skipped below so a
+        // documented body line keeps sole ownership of its value instead of
+        // being shadowed by a second, later copy in the block.
+        var bodyOwned = new HashSet<string>(MpvConfOverrides.BodyOwnedNames, StringComparer.OrdinalIgnoreCase);
+
         var ourLines = MpvConfOverrides.OurLines;
         var existingBlock = MpvConfOverrides.CurrentBlockLines;
 
@@ -160,10 +201,20 @@ public static class ManagedMpvConfig
         foreach (var line in MpvSettings.BuildConfigLines())
         {
             var name = line[..line.IndexOf('=')];
-            if (!userOwned.Contains(name))
+
+            // Two reasons to leave an option out of the block, and they are not
+            // the same reason. `userOwned` is a line someone else wrote, so the
+            // block must not out-vote it. `bodyOwned` is a line the app itself
+            // shipped, still sitting unmodified in the body - writing it here too
+            // would duplicate it, and since mpv resolves top-down the block copy
+            // is the one that takes effect, quietly shadowing the documented body
+            // line the user is likelier to edit.
+            if (userOwned.Contains(name) || bodyOwned.Contains(name))
             {
-                wanted.Add(line);
+                continue;
             }
+
+            wanted.Add(line);
         }
 
         // Hand-owned lines first (they were already there), then our values.
@@ -238,6 +289,12 @@ public static class ManagedMpvConfig
         if (changed)
         {
             text = CollapseBlankLines(text, nl);
+            // Stamped before the write, not after: the watcher's reload reads
+            // this counter at its start and again at its end, and a reload that
+            // sees the same value twice ran entirely inside our write. Stamping
+            // after would let the reload's start land on the old value and the
+            // change be mistaken for a hand edit.
+            MpvConfWatcher.NoteOwnWrite();
             await File.WriteAllTextAsync(path, text, new UTF8Encoding(false));
         }
 
@@ -250,7 +307,7 @@ public static class ManagedMpvConfig
         // would find it matching and treat it as ours - so the value the user
         // set by hand would become writable again on the second start after the
         // edit. The record has to describe what the app wrote, and nothing else.
-        WriteState(path, string.Join(nl,
+        WriteState(path, StateKeyManaged, string.Join(nl,
             new[] { BeginMarker }.Concat(wanted).Append(EndMarker)), nl);
         MpvConfOverrides.Refresh();
 
@@ -427,7 +484,7 @@ public static class ManagedMpvConfig
     /// </summary>
     internal static IReadOnlySet<string>? ReadRecordedBlock()
     {
-        var state = ReadState(MpvConfPath);
+        var state = ReadState(MpvConfPath, StateKeyManaged);
         if (state is null)
         {
             return null;
@@ -451,7 +508,131 @@ public static class ManagedMpvConfig
         return set.Count > 0 ? set : null;
     }
 
-    private static string? ReadState(string mpvConfPath)
+    /// <summary>
+    /// The shipped body lines, used to tell a body line the app owns from one
+    /// the user edited. Null when nothing can serve as a baseline.
+    ///
+    /// <para><b>Why a baseline is needed at all.</b> The body above the managed
+    /// block is the config the app ships; a line there is not the user's merely
+    /// because it sits outside our markers. Treating every one as a hand edit is
+    /// what made the whole settings window read-only: the shipped body carries
+    /// about a hundred active assignments, so every one of those options was
+    /// announced as user-owned and disabled.</para>
+    ///
+    /// <para><b>Where it comes from, in order.</b> The recorded state first, so
+    /// an install that once recorded its own body keeps comparing against the
+    /// text it was actually deployed with; then the bundled template, which is
+    /// what every install without a record uses. Falling back to the bundle is
+    /// what makes this feature need no migration step - and a fresh install,
+    /// whose body <em>is</em> the template, gets an exact match by
+    /// construction.</para>
+    ///
+    /// <para><b>The rule.</b> A body line that still matches the baseline was
+    /// never touched, so the app owns it and the window may rewrite it. A line
+    /// that differs, or that has no counterpart in the baseline, is an edit and
+    /// wins. That is the same line-for-line contract the managed block already
+    /// uses, applied to the body.</para>
+    ///
+    /// <para>Null (no baseline at all) is read as "nothing in the body is ours",
+    /// which is the safe direction: the body keeps working exactly as it does
+    /// today rather than being silently rewritten on the strength of a
+    /// guess.</para>
+    /// </summary>
+    internal static IReadOnlySet<string>? ReadRecordedBody()
+    {
+        return ReadBodyFromState() ?? ReadBodyFromBundle();
+    }
+
+    /// <summary>The body baseline this install recorded, if it ever did.</summary>
+    private static IReadOnlySet<string>? ReadBodyFromState()
+    {
+        var state = ReadState(MpvConfPath, StateKeyBody);
+        if (state is null)
+        {
+            return null;
+        }
+
+        var set = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var line in state.Split('\n'))
+        {
+            var body = line.TrimEnd('\r').Trim();
+            if (body.Length > 0)
+            {
+                set.Add(Normalise(body));
+            }
+        }
+
+        return set.Count > 0 ? set : null;
+    }
+
+    /// <summary>
+    /// The bundled template's active lines, as the fallback baseline.
+    ///
+    /// <para><b>Active lines only.</b> Comments carry no ownership, and the
+    /// bundled body is heavily annotated - about 130 of its lines are comment
+    /// text. Indexing them would let a stray comment decide an option's owner,
+    /// which is exactly the kind of accident the body baseline exists to
+    /// prevent.</para>
+    ///
+    /// <para>Returns null when the layer is missing or unreadable, which is the
+    /// source-checkout case. The caller then has no baseline and leaves the body
+    /// alone.</para>
+    /// </summary>
+    private static IReadOnlySet<string>? ReadBodyFromBundle()
+    {
+        try
+        {
+            var path = BundledBodyPath;
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            var set = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var line in File.ReadAllLines(path))
+            {
+                var body = line.Trim();
+                if (body.Length == 0 || body.StartsWith('#'))
+                {
+                    continue;
+                }
+                set.Add(Normalise(body));
+            }
+
+            if (set.Count == 0)
+            {
+                return null;
+            }
+
+            AppContext.AppLogger.Debug(
+                "mpv.conf body baseline taken from the bundled template ({} lines)", set.Count);
+            return set;
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Warn(ex, "bundled mpv.conf unreadable, no body baseline");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Records the shipped body as the baseline, once.
+    ///
+    /// <para>Superseded by <see cref="ReadBodyFromBundle"/> and kept only so an
+    /// install that recorded a baseline before the bundle was consulted keeps
+    /// using it. Nothing calls this on the happy path any more.</para>
+    /// </summary>
+    internal static void RecordBodyBaseline(string bodyText)
+    {
+        if (ReadBodyFromState() is not null)
+        {
+            return;
+        }
+
+        WriteState(MpvConfPath, StateKeyBody, bodyText, Environment.NewLine);
+    }
+
+    private static string? ReadState(string mpvConfPath, string key)
     {
         try
         {
@@ -464,7 +645,7 @@ public static class ManagedMpvConfig
             {
                 var tab = line.IndexOf('\t');
                 if (tab > 0 && tab < line.Length - 1
-                    && string.Equals(line[..tab], "managed", StringComparison.Ordinal))
+                    && string.Equals(line[..tab], key, StringComparison.Ordinal))
                 {
                     // Stored hex-encoded so a multi-line block survives one line.
                     return Encoding.UTF8.GetString(Convert.FromHexString(line[(tab + 1)..]));
@@ -480,12 +661,36 @@ public static class ManagedMpvConfig
         return null;
     }
 
-    private static void WriteState(string mpvConfPath, string block, string nl)
+    /// <summary>
+    /// Replaces one key's value in the state file, leaving every other key
+    /// alone.
+    ///
+    /// Read-modify-write rather than a whole-file overwrite: the file now holds
+    /// two independent records (the managed block and the body baseline), and a
+    /// writer that emitted only its own key would silently drop the other. The
+    /// block writer runs on every settings change, so that loss would have been
+    /// immediate and hard to attribute.
+    /// </summary>
+    private static void WriteState(string mpvConfPath, string key, string value, string nl)
     {
         try
         {
-            var encoded = Convert.ToHexString(Encoding.UTF8.GetBytes(block));
-            File.WriteAllText(StatePath(mpvConfPath), "managed\t" + encoded + nl,
+            var statePath = StatePath(mpvConfPath);
+            var kept = new List<string>();
+            if (File.Exists(statePath))
+            {
+                foreach (var line in File.ReadAllLines(statePath))
+                {
+                    var tab = line.IndexOf('\t');
+                    if (tab > 0 && !string.Equals(line[..tab], key, StringComparison.Ordinal))
+                    {
+                        kept.Add(line);
+                    }
+                }
+            }
+
+            kept.Add(key + "\t" + Convert.ToHexString(Encoding.UTF8.GetBytes(value)));
+            File.WriteAllText(statePath, string.Join(nl, kept) + nl,
                 new UTF8Encoding(false));
         }
         catch (Exception ex)

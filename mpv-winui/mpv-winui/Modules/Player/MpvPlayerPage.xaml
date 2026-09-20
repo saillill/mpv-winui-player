@@ -520,8 +520,23 @@
                         <Setter Target="PlayControlRow.Height" Value="0" />
                         <Setter Target="MenuRow.Height" Value="0" />
                         <Setter Target="PlayerControl.(Grid.Row)" Value="1" />
-                        <Setter Target="PlaylistToolBar.HorizontalAlignment" Value="Left" />
-                        <Setter Target="PlaylistToolBar.Margin" Value="4,-6,8,0" />
+                        <!-- The playlist toolbar deliberately keeps its windowed
+                             geometry here. It used to be re-dressed for full
+                             window (HorizontalAlignment Left plus a
+                             "4,-6,8,0" margin) and both halves were wrong.
+
+                             The -6 top margin pulls a Height=44 toolbar out of
+                             the Height=44 row that clips it, so the buttons lose
+                             their top edge and the sidebar's first row stops
+                             lining up with the video area beside it. The
+                             alignment flip moved the playlist buttons to the
+                             opposite end of the pane on a state change that has
+                             nothing to do with them: PlayerControl is
+                             Grid.Column="0" and never overlaps this column, so
+                             there is no window-control cluster to dodge either.
+
+                             NormalWindow restores the base XAML values anyway,
+                             so the re-dress only made the two states disagree. -->
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

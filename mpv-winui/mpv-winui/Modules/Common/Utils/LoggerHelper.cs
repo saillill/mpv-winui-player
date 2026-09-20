@@ -20,7 +20,7 @@ namespace mpv_winui.Modules.Common.Utils
                 var level = AppContext.AppSetting.EnableDebugLog ? LogLevel.Trace : LogLevel.Debug;
                 builder.ForLogger().FilterMinLevel(level).WriteToDebug();
 #else
-                var level = AppContext.AppSetting.EnableDebugLog ? LogLevel.Debug : LogLevel.Error;
+                var level = AppContext.AppSetting.EnableDebugLog ? LogLevel.Debug : LogLevel.Warn;
 #endif
                 builder.ForLogger()
                     .FilterMinLevel(level)

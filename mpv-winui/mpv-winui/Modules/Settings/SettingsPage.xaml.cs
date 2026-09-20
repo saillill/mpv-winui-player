@@ -526,6 +526,21 @@ public sealed partial class SettingsPage : Page
         RebuildLocalizedContent();
     }
 
+    /// <summary>Re-runs the passes that read mpv.conf after the file was edited
+    /// by hand while the window was open.
+    ///
+    /// The values themselves need nothing here: they were written into the
+    /// settings by MpvSettings.LoadFromConfig before this is called, and the
+    /// rows are bound, so the displayed text is already current. What does not
+    /// follow from a setting change is anything derived from which options the
+    /// file owns - that moved because the file changed, not because a value did,
+    /// so it has to be recomputed explicitly. On the UI thread by contract; the
+    /// caller marshals.</summary>
+    public void OnExternalConfigChanged()
+    {
+        RefreshWarningsAndEnabled();
+    }
+
     private void RebuildNavigationItems(string? selectedKey)
     {
         CategoryNav.MenuItems.Clear();
@@ -1096,6 +1111,11 @@ public sealed partial class SettingsPage : Page
             // Results span categories, so no caption is "the page itself" --
             // every section header is useful context here.
             OptionsControl.CategoryCaption = null;
+            // Search results are individual rows. Leaving the overview's fold
+            // set in place would collapse any result that happened to land in
+            // a folded section, which is most of them.
+            OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
+            OptionsControl.SetSectionCards([]);
             OptionsControl.OptionList = RankedSearchMatches(query);
             return;
         }
@@ -1157,6 +1177,19 @@ public sealed partial class SettingsPage : Page
             BreadcrumbCategoryLink.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSection.Text = _selectedSection ?? string.Empty;
+
+            // The fold list has to be cleared, and forgetting it is what made
+            // a card open onto another card.
+            //
+            // CollapsedSectionIds is set by the overview branch above and is a
+            // sticky dependency property: nothing resets it on the way here.
+            // The drilled-in list is filtered down to the one section that was
+            // clicked, and that section is by definition a member of the fold
+            // set -- so ApplyItemsSource saw a single section, all of whose
+            // rows were collapsed, and emitted the card for it again. The page
+            // looked like a folder that contained only itself.
+            OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
+            OptionsControl.SetSectionCards([]);
             OptionsControl.OptionList = categoryOptions
                 .Where(o => o.Section == _selectedSection)
                 .ToList();
@@ -1169,16 +1202,30 @@ public sealed partial class SettingsPage : Page
         BreadcrumbCategoryLink.Visibility = Visibility.Collapsed;
         BreadcrumbSeparator.Visibility = Visibility.Collapsed;
         BreadcrumbSection.Text = selected ?? string.Empty;
+        // Same staleness as the branches above: a single-section category has
+        // nothing to fold, so it must not inherit the previous category's fold
+        // set and render its only section as a card.
+        OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
+        OptionsControl.SetSectionCards([]);
         OptionsControl.OptionList = categoryOptions;
     }
 
     /// <summary>Ordered summaries of a category's sections; options arrive
-    /// pre-clustered so first-seen order is the page order.</summary>
-    private static List<(string Label, int Count, bool Advanced)> SectionSummaries(IEnumerable<Option> categoryOptions) =>
+    /// pre-clustered so first-seen order is the page order.
+    ///
+    /// The fold flag comes from the page's resolved section set, never from a
+    /// row. Reading it off g.First() was order-dependent by construction: a
+    /// pinned row is by design not behind its section's card, so a folded
+    /// section holds both flag values, and the section's answer became whatever
+    /// the first row happened to say. Any reorder -- a drag in customize mode,
+    /// a rebuilt list -- could flip a section between its card and a wall of
+    /// rows with nothing else changed.</summary>
+    private List<(string Label, int Count, bool Advanced)> SectionSummaries(
+        IEnumerable<Option> categoryOptions) =>
         categoryOptions
             .Where(o => !string.IsNullOrEmpty(o.Section))
             .GroupBy(o => o.Section!, StringComparer.Ordinal)
-            .Select(g => (g.Key, g.Count(), g.First().AdvancedSection))
+            .Select(g => (g.Key, g.Count(), FoldedSections.Contains(g.Key)))
             .ToList();
 
 

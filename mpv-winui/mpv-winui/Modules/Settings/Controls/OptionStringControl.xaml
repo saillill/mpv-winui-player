@@ -8,6 +8,7 @@
     mc:Ignorable="d">
 
     <Grid
+        ColumnSpacing="{StaticResource MpvOptionControlGap}"
         VerticalAlignment="Center"
         Background="Transparent">
             <Grid.ColumnDefinitions>
@@ -23,9 +24,7 @@
             <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
             <TextBlock
                 x:Name="ErrorText"
-                Foreground="{ThemeResource SystemErrorTextColor}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Visibility="Collapsed" />
+                Style="{StaticResource MpvOptionErrorStyle}" />
             <TextBlock x:Name="WarningText" Style="{StaticResource MpvOptionWarningStyle}" />
         </StackPanel>
         <Grid Grid.Column="1" VerticalAlignment="Center">

@@ -9,6 +9,13 @@ namespace mpv_winui
 {
     public sealed partial class MainWindow
     {
+        // 250 px is the floor for the player window, and it is deliberately
+        // small: a video window is allowed to be tiny, and PiP needs to be.
+        // This is NOT the floor that governs whether the settings list is
+        // readable -- the settings page is its own window and sets its own
+        // minimum (see SettingsWindow, currently 720 x 480). Raising the
+        // number here would only take resizing away from the player without
+        // making any option row easier to read.
         public const int MIN_LOGICAL_WIDTH = 250;
         public const int MIN_LOGICAL_HEIGHT = 250;
 

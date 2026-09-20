@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
+using NLog;
 
 namespace mpv_winui.Modules.Language
 {
@@ -440,7 +443,10 @@ namespace mpv_winui.Modules.Language
         public string SettingsCategoryNetwork { get; set; } = "Network";
         public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
         public string SettingsCategoryOsd { get; set; } = "OSD";
-        public string SettingsCategoryAdvanced { get; set; } = "Advanced";
+        // There is no SettingsCategoryAdvanced: the category was removed and its
+        // options filed by subject. The language files still carry the string, and
+        // that is deliberate - a stale caption costs nothing, while deleting it
+        // would make every existing translation report as an orphan key.
 
         // Section captions split each category into topic groups.
         public string SectionProgramInterface { get; set; } = "Interface";
@@ -502,8 +508,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescGpuD3d11 { get; set; } = "Exclusive fullscreen, flip and adapter";
         public string SectionGpuShaders { get; set; } = "Shaders & cache";
         public string SectionDescGpuShaders { get; set; } = "Custom shader passes";
-        public string SectionAdvancedRenderer { get; set; } = "Renderer";
-        public string SectionDescAdvancedRenderer { get; set; } = "Graphics API, output and buffers";
         public string SettingsGpuApi { get; set; } = "Graphics API";
         public string SettingsHelpGpuApi { get; set; } = "Which graphics interface renders the picture. Auto lets mpv pick the best fit and is recommended. d3d11 is the usual choice on Windows; vulkan has more features but also more driver trouble; opengl is the oldest fallback. A wrong value usually shows up as a black window or a failed start.";
         public string SettingsGpuContext { get; set; } = "Graphics context";
@@ -512,8 +516,6 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpScaleAntiring { get; set; } = "Anti-ringing strength when enlarging (0-1). It softens the halo around edges at the cost of a slightly softer picture. 0 is off; around 0.75 is a common compromise.";
         public string SettingsCscaleAntiring { get; set; } = "Chroma anti-ringing";
         public string SettingsHelpCscaleAntiring { get; set; } = "Anti-ringing strength during chroma upscaling (0-1). Narrower in scope than the option above - it only affects colour edges.";
-        public string SectionAdvancedScaler { get; set; } = "Scaler parameters";
-        public string SectionDescAdvancedScaler { get; set; } = "Per-algorithm tuning knobs";
         public string SectionVideoSync { get; set; } = "Video sync";
         public string SectionDescVideoSync { get; set; } = "Video sync mode and timing";
         public string SectionVideoGeometry { get; set; } = "Geometry";
@@ -1522,28 +1524,80 @@ namespace mpv_winui.Modules.Language
         /// <summary>Validation: a numeric default is malformed.</summary>
         public string CustomizeErrorNumberDefault { get; set; } = "The default must be a number.";
 
-        /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
-        public void LoadFromJson(string path)
+        /// <summary>
+        /// Settable property lookup, built once for the one AppLang instance.
+        ///
+        /// The language file has ~1400 keys and this class has ~2500 string
+        /// properties, so a per-key <see cref="Type.GetProperty(string)"/> is
+        /// ~1400 metadata scans over a 2500-member table — and it ran on every
+        /// switch and every startup. One pass over the property list turns each
+        /// key into a dictionary hit.
+        /// </summary>
+        /// <remarks>
+        /// Lazily built and instance-held rather than cached per type: only one
+        /// AppLang exists per process, and keeping the annotation on a direct
+        /// <c>GetType().GetProperties()</c> call here is what lets the trimmer
+        /// see that these very properties are read by reflection.
+        /// </remarks>
+        private Dictionary<string, PropertyInfo>? _writableProperties;
+
+        private Dictionary<string, PropertyInfo> WritablePropertyMap() =>
+            _writableProperties ??= BuildPropertyMap(GetType());
+
+        private static Dictionary<string, PropertyInfo> BuildPropertyMap(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type)
         {
-            try
+            var map = new Dictionary<string, PropertyInfo>(StringComparer.Ordinal);
+            foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (!System.IO.File.Exists(path)) return;
-                using var doc = JsonDocument.Parse(System.IO.File.ReadAllText(path));
-                foreach (var prop in doc.RootElement.EnumerateObject())
+                map.TryAdd(p.Name, p);
+            }
+            return map;
+        }
+
+        /// <summary>
+        /// Applies a flat { PropertyName: "value" } object to the settable
+        /// properties. Anything the object does not mention keeps its default.
+        /// </summary>
+        /// <remarks>
+        /// Callers pass an element they already parsed so the language file is
+        /// read and parsed once even though two consumers want it. Pass
+        /// <see cref="JsonValueKind.Undefined"/> when the file could not be
+        /// read; this then does nothing and defaults stand.
+        /// </remarks>
+        internal void ApplyJson(JsonElement root)
+        {
+            if (root.ValueKind != JsonValueKind.Object)
+            {
+                return;
+            }
+
+            var map = WritablePropertyMap();
+            foreach (var prop in root.EnumerateObject())
+            {
+                if (prop.Value.ValueKind != JsonValueKind.String) continue;
+                if (!map.TryGetValue(prop.Name, out var p)) continue;
+
+                // Per-key guard, not one guard around the loop. A single
+                // property that refuses its value (a read-only override, a
+                // setter that validates) used to abort the whole pass: every
+                // later key kept its English default, and because the outer
+                // catch was silent the symptom was simply "the app is in
+                // English now" with nothing in the log to explain it.
+                try
                 {
-                    if (prop.Value.ValueKind != JsonValueKind.String) continue;
-                    var p = GetType().GetProperty(prop.Name);
-                    if (p is { CanWrite: true })
-                    {
-                        p.SetValue(this, prop.Value.GetString());
-                    }
+                    p.SetValue(this, prop.Value.GetString());
+                }
+                catch (Exception ex)
+                {
+                    LogManager.GetLogger("AppLang").Warn(
+                        ex, "language key not applied: {0}", prop.Name);
                 }
             }
-            catch
-            {
-                // A broken language file falls back to defaults.
-            }
         }
+
+        /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
+        public void LoadFromJson(string path) => ApplyJson(LanguageFile.ReadRoot(path));
 
         // ===== Customize mode shell =====
         // The customize mode owns its own vocabulary: a draft boundary,

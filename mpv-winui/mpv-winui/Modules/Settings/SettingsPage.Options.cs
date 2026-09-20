@@ -19,6 +19,21 @@ namespace mpv_winui.Modules.Settings;
 
 public sealed partial class SettingsPage
 {
+    /// <summary>Section captions that fold into a card on the category
+    /// overview, as finally resolved by <see cref="ApplyFoldFloor"/> and
+    /// <see cref="ApplyCategoryFloor"/>.
+    ///
+    /// Held on the page because "does this section fold" is a question about the
+    /// section and the rows cannot answer it. A pinned row is deliberately not
+    /// behind the card, so the rows of a folded section carry two different
+    /// AdvancedSection values by design; asking a row -- which is what
+    /// SectionSummaries did, through g.First() -- makes the answer depend on
+    /// which row sorts first, and merely reordering the list flipped the section
+    /// between its card and a wall of rows. The set is the one place the answer
+    /// lives.</summary>
+    private IReadOnlySet<string> FoldedSections { get; set; } =
+        new HashSet<string>(StringComparer.Ordinal);
+
 private List<Option> BuildSettings()
     {
         var program = AppContext.AppLang.SettingsCategoryProgram;
@@ -30,7 +45,6 @@ private List<Option> BuildSettings()
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
-        var advanced = AppContext.AppLang.SettingsCategoryAdvanced;
         var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
@@ -66,8 +80,6 @@ private List<Option> BuildSettings()
         var sOsdText = AppContext.AppLang.SectionOsdText;
         var sWindowBehavior = AppContext.AppLang.SectionWindowBehavior;
         var sVideoGeometry = AppContext.AppLang.SectionVideoGeometry;
-        var sAdvRenderer = AppContext.AppLang.SectionAdvancedRenderer;
-        var sAdvScaler = AppContext.AppLang.SectionAdvancedScaler;
         var sDemuxerPlaylist = AppContext.AppLang.SectionDemuxerPlaylist;
         var sDemuxerBuffering = AppContext.AppLang.SectionDemuxerBuffering;
         var sCache = AppContext.AppLang.SectionCache;
@@ -93,6 +105,13 @@ private List<Option> BuildSettings()
 
         options.AddRange(BuildShortcutOptions(shortcuts));
 
+        // The schema-generated rows. 548 mpv options that no hand-written
+        // row covers, one Option each, built by GeneratedOptions.cs. They
+        // arrive with Category, Section and AdvancedSection already set --
+        // the generator knows the group, not us -- so they only need to be
+        // in the list before the sectionMap pass below resolves SectionId.
+        options.AddRange(BuildGeneratedOptions());
+
         // The overview carries the sections people tune regularly;
         // fine-grained, seldom-batch-adjusted sections (decoding details,
         // GPU internals, HDR/color math, OSD look, screenshot quality, ...)
@@ -106,16 +125,33 @@ private List<Option> BuildSettings()
         // category whose sections are all listed opens to an empty page with
         // nothing but cards. Network and OSD both used to look like that --
         // two categories you could not actually set anything from.
+        // A section belongs here only if it presents three or more rows once
+        // the pins below are taken out. One or two rows behind a card cost a
+        // click and a breadcrumb to reveal almost nothing, and the card is
+        // itself a row, so a two-row card is longer than the rows it hides.
+        // Below that floor the section is flattened instead -- see the
+        // separate list further down for why flattening is written as its own
+        // decision rather than left as "not listed here".
         var advancedSections = new HashSet<string>(StringComparer.Ordinal)
         {
-            sProgramAssociations, sProgramTesting, sProgramConfig,
-
-            // Seeking/reverse/continue-watching are reach-time settings with
-            // their own vocabulary; the plain "Playback" section is the one
-            // that stays on the overview. Resume-on-quit is the exception --
-            // people flip it the moment they notice playback does not resume.
-            sPlaybackSeeking, sPlaybackSeekPreview, sReversePlayback,
-            sWatchLaterStorage,
+            // Program: both of these were cards until the floor was counted
+            // properly. Associations keeps two rows and Testing one, so each
+            // was a click that revealed less than its own header -- the exact
+            // submenu the floor exists to prevent. TestSignal, the two file
+            // association rows and UnassociateFiles now sit on the overview.
+            //
+            // Playback: DemuxerPlaylist (6) stays folded. Seeking (3) does
+            // not: three rows is under the floor, so it is flat. The three
+            // that used to sit here did not survive either -- SeekPreview
+            // keeps only 2 rows past its pinned switch, and ReversePlayback
+            // and WatchLaterStorage are 2 rows each.
+            //
+            // sPlayback itself is folded: 8 rows of resume-on-quit, A/B loop
+            // marks and playlist looping. Speed and SavePositionOnQuit are
+            // pinned back below, so folding it leaves the two rows people
+            // actually reach for on the overview and moves the loop plumbing
+            // behind a card.
+            sPlayback,
 
             // Picture controls everyone recognises: brightness, contrast,
             // saturation, hue, sharpen, rotate. Those stay on the overview,
@@ -128,37 +164,104 @@ private List<Option> BuildSettings()
             // maths (peak decay rate, scene thresholds), colour-space targets
             // and shader paths. None of those are recognisable to a normal
             // user, so none of them earn a first-level row.
-            sVideoFilters, sVideoSync,
-            sColorManagement, sGpuScaling, sGpuShaders, sGpuBackground, sGpuD3d11,
-            sToneMapping, sTargetColorspace,
+            //
+            // VideoDecode and VideoFilters are flat: three rows each is under
+            // the floor. VideoDecode used to be folded to hide the single row
+            // left beside the pinned Hwdec switch, and still only has Hwdec-
+            // Codecs behind it, which is a one-row card.
+            //
+            // GpuBackground is flat for the same reason -- three rows.
+            sVideoSync,
+            sColorManagement, sGpuScaling, sGpuShaders, sGpuD3d11,
+            sToneMapping, sTargetColorspace, sVideoImage,
 
-            sAudioExternal, sAudioCoverArt,
+            // AudioExternal is flat: three rows is under the floor. CoverArt
+            // (7) keeps its card.
+            sAudioCoverArt,
 
-            // Subtitles: Style (17) and Behavior (12) stay on the overview --
-            // between them they carry font size, colour, and which track gets
-            // picked, which is what people come to this category for. The
-            // other three sections go behind cards (Position 15, Filter 8,
-            // Ass 14). Both numbers are over the 8-row guideline, and that is
-            // deliberate: pushing them behind cards too would leave the
-            // category with nothing to set on open, which is the exact
-            // complaint Network and OSD used to draw.
+            // Subtitles used to keep Style (18) and Behavior (12) on the
+            // overview on the argument that they carry font size, colour and
+            // track selection, and leaving nothing to set on open would
+            // reproduce the complaint Network and OSD once drew.
+            //
+            // At 30 rows that argument stops holding: the "nothing to set"
+            // failure needs the category to open empty, and it does not --
+            // SubFontSize is pinned onto the overview, and the four other
+            // sections are cards. Style in particular is 18 rows of font
+            // metrics and colour pickers, which is the wall of rows the fold
+            // exists to prevent, not a shortcut anyone scans.
+            sSubtitleStyle, sSubtitleBehavior,
             sSubtitlePosition, sSubtitleFilter, sSubtitleAss,
 
-            // OsdLevel and the font/colour knobs are reached constantly, so
-            // Appearance stays on the overview even though the section is
-            // large. The metadata driver is the opposite: twelve switches
-            // that only matter while watching something with tags.
-            sOsdBehavior, sOsdPosition, sOsdMetadata,
+            // OSD is a decorative overlay, and every one of its sections is
+            // tuning: the level row is the one thing people change, and it is
+            // pinned back onto the overview below. Appearance (11), Text (9),
+            // Behavior (8), Position (5) and Metadata (12) are all font
+            // metrics, colours and tag switches -- 45 rows in one category,
+            // which is exactly the wall of rows the fold exists to prevent.
+            // Only Appearance was previously listed, on the theory that the
+            // font knobs are reached often; at 11 rows next to 9 more of the
+            // same thing one click away, the split was arbitrary rather than
+            // useful, and the user reported the leftover rows as the problem.
+            sOsdBehavior, sOsdAppearance, sOsdText, sOsdPosition, sOsdMetadata,
 
             sScreenshotQuality,
             // "Cache" is a switch people flip per-file, and yt-dlp is the
             // reason half of the user base is here at all -- both stay
             // visible. The transport plumbing (curl knobs, HTTP headers)
             // is the part nobody opens twice.
+            //
+            // CacheEnabled is pinned below, so folding the section costs the
+            // switch nothing; the three rows that leave the overview with it
+            // (cache-on-disk, its size and its directory) are setup you do
+            // once, not a per-file toggle.
+            sCache,
             sNetworkCurl,
             sDemuxerBuffering, sDemuxerPlaylist,
             sNetworkHttp,
+
+            // AudioOutput is 15 rows of device, exclusive-mode, channel-map
+            // and buffer tuning. AudioDevice is pinned, so the picker people
+            // actually use stays on the overview and the rest folds.
+            sAudioOutput,
+
+            // Window is the other 8-row section that was flat: fullscreen-on-
+            // launch, border, title bar, aspect-ratio lock, auto resize. All
+            // of them are set once and forgotten, and AlwaysOnTop is pinned
+            // below, so the one toggle worth a first-level row survives the
+            // fold. WindowBehavior (4) and WindowPiP (7) sit next to it on
+            // the overview and are what people come to this category for.
+            sWindow,
         };
+
+        // The fold set was a list of sections; it is now a lower bound applied
+        // to each section's final row count, because a list cannot know how
+        // many rows survive the pins. The two failures that produced this:
+        // ProgramTesting ended up a card holding ONE row (TestSignal) after
+        // its switches were pinned, and ProgramAssociations held TWO -- a
+        // card with one row behind it is a click that costs more than the row
+        // it hides. Both were listed as advanced and measured only by eye.
+        //
+        // So the decision is made by ApplyFoldFloor below, once the pins and
+        // the sections are both known.
+
+        // Sections that must NOT fold even though they share a category with
+        // ones that do. There is no such set today -- the floor decided
+        // everything -- but the flat ones are named here rather than left
+        // implicit, because "absent from the set above" was how a section
+        // ended up with a one-row card that nobody measured.
+        //
+        // Flat by the three-row floor:
+        //   sPlaybackSeekPreview  (2 left  after the pinned preview switch)
+        //   sReversePlayback      (2 rows)
+        //   sWatchLaterStorage    (2 rows)
+        //   sProgramConfig        (2 left  after the pinned update check)
+        //   sVideoDecode          (1 left  after the pinned Hwdec switch)
+        //
+        // Flat because the category would open empty otherwise: AudioVolume
+        // (2), ProgramLanguageLog (2) and ProgramInterface (4) are the only
+        // non-card sections their categories have left, and a category with
+        // one card and no rows reads as broken.
         // Entries people reach for daily: language switch, update check,
         // theme, hardware decode, resume-on-quit, output device, subtitle
         // font size, stay-on-top, cache switch, OSD level.
@@ -177,6 +280,11 @@ private List<Option> BuildSettings()
             nameof(AppSettings.EnableVideoPreview),// seek preview switch
         };
 
+        // Whether a section folds is read off its FINAL row count, so it is
+        // decided after sectionMap resolves every row's Section and after the
+        // pins are applied -- see ApplyFoldFloor below. Deciding it here, from
+        // the section list alone, is what left a one-row card behind.
+
         foreach (var option in options)
         {
             if (RedundantDescriptions.Contains(option.Key))
@@ -187,14 +295,21 @@ private List<Option> BuildSettings()
             {
                 option.AllowCustom = false;
             }
-            if (option.Section is { } section && advancedSections.Contains(section))
-            {
-                option.AdvancedSection = true;
-            }
-            if (pinnedOverviewOptions.Contains(option.Key))
-            {
-                option.AdvancedSection = false;
-            }
+
+            // No AdvancedSection here, and the reason is an ordering trap worth
+            // spelling out. The flag is derived from the row's own Section, and
+            // at this point almost no row has one: hand-written rows are filed
+            // by sectionMap, which does not run until much further down, and
+            // only the generated rows (and a few hand files) carry an inline
+            // Section. Marking here therefore reached the generated half and
+            // silently skipped the rest, which left 25 of the 37 folded
+            // sections with no marked row at all -- their cards were never
+            // built and every row spilled onto the overview. The three
+            // Subtitle sections were worse: part of each was marked, so the
+            // section-level decision fell through to whichever row happened to
+            // sort first and the same section flipped between a card and a wall
+            // of rows as soon as anything reordered the list. It is derived
+            // after sectionMap instead; see the loop that resolves Section.
         }
 
         // WinUI 3 settings shell: 9 top-level categories. "Input" is merged
@@ -202,6 +317,12 @@ private List<Option> BuildSettings()
         // beside it. Advanced is deliberately last: the file associations and
         // the diagnostic switches used to sit under Program, where they read as
         // ordinary preferences.
+        // No "advanced" category. Every option is filed by subject, and the ones
+        // that are genuinely obscure sit in a section that folds away inside the
+        // category they belong to. A catch-all bucket was the thing that made
+        // those options hard to find: nobody looks for the graphics API under a
+        // heading called Advanced, and the heading itself said nothing about what
+        // was in it.
         var categoryOrder = new[]
         {
             program,
@@ -213,7 +334,6 @@ private List<Option> BuildSettings()
             network,
             shortcuts,
             osd,
-            advanced,
         };
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
@@ -292,8 +412,7 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.EnableVideoPreview)] = 19,
             [nameof(AppSettings.ThumbnailPreviewWidth)] = 20,
             [nameof(AppSettings.ThumbnailUpdateInterval)] = 21,
-            [nameof(AppSettings.AudioLanguage)] = 31,
-            [nameof(AppSettings.SubtitleLanguage)] = 32,
+            [nameof(AppSettings.AudioLanguage)] = 31,            [nameof(AppSettings.SubtitleLanguage)] = 32,
             [nameof(AppSettings.SubFallback)] = 33,
             [nameof(AppSettings.SavePositionOnQuit)] = 34,
             [nameof(AppSettings.ResumePlayback)] = 35,
@@ -308,6 +427,19 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.Panscan)] = 44,
             [nameof(AppSettings.VideoUnscaled)] = 45,
             [nameof(AppSettings.VideoOutputLevels)] = 46,
+            // The six picture controls, in the order a user reads them:
+            // brightness, contrast, saturation, gamma, hue, sharpen. They sit
+            // in the VideoImage section, and until now they had no order key at
+            // all, so they fell to int.MaxValue and landed after every other row
+            // of the section -- below the level and geometry rows they belong
+            // beside. Prefix 20 is the next free one; 0-116 and the 15xx-25xx
+            // families are taken.
+            [nameof(AppSettings.PictureBrightness)] = 2001,
+            [nameof(AppSettings.PictureContrast)] = 2002,
+            [nameof(AppSettings.PictureSaturation)] = 2003,
+            [nameof(AppSettings.PictureGamma)] = 2004,
+            [nameof(AppSettings.PictureHue)] = 2005,
+            [nameof(AppSettings.PictureSharpen)] = 2006,
             [nameof(AppSettings.HdrAutoMode)] = 47,
             [nameof(AppSettings.HdrAutoLog)] = 48,
             [nameof(AppSettings.VsrAutoEnabled)] = 49,
@@ -331,6 +463,10 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CoverArtPreload)] = 68,
             [nameof(AppSettings.CoverArtNames)] = 69,
             [nameof(AppSettings.CoverArtImageExts)] = 70,
+            // ac3/dts downmix for the audio decoder, in the AudioOutput section.
+            // It had no order key, so it sorted after the whole section rather
+            // than beside the other output-shaped rows it belongs with.
+            [nameof(AppSettings.AdLavcDownmix)] = 2101,
             [nameof(AppSettings.SubFontSize)] = 71,
             [nameof(AppSettings.SubFont)] = 72,
             [nameof(AppSettings.SubFontFile)] = 73,
@@ -489,7 +625,6 @@ private List<Option> BuildSettings()
             ["ActionOpenMpvConf"] = 219,
             [nameof(AppSettings.CheckForUpdates)] = 220,
             [nameof(AppSettings.ControlBarLayout)] = 220,
-            [nameof(AppSettings.ControlBarHiddenIcons)] = 221,
             [nameof(AppSettings.AudioSpdif)] = 300,
             [nameof(AppSettings.Replaygain)] = 301,
             [nameof(AppSettings.OsdLevel)] = 302,
@@ -539,6 +674,12 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.MetadataOsdAutohideForAudio)] = 322,
             [nameof(AppSettings.MetadataOsdAutohideForAudioWithAlbumArt)] = 323,
             [nameof(AppSettings.HdrOverrideMode)] = 326,
+
+            // Window: whether autoresizing the window follows the video. It sits
+            // in the Window section with the other sizing rows and needs an
+            // order key for the same reason the picture controls above did --
+            // without one it fell to int.MaxValue and sorted past them.
+            [nameof(AppSettings.AutoWindowResize)] = 2601,
         };
 
         // Parsed input.conf bindings keep their original order after the capture row.
@@ -562,11 +703,18 @@ private List<Option> BuildSettings()
         // int.MaxValue and jump to the bottom of its category.
         var sectionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
         {
-            // program -- Associations and Testing moved to Advanced, so only
-            // the three sections a normal user recognises remain.
+            // program -- Interface, LanguageLog, Config, then the two folding
+            // sections. Testing and Associations used to be numbered from
+            // inside the "advanced" category's removed block and collided with
+            // Config at index 2; the collision was invisible (the order fell
+            // through to the minimum optionOrder inside each group) but the
+            // table claimed two sections were at the same position, so the
+            // next person to add a sibling would have been reading a lie.
             [sProgramInterface] = 0,
             [sProgramLanguageLog] = 1,
             [sProgramConfig] = 2,
+            [sProgramTesting] = 3,
+            [sProgramAssociations] = 4,
 
             // playback
             [sPlayback] = 0,
@@ -590,6 +738,15 @@ private List<Option> BuildSettings()
             [sScreenshotLocation] = 11,
             [sScreenshotQuality] = 12,
 
+            // The five video-geometry rows (zoom, pan x/y, align x/y) are the
+            // direct-manipulation controls, so they end Video rather than
+            // interrupting the render stack that Decode..ColorManagement walks
+            // in pipeline order. Like the other two late additions below, this
+            // section previously had no entry at all and fell to int.MaxValue,
+            // which happened to land it here already -- the order is now
+            // written down instead of being an accident of a missing key.
+            [sVideoGeometry] = 13,
+
             // audio
             [sAudioOutput] = 0,
             [sAudioVolume] = 1,
@@ -607,9 +764,15 @@ private List<Option> BuildSettings()
             [sSubtitleFilter] = 3,
             [sSubtitleAss] = 4,
 
-            // window
+            // window -- the four window-behaviour rows (cursor autohide and its
+            // fullscreen-only variant, the border, the title bar) sit between
+            // the launch/sizing section and PiP. WindowBehavior had no entry,
+            // so it sorted to int.MaxValue and rendered after PiP -- a
+            // five-option floating window's section showing below the four
+            // rows that describe the main window itself.
             [sWindow] = 0,
-            [sWindowPiP] = 1,
+            [sWindowBehavior] = 1,
+            [sWindowPiP] = 2,
 
             // network
             [sCache] = 0,
@@ -618,18 +781,19 @@ private List<Option> BuildSettings()
             [sNetworkHttp] = 3,
             [sNetworkCurl] = 4,
 
-            // osd
+            // osd -- Behaviour, the text metrics (Appearance, Text), then the
+            // two positional sections. OsdText carries the nine rows that set
+            // how OSD text is drawn (font, scale, spacing, bold/italic,
+            // justify, shadow, fonts dir, provider, shaper), so it belongs
+            // directly after Appearance. It had NO entry here at all, which
+            // silently sorted it to int.MaxValue -- past Metadata, at the
+            // bottom of the category, on the far side of the very sections it
+            // is the metrics for.
             [sOsdBehavior] = 0,
             [sOsdAppearance] = 1,
-            [sOsdPosition] = 2,
-            [sOsdMetadata] = 3,
-
-            // advanced -- renderer and scaler internals, plus the two
-            // developer-facing sections that used to sit in Program.
-            [sAdvRenderer] = 0,
-            [sAdvScaler] = 1,
-            [sProgramTesting] = 2,
-            [sProgramAssociations] = 3,
+            [sOsdText] = 2,
+            [sOsdPosition] = 3,
+            [sOsdMetadata] = 4,
         };
 
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -807,6 +971,13 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.SubSpacing)] = sSubtitleStyle,
             [nameof(AppSettings.SubLineSpacing)] = sSubtitleStyle,
             [nameof(AppSettings.SubHinting)] = sSubtitleStyle,
+            // The brightness a text subtitle is drawn at on an HDR output is a
+            // property of how the text looks, so it sits with the colours above
+            // rather than with the track-selection knobs. It used to be filed
+            // under Behavior; that is how it went missing when the subtitles
+            // map was rebuilt -- the entry was dropped while the option itself
+            // stayed, and BuildSettings() throws on exactly that mismatch.
+            [nameof(AppSettings.SubHdrPeak)] = sSubtitleStyle,
             // position -- including the ASS layout knobs and the second track's
             // placement, which are about where a line lands, not what it looks
             // like.
@@ -910,7 +1081,12 @@ private List<Option> BuildSettings()
             ["ActionImportConfig"] = sProgramConfig,
             ["ActionOpenMpvConf"] = sProgramConfig,
             [nameof(AppSettings.ControlBarLayout)] = sProgramInterface,
-            [nameof(AppSettings.ControlBarHiddenIcons)] = sProgramInterface,
+            // ControlBarHiddenIcons is deliberately absent: it is the pre-split
+            // name of a per-style pair (ControlBarHiddenIconsClassic /
+            // ...ModernX), so no row can ever carry it again. The AppSettings
+            // property stays, because AppSettings.cs reads it once to migrate a
+            // stored value into the pair; a sectionMap or optionOrder entry
+            // would only be an entry the tree can never resolve.
             // osd
             [nameof(AppSettings.OsdFontSize)] = sOsdAppearance,
             [nameof(AppSettings.OsdFont)] = sOsdAppearance,
@@ -997,11 +1173,19 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.VideoPanY)] = sVideoGeometry,
             [nameof(AppSettings.VideoAlignX)] = sVideoGeometry,
             [nameof(AppSettings.VideoAlignY)] = sVideoGeometry,
-            [nameof(AppSettings.GpuApi)] = sAdvRenderer,
-            [nameof(AppSettings.GpuContext)] = sAdvRenderer,
-            [nameof(AppSettings.ScaleAntiring)] = sAdvScaler,
-            [nameof(AppSettings.CscaleAntiring)] = sAdvScaler,
+            [nameof(AppSettings.GpuApi)] = sGpuD3d11,
+            [nameof(AppSettings.GpuContext)] = sGpuD3d11,
+            [nameof(AppSettings.ScaleAntiring)] = sGpuScaling,
+            [nameof(AppSettings.CscaleAntiring)] = sGpuScaling,
         };
+
+        // The generated rows bring their own entries. It is one call rather
+        // than 548 lines here because the entries are a function of the mpv
+        // schema: regenerating is how they stay current, and a hand-edited
+        // copy in this file would be the one thing the generator cannot
+        // refresh. Everything the method writes -- section map, section
+        // order, fold set -- is consumed by the code below.
+        RegisterGeneratedSections(sectionMap, sectionOrder, advancedSections);
 
         // Category is set inline on each Option (single source of truth);
         // sectionMap is the single source for sections (they are not declared
@@ -1032,6 +1216,25 @@ private List<Option> BuildSettings()
             // Resolved once here (the map is already cached) and carried on the
             // row, because a user-created folder has no caption in AppLang.
             option.SectionId = SettingsSections.IdFor(option.Section);
+
+            // The fold flag, derived only now that every row knows its Section.
+            //
+            // Assigned in both directions rather than only being set: a row that
+            // arrives with the flag already true -- which is every generated row,
+            // since the generator stamps it -- has to be able to come back to
+            // false, or a section the floor later un-folds keeps rows that claim
+            // to be hidden.
+            //
+            // The flag's meaning is "this row is behind its section's card",
+            // not "this row's section is advanced". That distinction is what
+            // makes the pins work: a pinned row is a row the user should keep
+            // seeing, so it is false even when its section folds, and the list
+            // renders it above the card instead of swallowing it.
+            option.AdvancedSection = advancedSections.Contains(option.Section ?? string.Empty);
+            if (pinnedOverviewOptions.Contains(option.Key))
+            {
+                option.AdvancedSection = false;
+            }
         }
 
         var categoryOrderIndex = categoryOrder
@@ -1062,6 +1265,21 @@ private List<Option> BuildSettings()
 
         CategoryOrder.AddRange(categoryOrder);
 
+        // Every row now knows its Section (resolved from sectionMap above) and
+        // every row knows whether it is pinned to the overview (applied in the
+        // loop above). That is exactly the input the fold decision needs, so
+        // it happens here rather than where the section list was written.
+        ApplyFoldFloor(options, advancedSections, pinnedOverviewOptions);
+
+        // A card earns its click, but a category still has to be a page. Two
+        // separate questions, so two separate floors -- see ApplyCategoryFloor.
+        ApplyCategoryFloor(options, advancedSections, pinnedOverviewOptions);
+
+        // The resolved set, kept for the page. Publish it as a copy: the local
+        // is about to go out of scope and a copy cannot be mutated by anything
+        // that later receives it.
+        FoldedSections = new HashSet<string>(advancedSections, StringComparer.Ordinal);
+
         // Customize-mode captions are localized, so refresh them with the rest
         // of the page before the stored layout is merged in.
         foreach (var option in options)
@@ -1081,6 +1299,143 @@ private List<Option> BuildSettings()
         ApplyLayout(options);
 
         return options;
+    }
+
+    /// <summary>
+    /// Minimum rows a section must keep on the overview for its card to be
+    /// worth opening. Below this the section is flattened into the category.
+    /// </summary>
+    private const int FoldFloor = 4;
+
+    /// <summary>
+    /// Drops sections whose card would hold fewer than <see cref="FoldFloor"/>
+    /// rows, so the second-level menu never opens onto one or two options.
+    ///
+    /// The check runs on the row count that actually survives the pins, not on
+    /// the section's raw size. Those differ whenever a pinned row is the only
+    /// reason a section had a card: ProgramTesting was listed as advanced and
+    /// held four rows, three of which are pinned to the overview -- so the
+    /// card opened onto TestSignal alone. Counting the survivors is the only
+    /// way to see that, and it needs the rows to have their final Section,
+    /// which is why this runs after sectionMap rather than beside the list.
+    ///
+    /// One-way: a section can lose the fold mark here but never gain it. The
+    /// list in BuildSettings is the intent -- a large section nobody asked to
+    /// fold stays flat -- and this only vetoes.
+    /// </summary>
+    private static void ApplyFoldFloor(
+        List<Option> options,
+        ISet<string> advancedSections,
+        ISet<string> pinnedOverviewOptions)
+    {
+        var rowsBySection = options
+            .Where(o => o.Section is not null)
+            .GroupBy(o => o.Section!, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.Ordinal);
+        var pinnedBySection = options
+            .Where(o => o.Section is not null && pinnedOverviewOptions.Contains(o.Key))
+            .GroupBy(o => o.Section!, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.Ordinal);
+
+        foreach (var section in advancedSections.ToList())
+        {
+            var behindTheCard = rowsBySection.GetValueOrDefault(section)
+                                - pinnedBySection.GetValueOrDefault(section);
+            if (behindTheCard < FoldFloor)
+            {
+                advancedSections.Remove(section);
+
+                // The rows were marked advanced when the section was; clear it
+                // so they actually render on the overview. Leaving the flag set
+                // would hide them behind a card the section no longer has.
+                foreach (var option in options.Where(o => o.Section == section))
+                {
+                    if (!pinnedOverviewOptions.Contains(option.Key))
+                    {
+                        option.AdvancedSection = false;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Minimum rows a category must keep on its overview. Roughly one screen:
+    /// the settings window bottoms out at 560px and a row is 72px, so eight is
+    /// the number of rows needed for the page to not require scrolling to see
+    /// what it contains.
+    /// </summary>
+    private const int CategoryFloor = 8;
+
+    /// <summary>
+    /// Flattens sections until each category keeps at least
+    /// <see cref="CategoryFloor"/> rows of its own.
+    ///
+    /// <see cref="ApplyFoldFloor"/> asks whether a card is worth opening; this
+    /// asks whether the category it lives in is still a page. They are different
+    /// questions and a category can fail the second while every one of its cards
+    /// passes the first. Network, OSD and Subtitles did exactly that: every
+    /// section they own was a legitimate card, so once folding actually reached
+    /// them the overview became six cards with a single pinned row between them
+    /// -- a directory, not a settings page. The user has no way to tell which
+    /// card to open when none of them is on screen as rows.
+    ///
+    /// Sections are flattened smallest-first, so the fewest cards are disturbed
+    /// and the big deep sections -- the ones the fold exists for -- stay folded.
+    /// Pinned rows are counted as already visible and are never the reason a
+    /// section gets flattened.
+    ///
+    /// Runs after <see cref="ApplyFoldFloor"/> so it sees the same surviving
+    /// sections the cards will be built from; a section already flattened there
+    /// is simply not a candidate.
+    /// </summary>
+    private static void ApplyCategoryFloor(
+        List<Option> options,
+        ISet<string> advancedSections,
+        ISet<string> pinnedOverviewOptions)
+    {
+        foreach (var category in options
+            .Where(o => o.Category is not null && o.Section is not null)
+            .GroupBy(o => o.Category!, StringComparer.Ordinal))
+        {
+            var rows = category.ToList();
+            var visible = rows.Count(o => !o.AdvancedSection);
+            if (visible >= CategoryFloor)
+            {
+                continue;
+            }
+
+            // Smallest card first: reaching the floor with the least disruption
+            // keeps the large sections folded, which is the point of the fold.
+            var candidates = rows
+                .Where(o => o.AdvancedSection)
+                .GroupBy(o => o.Section!, StringComparer.Ordinal)
+                .Select(g => (Section: g.Key, Rows: g.Count()))
+                .OrderBy(c => c.Rows)
+                .ToList();
+
+            foreach (var candidate in candidates)
+            {
+                if (visible >= CategoryFloor)
+                {
+                    break;
+                }
+
+                advancedSections.Remove(candidate.Section);
+                foreach (var option in rows.Where(o => o.Section == candidate.Section))
+                {
+                    if (!pinnedOverviewOptions.Contains(option.Key))
+                    {
+                        option.AdvancedSection = false;
+                    }
+                }
+
+                // Recomputed rather than incremented: a section that is entirely
+                // pinned contributes nothing, and adding its row count would
+                // count rows that were never hidden.
+                visible = rows.Count(o => !o.AdvancedSection);
+            }
+        }
     }
 
     /// <summary>

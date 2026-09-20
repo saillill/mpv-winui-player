@@ -185,7 +185,7 @@ public sealed partial class OptionLayoutControl : OptionControlBase
                             canvas.SetEditable(string.Equals(tag, value, StringComparison.Ordinal) && expand);
                         }
                         UpdateCardBorder(card);
-                        if (panel.Children[0] is Grid header)
+                        if (panel.Children.Count > 0 && panel.Children[0] is Grid header)
                         {
                             foreach (var child in header.Children)
                             {
@@ -218,33 +218,49 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             return;
         }
 
-        _current = value;
-        setter(value);
-        Setting?.NotifyChanged();
-
-        // Selecting a style switches the hidden-icon list to that style, so
-        // collapse every card (selection never edits).
-        _expandedValue = null;
-        foreach (var item in StyleCards.Items)
+        // Guarded the same way as ToggleEdit, and for the same reason: this is
+        // a click handler, so anything that escapes it leaves the exception in
+        // WinUI's own event dispatch, where it surfaces as a stowed exception
+        // (0xC000027B) with no dialog, no managed stack and no log line. The
+        // unguarded read below was exactly that: panel.Children[0] threw
+        // ArgumentOutOfRangeException on a card whose StackPanel had not been
+        // populated yet, and every click on a style card could reach it.
+        try
         {
-            if (item is Border card && card.Child is StackPanel panel)
+            _current = value;
+            setter(value);
+            Setting?.NotifyChanged();
+
+            // Selecting a style switches the hidden-icon list to that style, so
+            // collapse every card (selection never edits).
+            _expandedValue = null;
+            foreach (var item in StyleCards.Items)
             {
-                if (panel.Children.Count > 1 && panel.Children[1] is ControlBarCanvasControl canvas)
+                if (item is Border card && card.Child is StackPanel panel)
                 {
-                    canvas.SetEditable(false);
-                }
-                UpdateCardBorder(card);
-                if (panel.Children[0] is Grid h2)
-                {
-                    foreach (var child in h2.Children)
+                    if (panel.Children.Count > 1 && panel.Children[1] is ControlBarCanvasControl canvas)
                     {
-                        if (child is RadioButton radio)
+                        canvas.SetEditable(false);
+                    }
+                    UpdateCardBorder(card);
+                    if (panel.Children.Count > 0 && panel.Children[0] is Grid h2)
+                    {
+                        foreach (var child in h2.Children)
                         {
-                            radio.IsChecked = string.Equals(radio.Tag as string, value, StringComparison.Ordinal);
+                            if (child is RadioButton radio)
+                            {
+                                radio.IsChecked = string.Equals(radio.Tag as string, value, StringComparison.Ordinal);
+                            }
                         }
                     }
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            // Same contract as ToggleEdit: a customize click must not be able
+            // to tear down the settings window.
+            AppContext.AppLogger.Error(ex, "control-bar layout style select failed");
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -10,16 +10,21 @@ namespace mpv_winui.Modules.Settings;
 /// <summary>
 /// 设置项 → mpv 命令 的映射：设置页改动时即时下发，播放器初始化后批量应用。
 /// </summary>
-public static class MpvSettings
+public static partial class MpvSettings
 {
     /// <summary>
     /// Quote a value for mpv's command string parser. mpv_command_string uses
     /// C-style escapes inside quotes, so Windows paths must have their
     /// backslashes doubled, otherwise "C:\Users\..." fails to parse and the
     /// option silently keeps its previous value.
+    ///
+    /// <para>The implementation moved to <see cref="MpvConfValueCodec"/> so its
+    /// inverse is reachable from the test project. Keeping the pair private here
+    /// is what allowed the write side to escape without the read side
+    /// unescaping, which cost a real mpv.conf 896 MB — see that type's own
+    /// documentation.</para>
     /// </summary>
-    private static string Q(string value) =>
-        $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
+    private static string Q(string value) => MpvConfValueCodec.Quote(value);
 
     public static string? ToCommand(string key, object value)
     {
@@ -305,7 +310,36 @@ public static class MpvSettings
             nameof(AppSettings.GpuContext) => string.IsNullOrWhiteSpace((string)value) ? null : $"set gpu-context {(string)value}",
             nameof(AppSettings.ScaleAntiring) => $"set scale-antiring {(double)value}",
             nameof(AppSettings.CscaleAntiring) => $"set cscale-antiring {(double)value}",
-            _ => null,
+
+            // Playback speed. This arm used to be missing, and the absence was
+            // silent rather than loud: the fall-through below is
+            // GeneratedCommand, which only understands Mpv_* keys, so the
+            // hand-written Speed row on the Playback page stored a value, called
+            // ApplyMpv, got null back and sent nothing. Meanwhile the generated
+            // Mpv_speed row -- a second row for the same mpv option, on the
+            // Program page -- did work. Two rows for `speed`, and the one a user
+            // is likelier to find was the dead one.
+            //
+            // Adding the arm fixes the row and removes its twin at the same
+            // time: the generator derives its skip list from `set <name>` in
+            // this file, so regenerating drops Mpv_speed by itself.
+            //
+            // It stays out of ApplyAll -- see SessionStateKeys -- so that
+            // Reset All cannot clobber the speed of a live session.
+            nameof(AppSettings.Speed) => $"set speed {(double)value}",
+
+            // Everything else is a schema-generated row. Those 548 options
+            // share one grammar, so they share one branch instead of 548:
+            // the schema declared the type, the generator wrote the typed
+            // AppSettings property, and the literal is written here from
+            // that property's runtime type. Adding a generated row needs no
+            // change to this method at all.
+            //
+            // The curated cases above win, which is what makes it safe to
+            // generate a row for an option and later hand-write a better
+            // one: deleting the generated row is enough, and until then the
+            // hand-written case is the one that runs.
+            _ => GeneratedCommand(key, value),
         };
 
         // mpv shows an OSD for every property change made with "set" (e.g.
@@ -366,6 +400,14 @@ public static class MpvSettings
                 continue;
             }
 
+            // Session state: mapping it exists (so the row works and the value
+            // persists), but a blanket re-apply is not a reset the user asked
+            // for. See SessionStateKeys.
+            if (SessionStateKeys.Contains(prop.Name))
+            {
+                continue;
+            }
+
             object? value;
             try
             {
@@ -398,12 +440,51 @@ public static class MpvSettings
     }
 
     /// <summary>
+    /// Command for a schema-generated row, or null when the key is not a
+    /// generated one.
+    ///
+    /// Splitting this out of the switch keeps the switch a list of curated
+    /// decisions. The generated rows share one grammar -- the schema declared
+    /// the type and the generator wrote the typed property -- so the literal
+    /// is written once from the property's runtime type instead of 548 times
+    /// by hand. A type the schema cannot currently produce returns null
+    /// rather than emitting a guess, so an unknown value never reaches mpv as
+    /// a malformed command.
+    /// </summary>
+    private static string? GeneratedCommand(string key, object value)
+    {
+        if (!GeneratedOptionNames.TryGetValue(key, out var option))
+        {
+            return null;
+        }
+
+        return value switch
+        {
+            // mpv's config and command grammars both spell a flag yes/no.
+            bool b => $"set {option} {(b ? "yes" : "no")}",
+            int i => $"set {option} {i.ToString(CultureInfo.InvariantCulture)}",
+            double d => $"set {option} {d.ToString("0.0#####", CultureInfo.InvariantCulture)}",
+            // An empty string is how the models express "leave it to mpv",
+            // and `set option ""` would instead pin it to an empty value.
+            string s when string.IsNullOrWhiteSpace(s) => $"set {option} ",
+            string s => $"set {option} {Q(s)}",
+            _ => null,
+        };
+    }
+
+    /// <summary>
     /// The mpv option a settings key writes, or null when the key does not map
     /// to one (a script message, a config-only entry). Callers use it to ask
     /// whether mpv.conf already names that option.
     /// </summary>
     public static string? ToMpvOptionName(string key) =>
-        MpvOptionNames.TryGetValue(key, out var name) ? name : null;
+        MpvOptionNames.TryGetValue(key, out var name)
+            ? name
+            // The generated rows live in their own dictionary so an mpv
+            // upgrade rewrites one file. Both are consulted here so callers
+            // keep asking one question -- "does this key name an option?" --
+            // rather than having to know which half a key came from.
+            : GeneratedOptionNames.TryGetValue(key, out var generated) ? generated : null;
 
     /// <summary>
     /// A real mpv.conf option name: lowercase, digits and dashes, nothing else.
@@ -655,6 +736,14 @@ public static class MpvSettings
         [nameof(AppSettings.ScreenshotTemplate)] = "screenshot-template",
         [nameof(AppSettings.SavePositionOnQuit)] = "save-position-on-quit",
         [nameof(AppSettings.ResumePlayback)] = "resume-playback",
+        // The playback-speed row. It needs both halves to be a first-class
+        // setting: a ToCommand arm so a change reaches mpv, and this entry so
+        // the window can ask whether a hand-written `speed=` line in mpv.conf
+        // owns the option. With only the arm, check-mpvconf-precedence.py
+        // reports it as a key that "can never report being overridden" -- which
+        // is exactly what it was before, silently editable while the file said
+        // otherwise.
+        [nameof(AppSettings.Speed)] = "speed",
         [nameof(AppSettings.ScreenshotFormat)] = "screenshot-format",
         [nameof(AppSettings.ScreenshotJpegQuality)] = "screenshot-jpeg-quality",
         [nameof(AppSettings.ScreenshotJpegSourceChroma)] = "screenshot-jpeg-source-chroma",
@@ -851,6 +940,261 @@ public static class MpvSettings
     {
         nameof(AppSettings.HdrAutoMode),
     };
+
+    /// <summary>Settings that describe the live session, not a saved preference.
+    ///
+    /// They deliberately stay out of <see cref="ApplyAll"/> so that Reset All
+    /// cannot clobber what the user is currently watching: speed would jump back
+    /// to 1.0 and the volume slider would move on its own. Volume is not listed
+    /// because it is not mapped at all -- it is passed to mpv at Initialize.
+    ///
+    /// Speed is applied once at startup instead, which it now gets for free:
+    /// <see cref="ToCommand"/> has an arm for it, so it is part of the startup
+    /// batch rather than the hand-written special case that used to sit in
+    /// MpvPlayerPage next to the ApplyAll call.
+    ///
+    /// A separate set from <see cref="StartupDeferredKeys"/> on purpose. That
+    /// one means "mpv cannot accept this yet"; this one means "applying it
+    /// would be wrong". Merging them would make the next reader assume a timing
+    /// constraint that does not exist.</summary>
+    private static readonly HashSet<string> SessionStateKeys = new(StringComparer.Ordinal)
+    {
+        nameof(AppSettings.Speed),
+    };
+
+    // --- read-back: mpv.conf -> AppSettings ---------------------------------
+
+    /// <summary>mpv option name -> the AppSettings property that writes it.</summary>
+    private static readonly Dictionary<string, string> KeysByOptionName = BuildKeysByOptionName();
+
+    private static Dictionary<string, string> BuildKeysByOptionName()
+    {
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (key, name) in MpvOptionNames)
+        {
+            // First key wins, matching BuildConfigLines: when two settings share
+            // an option the writer only ever emits the first, so reading back
+            // into any other one would edit a value the file cannot express.
+            map.TryAdd(name, key);
+        }
+        return map;
+    }
+
+    /// <summary>
+    /// Loads every option the deployed mpv.conf carries into
+    /// <see cref="AppContext.AppSetting"/>.
+    ///
+    /// <para>This is the read half of "mpv.conf is the source of truth": the
+    /// window is a view of the file, so a value typed into mpv.conf by hand has
+    /// to show up in the UI. Without it the file would only be an output, and a
+    /// hand edit would silently disagree with what the window displays.</para>
+    ///
+    /// <para><b>What it does NOT overwrite.</b> A line the user owns for being
+    /// somewhere the app does not manage - the user-overrides block, or a body
+    /// line that differs from what we ship - IS applied: that is precisely the
+    /// edit this exists to surface, and mpv itself is already running with that
+    /// value. What is skipped is a line the app has no mapping for, since there
+    /// is no property to load it into; those stay confined to the file, which is
+    /// how an option the window does not expose keeps working.</para>
+    ///
+    /// <para>Called once at startup, before the player initialises, so the UI
+    /// and the first apply pass agree with the file on disk.</para>
+    /// </summary>
+    public static void LoadFromConfig()
+    {
+        var path = ManagedMpvConfig.MpvConfPath;
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        string[] lines;
+        try
+        {
+            lines = File.ReadAllLines(path);
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Warn(ex, "mpv.conf unreadable, settings not loaded from disk");
+            return;
+        }
+
+        // Only the last active assignment for an option can win: mpv reads the
+        // file top-down and a later line overwrites an earlier one. Scanning in
+        // order and letting each hit replace the previous reproduces that, so the
+        // UI ends up showing the value mpv actually runs with.
+        var effective = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var inProfile = false;
+
+        foreach (var raw in lines)
+        {
+            var trimmed = raw.Trim();
+            if (trimmed.Length == 0 || trimmed.StartsWith('#'))
+            {
+                continue;
+            }
+
+            // A profile section only applies when activated, so its lines are
+            // not the file's effective values. Skipping them keeps the UI showing
+            // the top-level configuration.
+            if (trimmed.StartsWith('['))
+            {
+                inProfile = true;
+                continue;
+            }
+
+            if (inProfile)
+            {
+                continue;
+            }
+
+            var name = AssignmentOptionName(raw);
+            if (name is null || !KeysByOptionName.ContainsKey(name))
+            {
+                continue;
+            }
+
+            // The managed-block markers are comments and already skipped above;
+            // any other non-assignment line in the block is somebody's note.
+            if (trimmed.StartsWith(ManagedMpvConfig.BeginMarker, StringComparison.Ordinal)
+                || trimmed.StartsWith(ManagedMpvConfig.EndMarker, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            effective[name] = AssignmentValue(raw);
+        }
+
+        var applied = 0;
+        foreach (var (name, text) in effective)
+        {
+            if (TryWriteSetting(KeysByOptionName[name], text))
+            {
+                applied++;
+            }
+        }
+
+        // Logged unconditionally, not only when applied > 0: a silent zero is
+        // indistinguishable from "the read never ran", and the call order in
+        // AppContext.Init is exactly the kind of thing that can regress without
+        // anything else noticing.
+        AppContext.AppLogger.Info(
+            "settings loaded from mpv.conf: {} of {} option(s) mapped", applied, effective.Count);
+    }
+
+    /// <summary>The option name of a top-level assignment, or null.</summary>
+    private static string? AssignmentOptionName(string raw)
+    {
+        var line = StripComment(raw);
+        if (line.Length == 0)
+        {
+            return null;
+        }
+
+        var equals = line.IndexOf('=');
+        if (equals <= 0)
+        {
+            return null;
+        }
+
+        var name = line[..equals].Trim();
+        return ConfigOptionName.IsMatch(name) ? name : null;
+    }
+
+    /// <summary>The value of an assignment, with any trailing comment removed
+    /// and surrounding whitespace trimmed - the exact grammar
+    /// <see cref="ToConfLine"/> emits.</summary>
+    private static string AssignmentValue(string raw)
+    {
+        var line = StripComment(raw);
+        var equals = line.IndexOf('=');
+        return equals < 0 ? string.Empty : line[(equals + 1)..].Trim();
+    }
+
+    /// <summary>
+    /// Drops a trailing "# ..." comment and rejects a fully commented line.
+    ///
+    /// The same rule the ownership reader uses, and for the same reason: the
+    /// shipped config annotates nearly every line, and no value it writes is a
+    /// quoted string containing '#'. Kept local rather than shared because the
+    /// two readers must stay independently testable.
+    /// </summary>
+    private static string StripComment(string raw)
+    {
+        var trimmed = raw.TrimStart();
+        if (trimmed.Length == 0 || trimmed[0] == '#')
+        {
+            return string.Empty;
+        }
+
+        var hash = raw.IndexOf('#');
+        var body = hash >= 0 ? raw[..hash] : raw;
+        return body.TrimEnd();
+    }
+
+    /// <summary>
+    /// Writes one conf value into the AppSettings property that owns it, using
+    /// the property's declared type - never a guess.
+    ///
+    /// <para>Reflection is the point: the mapping is declared once in
+    /// <see cref="MpvOptionNames"/> and the conversion follows the property's
+    /// own type, so a setting whose type changes (or a new one) cannot end up
+    /// silently parsed as the wrong kind. Returns false when the value does not
+    /// parse, so the caller can count real loads rather than attempts.</para>
+    /// </summary>
+    private static bool TryWriteSetting(string key, string text)
+    {
+        var prop = typeof(AppSettings).GetProperty(key,
+            BindingFlags.Public | BindingFlags.Instance);
+        if (prop is null || !prop.CanWrite)
+        {
+            return false;
+        }
+
+        object? value;
+        try
+        {
+            value = prop.PropertyType switch
+            {
+                // Parsing is delegated to the codec so it can mirror the encodings
+                // ToCommand applies, and so it is reachable from the test project.
+                // The previous inline version used plain double/int TryParse, which
+                // could not read back a single value the app itself had written for
+                // the settings that encode a sentinel or a unit: `no` for a cleared
+                // A/B loop point, `inf` for "loop forever", and the `MiB` suffix on
+                // the demuxer limits. The log recorded 60 such failures across 6
+                // settings, each silently reverting a user's value in the UI.
+                _ => MpvConfValueCodec.ParseMpvValue(prop.PropertyType, text),
+            };
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Warn(ex, "mpv.conf value not readable for {}", key);
+            return false;
+        }
+
+        if (value is null)
+        {
+            // A value mpv accepts but this property cannot represent (an empty
+            // enum, an out-of-range number). Leaving the stored setting alone is
+            // the safe reading: mpv still runs with the file's value, and the UI
+            // keeps showing the last one it understood.
+            AppContext.AppLogger.Warn(
+                "mpv.conf value not convertible for {}: '{}'", key, text);
+            return false;
+        }
+
+        try
+        {
+            prop.SetValue(AppContext.AppSetting, value);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            AppContext.AppLogger.Warn(ex, "mpv.conf value rejected by AppSettings.{}", key);
+            return false;
+        }
+    }
 
     /// <summary>
     /// Serializes the shader-list editor value into an mpv <c>glsl-shaders</c>

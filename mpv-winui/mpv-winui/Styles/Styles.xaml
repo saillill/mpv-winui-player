@@ -900,7 +900,13 @@
         x:Key="MpvOptionLabelStyle"
         BasedOn="{StaticResource BodyTextBlockStyle}"
         TargetType="TextBlock">
-        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+        <!-- One line, matching the description below: a wrapping label makes
+             the row taller and the control beside it off-centre, and the
+             longer names in the generated set (a schema option name can run
+             past 30 characters) would otherwise wrap at any realistic width. -->
+        <Setter Property="MaxLines" Value="1" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
 
     <Style
@@ -908,7 +914,27 @@
         BasedOn="{StaticResource CaptionTextBlockStyle}"
         TargetType="TextBlock">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
-        <Setter Property="TextWrapping" Value="Wrap" />
+        <!-- NoWrap, not Wrap: with MaxLines=1 a wrapping TextBlock still
+             breaks the text at the last word that fits, so the ellipsis lands
+             wherever that break fell and the line ends ragged at an arbitrary
+             column. NoWrap keeps the line whole and puts the ellipsis exactly
+             at the column edge, which is what makes a list of one-line
+             descriptions line up. -->
+        <Setter Property="TextWrapping" Value="NoWrap" />
+        <!-- One line, then an ellipsis.
+             The row height is the thing being protected. The description sits
+             in a two-column grid beside the control, so every extra line it
+             wraps to pushes the row taller and drags the control off the
+             vertical centre, and at two lines the list stops being scannable
+             when the window is snapped, which is exactly when it matters.
+             One line makes every row the same height at any width. MaxLines
+             plus TextTrimming is the only combination that both stops the
+             growth and shows there is more text; either alone leaves a
+             silently clipped or endlessly growing line. The help text in
+             Languages/*.json is the place for the rest, and it is already
+             trimmed to be short enough to fit. -->
+        <Setter Property="MaxLines" Value="1" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         <Setter Property="Visibility" Value="Collapsed" />
     </Style>
 
@@ -917,6 +943,24 @@
         BasedOn="{StaticResource CaptionTextBlockStyle}"
         TargetType="TextBlock">
         <Setter Property="Foreground" Value="{ThemeResource SystemFillColorCautionBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Visibility" Value="Collapsed" />
+    </Style>
+
+    <!-- The fourth of the text roles, and for a long time the only one without a
+         token: the three controls that validate input (Double, Integer, String)
+         each restated the same foreground, ramp step and initial visibility
+         inline. ErrorText is the one role here that is genuinely conditional in
+         BOTH directions - a control may have no error node at all (the six that
+         cannot fail validation) or have one that is only filled on a failed
+         commit - so the initial Collapsed is part of the role, not an accident.
+         Wrap matches the warning: a validation message is a sentence, and
+         clipping it would hide the part that says what to do. -->
+    <Style
+        x:Key="MpvOptionErrorStyle"
+        BasedOn="{StaticResource CaptionTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource SystemErrorTextColor}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Visibility" Value="Collapsed" />
     </Style>
@@ -941,6 +985,16 @@
     <x:Double x:Key="MpvSpaceL">16</x:Double>
     <x:Double x:Key="MpvSpaceXl">24</x:Double>
 
+    <!-- The gap between an option's text block and the control that sets it.
+         Deliberately its own token rather than a step on the scale above: it
+         is the one gap in the list that has to read as a separation, not as
+         internal spacing, and it sits between two columns that both grow.
+         Most rows previously declared no ColumnSpacing at all, so the
+         description ran flush into the control and the two read as one
+         wrapped paragraph. 24 keeps a full M-step of air on either side of
+         the boundary. -->
+    <x:Double x:Key="MpvOptionControlGap">24</x:Double>
+
     <!-- The two repeated Thickness shapes in the settings list: the gap under
          an option row, and the padding inside a section card. -->
     <Thickness x:Key="MpvOptionRowMargin">0,0,0,8</Thickness>
@@ -954,12 +1008,35 @@
          comment at each site says so. -->
     <Thickness x:Key="MpvCompactButtonPadding">8,4</Thickness>
     <Thickness x:Key="MpvTinyButtonPadding">6,2</Thickness>
-    <Thickness x:Key="MpvCardPaddingWide">16,10</Thickness>
+    <!-- The footer's horizontal inset. Same 12 as the breadcrumb's Margin and
+         the browse list's ScrollViewer padding, because all three are rows of
+         one content column: the box width is shared, so the inset has to be
+         too or the boxes start at different x. The 16/10 vertical pair this
+         replaced was the optical match to the 32px controls beside it, and the
+         16 horizontal half was simply never reconciled with the other two
+         rows. -->
+    <Thickness x:Key="MpvFooterPadding">12,10</Thickness>
     <Thickness x:Key="MpvTitleBarPadding">16,5</Thickness>
     <Thickness x:Key="MpvOptionRowMarginXl">0,12,0,8</Thickness>
     <Thickness x:Key="MpvSplitterMargin">0,16,0,4</Thickness>
     <Thickness x:Key="MpvBreadcrumbBarMargin">12,4,12,12</Thickness>
     <Thickness x:Key="MpvSearchGlyphMargin">14,0,0,0</Thickness>
+
+    <!-- The reading width of the settings window's content column, and the
+         media-info panel's. One token because the two surfaces sit in
+         different windows and must still line up when both are open.
+
+         Both a MaxWidth and an alignment, always together: a MaxWidth box
+         with no alignment stretches to the parent and then clamps at the
+         leading edge, so a wide window leaves all the slack on the right and
+         the cards hug the pane gutter. Centre is what makes the clamp
+         symmetric.
+
+         Every row that shares this column must also share its horizontal
+         inset, or the boxes are the same width but start at different x. The
+         settings page's three rows had drifted to 12/12/16 before that was
+         noticed; the footer now carries the same 12 as the other two. -->
+    <x:Double x:Key="MpvContentMaxWidth">1060</x:Double>
 
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
