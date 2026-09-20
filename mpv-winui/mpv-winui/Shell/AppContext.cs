@@ -87,6 +87,16 @@ namespace mpv_winui
 
         public static void Init()
         {
+            // The logger comes up first, before anything that can fail. It used
+            // to be set up ~20 lines down, after the language load, and that
+            // order silently swallowed exactly the failures worth seeing: a
+            // language file that cannot be parsed throws into a target that does
+            // not exist yet, and the result is a startup that looks like it
+            // simply did nothing. Nothing else in startup is worth this risk;
+            // load-configuration is one call and reads no settings state beyond
+            // the log level.
+            LoggerHelper.SetupLogger();
+
             LoadLanguage();
             SettingChanged += OnSettingChanged;
 
@@ -108,7 +118,9 @@ namespace mpv_winui
             // run at all. Synchronous, so "before" is guaranteed and not merely
             // likely: it is a single load-configuration call, and the write it
             // would otherwise overlap with is queued below anyway.
-            LoggerHelper.SetupLogger();
+            //
+            // The setup itself now happens at the top of Init, together with the
+            // same reasoning applied to the language load.
 
             // Read the file into the settings BEFORE anything writes it back.
             //

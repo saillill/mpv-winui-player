@@ -819,14 +819,15 @@ public sealed partial class OptionListControl : UserControl
         }
     }
 
-    /// <summary>Returns the current vertical offset of the settings content.</summary>
+    /// <summary>Returns the current vertical offset of the settings content.
+    ///
+    /// The walk starts at <c>this</c>, not at OptionListView, so it finds the
+    /// first scrolling ancestor. The list itself has scrolling turned off (the
+    /// page's ScrollViewer is the one scrolling surface), so asking the list
+    /// would report a viewer that never moves.
+    /// </summary>
     public double GetScrollOffset()
     {
-        // The page scrolls, not this list. OptionListView is measured at its
-        // own height inside the host's scroll surface, whose own ScrollViewer
-        // wins this walk -- so the offset read here is the offset that
-        // actually moves. Asking the list for it would report its internal
-        // viewer, which never scrolls once the list is height-constrained.
         return FindScrollViewer(this)?.VerticalOffset ?? 0;
     }
 
@@ -847,11 +848,11 @@ public sealed partial class OptionListControl : UserControl
         {
             if (option.Key == key)
             {
-                // ScrollIntoView on a list that does not scroll itself is a
-                // no-op: the layout a result lives in is the page's, so the
-                // element it is rendered by is what has to be brought up.
-                // Realise it first, then defer -- the container only exists
-                // after the next layout pass that the scroll request triggers.
+                // The list is height-constrained inside the page's scroller, so
+                // ListView.ScrollIntoView has nothing of its own to scroll and
+                // does nothing. Bring the realised container up through the
+                // ancestor scroll surface instead. Realise it first: the
+                // container only exists once layout has run for the item.
                 OptionListView.UpdateLayout();
                 if (OptionListView.ContainerFromItem(option) is FrameworkElement container)
                 {

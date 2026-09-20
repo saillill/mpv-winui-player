@@ -165,56 +165,39 @@
                          its content against infinite width, giving the column
                          no finite width to be centred within.
 
-                         Vertical scrolling is left to the ListViews inside,
-                         not to this ScrollViewer: a ListView measured at
-                         infinite height realises all of its items and cannot
-                         virtualise, so wrapping one in a scrolling host is both
-                         a perf trap and a known WinUI layout-cycle trigger.
-                         Reaching the ListViews here means this host must not
-                         itself be the scroller. -->
+                         This ScrollViewer is the ONE scrolling surface for the
+                         category page. The ListViews inside it are
+                         height-constrained and have their own scrolling turned
+                         off (see OptionListControl), because two nested
+                         scrollers in one page is what makes a scroll gesture
+                         ambiguous and what let a click re-enter layout while a
+                         scroll was still settling. One owner, one scrollbar.
+
+                         It follows that the content here is measured at finite
+                         height, so an inner ListView cannot virtualise.
+                         That cost is bounded by the fold rule: the largest
+                         generated section (205 rows) is a folded section, so it
+                         reaches this list as one card, not 205 rows. -->
                     <ScrollViewer
                         x:Name="BrowseHost"
                         Margin="12,4,12,0"
                         Padding="0"
                         HorizontalScrollBarVisibility="Disabled"
-                        HorizontalScrollMode="Disabled"
-                        VerticalScrollBarVisibility="Disabled"
-                        VerticalScrollMode="Disabled">
-                        <Grid
+                        HorizontalScrollMode="Disabled">
+                        <StackPanel
                             MaxWidth="{StaticResource MpvContentMaxWidth}"
                             HorizontalAlignment="Center">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <!-- Common options for this category, directly on
-                                 the overview. Height is auto: it is the short
-                                 block above the cards and shares this page's
-                                 single scroll. -->
-                            <ctl:OptionListControl
-                                x:Name="OptionsControl"
-                                Grid.Row="0"
-                                ShowHeaders="False" />
-
-                            <!-- Advanced-section entry cards. Row 1 is the star
-                                 row, so this ListView is handed the page's
-                                 remaining height and owns the vertical
-                                 scrolling itself, which is what keeps it
-                                 virtualising when a category holds hundreds of
-                                 rows. -->
+                            <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
                             <ListView
                                 x:Name="SectionsHost"
-                                Grid.Row="1"
                                 Margin="0,4,0,0"
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
                                 SelectionMode="None"
                                 IsItemClickEnabled="False"
                                 ItemContainerStyle="{StaticResource SectionCardListViewItemStyle}"
                                 Visibility="Collapsed" />
-                        </Grid>
+                        </StackPanel>
                     </ScrollViewer>
 
                     <!-- Customize layout: bookmark-manager shape — the folder
