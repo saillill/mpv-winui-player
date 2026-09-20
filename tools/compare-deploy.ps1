@@ -42,7 +42,17 @@ Write-Host ""
 
 $identical = 0
 $differ = New-Object System.Collections.Generic.List[object]
+$symbols = New-Object System.Collections.Generic.List[object]
 foreach ($rel in ($s.Keys | Sort-Object)) {
+    # .pdb is skipped by tools/deploy-test.ps1 on purpose -- debug symbols are
+    # not part of an install, so their absence from the deploy dir is not
+    # staleness. They get their own bucket so they cannot pad "needs deploying"
+    # with a permanent non-issue: that made a fully-synced deploy report 4 files
+    # behind, which is how a real 4 files behind would have gone unnoticed.
+    if ([System.IO.Path]::GetExtension($rel) -eq '.pdb') {
+        $symbols.Add([pscustomobject]@{ Rel = $rel; Bytes = $s[$rel].Length })
+        continue
+    }
     if (-not $d.ContainsKey($rel)) {
         $differ.Add([pscustomobject]@{ Rel = $rel; Kind = 'MISSING in dst'; Src = $s[$rel].Length; Dst = $null })
         continue
@@ -67,10 +77,15 @@ $onlyInDst = @($d.Keys | Where-Object { -not $s.ContainsKey($_) })
 Write-Host "identical: $identical"
 Write-Host "differing: $($differ.Count)"
 Write-Host "present only in dst: $($onlyInDst.Count)"
+Write-Host "symbols  : $($symbols.Count) .pdb, not deployed by design"
 Write-Host ""
 if ($differ.Count) {
     Write-Host "== files that need deploying =="
     $differ | Sort-Object Kind, Rel | Format-Table -AutoSize
+}
+if ($symbols.Count -and $ShowAll) {
+    Write-Host "== .pdb present in src only (deploy-test.ps1 skips these) =="
+    $symbols | Sort-Object Rel | Format-Table -AutoSize
 }
 if ($onlyInDst.Count) {
     Write-Host "== only in dst (overlay leaves them; prune only if a .xaml moved) =="
