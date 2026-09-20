@@ -110,10 +110,15 @@
         </Grid.RowDefinitions>
 
         <!-- Scoped notice: the same "only affects this file" framing Windows
-             uses for anything read-only, so the window never looks editable. -->
+             uses for anything read-only, so the window never looks editable.
+             Same MaxWidth and alignment as the card column below it, so the
+             bar's left edge lands under the cards' rather than at the window
+             edge. -->
         <InfoBar
             x:Name="ScopeBar"
             Grid.Row="0"
+            MaxWidth="{StaticResource MpvContentMaxWidth}"
+            HorizontalAlignment="Center"
             Margin="16,12,16,4"
             IsClosable="False"
             IsOpen="True"
@@ -157,6 +162,8 @@
 
         <Grid
             Grid.Row="2"
+            MaxWidth="{StaticResource MpvContentMaxWidth}"
+            HorizontalAlignment="Center"
             Padding="16,8,16,12"
             ColumnSpacing="8">
             <Grid.ColumnDefinitions>
