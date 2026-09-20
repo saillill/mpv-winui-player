@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Find catalog sections that no option files under, and option sections with no row.
 
 check-sections.py proves the catalog (SettingsSections) and AppLang agree. It
@@ -31,6 +31,9 @@ REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "mpv-winui" / "mpv-winui"
 CATALOG = SRC / "Modules" / "Settings" / "Layout" / "SettingsSections.cs"
 PAGE = SRC / "Modules" / "Settings" / "SettingsPage.Options.cs"
+# The schema-generated rows register their sections here instead of in PAGE.
+# See generated_sections() for why this file has to be read.
+GEN_SECTIONS = SRC / "Modules" / "Settings" / "SettingsPage.Sections.Gen.cs"
 
 ALIAS = re.compile(
     r'var\s+(s[A-Za-z0-9_]+)\s*=\s*AppContext\.AppLang\.(Section[A-Za-z0-9]+)')
@@ -40,6 +43,36 @@ ENTRY = re.compile(
 # Inline escape hatch: `Section = sBar,` on an Option initialiser. Guarded so
 # `option.Section = ...` and `AdvancedSection = ...` do not match.
 INLINE = re.compile(r'(?<![\w.])Section\s*=\s*([A-Za-z0-9_]+)')
+# The generated half names the AppLang property directly rather than through a
+# local alias: `sectionMap[nameof(...)] = lang.SectionGenAudio;`.
+GEN_REF = re.compile(r'lang\.(Section[A-Za-z0-9]+)')
+
+
+def generated_sections() -> dict[str, int]:
+    """Sections registered by RegisterGeneratedSections(), by AppLang name.
+
+    This file had the same blind spot the other checkers did: it reads the
+    sectionMap literal in SettingsPage.Options.cs and nothing else, so the 13
+    sections the generator registers were invisible and every one of them was
+    reported as EMPTY -- "in catalog, no option files under it". They are in
+    fact the *only* sections the 548 generated rows use, so the report was
+    exactly inverted: the sections holding over half the tree were the ones
+    being called empty.
+
+    Read from the AppLang property name (SectionGenAudio) rather than a local
+    variable, because that is the form the catalog compares in. Matching a
+    variable name here would also pick up `var` declarations that do not exist
+    in generated output.
+    """
+    if not GEN_SECTIONS.exists():
+        # A checkout without the generated files is a legitimate state: the
+        # pages that need them do not build either. Not an error.
+        return {}
+    text = GEN_SECTIONS.read_text(encoding="utf-8-sig")
+    counts: dict[str, int] = {}
+    for name in GEN_REF.findall(text):
+        counts[name] = counts.get(name, 0) + 1
+    return counts
 
 
 def main():
@@ -64,6 +97,14 @@ def main():
             unresolved.append(rhs)
         else:
             used[name] = used.get(name, 0) + 1
+
+    # The generated half registers its sections in its own file, in one call
+    # from BuildSettings(). Union them in: the two halves are one map at
+    # runtime, and a check that knew only about the hand-written half reported
+    # every generated section as empty. See generated_sections().
+    generated = generated_sections()
+    for name, count in generated.items():
+        used[name] = used.get(name, 0) + count
 
     # Options that set their section inline instead of through the map.
     inline_hits = 0
