@@ -360,8 +360,9 @@
                         <TextBlock
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="{x:Bind CountText}"
-                            TextTrimming="CharacterEllipsis" />
+                            Text="{x:Bind Description}"
+                            TextTrimming="CharacterEllipsis"
+                            Visibility="{x:Bind DescriptionVisibility}" />
                     </StackPanel>
 
                     <FontIcon

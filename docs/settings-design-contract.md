@@ -90,16 +90,23 @@ Modules/Settings/
 
 | 行 | 元素 | MaxWidth | 对齐 | 水平内缩 |
 |---|---|---|---|---|
-| 0 面包屑 | `BreadcrumbBar` (Grid) | `MpvContentMaxWidth` | `Center` | `MpvBreadcrumbBarMargin` 的 12 |
-| 1 卡片列 | `BrowseHost` (ScrollViewer) | `MpvContentMaxWidth` | `Center` | `Margin="12,4,12,0"` |
-| 2 页脚 | Border | `MpvContentMaxWidth` | `Center` | `MpvFooterPadding` 的 12 |
+| 0 面包屑 | `BreadcrumbBar` (Grid) | `MpvContentMaxWidth` | `Stretch` | `MpvBreadcrumbBarMargin` 的 12 |
+| 1 卡片列 | `BrowseHost` (ScrollViewer) | `MpvContentMaxWidth` | `Stretch` | `Margin="12,4,12,0"` |
+| 2 页脚 | Border | `MpvContentMaxWidth` | `Stretch` | `MpvFooterPadding` 的 12 |
 
 **三条不可违反的规则**：
 
-1. **`MaxWidth` 与 `HorizontalAlignment="Center"` 必须成对出现。**
-   只有 `MaxWidth` 的元素会先按父宽拉伸、再被裁到 1060，**裁出来的盒子停在起始边**，
-   窗口越宽右边空白越多。`Center` 才让钳制对称。
-   *验证*：`check-scroll-maxwidth.py`。
+1. **`MaxWidth` 必须配 `HorizontalAlignment="Stretch"`，不能配 `Center`。**
+   `Center`（以及 `Left`/`Right`）会把那一行按**自身内容**定尺寸再摆放。三行的
+   内容宽度天然不同：面包屑"返回箭头 + 标题"约 150px，`BrowseHost` 里的卡片列
+   约 685px。各自居中就是各自一条左缘 —— 标题飘在窗口正中、卡片另起一列，
+   三行同构的意义荡然无存。
+   `Stretch` 让三行都拿到内容区的**有限**宽度，左缘必然重合；宽度超过 1060 时
+   钳出来的盒子停在起始边、右侧留白，这正是**左对齐**要达到的效果。
+   *验证*：`check-scroll-maxwidth.py`（拒绝被无限宽度测量的 MaxWidth 列）、
+   `check-xaml.py`；目视三行左缘是否重合。
+   *历史*：本条曾经写的是 `Center`，理由是"让钳制对称"。对称只在窗口宽到三行
+   都触到 1060 时成立，窄窗口下退化成上面那种各居各的，实测即为此症状。
 2. **`MaxWidth` 与水平内缩必须在同一个元素上。**
    曾经 `MaxWidth` 在内层 `StackPanel`、12px 内缩在外层 `ScrollViewer`，
    于是卡片列宽 1060 而面包屑/页脚宽 1036 —— 卡片比标题两侧各宽 12px。
@@ -620,7 +627,8 @@ python <governance>/run-baseline.py after      # 或逐个跑 tools\check-*.py
 
 | 症状 | 根因 | 位置 |
 |---|---|---|
-| 宽窗口下内容贴左、右边一大片空白 | `MaxWidth` 配 `Stretch`，钳出来的盒子停在起始边 | §2.1 |
+| 标题飘在窗口中间、卡片另起一条左缘 | `MaxWidth` 配 `Center`：每行按自身内容定宽再居中，三行内容宽度不同就各居各的 | §2.1 规则 1 |
+| 宽窗口下内容贴左、右侧留白 | 预期行为：`MaxWidth` 配 `Stretch`，钳出来的盒子停在起始边 | §2.1 规则 1 |
 | 属性完全正确但 `HorizontalAlignment` 不生效 | `ScrollViewer` 横向默认 `Enabled`，用无限宽度测量 | §2.2 |
 | 没有滚动条、页脚盖住内容 | 内层 `ListView` 留着内部 `ScrollViewer`，报告视口高度 | §2.2 |
 | 面包屑飘在窗口中间 | 给它加了铺满全宽的包装 `Grid` | §2.1 规则 3 |

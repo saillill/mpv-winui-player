@@ -25,6 +25,9 @@ namespace mpv_winui.Modules.Player
     /// </summary>
     public sealed partial class PlayerControl
     {
+            /// <summary>Current per-button slot width, or 0 before the first apply.</summary>
+            private double _barPitch;
+
             private void OnPiPClick(object sender, RoutedEventArgs e)
             {
                 AppContext.AppSetting.WindowPiP = !AppContext.AppSetting.WindowPiP;
@@ -108,7 +111,18 @@ namespace mpv_winui.Modules.Player
                 // the width tier both feed ApplyControlBarVisibility. Rebuilding
                 // the bars is ApplyControlBarOrder's job (it is skipped when
                 // nothing moved), so this only sets Visibility.
-                ApplyControlBarVisibility(ControlBarAdaptiveLayout.TierFor(ActualWidth), hidden);
+                ApplyControlBarVisibility(TierForWidth(ActualWidth), hidden);
+            }
+
+            /// <summary>
+            /// The tier for a given bar width. The bar's own ActualWidth is the
+            /// window's width, but its ActualHeight is the bar's own height, so
+            /// the orientation half of the rule has to be read from the XamlRoot.
+            /// </summary>
+            private ControlBarTier TierForWidth(double width)
+            {
+                var size = XamlRoot?.Size;
+                return ControlBarAdaptiveLayout.TierFor(width, size?.Height ?? 0);
             }
 
             /// <summary>
@@ -159,10 +173,67 @@ namespace mpv_winui.Modules.Player
                     SetHidden(!visible, elements);
                 }
 
-                // Hysteresis-free: the overflow button appears as soon as the
-                // width tier (or the user) hides anything at all.
-                var anythingHidden = tier != ControlBarTier.Wide || userHidden.Count > 0;
-                SetHidden(!anythingHidden, MoreButton);
+                // The More button exists only to reach what the bar cannot show,
+                // so its visibility is the menu's own "is there anything to
+                // offer" question, asked of the same table the menu is built
+                // from. It used to be shown whenever the tier was below Wide,
+                // which is not that question: at the narrower tiers every
+                // surviving control can still be on the bar, and a control the
+                // user hid on purpose is never offered back -- in both cases the
+                // button appeared and opened an empty menu.
+                SetHidden(!ControlBarAdaptiveLayout.HasOverflowContent(tier, userHidden), MoreButton);
+
+                // Three controls a side plus the transport is more than the
+                // default 40px pitch fits in a portrait window; tighten it
+                // rather than dropping controls to make room.
+                ApplyBarPitch(ControlBarAdaptiveLayout.IsTight(tier));
+            }
+
+            /// <summary>
+            /// Sets the per-button pitch. The command bars lay their items out
+            /// edge to edge, so an item's width is what the pitch really is;
+            /// narrowing it tightens the row without touching the glyph size or
+            /// the hit target's height.
+            /// </summary>
+            private void ApplyBarPitch(bool tight)
+            {
+                // 40 is the AppBarButton default this bar is built around; 33 is
+                // the widest that keeps ten slots inside a 340px window.
+                const double Wide = 40;
+                const double Tight = 33;
+
+                var width = tight ? Tight : Wide;
+                if (_barPitch == width)
+                {
+                    return;
+                }
+                _barPitch = width;
+
+                foreach (var button in PitchControlledButtons())
+                {
+                    button.Width = width;
+                    button.MinWidth = 0;
+                }
+            }
+
+            /// <summary>Buttons whose slot width the pitch rule owns.</summary>
+            private IEnumerable<FrameworkElement> PitchControlledButtons()
+            {
+                yield return PlayPauseButton;
+                yield return PreviousTrackButton;
+                yield return NextTrackButton;
+                yield return SkipBackwardButton;
+                yield return SkipForwardButton;
+                yield return ShuffleButton;
+                yield return PlaybackRateButton;
+                yield return TrackSelectionButton;
+                yield return ControlPanelButton;
+                yield return ZoomButton;
+                yield return PiPButton;
+                yield return FullWindowButton;
+                yield return FullScreenButton;
+                yield return VolumeMuteButton;
+                yield return MoreButton;
             }
 
             /// <summary>
@@ -270,7 +341,7 @@ namespace mpv_winui.Modules.Player
                         PlayPauseButton, SkipForwardButton,
                         NextTrackButton,
                     ];
-                    right = [.. ControlBarLayoutEngine.ReorderMovable(rightMovable.ToArray(), custom), MoreButton];
+                    right = [MoreButton, .. ControlBarLayoutEngine.ReorderMovable(rightMovable.ToArray(), custom)];
                 }
                 else
                 {
@@ -281,7 +352,7 @@ namespace mpv_winui.Modules.Player
                         .. ControlBarLayoutEngine.ReorderMovable(leftMovable.ToArray(), custom),
                     ];
                     middle = [];
-                    right = [.. ControlBarLayoutEngine.ReorderMovable(rightMovable.ToArray(), custom), MoreButton];
+                    right = [MoreButton, .. ControlBarLayoutEngine.ReorderMovable(rightMovable.ToArray(), custom)];
                 }
     
                 ApplyBarOrders(LeftCommandBar, MiddleCommandBar, RightCommandBar, left, middle, right);
@@ -434,90 +505,79 @@ namespace mpv_winui.Modules.Player
     
             /// <summary>
             /// Rebuilds the narrow-window overflow menu from the controls the
-            /// width-adaptive state currently hides (Medium/Compact/Narrow).
-            /// User-hidden icons stay hidden; the menu only restores
-            /// width-collapsed actions so no function is lost when the window
-            /// shrinks. The bar itself is never rebuilt here (see AGENTS.md).
+            /// width-adaptive state currently hides. User-hidden icons stay
+            /// hidden; the menu only restores width-collapsed actions so no
+            /// function is lost when the window shrinks. The bar itself is never
+            /// rebuilt here (see AGENTS.md).
+            ///
+            /// The entries and their "respects a user hide" flags come from
+            /// ControlBarAdaptiveLayout.OverflowEntries — the same table
+            /// ApplyControlBarVisibility decides the More button from — so the
+            /// button cannot open a menu this loop leaves empty.
             /// </summary>
             private void MoreFlyout_Opening(object? sender, object e)
             {
                 MoreFlyout.Items.Clear();
                 var userHidden = CurrentHiddenIconIds();
-    
-                AddOverflowItem(AppContext.AppLang.MoreSkipBackward, SkipBackwardButton, Backward, userHidden);
-                AddOverflowItem(AppContext.AppLang.MoreSkipForward, SkipForwardButton, Forward, userHidden);
-                AddOverflowItem(AppContext.AppLang.MoreShuffle, ShuffleButton, () => OnPlaybackModeClick(null, null), userHidden, "random");
-    
-                if (PlaybackRateButton.Visibility != Visibility.Visible)
+
+                foreach (var (id, respectsUserHide) in ControlBarAdaptiveLayout.OverflowEntries)
                 {
-                    MoreFlyout.Items.Add(BuildPlaybackRateSubmenu());
+                    var ui = OverflowUiFor(id);
+                    if (ui is null)
+                    {
+                        continue;
+                    }
+                    var (button, label, invoke, submenu) = ui.Value;
+                    if (!OffersInOverflow(button, userHidden, respectsUserHide ? id : null))
+                    {
+                        continue;
+                    }
+                    if (submenu is not null)
+                    {
+                        MoreFlyout.Items.Add(submenu());
+                        continue;
+                    }
+                    var item = new MenuFlyoutItem { Text = label() };
+                    item.Click += (_, _) => invoke?.Invoke();
+                    MoreFlyout.Items.Add(item);
                 }
-    
-                if (ZoomButton.Visibility != Visibility.Visible && !userHidden.Contains("aspect"))
-                {
-                    MoreFlyout.Items.Add(BuildZoomSubmenu());
-                }
-    
-                AddOverflowItem(AppContext.AppLang.MorePreviousTrack, PreviousTrackButton, () => PreviousTrackButton_Click(null, null), userHidden);
-                AddOverflowItem(AppContext.AppLang.MoreNextTrack, NextTrackButton, () => NextTrackButton_Click(null, null), userHidden);
-                AddOverflowItem(AppContext.AppLang.MoreFullWindow, FullWindowButton, () => ToggleFullWindow(), userHidden, "fullwindow");
-                AddOverflowItem(AppContext.AppLang.MoreFullScreen, FullScreenButton, () => ToggleFullScreen(), userHidden, "fullscreen");
-
-                // Controls the width tiers collapse at Narrow and below. Without
-                // these entries a portrait/narrow window would lose them
-                // entirely: they used to be visible at every width.
-                AddOverflowItem(AppContext.AppLang.ControlBarIconTracks, TrackSelectionButton, ShowTracksFromMore, userHidden, "tracks");
-                AddOverflowItem(AppContext.AppLang.ControlBarIconPanel, ControlPanelButton, ShowControlPanelFromMore, userHidden, "panel");
-                AddOverflowItem(AppContext.AppLang.ControlBarIconPiP, PiPButton, () => OnPiPClick(this, new RoutedEventArgs()), userHidden, "pip");
-            }
-
-            /// <summary>Loads the track lists and then opens the track flyout anchored on the overflow button.</summary>
-            private void ShowTracksFromMore()
-            {
-                // The handler only fills the track lists; the flyout itself is
-                // declared on the button, so anchor it on the overflow button.
-                TrackSelectionButton_Click(TrackSelectionButton, new RoutedEventArgs());
-                ShowFromMore(TrackSelectionFlyout);
-            }
-
-            /// <summary>Opens the control-panel flyout anchored on the overflow button.</summary>
-            private void ShowControlPanelFromMore()
-            {
-                ShowFromMore(ControlPanelFlyout);
             }
 
             /// <summary>
-            /// A flyout cannot be shown while the MenuFlyout that triggered it is
-            /// still open, so close the menu first and open the flyout on the
-            /// next dispatcher pass, anchored on the overflow button.
+            /// One rule for "does the overflow menu offer this control right now".
+            /// The menu reads it directly, and
+            /// ControlBarAdaptiveLayout.HasOverflowContent applies the same rule to
+            /// the same table to decide the More button's visibility. A control
+            /// already on the bar is not offered again; one the user hid through
+            /// the settings is not offered back, because the menu never undoes a
+            /// deliberate choice.
             /// </summary>
-            private void ShowFromMore(FlyoutBase flyout)
-            {
-                MoreFlyout.Hide();
-                DispatcherQueue.TryEnqueue(() => flyout.ShowAt(MoreButton));
-            }
-    
-            private void AddOverflowItem(
-                string label,
+            private static bool OffersInOverflow(
                 FrameworkElement sourceButton,
-                Action action,
                 IReadOnlySet<string> userHidden,
-                string? hiddenId = null)
-            {
-                if (sourceButton.Visibility == Visibility.Visible)
+                string? hiddenId) =>
+                sourceButton.Visibility != Visibility.Visible
+                && (hiddenId is null || !userHidden.Contains(hiddenId));
+
+            /// <summary>
+            /// What the overflow menu needs in order to render one entry, keyed by
+            /// the ids in ControlBarAdaptiveLayout.OverflowEntries. The label is a
+            /// delegate rather than a captured string, so a language change is
+            /// picked up on the next open without rebuilding anything.
+            /// </summary>
+            private (FrameworkElement Button, Func<string> Label, Action? Invoke, Func<MenuFlyoutSubItem>? Submenu)? OverflowUiFor(string id) =>
+                id switch
                 {
-                    return;
-                }
-                if (hiddenId is not null && userHidden.Contains(hiddenId))
-                {
-                    return;
-                }
-    
-                var item = new MenuFlyoutItem { Text = label };
-                item.Click += (_, _) => action();
-                MoreFlyout.Items.Add(item);
-            }
-    
+                    "skip-back" => (SkipBackwardButton, () => AppContext.AppLang.MoreSkipBackward, Backward, null),
+                    "skip-forward" => (SkipForwardButton, () => AppContext.AppLang.MoreSkipForward, Forward, null),
+                    "random" => (ShuffleButton, () => AppContext.AppLang.MoreShuffle, () => OnPlaybackModeClick(null, null), null),
+                    "rate" => (PlaybackRateButton, () => AppContext.AppLang.MorePlaybackRate, null, BuildPlaybackRateSubmenu),
+                    "previous" => (PreviousTrackButton, () => AppContext.AppLang.MorePreviousTrack, () => PreviousTrackButton_Click(null, null), null),
+                    "next" => (NextTrackButton, () => AppContext.AppLang.MoreNextTrack, () => NextTrackButton_Click(null, null), null),
+                    "fullwindow" => (FullWindowButton, () => AppContext.AppLang.MoreFullWindow, () => ToggleFullWindow(), null),
+                    _ => null,
+                };
+
             /// <summary>Clones the standard rate flyout into a submenu item.</summary>
             private MenuFlyoutSubItem BuildPlaybackRateSubmenu()
             {
@@ -534,13 +594,6 @@ namespace mpv_winui.Modules.Player
                 return submenu;
             }
     
-            private MenuFlyoutSubItem BuildZoomSubmenu()
-            {
-                var submenu = new MenuFlyoutSubItem { Text = AppContext.AppLang.MoreZoom };
-                AddZoomOptions(submenu.Items, ZoomSelectionMenu_Click);
-                return submenu;
-            }
-    
         private void UpdateToolbarVisibility(double w)
             {
                 if (_isPiPHost)
@@ -554,7 +607,7 @@ namespace mpv_winui.Modules.Player
                     return;
                 }
 
-                var tier = ControlBarAdaptiveLayout.TierFor(w);
+                var tier = TierForWidth(w);
                 if ((int)tier == _currentSegment)
                 {
                     return;

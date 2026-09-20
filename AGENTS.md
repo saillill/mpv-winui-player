@@ -114,6 +114,8 @@ methods beats reading the file top to bottom.
 - **PiP**: dedicated borderless always-on-top window reusing `PlayerControl`. ExitPiP defers sizing until main window is shown and laid out (ActualWidth=0 bug).
 - **Overlay bar**: activity-based visibility with 1.5s idle timer. ControlPanelGradient Height=120 only in overlay mode.
 - **Control-bar layout**: `ApplyBarOrders` rebuilds three CommandBars from canonical lists on every apply — never filter through current items.
+- **Control-bar overflow**: all three CommandBars set `OverflowButtonVisibility="Collapsed"`. `CommandBar` draws its *own* `⋯` beside the app's `MoreButton`, so an un-suppressed bar shows two adjacent overflow buttons and one of them is empty. The app's `MoreButton` appears only when `ControlBarAdaptiveLayout.HasOverflowContent` says the menu has something to offer — the same table `MoreFlyout_Opening` builds the menu from, which is what stops it opening an empty menu. Add an entry to `OverflowEntries` to add one to both.
+- **Control-bar tiers**: `ControlBarAdaptiveLayout.TierFor` takes width *and* height, because a 384-wide portrait window is above `NarrowWidth` and otherwise never reaches the portrait tier. Portrait keeps a 3/3/3 grid and tightens the button pitch (`IsTight`) rather than dropping controls. These rules are pure and linked into `mpv-conf-test` — run the tests, do not verify this one by eye.
 - **Playback modes**: single mode button cycles 不循环→顺序→单曲循环→随机. RepeatButton hidden; ShuffleButton reused. Glyphs F175/F172/EF34/EF37.
 
 ### Settings architecture
