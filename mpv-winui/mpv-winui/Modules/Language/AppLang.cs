@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 
 namespace mpv_winui.Modules.Language
@@ -1521,18 +1523,58 @@ namespace mpv_winui.Modules.Language
         /// <summary>Validation: a numeric default is malformed.</summary>
         public string CustomizeErrorNumberDefault { get; set; } = "The default must be a number.";
 
-        /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
-        public void LoadFromJson(string path)
+        /// <summary>
+        /// Settable property lookup, built once for the one AppLang instance.
+        ///
+        /// The language file has ~1400 keys and this class has ~2500 string
+        /// properties, so a per-key <see cref="Type.GetProperty(string)"/> is
+        /// ~1400 metadata scans over a 2500-member table — and it ran on every
+        /// switch and every startup. One pass over the property list turns each
+        /// key into a dictionary hit.
+        /// </summary>
+        /// <remarks>
+        /// Lazily built and instance-held rather than cached per type: only one
+        /// AppLang exists per process, and keeping the annotation on a direct
+        /// <c>GetType().GetProperties()</c> call here is what lets the trimmer
+        /// see that these very properties are read by reflection.
+        /// </remarks>
+        private Dictionary<string, PropertyInfo>? _writableProperties;
+
+        private Dictionary<string, PropertyInfo> WritablePropertyMap() =>
+            _writableProperties ??= BuildPropertyMap(GetType());
+
+        private static Dictionary<string, PropertyInfo> BuildPropertyMap(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type)
+        {
+            var map = new Dictionary<string, PropertyInfo>(StringComparer.Ordinal);
+            foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                map.TryAdd(p.Name, p);
+            }
+            return map;
+        }
+
+        /// <summary>
+        /// Applies a flat { PropertyName: "value" } object to the settable
+        /// properties. Anything the object does not mention keeps its default.
+        /// </summary>
+        /// <remarks>
+        /// Callers pass an element they already parsed so the language file is
+        /// read and parsed once even though two consumers want it. Pass
+        /// <see cref="JsonValueKind.Undefined"/> when the file could not be
+        /// read; this then does nothing and defaults stand.
+        /// </remarks>
+        internal void ApplyJson(JsonElement root)
         {
             try
             {
-                if (!System.IO.File.Exists(path)) return;
-                using var doc = JsonDocument.Parse(System.IO.File.ReadAllText(path));
-                foreach (var prop in doc.RootElement.EnumerateObject())
+                if (root.ValueKind != JsonValueKind.Object) return;
+
+                var map = WritablePropertyMap();
+                foreach (var prop in root.EnumerateObject())
                 {
                     if (prop.Value.ValueKind != JsonValueKind.String) continue;
-                    var p = GetType().GetProperty(prop.Name);
-                    if (p is { CanWrite: true })
+                    if (map.TryGetValue(prop.Name, out var p))
                     {
                         p.SetValue(this, prop.Value.GetString());
                     }
@@ -1543,6 +1585,9 @@ namespace mpv_winui.Modules.Language
                 // A broken language file falls back to defaults.
             }
         }
+
+        /// <summary>Loads string values from a JSON file ({ PropertyName: "value" }). Missing keys keep defaults.</summary>
+        public void LoadFromJson(string path) => ApplyJson(LanguageFile.ReadRoot(path));
 
         // ===== Customize mode shell =====
         // The customize mode owns its own vocabulary: a draft boundary,

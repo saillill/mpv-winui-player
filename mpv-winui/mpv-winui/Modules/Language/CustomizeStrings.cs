@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 
 namespace mpv_winui.Modules.Language;
@@ -33,23 +32,23 @@ internal static class CustomizeStrings
 
     /// <summary>
     /// Reads the customize table out of the active language file. Called by
-    /// <see cref="LanguageManager"/> after AppLang has loaded, so the file is
-    /// parsed once even though two consumers read it.
+    /// <see cref="LanguageManager"/> with the element <see cref="AppLang"/>
+    /// already parsed, so the file is read and parsed once even though two
+    /// consumers want it.
     /// </summary>
-    internal static void Load(string? path)
+    internal static void Load(JsonElement root)
     {
         Values.Clear();
         _loaded = true;
 
-        if (string.IsNullOrEmpty(path) || !File.Exists(path))
+        if (root.ValueKind != JsonValueKind.Object)
         {
             return;
         }
 
         try
         {
-            using var doc = JsonDocument.Parse(File.ReadAllText(path));
-            foreach (var prop in doc.RootElement.EnumerateObject())
+            foreach (var prop in root.EnumerateObject())
             {
                 // Only the keys the shell asks about; anything else belongs to
                 // AppLang and was already applied there.

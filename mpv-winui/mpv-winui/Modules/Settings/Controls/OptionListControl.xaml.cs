@@ -819,16 +819,21 @@ public sealed partial class OptionListControl : UserControl
         }
     }
 
-    /// <summary>Returns the current vertical offset of the options list.</summary>
+    /// <summary>Returns the current vertical offset of the settings content.</summary>
     public double GetScrollOffset()
     {
-        return FindScrollViewer(OptionListView)?.VerticalOffset ?? 0;
+        // The page scrolls, not this list. OptionListView is measured at its
+        // own height inside the host's scroll surface, whose own ScrollViewer
+        // wins this walk -- so the offset read here is the offset that
+        // actually moves. Asking the list for it would report its internal
+        // viewer, which never scrolls once the list is height-constrained.
+        return FindScrollViewer(this)?.VerticalOffset ?? 0;
     }
 
     /// <summary>Restores the vertical offset after the list is rebuilt.</summary>
     public void SetScrollOffset(double offset)
     {
-        var viewer = FindScrollViewer(OptionListView);
+        var viewer = FindScrollViewer(this);
         if (viewer is not null && offset > 0)
         {
             viewer.ChangeView(null, offset, null, disableAnimation: true);
@@ -842,7 +847,16 @@ public sealed partial class OptionListControl : UserControl
         {
             if (option.Key == key)
             {
-                OptionListView.ScrollIntoView(option);
+                // ScrollIntoView on a list that does not scroll itself is a
+                // no-op: the layout a result lives in is the page's, so the
+                // element it is rendered by is what has to be brought up.
+                // Realise it first, then defer -- the container only exists
+                // after the next layout pass that the scroll request triggers.
+                OptionListView.UpdateLayout();
+                if (OptionListView.ContainerFromItem(option) is FrameworkElement container)
+                {
+                    container.StartBringIntoView();
+                }
                 return;
             }
         }

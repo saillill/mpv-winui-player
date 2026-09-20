@@ -73,7 +73,13 @@
                      shrank to ~150px and centred *that*, parking its left edge
                      in the middle of the window while the cards below began at
                      the column's left edge. Keep these three as direct
-                     children. -->
+                     children.
+
+                     The column's sub-rows no longer add horizontal padding of
+                     their own. Every row here starts at the column's own x and
+                     the content inside it does too, so the breadcrumb, the
+                     option cards and the footer share one left edge instead of
+                     two insets stacked on the cards but not on the other two. -->
                 <Grid
                     x:Name="BreadcrumbBar"
                     Grid.Row="0"
@@ -141,33 +147,74 @@
                      directly on the overview, then the advanced entry cards. -->
                 <Grid Grid.Row="1">
                     <!-- Browsing layout: one column of cards under the trail.
-                         Horizontal scrolling is disabled on purpose. Left at its
-                         default (Enabled/Auto) the ScrollViewer measures its
-                         content against infinite width, so the MaxWidth box is
-                         laid out at x=0 of the scrollable extent and
-                         HorizontalAlignment="Center" does nothing at all: the
-                         centring is silently a no-op and the cards sit left.
-                         Disabled is what gives the StackPanel a finite width to
-                         be centred within. -->
+
+                         The column has exactly one gutter, defined here: a
+                         ScrollViewer that is inset 12 from the content area
+                         (so the column does not touch the NavigationView pane
+                         or the window edge) and otherwise exactly the column
+                         width. The controls inside it add no horizontal padding
+                         of their own, so every card starts on the column's own
+                         x. This used to be described in two places at once (here
+                         and inside OptionListControl), which stacked 20px on the
+                         left of the cards while the breadcrumb above and the
+                         footer below kept 12, leaving the cards looking both
+                         misaligned and off-centre.
+
+                         Horizontal scrolling stays disabled: left at its
+                         default (Enabled/Auto) the ScrollViewer would measure
+                         its content against infinite width, giving the column
+                         no finite width to be centred within.
+
+                         Vertical scrolling is left to the ListViews inside,
+                         not to this ScrollViewer: a ListView measured at
+                         infinite height realises all of its items and cannot
+                         virtualise, so wrapping one in a scrolling host is both
+                         a perf trap and a known WinUI layout-cycle trigger.
+                         Reaching the ListViews here means this host must not
+                         itself be the scroller. -->
                     <ScrollViewer
                         x:Name="BrowseHost"
-                        Padding="12,4,12,0"
+                        Margin="12,4,12,0"
+                        Padding="0"
                         HorizontalScrollBarVisibility="Disabled"
-                        HorizontalScrollMode="Disabled">
-                        <StackPanel
+                        HorizontalScrollMode="Disabled"
+                        VerticalScrollBarVisibility="Disabled"
+                        VerticalScrollMode="Disabled">
+                        <Grid
                             MaxWidth="{StaticResource MpvContentMaxWidth}"
                             HorizontalAlignment="Center">
-                            <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Common options for this category, directly on
+                                 the overview. Height is auto: it is the short
+                                 block above the cards and shares this page's
+                                 single scroll. -->
+                            <ctl:OptionListControl
+                                x:Name="OptionsControl"
+                                Grid.Row="0"
+                                ShowHeaders="False" />
+
+                            <!-- Advanced-section entry cards. Row 1 is the star
+                                 row, so this ListView is handed the page's
+                                 remaining height and owns the vertical
+                                 scrolling itself, which is what keeps it
+                                 virtualising when a category holds hundreds of
+                                 rows. -->
                             <ListView
                                 x:Name="SectionsHost"
-                                Margin="8,4,32,0"
+                                Grid.Row="1"
+                                Margin="0,4,0,0"
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
                                 SelectionMode="None"
                                 IsItemClickEnabled="False"
                                 ItemContainerStyle="{StaticResource SectionCardListViewItemStyle}"
                                 Visibility="Collapsed" />
-                        </StackPanel>
+                        </Grid>
                     </ScrollViewer>
 
                     <!-- Customize layout: bookmark-manager shape — the folder
