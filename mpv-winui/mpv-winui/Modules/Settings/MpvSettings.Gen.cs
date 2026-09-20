@@ -357,7 +357,6 @@ namespace mpv_winui.Modules.Settings
             [nameof(AppSettings.Mpv_sigmoid_center)] = "sigmoid-center",
             [nameof(AppSettings.Mpv_sigmoid_slope)] = "sigmoid-slope",
             [nameof(AppSettings.Mpv_snap_window)] = "snap-window",
-            [nameof(AppSettings.Mpv_speed)] = "speed",
             [nameof(AppSettings.Mpv_spirv_compiler)] = "spirv-compiler",
             [nameof(AppSettings.Mpv_sstep)] = "sstep",
             [nameof(AppSettings.Mpv_start)] = "start",

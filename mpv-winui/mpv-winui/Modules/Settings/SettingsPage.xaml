@@ -250,7 +250,6 @@
                             Severity="Informational" />
 
                         <Grid
-                            x:Name="CustomizeHost"
                             Grid.Row="1"
                             ColumnSpacing="{StaticResource MpvSpaceM}">
                             <Grid.ColumnDefinitions>

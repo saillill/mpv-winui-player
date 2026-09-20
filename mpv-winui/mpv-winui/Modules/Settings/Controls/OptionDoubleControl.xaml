@@ -21,9 +21,7 @@
             <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
             <TextBlock
                 x:Name="ErrorText"
-                Foreground="{ThemeResource SystemErrorTextColor}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Visibility="Collapsed" />
+                Style="{StaticResource MpvOptionErrorStyle}" />
             <TextBlock x:Name="WarningText" Style="{StaticResource MpvOptionWarningStyle}" />
         </StackPanel>
         <ws:NumberBox
