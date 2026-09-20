@@ -110,7 +110,7 @@ def main():
         return 1
 
     print(f"OK: {n_files} XAML file(s), {checked} ScrollViewer child pair(s), "
-          f"no MaxWidth column measured against infinite width")
+          f"no MaxWidth column left un-centreable")
     return 0
 
 

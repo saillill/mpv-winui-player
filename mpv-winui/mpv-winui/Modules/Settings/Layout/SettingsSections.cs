@@ -1,4 +1,4 @@
-﻿using mpv_winui.Modules.Language;
+using mpv_winui.Modules.Language;
 using System;
 using System.Collections.Generic;
 
@@ -126,7 +126,7 @@ internal static class SettingsSections
         // that exists to describe them, which the old pair only half did.
 
         // ---- schema-generated sections ----
-        // One per mpv option group, holding the 548 options that have no
+        // One per mpv option group, holding the 549 options that have no
         // hand-written row. They are listed here rather than in the generator
         // because the icon and the description are choices, not data: the
         // schema says which group an option belongs to but nothing about how

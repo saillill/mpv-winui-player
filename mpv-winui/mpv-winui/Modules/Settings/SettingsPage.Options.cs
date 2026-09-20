@@ -105,7 +105,7 @@ private List<Option> BuildSettings()
 
         options.AddRange(BuildShortcutOptions(shortcuts));
 
-        // The schema-generated rows. 548 mpv options that no hand-written
+        // The schema-generated rows. 549 mpv options that no hand-written
         // row covers, one Option each, built by GeneratedOptions.cs. They
         // arrive with Category, Section and AdvancedSection already set --
         // the generator knows the group, not us -- so they only need to be
@@ -412,7 +412,8 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.EnableVideoPreview)] = 19,
             [nameof(AppSettings.ThumbnailPreviewWidth)] = 20,
             [nameof(AppSettings.ThumbnailUpdateInterval)] = 21,
-            [nameof(AppSettings.AudioLanguage)] = 31,            [nameof(AppSettings.SubtitleLanguage)] = 32,
+            [nameof(AppSettings.AudioLanguage)] = 31,
+            [nameof(AppSettings.SubtitleLanguage)] = 32,
             [nameof(AppSettings.SubFallback)] = 33,
             [nameof(AppSettings.SavePositionOnQuit)] = 34,
             [nameof(AppSettings.ResumePlayback)] = 35,
@@ -427,19 +428,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.Panscan)] = 44,
             [nameof(AppSettings.VideoUnscaled)] = 45,
             [nameof(AppSettings.VideoOutputLevels)] = 46,
-            // The six picture controls, in the order a user reads them:
-            // brightness, contrast, saturation, gamma, hue, sharpen. They sit
-            // in the VideoImage section, and until now they had no order key at
-            // all, so they fell to int.MaxValue and landed after every other row
-            // of the section -- below the level and geometry rows they belong
-            // beside. Prefix 20 is the next free one; 0-116 and the 15xx-25xx
-            // families are taken.
-            [nameof(AppSettings.PictureBrightness)] = 2001,
-            [nameof(AppSettings.PictureContrast)] = 2002,
-            [nameof(AppSettings.PictureSaturation)] = 2003,
-            [nameof(AppSettings.PictureGamma)] = 2004,
-            [nameof(AppSettings.PictureHue)] = 2005,
-            [nameof(AppSettings.PictureSharpen)] = 2006,
             [nameof(AppSettings.HdrAutoMode)] = 47,
             [nameof(AppSettings.HdrAutoLog)] = 48,
             [nameof(AppSettings.VsrAutoEnabled)] = 49,
@@ -463,10 +451,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.CoverArtPreload)] = 68,
             [nameof(AppSettings.CoverArtNames)] = 69,
             [nameof(AppSettings.CoverArtImageExts)] = 70,
-            // ac3/dts downmix for the audio decoder, in the AudioOutput section.
-            // It had no order key, so it sorted after the whole section rather
-            // than beside the other output-shaped rows it belongs with.
-            [nameof(AppSettings.AdLavcDownmix)] = 2101,
             [nameof(AppSettings.SubFontSize)] = 71,
             [nameof(AppSettings.SubFont)] = 72,
             [nameof(AppSettings.SubFontFile)] = 73,
@@ -625,6 +609,7 @@ private List<Option> BuildSettings()
             ["ActionOpenMpvConf"] = 219,
             [nameof(AppSettings.CheckForUpdates)] = 220,
             [nameof(AppSettings.ControlBarLayout)] = 220,
+            [nameof(AppSettings.ControlBarHiddenIcons)] = 221,
             [nameof(AppSettings.AudioSpdif)] = 300,
             [nameof(AppSettings.Replaygain)] = 301,
             [nameof(AppSettings.OsdLevel)] = 302,
@@ -674,12 +659,6 @@ private List<Option> BuildSettings()
             [nameof(AppSettings.MetadataOsdAutohideForAudio)] = 322,
             [nameof(AppSettings.MetadataOsdAutohideForAudioWithAlbumArt)] = 323,
             [nameof(AppSettings.HdrOverrideMode)] = 326,
-
-            // Window: whether autoresizing the window follows the video. It sits
-            // in the Window section with the other sizing rows and needs an
-            // order key for the same reason the picture controls above did --
-            // without one it fell to int.MaxValue and sorted past them.
-            [nameof(AppSettings.AutoWindowResize)] = 2601,
         };
 
         // Parsed input.conf bindings keep their original order after the capture row.
@@ -703,18 +682,11 @@ private List<Option> BuildSettings()
         // int.MaxValue and jump to the bottom of its category.
         var sectionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
         {
-            // program -- Interface, LanguageLog, Config, then the two folding
-            // sections. Testing and Associations used to be numbered from
-            // inside the "advanced" category's removed block and collided with
-            // Config at index 2; the collision was invisible (the order fell
-            // through to the minimum optionOrder inside each group) but the
-            // table claimed two sections were at the same position, so the
-            // next person to add a sibling would have been reading a lie.
+            // program -- Associations and Testing moved to Advanced, so only
+            // the three sections a normal user recognises remain.
             [sProgramInterface] = 0,
             [sProgramLanguageLog] = 1,
             [sProgramConfig] = 2,
-            [sProgramTesting] = 3,
-            [sProgramAssociations] = 4,
 
             // playback
             [sPlayback] = 0,
@@ -738,15 +710,6 @@ private List<Option> BuildSettings()
             [sScreenshotLocation] = 11,
             [sScreenshotQuality] = 12,
 
-            // The five video-geometry rows (zoom, pan x/y, align x/y) are the
-            // direct-manipulation controls, so they end Video rather than
-            // interrupting the render stack that Decode..ColorManagement walks
-            // in pipeline order. Like the other two late additions below, this
-            // section previously had no entry at all and fell to int.MaxValue,
-            // which happened to land it here already -- the order is now
-            // written down instead of being an accident of a missing key.
-            [sVideoGeometry] = 13,
-
             // audio
             [sAudioOutput] = 0,
             [sAudioVolume] = 1,
@@ -764,15 +727,9 @@ private List<Option> BuildSettings()
             [sSubtitleFilter] = 3,
             [sSubtitleAss] = 4,
 
-            // window -- the four window-behaviour rows (cursor autohide and its
-            // fullscreen-only variant, the border, the title bar) sit between
-            // the launch/sizing section and PiP. WindowBehavior had no entry,
-            // so it sorted to int.MaxValue and rendered after PiP -- a
-            // five-option floating window's section showing below the four
-            // rows that describe the main window itself.
+            // window
             [sWindow] = 0,
-            [sWindowBehavior] = 1,
-            [sWindowPiP] = 2,
+            [sWindowPiP] = 1,
 
             // network
             [sCache] = 0,
@@ -781,19 +738,26 @@ private List<Option> BuildSettings()
             [sNetworkHttp] = 3,
             [sNetworkCurl] = 4,
 
-            // osd -- Behaviour, the text metrics (Appearance, Text), then the
-            // two positional sections. OsdText carries the nine rows that set
-            // how OSD text is drawn (font, scale, spacing, bold/italic,
-            // justify, shadow, fonts dir, provider, shaper), so it belongs
-            // directly after Appearance. It had NO entry here at all, which
-            // silently sorted it to int.MaxValue -- past Metadata, at the
-            // bottom of the category, on the far side of the very sections it
-            // is the metrics for.
+            // osd
             [sOsdBehavior] = 0,
             [sOsdAppearance] = 1,
-            [sOsdText] = 2,
-            [sOsdPosition] = 3,
-            [sOsdMetadata] = 4,
+            [sOsdPosition] = 2,
+            [sOsdMetadata] = 3,
+
+            // osd
+            [sOsdBehavior] = 0,
+            [sOsdAppearance] = 1,
+            [sOsdPosition] = 2,
+            [sOsdMetadata] = 3,
+
+            // The "advanced" category is gone, so these two sections no longer
+            // order anything: their options moved to the sections they describe
+            // (the graphics API to the D3D11/output group, the antiringing knobs
+            // to the scaler group). The entries that remain here are Program's
+            // two folding sections, which now sort within Program - the order
+            // below is the order they appear in that category.
+            [sProgramTesting] = 2,
+            [sProgramAssociations] = 3,
         };
 
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -1081,12 +1045,7 @@ private List<Option> BuildSettings()
             ["ActionImportConfig"] = sProgramConfig,
             ["ActionOpenMpvConf"] = sProgramConfig,
             [nameof(AppSettings.ControlBarLayout)] = sProgramInterface,
-            // ControlBarHiddenIcons is deliberately absent: it is the pre-split
-            // name of a per-style pair (ControlBarHiddenIconsClassic /
-            // ...ModernX), so no row can ever carry it again. The AppSettings
-            // property stays, because AppSettings.cs reads it once to migrate a
-            // stored value into the pair; a sectionMap or optionOrder entry
-            // would only be an entry the tree can never resolve.
+            [nameof(AppSettings.ControlBarHiddenIcons)] = sProgramInterface,
             // osd
             [nameof(AppSettings.OsdFontSize)] = sOsdAppearance,
             [nameof(AppSettings.OsdFont)] = sOsdAppearance,
@@ -1180,7 +1139,7 @@ private List<Option> BuildSettings()
         };
 
         // The generated rows bring their own entries. It is one call rather
-        // than 548 lines here because the entries are a function of the mpv
+        // than 549 lines here because the entries are a function of the mpv
         // schema: regenerating is how they stay current, and a hand-edited
         // copy in this file would be the one thing the generator cannot
         // refresh. Everything the method writes -- section map, section

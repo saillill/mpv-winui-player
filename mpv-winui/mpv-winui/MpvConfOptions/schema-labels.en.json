@@ -685,6 +685,8 @@
   "SchemaDesc_Mpv_sigmoid_slope": "Float; Range 1 to 20; Default: 6.5  (https://mpv.io/manual/master/#options-sigmoid-slope)",
   "SchemaLabel_Mpv_snap_window": "snap-window",
   "SchemaDesc_Mpv_snap_window": "Flag; Default: no  (https://mpv.io/manual/master/#options-snap-window)",
+  "SchemaLabel_Mpv_speed": "speed",
+  "SchemaDesc_Mpv_speed": "Double; Range 0.01 to 100; Default: 1  (https://mpv.io/manual/master/#options-speed)",
   "SchemaLabel_Mpv_spirv_compiler": "spirv-compiler",
   "SchemaDesc_Mpv_spirv_compiler": "One of: auto, shaderc; Default: auto  (https://mpv.io/manual/master/#options-spirv-compiler)",
   "SchemaLabel_Mpv_sstep": "sstep",

@@ -456,6 +456,10 @@ namespace mpv_winui.Modules.Language
         public string SectionProgramTesting { get; set; } = "Testing";
         public string SectionDescProgramTesting { get; set; } = "Experimental and diagnostic options";
 
+        /// <summary>Count line under a folded section's card. {0} is the number
+        /// of options behind it; the singular form avoids "1 options".</summary>
+        public string CardOptionCount { get; set; } = "{0} options";
+        public string CardOptionCountOne { get; set; } = "1 option";
         public string SectionPlayback { get; set; } = "Playback";
         public string SectionDescPlayback { get; set; } = "Speed, loop, shuffle";
         public string SectionReversePlayback { get; set; } = "Reverse playback";

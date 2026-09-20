@@ -2,19 +2,10 @@
     x:Class="mpv_winui.Modules.Player.VolumeFlyoutControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Explicit geometry, because a vertical Slider has no intrinsic width.
-         Left to itself the strip sized to whatever would render and the thumb
-         and the foot of the track were clipped; the flyout presenter is told
-         this same height so it cannot shrink-wrap below it. -->
-    <StackPanel
-        Width="56"
-        Padding="4,2,4,6"
-        Spacing="6">
+    <StackPanel Spacing="4">
         <AppBarButton
             x:Name="MuteButton"
             Width="40"
-            Height="40"
-            Padding="0"
             HorizontalAlignment="Center"
             Click="MuteButton_Click"
             IsTabStop="False"
@@ -25,8 +16,7 @@
         </AppBarButton>
         <Slider
             x:Name="VolumeSlider"
-            Width="40"
-            Height="120"
+            Height="100"
             HorizontalAlignment="Center"
             IsTabStop="False"
             Maximum="100"

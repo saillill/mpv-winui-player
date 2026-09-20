@@ -58,20 +58,6 @@ public sealed partial class OptionMultiListControl : OptionControlBase
 
     protected override void OnOptionStateChanged()
     {
-        // Inherited WarningText handling. The base class raises this callback
-        // when the option's Warning or IsEnabled changes, and this override used
-        // to be empty -- so a multi-list row never showed the caution line its
-        // neighbours do, and the row's enabled state was never re-applied to the
-        // text boxes either.
-        UpdateWarning(WarningText);
-
-        foreach (var grid in RowsPanel.Children.OfType<Grid>())
-        {
-            foreach (var box in grid.Children.OfType<TextBox>())
-            {
-                box.IsEnabled = Setting?.IsEnabled ?? true;
-            }
-        }
     }
 
     private IEnumerable<string> Split(string? value)

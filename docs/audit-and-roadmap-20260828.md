@@ -1,36 +1,6 @@
 # mpv-winui-player 系统审计与长期路线图（2026-08-28）
 
-> ## ⚠️ 状态：历史快照，不是当前状态（2026-09-21 核实）
->
-> 本文基线是 `5574dc4`（**2026-08-26**）。截至 2026-09-21，HEAD 已前进
-> **26 个提交**（至 `d0a06d9`），而本文没有跟着迭代。
->
-> **当前权威文档是 `docs/settings-design-contract.md`**（设置界面的一切改动以它为准）。
-> 本文保留的是**当时的实测数字与方法论**，那部分仍有价值；**状态类的声明不要按现状读。**
->
-> ### 已核实的偏差（2026-09-21 逐条重算）
->
-> | 位置 | 本文说 | 实测 |
-> |---|---|---|
-> | §1.1 表格末行 | `MpvEdition.h/.idl`、`MpvProfile.h/.idl` 及工程条目**已删除** | 🔴 **从未删除** —— 4 个文件仍在 `mpv-winrt/Types/`，`mpv-winrt.vcxproj` 的 138/140/178/180 行与 `.filters` 仍引用它们。`git log --diff-filter=D` 无删除记录 |
-> | §0 | `NativeMethods.txt` 42 项 | 48 |
-> | §0 | Keycodes+W32* 571 行 | 574 |
-> | §4.3 / Phase C | `SettingsPage.Actions.cs` 1101 → 531 行 | **658** —— 三次拆分（Shortcuts 332 / SystemInfo 189 / ImportExport 166）**确实做了且行数吻合**，但该文件之后又长了 127 行 |
-> | §4.3 | `AppLang.cs` 1157 行 | 1789 行 / 1315 属性（另有 2 个生成 partial：`AppLang.Gen.cs` 1096 属性、`AppLang.Sections.Gen.cs` 26 属性） |
->
-> **§1.1 那条偏差值得单独记住**：它把"打算删"写成了"已删除"，而**构建是绿的** ——
-> 删不删这些原生类型都不影响 C# 侧编译，所以**没有任何检查器会因为
-> "没做一件声称做了的事"而变红**。该删除**仍然值得做**，但要作为独立变更
-> （需要一次 C++ 构建验证），不要顺手做。
->
-> ### 仍然成立、值得保留的部分
->
-> - §3「扫描方法教训」：扩展方法容器不能按类型级判死 —— 通用规则，与代码状态无关。
-> - §6 维护规则（文档短于 300 行；完成项移入 commit message）。
-> - Phase C 的三个 partial 与 `MpvPreviewInfo` 的删除**是真做过的**（已实测）。
-> - §2 的文档核验清单：9 份语言文件、lua 侧 zh-TW 归一化（5 个脚本）均成立。
-
-> 基线：`github/main` `5574dc4`。本文件由
+> 基线：`github/main` `5574dc4`。本文件是唯一活审计文档，由
 > `audit-and-roadmap-20260824.md` 原地迭代而来（规则见 §6）。本轮对全部
 > 文档声明逐条重验，未沿用任何旧结论；2026-08-24 批次的完成项已移入
 > git 历史（c5eafb1…5574dc4），不再在此保留。
@@ -55,7 +25,7 @@
 |---|---|---|
 | 包装层 | `MpvMediaPlayer`：`LogMessage` Action（内部 NLog 映射保留）、`PreviewChanged` Action 及原生订阅、`SetHoverSec`/`SetDrawPreview`/`ClearPreview`、`AddSubtitles`、`Editions()`、`Profiles()`、`PlaylistShuffle()` | 全库 grep 零外部消费者 |
 | 原生 | `MpvPlayer`：`LoadList`、`TogglePlayPause`、`GetEditions`、`GetProfiles`、`PlaybackEnded` 事件、`PreviewChanged` 事件 + `user-data/mpvw/preview` observe（无任何写入方）、`MpvObserveId::Preview` | C# 侧零调用/零订阅；`mpvw/preview` 仅此一处引用 |
-| 类型 | `MpvEdition.h/.idl`、`MpvProfile.h/.idl` 及 vcxproj/filters 条目 | 仅被上述死方法引用 —— ⚠️ **已识别但未执行**：截至 2026-09-21 这 4 个文件与 4 条工程引用**仍在**，见文件头 |
+| 类型 | `MpvEdition.h/.idl`、`MpvProfile.h/.idl` 及 vcxproj/filters 条目 | 仅被上述死方法引用 |
 
 ### 1.2 死设置与死成员
 
@@ -145,10 +115,7 @@ ControlPanelGradient 120、`-Release x64` 静默落回 Debug——参数按位�
 
 ## 6. 本文件维护规则
 
-> ⚠️ 「唯一活审计文档」这个说法**已不成立**（2026-09-21）：当前权威是
-> `docs/settings-design-contract.md`。本文是历史快照，见文件头状态块。
-
-历史维护规则（保留供参考）：下次大审计原地迭代日期与版本（触发词「全面体检」/
+唯一活审计文档，下次大审计原地迭代日期与版本（触发词「全面体检」/
 深度巡检 / repo-checkup：按 AGENTS.md + 提示词执行 基线核对 → 文档
 怀疑论验证 → 死代码/门控扫描 → 实证修复 → 部署 → 推送 → 本文件迭代）。
 完成项移入 git commit message，保持文档短于 300 行。

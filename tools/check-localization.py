@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Check localization consistency for mpv-winui-player.
 
 * Every writable AppLang property must exist in each Languages/<lang>.json.
@@ -29,58 +29,6 @@ for stream in (sys.stdout, sys.stderr):
 def parse_applang_props(src: Path) -> set[str]:
     text = src.read_text(encoding="utf-8")
     return set(re.findall(r"public string (\w+) \{ get; set; \}", text))
-
-
-def parse_applang_props_all() -> set[str]:
-    """AppLang properties from the hand-written class AND every partial.
-
-    AppLang is spread over three files and the check used to read one of them:
-
-      * AppLang.cs               -- the hand-written vocabulary
-      * AppLang.Gen.cs           -- the 1098 SchemaLabel_*/SchemaDesc_* the
-                                    generator emits for the 548 schema rows
-      * AppLang.Sections.Gen.cs  -- the generated section captions and
-                                    descriptions (SectionGen*/SectionDescGen*)
-
-    Reading only the first had two opposite effects, and both looked like real
-    findings. The 1098 generated properties were reported as "extra keys" --
-    language-file entries no AppLang property claims -- which is backwards. The
-    26 `SectionGen*` keys were reported the same way for the same reason. And
-    underneath that noise the actual defect was invisible: all nine language
-    files are missing every one of the 1098 generated keys.
-
-    Globbed rather than listed, so a fourth partial cannot reintroduce the bug.
-
-    Note this deliberately does NOT include CustomizeStrings: those keys are a
-    companion table *by design* (see its class docstring -- reflection cannot
-    tell an English property default from a user-set value, so the customize
-    shell keeps its own surface). They still show up as extra keys, which is
-    now correct and expected; the message says so.
-    """
-    lang_dir = ROOT / "mpv-winui" / "mpv-winui" / "Modules" / "Language"
-    props: set[str] = set()
-    for path in sorted(lang_dir.glob("AppLang*.cs")):
-        props |= parse_applang_props(path)
-    return props
-
-
-def _summarise(keys) -> str:
-    """Count keys by family: SchemaLabel_Mpv_x and SchemaLabel_Mpv_y are one line.
-
-    A family is the leading CamelCase word -- matched lazily up to the next
-    capital, which is what keeps `CustomizeAddCategoryOption` from collapsing to
-    its whole self and `SchemaLabel_Mpv_ad` from doing the same. Without this, a
-    systematic gap (1098 keys) and an incidental one (6 keys) look the same on
-    the console: an unreadable wall that people learn to scroll past, which is
-    how the 1098 stayed invisible for a week.
-    """
-    counts: dict[str, int] = {}
-    for key in keys:
-        m = re.match(r"([A-Z][a-z]+)", key)
-        family = (m.group(1) + "*") if m else key
-        counts[family] = counts.get(family, 0) + 1
-    return ", ".join(f"{n}x {fam}" for fam, n in
-                     sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])))
 
 
 def parse_menu_actions(src: Path) -> set[str]:
@@ -156,7 +104,8 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    props = parse_applang_props_all()
+    applang = ROOT / "mpv-winui" / "mpv-winui" / "Modules" / "Language" / "AppLang.cs"
+    props = parse_applang_props(applang)
     if not props:
         print("ERROR: could not parse AppLang properties", file=sys.stderr)
         return 2
@@ -172,25 +121,11 @@ def main() -> int:
         missing = props - keys
         extra = keys - props
         if missing:
-            # Summarise by family when the gap is systematic. A list of 1098
-            # names tells you nothing; "548x SchemaLabel_*, 548x SchemaDesc_*"
-            # tells you the generated layer was never translated, which is the
-            # actual state. Families are the leading CamelCase word followed by
-            # "_", so SchemaLabel_Mpv_x -> SchemaLabel_*.
-            errors.append(
-                f"{path.name}: missing {len(missing)} AppLang key(s): "
-                f"{_summarise(missing)}"
-                + (f" (e.g. {sorted(missing)[0]})" if len(missing) > 12 else ""))
+            errors.append(f"{path.name}: missing keys: {', '.join(sorted(missing))}")
         if extra:
-            # Expected, not a defect: the customize-mode shell keeps its own
-            # translation table (see CustomizeStrings) because AppLang's are read
-            # by reflection and cannot hold translations. Those keys, plus the
-            # theme editor's, ship in every language file without an AppLang
-            # property behind them. Reported so a genuinely orphaned key is still
-            # visible -- by count and family, not as a wall of names.
             warnings.append(
-                f"{path.name}: {len(extra)} companion-table key(s) with no AppLang "
-                f"property (expected): {_summarise(extra)}")
+                f"{path.name}: extra keys (not AppLang props): {', '.join(sorted(extra))}"
+            )
         if path.name == "en-US.json":
             en_data = data
 

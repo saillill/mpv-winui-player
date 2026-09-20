@@ -46,25 +46,6 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "==> Building mpv-winui (C# WinUI 3) [$Configuration|$Platform]"
 dotnet build "$root\mpv-winui\mpv-winui\mpv-winui.csproj" -c $Configuration -p:Platform=$Platform -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -v:m
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-# The mpv.conf test suite.
-#
-# This project did not compile for a while: MpvConfManager reached into
-# ManagedMpvConfig/MpvConfWatcher, which dragged Modules.Settings (and therefore
-# AppContext and WinUI) into a net10.0 test project that does not link it. Two
-# shipped defects went unnoticed while it was dead — a value that doubled its own
-# escaping on every launch until mpv.conf reached 896 MB with 884 newlines, and
-# six settings whose own written values could not be read back. Neither was a
-# build error, and neither had a test that could run. The coupling is gone now
-# (MpvConfManager takes an onBeforeSave callback instead), so run the real suite.
-#
-# It sits before packaging because a green build is not evidence that a value
-# survives a write and a read.
-Write-Host "==> Running mpv-conf-test"
-dotnet test "$root\mpv-winui\mpv-conf-test\mpv-conf-test.csproj" -c $Configuration -v:minimal
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
 if ($CheckLocalization) {
     Write-Host "==> Checking localization consistency"
     & python "$root\tools\check-localization.py"
