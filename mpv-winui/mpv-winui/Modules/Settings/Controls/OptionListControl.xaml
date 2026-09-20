@@ -433,7 +433,7 @@
             x:Name="CustomizeBar"
             Grid.Row="0"
             MinHeight="40"
-            Margin="8,4,32,4"
+            Margin="0,4,0,4"
             ColumnSpacing="{StaticResource MpvSpaceS}"
             Visibility="Collapsed">
             <Grid.ColumnDefinitions>
@@ -485,10 +485,21 @@
             </Button>
         </Grid>
 
+        <!-- No horizontal padding. The host (SettingsPage's BrowseHost) owns
+             the column's single 12px gutter, so adding one here too put the
+             option cards 12px right of the breadcrumb and footer above and
+             below them. The vertical padding is gone as well: this list no
+             longer scrolls on its own, it is measured at its own height inside
+             the page's single scroll, so an inset here would print as a gap
+             before the section cards rather than as scroll breathing room. -->
         <ListView
             x:Name="OptionListView"
             Grid.Row="1"
-            Padding="8,0,32,0"
+            Padding="0"
+            ScrollViewer.VerticalScrollMode="Disabled"
+            ScrollViewer.VerticalScrollBarVisibility="Disabled"
+            ScrollViewer.HorizontalScrollMode="Disabled"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             AllowDrop="True"
             CanDragItems="True"
             CanReorderItems="True"

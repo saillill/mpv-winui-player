@@ -136,7 +136,14 @@ public sealed partial class OptionMultiListControl : OptionControlBase
         }
         var row = BuildRow(string.Empty);
         RowsPanel.Children.Insert(index + 1, row);
-        (row.Children[1] as TextBox)?.Focus(FocusState.Programmatic);
+
+        // Bounds-checked even though BuildRow owns the template: this runs from
+        // a click handler, and an index that throws here would escape into
+        // WinUI's dispatch as a stowed exception rather than a log line.
+        if (row.Children.Count > 1)
+        {
+            (row.Children[1] as TextBox)?.Focus(FocusState.Programmatic);
+        }
     }
 
     private void Commit()

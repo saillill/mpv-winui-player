@@ -17,11 +17,26 @@ namespace mpv_winui
         public App()
         {
             InitializeComponent();
-            AppContext.Init();
+
+            // Registered before Init so a failure inside startup is reported at
+            // all; Init sets the logger up as its first act.
             UnhandledException += (_, e) =>
             {
-                _logger.Error(e.Exception, "Unhandled XAML exception");
+                // Flush what is about to be lost. A crash here kills the
+                // process, and NLog's file target buffers: without this the last
+                // - and most useful - lines never reach disk.
+                try
+                {
+                    _logger.Error(e.Exception, "Unhandled XAML exception");
+                    NLog.LogManager.Flush();
+                }
+                catch
+                {
+                    // Reporting must not become the crash.
+                }
             };
+
+            AppContext.Init();
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)

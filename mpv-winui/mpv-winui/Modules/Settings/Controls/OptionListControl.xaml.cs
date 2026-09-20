@@ -819,16 +819,22 @@ public sealed partial class OptionListControl : UserControl
         }
     }
 
-    /// <summary>Returns the current vertical offset of the options list.</summary>
+    /// <summary>Returns the current vertical offset of the settings content.
+    ///
+    /// The walk starts at <c>this</c>, not at OptionListView, so it finds the
+    /// first scrolling ancestor. The list itself has scrolling turned off (the
+    /// page's ScrollViewer is the one scrolling surface), so asking the list
+    /// would report a viewer that never moves.
+    /// </summary>
     public double GetScrollOffset()
     {
-        return FindScrollViewer(OptionListView)?.VerticalOffset ?? 0;
+        return FindScrollViewer(this)?.VerticalOffset ?? 0;
     }
 
     /// <summary>Restores the vertical offset after the list is rebuilt.</summary>
     public void SetScrollOffset(double offset)
     {
-        var viewer = FindScrollViewer(OptionListView);
+        var viewer = FindScrollViewer(this);
         if (viewer is not null && offset > 0)
         {
             viewer.ChangeView(null, offset, null, disableAnimation: true);
@@ -842,7 +848,16 @@ public sealed partial class OptionListControl : UserControl
         {
             if (option.Key == key)
             {
-                OptionListView.ScrollIntoView(option);
+                // The list is height-constrained inside the page's scroller, so
+                // ListView.ScrollIntoView has nothing of its own to scroll and
+                // does nothing. Bring the realised container up through the
+                // ancestor scroll surface instead. Realise it first: the
+                // container only exists once layout has run for the item.
+                OptionListView.UpdateLayout();
+                if (OptionListView.ContainerFromItem(option) is FrameworkElement container)
+                {
+                    container.StartBringIntoView();
+                }
                 return;
             }
         }

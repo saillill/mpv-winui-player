@@ -990,12 +990,35 @@
          comment at each site says so. -->
     <Thickness x:Key="MpvCompactButtonPadding">8,4</Thickness>
     <Thickness x:Key="MpvTinyButtonPadding">6,2</Thickness>
-    <Thickness x:Key="MpvCardPaddingWide">16,10</Thickness>
+    <!-- The footer's horizontal inset. Same 12 as the breadcrumb's Margin and
+         the browse list's ScrollViewer padding, because all three are rows of
+         one content column: the box width is shared, so the inset has to be
+         too or the boxes start at different x. The 16/10 vertical pair this
+         replaced was the optical match to the 32px controls beside it, and the
+         16 horizontal half was simply never reconciled with the other two
+         rows. -->
+    <Thickness x:Key="MpvFooterPadding">12,10</Thickness>
     <Thickness x:Key="MpvTitleBarPadding">16,5</Thickness>
     <Thickness x:Key="MpvOptionRowMarginXl">0,12,0,8</Thickness>
     <Thickness x:Key="MpvSplitterMargin">0,16,0,4</Thickness>
     <Thickness x:Key="MpvBreadcrumbBarMargin">12,4,12,12</Thickness>
     <Thickness x:Key="MpvSearchGlyphMargin">14,0,0,0</Thickness>
+
+    <!-- The reading width of the settings window's content column, and the
+         media-info panel's. One token because the two surfaces sit in
+         different windows and must still line up when both are open.
+
+         Both a MaxWidth and an alignment, always together: a MaxWidth box
+         with no alignment stretches to the parent and then clamps at the
+         leading edge, so a wide window leaves all the slack on the right and
+         the cards hug the pane gutter. Centre is what makes the clamp
+         symmetric.
+
+         Every row that shares this column must also share its horizontal
+         inset, or the boxes are the same width but start at different x. The
+         settings page's three rows had drifted to 12/12/16 before that was
+         noticed; the footer now carries the same 12 as the other two. -->
+    <x:Double x:Key="MpvContentMaxWidth">1060</x:Double>
 
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
