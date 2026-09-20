@@ -199,6 +199,16 @@
                         HorizontalScrollMode="Disabled">
                         <StackPanel HorizontalAlignment="Stretch">
                             <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
+                            <!-- Scrolling off, like OptionListView inside the
+                                 control above. This list is measured at
+                                 infinite height by the StackPanel, so leaving
+                                 its own ScrollViewer enabled made it report
+                                 its viewport height instead of its content
+                                 height - the section cards past the first
+                                 screenful were then neither drawn nor included
+                                 in BrowseHost's scroll extent. BrowseHost owns
+                                 the page's only scroll; every list inside it
+                                 must decline its own. -->
                             <ListView
                                 x:Name="SectionsHost"
                                 Margin="0,4,0,0"
@@ -206,6 +216,10 @@
                                 HorizontalAlignment="Stretch"
                                 SelectionMode="None"
                                 IsItemClickEnabled="False"
+                                ScrollViewer.VerticalScrollMode="Disabled"
+                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                ScrollViewer.HorizontalScrollMode="Disabled"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                 ItemContainerStyle="{StaticResource SectionCardListViewItemStyle}"
                                 Visibility="Collapsed" />
                         </StackPanel>
@@ -429,11 +443,28 @@
                                  left. The pane's caption and its two create
                                  actions live inside the control's own toolbar,
                                  so they share one row instead of the caption
-                                 sitting on a row of its own above it. -->
-                            <ctl:OptionListControl
-                                x:Name="CustomizeOptionsControl"
+                                 sitting on a row of its own above it.
+
+                                 Wrapped in a ScrollViewer because this pane,
+                                 unlike the browsing one, is given a finite
+                                 height (a star row of CustomizeHost) and the
+                                 list inside declines its own scrolling. Without
+                                 a host scroll the rows past the first screenful
+                                 were simply unreachable - visible in no state,
+                                 scrollable by no gesture. Same shape as
+                                 BrowseHost: one scrolling surface, 12px gutter,
+                                 no MaxWidth (the pane is already narrower than
+                                 the reading column). -->
+                            <ScrollViewer
                                 Grid.Column="1"
-                                ShowHeaders="False" />
+                                Margin="0,4,0,12"
+                                Padding="0"
+                                HorizontalScrollBarVisibility="Disabled"
+                                HorizontalScrollMode="Disabled">
+                                <ctl:OptionListControl
+                                    x:Name="CustomizeOptionsControl"
+                                    ShowHeaders="False" />
+                            </ScrollViewer>
                         </Grid>
                     </Grid>
                 </Grid>

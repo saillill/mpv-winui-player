@@ -413,7 +413,17 @@
     <Grid x:Name="Root">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <!-- Auto, not *: this control is measured inside the page's single
+                 scrolling surface, which hands it infinite height. A star row
+                 under an infinite constraint does not mean "fill what is left",
+                 it degenerates - and the ListView in it then reports the height
+                 of its viewport rather than of its items, so the rows past that
+                 point are neither shown nor counted in the scroll extent. The
+                 page has nothing to scroll to and the last card is cut off by
+                 the footer. Auto measures the list at its own content height,
+                 which is what a non-scrolling list needs to participate in an
+                 outer scroll. -->
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Customize-mode-only toolbar. The pane's own caption sits on the
