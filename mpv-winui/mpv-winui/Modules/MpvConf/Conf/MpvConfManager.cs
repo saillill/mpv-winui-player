@@ -1,5 +1,4 @@
 using mpv_winui.Modules.FileSystem;
-using mpv_winui.Modules.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,11 +12,39 @@ public sealed class MpvConfManager
     public const string DefaultSectionName = "default";
 
     private readonly string _filePath;
+    private readonly Action? _noteOwnWrite;
     private readonly List<MpvConfLine> _lines = [];
 
-    public MpvConfManager(string filePath)
+    /// <summary>
+    /// A reader/writer for one mpv.conf.
+    ///
+    /// <para><paramref name="onBeforeSave"/> is called just before the file is
+    /// written, and exists because the settings window watches this same file:
+    /// stamping a write generation first is what stops the save from being read
+    /// back as a hand edit, which would make the settings window reload and log a
+    /// change nobody made.</para>
+    ///
+    /// <para>It is a callback rather than a direct call to the watcher because this
+    /// is the generic config editor — it can be pointed at any file, and knowing
+    /// which files the settings window happens to watch is not its business. The
+    /// composition root decides (see <c>MpvConfEditorPage</c>, which passes it only
+    /// when the path is the app's own mpv.conf).</para>
+    ///
+    /// <para><b>That inversion is load-bearing, and its absence broke the test
+    /// project.</b> The call used to be an inline check against
+    /// <c>ManagedMpvConfig.MpvConfPath</c> followed by <c>MpvConfWatcher.NoteOwnWrite()</c>,
+    /// which gave this class a compile-time dependency on
+    /// <c>Modules.Settings</c> — and therefore on <c>AppContext</c> and WinUI.
+    /// <c>mpv-conf-test</c> links this file but not that module, so the whole suite
+    /// stopped compiling, and two shipped defects (an escaped value that doubled
+    /// on every launch until mpv.conf reached 896 MB, and six settings whose own
+    /// written values could not be read back) went unnoticed because no test could
+    /// run. See A-28 in docs/settings-design-contract.md.</para>
+    /// </summary>
+    public MpvConfManager(string filePath, Action? onBeforeSave = null)
     {
         _filePath = filePath;
+        _noteOwnWrite = onBeforeSave;
     }
 
     public string FilePath => _filePath;
@@ -56,16 +83,10 @@ public sealed class MpvConfManager
             .ToHashSet(StringComparer.Ordinal);
         var present = _lines.Where(l => l.Status != MpvConfLineStatus.Deleted && !removedSections.Contains(l.Section)).ToList();
         var content = string.Join("\n", present.Select(l => l.Raw)) + "\n";
-        // This editor writes the same file the settings window watches. Stamping
-        // the write generation keeps the save from being read back as a hand
-        // edit: without it the settings window would reload a moment after every
-        // save here and log a change nobody made. Only when the two paths are the
-        // same file - this manager can be pointed at a different mpv.conf, and a
-        // write to some other file is nobody else's business.
-        if (PathsEqual(_filePath, ManagedMpvConfig.MpvConfPath))
-        {
-            MpvConfWatcher.NoteOwnWrite();
-        }
+        // Tell whoever is watching this file that the next change is ours, before
+        // it happens. The caller decides whether anything watches it at all; see
+        // the constructor.
+        _noteOwnWrite?.Invoke();
 
         await FileService.Instance.BackAndSaveAsync(_filePath, content, backup, limit).ConfigureAwait(false);
 
@@ -82,12 +103,20 @@ public sealed class MpvConfManager
 
     /// <summary>Whether two paths name the same file.
     ///
+    /// <summary>Whether two paths name the same file, resolved rather than
+    /// compared as strings.
+    ///
     /// Compared resolved rather than as strings: the two callers build the path
     /// independently and can differ in separators, casing or a relative segment
     /// while still naming one file. A false negative here is a spurious reload
     /// of our own save; a false positive would be worse but is not reachable by
-    /// construction, since one side is always the deployed config.</summary>
-    private static bool PathsEqual(string? a, string? b)
+    /// construction, since one side is always the deployed config.
+    ///
+    /// <para>Internal rather than private because the composition root needs the
+    /// same verdict to decide whether to pass an <c>onBeforeSave</c> callback at
+    /// all — and it must be the same verdict, not a second implementation of it.
+    /// See the constructor.</para></summary>
+    internal static bool PathsEqual(string? a, string? b)
     {
         if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b))
         {
