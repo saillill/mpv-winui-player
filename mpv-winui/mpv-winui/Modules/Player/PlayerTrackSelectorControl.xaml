@@ -18,7 +18,7 @@
     </UserControl.Resources>
     <Grid>
         <Pivot
-            MinHeight="400"
+            MinHeight="240"
             Padding="{StaticResource MpvPopupContentPadding}"
             IsHeaderItemsCarouselEnabled="False"
             IsTabStop="False">

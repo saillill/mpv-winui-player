@@ -20,8 +20,8 @@ namespace mpv_winui.Modules.Player
         /// height keeps the three tabs from resizing each other, and because the
         /// popup is allowed to leave the window this size no longer has to be
         /// negotiated with the window it happens to be opened from.</summary>
-        private const double PanelWidth = 440;
-        private const double PanelHeight = 560;
+        private const double PanelWidth = 560;
+        private const double PanelHeight = 460;
         private const double PanelMinHeight = 320;
 
         /// <summary>Height of the panel's chrome: the border plus the tab strip.</summary>

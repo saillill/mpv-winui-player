@@ -588,8 +588,8 @@
                                 FlyoutPresenterStyle="{StaticResource MpvPlayerPopupPresenterStyle}">
                                 <local:PlayerTrackSelectorControl
                                     x:Name="TrackSelectorControl"
-                                    MaxHeight="480"
-                                    MaxWidth="480" />
+                                    MaxHeight="420"
+                                    MaxWidth="560" />
                             </Flyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>
