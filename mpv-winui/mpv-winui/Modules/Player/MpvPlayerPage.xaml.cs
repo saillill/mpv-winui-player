@@ -34,6 +34,23 @@ namespace mpv_winui.Modules.Player
             InitializeComponent();
             ApplyLocalizedStrings();
 
+            // Localize the menu bar here, not from CreateAsync's success path.
+            //
+            // BuildMainMenuBar used to run only after mpv had initialized, so
+            // the bar's labels - and therefore the visible language - depended
+            // on a network of unrelated steps: deploy the config, drain the
+            // queued writers, bring mpv up. Any of those failing, or merely
+            // taking its time, left the XAML-declared English items on screen,
+            // and the user's report of "the Chinese labels are slow" and "the
+            // Chinese labels are gone" are the same defect seen at two speeds.
+            //
+            // Nothing here needs mpv. MenuBarBuilder reads AppLang (loaded in
+            // AppContext.Init, before any page exists) and Menus/menus.json
+            // (a plain file). The call in the initialized branch stays as an
+            // idempotent rebuild.
+            BuildMainMenuBar();
+            SetupCustomMenuBarItems();
+
             _task = CreateAsync();
 
             Loaded += MpvPlayerPage_Loaded;
@@ -107,8 +124,11 @@ namespace mpv_winui.Modules.Player
                     SetupPreview();
                 }
 
-                // Config-driven menu bar (Menus/menus.json + user override).
-                // Falls back to the XAML-declared items when no definition loads.
+                // Config-driven menu bar. Built once already in the constructor
+                // so the labels never depend on mpv coming up; rebuilt here so
+                // a slow start still converges on the same bar, and so a
+                // definition that only became readable in the meantime (a user
+                // override written during startup) is picked up.
                 BuildMainMenuBar();
                 SetupCustomMenuBarItems();
 

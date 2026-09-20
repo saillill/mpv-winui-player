@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using NLog;
 
 namespace mpv_winui.Modules.Language;
 
@@ -26,8 +27,18 @@ internal static class LanguageFile
     /// </summary>
     internal static JsonElement ReadRoot(string? path)
     {
-        if (string.IsNullOrEmpty(path) || !File.Exists(path))
+        if (string.IsNullOrEmpty(path))
         {
+            LogManager.GetLogger("AppLang").Warn("no language file path resolved; keeping defaults");
+            return default;
+        }
+
+        if (!File.Exists(path))
+        {
+            // Worth a warning, not silence: this is the difference between
+            // "the user picked English" and "the app fell back to English
+            // because the file was not where it was looked for".
+            LogManager.GetLogger("AppLang").Warn("language file not found: {0}", path);
             return default;
         }
 
@@ -36,14 +47,17 @@ internal static class LanguageFile
             using var doc = JsonDocument.Parse(File.ReadAllText(path));
             if (doc.RootElement.ValueKind != JsonValueKind.Object)
             {
+                LogManager.GetLogger("AppLang").Warn(
+                    "language file is not a JSON object: {0}", path);
                 return default;
             }
 
             // Clone: the document is disposed when this frame returns.
             return doc.RootElement.Clone();
         }
-        catch
+        catch (Exception ex)
         {
+            LogManager.GetLogger("AppLang").Error(ex, "language file unreadable: {0}", path);
             return default;
         }
     }

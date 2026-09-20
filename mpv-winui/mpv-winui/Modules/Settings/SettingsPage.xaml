@@ -173,6 +173,17 @@
                          ambiguous and what let a click re-enter layout while a
                          scroll was still settling. One owner, one scrollbar.
 
+                         The width clamp sits on the ScrollViewer itself, in
+                         the same shape as the breadcrumb row above and the
+                         footer below: MaxWidth caps the element's own box, and
+                         the row's 12px inset lives inside that box. Putting
+                         the MaxWidth on the inner panel instead - with the
+                         inset on the ScrollViewer - made this the only row
+                         whose cap and inset were on different elements, so its
+                         content column measured 1060 where the other two
+                         measured 1036, and the cards sat 12px wider on each
+                         side than the title they hang under.
+
                          It follows that the content here is measured at finite
                          height, so an inner ListView cannot virtualise.
                          That cost is bounded by the fold rule: the largest
@@ -180,13 +191,13 @@
                          reaches this list as one card, not 205 rows. -->
                     <ScrollViewer
                         x:Name="BrowseHost"
+                        MaxWidth="{StaticResource MpvContentMaxWidth}"
+                        HorizontalAlignment="Center"
                         Margin="12,4,12,0"
                         Padding="0"
                         HorizontalScrollBarVisibility="Disabled"
                         HorizontalScrollMode="Disabled">
-                        <StackPanel
-                            MaxWidth="{StaticResource MpvContentMaxWidth}"
-                            HorizontalAlignment="Center">
+                        <StackPanel HorizontalAlignment="Stretch">
                             <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
                             <ListView
                                 x:Name="SectionsHost"

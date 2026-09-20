@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using NLog;
 
 namespace mpv_winui.Modules.Language
 {
@@ -1566,23 +1567,32 @@ namespace mpv_winui.Modules.Language
         /// </remarks>
         internal void ApplyJson(JsonElement root)
         {
-            try
+            if (root.ValueKind != JsonValueKind.Object)
             {
-                if (root.ValueKind != JsonValueKind.Object) return;
-
-                var map = WritablePropertyMap();
-                foreach (var prop in root.EnumerateObject())
-                {
-                    if (prop.Value.ValueKind != JsonValueKind.String) continue;
-                    if (map.TryGetValue(prop.Name, out var p))
-                    {
-                        p.SetValue(this, prop.Value.GetString());
-                    }
-                }
+                return;
             }
-            catch
+
+            var map = WritablePropertyMap();
+            foreach (var prop in root.EnumerateObject())
             {
-                // A broken language file falls back to defaults.
+                if (prop.Value.ValueKind != JsonValueKind.String) continue;
+                if (!map.TryGetValue(prop.Name, out var p)) continue;
+
+                // Per-key guard, not one guard around the loop. A single
+                // property that refuses its value (a read-only override, a
+                // setter that validates) used to abort the whole pass: every
+                // later key kept its English default, and because the outer
+                // catch was silent the symptom was simply "the app is in
+                // English now" with nothing in the log to explain it.
+                try
+                {
+                    p.SetValue(this, prop.Value.GetString());
+                }
+                catch (Exception ex)
+                {
+                    LogManager.GetLogger("AppLang").Warn(
+                        ex, "language key not applied: {0}", prop.Name);
+                }
             }
         }
 
