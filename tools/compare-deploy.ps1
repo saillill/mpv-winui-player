@@ -18,7 +18,7 @@ param([switch]$ShowAll)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $src  = Join-Path $repo 'mpv-winui/mpv-winui/bin/x64/Release/net10.0-windows10.0.26100.0/win-x64'
-$dst  = 'C:\Users\z2637\WorkBuddy\2026-09-19-14-59-27\outputs\mpvw-test'
+$dst  = 'C:\Users\z2637\Documents\DeepSeek\mpv-deploy'
 
 foreach ($p in @($src, $dst)) {
     if (-not (Test-Path -LiteralPath $p)) { throw "not found: $p" }

@@ -18,7 +18,7 @@ set -u
 
 REPO="C:/Users/z2637/Documents/DeepSeek/mpv"
 SRC="$REPO/mpv-winui/mpv-winui/bin/x64/Release/net10.0-windows10.0.26100.0/win-x64"
-DST="C:/Users/z2637/WorkBuddy/2026-09-19-14-59-27/outputs/mpvw-test"
+DST="C:/Users/z2637/Documents/DeepSeek/mpv-deploy"
 
 if [ ! -f "$SRC/mpvw.dll" ]; then
     echo "FATAL: no mpvw.dll at $SRC -- build first"
