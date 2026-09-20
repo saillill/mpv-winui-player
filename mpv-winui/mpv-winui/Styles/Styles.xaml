@@ -1080,4 +1080,25 @@
     <!-- Depth of the panel's shadow, matching the FlyoutPresenter default. -->
     <x:Double x:Key="MpvPlayerPopupShadowDepth">32</x:Double>
 
+    <!-- The typography and row metrics those same four popups share.
+
+         Spacing already had a scale (MpvSpace*, above) and the popups simply
+         were not using it; these are the sizes that had no token at all. Every
+         one of them was spelled out per component, which is exactly how the
+         track selector came to run 16/12/10 while the quick-control panel ran
+         16/14/11 for the same three roles, and how only the panel ended up on
+         MpvCardStyle. Change the numbers here, not in the components. -->
+    <x:Double x:Key="MpvPopupTitleFontSize">12</x:Double>
+    <x:Double x:Key="MpvPopupLabelFontSize">14</x:Double>
+    <x:Double x:Key="MpvPopupCaptionFontSize">11</x:Double>
+    <x:Double x:Key="MpvPopupIconSize">16</x:Double>
+    <x:Double x:Key="MpvPopupRowMinHeight">36</x:Double>
+
+    <!-- Horizontal inset of a popup's content, matching the card inset the
+         quick-control panel already used (12,4,12,4). -->
+    <Thickness x:Key="MpvPopupContentPadding">12,4,12,4</Thickness>
+
+    <!-- Gap between a popup's tab strip / header and its list. -->
+    <Thickness x:Key="MpvPopupListMargin">0,8,0,0</Thickness>
+
 </ResourceDictionary>

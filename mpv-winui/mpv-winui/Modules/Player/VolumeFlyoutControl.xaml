@@ -9,7 +9,7 @@
     <StackPanel
         Width="56"
         Padding="4,2,4,6"
-        Spacing="6">
+        Spacing="{StaticResource MpvSpaceCompact}">
         <AppBarButton
             x:Name="MuteButton"
             Width="40"

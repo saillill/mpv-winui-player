@@ -60,7 +60,7 @@ public sealed partial class QuickControlPanel
             MediaPlayer?.Command("set", "sub-font-size", value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         };
 
-        var fontRow = new Grid { ColumnSpacing = 8 };
+        var fontRow = new Grid { ColumnSpacing = PopupMetric("MpvSpaceS") };
         fontRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         fontRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         fontRow.Children.Add(_panelFontBox);
@@ -83,7 +83,7 @@ public sealed partial class QuickControlPanel
 
         var styleRow = new StackPanel
         {
-            Spacing = 8,
+            Spacing = PopupMetric("MpvSpaceS"),
             Margin = new Thickness(0, 8, 0, 8),
             VerticalAlignment = VerticalAlignment.Top,
         };
@@ -102,7 +102,7 @@ public sealed partial class QuickControlPanel
         {
             var b = new Button
             {
-                Content = new FontIcon { Glyph = glyph, FontSize = 16, FontFamily = PanelIconFont },
+                Content = new FontIcon { Glyph = glyph, FontSize = PopupMetric("MpvPopupIconSize"), FontFamily = PanelIconFont },
                 Width = 40,
                 Height = 40,
                 MinWidth = 0,

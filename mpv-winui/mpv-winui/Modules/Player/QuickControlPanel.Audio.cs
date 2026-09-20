@@ -75,7 +75,7 @@ public sealed partial class QuickControlPanel
 
         // Two placeholder-led selectors side by side: EQ preset + audio
         // device, mirroring each other instead of a toggle switch.
-        var topRow = new Grid { ColumnSpacing = 8 };
+        var topRow = new Grid { ColumnSpacing = PopupMetric("MpvSpaceS") };
         topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         topRow.Children.Add(presetBox);
@@ -147,7 +147,7 @@ public sealed partial class QuickControlPanel
         // one), so full-width cards are reserved for the EQ alone.
         var channelsSection = PanelSection(lang.SettingsAudioChannels, channelBox);
         var delaySection = PanelSliderRow(lang.SettingsAudioDelay, "audio-delay", -10, 10, 0.1);
-        var pair = new Grid { ColumnSpacing = 8 };
+        var pair = new Grid { ColumnSpacing = PopupMetric("MpvSpaceS") };
         pair.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pair.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pair.Children.Add(channelsSection);
