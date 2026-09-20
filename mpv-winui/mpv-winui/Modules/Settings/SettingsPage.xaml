@@ -141,11 +141,19 @@
                      directly on the overview, then the advanced entry cards. -->
                 <Grid Grid.Row="1">
                     <!-- Browsing layout: one column of cards under the trail.
-                         The StackPanel centres inside the same 12px gutter the
-                         breadcrumb's Margin uses, so both boxes are the same
-                         width and the same distance from the pane edge: the
-                         cards' left edge lands under the back chevron. -->
-                    <ScrollViewer x:Name="BrowseHost" Padding="12,4,12,0">
+                         Horizontal scrolling is disabled on purpose. Left at its
+                         default (Enabled/Auto) the ScrollViewer measures its
+                         content against infinite width, so the MaxWidth box is
+                         laid out at x=0 of the scrollable extent and
+                         HorizontalAlignment="Center" does nothing at all: the
+                         centring is silently a no-op and the cards sit left.
+                         Disabled is what gives the StackPanel a finite width to
+                         be centred within. -->
+                    <ScrollViewer
+                        x:Name="BrowseHost"
+                        Padding="12,4,12,0"
+                        HorizontalScrollBarVisibility="Disabled"
+                        HorizontalScrollMode="Disabled">
                         <StackPanel
                             MaxWidth="{StaticResource MpvContentMaxWidth}"
                             HorizontalAlignment="Center">
