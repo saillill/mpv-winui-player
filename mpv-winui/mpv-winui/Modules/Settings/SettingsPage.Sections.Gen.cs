@@ -22,7 +22,7 @@ namespace mpv_winui.Modules.Settings
         ///
         /// The generated folders all fold. They hold the options nobody
         /// wrote a curated row for, which is the same test the
-        /// hand-written advanced sections pass -- and 548 rows on a
+        /// hand-written advanced sections pass -- and 549 rows on a
         /// category overview is the wall of text the fold exists to
         /// prevent.
         /// </summary>
@@ -421,7 +421,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_vid)] = lang.SectionGenTracks;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vlang)] = lang.SectionGenTracks;
 
-            // 播放器与窗口选项 -- 95 row(s), from mpv's "Player & window"
+            // 播放器与窗口选项 -- 96 row(s), from mpv's "Player & window"
             sectionOrder[lang.SectionGenPlayerWindow] = 1007;
             advancedSections.Add(lang.SectionGenPlayerWindow);
 
@@ -506,6 +506,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_show_dependent_tracks)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_show_in_taskbar)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_shuffle)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_speed)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_start)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_term_osd)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_term_osd_bar)] = lang.SectionGenPlayerWindow;

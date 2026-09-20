@@ -65,17 +65,14 @@ namespace mpv_winui.Modules.Language
         public static void Load(AppLang lang, string code)
         {
             var path = ResolveFilePath(code);
+            lang.LoadFromJson(path);
 
-            // The file is read and parsed exactly once and shared by both
-            // tables: the properties, and the customize-mode captions that
-            // AppLang resolves by name. Those captions have no settable
-            // property, because AppLang reads its own properties by reflection
-            // and a JSON entry named like one would overwrite the property
-            // rather than accompany it.
-            var root = LanguageFile.ReadRoot(path);
-
-            lang.ApplyJson(root);
-            CustomizeStrings.Load(root);
+            // Some customize-mode captions have no settable property — they are
+            // read by name, because AppLang resolves its own properties through
+            // reflection and a JSON entry named like one would overwrite the
+            // property rather than accompany it. Those keys need the file read
+            // a second time, here, where the active path is known.
+            CustomizeStrings.Load(path);
         }
     }
 }

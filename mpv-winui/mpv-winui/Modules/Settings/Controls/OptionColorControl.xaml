@@ -15,6 +15,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid
+            x:Name="HeaderGrid"
             Grid.Row="0"
             ColumnSpacing="{StaticResource MpvOptionControlGap}"
             Background="Transparent"

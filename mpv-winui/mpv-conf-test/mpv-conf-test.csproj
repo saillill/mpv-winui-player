@@ -31,12 +31,6 @@
         <Compile Include="..\mpv-winui\Modules\MpvConf\Option\**\*.cs" Link="MpvConf\Conf\%(RecursiveDir)%(Filename)%(Extension)" />
         <Compile Include="..\mpv-winui\Modules\MpvConf\Schema\**\*.cs" Link="MpvConf\Conf\%(RecursiveDir)%(Filename)%(Extension)" />
         <Compile Include="..\mpv-winui\Modules\Menu\MpvMenu\**\*.cs" Link="Menu\MpvMenu\%(RecursiveDir)%(Filename)%(Extension)" />
-        <!-- The quote/unquote pair. Linked rather than project-referenced so the
-             round-trip assertion runs here: the defect it guards against (an
-             escaped value re-escaped on every launch, reaching 896 MB) was
-             invisible to every static checker, because none of them write a
-             value out and read it back. -->
-        <Compile Include="..\mpv-winui\Modules\Settings\MpvConfValueCodec.cs" Link="Settings\MpvConfValueCodec.cs" />
     </ItemGroup>
 
     <ItemGroup>

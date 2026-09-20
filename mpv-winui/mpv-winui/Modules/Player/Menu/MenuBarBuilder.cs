@@ -171,16 +171,6 @@ public static class MenuBarBuilder
         // AppLang is annotated with DynamicallyAccessedMembers(PublicProperties),
         // so the properties are preserved for trimming/AOT.
         var prop = typeof(AppLang).GetProperty(key, BindingFlags.Public | BindingFlags.Instance);
-        if (prop is null)
-        {
-            // The caller falls back to the raw key, so the menu would render
-            // "MenuFile" where the user expects "文件". A typo in menus.json
-            // is the only way here, and it is invisible in the UI - the label
-            // looks deliberate, just wrong - so it has to be said in the log.
-            _logger.Warn("menu labelKey has no AppLang property, id will show raw: {0}", key);
-            return null;
-        }
-
-        return prop.GetValue(AppContext.AppLang) as string;
+        return prop?.GetValue(AppContext.AppLang) as string;
     }
 }

@@ -729,52 +729,46 @@ def gen_applang_partial(rows: list[dict]) -> str:
 
 
 def gen_sections(rows: list[dict]) -> str:
-    """The section catalogue fragment: the entries SettingsSections.All needs.
+    """Section caption + description AppLang properties and their registration.
 
-    Deliberately NOT a method that returns the list. It used to be
-    `GeneratedSections()`, an IEnumerable the page never called -- the real
-    list is `SettingsSections.All`, and the icons there are codepoints while
-    the method emitted names like "IconVideo" that resolve to nothing. So it
-    looked like the registry, was the obvious place to add a folder, and
-    wiring a folder into it did nothing at all.
-
-    What is emitted now is a `// ---- schema-generated sections ----` block to
-    paste into SettingsSections.All, carrying the exact `new(...)` lines with
-    fresh codepoints. The generator cannot patch that file itself (it mixes
-    hand-written and generated entries in one array, and rewriting it would
-    take the hand-written half with it), so it prints the block and a
-    check-sections.py run confirms both halves are present.
+    A generated section needs three things the existing sections already
+    have: a caption property, a description property, and an entry in the
+    page's section list with an icon. All three are emitted here.
     """
     folders = sorted({folder_for(r) for r in rows})
-    plain = list(GROUP_TO_SECTION.values())
-    order = [k for k, _c, _d, _i, _p in GENERAL_THEMES] + ["其他"]
-
-    def key(sec: str) -> tuple[int, int]:
-        if sec in plain:
-            return (0, plain.index(sec))
-        theme = sec[len("SectionGenGeneral"):]
-        return (1, order.index(theme) if theme in order else len(order))
-
-    used = re.findall(r'\\u([0-9A-Fa-f]{4})',
-                      (SETTINGS / "Layout" / "SettingsSections.cs").read_text(encoding="utf-8-sig"))
-    taken = {int(u, 16) for u in used}
-    pool = [c for c in range(0xE700, 0xE760) if c not in taken]
-
-    lines = [BANNER,
-             "// Paste the entries below into SettingsSections.All, replacing any of the",
-             "// same name. That array is the list the page actually reads; there is no",
-             "// registry method to call.",
+    lines = [BANNER, "using System.Collections.Generic;\n",
              "namespace mpv_winui.Modules.Settings\n{",
              "    public sealed partial class SettingsPage\n    {",
-             "        // ---- schema-generated sections ----"]
-    for i, folder in enumerate(sorted(folders, key=key)):
-        _group, cap, desc, _icon = folder_meta(folder)
-        glyph = pool[i % len(pool)]
-        lines.append(f"        // {cap} -- {desc}")
+             "        /// <summary>",
+             "        /// Second-level folders for the schema-generated rows.",
+             "        ///",
+             "        /// One per mpv option group, plus a split of the General",
+             "        /// bucket into themes -- see GENERAL_THEMES in the generator.",
+             "        /// General is the only group mpv itself does not make",
+             "        /// coherent, and shipping it whole reproduced the old",
+             "        /// Advanced bucket: one folder, 100 unrelated rows, the only",
+             "        /// card on the Program page.",
+             "        ///",
+             "        /// NOT WIRED UP. SettingsSections.All is the list the page",
+             "        /// actually reads; the generator emits the matching entries",
+             "        /// there too. This method is kept as the readable index of",
+             "        /// what was generated.",
+             "        /// </summary>",
+             "        private IEnumerable<(string Id, string Caption, string Description, string Icon)>",
+             "            GeneratedSections()",
+             "        {",
+             "            var lang = AppContext.AppLang;"]
+    for folder in folders:
+        _group, cap, desc, icon = folder_meta(folder)
+        glyph = GENERATED_ICON_GLYPH[icon]
         lines.append(
-            f'        new("{folder}", "\\u{glyph:04X}", '
-            f"l => l.{folder}, l => l.SectionDesc{folder[len('Section'):]}),")
-    lines += ["    }", "}", ""]
+            f"            // {cap} -- {desc}\n"
+            f"            yield return (nameof(lang.{folder}), lang.{folder}, "
+            f"lang.SectionDesc{folder[len('Section'):]}, \"{glyph}\");")
+    lines += ["        }",
+              "    }",
+              "}",
+              ""]
     return "\n".join(lines)
 
 

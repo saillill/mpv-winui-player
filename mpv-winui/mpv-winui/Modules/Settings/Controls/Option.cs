@@ -27,6 +27,7 @@ public enum OptionActionKind
     Button,
 }
 
+/// <summary>Display tier used to fold advanced/experimental options by default.</summary>
 /// <summary>A checkbox entry used by <see cref="OptionType.CheckList"/> options.</summary>
 public sealed class OptionCheckItem
 {

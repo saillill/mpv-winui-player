@@ -1530,6 +1530,12 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_shuffle), value);
         }
 
+        public double Mpv_speed
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_speed), 1.0);
+            set => _dataSetting.SetValue(nameof(Mpv_speed), value);
+        }
+
         public string Mpv_start
         {
             get => _dataSetting.GetValue(nameof(Mpv_start), "none");

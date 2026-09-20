@@ -60,85 +60,69 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- The three rows below are the rows of one content column,
-                     and every row carries the same pair: MaxWidth plus
-                     HorizontalAlignment="Center". Each row is the direct child
-                     of the page Grid, so it is given the content area's width
-                     and clamps to the column; the three then share one x.
-
-                     The centring only works if each row is given a finite
-                     width to be centred within. Wrapping a row in an extra
-                     full-width Grid breaks that: the inner box then sizes to
-                     its own content, so the breadcrumb's "back chevron + title"
-                     shrank to ~150px and centred *that*, parking its left edge
-                     in the middle of the window while the cards below began at
-                     the column's left edge. Keep these three as direct
-                     children.
-
-                     The column's sub-rows no longer add horizontal padding of
-                     their own. Every row here starts at the column's own x and
-                     the content inside it does too, so the breadcrumb, the
-                     option cards and the footer share one left edge instead of
-                     two insets stacked on the cards but not on the other two. -->
+                <!-- Windows-Settings-style sub-page breadcrumb: back chevron +
+                     "category > section", shown on every option page (built
+                     in UpdateOptions). The search box lives in the window's
+                     top bar, outside this page. -->
                 <Grid
                     x:Name="BreadcrumbBar"
                     Grid.Row="0"
-                    MaxWidth="{StaticResource MpvContentMaxWidth}"
-                    HorizontalAlignment="Center"
+                    MaxWidth="1060"
+                    HorizontalAlignment="Stretch"
                     Margin="{StaticResource MpvBreadcrumbBarMargin}"
                     ColumnSpacing="{StaticResource MpvSpaceM}"
                     Visibility="Collapsed">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        x:Name="BreadcrumbBackButton"
+                        Grid.Column="0"
+                        MinWidth="32"
+                        MinHeight="32"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="BreadcrumbBack_Click">
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="16" Glyph="&#xE72B;" />
+                    </Button>
+                    <StackPanel
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Spacing="{StaticResource MpvSpaceM}">
                         <Button
-                            x:Name="BreadcrumbBackButton"
-                            Grid.Column="0"
-                            MinWidth="32"
-                            MinHeight="32"
+                            x:Name="BreadcrumbCategoryLink"
                             Padding="0"
+                            Margin="0"
+                            MinWidth="0"
+                            MinHeight="0"
+                            HorizontalContentAlignment="Left"
+                            VerticalContentAlignment="Center"
                             Background="Transparent"
                             BorderThickness="0"
-                            Click="BreadcrumbBack_Click">
-                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="16" Glyph="&#xE72B;" />
-                        </Button>
-                        <StackPanel
-                            Grid.Column="2"
-                            Orientation="Horizontal"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            FontSize="24"
+                            FontWeight="SemiBold"
+                            Click="BreadcrumbCategory_Click"
+                            Visibility="Collapsed" />
+                        <TextBlock
+                            x:Name="BreadcrumbSeparator"
                             VerticalAlignment="Center"
-                            Spacing="{StaticResource MpvSpaceM}">
-                            <Button
-                                x:Name="BreadcrumbCategoryLink"
-                                Padding="0"
-                                Margin="0"
-                                MinWidth="0"
-                                MinHeight="0"
-                                HorizontalContentAlignment="Left"
-                                VerticalContentAlignment="Center"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                FontSize="24"
-                                FontWeight="SemiBold"
-                                Click="BreadcrumbCategory_Click"
-                                Visibility="Collapsed" />
-                            <TextBlock
-                                x:Name="BreadcrumbSeparator"
-                                VerticalAlignment="Center"
-                                FontSize="26"
-                                FontWeight="SemiBold"
-                                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                Text="&#x203A;"
-                                Visibility="Collapsed" />
-                            <TextBlock
-                                x:Name="BreadcrumbSection"
-                                VerticalAlignment="Center"
-                                FontSize="24"
-                                FontWeight="SemiBold"
-                                TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
+                            FontSize="26"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                            Text="&#x203A;"
+                            Visibility="Collapsed" />
+                        <TextBlock
+                            x:Name="BreadcrumbSection"
+                            VerticalAlignment="Center"
+                            FontSize="24"
+                            FontWeight="SemiBold"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
                 </Grid>
 
                 <!-- Sub-category overview: section cards shown instead of the
@@ -146,80 +130,17 @@
                 <!-- One scrolling surface per category page: common options
                      directly on the overview, then the advanced entry cards. -->
                 <Grid Grid.Row="1">
-                    <!-- Browsing layout: one column of cards under the trail.
-
-                         The column has exactly one gutter, defined here: a
-                         ScrollViewer that is inset 12 from the content area
-                         (so the column does not touch the NavigationView pane
-                         or the window edge) and otherwise exactly the column
-                         width. The controls inside it add no horizontal padding
-                         of their own, so every card starts on the column's own
-                         x. This used to be described in two places at once (here
-                         and inside OptionListControl), which stacked 20px on the
-                         left of the cards while the breadcrumb above and the
-                         footer below kept 12, leaving the cards looking both
-                         misaligned and off-centre.
-
-                         Horizontal scrolling stays disabled: left at its
-                         default (Enabled/Auto) the ScrollViewer would measure
-                         its content against infinite width, giving the column
-                         no finite width to be centred within.
-
-                         This ScrollViewer is the ONE scrolling surface for the
-                         category page. The ListViews inside it are
-                         height-constrained and have their own scrolling turned
-                         off (see OptionListControl), because two nested
-                         scrollers in one page is what makes a scroll gesture
-                         ambiguous and what let a click re-enter layout while a
-                         scroll was still settling. One owner, one scrollbar.
-
-                         The width clamp sits on the ScrollViewer itself, in
-                         the same shape as the breadcrumb row above and the
-                         footer below: MaxWidth caps the element's own box, and
-                         the row's 12px inset lives inside that box. Putting
-                         the MaxWidth on the inner panel instead - with the
-                         inset on the ScrollViewer - made this the only row
-                         whose cap and inset were on different elements, so its
-                         content column measured 1060 where the other two
-                         measured 1036, and the cards sat 12px wider on each
-                         side than the title they hang under.
-
-                         It follows that the content here is measured at finite
-                         height, so an inner ListView cannot virtualise.
-                         That cost is bounded by the fold rule: the largest
-                         generated section (205 rows) is a folded section, so it
-                         reaches this list as one card, not 205 rows. -->
-                    <ScrollViewer
-                        x:Name="BrowseHost"
-                        MaxWidth="{StaticResource MpvContentMaxWidth}"
-                        HorizontalAlignment="Center"
-                        Margin="12,4,12,0"
-                        Padding="0"
-                        HorizontalScrollBarVisibility="Disabled"
-                        HorizontalScrollMode="Disabled">
-                        <StackPanel HorizontalAlignment="Stretch">
+                    <!-- Browsing layout: one column of cards under the trail. -->
+                    <ScrollViewer x:Name="BrowseHost" Padding="12,4,12,0">
+                        <StackPanel MaxWidth="1060" HorizontalAlignment="Stretch">
                             <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
-                            <!-- Scrolling off, like OptionListView inside the
-                                 control above. This list is measured at
-                                 infinite height by the StackPanel, so leaving
-                                 its own ScrollViewer enabled made it report
-                                 its viewport height instead of its content
-                                 height - the section cards past the first
-                                 screenful were then neither drawn nor included
-                                 in BrowseHost's scroll extent. BrowseHost owns
-                                 the page's only scroll; every list inside it
-                                 must decline its own. -->
                             <ListView
                                 x:Name="SectionsHost"
-                                Margin="0,4,0,0"
+                                Margin="8,4,32,0"
                                 Padding="0"
                                 HorizontalAlignment="Stretch"
                                 SelectionMode="None"
                                 IsItemClickEnabled="False"
-                                ScrollViewer.VerticalScrollMode="Disabled"
-                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                ScrollViewer.HorizontalScrollMode="Disabled"
-                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                 ItemContainerStyle="{StaticResource SectionCardListViewItemStyle}"
                                 Visibility="Collapsed" />
                         </StackPanel>
@@ -250,6 +171,7 @@
                             Severity="Informational" />
 
                         <Grid
+                            x:Name="CustomizeHost"
                             Grid.Row="1"
                             ColumnSpacing="{StaticResource MpvSpaceM}">
                             <Grid.ColumnDefinitions>
@@ -442,43 +364,21 @@
                                  left. The pane's caption and its two create
                                  actions live inside the control's own toolbar,
                                  so they share one row instead of the caption
-                                 sitting on a row of its own above it.
-
-                                 Wrapped in a ScrollViewer because this pane,
-                                 unlike the browsing one, is given a finite
-                                 height (a star row of CustomizeHost) and the
-                                 list inside declines its own scrolling. Without
-                                 a host scroll the rows past the first screenful
-                                 were simply unreachable - visible in no state,
-                                 scrollable by no gesture. Same shape as
-                                 BrowseHost: one scrolling surface, 12px gutter,
-                                 no MaxWidth (the pane is already narrower than
-                                 the reading column). -->
-                            <ScrollViewer
+                                 sitting on a row of its own above it. -->
+                            <ctl:OptionListControl
+                                x:Name="CustomizeOptionsControl"
                                 Grid.Column="1"
-                                Margin="0,4,0,12"
-                                Padding="0"
-                                HorizontalScrollBarVisibility="Disabled"
-                                HorizontalScrollMode="Disabled">
-                                <ctl:OptionListControl
-                                    x:Name="CustomizeOptionsControl"
-                                    ShowHeaders="False" />
-                            </ScrollViewer>
+                                ShowHeaders="False" />
                         </Grid>
                     </Grid>
                 </Grid>
 
-                <!-- The footer bar, third row of the same content column. Its
-                     12/10 padding is not a scale step: it is the optical match
-                     to the breadcrumb row above it, vertically centred against
-                     the same 32px controls. The 12 horizontal half matters as
-                     well as the vertical one: this row shares the column's x
-                     with the two above it, so its inset has to match theirs. -->
+                <!-- The customize footer bar. Its 16/10 padding is not a scale
+                     step: it is the optical match to the breadcrumb row above
+                     it, vertically centred against the same 32px controls. -->
                 <Border
                     Grid.Row="2"
-                    MaxWidth="{StaticResource MpvContentMaxWidth}"
-                    HorizontalAlignment="Center"
-                    Padding="{StaticResource MpvFooterPadding}"
+                    Padding="{StaticResource MpvCardPaddingWide}"
                     BorderThickness="0">
                     <Grid ColumnSpacing="{StaticResource MpvSpaceS}">
                         <Grid.ColumnDefinitions>

@@ -167,17 +167,7 @@ namespace mpv_winui.Modules.Player
             {
                 MenuBarBuilder.Build(MainMenuBar, menus, KnownMenuActions, MenuFlyoutItem_Click,
                     MenuShortcutHints.FindForCommand);
-                return;
             }
-
-            // No definition: the XAML-authored English items stay on screen.
-            // Worth saying out loud, because a silent fallback here is
-            // indistinguishable from "the app is in English" - and it is the
-            // one path where the labels ignore the language entirely, so a
-            // user who set zh-CN sees English and has nothing to point at.
-            _logger.Warn(
-                "no menu definition available; menu bar keeps the built-in English labels, bundled={0}",
-                MenuDefinitionSource.BundledPath);
         }
 
         /// <summary>Rebuilds the menu bar (used after menu definition or language changes).</summary>

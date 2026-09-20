@@ -1,4 +1,4 @@
-using Microsoft.UI.Windowing;
+﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -33,23 +33,6 @@ namespace mpv_winui.Modules.Player
             _appWindow = App.Window?.AppWindow!;
             InitializeComponent();
             ApplyLocalizedStrings();
-
-            // Localize the menu bar here, not from CreateAsync's success path.
-            //
-            // BuildMainMenuBar used to run only after mpv had initialized, so
-            // the bar's labels - and therefore the visible language - depended
-            // on a network of unrelated steps: deploy the config, drain the
-            // queued writers, bring mpv up. Any of those failing, or merely
-            // taking its time, left the XAML-declared English items on screen,
-            // and the user's report of "the Chinese labels are slow" and "the
-            // Chinese labels are gone" are the same defect seen at two speeds.
-            //
-            // Nothing here needs mpv. MenuBarBuilder reads AppLang (loaded in
-            // AppContext.Init, before any page exists) and Menus/menus.json
-            // (a plain file). The call in the initialized branch stays as an
-            // idempotent rebuild.
-            BuildMainMenuBar();
-            SetupCustomMenuBarItems();
 
             _task = CreateAsync();
 
@@ -100,14 +83,14 @@ namespace mpv_winui.Modules.Player
                     await _mediaPlayer.RunCommandAsync(applyCommands);
                 }
 
-                // Playback speed needs no special case here any more. It is a
-                // persistent setting, and MpvSettings.ToCommand now has an arm
-                // for it, so the startup batch above already carries it; the
-                // batch omits it from ApplyAll (SessionStateKeys) so a reset
-                // still cannot clobber a live session. The hand-written
-                // `set speed` that used to live here was compensating for the
-                // missing arm, and it only ever covered startup -- changing the
-                // row in the settings window did nothing at all.
+                // Playback speed is a persistent setting but is intentionally
+                // not part of ApplyAll (it would clobber the live session on a
+                // settings reset); apply it here once at startup so the saved
+                // value takes effect on launch.
+                if (AppContext.AppSetting.Speed is not 1.0)
+                {
+                    AppContext.SendMpvCommand($"no-osd set speed {AppContext.AppSetting.Speed}");
+                }
                 // No drain step: the native player runs each command synchronously
                 // inside RunCommandAsync, so by the time the await above returns
                 // the whole batch has already been applied.
@@ -124,11 +107,8 @@ namespace mpv_winui.Modules.Player
                     SetupPreview();
                 }
 
-                // Config-driven menu bar. Built once already in the constructor
-                // so the labels never depend on mpv coming up; rebuilt here so
-                // a slow start still converges on the same bar, and so a
-                // definition that only became readable in the meantime (a user
-                // override written during startup) is picked up.
+                // Config-driven menu bar (Menus/menus.json + user override).
+                // Falls back to the XAML-declared items when no definition loads.
                 BuildMainMenuBar();
                 SetupCustomMenuBarItems();
 

@@ -4657,7 +4657,7 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vlang), AppContext.AppSetting.Mpv_vlang = (string)v!),
             });
 
-        // ---- 播放器与窗口选项 (95 rows) ----
+        // ---- 播放器与窗口选项 (96 rows) ----
         var catPlayerWindow = AppContext.AppLang.SettingsCategoryWindow;
         var secPlayerWindow = AppContext.AppLang.SectionGenPlayerWindow;
             list.Add(new Option
@@ -5656,6 +5656,19 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Mpv_shuffle,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_shuffle), AppContext.AppSetting.Mpv_shuffle = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_speed),
+                Label = lang.SchemaLabel_Mpv_speed,
+                Category = catPlayerWindow,
+                Section = secPlayerWindow,
+                Description = lang.SchemaDesc_Mpv_speed,
+                Type = OptionType.Double,
+                Min = 0.01,
+                Max = 100.0,
+                Getter = () => AppContext.AppSetting.Mpv_speed,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_speed), AppContext.AppSetting.Mpv_speed = (double)v!),
             });
             list.Add(new Option
             {
