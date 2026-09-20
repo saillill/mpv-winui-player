@@ -120,7 +120,7 @@ methods beats reading the file top to bottom.
 
 **`docs/settings-design-contract.md` is the authority for anything under
 `Modules/Settings/`.** Read it before changing the settings tree; it carries the
-rules, the reasons and a 22-entry register of known exceptions. What follows is
+rules, the reasons and a 33-entry register of known exceptions. What follows is
 the orientation, not a substitute.
 
 - `SettingsPage.Options.cs`: tree builder (`BuildSettings`) with four tables —
@@ -128,7 +128,7 @@ the orientation, not a substitute.
   `optionOrder`, plus `categoryOrder`. A row with no `sectionMap` entry makes
   `BuildSettings` throw on open (fail-loud, deliberately).
 - **The tree has two halves.** Hand-written rows live in the `Options.*.cs`
-  partials; 549 schema-generated rows live in `SettingsPage.Options.Gen.cs`
+  partials; 548 schema-generated rows live in `SettingsPage.Options.Gen.cs`
   (`tools/gen-schema-options.py`). Edit the generator or `MpvConfOptions/mpv-options.json`,
   never a `.Gen.` file — the next run overwrites it. Anything that enumerates
   options, sections or mpv names must read **both** halves; six checkers did not,
