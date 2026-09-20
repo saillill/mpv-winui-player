@@ -1,4 +1,4 @@
-# 本地化与菜单栏约定
+﻿# 本地化与菜单栏约定
 
 ## 两条文案渠道
 
@@ -8,6 +8,26 @@
 2. mpv 侧文案（右键菜单、OSD、脚本提示）沿用部分 Lua 脚本内置的 i18n 表
    （如 `dyn_menu.lua`、`select.lua`、`hdr_auto.lua`），这是独立渠道，
    不并入 AppLang；`zh-TW` 在 lua 读取点归一化为 `zh-CN`，避免 OSD 回退英文。
+   （实测有 5 个脚本提到 `zh-TW`：`dynamic_menu.lua`、`dyn_menu.lua`、
+   `hdr_auto.lua`、`save_global_props.lua`、`select.lua`。）
+
+## `AppLang` 分三个文件（**改之前先确认改哪一个**）
+
+| 文件 | 属性数 | 内容 | 可手改 |
+|---|---:|---|---|
+| `Modules/Language/AppLang.cs` | 1315 | 手写词汇 | ✅ |
+| `Modules/Language/AppLang.Gen.cs` | 1096 | 548 条生成设置行的 `SchemaLabel_*` / `SchemaDesc_*` | ❌ 生成器覆盖 |
+| `Modules/Language/AppLang.Sections.Gen.cs` | 26 | 13 个生成分区的标题与描述 | ❌ 同上 |
+
+⚠️ **格式是 `public string X { get; set; }`，带空格。** 写正则统计属性时
+漏掉空格会得到 0 —— 有些工具就踩过（`parse_applang_props` 一度写成
+`\w+ \{ get; set; \}`，少一个空格就静默返回空集）。
+
+⚠️ **顺带注意**：`CustomizeStrings.cs` 是一张**独立**的伴随表（49 个键），
+**不是** AppLang 成员。它的类文档解释了原因：AppLang 属性靠反射按名读取，
+无法同时承载译文。这 49 个键在 9 份 JSON 里都存在，而
+`check-localization` 会把它们报成「没有 AppLang 属性的伴随表键（expected）」——
+**这是预期的，不是缺陷**。
 
 ## 新增/修改文案的流程
 
@@ -15,6 +35,11 @@
 2. 同步更新 9 份 `Languages/*.json`（缺 key 会导致校验脚本报错）。
 3. 代码中只引用 `AppContext.AppLang.<Property>`，不在 XAML/C# 直接写面向
    用户的硬编码文本。
+
+> 若改的是**生成行**的文案（`SchemaLabel_*` / `SchemaDesc_*`），
+> 应改生成器或 schema，**不要手改 `AppLang.Gen.cs`** —— 下一次生成会覆盖。
+> 那 1096 个键当前**在 9 份 JSON 里一个都没有**，所以生成行的标签与描述
+> 一律显示英文；这是已知欠账（见设计约束 §7 A-16）。
 
 ## 菜单栏
 
@@ -26,6 +51,12 @@
   `KnownMenuActions` 白名单的 id）或 `mpvCommand`（原始 mpv 命令）。
 - 未知 `action`、未知 `labelKey`、既无 action 也无命令的项会被跳过并记录
   日志，不影响启动。
+- **菜单栏的构建不依赖 mpv。** 它挂在 `MpvPlayerPage` 构造函数里，与
+  `ApplyLocalizedStrings()` 并列（只依赖 `AppLang` + `menus.json`，两者在
+  `AppContext.Init` 里已就绪）。曾经它只在 `MpvPlayerPage_Loaded` 的
+  `if (_isPlayerInitialized)` 分支里构建 —— 也就是**必须先等 mpv 起来**，
+  于是「中文出现慢」和「中文永远不出现」是同一个缺陷的两种表现。
+  `_isPlayerInitialized` 分支里保留一次幂等重建。
 
 ## 校验
 
@@ -37,3 +68,6 @@ python tools\check-localization.py --xaml-audit # 额外输出硬编码文案清
 也可以 `.\build.ps1 -Configuration Debug -Platform x64 -CheckLocalization`
 在构建后自动校验。注意 `-Debug x64` 这类缩写不可靠（`-Debug` 是 PowerShell
 公共参数，不会设置 `-Configuration`），必须写全参数名。
+
+**读输出时注意**：这个检查器把「缺键」按**家族**汇总（`1096x Schema*`），
+而不是逐条打印 1096 个名字 —— 一行读不完的清单会被学会跳过。
