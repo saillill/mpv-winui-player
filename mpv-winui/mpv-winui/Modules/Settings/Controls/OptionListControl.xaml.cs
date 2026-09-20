@@ -300,7 +300,6 @@ public sealed partial class OptionListControl : UserControl
 
         var items = new List<object>(visible.Count + 8);
         string? lastSection = null;
-        var collapsing = false;
         foreach (var option in visible)
         {
             if (!string.IsNullOrEmpty(option.Section) && option.Section != lastSection)
@@ -312,17 +311,16 @@ public sealed partial class OptionListControl : UserControl
                 var repeatsCategory = !string.IsNullOrEmpty(CategoryCaption)
                     && string.Equals(option.Section, CategoryCaption, StringComparison.Ordinal);
 
-                // A collapsed section contributes exactly one item: its card,
+                // A folded section contributes exactly one item: its card,
                 // right here, at the position its options would have filled.
                 // Sections arrive clustered (the page orders them that way), so
-                // one card per run is enough and every later option of the same
-                // section is skipped until the next run starts.
+                // the transition into the section is where the card belongs.
                 SectionCardItem? card = null;
-                collapsing = option.SectionId is { } sectionId
+                var folded = option.SectionId is { } sectionId
                     && CollapsedSectionIds.Contains(sectionId)
                     && _sectionCards.TryGetValue(sectionId, out card);
 
-                if (collapsing)
+                if (folded)
                 {
                     items.Add(card!);
                 }
@@ -332,7 +330,17 @@ public sealed partial class OptionListControl : UserControl
                 }
             }
 
-            if (!collapsing)
+            // Whether this row renders is the row's own answer, not its
+            // section's. AdvancedSection means "behind the card", and a pinned
+            // row is false even inside a folded section, so pins stay on the
+            // overview instead of vanishing with the rows they exist to survive.
+            //
+            // This used to be a `collapsing` flag computed once at a run's first
+            // row and then carried across the rest: it decided a per-row
+            // question from a per-section answer, and because it was never
+            // recomputed for a row with no Section, such a row following a
+            // folded one was dropped from the list outright.
+            if (!option.AdvancedSection)
             {
                 items.Add(option);
             }

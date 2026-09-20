@@ -418,7 +418,12 @@ def _option_literal(r: dict, gvar: str, svar: str, icon: str) -> str:
     for e in extra:
         lines.append(f"                {e},")
     lines += [
-        f"                AdvancedSection = true,",
+        # No AdvancedSection. Whether a row sits behind its section's card is a
+        # single decision the page makes for the whole section, and it makes it
+        # after sectionMap has resolved Section -- so a flag baked in here could
+        # only ever be a second source of truth, one the page then had to
+        # remember to overwrite in both directions. It is not emitted at all
+        # rather than emitted as false, so nobody can mistake it for an input.
         f"                Getter = {getter},",
         f"                Setter = {setter},",
         "            });",

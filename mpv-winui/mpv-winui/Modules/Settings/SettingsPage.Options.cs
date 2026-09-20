@@ -19,6 +19,21 @@ namespace mpv_winui.Modules.Settings;
 
 public sealed partial class SettingsPage
 {
+    /// <summary>Section captions that fold into a card on the category
+    /// overview, as finally resolved by <see cref="ApplyFoldFloor"/> and
+    /// <see cref="ApplyCategoryFloor"/>.
+    ///
+    /// Held on the page because "does this section fold" is a question about the
+    /// section and the rows cannot answer it. A pinned row is deliberately not
+    /// behind the card, so the rows of a folded section carry two different
+    /// AdvancedSection values by design; asking a row -- which is what
+    /// SectionSummaries did, through g.First() -- makes the answer depend on
+    /// which row sorts first, and merely reordering the list flipped the section
+    /// between its card and a wall of rows. The set is the one place the answer
+    /// lives.</summary>
+    private IReadOnlySet<string> FoldedSections { get; set; } =
+        new HashSet<string>(StringComparer.Ordinal);
+
 private List<Option> BuildSettings()
     {
         var program = AppContext.AppLang.SettingsCategoryProgram;
@@ -280,14 +295,21 @@ private List<Option> BuildSettings()
             {
                 option.AllowCustom = false;
             }
-            if (option.Section is { } section && advancedSections.Contains(section))
-            {
-                option.AdvancedSection = true;
-            }
-            if (pinnedOverviewOptions.Contains(option.Key))
-            {
-                option.AdvancedSection = false;
-            }
+
+            // No AdvancedSection here, and the reason is an ordering trap worth
+            // spelling out. The flag is derived from the row's own Section, and
+            // at this point almost no row has one: hand-written rows are filed
+            // by sectionMap, which does not run until much further down, and
+            // only the generated rows (and a few hand files) carry an inline
+            // Section. Marking here therefore reached the generated half and
+            // silently skipped the rest, which left 25 of the 37 folded
+            // sections with no marked row at all -- their cards were never
+            // built and every row spilled onto the overview. The three
+            // Subtitle sections were worse: part of each was marked, so the
+            // section-level decision fell through to whichever row happened to
+            // sort first and the same section flipped between a card and a wall
+            // of rows as soon as anything reordered the list. It is derived
+            // after sectionMap instead; see the loop that resolves Section.
         }
 
         // WinUI 3 settings shell: 9 top-level categories. "Input" is merged
@@ -1153,6 +1175,25 @@ private List<Option> BuildSettings()
             // Resolved once here (the map is already cached) and carried on the
             // row, because a user-created folder has no caption in AppLang.
             option.SectionId = SettingsSections.IdFor(option.Section);
+
+            // The fold flag, derived only now that every row knows its Section.
+            //
+            // Assigned in both directions rather than only being set: a row that
+            // arrives with the flag already true -- which is every generated row,
+            // since the generator stamps it -- has to be able to come back to
+            // false, or a section the floor later un-folds keeps rows that claim
+            // to be hidden.
+            //
+            // The flag's meaning is "this row is behind its section's card",
+            // not "this row's section is advanced". That distinction is what
+            // makes the pins work: a pinned row is a row the user should keep
+            // seeing, so it is false even when its section folds, and the list
+            // renders it above the card instead of swallowing it.
+            option.AdvancedSection = advancedSections.Contains(option.Section ?? string.Empty);
+            if (pinnedOverviewOptions.Contains(option.Key))
+            {
+                option.AdvancedSection = false;
+            }
         }
 
         var categoryOrderIndex = categoryOrder
@@ -1188,6 +1229,15 @@ private List<Option> BuildSettings()
         // loop above). That is exactly the input the fold decision needs, so
         // it happens here rather than where the section list was written.
         ApplyFoldFloor(options, advancedSections, pinnedOverviewOptions);
+
+        // A card earns its click, but a category still has to be a page. Two
+        // separate questions, so two separate floors -- see ApplyCategoryFloor.
+        ApplyCategoryFloor(options, advancedSections, pinnedOverviewOptions);
+
+        // The resolved set, kept for the page. Publish it as a copy: the local
+        // is about to go out of scope and a copy cannot be mutated by anything
+        // that later receives it.
+        FoldedSections = new HashSet<string>(advancedSections, StringComparer.Ordinal);
 
         // Customize-mode captions are localized, so refresh them with the rest
         // of the page before the stored layout is merged in.
@@ -1264,6 +1314,85 @@ private List<Option> BuildSettings()
                         option.AdvancedSection = false;
                     }
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Minimum rows a category must keep on its overview. Roughly one screen:
+    /// the settings window bottoms out at 560px and a row is 72px, so eight is
+    /// the number of rows needed for the page to not require scrolling to see
+    /// what it contains.
+    /// </summary>
+    private const int CategoryFloor = 8;
+
+    /// <summary>
+    /// Flattens sections until each category keeps at least
+    /// <see cref="CategoryFloor"/> rows of its own.
+    ///
+    /// <see cref="ApplyFoldFloor"/> asks whether a card is worth opening; this
+    /// asks whether the category it lives in is still a page. They are different
+    /// questions and a category can fail the second while every one of its cards
+    /// passes the first. Network, OSD and Subtitles did exactly that: every
+    /// section they own was a legitimate card, so once folding actually reached
+    /// them the overview became six cards with a single pinned row between them
+    /// -- a directory, not a settings page. The user has no way to tell which
+    /// card to open when none of them is on screen as rows.
+    ///
+    /// Sections are flattened smallest-first, so the fewest cards are disturbed
+    /// and the big deep sections -- the ones the fold exists for -- stay folded.
+    /// Pinned rows are counted as already visible and are never the reason a
+    /// section gets flattened.
+    ///
+    /// Runs after <see cref="ApplyFoldFloor"/> so it sees the same surviving
+    /// sections the cards will be built from; a section already flattened there
+    /// is simply not a candidate.
+    /// </summary>
+    private static void ApplyCategoryFloor(
+        List<Option> options,
+        ISet<string> advancedSections,
+        ISet<string> pinnedOverviewOptions)
+    {
+        foreach (var category in options
+            .Where(o => o.Category is not null && o.Section is not null)
+            .GroupBy(o => o.Category!, StringComparer.Ordinal))
+        {
+            var rows = category.ToList();
+            var visible = rows.Count(o => !o.AdvancedSection);
+            if (visible >= CategoryFloor)
+            {
+                continue;
+            }
+
+            // Smallest card first: reaching the floor with the least disruption
+            // keeps the large sections folded, which is the point of the fold.
+            var candidates = rows
+                .Where(o => o.AdvancedSection)
+                .GroupBy(o => o.Section!, StringComparer.Ordinal)
+                .Select(g => (Section: g.Key, Rows: g.Count()))
+                .OrderBy(c => c.Rows)
+                .ToList();
+
+            foreach (var candidate in candidates)
+            {
+                if (visible >= CategoryFloor)
+                {
+                    break;
+                }
+
+                advancedSections.Remove(candidate.Section);
+                foreach (var option in rows.Where(o => o.Section == candidate.Section))
+                {
+                    if (!pinnedOverviewOptions.Contains(option.Key))
+                    {
+                        option.AdvancedSection = false;
+                    }
+                }
+
+                // Recomputed rather than incremented: a section that is entirely
+                // pinned contributes nothing, and adding its row count would
+                // count rows that were never hidden.
+                visible = rows.Count(o => !o.AdvancedSection);
             }
         }
     }

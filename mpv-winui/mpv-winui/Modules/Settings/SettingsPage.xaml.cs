@@ -1211,12 +1211,21 @@ public sealed partial class SettingsPage : Page
     }
 
     /// <summary>Ordered summaries of a category's sections; options arrive
-    /// pre-clustered so first-seen order is the page order.</summary>
-    private static List<(string Label, int Count, bool Advanced)> SectionSummaries(IEnumerable<Option> categoryOptions) =>
+    /// pre-clustered so first-seen order is the page order.
+    ///
+    /// The fold flag comes from the page's resolved section set, never from a
+    /// row. Reading it off g.First() was order-dependent by construction: a
+    /// pinned row is by design not behind its section's card, so a folded
+    /// section holds both flag values, and the section's answer became whatever
+    /// the first row happened to say. Any reorder -- a drag in customize mode,
+    /// a rebuilt list -- could flip a section between its card and a wall of
+    /// rows with nothing else changed.</summary>
+    private List<(string Label, int Count, bool Advanced)> SectionSummaries(
+        IEnumerable<Option> categoryOptions) =>
         categoryOptions
             .Where(o => !string.IsNullOrEmpty(o.Section))
             .GroupBy(o => o.Section!, StringComparer.Ordinal)
-            .Select(g => (g.Key, g.Count(), g.First().AdvancedSection))
+            .Select(g => (g.Key, g.Count(), FoldedSections.Contains(g.Key)))
             .ToList();
 
 
