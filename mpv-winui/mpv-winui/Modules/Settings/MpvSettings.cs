@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -17,9 +17,14 @@ public static partial class MpvSettings
     /// C-style escapes inside quotes, so Windows paths must have their
     /// backslashes doubled, otherwise "C:\Users\..." fails to parse and the
     /// option silently keeps its previous value.
+    ///
+    /// <para>The implementation moved to <see cref="MpvConfValueCodec"/> so its
+    /// inverse is reachable from the test project. Keeping the pair private here
+    /// is what allowed the write side to escape without the read side
+    /// unescaping, which cost a real mpv.conf 896 MB — see that type's own
+    /// documentation.</para>
     /// </summary>
-    private static string Q(string value) =>
-        $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
+    private static string Q(string value) => MpvConfValueCodec.Quote(value);
 
     public static string? ToCommand(string key, object value)
     {
@@ -306,8 +311,25 @@ public static partial class MpvSettings
             nameof(AppSettings.ScaleAntiring) => $"set scale-antiring {(double)value}",
             nameof(AppSettings.CscaleAntiring) => $"set cscale-antiring {(double)value}",
 
-            // Everything else is a schema-generated row. Those 549 options
-            // share one grammar, so they share one branch instead of 549:
+            // Playback speed. This arm used to be missing, and the absence was
+            // silent rather than loud: the fall-through below is
+            // GeneratedCommand, which only understands Mpv_* keys, so the
+            // hand-written Speed row on the Playback page stored a value, called
+            // ApplyMpv, got null back and sent nothing. Meanwhile the generated
+            // Mpv_speed row -- a second row for the same mpv option, on the
+            // Program page -- did work. Two rows for `speed`, and the one a user
+            // is likelier to find was the dead one.
+            //
+            // Adding the arm fixes the row and removes its twin at the same
+            // time: the generator derives its skip list from `set <name>` in
+            // this file, so regenerating drops Mpv_speed by itself.
+            //
+            // It stays out of ApplyAll -- see SessionStateKeys -- so that
+            // Reset All cannot clobber the speed of a live session.
+            nameof(AppSettings.Speed) => $"set speed {(double)value}",
+
+            // Everything else is a schema-generated row. Those 548 options
+            // share one grammar, so they share one branch instead of 548:
             // the schema declared the type, the generator wrote the typed
             // AppSettings property, and the literal is written here from
             // that property's runtime type. Adding a generated row needs no
@@ -378,6 +400,14 @@ public static partial class MpvSettings
                 continue;
             }
 
+            // Session state: mapping it exists (so the row works and the value
+            // persists), but a blanket re-apply is not a reset the user asked
+            // for. See SessionStateKeys.
+            if (SessionStateKeys.Contains(prop.Name))
+            {
+                continue;
+            }
+
             object? value;
             try
             {
@@ -416,7 +446,7 @@ public static partial class MpvSettings
     /// Splitting this out of the switch keeps the switch a list of curated
     /// decisions. The generated rows share one grammar -- the schema declared
     /// the type and the generator wrote the typed property -- so the literal
-    /// is written once from the property's runtime type instead of 549 times
+    /// is written once from the property's runtime type instead of 548 times
     /// by hand. A type the schema cannot currently produce returns null
     /// rather than emitting a guess, so an unknown value never reaches mpv as
     /// a malformed command.
@@ -706,6 +736,14 @@ public static partial class MpvSettings
         [nameof(AppSettings.ScreenshotTemplate)] = "screenshot-template",
         [nameof(AppSettings.SavePositionOnQuit)] = "save-position-on-quit",
         [nameof(AppSettings.ResumePlayback)] = "resume-playback",
+        // The playback-speed row. It needs both halves to be a first-class
+        // setting: a ToCommand arm so a change reaches mpv, and this entry so
+        // the window can ask whether a hand-written `speed=` line in mpv.conf
+        // owns the option. With only the arm, check-mpvconf-precedence.py
+        // reports it as a key that "can never report being overridden" -- which
+        // is exactly what it was before, silently editable while the file said
+        // otherwise.
+        [nameof(AppSettings.Speed)] = "speed",
         [nameof(AppSettings.ScreenshotFormat)] = "screenshot-format",
         [nameof(AppSettings.ScreenshotJpegQuality)] = "screenshot-jpeg-quality",
         [nameof(AppSettings.ScreenshotJpegSourceChroma)] = "screenshot-jpeg-source-chroma",
@@ -903,6 +941,27 @@ public static partial class MpvSettings
         nameof(AppSettings.HdrAutoMode),
     };
 
+    /// <summary>Settings that describe the live session, not a saved preference.
+    ///
+    /// They deliberately stay out of <see cref="ApplyAll"/> so that Reset All
+    /// cannot clobber what the user is currently watching: speed would jump back
+    /// to 1.0 and the volume slider would move on its own. Volume is not listed
+    /// because it is not mapped at all -- it is passed to mpv at Initialize.
+    ///
+    /// Speed is applied once at startup instead, which it now gets for free:
+    /// <see cref="ToCommand"/> has an arm for it, so it is part of the startup
+    /// batch rather than the hand-written special case that used to sit in
+    /// MpvPlayerPage next to the ApplyAll call.
+    ///
+    /// A separate set from <see cref="StartupDeferredKeys"/> on purpose. That
+    /// one means "mpv cannot accept this yet"; this one means "applying it
+    /// would be wrong". Merging them would make the next reader assume a timing
+    /// constraint that does not exist.</summary>
+    private static readonly HashSet<string> SessionStateKeys = new(StringComparer.Ordinal)
+    {
+        nameof(AppSettings.Speed),
+    };
+
     // --- read-back: mpv.conf -> AppSettings ---------------------------------
 
     /// <summary>mpv option name -> the AppSettings property that writes it.</summary>
@@ -1097,26 +1156,15 @@ public static partial class MpvSettings
         {
             value = prop.PropertyType switch
             {
-                var t when t == typeof(string) => text,
-
-                // mpv spells booleans yes/no in config files. Its own parser
-                // also accepts true/false, so both read as the same thing.
-                var t when t == typeof(bool) => text.ToLowerInvariant() switch
-                {
-                    "yes" or "true" => (object)true,
-                    "no" or "false" => false,
-                    _ => null,
-                },
-
-                var t when t == typeof(int) =>
-                    int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i)
-                        ? i : null,
-
-                var t when t == typeof(double) =>
-                    double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var d)
-                        ? d : null,
-
-                _ => null,
+                // Parsing is delegated to the codec so it can mirror the encodings
+                // ToCommand applies, and so it is reachable from the test project.
+                // The previous inline version used plain double/int TryParse, which
+                // could not read back a single value the app itself had written for
+                // the settings that encode a sentinel or a unit: `no` for a cleared
+                // A/B loop point, `inf` for "loop forever", and the `MiB` suffix on
+                // the demuxer limits. The log recorded 60 such failures across 6
+                // settings, each silently reverting a user's value in the UI.
+                _ => MpvConfValueCodec.ParseMpvValue(prop.PropertyType, text),
             };
         }
         catch (Exception ex)
