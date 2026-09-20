@@ -28,6 +28,38 @@ namespace mpv_winui.Modules.Player
         public PlayerTrackSelectorControl()
         {
             InitializeComponent();
+            ApplyLocalizedStrings();
+            Loaded += TrackSelectorControl_Loaded;
+            Unloaded += TrackSelectorControl_Unloaded;
+        }
+
+        private void TrackSelectorControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Idempotent: Loaded can fire again on every flyout open.
+            AppContext.LanguageChanged -= ApplyLocalizedStrings;
+            AppContext.LanguageChanged += ApplyLocalizedStrings;
+            ApplyLocalizedStrings();
+        }
+
+        private void TrackSelectorControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            AppContext.LanguageChanged -= ApplyLocalizedStrings;
+        }
+
+        /// <summary>
+        /// The four tab captions were XAML text literals ("Subtile",
+        /// "Subtile Sec", "Video", "Audio"), so they stayed English in every
+        /// language. They reuse the keys the quick-control panel already labels
+        /// its Audio/Video/Subtitles tabs with (PlayerControl.ControlPanel), so
+        /// both tab strips read identically in all nine languages.
+        /// </summary>
+        private void ApplyLocalizedStrings()
+        {
+            var lang = AppContext.AppLang;
+            SubtitleTabText.Text = lang.SettingsCategorySubtitles;
+            SecondSubtitleTabText.Text = lang.SecondSubtitle;
+            VideoTabText.Text = lang.SettingsCategoryVideo;
+            AudioTabText.Text = lang.SettingsCategoryAudio;
         }
 
         public void LoadVideoTracks(IReadOnlyList<MpvTrack> tracks)

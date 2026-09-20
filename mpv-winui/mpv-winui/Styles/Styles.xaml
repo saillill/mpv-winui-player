@@ -1054,4 +1054,30 @@
         <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
     </Style>
 
+    <!-- One chrome for every popup the player opens off its control bar: the
+         volume strip, the track selector, the quick-control panel and the More
+         menu. They used to be four independent decisions (two FlyoutPresenter
+         styles built per open, plus a hand-written Border on the panel), which
+         is how they drifted apart in background, radius and shadow.
+
+         The Flyout-based ones consume the style below. The quick-control panel
+         cannot: it is a Popup, because a Flyout is clipped to the window and the
+         panel has to be able to leave it. So it takes the same brushes, the same
+         radius constant and a matching ThemeShadow on its own Border, and this
+         comment is the record that the two have to be changed together. -->
+    <Style
+        x:Key="MpvPlayerPopupPresenterStyle"
+        BasedOn="{StaticResource AcrylicFlyoutPresenterStyle}"
+        TargetType="FlyoutPresenter">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="IsTabStop" Value="False" />
+    </Style>
+
+    <!-- Corner radius shared by the flyout presenters (through their default
+         template) and the quick-control panel's Border. -->
+    <CornerRadius x:Key="MpvPlayerPopupCornerRadius">8</CornerRadius>
+
+    <!-- Depth of the panel's shadow, matching the FlyoutPresenter default. -->
+    <x:Double x:Key="MpvPlayerPopupShadowDepth">32</x:Double>
+
 </ResourceDictionary>

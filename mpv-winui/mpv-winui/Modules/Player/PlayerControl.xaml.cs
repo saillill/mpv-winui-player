@@ -1703,23 +1703,21 @@ namespace mpv_winui.Modules.Player
 
                 var control = new VolumeFlyoutControl(MediaPlayer);
 
-                // Official WinUI flyout shell: default background (system
-
-                // acrylic/fallback), just tightened for the narrow vertical
-
-                // volume strip. Custom acrylic backgrounds read as an opaque
-
-                // gray box over the video swap chain.
+                // Same chrome as the track selector and the More menu
+                // (MpvPlayerPopupPresenterStyle). The strip is the only consumer
+                // that adds size bounds of its own: it is a fixed 56x176 control,
+                // and left to itself the presenter shrink-wraps it and cuts the
+                // thumb and the foot of the track off.
 
                 var presenterStyle = new Style(typeof(FlyoutPresenter))
 
                 {
 
-                    BasedOn = (Style)Application.Current.Resources["DefaultFlyoutPresenterStyle"],
+                    BasedOn = (Style)Application.Current.Resources["MpvPlayerPopupPresenterStyle"],
 
                 };
 
-                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(6)));
+                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(8)));
 
                 presenterStyle.Setters.Add(new Setter(FlyoutPresenter.MinWidthProperty, 0d));
 

@@ -41,10 +41,10 @@ internal enum ControlBarTier
 
     /// <summary>
     /// Portrait, or narrower than <see cref="ControlBarAdaptiveLayout.NarrowWidth"/>.
-    /// The bar keeps a 3/3/3 grid: previous + play + next in the middle,
-    /// three controls on each side, and the overflow button at the left of the
-    /// right group. Nothing else is dropped -- at this tier the pitch is what
-    /// gives way, not the controls (see <c>IsTight</c>).
+    /// The bar keeps a nine-slot grid: previous + play + next in the middle,
+    /// three on the left, and on the right the overflow button plus two icons.
+    /// Nothing else is dropped -- at this tier the pitch is what gives way, not
+    /// the controls (see <c>IsTight</c>).
     /// </summary>
     Minimal = 4,
 }
@@ -64,18 +64,20 @@ internal static class ControlBarAdaptiveLayout
     /// <summary>
     /// The control id is hidden at this tier **and every narrower tier**.
     ///
-    /// Only four kinds of thing drop, in this order, and nothing else does:
-    /// the secondary transport, the full-window toggle, then the volume strip.
-    /// Everything a portrait window still needs -- previous/next, the track
-    /// selector, the panel, aspect, PiP and full screen -- survives to the
-    /// narrowest tier, because the tier answers "does it fit", not "is this
-    /// window small". The previous table hid previous/next, tracks, aspect,
-    /// fullscreen, panel and PiP all the way down, which left portrait with a
-    /// bare play button and pushed seven reachable actions into the menu.
+    /// Only four things drop, in this order, and nothing else does: the
+    /// secondary transport, the full-window toggle, the volume strip, and then
+    /// aspect (the right group's least-used icon, and the one that lets the
+    /// right region be exactly three slots in portrait).
+    /// Everything else a portrait window still needs -- previous/next, the track
+    /// selector, the panel, PiP and full screen -- survives to the narrowest
+    /// tier, because the tier answers "does it fit", not "is this window small".
+    /// The previous table hid previous/next, tracks, aspect, fullscreen, panel
+    /// and PiP all the way down, which left portrait with a bare play button and
+    /// pushed seven reachable actions into the menu.
     ///
-    /// The three controls on each side of a portrait bar fall out of this
-    /// table rather than being counted: the middle is built from the transport
-    /// ids, and each side loses exactly one of its zone's four.
+    /// The controls on each side of a portrait bar fall out of this table rather
+    /// than being counted: the middle is built from the transport ids, and each
+    /// side loses the icons this table takes.
     /// </summary>
     public static readonly IReadOnlyDictionary<string, ControlBarTier> HiddenFromTier =
         new Dictionary<string, ControlBarTier>(StringComparer.OrdinalIgnoreCase)
@@ -91,6 +93,10 @@ internal static class ControlBarAdaptiveLayout
 
             // --- Narrow and below: the widest non-essential element ---
             ["volume-slider"] = ControlBarTier.Narrow,
+
+            // --- Minimal only: the right group gives up its least-used icon
+            // so that More plus two icons is the whole right region. ---
+            ["aspect"] = ControlBarTier.Minimal,
         };
 
     /// <summary>
@@ -107,11 +113,11 @@ internal static class ControlBarAdaptiveLayout
     ///
     /// An entry with the flag set is only ever reachable through the tier, so it
     /// has to be in <see cref="HiddenFromTier"/> or it can never be offered at
-    /// all. That is why this list is short: it used to carry aspect, PiP, tracks,
-    /// panel and full screen as well, and while the tier hid those at every
-    /// narrow width the menu was the only way to reach them. They now survive to
-    /// the narrowest tier, so those entries became unreachable and are gone;
-    /// ControlBarAdaptiveLayoutTests asserts the invariant.
+    /// all. That is why this list stays short: it carries only what some tier
+    /// still takes off the bar. PiP, tracks, panel and full screen survive to
+    /// the narrowest tier, so entries for them were unreachable and are gone;
+    /// aspect is here because Minimal drops it to keep the right region at
+    /// three slots. ControlBarAdaptiveLayoutTests asserts the invariant.
     /// </summary>
     public static readonly (string Id, bool RespectsUserHide)[] OverflowEntries =
     [
@@ -119,6 +125,7 @@ internal static class ControlBarAdaptiveLayout
         ("skip-forward", false),
         ("random", true),
         ("rate", false),
+        ("aspect", true),
         ("previous", false),
         ("next", false),
         ("fullwindow", true),

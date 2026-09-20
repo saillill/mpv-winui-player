@@ -572,6 +572,7 @@ namespace mpv_winui.Modules.Player
                     "skip-forward" => (SkipForwardButton, () => AppContext.AppLang.MoreSkipForward, Forward, null),
                     "random" => (ShuffleButton, () => AppContext.AppLang.MoreShuffle, () => OnPlaybackModeClick(null, null), null),
                     "rate" => (PlaybackRateButton, () => AppContext.AppLang.MorePlaybackRate, null, BuildPlaybackRateSubmenu),
+                    "aspect" => (ZoomButton, () => AppContext.AppLang.MoreZoom, null, BuildZoomSubmenu),
                     "previous" => (PreviousTrackButton, () => AppContext.AppLang.MorePreviousTrack, () => PreviousTrackButton_Click(null, null), null),
                     "next" => (NextTrackButton, () => AppContext.AppLang.MoreNextTrack, () => NextTrackButton_Click(null, null), null),
                     "fullwindow" => (FullWindowButton, () => AppContext.AppLang.MoreFullWindow, () => ToggleFullWindow(), null),
@@ -594,6 +595,16 @@ namespace mpv_winui.Modules.Player
                 return submenu;
             }
     
+            /// <summary>Clones the zoom flyout into a submenu item, so the aspect
+            /// control stays reachable at the tiers that take its button off the
+            /// bar (Minimal).</summary>
+            private MenuFlyoutSubItem BuildZoomSubmenu()
+            {
+                var submenu = new MenuFlyoutSubItem { Text = AppContext.AppLang.MoreZoom };
+                AddZoomOptions(submenu.Items, ZoomSelectionMenu_Click);
+                return submenu;
+            }
+
         private void UpdateToolbarVisibility(double w)
             {
                 if (_isPiPHost)

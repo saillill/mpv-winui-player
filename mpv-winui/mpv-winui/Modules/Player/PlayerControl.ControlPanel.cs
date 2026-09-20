@@ -27,6 +27,12 @@ namespace mpv_winui.Modules.Player
         /// <summary>Height of the panel's chrome: the border plus the tab strip.</summary>
         private const double PanelChromeHeight = 40;
 
+        /// <summary>
+        /// Gap between the anchor and the panel, in DIPs. Shared with the other
+        /// player popups so they all sit the same distance off their button.
+        /// </summary>
+        private const double PopupGap = 8;
+
         private void OnLanguageChanged()
         {
             // The quick-control panel captures AppLang strings when built;
@@ -56,15 +62,15 @@ namespace mpv_winui.Modules.Player
         /// <summary>
         /// Shows the panel above <paramref name="anchor"/>.
         ///
-        /// Two things used to go wrong here, and both were about height. The
-        /// pivot was built at a fixed 440, but every open recomputed it from the
-        /// space above the button -- and the first open runs before the pivot
-        /// exists, so only the second and later opens saw the recomputation.
-        /// That is why the panel filled the window on the second open. The
-        /// presenter was then capped to the space above the button, which is
-        /// what clipped a tall panel in a short window.
+        /// Two height defects used to live here. The pivot was built at a fixed
+        /// 440, but every open recomputed it from the space above the button --
+        /// and the first open runs before the pivot exists, so only the second
+        /// and later opens saw the recomputation, which is why the panel filled
+        /// the window on the second open. The presenter was then capped to the
+        /// space above the button, which is what clipped a tall panel in a short
+        /// window.
         ///
-        /// The geometry is fixed now: the panel is capped by the window height
+        /// The geometry is fixed now: the panel is bounded by the window height
         /// only so a very short window stays usable, and because the popup is
         /// explicitly not constrained to the window, a panel taller or wider
         /// than the space around the button still renders in full.
@@ -84,53 +90,19 @@ namespace mpv_winui.Modules.Player
             ControlPanelHost.Width = PanelWidth;
             _panelPivot.Height = Math.Max(200, panelHeight - PanelChromeHeight);
 
-            var root = anchor.XamlRoot?.Content as UIElement;
-            var origin = root is null
-                ? new Windows.Foundation.Point(0, 0)
-                : anchor.TransformToVisual(root).TransformPoint(new Windows.Foundation.Point(0, 0));
-
-            // Sit above the button with the left edges roughly in line. A
-            // negative offset is meaningful now -- it is how a panel taller
-            // than the space above the button keeps its top instead of losing
-            // it -- so it is only pulled back when the panel does fit.
-            var top = origin.Y - panelHeight - 8;
-            if (top < 0 && panelHeight + 16 <= window.Height)
-            {
-                top = 8;
-            }
-
-            ControlPanelPopup.HorizontalOffset = Math.Max(0, origin.X - 8);
-            ControlPanelPopup.VerticalOffset = top;
+            // Let the framework place it. Popup.DesiredPlacement plus a
+            // PlacementTarget is the same anchoring a Flyout uses, and it is
+            // what the first version of this got wrong: it computed absolute
+            // window coordinates by hand and assigned them to
+            // HorizontalOffset/VerticalOffset, which put the panel under the
+            // window instead of above the button. The offsets below are a gap
+            // relative to the anchor, not a position, so there is no coordinate
+            // origin left to get wrong.
+            ControlPanelPopup.PlacementTarget = anchor;
+            ControlPanelPopup.DesiredPlacement = PopupPlacementMode.TopEdgeAlignedLeft;
+            ControlPanelPopup.HorizontalOffset = 0;
+            ControlPanelPopup.VerticalOffset = -PopupGap;
             ControlPanelPopup.IsOpen = true;
-        }
-
-        /// <summary>Same window-edge clip protection for the track selector.</summary>
-        private void TrackSelectionFlyout_Opening(object sender, object e)
-        {
-            TrackSelectionFlyout.FlyoutPresenterStyle = BuildPresenterStyle(
-                (Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
-                AvailableAbove(TrackSelectionButton), 480);
-        }
-
-        private static Style BuildPresenterStyle(Style basedOn, double maxHeight, double maxWidth) => new(typeof(FlyoutPresenter))
-        {
-            BasedOn = basedOn,
-            Setters =
-            {
-                new Setter(FlyoutPresenter.PaddingProperty, new Thickness(0)),
-                new Setter(FlyoutPresenter.MaxWidthProperty, maxWidth),
-                new Setter(FlyoutPresenter.MaxHeightProperty, maxHeight),
-            },
-        };
-
-        /// <summary>DIPs from the window content top to the element top, minus a margin.</summary>
-        private static double AvailableAbove(FrameworkElement anchor)
-        {
-            if (anchor.XamlRoot?.Content is UIElement contentRoot)
-            {
-                return Math.Max(320, anchor.TransformToVisual(contentRoot).TransformPoint(new Windows.Foundation.Point(0, 0)).Y - 12);
-            }
-            return 480;
         }
 
         private void EnsureControlPanel()

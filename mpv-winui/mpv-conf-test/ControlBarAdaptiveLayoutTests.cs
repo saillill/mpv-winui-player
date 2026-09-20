@@ -76,10 +76,9 @@ public class ControlBarAdaptiveLayoutTests
     [TestCase("volume")]
     [TestCase("tracks")]
     [TestCase("panel")]
-    [TestCase("aspect")]
     [TestCase("pip")]
     [TestCase("fullscreen")]
-    public void PortraitKeepsTheNineControls(string id)
+    public void PortraitKeepsTheEightControls(string id)
     {
         Assert.That(
             ControlBarAdaptiveLayout.IsVisible(id, ControlBarTier.Minimal, NothingHidden),
@@ -93,6 +92,7 @@ public class ControlBarAdaptiveLayoutTests
     [TestCase("rate")]
     [TestCase("fullwindow")]
     [TestCase("volume-slider")]
+    [TestCase("aspect")]
     public void PortraitDropsOnlyTheSecondaryControls(string id)
     {
         Assert.That(
@@ -115,28 +115,34 @@ public class ControlBarAdaptiveLayoutTests
     }
 
     [Test]
-    public void PortraitKeepsExactlyThreeControlsOnEachSide()
+    public void PortraitBarIsThreeLeftThreeMiddleAndThreeRight()
     {
         string[] leftZone = ["volume", "tracks", "random", "panel"];
         string[] rightZone = ["aspect", "pip", "fullwindow", "fullscreen"];
 
+        // The middle is the transport trio (asserted separately), the left
+        // keeps three, and the right keeps two so that the overflow button
+        // makes the right *region* three slots wide.
         Assert.That(
             leftZone.Count(id => ControlBarAdaptiveLayout.IsVisible(id, ControlBarTier.Minimal, NothingHidden)),
             Is.EqualTo(3),
             "left zone");
+
+        const int moreSlots = 1;
         Assert.That(
-            rightZone.Count(id => ControlBarAdaptiveLayout.IsVisible(id, ControlBarTier.Minimal, NothingHidden)),
+            rightZone.Count(id => ControlBarAdaptiveLayout.IsVisible(id, ControlBarTier.Minimal, NothingHidden)) + moreSlots,
             Is.EqualTo(3),
-            "right zone");
+            "right region: two icons plus the overflow button");
     }
 
     [Test]
     public void TightPitchFitsTheNarrowestPortraitBar()
     {
-        // Nine controls plus the overflow button, at the pitch the narrow tiers
-        // switch to. If this stops holding, the portrait bar clips again.
+        // Nine slots -- three left, three middle, and the right region's two
+        // icons plus the overflow button -- at the pitch the narrow tiers switch
+        // to. If this stops holding, the portrait bar clips again.
         const double tightPitch = 33;
-        const int slots = 10;
+        const int slots = 9;
 
         Assert.That(
             slots * tightPitch,
@@ -213,8 +219,8 @@ public class ControlBarAdaptiveLayoutTests
     {
         // An entry that honours the user-hide preference is only reachable
         // through the tier. If the tier never hides it, the menu can never
-        // offer it and the entry is dead weight -- which is how aspect, PiP,
-        // tracks, panel and full screen came to be removed from the table.
+        // offer it and the entry is dead weight -- which is how PiP, tracks,
+        // panel and full screen came to be removed from the table.
         foreach (var (id, respectsUserHide) in ControlBarAdaptiveLayout.OverflowEntries)
         {
             if (!respectsUserHide)
@@ -238,7 +244,7 @@ public class ControlBarAdaptiveLayoutTests
         // behind it. The ids here are the contract that mapping has to meet.
         var expected = new[]
         {
-            "skip-back", "skip-forward", "random", "rate",
+            "skip-back", "skip-forward", "random", "rate", "aspect",
             "previous", "next", "fullwindow",
         };
 

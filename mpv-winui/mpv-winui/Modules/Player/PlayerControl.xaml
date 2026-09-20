@@ -577,20 +577,19 @@
                                 Glyph="&#xEBCD;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
+                            <!-- Same presenter as the volume strip and the More
+                                 menu (MpvPlayerPopupPresenterStyle). The per-open
+                                 presenter style that used to be built here from
+                                 the space above the button is gone with it; the
+                                 selector carries its own size cap instead. -->
                             <Flyout
                                 x:Name="TrackSelectionFlyout"
-                                Opening="TrackSelectionFlyout_Opening"
-                                Placement="Top">
-                                <Flyout.FlyoutPresenterStyle>
-                                    <Style
-                                        BasedOn="{StaticResource AcrylicFlyoutPresenterStyle}"
-                                        TargetType="FlyoutPresenter">
-                                        <Setter Property="Padding" Value="0" />
-                                        <Setter Property="MaxWidth" Value="480" />
-                                        <Setter Property="MaxHeight" Value="480" />
-                                    </Style>
-                                </Flyout.FlyoutPresenterStyle>
-                                <local:PlayerTrackSelectorControl x:Name="TrackSelectorControl" />
+                                Placement="Top"
+                                FlyoutPresenterStyle="{StaticResource MpvPlayerPopupPresenterStyle}">
+                                <local:PlayerTrackSelectorControl
+                                    x:Name="TrackSelectorControl"
+                                    MaxHeight="480"
+                                    MaxWidth="480" />
                             </Flyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>
@@ -657,9 +656,14 @@
                         Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon FontSize="24"
-                                FontFamily="{StaticResource MpvIconFontFamily}"
-                                Glyph="&#xED38;" />
+                            <!-- Segoe Fluent Icons E712 is the horizontal
+                                 three-dot "More". The FluentSystemIcons face the
+                                 rest of this bar uses has no such glyph at the
+                                 codepoint that was here, so the button rendered
+                                 as an unrelated shape. -->
+                            <FontIcon FontSize="20"
+                                FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                Glyph="&#xE712;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <MenuFlyout
@@ -701,7 +705,13 @@
                 Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
-                CornerRadius="8">
+                CornerRadius="{StaticResource MpvPlayerPopupCornerRadius}"
+                Translation="0,0,32">
+                <!-- The shadow a FlyoutPresenter gets from
+                     IsDefaultShadowEnabled, which a bare Popup does not. -->
+                <Border.Shadow>
+                    <ThemeShadow />
+                </Border.Shadow>
                 <local:QuickControlPanel x:Name="ControlPanelHost" />
             </Border>
         </Popup>
