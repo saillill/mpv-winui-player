@@ -212,6 +212,7 @@
                     HorizontalAlignment="Left"
                     DefaultLabelPosition="Collapsed"
                     IsDynamicOverflowEnabled="False"
+                    OverflowButtonVisibility="Collapsed"
                     Style="{StaticResource CommandBarWithoutRevealStyle}">
                     <CommandBar.Resources>
                         <Thickness x:Key="AppBarButtonInnerBorderMargin">5</Thickness>
@@ -337,6 +338,7 @@
                     <AppBarButton
                         x:Name="ControlPanelButton"
                         AutomationProperties.Name="Control panel"
+                        Click="ControlPanelButton_Click"
                         Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Visible">
                         <AppBarButton.Icon>
@@ -344,24 +346,6 @@
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xF6AA;" />
                         </AppBarButton.Icon>
-                        <AppBarButton.Flyout>
-                            <Flyout
-                                x:Name="ControlPanelFlyout"
-                                Placement="Top"
-                                Opening="ControlPanelFlyout_Opening"
-                                Opened="ControlPanelFlyout_Opened">
-                                <Flyout.FlyoutPresenterStyle>
-                                    <Style
-                                        BasedOn="{StaticResource AcrylicFlyoutPresenterStyle}"
-                                        TargetType="FlyoutPresenter">
-                                        <Setter Property="Padding" Value="0" />
-                                        <Setter Property="MaxWidth" Value="560" />
-                                        <Setter Property="MaxHeight" Value="480" />
-                                    </Style>
-                                </Flyout.FlyoutPresenterStyle>
-                                <local:QuickControlPanel x:Name="ControlPanelHost" />
-                            </Flyout>
-                        </AppBarButton.Flyout>
                     </AppBarButton>
 
                 </CommandBar>
@@ -373,6 +357,7 @@
                     HorizontalAlignment="Center"
                     DefaultLabelPosition="Collapsed"
                     IsDynamicOverflowEnabled="False"
+                    OverflowButtonVisibility="Collapsed"
                     Style="{StaticResource CommandBarWithoutRevealStyle}">
                     <CommandBar.Resources>
                         <Thickness x:Key="AppBarButtonInnerBorderMargin">5</Thickness>
@@ -388,6 +373,7 @@
                     HorizontalAlignment="Right"
                     DefaultLabelPosition="Collapsed"
                     IsDynamicOverflowEnabled="False"
+                    OverflowButtonVisibility="Collapsed"
                     Style="{StaticResource CommandBarWithoutRevealStyle}">
 
                     <CommandBar.Resources>
@@ -591,20 +577,19 @@
                                 Glyph="&#xEBCD;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
+                            <!-- Same presenter as the volume strip and the More
+                                 menu (MpvPlayerPopupPresenterStyle). The per-open
+                                 presenter style that used to be built here from
+                                 the space above the button is gone with it; the
+                                 selector carries its own size cap instead. -->
                             <Flyout
                                 x:Name="TrackSelectionFlyout"
-                                Opening="TrackSelectionFlyout_Opening"
-                                Placement="Top">
-                                <Flyout.FlyoutPresenterStyle>
-                                    <Style
-                                        BasedOn="{StaticResource AcrylicFlyoutPresenterStyle}"
-                                        TargetType="FlyoutPresenter">
-                                        <Setter Property="Padding" Value="0" />
-                                        <Setter Property="MaxWidth" Value="480" />
-                                        <Setter Property="MaxHeight" Value="480" />
-                                    </Style>
-                                </Flyout.FlyoutPresenterStyle>
-                                <local:PlayerTrackSelectorControl x:Name="TrackSelectorControl" />
+                                Placement="Top"
+                                FlyoutPresenterStyle="{StaticResource MpvPlayerPopupPresenterStyle}">
+                                <local:PlayerTrackSelectorControl
+                                    x:Name="TrackSelectorControl"
+                                    MaxHeight="480"
+                                    MaxWidth="480" />
                             </Flyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>
@@ -671,9 +656,14 @@
                         Style="{StaticResource AppBarButtonStyle}"
                         Visibility="Collapsed">
                         <AppBarButton.Icon>
-                            <FontIcon FontSize="24"
-                                FontFamily="{StaticResource MpvIconFontFamily}"
-                                Glyph="&#xED38;" />
+                            <!-- Segoe Fluent Icons E712 is the horizontal
+                                 three-dot "More". The FluentSystemIcons face the
+                                 rest of this bar uses has no such glyph at the
+                                 codepoint that was here, so the button rendered
+                                 as an unrelated shape. -->
+                            <FontIcon FontSize="20"
+                                FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                Glyph="&#xE712;" />
                         </AppBarButton.Icon>
                         <AppBarButton.Flyout>
                             <MenuFlyout
@@ -690,6 +680,42 @@
                 </Grid>
             </Grid>
         </Border>
+
+        <!-- The quick-control panel is a Popup rather than a Flyout on purpose.
+             A Flyout is a Popup the framework keeps inside the window, so in a
+             portrait window the panel's 440-DIP pivot was cut off at the right
+             edge and the "音频输出设备" row lost its value column. Popup exposes
+             ShouldConstrainToRootBounds, and only setting it false lets the
+             panel draw outside the window and show its whole width; Flyout
+             never exposes it.
+
+             The chrome the FlyoutPresenter used to supply (background, border,
+             corner radius) sits on the Border here, because a bare Popup draws
+             none of it.
+
+             It sits before the VisualStateGroups on purpose: a Grid's children
+             have to be contiguous, and a child declared after the attached
+             property block is a second assignment to Children (WMC0035). -->
+        <Popup
+            x:Name="ControlPanelPopup"
+            IsLightDismissEnabled="True"
+            Opened="ControlPanelPopup_Opened"
+            ShouldConstrainToRootBounds="False">
+            <Border
+                Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource MpvPlayerPopupCornerRadius}"
+                Translation="0,0,32">
+                <!-- The shadow a FlyoutPresenter gets from
+                     IsDefaultShadowEnabled, which a bare Popup does not. -->
+                <Border.Shadow>
+                    <ThemeShadow />
+                </Border.Shadow>
+                <local:QuickControlPanel x:Name="ControlPanelHost" />
+            </Border>
+        </Popup>
+
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="MediaStates">
                 <VisualState x:Name="Normal" />

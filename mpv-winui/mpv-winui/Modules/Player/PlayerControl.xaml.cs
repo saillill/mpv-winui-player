@@ -1703,25 +1703,32 @@ namespace mpv_winui.Modules.Player
 
                 var control = new VolumeFlyoutControl(MediaPlayer);
 
-                // Official WinUI flyout shell: default background (system
-
-                // acrylic/fallback), just tightened for the narrow vertical
-
-                // volume strip. Custom acrylic backgrounds read as an opaque
-
-                // gray box over the video swap chain.
+                // Same chrome as the track selector and the More menu
+                // (MpvPlayerPopupPresenterStyle). The strip is the only consumer
+                // that adds size bounds of its own: it is a fixed 56x176 control,
+                // and left to itself the presenter shrink-wraps it and cuts the
+                // thumb and the foot of the track off.
 
                 var presenterStyle = new Style(typeof(FlyoutPresenter))
 
                 {
 
-                    BasedOn = (Style)Application.Current.Resources["DefaultFlyoutPresenterStyle"],
+                    BasedOn = (Style)Application.Current.Resources["MpvPlayerPopupPresenterStyle"],
 
                 };
 
-                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(6)));
+                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(8)));
 
                 presenterStyle.Setters.Add(new Setter(FlyoutPresenter.MinWidthProperty, 0d));
+
+                // The strip is a fixed 56x176. Left to itself the presenter
+                // shrink-wraps it and the thumb and the foot of the track are
+                // cut off, so give it the strip's own height as both a floor and
+                // a generous ceiling -- the earlier version handed the presenter
+                // numbers derived from what happened to fit, which is how the
+                // strip ended up smaller than its contents.
+                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.MinHeightProperty, 176d));
+                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.MaxHeightProperty, 240d));
 
                 var flyout = new Flyout
 
@@ -1739,19 +1746,20 @@ namespace mpv_winui.Modules.Player
 
                 flyout.Closed += (_, _) => _volumeFlyoutOpen = false;
 
-                // The button sits at the window's left edge in PiP; centering
-
-                // the flyout on it would clip against the window border, so
-
-                // anchor the center to the button's right edge instead.
+                // Centred on the button, so the strip reads as belonging to the
+                // icon that opened it. This used to be nudged right by the
+                // button's width plus 12, to keep a left-edge button's flyout
+                // inside the window; that nudge is exactly what put the strip
+                // visibly out of line with its own button in a portrait window.
+                // The framework already moves a flyout back inside the window
+                // when centring it would overhang, so the nudge was guarding
+                // against something that does not happen.
 
                 flyout.ShowAt(VolumeMuteButton, new FlyoutShowOptions
 
                 {
 
                     Placement = FlyoutPlacementMode.Top,
-
-                    Position = new Point(VolumeMuteButton.ActualWidth + 12, 0),
 
                 });
 

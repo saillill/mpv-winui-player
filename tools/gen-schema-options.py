@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Generate the settings-page rows for every mpv option the page does not
 already carry, from the bundled schema.
 
@@ -6,8 +6,8 @@ Why generate instead of hand-write
 ----------------------------------
 `SettingsPage.Options.*.cs` holds 317 hand-written rows. The bundled schema
 (`MpvConfOptions/mpv-options.json`, produced by `mpv --list-options`) has
-820 entries, of which 263 are already wired up -- leaving 549 with no row
-and no AppSettings property. Hand-writing 549 rows x (property + command
+820 entries, of which 264 are already wired up -- leaving 548 with no row
+and no AppSettings property. Hand-writing 548 rows x (property + command
 case + name map entry + Option literal) is roughly 12k lines of largely
 mechanical code that would drift from the schema on the next mpv bump.
 
@@ -15,9 +15,9 @@ So the schema drives it:
 
     mpv-options.json
         |
-        +-- AppSettings.Gen.cs        549 properties, typed from `values`
-        +-- MpvSettings.Gen.cs        549 name-map entries + value grammar
-        +-- SettingsPage.Options.Gen.cs  549 Option literals
+        +-- AppSettings.Gen.cs        548 properties, typed from `values`
+        +-- MpvSettings.Gen.cs        548 name-map entries + value grammar
+        +-- SettingsPage.Options.Gen.cs  548 Option literals
         +-- MpvConfOptions/schema-labels.en.json  label + description text
 
 Every generated file carries a "do not edit" banner and is rewritten whole,
@@ -639,7 +639,7 @@ def gen_section_glue(rows: list[dict]) -> str:
         "        ///",
         "        /// The generated folders all fold. They hold the options nobody",
         "        /// wrote a curated row for, which is the same test the",
-        "        /// hand-written advanced sections pass -- and 549 rows on a",
+        "        /// hand-written advanced sections pass -- and 548 rows on a",
         "        /// category overview is the wall of text the fold exists to",
         "        /// prevent.",
         "        /// </summary>",

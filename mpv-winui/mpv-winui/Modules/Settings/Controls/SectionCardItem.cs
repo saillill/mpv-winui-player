@@ -1,11 +1,10 @@
-using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using Microsoft.UI.Xaml;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
 /// <summary>
-/// One collapsed section rendered as a drill-in card inside otherwise flat list.
+/// One collapsed section rendered as a drill-in card inside an otherwise flat
+/// list.
 ///
 /// This exists because the overview used to render every inline option first
 /// and every card second, which meant a category's sections were not in their
@@ -14,13 +13,12 @@ namespace mpv_winui.Modules.Settings.Controls;
 /// position its section occupies.
 ///
 /// Everything it displays is resolved once by whoever builds the list, so this
-/// stays a plain record: unlike <see cref="Option"/> it needs no change
-/// notification, because none of its fields change while it is on screen.
+/// is a plain record with no change notification -- and it now really is one.
+/// It used to implement INotifyPropertyChanged for a Count that nothing read,
+/// while the doc comment above already claimed no field changes on screen.
 /// </summary>
-public sealed class SectionCardItem : INotifyPropertyChanged
+public sealed class SectionCardItem
 {
-    private int _count;
-
     /// <summary>Localized section caption.</summary>
     public string Caption { get; set; } = string.Empty;
 
@@ -30,34 +28,22 @@ public sealed class SectionCardItem : INotifyPropertyChanged
     /// <summary>Segoe Fluent glyph resolved from the section catalog.</summary>
     public string Icon { get; set; } = string.Empty;
 
-    /// <summary>Secondary line under the title; empty when there is none.</summary>
+    /// <summary>
+    /// Secondary line under the title: the section's own description. It
+    /// replaced a count line ("8 options"), which said nothing about where the
+    /// card leads and which no other card in the settings tree carries.
+    /// </summary>
     public string Description { get; set; } = string.Empty;
 
-    /// <summary>Localized count line, e.g. "8 options".</summary>
-    public string CountText { get; set; } = string.Empty;
+    /// <summary>
+    /// Whether the secondary line has anything to say. Bound directly rather
+    /// than through a converter so an empty description collapses the row
+    /// instead of leaving a blank gap under the caption.
+    /// </summary>
+    public Visibility DescriptionVisibility =>
+        string.IsNullOrEmpty(Description) ? Visibility.Collapsed : Visibility.Visible;
 
-    /// <summary>Screen-reader name: caption plus count, never the icon glyph.</summary>
+    /// <summary>Screen-reader name: caption plus description, never the icon glyph.</summary>
     public string AccessibleName =>
-        string.IsNullOrEmpty(CountText) ? Caption : $"{Caption}, {CountText}";
-
-    /// <summary>How many options the card opens onto.</summary>
-    public int Count
-    {
-        get => _count;
-        set
-        {
-            if (_count == value)
-            {
-                return;
-            }
-
-            _count = value;
-            OnPropertyChanged();
-        }
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void OnPropertyChanged([CallerMemberName] string? name = null) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        string.IsNullOrEmpty(Description) ? Caption : $"{Caption}, {Description}";
 }

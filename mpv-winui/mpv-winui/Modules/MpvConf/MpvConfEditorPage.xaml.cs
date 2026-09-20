@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
@@ -6,6 +6,7 @@ using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.MpvConf.Conf;
 using mpv_winui.Modules.MpvConf.Option;
 using mpv_winui.Modules.MpvConf.Schema;
+using mpv_winui.Modules.Settings;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -48,7 +49,21 @@ public sealed partial class MpvConfEditorPage : Page
             return;
         }
 
-        _manager = new MpvConfManager(configPath);
+        // The settings window watches the app's own mpv.conf, so a save here has
+        // to be stamped as ours before it lands - otherwise the watcher reads it
+        // back as a hand edit, reloads, and logs a change nobody made. Only for
+        // that one path: this editor can be pointed at any mpv.conf (it is the
+        // generic config editor), and a write to some other file is not the
+        // settings window's business.
+        //
+        // The decision lives here rather than inside MpvConfManager because the
+        // manager is exactly the thing that must not know what the app watches;
+        // that coupling is what made mpv-conf-test stop compiling (A-28).
+        _manager = new MpvConfManager(
+            configPath,
+            MpvConfManager.PathsEqual(configPath, ManagedMpvConfig.MpvConfPath)
+                ? MpvConfWatcher.NoteOwnWrite
+                : null);
         try
         {
             if (_logger.IsDebugEnabled)

@@ -947,6 +947,24 @@
         <Setter Property="Visibility" Value="Collapsed" />
     </Style>
 
+    <!-- The fourth of the text roles, and for a long time the only one without a
+         token: the three controls that validate input (Double, Integer, String)
+         each restated the same foreground, ramp step and initial visibility
+         inline. ErrorText is the one role here that is genuinely conditional in
+         BOTH directions - a control may have no error node at all (the six that
+         cannot fail validation) or have one that is only filled on a failed
+         commit - so the initial Collapsed is part of the role, not an accident.
+         Wrap matches the warning: a validation message is a sentence, and
+         clipping it would hide the part that says what to do. -->
+    <Style
+        x:Key="MpvOptionErrorStyle"
+        BasedOn="{StaticResource CaptionTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource SystemErrorTextColor}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Visibility" Value="Collapsed" />
+    </Style>
+
     <!-- Spacing scale.
          Two scales, because there are genuinely two jobs. The Windows guidance
          gives 8 / 12 / 16 for spacing between surfaces, content areas and edge
@@ -1035,5 +1053,31 @@
         <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
         <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
     </Style>
+
+    <!-- One chrome for every popup the player opens off its control bar: the
+         volume strip, the track selector, the quick-control panel and the More
+         menu. They used to be four independent decisions (two FlyoutPresenter
+         styles built per open, plus a hand-written Border on the panel), which
+         is how they drifted apart in background, radius and shadow.
+
+         The Flyout-based ones consume the style below. The quick-control panel
+         cannot: it is a Popup, because a Flyout is clipped to the window and the
+         panel has to be able to leave it. So it takes the same brushes, the same
+         radius constant and a matching ThemeShadow on its own Border, and this
+         comment is the record that the two have to be changed together. -->
+    <Style
+        x:Key="MpvPlayerPopupPresenterStyle"
+        BasedOn="{StaticResource AcrylicFlyoutPresenterStyle}"
+        TargetType="FlyoutPresenter">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="IsTabStop" Value="False" />
+    </Style>
+
+    <!-- Corner radius shared by the flyout presenters (through their default
+         template) and the quick-control panel's Border. -->
+    <CornerRadius x:Key="MpvPlayerPopupCornerRadius">8</CornerRadius>
+
+    <!-- Depth of the panel's shadow, matching the FlyoutPresenter default. -->
+    <x:Double x:Key="MpvPlayerPopupShadowDepth">32</x:Double>
 
 </ResourceDictionary>

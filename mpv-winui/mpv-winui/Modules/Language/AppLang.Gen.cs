@@ -694,8 +694,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_sigmoid_slope { get; set; } = "Float; Range 1 to 20; Default: 6.5";
         public string SchemaLabel_Mpv_snap_window { get; set; } = "snap-window";
         public string SchemaDesc_Mpv_snap_window { get; set; } = "Flag; Default: no";
-        public string SchemaLabel_Mpv_speed { get; set; } = "speed";
-        public string SchemaDesc_Mpv_speed { get; set; } = "Double; Range 0.01 to 100; Default: 1";
         public string SchemaLabel_Mpv_spirv_compiler { get; set; } = "spirv-compiler";
         public string SchemaDesc_Mpv_spirv_compiler { get; set; } = "One of: auto, shaderc; Default: auto";
         public string SchemaLabel_Mpv_sstep { get; set; } = "sstep";

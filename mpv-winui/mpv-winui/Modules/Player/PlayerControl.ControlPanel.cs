@@ -16,71 +16,93 @@ namespace mpv_winui.Modules.Player
         private bool _panelBuilt;
         private Pivot? _panelPivot;
 
+        /// <summary>Panel geometry. The roomy size is deliberate: one fixed
+        /// height keeps the three tabs from resizing each other, and because the
+        /// popup is allowed to leave the window this size no longer has to be
+        /// negotiated with the window it happens to be opened from.</summary>
+        private const double PanelWidth = 440;
+        private const double PanelHeight = 560;
+        private const double PanelMinHeight = 320;
+
+        /// <summary>Height of the panel's chrome: the border plus the tab strip.</summary>
+        private const double PanelChromeHeight = 40;
+
+        /// <summary>
+        /// Gap between the anchor and the panel, in DIPs. Shared with the other
+        /// player popups so they all sit the same distance off their button.
+        /// </summary>
+        private const double PopupGap = 8;
+
         private void OnLanguageChanged()
         {
             // The quick-control panel captures AppLang strings when built;
             // drop it so the next open rebuilds with the new language (B5).
             _panelBuilt = false;
-            if (ControlPanelFlyout.IsOpen)
+            if (ControlPanelPopup.IsOpen)
             {
                 EnsureControlPanel();
             }
         }
 
-        private void ControlPanelFlyout_Opened(object sender, object e)
+        private void ControlPanelButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ControlPanelPopup.IsOpen)
+            {
+                ControlPanelPopup.IsOpen = false;
+                return;
+            }
+            OpenControlPanel(ControlPanelButton);
+        }
+
+        private void ControlPanelPopup_Opened(object sender, object e)
         {
             EnsureControlPanel();
         }
 
         /// <summary>
-        /// XAML popups clip at the window edge instead of repositioning, and
-        /// the panel's 440-DIP pivot plus bar do not fit a small or high-DPI
-        /// window (maximized at 175% scale leaves ~425 DIP above the bar) —
-        /// the panel top was silently cut off. Build the presenter style per
-        /// open with a MaxHeight capped to the space actually available above
-        /// the button (Opening runs before the presenter is created); pages
-        /// that no longer fit scroll inside instead of clipping, and the
-        /// height stays identical across the three tabs.
+        /// Shows the panel above <paramref name="anchor"/>.
+        ///
+        /// Two height defects used to live here. The pivot was built at a fixed
+        /// 440, but every open recomputed it from the space above the button --
+        /// and the first open runs before the pivot exists, so only the second
+        /// and later opens saw the recomputation, which is why the panel filled
+        /// the window on the second open. The presenter was then capped to the
+        /// space above the button, which is what clipped a tall panel in a short
+        /// window.
+        ///
+        /// The geometry is fixed now: the panel is bounded by the window height
+        /// only so a very short window stays usable, and because the popup is
+        /// explicitly not constrained to the window, a panel taller or wider
+        /// than the space around the button still renders in full.
         /// </summary>
-        private void ControlPanelFlyout_Opening(object sender, object e)
+        private void OpenControlPanel(FrameworkElement anchor)
         {
-            var available = AvailableAbove(ControlPanelButton);
-            if (_panelPivot is not null)
+            EnsureControlPanel();
+            if (_panelPivot is null)
             {
-                _panelPivot.Height = Math.Max(300, available - 8);
+                return;
             }
-            ControlPanelFlyout.FlyoutPresenterStyle = BuildPresenterStyle(
-                (Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
-                available, 560);
-        }
 
-        /// <summary>Same window-edge clip protection for the track selector.</summary>
-        private void TrackSelectionFlyout_Opening(object sender, object e)
-        {
-            TrackSelectionFlyout.FlyoutPresenterStyle = BuildPresenterStyle(
-                (Style)Application.Current.Resources["AcrylicFlyoutPresenterStyle"],
-                AvailableAbove(TrackSelectionButton), 480);
-        }
+            var window = anchor.XamlRoot?.Size ?? default;
+            var available = window.Height > 0 ? window.Height - 16 : PanelHeight;
+            var panelHeight = Math.Min(PanelHeight, Math.Max(PanelMinHeight, available));
 
-        private static Style BuildPresenterStyle(Style basedOn, double maxHeight, double maxWidth) => new(typeof(FlyoutPresenter))
-        {
-            BasedOn = basedOn,
-            Setters =
-            {
-                new Setter(FlyoutPresenter.PaddingProperty, new Thickness(0)),
-                new Setter(FlyoutPresenter.MaxWidthProperty, maxWidth),
-                new Setter(FlyoutPresenter.MaxHeightProperty, maxHeight),
-            },
-        };
+            ControlPanelHost.Width = PanelWidth;
+            _panelPivot.Height = Math.Max(200, panelHeight - PanelChromeHeight);
 
-        /// <summary>DIPs from the window content top to the element top, minus a margin.</summary>
-        private static double AvailableAbove(FrameworkElement anchor)
-        {
-            if (anchor.XamlRoot?.Content is UIElement contentRoot)
-            {
-                return Math.Max(320, anchor.TransformToVisual(contentRoot).TransformPoint(new Windows.Foundation.Point(0, 0)).Y - 12);
-            }
-            return 480;
+            // Let the framework place it. Popup.DesiredPlacement plus a
+            // PlacementTarget is the same anchoring a Flyout uses, and it is
+            // what the first version of this got wrong: it computed absolute
+            // window coordinates by hand and assigned them to
+            // HorizontalOffset/VerticalOffset, which put the panel under the
+            // window instead of above the button. The offsets below are a gap
+            // relative to the anchor, not a position, so there is no coordinate
+            // origin left to get wrong.
+            ControlPanelPopup.PlacementTarget = anchor;
+            ControlPanelPopup.DesiredPlacement = PopupPlacementMode.TopEdgeAlignedLeft;
+            ControlPanelPopup.HorizontalOffset = 0;
+            ControlPanelPopup.VerticalOffset = -PopupGap;
+            ControlPanelPopup.IsOpen = true;
         }
 
         private void EnsureControlPanel()
@@ -102,14 +124,11 @@ namespace mpv_winui.Modules.Player
 
             var pivot = new Pivot
             {
-                // Fixed height keeps the flyout the same size across the
-                // audio/video/subtitle tabs. 440 gives all three pages
-                // enough room to render without their inner scrollbars
-                // (audio's EQ card is the tallest) while staying inside
-                // the flyout presenter's 480 cap.
-                // User preference: roomy panel with fixed size so tabs
-                // never resize the flyout.
-                Height = 440,
+                // Fixed height keeps the panel the same size across the
+                // audio/video/subtitle tabs. OpenControlPanel sets the value
+                // actually used, from the panel geometry, before the popup is
+                // shown; this is only the pre-open default.
+                Height = PanelHeight - PanelChromeHeight,
                 Padding = new Thickness(0),
                 IsHeaderItemsCarouselEnabled = false,
                 IsTabStop = false,
