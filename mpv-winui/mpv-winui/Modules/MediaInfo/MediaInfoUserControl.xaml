@@ -127,7 +127,9 @@
             Padding="16,4,16,8"
             VerticalScrollBarVisibility="Auto"
             VerticalScrollMode="Auto">
-            <StackPanel MaxWidth="1060" HorizontalAlignment="Stretch">
+            <StackPanel
+                MaxWidth="{StaticResource MpvContentMaxWidth}"
+                HorizontalAlignment="Center">
                 <ProgressRing
                     x:Name="LoadingRing"
                     Width="36"

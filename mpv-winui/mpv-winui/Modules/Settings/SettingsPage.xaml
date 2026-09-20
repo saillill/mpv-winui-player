@@ -67,8 +67,8 @@
                 <Grid
                     x:Name="BreadcrumbBar"
                     Grid.Row="0"
-                    MaxWidth="1060"
-                    HorizontalAlignment="Stretch"
+                    MaxWidth="{StaticResource MpvContentMaxWidth}"
+                    HorizontalAlignment="Center"
                     Margin="{StaticResource MpvBreadcrumbBarMargin}"
                     ColumnSpacing="{StaticResource MpvSpaceM}"
                     Visibility="Collapsed">
@@ -132,7 +132,9 @@
                 <Grid Grid.Row="1">
                     <!-- Browsing layout: one column of cards under the trail. -->
                     <ScrollViewer x:Name="BrowseHost" Padding="12,4,12,0">
-                        <StackPanel MaxWidth="1060" HorizontalAlignment="Stretch">
+                        <StackPanel
+                            MaxWidth="{StaticResource MpvContentMaxWidth}"
+                            HorizontalAlignment="Center">
                             <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
                             <ListView
                                 x:Name="SectionsHost"
@@ -375,9 +377,14 @@
 
                 <!-- The customize footer bar. Its 16/10 padding is not a scale
                      step: it is the optical match to the breadcrumb row above
-                     it, vertically centred against the same 32px controls. -->
+                     it, vertically centred against the same 32px controls.
+                     MaxWidth matches the card column so the two reset actions
+                     sit under the last card rather than off in the corner of a
+                     wide window. -->
                 <Border
                     Grid.Row="2"
+                    MaxWidth="{StaticResource MpvContentMaxWidth}"
+                    HorizontalAlignment="Center"
                     Padding="{StaticResource MpvCardPaddingWide}"
                     BorderThickness="0">
                     <Grid ColumnSpacing="{StaticResource MpvSpaceS}">

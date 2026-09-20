@@ -997,6 +997,18 @@
     <Thickness x:Key="MpvBreadcrumbBarMargin">12,4,12,12</Thickness>
     <Thickness x:Key="MpvSearchGlyphMargin">14,0,0,0</Thickness>
 
+    <!-- The reading width of the settings window's content column, and the
+         media-info panel's. One token because the two surfaces sit in
+         different windows and must still line up when both are open.
+
+         It is a MaxWidth, so it needs HorizontalAlignment="Center" to mean
+         anything: paired with the Stretch these sites used to carry, a narrow
+         window was fine but a wide one left all the slack on the right, so the
+         cards hugged the left of the pane gutter instead of the middle of the
+         window. Measured on a 1920px-wide window that was a 715px left inset
+         against a 222px right one. -->
+    <x:Double x:Key="MpvContentMaxWidth">1060</x:Double>
+
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
          consuming flyout via BasedOn. -->
