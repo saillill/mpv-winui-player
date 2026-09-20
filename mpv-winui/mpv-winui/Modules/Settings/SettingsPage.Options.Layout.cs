@@ -77,24 +77,55 @@ public sealed partial class SettingsPage
             return;
         }
 
-        // Rank by the stored order; anything unlisted keeps its built-in
-        // relative position by inheriting the rank of the previous listed key.
+        // Rank by the stored order. Anything unlisted inherits int.MaxValue and
+        // so keeps its built-in relative position.
         var rank = new Dictionary<string, int>(StringComparer.Ordinal);
         for (var i = 0; i < _layout.Order.Count; i++)
         {
             rank[_layout.Order[i]] = i;
         }
 
-        var ordered = options
-            .Select((option, index) => (option, index,
-                rankKey: rank.TryGetValue(option.Key, out var r) ? r : int.MaxValue))
-            .OrderBy(x => x.rankKey)
-            .ThenBy(x => x.index)
-            .Select(x => x.option)
+        int RankOf(Option option) =>
+            rank.TryGetValue(option.Key, out var r) ? r : int.MaxValue;
+
+        // The reorder is applied WITHIN each section, and each section is put
+        // back together as one contiguous run.
+        //
+        // It used to be a single flat sort over the whole list, which was wrong
+        // in a way that only appeared after a drag. `_layout.Order` is the drag
+        // order of every row on a page, captured as one flat list; sorting
+        // globally by it lets a row dragged across a section boundary land
+        // between two rows of another section, so the category's rows stop being
+        // grouped by section. Nothing downstream expects that -- the overview
+        // walks the list and emits a card each time it enters a section, so an
+        // interleaved list produced the same card two or three times at the
+        // wrong places. That is what "the cards turn chaotic after a couple of
+        // drags" was.
+        //
+        // Grouping also repairs a layout file already saved in that state: the
+        // rows of one section are pulled back together however they were stored.
+        // Section ORDER is not decided here -- _layout.SectionOrder owns that,
+        // applied by the section pass -- so this leaves the built-in section
+        // sequence alone and settles only the rows inside each section. Moving a
+        // row to a different section is a separate gesture (dropping it on a
+        // folder), which rewrites the row's Section rather than its rank, and is
+        // why scoping this to the row's own section is the right reading.
+        var runs = options
+            .Select((option, index) => (option, index))
+            .GroupBy(x => (x.option.Category, x.option.Section))
+            .OrderBy(g => g.Min(x => x.index))
+            .Select(g => g
+                .OrderBy(x => RankOf(x.option))
+                .ThenBy(x => x.index)
+                .Select(x => x.option)
+                .ToList())
             .ToList();
 
         options.Clear();
-        options.AddRange(ordered);
+        foreach (var run in runs)
+        {
+            options.AddRange(run);
+        }
     }
 
     /// <summary>

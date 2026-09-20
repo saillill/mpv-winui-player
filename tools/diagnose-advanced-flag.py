@@ -126,6 +126,38 @@ def load():
     return rows, fold, pinned
 
 
+LAYOUT = SETTINGS / "SettingsPage.Options.Layout.cs"
+
+
+def check_order_keeps_sections_together() -> str | None:
+    """The row-order pass must group by section.
+
+    A shape check, not a behavioural one -- the pass is pure C# and porting it
+    here would drift. It earns its place because the failure it guards was
+    invisible in every other check: the flat drag order out of customize mode was
+    applied as one global sort, so a row dragged across a section boundary left
+    its section, the list stopped being grouped by section, and the overview --
+    which emits a card per section entry -- produced the same card several times
+    at unrelated positions. Cards went chaotic after a couple of drags and
+    nothing in the tree looked wrong.
+
+    The renderer no longer depends on contiguity (cards are emitted per section,
+    tracked by identity), so this is defence in depth: the order still ought to
+    be grouped, because section headers and the customize pane both read better
+    that way.
+    """
+    src = LAYOUT.read_text(encoding="utf-8-sig")
+    if "GroupBy(x => (x.option.Category, x.option.Section))" in src:
+        return None
+
+    if "rankKey" in src:
+        return ("the row-order pass sorts the whole list by the stored drag order "
+                "without grouping by section, so a drag across a section boundary "
+                "interleaves sections -- group by (Category, Section) and order "
+                "the runs, as it does today")
+    return "the row-order pass no longer shows a recognisable per-section reorder"
+
+
 def main() -> int:
     rows, fold, pinned = load()
 
@@ -207,9 +239,17 @@ def main() -> int:
         print(f"FAIL: {len(problems)} problem(s)")
         return 1
 
+    order = check_order_keeps_sections_together()
+    if order:
+        print()
+        print(f"ERROR: {order}")
+        print("FAIL: the row-order pass can interleave sections")
+        return 1
+
     print()
     print(f"OK: every category keeps >= {CATEGORY_FLOOR} rows, every folded section "
-          f"clears {FOLD_FLOOR}, and no row is hidden without a card")
+          f"clears {FOLD_FLOOR}, no row is hidden without a card, and the row-order "
+          f"pass keeps sections together")
     return 0
 
 

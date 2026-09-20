@@ -299,22 +299,32 @@ public sealed partial class OptionListControl : UserControl
         var showHeaders = sectionCount >= 2;
 
         var items = new List<object>(visible.Count + 8);
-        string? lastSection = null;
+        // A section gets its card (or its header) once, at the first row of that
+        // section, tracked by identity rather than by comparing against the
+        // previous row. The comparison was only ever correct while sections
+        // arrived contiguous, and one of the ways the list can be ordered --
+        // the flat drag order out of customize mode -- does not guarantee that.
+        // When it did not hold, the same card was emitted again at each re-entry
+        // into the section, which is what put three copies of one card at
+        // unrelated places in the page. Counting per section makes a duplicate
+        // card unrepresentable no matter how the list is ordered.
+        var introduced = new HashSet<string>(StringComparer.Ordinal);
         foreach (var option in visible)
         {
-            if (!string.IsNullOrEmpty(option.Section) && option.Section != lastSection)
+            // The header and the card are per section, so a row with no section
+            // has neither and simply renders. The condition is written out here
+            // rather than cached in a bool so the compiler can still see that
+            // the caption is non-null where the header is built.
+            var section = option.Section;
+            if (!string.IsNullOrEmpty(section) && introduced.Add(section))
             {
-                lastSection = option.Section;
-
                 // The general bucket of a category is not a subtopic; a header
                 // repeating the category name only makes it look like one.
                 var repeatsCategory = !string.IsNullOrEmpty(CategoryCaption)
-                    && string.Equals(option.Section, CategoryCaption, StringComparison.Ordinal);
+                    && string.Equals(section, CategoryCaption, StringComparison.Ordinal);
 
                 // A folded section contributes exactly one item: its card,
                 // right here, at the position its options would have filled.
-                // Sections arrive clustered (the page orders them that way), so
-                // the transition into the section is where the card belongs.
                 SectionCardItem? card = null;
                 var folded = option.SectionId is { } sectionId
                     && CollapsedSectionIds.Contains(sectionId)
@@ -326,7 +336,7 @@ public sealed partial class OptionListControl : UserControl
                 }
                 else if (showHeaders && !repeatsCategory)
                 {
-                    items.Add(new SectionHeaderItem { Caption = option.Section, SectionId = option.SectionId });
+                    items.Add(new SectionHeaderItem { Caption = section, SectionId = option.SectionId });
                 }
             }
 
