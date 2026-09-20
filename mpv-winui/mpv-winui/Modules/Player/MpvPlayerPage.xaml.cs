@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Windowing;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -100,14 +100,14 @@ namespace mpv_winui.Modules.Player
                     await _mediaPlayer.RunCommandAsync(applyCommands);
                 }
 
-                // Playback speed is a persistent setting but is intentionally
-                // not part of ApplyAll (it would clobber the live session on a
-                // settings reset); apply it here once at startup so the saved
-                // value takes effect on launch.
-                if (AppContext.AppSetting.Speed is not 1.0)
-                {
-                    AppContext.SendMpvCommand($"no-osd set speed {AppContext.AppSetting.Speed}");
-                }
+                // Playback speed needs no special case here any more. It is a
+                // persistent setting, and MpvSettings.ToCommand now has an arm
+                // for it, so the startup batch above already carries it; the
+                // batch omits it from ApplyAll (SessionStateKeys) so a reset
+                // still cannot clobber a live session. The hand-written
+                // `set speed` that used to live here was compensating for the
+                // missing arm, and it only ever covered startup -- changing the
+                // row in the settings window did nothing at all.
                 // No drain step: the native player runs each command synchronously
                 // inside RunCommandAsync, so by the time the await above returns
                 // the whole batch has already been applied.

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Check settings drift for mpv-winui-player.
 
 Three sources must stay in sync:
@@ -68,11 +68,20 @@ def parse_option_keys(src_dir: Path) -> set[str]:
     return keys
 
 
-# AppSettings properties that intentionally have no MpvSettings mapping:
-#   * UI-only settings (theme, control bar, window, language, ...),
-#   * plugin script options written by PluginConfigWriter,
-#   * per-feature legacy migration markers.
-# Adding a new mpv-facing setting here is a bug; the check keeps this list tight.
+# AppSettings properties that intentionally have no MpvSettings mapping.
+#
+# Every entry here is a property that changes what THIS APP does and can never
+# become a libmpv option. That distinction is the whole point of the list: the
+# error below means "a setting is stored and never reaches mpv", so the only
+# correct way to silence it for an app-owned setting is to say so here, with a
+# reason. Adding a fake `ToCommand` arm instead would write app state into
+# mpv.conf; deleting the check would lose the signal for the next real omission.
+#
+# Seven entries were missing when this list was audited (2026-09-21). They are
+# not new settings -- they had simply never been classified, so the check had
+# been failing on them for as long as it existed, which is what made the one
+# real problem in this area (EnableVideoPreview, below) indistinguishable from
+# the noise.
 UNMAPPED_OK = {
     # UI-only
     "ThemeType", "BackdropType",
@@ -88,8 +97,22 @@ UNMAPPED_OK = {
     "WindowPiPOpacity", "WindowPiPAspectRatioLock", "WindowPiPAnchor",
     "WindowAspectRatioLock",
     "LastVideoVolume", "AudioVolume",
+    # Which control-bar skin to draw. Read by MpvPlayerPage_PlayControl.cs.
+    "PlayerStyle",
+    # Preview behaviour: app-side wiring of the in-process previewer and of the
+    # built-in second-libmpv instance. Read by MpvPlayerPage_Preview.cs and
+    # MpvPlayerPage_BuiltInPreview.cs; `Mpv_preview_*` is not a thing.
     "EnableVideoPreview",
+    "EnableVideoBuiltInPreview", "KeepVideoBuiltInPreviewAlive", "BuiltInPreviewAliveTimeout",
     "ThumbnailPreviewWidth", "ThumbnailUpdateInterval",
+    # Input forwarding: whether the app forwards Win32 mouse input to libmpv at
+    # all, and whether it restricts that to disc navigation. Read by
+    # MpvPlayerPage_Mouse.cs. The mpv option these would otherwise name is about
+    # mpv's OWN window, which this app does not use.
+    "EnableMouseInput", "EnableMouseInputDiscNavOnly",
+    # Whether the mpv.conf editor keeps a backup before writing. Read by
+    # MpvConfEditorPage.xaml.cs. Nothing to do with mpv itself.
+    "EnableSaveBackup",
     # UI-only settings persisted by their own handlers (playlist width from
     # the resize grip, window title from MainWindow).
     "PlaylistWidth", "WindowTitle",
@@ -108,8 +131,13 @@ UNMAPPED_OK = {
     # Special cases handled outside ToCommand
     "Volume",               # passed at mpv Initialize, not applied at runtime
     "ShowOsdPlayingMsg",    # merged into the OsdPlayingMsg case
-    "Speed",                # applied once at startup by MpvPlayerPage; deliberately
-                            # absent from ApplyAll so a reset never clobbers live speed
+    # Speed was listed here until 2026-09-21, and its presence was itself the
+    # finding: it is NOT app-owned, it was simply unmapped, while the check's
+    # message ("has no ToCommand mapping") was accurate and being silenced by
+    # hand. MpvSettings.ToCommand now has a Speed arm, so the property no longer
+    # lands in `appsettings - mpvsettings` at all. Kept out of ApplyAll by
+    # MpvSettings.SessionStateKeys instead, which is where that decision belongs
+    # -- it is about reset semantics, not about whether the value reaches mpv.
     "LoopFile",             # controlled by the status-bar repeat button
     "LoopPlaylist",         # controlled by the bundled mpv.conf
 }

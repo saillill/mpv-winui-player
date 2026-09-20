@@ -1220,12 +1220,12 @@ public sealed partial class SettingsPage : Page
     /// the first row happened to say. Any reorder -- a drag in customize mode,
     /// a rebuilt list -- could flip a section between its card and a wall of
     /// rows with nothing else changed.</summary>
-    private List<(string Label, int Count, bool Advanced)> SectionSummaries(
+    private List<(string Label, bool Advanced)> SectionSummaries(
         IEnumerable<Option> categoryOptions) =>
         categoryOptions
             .Where(o => !string.IsNullOrEmpty(o.Section))
             .GroupBy(o => o.Section!, StringComparer.Ordinal)
-            .Select(g => (g.Key, g.Count(), FoldedSections.Contains(g.Key)))
+            .Select(g => (g.Key, FoldedSections.Contains(g.Key)))
             .ToList();
 
 
@@ -1237,9 +1237,11 @@ public sealed partial class SettingsPage : Page
     /// section order instead of being appended after everything else.
     ///
     /// Each carries the resolution live reconcile currently needs: the glyph
-    /// and count line are resolved here, once, from the section catalog.</summary>
+    /// and the secondary line are resolved here, once, from the section
+    /// catalog. The secondary line is the section's own description; it used to
+    /// be an option count, which the card no longer shows.</summary>
     private List<SectionCardItem> BuildSectionCardItems(
-        IReadOnlyList<(string Label, int Count, bool Advanced)> foldedSections)
+        IReadOnlyList<(string Label, bool Advanced)> foldedSections)
     {
         var cards = new List<SectionCardItem>(foldedSections.Count);
         foreach (var section in foldedSections)
@@ -1257,13 +1259,6 @@ public sealed partial class SettingsPage : Page
                 SectionId = id,
                 Icon = icon,
                 Description = description,
-                Count = section.Count,
-                CountText = section.Count == 1
-                    ? AppContext.AppLang.CardOptionCountOne
-                    : string.Format(
-                        System.Globalization.CultureInfo.CurrentUICulture,
-                        AppContext.AppLang.CardOptionCount,
-                        section.Count),
             });
         }
 

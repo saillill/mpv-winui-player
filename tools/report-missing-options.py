@@ -1,4 +1,4 @@
-"""Report the mpv options the settings window does not expose.
+﻿"""Report the mpv options the settings window does not expose.
 
 The catalogue holds 820 options; the window exposes 212. The gap is not a
 backlog - most of it is options a player's settings window should never show
@@ -22,6 +22,10 @@ import sys
 
 CATALOGUE = "mpv-winui/mpv-winui/MpvConfOptions/mpv-options.json"
 MPVSETTINGS = "mpv-winui/mpv-winui/Modules/Settings/MpvSettings.cs"
+# The schema-generated half declares its mappings in this file instead. It has
+# to be read alongside MpvSettings.cs or every generated option counts as
+# unexposed -- see load_exposed().
+MPVSETTINGS_GEN = "mpv-winui/mpv-winui/Modules/Settings/MpvSettings.Gen.cs"
 
 # --- excluded, each with the reason it will never earn a settings row --------
 # Labels stay English because they identify the rule in code; the report shows
@@ -253,9 +257,32 @@ CANDIDATES: dict[str, tuple[str, str]] = {
 
 
 def load_exposed() -> set[str]:
-    src = open(MPVSETTINGS, encoding="utf-8-sig").read()
-    names = {m.group(2) for m in re.finditer(
-        r'\[nameof\(AppSettings\.(\w+)\)\]\s*=\s*"([^"]+)"', src)}
+    """Every mpv option the settings window can set, from BOTH halves.
+
+    The window's rows come from two places: the hand-written option files, whose
+    mpv names live in MpvSettings.cs, and the 548 schema-generated rows, whose
+    mpv names live in MpvSettings.Gen.cs (the `GeneratedOptionNames` map, read by
+    GeneratedCommand at runtime). They are one tree at runtime and have to be one
+    set here.
+
+    Reading only MpvSettings.cs was correct until the generated layer landed
+    (local commit a5bad38), and it was never revisited. The cost was not a
+    rounding error: the report claimed 266 exposed and 550 missing when the true
+    figures are 815 and 1, and `docs/missing-options.md` -- which this function
+    feeds, and which the file header forbids editing by hand -- published a
+    to-do list of 72 options that had already shipped. Anyone acting on it would
+    have added a second row for an option that already had one.
+    """
+    names: set[str] = set()
+    for rel in (MPVSETTINGS, MPVSETTINGS_GEN):
+        try:
+            src = open(rel, encoding="utf-8-sig").read()
+        except FileNotFoundError:
+            # A checkout without the generated files is a legitimate state: the
+            # pages that need them do not build either. Not an error.
+            continue
+        names |= {m.group(2) for m in re.finditer(
+            r'\[nameof\(AppSettings\.(\w+)\)\]\s*=\s*"([^"]+)"', src)}
     # user-data/mpvw/* are runtime properties, not options.
     return {n for n in names if "/" not in n}
 
@@ -268,7 +295,7 @@ def classify(name: str) -> str | None:
     return None
 
 
-def write_markdown(opts, exposed, by_reason, curated, path="docs/missing-options.md"):
+def write_markdown(opts, exposed, by_reason, curated, shipped=(), path="docs/missing-options.md"):
     areas: dict[str, list[str]] = collections.defaultdict(list)
     for name in curated:
         areas[CANDIDATES[name][0]].append(name)
@@ -287,6 +314,11 @@ def write_markdown(opts, exposed, by_reason, curated, path="docs/missing-options
         f"- 未暴露且未废弃：**{sum(by_reason.values()) + len(curated)}** 条",
         f"  - 其中**不建议暴露**：**{sum(by_reason.values())}** 条（理由见下）",
         f"  - 其中**建议补充**：**{len(curated)}** 条",
+        "",
+        "> 「已暴露」同时统计手写行与 `MpvSettings.Gen.cs` 里 schema 生成的 548 行。",
+        "> 早先只统计手写那一半，于是本文件长期声称 266 条已暴露 / 550 条未暴露；",
+        "> 真实数字是 **%d / %d**。如果某条你记得「应该还没做」，先看下面第二节。"
+        % (len(exposed), sum(by_reason.values()) + len(curated)),
         "",
         "## 一、建议补充的选项（%d）" % len(curated),
         "",
@@ -343,15 +375,21 @@ def main() -> int:
         print(f"FAIL: curated names that are not mpv options: {bogus}")
         return 1
 
-    # A curated name that is already exposed is finished work still sitting
-    # in the to-do list, which overstates the remaining effort.
+    # A curated name that is already exposed is finished work. This used to be a
+    # hard failure, because with the hand-written half alone it could only mean
+    # the to-do list had not been tidied. Once load_exposed() learned to read the
+    # generated half, every one of the 71 curated names turned out to be exposed
+    # -- the whole list had shipped with the generated layer and nobody noticed,
+    # since the report was measuring 266 of 815. So "already exposed" is now the
+    # expected state of a curated name, and it is reported rather than fatal;
+    # what stays fatal is a name that is in the to-do list while its exclusion
+    # rule says it should never be exposed (checked below, over the same
+    # not-yet-exposed subset, so the two rules cannot contradict each other).
     shipped = sorted(n for n in CANDIDATES if n in exposed)
-    if shipped:
-        print(f"FAIL: curated but already exposed: {shipped}")
-        return 1
+    shopped = {n for n in CANDIDATES if n not in exposed}
 
     # Two piles at once means the rule and the curation disagree.
-    both = sorted(n for n in CANDIDATES if classify(n) is not None)
+    both = sorted(n for n in shopped if classify(n) is not None)
     if both:
         print(f"FAIL: curated but also excluded by a rule: {both}")
         return 1
@@ -381,10 +419,14 @@ def main() -> int:
         if by_reason[reason]:
             print(f"   {by_reason[reason]:4d}  {reason}")
     print()
-    print(f"curated as worth exposing      : {len(curated)}")
+    print(f"curated, still to expose       : {len(curated)}")
     areas = collections.Counter(CANDIDATES[n][0] for n in curated)
     for area, c in areas.most_common():
         print(f"   {c:4d}  {area}")
+    if shipped:
+        print()
+        print(f"curated, ALREADY exposed ({len(shipped)}) - recorded intent, nothing to do:")
+        print("   " + ", ".join(shipped[:8]) + (" ..." if len(shipped) > 8 else ""))
 
     if unreviewed:
         print()

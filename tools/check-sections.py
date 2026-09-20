@@ -128,6 +128,54 @@ def option_sort_keys():
     return keys
 
 
+# Option keys the settings tree builds at runtime instead of declaring in a
+# static row. BuildSettings() exempts them from the sectionMap guard (they carry
+# their own inline Section), so a check that mirrors that guard has to exempt
+# them too -- and by prefix, because the suffixes are per-user data:
+#   Shortcut:       built from input.conf bindings
+#   custom-section: one placeholder row per folder the user created
+RUNTIME_KEY_PREFIXES = ("Shortcut:", "custom-section:")
+
+
+def option_blocks(text):
+    """The body of every `new Option { ... }` initializer in one source text.
+
+    Brace matching, not a line regex. The regex this replaced required the
+    closing `},` to start its own line, which the generator's output never does:
+    SettingsPage.Options.Gen.cs closes all 549 of its blocks with `});` at the
+    end of the last property line, so the pattern matched ZERO of them. The
+    option keys therefore came out 322 short, and every generated key was then
+    reported by the reverse check below as a sectionMap entry "naming no built
+    option" -- 549 false warnings that buried the one genuine stale key
+    (ControlBarHiddenIcons, since removed).
+
+    Matching braces cannot be fooled by how the block is closed. It also stops
+    at the initializer's own brace rather than at the first `},`, so a nested
+    object initializer inside an Option would not truncate the block.
+    """
+    blocks = []
+    start = 0
+    while True:
+        i = text.find("new Option", start)
+        if i < 0:
+            return blocks
+        j = text.find("{", i)
+        if j < 0:
+            return blocks
+        depth = 0
+        k = j
+        while k < len(text):
+            if text[k] == "{":
+                depth += 1
+            elif text[k] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            k += 1
+        blocks.append(text[j:k + 1])
+        start = k + 1
+
+
 def option_keys():
     """Every option key the settings tree actually builds.
 
@@ -137,6 +185,11 @@ def option_keys():
     are real options, so all three have to be recognised here. An earlier
     version of this script only understood nameof(...) and reported two live
     options as orphans.
+
+    The hand-written half and the generated half both have to be read: the 548
+    schema rows are real rows on the same list, and a check that knew only about
+    the hand-written half would report all 548 of their sectionMap entries as
+    dead. See option_blocks() for the failure that actually happened here.
 
     Shortcut:N keys are generated at runtime from input.conf and have no
     static row, so they never appear in a source file.
@@ -154,15 +207,25 @@ def option_keys():
     keys = set()
     for path in OPTION_FILES:
         text = path.read_text(encoding="utf-8-sig")
-        # Option initializers are `new Option { ... }`; the closing brace is
-        # indented, which is what keeps the match from running past one block.
-        for block in re.findall(r'new Option\s*\{(.*?)\n\s*\},', text, re.S):
+        for block in option_blocks(text):
             match = (re.search(r'Key\s*=\s*nameof\([A-Za-z_.]*\.(\w+)\)', block)
                      or re.search(r'Key\s*=\s*"([^"]+)"', block)
                      or re.search(r'Key\s*=\s*(\w+)\s*,', block))
             if not match:
                 continue
-            keys.add(consts.get(match.group(1), match.group(1)))
+            key = consts.get(match.group(1), match.group(1))
+            # Runtime-generated keys are exempt from the sectionMap guard, and
+            # the exemption has to be mirrored here or this checker reports a
+            # crash that cannot happen. `custom-section:` is the second such
+            # family: SettingsPage.Options.Layout.cs builds one placeholder row
+            # per user-created folder, keyed by that folder's id, and the row
+            # carries its own inline Section -- which is precisely the condition
+            # BuildSettings() exempts. `Shortcut:` is the same idea, built from
+            # input.conf. Both are exempted by prefix, never by name: the
+            # suffixes do not exist until the user makes a folder or a binding.
+            if key.startswith(RUNTIME_KEY_PREFIXES):
+                continue
+            keys.add(key)
     return keys, consts
 
 
@@ -264,6 +327,32 @@ def sections_used_by_options():
     if end is None:
         return None, None
     return set(re.findall(r'\]\s*=\s*(s[A-Za-z0-9]+)\s*,', body[:end])), body[:end]
+
+
+def section_order_names():
+    """AppLang property names declared in the sectionOrder dictionary.
+
+    Keyed by local variable (sGpuScaling), so callers translate through
+    section_variables() -- same two-step as sectionMap.
+    """
+    text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
+    parts = text.split("var sectionOrder = new Dictionary<string, int>", 1)
+    if len(parts) < 2:
+        return None
+    body = parts[1]
+    depth = 0
+    end = None
+    for i, ch in enumerate(body):
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    if end is None:
+        return None
+    return set(re.findall(r'\[(s[A-Za-z0-9]+)\]\s*=\s*\d+\s*,', body[:end]))
 
 
 def main():
@@ -397,6 +486,35 @@ def main():
             errors.append(
                 f"sectionMap assigns options to {var}, which is not a declared "
                 f"section variable in {CORE_OPTIONS.name}")
+
+    # --- every used section must have an order key ---------------------------
+    # A section a row maps to, but which sectionOrder never mentions, does not
+    # fail and does not warn: BuildSettings falls back to int.MaxValue, so the
+    # section sorts to the BOTTOM of its category. Three sections were in that
+    # state -- sVideoGeometry, sOsdText and sWindowBehavior, 18 rows between
+    # them -- and sOsdText was the worst of the three, because it landed past
+    # Metadata on the far side of the very sections it supplies the font metrics
+    # for. Nothing else in this script looked at sectionOrder at all.
+    #
+    # It is an error rather than a warning because "no order" is never a
+    # decision: sectionOrder is per-category (options group by category first),
+    # so a section without a key has no defined place among its siblings and the
+    # resulting order is an accident of a missing line.
+    order_vars = section_order_names()
+    if order_vars is not None and variables is not None and used is not None:
+        # Recompute rather than reuse used_props from the block above: that one is
+        # scoped to its own conditional, and depending on it would make this check
+        # silently skip whenever the earlier guard did not run.
+        used_for_order = {variables.get(v) for v in used} - {None}
+        used_for_order |= generated_sections_used()
+        ordered_props = {variables.get(v) for v in order_vars} - {None}
+        # Generated sections register their order in their own file, by AppLang
+        # property name; same union as the empty-section check above.
+        ordered_props |= generated_sections_used()
+        for name in sorted(used_for_order - ordered_props):
+            errors.append(
+                f"{name} is used by sectionMap but has no sectionOrder entry, so it "
+                f"silently sorts to the end of its category -- add it to sectionOrder")
 
     # --- sort keys -----------------------------------------------------------
     # A repeated sort key is NOT an error here. optionOrder is deliberately

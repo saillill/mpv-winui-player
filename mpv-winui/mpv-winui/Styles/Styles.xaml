@@ -947,6 +947,24 @@
         <Setter Property="Visibility" Value="Collapsed" />
     </Style>
 
+    <!-- The fourth of the text roles, and for a long time the only one without a
+         token: the three controls that validate input (Double, Integer, String)
+         each restated the same foreground, ramp step and initial visibility
+         inline. ErrorText is the one role here that is genuinely conditional in
+         BOTH directions - a control may have no error node at all (the six that
+         cannot fail validation) or have one that is only filled on a failed
+         commit - so the initial Collapsed is part of the role, not an accident.
+         Wrap matches the warning: a validation message is a sentence, and
+         clipping it would hide the part that says what to do. -->
+    <Style
+        x:Key="MpvOptionErrorStyle"
+        BasedOn="{StaticResource CaptionTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource SystemErrorTextColor}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Visibility" Value="Collapsed" />
+    </Style>
+
     <!-- Spacing scale.
          Two scales, because there are genuinely two jobs. The Windows guidance
          gives 8 / 12 / 16 for spacing between surfaces, content areas and edge

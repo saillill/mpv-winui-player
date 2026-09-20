@@ -16,9 +16,9 @@
 
 set -u
 
-REPO="C:/Users/z2637/.zcode/workspace/default/mpv-winui-player"
+REPO="C:/Users/z2637/Documents/DeepSeek/mpv"
 SRC="$REPO/mpv-winui/mpv-winui/bin/x64/Release/net10.0-windows10.0.26100.0/win-x64"
-DST="C:/Users/z2637/WorkBuddy/2026-09-19-14-59-27/outputs/mpvw-test"
+DST="C:/Users/z2637/Documents/DeepSeek/mpv-deploy"
 
 if [ ! -f "$SRC/mpvw.dll" ]; then
     echo "FATAL: no mpvw.dll at $SRC -- build first"
@@ -31,6 +31,24 @@ fi
 
 echo "src dll : $(stat -c '%s bytes %y' "$SRC/mpvw.dll")"
 echo "dst dll before: $(stat -c '%s bytes %y' "$DST/mpvw.dll")"
+
+# --- refuse to run as a silent no-op -----------------------------------------
+# On Windows, PATH resolves `find` to find.exe (and `stat`/`cp` are not GNU
+# either). Windows find answers "FIND: Parameter format not correct" and prints
+# nothing, so the copy loop below reads an EMPTY file list and copies nothing --
+# while this script still prints its reassuring src/dst lines and ends with a
+# bare `xbf count: 0`. It looks like a run and is not one. Measured on
+# 2026-09-21: dst dll timestamp unchanged, exit 0.
+#
+# So probe the toolchain before trusting it, and point at the PowerShell path
+# that does work. Use tools/deploy-test.ps1 (native Copy-Item overlay plus a
+# verification pass), or tools/compare-deploy.ps1 to see what is stale.
+if ! find . -maxdepth 0 -type d >/dev/null 2>&1; then
+    echo "FATAL: 'find' here is not GNU find -- this script would silently copy nothing."
+    echo "       Use:  pwsh tools/deploy-test.ps1"
+    echo "       Or:   pwsh tools/compare-deploy.ps1   (report only)"
+    exit 1
+fi
 
 mkdir -p "$DST"
 

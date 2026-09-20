@@ -62,29 +62,39 @@
 
                 <!-- The three rows below are the rows of one content column,
                      and every row carries the same pair: MaxWidth plus
-                     HorizontalAlignment="Center". Each row is the direct child
-                     of the page Grid, so it is given the content area's width
-                     and clamps to the column; the three then share one x.
+                     HorizontalAlignment="Stretch". Each row is the direct child
+                     of the page Grid, so it fills the content area's width up to
+                     the column's cap, and the three then share one left edge.
 
-                     The centring only works if each row is given a finite
-                     width to be centred within. Wrapping a row in an extra
-                     full-width Grid breaks that: the inner box then sizes to
-                     its own content, so the breadcrumb's "back chevron + title"
-                     shrank to ~150px and centred *that*, parking its left edge
-                     in the middle of the window while the cards below began at
-                     the column's left edge. Keep these three as direct
-                     children.
+                     Stretch rather than Center, deliberately. A centred row is
+                     arranged at its *desired* width, and a row whose width comes
+                     from its content (the breadcrumb's "back chevron + title",
+                     or a ScrollViewer wrapping a column of cards) desires only
+                     as much as it happens to hold. The column then shrank and
+                     the page floated in the middle of the window: the title sat
+                     near the window centre while the cards began somewhere else
+                     again. Stretch gives all three the same finite width, so they
+                     cannot disagree about where the column starts.
 
-                     The column's sub-rows no longer add horizontal padding of
-                     their own. Every row here starts at the column's own x and
-                     the content inside it does too, so the breadcrumb, the
-                     option cards and the footer share one left edge instead of
-                     two insets stacked on the cards but not on the other two. -->
+                     Keep these three as direct children. A wrapper Grid would
+                     have to reproduce that same finite width, and an earlier
+                     attempt to fix this by centring a wrapper is what produced
+                     the shrinking it was meant to cure.
+
+                     The cap still applies: past MpvContentMaxWidth the column
+                     stops growing and the layout centres the capped column, which
+                     is what Windows Settings does on a wide display.
+
+                     The column's sub-rows add no horizontal padding of their
+                     own. Every row starts at the column's own x and the content
+                     inside it does too, so the breadcrumb, the option cards and
+                     the footer share one left edge instead of two insets stacked
+                     on the cards but not on the other two. -->
                 <Grid
                     x:Name="BreadcrumbBar"
                     Grid.Row="0"
                     MaxWidth="{StaticResource MpvContentMaxWidth}"
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Stretch"
                     Margin="{StaticResource MpvBreadcrumbBarMargin}"
                     ColumnSpacing="{StaticResource MpvSpaceM}"
                     Visibility="Collapsed">
@@ -192,13 +202,23 @@
                     <ScrollViewer
                         x:Name="BrowseHost"
                         MaxWidth="{StaticResource MpvContentMaxWidth}"
-                        HorizontalAlignment="Center"
+                        HorizontalAlignment="Stretch"
                         Margin="12,4,12,0"
                         Padding="0"
                         HorizontalScrollBarVisibility="Disabled"
                         HorizontalScrollMode="Disabled">
                         <StackPanel HorizontalAlignment="Stretch">
                             <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
+                            <!-- Scrolling off, like OptionListView inside the
+                                 control above. This list is measured at
+                                 infinite height by the StackPanel, so leaving
+                                 its own ScrollViewer enabled made it report
+                                 its viewport height instead of its content
+                                 height - the section cards past the first
+                                 screenful were then neither drawn nor included
+                                 in BrowseHost's scroll extent. BrowseHost owns
+                                 the page's only scroll; every list inside it
+                                 must decline its own. -->
                             <ListView
                                 x:Name="SectionsHost"
                                 Margin="0,4,0,0"
@@ -206,6 +226,10 @@
                                 HorizontalAlignment="Stretch"
                                 SelectionMode="None"
                                 IsItemClickEnabled="False"
+                                ScrollViewer.VerticalScrollMode="Disabled"
+                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                ScrollViewer.HorizontalScrollMode="Disabled"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                 ItemContainerStyle="{StaticResource SectionCardListViewItemStyle}"
                                 Visibility="Collapsed" />
                         </StackPanel>
@@ -236,7 +260,6 @@
                             Severity="Informational" />
 
                         <Grid
-                            x:Name="CustomizeHost"
                             Grid.Row="1"
                             ColumnSpacing="{StaticResource MpvSpaceM}">
                             <Grid.ColumnDefinitions>
@@ -429,11 +452,28 @@
                                  left. The pane's caption and its two create
                                  actions live inside the control's own toolbar,
                                  so they share one row instead of the caption
-                                 sitting on a row of its own above it. -->
-                            <ctl:OptionListControl
-                                x:Name="CustomizeOptionsControl"
+                                 sitting on a row of its own above it.
+
+                                 Wrapped in a ScrollViewer because this pane,
+                                 unlike the browsing one, is given a finite
+                                 height (a star row of CustomizeHost) and the
+                                 list inside declines its own scrolling. Without
+                                 a host scroll the rows past the first screenful
+                                 were simply unreachable - visible in no state,
+                                 scrollable by no gesture. Same shape as
+                                 BrowseHost: one scrolling surface, 12px gutter,
+                                 no MaxWidth (the pane is already narrower than
+                                 the reading column). -->
+                            <ScrollViewer
                                 Grid.Column="1"
-                                ShowHeaders="False" />
+                                Margin="0,4,0,12"
+                                Padding="0"
+                                HorizontalScrollBarVisibility="Disabled"
+                                HorizontalScrollMode="Disabled">
+                                <ctl:OptionListControl
+                                    x:Name="CustomizeOptionsControl"
+                                    ShowHeaders="False" />
+                            </ScrollViewer>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -447,7 +487,7 @@
                 <Border
                     Grid.Row="2"
                     MaxWidth="{StaticResource MpvContentMaxWidth}"
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Stretch"
                     Padding="{StaticResource MpvFooterPadding}"
                     BorderThickness="0">
                     <Grid ColumnSpacing="{StaticResource MpvSpaceS}">
