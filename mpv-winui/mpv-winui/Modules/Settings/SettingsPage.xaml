@@ -60,27 +60,28 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- One content column for all three rows. The rows are wrapper
-                     Grids that span the full width so their backgrounds and hit
-                     areas still do; only the inner MaxWidth box is centred, and
-                     because the same box shape is used in every row the
-                     breadcrumb, the cards and the footer share one left edge.
+                <!-- The three rows below are the rows of one content column,
+                     and every row carries the same pair: MaxWidth plus
+                     HorizontalAlignment="Center". Each row is the direct child
+                     of the page Grid, so it is given the content area's width
+                     and clamps to the column; the three then share one x.
 
-                     Centring used to be applied per row instead, which put each
-                     one in the middle of its own parent: the breadcrumb carries
-                     a Margin and the cards do not, so the two stopped lining up.
-                     A MaxWidth box is left-aligned inside the parent's padding,
-                     not centred, so "Stretch plus MaxWidth" is not the fix
-                     either. -->
+                     The centring only works if each row is given a finite
+                     width to be centred within. Wrapping a row in an extra
+                     full-width Grid breaks that: the inner box then sizes to
+                     its own content, so the breadcrumb's "back chevron + title"
+                     shrank to ~150px and centred *that*, parking its left edge
+                     in the middle of the window while the cards below began at
+                     the column's left edge. Keep these three as direct
+                     children. -->
                 <Grid
                     x:Name="BreadcrumbBar"
                     Grid.Row="0"
+                    MaxWidth="{StaticResource MpvContentMaxWidth}"
+                    HorizontalAlignment="Center"
+                    Margin="{StaticResource MpvBreadcrumbBarMargin}"
+                    ColumnSpacing="{StaticResource MpvSpaceM}"
                     Visibility="Collapsed">
-                    <Grid
-                        MaxWidth="{StaticResource MpvContentMaxWidth}"
-                        HorizontalAlignment="Center"
-                        Margin="{StaticResource MpvBreadcrumbBarMargin}"
-                        ColumnSpacing="{StaticResource MpvSpaceM}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -132,7 +133,6 @@
                                 FontWeight="SemiBold"
                                 TextTrimming="CharacterEllipsis" />
                         </StackPanel>
-                    </Grid>
                 </Grid>
 
                 <!-- Sub-category overview: section cards shown instead of the
@@ -397,19 +397,18 @@
                     </Grid>
                 </Grid>
 
-                <!-- The customize footer bar. Its 16/10 padding is not a scale
-                     step: it is the optical match to the breadcrumb row above
-                     it, vertically centred against the same 32px controls.
-                     The action buttons sit at the right edge of the content
-                     column, so the box is the same MaxWidth as the cards and
-                     offset by the same 12px gutter: nothing inside it changes,
-                     only where the box starts. -->
-                <Grid Grid.Row="2">
-                    <Border
-                        MaxWidth="{StaticResource MpvContentMaxWidth}"
-                        HorizontalAlignment="Center"
-                        Padding="{StaticResource MpvFooterPadding}"
-                        BorderThickness="0">
+                <!-- The footer bar, third row of the same content column. Its
+                     12/10 padding is not a scale step: it is the optical match
+                     to the breadcrumb row above it, vertically centred against
+                     the same 32px controls. The 12 horizontal half matters as
+                     well as the vertical one: this row shares the column's x
+                     with the two above it, so its inset has to match theirs. -->
+                <Border
+                    Grid.Row="2"
+                    MaxWidth="{StaticResource MpvContentMaxWidth}"
+                    HorizontalAlignment="Center"
+                    Padding="{StaticResource MpvFooterPadding}"
+                    BorderThickness="0">
                     <Grid ColumnSpacing="{StaticResource MpvSpaceS}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -491,8 +490,7 @@
                                 Click="CustomizeExit_Click" />
                         </StackPanel>
                     </Grid>
-                    </Border>
-                </Grid>
+                </Border>
             </Grid>
         </NavigationView.Content>
     </NavigationView>
