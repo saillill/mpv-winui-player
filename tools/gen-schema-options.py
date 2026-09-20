@@ -99,6 +99,123 @@ GROUP_TO_CATEGORY = {
     "General": "SettingsCategoryProgram",
 }
 
+# Sub-folder for the General bucket only.
+#
+# mpv's `General` group is a leftovers bin: 119 of the schema's options land
+# in it and they have nothing to do with each other -- encoder output sits
+# beside terminal verbosity beside X11 window names beside Lua script paths.
+# Shipping it as one folder reproduced the exact anti-pattern the hand-written
+# tree spent several rounds removing (the old `Advanced` bucket), and worse:
+# it was the only folder on the Program page, holding 100 rows, so "桌面"
+# opened onto six real settings and then a bin labelled 常规选项.
+#
+# The other eight mpv groups are genuinely coherent (Video & rendering is
+# video & rendering) so they keep one folder each. This table splits only
+# General, and only along lines mpv's own vocabulary already draws. Order
+# here is the folder order on the page.
+#
+# Matching is on the option name and is deliberately explicit rather than
+# regex-clever: a wrong guess is a misfiled option nobody can find, and the
+# unmatched remainder is reported by --dry-run so a new mpv option landing in
+# General is noticed rather than silently buried.
+GENERAL_THEMES: list[tuple[str, str, str, str, tuple[str, ...]]] = [
+    # (theme key, caption, description, icon, name prefixes / exact names)
+    ("Encoding", "编码输出", "mpv 自身的编码与封装选项，日常播放用不到",
+     "IconEncode",
+     ("ocopy-metadata", "oremove-metadata", "oset-metadata", "orawts",
+      "ovcopts", "oacopts", "ofopts", "ordered-chapters-files",
+      "ordered-chapters", "chapters-file", "merge-files",
+      "o", "ovc", "oac", "of", "mc", "index")),
+    ("Terminal", "终端输出", "mpv 在控制台里的输出与日志；本播放器不用控制台",
+     "IconTerminal",
+     ("terminal", "quiet", "really-quiet", "msg-", "log-file",
+      "dump-stats", "js-memory-report", "metadata-codepage")),
+    ("Platform", "其他平台", "X11、Wayland、VA-API 等非 Windows 平台的窗口选项",
+     "IconPlatform",
+     ("x11-", "x11-name", "wayland-", "wayland-app-id", "vaapi-",
+      "vaapi-device", "wid", "on-all-workspaces",
+      "screen", "screen-name", "focus-on")),
+    ("Scripting", "脚本与配置管线", "脚本加载、配置文件与命令行管道",
+     "IconScript",
+     ("scripts", "script-", "config", "include", "use-filedir-conf",
+      "register", "register-rpath", "unregister", "input-", "profile",
+      "priority",
+      "save-watch-history", "write-filename-in-watch-later-config",
+      "ignore-path-in-watch-later-config", "resume-playback-check-mtime",
+      "reset-on-next-file", "stop-playback-on-init-failure",
+      "player-operation-mode", "play-direction", "pause", "idle",
+      "autoload-files", "external-files", "archive-exts", "sub-auto-exts",
+      "autosync", "initial-audio-sync", "rebase-start-time", "sstep",
+      "untimed")),
+    ("Rendering", "渲染与色彩微调", "画面缩放、抖动与色彩处理中的零散选项",
+     "IconColor",
+     ("keepaspect", "monitoraspect", "monitorpixelaspect", "framedrop",
+      "scaler-resizes-only", "spirv-compiler", "libplacebo-opts",
+      "temporal-dither", "error-diffusion", "sdr-adjust-gamma",
+      "treat-srgb-as-power22", "use-embedded-icc-profile", "pitch",
+      "lavfi-complex", "container-fps-override",
+      "swapchain-depth", "fbo-format", "cuda-decode-device",
+      "d3d11va-zero-copy", "backdrop-type", "corner-rounding",
+      "drag-and-drop", "media-controls", "stop-screensaver",
+      "taskbar-progress", "snap-window", "hidpi-window-scale",
+      "allow-delayed-peak-detect", "edition", "flatten-editions",
+      "title", "secondary-sid", "teletext-page", "stretch-dvd-subs",
+      "access-references", "rar-list-all-volumes",
+      "wasapi-exclusive-buffer", "hls-bitrate", "rtsp-transport",
+      "chapter-merge-threshold", "chapter-seek-threshold", "osc")),
+]
+
+# Icons for the generated folders, including every General sub-theme. Checked
+# for collisions by check-sections.py; reusing existing glyphs rather than
+# inventing new ones.
+#
+# Each entry is a **name** used in this file plus the Segoe Fluent codepoint
+# the page needs. The codepoints are the ones the hand-written 46 do not
+# occupy, so check-sections.py stays green without any existing section
+# having to move. Verify a new one against SettingsSections.All before
+# adding it: two folders sharing a glyph is the failure this table exists to
+# avoid.
+GENERATED_ICON_GLYPH = {
+    "IconVideo": "\\uE70B",
+    "IconColor": "\\uE719",
+    "IconSubtitles": "\\uE70C",
+    "IconOsd": "\\uE70D",
+    "IconAudio": "\\uE70E",
+    "IconNetwork": "\\uE710",
+    "IconPlaylist": "\\uE711",
+    "IconWindow": "\\uE712",
+    "IconSettings": "\\uE71A",
+    "IconTerminal": "\\uE715",
+    "IconScript": "\\uE716",
+    "IconPlatform": "\\uE717",
+    "IconEncode": "\\uE718",
+}
+
+
+def general_theme(name: str) -> str:
+    """Sub-folder key for one General option name.
+
+    Longest prefix wins so `ordered-chapters-files` is Encoding (matching
+    `ordered-chapters`) rather than falling to something shorter and wrong.
+    Exact matches are listed explicitly as well as prefixes because a prefix
+    like `of` would otherwise swallow `ofopts`.
+    """
+    best: tuple[int, str] | None = None
+    for key, _cap, _desc, _icon, patterns in GENERAL_THEMES:
+        for pattern in patterns:
+            if name == pattern or name.startswith(pattern + "-"):
+                score = len(pattern)
+                if best is None or score > best[0]:
+                    best = (score, key)
+    return best[1] if best else "其他"
+
+
+def general_theme_meta(key: str) -> tuple[str, str, str]:
+    for k, cap, desc, icon, _p in GENERAL_THEMES:
+        if k == key:
+            return cap, desc, icon
+    return "其他", "未能归类的 mpv 选项", "IconSettings"
+
 # Second-level folder each generated row lands in, per group. One folder per
 # group keeps 205 Video rows from becoming a 205-row flat list on the
 # category overview.
@@ -282,10 +399,24 @@ def gen_names(rows: list[dict]) -> str:
 
 
 def gen_options(rows: list[dict]) -> str:
-    """The Option literals, plus the section/icon registration they need."""
-    by_group: dict[str, list[dict]] = {}
+    """The Option literals, plus the section/icon registration they need.
+
+    Grouped by folder rather than by mpv group, so a folder's rows sit
+    together in the source the way they sit together on the page -- and so
+    the General themes do not all share one `secGeneral` variable that only
+    exists for one of them.
+    """
+    by_folder: dict[str, list[dict]] = {}
     for r in rows:
-        by_group.setdefault(r["group"], []).append(r)
+        by_folder.setdefault(folder_for(r), []).append(r)
+
+    def sort_key(sec: str) -> tuple[int, int]:
+        plain = list(GROUP_TO_SECTION.values())
+        if sec in plain:
+            return (0, plain.index(sec))
+        theme = sec[len("SectionGenGeneral"):]
+        order = [k for k, _c, _d, _i, _p in GENERAL_THEMES] + ["其他"]
+        return (1, order.index(theme) if theme in order else len(order))
 
     out = [BANNER, "using System;\nusing System.Collections.Generic;\nusing System.Linq;",
            "using mpv_winui.Modules.Settings.Controls;\n",
@@ -304,17 +435,17 @@ def gen_options(rows: list[dict]) -> str:
            "        var lang = AppContext.AppLang;",
            "        var list = new List<Option>();\n"]
 
-    for group in sorted(by_group):
+    for folder in sorted(by_folder, key=sort_key):
+        group, cap, _desc, _icon = folder_meta(folder)
         cat = GROUP_TO_CATEGORY[group]
-        sec = GROUP_TO_SECTION[group]
-        icon = GROUP_TO_ICON[group]
-        gvar = "cat" + re.sub(r"\W", "", group.title())
-        svar = "sec" + re.sub(r"\W", "", group.title())
-        out.append(f"        // ---- {group} ({len(by_group[group])} rows) ----")
+        tag = folder[len("SectionGen"):]
+        gvar = "cat" + tag
+        svar = "sec" + tag
+        out.append(f"        // ---- {cap} ({len(by_folder[folder])} rows) ----")
         out.append(f"        var {gvar} = AppContext.AppLang.{cat};")
-        out.append(f"        var {svar} = AppContext.AppLang.{sec};")
-        for r in sorted(by_group[group], key=lambda x: x["name"]):
-            out.append(_option_literal(r, gvar, svar, icon))
+        out.append(f"        var {svar} = AppContext.AppLang.{folder};")
+        for r in sorted(by_folder[folder], key=lambda x: x["name"]):
+            out.append(_option_literal(r, gvar, svar))
         out.append("")
 
     out += ["        return list;", "    }", "}", ""]
@@ -344,7 +475,7 @@ def _cs_string(s: str) -> str:
     return f'"{body}"'
 
 
-def _option_literal(r: dict, gvar: str, svar: str, icon: str) -> str:
+def _option_literal(r: dict, gvar: str, svar: str) -> str:
     cs, meta = r["cs"], r["meta"]
     label_key = f"SchemaLabel_{r['prop']}"
     desc_key = f"SchemaDesc_{r['prop']}"
@@ -431,6 +562,41 @@ def _option_literal(r: dict, gvar: str, svar: str, icon: str) -> str:
     return "\n".join(lines)
 
 
+def folder_for(row: dict) -> str:
+    """Stable folder key for one row.
+
+    Every group keeps its own folder except General, which is split into
+    themes -- see GENERAL_THEMES for why. Returning a key rather than a
+    section constant keeps this independent of how a folder is named in C#.
+    """
+    if row["group"] != "General":
+        return GROUP_TO_SECTION[row["group"]]
+    return "SectionGenGeneral" + general_theme(row["name"])
+
+
+def folder_meta(key: str) -> tuple[str, str, str, str]:
+    """(group, caption, description, icon) for a folder key."""
+    for g, sec in GROUP_TO_SECTION.items():
+        if sec == key:
+            return g, CAPTIONS[g][0], CAPTIONS[g][1], GROUP_TO_ICON[g]
+    theme = key[len("SectionGenGeneral"):]
+    cap, desc, icon = general_theme_meta(theme)
+    return "General", cap, desc, icon
+
+
+CAPTIONS = {
+    "Video & rendering": ("视频渲染选项", "视频、缩放、滤镜等全部选项"),
+    "Colour & HDR": ("色彩与 HDR 选项", "色彩管理、色调映射等全部选项"),
+    "Subtitles": ("字幕选项", "全部字幕相关选项"),
+    "OSD": ("OSD 选项", "全部 OSD 相关选项"),
+    "Audio": ("音频选项", "全部音频相关选项"),
+    "Streaming & cache": ("流媒体与缓存选项", "网络、缓存、解复用等全部选项"),
+    "Tracks": ("轨道选项", "音视频轨道选择的全部选项"),
+    "Player & window": ("播放器与窗口选项", "播放器行为与窗口的全部选项"),
+    "General": ("其他选项", "未能归类的 mpv 选项"),
+}
+
+
 def gen_section_glue(rows: list[dict]) -> str:
     """The registration fragment BuildSettings needs.
 
@@ -440,10 +606,22 @@ def gen_section_glue(rows: list[dict]) -> str:
     The whole thing is one method taking the three collections, because all
     three are keyed by the same section constants and are read together.
     """
-    by_group: dict[str, list[dict]] = {}
+    by_folder: dict[str, list[dict]] = {}
     for r in rows:
-        by_group.setdefault(r["group"], []).append(r)
-    groups = sorted(by_group)
+        by_folder.setdefault(folder_for(r), []).append(r)
+
+    # Folder order: the eight coherent mpv groups in their declared order,
+    # then the General themes in the order GENERAL_THEMES lists them. Encoding
+    # and Terminal lead, because those are the two a person is most likely to
+    # want and least likely to find by guessing.
+    def sort_key(sec: str) -> tuple[int, int]:
+        if not sec.startswith("SectionGenGeneral"):
+            return (0, list(GROUP_TO_SECTION.values()).index(sec))
+        theme = sec[len("SectionGenGeneral"):]
+        order = [k for k, _c, _d, _i, _p in GENERAL_THEMES] + ["其他"]
+        return (1, order.index(theme) if theme in order else len(order))
+
+    folders = sorted(by_folder, key=sort_key)
 
     lines = [
         BANNER,
@@ -457,9 +635,9 @@ def gen_section_glue(rows: list[dict]) -> str:
         "        /// visible at all: the page reads sections from a map (not from",
         "        /// the Option), orders them from a second map, and decides",
         "        /// folding from a third. All three are written here so adding a",
-        "        /// group means regenerating, not remembering three places.",
+        "        /// folder means regenerating, not remembering three places.",
         "        ///",
-        "        /// The generated sections all fold. They hold the options nobody",
+        "        /// The generated folders all fold. They hold the options nobody",
         "        /// wrote a curated row for, which is the same test the",
         "        /// hand-written advanced sections pass -- and 549 rows on a",
         "        /// category overview is the wall of text the fold exists to",
@@ -474,15 +652,20 @@ def gen_section_glue(rows: list[dict]) -> str:
         "",
     ]
 
-    for i, g in enumerate(groups):
-        sec = GROUP_TO_SECTION[g]
-        lines.append(f"            // {g} -> {GROUP_TO_CATEGORY[g]}")
-        lines.append(f"            sectionOrder[lang.{sec}] = {100 + i};")
-        lines.append(f"            advancedSections.Add(lang.{sec});")
+    for folder in folders:
+        group, cap, desc, _icon = folder_meta(folder)
+        rows_here = by_folder[folder]
+        # Order 1000+ keeps generated folders after every hand-written one, and
+        # the index keeps them in this file's order rather than alphabetical:
+        # Encoding above Terminal above Platform is a judgement, and an
+        # alphabetical sort would silently undo it.
+        lines.append(f"            // {cap} -- {len(rows_here)} row(s), from mpv's \"{group}\"")
+        lines.append(f"            sectionOrder[lang.{folder}] = {1000 + folders.index(folder)};")
+        lines.append(f"            advancedSections.Add(lang.{folder});")
         lines.append("")
-        for r in sorted(by_group[g], key=lambda x: x["name"]):
+        for r in sorted(rows_here, key=lambda x: x["name"]):
             lines.append(
-                f"            sectionMap[nameof(AppContext.AppSetting.{r['prop']})] = lang.{sec};")
+                f"            sectionMap[nameof(AppContext.AppSetting.{r['prop']})] = lang.{folder};")
         lines.append("")
 
     lines += ["        }", "    }", "}", ""]
@@ -490,33 +673,23 @@ def gen_section_glue(rows: list[dict]) -> str:
 
 
 def gen_section_captions(rows: list[dict]) -> str:
-    """AppLang caption + description properties, one pair per generated section.
+    """AppLang caption + description properties, one pair per generated folder.
 
-    The page keys sections by their localized caption, so a generated section
+    The page keys sections by their localized caption, so a generated folder
     needs a caption property exactly like a hand-written one. The Chinese text
     is written here rather than derived from the schema because the schema's
     group names are English and describe mpv's own grouping, not this
-    window's wording.
+    window's wording -- and the General themes are a split mpv does not have
+    at all.
     """
-    captions = {
-        "Video & rendering": ("视频渲染选项", "视频、缩放、滤镜等全部选项"),
-        "Colour & HDR": ("色彩与 HDR 选项", "色彩管理、色调映射等全部选项"),
-        "Subtitles": ("字幕选项", "全部字幕相关选项"),
-        "OSD": ("OSD 选项", "全部 OSD 相关选项"),
-        "Audio": ("音频选项", "全部音频相关选项"),
-        "Streaming & cache": ("流媒体与缓存选项", "网络、缓存、解复用等全部选项"),
-        "Tracks": ("轨道选项", "音视频轨道选择的全部选项"),
-        "Player & window": ("播放器与窗口选项", "播放器行为与窗口的全部选项"),
-        "General": ("常规选项", "其余全部 mpv 选项"),
-    }
+    folders = sorted({folder_for(r) for r in rows})
 
     lines = [BANNER, "namespace mpv_winui.Modules.Language\n{",
              "    public partial class AppLang\n    {"]
-    for g in sorted({r["group"] for r in rows}):
-        sec = GROUP_TO_SECTION[g]
-        cap, desc = captions.get(g, (g, g))
-        lines.append(f'        public string {sec} {{ get; set; }} = "{cap}";')
-        lines.append(f'        public string SectionDesc{sec[len("Section"):]} {{ get; set; }} = "{desc}";')
+    for folder in folders:
+        _group, cap, desc, _icon = folder_meta(folder)
+        lines.append(f'        public string {folder} {{ get; set; }} = "{cap}";')
+        lines.append(f'        public string SectionDesc{folder[len("Section"):]} {{ get; set; }} = "{desc}";')
     lines += ["    }", "}", ""]
     return "\n".join(lines)
 
@@ -562,36 +735,40 @@ def gen_sections(rows: list[dict]) -> str:
     have: a caption property, a description property, and an entry in the
     page's section list with an icon. All three are emitted here.
     """
-    groups = sorted({r["group"] for r in rows})
+    folders = sorted({folder_for(r) for r in rows})
     lines = [BANNER, "using System.Collections.Generic;\n",
              "namespace mpv_winui.Modules.Settings\n{",
              "    public sealed partial class SettingsPage\n    {",
              "        /// <summary>",
              "        /// Second-level folders for the schema-generated rows.",
              "        ///",
-             "        /// One per mpv option group. The hand-written tree splits",
-             "        /// Video into fourteen folders because a person did that",
-             "        /// splitting; the generated tree cannot, so it stays at one",
-             "        /// folder per group rather than pretending to a judgement it",
-             "        /// has not made.",
+             "        /// One per mpv option group, plus a split of the General",
+             "        /// bucket into themes -- see GENERAL_THEMES in the generator.",
+             "        /// General is the only group mpv itself does not make",
+             "        /// coherent, and shipping it whole reproduced the old",
+             "        /// Advanced bucket: one folder, 100 unrelated rows, the only",
+             "        /// card on the Program page.",
+             "        ///",
+             "        /// NOT WIRED UP. SettingsSections.All is the list the page",
+             "        /// actually reads; the generator emits the matching entries",
+             "        /// there too. This method is kept as the readable index of",
+             "        /// what was generated.",
              "        /// </summary>",
              "        private IEnumerable<(string Id, string Caption, string Description, string Icon)>",
              "            GeneratedSections()",
              "        {",
-             "            var lang = AppContext.AppLang;",
-             "            yield return (nameof(lang.SectionGenVideoRendering), lang.SectionGenVideoRendering, lang.SectionDescGenVideoRendering, \"IconVideo\");",
-             "            yield return (nameof(lang.SectionGenColourHdr), lang.SectionGenColourHdr, lang.SectionDescGenColourHdr, \"IconColor\");",
-             "            yield return (nameof(lang.SectionGenSubtitles), lang.SectionGenSubtitles, lang.SectionDescGenSubtitles, \"IconSubtitles\");",
-             "            yield return (nameof(lang.SectionGenOsd), lang.SectionGenOsd, lang.SectionDescGenOsd, \"IconOsd\");",
-             "            yield return (nameof(lang.SectionGenAudio), lang.SectionGenAudio, lang.SectionDescGenAudio, \"IconAudio\");",
-             "            yield return (nameof(lang.SectionGenStreaming), lang.SectionGenStreaming, lang.SectionDescGenStreaming, \"IconNetwork\");",
-             "            yield return (nameof(lang.SectionGenTracks), lang.SectionGenTracks, lang.SectionDescGenTracks, \"IconPlaylist\");",
-             "            yield return (nameof(lang.SectionGenPlayerWindow), lang.SectionGenPlayerWindow, lang.SectionDescGenPlayerWindow, \"IconWindow\");",
-             "            yield return (nameof(lang.SectionGenGeneral), lang.SectionGenGeneral, lang.SectionDescGenGeneral, \"IconSettings\");",
-             "        }",
-             "    }",
-             "}",
-             ""]
+             "            var lang = AppContext.AppLang;"]
+    for folder in folders:
+        _group, cap, desc, icon = folder_meta(folder)
+        glyph = GENERATED_ICON_GLYPH[icon]
+        lines.append(
+            f"            // {cap} -- {desc}\n"
+            f"            yield return (nameof(lang.{folder}), lang.{folder}, "
+            f"lang.SectionDesc{folder[len('Section'):]}, \"{glyph}\");")
+    lines += ["        }",
+              "    }",
+              "}",
+              ""]
     return "\n".join(lines)
 
 
@@ -610,7 +787,19 @@ def main() -> int:
     print()
     print("by group:")
     for g, n in Counter(r["group"] for r in rows).most_common():
-        print(f"  {n:4d}  {g:22s} -> {GROUP_TO_CATEGORY.get(g, '?')} / {GROUP_TO_SECTION.get(g, '?')}")
+        print(f"  {n:4d}  {g:22s} -> {GROUP_TO_CATEGORY.get(g, '?')}")
+    print()
+    print("by folder:")
+    for folder, n in Counter(folder_for(r) for r in rows).most_common():
+        _group, cap, _desc, icon = folder_meta(folder)
+        print(f"  {n:4d}  {cap:14s} ({folder})  [{icon}]")
+    unclassified = [r["name"] for r in rows if folder_for(r) == "SectionGenGeneral其他"]
+    if unclassified:
+        print()
+        print(f"  !! {len(unclassified)} option(s) matched no General theme and fell "
+              f"into 其他 -- give each one a pattern in GENERAL_THEMES:")
+        for name in unclassified:
+            print(f"       {name}")
     print()
     print("by control type:")
     for t, n in Counter(r["cs"] for r in rows).most_common():

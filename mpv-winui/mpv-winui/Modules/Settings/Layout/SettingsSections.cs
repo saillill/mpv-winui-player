@@ -135,7 +135,7 @@ internal static class SettingsSections
         // The glyphs are free ones, not the nine their categories already
         // use: the same table serves the icon for both the section card and
         // the category rail, so a generated section reusing its category's
-        // glyph would show two identical icons a level apart. These nine are
+        // glyph would show two identical icons a level apart. These are
         // picked from the codepoints the hand-written 46 do not occupy, so
         // `check-sections.py` stays green without one of them having to move.
         new("SectionGenVideoRendering", "\uE700", l => l.SectionGenVideoRendering, l => l.SectionDescGenVideoRendering),
@@ -146,7 +146,23 @@ internal static class SettingsSections
         new("SectionGenStreaming", "\uE707", l => l.SectionGenStreaming, l => l.SectionDescGenStreaming),
         new("SectionGenTracks", "\uE708", l => l.SectionGenTracks, l => l.SectionDescGenTracks),
         new("SectionGenPlayerWindow", "\uE709", l => l.SectionGenPlayerWindow, l => l.SectionDescGenPlayerWindow),
-        new("SectionGenGeneral", "\uE70A", l => l.SectionGenGeneral, l => l.SectionDescGenGeneral),
+
+        // mpv's `General` group split into themes. It was one folder called
+        // 常规选项 holding 100 rows that had nothing in common -- encoder
+        // output beside terminal verbosity beside X11 names beside Lua paths
+        // -- and it was the only card on the Program page, so 桌面 opened
+        // onto six real settings and then a bin. That is the old Advanced
+        // bucket again, which the hand-written tree spent several rounds
+        // removing; the generator had quietly put it back.
+        //
+        // The split is drawn along lines mpv's own vocabulary already
+        // contains, and every one of the 100 options lands in exactly one
+        // theme (the generator reports any that do not).
+        new("SectionGenGeneralEncoding", "\uE718", l => l.SectionGenGeneralEncoding, l => l.SectionDescGenGeneralEncoding),
+        new("SectionGenGeneralTerminal", "\uE715", l => l.SectionGenGeneralTerminal, l => l.SectionDescGenGeneralTerminal),
+        new("SectionGenGeneralPlatform", "\uE717", l => l.SectionGenGeneralPlatform, l => l.SectionDescGenGeneralPlatform),
+        new("SectionGenGeneralScripting", "\uE716", l => l.SectionGenGeneralScripting, l => l.SectionDescGenGeneralScripting),
+        new("SectionGenGeneralRendering", "\uE719", l => l.SectionGenGeneralRendering, l => l.SectionDescGenGeneralRendering),
     ];
 
     /// <summary>Fallback glyph for a caption the table does not know.</summary>
