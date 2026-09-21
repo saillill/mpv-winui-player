@@ -735,20 +735,45 @@ public sealed partial class SettingsPage : Page
     }
 
     /// <summary>
-    /// Keeps the pane's reopen button in step with the pane's own collapse.
+    /// Puts the pane into the shape the width calls for.
     ///
-    /// NavigationView collapses the pane by itself, from PaneDisplayMode=Auto
-    /// measured against the two thresholds. What it cannot decide is whether the
-    /// button that brings the pane back should exist, and that button was
-    /// hardwired off: a collapsed pane would have had nothing to reopen it with.
-    /// Wide, every category is already on screen and a hamburger would be
-    /// decoration; narrow, it is the only way back.
+    /// The mode is set here rather than left to PaneDisplayMode="Auto". Both
+    /// thresholds were pinned to one value, which leaves the compact band between
+    /// them with zero width, and the pane could settle in that degenerate band
+    /// coming back from the minimal shape: it returned as an icon rail with no
+    /// captions instead of the expanded list.
     /// </summary>
     private void SettingsPage_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        CategoryNav.IsPaneToggleButtonVisible =
-            e.NewSize.Width < (double)Application.Current.Resources["MpvNarrowLayoutThreshold"];
+        var narrow = e.NewSize.Width < (double)Application.Current.Resources["MpvNarrowLayoutThreshold"];
+        if (narrow == IsNarrow)
+        {
+            return;
+        }
+
+        IsNarrow = narrow;
+
+        CategoryNav.PaneDisplayMode = narrow
+            ? NavigationViewPaneDisplayMode.LeftMinimal
+            : NavigationViewPaneDisplayMode.Left;
+
+        // Forced, not left alone. LeftMinimal leaves IsPaneOpen true once the pane
+        // has been summoned as an overlay, and carrying that state into Left is
+        // the other half of the pane coming back without its labels.
+        CategoryNav.IsPaneOpen = !narrow;
+
+        // The window's top bar owns the button that reopens the pane, so the
+        // NavigationView's own stays off in both shapes.
+        CategoryNav.IsPaneToggleButtonVisible = false;
     }
+
+    /// <summary>True while the pane is in its narrow shape. The window's top bar
+    /// shows its own pane button in that state and calls <see cref="TogglePane"/>.</summary>
+    public bool IsNarrow { get; private set; }
+
+    /// <summary>Opens or closes the pane in the narrow shape, where it comes out
+    /// over the content the way the Windows 11 settings pane does.</summary>
+    public void TogglePane() => CategoryNav.IsPaneOpen = !CategoryNav.IsPaneOpen;
 
     /// <summary>Pointer-over highlight for the breadcrumb's category caption, the
     /// trail's only back affordance.

@@ -37,15 +37,15 @@
         The pane is hidden while customizing: the folder tree already lists
         the same categories, and showing both reads as a duplicated sidebar.
 
-        The two mode thresholds are set, and set equal, so the pane collapses to
-        the icon rail at exactly the width the window's search pill gives up its
-        place (MpvNarrowLayoutThreshold, one token, two files). Unset they fall
-        back to the defaults, which sit far below where this window's top bar
-        runs out of room, so the pane stayed expanded while the pill was squeezed
-        and the two ends of one breakpoint disagreed. NavigationView animates
-        the transition itself; the threshold is what picks the width, and the
-        pair above makes that width a stated number instead of a framework
-        default.
+        The pane's display mode is set from SettingsPage_SizeChanged, not by
+        PaneDisplayMode="Auto" plus a pair of thresholds. Both thresholds were
+        pinned to the same value, which leaves the compact band between them with
+        zero width, and coming back from the minimal shape the pane could settle
+        in that degenerate band and return as an icon rail with no captions
+        instead of the expanded list. Driving the mode explicitly removes the band
+        from the question. There are deliberately no threshold attributes left
+        here: with the mode set in code they would be inert, and inert config that
+        looks live is how this pane failed to collapse twice already.
     -->
     <NavigationView
         x:Name="CategoryNav"
@@ -53,10 +53,8 @@
         IsPaneToggleButtonVisible="False"
         IsSettingsVisible="False"
         OpenPaneLength="240"
-        PaneDisplayMode="Auto"
+        PaneDisplayMode="Left"
         SizeChanged="SettingsPage_SizeChanged"
-        CompactModeThresholdWidth="{StaticResource MpvNarrowLayoutThreshold}"
-        ExpandedModeThresholdWidth="{StaticResource MpvNarrowLayoutThreshold}"
         SelectionChanged="CategoryNav_SelectionChanged">
         <NavigationView.Resources>
             <!-- One surface for pane and content: no inner grey layers, the

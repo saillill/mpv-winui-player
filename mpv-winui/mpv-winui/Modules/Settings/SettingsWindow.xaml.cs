@@ -159,8 +159,8 @@ public sealed partial class SettingsWindow : BaseWindow
             _narrow && !droppedDown ? Visibility.Visible : Visibility.Collapsed;
 
         Grid.SetRow(SearchPillHost, droppedDown ? 1 : 0);
-        Grid.SetColumn(SearchPillHost, droppedDown ? 0 : 1);
-        Grid.SetColumnSpan(SearchPillHost, droppedDown ? 2 : 1);
+        Grid.SetColumn(SearchPillHost, droppedDown ? 0 : 2);
+        Grid.SetColumnSpan(SearchPillHost, droppedDown ? 3 : 1);
         SearchPillHost.Width = droppedDown
             ? double.NaN
             : (double)Application.Current.Resources["MpvSearchPillWidth"];
@@ -178,6 +178,18 @@ public sealed partial class SettingsWindow : BaseWindow
         // competing with the search field for a row that no longer has room for
         // both, which is the same trade the Windows 11 top bar makes.
         SettingsTitleText.Visibility = _narrow ? Visibility.Collapsed : Visibility.Visible;
+        PaneToggleButton.Visibility = _narrow ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>Opens the category pane over the content, the way the Windows 11
+    /// settings pane comes out. The pane belongs to the page, so the window asks
+    /// it rather than reaching into it.</summary>
+    private void PaneToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (PageFrame.Content is SettingsPage page)
+        {
+            page.TogglePane();
+        }
     }
 
     /// <summary>Gap between the title row and the dropped-open search field, in DIPs.</summary>
@@ -249,6 +261,13 @@ public sealed partial class SettingsWindow : BaseWindow
         var label = AppContext.AppLang.Search;
         ToolTipService.SetToolTip(SearchCompactButton, label);
         AutomationProperties.SetName(SearchCompactButton, label);
+
+        // Same reason: a glyph with no text has nowhere else to say what it does.
+        // The settings title is the honest label here -- this button opens the
+        // settings window's own navigation.
+        var paneLabel = AppContext.AppLang.SettingsTitle;
+        ToolTipService.SetToolTip(PaneToggleButton, paneLabel);
+        AutomationProperties.SetName(PaneToggleButton, paneLabel);
     }
 
     private void SettingsWindow_LanguageChanged()

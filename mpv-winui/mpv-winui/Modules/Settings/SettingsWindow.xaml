@@ -138,18 +138,40 @@
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
+                <!-- The pane's reopen button, in this bar rather than inside the
+                     NavigationView, so it can sit to the left of the search the
+                     way it does in the Windows 11 top bar. The NavigationView's
+                     own toggle cannot move there: it belongs to the pane's layout,
+                     not to the window's. Hidden while the pane is expanded, where
+                     it would be decoration. -->
+                <Button
+                    x:Name="PaneToggleButton"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Width="36"
+                    Height="36"
+                    Padding="0"
+                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="PaneToggleButton_Click"
+                    Visibility="Collapsed">
+                    <FontIcon FontSize="16" Glyph="&#xE700;" />
+                </Button>
                 <TextBlock
                     x:Name="SettingsTitleText"
-                    Grid.Column="0"
+                    Grid.Column="1"
                     VerticalAlignment="Center"
                     FontSize="16"
                     FontWeight="SemiBold" />
                 <Grid
                     x:Name="SearchPillHost"
                     Grid.Row="0"
-                    Grid.Column="1"
+                    Grid.Column="2"
                     Width="{StaticResource MpvSearchPillWidth}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
