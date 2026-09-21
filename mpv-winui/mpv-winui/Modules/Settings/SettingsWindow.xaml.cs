@@ -28,6 +28,10 @@ public sealed partial class SettingsWindow : BaseWindow
         // because the swap is a choice between two elements, not a layout rule
         // an AdaptiveTrigger can express as a property setter on one of them.
         SizeChanged += SettingsWindow_SizeChanged;
+        // The focus underline is owned here, not by the TextBox's own border:
+        // see the note on SearchFocusBar in the XAML.
+        SearchBox.GotFocus += (_, _) => SearchFocusBar.Visibility = Visibility.Visible;
+        SearchBox.LostFocus += (_, _) => SearchFocusBar.Visibility = Visibility.Collapsed;
         // The window is the only UI that renders a settings row, so it is the
         // only thing that can act on a hand edit to mpv.conf. It subscribes on
         // construction and the watcher stops with it, because the reload writes
@@ -147,7 +151,12 @@ public sealed partial class SettingsWindow : BaseWindow
 
         SearchBox.Visibility = _narrow && !droppedDown ? Visibility.Collapsed : Visibility.Visible;
         SearchGlyph.Visibility = SearchBox.Visibility;
-        SearchCompactButton.Visibility = _narrow ? Visibility.Visible : Visibility.Collapsed;
+        // Only while the pill is hidden. The compact button lives inside the same
+        // host as the pill, so leaving it visible once the field has dropped open
+        // put it directly on top of the pill's own magnifier: two icons in one
+        // place, which is what the overlap was.
+        SearchCompactButton.Visibility =
+            _narrow && !droppedDown ? Visibility.Visible : Visibility.Collapsed;
 
         Grid.SetRow(SearchPillHost, droppedDown ? 1 : 0);
         Grid.SetColumn(SearchPillHost, droppedDown ? 0 : 1);
@@ -158,7 +167,15 @@ public sealed partial class SettingsWindow : BaseWindow
         SearchPillHost.HorizontalAlignment = droppedDown
             ? HorizontalAlignment.Stretch
             : HorizontalAlignment.Center;
+        // Dropped down it sits under the title row, and the two rows had no gap
+        // between them: the field was flush against the title above it.
+        SearchPillHost.Margin = droppedDown
+            ? new Thickness(0, NumericGapAboveDroppedPill, 0, 0)
+            : new Thickness(0);
     }
+
+    /// <summary>Gap between the title row and the dropped-open search field, in DIPs.</summary>
+    private const double NumericGapAboveDroppedPill = 10;
 
     /// <summary>The compact shape's magnifier drops the pill open underneath the
     /// title, and takes it away again on a second tap. It does not widen the

@@ -1049,7 +1049,7 @@
          below: widening the pill moves the width at which the top bar runs out
          of room, and the two have to be changed together or the layout collapses
          at a width where it no longer needs to. -->
-    <x:Double x:Key="MpvSearchPillWidth">480</x:Double>
+    <x:Double x:Key="MpvSearchPillWidth">620</x:Double>
 
     <!-- Width, in DIPs, below which the settings window drops to its narrow
          shape: the navigation pane animates to icon-only and the search pill
@@ -1062,8 +1062,8 @@
          is how the two ends up disagreeing about where "narrow" starts.
 
          It is derived from the top bar, which is what actually runs out of room:
-         the title wants about 120 DIP, the pill is MpvSearchPillWidth (480), and
-         the NavigationView's expanded pane is 240. Below roughly 860 the top
+         the title wants about 120 DIP, the pill is MpvSearchPillWidth (620), and
+         the NavigationView's expanded pane is 240. Below roughly 1000 the top
          bar's centre column can no longer hold the pill without crowding the
          title.
 
@@ -1071,7 +1071,7 @@
          window's own PreferredMinimumWidth in SettingsWindow.xaml.cs. If the two
          are equal the narrow shape is unreachable: the window cannot be dragged
          past a breakpoint it is already standing on. -->
-    <x:Double x:Key="MpvNarrowLayoutThreshold">860</x:Double>
+    <x:Double x:Key="MpvNarrowLayoutThreshold">1000</x:Double>
 
     <!-- The reading width of the settings window's content column, and the
          media-info panel's. One token because the two surfaces sit in
