@@ -98,8 +98,12 @@ namespace mpv_winui.Modules.Player
             // window instead of above the button. The offsets below are a gap
             // relative to the anchor, not a position, so there is no coordinate
             // origin left to get wrong.
+            // Top, not TopEdgeAlignedLeft: the panel hangs off the middle of its
+            // button, the way the volume strip, the track selector and the More
+            // menu already do. Aligning its left edge to the button's left edge
+            // parked the panel's corner on the button instead of its centre.
             ControlPanelPopup.PlacementTarget = anchor;
-            ControlPanelPopup.DesiredPlacement = PopupPlacementMode.TopEdgeAlignedLeft;
+            ControlPanelPopup.DesiredPlacement = PopupPlacementMode.Top;
             ControlPanelPopup.HorizontalOffset = 0;
             ControlPanelPopup.VerticalOffset = -PopupGap;
             ControlPanelPopup.IsOpen = true;
