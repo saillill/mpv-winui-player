@@ -60,7 +60,20 @@ public sealed partial class SettingsWindow : BaseWindow
             // 480 leaves room for about six rows -- fewer than one category
             // holds, so the wheel becomes the only way to see a section.
             // 720 x 560 shows a full screen of rows at the default UI font.
-            presenter.PreferredMinimumWidth = 720;
+            //
+            // The width floor is deliberately BELOW MpvNarrowLayoutThreshold
+            // (720), which is the width at which the top bar runs out of room
+            // for the search pill and the layout is supposed to collapse to the
+            // icon rail. With the floor at 720 the two were the same number, so
+            // the window could never be dragged past the breakpoint and the
+            // narrow layout was unreachable -- the setting existed, the code
+            // existed, and no width could ever trigger it. The floor has to sit
+            // far enough below to give the breakpoint somewhere to happen.
+            //
+            // 560: the collapsed rail is about 48 DIP, which leaves ~500 for the
+            // content column -- still a readable card width, and it matches the
+            // height floor so the window cannot be made a letterbox slit.
+            presenter.PreferredMinimumWidth = 560;
             presenter.PreferredMinimumHeight = 560;
         }
 
