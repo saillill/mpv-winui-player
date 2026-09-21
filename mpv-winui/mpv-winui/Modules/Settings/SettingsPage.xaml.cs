@@ -805,6 +805,7 @@ public sealed partial class SettingsPage : Page
         // Ordering by tier keeps "auto" from burying the rows actually named
         // "Auto" under every switch that merely accepts auto.
         var optionMatches = RankedSearchMatches(query);
+        OptionsControl.ShowAdvancedRows = false;
         OptionsControl.OptionList = optionMatches;
         SectionsHost.Visibility = Visibility.Collapsed;
         BreadcrumbBar.Visibility = Visibility.Collapsed;
@@ -1116,6 +1117,7 @@ public sealed partial class SettingsPage : Page
             // a folded section, which is most of them.
             OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
             OptionsControl.SetSectionCards([]);
+            OptionsControl.ShowAdvancedRows = false;
             OptionsControl.OptionList = RankedSearchMatches(query);
             return;
         }
@@ -1162,6 +1164,7 @@ public sealed partial class SettingsPage : Page
 
             OptionsControl.SetSectionCards(advancedCards);
             OptionsControl.CollapsedSectionIds = advancedIds;
+            OptionsControl.ShowAdvancedRows = false;
             OptionsControl.OptionList = categoryOptions;
             return;
         }
@@ -1190,6 +1193,10 @@ public sealed partial class SettingsPage : Page
             // looked like a folder that contained only itself.
             OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
             OptionsControl.SetSectionCards([]);
+            // Inside a section the advanced rows are the content. Without this
+            // the rows stay flagged "behind the card" while the cards have just
+            // been cleared, so the page came up empty.
+            OptionsControl.ShowAdvancedRows = true;
             OptionsControl.OptionList = categoryOptions
                 .Where(o => o.Section == _selectedSection)
                 .ToList();
@@ -1207,6 +1214,7 @@ public sealed partial class SettingsPage : Page
         // set and render its only section as a card.
         OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
         OptionsControl.SetSectionCards([]);
+        OptionsControl.ShowAdvancedRows = false;
         OptionsControl.OptionList = categoryOptions;
     }
 

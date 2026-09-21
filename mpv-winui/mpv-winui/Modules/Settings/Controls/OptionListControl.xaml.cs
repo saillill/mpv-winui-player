@@ -41,6 +41,22 @@ public sealed partial class OptionListControl : UserControl
     /// Set by the category overview, which knows which sections a category
     /// keeps folded. Empty everywhere else, where rows are what you want.
     /// </summary>
+    /// <summary>
+    /// True while the list is rendering the inside of one folded section, where
+    /// the advanced rows ARE the content rather than something behind a card.
+    ///
+    /// <see cref="Option.AdvancedSection"/> means "behind the card", and it is a
+    /// property of the ROW, not of the page. Clearing the fold set on the way
+    /// into a section was therefore not enough: the rows stayed flagged, were
+    /// still skipped as "behind the card", and the page rendered nothing at all.
+    /// Every drill-in lands on a section whose rows are flagged -- that is what
+    /// put a card there in the first place -- so every drill-in was blank.
+    ///
+    /// Set this before assigning <see cref="OptionList"/>; nothing raises a
+    /// change notification for it.
+    /// </summary>
+    public bool ShowAdvancedRows { get; set; }
+
     public IReadOnlySet<string> CollapsedSectionIds
     {
         get => (IReadOnlySet<string>)GetValue(CollapsedSectionIdsProperty);
@@ -350,7 +366,7 @@ public sealed partial class OptionListControl : UserControl
             // question from a per-section answer, and because it was never
             // recomputed for a row with no Section, such a row following a
             // folded one was dropped from the list outright.
-            if (!option.AdvancedSection)
+            if (ShowAdvancedRows || !option.AdvancedSection)
             {
                 items.Add(option);
             }
