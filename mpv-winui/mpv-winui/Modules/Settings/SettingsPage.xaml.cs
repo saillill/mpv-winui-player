@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
@@ -732,7 +733,7 @@ public sealed partial class SettingsPage : Page
         UpdateOptions();
     }
 
-    private void BreadcrumbCategory_Click(object sender, RoutedEventArgs e)
+    private void BreadcrumbCategory_Tapped(object sender, TappedRoutedEventArgs e)
     {
         _selectedSection = null;
         UpdateOptions();
@@ -1146,7 +1147,7 @@ public sealed partial class SettingsPage : Page
         {
             // The overview also carries the trail — category name only.
             BreadcrumbBar.Visibility = Visibility.Visible;
-            BreadcrumbCategoryLink.Visibility = Visibility.Collapsed;
+            BreadcrumbCategoryText.Visibility = Visibility.Collapsed;
             BreadcrumbSeparator.Visibility = Visibility.Collapsed;
             BreadcrumbSection.Text = selected ?? string.Empty;
 
@@ -1177,7 +1178,7 @@ public sealed partial class SettingsPage : Page
             // button jumping back to the section overview; only the trailing
             // section is plain text.
             BreadcrumbCategoryText.Text = selected;
-            BreadcrumbCategoryLink.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
+            BreadcrumbCategoryText.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSection.Text = _selectedSection ?? string.Empty;
 
@@ -1206,7 +1207,7 @@ public sealed partial class SettingsPage : Page
         // Single-section category or the section overview: show the trail
         // with just the category name — nothing above it to link back to.
         BreadcrumbBar.Visibility = Visibility.Visible;
-        BreadcrumbCategoryLink.Visibility = Visibility.Collapsed;
+        BreadcrumbCategoryText.Visibility = Visibility.Collapsed;
         BreadcrumbSeparator.Visibility = Visibility.Collapsed;
         BreadcrumbSection.Text = selected ?? string.Empty;
         // Same staleness as the branches above: a single-section category has

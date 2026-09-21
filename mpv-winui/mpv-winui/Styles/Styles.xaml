@@ -1112,13 +1112,14 @@
     <!-- Optical drop applied to the trailing section caption of the breadcrumb
          trail, in DIPs.
 
-         The category caption lives inside a Button and the section caption is a
-         bare TextBlock. They now carry the same font size, weight, line height
-         and stacking strategy, and their line boxes are the same height, so the
-         remaining difference is inside the Button's content presenter and is not
-         visible in the markup, which is why this is an explicit, tunable nudge
-         rather than another attempt at the "real" cause. Raise the Y to drop the
-         section caption further; the whole trail moves with it. -->
-    <Thickness x:Key="MpvBreadcrumbSectionNudge">0,2,0,0</Thickness>
+         Defaults to zero, and it should stay there. The category caption used to
+         live inside a Button, whose ContentPresenter laid its text out by its
+         own rules and left a baseline offset that was not visible in the markup;
+         this token existed to cancel it out. The wrapping Button is gone, so all
+         three trail elements are TextBlocks with identical metrics. The knob is
+         kept because only the owner can see the result: raise the Y to drop the
+         section caption, and if it is ever needed again, that is a signal the
+         framework has crept back in. -->
+    <Thickness x:Key="MpvBreadcrumbSectionNudge">0,0,0,0</Thickness>
 
 </ResourceDictionary>

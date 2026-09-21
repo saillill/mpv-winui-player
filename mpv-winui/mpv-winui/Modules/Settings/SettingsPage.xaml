@@ -119,40 +119,28 @@
                             Orientation="Horizontal"
                             VerticalAlignment="Center"
                             Spacing="{StaticResource MpvSpaceM}">
-                            <Button
-                                x:Name="BreadcrumbCategoryLink"
-                                Padding="0"
-                                Margin="0"
-                                MinWidth="0"
-                                MinHeight="0"
+                            <!-- A plain TextBlock with a Tapped handler, not a
+                                 Button. Every earlier attempt kept the category
+                                 inside a Button and tried to make its
+                                 ContentPresenter agree with the sibling
+                                 TextBlocks about where the baseline goes; the
+                                 leftover offset lived in that presenter and was
+                                 invisible in the markup. The wrapping frame was
+                                 the problem, so it is gone: all three trail
+                                 elements are now the same element type with the
+                                 same metrics, and the baselines match because
+                                 there is no second layout authority between them. -->
+                            <TextBlock
+                                x:Name="BreadcrumbCategoryText"
                                 VerticalAlignment="Center"
-                                HorizontalContentAlignment="Left"
-                                VerticalContentAlignment="Center"
-                                Background="Transparent"
-                                BorderThickness="0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 FontSize="24"
                                 FontWeight="SemiBold"
-                                Click="BreadcrumbCategory_Click"
-                                Visibility="Collapsed">
-                                <!-- The caption is a real TextBlock instead of the
-                                     Button's own string content. A Button renders
-                                     a string through a ContentPresenter, whose line
-                                     box does not match a sibling TextBlock's, so
-                                     the category and the section after the chevron
-                                     sat on different baselines (one high, one
-                                     low). Same element type, and the same explicit
-                                     block line height on all three, so the
-                                     baselines agree by construction rather than by
-                                     luck. -->
-                                <TextBlock
-                                    x:Name="BreadcrumbCategoryText"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    FontSize="24"
-                                    FontWeight="SemiBold"
-                                    LineHeight="{StaticResource MpvBreadcrumbLineHeight}"
-                                    LineStackingStrategy="BlockLineHeight"
-                                    TextTrimming="CharacterEllipsis" />
-                            </Button>
+                                LineHeight="{StaticResource MpvBreadcrumbLineHeight}"
+                                LineStackingStrategy="BlockLineHeight"
+                                Tapped="BreadcrumbCategory_Tapped"
+                                TextTrimming="CharacterEllipsis"
+                                Visibility="Collapsed" />
                             <TextBlock
                                 x:Name="BreadcrumbSeparator"
                                 VerticalAlignment="Center"
