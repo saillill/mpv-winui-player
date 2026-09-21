@@ -8,13 +8,22 @@
         <Grid.Resources>
             <!-- Slim search-pill TextBox: remove the stock 32px MinHeight so the
                  28px AutoSuggestBox keeps its full rounded silhouette, and add
-                 left padding so the overlay magnifier never collides with the
+                 left padding so the overlaid magnifier never collides with the
                  placeholder/text. The TextBox keeps the stock template, so the
                  focused accent border (the "blue bar") still comes from the
-                 built-in Focused visual state. -->
+                 built-in Focused visual state.
+
+                 The left padding sizes the magnifier-to-placeholder gap on its
+                 own. Measured against the baseline, 32 left the placeholder
+                 about 8 DIP clear of the glyph, which read as the icon crowding
+                 the text; 44 opens it to about 12 DIP, the gap the Windows 11
+                 settings search uses. The pill's height is fixed by the control
+                 (28), so the vertical pair does not set the box's size; they
+                 only place the line box inside it, which is what the placeholder
+                 was low by. 5/5 centred it 3 DIP below the pill's midline. -->
             <Style x:Key="SearchTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
                 <Setter Property="MinHeight" Value="0" />
-                <Setter Property="Padding" Value="32,5,10,5" />
+                <Setter Property="Padding" Value="44,2,10,2" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="FontSize" Value="14" />
             </Style>
@@ -89,10 +98,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Windows-settings top bar: title left, pill search center. The
+        <!-- Windows-settings top bar: title left, pill search centre. The
              magnifier is overlaid inside the pill (drawn on top of the TextBox),
              the TextBox has left padding so caption text never overlaps it, and
-             the box height (28) rides the template binding. -->
+             the box height rides the template binding. Height and corner radius
+             come from one token pair so the pill cannot lose its silhouette to a
+             height that no longer matches its radius. -->
         <Border
             Grid.Row="0"
             Padding="{StaticResource MpvTitleBarPadding}">
@@ -112,16 +123,22 @@
                     Width="340"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
-                    <!-- Magnifier is inside the pill: placed after the search
-                         box so it draws on top of the TextBox surface, with the
-                         TextBox's left padding keeping the placeholder clear.
-                         Height is kept at 28 and the TextBox MinHeight is zeroed
-                         by SearchTextBoxStyle, so the bottom corners are not
-                         clipped by the stock 32px minimum. -->
+                    <!-- Two shapes of one control, swapped in code at the width
+                         below which the pane goes icon-only: the pill, and a
+                         bare magnifier button. The pill used to be the only
+                         shape, so a narrow window kept a 340 DIP search field
+                         and lost the row it was standing on.
+
+                         The magnifier that sits inside the pill cannot be the
+                         compact shape: it is IsHitTestVisible="False" by
+                         design, so that clicks fall through to the TextBox
+                         underneath it. The compact shape is therefore its own
+                         Button in the same cell, carrying the same glyph and
+                         the same inset token. It is hidden at rest. -->
                     <AutoSuggestBox
                         x:Name="SearchBox"
-                        Height="28"
-                        CornerRadius="14"
+                        Height="{StaticResource MpvSearchPillHeight}"
+                        CornerRadius="{StaticResource MpvSearchPillCornerRadius}"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Center"
                         Style="{StaticResource BareAutoSuggestBoxStyle}"
@@ -137,6 +154,24 @@
                         VerticalAlignment="Center"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         IsHitTestVisible="False" />
+                    <Button
+                        x:Name="SearchCompactButton"
+                        Width="{StaticResource MpvSearchPillHeight}"
+                        Height="{StaticResource MpvSearchPillHeight}"
+                        Padding="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="SearchCompactButton_Click"
+                        Visibility="Collapsed">
+                        <!-- The button carries no text of its own, so its
+                             accessible name is the only thing that says what it
+                             does; both it and the tooltip are filled from
+                             AppLang by the window's language-changed path, the
+                             same way the page fills the pill's own name. -->
+                        <FontIcon FontSize="14" Glyph="&#xE721;" />
+                    </Button>
                 </Grid>
             </Grid>
         </Border>

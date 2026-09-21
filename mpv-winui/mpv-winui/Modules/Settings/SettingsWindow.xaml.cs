@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Windowing;
 using mpv_winui.Modules.Common.View;
@@ -20,6 +21,13 @@ public sealed partial class SettingsWindow : BaseWindow
 
         Closed += SettingsWindow_Closed;
         AppContext.LanguageChanged += SettingsWindow_LanguageChanged;
+        // Switching the search control's shape is driven by this window's own
+        // width, which is the only width that decides it: the top bar lives in
+        // this window, and the page's pane threshold is fed the same number
+        // through MpvNarrowLayoutThreshold. Wired here rather than in XAML
+        // because the swap is a choice between two elements, not a layout rule
+        // an AdaptiveTrigger can express as a property setter on one of them.
+        SizeChanged += SettingsWindow_SizeChanged;
         // The window is the only UI that renders a settings row, so it is the
         // only thing that can act on a hand edit to mpv.conf. It subscribes on
         // construction and the watcher stops with it, because the reload writes
@@ -31,6 +39,12 @@ public sealed partial class SettingsWindow : BaseWindow
         AppWindow.Title = AppContext.AppLang.SettingsTitle;
         AppWindow.SetIcon("App.ico");
         AppWindow.TitleBar.ExtendsContentIntoTitleBar = true;
+
+        // The compact search button is a bare glyph, so its accessible name and
+        // its tooltip are the only things that say what it does. Filled here and
+        // from SettingsWindow_LanguageChanged, the same two places the pill's
+        // own name is filled from.
+        ApplySearchCompactLabels();
 
         if (AppWindow.Presenter is OverlappedPresenter presenter)
         {
@@ -63,9 +77,41 @@ public sealed partial class SettingsWindow : BaseWindow
         }
         Closed -= SettingsWindow_Closed;
         AppContext.LanguageChanged -= SettingsWindow_LanguageChanged;
+        SizeChanged -= SettingsWindow_SizeChanged;
         MpvConfWatcher.Reloaded -= SettingsWindow_ConfigReloaded;
         MpvConfWatcher.Stop();
         // The style manager is disposed by BaseWindow's own Closed handler.
+    }
+
+    /// <summary>Narrow shape of the top bar. Both this and the page's pane
+    /// threshold read <c>MpvNarrowLayoutThreshold</c>, so the pane and the
+    /// search control change at the same width instead of two numbers that look
+    /// related.
+    ///
+    /// <paramref name="e"/> carries the window's *client* size in DIPs, which is
+    /// what the top bar is laid out against, so it is measured directly rather
+    /// than through AppWindow.Size, whose units are physical pixels.
+    ///
+    /// The collapsed pill keeps whatever the user typed. The text lives on the
+    /// AutoSuggestBox, which is only hidden, and the page holds the query and the
+    /// filtered list, so hiding the field is not the same as clearing it.</summary>
+    private void SettingsWindow_SizeChanged(object sender, WindowSizeChangedEventArgs e)
+    {
+        var narrow = e.Size.Width < (double)Application.Current.Resources["MpvNarrowLayoutThreshold"];
+        SearchBox.Visibility = narrow ? Visibility.Collapsed : Visibility.Visible;
+        SearchCompactButton.Visibility = narrow ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>The compact shape puts the pill back so the field can be typed in.
+    /// It does not widen the window: this handler runs before the user has been
+    /// given anything to type into, and a click on a magnifier is not a request
+    /// to resize the window they just sized. The pane stays icon-only until the
+    /// window is widened, which is the width the breakpoint is about.</summary>
+    private void SearchCompactButton_Click(object sender, RoutedEventArgs e)
+    {
+        SearchBox.Visibility = Visibility.Visible;
+        SearchCompactButton.Visibility = Visibility.Collapsed;
+        SearchBox.Focus(FocusState.Programmatic);
     }
 
     /// <summary>Handles a hand edit to mpv.conf that the watcher has already
@@ -111,12 +157,23 @@ public sealed partial class SettingsWindow : BaseWindow
         _styleManager?.UpdateUiFont();
     }
 
+    /// <summary>Accessible name and tooltip for the compact search button, which
+    /// shows a glyph and no text of its own. Called on construction and on a
+    /// language switch, so the two always agree with the current language.</summary>
+    private void ApplySearchCompactLabels()
+    {
+        var label = AppContext.AppLang.Search;
+        ToolTipService.SetToolTip(SearchCompactButton, label);
+        AutomationProperties.SetName(SearchCompactButton, label);
+    }
+
     private void SettingsWindow_LanguageChanged()
     {
         DispatcherQueue.TryEnqueue(() =>
         {
             SettingsTitleText.Text = AppContext.AppLang.SettingsTitle;
             AppWindow.Title = AppContext.AppLang.SettingsTitle;
+            ApplySearchCompactLabels();
             // Language switches refresh the existing page in place, keeping
             // the selected category, search text and scroll offset.
             if (PageFrame.Content is SettingsPage page)

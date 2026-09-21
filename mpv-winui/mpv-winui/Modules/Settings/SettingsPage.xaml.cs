@@ -204,9 +204,10 @@ public sealed partial class SettingsPage : Page
                 SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
                 AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
             }
-            var backTip = AppContext.AppLang.CommonBack;
-            ToolTipService.SetToolTip(BreadcrumbBackButton, backTip);
-            AutomationProperties.SetName(BreadcrumbBackButton, backTip);
+            // The trail is text only: the category caption is the one back
+            // affordance, so it carries the accessible name the removed chevron
+            // used to own.
+            AutomationProperties.SetName(BreadcrumbCategoryText, AppContext.AppLang.CommonBack);
             RefreshWarningsAndEnabled();
             UpdateOptions();
         }
@@ -727,16 +728,33 @@ public sealed partial class SettingsPage : Page
         UpdateOptions();
     }
 
-    private void BreadcrumbBack_Click(object sender, RoutedEventArgs e)
+    private void BreadcrumbCategory_Tapped(object sender, TappedRoutedEventArgs e)
     {
         _selectedSection = null;
         UpdateOptions();
     }
 
-    private void BreadcrumbCategory_Tapped(object sender, TappedRoutedEventArgs e)
+    /// <summary>Pointer-over highlight for the breadcrumb's category caption, the
+    /// trail's only back affordance.
+    ///
+    /// Expressed on the TextBlock's own properties rather than by wrapping it in
+    /// a Button: a control with a ContentPresenter between the trail's captions
+    /// is what desynchronised their baselines (see the markup at
+    /// <c>BreadcrumbCategoryText</c>), and it cost a commit to remove. Opacity
+    /// and foreground change nothing about layout, so this cannot reintroduce
+    /// it. Both brushes are the two the trail already uses, so the highlight is
+    /// the caption moving up to the section caption's own colour.</summary>
+    private void BreadcrumbCategory_PointerEntered(object sender, PointerRoutedEventArgs e)
+        => SetBreadcrumbCategoryHighlight(true);
+
+    private void BreadcrumbCategory_PointerExited(object sender, PointerRoutedEventArgs e)
+        => SetBreadcrumbCategoryHighlight(false);
+
+    private void SetBreadcrumbCategoryHighlight(bool on)
     {
-        _selectedSection = null;
-        UpdateOptions();
+        BreadcrumbCategoryText.Opacity = on ? 1.0 : 0.7;
+        BreadcrumbCategoryText.Foreground = (Brush)Application.Current.Resources[
+            on ? "TextFillColorPrimaryBrush" : "TextFillColorSecondaryBrush"];
     }
 
     /// <summary>The search box lives in the settings window's top bar;

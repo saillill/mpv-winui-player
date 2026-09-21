@@ -36,6 +36,16 @@
 
         The pane is hidden while customizing: the folder tree already lists
         the same categories, and showing both reads as a duplicated sidebar.
+
+        The two mode thresholds are set, and set equal, so the pane collapses to
+        the icon rail at exactly the width the window's search pill gives up its
+        place (MpvNarrowLayoutThreshold, one token, two files). Unset they fall
+        back to the defaults, which sit far below where this window's top bar
+        runs out of room, so the pane stayed expanded while the pill was squeezed
+        and the two ends of one breakpoint disagreed. NavigationView animates
+        the transition itself; the threshold is what picks the width, and the
+        pair above makes that width a stated number instead of a framework
+        default.
     -->
     <NavigationView
         x:Name="CategoryNav"
@@ -44,6 +54,8 @@
         IsSettingsVisible="False"
         OpenPaneLength="240"
         PaneDisplayMode="Left"
+        CompactModeThresholdWidth="{StaticResource MpvNarrowLayoutThreshold}"
+        ExpandedModeThresholdWidth="{StaticResource MpvNarrowLayoutThreshold}"
         SelectionChanged="CategoryNav_SelectionChanged">
         <NavigationView.Resources>
             <!-- One surface for pane and content: no inner grey layers, the
@@ -100,22 +112,10 @@
                     Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Button
-                            x:Name="BreadcrumbBackButton"
-                            Grid.Column="0"
-                            MinWidth="32"
-                            MinHeight="32"
-                            Padding="0"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Click="BreadcrumbBack_Click">
-                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="16" Glyph="&#xE72B;" />
-                        </Button>
                         <StackPanel
-                            Grid.Column="2"
+                            Grid.Column="0"
                             Orientation="Horizontal"
                             VerticalAlignment="Center"
                             Spacing="{StaticResource MpvSpaceM}">
@@ -129,16 +129,32 @@
                                  the problem, so it is gone: all three trail
                                  elements are now the same element type with the
                                  same metrics, and the baselines match because
-                                 there is no second layout authority between them. -->
+                                 there is no second layout authority between them.
+
+                                 The trail is text only: the leading back
+                                 chevron is gone. It was a second way to do what
+                                 the category caption already does (clear the
+                                 drilled-in section and return to the category
+                                 overview), and the caption is the better
+                                 affordance because it names where the click
+                                 lands. Its hover state is therefore expressed
+                                 with the caption's own properties rather than a
+                                 wrapping control, for the reason above: an
+                                 Opacity bump and a Foreground lift, toggled from
+                                 the pointer handlers, cost no layout and add no
+                                 element between the captions. -->
                             <TextBlock
                                 x:Name="BreadcrumbCategoryText"
                                 VerticalAlignment="Center"
+                                Opacity="0.7"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 FontSize="24"
                                 FontWeight="SemiBold"
                                 LineHeight="{StaticResource MpvBreadcrumbLineHeight}"
                                 LineStackingStrategy="BlockLineHeight"
                                 Tapped="BreadcrumbCategory_Tapped"
+                                PointerEntered="BreadcrumbCategory_PointerEntered"
+                                PointerExited="BreadcrumbCategory_PointerExited"
                                 TextTrimming="CharacterEllipsis"
                                 Visibility="Collapsed" />
                             <TextBlock
@@ -215,7 +231,7 @@
                         x:Name="BrowseHost"
                         MaxWidth="{StaticResource MpvContentMaxWidth}"
                         HorizontalAlignment="Stretch"
-                        Margin="12,4,12,0"
+                        Margin="{StaticResource MpvBrowseHostMargin}"
                         Padding="0"
                         HorizontalScrollBarVisibility="Disabled"
                         HorizontalScrollMode="Disabled">
@@ -495,14 +511,27 @@
                      to the breadcrumb row above it, vertically centred against
                      the same 32px controls. The 12 horizontal half matters as
                      well as the vertical one: this row shares the column's x
-                     with the two above it, so its inset has to match theirs. -->
+                     with the two above it, so its inset has to match theirs.
+
+                     The Windows settings relationship between a page and its
+                     footer is: a status line where there is one, and the
+                     actions collected at the end of the row, most consequential
+                     last. The browsing footer already ends with the widest
+                     scope (重置所有设置 after 重置当前分类) and that order is kept;
+                     what was missing is that 自定义 is a different kind of act
+                     from either reset. It switches modes, it does not undo
+                     anything, so it no longer reads as the first of three
+                     identical buttons: its own group, then the divider, then
+                     the two resets. The divider is what makes the footer read
+                     as groups instead of a row of buttons, and it is the same
+                     kind of separator the player's own toolbars use. -->
                 <Border
                     Grid.Row="2"
                     MaxWidth="{StaticResource MpvContentMaxWidth}"
                     HorizontalAlignment="Stretch"
                     Padding="{StaticResource MpvFooterPadding}"
                     BorderThickness="0">
-                    <Grid ColumnSpacing="{StaticResource MpvSpaceS}">
+                    <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -517,12 +546,13 @@
                             TextWrapping="Wrap"
                             Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
 
-                        <!-- Browsing footer: the two reset actions, unchanged. -->
                         <StackPanel
                             x:Name="BrowseActions"
                             Grid.Column="1"
                             Orientation="Horizontal"
-                            Spacing="{StaticResource MpvSpaceS}">
+                            Spacing="{StaticResource MpvSpaceM}"
+                            VerticalAlignment="Center">
+                            <!-- Mode switch: one button, on its own. -->
                             <ToggleButton
                                 x:Name="CustomizeToggle"
                                 MinWidth="96"
@@ -532,6 +562,16 @@
                                     <TextBlock x:Name="CustomizeToggleText" />
                                 </StackPanel>
                             </ToggleButton>
+
+                            <Border
+                                Width="1"
+                                Height="20"
+                                VerticalAlignment="Center"
+                                Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                            <!-- Resets: narrowing scope on the left, widest
+                                 last, which is the order Windows settings puts a
+                                 page's destructive actions in. -->
                             <Button
                                 x:Name="ResetButton"
                                 MinWidth="96"

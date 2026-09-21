@@ -1020,7 +1020,42 @@
     <Thickness x:Key="MpvOptionRowMarginXl">0,12,0,8</Thickness>
     <Thickness x:Key="MpvSplitterMargin">0,16,0,4</Thickness>
     <Thickness x:Key="MpvBreadcrumbBarMargin">12,4,12,12</Thickness>
-    <Thickness x:Key="MpvSearchGlyphMargin">14,0,0,0</Thickness>
+    <!-- The magnifier's own horizontal placement inside the search pill. 12 puts
+         the glyph's optical left edge on the pill's 14-DIP corner curve, so the
+         icon reads as inset from the pill rather than riding its rounded end.
+
+         It used to be 14, which is also what the TextBox's left padding was
+         sized against: the pair left the placeholder about 8 DIP clear of the
+         glyph. The padding below now owns that gap on its own, and this token
+         owns only the glyph's inset, so the two no longer have to be changed
+         together. -->
+    <Thickness x:Key="MpvSearchGlyphMargin">12,0,0,0</Thickness>
+
+    <!-- The search pill's height, and half of it as the corner radius.
+
+         The radius has to stay married to the height: the pill is only a pill
+         while the radius is exactly half the box, and writing 14 beside a 28
+         in two different files is how that stops being true. Half of 28 is 14,
+         so the two tokens below are one number and the radius is derived from
+         it rather than repeated. -->
+    <x:Double x:Key="MpvSearchPillHeight">28</x:Double>
+    <CornerRadius x:Key="MpvSearchPillCornerRadius">14</CornerRadius>
+
+    <!-- Width, in DIPs, below which the settings window drops to its narrow
+         shape: the navigation pane animates to icon-only and the search pill
+         becomes a bare magnifier button.
+
+         One token because the two changes belong to one breakpoint but live in
+         two files: the pane threshold is set on the NavigationView in
+         SettingsPage.xaml, the search shape is swapped from the window's
+         SizeChanged handler in SettingsWindow.xaml.cs. Duplicating the number
+         is how the two ends up disagreeing about where "narrow" starts.
+
+         It is derived from the top bar, which is what actually runs out of room:
+         the title wants about 120 DIP, the pill is a fixed 340, and the
+         NavigationView's expanded pane is 240. Below roughly 720 the top bar's
+         centre column can no longer hold the pill without crowding the title. -->
+    <x:Double x:Key="MpvNarrowLayoutThreshold">720</x:Double>
 
     <!-- The reading width of the settings window's content column, and the
          media-info panel's. One token because the two surfaces sit in
@@ -1037,6 +1072,20 @@
          settings page's three rows had drifted to 12/12/16 before that was
          noticed; the footer now carries the same 12 as the other two. -->
     <x:Double x:Key="MpvContentMaxWidth">1060</x:Double>
+
+    <!-- The browse column's own inset: the same 12 as the breadcrumb and footer
+         on the leading side, and 28 on the trailing side.
+
+         Why the trailing side is wider. The navigation pane is a fixed 240 DIPs
+         and this window runs at about 636, so the content area is roughly 370
+         and the 1060 cap above never binds here: the column is already narrower
+         than its cap, and the cards ended 2-3 DIPs from the scrollbar, which
+         reads as running into it. Only this row's content is wide enough to
+         reach the trailing edge (the breadcrumb's trail and the footer's buttons
+         both run out well before it), so only this row needs the room, and the
+         extra 16 is what buys the gap. The leading 12 is unchanged, so the
+         column still starts on the same x as the two rows above and below it. -->
+    <Thickness x:Key="MpvBrowseHostMargin">12,4,28,0</Thickness>
 
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
