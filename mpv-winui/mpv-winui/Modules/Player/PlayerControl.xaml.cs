@@ -1202,6 +1202,11 @@ namespace mpv_winui.Modules.Player
 
             }
 
+            // The button no longer carries a Flyout, so the popup is opened here
+            // instead of by the framework -- and it is opened after the lists
+            // above have been filled, not before.
+            OpenTrackSelector(TrackSelectionButton);
+
         }
 
 
@@ -1717,7 +1722,7 @@ namespace mpv_winui.Modules.Player
 
                 };
 
-                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(8)));
+                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, new Thickness(4)));
 
                 presenterStyle.Setters.Add(new Setter(FlyoutPresenter.MinWidthProperty, 0d));
 
@@ -1727,7 +1732,7 @@ namespace mpv_winui.Modules.Player
                 // a generous ceiling -- the earlier version handed the presenter
                 // numbers derived from what happened to fit, which is how the
                 // strip ended up smaller than its contents.
-                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.MinHeightProperty, 176d));
+                presenterStyle.Setters.Add(new Setter(FlyoutPresenter.MinHeightProperty, 168d));
                 presenterStyle.Setters.Add(new Setter(FlyoutPresenter.MaxHeightProperty, 240d));
 
                 var flyout = new Flyout

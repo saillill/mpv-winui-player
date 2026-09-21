@@ -12,37 +12,37 @@
             BasedOn="{StaticResource DefaultListViewItemStyle}"
             TargetType="ListViewItem">
             <Setter Property="Margin" Value="0" />
-            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="MinHeight" Value="{StaticResource MpvPopupRowMinHeight}" />
             <Setter Property="IsTabStop" Value="False" />
         </Style>
     </UserControl.Resources>
     <Grid>
         <Pivot
-            MinHeight="400"
-            Padding="0"
+            MinHeight="240"
+            Padding="{StaticResource MpvPopupContentPadding}"
             IsHeaderItemsCarouselEnabled="False"
             IsTabStop="False">
             <PivotItem>
                 <PivotItem.Header>
                     <StackPanel
                         Orientation="Horizontal"
-                        Spacing="8">
+                        Spacing="{StaticResource MpvSpaceS}">
                         <FontIcon
-                            FontSize="16"
+                            FontSize="{StaticResource MpvPopupIconSize}"
                             Glyph="&#xED1E;" />
                         <TextBlock
                             x:Name="SubtitleTabText"
                             VerticalAlignment="Center"
-                            FontSize="12" />
+                            FontSize="{StaticResource MpvPopupTitleFontSize}" />
                         <TextBlock
                             VerticalAlignment="Center"
-                            FontSize="10"
+                            FontSize="{StaticResource MpvPopupCaptionFontSize}"
                             Text="{x:Bind SubtitleListView.SelectedIndex, Mode=OneWay}" />
                     </StackPanel>
                 </PivotItem.Header>
                 <ListView
                     x:Name="SubtitleListView"
-                    Margin="0,8,0,0"
+                    Margin="{StaticResource MpvPopupListMargin}"
                     IsItemClickEnabled="True"
                     IsTabStop="False"
                     ItemClick="SubtitleListView_ItemClick"
@@ -54,6 +54,7 @@
                         <DataTemplate x:DataType="local:TrackItem">
                             <TextBlock
                                 MaxLines="2"
+                                FontSize="{StaticResource MpvPopupLabelFontSize}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{x:Bind Label}"
                                 TextWrapping="NoWrap"
@@ -66,23 +67,23 @@
                 <PivotItem.Header>
                     <StackPanel
                         Orientation="Horizontal"
-                        Spacing="8">
+                        Spacing="{StaticResource MpvSpaceS}">
                         <FontIcon
-                            FontSize="16"
+                            FontSize="{StaticResource MpvPopupIconSize}"
                             Glyph="&#xED1E;" />
                         <TextBlock
                             x:Name="SecondSubtitleTabText"
                             VerticalAlignment="Center"
-                            FontSize="12" />
+                            FontSize="{StaticResource MpvPopupTitleFontSize}" />
                         <TextBlock
                             VerticalAlignment="Center"
-                            FontSize="10"
+                            FontSize="{StaticResource MpvPopupCaptionFontSize}"
                             Text="{x:Bind SecondSubListView.SelectedIndex, Mode=OneWay}" />
                     </StackPanel>
                 </PivotItem.Header>
                 <ListView
                     x:Name="SecondSubListView"
-                    Margin="0,8,0,0"
+                    Margin="{StaticResource MpvPopupListMargin}"
                     IsItemClickEnabled="True"
                     IsTabStop="False"
                     ItemClick="SecondSubListView_ItemClick"
@@ -93,6 +94,7 @@
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:TrackItem">
                             <TextBlock
+                                FontSize="{StaticResource MpvPopupLabelFontSize}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{x:Bind Label}"
                                 TextTrimming="CharacterEllipsis"
@@ -106,23 +108,23 @@
                 <PivotItem.Header>
                     <StackPanel
                         Orientation="Horizontal"
-                        Spacing="8">
+                        Spacing="{StaticResource MpvSpaceS}">
                         <FontIcon
-                            FontSize="16"
+                            FontSize="{StaticResource MpvPopupIconSize}"
                             Glyph="&#xE8B2;" />
                         <TextBlock
                             x:Name="VideoTabText"
                             VerticalAlignment="Center"
-                            FontSize="12" />
+                            FontSize="{StaticResource MpvPopupTitleFontSize}" />
                         <TextBlock
                             VerticalAlignment="Center"
-                            FontSize="10"
+                            FontSize="{StaticResource MpvPopupCaptionFontSize}"
                             Text="{x:Bind VideoListView.SelectedIndex, Mode=OneWay}" />
                     </StackPanel>
                 </PivotItem.Header>
                 <ListView
                     x:Name="VideoListView"
-                    Margin="0,8,0,0"
+                    Margin="{StaticResource MpvPopupListMargin}"
                     IsItemClickEnabled="True"
                     IsTabStop="False"
                     ItemClick="VideoListView_ItemClick"
@@ -133,6 +135,7 @@
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:TrackItem">
                             <TextBlock
+                                FontSize="{StaticResource MpvPopupLabelFontSize}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{x:Bind Label}"
                                 TextTrimming="CharacterEllipsis"
@@ -146,23 +149,23 @@
                 <PivotItem.Header>
                     <StackPanel
                         Orientation="Horizontal"
-                        Spacing="8">
+                        Spacing="{StaticResource MpvSpaceS}">
                         <FontIcon
-                            FontSize="16"
+                            FontSize="{StaticResource MpvPopupIconSize}"
                             Glyph="&#xE8D6;" />
                         <TextBlock
                             x:Name="AudioTabText"
                             VerticalAlignment="Center"
-                            FontSize="12" />
+                            FontSize="{StaticResource MpvPopupTitleFontSize}" />
                         <TextBlock
                             VerticalAlignment="Center"
-                            FontSize="10"
+                            FontSize="{StaticResource MpvPopupCaptionFontSize}"
                             Text="{x:Bind AudioListView.SelectedIndex, Mode=OneWay}" />
                     </StackPanel>
                 </PivotItem.Header>
                 <ListView
                     x:Name="AudioListView"
-                    Margin="0,8,0,0"
+                    Margin="{StaticResource MpvPopupListMargin}"
                     IsItemClickEnabled="True"
                     IsTabStop="False"
                     ItemClick="AudioListView_ItemClick"
@@ -173,6 +176,7 @@
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:TrackItem">
                             <TextBlock
+                                FontSize="{StaticResource MpvPopupLabelFontSize}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{x:Bind Label}"
                                 TextTrimming="CharacterEllipsis"

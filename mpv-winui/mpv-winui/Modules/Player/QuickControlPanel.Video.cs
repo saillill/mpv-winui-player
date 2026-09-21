@@ -34,7 +34,7 @@ public sealed partial class QuickControlPanel
         // consistent gap from the stretched card edges.
         var effects = new StackPanel
         {
-            Spacing = 8,
+            Spacing = PopupMetric("MpvSpaceS"),
             Margin = new Thickness(0, 2, 0, 2),
             VerticalAlignment = VerticalAlignment.Top,
         };

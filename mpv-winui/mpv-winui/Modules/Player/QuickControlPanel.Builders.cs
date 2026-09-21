@@ -17,12 +17,25 @@ public sealed partial class QuickControlPanel
     /// <summary>Bundled Fluent icon font (verified codepoints, see QuickControlPanel.xaml).</summary>
     internal static readonly FontFamily PanelIconFont = new(IconFonts.FluentSystemIconsUri);
 
+    /// <summary>
+    /// One of the shared popup metrics from Styles.xaml.
+    ///
+    /// The panel, the track selector and the volume strip are one visual family,
+    /// so their font sizes, icon size and spacing live in one place. The track
+    /// selector had drifted to 16/12/10 while this panel ran 16/14/11 for the
+    /// same three roles; the fix is not to pick a winner but to stop each
+    /// component spelling the numbers out. Read at build time rather than
+    /// cached in a static, because the panel is rebuilt on a language change and
+    /// a static would pin the first copy of the dictionary.
+    /// </summary>
+    internal static double PopupMetric(string key) => (double)Application.Current.Resources[key];
+
     private Border PanelOptionCard(UIElement content) => new()
     {
         // Narrow horizontal cards: tighter vertical padding keeps single-row
         // controls (slider + value + reset) snug without clipping the slider.
         MinHeight = 40,
-        Padding = new Thickness(12, 4, 12, 4),
+        Padding = (Thickness)Application.Current.Resources["MpvPopupContentPadding"],
         Style = (Style)Application.Current.Resources["MpvCardStyle"],
         Child = content,
     };
@@ -34,11 +47,11 @@ public sealed partial class QuickControlPanel
             Content = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
-                Spacing = 6,
+                Spacing = PopupMetric("MpvSpaceCompact"),
                 Children =
                 {
-                    new FontIcon { Glyph = glyph, FontSize = 16, FontFamily = PanelIconFont },
-                    new TextBlock { Text = label, FontSize = 14, VerticalAlignment = VerticalAlignment.Center },
+                    new FontIcon { Glyph = glyph, FontSize = PopupMetric("MpvPopupIconSize"), FontFamily = PanelIconFont },
+                    new TextBlock { Text = label, FontSize = PopupMetric("MpvPopupLabelFontSize"), VerticalAlignment = VerticalAlignment.Center },
                 },
             },
             MinHeight = 40,
@@ -59,11 +72,11 @@ public sealed partial class QuickControlPanel
             Content = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
-                Spacing = 6,
+                Spacing = PopupMetric("MpvSpaceCompact"),
                 Children =
                 {
-                    new FontIcon { Glyph = glyph, FontSize = 16, FontFamily = PanelIconFont },
-                    new TextBlock { Text = label, FontSize = 14, VerticalAlignment = VerticalAlignment.Center },
+                    new FontIcon { Glyph = glyph, FontSize = PopupMetric("MpvPopupIconSize"), FontFamily = PanelIconFont },
+                    new TextBlock { Text = label, FontSize = PopupMetric("MpvPopupLabelFontSize"), VerticalAlignment = VerticalAlignment.Center },
                 },
             },
             MinHeight = 40,
@@ -93,7 +106,7 @@ public sealed partial class QuickControlPanel
     private static Grid PanelButtonRow(params FrameworkElement[] buttons)
     {
         // Equal star columns fill the card so every button row is balanced.
-        var grid = new Grid { ColumnSpacing = 8, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var grid = new Grid { ColumnSpacing = PopupMetric("MpvSpaceS"), HorizontalAlignment = HorizontalAlignment.Stretch };
         for (var i = 0; i < buttons.Length; i++)
         {
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -126,7 +139,7 @@ public sealed partial class QuickControlPanel
     {
         var grid = new Grid
         {
-            ColumnSpacing = 8,
+            ColumnSpacing = PopupMetric("MpvSpaceS"),
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Center,
         };
@@ -178,7 +191,7 @@ public sealed partial class QuickControlPanel
         var slider = PanelPropertySlider(property, min, max, step, label);
         var value = new TextBlock
         {
-            FontSize = 11,
+            FontSize = PopupMetric("MpvPopupCaptionFontSize"),
             MinWidth = 32,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
@@ -220,7 +233,7 @@ public sealed partial class QuickControlPanel
 
         var sliderArea = new Grid
         {
-            ColumnSpacing = 8,
+            ColumnSpacing = PopupMetric("MpvSpaceS"),
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Center,
         };

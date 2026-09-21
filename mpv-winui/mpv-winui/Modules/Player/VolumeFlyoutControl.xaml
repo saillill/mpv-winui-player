@@ -7,13 +7,13 @@
          and the foot of the track were clipped; the flyout presenter is told
          this same height so it cannot shrink-wrap below it. -->
     <StackPanel
-        Width="56"
+        Width="44"
         Padding="4,2,4,6"
-        Spacing="6">
+        Spacing="{StaticResource MpvSpaceCompact}">
         <AppBarButton
             x:Name="MuteButton"
-            Width="40"
-            Height="40"
+            Width="32"
+            Height="32"
             Padding="0"
             HorizontalAlignment="Center"
             Click="MuteButton_Click"

@@ -125,21 +125,42 @@
                                 Margin="0"
                                 MinWidth="0"
                                 MinHeight="0"
+                                VerticalAlignment="Center"
                                 HorizontalContentAlignment="Left"
                                 VerticalContentAlignment="Center"
                                 Background="Transparent"
                                 BorderThickness="0"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 FontSize="24"
                                 FontWeight="SemiBold"
                                 Click="BreadcrumbCategory_Click"
-                                Visibility="Collapsed" />
+                                Visibility="Collapsed">
+                                <!-- The caption is a real TextBlock instead of the
+                                     Button's own string content. A Button renders
+                                     a string through a ContentPresenter, whose line
+                                     box does not match a sibling TextBlock's, so
+                                     the category and the section after the chevron
+                                     sat on different baselines (one high, one
+                                     low). Same element type, and the same explicit
+                                     block line height on all three, so the
+                                     baselines agree by construction rather than by
+                                     luck. -->
+                                <TextBlock
+                                    x:Name="BreadcrumbCategoryText"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    FontSize="24"
+                                    FontWeight="SemiBold"
+                                    LineHeight="{StaticResource MpvBreadcrumbLineHeight}"
+                                    LineStackingStrategy="BlockLineHeight"
+                                    TextTrimming="CharacterEllipsis" />
+                            </Button>
                             <TextBlock
                                 x:Name="BreadcrumbSeparator"
                                 VerticalAlignment="Center"
                                 FontSize="26"
                                 FontWeight="SemiBold"
                                 Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                LineHeight="{StaticResource MpvBreadcrumbLineHeight}"
+                                LineStackingStrategy="BlockLineHeight"
                                 Text="&#x203A;"
                                 Visibility="Collapsed" />
                             <TextBlock
@@ -147,6 +168,8 @@
                                 VerticalAlignment="Center"
                                 FontSize="24"
                                 FontWeight="SemiBold"
+                                LineHeight="{StaticResource MpvBreadcrumbLineHeight}"
+                                LineStackingStrategy="BlockLineHeight"
                                 TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                 </Grid>

@@ -576,22 +576,6 @@
                                 FontFamily="{StaticResource MpvIconFontFamily}"
                                 Glyph="&#xEBCD;" />
                         </AppBarButton.Icon>
-                        <AppBarButton.Flyout>
-                            <!-- Same presenter as the volume strip and the More
-                                 menu (MpvPlayerPopupPresenterStyle). The per-open
-                                 presenter style that used to be built here from
-                                 the space above the button is gone with it; the
-                                 selector carries its own size cap instead. -->
-                            <Flyout
-                                x:Name="TrackSelectionFlyout"
-                                Placement="Top"
-                                FlyoutPresenterStyle="{StaticResource MpvPlayerPopupPresenterStyle}">
-                                <local:PlayerTrackSelectorControl
-                                    x:Name="TrackSelectorControl"
-                                    MaxHeight="480"
-                                    MaxWidth="480" />
-                            </Flyout>
-                        </AppBarButton.Flyout>
                     </AppBarButton>
 
                     <AppBarButton
@@ -713,6 +697,30 @@
                     <ThemeShadow />
                 </Border.Shadow>
                 <local:QuickControlPanel x:Name="ControlPanelHost" />
+            </Border>
+        </Popup>
+
+        <!-- The track selector is the same shape as the control panel above, and
+             for the same reason: it used to be a Flyout, so the framework kept it
+             inside the window and the list was clipped at the window edge. Same
+             chrome, same escape, same anchoring mode. -->
+        <Popup
+            x:Name="TrackSelectionPopup"
+            IsLightDismissEnabled="True"
+            ShouldConstrainToRootBounds="False">
+            <Border
+                Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource MpvPlayerPopupCornerRadius}"
+                Translation="0,0,32">
+                <Border.Shadow>
+                    <ThemeShadow />
+                </Border.Shadow>
+                <local:PlayerTrackSelectorControl
+                    x:Name="TrackSelectorControl"
+                    MaxHeight="420"
+                    MaxWidth="560" />
             </Border>
         </Popup>
 
