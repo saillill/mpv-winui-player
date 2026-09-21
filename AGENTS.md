@@ -75,6 +75,34 @@ into a running installation.
 > this file is what an agent reads first, it was read as permission. Corrected
 > 2026-09-21.
 
+#### Closing it is allowed (2026-09-21)
+
+The rule above is about **putting** `mpvw.exe` into the process list. Taking it
+out again is a different act, and the project's owner has authorised it: when a
+deploy is blocked because the app is open, close it yourself instead of stopping
+to ask.
+
+Use the switch, not `Stop-Process`:
+
+```
+pwsh tools/deploy-test.ps1 -CloseRunning -Verify
+```
+
+`-CloseRunning` posts `WM_CLOSE` first and only force-kills a window that has not
+answered in 10 seconds. That matters: a graceful close lets WinUI shut down and
+lets mpv flush its log and save its state, which a `Stop-Process` does not.
+
+**What this does *not* authorise.** Closing is not permission to start it. Do not
+launch `mpvw.exe` to "check something first", do not relaunch it after a deploy to
+see whether the change worked, and do not leave it running. The deploy script
+prints the path and stops — testing it is still the owner's job. If a task seems
+to need the app running, that is the signal to hand over, not to launch.
+
+> Recorded honestly: the `-CloseRunning` close path was added on 2026-09-21 and
+> has **not** actually fired yet — on its first run the app had already been
+> closed by hand, so only the deploy half was exercised. Treat the graceful-close
+> behaviour as untested until a run prints `closing mpvw.exe`.
+
 ### Reading a crash
 
 A settings-window crash that reports `0xc000027b` + `Microsoft.UI.Xaml.dll` and

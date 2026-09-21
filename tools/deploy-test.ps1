@@ -21,9 +21,9 @@
 # So: mkdir -p, then overlay. .pdb is skipped -- debug symbols are not part of an
 # install and their absence is not a stale file.
 #
-# Usage:  pwsh tools/deploy-test.ps1 [-Verify]
+# Usage:  pwsh tools/deploy-test.ps1 [-Verify] [-CloseRunning]
 
-param([switch]$Verify)
+param([switch]$Verify, [switch]$CloseRunning)
 
 $ErrorActionPreference = 'Stop'
 
@@ -39,6 +39,32 @@ if (-not (Test-Path -LiteralPath (Join-Path $dst 'mpvw.exe'))) {
 }
 
 $running = Get-Process -Name mpvw -ErrorAction SilentlyContinue
+if ($running -and $CloseRunning) {
+    # Closing is allowed; launching is not. See "Do not launch the app" in
+    # AGENTS.md: the rule forbids putting mpvw.exe into the process list, and
+    # the project's owner has explicitly authorised taking it out again.
+    #
+    # Ask first, force second. CloseMainWindow posts WM_CLOSE, which lets WinUI
+    # and mpv shut down the way the user's own close button does -- the config
+    # writer, the log flush and mpv's own state save all run. Stop-Process does
+    # not, so it is only the fallback for a window that will not answer.
+    Write-Host "closing mpvw.exe ($($running.Count) process(es))..."
+    foreach ($proc in $running) {
+        $proc.CloseMainWindow() | Out-Null
+    }
+    $deadline = (Get-Date).AddSeconds(10)
+    while ((Get-Date) -lt $deadline) {
+        Start-Sleep -Milliseconds 250
+        if (-not (Get-Process -Name mpvw -ErrorAction SilentlyContinue)) { break }
+    }
+    $left = Get-Process -Name mpvw -ErrorAction SilentlyContinue
+    if ($left) {
+        Write-Host "  did not close in 10s -- forcing"
+        $left | Stop-Process -Force
+        Start-Sleep -Milliseconds 500
+    }
+    $running = Get-Process -Name mpvw -ErrorAction SilentlyContinue
+}
 if ($running) {
     throw "mpvw.exe is running ($($running.Count) process(es)) -- the deploy would be overwritten mid-run"
 }
