@@ -1173,7 +1173,7 @@ public sealed partial class SettingsPage : Page
             // Windows-settings breadcrumb: the category segment is a live
             // button jumping back to the section overview; only the trailing
             // section is plain text.
-            BreadcrumbCategoryLink.Content = selected;
+            BreadcrumbCategoryText.Text = selected;
             BreadcrumbCategoryLink.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSection.Text = _selectedSection ?? string.Empty;

@@ -1202,6 +1202,11 @@ namespace mpv_winui.Modules.Player
 
             }
 
+            // The button no longer carries a Flyout, so the popup is opened here
+            // instead of by the framework -- and it is opened after the lists
+            // above have been filled, not before.
+            OpenTrackSelector(TrackSelectionButton);
+
         }
 
 

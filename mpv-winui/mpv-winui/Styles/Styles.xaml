@@ -1101,4 +1101,12 @@
     <!-- Gap between a popup's tab strip / header and its list. -->
     <Thickness x:Key="MpvPopupListMargin">0,8,0,0</Thickness>
 
+    <!-- Block line height for the settings breadcrumb trail, in DIPs. The trail
+         mixes a category caption (inside a Button), a chevron and a section
+         name, at two font sizes. Centring alone lines up their boxes, not their
+         baselines, which is why the two captions read as one high and one low.
+         An explicit block line height gives all of them the same line box, so
+         the baselines coincide whatever the font size is. -->
+    <x:Double x:Key="MpvBreadcrumbLineHeight">32</x:Double>
+
 </ResourceDictionary>

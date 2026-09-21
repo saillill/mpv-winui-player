@@ -109,6 +109,23 @@ namespace mpv_winui.Modules.Player
             ControlPanelPopup.IsOpen = true;
         }
 
+        /// <summary>
+        /// Shows the track selector above <paramref name="anchor"/>.
+        ///
+        /// The same anchoring and the same escape as the control panel: a Popup
+        /// with ShouldConstrainToRootBounds off, positioned by the framework from
+        /// its PlacementTarget. As a Flyout the selector was held inside the
+        /// window and its list was cut off at the window edge.
+        /// </summary>
+        private void OpenTrackSelector(FrameworkElement anchor)
+        {
+            TrackSelectionPopup.PlacementTarget = anchor;
+            TrackSelectionPopup.DesiredPlacement = PopupPlacementMode.Top;
+            TrackSelectionPopup.HorizontalOffset = 0;
+            TrackSelectionPopup.VerticalOffset = -PopupGap;
+            TrackSelectionPopup.IsOpen = true;
+        }
+
         private void EnsureControlPanel()
         {
             if (_panelBuilt)
