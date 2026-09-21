@@ -161,12 +161,20 @@ public sealed partial class SettingsWindow : BaseWindow
         Grid.SetRow(SearchPillHost, droppedDown ? 1 : 0);
         Grid.SetColumn(SearchPillHost, droppedDown ? 0 : 2);
         Grid.SetColumnSpan(SearchPillHost, droppedDown ? 3 : 1);
-        SearchPillHost.Width = droppedDown
+        // The host shrinks to its content whenever the pill is hidden. It used to
+        // stay at its full pill width and centred, so the compact button sat on
+        // the host's left edge and that edge tracked the window: the magnifier
+        // slid leftwards as the window narrowed instead of standing still beside
+        // the pane button.
+        var pillHidden = _narrow && !droppedDown;
+        SearchPillHost.Width = droppedDown || pillHidden
             ? double.NaN
             : (double)Application.Current.Resources["MpvSearchPillWidth"];
         SearchPillHost.HorizontalAlignment = droppedDown
             ? HorizontalAlignment.Stretch
-            : HorizontalAlignment.Center;
+            : pillHidden
+                ? HorizontalAlignment.Left
+                : HorizontalAlignment.Center;
         // Dropped down it sits under the title row, and the two rows had no gap
         // between them: the field was flush against the title above it.
         SearchPillHost.Margin = droppedDown

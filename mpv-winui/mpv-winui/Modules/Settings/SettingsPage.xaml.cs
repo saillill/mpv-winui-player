@@ -752,19 +752,70 @@ public sealed partial class SettingsPage : Page
         }
 
         IsNarrow = narrow;
+        ApplyPaneMode();
+    }
 
-        CategoryNav.PaneDisplayMode = narrow
-            ? NavigationViewPaneDisplayMode.LeftMinimal
-            : NavigationViewPaneDisplayMode.Left;
-
-        // Forced, not left alone. LeftMinimal leaves IsPaneOpen true once the pane
-        // has been summoned as an overlay, and carrying that state into Left is
-        // the other half of the pane coming back without its labels.
-        CategoryNav.IsPaneOpen = !narrow;
+    /// <summary>
+    /// Puts the pane into the shape the width and the user's last choice call for.
+    ///
+    /// The mode is set here rather than left to PaneDisplayMode="Auto": both
+    /// thresholds were pinned to one value, which leaves the compact band between
+    /// them with zero width, and the pane could settle in that degenerate band
+    /// coming back from the minimal shape, returning as an icon rail with no
+    /// captions. IsPaneOpen is forced for the same reason -- LeftMinimal leaves it
+    /// true once the pane has been summoned as an overlay, and carrying that into
+    /// Left is the other half of that symptom.
+    /// </summary>
+    private void ApplyPaneMode()
+    {
+        if (IsNarrow)
+        {
+            CategoryNav.PaneDisplayMode = NavigationViewPaneDisplayMode.LeftMinimal;
+            CategoryNav.IsPaneOpen = false;
+        }
+        else
+        {
+            CategoryNav.PaneDisplayMode = _iconOnlyPane
+                ? NavigationViewPaneDisplayMode.LeftCompact
+                : NavigationViewPaneDisplayMode.Left;
+            // Open while expanded, closed while compact: in compact, open means the
+            // rail flies out over the content rather than standing beside it.
+            CategoryNav.IsPaneOpen = !_iconOnlyPane;
+        }
 
         // The window's top bar owns the button that reopens the pane, so the
-        // NavigationView's own stays off in both shapes.
+        // NavigationView's own stays off in every shape.
         CategoryNav.IsPaneToggleButtonVisible = false;
+
+        ApplyPaneModeButtonLabel();
+    }
+
+    /// <summary>The user's immediate icon-only choice, while the window is wide.
+    /// Deliberately not persisted: it is a way of looking at the list, not a
+    /// setting, and the width still decides the mode when there is no room for
+    /// two columns.</summary>
+    private bool _iconOnlyPane;
+
+    private void PaneModeButton_Click(object sender, RoutedEventArgs e)
+    {
+        _iconOnlyPane = !_iconOnlyPane;
+        ApplyPaneMode();
+    }
+
+    /// <summary>
+    /// Names the pane-mode button for the shape it will produce, not the one it is
+    /// in. It is a glyph with no caption, so the tooltip and the accessible name
+    /// are the only places its meaning can live; both come from the existing
+    /// Expand/Collapse keys rather than adding a key to nine language files for a
+    /// button only this window shows.
+    /// </summary>
+    private void ApplyPaneModeButtonLabel()
+    {
+        var collapsing = !IsNarrow && !_iconOnlyPane;
+        var label = collapsing ? AppContext.AppLang.Collapse : AppContext.AppLang.Expand;
+        PaneModeGlyph.Glyph = collapsing ? "\uE76C" : "\uE76B";
+        ToolTipService.SetToolTip(PaneModeButton, label);
+        AutomationProperties.SetName(PaneModeButton, label);
     }
 
     /// <summary>True while the pane is in its narrow shape. The window's top bar

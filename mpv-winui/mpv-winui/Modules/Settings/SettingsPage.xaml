@@ -63,6 +63,28 @@
             <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent" />
             <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
         </NavigationView.Resources>
+
+        <!-- Immediate switch between the icon rail and the icon plus captions,
+             at the foot of the pane so it is only reachable while the pane is on
+             screen. Not persisted: it is a way of looking at the list, not a
+             setting, and the window's width still decides the mode whenever the
+             window is narrower than the two-column layout can hold. -->
+        <NavigationView.PaneFooter>
+            <Button
+                x:Name="PaneModeButton"
+                Margin="4,4,4,8"
+                Padding="8,6"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left"
+                Background="Transparent"
+                BorderThickness="0"
+                Click="PaneModeButton_Click">
+                <FontIcon
+                    x:Name="PaneModeGlyph"
+                    FontSize="16"
+                    Glyph="&#xE76C;" />
+            </Button>
+        </NavigationView.PaneFooter>
         <NavigationView.Content>
             <Grid>
                 <Grid.RowDefinitions>
@@ -228,13 +250,25 @@
                          reaches this list as one card, not 205 rows. -->
                     <ScrollViewer
                         x:Name="BrowseHost"
-                        MaxWidth="{StaticResource MpvContentMaxWidth}"
                         HorizontalAlignment="Stretch"
                         Margin="{StaticResource MpvBrowseHostMargin}"
-                        Padding="0,0,12,0"
+                        Padding="0"
                         HorizontalScrollBarVisibility="Disabled"
                         HorizontalScrollMode="Disabled">
-                        <StackPanel HorizontalAlignment="Stretch">
+                        <!-- The reading-width cap lives here, inside the scroller,
+                             not on the scroller. On the scroller it capped the
+                             scroller itself, so the scrollbar sat at the cap
+                             rather than at the window edge, with the rest of the
+                             width left empty beside it. Full-width scroller plus
+                             capped content puts the bar on the right edge and
+                             keeps the cards at their reading width. The cap and
+                             the trailing inset stay on this one element, which is
+                             what keeps the cards' width and the title's width
+                             equal. -->
+                        <StackPanel
+                            MaxWidth="{StaticResource MpvContentMaxWidth}"
+                            Padding="0,0,12,0"
+                            HorizontalAlignment="Stretch">
                             <ctl:OptionListControl x:Name="OptionsControl" ShowHeaders="False" />
                             <!-- Scrolling off, like OptionListView inside the
                                  control above. This list is measured at
