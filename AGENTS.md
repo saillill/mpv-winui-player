@@ -45,6 +45,14 @@ Two rules that bite when files move:
 2. **Check** — run the self-checks in `tools/` (see below). This is the gate.
 3. **Hand over** — report the path of the built or deployed output and stop.
 
+> **Run `python tools\check-xaml.py` *before* `build.ps1`, not after.** XAML
+> cannot carry `--` inside a comment (WMC9997), and nothing in this repo's
+> editing tools prevents you writing it: it has cost five full build cycles
+> here, and on the fifth the build failed while the deploy still copied the
+> previously built binaries and reported success. `check-xaml.py` catches it in
+> about a second. If a deploy prints a healthy `identical: N` right after a
+> build that failed, treat the deploy as stale, not as passing.
+
 ### Before committing
 
 - **Remove debug instrumentation**: `grep -rn "\[DBG-"`.

@@ -170,6 +170,7 @@
                                 FontWeight="SemiBold"
                                 LineHeight="{StaticResource MpvBreadcrumbLineHeight}"
                                 LineStackingStrategy="BlockLineHeight"
+                                Margin="{StaticResource MpvBreadcrumbSectionNudge}"
                                 TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                 </Grid>

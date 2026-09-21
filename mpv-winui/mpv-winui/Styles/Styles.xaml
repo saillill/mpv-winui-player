@@ -1109,4 +1109,16 @@
          the baselines coincide whatever the font size is. -->
     <x:Double x:Key="MpvBreadcrumbLineHeight">32</x:Double>
 
+    <!-- Optical drop applied to the trailing section caption of the breadcrumb
+         trail, in DIPs.
+
+         The category caption lives inside a Button and the section caption is a
+         bare TextBlock. They now carry the same font size, weight, line height
+         and stacking strategy, and their line boxes are the same height, so the
+         remaining difference is inside the Button's content presenter and is not
+         visible in the markup, which is why this is an explicit, tunable nudge
+         rather than another attempt at the "real" cause. Raise the Y to drop the
+         section caption further; the whole trail moves with it. -->
+    <Thickness x:Key="MpvBreadcrumbSectionNudge">0,2,0,0</Thickness>
+
 </ResourceDictionary>
