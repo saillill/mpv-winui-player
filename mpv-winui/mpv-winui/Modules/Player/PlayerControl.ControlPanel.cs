@@ -1,3 +1,4 @@
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -100,10 +101,10 @@ namespace mpv_winui.Modules.Player
             // origin left to get wrong.
             // Top, not TopEdgeAlignedLeft: the panel hangs off the middle of its
             // button, the way the volume strip, the track selector and the More
-            // menu already do. Aligning its left edge to the button's left edge
-            // parked the panel's corner on the button instead of its centre.
+            // menu already do. PlacementFor bends that to an edge-aligned
+            // placement only when centring would push the panel off the display.
             ControlPanelPopup.PlacementTarget = anchor;
-            ControlPanelPopup.DesiredPlacement = PopupPlacementMode.Top;
+            ControlPanelPopup.DesiredPlacement = PlacementFor(anchor, PanelWidth);
             ControlPanelPopup.HorizontalOffset = 0;
             ControlPanelPopup.VerticalOffset = -PopupGap;
             ControlPanelPopup.IsOpen = true;
@@ -120,10 +121,76 @@ namespace mpv_winui.Modules.Player
         private void OpenTrackSelector(FrameworkElement anchor)
         {
             TrackSelectionPopup.PlacementTarget = anchor;
-            TrackSelectionPopup.DesiredPlacement = PopupPlacementMode.Top;
+            TrackSelectionPopup.DesiredPlacement = PlacementFor(anchor, TrackSelectorWidth);
             TrackSelectionPopup.HorizontalOffset = 0;
             TrackSelectionPopup.VerticalOffset = -PopupGap;
             TrackSelectionPopup.IsOpen = true;
+        }
+
+        /// <summary>Size cap of the track selector, matching its XAML MaxWidth.</summary>
+        private const double TrackSelectorWidth = 560;
+
+        /// <summary>
+        /// Picks the horizontal placement that keeps a popup on the display.
+        ///
+        /// <c>Top</c> centres the popup on its button, which is the house style.
+        /// But these popups are deliberately <b>not</b> constrained to the window
+        /// (that is the whole point of ShouldConstrainToRootBounds), so nothing
+        /// pulls one back when centring it would run it off the edge of the
+        /// screen -- the framework only constrains what it owns. When the centred
+        /// box would not fit, the popup's edge is aligned to the button's edge
+        /// instead: still directly above the button, just not centred on it.
+        /// That is a bend, not a fallback -- it keeps every pixel on screen.
+        ///
+        /// The work area is read from the window's own DisplayArea, so a
+        /// multi-monitor setup with different sizes is handled per window, and
+        /// the taskbar is excluded because WorkArea is not Bounds.
+        /// </summary>
+        private static PopupPlacementMode PlacementFor(FrameworkElement anchor, double popupWidth)
+        {
+            if (anchor.XamlRoot?.Content is not UIElement root)
+            {
+                return PopupPlacementMode.Top;
+            }
+            if (App.Window?.AppWindow is not { } appWindow)
+            {
+                return PopupPlacementMode.Top;
+            }
+
+            // Physical pixels in, device-independent pixels out: the layout works
+            // in DIPs and the display is described in raw pixels.
+            var scale = anchor.XamlRoot.RasterizationScale;
+            if (scale <= 0)
+            {
+                scale = 1;
+            }
+
+            var area = DisplayArea.GetFromWindowId(appWindow.Id, DisplayAreaFallback.Nearest);
+            if (area is null)
+            {
+                return PopupPlacementMode.Top;
+            }
+
+            // The usable strip, expressed relative to the window's own origin so
+            // it can be compared with a point measured inside the XamlRoot.
+            var work = area.WorkArea;
+            var usableLeft = (work.X - appWindow.Position.X) / scale;
+            var usableRight = (work.X + work.Width - appWindow.Position.X) / scale;
+
+            var anchorLeft = anchor
+                .TransformToVisual(root)
+                .TransformPoint(new Windows.Foundation.Point(0, 0)).X;
+            var centred = anchorLeft + ((anchor.ActualWidth - popupWidth) / 2);
+
+            if (centred < usableLeft)
+            {
+                return PopupPlacementMode.TopEdgeAlignedLeft;
+            }
+            if (centred + popupWidth > usableRight)
+            {
+                return PopupPlacementMode.TopEdgeAlignedRight;
+            }
+            return PopupPlacementMode.Top;
         }
 
         private void EnsureControlPanel()

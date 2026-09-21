@@ -98,10 +98,12 @@ see whether the change worked, and do not leave it running. The deploy script
 prints the path and stops — testing it is still the owner's job. If a task seems
 to need the app running, that is the signal to hand over, not to launch.
 
-> Recorded honestly: the `-CloseRunning` close path was added on 2026-09-21 and
-> has **not** actually fired yet — on its first run the app had already been
-> closed by hand, so only the deploy half was exercised. Treat the graceful-close
-> behaviour as untested until a run prints `closing mpvw.exe`.
+> The `-CloseRunning` close path was added on 2026-09-21 and its first run did
+> **not** exercise it (the app had already been closed by hand). It has since
+> fired for real: it printed `closing mpvw.exe (1 process(es))...` and the
+> graceful path was enough — no `did not close in 10s -- forcing` fallback. The
+> force-kill branch underneath it is still unexercised, which is the branch you
+> want never to need.
 
 ### Reading a crash
 
@@ -144,7 +146,7 @@ methods beats reading the file top to bottom.
 - **Control-bar layout**: `ApplyBarOrders` rebuilds three CommandBars from canonical lists on every apply — never filter through current items.
 - **Control-bar overflow**: all three CommandBars set `OverflowButtonVisibility="Collapsed"`. `CommandBar` draws its *own* `⋯` beside the app's `MoreButton`, so an un-suppressed bar shows two adjacent overflow buttons and one of them is empty. The app's `MoreButton` appears only when `ControlBarAdaptiveLayout.HasOverflowContent` says the menu has something to offer — the same table `MoreFlyout_Opening` builds the menu from, which is what stops it opening an empty menu. Add an entry to `OverflowEntries` to add one to both.
 - **Control-bar tiers**: `ControlBarAdaptiveLayout.TierFor` takes width *and* height, because a 384-wide portrait window is above `NarrowWidth` and otherwise never reaches the portrait tier. Portrait keeps nine slots: three left, previous/play/next in the middle, and on the right the overflow button plus two icons. It tightens the button pitch (`IsTight`) rather than dropping controls, except `aspect`, which goes to the overflow menu. These rules are pure and linked into `mpv-conf-test` — run the tests, do not verify this one by eye.
-- **Player popup chrome**: the volume strip, track selector, quick-control panel and More menu share one chrome — `MpvPlayerPopupPresenterStyle`, `MpvPlayerPopupCornerRadius`, `MpvPlayerPopupShadowDepth` in `Styles.xaml`. The first three are flyouts and consume the style; the control panel cannot (a Flyout is clipped to the window and the panel has to escape it) so it is a `Popup` with `ShouldConstrainToRootBounds="False"` that reproduces the same brushes, radius and `ThemeShadow` on its own `Border`. **Change those together.** Anchor all of them with `PlacementTarget` + `DesiredPlacement`/`Placement="Top"` — never compute window coordinates by hand, which is what once put the panel under the window instead of above its button.
+- **Player popup chrome**: the volume strip, track selector, quick-control panel and More menu share one chrome — `MpvPlayerPopupPresenterStyle`, `MpvPlayerPopupCornerRadius`, `MpvPlayerPopupShadowDepth` in `Styles.xaml`. The volume strip and the More menu are Flyouts and consume the style. The track selector and the control panel are `Popup`s with `ShouldConstrainToRootBounds="False"`, because a Flyout is clipped to the window and both have to be able to leave it; they reproduce the same brushes, radius and `ThemeShadow` on their own `Border`. **Change those together.** Anchor every one of them with `PlacementTarget` + `DesiredPlacement`/`Placement="Top"` — never compute window coordinates by hand, which is what once put the panel under the window instead of above its button. Because the two Popups are unconstrained, nothing pulls them back on screen, so `PlayerControl.ControlPanel.PlacementFor` reads the window's `DisplayArea.WorkArea` and bends `Top` to `TopEdgeAlignedLeft`/`Right` when centring would run the popup off the display.
 - **Playback modes**: single mode button cycles 不循环→顺序→单曲循环→随机. RepeatButton hidden; ShuffleButton reused. Glyphs F175/F172/EF34/EF37.
 
 ### Settings architecture
