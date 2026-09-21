@@ -54,8 +54,8 @@
                                 <Border
                                     x:Name="PillChrome"
                                     Background="{ThemeResource TextControlBackground}"
-                                    BorderBrush="{ThemeResource TextControlBorderBrush}"
-                                    BorderThickness="{ThemeResource TextControlBorderThemeThickness}"
+                                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
                                     CornerRadius="{TemplateBinding CornerRadius}">
                                     <TextBox x:Name="TextBox"
                                              Style="{TemplateBinding TextBoxStyle}"

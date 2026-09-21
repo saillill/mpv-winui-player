@@ -53,7 +53,8 @@
         IsPaneToggleButtonVisible="False"
         IsSettingsVisible="False"
         OpenPaneLength="240"
-        PaneDisplayMode="Left"
+        PaneDisplayMode="Auto"
+        SizeChanged="SettingsPage_SizeChanged"
         CompactModeThresholdWidth="{StaticResource MpvNarrowLayoutThreshold}"
         ExpandedModeThresholdWidth="{StaticResource MpvNarrowLayoutThreshold}"
         SelectionChanged="CategoryNav_SelectionChanged">

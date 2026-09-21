@@ -734,6 +734,22 @@ public sealed partial class SettingsPage : Page
         UpdateOptions();
     }
 
+    /// <summary>
+    /// Keeps the pane's reopen button in step with the pane's own collapse.
+    ///
+    /// NavigationView collapses the pane by itself, from PaneDisplayMode=Auto
+    /// measured against the two thresholds. What it cannot decide is whether the
+    /// button that brings the pane back should exist, and that button was
+    /// hardwired off: a collapsed pane would have had nothing to reopen it with.
+    /// Wide, every category is already on screen and a hamburger would be
+    /// decoration; narrow, it is the only way back.
+    /// </summary>
+    private void SettingsPage_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        CategoryNav.IsPaneToggleButtonVisible =
+            e.NewSize.Width < (double)Application.Current.Resources["MpvNarrowLayoutThreshold"];
+    }
+
     /// <summary>Pointer-over highlight for the breadcrumb's category caption, the
     /// trail's only back affordance.
     ///

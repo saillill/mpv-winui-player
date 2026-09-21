@@ -167,12 +167,12 @@ public sealed partial class SettingsWindow : BaseWindow
     /// which is the width the breakpoint is about.</summary>
     private void SearchCompactButton_Click(object sender, RoutedEventArgs e)
     {
-        _narrowSearchOpen = !_narrowSearchOpen;
+        // Open, never toggle. Toggling meant a second tap on the magnifier took
+        // the field away, which reads as the search vanishing rather than as a
+        // control being closed. Widening the window is what puts it away.
+        _narrowSearchOpen = true;
         ApplySearchShape();
-        if (_narrowSearchOpen)
-        {
-            SearchBox.Focus(FocusState.Programmatic);
-        }
+        SearchBox.Focus(FocusState.Programmatic);
     }
 
     /// <summary>Handles a hand edit to mpv.conf that the watcher has already
