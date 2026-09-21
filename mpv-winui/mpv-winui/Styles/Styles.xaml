@@ -1038,8 +1038,8 @@
          in two different files is how that stops being true. Half of 28 is 14,
          so the two tokens below are one number and the radius is derived from
          it rather than repeated. -->
-    <x:Double x:Key="MpvSearchPillHeight">28</x:Double>
-    <CornerRadius x:Key="MpvSearchPillCornerRadius">14</CornerRadius>
+    <x:Double x:Key="MpvSearchPillHeight">36</x:Double>
+    <CornerRadius x:Key="MpvSearchPillCornerRadius">18</CornerRadius>
 
     <!-- The search pill's width, in DIPs.
 
@@ -1101,7 +1101,16 @@
          both run out well before it), so only this row needs the room, and the
          extra 16 is what buys the gap. The leading 12 is unchanged, so the
          column still starts on the same x as the two rows above and below it. -->
-    <Thickness x:Key="MpvBrowseHostMargin">12,4,28,0</Thickness>
+    <!-- The browse column's inset on the leading side, matching the breadcrumb
+         and the footer.
+
+         The trailing side used to carry 28 here, to buy the cards a gap from the
+         scrollbar. That was the wrong element: this margin moves the whole
+         ScrollViewer, scrollbar included, so the cards and the bar simply
+         travelled left together and stayed glued to each other. The gap has to
+         come from padding INSIDE the ScrollViewer (BrowseHost.Padding), which
+         insets the content and leaves the bar on the right edge where it belongs. -->
+    <Thickness x:Key="MpvBrowseHostMargin">12,4,12,0</Thickness>
 
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the

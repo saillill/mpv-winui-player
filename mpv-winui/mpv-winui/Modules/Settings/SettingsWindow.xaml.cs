@@ -172,6 +172,12 @@ public sealed partial class SettingsWindow : BaseWindow
         SearchPillHost.Margin = droppedDown
             ? new Thickness(0, NumericGapAboveDroppedPill, 0, 0)
             : new Thickness(0);
+
+        // Narrow, the title gives up its word and the bar keeps only the shapes
+        // that do something: the pane's button and the magnifier. The word was
+        // competing with the search field for a row that no longer has room for
+        // both, which is the same trade the Windows 11 top bar makes.
+        SettingsTitleText.Visibility = _narrow ? Visibility.Collapsed : Visibility.Visible;
     }
 
     /// <summary>Gap between the title row and the dropped-open search field, in DIPs.</summary>

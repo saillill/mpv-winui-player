@@ -30,7 +30,11 @@
 
             <Style x:Key="BareAutoSuggestBoxStyle" TargetType="AutoSuggestBox">
                 <Setter Property="TextBoxStyle" Value="{StaticResource SearchTextBoxStyle}" />
-                <Setter Property="UseSystemFocusVisuals" Value="True" />
+                <!-- Off, like the inner TextBox: the system focus visual draws a
+                     rectangle around the whole control, and with only its lower
+                     edge reading as accent it came out as a blue bar wider than
+                     the pill itself. The underline is SearchFocusBar's job. -->
+                <Setter Property="UseSystemFocusVisuals" Value="False" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="AutoSuggestBox">
@@ -213,7 +217,7 @@
                     <Rectangle
                         x:Name="SearchFocusBar"
                         Height="2"
-                        Margin="12,0,12,3"
+                        Margin="18,0,18,4"
                         VerticalAlignment="Bottom"
                         Fill="{ThemeResource AccentFillColorDefaultBrush}"
                         IsHitTestVisible="False"
