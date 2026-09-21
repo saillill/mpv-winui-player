@@ -41,27 +41,43 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
-                                <TextBox x:Name="TextBox"
-                                         Style="{TemplateBinding TextBoxStyle}"
-                                         PlaceholderText="{TemplateBinding PlaceholderText}"
-                                         Width="{TemplateBinding Width}"
-                                         Height="{TemplateBinding Height}"
-                                         Foreground="{ThemeResource TextControlForeground}"
-                                         Background="{ThemeResource TextControlBackground}"
-                                         BorderBrush="{ThemeResource TextControlBorderBrush}"
-                                         BorderThickness="{ThemeResource TextControlBorderThemeThickness}"
-                                         FontSize="{TemplateBinding FontSize}"
-                                         FontFamily="{TemplateBinding FontFamily}"
-                                         FontWeight="{TemplateBinding FontWeight}"
-                                         FontStretch="{TemplateBinding FontStretch}"
-                                         VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                         HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                         ScrollViewer.BringIntoViewOnFocusChange="False"
-                                         Canvas.ZIndex="0"
-                                         Margin="0"
-                                         DesiredCandidateWindowAlignment="BottomEdge"
-                                         UseSystemFocusVisuals="{TemplateBinding UseSystemFocusVisuals}"
-                                         CornerRadius="{TemplateBinding CornerRadius}" />
+                                <!-- The pill's outline is this Border, not the
+                                     TextBox's own border.
+
+                                     The stock TextBox repaints its bottom edge in
+                                     the accent colour for its Focused state, and
+                                     that blue line was on screen while the box did
+                                     not have focus. Giving the TextBox no border
+                                     removes the edge the accent could ever paint,
+                                     and draws the silhouette once, here, where it
+                                     cannot disagree with itself. -->
+                                <Border
+                                    x:Name="PillChrome"
+                                    Background="{ThemeResource TextControlBackground}"
+                                    BorderBrush="{ThemeResource TextControlBorderBrush}"
+                                    BorderThickness="{ThemeResource TextControlBorderThemeThickness}"
+                                    CornerRadius="{TemplateBinding CornerRadius}">
+                                    <TextBox x:Name="TextBox"
+                                             Style="{TemplateBinding TextBoxStyle}"
+                                             PlaceholderText="{TemplateBinding PlaceholderText}"
+                                             Width="{TemplateBinding Width}"
+                                             Height="{TemplateBinding Height}"
+                                             Foreground="{ThemeResource TextControlForeground}"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             FontSize="{TemplateBinding FontSize}"
+                                             FontFamily="{TemplateBinding FontFamily}"
+                                             FontWeight="{TemplateBinding FontWeight}"
+                                             FontStretch="{TemplateBinding FontStretch}"
+                                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                             ScrollViewer.BringIntoViewOnFocusChange="False"
+                                             Canvas.ZIndex="0"
+                                             Margin="0"
+                                             DesiredCandidateWindowAlignment="BottomEdge"
+                                             UseSystemFocusVisuals="{TemplateBinding UseSystemFocusVisuals}"
+                                             CornerRadius="{TemplateBinding CornerRadius}" />
+                                </Border>
                                 <Popup x:Name="SuggestionsPopup" ShouldConstrainToRootBounds="False">
                                     <Border x:Name="SuggestionsContainer"
                                             Padding="{ThemeResource AutoSuggestListMargin}"
@@ -94,7 +110,10 @@
             </Style>
         </Grid.Resources>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" />
+            <!-- Auto, not a fixed 40: in the narrow shape the search field opens
+                 as a second row underneath the title, so this bar has to be able
+                 to grow. Its resting height is set by the Border's MinHeight. -->
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -106,8 +125,13 @@
              height that no longer matches its radius. -->
         <Border
             Grid.Row="0"
+            MinHeight="52"
             Padding="{StaticResource MpvTitleBarPadding}">
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -119,8 +143,10 @@
                     FontSize="16"
                     FontWeight="SemiBold" />
                 <Grid
+                    x:Name="SearchPillHost"
+                    Grid.Row="0"
                     Grid.Column="1"
-                    Width="340"
+                    Width="{StaticResource MpvSearchPillWidth}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
                     <!-- Two shapes of one control, swapped in code at the width
@@ -147,6 +173,7 @@
                         SuggestionChosen="SearchBox_SuggestionChosen"
                         TextChanged="SearchBox_TextChanged" />
                     <FontIcon
+                        x:Name="SearchGlyph"
                         Glyph="&#xE721;"
                         FontSize="14"
                         Margin="{StaticResource MpvSearchGlyphMargin}"

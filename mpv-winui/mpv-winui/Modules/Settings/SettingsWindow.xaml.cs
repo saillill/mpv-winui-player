@@ -111,20 +111,68 @@ public sealed partial class SettingsWindow : BaseWindow
     private void SettingsWindow_SizeChanged(object sender, WindowSizeChangedEventArgs e)
     {
         var narrow = e.Size.Width < (double)Application.Current.Resources["MpvNarrowLayoutThreshold"];
-        SearchBox.Visibility = narrow ? Visibility.Collapsed : Visibility.Visible;
-        SearchCompactButton.Visibility = narrow ? Visibility.Visible : Visibility.Collapsed;
+        // Widening closes the dropped-down field: it is a narrow-shape affordance,
+        // and leaving it open would push the whole top bar down in a window that
+        // has room to show the pill in the bar itself.
+        if (!narrow)
+        {
+            _narrowSearchOpen = false;
+        }
+        _narrow = narrow;
+        ApplySearchShape();
     }
 
-    /// <summary>The compact shape puts the pill back so the field can be typed in.
-    /// It does not widen the window: this handler runs before the user has been
-    /// given anything to type into, and a click on a magnifier is not a request
-    /// to resize the window they just sized. The pane stays icon-only until the
-    /// window is widened, which is the width the breakpoint is about.</summary>
+    /// <summary>True while the window is below the narrow-layout breakpoint.</summary>
+    private bool _narrow;
+
+    /// <summary>True while the narrow shape has its search field dropped open.</summary>
+    private bool _narrowSearchOpen;
+
+    /// <summary>Puts the one search control into whichever shape the current width
+    /// calls for.
+    ///
+    /// There is a single AutoSuggestBox, so the narrow shape cannot be a second
+    /// field: it is the same field moved to a second row of the top bar, spanning
+    /// both columns, which is how Windows 11's settings window does it. The move
+    /// is done with Grid.SetRow/SetColumn on the host rather than by reparenting,
+    /// so the typed text, the focus and the page's query binding all survive it.
+    ///
+    /// The overlaid magnifier is tied to the pill's visibility here. It used to
+    /// be left alone, so in the narrow shape the compact button and this glyph
+    /// drew the same icon in the same place -- two magnifiers on top of each
+    /// other, which is what the overlap was.</summary>
+    private void ApplySearchShape()
+    {
+        var droppedDown = _narrow && _narrowSearchOpen;
+
+        SearchBox.Visibility = _narrow && !droppedDown ? Visibility.Collapsed : Visibility.Visible;
+        SearchGlyph.Visibility = SearchBox.Visibility;
+        SearchCompactButton.Visibility = _narrow ? Visibility.Visible : Visibility.Collapsed;
+
+        Grid.SetRow(SearchPillHost, droppedDown ? 1 : 0);
+        Grid.SetColumn(SearchPillHost, droppedDown ? 0 : 1);
+        Grid.SetColumnSpan(SearchPillHost, droppedDown ? 2 : 1);
+        SearchPillHost.Width = droppedDown
+            ? double.NaN
+            : (double)Application.Current.Resources["MpvSearchPillWidth"];
+        SearchPillHost.HorizontalAlignment = droppedDown
+            ? HorizontalAlignment.Stretch
+            : HorizontalAlignment.Center;
+    }
+
+    /// <summary>The compact shape's magnifier drops the pill open underneath the
+    /// title, and takes it away again on a second tap. It does not widen the
+    /// window: a click on a magnifier is not a request to resize the window the
+    /// user just sized, and the pane stays icon-only until the window is widened,
+    /// which is the width the breakpoint is about.</summary>
     private void SearchCompactButton_Click(object sender, RoutedEventArgs e)
     {
-        SearchBox.Visibility = Visibility.Visible;
-        SearchCompactButton.Visibility = Visibility.Collapsed;
-        SearchBox.Focus(FocusState.Programmatic);
+        _narrowSearchOpen = !_narrowSearchOpen;
+        ApplySearchShape();
+        if (_narrowSearchOpen)
+        {
+            SearchBox.Focus(FocusState.Programmatic);
+        }
     }
 
     /// <summary>Handles a hand edit to mpv.conf that the watcher has already
