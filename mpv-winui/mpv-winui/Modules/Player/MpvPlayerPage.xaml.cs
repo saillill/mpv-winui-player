@@ -231,12 +231,67 @@ namespace mpv_winui.Modules.Player
 
         private void MpvPlayerPage_ApplyHdrModeOnce()
         {
+            LogColorDecision();
+
             if (_hdrModeAppliedOnce)
             {
                 return;
             }
             _hdrModeAppliedOnce = true;
             AppContext.SendMpvCommand($"script-message-to hdr_auto mode {AppContext.AppSetting.HdrAutoMode}");
+        }
+
+        /// <summary>
+        /// Records what mpv decided about colour for this file.
+        ///
+        /// The reported symptoms - HDR clips not tone-mapped, HDR clips washed out
+        /// on an HDR display - are both invisible in the current logs, because
+        /// nothing writes the properties the decision is made from. This is the
+        /// only place that can: the values only exist once a file is loaded.
+        ///
+        /// Debug level, one line per file, and every read is the generic property
+        /// getter, so a property this mpv build does not have simply logs empty
+        /// rather than failing the load.
+        /// </summary>
+        private void LogColorDecision()
+        {
+            if (!_logger.IsDebugEnabled || _mediaPlayer is null)
+            {
+                return;
+            }
+
+            try
+            {
+                static string Read(mpv_winrt.MpvPlayer player, string name)
+                {
+                    var value = player.GetPropertyString(name);
+
+                    return string.IsNullOrEmpty(value) ? "-" : value;
+                }
+
+                _logger.Debug(
+                    "colour decision: vo={} csp={} gamma={} primaries={} sig-peak={} "
+                    + "tone-mapping={} current-tone-mapping={} target-peak={} target-trc={} "
+                    + "target-prim={} ref-white={} peak-percentile={} compute-peak={}",
+                    Read(_mediaPlayer, "current-vo"),
+                    Read(_mediaPlayer, "d3d11-output-csp"),
+                    Read(_mediaPlayer, "video-params/gamma"),
+                    Read(_mediaPlayer, "video-params/primaries"),
+                    Read(_mediaPlayer, "video-params/sig-peak"),
+                    Read(_mediaPlayer, "tone-mapping"),
+                    Read(_mediaPlayer, "current-tone-mapping"),
+                    Read(_mediaPlayer, "target-peak"),
+                    Read(_mediaPlayer, "target-trc"),
+                    Read(_mediaPlayer, "target-prim"),
+                    Read(_mediaPlayer, "hdr-reference-white"),
+                    Read(_mediaPlayer, "hdr-peak-percentile"),
+                    Read(_mediaPlayer, "hdr-compute-peak"));
+            }
+            catch (Exception ex)
+            {
+                // Diagnostics must never be able to break a load.
+                _logger.Warn(ex, "colour decision log failed");
+            }
         }
 
         private void AppContext_SettingChanged(string key, object? value)
