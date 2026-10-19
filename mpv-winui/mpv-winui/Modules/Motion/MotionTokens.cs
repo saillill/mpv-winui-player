@@ -104,4 +104,25 @@ public static class MotionTokens
 
     /// <summary>Scale a dropdown starts from before growing to full size.</summary>
     public const float DropdownFromScale = 0.94f;
+
+    // ---- spring -----------------------------------------------------------
+    //
+    // The numbers live in SpringMath, beside the formula that uses them, because
+    // that file has no dependencies and is therefore the one the tests can link.
+    // These are forwarders so the motion vocabulary still reads from one place.
+
+    /// <summary>How long a spring takes to settle. 280 ms; see <see cref="SpringMath.SettleMs"/>.</summary>
+    public const double SpringSettleMs = SpringMath.SettleMs;
+
+    /// <summary>Damping ratio; see <see cref="SpringMath.Damping"/>.</summary>
+    public const double SpringDamping = SpringMath.Damping;
+
+    /// <summary>Angular frequency; see <see cref="SpringMath.Frequency"/>.</summary>
+    public const double SpringFrequency = SpringMath.Frequency;
+
+    /// <summary>Peak excursion past the target; see <see cref="SpringMath.Overshoot"/>.</summary>
+    public const float SpringOvershoot = SpringMath.Overshoot;
+
+    /// <summary>Scale a press-and-release starts from.</summary>
+    public const float PressFromScale = 0.94f;
 }

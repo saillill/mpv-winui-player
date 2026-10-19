@@ -675,6 +675,92 @@ public static class MotionBehaviors
         batch.End();
     }
 
+    /// <summary>
+    /// A spring pop: the element overshoots its resting size and settles.
+    ///
+    /// This is the "Q弹" half of the motion vocabulary, and it is a different
+    /// gesture from <see cref="ControlStateChange"/>: that one shrinks slightly and
+    /// returns, which reads as acknowledgement. This one swells past full size and
+    /// comes back, which reads as arrival.
+    ///
+    /// 1.0 -> 1.14 -> 1.0, at <see cref="MotionTokens.SpringDamping"/>. The
+    /// overshoot is the point; a curve that stays under 1.0 is just an ease-out and
+    /// nobody would notice it.
+    ///
+    /// Scale only. No fade: the element is already on screen, and fading it would
+    /// say "new" when the state change says "same thing, different value".
+    /// </summary>
+    /// <param name="element">The element to pop.</param>
+    /// <param name="peak">
+    /// Peak scale. 1.14 for a control the size of a button; a full-width row needs
+    /// less or the text appears to jump, so callers pass 1.04.
+    /// </param>
+    public static void SpringPop(UIElement element, float peak = 1.14f)
+    {
+        var visual = VisualOf(element);
+        var compositor = visual.Compositor;
+
+        visual.StopAnimation(Scale);
+
+        if (!MotionGate.Resolve())
+        {
+            visual.Scale = Vector3.One;
+            visual.CenterPoint = Vector3.Zero;
+            return;
+        }
+
+        var size = visual.Size;
+
+        if (size.X <= 0f || size.Y <= 0f)
+        {
+            // Not laid out: a scale about an unknown centre is worse than none.
+            visual.Scale = Vector3.One;
+            return;
+        }
+
+        visual.CenterPoint = new Vector3(size.X / 2f, size.Y / 2f, 0f);
+
+        var animation = compositor.CreateVector3KeyFrameAnimation();
+
+        animation.Duration = TimeSpan.FromMilliseconds(MotionTokens.SpringSettleMs);
+
+        // The spring runs on the scalar and is lifted to a uniform scale, so the
+        // three axes cannot disagree about it.
+        animation.InsertKeyFrame(0f, Vector3.One);
+
+        const int samples = 24;
+
+        for (var i = 1; i < samples; i++)
+        {
+            var t = (double)i / samples;
+
+            var value = 1f
+                + ((peak - 1f) * MotionEasing.SpringValue(
+                    t, MotionTokens.SpringDamping, MotionTokens.SpringFrequency));
+
+            animation.InsertKeyFrame((float)t, new Vector3(value, value, 1f));
+        }
+
+        animation.InsertKeyFrame(1f, Vector3.One);
+
+        var batch = compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+
+        visual.StartAnimation(Scale, animation);
+
+        batch.Completed += (_, _) =>
+        {
+            // Put the element back exactly, not near: a leftover 1.0001 scale
+            // shows as a hairline seam on a border.
+            visual.StopAnimation(Scale);
+
+            visual.Scale = Vector3.One;
+
+            visual.CenterPoint = Vector3.Zero;
+        };
+
+        batch.End();
+    }
+
     // ------------------------------------------------------ player control bar
 
     /// <summary>

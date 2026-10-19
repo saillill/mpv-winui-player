@@ -22,6 +22,8 @@ using mpv_winui.Modules.Common.View;
 
 using mpv_winui.Modules.Common.Utils;
 
+using mpv_winui.Modules.Motion;
+
 using mpv_winui.Modules.Settings;
 using mpv_winui.Modules.Settings.Controls;
 
@@ -2413,7 +2415,17 @@ namespace mpv_winui.Modules.Player
 
         private void UpdatePlayPauseUI(bool isPaused, bool useTransitions)
 
-        {
+
+
+{
+
+            // The one place every play/pause path converges: the button, the
+
+            // keyboard shortcut, the media key, and playback starting by itself.
+
+            // Hooking the click handler instead would have missed three of those.
+
+            MotionBehaviors.SpringPop(PlayPauseButton);
 
             if (isPaused)
 
