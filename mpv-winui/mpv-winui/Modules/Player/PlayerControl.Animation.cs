@@ -207,9 +207,11 @@ namespace mpv_winui.Modules.Player
                 ControlPanelGrid.Visibility = Visibility.Visible;
             }
 
-            // Keep the XAML opacity at 1 and let the composition value do the
-            // fading. Driving both would square the ramp.
-            ControlPanelGrid.Opacity = 1;
+            // The XAML opacity is the REST value and the composition value does
+            // the fading. Driving both would square the ramp. It is not always 1:
+            // with nothing playing the bar rests dimmed, and writing 1 here is what
+            // used to erase that state one frame after SetTransportEnabled set it.
+            ApplyTransportRestOpacity();
             ControlPanelGradient.Opacity = 1;
 
             // The video area moves on the same beat as the slide, not after it:
@@ -283,13 +285,13 @@ namespace mpv_winui.Modules.Player
             if (show)
             {
                 ControlPanelGradient.Opacity = 1;
-                ControlPanelGrid.Opacity = 1;
+                ApplyTransportRestOpacity();
                 _controlPanelIsVisible = true;
             }
             else
             {
                 ControlPanelGrid.Visibility = Visibility.Collapsed;
-                ControlPanelGrid.Opacity = 1;
+                ApplyTransportRestOpacity();
 
                 // Windowed mode: take the whole host border down, not just the
                 // grid - the Auto-sized page row would otherwise keep a white

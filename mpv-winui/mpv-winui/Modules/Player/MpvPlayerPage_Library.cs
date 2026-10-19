@@ -913,13 +913,7 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
-            _openAlbum = null;
-
-            _albumTracks = [];
-
-            AlbumHost.Visibility = Visibility.Collapsed;
-
-            MotionBehaviors.Reset(AlbumHost);
+            HideSurfacesOverLibrary();
 
             LibraryHost.Visibility = Visibility.Visible;
 
@@ -2189,6 +2183,40 @@ namespace mpv_winui.Modules.Player
             _ = OpenUrlAsync();
         }
 
+        /// <summary>
+        /// Puts away every surface that can cover the library.
+        ///
+        /// There are three: the music page, the album page, and the album page is
+        /// the one that was missed. It sits at a higher ZIndex, has an opaque
+        /// background and hit-tests by default, so leaving it up hides the library
+        /// behind a featureless rectangle AND swallows the drop target that lives
+        /// on the page root.
+        ///
+        /// One method rather than a line at each call site, and called from both
+        /// directions, because the album page was added to this file later by
+        /// someone who did not know the collapse list existed. A fourth surface
+        /// should be no more likely to be forgotten.
+        /// </summary>
+        private void HideSurfacesOverLibrary()
+        {
+            MusicHost.Visibility = Visibility.Collapsed;
+
+            StopRhythm();
+
+            _musicPageVisible = false;
+
+            // Any album is abandoned rather than kept: coming back to the library
+            // is a navigation away from it, and re-entering it later should start
+            // from the list, which is where the cards are.
+            _openAlbum = null;
+
+            _albumTracks = [];
+
+            AlbumHost.Visibility = Visibility.Collapsed;
+
+            MotionBehaviors.Reset(AlbumHost);
+        }
+
         private void SetLibraryVisible(bool visible)
         {
             var wasVisible = _libraryVisible;
@@ -2251,9 +2279,7 @@ namespace mpv_winui.Modules.Player
             // bringing the library back has to put the music page away with it.
             if (visible)
             {
-                MusicHost.Visibility = Visibility.Collapsed;
-                StopRhythm();
-                _musicPageVisible = false;
+                HideSurfacesOverLibrary();
             }
 
             if (visible)

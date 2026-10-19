@@ -117,7 +117,7 @@ namespace mpv_winui.Modules.Player
                         },
                     };
                     ControlPanelGradient.Opacity = 1;
-                    ControlPanelGrid.Opacity = 1;
+                    ApplyTransportRestOpacity();
                     TranslateVertical.Y = 0;
                     ControlPanelGrid.Visibility = Visibility.Visible;
                     _controlPanelIsVisible = true;
@@ -142,7 +142,7 @@ namespace mpv_winui.Modules.Player
                     // windowed bar after double-click fullscreen.
                     StopPanelAnimations();
                     ControlPanelGradient.Visibility = Visibility.Visible;
-                    ControlPanelGrid.Opacity = 1;
+                    ApplyTransportRestOpacity();
                     TranslateVertical.Y = 0;
                     ControlPanelGrid.Visibility = Visibility.Visible;
                     _controlPanelIsVisible = true;

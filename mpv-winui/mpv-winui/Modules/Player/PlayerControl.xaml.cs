@@ -334,8 +334,28 @@ namespace mpv_winui.Modules.Player
 
             ControlPanelGrid.IsHitTestVisible = enabled;
 
-            ControlPanelGrid.Opacity = enabled ? 1.0 : 0.4;
+            ApplyTransportRestOpacity();
         }
+
+        /// <summary>
+        /// The opacity the bar sits at when nothing is animating.
+        ///
+        /// Every path that resets <c>ControlPanelGrid.Opacity</c> after an
+        /// interrupted fade must come through here rather than writing 1. They used
+        /// to write 1 directly, and three of them run immediately after
+        /// <see cref="SetTransportEnabled"/> during startup: the reveal animation's
+        /// completion wrote 1 over the 0.4 that marks the bar disabled, so the grey
+        /// state existed for one frame and then vanished. The bar was still inert -
+        /// only the visual state was lost, which is exactly how it was reported:
+        /// the grey "全没用了".
+        /// </summary>
+        private void ApplyTransportRestOpacity()
+        {
+            ControlPanelGrid.Opacity = _transportEnabled ? 1.0 : DisabledTransportOpacity;
+        }
+
+        /// <summary>How far the bar dims while there is nothing for it to drive.</summary>
+        private const double DisabledTransportOpacity = 0.4;
 
         private bool _transportEnabled = true;
 
