@@ -9,13 +9,11 @@ namespace mpv_winui
 {
     public sealed partial class MainWindow
     {
-        // 250 px is the floor for the player window, and it is deliberately
-        // small: a video window is allowed to be tiny, and PiP needs to be.
-        // This is NOT the floor that governs whether the settings list is
-        // readable -- the settings page is its own window and sets its own
-        // minimum (see SettingsWindow, currently 720 x 480). Raising the
-        // number here would only take resizing away from the player without
-        // making any option row easier to read.
+        // 250 px is the floor for the CONTENT of the player window, and it is
+        // deliberately small: a video window is allowed to be tiny, and PiP
+        // needs to be. This is NOT the floor that governs whether the settings
+        // list is readable -- the settings page is its own window and sets its
+        // own minimum (see SettingsWindow, currently 720 x 480).
         public const int MIN_LOGICAL_WIDTH = 250;
         public const int MIN_LOGICAL_HEIGHT = 250;
 
@@ -23,12 +21,33 @@ namespace mpv_winui
         // classic bar before its button clusters start overlapping.
         private const int MIN_LOGICAL_WIDTH_MODERNX = 400;
 
-        private static int GetMinLogicalWidth()
+        /// <summary>
+        /// The window's floor, in logical pixels: the content floor plus the
+        /// navigation pane.
+        ///
+        /// The pane is fixed chrome now. A window narrower than the pane leaves
+        /// the content area with nothing at all, so the floor has to carry it -
+        /// this is the one place where adding the pane genuinely does have to
+        /// take resizing away from the player, which is why MIN_LOGICAL_WIDTH
+        /// itself is still the content figure and the pane is added here rather
+        /// than folded into that constant.
+        ///
+        /// Read from the control rather than from a second copy of 240:
+        /// MpvNavPaneWidth is what the XAML uses, and a literal here would stop
+        /// matching the moment someone retunes the pane.
+        ///
+        /// Height deliberately does not grow. The tab strip adds 40 to a 250
+        /// floor that already carries a title bar and the control bar, so it is
+        /// the width that actually breaks first.
+        /// </summary>
+        private int GetMinLogicalWidth()
         {
             var layout = AppContext.AppSetting.ControlBarLayout;
-            return layout is "modernx" or "center" or "centered" or "right"
+            var content = layout is "modernx" or "center" or "centered" or "right"
                 ? MIN_LOGICAL_WIDTH_MODERNX
                 : MIN_LOGICAL_WIDTH;
+
+            return content + (int)Math.Round(ShellNav.OpenPaneLength);
         }
 
         private int _x;

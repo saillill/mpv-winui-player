@@ -23,20 +23,19 @@ namespace mpv_winui.Modules.Activation
         }
 
         /// <summary>
-        /// 解析 mpv-winui://?file=... 协议参数。unpackaged 模式下自定义协议经 ShellExecute
+        /// 解析 mpvw://?file=... 协议参数。unpackaged 模式下自定义协议经 ShellExecute
         /// 启动时 AppInstance 上报的是 Launch 而非 Protocol，URI 在 Arguments 里，
         /// 因此 Launch 分支也要走这里。
+        ///
+        /// <para>The scheme and the query shape live in
+        /// <see cref="MpvProtocolUri"/>, which is pure BCL so the same source can
+        /// be linked into mpv-conf-test. Everything that registers or parses this
+        /// protocol goes through that one type; it used to be a constant here, a
+        /// constant in the association control, and two string literals in
+        /// SettingsPage, which is exactly how they came to disagree.</para>
         /// </summary>
-        private static string? ParseMpvWinuiUri(string? arg)
-        {
-            if (string.IsNullOrWhiteSpace(arg)) return null;
-            if (!arg.StartsWith("mpv-winui:", StringComparison.OrdinalIgnoreCase)) return null;
-            if (!Uri.TryCreate(arg, UriKind.Absolute, out var uri)) return null;
-            var query = uri.Query;
-            if (!query.StartsWith("?file=", StringComparison.Ordinal)) return null;
-            var path = query.Substring(6);
-            return string.IsNullOrEmpty(path) ? null : Uri.UnescapeDataString(path);
-        }
+        private static string? ParseMpvwUri(string? arg) =>
+            MpvProtocolUri.TryParseArgument(arg, out var path) ? path : null;
 
         /// <summary>
         /// 收集 unpackaged Launch 激活的文件/URI 参数：
@@ -95,17 +94,18 @@ namespace mpv_winui.Modules.Activation
                 {
                     if (activatedArgs.Data is Windows.ApplicationModel.Activation.IProtocolActivatedEventArgs protocolArgs)
                     {
-                        if (protocolArgs.Uri.Scheme == "mpv-winui")
+                        // Both the scheme and the query are resolved by
+                        // MpvProtocolUri, the same type the unpackaged path uses,
+                        // so the two entry points cannot disagree about the URI.
+                        // This branch used to compare the scheme against
+                        // "mpv-winui" while Package.appxmanifest declared "mpvw",
+                        // so a packaged build rejected every activation the shell
+                        // sent it, and nothing was logged.
+                        if (MpvProtocolUri.TryParseActivation(
+                                protocolArgs.Uri.Scheme, protocolArgs.Uri.Query, out var protocolFile)
+                            && protocolFile is not null)
                         {
-                            var query = protocolArgs.Uri.Query;
-                            if (query.StartsWith("?file="))
-                            {
-                                var file = query.Substring(6);
-                                if (!string.IsNullOrEmpty(file))
-                                {
-                                    return (string[])[Uri.UnescapeDataString(file)];
-                                }
-                            }
+                            return (string[])[protocolFile];
                         }
                     }
                     break;
@@ -114,7 +114,7 @@ namespace mpv_winui.Modules.Activation
                 case ExtendedActivationKind.Launch:
                 {
                     foreach (var candidate in CommandLineCandidates(activatedArgs, includeProcessArgv))                    {
-                        if (ParseMpvWinuiUri(candidate) is string uriPath)
+                        if (ParseMpvwUri(candidate) is string uriPath)
                         {
                             return (string[])[uriPath];
                         }
@@ -184,7 +184,7 @@ namespace mpv_winui.Modules.Activation
                     var items = new List<FileItem>();
                     foreach (var candidate in CommandLineCandidates(activatedArgs, includeProcessArgv))
                     {
-                        var path = ParseMpvWinuiUri(candidate) ?? candidate;
+                        var path = ParseMpvwUri(candidate) ?? candidate;
                         FileItem? item = await Task.Run(() =>
                         {
                             if (Uri.TryCreate(path, UriKind.Absolute, out var uri) && !uri.IsFile)

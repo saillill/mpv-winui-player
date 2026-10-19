@@ -66,11 +66,19 @@ namespace mpv_winui.Modules.Player
 
         public event OnPositionChangedHandler? OnPositionChanged;
 
+        /// <summary>
+        /// The coalesced position, for consumers that need the value rather than
+        /// just "it moved" - the music page's lyric highlight is the only one.
+        /// Separate from OnPositionChanged so existing subscribers are untouched.
+        /// </summary>
+        public event Action<double>? PositionTicked;
+
 
 
         public event EventHandler<(double HoverSec, double RelativeX, double RelativeY)>? PreviewUpdateRequested;
 
         public event EventHandler? PreviewClearRequested;
+
 
 
 
@@ -93,18 +101,6 @@ namespace mpv_winui.Modules.Player
         private bool _panelAnimationShow;
 
         private bool _panelAnimating;
-
-        private readonly DispatcherTimer _panelAnimationTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
-
-        private long _panelAnimationStart;
-
-        private Compositor? _panelCompositor;
-
-        private Visual? _panelGridVisual;
-
-        private Visual? _panelGradientVisual;
-
-
 
         private readonly DispatcherTimer _positionUpdateTimer;
 
@@ -233,6 +229,38 @@ namespace mpv_winui.Modules.Player
         }
 
 
+
+        /// <summary>
+        /// True once a file is loaded. While false the whole bar is inert.
+        ///
+        /// The bar is the transport for what is playing, so with nothing playing
+        /// there is no valid action on it - and it used to be fully interactive
+        /// anyway, which let a click issue a seek or a volume change into an idle
+        /// mpv and quietly change a setting that would apply to the NEXT file.
+        /// Reported as "with no video loaded, every button in the bottom bar
+        /// should be greyed out and not interactive".
+        ///
+        /// IsHitTestVisible rather than IsEnabled: a Grid has no enable state of
+        /// its own to propagate, and IsEnabled on the container would grey the
+        /// glyphs twice (once for the container, once for each button) - the bar
+        /// would read as broken rather than as waiting. Opacity does the dimming
+        /// once, and hit-testing is what actually stops the click.
+        /// </summary>
+        public void SetTransportEnabled(bool enabled)
+        {
+            if (_transportEnabled == enabled)
+            {
+                return;
+            }
+
+            _transportEnabled = enabled;
+
+            ControlPanelGrid.IsHitTestVisible = enabled;
+
+            ControlPanelGrid.Opacity = enabled ? 1.0 : 0.4;
+        }
+
+        private bool _transportEnabled = true;
 
         public void ApplyLocalizedStrings()
 
@@ -700,6 +728,44 @@ namespace mpv_winui.Modules.Player
 
 
 
+        /// <summary>
+        /// Raised on any transport interaction, before the interaction's own
+        /// meaning runs.
+        ///
+        /// The page uses it for one thing: while the library is up over a running
+        /// video, the first press of ANY transport button returns to the video
+        /// and then does what it was asked. Driving the bar from the browse
+        /// screen is otherwise a blind interaction - you are looking at a grid
+        /// while seeking a picture you cannot see. Reported as "if there is video
+        /// loaded, clicking any button on the bar should go back to the video page
+        /// first and then do the thing".
+        ///
+        /// Raised from the control rather than wired per button in the page:
+        /// there are a dozen buttons, three of them are rebuilt into different
+        /// CommandBars by the layout engine, and a handler list that has to be
+        /// kept in step with them is how a new button silently escapes.
+        /// </summary>
+        public event EventHandler? TransportInteraction;
+
+        private void OnTransportInteraction(object sender, RoutedEventArgs e)
+        {
+            TransportInteraction?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// The bar's single interaction funnel.
+        ///
+        /// PointerPressed rather than each button's Click: the press is what
+        /// should bring the video back, and awaiting a Click would mean the
+        /// button had already acted on a screen the user cannot see. Handled is
+        /// deliberately left false so the press still reaches the button that was
+        /// actually hit.
+        /// </summary>
+        private void ControlPanelGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            TransportInteraction?.Invoke(this, EventArgs.Empty);
+        }
+
         private void PlayerControl_Loaded(object sender, RoutedEventArgs e)
 
         {
@@ -737,6 +803,7 @@ namespace mpv_winui.Modules.Player
             SkipForwardButton.Click += SkipForwardButton_Click;
 
             VolumeMuteButton.Click += OnMuteClick;
+
 
             FullScreenButton.Click += OnFullScreenClick;
 
@@ -862,6 +929,7 @@ namespace mpv_winui.Modules.Player
 
             VolumeMuteButton.Click -= OnMuteClick;
 
+
             FullScreenButton.Click -= OnFullScreenClick;
 
             FullWindowButton.Click -= FullWindowButton_Click;
@@ -919,10 +987,6 @@ namespace mpv_winui.Modules.Player
             _positionUpdateTimer.Stop();
 
             _positionUpdateTimer.Tick -= OnPositionUpdateTimerTick;
-
-            _panelAnimationTimer.Stop();
-
-            _panelAnimationTimer.Tick -= PanelAnimationTick;
 
             _overlayIdleTimer.Stop();
 
@@ -1826,6 +1890,9 @@ namespace mpv_winui.Modules.Player
 
 
 
+
+
+
         public void ToggleFullScreen()
 
         {
@@ -1913,9 +1980,33 @@ namespace mpv_winui.Modules.Player
 
             {
 
-                MediaPlayer?.Position(e.NewValue);
+                // Never seek onto the very end.
+                //
+                // Setting time-pos to the file's duration is indistinguishable to
+                // mpv from reaching EOF, and with a playlist loaded that advances
+                // to the next item - so dragging the scrubber to the right edge
+                // started the next video. Reported as "dragging to the end should
+                // not jump to the next video; only a natural EOF may".
+                //
+                // Half a second short is close enough to be invisible (the last
+                // frame is still shown) and far enough that mpv does not treat it
+                // as the end of file. A natural end-of-file still advances,
+                // because that path never goes through this method.
+                var duration = MediaPlayer?.Duration() ?? 0.0;
 
-                UpdateTimeTexts(e.NewValue, MediaPlayer?.Duration() ?? 0.0);
+                var requested = e.NewValue;
+
+                if (duration > 0 && requested >= duration - 0.05)
+
+                {
+
+                    requested = Math.Max(0, duration - 0.5);
+
+                }
+
+                MediaPlayer?.Position(requested);
+
+                UpdateTimeTexts(requested, duration);
 
                 if (AppContext.AppSetting.EnableVideoPreview && ProgressSlider.Maximum > 0)
 
@@ -2028,6 +2119,8 @@ namespace mpv_winui.Modules.Player
             UpdateTimeTexts(position, duration);
 
             OnPositionChanged?.Invoke();
+
+            PositionTicked?.Invoke(position);
 
         }
 

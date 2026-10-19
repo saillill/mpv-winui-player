@@ -69,7 +69,10 @@ namespace mpv_winui.Modules.Player
             });
             RegisterMenuAction("playlist", p =>
             {
-                p.TogglePlaylist(true);
+                // The play queue IS the playlist now. The old right-hand pane
+                // was removed with the split layout, so "View playlist" goes to
+                // the section that shows the same rows full width.
+                p.ShowPlayQueue();
                 return Task.CompletedTask;
             });
             RegisterMenuAction("playlist-import", p => p.ImportPlaylistAsync());
@@ -123,7 +126,11 @@ namespace mpv_winui.Modules.Player
             });
             RegisterMenuAction("media-info", p =>
             {
-                p.ShowMediaInfoWindow();
+                // Same destination as the bar's info key: mpv's own stats
+                // overlay. The menu used to open the app's window while the key
+                // asked for the overlay, so the same command meant two different
+                // things depending on where it was invoked.
+                AppContext.SendMpvCommand("script-binding stats/display-stats-toggle");
                 return Task.CompletedTask;
             });
             RegisterMenuAction("edit-menu-menubar", p =>
