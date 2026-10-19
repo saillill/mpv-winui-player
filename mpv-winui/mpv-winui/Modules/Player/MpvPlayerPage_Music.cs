@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Media.Animation;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Common.View;
@@ -80,58 +81,148 @@ namespace mpv_winui.Modules.Player
         }
 
         /// <summary>
-        /// Splits mpv's media-title into the page's two lines.
+        /// The three text lines, from the file's own tags.
         ///
-        /// mpv reports "Artist - Title" when the file carries both, and just the
-        /// file name when it carries neither, so the separator is the only signal
-        /// available without a full tag reader. When there is no separator the
-        /// title takes the whole string and the artist stays empty rather than
-        /// showing a filename in both slots.
+        /// The tags win: mpv's media-title is "Artist - Title" at best, while the
+        /// file carries album and album artist as well - and those are the two
+        /// lines the page exists to show. The split of media-title survives as the
+        /// fallback for a file MediaInfo cannot read, because a plain "Artist -
+        /// Title" is still better than a filename in both slots.
         /// </summary>
         private void ApplyMusicMetadata()
         {
-            var title = _mediaTitle;
+            var tags = ReadMediaTags();
 
-            var separator = title.LastIndexOf(" - ", StringComparison.Ordinal);
+            var title = TagOr(tags, "title", string.Empty);
+            var artist = TagOr(tags, "artist", string.Empty);
+            var album = TagOr(tags, "album", string.Empty);
 
-            if (separator > 0)
+            if (string.IsNullOrWhiteSpace(title))
             {
-                MusicArtist.Text = title[..separator].Trim();
+                // No tag at all: fall back to mpv's own naming.
+                var mediaTitle = _mediaTitle;
 
-                MusicTitle.Text = title[(separator + 3)..].Trim();
+                var separator = mediaTitle.LastIndexOf(" - ", StringComparison.Ordinal);
+
+                if (separator > 0)
+                {
+                    artist = artist.Length > 0 ? artist : mediaTitle[..separator].Trim();
+
+                    title = mediaTitle[(separator + 3)..].Trim();
+                }
+                else
+                {
+                    title = mediaTitle;
+                }
             }
-            else
-            {
-                MusicArtist.Text = string.Empty;
 
-                MusicTitle.Text = title;
-            }
+            MusicTitle.Text = title;
 
-            // The album line has no source yet: mpv's media-title carries artist
-            // and title only. Left empty rather than filled with the file name,
-            // which would read as an album called "track01.flac".
-            MusicAlbum.Text = string.Empty;
+            MusicArtist.Text = artist;
+
+            // Empty rather than the folder name: "track01.flac" is not an album,
+            // and the line collapses when there is nothing to say.
+            MusicAlbum.Text = album;
 
             UpdateArtwork();
         }
 
         /// <summary>
-        /// Puts whatever cover mpv extracted into the artwork slot.
+        /// The current file's tags, or an empty map.
         ///
-        /// audio-display=embedded-first makes mpv decode the embedded picture and
-        /// report it as a video output frame, so a still image is on the swap
-        /// chain while audio plays. That frame is not reachable as a XAML image -
-        /// it is in the swap chain - so this slot shows the page's own fallback
-        /// glyph until a cover source exists. The glow behind it follows the same
-        /// rule, which is why both start hidden.
+        /// The native getter is answered by MediaInfo, which is already deployed
+        /// beside the exe; an absent DLL, a file with no tags and "nothing is
+        /// playing" all come back as an empty map rather than an exception, which
+        /// is why this has no failure branch of its own.
         /// </summary>
-        private void UpdateArtwork()
+        private IReadOnlyDictionary<string, string> ReadMediaTags()
+        {
+            var tags = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                var native = _mediaPlayer?.GetMediaTags();
+
+                if (native is null)
+                {
+                    return tags;
+                }
+
+                foreach (var pair in native)
+                {
+                    if (!string.IsNullOrWhiteSpace(pair.Value))
+                    {
+                        tags[pair.Key] = pair.Value;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn(ex, "music: reading media tags failed");
+            }
+
+            return tags;
+        }
+
+        private static string TagOr(IReadOnlyDictionary<string, string> tags, string key, string fallback) =>
+            tags.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value) ? value : fallback;
+
+        /// <summary>
+        /// The embedded cover, decoded from the file's own bytes.
+        ///
+        /// Not from the swap chain: audio-display=embedded-first does make mpv
+        /// decode the picture, but that frame lives in the swap chain and this
+        /// build's screenshot-raw refuses to export it (MPV_ERROR_INVALID_PARAMETER,
+        /// verified with both vo=libmpv and vo=null). MediaInfo parses the tag
+        /// itself and hands back the original JPEG/PNG, which is the same picture
+        /// without depending on the render path.
+        ///
+        /// Three states, and the glow tracks the artwork: a real cover, a
+        /// coverless track (placeholder glyph, flat page), and a failure to read
+        /// (same as coverless, because the user cannot act on the difference).
+        /// </summary>
+        private async void UpdateArtwork()
         {
             MusicArtwork.Visibility = Visibility.Collapsed;
 
             MusicArtworkGlow.Visibility = Visibility.Collapsed;
 
             MusicArtworkFallbackIcon.Visibility = Visibility.Visible;
+
+            try
+            {
+                if (_mediaPlayer is null)
+                {
+                    return;
+                }
+
+                if (!_mediaPlayer.TryGetCoverArt(out var stream) || stream is null)
+                {
+                    return;
+                }
+
+                var bitmap = new BitmapImage();
+
+                await bitmap.SetSourceAsync(stream);
+
+                // Both copies, because the glow is the same picture scaled up
+                // behind the slot; one BitmapImage can back two Images.
+                MusicArtwork.Source = bitmap;
+
+                MusicArtworkGlow.Source = bitmap;
+
+                MusicArtwork.Visibility = Visibility.Visible;
+
+                MusicArtworkGlow.Visibility = Visibility.Visible;
+
+                MusicArtworkFallbackIcon.Visibility = Visibility.Collapsed;
+            }
+            catch (Exception ex)
+            {
+                // A corrupt tag, an unsupported image format, a stream that went
+                // away: all of them mean "show the placeholder".
+                _logger.Warn(ex, "music: cover art unavailable");
+            }
         }
 
         /// <summary>
