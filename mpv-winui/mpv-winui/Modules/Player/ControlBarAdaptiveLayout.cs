@@ -94,7 +94,7 @@ internal static class ControlBarAdaptiveLayout
             // --- Narrow and below: the widest non-essential element ---
             ["volume-slider"] = ControlBarTier.Narrow,
 
-            // --- Minimal only: the right group gives up its least-used icons
+            // --- Minimal only: the right group gives up its least-used icon
             // so that More plus two icons is the whole right region. ---
             ["aspect"] = ControlBarTier.Minimal,
         };

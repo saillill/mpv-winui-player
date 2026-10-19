@@ -44,14 +44,7 @@ namespace mpv_winui.Modules.Player
             {
                 if (!string.IsNullOrEmpty(args.MediaTitle))
                 {
-                    _mediaTitle = args.MediaTitle;
-
                     UpdatePageTitle(args.MediaTitle);
-
-                    if (_musicPageVisible)
-                    {
-                        ApplyMusicMetadata();
-                    }
                 }
                 else if (!string.IsNullOrEmpty(args.Filename))
                 {

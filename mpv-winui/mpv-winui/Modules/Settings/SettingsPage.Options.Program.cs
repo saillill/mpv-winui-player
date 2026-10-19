@@ -25,43 +25,10 @@ public sealed partial class SettingsPage
         var program = AppContext.AppLang.SettingsCategoryProgram;
         var window = AppContext.AppLang.SettingsCategoryWindow;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
-        var sPlayerAppearance = AppContext.AppLang.SectionPlayerAppearance;
         var lang = AppContext.AppLang;
 
         return
         [
-            // ===== Player appearance =====
-            new Option
-            {
-                Key = nameof(AppContext.AppSetting.PlayerStyle),
-                Label = lang.SettingsPlayerStyle,
-                Category = program,
-                Section = sPlayerAppearance,
-                Description = lang.SettingsHelpPlayerStyle,
-                Type = OptionType.StringList,
-                Choices =
-                [
-                    new OptionChoice(AppSettings.PlayerStyle_Default, lang.PlayerStyleDefault),
-                    new OptionChoice(AppSettings.PlayerStyle_Center, lang.PlayerStyleCenter),
-                    new OptionChoice(AppSettings.PlayerStyle_Compact, lang.PlayerStyleCompact),
-                ],
-                Getter = () => AppContext.AppSetting.PlayerStyle,
-                Setter = v =>
-                {
-                    AppContext.AppSetting.PlayerStyle = (string)v;
-
-                    // Applied immediately: the skin is a property of the running
-                    // bar, and a setting that only takes effect on the next start
-                    // reads as broken. PlayerControl subscribes to this event and
-                    // owns the Style assignment, so there is one implementation.
-                    AppContext.NotifySettingChanged(
-                        nameof(AppContext.AppSetting.PlayerStyle),
-                        AppContext.AppSetting.PlayerStyle);
-
-                    RefreshWarningsAndEnabled();
-                }
-            },
-
             // ===== Program Behavior =====
             new Option
             {

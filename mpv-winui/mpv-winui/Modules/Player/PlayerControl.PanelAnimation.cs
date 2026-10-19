@@ -50,9 +50,19 @@ namespace mpv_winui.Modules.Player
                 {
                     StopPanelAnimations();
                     ControlPanelGradient.Visibility = Visibility.Visible;
+                    ControlPanelGrid.Opacity = 0;
+                    TranslateVertical.Y = 48;
                     ControlPanelGrid.Visibility = Visibility.Visible;
                     _controlPanelIsVisible = true;
-                    StartPanelAnimation(true);
+    
+                    var storyboard = new Storyboard
+                    {
+                        Duration = TimeSpan.FromMilliseconds(PanelShowMs),
+                    };
+                    AddPanelAnimation(storyboard, "Opacity", 0, 1, PanelShowMs);
+                    AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", 48, 0, PanelShowMs);
+                    storyboard.Begin();
+                    _showStoryboard = storyboard;
                 }
     
                 OnPanelVisibleChanged?.Invoke(false);
@@ -80,11 +90,37 @@ namespace mpv_winui.Modules.Player
                 {
                     StopPanelAnimations();
                     _controlPanelIsVisible = false;
-                    StartPanelAnimation(false);
+    
+                    var storyboard = new Storyboard
+                    {
+                        Duration = TimeSpan.FromMilliseconds(PanelHideMs),
+                    };
+                    AddPanelAnimation(storyboard, "Opacity", 1, 0, PanelHideMs);
+                    AddPanelAnimation(storyboard, "(UIElement.RenderTransform).(TranslateTransform.Y)", 0, 48, PanelHideMs);
+                    storyboard.Completed += (_, _) =>
+                    {
+                        if (!_controlPanelIsVisible)
+                        {
+                            // Collapse the whole 120px host border, not just the
+                            // grid: the Auto-sized page row would otherwise keep a
+                            // white (window background) strip below the video
+                            // after the bar hides.
+                            ControlPanelGradient.Visibility = Visibility.Collapsed;
+                            ControlPanelGrid.Visibility = Visibility.Collapsed;
+                            ControlPanelGrid.Opacity = 1;
+                            TranslateVertical.Y = 0;
+                        }
+                        _hideStoryboard = null;
+                    };
+                    storyboard.Begin();
+                    _hideStoryboard = storyboard;
                 }
     
                 OnPanelVisibleChanged?.Invoke(true);
             }
+    
+            private Storyboard? _showStoryboard;
+            private Storyboard? _hideStoryboard;
     
             public void SetOverlayMode(bool overlay)
             {

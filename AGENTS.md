@@ -168,16 +168,6 @@ methods beats reading the file top to bottom.
 
 ### Architecture gotchas
 
-- **Native libraries are per architecture**: `libs\include` is shared, but
-  `libs\lib\<Platform>\` and `libs\bin\<Platform>\` are not, and `$(Platform)` is
-  the directory name verbatim. Both projects refuse to build when the target
-  architecture's libraries are missing (`CheckNativeLibraries` in the vcxproj,
-  `CheckNativeRuntimeLibraries` in mpv-winui.csproj); that guard replaced a
-  silent success which produced a package containing no player. Win32 is gone
-  for that reason, ARM64 is wired and waiting on binaries. Windows App SDK is
-  referenced as the 2.5.1 meta-package with five components excluded via
-  `ExcludeAssets` — bump them all together or NU1605 will tell you why.
-  Rules and rationale: `docs/deploy-layout.md` §2.5.
 - **Mouse input**: libmpv never sees Win32 mouse input in composition mode. The app forwards keyboard/mouse via the input-forwarding partial (MpvPlayerPage_InputForwarding.cs); display monitoring lives in MpvPlayerPage_Display.cs.
 - **Command strings**: `mpv_command_string` parses C-style escapes. Windows paths need doubled backslashes inside quotes (`Q()` in `MpvSettings.cs`).
 - **Command ordering**: settings ApplyAll, menu commands and `OpenAsync` run through `MpvCommandQueue` (FIFO worker); input forwarding stays direct.

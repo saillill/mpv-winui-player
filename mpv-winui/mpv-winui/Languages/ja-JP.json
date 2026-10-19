@@ -1394,7 +1394,5 @@
   "WatchLaterDisabled": "--write-filename-in-watch-later-config を有効にすると、最近のファイルを選択できます。",
   "WatchLaterEmpty": "後で見るファイルが見つかりません。",
   "Window": "ウィンドウ",
-  "Yes": "はい",
-  "SectionPlayerAppearance": "プレイヤーの外観",
-  "SectionDescPlayerAppearance": "コントロールバーのスキン"
+  "Yes": "はい"
 }

@@ -11,44 +11,6 @@
                 <ResourceDictionary Source="ms-appx:///Modules/Player/CenterPlayerControlStyle.xaml" />
                 <ResourceDictionary Source="ms-appx:///Modules/Player/CompactPlayerControlStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <!-- The app's own accent ramp: the brand orange the transport ring and
-                 the empty-state illustration already use as their first stop
-                 (#D97525). Windows would otherwise hand us the user's system
-                 accent, which is what made the navigation pane's selection bar,
-                 the toggles and the sliders render in whatever colour the
-                 desktop happened to be set to - default Windows blue - while
-                 the player's own artwork was orange.
-
-                 These live here rather than in Styles.xaml because only the
-                 application dictionary is guaranteed to win over
-                 XamlControlsResources' theme dictionaries, and every accent
-                 brush in WinUI (AccentFillColorDefaultBrush and friends) is
-                 defined in terms of these seven colours, so re-colouring the
-                 ramp re-colours the whole app rather than a handful of spots.
-                 Measured, not assumed: with this override in place a lab build
-                 of the same app renders its accent button in SystemAccentColorDark1
-                 (#A5591C, this ramp's value) and reads SystemAccentColor back
-                 as #FFD97525.
-
-                 Overriding the BRUSHES instead was also tried and does not
-                 work - a theme-dictionary entry for AccentFillColorDefaultBrush
-                 here, and again in a dictionary merged after
-                 XamlControlsResources, both lose to WinUI's own definition and
-                 the button keeps rendering the ramp's colour. The seven colours
-                 below are therefore the only lever, which is why there is no
-                 brush override beside them.
-
-                 The light/dark variants are the same hue and saturation with
-                 lightness moved in even steps, which is the shape of the ramp
-                 Windows itself generates. -->
-            <Color x:Key="SystemAccentColor">#FFD97525</Color>
-            <Color x:Key="SystemAccentColorLight1">#FFE39659</Color>
-            <Color x:Key="SystemAccentColorLight2">#FFECB78D</Color>
-            <Color x:Key="SystemAccentColorLight3">#FFF4D8C1</Color>
-            <Color x:Key="SystemAccentColorDark1">#FFA5591C</Color>
-            <Color x:Key="SystemAccentColorDark2">#FF703D13</Color>
-            <Color x:Key="SystemAccentColorDark3">#FF3C200A</Color>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

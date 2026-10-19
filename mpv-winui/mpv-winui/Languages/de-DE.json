@@ -1394,7 +1394,5 @@
   "WatchLaterDisabled": "Aktivieren Sie --write-filename-in-watch-later-config, um kürzliche Dateien auszuwählen.",
   "WatchLaterEmpty": "Keine Dateien für „Später ansehen“ gefunden.",
   "Window": "Fenster",
-  "Yes": "Ja",
-  "SectionPlayerAppearance": "Player-Darstellung",
-  "SectionDescPlayerAppearance": "Skin der Steuerleiste"
+  "Yes": "Ja"
 }

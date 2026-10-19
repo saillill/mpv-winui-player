@@ -157,38 +157,9 @@ namespace mpv_winrt
 		String GetDiscPath(DiscType type);
 		void SetDiscPath(DiscType type, String path);
 
-		// The embedded picture and the file's own tags.
-		//
-		// Both come from MediaInfo rather than from the player: mpv decodes the
-		// cover into the swap chain when audio-display=embedded-first, and that
-		// frame is not reachable as bytes (screenshot-raw is documented as
-		// gpu/gpu-next-only and returns MPV_ERROR_INVALID_PARAMETER in this
-		// build). MediaInfo is already deployed beside mpvw.exe and hands back
-		// the original JPEG/PNG payload.
-		//
-		// Both return null/empty when nothing is playing or the file carries no
-		// such information; neither throws.
-		Boolean TryGetCoverArt(out Windows.Storage.Streams.IRandomAccessStream stream);
-
-		// The same picture for a named file rather than the one playing.
-		//
-		// The album page shows a whole album's art while a different track - or
-		// nothing - is loaded, so reading only the current path cannot serve it.
-		Boolean TryGetCoverArtForPath(String path, out Windows.Storage.Streams.IRandomAccessStream stream);
-		Windows.Foundation.Collections.IMap<String, String> GetMediaTags();
-		String GetCoverArtMimeType();
-
 		Windows.Foundation.Collections.IVectorView<MpvMenuItem> GetMenu();
 		Windows.Foundation.Collections.IVectorView<String> GetSubtitleExtensions();
 		String GetVersion();
-
-		// One property as text, empty when mpv has no such value.
-		//
-		// The player exposed typed properties and typed getters only, so anything
-		// the app wanted to *report* rather than *set* - what tone mapper mpv
-		// chose, what it decided the display was - had no way out. Reading through
-		// the property interface keeps that from needing one method per property.
-		String GetPropertyString(String name);
 
 		event FileStartedEventHandler FileStarted;
 		event FileLoadedEventHandler FileLoaded;

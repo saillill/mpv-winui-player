@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Windowing;
 using mpv_winui.Modules.Common.Utils;
 using System;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Win32;
@@ -338,32 +337,13 @@ namespace mpv_winui.Modules.Player
 
         private const int DefaultDisplayPeakNits = 1000;
 
-        /// <summary>
-        /// What mpv is given for target-peak on a display it should treat as SDR.
-        ///
-        /// "auto", not 0. 0 is not a legal value for this option: setting it
-        /// returns MPV_ERROR_UNSUPPORTED_FORMAT through the property interface and
-        /// MPV_ERROR_COMMAND through the command interface, both verified against
-        /// the shipped mpv-2.dll. The previous code sent "set target-peak 0" on the
-        /// SDR branch, which therefore did nothing at all - so once a session had
-        /// been on an HDR display, target-peak kept the panel peak (1000 on this
-        /// machine) for the rest of that process, and every HDR clip played
-        /// afterwards was mapped for a 1000-nit display while the display was SDR.
-        /// That is the over-bright picture with clipped highlights.
-        /// </summary>
-        private const string SdrTargetPeak = "auto";
-
-        /// <summary>mpv's own default for hdr-reference-white, used when unknown.</summary>
-        private const int DefaultSdrWhiteNits = 203;
-
-        // Last triple pushed to mpv. The 15s fallback timer calls ApplyDisplayPeak
+        // Last pair pushed to mpv. The 15s fallback timer calls ApplyDisplayPeak
         // unconditionally, so without this every tick rewrote identical
         // properties - four log lines a minute for the whole session, and each
         // write re-runs mpv's auto-profile condition evaluation.
-        // int.MinValue / empty forces the first call through.
+        // int.MinValue forces the first call through.
         private int _lastAppliedDisplayPeak = int.MinValue;
-        private string _lastAppliedTargetPeak = string.Empty;
-        private int _lastAppliedReferenceWhite = int.MinValue;
+        private int _lastAppliedTargetPeak = int.MinValue;
 
         /// <summary>
         /// Applies the effective display peak: user <see cref="AppSettings.DisplayPeak"/>
@@ -379,43 +359,31 @@ namespace mpv_winui.Modules.Player
                 var userPeak = AppContext.AppSetting.DisplayPeak;
                 var userTarget = AppContext.AppSetting.TargetPeak;
 
-                // "HDR-like" means mpv should be told the display has a known
-                // luminance target. A user-pinned peak counts even on an SDR
-                // display, because that is what the setting is for.
-                var treatAsHdr = detected > 0 || userPeak > 0;
-
-                var displayPeak = 0;
-                if (treatAsHdr)
+                int displayPeak;
+                int targetPeak;
+                if (detected <= 0 && userPeak <= 0)
+                {
+                    // SDR display (or Windows HDR off): mpv's auto handling is
+                    // correct here. Publishing 0 also keeps the [mpvw-hdr]
+                    // profile from triggering on an SDR display — the previous
+                    // code published the panel's 1000-nit max regardless of the
+                    // HDR toggle, which made mpv render SDR content for a
+                    // 1000-nit display (dark picture).
+                    displayPeak = 0;
+                    targetPeak = userTarget > 0 ? userTarget : 0;
+                }
+                else
                 {
                     displayPeak = userPeak > 0 ? userPeak : detected;
                     if (displayPeak <= 0)
                     {
                         displayPeak = DefaultDisplayPeakNits;
                     }
+
+                    targetPeak = userTarget > 0 ? userTarget : displayPeak;
                 }
 
-                // Publish 0 to user-data regardless: it is what keeps the
-                // [mpvw-hdr] profile-cond from firing on an SDR display.
-                var targetPeak = userTarget > 0
-                    ? userTarget.ToString(CultureInfo.InvariantCulture)
-                    : treatAsHdr
-                        ? displayPeak.ToString(CultureInfo.InvariantCulture)
-                        : SdrTargetPeak;
-
-                // hdr-reference-white is the SDR white level inside an HDR
-                // container, not the panel peak. Its manual entry reads "the
-                // assumed peak brightness of the mastering display for SDR content
-                // ... the SDR brightness in HDR container". This code used to pin
-                // it to displayPeak (1000 here), which mapped SDR-level content as
-                // if it were five times brighter than it is - the washed-out look
-                // that sat on top of the clipped highlights. On a Windows HDR
-                // display the accurate number is SdrWhiteLevelInNits: 196-200 on
-                // this machine, against a 1000-nit panel.
-                var referenceWhite = treatAsHdr ? ReadSdrWhiteNits() : 0;
-
-                if (displayPeak == _lastAppliedDisplayPeak
-                    && string.Equals(targetPeak, _lastAppliedTargetPeak, StringComparison.Ordinal)
-                    && referenceWhite == _lastAppliedReferenceWhite)
+                if (displayPeak == _lastAppliedDisplayPeak && targetPeak == _lastAppliedTargetPeak)
                 {
                     return;
                 }
@@ -423,76 +391,18 @@ namespace mpv_winui.Modules.Player
                 AppContext.SendMpvCommand($"no-osd set user-data/mpvw/display-peak {displayPeak}");
                 AppContext.SendMpvCommand($"no-osd set target-peak {targetPeak}");
 
-                // HDR peak detection, pinned rather than left to the config.
-                //
-                // The over-bright HDR picture also came from the peak detector,
-                // not from the tone-mapping curve: hdr-peak-percentile was 0.0 in
-                // this config, which makes mpv treat the SINGLE brightest pixel in
-                // the frame as the peak, so one specular highlight pushed the
-                // whole mapping down and then the highlights were clipped against
-                // a peak that was never the display's. 99.5 is the value mpv's
-                // documentation recommends precisely for this: ignore the top 0.5%
-                // of pixels when measuring scene peak.
-                //
-                // Both are restored on an SDR target rather than left pinned. The
-                // old code only ever wrote them inside the displayPeak > 0 branch,
-                // so an hdr-* value set on one display survived every later
-                // display change for the lifetime of the process.
-                if (treatAsHdr)
-                {
-                    AppContext.SendMpvCommand("no-osd set hdr-peak-percentile 99.5");
-                    AppContext.SendMpvCommand($"no-osd set hdr-reference-white {referenceWhite}");
-                }
-                else
-                {
-                    AppContext.SendMpvCommand("no-osd set hdr-peak-percentile 0");
-                    AppContext.SendMpvCommand("no-osd set hdr-reference-white auto");
-                }
-
                 _lastAppliedDisplayPeak = displayPeak;
                 _lastAppliedTargetPeak = targetPeak;
-                _lastAppliedReferenceWhite = referenceWhite;
 
                 if (_logger.IsDebugEnabled)
                 {
-                    _logger.Debug(
-                        "display peak applied: detected={}, displayPeak={}, targetPeak={}, referenceWhite={}, treatAsHdr={}",
-                        detected, displayPeak, targetPeak,
-                        referenceWhite > 0 ? referenceWhite.ToString(CultureInfo.InvariantCulture) : "auto",
-                        treatAsHdr);
+                    _logger.Debug("display peak applied: detected={}, displayPeak={}, targetPeak={}",
+                        detected, displayPeak, targetPeak);
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error(ex, "apply display peak failed");
-            }
-        }
-
-        /// <summary>
-        /// The SDR white level of the current display, in nits, for
-        /// hdr-reference-white.
-        ///
-        /// This is the brightness SDR content occupies inside an HDR container, so
-        /// it is the number that keeps white at white instead of pushing the whole
-        /// SDR range toward the panel peak. Falls back to mpv's own documented
-        /// default when the display reports nothing usable.
-        /// </summary>
-        private int ReadSdrWhiteNits()
-        {
-            try
-            {
-                var colorInfo = _displayInfo?.GetAdvancedColorInfo();
-                if (colorInfo is null || colorInfo.SdrWhiteLevelInNits <= 0)
-                {
-                    return DefaultSdrWhiteNits;
-                }
-
-                return Math.Clamp((int)Math.Round(colorInfo.SdrWhiteLevelInNits), 80, 1000);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "read SDR white level failed");
-                return DefaultSdrWhiteNits;
             }
         }
 

@@ -489,34 +489,6 @@ namespace mpv_winui.Modules.Language
         // Section captions split each category into topic groups.
         public string SectionProgramInterface { get; set; } = "Interface";
         public string SectionDescProgramInterface { get; set; } = "Theme, backdrop material, UI font";
-
-        /// <summary>
-        /// The control bar's appearance.
-        ///
-        /// A section of its own rather than a row inside Interface: it has nothing
-        /// to do with the window chrome, and folding it in would put a
-        /// player-only control between the theme and the backdrop.
-        /// </summary>
-        public string SectionPlayerAppearance { get; set; } = "Player appearance";
-
-        /// <summary>See <see cref="SectionPlayerAppearance"/>.</summary>
-        public string SectionDescPlayerAppearance { get; set; } = "Control bar skin";
-
-        /// <summary>The control-bar skin choice.</summary>
-        public string SettingsPlayerStyle { get; set; } = "Control bar skin";
-
-        /// <summary>See <see cref="SettingsPlayerStyle"/>.</summary>
-        public string SettingsHelpPlayerStyle { get; set; }
-            = "The transport bar's layout while a file is playing. Standard is the bar the rest of this window uses; Centre puts the controls in the middle of the picture; Compact narrows the bar and drops the volume slider.";
-
-        /// <summary>Skin name: the default bar.</summary>
-        public string PlayerStyleDefault { get; set; } = "Standard";
-
-        /// <summary>Skin name: controls centred over the picture.</summary>
-        public string PlayerStyleCenter { get; set; } = "Centre";
-
-        /// <summary>Skin name: narrow bar.</summary>
-        public string PlayerStyleCompact { get; set; } = "Compact";
         public string SectionProgramLanguageLog { get; set; } = "Language & logging";
         public string SectionDescProgramLanguageLog { get; set; } = "Interface language, debug logging";
         public string SectionProgramTesting { get; set; } = "Testing";

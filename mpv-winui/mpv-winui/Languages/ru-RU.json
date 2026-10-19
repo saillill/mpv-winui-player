@@ -1394,7 +1394,5 @@
   "WatchLaterDisabled": "Включите --write-filename-in-watch-later-config, чтобы выбирать недавние файлы.",
   "WatchLaterEmpty": "Файлы «смотреть позже» не найдены.",
   "Window": "Окно",
-  "Yes": "Да",
-  "SectionPlayerAppearance": "Внешний вид проигрывателя",
-  "SectionDescPlayerAppearance": "Оформление панели управления"
+  "Yes": "Да"
 }

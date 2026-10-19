@@ -1394,7 +1394,5 @@
   "WatchLaterDisabled": "Activez --write-filename-in-watch-later-config pour sélectionner les fichiers récents.",
   "WatchLaterEmpty": "Aucun fichier à regarder plus tard trouvé.",
   "Window": "Fenêtre",
-  "Yes": "Oui",
-  "SectionPlayerAppearance": "Apparence du lecteur",
-  "SectionDescPlayerAppearance": "Habillage de la barre de contrôle"
+  "Yes": "Oui"
 }

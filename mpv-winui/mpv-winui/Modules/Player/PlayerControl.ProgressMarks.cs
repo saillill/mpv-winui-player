@@ -135,24 +135,7 @@ namespace mpv_winui.Modules.Player
                         ? chapters.Where(c => c.Time > 0).Select(c => c.Time).ToArray()
                         : [];
                     _cachedChapterDuration = duration;
-
-                    // A theme resource, not a hard-coded white.
-                    //
-                    // It was #80FFFFFF - 50% white - which is invisible on a light
-                    // surface and only just visible on a dark one, so chapter
-                    // marks effectively did not exist. TextFillColorSecondary sits
-                    // at the right contrast in BOTH themes, and it is the same
-                    // brush the slider's own secondary text uses, so the marks read
-                    // as part of the bar rather than as something stuck on it.
-                    //
-                    // Resolved through the control's own resource lookup: the
-                    // Application indexer resolves against the APPLICATION theme,
-                    // not this element's, which is the trap this codebase has hit
-                    // before.
-                    _chapterTickBrush = Resources.TryGetValue("MpvChapterTickBrush", out var brush)
-                        && brush is SolidColorBrush resolved
-                            ? resolved
-                            : new SolidColorBrush(Windows.UI.Color.FromArgb(0xB3, 0x80, 0x80, 0x80));
+                    _chapterTickBrush ??= new SolidColorBrush(Windows.UI.Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF));
                 }
     
                 if (Math.Abs(width - _lastChapterMarkWidth) < 1.0 && !force)
@@ -164,25 +147,13 @@ namespace mpv_winui.Modules.Player
                 ChapterMarksCanvas.Children.Clear();
                 foreach (var time in _cachedChapterTimes)
                 {
-                    // 2 DIP wide with a 1 DIP radius and full track height: a 1
-                    // DIP hairline at 100% scaling renders as a single subpixel
-                    // column and the compositor can drop it entirely, which is the
-                    // "chapter marks are almost invisible" report. The mark also
-                    // spans the whole track rather than a third of it, so it reads
-                    // as a segment boundary instead of a stray dot.
                     var tick = new Border
                     {
-                        Width = 2,
+                        Width = 1,
                         Height = 14,
-                        CornerRadius = new CornerRadius(1),
                         Background = _chapterTickBrush,
-                        VerticalAlignment = VerticalAlignment.Center,
                     };
-
-                    // Centred on the boundary, not starting at it: an odd-width
-                    // mark anchored at x sits half a mark to the right of the
-                    // chapter time it is supposed to denote.
-                    Canvas.SetLeft(tick, (time / duration * width) - 1);
+                    Canvas.SetLeft(tick, time / duration * width);
                     ChapterMarksCanvas.Children.Add(tick);
                 }
             }

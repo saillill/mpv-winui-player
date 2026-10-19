@@ -1394,7 +1394,5 @@
   "WatchLaterDisabled": "Habilita --write-filename-in-watch-later-config para seleccionar archivos recientes.",
   "WatchLaterEmpty": "No se encontraron archivos para ver más tarde.",
   "Window": "Ventana",
-  "Yes": "Sí",
-  "SectionPlayerAppearance": "Aspecto del reproductor",
-  "SectionDescPlayerAppearance": "Estilo de la barra de control"
+  "Yes": "Sí"
 }

@@ -321,93 +321,6 @@ BrowseHost (ScrollViewer)              ← 全页唯一滚动面，持有垂直�
 - **选图标必须先把候选字形渲染成图看过**，不要猜码位。
   且**先与在用的 59 个比对**（最合适的候选往往已被占用）。
 
-**行前置图标列已移除（2026-10-14，阶段 5）。**
-
-- 官方设置窗口的行内**没有**前置图标。第十一处核对后，`OptionListControl.xaml`
-  的 **11 个选项行模板**（Boolean/Text/Integer/Double/TextList/Color/Action/
-  CheckList/Layout/MultiList/ShaderList）删掉了「Auto 图标列 + FontIcon」，
-  行现在是 `Border > 控件` 两层的直接结构；`Option.SectionGlyph` 与
-  `Styles.xaml` 的 `MpvOptionRowIconSize` 一并删除（当时同款的动效演示页
-  `DemoOptionRow` 也做了同样处理；该演示页及其入口已整体删除）。改后行内只剩
-  标签/描述/值控件三列。
-- **分区图标本身没有消失**：`SettingsSections.All` 仍是唯一来源，继续服务
-  分类栏与**分区卡片**（折叠态总览卡片本来就带 glyph/标题/描述/chevron，
-  这是与"选项行"不同的形态，不在本次删除范围）。所以 §3.3 与 `check-sections`
-  的"59 分区 = 59 个互不相同图标"约束**照旧成立**。
-- **两处刻意保留的自绘/例外**（登记备查，改动前先读这里）：
-  1. **搜索胶囊自绘**（`MpvSearchPill*` 一族资源）——它修的是框架搜索框的真实
-     缺陷，不是"重画 Fluent 已有物"，故保留。
-  2. `Themes/Generic.xaml` 只保留 `SliderExt` / `CheckBoxExt` 的隐式样式（它们经
-     `DefaultStyleKey` 自动加载，是活的）。原先同文件里的
-     `<Style TargetType="local:PlayerControl">` 整块（含 play/pause/shuffle 等
-     元素 id 的模板）是**死块**：`PlayerControl` 是带自己 XAML 的 `UserControl`，
-     其隐式样式键是 `typeof(UserControl)`，永不匹配该 `TargetType`；证据是
-     `PlayerControl.xaml` 里同名 `x:Name`（含 `PlayPauseButton`/`ShuffleSymbol`）
-     才是运行期真正被填充的字段——若死块生效这些字段会是 null 并立刻抛错。
-     已删除，`Generic.xaml` 由 706 行降到 13 行。
-  3. **`LeftContentToggleSwitchStyle`：删过一次又装回来了——不要再删。**
-     它与 `BasedOn` 的 `DefaultToggleSwitchStyle` 在**布局上是镜像**，不是抄写：
-     - 框架默认：`Off/OnContentPresenter` 在 `Grid.Column="2"`，开关
-       （`OuterBorder`/`SwitchKnobBounds`/`SwitchKnob`）落在隐式的 `0` →
-       **`[开关][no|yes]`**。
-     - 本样式：内容在 `Grid.Column="0"`，开关在 `Grid.Column="2"` →
-       **`[no|yes][开关]`**。
-     conf 编辑器每个布尔行都靠"文案在药丸左边"来读；删掉它会让这些行整体翻转
-     （阶段 5 清理时删过一次，就是这么翻的，随后单项回退还原）。对照
-     `DefaultToggleSwitchStyle` 时要看**哪个元素占哪一列**，只比属性集合会漏掉这一
-     点——这条正是踩过的坑。
-     `ToggleSwitchPreContentMargin`/`PostContentMargin`（=4）是**独立资源**，
-     与该样式无关、照旧生效。`Styles.xaml` 里该样式上方已留警示注释。
-
-**B 段：图标替换与自绘清理（2026-10-15，阶段 5）。**
-
-- **三处手绘 Shuffle 已替换为官方生成字形**（`FluentIcons.ArrowShuffle`，由
-  `tools/gen-fluent-icons.py` 生成）：`CenterPlayerControlStyle.xaml`（`ShuffleSymbol`
-  与 `MoreShuffleIcon` 两处基础 `Data`）、`CompactPlayerControlStyle.xaml`
-  （`MoreShuffleIcon`），以及 `ControlBarIcons.cs` 的 `Shuffle` 常量（改为引用生成
-  常量，C# 侧零副本）。
-- **激活态不再写 `Data`**：三个 `ShuffleState` setter 原本是
-  `<Setter Target="…Data" Value="F1 M 16.08…">`——正是一处 `Data` 一次性的历史坑
-  （字符串→Geometry 的转换只有运行时才知道成不成）。现在改为切 **`Foreground`**
-  （`AccentTextFillColorPrimaryBrush`），关闭态沿用基底色。这与相邻的
-  Repeat / Volume / FullScreen 状态按钮同构；它们用 `FontIcon.Glyph`（字符串，安全）
-  换形态，而 shuffle 只有单一形态，故用颜色表达激活。
-- **2 份 XAML 副本 + 1 处 C# 引用是刻意接受的**：Style 模板里不能 `x:Bind` 一个 C#
-  常量（模板在资源字典中，没有代码上下文），而共享 `<PathGeometry>` 资源不可行
-  （一次性几何规则：一个 Geometry 只能属于一个 PathIcon，该模板又会按控制实例化）。
-  为避免引入本项目从未使用过的 `GetTemplateChild`/视觉树查找机制，接受这三处副本，
-  每处都注明「来源=生成器，改图先跑 `tools/gen-fluent-icons.py`」。
-- **播放按钮：保持圆环，不改形状。** 三套控制栏（默认 / Center / Compact）本来就是
-  「品牌渐变 `Ellipse` 圆环 + 官方 `play_24_filled` / `pause_24_filled` 字形，以
-  **Visibility** 切换」，形状与状态表达都已对齐、字形与比例也已取自官方。
-  `play_circle` / `pause_circle` 虽已存在（本阶段已纳入生成器），但它们是**自带单色圆
-  的一体字形**：采用即会把品牌渐变圆环换成平面单色圆并丢掉一个设计元素。故按
-  「宁可少改」保留圆环，只更正了两处已过时的注释（旧注释称「图标集没有
-  pause_circle」）。`MpvEmptyStateIconBrush` 与 `MpvTransportPlayRingBrush` 原样保留。
-- `ControlBarAdaptiveLayout.OverflowEntries`（含 shuffle 的 id **`"random"`**）**一字未动**；
-  `mpv-conf-test` 的 `EveryEntryIsRenderedByTheUiTable` 断言照旧（442 全绿）。
-
-**项 3：分区/自定义模板的字面量令牌化（2026-10-15）。**
-
-- **对齐（观感不变）**：`OptionListControl.xaml` 的 `CustomizeSplitterTemplate` 与
-  `SectionCardTemplate` 描述行 `FontSize="12"` → `CaptionTextBlockStyle`
-  （Caption = 12/16 Normal，与裸 12px 文本一致）；`SectionCardTemplate` 的
-  `Spacing="2"` → `MpvSpaceXxs`（=2）。
-- **刻意保留的字面量**（同样就地写在 `OptionListControl.xaml` 顶部那段
-  "Deliberate literals" 注释里，改之前先读那段）：
-  - `FontSize="14"`（折叠分区卡标题）、`FontSize="16"`（自定义栏标题，且带 SemiBold）：
-    **没有既精确又不改行高的排版台阶**（Body 是 14/20）。
-  - `MinHeight="72"`／`Margin="0,8,0,8"`／`ColumnSpacing="18"`／图标字号 20/14/16/12：
-    **已于 2026-10-16 升格为具名令牌（值未变）** —— `MpvSectionCardMinHeight` /
-    `MpvSectionCardMargin` / `MpvSectionCardColumnSpacing` / `MpvSectionCardIconSize`(20) /
-    `MpvSectionCardChevronSize`(12) / `MpvSectionHeaderIconSize`(16) / `MpvInlineIconSize`(14)，
-    均定义在 `Styles.xaml`。理由：让两份卡片模板不可能各自漂移，并让这些数字不再读作
-    一次性取值；先在本节登记、再升格，正是这一步的用法（18 仍保留 18，未退到 16）。
-  - 四值 `Padding="12,8,12,8"` / `"12,12,12,12"`：`MpvSpace*` 是 `x:Double`，表达不了
-    `Thickness`——仍是字面量。
-- **口径**：能对齐现有令牌**且不改变观感**的才对齐；对不上的保持原值并就地写理由，
-  **不为对齐而改观感**。
-
 ### 3.4 分类归置原则
 
 - 顶层 **9 个**（Program / Playback / Video / Audio / Subtitles / Window /
@@ -788,7 +701,7 @@ Key = SomeStringConstant                  // 常量可能声明在别的文件
 | A-1 | `check-sections.option_keys()` 只读手写半边（正则只匹配 `},`，生成块是 `});`） | 🔴 检查器缺陷 | 改括号配平读两半；`custom-section:`/`Shortcut:` 按前缀豁免 | ✅ **已修**，反向验证过 |
 | A-2 | `report-missing-options.load_exposed()` 只读 `MpvSettings.cs` → 报 266/550 | 🔴 文档错误 | 读两半 → **815/1**；`docs/missing-options.md` 重生成 | ✅ **已修** |
 | A-3 | `AGENTS.md` 的 Work loop 要求运行 exe + IPC + 截图 | 🔴 与 §5.5 冲突 | 改为 `Build → Check → Hand over`，新增「Do not launch the app」小节并写明判据 | ✅ **已修** |
-| A-4 | `AGENTS.md` 的产物名写 `mpv-winui.exe` | 🔴 错误 | 改为 `mpvw.dll`／`mpvw.exe`，注明是 `b777f30` 的 `<AssemblyName>mpvw</AssemblyName>` 改的。**原记录漏了一半责任方**：当时只改了 `AGENTS.md`，`installer/product.wxs`（开始菜单快捷方式 `Target`、协议 `DefaultIcon`、协议 `shell\open\command` 共三处）与 `installer/build-installer.ps1`（publish 输出的存在性检查）**仍写 `mpv-winui.exe`，从未修**。后者使 MSI 构建在 publish 输出完全正常时也必然报错退出，所以该脚本此前从未成功产出过 MSI；前者让装出来的包装了开始菜单快捷方式指向不存在的文件、空白图标、`mpvw://` 协议启动不存在的程序，且构建期完全不报错。**本次已一并修复安装器两处** | ✅ 文档已修 / 安装器本次补齐 |
+| A-4 | `AGENTS.md` 的产物名写 `mpv-winui.exe` | 🔴 错误 | 改为 `mpvw.dll`／`mpvw.exe`，注明是 `b777f30` 的 `<AssemblyName>mpvw</AssemblyName>` 改的 | ✅ **已修** |
 | A-5 | `check-settings-drift` 的 7 条 ERROR | 🔴 假阳性 | 7 项均为 App 内部状态；补进 `UNMAPPED_OK` 并逐条写理由，**不补假映射** | ✅ **已修**，反向验证过 |
 | A-6 | `docs/compare-upstream.md` 的"上游"指 `ikas-mc` 而非本仓库 `origin`（`saillill`） | 🔴 基线错误 | 已在文件头加基线声明 + 表格说明哪些章节还能用；§3.1 加了就地作废标记 | ✅ **已修** |
 | A-7 | `SettingsPage.Options.Advanced.cs` 文件名与内容不符（`advanced` 分类已删，文件仍是 102 项 Video/GPU/Program 主题项） | 🔵 命名遗留 | 改名会让 26 个提交的 diff 难读，**需权衡**；至少改文件头注释 | 待定 |

@@ -50,51 +50,6 @@ namespace mpv_winui.Modules.Language
 
         public string LibrarySortNameAsc { get; set; } = "A-Z";
 
-        /// <summary>
-        /// The music library's fallback group for a file with no album tag.
-        ///
-        /// A group, not an error: an untagged file still belongs in the library,
-        /// and every reference player shows one "unknown" bucket rather than
-        /// hiding those tracks.
-        /// </summary>
-        public string LibraryUnknownAlbum { get; set; } = "Unknown album";
-
-        /// <summary>See <see cref="LibraryUnknownAlbum"/>.</summary>
-        public string LibraryUnknownArtist { get; set; } = "Unknown artist";
-
-        // ---- album page --------------------------------------------------
-
-        /// <summary>The album page's action row, alongside <see cref="LibraryPlayAll"/>.</summary>
-        public string LibraryShufflePlay { get; set; } = "Shuffle";
-
-        /// <summary>"Add to" on the album page, same meaning as the queue's.</summary>
-        public string LibraryAlbumAddTo { get; set; } = "Add to";
-
-        /// <summary>Back from an album to the library list.</summary>
-        public string LibraryAlbumBack { get; set; } = "Back to music";
-
-        /// <summary>
-        /// "{0} songs, {1}" - the count and total length under the album title.
-        /// The separator is a middle dot in Latin languages, which is what the
-        /// reference player uses; a translator can drop it for their language.
-        /// </summary>
-        public string LibraryAlbumSummary { get; set; } = "{0} songs \u00b7 {1}";
-
-        /// <summary>The track table's column headings.</summary>
-        public string LibraryColumnTitle { get; set; } = "Title";
-
-        /// <summary>See <see cref="LibraryColumnTitle"/>.</summary>
-        public string LibraryColumnArtist { get; set; } = "Artist";
-
-        /// <summary>See <see cref="LibraryColumnTitle"/>.</summary>
-        public string LibraryColumnGenre { get; set; } = "Genre";
-
-        /// <summary>See <see cref="LibraryColumnTitle"/>.</summary>
-        public string LibraryColumnLength { get; set; } = "Length";
-
-        /// <summary>Shown when an album's files cannot be listed any more.</summary>
-        public string LibraryAlbumEmpty { get; set; } = "These files are no longer in the library.";
-
         public string LibrarySortNameDesc { get; set; } = "Z-A";
 
         public string LibrarySortNewest { get; set; } = "Newest first";
