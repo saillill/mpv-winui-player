@@ -163,10 +163,7 @@ namespace mpv_winui
 
         public static void SwitchLanguage(string code)
         {
-            // Sanitised here rather than only inside the loader: the value is
-            // both persisted and interpolated into an mpv command, so what gets
-            // stored and sent has to be the validated form.
-            var lang = LanguageManager.Normalize(code);
+            var lang = string.IsNullOrWhiteSpace(code) ? "en-US" : code;
             AppSetting.CurrentLanguage = lang;
             LanguageManager.Load(AppLang, lang);
             SendMpvCommand($"set user-data/mpvw/language {lang}");
@@ -175,7 +172,13 @@ namespace mpv_winui
 
         private static void LoadLanguage()
         {
-            LanguageManager.Load(AppLang, AppSetting.CurrentLanguage);
+            var lang = AppSetting.CurrentLanguage;
+            if (string.IsNullOrWhiteSpace(lang))
+            {
+                lang = "en-US";
+            }
+
+            LanguageManager.Load(AppLang, lang);
         }
 
         public static async Task WaitAll()

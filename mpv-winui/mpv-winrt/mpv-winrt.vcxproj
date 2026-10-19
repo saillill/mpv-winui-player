@@ -1,35 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--
-    NuGet package versions, in one place.
-
-    The four WindowsAppSDK entries are one group, pinned to the versions the
-    app's Microsoft.WindowsAppSDK 2.5.1 meta-package resolves (see
-    mpv-winui/mpv-winui/mpv-winui.csproj and mpv-winrt/packages.config).
-    mpv_winrt.dll runs in the app's process, so its components must come from
-    the same family the app ships. Bump all four together, never one alone.
-  -->
-  <PropertyGroup Label="PackageVersions">
-    <WinAppSdkBaseVersion>2.0.4</WinAppSdkBaseVersion>
-    <WinAppSdkDWriteVersion>2.1.0</WinAppSdkDWriteVersion>
-    <WinAppSdkFoundationVersion>2.3.12</WinAppSdkFoundationVersion>
-    <WinAppSdkIxVersion>2.1.9</WinAppSdkIxVersion>
-    <WinAppSdkWinUiVersion>2.3.9</WinAppSdkWinUiVersion>
-    <CppWinRTVersion>3.0.260818.1</CppWinRTVersion>
-    <WilVersion>1.0.260126.7</WilVersion>
-    <SdkBuildToolsVersion>10.0.28000.2526</SdkBuildToolsVersion>
-    <SdkBuildToolsMsixVersion>1.7.260610101</SdkBuildToolsMsixVersion>
-    <WebView2Version>1.0.4129.50</WebView2Version>
-    <PackagesDir>$(MSBuildThisFileDirectory)..\packages\</PackagesDir>
-  </PropertyGroup>
-  <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.WinUI.$(WinAppSdkWinUiVersion)\build\native\Microsoft.WindowsAppSDK.WinUI.props" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.WinUI.$(WinAppSdkWinUiVersion)\build\native\Microsoft.WindowsAppSDK.WinUI.props')" />
-  <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.Foundation.$(WinAppSdkFoundationVersion)\build\native\Microsoft.WindowsAppSDK.Foundation.props" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.Foundation.$(WinAppSdkFoundationVersion)\build\native\Microsoft.WindowsAppSDK.Foundation.props')" />
-  <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.InteractiveExperiences.$(WinAppSdkIxVersion)\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.InteractiveExperiences.$(WinAppSdkIxVersion)\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props')" />
-  <Import Project="$(PackagesDir)Microsoft.Windows.CppWinRT.$(CppWinRTVersion)\build\native\Microsoft.Windows.CppWinRT.props" Condition="Exists('$(PackagesDir)Microsoft.Windows.CppWinRT.$(CppWinRTVersion)\build\native\Microsoft.Windows.CppWinRT.props')" />
-  <Import Project="$(PackagesDir)Microsoft.Windows.SDK.BuildTools.$(SdkBuildToolsVersion)\build\Microsoft.Windows.SDK.BuildTools.props" Condition="Exists('$(PackagesDir)Microsoft.Windows.SDK.BuildTools.$(SdkBuildToolsVersion)\build\Microsoft.Windows.SDK.BuildTools.props')" />
-  <Import Project="$(PackagesDir)Microsoft.Windows.SDK.BuildTools.MSIX.$(SdkBuildToolsMsixVersion)\build\Microsoft.Windows.SDK.BuildTools.MSIX.props" Condition="Exists('$(PackagesDir)Microsoft.Windows.SDK.BuildTools.MSIX.$(SdkBuildToolsMsixVersion)\build\Microsoft.Windows.SDK.BuildTools.MSIX.props')" />
-  <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.DWrite.$(WinAppSdkDWriteVersion)\build\Microsoft.WindowsAppSDK.DWrite.props" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.DWrite.$(WinAppSdkDWriteVersion)\build\Microsoft.WindowsAppSDK.DWrite.props')" />
-  <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.Base.$(WinAppSdkBaseVersion)\build\native\Microsoft.WindowsAppSDK.Base.props" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.Base.$(WinAppSdkBaseVersion)\build\native\Microsoft.WindowsAppSDK.Base.props')" />
+  <Import Project="..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.props" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.props')" />
+  <Import Project="..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.props" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.props')" />
+  <Import Project="..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props')" />
+  <Import Project="..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.props" Condition="Exists('..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.props')" />
+  <Import Project="..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.props" Condition="Exists('..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.props')" />
+  <Import Project="..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.props" Condition="Exists('..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.props')" />
+  <Import Project="..\packages\Microsoft.WindowsAppSDK.DWrite.2.1.0\build\Microsoft.WindowsAppSDK.DWrite.props" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.DWrite.2.1.0\build\Microsoft.WindowsAppSDK.DWrite.props')" />
+  <Import Project="..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.props" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.props')" />
   <PropertyGroup Label="Globals">
     <CppWinRTOptimized>true</CppWinRTOptimized>
     <CppWinRTRootNamespaceAutoMerge>true</CppWinRTRootNamespaceAutoMerge>
@@ -48,16 +26,10 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <ItemGroup Label="ProjectConfigurations">
-    <!--
-      x64 and ARM64 only. The Win32 configurations that used to be declared here
-      were never buildable: the mpv development libraries this project links
-      against exist for x64 only at every upstream source the repo uses, so a
-      Win32 configuration could only ever produce a component with no mpv
-      engine. Declaring it advertised support that did not and could not exist.
-      ARM64 stays declared because it is a real target: it is wired here and in
-      the app project, and it fails loudly rather than silently when its native
-      libraries are absent (see the NativeLibrariesPresent check below).
-    -->
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -65,6 +37,10 @@
     <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
       <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -101,13 +77,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <!--
-    Unconditional: the output layout is per-platform by construction
-    ($(Platform) is in the path), so there is nothing platform-specific left to
-    gate. The previous x64-only conditions meant an ARM64 build dropped its
-    component somewhere the app project does not look for it.
-  -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>mpv_winrt</TargetName>
+    <OutDir>$(ProjectDir)..\bin\$(Platform)\$(Configuration)\mpv_winrt\</OutDir>
+    <IntDir>$(ProjectDir)..\obj\$(Platform)\$(Configuration)\mpv_winrt\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>mpv_winrt</TargetName>
     <OutDir>$(ProjectDir)..\bin\$(Platform)\$(Configuration)\mpv_winrt\</OutDir>
     <IntDir>$(ProjectDir)..\obj\$(Platform)\$(Configuration)\mpv_winrt\</IntDir>
@@ -129,47 +104,27 @@
       <ModuleDefinitionFile>mpv_winrt.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
-  <!--
-    Native library layout: arch-independent headers, per-architecture libraries
-    and runtime DLLs.
-
-      libs\include            headers, shared by every architecture
-      libs\lib\<Platform>\    mpv.lib and friends
-      libs\bin\<Platform>\    mpv-2.dll and friends
-
-    $(Platform) is used verbatim (x64, ARM64) so the directory name and the
-    MSBuild platform cannot disagree. The previous flat libs\lib + libs\bin
-    layout could only ever describe one architecture, which is why the ARM64
-    wiring was missing rather than merely wrong.
-  -->
-  <PropertyGroup Label="NativeLibraryLayout">
-    <LibsDir>$(MSBuildThisFileDirectory)..\libs\</LibsDir>
-    <MpvIncludeDir>$(LibsDir)include</MpvIncludeDir>
-    <MpvLibDir>$(LibsDir)lib\$(Platform)</MpvLibDir>
-    <MpvRuntimeDir>$(LibsDir)bin\$(Platform)</MpvRuntimeDir>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir)Generated Files\sources;$(MpvIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)Generated Files\sources;$(MSBuildThisFileDirectory)..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(MpvLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mpv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(MSBuildThisFileDirectory)..\libs\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mpv.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir)Generated Files\sources;$(MpvIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)Generated Files\sources;$(MSBuildThisFileDirectory)..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>mpv.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(MpvLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mpv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(MSBuildThisFileDirectory)..\libs\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -253,62 +208,41 @@
        不导入其 build targets，避免 C++ 侧再产出一份 WebView2Loader.dll 造成重复部署。 -->
   <ItemGroup>
     <Reference Include="Microsoft.Web.WebView2.Core">
-      <HintPath>$(PackagesDir)Microsoft.Web.WebView2.$(WebView2Version)\lib\Microsoft.Web.WebView2.Core.winmd</HintPath>
+      <HintPath>..\packages\Microsoft.Web.WebView2.1.0.4129.50\lib\Microsoft.Web.WebView2.Core.winmd</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.Base.$(WinAppSdkBaseVersion)\build\native\Microsoft.WindowsAppSDK.Base.targets" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.Base.$(WinAppSdkBaseVersion)\build\native\Microsoft.WindowsAppSDK.Base.targets')" />
-    <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.DWrite.$(WinAppSdkDWriteVersion)\build\Microsoft.WindowsAppSDK.DWrite.targets" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.DWrite.$(WinAppSdkDWriteVersion)\build\Microsoft.WindowsAppSDK.DWrite.targets')" />
-    <Import Project="$(PackagesDir)Microsoft.Windows.ImplementationLibrary.$(WilVersion)\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('$(PackagesDir)Microsoft.Windows.ImplementationLibrary.$(WilVersion)\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
-    <Import Project="$(PackagesDir)Microsoft.Windows.SDK.BuildTools.MSIX.$(SdkBuildToolsMsixVersion)\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets" Condition="Exists('$(PackagesDir)Microsoft.Windows.SDK.BuildTools.MSIX.$(SdkBuildToolsMsixVersion)\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets')" />
-    <Import Project="$(PackagesDir)Microsoft.Windows.SDK.BuildTools.$(SdkBuildToolsVersion)\build\Microsoft.Windows.SDK.BuildTools.targets" Condition="Exists('$(PackagesDir)Microsoft.Windows.SDK.BuildTools.$(SdkBuildToolsVersion)\build\Microsoft.Windows.SDK.BuildTools.targets')" />
-    <Import Project="$(PackagesDir)Microsoft.Windows.CppWinRT.$(CppWinRTVersion)\build\native\Microsoft.Windows.CppWinRT.targets" Condition="Exists('$(PackagesDir)Microsoft.Windows.CppWinRT.$(CppWinRTVersion)\build\native\Microsoft.Windows.CppWinRT.targets')" />
-    <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.InteractiveExperiences.$(WinAppSdkIxVersion)\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.InteractiveExperiences.$(WinAppSdkIxVersion)\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets')" />
-    <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.Foundation.$(WinAppSdkFoundationVersion)\build\native\Microsoft.WindowsAppSDK.Foundation.targets" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.Foundation.$(WinAppSdkFoundationVersion)\build\native\Microsoft.WindowsAppSDK.Foundation.targets')" />
-    <Import Project="$(PackagesDir)Microsoft.WindowsAppSDK.WinUI.$(WinAppSdkWinUiVersion)\build\native\Microsoft.WindowsAppSDK.WinUI.targets" Condition="Exists('$(PackagesDir)Microsoft.WindowsAppSDK.WinUI.$(WinAppSdkWinUiVersion)\build\native\Microsoft.WindowsAppSDK.WinUI.targets')" />
+    <Import Project="..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.targets" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.targets')" />
+    <Import Project="..\packages\Microsoft.WindowsAppSDK.DWrite.2.1.0\build\Microsoft.WindowsAppSDK.DWrite.targets" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.DWrite.2.1.0\build\Microsoft.WindowsAppSDK.DWrite.targets')" />
+    <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
+    <Import Project="..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets" Condition="Exists('..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets')" />
+    <Import Project="..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.targets" Condition="Exists('..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.targets')" />
+    <Import Project="..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.targets" Condition="Exists('..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.targets')" />
+    <Import Project="..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets')" />
+    <Import Project="..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.targets" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.targets')" />
+    <Import Project="..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.targets" Condition="Exists('..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>http://go.microsoft.com/fwlink/?LinkID=322105  {0}</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.Base.$(WinAppSdkBaseVersion)\build\native\Microsoft.WindowsAppSDK.Base.props')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.Base.$(WinAppSdkBaseVersion)\build\native\Microsoft.WindowsAppSDK.Base.props'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.Base.$(WinAppSdkBaseVersion)\build\native\Microsoft.WindowsAppSDK.Base.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.Base.$(WinAppSdkBaseVersion)\build\native\Microsoft.WindowsAppSDK.Base.targets'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.DWrite.$(WinAppSdkDWriteVersion)\build\Microsoft.WindowsAppSDK.DWrite.props')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.DWrite.$(WinAppSdkDWriteVersion)\build\Microsoft.WindowsAppSDK.DWrite.props'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.DWrite.$(WinAppSdkDWriteVersion)\build\Microsoft.WindowsAppSDK.DWrite.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.DWrite.$(WinAppSdkDWriteVersion)\build\Microsoft.WindowsAppSDK.DWrite.targets'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.Windows.ImplementationLibrary.$(WilVersion)\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.Windows.ImplementationLibrary.$(WilVersion)\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.Windows.SDK.BuildTools.MSIX.$(SdkBuildToolsMsixVersion)\build\Microsoft.Windows.SDK.BuildTools.MSIX.props')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.Windows.SDK.BuildTools.MSIX.$(SdkBuildToolsMsixVersion)\build\Microsoft.Windows.SDK.BuildTools.MSIX.props'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.Windows.SDK.BuildTools.MSIX.$(SdkBuildToolsMsixVersion)\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.Windows.SDK.BuildTools.MSIX.$(SdkBuildToolsMsixVersion)\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.Windows.SDK.BuildTools.$(SdkBuildToolsVersion)\build\Microsoft.Windows.SDK.BuildTools.props')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.Windows.SDK.BuildTools.$(SdkBuildToolsVersion)\build\Microsoft.Windows.SDK.BuildTools.props'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.Windows.SDK.BuildTools.$(SdkBuildToolsVersion)\build\Microsoft.Windows.SDK.BuildTools.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.Windows.SDK.BuildTools.$(SdkBuildToolsVersion)\build\Microsoft.Windows.SDK.BuildTools.targets'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.Windows.CppWinRT.$(CppWinRTVersion)\build\native\Microsoft.Windows.CppWinRT.props')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.Windows.CppWinRT.$(CppWinRTVersion)\build\native\Microsoft.Windows.CppWinRT.props'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.Windows.CppWinRT.$(CppWinRTVersion)\build\native\Microsoft.Windows.CppWinRT.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.Windows.CppWinRT.$(CppWinRTVersion)\build\native\Microsoft.Windows.CppWinRT.targets'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.InteractiveExperiences.$(WinAppSdkIxVersion)\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.InteractiveExperiences.$(WinAppSdkIxVersion)\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.InteractiveExperiences.$(WinAppSdkIxVersion)\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.InteractiveExperiences.$(WinAppSdkIxVersion)\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.Foundation.$(WinAppSdkFoundationVersion)\build\native\Microsoft.WindowsAppSDK.Foundation.props')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.Foundation.$(WinAppSdkFoundationVersion)\build\native\Microsoft.WindowsAppSDK.Foundation.props'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.Foundation.$(WinAppSdkFoundationVersion)\build\native\Microsoft.WindowsAppSDK.Foundation.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.Foundation.$(WinAppSdkFoundationVersion)\build\native\Microsoft.WindowsAppSDK.Foundation.targets'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.WinUI.$(WinAppSdkWinUiVersion)\build\native\Microsoft.WindowsAppSDK.WinUI.props')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.WinUI.$(WinAppSdkWinUiVersion)\build\native\Microsoft.WindowsAppSDK.WinUI.props'))" />
-    <Error Condition="!Exists('$(PackagesDir)Microsoft.WindowsAppSDK.WinUI.$(WinAppSdkWinUiVersion)\build\native\Microsoft.WindowsAppSDK.WinUI.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(PackagesDir)Microsoft.WindowsAppSDK.WinUI.$(WinAppSdkWinUiVersion)\build\native\Microsoft.WindowsAppSDK.WinUI.targets'))" />
-  </Target>
-  <!--
-    Fails the build when the native libraries for the target architecture are not
-    on disk.
-
-    This replaces a silent failure. Previously an ARM64 (or Win32) build simply
-    did not receive the mpv include/library paths, so the compiler failed with a
-    missing-header error that named a header rather than the missing architecture,
-    and the app project had no guard at all, so a package could be produced with
-    no mpv engine in it. An absent library is a packaging problem and should say
-    so, with the path it looked in and the command that fixes it.
-
-    x64 ships in-repo through the restore/download path; ARM64 has no upstream
-    x64-only builder equivalent yet, so when this fires for ARM64 the message
-    says what to supply rather than pretending it can be fetched.
-  -->
-  <Target Name="CheckNativeLibraries" BeforeTargets="ClCompile">
-    <Error Condition="!Exists('$(MpvIncludeDir)\mpv\client.h')"
-           Text="mpv headers are missing: '$(MpvIncludeDir)\mpv\client.h'. Run tools\fetch-mpv-libs.ps1 (or .\build.ps1 -FetchMpvLibs) to install the mpv development libraries." />
-    <Error Condition="!Exists('$(MpvLibDir)\mpv.lib')"
-           Text="The mpv import library for platform '$(Platform)' is missing: '$(MpvLibDir)\mpv.lib'. The mpv development libraries are per-architecture and live in libs\lib\&lt;Platform&gt;\ and libs\bin\&lt;Platform&gt;\. x64 is available via tools\fetch-mpv-libs.ps1; for ARM64 an aarch64 libmpv import library must be supplied and placed at that path before this configuration can build." />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.Base.2.0.4\build\native\Microsoft.WindowsAppSDK.Base.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.DWrite.2.1.0\build\Microsoft.WindowsAppSDK.DWrite.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.DWrite.2.1.0\build\Microsoft.WindowsAppSDK.DWrite.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.DWrite.2.1.0\build\Microsoft.WindowsAppSDK.DWrite.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.DWrite.2.1.0\build\Microsoft.WindowsAppSDK.DWrite.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.BuildTools.MSIX.1.7.260610101\build\Microsoft.Windows.SDK.BuildTools.MSIX.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.BuildTools.10.0.28000.2526\build\Microsoft.Windows.SDK.BuildTools.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.CppWinRT.3.0.260818.1\build\native\Microsoft.Windows.CppWinRT.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6\build\native\Microsoft.WindowsAppSDK.InteractiveExperiences.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.Foundation.2.3.9\build\native\Microsoft.WindowsAppSDK.Foundation.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.WindowsAppSDK.WinUI.2.3.6\build\native\Microsoft.WindowsAppSDK.WinUI.targets'))" />
   </Target>
 </Project>

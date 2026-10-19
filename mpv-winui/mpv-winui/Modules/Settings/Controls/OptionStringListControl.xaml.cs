@@ -1,7 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using mpv_winui.Modules.Motion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,12 +19,6 @@ public sealed partial class OptionStringListControl : OptionControlBase
     public OptionStringListControl()
     {
         InitializeComponent();
-
-        // Slower expansion than the framework's own. The built-in popup
-        // animation runs at a fixed speed with no way to retime it, and at that
-        // speed the list snaps open; MotionBehaviors takes the popup over so the
-        // expand uses this app's curve and durations like everything else.
-        MotionBehaviors.SoftenDropdown(Combo);
     }
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)

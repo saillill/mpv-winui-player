@@ -715,19 +715,4 @@ public sealed partial class SettingsPage
         SaveLayout();
     }
 
-    /// <summary>
-    /// Restores every sidebar category the customize mode hid.
-    ///
-    /// Lives here rather than in the customize module because it is the exact
-    /// counterpart of <see cref="RestoreHiddenSections"/>: one clears the
-    /// category pane's hidden set, the other the folder set, and both are
-    /// reached from the pane's footer. Keeping the pair together is what stops
-    /// them from drifting apart.
-    /// </summary>
-    internal void RestoreHiddenCategories()
-    {
-        _layout.HiddenCategories.Clear();
-        SaveLayout();
-    }
-
 }

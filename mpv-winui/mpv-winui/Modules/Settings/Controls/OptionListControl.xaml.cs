@@ -2,7 +2,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using mpv_winui.Modules.Motion;
 using mpv_winui.Modules.Settings.Layout;
 using System;
 using System.Collections.Generic;
@@ -15,171 +14,6 @@ public sealed partial class OptionListControl : UserControl
     public OptionListControl()
     {
         InitializeComponent();
-
-        // The control sits inside the page's ScrollViewer, so it is a
-        // non-virtualized ListView: every row is realized and every edit
-        // rebuilds all ~550 of them. That is affordable on a structural change
-        // -- a drag, a mode switch, a language swap -- and it is what those
-        // paths do today.
-        //
-        // It is not affordable on every customize-mode undo step, though, or on
-        // every keystroke of a row search: 13 edit entry points now mark the
-        // draft dirty once each, and each of them used to drag a full rebuild
-        // behind it. For those paths the refresh is deferred to the dispatcher
-        // and coalesced, so a burst of edits costs one rebuild instead of N.
-        this.Loaded += (_, _) => ApplyItemsSource();
-
-        // One-shot row entrance, waiting for the rows to exist. See
-        // PlayRowEntrance.
-        LayoutUpdated += OptionListControl_LayoutUpdated;
-    }
-
-    /// <summary>
-    /// Set when the browse list was rebuilt and its rows have not had their
-    /// entrance yet.
-    ///
-    /// A flag rather than an event subscription per rebuild: LayoutUpdated
-    /// fires after every layout pass anywhere in the tree, so the handler has to
-    /// be cheap enough to ignore, and the flag is what makes it cheap.
-    /// </summary>
-    private bool _entrancePending;
-
-    /// <summary>
-    /// Plays the row entrance once the rows are actually on screen.
-    ///
-    /// ContainerContentChanging would be the obvious hook and is the wrong one:
-    /// it fires again for every row scrolled back into view, so the list would
-    /// re-animate as the user scrolls. Waiting for the layout pass that follows
-    /// a rebuild keeps it to one entrance per section change, which is the
-    /// trigger the library grid uses too.
-    /// </summary>
-    private void OptionListControl_LayoutUpdated(object? sender, object e)
-    {
-        if (!_entrancePending)
-        {
-            return;
-        }
-
-        if (PlayRowEntrance())
-        {
-            _entrancePending = false;
-        }
-    }
-
-    /// <summary>
-    /// Returns true once the rows have been animated - or once there are none
-    /// to animate, so an empty section does not leave the flag set forever.
-    /// </summary>
-    private bool PlayRowEntrance()
-    {
-        var count = OptionListView.Items.Count;
-        if (count == 0)
-        {
-            return true;
-        }
-
-        var animated = false;
-        for (var i = 0; i < count; i++)
-        {
-            if (OptionListView.ContainerFromIndex(i) is not FrameworkElement container)
-            {
-                // Not realised yet; the next layout pass will find it.
-                continue;
-            }
-
-            // The library grid's behaviour, distance, curve, duration - and its
-            // rhythm: the same 20 ms step and the same cap of eight, so the two
-            // surfaces do not merely move alike but arrive alike.
-            var delay = TimeSpan.FromMilliseconds(Math.Min(i, 8) * 20);
-            MotionBehaviors.PosterEnter(container, delay: delay);
-            animated = true;
-        }
-
-        return animated;
-    }
-
-    /// <summary>
-    /// Set while <see cref="OptionList"/> is being replaced wholesale. The
-    /// property setter rebuilds immediately in normal use, which is what makes
-    /// a language switch or a mode toggle show the new rows right away; this
-    /// flag lets the customize-mode undo path hand over the list without a
-    /// rebuild per assignment and re-render once at the end instead.
-    /// </summary>
-    private bool _suspendRebuild;
-
-    private bool _refreshQueued;
-
-    /// <summary>
-    /// Replaces the whole list with <paramref name="list"/> without rebuilding
-    /// the items source. The caller must end the block with
-    /// <see cref="ResumeAndRefresh"/>; the list is not rendered until it runs.
-    /// </summary>
-    internal IDisposable BeginBulkUpdate()
-    {
-        _suspendRebuild = true;
-        return new BulkUpdateScope(this);
-    }
-
-    /// <summary>
-    /// Ends a <see cref="BeginBulkUpdate"/> block and rebuilds the list once,
-    /// immediately rather than through the dispatcher: the caller has just
-    /// finished a user gesture and the rows are expected to be correct before
-    /// the handler returns (a drag's own reorder, for instance, reads back what
-    /// the mouse did).
-    /// </summary>
-    internal void ResumeAndRefresh()
-    {
-        _suspendRebuild = false;
-        _refreshQueued = false;
-        ApplyItemsSource();
-    }
-
-    /// <summary>
-    /// Rebuilds the list once, on the next dispatcher turn. Repeated calls
-    /// while one is already queued are dropped, so a burst of edits -- and the
-    /// rebuild each one would otherwise trigger -- collapses into one pass.
-    /// </summary>
-    internal void RequestRefresh()
-    {
-        if (_suspendRebuild || _refreshQueued)
-        {
-            return;
-        }
-
-        _refreshQueued = true;
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            _refreshQueued = false;
-            if (!_suspendRebuild)
-            {
-                // Offset is captured here rather than at request time: by the
-                // turn this runs the user may have scrolled, and the offset
-                // worth restoring is the one they left the list at.
-                var offset = GetScrollOffset();
-                ApplyItemsSource();
-                if (offset > 0)
-                {
-                    SetScrollOffset(offset);
-                }
-            }
-        });
-    }
-
-    private sealed class BulkUpdateScope : IDisposable
-    {
-        private readonly OptionListControl _owner;
-        private bool _disposed;
-
-        internal BulkUpdateScope(OptionListControl owner) => _owner = owner;
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                _disposed = true;
-                _owner.ResumeAndRefresh();
-            }
-        }
     }
 
     public bool ShowHeaders
@@ -320,7 +154,7 @@ public sealed partial class OptionListControl : UserControl
 
     private static void OnOptionListChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is OptionListControl self && !self._suspendRebuild)
+        if (d is OptionListControl self)
         {
             self.ApplyItemsSource();
         }
@@ -518,12 +352,7 @@ public sealed partial class OptionListControl : UserControl
                 }
                 else if (showHeaders && !repeatsCategory)
                 {
-                    items.Add(new SectionHeaderItem
-                    {
-                        Caption = section,
-                        SectionId = option.SectionId,
-                        Description = SettingsSections.MetaFor(section).Description,
-                    });
+                    items.Add(new SectionHeaderItem { Caption = section, SectionId = option.SectionId });
                 }
             }
 
@@ -544,11 +373,6 @@ public sealed partial class OptionListControl : UserControl
         }
 
         OptionListView.ItemsSource = items;
-
-        // The rows for this section arrive the same way the library's cards do;
-        // the animation itself waits for the next layout pass, when the
-        // containers exist.
-        _entrancePending = true;
     }
 
     /// <summary>

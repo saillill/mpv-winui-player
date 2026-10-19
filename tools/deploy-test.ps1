@@ -89,16 +89,10 @@ Get-ChildItem -LiteralPath $src -Recurse -File | ForEach-Object {
 
 $dstDll = Get-Item "$dst/mpvw.dll"
 $xbf = @(Get-ChildItem -LiteralPath $dst -Recurse -File -Filter *.xbf).Count
-# Compared against the build output rather than a fixed number. The count used
-# to be a literal, so adding one XAML file failed the deploy with "expected 42"
-# until someone edited the constant -- a check that reports a stale constant
-# instead of a real gap. Source-vs-destination is also the stronger claim: it
-# fails when the deploy is incomplete, which is what this is for.
-$srcXbf = @(Get-ChildItem -LiteralPath $src -Recurse -File -Filter *.xbf).Count
 Write-Host ""
 Write-Host "copied : $copied file(s)  (skipped $skipped .pdb)"
 Write-Host ("dst mpvw.dll: {0:N0} bytes  {1}" -f $dstDll.Length, $dstDll.LastWriteTime)
-Write-Host "xbf    : $xbf  (built $srcXbf)"
+Write-Host "xbf    : $xbf  (expect 42)"
 
 # The check that makes the exit code mean something: without it this script would
 # be as trustworthy as the bash one it replaces.
@@ -107,5 +101,5 @@ if ($Verify) {
     & (Join-Path $PSScriptRoot 'compare-deploy.ps1')
 }
 
-if ($xbf -ne $srcXbf) { throw "xbf count is $xbf but the build produced $srcXbf -- the deploy is incomplete" }
+if ($xbf -ne 42) { throw "xbf count is $xbf, expected 42 -- the deploy is incomplete" }
 exit 0

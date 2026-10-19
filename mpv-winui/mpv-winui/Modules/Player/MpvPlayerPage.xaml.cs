@@ -27,23 +27,6 @@ namespace mpv_winui.Modules.Player
         private Task? _task;
         private bool _hdrModeAppliedOnce;
 
-        /// <summary>
-        /// The player control bar, which the shell owns so that it is not
-        /// unmounted when the content area changes.
-        ///
-        /// This is a property rather than the XAML-declared field it used to be,
-        /// which is why the ~34 call sites in this page's partials still read
-        /// <c>PlayerControl.Something</c> unchanged. The return type is spelled
-        /// out in full because the member name is the same as its type name -
-        /// the "Color Color" case - and a short name there resolves to the type,
-        /// not the property.
-        ///
-        /// Timed so that it is never null: App.OnLaunched assigns Window before
-        /// calling Open(), and Open() is what navigates this page into existence.
-        /// </summary>
-        private mpv_winui.Modules.Player.PlayerControl PlayerControl =>
-            (App.Window as MainWindow)?.PlayerBar!;
-
         public MpvPlayerPage()
         {
             _selfWeakReference = new(this);
@@ -67,23 +50,6 @@ namespace mpv_winui.Modules.Player
             // idempotent rebuild.
             BuildMainMenuBar();
             SetupCustomMenuBarItems();
-
-            SetupLibrary();
-
-            // The three tool keys live on this page (see PlaybackTools in the
-            // XAML), so their icons and labels are set here too.
-            ApplyPlaybackToolStrings();
-
-            // Pressing any transport button while the library is covering a
-            // running video brings the video back first, then does what the
-            // button does. One subscription on the bar's own funnel - see the
-            // note on TransportInteraction.
-            if (App.Window is MainWindow)
-            {
-                PlayerControl.TransportInteraction += MpvPlayerPage_TransportInteraction;
-
-                PlayerControl.PositionTicked += UpdateLyricsHighlight;
-            }
 
             _task = CreateAsync();
 
@@ -111,22 +77,11 @@ namespace mpv_winui.Modules.Player
                 SetupPlayerView();
                 SetupPlayControl();
 
-                // First moment the watch history path exists, so the first
-                // moment the library can be filled.
-                LoadLibraryFirstTime();
-
                 _mediaPlayer.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
                 _mediaPlayer.VolumeChanged += MpvPlayerPage_VolumeChanged;
                 _mediaPlayer.WindowChanged += MpvPlayerPage_WindowChanged;
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.DiscMenuActiveChanged += MpvPlayerPage_DiscMenuActiveChanged;
-                // Drives the content area. FileStarted is the transition into
-                // the playing page - it is the only event that means "a file is
-                // loading", and it fires whether the previous state was the
-                // library or the video. PlaybackStateChanged supplies the idle
-                // edge that brings the library back.
-                _mediaPlayer.FileStarted += MpvPlayerPage_LibraryFileStarted;
-                _mediaPlayer.PlaybackStateChanged += MpvPlayerPage_LibraryPlaybackStateChanged;
 
                 AppContext.RunMpvCommand = cmd => _ = _mediaPlayer.RunCommandAsync(cmd);
                 AppContext.SetMpvLogLevel = level => _mediaPlayer.SetLogLevel(level);
@@ -210,15 +165,12 @@ namespace mpv_winui.Modules.Player
             AppContext.LanguageChanged -= AppContext_LanguageChanged;
             CleanupDisplayInfo();
             CleanupPlaylistRefresh();
-            TeardownLibrary();
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
             _mediaPlayer.VolumeChanged -= MpvPlayerPage_VolumeChanged;
             _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
             _mediaPlayer.DiscMenuActiveChanged -= MpvPlayerPage_DiscMenuActiveChanged;
-            _mediaPlayer.FileStarted -= MpvPlayerPage_LibraryFileStarted;
-            _mediaPlayer.PlaybackStateChanged -= MpvPlayerPage_LibraryPlaybackStateChanged;
 
             TeardownPlayerView();
             CleanupKeyboardInput();
@@ -329,7 +281,6 @@ namespace mpv_winui.Modules.Player
             }
 
             PlayerControl?.ApplyLocalizedStrings();
-            ApplyLibraryStrings();
         }
 
         private async Task CreateAsync()
@@ -402,7 +353,7 @@ namespace mpv_winui.Modules.Player
 
         private void TopBarPlaylist_Click(object sender, RoutedEventArgs e)
         {
-            ShowPlayQueue();
+            TogglePlaylist(true);
         }
 
         private void AppQuit()

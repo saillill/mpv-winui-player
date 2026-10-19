@@ -84,11 +84,6 @@ def parse_option_keys(src_dir: Path) -> set[str]:
 # the noise.
 UNMAPPED_OK = {
     # UI-only
-    #
-    # The two library folder lists change which files the app lists. mpv has no
-    # option for "the folders my libraries scan" - it is the app's own index, and
-    # writing it into mpv.conf would mean nothing to mpv.
-    "VideoLibraryFolders", "MusicLibraryFolders",
     "ThemeType", "BackdropType",
     "UiFont", "ThemeRecentColors", "ControlBarLayout", "ControlBarHiddenIcons",
     "ControlBarHiddenIconsClassic", "ControlBarHiddenIconsModernX",
@@ -118,11 +113,9 @@ UNMAPPED_OK = {
     # Whether the mpv.conf editor keeps a backup before writing. Read by
     # MpvConfEditorPage.xaml.cs. Nothing to do with mpv itself.
     "EnableSaveBackup",
-    # UI-only settings persisted by their own handlers (window title from
-    # MainWindow). PlaylistWidth used to be here too; the resizable playlist
-    # column it belonged to was removed with the split layout, so the setting
-    # no longer exists.
-    "WindowTitle",
+    # UI-only settings persisted by their own handlers (playlist width from
+    # the resize grip, window title from MainWindow).
+    "PlaylistWidth", "WindowTitle",
     # PluginConfigWriter channel (script-opts/*.conf)
     "HdrAutoLog", "MetadataOsdEnabled", "MetadataOsdAutohideTimeout",
     "MetadataOsdShowChapter", "MetadataOsdEnableForVideo", "MetadataOsdEnableForImage",

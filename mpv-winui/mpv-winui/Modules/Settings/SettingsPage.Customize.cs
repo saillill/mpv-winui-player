@@ -42,62 +42,21 @@ public sealed partial class SettingsPage
     /// defines — hence hide, rename and reorder (plus the structural folder
     /// operations) and nothing that would author or retype an mpv key.
     /// </summary>
-    /// <summary>
-    /// Runs one customize-mode edit inside the draft boundary and re-renders
-    /// the surface once the edit is over.
-    ///
-    /// Every gesture that changes the layout has to go through here, because
-    /// the boundary is what makes the change undoable and reversible: without
-    /// it <c>_draft.CanUndo</c> stays false (the undo button is greyed out and
-    /// the stack is empty, so "undo" quietly does nothing) and
-    /// <c>_draft.IsDirty</c> stays false, which is worse — leaving the mode
-    /// then skips the "keep your changes?" dialog entirely while the edit has
-    /// already been written to disk by <c>SaveLayout</c>. The user is told
-    /// nothing was saved and finds it was.
-    ///
-    /// <paramref name="render"/> is deferred to the caller's choice of
-    /// immediate or coalesced redraw. Ordering matters: the render has to run
-    /// after <c>Commit</c>, or the footer would still be reading the pre-edit
-    /// draft when it decides whether undo is available.
-    /// </summary>
-    private void EditLayout(Action edit, Action? render = null)
-    {
-        // The boundary is only meaningful while customizing: outside the mode
-        // there is no session, no undo stack to push onto, and no footer to
-        // refresh. The layout operations are all still callable then (the pane
-        // and the tree only exist in the mode, but the reading paths do not),
-        // so the guard belongs here rather than at each of the nine callers.
-        if (!_customizeMode)
-        {
-            edit();
-            render?.Invoke();
-            return;
-        }
-
-        PushCustomizeEdit();
-        try
-        {
-            edit();
-        }
-        finally
-        {
-            CommitCustomizeEdit();
-        }
-
-        render?.Invoke();
-    }
-
     private void WireCustomizeEvents(Controls.OptionListControl list)
     {
-        list.HideRequested += option => EditLayout(
-            () => SetHidden(option, true),
-            RebuildLocalizedContent);
+        list.HideRequested += option =>
+        {
+            SetHidden(option, true);
+            RebuildLocalizedContent();
+        };
 
         // The card menu carries one entry that flips between "hide" and "show
         // again", so the page has to handle the way back as its own intent.
-        list.UnhideRequested += option => EditLayout(
-            () => SetHidden(option, false),
-            RebuildLocalizedContent);
+        list.UnhideRequested += option =>
+        {
+            SetHidden(option, false);
+            RebuildLocalizedContent();
+        };
 
         list.OrderChanged += keys =>
         {
@@ -106,12 +65,7 @@ public sealed partial class SettingsPage
             // under the user's cursor — several times per drag, because a
             // reorder can commit more than once. The stored order is what the
             // next rebuild (or a mode exit) reads back.
-            //
-            // The undo step is still recorded, and no render follows: the list
-            // on screen is already showing the result. Leaving the mode is what
-            // turns the recorded steps into a save prompt, which is where the
-            // user finds out a drag is undoable at all.
-            EditLayout(() => StoreOrder(keys));
+            StoreOrder(keys);
         };
 
         // 2nd-level (folder / column) editing. The pane reports the folder's
@@ -119,25 +73,33 @@ public sealed partial class SettingsPage
         // a rename changes: a command that had to resolve the caption back into
         // an id would quietly stop doing anything once the user renamed the
         // folder it was pointed at.
-        list.SectionMoveRequested += (sectionId, delta) => EditLayout(
-            () => MoveSection(sectionId, delta),
-            RebuildLocalizedContent);
+        list.SectionMoveRequested += (sectionId, delta) =>
+        {
+            MoveSection(sectionId, delta);
+            RebuildLocalizedContent();
+        };
 
-        list.SectionHiddenChanged += (sectionId, hidden) => EditLayout(
-            () => SetSectionHidden(sectionId, hidden),
-            RebuildLocalizedContent);
+        list.SectionHiddenChanged += (sectionId, hidden) =>
+        {
+            SetSectionHidden(sectionId, hidden);
+            RebuildLocalizedContent();
+        };
 
         list.SectionDeleteRequested += sectionId => _ = DeleteSectionInteractiveAsync(sectionId, SectionNameFor(sectionId));
 
-        list.MoveRowRequested += (optionKey, sectionId) => EditLayout(
-            () => MoveRowToSection(optionKey, sectionId),
-            RequestDeferredRebuild);
+        list.MoveRowRequested += (optionKey, sectionId) =>
+        {
+            MoveRowToSection(optionKey, sectionId);
+            RequestDeferredRebuild();
+        };
 
         // The right pane of the two-pane view: a card dropped into it joins the
         // folder that pane is showing.
-        list.PaneJoinRequested += (optionKey, sectionId) => EditLayout(
-            () => MoveRowToSection(optionKey, sectionId),
-            RequestDeferredRebuild);
+        list.PaneJoinRequested += (optionKey, sectionId) =>
+        {
+            MoveRowToSection(optionKey, sectionId);
+            RequestDeferredRebuild();
+        };
 
         list.CreateSectionRequested += async () => await CreateSectionInteractiveAsync();
 
@@ -226,22 +188,19 @@ public sealed partial class SettingsPage
             return;
         }
 
-        // The deleted node may have been the selection, so drop back to the
-        // page's own category rather than leaving a dangling key behind. The
-        // selection is not part of the layout, so it is reset outside the
-        // boundary — the undo step has to capture the layout, not the cursor.
-        EditLayout(
-            () =>
-            {
-                DeleteSection(sectionId);
+        PushCustomizeEdit();
+        DeleteSection(sectionId);
 
-                if (string.Equals(_treeSelectedKey, sectionId, StringComparison.Ordinal))
-                {
-                    _treeSelectedKey = null;
-                    _treeSelectedIsSection = false;
-                }
-            },
-            RequestDeferredRebuild);
+        // The deleted node may have been the selection, so drop back to the
+        // page's own category rather than leaving a dangling key behind.
+        if (string.Equals(_treeSelectedKey, sectionId, StringComparison.Ordinal))
+        {
+            _treeSelectedKey = null;
+            _treeSelectedIsSection = false;
+        }
+
+        CommitCustomizeEdit();
+        RequestDeferredRebuild();
     }
 
     /// <summary>Asks for a name and creates a 2nd-level folder in this category.</summary>
@@ -306,9 +265,13 @@ public sealed partial class SettingsPage
             return;
         }
 
-        EditLayout(
-            () => CreateSection(categoryKey, input.Text, paneOnly),
-            RequestDeferredRebuild);
+        // Wrapped in the draft boundary like every other edit: without it the
+        // folder appeared but could not be undone, because undo only ever walks
+        // the recorded steps.
+        PushCustomizeEdit();
+        CreateSection(categoryKey, input.Text, paneOnly);
+        CommitCustomizeEdit();
+        RebuildLocalizedContent();
     }
 
     /// <summary>
@@ -426,9 +389,8 @@ public sealed partial class SettingsPage
             return;
         }
 
-        EditLayout(
-            () => ApplyRowRename(optionKey, labelBox.Text.Trim(), descriptionBox.Text.Trim(), scopeToggle.IsOn),
-            RequestDeferredRebuild);
+        ApplyRowRename(optionKey, labelBox.Text.Trim(), descriptionBox.Text.Trim(), scopeToggle.IsOn);
+        RequestDeferredRebuild();
     }
 
     /// <summary>Caption/description length caps, generous but not unbounded.</summary>
@@ -539,27 +501,23 @@ public sealed partial class SettingsPage
             return;
         }
 
-        EditLayout(
-            () =>
-            {
-                if (custom is not null)
-                {
-                    custom.DisplayName = string.Equals(name, custom.Name, StringComparison.Ordinal) ? null : name;
-                }
-                else
-                {
-                    // Built-in folder: reuse the row-style override entry so one
-                    // mechanism covers rows and folders alike.
-                    var entry = _layout.EntryFor(SectionEntryKey(sectionId));
-                    entry.Label = string.Equals(name, currentCaption, StringComparison.Ordinal) ? null : name;
-                    entry.Scope = scopeToggle?.IsOn == true ? RenameScopes.All : RenameScopes.Current;
-                    entry.Language = scopeToggle?.IsOn == true ? null : ActiveLanguageKey;
-                    _layout.Prune(SectionEntryKey(sectionId));
-                }
+        if (custom is not null)
+        {
+            custom.DisplayName = string.Equals(name, custom.Name, StringComparison.Ordinal) ? null : name;
+        }
+        else
+        {
+            // Built-in folder: reuse the row-style override entry so one
+            // mechanism covers rows and folders alike.
+            var entry = _layout.EntryFor(SectionEntryKey(sectionId));
+            entry.Label = string.Equals(name, currentCaption, StringComparison.Ordinal) ? null : name;
+            entry.Scope = scopeToggle?.IsOn == true ? RenameScopes.All : RenameScopes.Current;
+            entry.Language = scopeToggle?.IsOn == true ? null : ActiveLanguageKey;
+            _layout.Prune(SectionEntryKey(sectionId));
+        }
 
-                SaveLayout();
-            },
-            RequestDeferredRebuild);
+        SaveLayout();
+        RequestDeferredRebuild();
     }
 
     /// <summary>
@@ -686,34 +644,31 @@ public sealed partial class SettingsPage
 
         var name = labelBox.Text.Trim();
 
-        EditLayout(
-            () =>
-            {
-                if (custom is not null)
-                {
-                    // The user's own text, so it applies in every language;
-                    // DisplayName carries it without disturbing the id or the
-                    // original name.
-                    custom.DisplayName = string.Equals(name, custom.Name, StringComparison.Ordinal) ? null : name;
-                }
-                else
-                {
-                    var entry = _layout.EntryFor(CategoryEntryKey(categoryKey));
+        PushCustomizeEdit();
+        if (custom is not null)
+        {
+            // The user's own text, so it applies in every language; DisplayName
+            // carries it without disturbing the id or the original name.
+            custom.DisplayName = string.Equals(name, custom.Name, StringComparison.Ordinal) ? null : name;
+        }
+        else
+        {
+            var entry = _layout.EntryFor(CategoryEntryKey(categoryKey));
 
-                    // Empty, or typed back to the built-in caption, means "no
-                    // override": clearing it is how the user gets the app's own
-                    // name back, which is what the placeholder promises.
-                    entry.Label = name.Length == 0 || string.Equals(name, builtInCaption, StringComparison.Ordinal)
-                        ? null
-                        : name;
-                    entry.Scope = scopeToggle?.IsOn == true ? RenameScopes.All : RenameScopes.Current;
-                    entry.Language = scopeToggle?.IsOn == true ? null : ActiveLanguageKey;
-                    _layout.Prune(CategoryEntryKey(categoryKey));
-                }
+            // Empty, or typed back to the built-in caption, means "no override":
+            // clearing it is how the user gets the app's own name back, which is
+            // what the placeholder promises.
+            entry.Label = name.Length == 0 || string.Equals(name, builtInCaption, StringComparison.Ordinal)
+                ? null
+                : name;
+            entry.Scope = scopeToggle?.IsOn == true ? RenameScopes.All : RenameScopes.Current;
+            entry.Language = scopeToggle?.IsOn == true ? null : ActiveLanguageKey;
+            _layout.Prune(CategoryEntryKey(categoryKey));
+        }
 
-                SaveLayout();
-            },
-            RequestDeferredRebuild);
+        SaveLayout();
+        CommitCustomizeEdit();
+        RebuildLocalizedContent();
     }
 
     /// <summary>Current display name of a folder, honouring any rename.</summary>
@@ -861,13 +816,13 @@ public sealed partial class SettingsPage
         var lang = AppContext.AppLang;
 
         var moveUp = new MenuFlyoutItem { Text = lang.CustomizeMoveUp };
-        moveUp.Click += (_, _) => EditLayout(() => MoveCategory(index, -1), RebuildLocalizedContent);
+        moveUp.Click += (_, _) => { MoveCategory(index, -1); RebuildLocalizedContent(); };
 
         var moveDown = new MenuFlyoutItem { Text = lang.CustomizeMoveDown };
-        moveDown.Click += (_, _) => EditLayout(() => MoveCategory(index, 1), RebuildLocalizedContent);
+        moveDown.Click += (_, _) => { MoveCategory(index, 1); RebuildLocalizedContent(); };
 
         var hide = new MenuFlyoutItem { Text = lang.CustomizeHideCategory };
-        hide.Click += (_, _) => EditLayout(() => SetCategoryHidden(categoryKey, true), RebuildLocalizedContent);
+        hide.Click += (_, _) => { SetCategoryHidden(categoryKey, true); RebuildLocalizedContent(); };
 
         var flyout = new MenuFlyout();
         flyout.Items.Add(moveUp);
@@ -878,6 +833,13 @@ public sealed partial class SettingsPage
         // Right-click and the context-menu key both open it; the flyout is
         // rebuilt per rebuild so the captured index stays correct.
         item.ContextFlyout = flyout;
+    }
+
+    /// <summary>Restores every sidebar category the customize mode hid.</summary>
+    internal void RestoreHiddenCategories()
+    {
+        _layout.HiddenCategories.Clear();
+        SaveLayout();
     }
 
     // ===== sidebar drag reorder =====
@@ -928,18 +890,9 @@ public sealed partial class SettingsPage
             var target = CategoryIndexAtPoint(e.GetCurrentPoint(CategoryNav).Position);
             if (target >= 0)
             {
-                // The index the drop is measured from is recorded before the
-                // move, so it names the row the user actually dragged.
-                //
-                // The undo step is recorded but nothing is re-rendered here:
-                // MoveCategoryTo (through StoreOrder -> ApplyCategoryLayout)
-                // already re-ordered the live pane, and a rebuild mid-gesture
-                // would tear the list out from under the pointer.
-                EditLayout(() =>
-                {
-                    _draggingCategoryIndex = index;
-                    MoveCategoryTo(index, target);
-                });
+                _draggingCategoryIndex = index;
+                MoveCategoryTo(index, target);
+                RequestDeferredRebuild();
             }
         };
     }

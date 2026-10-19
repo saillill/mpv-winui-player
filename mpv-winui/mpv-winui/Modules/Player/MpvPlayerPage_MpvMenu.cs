@@ -236,7 +236,7 @@ namespace mpv_winui.Modules.Player
                         }
                         case "playlist":
                         {
-                            ShowPlayQueue();
+                            TogglePlaylist(true);
                             break;
                         }
                         case "open-watch-history":

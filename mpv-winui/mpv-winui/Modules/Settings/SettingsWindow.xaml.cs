@@ -115,33 +115,14 @@ public sealed partial class SettingsWindow : BaseWindow
     private void SettingsWindow_SizeChanged(object sender, WindowSizeChangedEventArgs e)
     {
         var narrow = e.Size.Width < (double)Application.Current.Resources["MpvNarrowLayoutThreshold"];
-
-        // Only the crossing of the breakpoint changes the top bar's shape, so
-        // that crossing is the only thing worth reacting to. This handler fires
-        // on every frame of a drag, and ApplySearchShape below moves the search
-        // host between grid rows and toggles the title's and the pane button's
-        // visibility; running that a hundred times while the pointer is down
-        // re-lays the top bar out under the user's hand, and the bar's height
-        // change carries the page frame with it.
-        //
-        // Widening still has to close a dropped-down field, and that is a real
-        // shape change even though the breakpoint itself is not crossed, so it
-        // is allowed through on its own.
-        var closingDroppedField = !narrow && _narrowSearchOpen;
-
-        if (narrow == _narrow && !closingDroppedField)
-        {
-            return;
-        }
-
-        _narrow = narrow;
+        // Widening closes the dropped-down field: it is a narrow-shape affordance,
+        // and leaving it open would push the whole top bar down in a window that
+        // has room to show the pill in the bar itself.
         if (!narrow)
         {
-            // Widening closes the dropped-down field: it is a narrow-shape
-            // affordance, and leaving it open would push the whole top bar down
-            // in a window that has room to show the pill in the bar itself.
             _narrowSearchOpen = false;
         }
+        _narrow = narrow;
         ApplySearchShape();
     }
 
@@ -259,7 +240,7 @@ public sealed partial class SettingsWindow : BaseWindow
         // The search box lives in the window top bar; Frame can only build
         // pages by type, so the box travels as the navigation parameter and
         // the page picks it up in OnNavigatedTo.
-        PageFrame.Navigate(typeof(SettingsPage), new SettingsNavigationArgs(SearchBox));
+        PageFrame.Navigate(typeof(SettingsPage), SearchBox);
     }
 
     // The search box is owned by the window (top bar); behaviour stays on the

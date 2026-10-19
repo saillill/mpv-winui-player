@@ -39,7 +39,7 @@ if (-not $SkipPublish) {
 }
 
 $pub = $publishDir.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
-if (-not (Test-Path -LiteralPath "$pub\mpvw.exe")) {
+if (-not (Test-Path -LiteralPath "$pub\mpv-winui.exe")) {
     Write-Error "Publish output not found: $pub (run without -SkipPublish first)"
 }
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using mpv_winui.Modules.Settings.Layout;
 
 namespace mpv_winui.Modules.Settings.Controls;
 
@@ -86,6 +85,11 @@ public sealed class Option : INotifyPropertyChanged
     {
         get; set;
     } = string.Empty;
+
+    public string? Icon
+    {
+        get; set;
+    }
 
     public string Category { get; set; } = "General";
 
@@ -291,25 +295,6 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
-    /// <summary>
-    /// Localized text for a second action button, for a row that offers the same
-    /// job two ways. Null on every row that has only one.
-    ///
-    /// <para>A second handler rather than a list: the rows that need this need
-    /// exactly two, and the button pair sits in one grid column beside the
-    /// description, so the control only has to know about "one more".</para>
-    /// </summary>
-    public string? SecondaryActionLabel
-    {
-        get; set;
-    }
-
-    /// <summary>Invoked when the row's second action button is pressed.</summary>
-    public Action<Option>? SecondaryActionHandler
-    {
-        get; set;
-    }
-
     /// <summary>Checkbox entries for <see cref="OptionType.CheckList"/> options.</summary>
     public IList<OptionCheckItem>? CheckItems
     {
@@ -431,21 +416,6 @@ public sealed class Option : INotifyPropertyChanged
     {
         Changed?.Invoke(this);
     }
-
-    /// <summary>
-    /// Name of the notification raised when a row's action result line is
-    /// ready. It is not a property: the text itself lives in the page's
-    /// per-row dictionary and is pulled through <see cref="ActionStatus"/>.
-    /// The event exists so the one row that produced a result can re-read it,
-    /// instead of the page rebuilding every card in the list to publish one
-    /// line — and instead of the line surviving on whichever container the
-    /// list happened to recycle next.
-    /// </summary>
-    public const string ActionStatusChanged = nameof(ActionStatusChanged);
-
-    /// <summary>Tells the row's own control to re-read its result line.</summary>
-    public void NotifyActionStatusChanged() =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(ActionStatusChanged));
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

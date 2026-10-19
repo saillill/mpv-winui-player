@@ -154,49 +154,11 @@ namespace mpv_winui.Modules.Player
             /// shows the overflow button whenever something is hidden (by the
             /// user or by the width tier) so no action is ever unreachable.
             /// </summary>
-            /// <summary>
-            /// True when the current track is audio, so the bar can drop the keys
-            /// that only mean something with a picture.
-            ///
-            /// Zoom, aspect and PiP all act on the video frame. With an audio file
-            /// they are either inert or - worse - they resize a window that has
-            /// nothing to show, which is the "remove the video-only buttons that
-            /// have no value on the music page" request. Kept as a flag on the
-            /// control rather than a second visibility table so it composes with
-            /// the tier rules instead of overriding them.
-            /// </summary>
-            public bool IsAudioOnly
-            {
-                get => _audioOnly;
-                set
-                {
-                    if (_audioOnly == value)
-                    {
-                        return;
-                    }
-
-                    _audioOnly = value;
-
-                    ApplyControlBarStyle();
-                }
-            }
-
-            private bool _audioOnly;
-
-            /// <summary>Ids that only make sense with a video frame.</summary>
-            private static readonly string[] VideoOnlyIds = ["aspect", "pip", "fullwindow"];
-
             private void ApplyControlBarVisibility(ControlBarTier tier, IReadOnlySet<string> userHidden)
             {
                 foreach (var (id, elements) in AdaptiveControlMap())
                 {
                     var visible = ControlBarAdaptiveLayout.IsVisible(id, tier, userHidden);
-
-                    // Audio drops the frame-only keys whatever the tier says.
-                    if (visible && _audioOnly && VideoOnlyIds.Contains(id, StringComparer.OrdinalIgnoreCase))
-                    {
-                        visible = false;
-                    }
 
                     // The settings channel only knows "volume" and hides the
                     // mute button and its slider together; the tier treats the
@@ -232,26 +194,13 @@ namespace mpv_winui.Modules.Player
             /// edge to edge, so an item's width is what the pitch really is;
             /// narrowing it tightens the row without touching the glyph size or
             /// the hit target's height.
-            ///
-            /// These two numbers are AppBarButtonStyle's own width and a step
-            /// below it, and that relationship is the point. The style used to
-            /// declare 62 while this method wrote 40, so 40 is what the bar
-            /// actually showed - which is why measuring the built app reported a
-            /// 40 DIP pitch against a 62 DIP style, and why "the buttons are too
-            /// small" could not be fixed by editing the style alone. Whatever
-            /// the style says, this is the value that lands.
-            ///
-            /// PlayPauseButton is deliberately absent from the loop below: it is
-            /// the one control meant to be larger than its neighbours, and
-            /// equalising it here would cancel that.
             /// </summary>
             private void ApplyBarPitch(bool tight)
             {
-                // 44 = the style's own button, and the official player's own
-                // transport pitch; 36 is the widest step down that still keeps
-                // ten slots inside a 340 window.
-                const double Wide = 44;
-                const double Tight = 36;
+                // 40 is the AppBarButton default this bar is built around; 33 is
+                // the widest that keeps ten slots inside a 340px window.
+                const double Wide = 40;
+                const double Tight = 33;
 
                 var width = tight ? Tight : Wide;
                 if (_barPitch == width)
@@ -267,14 +216,10 @@ namespace mpv_winui.Modules.Player
                 }
             }
 
-            /// <summary>
-            /// Buttons whose slot width the pitch rule owns. PlayPauseButton is
-            /// absent on purpose: it keeps MpvTransportPlayButtonStyle's own 56,
-            /// because a play button the same size as everything beside it is
-            /// the one thing the official player's bar never does.
-            /// </summary>
+            /// <summary>Buttons whose slot width the pitch rule owns.</summary>
             private IEnumerable<FrameworkElement> PitchControlledButtons()
             {
+                yield return PlayPauseButton;
                 yield return PreviousTrackButton;
                 yield return NextTrackButton;
                 yield return SkipBackwardButton;

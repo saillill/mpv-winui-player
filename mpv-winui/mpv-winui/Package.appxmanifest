@@ -5,8 +5,9 @@
         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
         xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+        xmlns:systemai="http://schemas.microsoft.com/appx/manifest/systemai/windows10"
         xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
-        IgnorableNamespaces="uap uap5 rescap">
+        IgnorableNamespaces="uap uap5 rescap systemai">
 
     <Identity
             Name="mpv-winui-dev"
@@ -130,23 +131,12 @@
         </Application>
     </Applications>
 
-    <!--
-      Capabilities are limited to what the app actually does.
-
-        runFullTrust   required: this is a full-trust desktop application.
-        internetClient outbound network access, used by the update check.
-
-      Removed: systemAIModels and codeGeneration (restricted capabilities, and
-      nothing in this app calls a Windows AI API), and privateNetworkClientServer
-      (no local listener exists; the app makes outbound requests only). They were
-      declared alongside the AI/ML packages the Windows App SDK meta-package
-      drags in, which is the likely origin, but a capability is a promise about
-      what an application can reach whether or not it exercises it, and a video
-      player has no business promising a system-wide AI model and code-generation
-      surface.
-    -->
     <Capabilities>
         <rescap:Capability Name="runFullTrust"/>
+        <systemai:Capability Name="systemAIModels"/>
         <Capability Name="internetClient"/>
+        <Capability Name="internetClientServer"/>
+        <Capability Name="codeGeneration"/>
+        <Capability Name="privateNetworkClientServer"/>
     </Capabilities>
 </Package>

@@ -399,17 +399,18 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
     /// <summary>Option key of the file-association checklist card.</summary>
     private const string FileAssociationCheckListKey = "FileAssociationCheckList";
 
-    /// <summary>
-    /// Video first, then audio, which is the order the checklist shows them in.
-    ///
-    /// The two lists themselves live in <see cref="MediaKinds"/>, because the
-    /// library groups the same files by the same rule.
-    /// </summary>
     private static readonly string[] AssociationExtensions =
     [
-        .. MediaKinds.VideoExtensions,
-        .. MediaKinds.AudioExtensions,
+        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v",
+        ".mpg", ".mpeg", ".ts", ".m2ts", ".3gp", ".ogv", ".rm", ".rmvb",
+        ".mp3", ".flac", ".wav", ".aac", ".m4a", ".ogg", ".opus", ".wma",
     ];
+
+    private static readonly HashSet<string> VideoExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v",
+        ".mpg", ".mpeg", ".ts", ".m2ts", ".3gp", ".ogv", ".rm", ".rmvb",
+    };
 
     private static List<OptionCheckItem> BuildAssociationItems()
     {
@@ -420,8 +421,8 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                 ext,
                 ext,
                 selected.Contains(ext, StringComparer.OrdinalIgnoreCase),
-                MediaKinds.IsVideo(ext) ? "\uE714" : "\uE8D6",
-                MediaKinds.IsVideo(ext) ? lang.FileAssociationGroupVideo : lang.FileAssociationGroupAudio))
+                VideoExtensions.Contains(ext) ? "\uE714" : "\uE8D6",
+                VideoExtensions.Contains(ext) ? lang.FileAssociationGroupVideo : lang.FileAssociationGroupAudio))
             .ToList();
     }
 
@@ -460,7 +461,8 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             // has to be stated honestly instead of claiming "created".
             if (PackageHelper.IsPackaged)
             {
-                SetActionStatus(FileAssociationCheckListKey, AppContext.AppLang.SettingsAssociatePackaged);
+                _actionStatus = AppContext.AppLang.SettingsAssociatePackaged;
+                OptionsControl.Refresh();
                 return;
             }
 
@@ -474,35 +476,20 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                 await service.RegisterAsync(toRegister);
             }
 
-            // Nothing ticked means "associate nothing", which is the same end
-            // state as unassociating everything -- but the checks below only ask
-            // whether the extensions that were SUPPOSED to register did, and an
-            // empty list trivially passes. That is how an empty selection came
-            // back reporting "file associations created." while Windows had
-            // never been told about anything. Say what actually happened.
-            if (toRegister.Count == 0)
-            {
-                SetActionStatus(FileAssociationCheckListKey, AppContext.AppLang.SettingsUnassociateDone);
-                return;
-            }
-
             if (toUnregister.Count > 0)
             {
                 await service.UnregisterAsync(toUnregister);
             }
 
-            // Keep the protocol association while any file association is
-            // active; remove it when the user clears the whole checklist. The
-            // scheme is read from ActivationService, which is also what parses
-            // it - these two used to disagree, so the association this code
-            // turned on was one the app itself could not handle.
+            // Keep the mpv-winui:// protocol while any file association is
+            // active; remove it when the user clears the whole checklist.
             if (selected.Count == 0)
             {
-                await service.UnregisterProtocolAsync(MpvProtocolUri.Scheme);
+                await service.UnregisterProtocolAsync("mpv-winui");
             }
             else
             {
-                await service.RegisterProtocolAsync(MpvProtocolUri.Scheme);
+                await service.RegisterProtocolAsync("mpv-winui");
             }
 
             // Registering is not proof of success: WindowsAppSDK can leave the
@@ -532,17 +519,20 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                     "file association apply incomplete, missing={} systemShell={}",
                     string.Join(",", missing),
                     ActivationRegistrationService.HasUsableShellCommand());
-                SetActionStatus(FileAssociationCheckListKey, AppContext.AppLang.SettingsAssociateFailed);
+                _actionStatus = AppContext.AppLang.SettingsAssociateFailed;
             }
             else
             {
-                SetActionStatus(FileAssociationCheckListKey, AppContext.AppLang.SettingsAssociateDone);
+                _actionStatus = AppContext.AppLang.SettingsAssociateDone;
             }
+
+            OptionsControl.Refresh();
         }
         catch (Exception ex)
         {
             AppContext.AppLogger.Error(ex, "file association apply failed");
-            SetActionStatus(FileAssociationCheckListKey, AppContext.AppLang.SettingsAssociateFailed);
+            _actionStatus = AppContext.AppLang.SettingsAssociateFailed;
+            OptionsControl.Refresh();
         }
     }
 
@@ -561,7 +551,8 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
             if (PackageHelper.IsPackaged)
             {
                 AppContext.AppSetting.FileAssociationExts = string.Empty;
-                SetActionStatus("ActionUnassociateFiles", AppContext.AppLang.SettingsAssociatePackaged);
+                _actionStatus = AppContext.AppLang.SettingsAssociatePackaged;
+                OptionsControl.Refresh();
                 return;
             }
 
@@ -571,14 +562,16 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
                 await ActivationRegistrationService.Instance.UnregisterAsync(extensions);
             }
 
-            await ActivationRegistrationService.Instance.UnregisterProtocolAsync(MpvProtocolUri.Scheme);
+            await ActivationRegistrationService.Instance.UnregisterProtocolAsync("mpv-winui");
             AppContext.AppSetting.FileAssociationExts = string.Empty;
-            SetActionStatus("ActionUnassociateFiles", AppContext.AppLang.SettingsUnassociateDone);
+            _actionStatus = AppContext.AppLang.SettingsUnassociateDone;
+            OptionsControl.Refresh();
         }
         catch (Exception ex)
         {
             AppContext.AppLogger.Error(ex, "file association unregister failed");
-            SetActionStatus("ActionUnassociateFiles", AppContext.AppLang.SettingsAssociateFailed);
+            _actionStatus = AppContext.AppLang.SettingsAssociateFailed;
+            OptionsControl.Refresh();
         }
     }
 

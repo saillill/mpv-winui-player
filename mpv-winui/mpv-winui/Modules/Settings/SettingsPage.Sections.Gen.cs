@@ -33,21 +33,54 @@ namespace mpv_winui.Modules.Settings
         {
             var lang = AppContext.AppLang;
 
-            // 视频渲染选项 -- 80 row(s), from mpv's "Video & rendering"
+            // 视频渲染选项 -- 205 row(s), from mpv's "Video & rendering"
             sectionOrder[lang.SectionGenVideoRendering] = 1000;
             advancedSections.Add(lang.SectionGenVideoRendering);
 
+            sectionMap[nameof(AppContext.AppSetting.Mpv_angle_d3d11_feature_level)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_angle_d3d11_warp)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_angle_egl_windowing)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_angle_flip)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_angle_renderer)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_background)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_background_blur_radius)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_background_color)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_correct_pts)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cscale_blur)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cscale_clamp)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cscale_param1)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cscale_param2)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cscale_radius)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cscale_taper)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cscale_window)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cscale_wparam)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cscale_wtaper)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_d3d11_composition_size)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_d3d11_feature_level)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_d3d11_output_mode)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_deband_grain)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_deband_iterations)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_deband_range)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_deband_threshold)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_deinterlace_field_parity)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_display_fps_override)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_display_tags)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_antiring)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_blur)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_clamp)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_param1)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_param2)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_radius)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_taper)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_window)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_wparam)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dscale_wtaper)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_egl_config_id)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_egl_output_format)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_gpu_debug)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_gpu_dumb_mode)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_gpu_hwdec_interop)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_gpu_sw)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_x)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_y)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_hwdec_extra_frames)] = lang.SectionGenVideoRendering;
@@ -62,6 +95,48 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_lut_type)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_mf_fps)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_mf_type)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_check_pattern_a)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_check_pattern_b)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_dwmflush)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_early_flush)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_es)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_glfinish)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_pbo)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_rectangle_textures)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_swapinterval)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_opengl_waitvsync)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_scale_blur)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_scale_clamp)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_scale_param1)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_scale_param2)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_scale_radius)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_scale_taper)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_scale_window)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_scale_wparam)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_scale_wtaper)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sigmoid_center)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sigmoid_slope)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_allow_zimg)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_bitexact)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_cgb)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_chs)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_cs)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_cvs)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_fast)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_lgb)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_ls)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_sws_scaler)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_antiring)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_blur)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_clamp)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_param1)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_param2)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_radius)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_taper)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_window)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_wparam)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tscale_wtaper)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vd)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_apply_cropping)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_lavc_assume_old_x264)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_lavc_bitexact)] = lang.SectionGenVideoRendering;
@@ -79,6 +154,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_queue_max_bytes)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_queue_max_samples)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_queue_max_secs)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vf)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_aspect_method)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_backward_batch)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_backward_overlap)] = lang.SectionGenVideoRendering;
@@ -95,6 +171,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_sync_max_audio_change)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_sync_max_factor)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_timing_offset)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_direct3d_disable_texture_align)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_direct3d_exact_backbuffer)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_direct3d_force_power_of_2)] = lang.SectionGenVideoRendering;
@@ -116,12 +193,61 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_image_webp_compression)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_image_webp_lossless)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_image_webp_quality)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_alt_screen)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_auto_multiplexer_passthrough)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_cols)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_config_clear)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_height)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_left)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_rows)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_top)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_use_shm)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_kitty_width)] = lang.SectionGenVideoRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_mmcss_profile)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_null_fps)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_alt_screen)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_buffered)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_cols)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_config_clear)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_dither)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_fixedpalette)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_height)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_left)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_pad_x)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_pad_y)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_reqcolors)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_rows)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_threshold)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_top)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_sixel_width)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_tct_256)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_tct_algo)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_tct_buffering)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_tct_height)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vo_tct_width)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vulkan_async_compute)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vulkan_async_transfer)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vulkan_device)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vulkan_display_display)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vulkan_display_mode)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vulkan_display_plane)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vulkan_queue_count)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vulkan_swap_mode)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_zimg_dither)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_zimg_fast)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_zimg_scaler)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_zimg_scaler_chroma)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_zimg_scaler_chroma_param_a)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_zimg_scaler_chroma_param_b)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_zimg_scaler_param_a)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_zimg_scaler_param_b)] = lang.SectionGenVideoRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_zimg_threads)] = lang.SectionGenVideoRendering;
 
-            // 色彩与 HDR 选项 -- 8 row(s), from mpv's "Colour & HDR"
+            // 色彩与 HDR 选项 -- 9 row(s), from mpv's "Colour & HDR"
             sectionOrder[lang.SectionGenColourHdr] = 1001;
             advancedSections.Add(lang.SectionGenColourHdr);
 
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dither_size_fruit)] = lang.SectionGenColourHdr;
             sectionMap[nameof(AppContext.AppSetting.Mpv_gamma_factor)] = lang.SectionGenColourHdr;
             sectionMap[nameof(AppContext.AppSetting.Mpv_hdr_peak_percentile)] = lang.SectionGenColourHdr;
             sectionMap[nameof(AppContext.AppSetting.Mpv_hdr_reference_white)] = lang.SectionGenColourHdr;
@@ -131,12 +257,10 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_target_lut)] = lang.SectionGenColourHdr;
             sectionMap[nameof(AppContext.AppSetting.Mpv_tone_mapping_param)] = lang.SectionGenColourHdr;
 
-            // 字幕选项 -- 25 row(s), from mpv's "Subtitles"
+            // 字幕选项 -- 22 row(s), from mpv's "Subtitles"
             sectionOrder[lang.SectionGenSubtitles] = 1002;
             advancedSections.Add(lang.SectionGenSubtitles);
 
-            sectionMap[nameof(AppContext.AppSetting.Mpv_secondary_sid)] = lang.SectionGenSubtitles;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_stretch_dvd_subs)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_ass)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_ass_styles)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_auto_exts)] = lang.SectionGenSubtitles;
@@ -159,7 +283,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_speed)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_stretch_durations)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat)] = lang.SectionGenSubtitles;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_teletext_page)] = lang.SectionGenSubtitles;
 
             // OSD 选项 -- 16 row(s), from mpv's "OSD"
             sectionOrder[lang.SectionGenOsd] = 1003;
@@ -182,10 +305,11 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_osd_prune_delay)] = lang.SectionGenOsd;
             sectionMap[nameof(AppContext.AppSetting.Mpv_osd_status_msg)] = lang.SectionGenOsd;
 
-            // 音频选项 -- 33 row(s), from mpv's "Audio"
+            // 音频选项 -- 46 row(s), from mpv's "Audio"
             sectionOrder[lang.SectionGenAudio] = 1004;
             advancedSections.Add(lang.SectionGenAudio);
 
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ad)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_lavc_ac3drc)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_lavc_o)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_lavc_threads)] = lang.SectionGenAudio;
@@ -193,6 +317,20 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_queue_max_bytes)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_queue_max_samples)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_queue_max_secs)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_af)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_null_broken_delay)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_null_broken_eof)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_null_buffer)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_null_channel_layouts)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_null_format)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_null_latency)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_null_outburst)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_null_speed)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_null_untimed)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_pcm_append)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_pcm_file)] = lang.SectionGenAudio;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ao_pcm_waveheader)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_backward_batch)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_backward_overlap)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_client_name)] = lang.SectionGenAudio;
@@ -210,7 +348,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_openal_direct_channels)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_openal_num_buffers)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_openal_num_samples)] = lang.SectionGenAudio;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_pitch)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_replaygain_clip)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_replaygain_fallback)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_replaygain_preamp)] = lang.SectionGenAudio;
@@ -218,9 +355,8 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_volume_gain)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_volume_gain_max)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_volume_gain_min)] = lang.SectionGenAudio;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_wasapi_exclusive_buffer)] = lang.SectionGenAudio;
 
-            // 流媒体与缓存选项 -- 52 row(s), from mpv's "Streaming & cache"
+            // 流媒体与缓存选项 -- 50 row(s), from mpv's "Streaming & cache"
             sectionOrder[lang.SectionGenStreaming] = 1005;
             advancedSections.Add(lang.SectionGenStreaming);
 
@@ -264,8 +400,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_seekable_cache)] = lang.SectionGenStreaming;
             sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_termination_timeout)] = lang.SectionGenStreaming;
             sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_thread)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_hls_bitrate)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_rtsp_transport)] = lang.SectionGenStreaming;
             sectionMap[nameof(AppContext.AppSetting.Mpv_stream_buffer_size)] = lang.SectionGenStreaming;
             sectionMap[nameof(AppContext.AppSetting.Mpv_stream_dump)] = lang.SectionGenStreaming;
             sectionMap[nameof(AppContext.AppSetting.Mpv_stream_lavf_o)] = lang.SectionGenStreaming;
@@ -287,7 +421,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_vid)] = lang.SectionGenTracks;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vlang)] = lang.SectionGenTracks;
 
-            // 播放器与窗口选项 -- 80 row(s), from mpv's "Player & window"
+            // 播放器与窗口选项 -- 95 row(s), from mpv's "Player & window"
             sectionOrder[lang.SectionGenPlayerWindow] = 1007;
             advancedSections.Add(lang.SectionGenPlayerWindow);
 
@@ -299,6 +433,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_border_background)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_clipboard_backends)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_clipboard_monitor)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_clipboard_xwayland)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_cover_art_auto)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_cover_art_files)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_cover_art_whitelist)] = lang.SectionGenPlayerWindow;
@@ -331,11 +466,14 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_doubleclick_time)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_dragging_deadzone)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_gamepad)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_ipc_client)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_key_fifo_size)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_media_keys)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_preprocess_wheel)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_right_alt_gr)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_tablet_emulate_mouse)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_terminal)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_test)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_touch_emulate_mouse)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_vo_keyboard)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_keep_open_pause)] = lang.SectionGenPlayerWindow;
@@ -349,9 +487,14 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_load_select)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_load_stats_overlay)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_load_unsafe_playlists)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_msg_color)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_msg_level)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_msg_module)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_msg_time)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_native_fs)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_native_keyrepeat)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_native_touch)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ontop_level)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_pause)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_playlist_exts)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_playlist_inherit_options)] = lang.SectionGenPlayerWindow;
@@ -364,6 +507,12 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_show_in_taskbar)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_shuffle)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_start)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_term_osd)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_term_osd_bar)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_term_osd_bar_chars)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_term_playing_msg)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_term_status_msg)] = lang.SectionGenPlayerWindow;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_term_title)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_watch_history_path)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_window_affinity)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_window_corners)] = lang.SectionGenPlayerWindow;
@@ -372,50 +521,53 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_window_minimized)] = lang.SectionGenPlayerWindow;
             sectionMap[nameof(AppContext.AppSetting.Mpv_window_scale)] = lang.SectionGenPlayerWindow;
 
-            // 编码输出 -- 10 row(s), from mpv's "General"
+            // 编码输出 -- 16 row(s), from mpv's "General"
             sectionOrder[lang.SectionGenGeneralEncoding] = 1008;
             advancedSections.Add(lang.SectionGenGeneralEncoding);
 
+            sectionMap[nameof(AppContext.AppSetting.Mpv_chapters_file)] = lang.SectionGenGeneralEncoding;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_index)] = lang.SectionGenGeneralEncoding;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_mc)] = lang.SectionGenGeneralEncoding;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_merge_files)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_oac)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_oacopts)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ocopy_metadata)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_of)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ofopts)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_orawts)] = lang.SectionGenGeneralEncoding;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ordered_chapters)] = lang.SectionGenGeneralEncoding;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ordered_chapters_files)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_oremove_metadata)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_oset_metadata)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ovc)] = lang.SectionGenGeneralEncoding;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ovcopts)] = lang.SectionGenGeneralEncoding;
 
-            // 章节与时间线 -- 9 row(s), from mpv's "General"
-            sectionOrder[lang.SectionGenGeneralChapters] = 1009;
-            advancedSections.Add(lang.SectionGenGeneralChapters);
+            // 终端输出 -- 7 row(s), from mpv's "General"
+            sectionOrder[lang.SectionGenGeneralTerminal] = 1009;
+            advancedSections.Add(lang.SectionGenGeneralTerminal);
 
-            sectionMap[nameof(AppContext.AppSetting.Mpv_chapter_merge_threshold)] = lang.SectionGenGeneralChapters;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_chapter_seek_threshold)] = lang.SectionGenGeneralChapters;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_chapters_file)] = lang.SectionGenGeneralChapters;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_edition)] = lang.SectionGenGeneralChapters;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_flatten_editions)] = lang.SectionGenGeneralChapters;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_index)] = lang.SectionGenGeneralChapters;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_merge_files)] = lang.SectionGenGeneralChapters;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_ordered_chapters)] = lang.SectionGenGeneralChapters;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_ordered_chapters_files)] = lang.SectionGenGeneralChapters;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_dump_stats)] = lang.SectionGenGeneralTerminal;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_js_memory_report)] = lang.SectionGenGeneralTerminal;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_log_file)] = lang.SectionGenGeneralTerminal;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_metadata_codepage)] = lang.SectionGenGeneralTerminal;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_quiet)] = lang.SectionGenGeneralTerminal;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_really_quiet)] = lang.SectionGenGeneralTerminal;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_terminal)] = lang.SectionGenGeneralTerminal;
 
-            // 窗口与界面 -- 9 row(s), from mpv's "General"
-            sectionOrder[lang.SectionGenGeneralDesktop] = 1010;
-            advancedSections.Add(lang.SectionGenGeneralDesktop);
+            // 其他平台 -- 8 row(s), from mpv's "General"
+            sectionOrder[lang.SectionGenGeneralPlatform] = 1010;
+            advancedSections.Add(lang.SectionGenGeneralPlatform);
 
-            sectionMap[nameof(AppContext.AppSetting.Mpv_backdrop_type)] = lang.SectionGenGeneralDesktop;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_drag_and_drop)] = lang.SectionGenGeneralDesktop;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_hidpi_window_scale)] = lang.SectionGenGeneralDesktop;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_media_controls)] = lang.SectionGenGeneralDesktop;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_osc)] = lang.SectionGenGeneralDesktop;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_snap_window)] = lang.SectionGenGeneralDesktop;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_stop_screensaver)] = lang.SectionGenGeneralDesktop;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_taskbar_progress)] = lang.SectionGenGeneralDesktop;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_title)] = lang.SectionGenGeneralDesktop;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_focus_on)] = lang.SectionGenGeneralPlatform;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_on_all_workspaces)] = lang.SectionGenGeneralPlatform;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_screen)] = lang.SectionGenGeneralPlatform;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_screen_name)] = lang.SectionGenGeneralPlatform;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_vaapi_device)] = lang.SectionGenGeneralPlatform;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_wayland_app_id)] = lang.SectionGenGeneralPlatform;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_wid)] = lang.SectionGenGeneralPlatform;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_x11_name)] = lang.SectionGenGeneralPlatform;
 
-            // 脚本与配置管线 -- 22 row(s), from mpv's "General"
+            // 脚本与配置管线 -- 25 row(s), from mpv's "General"
             sectionOrder[lang.SectionGenGeneralScripting] = 1011;
             advancedSections.Add(lang.SectionGenGeneralScripting);
 
@@ -432,44 +584,67 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_priority)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_profile)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_rebase_start_time)] = lang.SectionGenGeneralScripting;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_register)] = lang.SectionGenGeneralScripting;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_register_rpath)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_reset_on_next_file)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_resume_playback_check_mtime)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_save_watch_history)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_scripts)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sstep)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_stop_playback_on_init_failure)] = lang.SectionGenGeneralScripting;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_unregister)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_untimed)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_use_filedir_conf)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config)] = lang.SectionGenGeneralScripting;
 
-            // 渲染与色彩微调 -- 24 row(s), from mpv's "General"
+            // 渲染与色彩微调 -- 44 row(s), from mpv's "General"
             sectionOrder[lang.SectionGenGeneralRendering] = 1012;
             advancedSections.Add(lang.SectionGenGeneralRendering);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_access_references)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_allow_delayed_peak_detect)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_backdrop_type)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_chapter_merge_threshold)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_chapter_seek_threshold)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_container_fps_override)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_corner_rounding)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_cuda_decode_device)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_d3d11va_zero_copy)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_drag_and_drop)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_edition)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_error_diffusion)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_fbo_format)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_flatten_editions)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_framedrop)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_hidpi_window_scale)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_hls_bitrate)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_keepaspect)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_keepaspect_window)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_lavfi_complex)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_libplacebo_opts)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_media_controls)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_monitoraspect)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_monitorpixelaspect)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_osc)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_pitch)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_rar_list_all_volumes)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_rtsp_transport)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_scaler_resizes_only)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sdr_adjust_gamma)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_secondary_sid)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_snap_window)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_spirv_compiler)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_stop_screensaver)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_stretch_dvd_subs)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_swapchain_depth)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_taskbar_progress)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_teletext_page)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_temporal_dither)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_temporal_dither_period)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_title)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_treat_srgb_as_power22)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_use_embedded_icc_profile)] = lang.SectionGenGeneralRendering;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_wasapi_exclusive_buffer)] = lang.SectionGenGeneralRendering;
 
         }
     }

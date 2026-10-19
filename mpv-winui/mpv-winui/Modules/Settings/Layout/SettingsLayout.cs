@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using mpv_winui.Modules.Common.Utils;
 
 namespace mpv_winui.Modules.Settings.Layout;
 
@@ -443,9 +442,7 @@ public static class SettingsLayoutStore
             }
 
             layout.Version = SettingsLayout.CurrentVersion;
-            AtomicFile.WriteAllText(
-                path,
-                JsonSerializer.Serialize(layout, SettingsLayoutPrettyJsonContext.Default.SettingsLayout));
+            File.WriteAllText(path, JsonSerializer.Serialize(layout, SettingsLayoutPrettyJsonContext.Default.SettingsLayout));
         }
         catch
         {

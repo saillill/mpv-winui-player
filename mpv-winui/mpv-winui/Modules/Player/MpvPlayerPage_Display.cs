@@ -391,30 +391,6 @@ namespace mpv_winui.Modules.Player
                 AppContext.SendMpvCommand($"no-osd set user-data/mpvw/display-peak {displayPeak}");
                 AppContext.SendMpvCommand($"no-osd set target-peak {targetPeak}");
 
-                // HDR peak detection, pinned rather than left to the config.
-                //
-                // The reported over-bright HDR picture came from the peak
-                // detector, not from the tone-mapping curve: hdr-peak-percentile
-                // was 0.0, which makes mpv treat the SINGLE brightest pixel in
-                // the frame as the peak, so one specular highlight pushed the
-                // whole mapping down and then the highlights were clipped against
-                // a peak that was never the display's. 99.5 is mpv's own default
-                // and the value its documentation recommends precisely for this:
-                // ignore the top 0.5% of pixels when measuring scene peak.
-                //
-                // hdr-reference-white is pinned to the display peak as well.
-                // "auto" is not a valid value for it - it is a number, and the
-                // config's quoted "auto" was being read as a string - so the
-                // reference white was falling back to mpv's 203-nit default while
-                // target-peak said 1000+, and SDR-level content inside an HDR
-                // frame was mapped as if it were 5x brighter than it is. That is
-                // the washed-out look on top of the clipped highlights.
-                if (displayPeak > 0)
-                {
-                    AppContext.SendMpvCommand("no-osd set hdr-peak-percentile 99.5");
-                    AppContext.SendMpvCommand($"no-osd set hdr-reference-white {displayPeak}");
-                }
-
                 _lastAppliedDisplayPeak = displayPeak;
                 _lastAppliedTargetPeak = targetPeak;
 

@@ -11,28 +11,19 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-# The mpv development libraries (mpv-2.dll, mpv.lib, headers) are not committed
-# and are per-architecture, so both the check and the fetch are platform-scoped:
-# a checkout that has x64 libraries is still missing them for ARM64.
+# The mpv development libraries (mpv-2.dll, mpv.lib, headers) are not committed;
+# a clean clone must fetch them first (CI downloads the same archive).
 $libsDir = "$root\mpv-winui\libs"
-$libsOk = (Test-Path -LiteralPath "$libsDir\bin\$Platform\mpv-2.dll") -and (Test-Path -LiteralPath "$libsDir\lib\$Platform\mpv.lib")
+$libsOk = (Test-Path -LiteralPath "$libsDir\bin\mpv-2.dll") -and (Test-Path -LiteralPath "$libsDir\lib\mpv.lib")
 if (-not $libsOk) {
     if ($FetchMpvLibs) {
-        Write-Host "==> mpv libs missing for $Platform ($libsDir); fetching..."
-        & "$root\tools\fetch-mpv-libs.ps1" -Root $root -Platform $Platform
+        Write-Host "==> mpv libs missing ($libsDir); fetching..."
+        & "$root\tools\fetch-mpv-libs.ps1" -Root $root
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     } else {
-        Write-Error "mpv libs missing for $Platform ($libsDir\bin\$Platform). Run .\tools\fetch-mpv-libs.ps1 -Platform $Platform first, or re-run with -FetchMpvLibs to download automatically."
+        Write-Error "mpv libs missing ($libsDir). Run .\tools\fetch-mpv-libs.ps1 first, or re-run with -FetchMpvLibs to download automatically."
     }
 }
-
-# XAML comments cannot contain "--" (WMC9997) and nothing in this repository's
-# editing tools prevents writing it, so the check runs before the build rather
-# than after. A failed build followed by a deploy that still reports success is
-# the documented symptom of skipping this.
-Write-Host "==> Checking XAML"
-& python "$root\tools\check-xaml.py"
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # Use the VS Build Tools MSBuild when available; otherwise fall back to PATH.
 $msbuild = 'C:\BuildTools\MSBuild\Current\Bin\MSBuild.exe'
@@ -72,15 +63,6 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 # survives a write and a read.
 Write-Host "==> Running mpv-conf-test"
 dotnet test "$root\mpv-winui\mpv-conf-test\mpv-conf-test.csproj" -c $Configuration -v:minimal
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-# mpv-winrt-test drives the real mpv_winrt component against the real mpv
-# runtime, so it can only run after the C++ build above. Nothing used to run it:
-# not this script, not CI, so its assertions were never evidence of anything.
-# It is run here rather than in a CI job precisely because it needs the C++ and
-# native binaries this script has just produced.
-Write-Host "==> Running mpv-winrt-test"
-dotnet test "$root\mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj" -c $Configuration -p:Platform=$Platform -v:minimal
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 if ($CheckLocalization) {

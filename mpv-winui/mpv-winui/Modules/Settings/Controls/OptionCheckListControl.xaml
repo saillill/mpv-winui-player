@@ -56,7 +56,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <StackPanel
                 x:Name="CheckItemsControl"
@@ -70,20 +69,6 @@
                 HorizontalAlignment="Right"
                 Click="OnApplyClick"
                 Style="{StaticResource AccentButtonStyle}"
-                Visibility="Collapsed" />
-            <!-- The apply result. The row had an apply button but nowhere to
-                 report what applying did, so a failed registration looked
-                 identical to a successful one: the old code wrote the result to
-                 a shared status field that only OptionActionControl read, and
-                 nothing on this control ever displayed it. -->
-            <TextBlock
-                x:Name="StatusText"
-                Grid.Row="2"
-                Margin="0,8,0,0"
-                HorizontalAlignment="Right"
-                Foreground="{ThemeResource SystemFillColorSuccessBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                TextWrapping="Wrap"
                 Visibility="Collapsed" />
         </Grid>
     </Grid>

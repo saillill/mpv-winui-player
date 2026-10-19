@@ -13,19 +13,15 @@ namespace mpv_winui
     /// <summary>
     /// Main-window aspect-ratio handling.
     ///
-    /// <see cref="ApplyVideoAspectToWindow"/> re-fits the window when a video
-    /// (or a video with a different aspect) loads, so
-    /// <c>AppSettings.WindowAspectRatioLock</c> holds on open. That is the whole
-    /// of it now: the lock used to also reshape the WM_SIZING drag rectangle, so
-    /// the window kept the video's ratio while being dragged, and a drag of any
-    /// single edge moved the opposite edge as well - which is the "dragging
-    /// scales the whole window" behaviour that had to go. Dragging is now the
-    /// plain Windows resize: one edge, the edge you grabbed.
-    ///
-    /// The subclass below therefore exists only to publish "a drag is in
-    /// progress" (and to signal mpv to drop its VSR/HDR filters for the
-    /// duration), so the aspect fit cannot fight the user's hand while they are
-    /// dragging.
+    /// Two halves:
+    ///  1. <see cref="AdjustMainSizingRect"/> shapes the native WM_SIZING drag
+    ///     rectangle while the user drag-resizes, so the window keeps the video
+    ///     aspect (the "固定长宽比" mode of
+    ///     <c>AppSettings.WindowAspectRatioLock</c>).
+    ///  2. <see cref="ApplyVideoAspectToWindow"/> re-fits the window when a
+    ///     video (or a video with a different aspect) loads, so the lock also
+    ///     holds on open - previously it only shaped manual drags, which is why
+    ///     the window could open at a ratio that did not match the video at all.
     ///
     /// The ratio is applied to the CLIENT area, not the whole window rectangle:
     /// with the window rectangle the title bar and borders eat into the height,
@@ -67,6 +63,9 @@ namespace mpv_winui
         }
 
         private static WeakReference<MainWindow>? _aspectSelfReference;
+        private RECT _sizingAnchorRect;
+        private int _chromeWidth;
+        private int _chromeHeight;
         private const int AspectSubclassId = 52122;
 
         /// <summary>True between WM_ENTERSIZEMOVE and WM_EXITSIZEMOVE.</summary>
@@ -120,21 +119,33 @@ namespace mpv_winui
             nuint uIdSubclass,
             nuint dwRefData)
         {
+            const int WM_SIZING = 0x0214;
             const int WM_ENTERSIZEMOVE = 0x0231;
             const int WM_EXITSIZEMOVE = 0x0232;
 
-            // Drags are deliberately NOT constrained: the window is resized one
-            // edge at a time, the way Windows does it, and the aspect fit only
-            // ever runs when a video opens (ApplyVideoAspectToWindow). A
-            // WM_SIZING handler that rewrote the drag rectangle to the video
-            // ratio used to live here, and from the outside it read as the whole
-            // window scaling when any single edge was dragged.
-            if (uMsg == WM_ENTERSIZEMOVE && _aspectSelfReference is not null)
+            if (uMsg == WM_ENTERSIZEMOVE
+                && _aspectSelfReference?.TryGetTarget(out var sizingSelf) == true)
             {
                 IsDragResizing = true;
                 // 拖动期间摘掉 VSR/HDR 滤镜（脚本观察该 user-data）：
                 // d3d11vpp 让每次链路重配置贵得多，且拖动中反复重配置正是卡顿来源。
                 AppContext.SendMpvCommand("no-osd set user-data/mpvw/window-resizing yes");
+
+                // The rect the drag started from: corner drags are resolved
+                // against it to decide which axis the user is actually moving.
+                PInvoke.GetWindowRect(hWnd, out sizingSelf._sizingAnchorRect);
+
+                // Chrome = client area minus the video panel (menu bar + control
+                // bar rows). It is layout-fixed, so measure it once here and use
+                // it for the whole drag: the aspect constraint must hold for the
+                // PANEL, otherwise the bars come back as soon as dragging starts.
+                var startFrame = sizingSelf.MeasureFrame();
+                sizingSelf._chromeWidth = Math.Max(0,
+                    (sizingSelf._sizingAnchorRect.right - sizingSelf._sizingAnchorRect.left)
+                    - startFrame.Width - (int)Math.Round(VideoPanelPhysicalWidth));
+                sizingSelf._chromeHeight = Math.Max(0,
+                    (sizingSelf._sizingAnchorRect.bottom - sizingSelf._sizingAnchorRect.top)
+                    - startFrame.Height - (int)Math.Round(VideoPanelPhysicalHeight));
             }
             else if (uMsg == WM_EXITSIZEMOVE && IsDragResizing)
             {
@@ -142,7 +153,233 @@ namespace mpv_winui
                 AppContext.SendMpvCommand("no-osd set user-data/mpvw/window-resizing no");
             }
 
+            if (uMsg == WM_SIZING
+                && _aspectSelfReference?.TryGetTarget(out var self) == true)
+            {
+                var rect = Marshal.PtrToStructure<RECT>((nint)lParam.Value);
+                if (self.AdjustMainSizingRect((int)wParam.Value, ref rect))
+                {
+                    Marshal.StructureToPtr(rect, (nint)lParam.Value, false);
+                    return (LRESULT)1;
+                }
+            }
+
             return PInvoke.DefSubclassProc(hWnd, uMsg, wParam, lParam);
+        }
+
+        /// <summary>
+        /// Constrains the WM_SIZING drag rectangle to the video aspect, keeping
+        /// the edge/corner opposite the dragged one fixed.
+        /// </summary>
+        private bool AdjustMainSizingRect(int edge, ref RECT rect)
+        {
+            const int WMSZ_LEFT = 1;
+            const int WMSZ_RIGHT = 2;
+            const int WMSZ_TOP = 3;
+            const int WMSZ_TOPLEFT = 4;
+            const int WMSZ_TOPRIGHT = 5;
+            const int WMSZ_BOTTOM = 6;
+            const int WMSZ_BOTTOMLEFT = 7;
+            const int WMSZ_BOTTOMRIGHT = 8;
+
+            if (!AppContext.AppSetting.WindowAspectRatioLock || !HasActiveVideo)
+            {
+                return false;
+            }
+
+            var aspect = CurrentVideoAspect > 0 ? CurrentVideoAspect : 16.0 / 9.0;
+
+            var frame = MeasureFrame();
+            int proposedW = (rect.right - rect.left) - frame.Width - _chromeWidth;
+            int proposedH = (rect.bottom - rect.top) - frame.Height - _chromeHeight;
+            if (proposedW <= 0 || proposedH <= 0)
+            {
+                return false;
+            }
+
+            double clientW;
+            double clientH;
+            var anchorCx = (_sizingAnchorRect.left + _sizingAnchorRect.right) / 2;
+            var anchorCy = (_sizingAnchorRect.top + _sizingAnchorRect.bottom) / 2;
+            if (anchorCx == 0 && anchorCy == 0)
+            {
+                // No anchor captured (e.g. keyboard sizing): use the proposed rect.
+                anchorCx = (rect.left + rect.right) / 2;
+                anchorCy = (rect.top + rect.bottom) / 2;
+            }
+            if (edge is WMSZ_LEFT or WMSZ_RIGHT)
+            {
+                clientW = proposedW;
+                clientH = clientW / aspect;
+            }
+            else if (edge is WMSZ_TOP or WMSZ_BOTTOM)
+            {
+                clientH = proposedH;
+                clientW = clientH * aspect;
+            }
+            else if (edge is WMSZ_TOPLEFT or WMSZ_TOPRIGHT or WMSZ_BOTTOMLEFT or WMSZ_BOTTOMRIGHT)
+            {
+                // Corners: follow whichever axis the user moved further, measured
+                // against the rect the drag started from. Deriving the height from
+                // the width - as the old code did for every corner - made dragging
+                // a corner vertically a no-op, because the width never changed.
+                var anchorW = (_sizingAnchorRect.right - _sizingAnchorRect.left) - frame.Width - _chromeWidth;
+                var anchorH = (_sizingAnchorRect.bottom - _sizingAnchorRect.top) - frame.Height - _chromeHeight;
+                var dx = Math.Abs(proposedW - anchorW);
+                var dy = Math.Abs(proposedH - anchorH);
+                if (dy > dx)
+                {
+                    clientH = proposedH;
+                    clientW = clientH * aspect;
+                }
+                else
+                {
+                    clientW = proposedW;
+                    clientH = clientW / aspect;
+                }
+            }
+            else
+            {
+                // Unknown edge: keep the OS proposal's width and derive the height.
+                clientW = proposedW;
+                clientH = clientW / aspect;
+            }
+
+            // Clamp to the window minimums, converted to panel space, and
+            // re-derive the other axis so the ratio survives the clamp.
+            var minW = MinPhysicalWidth() - frame.Width - _chromeWidth;
+            var minH = MinPhysicalHeight() - frame.Height - _chromeHeight;
+            if (minW <= 0 || minH <= 0)
+            {
+                return false;
+            }
+            if (clientW < minW)
+            {
+                clientW = minW;
+                clientH = clientW / aspect;
+            }
+            if (clientH < minH)
+            {
+                clientH = minH;
+                clientW = clientH * aspect;
+            }
+
+            var newW = (int)Math.Round(clientW) + frame.Width + _chromeWidth;
+            var newH = (int)Math.Round(clientH) + frame.Height + _chromeHeight;
+
+            // Never exceed the screen, and never slide once a boundary is hit:
+            // the available space is measured from the FIXED edge/corner (the
+            // anchor), so clamping shrinks the window in place instead of
+            // letting it slide. For edge drags the perpendicular axis is
+            // centred on the opposite edge's midpoint, so its limit is twice
+            // the distance from that midpoint to the nearest work-area edge.
+            var work = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+            var anchorRight = edge is WMSZ_LEFT or WMSZ_TOPLEFT or WMSZ_BOTTOMLEFT;
+            var anchorBottom = edge is WMSZ_TOP or WMSZ_TOPLEFT or WMSZ_TOPRIGHT;
+
+            int axisWLimit = int.MaxValue;
+            int axisHLimit = int.MaxValue;
+            double perpMaxW = double.MaxValue;
+            double perpMaxH = double.MaxValue;
+            if (edge is WMSZ_LEFT or WMSZ_RIGHT)
+            {
+                axisWLimit = (anchorRight ? rect.right - work.X : work.X + work.Width - rect.left)
+                             - frame.Width - _chromeWidth;
+                var midY = anchorCy > 0 ? anchorCy : (rect.top + rect.bottom) / 2;
+                perpMaxH = 2.0 * Math.Min(midY - work.Y, work.Y + work.Height - midY)
+                           - frame.Height - _chromeHeight;
+            }
+            else
+            {
+                axisHLimit = (anchorBottom ? rect.bottom - work.Y : work.Y + work.Height - rect.top)
+                             - frame.Height - _chromeHeight;
+                var midX = anchorCx > 0 ? anchorCx : (rect.left + rect.right) / 2;
+                perpMaxW = 2.0 * Math.Min(midX - work.X, work.X + work.Width - midX)
+                           - frame.Width - _chromeWidth;
+            }
+
+            var maxPanelW = Math.Min(axisWLimit, perpMaxW);
+            var maxPanelH = Math.Min(axisHLimit, perpMaxH);
+            if (maxPanelW < minW || maxPanelH < minH)
+            {
+                // No room left on this monitor for the ratio: stop growing.
+                return false;
+            }
+            if (clientW > maxPanelW || clientH > maxPanelH)
+            {
+                var scale = Math.Min(1.0, Math.Min(maxPanelW / (double)clientW, maxPanelH / (double)clientH));
+                clientW = Math.Floor(clientW * scale);
+                clientH = Math.Floor(clientH * scale);
+                newW = (int)Math.Round(clientW) + frame.Width + _chromeWidth;
+                newH = (int)Math.Round(clientH) + frame.Height + _chromeHeight;
+            }
+            if (newW == (rect.right - rect.left) && newH == (rect.bottom - rect.top))
+            {
+                return false;
+            }
+
+            // Anchor rules (standard Windows + this app's convention):
+            //   * dragging a CORNER  -> the opposite CORNER stays fixed;
+            //   * dragging an EDGE   -> the opposite EDGE stays fixed, and the
+            //     resize is centred on the MIDPOINT of that opposite edge
+            //     (dragging the right border anchors on the midpoint of the
+            //     left border, and so on for the other three edges).
+            var isCorner = edge is WMSZ_TOPLEFT or WMSZ_TOPRIGHT or WMSZ_BOTTOMLEFT or WMSZ_BOTTOMRIGHT;
+
+            if (isCorner)
+            {
+                var cornerAnchorRight = edge is WMSZ_TOPLEFT or WMSZ_BOTTOMLEFT;
+                var cornerAnchorBottom = edge is WMSZ_TOPLEFT or WMSZ_TOPRIGHT;
+                if (cornerAnchorRight)
+                {
+                    rect.left = rect.right - newW;
+                }
+                else
+                {
+                    rect.right = rect.left + newW;
+                }
+                if (cornerAnchorBottom)
+                {
+                    rect.top = rect.bottom - newH;
+                }
+                else
+                {
+                    rect.bottom = rect.top + newH;
+                }
+                return true;
+            }
+
+            if (edge is WMSZ_LEFT or WMSZ_RIGHT)
+            {
+                // The opposite (fixed) edge keeps its X; height is centred on
+                // that edge's midpoint.
+                if (edge == WMSZ_LEFT)
+                {
+                    rect.right = rect.left + newW;
+                }
+                else
+                {
+                    rect.left = rect.right - newW;
+                }
+                rect.top = anchorCy - (newH / 2);
+                rect.bottom = rect.top + newH;
+            }
+            else
+            {
+                // WMSZ_TOP / WMSZ_BOTTOM: width centred on the opposite edge's
+                // midpoint.
+                if (edge == WMSZ_TOP)
+                {
+                    rect.bottom = rect.top + newH;
+                }
+                else
+                {
+                    rect.top = rect.bottom - newH;
+                }
+                rect.left = anchorCx - (newW / 2);
+                rect.right = rect.left + newW;
+            }
+            return true;
         }
 
         /// <summary>
@@ -170,8 +407,8 @@ namespace mpv_winui
             }
             if (IsDragResizing)
             {
-                // 拖动进行中：此时由用户的手决定窗口尺寸（单边拖拽，不设比例约束），
-                // fit 若在此期间 MoveAndResize 会和用户的手互相拉扯。
+                // 拖动进行中：窗口尺寸由 WM_SIZING 的比例约束负责，fit 若在此期间
+                // MoveAndResize 会和用户的手互相拉扯（表现为窗口越拖越大）。
                 Trace("skipped: drag resizing in progress");
                 return;
             }
@@ -194,26 +431,14 @@ namespace mpv_winui
             var size = AppWindow.Size;
             var position = AppWindow.Position;
 
-            // Fit the VIDEO PANEL, not the window client. The client carries
-            // the window's chrome - title bar, navigation pane, tab strip and
-            // the control bar - so a client that is 16:9 leaves the panel wider
-            // than 16:9 and mpv pillarboxes the picture inside it.
-            // panel = client - extra, where "extra" is everything else.
-            //
-            // "Everything else" is measured rather than listed, so the shell
-            // gaining a pane and a tab strip needed no change here: the
-            // residual simply grew. The one thing that does matter is that the
-            // chrome stays put during a drag - see the PaneDisplayMode note in
-            // MainWindow.xaml, which is why the pane is pinned open instead of
-            // collapsing itself as the window narrows.
+            // Fit the VIDEO PANEL, not the window client. The client is split
+            // into menu row + video row + control row, so a 16:9 client leaves
+            // the panel wider than 16:9 and mpv pillarboxes the picture inside
+            // it. panel = client - extra, where "extra" is everything else.
             var panelW = VideoPanelPhysicalWidth;
             var panelH = VideoPanelPhysicalHeight;
             if (panelW <= 0 || panelH <= 0)
             {
-                // Also the library case: while the skeleton is covering the
-                // video there is no aspect to fit. The panel itself stays
-                // measured - it is never collapsed - so this only fires before
-                // the first layout pass.
                 Trace("skipped: panel size unknown", $"{panelW}x{panelH}");
                 return;
             }

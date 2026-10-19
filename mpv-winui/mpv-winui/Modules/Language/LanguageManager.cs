@@ -12,9 +12,6 @@ namespace mpv_winui.Modules.Language
     /// </summary>
     public static class LanguageManager
     {
-        /// <summary>Used whenever a requested code is missing or unsafe.</summary>
-        public const string DefaultLanguage = "en-US";
-
         /// <summary>User-overridable language files (win over the bundled ones).</summary>
         public static string UserLanguageDirectory => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -28,7 +25,7 @@ namespace mpv_winui.Modules.Language
             {
                 var names = Directory.GetFiles(dir, "*.json")
                     .Select(Path.GetFileNameWithoutExtension)
-                    .Where(x => LanguageCode.IsSafe(x))
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
                     .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
                 if (names.Length > 0)
@@ -37,38 +34,20 @@ namespace mpv_winui.Modules.Language
                 }
             }
 
-            return [DefaultLanguage, "zh-CN"];
+            return ["en-US", "zh-CN"];
         }
-
-        /// <summary>
-        /// The language code to actually use for <paramref name="lang"/>: the code
-        /// itself when it is a plain language tag, otherwise the default.
-        ///
-        /// <para>Callers that persist the choice or push it into an mpv command
-        /// should go through this, so the sanitised value is what gets stored and
-        /// sent rather than only what gets opened.</para>
-        /// </summary>
-        public static string Normalize(string? lang) =>
-            LanguageCode.IsSafe(lang) ? lang! : DefaultLanguage;
 
         /// <summary>
         /// Resolves the JSON file for a language code: user dir first, then the
         /// bundled Languages\ dir. Returns the first existing path, or the user
         /// path when neither exists (the loader then reports the missing file).
-        ///
-        /// <para>A code that is not a plain language tag is replaced with
-        /// <see cref="DefaultLanguage"/> before it reaches the path, so a stored
-        /// value can never point the load at a file outside the languages
-        /// directory.</para>
         /// </summary>
         public static string ResolveFilePath(string lang)
         {
-            var code = Normalize(lang);
-
             var candidates = new[]
             {
-                Path.Combine(UserLanguageDirectory, code + ".json"),
-                Path.Combine(System.AppContext.BaseDirectory, "Languages", code + ".json"),
+                Path.Combine(UserLanguageDirectory, lang + ".json"),
+                Path.Combine(System.AppContext.BaseDirectory, "Languages", lang + ".json"),
             };
 
             foreach (var path in candidates)

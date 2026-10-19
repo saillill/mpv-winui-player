@@ -34,21 +34,9 @@ internal static class MpvConfValueCodec
 {
     /// <summary>
     /// Quote and escape a value for mpv's command-string or config grammar.
-    ///
-    /// <para>The escape set is exactly the one mpv's double-quote parser
-    /// implements — JSON/C-style, "the only form which allows newlines at the
-    /// value", per the mpv manual — so this emits <c>\\</c>, <c>\"</c> and
-    /// <c>\n</c>/<c>\r</c> and nothing else. Handling newlines matters because
-    /// values are written one per physical line: an unescaped <c>\n</c> in a
-    /// value would split into two lines on the next read, corrupting the file
-    /// and losing the setting.</para>
     /// </summary>
     internal static string Quote(string value) =>
-        $"\"{value
-            .Replace("\\", "\\\\")
-            .Replace("\"", "\\\"")
-            .Replace("\r", "\\r")
-            .Replace("\n", "\\n")}\"";
+        $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
 
     /// <summary>
     /// Undo exactly one round of <see cref="Quote"/>.
@@ -58,11 +46,6 @@ internal static class MpvConfValueCodec
     /// recursive: one call undoes one round, which is what keeps
     /// <c>Unquote(Quote(v)) == v</c> true for every input, including values that
     /// themselves contain quotes and backslashes.</para>
-    ///
-    /// <para>The escape set mirrors <see cref="Quote"/> exactly, so the pair
-    /// stays a bijection. An escape this method does not recognise is left as
-    /// written — mpv's parser is the authority on the file, and inventing a
-    /// decode for it here would corrupt values the user wrote by hand.</para>
     ///
     /// <para>A file already damaged by the missing-inverse bug cannot be fully
     /// restored by one pass — its escape nesting is no longer well-formed — so
@@ -80,18 +63,10 @@ internal static class MpvConfValueCodec
         {
             if (value[i] == '\\' && i + 1 < value.Length)
             {
-                var escaped = value[i + 1] switch
+                var next = value[i + 1];
+                if (next == '\\' || next == '"')
                 {
-                    '\\' => '\\',
-                    '"' => '"',
-                    'r' => '\r',
-                    'n' => '\n',
-                    _ => (char?)null,
-                };
-
-                if (escaped is { } c)
-                {
-                    sb.Append(c);
+                    sb.Append(next);
                     i++;
                     continue;
                 }
@@ -169,16 +144,6 @@ internal static class MpvConfValueCodec
             };
         }
 
-        // An enum setting is written by name (mpv has no enum type of its own,
-        // so the app's own members are what ends up in the file). Nothing maps
-        // to one yet; this keeps the reader total for the property types the
-        // settings layer actually declares rather than letting them fall to the
-        // null below and be reported as a value the property cannot represent.
-        if (type.IsEnum)
-        {
-            return Enum.TryParse(type, raw, ignoreCase: true, out var parsed) ? parsed : null;
-        }
-
         // A hand-edited value may carry a unit the encoder does not use. Anything
         // other than MiB is refused rather than converted: rounding a size the
         // user wrote exactly is worse than leaving the stored setting alone.
@@ -191,7 +156,7 @@ internal static class MpvConfValueCodec
 
             if (NumericSentinels.TryGetValue(raw, out var sentinel))
             {
-                return CoerceToType(sentinel, type);
+                return (int)sentinel;
             }
 
             if (!long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var l))
@@ -199,16 +164,14 @@ internal static class MpvConfValueCodec
                 return null;
             }
 
-            // Narrow to the property's own width through CoerceToType, never a
-            // ternary - see that method for the defect a ternary left here.
-            return CoerceToType(l, type);
+            return type == typeof(int) ? (int)l : l;
         }
 
         if (type == typeof(double) || type == typeof(float))
         {
             if (NumericSentinels.TryGetValue(raw, out var sentinel))
             {
-                return CoerceToType(sentinel, type);
+                return sentinel;
             }
 
             if (!double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out var d))
@@ -216,108 +179,9 @@ internal static class MpvConfValueCodec
                 return null;
             }
 
-            return CoerceToType(d, type);
+            return type == typeof(float) ? (float)d : d;
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Narrows a parsed number to exactly the type the property stores, and
-    /// unwraps a <c>Nullable&lt;T&gt;</c> first so a nullable holder still gets a
-    /// value of the right kind.
-    ///
-    /// <para><b>Why this exists rather than a cast on the return.</b> The
-    /// obvious spelling of the int arm was <c>type == typeof(int) ? (int)l : l</c>,
-    /// and C# types the whole conditional as the common type of its two arms -
-    /// <c>long</c> - so the <c>(int)</c> is widened straight back and the method
-    /// returns a boxed <c>Int64</c> for an <c>int</c> property. A box is not
-    /// widened back on the way out, and <c>PropertyInfo.SetValue</c> does not
-    /// convert, so every integer setting read back from mpv.conf was rejected
-    /// with <c>Object of type 'System.Int64' cannot be converted to type
-    /// 'System.Int32'</c> (the 2026-10-08..14 log, ~100 properties, all of them
-    /// <c>int</c>). The float arm carried the same trap and boxed as
-    /// <c>Double</c>. This converts explicitly to the requested type instead,
-    /// which is the fix.</para>
-    /// </summary>
-    private static object CoerceToType(object value, Type type)
-    {
-        var target = Nullable.GetUnderlyingType(type) ?? type;
-        if (target.IsInstanceOfType(value))
-        {
-            return value;
-        }
-
-        if (target.IsEnum)
-        {
-            return Enum.ToObject(target, value);
-        }
-
-        return Convert.ChangeType(value, target, CultureInfo.InvariantCulture);
-    }
-
-    /// <summary>
-    /// Drops a trailing <c># ...</c> comment from a config line, and returns an
-    /// empty string for a line that is entirely commented.
-    ///
-    /// <para><b>Why this lives here.</b> It is the other half of the quoting
-    /// grammar above: <see cref="Quote"/> decides what a value looks like on
-    /// disk, and this decides where the value ends. It used to exist as two
-    /// verbatim copies, one in <c>MpvSettings</c> and one in
-    /// <c>MpvConfOverrides</c>, each carrying the same comment that it was "kept
-    /// local rather than shared because the two readers must stay independently
-    /// testable" - and neither was in fact reachable from a test. Sharing it
-    /// here is what makes it testable at all, and it is one rule, not two.</para>
-    ///
-    /// <para><b>The defect the copies shared.</b> Both scanned for the first
-    /// <c>#</c> with no regard for quotes, justified by the claim that "no value
-    /// it writes is a quoted string containing <c>#</c>". That claim is false:
-    /// <see cref="Quote"/> wraps every string value in double quotes, and colour
-    /// values start with a hash. The default <c>osd-back-color</c> is
-    /// <c>#AF000000</c>, and screenshot templates and subtitle URLs carry one
-    /// too. On disk that line reads <c>osd-back-color="#AF000000"</c>, the scan
-    /// cut it at the <c>#</c>, the resulting fragment failed to parse as a
-    /// colour, and the setting silently reverted to its default on the next
-    /// launch - a user-visible loss with nothing in the log to explain it.</para>
-    ///
-    /// <para>A <c>#</c> only starts a comment outside quotes, and quotes are
-    /// escaped exactly the way <see cref="Quote"/> escaped them, so the scan
-    /// tracks both. Backslash handling is limited to inside quotes; mpv.conf has
-    /// no escape processing outside them.</para>
-    /// </summary>
-    internal static string StripComment(string raw)
-    {
-        var trimmed = raw.TrimStart();
-        if (trimmed.Length == 0 || trimmed[0] == '#')
-        {
-            return string.Empty;
-        }
-
-        var inQuotes = false;
-        for (var i = 0; i < raw.Length; i++)
-        {
-            var c = raw[i];
-
-            if (c == '\\' && inQuotes && i + 1 < raw.Length)
-            {
-                // Skip the escaped character, so an escaped quote does not end
-                // the quoted run and an escaped '#' inside quotes stays literal.
-                i++;
-                continue;
-            }
-
-            if (c == '"')
-            {
-                inQuotes = !inQuotes;
-                continue;
-            }
-
-            if (c == '#' && !inQuotes)
-            {
-                return raw[..i].TrimEnd();
-            }
-        }
-
-        return raw.TrimEnd();
     }
 }

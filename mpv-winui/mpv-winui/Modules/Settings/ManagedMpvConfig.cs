@@ -6,7 +6,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using mpv_winui.Modules.Common.Utils;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -296,10 +295,7 @@ public static class ManagedMpvConfig
             // after would let the reload's start land on the old value and the
             // change be mistaken for a hand edit.
             MpvConfWatcher.NoteOwnWrite();
-            // Atomic: mpv.conf is the file the app calls the single source of
-            // truth, and a truncate-then-write left a partial one on any
-            // interruption in the window between the two.
-            await AtomicFile.WriteAllTextAsync(path, text, new UTF8Encoding(false));
+            await File.WriteAllTextAsync(path, text, new UTF8Encoding(false));
         }
 
         // Recorded unconditionally: the block on disk is ours by construction
@@ -694,7 +690,7 @@ public static class ManagedMpvConfig
             }
 
             kept.Add(key + "\t" + Convert.ToHexString(Encoding.UTF8.GetBytes(value)));
-            AtomicFile.WriteAllText(statePath, string.Join(nl, kept) + nl,
+            File.WriteAllText(statePath, string.Join(nl, kept) + nl,
                 new UTF8Encoding(false));
         }
         catch (Exception ex)

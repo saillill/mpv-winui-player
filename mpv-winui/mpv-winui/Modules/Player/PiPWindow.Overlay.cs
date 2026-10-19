@@ -9,7 +9,6 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Composition;
 using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
-using mpv_winui.Modules.Motion;
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -192,15 +191,11 @@ public sealed partial class PiPWindow
         _topOpacityButtonVisual.StopAnimation("Opacity");
         _topExitButtonVisual.StopAnimation("Opacity");
 
-        // Official curves and durations rather than the local ease this used to
-        // carry: the top button row is an entrance on the way in (enter curve,
-        // 167 ms) and a dismissal on the way out (exit curve, 83 ms, which the
-        // spec only ever pairs with a fade - this is a fade).
-        var ease = show
-            ? MotionEasing.Enter(_topButtonsCompositor)
-            : MotionEasing.Exit(_topButtonsCompositor);
+        var ease = _topButtonsCompositor.CreateCubicBezierEasingFunction(
+            new Vector2(0.215f, 0.61f),
+            new Vector2(0.355f, 1f));
         var opacity = _topButtonsCompositor.CreateScalarKeyFrameAnimation();
-        opacity.Duration = show ? MotionTokens.Medium : MotionTokens.Short;
+        opacity.Duration = TimeSpan.FromMilliseconds(180);
         // Start from the current composition value when hiding so a mid-show
         // reversal fades from where the buttons actually are.
         opacity.InsertKeyFrame(0f, show ? 0f : _topBackButtonVisual.Opacity);

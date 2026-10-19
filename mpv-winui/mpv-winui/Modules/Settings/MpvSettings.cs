@@ -1114,12 +1114,23 @@ public static partial class MpvSettings
     /// <summary>
     /// Drops a trailing "# ..." comment and rejects a fully commented line.
     ///
-    /// Shared with the ownership reader, which used to carry a verbatim second
-    /// copy of this rule. Both are now the one implementation in
-    /// <see cref="MpvConfValueCodec"/>, which is also the file that owns the
-    /// quoting this has to agree with, and which unit tests can reach.
+    /// The same rule the ownership reader uses, and for the same reason: the
+    /// shipped config annotates nearly every line, and no value it writes is a
+    /// quoted string containing '#'. Kept local rather than shared because the
+    /// two readers must stay independently testable.
     /// </summary>
-    private static string StripComment(string raw) => MpvConfValueCodec.StripComment(raw);
+    private static string StripComment(string raw)
+    {
+        var trimmed = raw.TrimStart();
+        if (trimmed.Length == 0 || trimmed[0] == '#')
+        {
+            return string.Empty;
+        }
+
+        var hash = raw.IndexOf('#');
+        var body = hash >= 0 ? raw[..hash] : raw;
+        return body.TrimEnd();
+    }
 
     /// <summary>
     /// Writes one conf value into the AppSettings property that owns it, using
@@ -1175,14 +1186,7 @@ public static partial class MpvSettings
 
         try
         {
-            // The codec already returns the property's own type, so this is a
-            // no-op for everything it parses today. It stays as the second line
-            // of defence: PropertyInfo.SetValue never converts, so a producer
-            // that widens a value again - a conditional whose arms fall to a
-            // common type is how it happens, and is exactly this round's bug in
-            // MpvConfValueCodec - would reject the whole setting rather than
-            // load it. Converting here means the loader survives that.
-            prop.SetValue(AppContext.AppSetting, CoerceToPropertyType(value, prop.PropertyType));
+            prop.SetValue(AppContext.AppSetting, value);
             return true;
         }
         catch (Exception ex)
@@ -1190,33 +1194,6 @@ public static partial class MpvSettings
             AppContext.AppLogger.Warn(ex, "mpv.conf value rejected by AppSettings.{}", key);
             return false;
         }
-    }
-
-    /// <summary>
-    /// Narrows a parsed value to the property's declared type before reflection.
-    ///
-    /// <para><c>PropertyInfo.SetValue</c> requires the exact type: a boxed
-    /// <c>Int64</c> handed to an <c>int</c> property throws
-    /// <c>ArgumentException</c> rather than converting, which is what the
-    /// 2026-10-08..14 log recorded for every integer setting read from
-    /// mpv.conf. Unwraps a <c>Nullable&lt;T&gt;</c>, maps an enum through
-    /// <see cref="Enum.ToObject"/>, and otherwise converts with
-    /// <see cref="Convert.ChangeType(object, Type, IFormatProvider)"/>.</para>
-    /// </summary>
-    private static object CoerceToPropertyType(object value, Type propertyType)
-    {
-        var type = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
-        if (type.IsInstanceOfType(value))
-        {
-            return value;
-        }
-
-        if (type.IsEnum)
-        {
-            return Enum.ToObject(type, value);
-        }
-
-        return Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
     }
 
     /// <summary>

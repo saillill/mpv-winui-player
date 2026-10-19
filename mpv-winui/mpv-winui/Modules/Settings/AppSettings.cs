@@ -517,6 +517,13 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ThumbnailUpdateInterval), value);
         }
 
+        /// <summary>Playlist panel width in pixels (280-420), persisted across sessions.</summary>
+        public int PlaylistWidth
+        {
+            get => _dataSetting.GetValue(nameof(PlaylistWidth), 320);
+            set => _dataSetting.SetValue(nameof(PlaylistWidth), value);
+        }
+
         /// <summary>Checks the GitHub Releases API for updates at startup.</summary>
         public bool CheckForUpdates
         {

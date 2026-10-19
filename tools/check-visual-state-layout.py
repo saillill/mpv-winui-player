@@ -4,8 +4,8 @@
 Background
 ----------
 MpvPlayerPage.xaml carries a `FullWindow` visual state that swaps the page into
-its full-window shape: the menu row collapses to zero, and the shell hides the
-rest of its chrome in step with it. A `NormalWindow` state with no setters
+its full-window shape: the menu row and the control row collapse to zero and the
+control bar moves up over the video. A `NormalWindow` state with no setters
 switches it back.
 
 That state used to also re-dress the playlist toolbar:
@@ -14,17 +14,13 @@ That state used to also re-dress the playlist toolbar:
     <Setter Target="PlaylistToolBar.Margin" Value="4,-6,8,0" />
 
 Both halves were wrong, and both were wrong in ways that reading the code does
-not reveal. The toolbar had `Height="44"` and lived in a `RowDefinition` that
-was also `Height="44"`. A -6 top margin therefore asked for 6px more than the
-row gave, so the row clipped it: the buttons lost their top edge and the
-sidebar's first row stopped lining up with the video area next to it. That is
-the bug the user reported as "全屏下和侧栏间距有问题". Separately, flipping the
-alignment moved the playlist buttons to the other end of the pane on a state
-change that has nothing to do with them.
-
-The playlist toolbar and its column are gone now, but the check stays: the
-shape of the bug is generic, and the next element to be re-dressed inside a
-VisualState will look just as innocent.
+not reveal. The toolbar has `Height="44"` and lives in a `RowDefinition` that is
+also `Height="44"`. A -6 top margin therefore asks for 6px more than the row
+gives, so the row clips it: the buttons lose their top edge and the sidebar's
+first row stops lining up with the video area next to it. That is the bug the
+user reported as "全屏下和侧栏间距有问题". Separately, flipping the alignment
+moved the playlist buttons to the other end of the pane on a state change that
+has nothing to do with them.
 
 Neither symptom is visible without running the app, which is exactly why this
 check exists: the repo has no automated UI test, and a magic number added to a

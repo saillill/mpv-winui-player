@@ -210,12 +210,6 @@ public sealed partial class SettingsPage
                 CheckItems = BuildAssociationItems(),
                 CheckChanged = (_, value, isChecked, _) => UpdateAssociationSelection(value, isChecked),
                 CheckApplyHandler = _ => ApplyAssociations(),
-                // The reader every action row already declares. Without it
-                // SetActionStatus still recorded the outcome, but this card
-                // asked a null ActionStatus for the text and hid the line, so a
-                // successful registration and a failed one both looked like
-                // nothing had happened at all.
-                ActionStatus = () => GetActionStatus(FileAssociationCheckListKey),
             },
 
             new Option
@@ -228,7 +222,7 @@ public sealed partial class SettingsPage
                 ActionKind = OptionActionKind.Button,
                 ActionLabel = lang.SettingsUnassociateFiles,
                 ActionHandler = _ => UnassociateFiles(),
-                ActionStatus = () => GetActionStatus("ActionUnassociateFiles"),
+                ActionStatus = () => _actionStatus,
             },
 
             new Option
@@ -241,7 +235,7 @@ public sealed partial class SettingsPage
                 ActionKind = OptionActionKind.Button,
                 ActionLabel = lang.SettingsExportConfig,
                 ActionHandler = _ => FireAndForgetExport(),
-                ActionStatus = () => GetActionStatus("ActionExportConfig"),
+                ActionStatus = () => _actionStatus,
             },
 
             new Option
@@ -254,20 +248,13 @@ public sealed partial class SettingsPage
                 ActionKind = OptionActionKind.Button,
                 ActionLabel = lang.SettingsImportConfig,
                 ActionHandler = _ => FireAndForgetImport(),
-                ActionStatus = () => GetActionStatus("ActionImportConfig"),
+                ActionStatus = () => _actionStatus,
             },
 
             // The escape hatch. mpv.conf is the authority (see
             // docs/mpv-conf-precedence.md), so the UI needs a way in -- not
             // because the settings window is incomplete, but because some
             // options only exist in the manual and a line here always wins.
-            //
-            // Two ways in, because they answer different questions. "Edit
-            // directly" is for changing a line: it opens the file in the app,
-            // coloured, so a comment cannot be mistaken for an option and the
-            // option name is visible as the option name. "Show in folder" is for
-            // everything else -- copying the file somewhere, putting it under
-            // version control, opening it in the editor the user already prefers.
             new Option
             {
                 Key = "ActionOpenMpvConf",
@@ -276,11 +263,9 @@ public sealed partial class SettingsPage
                 Description = lang.SettingsHelpOpenMpvConf,
                 Type = OptionType.Action,
                 ActionKind = OptionActionKind.Button,
-                ActionLabel = lang.SettingsEditMpvConfDirect,
-                ActionHandler = _ => FireAndForgetOpenMpvConfEditor(),
-                SecondaryActionLabel = lang.SettingsRevealMpvConf,
-                SecondaryActionHandler = _ => FireAndForgetRevealMpvConf(),
-                ActionStatus = () => GetActionStatus("ActionOpenMpvConf"),
+                ActionLabel = lang.SettingsOpenMpvConf,
+                ActionHandler = _ => FireAndForgetOpenMpvConf(),
+                ActionStatus = () => _actionStatus,
             },
 
             new Option
