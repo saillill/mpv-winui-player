@@ -45,6 +45,54 @@ namespace mpv_winui.Modules.Player
         public bool IsVideo { get; init; }
 
         /// <summary>
+        /// The album tag, or empty.
+        ///
+        /// Read from the shell property store (<c>System.Music.AlbumTitle</c>),
+        /// which is the indexed service the thumbnails already come from. The
+        /// music library's "Albums" tab groups on this; an empty value is a real
+        /// answer and becomes the single "unknown album" group rather than
+        /// dropping the file.
+        /// </summary>
+        public string Album { get; init; } = string.Empty;
+
+        /// <summary>
+        /// The artist tag, album artist as the fallback.
+        ///
+        /// "Albums" groups on <see cref="Album"/> and "Artists" on this. The
+        /// fallback matters for compilations: a track whose <c>Artist</c> is
+        /// "Various Artists" but whose album artist is one performer belongs
+        /// under that performer in an artist list, which is what every reference
+        /// player does.
+        /// </summary>
+        public string Artist { get; init; } = string.Empty;
+
+        /// <summary>
+        /// The genre tag, or empty. The album page's track table has a genre
+        /// column, as the reference player's does.
+        /// </summary>
+        public string Genre { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Playing time, when the shell reports one.
+        ///
+        /// Null rather than zero for "unknown": the track table shows the length
+        /// column only when there is one, and a 00:00 row is a lie the grid would
+        /// otherwise tell about every file the index skipped.
+        /// </summary>
+        public TimeSpan? Duration { get; init; }
+
+        /// <summary>The duration as the table prints it, or empty.</summary>
+        public string DurationText => Duration is { } d
+            ? d.TotalHours >= 1
+                ? $"{(int)d.TotalHours}:{d.Minutes:00}:{d.Seconds:00}"
+                : $"{d.Minutes}:{d.Seconds:00}"
+            : string.Empty;
+
+        /// <summary>True when the row has a length to show.</summary>
+        public Visibility DurationVisibility =>
+            Duration is null ? Visibility.Collapsed : Visibility.Visible;
+
+        /// <summary>
         /// When the watch history last recorded this file being played.
         ///
         /// The video library's "newest / oldest" sort reads this. It comes from
@@ -140,6 +188,43 @@ namespace mpv_winui.Modules.Player
         /// history avoids too.
         /// </summary>
         internal static LibraryEntry? FromFile(string path) => FromHistory(path, mediaTitle: null, time: null);
+
+        /// <summary>
+        /// One entry with its album, artist and length filled in.
+        ///
+        /// Separate from <see cref="FromHistory"/> because the tags come from the
+        /// shell property store, which is slower per file than reading the path -
+        /// and the watch history's entries never need them. The music library
+        /// calls this in bulk off the UI thread (see LibraryTagsReader).
+        /// </summary>
+        internal static LibraryEntry? FromFileWithTags(
+            string path,
+            string? mediaTitle,
+            DateTimeOffset? time,
+            MusicTags tags)
+        {
+            var entry = FromHistory(path, mediaTitle, time);
+
+            if (entry is null)
+            {
+                return null;
+            }
+
+            return new LibraryEntry
+            {
+                Path = entry.Path,
+                Title = entry.Title,
+                Subtitle = entry.Subtitle,
+                IsVideo = entry.IsVideo,
+                Time = entry.Time,
+                IsMissing = entry.IsMissing,
+                MediaIconPath = entry.MediaIconPath,
+                Album = tags.Album,
+                Artist = string.IsNullOrWhiteSpace(tags.Artist) ? tags.AlbumArtist : tags.Artist,
+                Genre = tags.Genre,
+                Duration = tags.Duration,
+            };
+        }
 
         internal static LibraryEntry? FromHistory(string path, string? mediaTitle, DateTimeOffset? time = null)
         {

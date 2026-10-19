@@ -1322,6 +1322,279 @@
                 </Grid>
             </Grid>
 
+            <!-- The album page.
+
+                 The reference player's album view: the cover and the album's
+                 identity in one card at the top, its action row under it, then the
+                 track table. Reached from the music library's Albums tab; it is a
+                 surface in this page rather than a Page in the frame, because
+                 libmpv binds the SwapChainPanel once and a Frame navigation
+                 detaches it.
+
+                 Canvas.ZIndex 3 puts it above both the library and the music
+                 page: it is opened from the library, and closing it must reveal
+                 whichever surface was underneath. -->
+            <Grid
+                x:Name="AlbumHost"
+                Canvas.ZIndex="3"
+                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel
+                    Grid.Row="0"
+                    Margin="{StaticResource MpvBreadcrumbBarMargin}">
+
+                    <!-- Back to the list. A plain button rather than a breadcrumb
+                         control: the album is one level deep and the reference
+                         player draws the same single chevron here. -->
+                    <Button
+                        x:Name="AlbumBackButton"
+                        Margin="0,0,0,16"
+                        Padding="8,4"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="AlbumBack_Click">
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="{StaticResource MpvSpaceS}">
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                FontSize="14"
+                                Glyph="&#xE72B;" />
+                            <TextBlock
+                                x:Name="AlbumBackText"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- The album card: cover on the left, identity and actions on
+                         the right, as one rounded surface. -->
+                    <Grid
+                        Padding="20"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        ColumnSpacing="28"
+                        CornerRadius="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid
+                            Grid.Column="0"
+                            Width="200"
+                            Height="200">
+                            <Border
+                                Background="{ThemeResource MpvMusicArtworkFallbackBrush}"
+                                CornerRadius="8">
+                                <FontIcon
+                                    x:Name="AlbumArtworkFallbackIcon"
+                                    FontSize="64"
+                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            </Border>
+                            <Border CornerRadius="8">
+                                <Image
+                                    x:Name="AlbumArtwork"
+                                    Stretch="UniformToFill"
+                                    Visibility="Collapsed" />
+                            </Border>
+                        </Grid>
+
+                        <StackPanel
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Spacing="{StaticResource MpvSpaceS}">
+                            <TextBlock
+                                x:Name="AlbumTitle"
+                                FontSize="30"
+                                FontWeight="SemiBold"
+                                MaxLines="2"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="Wrap" />
+
+                            <TextBlock
+                                x:Name="AlbumArtist"
+                                FontSize="16"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                TextTrimming="CharacterEllipsis" />
+
+                            <TextBlock
+                                x:Name="AlbumSummary"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+
+                            <StackPanel
+                                Margin="0,12,0,0"
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <Button
+                                    x:Name="AlbumPlayAllButton"
+                                    Padding="16,6"
+                                    Click="AlbumPlayAll_Click"
+                                    Style="{StaticResource AccentButtonStyle}">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <FontIcon
+                                            FontFamily="{StaticResource MpvIconFontFamily}"
+                                            FontSize="14"
+                                            Glyph="&#xE768;" />
+                                        <TextBlock
+                                            x:Name="AlbumPlayAllText"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button
+                                    x:Name="AlbumShuffleButton"
+                                    Padding="16,6"
+                                    Click="AlbumShuffle_Click">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <FontIcon
+                                            FontFamily="{StaticResource MpvIconFontFamily}"
+                                            FontSize="14"
+                                            Glyph="&#xE8B1;" />
+                                        <TextBlock
+                                            x:Name="AlbumShuffleText"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button
+                                    x:Name="AlbumAddToButton"
+                                    Padding="16,6"
+                                    Click="AlbumAddTo_Click">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <FontIcon
+                                            FontFamily="{StaticResource MpvIconFontFamily}"
+                                            FontSize="14"
+                                            Glyph="&#xE710;" />
+                                        <TextBlock
+                                            x:Name="AlbumAddToText"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <ScrollViewer
+                    Grid.Row="1"
+                    Padding="{StaticResource MpvBrowseHostPadding}"
+                    HorizontalScrollBarVisibility="Disabled"
+                    HorizontalScrollMode="Disabled"
+                    VerticalScrollBarVisibility="Auto"
+                    VerticalScrollMode="Auto">
+                    <StackPanel>
+                        <!-- Column headings, then one row template. A ListView
+                             rather than an ItemsRepeater because rows are clicked
+                             and the current one is highlighted. -->
+                        <Grid
+                            Padding="12,0"
+                            ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" MinWidth="160" />
+                                <ColumnDefinition Width="2*" MinWidth="120" />
+                                <ColumnDefinition Width="2*" MinWidth="120" />
+                                <ColumnDefinition Width="Auto" MinWidth="56" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                x:Name="AlbumColumnTitle"
+                                Grid.Column="0"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <TextBlock
+                                x:Name="AlbumColumnArtist"
+                                Grid.Column="1"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <TextBlock
+                                x:Name="AlbumColumnGenre"
+                                Grid.Column="2"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <TextBlock
+                                x:Name="AlbumColumnLength"
+                                Grid.Column="3"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                        </Grid>
+
+                        <TextBlock
+                            x:Name="AlbumEmptyText"
+                            Margin="12,24,12,0"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap"
+                            Visibility="Collapsed" />
+
+                        <ListView
+                            x:Name="AlbumTrackList"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            IsItemClickEnabled="True"
+                            ItemClick="AlbumTrackList_ItemClick"
+                            SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style
+                                    BasedOn="{StaticResource DefaultListViewItemStyle}"
+                                    TargetType="ListViewItem">
+                                    <Setter Property="Margin" Value="0" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="MinHeight" Value="0" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:LibraryEntry">
+                                    <Grid
+                                        Height="44"
+                                        ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MinWidth="160" />
+                                            <ColumnDefinition Width="2*" MinWidth="120" />
+                                            <ColumnDefinition Width="2*" MinWidth="120" />
+                                            <ColumnDefinition Width="Auto" MinWidth="56" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Margin="12,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Text="{x:Bind Title}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{x:Bind Artist}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{x:Bind Genre}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            Margin="0,0,12,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                            Text="{x:Bind DurationText}"
+                                            Visibility="{x:Bind DurationVisibility}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
             <!-- The music page.
 
                  A page of its own rather than the video page with black bars:

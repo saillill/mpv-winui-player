@@ -591,12 +591,10 @@ namespace mpv_winui.Modules.Player
 
             _musicGrouping = grouping;
 
-            // The grid is flat today: one card per file. Grouping changes what
-            // the card's title line shows - the album or the artist instead of the
-            // track - rather than the layout, because a grouped grid needs a
-            // sectioned repeater and that is a larger change than this one.
-            // Recorded here so the tab is not a dead control while that lands.
-            ApplyLibraryFilter();
+            if (_libraryLoaded)
+            {
+                ApplyLibraryFilter();
+            }
         }
 
         /// <summary>
@@ -645,6 +643,76 @@ namespace mpv_winui.Modules.Player
             if (_libraryLoaded)
             {
                 ApplyLibraryFilter();
+            }
+        }
+
+        // ---- album page commands -------------------------------------------
+
+        private void AlbumBack_Click(object sender, RoutedEventArgs e) => CloseAlbum();
+
+        /// <summary>The album's tracks, in table order, replacing the queue.</summary>
+        private void AlbumPlayAll_Click(object sender, RoutedEventArgs e) => PlayAlbum(shuffle: false);
+
+        /// <summary>
+        /// The album's tracks in a shuffled order.
+        ///
+        /// Shuffled here rather than by mpv's shuffle property: this is a one-shot
+        /// request to play this album in another order, and leaving mpv shuffling
+        /// afterwards would silently change what "next" means for the rest of the
+        /// session.
+        /// </summary>
+        private void AlbumShuffle_Click(object sender, RoutedEventArgs e) => PlayAlbum(shuffle: true);
+
+        private void PlayAlbum(bool shuffle)
+        {
+            var paths = _albumTracks
+                .Where(t => !t.IsMissing)
+                .Select(t => t.Path)
+                .ToList();
+
+            if (paths.Count == 0)
+            {
+                return;
+            }
+
+            if (shuffle)
+            {
+                // Fisher-Yates with the shared Random: a single pass over the list
+                // rather than OrderBy(random), which is both slower and biased.
+                for (var i = paths.Count - 1; i > 0; i--)
+                {
+                    var j = Random.Shared.Next(i + 1);
+                    (paths[i], paths[j]) = (paths[j], paths[i]);
+                }
+            }
+
+            PlayFiles(paths, OpenMode.Replace).FireAndForget(OnException);
+        }
+
+        /// <summary>
+        /// "Add to": appends the album to whatever is already queued.
+        /// </summary>
+        private void AlbumAddTo_Click(object sender, RoutedEventArgs e)
+        {
+            var paths = _albumTracks
+                .Where(t => !t.IsMissing)
+                .Select(t => t.Path)
+                .ToList();
+
+            if (paths.Count == 0)
+            {
+                return;
+            }
+
+            PlayFiles(paths, OpenMode.Append).FireAndForget(OnException);
+        }
+
+        /// <summary>Clicking a row in the album table plays it.</summary>
+        private void AlbumTrackList_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            if (e.ClickedItem is LibraryEntry entry)
+            {
+                PlayLibraryEntry(entry);
             }
         }
 
@@ -790,6 +858,316 @@ namespace mpv_winui.Modules.Player
                 // read as one surface.
                 repeater.ElementPrepared += LibraryGrid_ElementPrepared;
                 VideoFolderGroups.Children.Add(repeater);
+            }
+        }
+
+        // ------------------------------------------------------------ album page
+
+        /// <summary>The album currently shown, or null when the page is closed.</summary>
+        private string? _openAlbum;
+
+        /// <summary>
+        /// The entries of the open album, in playing order.
+        ///
+        /// Kept as a list rather than re-derived on every action: "play all" and
+        /// "add to" must act on exactly what the table shows.
+        /// </summary>
+        private List<LibraryEntry> _albumTracks = [];
+
+        /// <summary>
+        /// Shows one album: its cover, its identity and its tracks.
+        ///
+        /// Called from a card click while the Albums tab is up. The tracks are the
+        /// library's own entries filtered by the same album key the grid grouped
+        /// on, so the table cannot disagree with the cards behind it.
+        /// </summary>
+        private void OpenAlbum(string album)
+        {
+            _openAlbum = album;
+
+            _albumTracks = _librarySection == LibrarySectionMusic
+                ? _libraryAll
+                    .Where(e => MediaKinds.IsAudio(e.Path))
+                    .Where(e => string.Equals(
+                        string.IsNullOrWhiteSpace(e.Album) ? AppContext.AppLang.LibraryUnknownAlbum : e.Album,
+                        album,
+                        StringComparison.CurrentCultureIgnoreCase))
+                    .OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
+                    .ToList()
+                : [];
+
+            ApplyAlbumChrome();
+
+            LibraryHost.Visibility = Visibility.Collapsed;
+
+            AlbumHost.Visibility = Visibility.Visible;
+
+            MotionBehaviors.FadeIn(AlbumHost);
+        }
+
+        /// <summary>Closes the album page and puts the library back.</summary>
+        private void CloseAlbum()
+        {
+            if (_openAlbum is null)
+            {
+                return;
+            }
+
+            _openAlbum = null;
+
+            _albumTracks = [];
+
+            AlbumHost.Visibility = Visibility.Collapsed;
+
+            MotionBehaviors.Reset(AlbumHost);
+
+            LibraryHost.Visibility = Visibility.Visible;
+
+            // The grid may have been reloaded while the album was open (a folder
+            // re-bind, a rescan); re-applying is cheaper than tracking that.
+            ApplyLibraryFilter();
+        }
+
+        /// <summary>
+        /// Fills the album page from <see cref="_openAlbum"/> and
+        /// <see cref="_albumTracks"/>.
+        ///
+        /// All strings, the artwork and the labels come from here rather than
+        /// from markup, because the page is one surface reused for every album.
+        /// </summary>
+        private async void ApplyAlbumChrome()
+        {
+            var lang = AppContext.AppLang;
+
+            AlbumBackText.Text = lang.LibraryAlbumBack;
+
+            AlbumColumnTitle.Text = lang.LibraryColumnTitle;
+            AlbumColumnArtist.Text = lang.LibraryColumnArtist;
+            AlbumColumnGenre.Text = lang.LibraryColumnGenre;
+            AlbumColumnLength.Text = lang.LibraryColumnLength;
+
+            AlbumPlayAllText.Text = lang.LibraryPlayAll;
+            AlbumShuffleText.Text = lang.LibraryShufflePlay;
+            AlbumAddToText.Text = lang.LibraryAlbumAddTo;
+
+            AlbumTitle.Text = _openAlbum ?? string.Empty;
+
+            // The artist line is the album's own artist, which every track of an
+            // album shares; the first track that has one speaks for the album.
+            var artist = _albumTracks
+                .Select(e => e.Artist)
+                .FirstOrDefault(a => !string.IsNullOrWhiteSpace(a)) ?? string.Empty;
+
+            AlbumArtist.Text = artist;
+
+            AlbumSummary.Text = string.Format(
+                lang.LibraryAlbumSummary,
+                _albumTracks.Count,
+                FormatTotalLength(_albumTracks));
+
+            AlbumTrackList.ItemsSource = _albumTracks;
+
+            var empty = _albumTracks.Count == 0;
+
+            AlbumEmptyText.Text = lang.LibraryAlbumEmpty;
+
+            AlbumEmptyText.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
+
+            AlbumTrackList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
+
+            AlbumPlayAllButton.IsEnabled = !empty;
+            AlbumShuffleButton.IsEnabled = !empty;
+            AlbumAddToButton.IsEnabled = !empty;
+
+            await ApplyAlbumArtworkAsync();
+        }
+
+        /// <summary>
+        /// Total running time of the open album, or "--:--" when no track reports
+        /// one.
+        ///
+        /// Not printed as 0:00 for an album whose lengths the index skipped: that
+        /// reads as an empty album rather than an unknown one.
+        /// </summary>
+        private static string FormatTotalLength(IReadOnlyList<LibraryEntry> tracks)
+        {
+            var known = tracks.Where(t => t.Duration is not null).ToList();
+
+            if (known.Count == 0)
+            {
+                return "--:--";
+            }
+
+            var total = TimeSpan.FromTicks(known.Sum(t => t.Duration!.Value.Ticks));
+
+            return total.TotalHours >= 1
+                ? $"{(int)total.TotalHours}:{total.Minutes:00}:{total.Seconds:00}"
+                : $"{total.Minutes}:{total.Seconds:00}";
+        }
+
+        /// <summary>
+        /// The album's cover.
+        ///
+        /// From the first track's embedded picture, through the same native getter
+        /// the music page uses - the player is told which path to read, so this
+        /// does not depend on the album's own file being the one playing.
+        /// </summary>
+        private async Task ApplyAlbumArtworkAsync()
+        {
+            AlbumArtwork.Visibility = Visibility.Collapsed;
+            AlbumArtworkFallbackIcon.Visibility = Visibility.Visible;
+
+            if (_albumTracks.Count == 0 || _mediaPlayer is null)
+            {
+                return;
+            }
+
+            try
+            {
+                // Try each track until one carries art: an album ripped as one
+                // file per track usually tags only the first, and a compilation
+                // may tag only some.
+                foreach (var track in _albumTracks)
+                {
+                    if (!_mediaPlayer.TryGetCoverArtForPath(track.Path, out var stream) || stream is null)
+                    {
+                        continue;
+                    }
+
+                    var bitmap = new BitmapImage();
+
+                    await bitmap.SetSourceAsync(stream);
+
+                    AlbumArtwork.Source = bitmap;
+
+                    AlbumArtwork.Visibility = Visibility.Visible;
+
+                    AlbumArtworkFallbackIcon.Visibility = Visibility.Collapsed;
+
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Same rule as the music page: no art is a normal state.
+                _logger.Warn(ex, "album: cover art unavailable");
+            }
+        }
+
+        /// <summary>
+        /// Builds the music library's "Albums" and "Artists" tabs: one header and
+        /// one card grid per tag, in the same container the video library's
+        /// folder view uses.
+        ///
+        /// A file with no tag is not dropped: it lands in one group labelled
+        /// "unknown" (localised), which is what the reference players do and what
+        /// keeps the card count honest. The group order is alphabetical by tag.
+        /// </summary>
+        private void BuildMusicTagGroups(List<LibraryEntry> entries)
+        {
+            VideoFolderGroups.Children.Clear();
+
+            var cardTemplate = (DataTemplate)Resources["LibraryCardTemplate"];
+            var headerTemplate = (DataTemplate)Resources["VideoFolderHeaderTemplate"];
+
+            var byAlbum = _musicGrouping == MusicGrouping.Albums;
+
+            // "Unknown" sorts last rather than first: it is the fallback bucket,
+            // not the most important album in the library.
+            var unknownLabel = byAlbum
+                ? AppContext.AppLang.LibraryUnknownAlbum
+                : AppContext.AppLang.LibraryUnknownArtist;
+
+            var groups = entries
+                .GroupBy(entry =>
+                {
+                    var key = byAlbum ? entry.Album : entry.Artist;
+
+                    return string.IsNullOrWhiteSpace(key) ? "\uFFFF" : key;
+                }, StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(group => group.Key, StringComparer.CurrentCultureIgnoreCase)
+                .Select(group => new VideoFolderGroup(
+                    group.Key == "\uFFFF" ? unknownLabel : group.Key,
+                    group.ToList()));
+
+            foreach (var group in groups)
+            {
+                VideoFolderGroups.Children.Add(new ContentPresenter
+                {
+                    Content = group,
+                    ContentTemplate = headerTemplate,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                });
+
+                var repeater = new ItemsRepeater
+                {
+                    ItemTemplate = cardTemplate,
+                    ItemsSource = group.Items,
+                };
+                repeater.Layout = new UniformGridLayout
+                {
+                    MinItemWidth = 116,
+                    MinItemHeight = 176,
+                    MinColumnSpacing = 8,
+                    MinRowSpacing = 16,
+                };
+
+                repeater.ElementPrepared += LibraryGrid_ElementPrepared;
+                VideoFolderGroups.Children.Add(repeater);
+            }
+        }
+
+        /// <summary>
+        /// Fills in album / artist / length for the music entries, in one batch.
+        ///
+        /// The folder scan cannot carry these: it enumerates paths and never opens
+        /// a file, because doing so for a thousand-track folder takes minutes.
+        /// Reading them afterwards keeps the grid on screen while the tags arrive,
+        /// and only the music library pays for it.
+        /// </summary>
+        private async Task LoadMusicTagsAsync(int generation)
+        {
+            var audio = _libraryAll.Where(e => !e.IsVideo && MediaKinds.IsAudio(e.Path)).ToList();
+
+            if (audio.Count == 0)
+            {
+                return;
+            }
+
+            var paths = audio.Select(e => e.Path).ToList();
+
+            try
+            {
+                var tags = await LibraryTagsReader.ReadAsync(paths);
+
+                if (generation != _libraryGeneration)
+                {
+                    return;
+                }
+
+                for (var i = 0; i < _libraryAll.Count; i++)
+                {
+                    var entry = _libraryAll[i];
+
+                    if (!tags.TryGetValue(entry.Path, out var found))
+                    {
+                        continue;
+                    }
+
+                    _libraryAll[i] = LibraryEntry.FromFileWithTags(
+                        entry.Path, entry.Title, entry.Time, found) ?? entry;
+                }
+
+                // The grid holds the same objects the list did, so it has to be
+                // handed the new instances rather than refreshed in place.
+                if (_librarySection == LibrarySectionMusic && _libraryLoaded)
+                {
+                    ApplyLibraryFilter();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn(ex, "library: music tags unavailable");
             }
         }
 
@@ -966,6 +1344,10 @@ namespace mpv_winui.Modules.Player
             // for fifty disk reads before showing anything is slower to look at
             // than one that fills in.
             _ = LoadThumbnailsAsync(generation);
+
+            // Album and artist tags, same rule: the cards are already up and the
+            // grouped tabs fill in when the index answers.
+            _ = LoadMusicTagsAsync(generation);
         }
 
         /// <summary>
@@ -1083,14 +1465,41 @@ namespace mpv_winui.Modules.Player
 
             var cards = entries.ToList();
 
-            // The video library has two presentations of one list: the flat grid
-            // and the same entries grouped by the folder they were played from.
-            // The sort applies to both, so it runs before the split. Every other
-            // section stays a flat grid.
-            var folderView = _librarySection == LibrarySectionVideos && _videoFolderView;
+            // Two libraries have a grouped presentation of one list: the video
+            // library by the folder each file was played from, the music library
+            // by album or artist. Both share the sectioned container below. Every
+            // other section stays a flat grid.
+            var musicGrouped = _librarySection == LibrarySectionMusic
+                && _musicGrouping != MusicGrouping.Songs;
+
+            var folderView = (_librarySection == LibrarySectionVideos && _videoFolderView) || musicGrouped;
+
             if (_librarySection == LibrarySectionVideos)
             {
                 cards = SortVideoEntries(cards, _videoSort);
+            }
+            else if (_librarySection == LibrarySectionMusic)
+            {
+                // Songs keeps the title order the flat grid has always used. The
+                // grouped tabs order by the tag first, so each group's cards read
+                // the way its header says, and by title within a group.
+                cards = _musicGrouping switch
+                {
+                    MusicGrouping.Albums => cards
+                        .OrderBy(e => string.IsNullOrWhiteSpace(e.Album) ? "\uFFFF" : e.Album,
+                            StringComparer.CurrentCultureIgnoreCase)
+                        .ThenBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
+                        .ToList(),
+
+                    MusicGrouping.Artists => cards
+                        .OrderBy(e => string.IsNullOrWhiteSpace(e.Artist) ? "\uFFFF" : e.Artist,
+                            StringComparer.CurrentCultureIgnoreCase)
+                        .ThenBy(e => e.Album, StringComparer.CurrentCultureIgnoreCase)
+                        .ThenBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
+                        .ToList(),
+
+                    _ => SortVideoEntries(cards, VideoSortMode.NameAsc),
+                };
             }
 
             _visibleEntries = cards;
@@ -1100,7 +1509,14 @@ namespace mpv_winui.Modules.Player
 
             if (folderView)
             {
-                BuildVideoFolderGroups(cards);
+                if (musicGrouped)
+                {
+                    BuildMusicTagGroups(cards);
+                }
+                else
+                {
+                    BuildVideoFolderGroups(cards);
+                }
             }
             else
             {
@@ -1235,10 +1651,24 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private void LibraryCard_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as FrameworkElement)?.DataContext is LibraryEntry entry)
+            if ((sender as FrameworkElement)?.DataContext is not LibraryEntry entry)
             {
-                PlayLibraryEntry(entry);
+                return;
             }
+
+            // On the Albums tab a card stands for its album, not for one track:
+            // clicking it opens the album, which is what the reference player does
+            // and what makes the tab more than a differently-sorted list.
+            if (_librarySection == LibrarySectionMusic && _musicGrouping == MusicGrouping.Albums)
+            {
+                OpenAlbum(string.IsNullOrWhiteSpace(entry.Album)
+                    ? AppContext.AppLang.LibraryUnknownAlbum
+                    : entry.Album);
+
+                return;
+            }
+
+            PlayLibraryEntry(entry);
         }
 
         /// <summary>
