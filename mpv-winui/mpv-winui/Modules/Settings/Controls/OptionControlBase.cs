@@ -96,6 +96,21 @@ public abstract class OptionControlBase : UserControl
         {
             OnOptionStateChanged();
         }
+        else if (e.PropertyName == Option.ActionStatusChanged)
+        {
+            // The row's own action finished and wrote its result. Only the row
+            // that raised this re-reads it, so one action's line cannot appear
+            // on any other card.
+            OnOptionActionStatusChanged();
+        }
+    }
+
+    /// <summary>
+    /// Called when this row's action result has changed. The controls that can
+    /// display one override it; the rest ignore it.
+    /// </summary>
+    protected virtual void OnOptionActionStatusChanged()
+    {
     }
 
     public virtual (bool IsValid, string? ErrorMessage) Validate() => (true, null);
@@ -115,16 +130,4 @@ public abstract class OptionControlBase : UserControl
         }
     }
 
-    protected static void ApplyIcon(FontIcon icon, Option option)
-    {
-        if (!string.IsNullOrEmpty(option.Icon))
-        {
-            icon.Glyph = option.Icon;
-            icon.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            icon.Visibility = Visibility.Collapsed;
-        }
-    }
 }

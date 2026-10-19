@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mpv_winui.Modules.Common.Utils;
 
 namespace mpv_winui.Modules.FileSystem
 {
@@ -42,7 +43,7 @@ namespace mpv_winui.Modules.FileSystem
                 Directory.CreateDirectory(dir);
             }
 
-            await File.WriteAllTextAsync(path, content);
+            await AtomicFile.WriteAllTextAsync(path, content);
         }
 
         public async Task BackAndSaveAsync(string path, byte[] content, bool backup, int limit = 50)

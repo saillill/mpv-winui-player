@@ -24,11 +24,23 @@
             Grid.Column="1"
             VerticalAlignment="Center"
             Spacing="{StaticResource MpvSpaceCompact}">
-            <Button
-                x:Name="ActionButton"
-                MinWidth="120"
+            <!-- A row that offers two ways in shows both buttons side by side;
+                 the pair is its own row so the status line below still lines up
+                 with the buttons' right edge instead of a single button's. -->
+            <StackPanel
                 HorizontalAlignment="Right"
-                Click="OnActionClick" />
+                Orientation="Horizontal"
+                Spacing="{StaticResource MpvSpaceS}">
+                <Button
+                    x:Name="ActionButton"
+                    MinWidth="120"
+                    Click="OnActionClick" />
+                <Button
+                    x:Name="SecondaryActionButton"
+                    MinWidth="120"
+                    Click="OnSecondaryActionClick"
+                    Visibility="Collapsed" />
+            </StackPanel>
             <TextBlock
                 x:Name="StatusText"
                 HorizontalAlignment="Right"

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using mpv_winui.Modules.Common.Utils;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -174,7 +175,7 @@ public static class PluginConfigWriter
         kept.Add(ManagedMarker);
         kept.AddRange(entries.Select(kv => $"{kv.Key}={kv.Value}"));
 
-        await File.WriteAllLinesAsync(path, kept);
+        await AtomicFile.WriteAllLinesAsync(path, kept);
     }
 
     private static bool TryParseKey(string line, out string key)

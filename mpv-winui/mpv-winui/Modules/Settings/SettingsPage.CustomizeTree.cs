@@ -125,11 +125,9 @@ public sealed partial class SettingsPage
                 addFolder: null,
                 rename: () => _ = RenameSectionInteractiveAsync(sectionId!, caption),
                 delete: () => _ = DeleteSectionInteractiveAsync(sectionId!, caption),
-                toggleHide: () =>
-                {
-                    SetSectionHidden(sectionId!, !hidden);
-                    RebuildLocalizedContent();
-                },
+                toggleHide: () => EditLayout(
+                    () => SetSectionHidden(sectionId!, !hidden),
+                    RebuildLocalizedContent),
                 isHidden: hidden);
         }
 
@@ -392,43 +390,52 @@ public sealed partial class SettingsPage
     /// <summary>Persists the tree's current category and folder order.</summary>
     private void StoreTreeOrder()
     {
-        var categoryKeys = new List<string>();
-        foreach (var root in FolderTree.RootNodes)
+        // A tree drag is a single structural edit, but it lands as up to three
+        // separate writes: the sidebar's category order, the folder order of
+        // each category, and the pane caption that follows the selection. One
+        // draft boundary wraps all of them, and nothing is re-rendered — the
+        // tree on screen is already in the order the user dropped it, and a
+        // rebuild mid-gesture would collapse the node they just moved.
+        EditLayout(() =>
         {
-            if (root.Content is TreeViewNodeContent { CategoryKey: { } key })
+            var categoryKeys = new List<string>();
+            foreach (var root in FolderTree.RootNodes)
             {
-                categoryKeys.Add(key);
-            }
-        }
-
-        if (categoryKeys.Count > 0)
-        {
-            _layout.CategoryOrder = categoryKeys
-                .Concat(CategoryKeys.Where(k => !categoryKeys.Contains(k)))
-                .ToList();
-        }
-
-        // Folder order is stored per category: collect each category's children
-        // and write them through the shared section-order store.
-        var sectionIds = new List<string>();
-        foreach (var root in FolderTree.RootNodes)
-        {
-            foreach (var child in root.Children)
-            {
-                if (child.Content is TreeViewNodeContent { SectionId: { } id })
+                if (root.Content is TreeViewNodeContent { CategoryKey: { } key })
                 {
-                    sectionIds.Add(id);
+                    categoryKeys.Add(key);
                 }
             }
-        }
 
-        if (sectionIds.Count > 0)
-        {
-            StoreSectionOrder(sectionIds);
-        }
-        else
-        {
-            SaveLayout();
-        }
+            if (categoryKeys.Count > 0)
+            {
+                _layout.CategoryOrder = categoryKeys
+                    .Concat(CategoryKeys.Where(k => !categoryKeys.Contains(k)))
+                    .ToList();
+            }
+
+            // Folder order is stored per category: collect each category's
+            // children and write them through the shared section-order store.
+            var sectionIds = new List<string>();
+            foreach (var root in FolderTree.RootNodes)
+            {
+                foreach (var child in root.Children)
+                {
+                    if (child.Content is TreeViewNodeContent { SectionId: { } id })
+                    {
+                        sectionIds.Add(id);
+                    }
+                }
+            }
+
+            if (sectionIds.Count > 0)
+            {
+                StoreSectionOrder(sectionIds);
+            }
+            else
+            {
+                SaveLayout();
+            }
+        });
     }
 }

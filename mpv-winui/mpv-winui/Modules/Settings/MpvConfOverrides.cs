@@ -397,21 +397,16 @@ public static class MpvConfOverrides
 
     /// <summary>
     /// Drops a trailing "# ..." comment and rejects a line that is entirely
-    /// commented. The shipped config annotates nearly every line, and option
-    /// values here are never quoted strings containing '#'.
+    /// commented.
+    ///
+    /// This file used to carry its own copy of the rule, identical to the one in
+    /// <c>MpvSettings</c> down to the comment claiming values are "never quoted
+    /// strings containing '#'" (they are: colour values are quoted and start with
+    /// a hash). Both now use <see cref="MpvConfValueCodec.StripComment"/>, which
+    /// handles quotes, so the two readers cannot disagree about where a value
+    /// ends.
     /// </summary>
-    private static string StripComment(string raw)
-    {
-        var trimmed = raw.TrimStart();
-        if (trimmed.Length == 0 || trimmed[0] == '#')
-        {
-            return string.Empty;
-        }
-
-        var hash = raw.IndexOf('#');
-        var body = hash >= 0 ? raw[..hash] : raw;
-        return body.TrimEnd();
-    }
+    private static string StripComment(string raw) => MpvConfValueCodec.StripComment(raw);
 
     /// <summary>Line-ending insensitive compare: git may check the file out as CRLF or LF.</summary>
     private static string Normalise(string value) =>

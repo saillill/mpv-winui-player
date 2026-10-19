@@ -18,6 +18,87 @@
                 Color="{StaticResource SystemAccentColorDark2}" />
             <Color x:Key="NavContentBackGroundColor">#40FFFFFF</Color>
             <Color x:Key="NavContentBorderColor">#08000000</Color>
+            <!-- The shell's three blocks, in the light theme.
+
+                 The relationship is the one the official player uses in its
+                 dark theme, mirrored: the navigation pane is the darkest of the
+                 three, the content is the lightest, and the status bar sits
+                 between them. Values are relative to the content's own
+                 SolidBackgroundFillColorBase (#F3F3F3): the pane is two steps
+                 darker, the bar one step darker. -->
+            <SolidColorBrush
+                x:Key="MpvShellPaneBrush"
+                Color="#E4E4E4" />
+            <SolidColorBrush
+                x:Key="MpvShellBarBrush"
+                Color="#EDEDED" />
+
+            <!-- The same three blocks as VEILS, for when a system backdrop is
+                 actually behind the window.
+
+                 An opaque brush over Mica hides it completely - there is
+                 nothing to see through - which is why the settings window showed
+                 its Mica and the main window did not, even though both call the
+                 same WindowStyleManager.ApplyBackdrop. The settings window's
+                 surfaces are Transparent; this window's were solid.
+
+                 So the shell switches between two sets: the solid one above when
+                 no backdrop is in play (the window behind is then just a solid
+                 colour, and a translucent block would read as a washed-out grey),
+                 and these when there is. Values are the solid ones with alpha, so
+                 the pane / content / bar RELATIONSHIP is unchanged - only how
+                 much of the wallpaper comes through. The bar keeps the most
+                 alpha because its glyphs sit over moving video. -->
+            <SolidColorBrush
+                x:Key="MpvShellPaneMicaBrush"
+                Color="#1FFFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvShellContentMicaBrush"
+                Color="#66F3F3F3" />
+            <SolidColorBrush
+                x:Key="MpvShellBarMicaBrush"
+                Color="#B3EDEDED" />
+
+            <!-- The drag-and-drop overlay. A light scrim over whatever is on
+                 screen, plus a slightly lighter disc for the glyph, so the
+                 message reads on video, on white library cards and on the empty
+                 state alike without borrowing a colour that only suits one. -->
+            <SolidColorBrush
+                x:Key="MpvDropOverlayBrush"
+                Color="#D9F3F3F3" />
+            <SolidColorBrush
+                x:Key="MpvDropOverlayIconSurfaceBrush"
+                Color="#14000000" />
+
+            <!-- The scrim behind the playing page's three tool keys. Measured
+                 off the official player's own overlay keys: a dark translucent
+                 pill, because these sit on arbitrary video frames and a bare
+                 glyph disappears on a bright one. Light theme uses the same
+                 translucency in black - the picture behind is not theme-aware,
+                 so a white scrim would vanish on snow and glare on a title card. -->
+            <SolidColorBrush
+                x:Key="MpvPlaybackToolSurfaceBrush"
+                Color="#66000000" />
+
+            <!-- Chapter boundaries on the progress track. Mid-grey with a
+                 two-thirds alpha: dark enough to see on a light track, light
+                 enough to see on a dark one, and quiet enough not to compete with
+                 the played/unplayed fill. Was #80FFFFFF, i.e. white at 50%, which
+                 vanished on the light theme. -->
+            <SolidColorBrush
+                x:Key="MpvChapterTickBrush"
+                Color="#B3707070" />
+
+            <!-- The music page: a flat, slightly tinted panel, plus the plate
+                 behind a missing cover. The tint is what makes the page read as a
+                 different surface from the library grid without needing an image
+                 to be present. -->
+            <SolidColorBrush
+                x:Key="MpvMusicPageBrush"
+                Color="#F7F5F2" />
+            <SolidColorBrush
+                x:Key="MpvMusicArtworkFallbackBrush"
+                Color="#1A000000" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush
@@ -31,11 +112,82 @@
                 Color="{StaticResource SystemAccentColorLight2}" />
             <Color x:Key="NavContentBackGroundColor">#2C3A3A3A</Color>
             <Color x:Key="NavContentBorderColor">#19000000</Color>
+            <!-- The shell's three blocks, in the dark theme.
+
+                 Sampled from the official Media Player's own window at 175%
+                 scaling, where the three surfaces are three different colours
+                 and none of them is transparent:
+                     pane      #1D231A  (darkest, and slightly green: it carries
+                                         the brand tint)
+                     content   #2D2E2C  (lightest)
+                     status    #2F2E2C  (content's own value, one step up)
+
+                 Ours used to be two levels only - pane #2C2C2C on top of a
+                 #202020 everywhere else - which is why the pane read as a
+                 LIGHTER slab stuck onto the window and the status bar had no
+                 boundary at all. These two brushes plus the content's
+                 SolidBackgroundFillColorBase are what make it three. -->
+            <SolidColorBrush
+                x:Key="MpvShellPaneBrush"
+                Color="#191919" />
+            <SolidColorBrush
+                x:Key="MpvShellBarBrush"
+                Color="#262626" />
+
+            <!-- See the light dictionary: the same relationship, veiled. -->
+            <SolidColorBrush
+                x:Key="MpvShellPaneMicaBrush"
+                Color="#1FFFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvShellContentMicaBrush"
+                Color="#66000000" />
+            <SolidColorBrush
+                x:Key="MpvShellBarMicaBrush"
+                Color="#B3262626" />
+
+            <!-- See the light dictionary. -->
+            <SolidColorBrush
+                x:Key="MpvDropOverlayBrush"
+                Color="#D9202020" />
+            <SolidColorBrush
+                x:Key="MpvDropOverlayIconSurfaceBrush"
+                Color="#14FFFFFF" />
+
+            <!-- See the light dictionary: identical here, and deliberately so. -->
+            <SolidColorBrush
+                x:Key="MpvPlaybackToolSurfaceBrush"
+                Color="#66000000" />
+
+            <!-- See the light dictionary. Lifted for the dark track. -->
+            <SolidColorBrush
+                x:Key="MpvChapterTickBrush"
+                Color="#CCA0A0A0" />
+
+            <!-- See the light dictionary. -->
+            <SolidColorBrush
+                x:Key="MpvMusicPageBrush"
+                Color="#17171A" />
+            <SolidColorBrush
+                x:Key="MpvMusicArtworkFallbackBrush"
+                Color="#1AFFFFFF" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
     <x:Double x:Key="ToggleSwitchPreContentMargin">4</x:Double>
     <x:Double x:Key="ToggleSwitchPostContentMargin">4</x:Double>
 
+    <!-- NOT a redundant copy of the default - do not "simplify" this away.
+         WinUI's DefaultToggleSwitchStyle puts the switch at Grid.Column 0 and
+         the On/Off content at column 2, i.e. [switch][no|yes]. This template
+         mirrors that: content at column 0, switch at column 2, i.e.
+         [no|yes][switch]. Every boolean row in the conf editor depends on the
+         label reading to the LEFT of the pill; deleting this style silently
+         flips all of them (it was removed once in the stage-5 cleanup and put
+         back for exactly that reason).
+
+         Restored verbatim from git HEAD (b7fa7b8) during that rollback - the
+         whole block is the HEAD version, unmodified. The two
+         ToggleSwitchPre/PostContentMargin resources above are independent of
+         this style and apply either way. -->
     <Style
         x:Key="LeftContentToggleSwitchStyle"
         BasedOn="{StaticResource DefaultToggleSwitchStyle}"
@@ -1008,19 +1160,132 @@
          comment at each site says so. -->
     <Thickness x:Key="MpvCompactButtonPadding">8,4</Thickness>
     <Thickness x:Key="MpvTinyButtonPadding">6,2</Thickness>
-    <!-- The footer's horizontal inset. Same 12 as the breadcrumb's Margin and
-         the browse list's ScrollViewer padding, because all three are rows of
-         one content column: the box width is shared, so the inset has to be
-         too or the boxes start at different x. The 16/10 vertical pair this
-         replaced was the optical match to the 32px controls beside it, and the
-         16 horizontal half was simply never reconciled with the other two
-         rows. -->
-    <Thickness x:Key="MpvFooterPadding">12,10</Thickness>
+    <!-- The footer row's insets. The horizontal half is the MARGIN, only the
+         vertical half is padding, and both horizontal halves of the padding are
+         zero.
+
+         The margin/padding split is the fix for a measured defect. The
+         horizontal 12 used to be padding, which puts it INSIDE the element's own
+         box, while the breadcrumb and the browse row carry their 12 as a margin,
+         which puts it OUTSIDE. The two shapes clamp to different boxes below the
+         cap: measured at a 966-DIP content region, the breadcrumb and the cards
+         arranged at x=12 with width 942 and the footer at x=0 with width 966, so
+         it overhung on both sides, which is what "the cards run past the
+         window" looked like.
+
+         The trailing 12 of padding is gone. It existed to end the last button on
+         the x the cards end on, which was right while the buttons belonged to
+         the column; they are pinned to the window's edge now, so a trailing
+         inset would only hold them 12 short of the edge the browse row's
+         scrollbar sits on. Zero on both sides is what lets the row's content
+         reach the row's own right edge. -->
+    <Thickness x:Key="MpvFooterMargin">12,0,12,0</Thickness>
+    <Thickness x:Key="MpvFooterPadding">0,10,0,10</Thickness>
     <Thickness x:Key="MpvTitleBarPadding">16,5</Thickness>
     <Thickness x:Key="MpvOptionRowMarginXl">0,12,0,8</Thickness>
     <Thickness x:Key="MpvSplitterMargin">0,16,0,4</Thickness>
-    <Thickness x:Key="MpvBreadcrumbBarMargin">12,4,12,12</Thickness>
-    <Thickness x:Key="MpvSearchGlyphMargin">14,0,0,0</Thickness>
+
+    <!-- The collapsed-section card's own geometry and the icon sizes the
+         settings list uses. These were registered as deliberate literals in
+         OptionListControl.xaml during the stage-5 pass; they are tokens now, so
+         the two card templates cannot drift apart and the numbers stop reading
+         as one-off values. The values themselves are unchanged. -->
+    <x:Double x:Key="MpvSectionCardMinHeight">72</x:Double>
+    <!-- Only two of the values in this block cross more than one template:
+         this MinHeight (the collapsed card in both SectionCardTemplate and
+         CustomizeTemplate) and MpvInlineIconSize (which also reaches the
+         customize bar). The rest belong to one template each -
+         MpvSectionCardColumnSpacing, MpvSectionCardMargin,
+         MpvSectionCardIconSize (20) and MpvSectionCardChevronSize (12) are the
+         section card's own, and MpvSectionHeaderIconSize (16) is the section
+         caption's icon in CustomizeSectionTemplate. So read "SectionCard" as
+         the name of the family, not as a promise that every value in it is
+         shared. -->
+    <x:Double x:Key="MpvSectionCardColumnSpacing">18</x:Double>
+    <x:Double x:Key="MpvSectionCardIconSize">20</x:Double>
+    <x:Double x:Key="MpvSectionCardChevronSize">12</x:Double>
+    <x:Double x:Key="MpvSectionHeaderIconSize">16</x:Double>
+    <x:Double x:Key="MpvInlineIconSize">14</x:Double>
+    <Thickness x:Key="MpvSectionCardMargin">0,8,0,8</Thickness>
+    <!-- The content column's one horizontal inset, and the reason the detail
+         area's text, cards, icons and empty state line up.
+
+         Every surface inside the page - the heading block, the video library's
+         tab strip, the card grid, the queue's toolbar and its empty state - is
+         given THIS inset and nothing else of its own. Before this token the
+         surfaces each carried a different one (12 for the heading, 12+12 for
+         the grid through two wrappers, 8 for the queue toolbar, 0 for the empty
+         state), so their left edges disagreed by up to 24 DIP and the page read
+         as a stack of unrelated panels rather than as one column.
+
+         32 rather than 12: the official player's heading sits 56 DIP inside its
+         content column (measured at 175%: ink starts 98px right of the pane's
+         edge), and its own empty-state block lines up with that heading rather
+         than with the column's edge. 32 is that inset once the shell's own 24
+         DIP of host padding is taken off - the two together are the official's
+         56. -->
+    <Thickness x:Key="MpvBreadcrumbBarMargin">32,8,32,16</Thickness>
+    <x:Double x:Key="MpvContentGutter">32</x:Double>
+
+    <!-- The page heading's size. 40 is measured, not chosen: the official
+         player's own heading has 38.9 DIP of cap height at 175% scaling, and a
+         40 DIP semibold run reproduces that exactly. It is a token rather than a
+         literal in the page so the heading, the empty state's title and any
+         future page-level heading cannot drift apart the way they did when each
+         carried its own number. -->
+    <x:Double x:Key="MpvPageHeadingFontSize">40</x:Double>
+    <!-- The magnifier's own horizontal placement inside the search pill. 12 puts
+         the glyph's optical left edge on the pill's 14-DIP corner curve, so the
+         icon reads as inset from the pill rather than riding its rounded end.
+
+         It used to be 14, which is also what the TextBox's left padding was
+         sized against: the pair left the placeholder about 8 DIP clear of the
+         glyph. The padding below now owns that gap on its own, and this token
+         owns only the glyph's inset, so the two no longer have to be changed
+         together. -->
+    <Thickness x:Key="MpvSearchGlyphMargin">12,0,0,0</Thickness>
+
+    <!-- The search pill's height, and half of it as the corner radius.
+
+         The radius has to stay married to the height: the pill is only a pill
+         while the radius is exactly half the box, and writing 14 beside a 28
+         in two different files is how that stops being true. Half of 28 is 14,
+         so the two tokens below are one number and the radius is derived from
+         it rather than repeated. -->
+    <x:Double x:Key="MpvSearchPillHeight">36</x:Double>
+    <CornerRadius x:Key="MpvSearchPillCornerRadius">18</CornerRadius>
+
+    <!-- The search pill's width, in DIPs.
+
+         340 was too narrow next to the Windows 11 settings search, which gets a
+         noticeably longer field. This is a token rather than a literal on the
+         container because the number is coupled to MpvNarrowLayoutThreshold
+         below: widening the pill moves the width at which the top bar runs out
+         of room, and the two have to be changed together or the layout collapses
+         at a width where it no longer needs to. -->
+    <x:Double x:Key="MpvSearchPillWidth">620</x:Double>
+
+    <!-- Width, in DIPs, below which the settings window drops to its narrow
+         shape: the navigation pane animates to icon-only and the search pill
+         becomes a bare magnifier button.
+
+         One token because the two changes belong to one breakpoint but live in
+         two files: the pane threshold is set on the NavigationView in
+         SettingsPage.xaml, the search shape is swapped from the window's
+         SizeChanged handler in SettingsWindow.xaml.cs. Duplicating the number
+         is how the two ends up disagreeing about where "narrow" starts.
+
+         It is derived from the top bar, which is what actually runs out of room:
+         the title wants about 120 DIP, the pill is MpvSearchPillWidth (620), and
+         the NavigationView's expanded pane is 240. Below roughly 1000 the top
+         bar's centre column can no longer hold the pill without crowding the
+         title.
+
+         Raise it whenever MpvSearchPillWidth grows, and keep it above the
+         window's own PreferredMinimumWidth in SettingsWindow.xaml.cs. If the two
+         are equal the narrow shape is unreachable: the window cannot be dragged
+         past a breakpoint it is already standing on. -->
+    <x:Double x:Key="MpvNarrowLayoutThreshold">1000</x:Double>
 
     <!-- The reading width of the settings window's content column, and the
          media-info panel's. One token because the two surfaces sit in
@@ -1037,6 +1302,206 @@
          settings page's three rows had drifted to 12/12/16 before that was
          noticed; the footer now carries the same 12 as the other two. -->
     <x:Double x:Key="MpvContentMaxWidth">1060</x:Double>
+
+    <!-- Transport bar metrics.
+
+         MpvTransportIconSize is the glyph size every icon in the bar is drawn
+         at, in all three layouts - the classic one in PlayerControl and the two
+         alternates in CenterPlayerControlStyle and CompactPlayerControlStyle.
+         One shared token is what makes "the same bar in a different
+         arrangement" true: before it existed the three had each picked their
+         own (24, 22, 20) and switching ControlBarLayout silently resized every
+         button.
+
+         20 is the official player's transport glyph size, measured off its own
+         status bar at 175% scaling: 14.3 to 16.6 DIP of ink inside a 44 DIP
+         pitch means an icon box of about 20. The previous 28 was chosen to fill
+         a 62 button and only ever rendered at 16, because the AppBarButton
+         template clamps Icon content to AppBarButtonContentHeight (16 by
+         default) inside its own Viewbox - so the glyph was 16 wide no matter
+         what this said. The clamping keys are now set per CommandBar to 20, so
+         this number is what actually reaches the screen.
+
+         MpvTransportBarHeight is the BUTTON ROW's height, not the whole bar's.
+
+         64 is measured off the official player's own bar: the row that carries
+         its transport buttons measures 110px at 175% scaling = 62.9 DIP, and it
+         is the tallest band in the bar because the media thumbnail sits in it
+         too. Our buttons are 44 (the official's own pitch) and centre in this
+         row, which is what makes the row and the bar read as the same size as
+         the official's without inventing a thumbnail we do not have.
+
+         The bar is two rows now - the timeline row (slider and both times
+         inline) and this button row - instead of the three it used to be, and
+         that is the whole of the height difference that was reported: measured,
+         the old bar was 125.0 DIP against the official's 116.5, and 25 DIP of
+         that was the times sitting in a row of their own. -->
+    <!-- The transport bar and the playing page's tool keys share these three.
+         They were independent before: the bar's buttons were 44x44 with a 20px
+         glyph, and the tool keys were 36x36 with an 18px glyph and no radius at
+         all, so the same class of control had two sizes on one screen. -->
+    <x:Double x:Key="MpvTransportButtonSize">44</x:Double>
+    <x:Double x:Key="MpvTransportIconSize">20</x:Double>
+    <x:Double x:Key="MpvTransportBarHeight">72</x:Double>
+    <x:Double x:Key="MpvTransportTimeFontSize">12</x:Double>
+
+    <!-- The play button's ring and the library's empty-state illustration:
+         one brand gradient with two names, because each name says where it
+         is spent.
+
+         The stops are sampled from the official Media Player's own artwork -
+         its transport ring and its empty-state illustrations run the same
+         orange-rose-violet ramp, and following that ramp is what makes the
+         two read as one product, the way the official's do. (The ring was
+         built from the accent family first; the official's ring is brand
+         colour, not accent colour, and the comparison came from the user's
+         own screenshots.)
+
+         The ring is a shape rather than part of the glyph so the button
+         keeps its silhouette when the state changes: only the glyph inside
+         the ring swaps, never the ring itself. -->
+    <LinearGradientBrush
+        x:Key="MpvTransportPlayRingBrush"
+        StartPoint="0,0"
+        EndPoint="1,1">
+        <GradientStop Offset="0" Color="#D97525" />
+        <GradientStop Offset="0.55" Color="#CC4C70" />
+        <GradientStop Offset="1" Color="#882D8A" />
+    </LinearGradientBrush>
+
+    <StaticResource x:Key="MpvEmptyStateIconBrush" ResourceKey="MpvTransportPlayRingBrush" />
+
+    <!-- A library card's caption, under a flush media tile. Top-aligned rather
+         than padded all round: the tile above it is flush with the card, so a
+         16px inset here (the card padding this replaced) would put the title on
+         a different left edge from the picture. -->
+    <Thickness x:Key="MpvMediaTileCaptionMargin">0,8,0,0</Thickness>
+
+    <!-- Shell chrome geometry.
+
+         MpvNavPaneWidth is the navigation pane's open width, and it is also
+         what the window's minimum width has to budget for: a pane that opens
+         into a window too narrow to hold it leaves the content area with
+         nothing. It is a named token for the same reason the settings page
+         drives its own pane from one - the two places that care must agree.
+
+         320 rather than 240, measured rather than picked: the official
+         player's own pane is 562px at 175% scaling = 321 DIP, and at 240 the
+         pane's item labels and its search box were both visibly cramped against
+         an official screenshot (the search placeholder alone wants 263 DIP of
+         its own). 320 is 560px at the same scale, i.e. within one DIP.
+
+         MpvNavPaneRailWidth is the collapsed rail's width (CompactPaneLength),
+         and it doubles as the width of the title bar's back button: the
+         framework centres the pane toggle and every navigation item's icon in
+         the rail, so a back button exactly one rail wide centres its own arrow
+         on the same axis. Two places, one number.
+
+         48 is the official player's own rail width, measured rather than
+         picked: its rail is 84-86px wide at 175% scaling (its icon centres sit
+         on x=41.5px = 23.7 DIP, i.e. a 47.4 DIP rail), and 48 is also WinUI's
+         own CompactPaneLength default. 64 was a third wider and left the rail
+         reading as a wide gutter rather than an icon column.
+
+         Changing this moves the axis everything in the pane is centred on
+         (rail/2: 32 -> 24), so these numbers follow it and are kept here as
+         tokens rather than as three separate literals:
+           * MpvShellAppIconMargin keeps the title bar's app icon on the
+             official's offset: measured 118px = 67.4 DIP at 175%, i.e. the
+             icon's centre sits 20 DIP right of the rail's edge (48 + 20 = 68).
+           * MpvNavPaneFooterIconMargin is the pane footer's inner left inset;
+             with the button's own 4 margin + 4 padding it puts the footer
+             glyph's centre on rail/2 (4 + 4 + 8 + 8 = 24).
+         MpvShellTitleFontSize / MpvShellTitleMargin size and place the title
+         that is drawn beside the app icon (see MainWindow.xaml: the icon and
+         the title are one cluster in the title bar's LeftHeader, so the
+         framework's own TitleBar.Title is not used).
+
+         MpvShellAppIconSize is the app icon's box, not the artwork inside it:
+         App.ico carries transparent padding, so a 20 box shows a ~17 DIP mark -
+         the official's own mark measures 18.3 DIP there.
+
+         MpvShellTabStripHeight is fixed rather than Auto on purpose. The tab
+         strip is chrome, not a content host: the actual content is ShellFrame
+         underneath it, so the strip must not grow with its tabs, and TabView's
+         own content area collapses to nothing at a fixed height with an empty
+         item template. -->
+    <x:Double x:Key="MpvNavPaneWidth">320</x:Double>
+    <x:Double x:Key="MpvNavPaneRailWidth">48</x:Double>
+    <!-- The title row's height. The two keys in it (back, pane toggle) are
+         each one rail wide and the full height of this row, so the pair reads as
+         one square-ended cluster; 48 also keeps the app icon's centre on the
+         official's y. -->
+    <x:Double x:Key="MpvShellTitleRowHeight">48</x:Double>
+
+    <!-- The same height in the type a RowDefinition takes; see
+         MpvShellBarRowLength for why both exist. -->
+    <GridLength x:Key="MpvShellTitleRowLength">48</GridLength>
+
+    <!-- The status bar's row height, as a NUMBER rather than Auto.
+
+         Auto made the shell's own height depend on the bar's content, so the
+         window laid out once with the bar's natural height, then laid out again
+         a moment later when the bar's own template had finished measuring - and
+         because the window's height is what the layout is anchored to, that
+         second pass moved the window's edge. That is the reported "the window
+         gets a little taller the first time it opens, and it flickers".
+
+         Fixed, the row is the same height in every frame, from the first layout
+         pass on. 64 is the bar's button row (MpvTransportBarHeight) and the
+         template's clip height; the bar's timeline row is 32 and its padding is
+         0, so 96 is the full bar and this row reserves exactly that.
+
+         A GridLength, not an x:Double, and that distinction cost a crash:
+         RowDefinition.Height is typed GridLength, so a StaticResource pointing at
+         a Double through it throws inside the XAML loader - which surfaces as
+         0xc000027b / Microsoft.UI.Xaml.dll with no managed stack, the exact
+         signature this repo's own notes call a stowed exception. The title row
+         gets the same treatment so the two cannot be typed differently. -->
+    <GridLength x:Key="MpvShellBarRowLength">104</GridLength>
+
+    <!-- The playlist side panel: the width the official player's own panel has
+         (a shade narrower than the navigation pane, since it shows a list of rows
+         rather than a list of places), and the height of its header row. -->
+    <x:Double x:Key="MpvPlaylistPanelWidth">320</x:Double>
+    <x:Double x:Key="MpvPlaylistPanelHeaderHeight">48</x:Double>
+
+    <!-- The pop-out panel's cap. The popup is unconstrained so it can leave the
+         window, which also means nothing stops it growing past the display: a long
+         playlist would produce a panel taller than the screen with no scroll
+         affordance at the edges. 640 keeps it inside a 720-tall window. -->
+    <x:Double x:Key="MpvPlaylistPanelMaxHeight">640</x:Double>
+
+    <!-- Panel titles are a step down from a page heading: a panel header is
+         chrome, not content. 20 is the Subtitle ramp. -->
+    <x:Double x:Key="MpvPanelTitleFontSize">20</x:Double>
+    <x:Double x:Key="MpvShellTabStripHeight">40</x:Double>
+    <x:Double x:Key="MpvShellAppIconSize">20</x:Double>
+    <Thickness x:Key="MpvShellAppIconMargin">10,0,0,0</Thickness>
+    <x:Double x:Key="MpvShellTitleFontSize">16</x:Double>
+    <Thickness x:Key="MpvShellTitleMargin">11,0,0,0</Thickness>
+    <Thickness x:Key="MpvNavPaneFooterIconMargin">8,0,0,0</Thickness>
+
+    <!-- The browse row's geometry, split in two.
+
+         The MARGIN carries only the vertical gap and zero on both sides, so the
+         ScrollViewer spans the whole content area and the scrollbar it draws at
+         its own right edge lands ON the window's right edge. A horizontal
+         margin here left the bar short of the edge, which reads as a bar
+         floating in the gap rather than as the window's own scrollbar.
+
+         The PADDING carries the reading column's inset instead, and that is
+         what makes the split work: Padding insets the ScrollViewer's content
+         presenter, not the bar, so the cards keep the same left edge as the
+         heading above them while the bar sits outside the text column.
+
+         It is the SAME number as MpvBreadcrumbBarMargin's horizontal inset,
+         and that equality is the point: the cards' left edge and the heading's
+         left edge were 12 DIP apart before (12 here against 12+12 through two
+         wrappers), which is the "text, image and icon start positions are not
+         unified" report. One gutter, two consumers. -->
+    <Thickness x:Key="MpvBrowseHostMargin">0,4,0,0</Thickness>
+    <Thickness x:Key="MpvBrowseHostPadding">32,0,32,0</Thickness>
 
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
@@ -1108,5 +1573,18 @@
          An explicit block line height gives all of them the same line box, so
          the baselines coincide whatever the font size is. -->
     <x:Double x:Key="MpvBreadcrumbLineHeight">32</x:Double>
+
+    <!-- Optical drop applied to the trailing section caption of the breadcrumb
+         trail, in DIPs.
+
+         Defaults to zero, and it should stay there. The category caption used to
+         live inside a Button, whose ContentPresenter laid its text out by its
+         own rules and left a baseline offset that was not visible in the markup;
+         this token existed to cancel it out. The wrapping Button is gone, so all
+         three trail elements are TextBlocks with identical metrics. The knob is
+         kept because only the owner can see the result: raise the Y to drop the
+         section caption, and if it is ever needed again, that is a signal the
+         framework has crept back in. -->
+    <Thickness x:Key="MpvBreadcrumbSectionNudge">0,0,0,0</Thickness>
 
 </ResourceDictionary>

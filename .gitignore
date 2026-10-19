@@ -187,6 +187,16 @@ publish/
 *.pubxml
 *.publishproj
 
+# The rule above is the stock Visual Studio template, aimed at web deploy
+# profiles that can carry credentials. This repository's publish profiles are
+# desktop build settings with no secrets, and they are tracked. Without the
+# negation below the blanket rule is simply wrong about them: they were added to
+# the index before the rule existed, so they stay tracked today, but any new
+# profile is ignored on creation and silently never committed. Naming the
+# directory to un-ignore keeps the intent (no web publish profiles) while making
+# the desktop ones work.
+!mpv-winui/mpv-winui/Properties/PublishProfiles/*.pubxml
+
 # Microsoft Azure Web App publish settings. Comment the next line if you want to
 # checkin your Azure Web App publish settings, but sensitive information contained
 # in these scripts will be unencrypted

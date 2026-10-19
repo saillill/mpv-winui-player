@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using mpv_winui.Modules.Motion;
 using mpv_winui.Modules.Settings.Layout;
 using System;
 using System.Collections.Generic;
@@ -137,12 +138,42 @@ public sealed partial class SettingsPage
     /// </summary>
     private void ShowCustomizeNotice(string message, bool caution = false)
     {
+        // Fade in only when the line was blank - see ShowResetStatus.
+        var wasEmpty = string.IsNullOrEmpty(SaveStatusText.Text);
+
         SaveStatusText.Text = message;
         SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[
             caution ? "SystemFillColorCautionBrush" : "SystemFillColorSuccessBrush"];
+
+        if (wasEmpty)
+        {
+            MotionBehaviors.FadeIn(SaveStatusText);
+        }
     }
 
     // ===== footer actions =====
+
+    /// <summary>
+    /// Re-renders both customize hosts after the undo stack rewrote the layout.
+    ///
+    /// Undo/redo restore the whole <see cref="SettingsLayout"/> in place, so
+    /// everything that renders from it is stale: the tree's node set and
+    /// labels, the pane's cards, the sidebar, the search index. A full
+    /// <see cref="RebuildLocalizedContent"/> is therefore the only honest
+    /// response — but it is also the expensive one, because the card list is a
+    /// non-virtualized ~550-row ListView and every rebuild re-creates it.
+    ///
+    /// The list is put under a bulk update for the duration so the rebuild
+    /// happens once, at the end, instead of once per assignment inside it.
+    /// </summary>
+    private void RefreshCustomizeSurface()
+    {
+        using (OptionsControl.BeginBulkUpdate())
+        using (CustomizeOptionsControl.BeginBulkUpdate())
+        {
+            RebuildLocalizedContent();
+        }
+    }
 
     private void CustomizeUndo_Click(object sender, RoutedEventArgs e)
     {
@@ -152,7 +183,7 @@ public sealed partial class SettingsPage
         }
 
         SaveLayout();
-        RebuildLocalizedContent();
+        RefreshCustomizeSurface();
         UpdateCustomizeFooter();
         ShowCustomizeStatus(_draft.IsDirty ? CustomizeStatus.Dirty : CustomizeStatus.None);
     }
@@ -165,7 +196,7 @@ public sealed partial class SettingsPage
         }
 
         SaveLayout();
-        RebuildLocalizedContent();
+        RefreshCustomizeSurface();
         UpdateCustomizeFooter();
         ShowCustomizeStatus(_draft.IsDirty ? CustomizeStatus.Dirty : CustomizeStatus.None);
     }
@@ -214,8 +245,11 @@ public sealed partial class SettingsPage
             }
             else if (result == ContentDialogResult.Secondary)
             {
+                // Discard rewrites the whole layout, so the surface is redrawn
+                // the same way an undo is.
                 _draft.Discard(_layout);
                 SaveLayout();
+                RefreshCustomizeSurface();
             }
             else
             {
@@ -375,10 +409,7 @@ public sealed partial class SettingsPage
         }
 
         var glyph = (iconChoices.SelectedItem as ComboBoxItem)?.Tag as string ?? "\uE8B7";
-        PushCustomizeEdit();
-        CreateCategory(name, glyph);
-        CommitCustomizeEdit();
-        RebuildLocalizedContent();
+        EditLayout(() => CreateCategory(name, glyph), RequestDeferredRebuild);
     }
 
     /// <summary>

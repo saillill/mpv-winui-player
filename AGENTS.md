@@ -45,6 +45,14 @@ Two rules that bite when files move:
 2. **Check** — run the self-checks in `tools/` (see below). This is the gate.
 3. **Hand over** — report the path of the built or deployed output and stop.
 
+> **Run `python tools\check-xaml.py` *before* `build.ps1`, not after.** XAML
+> cannot carry `--` inside a comment (WMC9997), and nothing in this repo's
+> editing tools prevents you writing it: it has cost five full build cycles
+> here, and on the fifth the build failed while the deploy still copied the
+> previously built binaries and reported success. `check-xaml.py` catches it in
+> about a second. If a deploy prints a healthy `identical: N` right after a
+> build that failed, treat the deploy as stale, not as passing.
+
 ### Before committing
 
 - **Remove debug instrumentation**: `grep -rn "\[DBG-"`.
@@ -67,13 +75,37 @@ costs more than it proves. The test for whether an action is allowed is a single
 question: **would it put `mpvw.exe` in the process list? If yes, don't.**
 
 So the work loop stops at "builds clean and the self-checks pass". Do not drive
-the app over the mpv IPC pipe, do not take screenshots of it, and do not deploy
-into a running installation.
+the app over the mpv IPC pipe, and do not deploy into a running installation.
 
 > This loop previously told agents to launch the exe, drive it over the IPC pipe
 > and verify by screenshot. That contradicted the instruction above, and because
 > this file is what an agent reads first, it was read as permission. Corrected
 > 2026-09-21.
+
+#### Looking at it is allowed; touching it is not (2026-09-21)
+
+The owner has authorised **launching `mpvw.exe` to capture screenshots**, which
+supersedes the "do not take screenshots" clause above. The line is now:
+
+- **Allowed** — start the app, let it settle, capture screenshots of it, close it.
+  Use this for *appearance*: alignment, spacing, colour, clipping, whether a
+  control is where the markup says it should be.
+- **Not allowed** — clicking, typing, dragging, UI automation, the mpv IPC pipe,
+  or anything else that drives the app. Visual verification only. Behaviour is
+  still the owner's to test; a screenshot proves how something looks, never that
+  it works.
+
+Practical notes, learned the hard way:
+
+- Capture with `CopyFromScreen`, not `PrintWindow` — PrintWindow misses WinUI
+  popups, so a flyout or popup will come out blank or absent.
+- Close it with `pwsh tools/deploy-test.ps1 -CloseRunning`, never `Stop-Process`,
+  so WinUI shuts down and mpv flushes its log and state.
+- **Déjà vu is normal.** This file once forbade screenshots precisely because an
+  agent read a permission as broader than it was. The reason it was forbidden was
+  the *assert-and-conclude* loop, not the picture. Taking a picture and then
+  telling the owner what you see is fine; taking a picture and declaring the
+  feature verified is not.
 
 #### Closing it is allowed (2026-09-21)
 
@@ -92,11 +124,11 @@ pwsh tools/deploy-test.ps1 -CloseRunning -Verify
 answered in 10 seconds. That matters: a graceful close lets WinUI shut down and
 lets mpv flush its log and save its state, which a `Stop-Process` does not.
 
-**What this does *not* authorise.** Closing is not permission to start it. Do not
-launch `mpvw.exe` to "check something first", do not relaunch it after a deploy to
-see whether the change worked, and do not leave it running. The deploy script
-prints the path and stops — testing it is still the owner's job. If a task seems
-to need the app running, that is the signal to hand over, not to launch.
+**What this does *not* authorise.** Closing is not permission to **drive** it.
+Read "Looking at it is allowed; touching it is not" above: relaunching after a
+deploy to *look* at the result is now allowed, but clicking, typing, dragging and
+UI automation are not, and the app must not be left running. Behaviour is still
+the owner's to test.
 
 > The `-CloseRunning` close path was added on 2026-09-21 and its first run did
 > **not** exercise it (the app had already been closed by hand). It has since

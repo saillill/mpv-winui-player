@@ -1,0 +1,1885 @@
+{
+ "_comment": [
+  "Hand-written titles and Chinese help for generated option rows.",
+  "",
+  "The generator's English title for a generated row is the mpv option name and",
+  "its description is the manual's sentence. The name is correct but reads as",
+  "jargon, and the manual is English, so rows are added here a section at a time.",
+  "",
+  "  en      hand-written English title, replaces the raw option name",
+  "  zh      hand-written Chinese title (written, not transliterated)",
+  "  zhDesc  Chinese help, written from the manual sentence -- short, in the same",
+  "          voice as the curated rows: what it does first, caveats after",
+  "",
+  "Rows absent from this file keep the generated text, so the file grows one",
+  "section at a time and never has to be complete.",
+  "",
+  "tools/apply-hand-labels.py copies the zh / zhDesc entries into the language",
+  "files; the en entries go in through tools/gen-schema-options.py."
+ ],
+ "gamma-factor": {
+  "en": "Extra gamma factor",
+  "zh": "额外伽马系数",
+  "zhDesc": "在所有其它伽马调整之外再乘一个系数，默认 1.0。若已用 --gamma 或键位改过伽马，两者相乘。"
+ },
+ "hdr-peak-percentile": {
+  "en": "HDR peak sample",
+  "zh": "HDR 峰值取样位",
+  "zhDesc": "取输入画面亮度直方图的哪个百分位作为场景峰值。100（默认）取最亮像素；调低则取直方图高端更密集处，画面不会因个别高光被整体压暗。"
+ },
+ "hdr-reference-white": {
+  "en": "HDR reference white",
+  "zh": "HDR 参考白",
+  "zhDesc": "SDR 内容母版的假定峰值亮度，单位 cd/m²（nit），用作 HDR 容器中 SDR 内容的漫反射白电平。仅对 --vo=gpu-next 有效。"
+ },
+ "icc-intent": {
+  "en": "ICC rendering intent",
+  "zh": "ICC 渲染意图",
+  "zhDesc": "指定 ICC 色彩转换使用的渲染意图，配合 --icc-profile 生效。"
+ },
+ "icc-use-luma": {
+  "en": "Use ICC luminance",
+  "zh": "采用 ICC 亮度",
+  "zhDesc": "采用 ICC 配置文件中的亮度值。仅对 --vo=gpu-next 有效。"
+ },
+ "target-contrast": {
+  "en": "Target display contrast",
+  "zh": "目标对比度",
+  "zhDesc": "输出显示器的实测对比度，与 --target-peak 一起推算显示器黑位，并在 HDR 色调映射时做黑位补偿。默认 auto。"
+ },
+ "target-lut": {
+  "en": "Output LUT file",
+  "zh": "输出端 LUT 文件",
+  "zhDesc": "显示前套用的自定义 LUT 文件，Adobe .cube 格式。送入 LUT 的是归一化 RGB，且已按目标色彩空间编码（即已在 --target-trc 之后）。"
+ },
+ "tone-mapping-param": {
+  "en": "Tone mapping parameter",
+  "zh": "色调映射参数",
+  "zhDesc": "设置色调映射算法的参数。默认为 default，即采用该算法自带的取值；算法不可调时此项被忽略。"
+ },
+ "background": {
+  "en": "Alpha background",
+  "zh": "透明背景填充",
+  "zhDesc": "画面带 Alpha 通道时，用什么底色与之混合；没有 Alpha 通道时此项无效果。"
+ },
+ "background-blur-radius": {
+  "en": "Background blur radius",
+  "zh": "背景模糊半径",
+  "zhDesc": "背景使用模糊时的模糊半径，单位为像素。"
+ },
+ "background-color": {
+  "en": "Background color",
+  "zh": "背景颜色",
+  "zhDesc": "背景取纯色时，用来填充视频未覆盖区域的颜色。颜色写法与 --sub-color 相同。"
+ },
+ "correct-pts": {
+  "en": "Correct timestamps",
+  "zh": "校正时间戳",
+  "zhDesc": "关闭后，视频时基改用固定帧率推算（取 --container-fps-override，或由文件推算），不再逐帧读时间戳。仅用于排查时序问题。"
+ },
+ "d3d11-composition-size": {
+  "en": "D3D11 composition size",
+  "zh": "D3D11 合成尺寸",
+  "zhDesc": "d3d11 输出处于 composition 模式时没有独立窗口，输出尺寸需由宿主程序通过此项指定。"
+ },
+ "d3d11-feature-level": {
+  "en": "D3D11 feature level",
+  "zh": "D3D11 功能级别",
+  "zhDesc": "指定 D3D11 后端使用的功能级别。默认取可用的最高级别；调低可用于绕开驱动或显卡问题。"
+ },
+ "d3d11-output-mode": {
+  "en": "D3D11 output mode",
+  "zh": "D3D11 输出模式",
+  "zhDesc": "创建 D3D11 交换链时使用的输出模式。composition 不创建独立窗口，而是在宿主的合成表面内绘制，WinUI 应用需要这一项。"
+ },
+ "deinterlace-field-parity": {
+  "en": "Deinterlace field order",
+  "zh": "去隔行场序",
+  "zhDesc": "去隔行时采用的场序，默认 auto 自动判断。隔行画面的每一帧由两场组成，先显示哪一场会影响运动是否顺滑。"
+ },
+ "display-fps-override": {
+  "en": "Display refresh rate",
+  "zh": "覆盖显示器刷新率",
+  "zhDesc": "指定 --video-sync=display-* 各模式所用的显示器刷新率，默认自动检测。填错（哪怕只差一点）会造成周期性卡顿，非必要不要改。"
+ },
+ "display-tags": {
+  "en": "Shown metadata tags",
+  "zh": "显示的元数据标签",
+  "zhDesc": "要求在统计信息中显示的标签列表。列表里有、文件里没有的标签不会显示。"
+ },
+ "gpu-hwdec-interop": {
+  "en": "Hardware interop backend",
+  "zh": "硬件格式互操作后端",
+  "zhDesc": "指定硬件解码与渲染之间的互操作后端，用于排查取帧失败一类问题。这是诊断选项，其取值含义可能随版本变化。"
+ },
+ "gpu-tex-pad-x": {
+  "en": "Texture padding, horizontal",
+  "zh": "纹理水平填充",
+  "zhDesc": "画面上传为 GPU 纹理时，在左右两侧预留的像素数。通常无需改动。"
+ },
+ "gpu-tex-pad-y": {
+  "en": "Texture padding, vertical",
+  "zh": "纹理垂直填充",
+  "zhDesc": "画面上传为 GPU 纹理时，在上下两侧预留的像素数。通常无需改动。"
+ },
+ "hwdec-extra-frames": {
+  "en": "Extra hardware frames",
+  "zh": "硬件解码预留帧数",
+  "zhDesc": "在编解码器自身所需之外，额外预分配的 GPU 帧数，默认 auto。解码偶发取帧失败时可以试着加大。"
+ },
+ "hwdec-image-format": {
+  "en": "Hardware pixel format",
+  "zh": "硬件解码像素格式",
+  "zhDesc": "指定硬件解码内部使用的像素格式。no 表示交由实现自行选择标准格式。多数解码器只支持一种格式，格式不被支持时会初始化失败。"
+ },
+ "hwdec-software-fallback": {
+  "en": "Fallback to software decoding",
+  "zh": "硬解失败回退软解",
+  "zhDesc": "硬件解码失败时回退到软件解码，默认 3。填数字表示连续 N 帧解码失败即回退；no 表示不回退。"
+ },
+ "hwdec-threads": {
+  "en": "Hardware decode threads",
+  "zh": "硬件解码线程数",
+  "zhDesc": "硬件解码使用的线程数，默认 4。它启用 libavcodec 的帧级与片级并行，有助于流水线，但可能增加延迟。"
+ },
+ "image-lut": {
+  "en": "Decode-time LUT file",
+  "zh": "解码阶段 LUT 文件",
+  "zhDesc": "图像解码阶段套用的自定义 LUT 文件，Adobe .cube 格式。具体解释方式取决于 --image-lut-type。"
+ },
+ "image-lut-type": {
+  "en": "Decode-time LUT type",
+  "zh": "解码阶段 LUT 类型",
+  "zhDesc": "决定送入 --image-lut 和从其中取出的颜色值如何解释。"
+ },
+ "interpolation-preserve": {
+  "en": "Preserve interpolation cache",
+  "zh": "保留插帧缓存",
+  "zhDesc": "渲染参数改变时仍保留此前帧的插帧结果，裁剪与画面位置相关的选项除外。可避免调参瞬间出现重影或闪烁。"
+ },
+ "interpolation-threshold": {
+  "en": "Interpolation threshold",
+  "zh": "插帧启用阈值",
+  "zhDesc": "帧率比例低于此阈值时不再插帧，默认 0.01。判据是 abs(显示刷新率 / 片源帧率 - 1) < 阈值，取值越小越容易触发插帧。"
+ },
+ "lut": {
+  "en": "LUT file",
+  "zh": "色彩转换 LUT 文件",
+  "zhDesc": "色彩转换阶段套用的自定义 LUT，Adobe .cube 格式。具体解释方式取决于 --lut-type。仅对 --vo=gpu-next 有效。"
+ },
+ "lut-type": {
+  "en": "LUT type",
+  "zh": "LUT 类型",
+  "zhDesc": "决定送入 --lut 和从其中取出的颜色值如何解释。"
+ },
+ "mf-fps": {
+  "en": "Image sequence frame rate",
+  "zh": "图片序列帧率",
+  "zhDesc": "以 mf:// 读取多张 PNG 或 JPEG 时使用的帧率，默认 1。"
+ },
+ "mf-type": {
+  "en": "Image sequence type",
+  "zh": "图片序列格式",
+  "zhDesc": "mf:// 的输入文件类型，可选 jpeg、png、tga、sgi。默认按扩展名推断。"
+ },
+ "vd-apply-cropping": {
+  "en": "Apply codec cropping",
+  "zh": "应用编码器裁剪",
+  "zhDesc": "部分编码器会声明只显示解码帧中的一块子矩形。此项决定 libavcodec 如何处理该裁剪信息。"
+ },
+ "vd-lavc-assume-old-x264": {
+  "en": "Assume old x264",
+  "zh": "按旧版 x264 处理",
+  "zhDesc": "假定片源由有缺陷的旧版 x264 编码，默认关闭。通常由 libavcodec 自动识别；若码流中缺少版本信息而画面异常，可手动开启。"
+ },
+ "vd-lavc-bitexact": {
+  "en": "Bit-exact decoding",
+  "zh": "位精确解码",
+  "zhDesc": "所有解码步骤只使用位精确算法，用于编解码器测试。日常播放不要开启，会明显变慢。"
+ },
+ "vd-lavc-check-hw-profile": {
+  "en": "Check decoder profile",
+  "zh": "校验解码器档次",
+  "zhDesc": "硬解时校验解码器档次，默认开启。关闭后无条件选用最高档次，即使该档次不受支持也会强行解码。"
+ },
+ "vd-lavc-fast": {
+  "en": "Non-spec optimizations",
+  "zh": "非规范加速",
+  "zhDesc": "启用不符合格式规范的解码优化，例如更简单的反量化与运动补偿。速度更快，但可能产生错误画面。"
+ },
+ "vd-lavc-film-grain": {
+  "en": "GPU film grain",
+  "zh": "GPU 胶片颗粒",
+  "zhDesc": "在 GPU 上完成胶片颗粒合成。软解时把颗粒放到 GPU 上做可以加快解码，硬解时也能减少回传解码器的数据量。"
+ },
+ "vd-lavc-framedrop": {
+  "en": "Decoder frame dropping",
+  "zh": "解码器丢帧模式",
+  "zhDesc": "指定 --framedrop 在解码器一侧采用的丢帧模式，取值与 skiploopfilter 相同：none、default、nonref、bidir、nonkey、all。"
+ },
+ "vd-lavc-o": {
+  "en": "libavcodec options",
+  "zh": "libavcodec 解码器参数",
+  "zhDesc": "把 AVOptions 原样传给 libavcodec 解码器，用于设置本界面未收录的解码器参数。"
+ },
+ "vd-lavc-show-all": {
+  "en": "Show corrupt frames",
+  "zh": "显示损坏帧",
+  "zhDesc": "即使帧损坏或解码出错也照常输出，默认关闭。关闭时 libavcodec 不输出首个关键帧之前的帧，也不输出解码出错的帧。"
+ },
+ "vd-lavc-skipframe": {
+  "en": "Skip frames",
+  "zh": "整帧跳过",
+  "zhDesc": "整帧不解码。提速明显，但运动发滞，有时出现明显画面错误。取值同 skiploopfilter。"
+ },
+ "vd-lavc-skipidct": {
+  "en": "Skip IDCT",
+  "zh": "跳过 IDCT",
+  "zhDesc": "跳过反离散余弦变换。绝大多数情况下画质下降明显。取值同 skiploopfilter。"
+ },
+ "vd-lavc-skiploopfilter": {
+  "en": "Skip loop filter",
+  "zh": "跳过环路滤波",
+  "zhDesc": "解码时跳过环路滤波（去块效应）。被滤波的帧还要作为后续帧的参考，所以跳过它比跳过其它步骤影响更大。取值：none、default、nonref、bidir、nonkey、all。"
+ },
+ "vd-lavc-threads": {
+  "en": "Decoder threads",
+  "zh": "解码线程数",
+  "zhDesc": "解码使用的线程数，默认 0 表示按 CPU 核心数自动决定。是否真正支持多线程取决于编解码器。"
+ },
+ "vd-queue-enable": {
+  "en": "Threaded decoding",
+  "zh": "解码独立线程",
+  "zhDesc": "把解码器放到独立线程运行，并在解码器与渲染之间加一个帧队列，默认关闭。开启后解码与渲染可以流水线并行。"
+ },
+ "vd-queue-max-bytes": {
+  "en": "Queue limit, bytes",
+  "zh": "队列上限（字节）",
+  "zhDesc": "解码队列允许占用的近似最大字节数，超出即暂停解码。实际可能超出约 1 帧。"
+ },
+ "vd-queue-max-samples": {
+  "en": "Queue limit, samples",
+  "zh": "队列上限（帧数）",
+  "zhDesc": "队列允许的最大帧数（视频）或采样数（音频）。音频可能超出约 1 帧。"
+ },
+ "vd-queue-max-secs": {
+  "en": "Queue limit, seconds",
+  "zh": "队列上限（秒）",
+  "zhDesc": "队列中媒体时长的上限，单位秒；0 表示不限制。时间戳重置时队列长度可能出现随机波动。"
+ },
+ "video-aspect-method": {
+  "en": "Aspect determination",
+  "zh": "宽高比判定方式",
+  "zhDesc": "未用 --video-aspect-override 等显式指定宽高比时，采用哪种默认判定方式。"
+ },
+ "video-backward-batch": {
+  "en": "Backward decode batch",
+  "zh": "倒放解码批大小",
+  "zhDesc": "倒放时一次解码多少个关键帧区间，视频默认 1、音频默认 10。手册本身说明这是无需调整的调参项。"
+ },
+ "video-backward-overlap": {
+  "en": "Backward decode overlap",
+  "zh": "倒放解码重叠区间",
+  "zhDesc": "倒放解码时相邻关键帧区间的重叠数量，默认 auto。倒放靠反复向前解码再回退实现，重叠用于减少重复解码。"
+ },
+ "video-crop": {
+  "en": "Video crop",
+  "zh": "画面裁剪",
+  "zhDesc": "从 x, y 偏移处起裁出 w × h 像素。裁剪作用于源画面矩形（在变形拉伸之前），由视频输出执行；超出画面的裁剪矩形会被忽略。"
+ },
+ "video-latency-hacks": {
+  "en": "Latency hacks",
+  "zh": "低延迟取舍",
+  "zhDesc": "启用一些通常能减少 1 至 2 帧延迟的做法，默认关闭。手册声明此项可能在计时代码调整后被移除，不宜依赖。"
+ },
+ "video-margin-ratio-bottom": {
+  "en": "Video margin, bottom",
+  "zh": "画面下外边距",
+  "zhDesc": "在画面下边缘额外留出的外边距，取窗口尺寸的比例，范围 0.0 至 1.0，默认 0。四条边各自独立设置。"
+ },
+ "video-margin-ratio-left": {
+  "en": "Video margin, left",
+  "zh": "画面左外边距",
+  "zhDesc": "在画面左边缘额外留出的外边距，取窗口尺寸的比例，范围 0.0 至 1.0，默认 0。四条边各自独立设置。"
+ },
+ "video-margin-ratio-right": {
+  "en": "Video margin, right",
+  "zh": "画面右外边距",
+  "zhDesc": "在画面右边缘额外留出的外边距，取窗口尺寸的比例，范围 0.0 至 1.0，默认 0。四条边各自独立设置。"
+ },
+ "video-margin-ratio-top": {
+  "en": "Video margin, top",
+  "zh": "画面上外边距",
+  "zhDesc": "在画面上边缘额外留出的外边距，取窗口尺寸的比例，范围 0.0 至 1.0，默认 0。四条边各自独立设置。"
+ },
+ "video-osd": {
+  "en": "OSD on video",
+  "zh": "画面上的 OSD",
+  "zhDesc": "是否在视频画面上绘制 OSD，默认开启。若要彻底关闭所有 OSD，应改用 --osd-level=0，而不是关闭此项。"
+ },
+ "video-recenter": {
+  "en": "Recenter small video",
+  "zh": "小画面自动居中",
+  "zhDesc": "当画面在某个方向上小于窗口时，是否按 --video-align-x 与 -y 为 0 处理，也就是重新居中。"
+ },
+ "video-scale-x": {
+  "en": "Display scale, horizontal",
+  "zh": "画面显示倍率（水平）",
+  "zhDesc": "把画面的显示尺寸乘以该倍数，只作用于水平方向，默认 1.0。非默认值时画面尺寸与窗口不一致，会出现裁切或留边。"
+ },
+ "video-scale-y": {
+  "en": "Display scale, vertical",
+  "zh": "画面显示倍率（垂直）",
+  "zhDesc": "把画面的显示尺寸乘以该倍数，只作用于垂直方向，默认 1.0。非默认值时画面尺寸与窗口不一致，会出现裁切或留边。"
+ },
+ "video-sync-max-audio-change": {
+  "en": "Max audio speed change",
+  "zh": "音频调速上限",
+  "zhDesc": "在 --video-sync=display-* 模式下允许对音频施加的最大额外速度差，单位为百分比，默认 0.125。正常情况下音频按片源速度播放，只有为对齐画面才微调。"
+ },
+ "video-sync-max-factor": {
+  "en": "Max FPS sync factor",
+  "zh": "帧率同步倍率上限",
+  "zhDesc": "把片源帧率对齐到显示器刷新率时允许的最大倍数，默认 5。例如 24 帧内容在 120Hz 屏上需要 5 倍；超过此倍数便不再尝试对齐。"
+ },
+ "video-timing-offset": {
+  "en": "Render lead time",
+  "zh": "画面提前渲染量",
+  "zhDesc": "一帧应在显示目标时刻之前多久开始渲染，默认 0.050 秒。调大可缓解掉帧，代价是延迟增加。"
+ },
+ "vo-direct3d-disable-texture-align": {
+  "en": "Disable texture alignment",
+  "zh": "禁用纹理对齐",
+  "zhDesc": "关闭 direct3d 输出对纹理尺寸的对齐要求。手册未收录此项说明，仅在排查 direct3d 问题时使用。"
+ },
+ "vo-direct3d-exact-backbuffer": {
+  "en": "Exact backbuffer size",
+  "zh": "后备缓冲精确匹配窗口",
+  "zhDesc": "始终把后备缓冲调成与窗口完全一致的尺寸，而不是取对齐后更大的尺寸。"
+ },
+ "vo-direct3d-force-power-of-2": {
+  "en": "Force power-of-2 textures",
+  "zh": "强制 2 的幂纹理",
+  "zhDesc": "即使设备声明支持非 2 的幂纹理，也强制使用 2 的幂尺寸。老显卡驱动有问题时可以试。"
+ },
+ "vo-direct3d-swap-discard": {
+  "en": "Discard swap effect",
+  "zh": "交换效果 DISCARD",
+  "zhDesc": "使用 D3DSWAPEFFECT_DISCARD，可能更快，也可能因为每帧都要清空而更慢。"
+ },
+ "vo-direct3d-texture-memory": {
+  "en": "Texture memory",
+  "zh": "纹理内存位置",
+  "zhDesc": "纹理存放的位置。仅在启用着色器或纹理，以及使用 (E)OSD 时才有影响。"
+ },
+ "vo-image-avif-encoder": {
+  "en": "AVIF encoder",
+  "zh": "AVIF 编码器",
+  "zhDesc": "截图存为 AVIF 时使用的编码器。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-avif-opts": {
+  "en": "AVIF encoder options",
+  "zh": "AVIF 编码器参数",
+  "zhDesc": "传给 AVIF 编码器的附加参数。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-avif-pixfmt": {
+  "en": "AVIF pixel format",
+  "zh": "AVIF 像素格式",
+  "zhDesc": "AVIF 输出使用的像素格式。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-format": {
+  "en": "Image output format",
+  "zh": "图片输出格式",
+  "zhDesc": "截图使用的图片格式。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-high-bit-depth": {
+  "en": "High bit depth images",
+  "zh": "高位深截图",
+  "zhDesc": "截图时保留高位深，仅 PNG、JXL、AVIF 支持。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-jpeg-quality": {
+  "en": "JPEG quality",
+  "zh": "JPEG 质量",
+  "zhDesc": "JPEG 的质量系数，默认 90。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-jpeg-source-chroma": {
+  "en": "JPEG chroma from source",
+  "zh": "JPEG 取源色度",
+  "zhDesc": "JPEG 的色度采样是否沿用源画面。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-jxl-distance": {
+  "en": "JXL distance",
+  "zh": "JXL 压缩距离",
+  "zhDesc": "JXL 的有损压缩距离，越小越接近无损。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-jxl-effort": {
+  "en": "JXL effort",
+  "zh": "JXL 压缩力度",
+  "zhDesc": "JXL 的编码用力程度，越高越慢、体积越小。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-outdir": {
+  "en": "Image output directory",
+  "zh": "截图输出目录",
+  "zhDesc": "图片保存目录，默认当前目录。建议改用设置中的截图目录。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-png-compression": {
+  "en": "PNG compression",
+  "zh": "PNG 压缩级别",
+  "zhDesc": "PNG 压缩级别，在速度与体积之间取舍，默认 7。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-png-filter": {
+  "en": "PNG filter",
+  "zh": "PNG 滤波方式",
+  "zhDesc": "压缩前对 PNG 施加的滤波：0 无、1 sub、2 up、3 average、4 Paeth、5 mixed，默认 5。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-tag-colorspace": {
+  "en": "Tag colorspace in image",
+  "zh": "写入色彩空间标记",
+  "zhDesc": "是否把色彩空间信息写入图片文件。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-webp-compression": {
+  "en": "WebP compression",
+  "zh": "WebP 压缩级别",
+  "zhDesc": "WebP 压缩级别，默认 4。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-webp-lossless": {
+  "en": "Lossless WebP",
+  "zh": "WebP 无损",
+  "zhDesc": "是否输出无损 WebP，默认关闭。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-image-webp-quality": {
+  "en": "WebP quality",
+  "zh": "WebP 质量",
+  "zhDesc": "WebP 质量系数，默认 75。属截图选项的旧名，与设置中截图一栏的对应项作用相同。"
+ },
+ "vo-mmcss-profile": {
+  "en": "MMCSS profile",
+  "zh": "MMCSS 线程档位",
+  "zhDesc": "为视频渲染线程指定 MMCSS（多媒体类计划服务）档位，默认 Playback。仅 Windows 有效，用于降低播放时的调度抖动。"
+ },
+ "sub-ass": {
+  "en": "Native ASS rendering",
+  "zh": "ASS 原生渲染",
+  "zhDesc": "交给 libass 原生渲染 ASS 字幕，默认开启。关闭后按普通文本处理，样式与特效不再生效。"
+ },
+ "sub-ass-styles": {
+  "en": "Extra ASS styles",
+  "zh": "附加 ASS 样式文件",
+  "zhDesc": "从指定文件载入额外的 SSA/ASS 样式，用于渲染文本字幕。文件语法与 SSA/ASS 的 [V4 Styles] 与 [V4+ Styles] 段一致。"
+ },
+ "sub-auto-exts": {
+  "en": "Auto-load extensions",
+  "zh": "自动匹配的扩展名",
+  "zhDesc": "使用 --sub-auto 自动匹配字幕时尝试的扩展名列表。改动它也会影响拖放时被识别为字幕的文件。"
+ },
+ "sub-border-style": {
+  "en": "Border style",
+  "zh": "边框样式",
+  "zhDesc": "字幕边框的样式：outline 为文字描边，opaque 为不透明底框。"
+ },
+ "sub-create-cc-track": {
+  "en": "Always create CC track",
+  "zh": "预建隐藏字幕轨",
+  "zhDesc": "为每条视频轨预先建立隐藏字幕（CC）轨，默认关闭。开启后该轨在播放开始时即可选，而不必等字幕出现时才惰性创建。"
+ },
+ "sub-demuxer": {
+  "en": "Subtitle demuxer",
+  "zh": "字幕解复用器",
+  "zhDesc": "为 --sub-file 强制指定字幕解复用器，填写 --sub-demuxer=help 列出的名称。"
+ },
+ "sub-files": {
+  "en": "External subtitles",
+  "zh": "外挂字幕文件",
+  "zhDesc": "把字幕文件加入外挂字幕列表。这与播放中用快捷键加载的字幕是同一份列表。"
+ },
+ "sub-filter-jsre": {
+  "en": "JS subtitle filter",
+  "zh": "JS 字幕过滤脚本",
+  "zhDesc": "用 JavaScript 编写的字幕过滤脚本，逐条处理字幕文本。手册未收录此项说明。"
+ },
+ "sub-filter-regex": {
+  "en": "Regex subtitle filters",
+  "zh": "正则字幕过滤规则",
+  "zhDesc": "一组正则替换规则，按顺序作用于每条字幕文本。手册未收录此项说明，需配合 sub-filter-regex-enable 使用。"
+ },
+ "sub-filter-regex-enable": {
+  "en": "Enable regex filtering",
+  "zh": "启用正则过滤",
+  "zhDesc": "是否启用正则字幕过滤，默认开启。若规则列表为空，开启此项也没有效果；它的作用是便于整体开关。"
+ },
+ "sub-filter-regex-plain": {
+  "en": "Plain text before regex",
+  "zh": "先转纯文本再匹配",
+  "zhDesc": "是否先把 ASS 的 Text 字段转为纯文本再套用正则，默认关闭。转换会剥掉 ASS 标签，并执行反斜杠加 N 这类换行指令；结果是多行时，正则逐行匹配。"
+ },
+ "sub-filter-regex-warn": {
+  "en": "Warn on dropped lines",
+  "zh": "丢弃行记入警告",
+  "zhDesc": "把被过滤丢弃的字幕行以 warning 级别写进日志，而不是 verbose，默认关闭。调试规则时有用。"
+ },
+ "sub-fix-timing-keep": {
+  "en": "Timing fix floor",
+  "zh": "时间轴修正下限",
+  "zhDesc": "字幕事件短于该毫秒数时不参与时间轴修正，默认 400。"
+ },
+ "sub-fps": {
+  "en": "Subtitle frame rate",
+  "zh": "字幕帧率",
+  "zhDesc": "字幕文件自身的帧率，默认跟随视频帧率。仅影响文本字幕，用于按帧计时的字幕格式。"
+ },
+ "sub-glyph-limit": {
+  "en": "Glyph cache limit",
+  "zh": "字形缓存上限",
+  "zhDesc": "libass 为该字幕轨缓存的字形数量上限，0 表示使用 libass 的默认值。"
+ },
+ "sub-gray": {
+  "en": "Grayscale image subtitles",
+  "zh": "图形字幕转灰度",
+  "zhDesc": "把图形字幕（例如 DVD、Vobsub）转为灰度，可以改善偏黄字幕的观感。"
+ },
+ "sub-lavc-o": {
+  "en": "libavcodec subtitle options",
+  "zh": "libavcodec 字幕解码参数",
+  "zhDesc": "把 AVOptions 原样传给字幕解码器，用于设置本界面未收录的参数。"
+ },
+ "sub-past-video-end": {
+  "en": "Subtitles past video end",
+  "zh": "视频结束后继续显示",
+  "zhDesc": "视频最后一帧之后，字幕是否继续按音频时间轴更新。关闭时最后一帧的字幕会一直留在画面上。"
+ },
+ "sub-scale-with-window": {
+  "en": "Scale with window",
+  "zh": "字幕随窗口缩放",
+  "zhDesc": "字号相对窗口大小缩放，默认开启。关闭后改为相对视频尺寸缩放，画面缩放时字幕比例保持不变。"
+ },
+ "sub-speed": {
+  "en": "Subtitle speed factor",
+  "zh": "字幕时间轴倍率",
+  "zhDesc": "把字幕事件的时间戳乘以该倍率，用于修正按帧计时的字幕格式。仅影响文本字幕。"
+ },
+ "sub-stretch-durations": {
+  "en": "Stretch durations",
+  "zh": "拉长字幕时长",
+  "zhDesc": "把每条字幕的时长拉长到与下一条相接。用于修正时长被错记为 0 的字幕。"
+ },
+ "sub-vsfilter-bidi-compat": {
+  "en": "VSFilter bidi compat",
+  "zh": "VSFilter 双向文本兼容",
+  "zhDesc": "把隐式双向文本检测固定为从左到右，而不是 auto，以匹配 ASS 的默认行为；同时关闭 libass 的若干不兼容扩展，目前包括括号成对匹配。"
+ },
+ "osd-bar": {
+  "en": "OSD progress bar",
+  "zh": "进度条",
+  "zhDesc": "在画面上叠加一条播放进度条，默认开启。关闭后跳转时不再画进度条，只剩文字提示。"
+ },
+ "osd-bar-align-x": {
+  "en": "Progress bar horizontal position",
+  "zh": "进度条水平位置",
+  "zhDesc": "进度条在画面中的水平位置，-1 最左、0 居中、1 最右，默认居中。可填小数，例如 0.5。"
+ },
+ "osd-bar-align-y": {
+  "en": "Progress bar vertical position",
+  "zh": "进度条垂直位置",
+  "zhDesc": "进度条在画面中的垂直位置，-1 最上、0 居中、1 最下，默认 0.5（略低于正中）。可填小数。"
+ },
+ "osd-bar-marker-min-size": {
+  "en": "Marker minimum size",
+  "zh": "位置标记最小尺寸",
+  "zhDesc": "进度条上当前播放位置标记的最小尺寸，默认 1.6。进度条很窄时该下限可防止标记被缩到看不见。"
+ },
+ "osd-bar-marker-scale": {
+  "en": "Marker size factor",
+  "zh": "位置标记缩放倍率",
+  "zhDesc": "标记尺寸相对进度条描边粗细的倍率，默认 1.3。调大可让当前播放位置更显眼。"
+ },
+ "osd-bar-marker-style": {
+  "en": "Marker style",
+  "zh": "位置标记样式",
+  "zhDesc": "进度条上当前播放位置的标记形状：不显示、三角形（默认）、竖线。"
+ },
+ "osd-bar-outline-size": {
+  "en": "Progress bar thickness",
+  "zh": "进度条粗细",
+  "zhDesc": "进度条描边的粗细，单位与字幕字号一致（随画面缩放），默认 0.5。这个值同时决定进度条本身的高度。"
+ },
+ "osd-bitmap-max-size": {
+  "en": "OSD bitmap cache",
+  "zh": "OSD 位图缓存上限",
+  "zhDesc": "libass 为 OSD 缓存位图的上限，单位 MB，0 表示沿用 libass 默认值。仅在 OSD 使用位图字体时起作用。"
+ },
+ "osd-border-style": {
+  "en": "OSD text border style",
+  "zh": "OSD 文字边框样式",
+  "zhDesc": "OSD 文字的边框画法，取值与字幕边框样式相同：描边加阴影（默认）、不透明底色块、半透明底色块。"
+ },
+ "osd-glyph-limit": {
+  "en": "OSD glyph cache limit",
+  "zh": "OSD 字形缓存上限",
+  "zhDesc": "libass 为 OSD 缓存的字形数量上限，0 表示沿用 libass 默认值。屏上文字很多时可用来限制内存占用。"
+ },
+ "osd-msg1": {
+  "en": "OSD level 1 text",
+  "zh": "一级 OSD 文本",
+  "zhDesc": "OSD 处于一级（默认等级）时显示的文本，留空则不显示。支持属性展开，例如 ${filename}。"
+ },
+ "osd-msg2": {
+  "en": "OSD level 2 text",
+  "zh": "二级 OSD 文本",
+  "zhDesc": "OSD 处于二级时显示的文本，支持属性展开。留空（默认）则显示当前播放时间。"
+ },
+ "osd-msg3": {
+  "en": "OSD level 3 text",
+  "zh": "三级 OSD 文本",
+  "zhDesc": "OSD 处于三级时显示的文本，支持属性展开。留空（默认）则显示播放时间、总时长等更多信息。"
+ },
+ "osd-playlist-entry": {
+  "en": "Playlist entry label",
+  "zh": "播放列表条目显示内容",
+  "zhDesc": "播放列表条目显示媒体标题、文件名还是两者都显示，默认只显示标题。标题不可用时一律退化为文件名。"
+ },
+ "osd-prune-delay": {
+  "en": "OSD event prune delay",
+  "zh": "OSD 事件清理延迟",
+  "zhDesc": "libass 自动清理过期 OSD 事件、释放内存的延迟秒数，默认 -1 表示关闭。与字幕的同类选项各自独立。"
+ },
+ "osd-status-msg": {
+  "en": "Custom status text",
+  "zh": "自定义状态文字",
+  "zhDesc": "播放期间用自定义文本替换默认状态文字，支持属性展开。会同时覆盖三级 OSD、按 P 显示的进度以及跳转提示。"
+ },
+ "ad-lavc-ac3drc": {
+  "en": "AC-3 dynamic range compression",
+  "zh": "AC-3 动态范围压缩",
+  "zhDesc": "AC-3 音轨的动态范围压缩强度：0 为不压缩（默认）、1 为完全压缩，音量大和小的段落会被拉近。仅当音轨自带压缩信息时才有效。"
+ },
+ "ad-lavc-o": {
+  "en": "libavcodec decoder options",
+  "zh": "libavcodec 解码参数",
+  "zhDesc": "把 AVOptions 原样传给音频解码器，用于设置本界面未收录的参数。"
+ },
+ "ad-lavc-threads": {
+  "en": "Audio decoder threads",
+  "zh": "音频解码线程数",
+  "zhDesc": "音频解码使用的线程数，默认 1，填 0 表示按 CPU 核心数自动决定（上限 16）。解码器本身未必支持多线程。"
+ },
+ "ad-queue-enable": {
+  "en": "Decode on a separate thread",
+  "zh": "解码独立线程",
+  "zhDesc": "让音频解码在独立线程上运行，并在解码器与播放逻辑之间放一个帧队列，默认关闭。队列的大小由下面三个选项决定。"
+ },
+ "ad-queue-max-bytes": {
+  "en": "Queue memory limit",
+  "zh": "队列内存上限",
+  "zhDesc": "帧队列可占用的最大内存，默认 1 MiB，超出后暂停解码。实际占用可能超出约一帧。"
+ },
+ "ad-queue-max-samples": {
+  "en": "Queue sample limit",
+  "zh": "队列采样数上限",
+  "zhDesc": "帧队列中音频采样的最大数量，默认 48000（约 1 秒）。实际可能超出约一帧。"
+ },
+ "ad-queue-max-secs": {
+  "en": "Queue duration limit",
+  "zh": "队列时长上限",
+  "zhDesc": "帧队列缓存的最大时长（秒），默认 1，填 0 表示不限制。时间戳跳变时该值可能不准。"
+ },
+ "audio-backward-batch": {
+  "en": "Backward decode batch",
+  "zh": "倒放解码批大小",
+  "zhDesc": "倒放时一次解码的关键帧区间数量，音频默认 10（视频为 1）。调大可减少重复解码的开销，但会占用更多缓冲，播放也可能不够平滑。"
+ },
+ "audio-backward-overlap": {
+  "en": "Backward decode overlap",
+  "zh": "倒放解码重叠区间",
+  "zhDesc": "倒放时相邻关键帧区间重叠的数量，默认 auto 由 mpv 决定。基于 MDCT 的音频编码无法从任意位置重启解码，靠重叠来避免接缝处的杂音。"
+ },
+ "audio-client-name": {
+  "en": "Reported application name",
+  "zh": "上报的应用名称",
+  "zhDesc": "播放器向音频系统上报的应用名，默认 mpv。某些音频后端按应用名套用音量配置，改名可绕开。"
+ },
+ "audio-demuxer": {
+  "en": "External audio demuxer",
+  "zh": "外挂音频分离器",
+  "zhDesc": "读取外挂音频时使用的分离器，填 --audio-demuxer=help 列出的名称。名称前加 + 可强制指定，跳过部分检查。"
+ },
+ "audio-fallback-to-null": {
+  "en": "Silent fallback output",
+  "zh": "无设备时静默播放",
+  "zhDesc": "打不开音频设备时按无输出处理，继续播放但不出声，默认关闭。配合音频设备选择使用，可避免指定设备不存在时直接报错。"
+ },
+ "audio-files": {
+  "en": "External audio files",
+  "zh": "外挂音频文件",
+  "zhDesc": "观看视频同时播放的外部音频文件，可填多个。"
+ },
+ "audio-resample-cutoff": {
+  "en": "Resampler cutoff",
+  "zh": "重采样截止频率",
+  "zhDesc": "重采样滤波器的截止频率，取值 0.0 到 1.0。默认 0 表示按滤波器长度自动选择。"
+ },
+ "audio-resample-filter-size": {
+  "en": "Resampler filter length",
+  "zh": "重采样滤波器长度",
+  "zhDesc": "重采样滤波器相对较低采样率的长度，默认 16。调高音质更好，代价是运算量更大。"
+ },
+ "audio-resample-linear": {
+  "en": "Linear interpolate filter",
+  "zh": "滤波器线性插值",
+  "zhDesc": "在多相滤波器的各项之间做线性插值，默认关闭。开启可减轻采样率切换时的杂音，精度略低。"
+ },
+ "audio-resample-max-output-size": {
+  "en": "Resampler frame limit",
+  "zh": "重采样单帧上限",
+  "zhDesc": "一次重采样处理的音频帧时长上限（毫秒），默认 40。限制它能让我们改变播放速度时反应更快，不影响重采样算法本身。"
+ },
+ "audio-resample-phase-shift": {
+  "en": "Resampler phase count",
+  "zh": "重采样相位数量",
+  "zhDesc": "多相滤波器项数以 2 为底的对数，默认 10（即 1024 项）。调高更精确，代价是运算量更大。"
+ },
+ "audio-set-media-role": {
+  "en": "Report media role",
+  "zh": "上报媒体角色",
+  "zhDesc": "在支持的音频系统上区分上报当前播放的是视频还是纯音频，默认关闭。因为按媒体角色分别记忆音量常常造成困扰，所以默认不开。"
+ },
+ "audio-swresample-o": {
+  "en": "libswresample options",
+  "zh": "libswresample 参数",
+  "zhDesc": "把 AVOptions 原样传给音频重采样器，用于设置本界面未收录的参数。"
+ },
+ "mute": {
+  "en": "Start muted",
+  "zh": "启动时静音",
+  "zhDesc": "启动时是否静音，默认不静音。只决定启动状态，之后仍可在界面上切换。"
+ },
+ "openal-direct-channels": {
+  "en": "OpenAL direct channels",
+  "zh": "OpenAL 直通声道",
+  "zhDesc": "在音频设备支持时启用 OpenAL Soft 的直通声道扩展，避免声音被空间音效或 HRTF 加工，默认开启。"
+ },
+ "openal-num-buffers": {
+  "en": "OpenAL buffer count",
+  "zh": "OpenAL 缓冲区数量",
+  "zhDesc": "OpenAL 输出使用的缓冲区数量，默认 4，取值 2 到 128。手册未收录此项的进一步说明。"
+ },
+ "openal-num-samples": {
+  "en": "OpenAL samples per buffer",
+  "zh": "OpenAL 单缓冲采样数",
+  "zhDesc": "每个缓冲区包含的采样数，默认 8192，取值 256 到 32768。数值越大 CPU 占用越低，延迟也越高。"
+ },
+ "replaygain-clip": {
+  "en": "Allow clipping",
+  "zh": "允许削波",
+  "zhDesc": "允许增益后出现削波，默认关闭。关闭时 mpv 会自动降低增益以避免失真。"
+ },
+ "replaygain-fallback": {
+  "en": "Fallback gain",
+  "zh": "无标签时的增益",
+  "zhDesc": "文件没有 ReplayGain 标签时套用的增益（dB），默认 0。该值只在增益判定未能生效时使用，此时其余增益选项一律不参与。"
+ },
+ "replaygain-preamp": {
+  "en": "Adjustment gain",
+  "zh": "增益调整量",
+  "zhDesc": "在自动算出的增益之上再叠加的调整量（dB），默认 0。可用来整体提升或压低所有套用了增益的文件。"
+ },
+ "volume": {
+  "en": "Startup volume",
+  "zh": "启动音量",
+  "zhDesc": "启动时的音量，0 为静音、100 为原音量，默认 100。为避免兼容问题，负数会被当作 0。"
+ },
+ "volume-gain": {
+  "en": "Volume gain",
+  "zh": "音量增益",
+  "zhDesc": "在其它音量设置之上再叠加的增益（dB），默认 0。与音量百分比互不影响。"
+ },
+ "volume-gain-max": {
+  "en": "Volume gain ceiling",
+  "zh": "音量增益上限",
+  "zhDesc": "音量增益可调范围的上限（dB），默认 12。与下限共同决定音量滑杆的增益区间。"
+ },
+ "volume-gain-min": {
+  "en": "Volume gain floor",
+  "zh": "音量增益下限",
+  "zhDesc": "音量增益可调范围的下限（dB），默认 -96。与上限共同决定音量滑杆的增益区间。"
+ },
+ "aid": {
+  "en": "Audio track",
+  "zh": "音频轨",
+  "zhDesc": "选择要播放的音频轨：auto 用默认轨、no 关闭声音，也可直接填轨道编号。具体挑哪一条还取决于音频语言顺序。"
+ },
+ "sid": {
+  "en": "Subtitle track",
+  "zh": "字幕轨",
+  "zhDesc": "选择要显示的字幕轨：auto 用默认轨、no 关闭字幕，也可直接填轨道编号。"
+ },
+ "track-auto-selection": {
+  "en": "Automatic track selection",
+  "zh": "自动选择轨道",
+  "zhDesc": "是否按音频轨、字幕轨、语言顺序等选项自动挑轨，默认开启。关闭后一个轨道都不会选中，播放器也不会因此退出，而是停在那里等待。"
+ },
+ "vid": {
+  "en": "Video track",
+  "zh": "视频轨",
+  "zhDesc": "选择要播放的视频轨：auto 用默认轨、no 关闭画面。"
+ },
+ "vlang": {
+  "en": "Preferred video language",
+  "zh": "视频语言顺序",
+  "zhDesc": "自动挑视频轨时优先选择的语言，写法与音频、字幕的语言顺序一致，多个语言按先后排列。"
+ },
+ "cookies": {
+  "en": "Send cookies",
+  "zh": "发送 Cookie",
+  "zhDesc": "发起 HTTP 请求时携带 Cookie，默认关闭。需要登录态的流媒体站点会用到。"
+ },
+ "curl-enabled": {
+  "en": "libcurl network backend",
+  "zh": "libcurl 网络后端",
+  "zhDesc": "使用基于 libcurl 的网络后端，默认开启。关闭后改用内置的简易网络实现。"
+ },
+ "curl-http-version": {
+  "en": "HTTP protocol version",
+  "zh": "HTTP 协议版本",
+  "zhDesc": "允许 libcurl 协商到的最高 HTTP 协议版本，默认 auto 由 libcurl 决定。可选 1.0、1.1、2、3 等。"
+ },
+ "demuxer": {
+  "en": "Force demuxer",
+  "zh": "强制分离器",
+  "zhDesc": "强制使用指定的分离器，填 --demuxer=help 列出的名称。名称前加加号可跳过部分检查直接强制。"
+ },
+ "demuxer-backward-playback-step": {
+  "en": "Backward playback step",
+  "zh": "倒放回退步长",
+  "zhDesc": "倒放时分离器每次回退多少秒去取新数据，默认 60。数值越大回退次数越少，但缓冲占用越多。"
+ },
+ "demuxer-cache-unlink-files": {
+  "en": "Delete cache files",
+  "zh": "删除缓存文件",
+  "zhDesc": "何时删除分离器产生的临时缓存文件，默认立即删除。这些文件本来就是临时的，播放结束后留着没有意义；此项仅供排错。"
+ },
+ "demuxer-cache-wait": {
+  "en": "Cache before playback",
+  "zh": "起播前先缓冲",
+  "zhDesc": "开始播放前先把数据读到文件结尾或缓存写满，然后才起播。这一步发生在起始定位之前，起播后不再有额外影响；无法完整缓存的文件用不上。"
+ },
+ "demuxer-donate-buffer": {
+  "en": "Share forward buffer",
+  "zh": "前后缓冲共用",
+  "zhDesc": "允许回退缓冲借用前进缓冲的内存，默认开启。开启时两者合计不超过各自上限之和减去前进缓冲已用部分；关闭则分别严格受限。"
+ },
+ "demuxer-hysteresis-bytes": {
+  "en": "Buffer refill threshold",
+  "zh": "缓冲恢复阈值",
+  "zhDesc": "缓存触顶并暂停读取后，要等前进缓冲降到这个字节数以下才会重新读取，默认 0 表示触顶后立即恢复。"
+ },
+ "demuxer-lavf-allow-mimetype": {
+  "en": "Trust HTTP MIME type",
+  "zh": "按 MIME 类型判断格式",
+  "zhDesc": "允许根据 HTTP 返回的 MIME 类型推断文件格式，默认开启。如果同一个文件本地能放、从 HTTP 播放却莫名失败，可以关掉试试。"
+ },
+ "demuxer-lavf-analyzeduration": {
+  "en": "Analysis duration",
+  "zh": "格式分析时长",
+  "zhDesc": "探测流参数时最多分析多少秒的数据，默认 0（由 libavformat 自行决定）。"
+ },
+ "demuxer-lavf-buffersize": {
+  "en": "Read buffer size",
+  "zh": "读取缓冲大小",
+  "zhDesc": "为 libavformat 分配的流读取缓冲区大小，默认 32 KiB。调小可降低延迟，但它也可能自行调整或只用其中一部分。"
+ },
+ "demuxer-lavf-format": {
+  "en": "Force libavformat demuxer",
+  "zh": "强制 libavformat 分离器",
+  "zhDesc": "强制 libavformat 使用指定的分离器，用于自动识别失败的文件。"
+ },
+ "demuxer-lavf-hacks": {
+  "en": "Format workarounds",
+  "zh": "格式兼容修正",
+  "zhDesc": "对少数格式单独做特殊处理，多是为了弥补 libavformat 分离器的怪异行为，默认开启。关闭仅用于排错和测试。"
+ },
+ "demuxer-lavf-linearize-timestamps": {
+  "en": "Smooth timestamp resets",
+  "zh": "时间戳重排",
+  "zhDesc": "尝试把流里重置过的时间戳拉直成连续值，默认 auto。只在单音频流上验证过，视频上效果不确定，且两种情况下都会引入约一帧的不连续。"
+ },
+ "demuxer-lavf-o": {
+  "en": "libavformat demuxer options",
+  "zh": "libavformat 分离器参数",
+  "zhDesc": "把 AVOptions 原样传给 libavformat 分离器，用于设置本界面未收录的参数。"
+ },
+ "demuxer-lavf-probe-info": {
+  "en": "Probe stream info",
+  "zh": "探测流信息",
+  "zhDesc": "是否调用 libavformat 的流信息探测，默认 auto。调用更稳妥但起播略慢；也可设为只探测不读取流信息。"
+ },
+ "demuxer-lavf-probescore": {
+  "en": "Format detection threshold",
+  "zh": "格式识别阈值",
+  "zhDesc": "libavformat 判定格式所需的最低置信度，默认 26。调低所需数据更少、起播更快，但识别更容易出错；调高可强制采用把握不大的分离器。"
+ },
+ "demuxer-lavf-probesize": {
+  "en": "Probe size limit",
+  "zh": "探测数据上限",
+  "zhDesc": "识别格式时最多读取的数据量，默认 0 表示不限制。对 MPEG-TS，该值决定最多扫描多少个 TS 包。"
+ },
+ "demuxer-lavf-propagate-opts": {
+  "en": "Pass options down",
+  "zh": "下传网络参数",
+  "zhDesc": "把 FFmpeg 层级的选项传递给嵌套打开的连接，默认开启。FFmpeg 本来就会这样做，个别情况下也可能因此出问题。"
+ },
+ "demuxer-mkv-crop-compat": {
+  "en": "Matroska crop compat",
+  "zh": "Matroska 裁剪兼容",
+  "zhDesc": "对不严格符合 Matroska 规范的文件启用兼容模式，默认开启，让画面裁剪信息能被正常读取。"
+ },
+ "demuxer-mkv-probe-start-time": {
+  "en": "Read Matroska start time",
+  "zh": "读取起始时间",
+  "zhDesc": "打开 Matroska 文件时读取第一个簇的时间戳作为起始时间，默认开启。这会多读一个时间戳，直播流可能因此多一帧延迟。"
+ },
+ "demuxer-mkv-probe-video-duration": {
+  "en": "Probe duration from tail",
+  "zh": "从末尾探测时长",
+  "zhDesc": "打开文件时跳到结尾，用最后一个视频包的时间戳作为总时长，默认关闭。这是为兼容 Haali 保留的做法，会让打开变慢（HTTP 尤其明显），不建议开启。"
+ },
+ "demuxer-mkv-subtitle-preroll": {
+  "en": "Subtitle preroll on seek",
+  "zh": "跳转后补读字幕",
+  "zhDesc": "跳转到某处时更努力地找出该处的内嵌字幕，默认 index。字幕时间通常比对应画面略早，直接跳到画面往往读不到字幕，开启后可避免跳转后字幕不显示。"
+ },
+ "demuxer-mkv-subtitle-preroll-secs": {
+  "en": "Preroll window",
+  "zh": "补读窗口",
+  "zhDesc": "跳转后向前多读多少秒来找字幕，默认 1 秒。字幕比画面早得越多，这个值就要越大。"
+ },
+ "demuxer-mkv-subtitle-preroll-secs-index": {
+  "en": "Preroll window with index",
+  "zh": "带索引时的补读窗口",
+  "zhDesc": "文件带字幕索引时使用的补读窗口，默认 10 秒。索引能精确定位字幕，所以这里可以用更大的值。"
+ },
+ "demuxer-rawaudio-channels": {
+  "en": "Raw audio channels",
+  "zh": "裸音频声道数",
+  "zhDesc": "按裸音频分离时使用的声道数或声道布局，默认立体声。仅在强制指定裸音频分离器时有效。"
+ },
+ "demuxer-rawaudio-format": {
+  "en": "Raw audio sample format",
+  "zh": "裸音频采样格式",
+  "zhDesc": "按裸音频分离时使用的采样格式，默认 s16le。仅在强制指定裸音频分离器时有效。"
+ },
+ "demuxer-rawaudio-rate": {
+  "en": "Raw audio sample rate",
+  "zh": "裸音频采样率",
+  "zhDesc": "按裸音频分离时使用的采样率，默认 44100 Hz。仅在强制指定裸音频分离器时有效。"
+ },
+ "demuxer-rawvideo-codec": {
+  "en": "Raw video codec",
+  "zh": "裸视频编码格式",
+  "zhDesc": "按裸视频分离时使用的编码器名称，取值与视频解码器选项相同（不接受解码器专有名）。留空则按原始像素流处理。"
+ },
+ "demuxer-rawvideo-format": {
+  "en": "Raw video pixel format",
+  "zh": "裸视频像素格式",
+  "zhDesc": "按裸视频分离时的像素格式，可填十六进制的四字符编码或名称，默认 YV12。"
+ },
+ "demuxer-rawvideo-fps": {
+  "en": "Raw video frame rate",
+  "zh": "裸视频帧率",
+  "zhDesc": "按裸视频分离时的帧率，默认 25 帧每秒。"
+ },
+ "demuxer-rawvideo-h": {
+  "en": "Raw video height",
+  "zh": "裸视频高度",
+  "zhDesc": "按裸视频分离时的画面高度（像素），默认 720。"
+ },
+ "demuxer-rawvideo-mp-format": {
+  "en": "Raw video internal format",
+  "zh": "裸视频内部格式",
+  "zhDesc": "按裸视频分离时用播放器内部格式名指定像素格式，例如 yuv420p。与四字符编码的写法二选一。"
+ },
+ "demuxer-rawvideo-size": {
+  "en": "Raw video frame size",
+  "zh": "裸视频单帧字节数",
+  "zhDesc": "按裸视频分离时每一帧的字节数，默认 0，表示按宽高和像素格式推算。"
+ },
+ "demuxer-rawvideo-w": {
+  "en": "Raw video width",
+  "zh": "裸视频宽度",
+  "zhDesc": "按裸视频分离时的画面宽度（像素），默认 1280。"
+ },
+ "demuxer-sbr-probesize": {
+  "en": "SBR probe size",
+  "zh": "SBR 探测包数",
+  "zhDesc": "识别 SBR 音频时最多检查的包数，默认 128。手册未收录此项的进一步说明。"
+ },
+ "demuxer-seekable-cache": {
+  "en": "Seek using cache",
+  "zh": "允许基于缓存跳转",
+  "zhDesc": "跳转时是否可以使用分离器缓存，默认 auto。通常不需要改动：缓存开启时 auto 会自动允许。"
+ },
+ "demuxer-termination-timeout": {
+  "en": "Shutdown wait",
+  "zh": "关闭等待时长",
+  "zhDesc": "停止播放时等待分离器退出的秒数，默认 0.1。超时后会强制关闭，此时网络连接来不及正常收尾，可能留下令人困惑的日志。"
+ },
+ "demuxer-thread": {
+  "en": "Background demuxing",
+  "zh": "分离线程预读",
+  "zhDesc": "在独立线程上运行分离器并预读一定量的数据，默认开启。可让播放更平滑，网络卡顿时也不会冻住播放器，代价是额外的 CPU 开销。"
+ },
+ "stream-buffer-size": {
+  "en": "Stream byte buffer",
+  "zh": "流字节缓冲大小",
+  "zhDesc": "分离器与底层输入输出（例如套接字）之间的缓冲大小，默认 128 KiB。这个值可以很小，作用类似 C 标准库的文件缓冲。"
+ },
+ "stream-dump": {
+  "en": "Dump stream to file",
+  "zh": "导出原始流",
+  "zhDesc": "不播放，而是把读到的字节流写入指定文件（会覆盖），用于排查网络相关问题。"
+ },
+ "stream-lavf-o": {
+  "en": "libavformat stream options",
+  "zh": "libavformat 流参数",
+  "zhDesc": "把 AVOptions 传给由 libavformat 打开的流。拼错的选项会被静默忽略，只有开详细日志时才看得到提示。"
+ },
+ "stream-record": {
+  "en": "Record stream",
+  "zh": "录制接收到的数据",
+  "zhDesc": "把从分离器读到的数据写入指定文件，同名文件会直接覆盖。输出格式由文件扩展名决定。"
+ },
+ "tls-ca-file": {
+  "en": "TLS CA file",
+  "zh": "TLS 证书机构文件",
+  "zhDesc": "TLS 握手时使用的证书机构数据库文件。解码器版本较旧时会静默忽略该项。"
+ },
+ "tls-cert-file": {
+  "en": "TLS client certificate",
+  "zh": "TLS 客户端证书",
+  "zhDesc": "与对端握手时使用的客户端证书文件。"
+ },
+ "tls-key-file": {
+  "en": "TLS private key",
+  "zh": "TLS 私钥",
+  "zhDesc": "上述客户端证书对应的私钥文件。"
+ },
+ "ytdl": {
+  "en": "youtube-dl integration",
+  "zh": "启用 youtube-dl",
+  "zhDesc": "启用 youtube-dl 挂钩脚本：遇到网址时交给它解析并播放其中的视频，默认开启。适用于多数流媒体站点，需要在系统里装有较新的 youtube-dl。"
+ },
+ "ytdl-format": {
+  "en": "youtube-dl format",
+  "zh": "youtube-dl 格式串",
+  "zhDesc": "直接传给 youtube-dl 的格式选择表达式，可用值随站点和视频而定。留空则使用其默认的最优画质加最优音质。"
+ },
+ "ytdl-raw-options": {
+  "en": "youtube-dl extra options",
+  "zh": "youtube-dl 附加参数",
+  "zhDesc": "传给 youtube-dl 的任意参数，按键值对书写；不带值的开关后面要跟一个等号。"
+ },
+ "autofit": {
+  "en": "Initial window size cap",
+  "zh": "初始窗口尺寸上限",
+  "zhDesc": "把初始窗口限制在指定的最大宽高内，同时保持画面比例，例如 1280x720。数值后可加百分号，表示占屏幕的比例。"
+ },
+ "autofit-larger": {
+  "en": "Window maximum size",
+  "zh": "窗口最大尺寸",
+  "zhDesc": "写法与初始窗口尺寸上限相同，区别在于它限制的是窗口可放大的上限。"
+ },
+ "autofit-smaller": {
+  "en": "Window minimum size",
+  "zh": "窗口最小尺寸",
+  "zhDesc": "写法与初始窗口尺寸上限相同，区别在于它限制的是窗口可缩小的下限。"
+ },
+ "bluray-angle": {
+  "en": "Blu-ray angle",
+  "zh": "蓝光视角",
+  "zhDesc": "部分蓝光碟的同一场景有多个拍摄角度，这里选择使用哪一个，默认第 1 个。"
+ },
+ "bluray-device": {
+  "en": "Blu-ray disc path",
+  "zh": "蓝光碟路径",
+  "zhDesc": "蓝光碟所在位置，必须是指向蓝光结构的目录。留空则使用系统默认光驱。"
+ },
+ "border-background": {
+  "en": "Border area background",
+  "zh": "黑边区域背景",
+  "zhDesc": "只作用于窗口里的黑边区域，写法与画面背景相同，默认纯色。仅在较新的渲染后端上生效。"
+ },
+ "clipboard-backends": {
+  "en": "Clipboard backends",
+  "zh": "剪贴板后端顺序",
+  "zhDesc": "按优先级排列的剪贴板后端，系统会依次尝试，默认使用当前平台的原生实现。填 help 可以列出全部可用后端。"
+ },
+ "clipboard-monitor": {
+  "en": "Watch clipboard changes",
+  "zh": "监视剪贴板变化",
+  "zhDesc": "持续监视剪贴板，使剪贴板属性可以反映内容变化，默认关闭。只对靠轮询实现的剪贴板后端有效。"
+ },
+ "cover-art-auto": {
+  "en": "Load external cover art",
+  "zh": "自动加载封面图",
+  "zhDesc": "是否自动加载外部的封面图，默认精确匹配。可选不加载、精确匹配、模糊匹配、全部加载。文件本身已有轨道时不会加载外部封面。"
+ },
+ "cover-art-files": {
+  "en": "Cover art file",
+  "zh": "封面图文件",
+  "zhDesc": "播放音频时用作封面的外部图片文件。它会作为一条轨道出现在轨道列表里，也参与自动挑轨。"
+ },
+ "cover-art-whitelist": {
+  "en": "Cover art filenames",
+  "zh": "封面图文件名",
+  "zhDesc": "按优先级从高到低排列的封面文件名，会与图片扩展名组合使用。自动加载封面设为不加载时本项无效。"
+ },
+ "dvd-angle": {
+  "en": "DVD angle",
+  "zh": "DVD 视角",
+  "zhDesc": "部分 DVD 的同一场景有多个拍摄角度，这里选择使用哪一个，默认第 1 个。"
+ },
+ "dvd-device": {
+  "en": "DVD device or image",
+  "zh": "DVD 设备或镜像",
+  "zhDesc": "光驱设备或 .iso 镜像文件，也可以填一个存放 DVD 文件的目录。留空则使用系统默认光驱。"
+ },
+ "dvd-speed": {
+  "en": "DVD read speed",
+  "zh": "DVD 读取速度",
+  "zhDesc": "限制光驱读取速度，默认 0 表示不限制。填 100 以上表示具体的千字节每秒，小于 100 表示基准速度的整数倍，例如 8 约合 11 MB/s。读得越慢光驱越安静。"
+ },
+ "end": {
+  "en": "Stop at time",
+  "zh": "到指定时间停止",
+  "zhDesc": "播放到指定的时间点就停止，时间写法与起始播放位置相同。希望相对起始位置计时的话，改用下面的播放时长。"
+ },
+ "force-media-title": {
+  "en": "Force media title",
+  "zh": "强制媒体标题",
+  "zhDesc": "把媒体标题固定为这个值。适合脚本设定标题，同时不覆盖用户在窗口标题选项里的设置。"
+ },
+ "force-render": {
+  "en": "Always render frames",
+  "zh": "始终渲染画面",
+  "zhDesc": "即使窗口不可见也照常渲染，默认关闭。只对本就在不可见时暂停渲染的平台后端有效，其他后端本来就会一直渲染。"
+ },
+ "force-rgba-osd-rendering": {
+  "en": "Force RGBA OSD rendering",
+  "zh": "强制 RGBA 渲染 OSD",
+  "zhDesc": "改变 OSD 与文字字幕的渲染方式，默认关闭。不影响外观只影响性能：对支持原生字幕渲染的后端快慢不定，对其他后端只会更慢。"
+ },
+ "force-seekable": {
+  "en": "Force seeking",
+  "zh": "强制允许跳转",
+  "zhDesc": "播放器认为媒体不可跳转时（例如管道输入，或不支持分段请求的 HTTP 服务器），强制启用跳转，默认关闭。在已缓存范围内跳转成功率较高。"
+ },
+ "force-window": {
+  "en": "Always create a window",
+  "zh": "无画面也开窗口",
+  "zhDesc": "即使没有视频也创建一个输出窗口，默认不创建，也可设为立即创建。窗口固定为 960x540，并受窗口位置尺寸等选项影响。"
+ },
+ "force-window-position": {
+  "en": "Keep initial window position",
+  "zh": "自动缩放后归位",
+  "zhDesc": "画面尺寸变化导致窗口自动缩放后，是否把窗口移回初始位置，默认关闭（保持当前位置只改大小）。开启后回到设定位置，没设定则回到屏幕中央。仅部分平台后端有效。"
+ },
+ "frames": {
+  "en": "Limit frames",
+  "zh": "限制帧数",
+  "zhDesc": "只处理前若干帧视频后退出。填 0 会打开文件但不进入播放就退出，可用于只想读出文件信息的场合；纯音频文件填大于 0 的值也会立即退出。"
+ },
+ "fs-screen": {
+  "en": "Fullscreen monitor",
+  "zh": "全屏所在显示器",
+  "zhDesc": "多显示器时全屏到哪一个，默认当前显示器，也可指定第几个或全部。填 current 时会改用显示器选项里指定的值。"
+ },
+ "fs-screen-name": {
+  "en": "Fullscreen monitor by name",
+  "zh": "按名称指定全屏显示器",
+  "zhDesc": "按视频后端给出的显示器名称决定全屏到哪一个。如果明确设置了全屏所在显示器，本项会被忽略。"
+ },
+ "geometry": {
+  "en": "Window position and size",
+  "zh": "窗口位置与尺寸",
+  "zhDesc": "设定初始窗口的位置和大小，写成「宽x高+X+Y」的形式，正负号表示相对哪一侧的边缘，数字后可加百分号表示屏幕比例。"
+ },
+ "hr-seek-demuxer-offset": {
+  "en": "Precise seek margin",
+  "zh": "精确定位补偿",
+  "zhDesc": "从目标时间中减去这么多秒再交给分离器，用来绕开某些格式定位不到目标前一个关键帧的问题，默认 0。设大会让精确定位变慢。"
+ },
+ "idle": {
+  "en": "Stay open with no file",
+  "zh": "无文件时保持运行",
+  "zhDesc": "没有可播放文件时保持运行而不是退出，默认不保持，也可设为只保持一次。主要供外部通过命令控制播放器时使用。"
+ },
+ "input-ar-delay": {
+  "en": "Key repeat delay",
+  "zh": "按键重复延迟",
+  "zhDesc": "长按按键后开始重复的等待时间（毫秒），默认 200，填 0 表示关闭重复。"
+ },
+ "input-ar-rate": {
+  "en": "Key repeat rate",
+  "zh": "按键重复频率",
+  "zhDesc": "长按按键时每秒重复触发的次数，默认 40。"
+ },
+ "input-builtin-bindings": {
+  "en": "Built-in key bindings",
+  "zh": "内置键位",
+  "zhDesc": "启动时是否载入内置的键位设置，默认开启。只在初始化时生效，关闭后无法在运行中再打开。"
+ },
+ "input-builtin-drag-and-drop": {
+  "en": "Drag and drop files",
+  "zh": "拖放文件",
+  "zhDesc": "允许把文件拖到窗口上播放，默认开启。"
+ },
+ "input-builtin-dragging": {
+  "en": "Drag window by content",
+  "zh": "拖动窗口",
+  "zhDesc": "允许按住画面拖动窗口，默认开启。只影响支持该指令的后端，不会关闭由命令发起的拖动。"
+ },
+ "input-commands": {
+  "en": "Startup commands",
+  "zh": "启动命令",
+  "zhDesc": "启动时执行的一串命令，写法与键位配置文件相同但不含开头的按键。播放即将开始时执行；运行中修改该值也会立即执行。"
+ },
+ "input-conf": {
+  "en": "Key binding file",
+  "zh": "键位配置文件",
+  "zhDesc": "指定默认位置之外的键位配置文件。"
+ },
+ "input-cursor": {
+  "en": "Receive pointer events",
+  "zh": "接收鼠标事件",
+  "zhDesc": "允许播放器接收画面上的鼠标事件，默认开启。界面上的播放控制条依赖它，是否支持取决于所用的渲染后端。"
+ },
+ "input-cursor-passthrough": {
+  "en": "Pass clicks through",
+  "zh": "鼠标事件穿透",
+  "zhDesc": "让鼠标事件穿过窗口落到下面的窗口上，仿佛播放器窗口不存在，默认关闭。"
+ },
+ "input-default-bindings": {
+  "en": "Overridable key bindings",
+  "zh": "可覆盖的默认键位",
+  "zhDesc": "启用可被配置文件覆盖的那一档默认键位，默认开启。脚本注册的键位也属于这一档，强制注册的不受影响。"
+ },
+ "input-doubleclick-time": {
+  "en": "Double click interval",
+  "zh": "双击判定间隔",
+  "zhDesc": "两次点击的间隔在这个毫秒数以内算作双击，默认 300。"
+ },
+ "input-dragging-deadzone": {
+  "en": "Drag start threshold",
+  "zh": "拖动触发阈值",
+  "zhDesc": "按住鼠标后移动超过这个像素数才开始拖动窗口，默认 3。只影响支持该指令的后端。"
+ },
+ "input-gamepad": {
+  "en": "Gamepad support",
+  "zh": "手柄支持",
+  "zhDesc": "启用游戏手柄支持，默认关闭。开启后可用手柄控制播放。"
+ },
+ "input-key-fifo-size": {
+  "en": "Key event buffer",
+  "zh": "按键事件缓冲深度",
+  "zhDesc": "缓存按键事件的队列长度，默认 7，最小 2。设得太小可能丢事件；设得过大时，长按一个耗时较长的按键会让播放器在处理完积压命令前没有响应。"
+ },
+ "input-media-keys": {
+  "en": "Capture media keys",
+  "zh": "接管多媒体按键",
+  "zhDesc": "在可以让系统或播放器处理媒体键的平台上，决定是否由播放器接管这些按键，默认接管。"
+ },
+ "input-preprocess-wheel": {
+  "en": "Filter wheel events",
+  "zh": "过滤滚轮事件",
+  "zhDesc": "对滚轮事件做预处理，斜向滚动时不会同时产生水平和垂直两路事件，默认开启。"
+ },
+ "input-right-alt-gr": {
+  "en": "Right Alt as Alt Gr",
+  "zh": "右 Alt 作为 Alt Gr",
+  "zhDesc": "把右 Alt 当作组合键用于输入特殊字符，默认开启。关闭后右 Alt 会被当作普通的 Alt 修饰键。"
+ },
+ "input-tablet-emulate-mouse": {
+  "en": "Tablet as mouse",
+  "zh": "手写板模拟鼠标",
+  "zhDesc": "把手写板的移动和按键模拟成鼠标事件，默认开启。"
+ },
+ "input-touch-emulate-mouse": {
+  "en": "Touch as mouse",
+  "zh": "触摸模拟鼠标",
+  "zhDesc": "把触摸事件模拟成鼠标移动和点击，默认开启。在不支持原生触摸的平台上，这保证了依赖鼠标位置的键位和脚本仍能工作。"
+ },
+ "input-vo-keyboard": {
+  "en": "Keyboard input",
+  "zh": "接收键盘输入",
+  "zhDesc": "是否让渲染后端接收键盘输入，默认开启。关闭后按键全部交给窗口系统处理，一般只在嵌入式场景下使用。"
+ },
+ "keep-open-pause": {
+  "en": "Pause at end of file",
+  "zh": "播完暂停",
+  "zhDesc": "配合「播放结束后保持打开」使用，默认在结尾暂停。关闭后停在结尾，向回跳转可继续播放，再次到结尾仍会停下。"
+ },
+ "length": {
+  "en": "Stop after duration",
+  "zh": "播放指定时长后停止",
+  "zhDesc": "从起始播放位置算起，播放满这段时间就停止。两个都设置时，先到哪个就按哪个停。"
+ },
+ "load-auto-profiles": {
+  "en": "Conditional profiles",
+  "zh": "条件配置",
+  "zhDesc": "启用按条件自动套用配置的内置脚本，默认 auto。auto 会先加载，如果没有配置条件就立刻卸载。"
+ },
+ "load-commands": {
+  "en": "Command console",
+  "zh": "命令输入台",
+  "zhDesc": "启用可在控制台里输入命令的内置脚本，默认开启。默认用反引号键唤起。"
+ },
+ "load-console": {
+  "en": "Console script",
+  "zh": "控制台脚本",
+  "zhDesc": "启用处理文本输入的内置脚本，默认开启。上一个选项依赖它。"
+ },
+ "load-context-menu": {
+  "en": "Context menu script",
+  "zh": "右键菜单脚本",
+  "zhDesc": "启用实现右键菜单的内置脚本。在没有原生右键菜单集成的平台上默认开启，有的话默认关闭。"
+ },
+ "load-positioning": {
+  "en": "Pan and zoom keys",
+  "zh": "平移缩放键位",
+  "zhDesc": "启用提供画面平移、缩放键位的内置脚本，默认开启。"
+ },
+ "load-scripts": {
+  "en": "Auto-load scripts",
+  "zh": "自动加载脚本",
+  "zhDesc": "是否从脚本目录自动加载脚本，默认开启。"
+ },
+ "load-select": {
+  "en": "List selection script",
+  "zh": "列表选择脚本",
+  "zhDesc": "启用从列表中挑选条目的内置脚本，默认开启。它的键位默认以 g 键开头。"
+ },
+ "load-stats-overlay": {
+  "en": "Statistics overlay",
+  "zh": "统计信息叠加层",
+  "zhDesc": "启用可在画面上显示播放状态信息的内置脚本，默认开启。默认按 i 键调出，按大写 I 让它常驻。"
+ },
+ "load-unsafe-playlists": {
+  "en": "Allow unsafe playlists",
+  "zh": "允许不安全的播放列表",
+  "zhDesc": "允许加载被判定为不安全的播放列表条目，默认关闭。特殊协议和不指向普通文件的地址属于此类，本地文件与 HTTP 链接始终视为安全。"
+ },
+ "msg-level": {
+  "en": "Log verbosity",
+  "zh": "日志详细程度",
+  "zhDesc": "按模块分别设置日志详细程度，模块名写 all 表示全部模块。可以写多项，从左到右依次生效，后面的覆盖前面的。"
+ },
+ "native-keyrepeat": {
+  "en": "System key repeat",
+  "zh": "沿用系统按键重复",
+  "zhDesc": "使用系统设置的重复延迟和频率，而不是上面两个按键重复选项，默认关闭。是否生效取决于渲染后端，终端输入不适用。"
+ },
+ "native-touch": {
+  "en": "Native touch events",
+  "zh": "原生触摸事件",
+  "zhDesc": "改用系统原生触摸事件，而不是接收被模拟成鼠标的事件，默认关闭。多指触摸支持需要开启它。"
+ },
+ "pause": {
+  "en": "Start paused",
+  "zh": "启动时暂停",
+  "zhDesc": "启动后停在暂停状态，默认不暂停。"
+ },
+ "playlist-exts": {
+  "en": "Playlist extensions",
+  "zh": "播放列表扩展名",
+  "zhDesc": "识别为播放列表的文件扩展名，默认包含常见的几种。用于自动生成播放列表以及按类型筛选目录。"
+ },
+ "playlist-inherit-options": {
+  "en": "Inherit playlist options",
+  "zh": "播放列表选项继承",
+  "zhDesc": "播放列表文件上的逐文件选项是否被其中条目继承，默认不继承。设为 current 时，只有自动生成的播放列表的源文件会继承。"
+ },
+ "playlist-start": {
+  "en": "Starting playlist entry",
+  "zh": "起始播放列表条目",
+  "zhDesc": "从播放列表的第几个条目开始播放，0 表示第一个，默认 auto 交给续播机制决定。指定的条目不存在时行为不保证。"
+ },
+ "screenshot-avif-opts": {
+  "en": "AVIF encoder options",
+  "zh": "AVIF 编码参数",
+  "zhDesc": "截图存为 AVIF 时传给编码器的参数，默认按全帧内、质量优先的方式编码。可参考 FFmpeg 的文档调整。"
+ },
+ "screenshot-avif-pixfmt": {
+  "en": "AVIF pixel format",
+  "zh": "AVIF 像素格式",
+  "zhDesc": "截图存为 AVIF 时使用的像素格式，留空则自动挑一个接近源画面的格式。"
+ },
+ "screenshot-dir": {
+  "en": "Screenshot folder",
+  "zh": "截图保存目录",
+  "zhDesc": "截图的保存目录，会与文件名模板拼接。如果模板给出的已经是绝对路径，本项被忽略。"
+ },
+ "script-opts": {
+  "en": "Script options",
+  "zh": "脚本参数",
+  "zhDesc": "传给脚本的参数，脚本按名称读取，具体含义完全取决于所加载的脚本。没有脚本认领的项会被忽略。"
+ },
+ "show-dependent-tracks": {
+  "en": "Show dependent tracks",
+  "zh": "显示附属轨道",
+  "zhDesc": "在轨道列表里显示附属轨道，默认隐藏。这类轨道的数据无法独立解码，例如分层图片的子图块、分层音频的编码层；显示出来只会让列表变乱，且它们无法单独选中。"
+ },
+ "show-in-taskbar": {
+  "en": "Show in taskbar",
+  "zh": "显示在任务栏",
+  "zhDesc": "把窗口显示在任务栏里，默认显示。关闭后不出现在任务栏中，也可能从 Alt+Tab 切换列表里消失。"
+ },
+ "shuffle": {
+  "en": "Shuffle playlist",
+  "zh": "乱序播放",
+  "zhDesc": "打乱播放列表顺序，默认不打乱。播放列表发生变化时会重新打乱。"
+ },
+ "start": {
+  "en": "Start position",
+  "zh": "起始播放位置",
+  "zhDesc": "打开文件后从这个时间点开始播放。可写成 1:30、90、50%（按百分比）或 #3（跳到第 3 章）；前面加负号表示从结尾倒数。"
+ },
+ "watch-history-path": {
+  "en": "Watch history path",
+  "zh": "观看历史路径",
+  "zhDesc": "观看历史文件的存放路径，默认放在用户状态目录下。"
+ },
+ "window-affinity": {
+  "en": "Window capture affinity",
+  "zh": "窗口捕获亲和性",
+  "zhDesc": "控制窗口在屏幕捕获中的表现，默认沿用系统设定，也可把窗口从捕获中排除或改为跟随显示器。仅在相应平台上有影响。"
+ },
+ "window-corners": {
+  "en": "Window corner rounding",
+  "zh": "窗口圆角",
+  "zhDesc": "窗口圆角的偏好，默认沿用系统设定，可选不圆角、标准圆角、小圆角。仅在相应平台上有影响。"
+ },
+ "window-dragging": {
+  "en": "Drag window by clicking",
+  "zh": "按住画面拖动窗口",
+  "zhDesc": "在画面上按住并移动鼠标即可移动窗口，默认开启。"
+ },
+ "window-maximized": {
+  "en": "Maximize window",
+  "zh": "最大化窗口",
+  "zhDesc": "窗口是否最大化，默认不最大化。设置后会在后端支持时立即最大化或还原。"
+ },
+ "window-minimized": {
+  "en": "Minimize window",
+  "zh": "最小化窗口",
+  "zhDesc": "窗口是否最小化，默认不最小化。部分后端支持最小化但不支持还原。"
+ },
+ "window-scale": {
+  "en": "Window scale",
+  "zh": "窗口缩放倍率",
+  "zhDesc": "把窗口尺寸设为画面尺寸的若干倍，默认 1。这个值先于初始窗口尺寸上限等选项生效，会被它们覆盖。窗口处于最大化时修改可能导致取消最大化。"
+ },
+ "chapters-file": {
+  "en": "External chapters file",
+  "zh": "外部章节文件",
+  "zhDesc": "从这个文件读取章节信息，而不使用主文件里自带的章节。"
+ },
+ "index": {
+  "en": "Seek index",
+  "zh": "跳转索引",
+  "zhDesc": "控制文件内跳转索引的使用方式，默认沿用文件自带的索引。索引缺失时本来就会自动现场建立，所以通常不需要改动；强制重建对个别损坏的文件可能有帮助。"
+ },
+ "merge-files": {
+  "en": "Treat files as one",
+  "zh": "合并输入文件",
+  "zhDesc": "把传给播放器的多个文件当作一个连续的大文件处理，默认关闭。内部借助时间线与编辑列表实现。"
+ },
+ "oac": {
+  "en": "Output audio codec",
+  "zh": "输出音频编码器",
+  "zhDesc": "编码输出时使用的音频编码器，填 --oac=help 列出的名称。"
+ },
+ "oacopts": {
+  "en": "Output audio codec options",
+  "zh": "输出音频编码参数",
+  "zhDesc": "传给音频编码器的参数，填 --oacopts=help 可列出全部可用项。"
+ },
+ "ocopy-metadata": {
+  "en": "Copy metadata",
+  "zh": "复制元数据",
+  "zhDesc": "编码输出时把源文件的元数据一并写入，默认开启。"
+ },
+ "of": {
+  "en": "Output container format",
+  "zh": "输出容器格式",
+  "zhDesc": "指定输出的容器格式，会覆盖按输出文件扩展名自动判断的结果。填 --of=help 可列出全部可用格式。"
+ },
+ "ofopts": {
+  "en": "Output container options",
+  "zh": "输出容器参数",
+  "zhDesc": "传给容器封装层的参数，填 --ofopts=help 可列出全部可用项。"
+ },
+ "orawts": {
+  "en": "Pass through timestamps",
+  "zh": "原样传递时间戳",
+  "zhDesc": "把输入的时间戳原样写到输出画面，默认关闭。此模式下不修补时间戳的不连续，部分容器（例如 AVI）不支持；使用时不要向后跳转，也不要同时输入多个文件。"
+ },
+ "ordered-chapters": {
+  "en": "Ordered chapters",
+  "zh": "有序章节",
+  "zhDesc": "支持 Matroska 的有序章节，默认开启。播放器会去其他文件里寻找片段，并按主文件指定的章节顺序播放。"
+ },
+ "ordered-chapters-files": {
+  "en": "Ordered chapter references",
+  "zh": "有序章节引用列表",
+  "zhDesc": "把这个文件当作播放列表加载，用来查找有序章节所需的引用文件。设置后会取代默认行为（在源文件同目录下扫描）。"
+ },
+ "oremove-metadata": {
+  "en": "Exclude metadata",
+  "zh": "排除的元数据",
+  "zhDesc": "从源文件复制元数据时，排除掉这里列出的键。"
+ },
+ "oset-metadata": {
+  "en": "Set metadata",
+  "zh": "写入的元数据",
+  "zhDesc": "写入输出文件的元数据。可用的键随容器格式而定：Matroska 和 FLAC 几乎支持任意键，MP4 和 MP3 的支持则有限。"
+ },
+ "ovc": {
+  "en": "Output video codec",
+  "zh": "输出视频编码器",
+  "zhDesc": "编码输出时使用的视频编码器，填 --ovc=help 列出的名称。"
+ },
+ "ovcopts": {
+  "en": "Output video codec options",
+  "zh": "输出视频编码参数",
+  "zhDesc": "传给视频编码器的参数，填 --ovcopts=help 可列出全部可用项。"
+ },
+ "archive-exts": {
+  "en": "Archive extensions",
+  "zh": "压缩包扩展名",
+  "zhDesc": "识别为压缩包的文件扩展名，默认包含常见的几种。用于自动生成播放列表以及按类型筛选目录。"
+ },
+ "autoload-files": {
+  "en": "Auto-load side files",
+  "zh": "自动加载同名附属文件",
+  "zhDesc": "自动加载并选用同名的外挂文件，例如同目录下的字幕和音轨，默认开启。"
+ },
+ "autosync": {
+  "en": "Automatic A/V sync",
+  "zh": "自动音画同步",
+  "zhDesc": "根据音频延迟测量结果逐步修正音画同步，默认关闭（直接按测量结果决定画面时序）。填入大于 1 的值会改为向「完全不参考音频」的时序靠拢，数值越大越接近；声音驱动测量不准时可用较大的值让偏差更快稳定。"
+ },
+ "config": {
+  "en": "Read config files",
+  "zh": "读取配置文件",
+  "zhDesc": "启动时是否读取配置文件，默认读取。关闭后配置目录里的选项都不会生效。"
+ },
+ "external-files": {
+  "en": "Add all tracks from file",
+  "zh": "合并另一文件的所有轨道",
+  "zhDesc": "加载一个文件并把它的全部轨道一起加入，用于把不同文件的画面和声音拼起来播放，也用于多路滤镜图这类高级用法。"
+ },
+ "ignore-path-in-watch-later-config": {
+  "en": "Ignore path in resume data",
+  "zh": "续播记录忽略路径",
+  "zhDesc": "记录播放进度时只记文件名、不记完整路径，默认关闭。开启后同名文件会共用同一份进度。"
+ },
+ "include": {
+  "en": "Extra config file",
+  "zh": "追加配置文件",
+  "zhDesc": "在默认的配置文件之后额外加载的配置文件。"
+ },
+ "initial-audio-sync": {
+  "en": "Align audio at start",
+  "zh": "起播时对齐音频",
+  "zhDesc": "开始播放或跳转后，通过补静音或裁掉开头，让音频与视频从同一时间点开始，默认开启。关闭后两者各自直接起播，再靠逐步调整画面时序来对齐，与旧版行为一致。"
+ },
+ "play-direction": {
+  "en": "Playback direction",
+  "zh": "播放方向",
+  "zhDesc": "控制播放方向，默认正向。设为反向会尝试倒着播放，时间递减；若在起播时就设为反向，则从文件末尾开始。运行中切换会用一次精确定位来完成。"
+ },
+ "player-operation-mode": {
+  "en": "Player mode",
+  "zh": "播放器模式",
+  "zhDesc": "切换到「伪图形界面模式」，会改动一部分选项的默认值。通常由播放器自身、随附脚本或配置文件设置，不建议手动更改。"
+ },
+ "priority": {
+  "en": "Process priority",
+  "zh": "进程优先级",
+  "zhDesc": "设置播放进程的优先级，默认不调整，可选实时、高、高于正常、正常、低于正常、空闲。仅在相应平台上有影响。"
+ },
+ "profile": {
+  "en": "Profiles",
+  "zh": "配置档案",
+  "zhDesc": "启用指定的配置档案。档案是一组预设选项的集合，可在配置文件里定义；填 help 会列出所有已定义的档案。"
+ },
+ "rebase-start-time": {
+  "en": "Shift start time to zero",
+  "zh": "起始时间归零",
+  "zhDesc": "把文件的起始时间挪到 00:00:00，默认开启。对起始时间随机的文件（例如传输流）更顺手；但文件中若有时间戳重置，归零后的行为会变得很奇怪，此时可以关掉以保留真实时间戳。"
+ },
+ "reset-on-next-file": {
+  "en": "Reset options per file",
+  "zh": "换文件时重置的选项",
+  "zhDesc": "默认情况下换到下一个文件时会保留播放中改动过的设置。在这里列出希望每个文件都恢复初始值的选项，可填多个。"
+ },
+ "resume-playback-check-mtime": {
+  "en": "Verify file before resuming",
+  "zh": "续播前核对文件",
+  "zhDesc": "只有文件的修改时间与记录时一致，才恢复上次的播放位置，默认关闭。可避免同名但内容不同的文件被跳到错误的位置。"
+ },
+ "save-watch-history": {
+  "en": "Save watch history",
+  "zh": "记录观看历史",
+  "zhDesc": "记录播放过哪些文件，默认关闭。记录之后可用默认的快捷键调出历史列表。"
+ },
+ "scripts": {
+  "en": "Load scripts",
+  "zh": "加载脚本",
+  "zhDesc": "加载脚本或插件，多个之间用路径分隔符隔开（Windows 上是分号）。"
+ },
+ "sstep": {
+  "en": "Frame stepping",
+  "zh": "逐段步进",
+  "zhDesc": "每显示完一帧后跳过指定秒数，用于快速浏览。"
+ },
+ "stop-playback-on-init-failure": {
+  "en": "Stop when a track fails",
+  "zh": "某路初始化失败即停止",
+  "zhDesc": "音频或视频初始化失败时直接停止播放，默认关闭。关闭时会退化为只播其中能用的那一路；纯音频或纯视频文件不受影响。"
+ },
+ "untimed": {
+  "en": "Unlimited frame rate",
+  "zh": "不限速输出",
+  "zhDesc": "输出画面时不按时间等待，尽可能快地跑完，默认关闭。用于配合关闭声音来快速体检性能或编码。"
+ },
+ "use-filedir-conf": {
+  "en": "Per-directory config",
+  "zh": "读取同目录配置",
+  "zhDesc": "在待播文件所在目录里寻找该文件专属的配置文件，默认关闭。"
+ },
+ "write-filename-in-watch-later-config": {
+  "en": "Comment with source file",
+  "zh": "续播记录标注源文件",
+  "zhDesc": "在续播记录文件的顶部以注释形式写上它对应的源文件名，默认关闭，便于人眼辨认。"
+ },
+ "access-references": {
+  "en": "Follow file references",
+  "zh": "跟随文件引用",
+  "zhDesc": "打开文件时跟随其中指向其它文件的引用，默认开启。缩略图生成这类自动扫描的场景下建议关闭，以免顺着播放列表去打开网络地址。关闭也会一并禁用有序章节、mov 引用文件、压缩包等功能。"
+ },
+ "allow-delayed-peak-detect": {
+  "en": "Delay peak detection",
+  "zh": "延迟峰值检测",
+  "zhDesc": "按需计算 HDR 峰值亮度时，允许把检测结果推迟一帧以获得更好的性能，默认关闭。已经有间接渲染通道（例如启用了高级缩放）时本项没有影响。"
+ },
+ "backdrop-type": {
+  "en": "Window backdrop material",
+  "zh": "窗口背景材质",
+  "zhDesc": "窗口背景与边框的材质，默认跟随系统，可选不使用材质，或使用云母、亚克力等系统材质。仅在相应平台上有影响。"
+ },
+ "chapter-merge-threshold": {
+  "en": "Chapter merge threshold",
+  "zh": "章节合并阈值",
+  "zhDesc": "有序章节首尾相接时允许的间隔（毫秒），默认 100。有些文件的章节结束时间不准，会留下一个小缝；间隔小于该值时不再跳转，而是连续播下去。"
+ },
+ "chapter-seek-threshold": {
+  "en": "Previous chapter threshold",
+  "zh": "上一章判定距离",
+  "zhDesc": "距本章开头这么多秒以内时，向前跳章节会跳到上一章，默认 5 秒；超过则回到本章开头。填负数表示总是跳到上一章。"
+ },
+ "container-fps-override": {
+  "en": "Override frame rate",
+  "zh": "覆盖视频帧率",
+  "zhDesc": "强制指定视频帧率，用于文件里的帧率错误或缺失的情况。填 0 表示不覆盖。"
+ },
+ "corner-rounding": {
+  "en": "Rounded video corners",
+  "zh": "画面圆角",
+  "zhDesc": "大于 0 时画面会带圆角，相当于加了一层带透明度的遮罩。数值表示圆角占边长的比例，1 为最大圆角，默认 0 表示不圆角。"
+ },
+ "cuda-decode-device": {
+  "en": "CUDA decode device",
+  "zh": "CUDA 解码设备",
+  "zhDesc": "使用 CUDA 或 NVDEC 硬件解码时选择哪块显卡，默认自动决定。仅在对应的解码器与渲染后端组合下才有影响。"
+ },
+ "d3d11va-zero-copy": {
+  "en": "Zero-copy decode output",
+  "zh": "解码零拷贝",
+  "zhDesc": "硬件解码时直接采样解码器画面，省掉一次显存内的拷贝，默认关闭。可提升性能、降低功耗，但由于解码画面带有边距，画面底边和右边可能出现采样错误，也可能触发驱动缺陷。"
+ },
+ "drag-and-drop": {
+  "en": "Drag and drop action",
+  "zh": "拖放行为",
+  "zhDesc": "把文件拖进窗口时的默认行为，默认自动（按拖放动作决定）。也可固定为替换当前播放、追加到列表末尾、插入到下一项，或完全关闭拖放。"
+ },
+ "edition": {
+  "en": "Matroska edition",
+  "zh": "Matroska 版本集",
+  "zhDesc": "选用哪一套章节（版本集），0 表示第一套，默认自动。自动时会选第一套标记为默认的，没有则选第一套。"
+ },
+ "error-diffusion": {
+  "en": "Error diffusion kernel",
+  "zh": "误差扩散核",
+  "zhDesc": "抖动方式选为误差扩散时使用的扩散核，默认 sierra-lite。"
+ },
+ "fbo-format": {
+  "en": "Render target format",
+  "zh": "渲染目标格式",
+  "zhDesc": "离屏渲染所用纹理的内部格式，影响输出的性能与画质，默认自动选择。也可指定 8 位、10 位、16 位整数或浮点等具体格式。"
+ },
+ "flatten-editions": {
+  "en": "Flatten editions",
+  "zh": "合并版本集",
+  "zhDesc": "部分容器（例如包含多个节目的 HLS 或 MPEG-TS）会暴露多组节目。默认按版本集分组，轨道列表里只显示当前版本集的轨道；开启本项后把各组摊平，全部一起显示。"
+ },
+ "framedrop": {
+  "en": "Frame dropping",
+  "zh": "丢帧策略",
+  "zhDesc": "为了保持音画同步而跳过部分画面，默认只在输出环节丢帧。也可设为不丢帧、只在解码环节丢帧，或两者都允许。"
+ },
+ "hidpi-window-scale": {
+  "en": "Scale window by DPI",
+  "zh": "按系统缩放倍率调整窗口",
+  "zhDesc": "按系统的 DPI 缩放倍率放大窗口尺寸，默认关闭。例如系统缩放设为 200% 时，窗口尺寸也会乘 2。"
+ },
+ "hls-bitrate": {
+  "en": "HLS bitrate selection",
+  "zh": "HLS 码率选择",
+  "zhDesc": "播放 HLS 流时默认挑哪一档，默认最高码率。也可设为最低码率，或不干预。"
+ },
+ "keepaspect": {
+  "en": "Keep aspect ratio",
+  "zh": "保持画面比例",
+  "zhDesc": "关闭后画面会被拉伸填满窗口，同时不再向窗口系统声明固定比例，默认开启。全屏时本项被忽略。"
+ },
+ "keepaspect-window": {
+  "en": "Lock window to aspect",
+  "zh": "窗口锁定画面比例",
+  "zhDesc": "把窗口尺寸锁定为画面比例，默认开启。关闭后窗口比例与画面不符时改用加黑边的方式处理。是否真正生效取决于渲染后端，全屏时本项被忽略。"
+ },
+ "lavfi-complex": {
+  "en": "Multi-source filter graph",
+  "zh": "多路滤镜图",
+  "zhDesc": "设置一张可以同时从多条音视频轨取输入的滤镜图，输出一路音频和（或）一路视频。用于把多个文件拼在一起播放等场景。"
+ },
+ "libplacebo-opts": {
+  "en": "libplacebo raw options",
+  "zh": "libplacebo 原始参数",
+  "zhDesc": "把额外参数直接传给 libplacebo 渲染后端，可能覆盖其它选项的效果，需要较新的 libplacebo。保留仅供排错使用。"
+ },
+ "media-controls": {
+  "en": "System media controls",
+  "zh": "系统媒体控制",
+  "zhDesc": "接入系统的媒体控制面板（媒体键、音量浮层等），默认开启。仅在相应平台上有影响。"
+ },
+ "monitoraspect": {
+  "en": "Monitor aspect ratio",
+  "zh": "显示器宽高比",
+  "zhDesc": "显示器或电视屏幕的宽高比。填 0（默认）会清除此前在配置文件里设定的值，并覆盖显示器像素宽高比。"
+ },
+ "monitorpixelaspect": {
+  "en": "Monitor pixel aspect",
+  "zh": "显示器像素宽高比",
+  "zhDesc": "显示器单个像素的宽高比，默认 1，即方形像素（适用于几乎所有液晶屏）。显示器宽高比选项生效时会覆盖本项。"
+ },
+ "osc": {
+  "en": "On-screen controller",
+  "zh": "屏幕播放控制条",
+  "zhDesc": "是否加载屏幕上的播放控制条，默认加载。"
+ },
+ "pitch": {
+  "en": "Audio pitch",
+  "zh": "音频音高",
+  "zhDesc": "按倍率升高或降低音高，默认 1 不变。不影响播放速度；改动音高时会自动插入相应的音频滤镜。"
+ },
+ "rar-list-all-volumes": {
+  "en": "List all RAR volumes",
+  "zh": "列出全部 RAR 分卷",
+  "zhDesc": "打开多分卷 RAR 时读取全部卷，以列出其中所有文件，默认关闭（只列出文件头位于第一卷内的条目）。关闭能加快打开速度，也足以应付常见情形。"
+ },
+ "rtsp-transport": {
+  "en": "RTSP transport",
+  "zh": "RTSP 传输方式",
+  "zhDesc": "播放 RTSP 地址时使用的底层传输方式，默认 TCP。也可选择 UDP、HTTP 等，或交给底层库决定。"
+ },
+ "scaler-resizes-only": {
+  "en": "Scale only when resizing",
+  "zh": "仅在缩放时启用缩放器",
+  "zhDesc": "画面没有被缩放时改用双线性，而不是所选的缩放算法，默认开启。不缩放时双线性可以完全还原源画面；本项始终不影响色度缩放选项。"
+ },
+ "sdr-adjust-gamma": {
+  "en": "Adjust SDR gamma",
+  "zh": "校正 SDR 伽马",
+  "zhDesc": "SDR 的传输函数常常标得不准：文件标着某个标准，实际内容却是另一套曲线，例如多数录屏软件把输出标为 bt.709，内容其实是直出的 sRGB。本项默认自动判断是否需要按实际内容校正。"
+ },
+ "secondary-sid": {
+  "en": "Secondary subtitle track",
+  "zh": "第二字幕轨",
+  "zhDesc": "额外选一条字幕轨，默认不选。选中后会与主字幕同时显示，默认画在画面顶部，可用于双语对照。"
+ },
+ "snap-window": {
+  "en": "Snap to screen edges",
+  "zh": "贴靠屏幕边缘",
+  "zhDesc": "把播放窗口贴靠到屏幕边缘，默认关闭。仅在相应平台上有影响。"
+ },
+ "spirv-compiler": {
+  "en": "SPIR-V compiler",
+  "zh": "SPIR-V 编译器",
+  "zhDesc": "把着色器源码翻译为 SPIR-V 时使用的编译器，默认自动选择。仅在特定的渲染后端组合下才有影响。"
+ },
+ "stop-screensaver": {
+  "en": "Suppress screensaver",
+  "zh": "抑制屏幕保护",
+  "zhDesc": "播放时阻止屏幕保护（含自动锁屏等）生效，退出时恢复，默认开启；也可设为始终抑制。只有窗口已打开时才可能生效，且并非所有平台都支持。"
+ },
+ "stretch-dvd-subs": {
+  "en": "Stretch DVD subtitles",
+  "zh": "拉伸 DVD 字幕",
+  "zhDesc": "变形宽银幕视频里把 DVD 字幕一起拉伸，以改善制作粗糙的碟片上字体的观感，默认关闭。方形像素的视频不受影响。"
+ },
+ "swapchain-depth": {
+  "en": "Frame latency",
+  "zh": "在途帧数上限",
+  "zhDesc": "允许同时在途的画面帧数，默认 2，取值 1 到 8。调大可减少错过垂直同步的情况，但会增大可见延迟；1 表示每帧都要显示出来才开始渲染下一帧。"
+ },
+ "taskbar-progress": {
+  "en": "Taskbar progress",
+  "zh": "任务栏进度",
+  "zhDesc": "在任务栏图标上显示播放进度，默认开启。仅在相应平台上有影响。"
+ },
+ "teletext-page": {
+  "en": "Teletext page",
+  "zh": "图文电视页码",
+  "zhDesc": "选择要解码的图文电视页码。"
+ },
+ "temporal-dither": {
+  "en": "Temporal dithering",
+  "zh": "时域抖动",
+  "zhDesc": "逐帧轮换抖动的排布方向，默认关闭。只在整体开启抖动时有效；液晶屏响应较慢，可能出现闪烁。"
+ },
+ "temporal-dither-period": {
+  "en": "Dither update interval",
+  "zh": "抖动更新间隔",
+  "zhDesc": "时域抖动每隔多少帧换一次图案，默认 1，即每帧都换。"
+ },
+ "title": {
+  "en": "Window title",
+  "zh": "窗口标题",
+  "zhDesc": "设定窗口标题，同时会尽量把标题也设给音频输出。支持属性展开，默认按媒体标题生成。"
+ },
+ "treat-srgb-as-power22": {
+  "en": "Treat sRGB as power 2.2",
+  "zh": "把 sRGB 当作 2.2 幂曲线",
+  "zhDesc": "线性化或反线性化 sRGB 时改用纯 2.2 次幂，而不是标准的 sRGB 分段函数，默认自动判断。作用范围可选只影响输入、只影响输出，或两者兼顾。"
+ },
+ "use-embedded-icc-profile": {
+  "en": "Use embedded colour profile",
+  "zh": "使用内嵌色彩配置",
+  "zhDesc": "读取图片等文件里内嵌的 ICC 色彩配置，默认开启。只有在同时使用显示器色彩配置、且构建时带上了 LittleCMS 2 支持时才有效。"
+ },
+ "wasapi-exclusive-buffer": {
+  "en": "WASAPI exclusive buffer",
+  "zh": "WASAPI 独占缓冲",
+  "zhDesc": "WASAPI 独占模式下使用的缓冲区大小，默认沿用驱动设置，也可要求使用最小缓冲以降低延迟。手册未收录此项的进一步说明。"
+ }
+}

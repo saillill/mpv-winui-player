@@ -19,7 +19,16 @@ namespace mpv_winui.Modules.Activation
 
         public static ActivationRegistrationService Instance => _lazyValue.Value;
 
-        private const string AssociationDisplayName = "mpv-winui";
+        /// <summary>
+        /// The name Windows shows for this app in "Open with" and the default-apps
+        /// list. Kept in step with the protocol name and the executable
+        /// (<c>mpvw://</c>, <c>mpvw.exe</c>) so a user sees one name everywhere.
+        /// Changing this value is what <see cref="EnsureShellCommand"/> exists to
+        /// propagate: it rewrites a stored <c>ApplicationName</c> that no longer
+        /// matches, so existing registrations pick the new name up on the next
+        /// apply instead of keeping the old one forever.
+        /// </summary>
+        private const string AssociationDisplayName = "mpvw";
         private static string ExePath => Environment.ProcessPath ?? string.Empty;
         private static string LogoPath => $"{ExePath},0";
 
@@ -162,11 +171,25 @@ namespace mpv_winui.Modules.Activation
             return s.TrimEnd(':').ToLowerInvariant();
         }
 
+        /// <summary>
+        /// The subkey WindowsAppSDK writes its association entries under.
+        ///
+        /// <para><b>Do not "fix" the spelling.</b> <c>Capabilties</c> is missing
+        /// its second <c>i</c>, but it is what the platform actually creates —
+        /// verified on a live machine, where every
+        /// <c>HKCU\Software\Microsoft\WindowsAppRuntimeApplications\&lt;appId&gt;</c>
+        /// key has exactly this child. Correcting it to <c>Capabilities</c> would
+        /// silently make <see cref="GetRegisteredExtensions"/> and
+        /// <see cref="GetRegisteredProtocols"/> return nothing, so the settings
+        /// page would report every association as unregistered.</para>
+        /// </summary>
+        private const string CapabilitySubKey = "Capabilties";
+
         private static IReadOnlyList<string> GetRegisteredExtensions()
         {
             var appId = ComputeAppId();
             var progId = appId + ".File";
-            var path = $@"Software\Microsoft\WindowsAppRuntimeApplications\{appId}\Capabilties\FileAssociations";
+            var path = $@"Software\Microsoft\WindowsAppRuntimeApplications\{appId}\{CapabilitySubKey}\FileAssociations";
 
             using var key = Registry.CurrentUser.OpenSubKey(path);
             if (key is null)
@@ -190,7 +213,7 @@ namespace mpv_winui.Modules.Activation
         {
             var appId = ComputeAppId();
             var progId = appId + ".Protocol";
-            var path = $@"Software\Microsoft\WindowsAppRuntimeApplications\{appId}\Capabilties\UrlAssociations";
+            var path = $@"Software\Microsoft\WindowsAppRuntimeApplications\{appId}\{CapabilitySubKey}\UrlAssociations";
 
             using var key = Registry.CurrentUser.OpenSubKey(path);
             if (key is null)
@@ -248,8 +271,12 @@ namespace mpv_winui.Modules.Activation
 
                 var applicationKeyPath = $@"Software\Classes\{progId}\Application";
                 var applicationName = Registry.GetValue($@"HKEY_CURRENT_USER\{applicationKeyPath}", "ApplicationName", null) as string;
-                if (string.IsNullOrWhiteSpace(applicationName))
+                if (!string.Equals(applicationName, AssociationDisplayName, StringComparison.Ordinal))
                 {
+                    // Rewritten rather than only filled in when missing, for the
+                    // same reason the command above is: an install that used to
+                    // write a different name would otherwise keep showing the old
+                    // one in Windows' "open with" list forever.
                     using var applicationKey = Registry.CurrentUser.CreateSubKey(applicationKeyPath);
                     applicationKey?.SetValue("ApplicationName", AssociationDisplayName);
                 }

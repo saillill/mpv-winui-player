@@ -102,6 +102,14 @@ public sealed class WindowStyleManager : IDisposable
         return AppContext.AppSetting.BackdropType;
     }
 
+    /// <summary>
+    /// True while a system backdrop material is actually in play. Callers that
+    /// paint surfaces need this: an opaque brush over a backdrop hides it
+    /// completely, which is why the settings window showed its Mica and the main
+    /// window did not even though both windows set the same backdrop.
+    /// </summary>
+    public bool HasBackdrop => _window.SystemBackdrop is not null;
+
     public void UpdateTheme(ElementTheme theme)
     {
         if (_theme == theme)

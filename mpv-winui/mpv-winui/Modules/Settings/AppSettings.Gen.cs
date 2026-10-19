@@ -10,12 +10,6 @@ namespace mpv_winui.Modules.Settings
     {
         // ---- Audio ----
 
-        public string Mpv_ad
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ad), "");
-            set => _dataSetting.SetValue(nameof(Mpv_ad), value);
-        }
-
         public double Mpv_ad_lavc_ac3drc
         {
             get => _dataSetting.GetValue(nameof(Mpv_ad_lavc_ac3drc), 0.0);
@@ -56,90 +50,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_ad_queue_max_secs), 1.0);
             set => _dataSetting.SetValue(nameof(Mpv_ad_queue_max_secs), value);
-        }
-
-        public string Mpv_af
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_af), "");
-            set => _dataSetting.SetValue(nameof(Mpv_af), value);
-        }
-
-        public string Mpv_ao
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao), "");
-            set => _dataSetting.SetValue(nameof(Mpv_ao), value);
-        }
-
-        public bool Mpv_ao_null_broken_delay
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_null_broken_delay), false);
-            set => _dataSetting.SetValue(nameof(Mpv_ao_null_broken_delay), value);
-        }
-
-        public bool Mpv_ao_null_broken_eof
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_null_broken_eof), false);
-            set => _dataSetting.SetValue(nameof(Mpv_ao_null_broken_eof), value);
-        }
-
-        public double Mpv_ao_null_buffer
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_null_buffer), 0.2);
-            set => _dataSetting.SetValue(nameof(Mpv_ao_null_buffer), value);
-        }
-
-        public string Mpv_ao_null_channel_layouts
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_null_channel_layouts), "");
-            set => _dataSetting.SetValue(nameof(Mpv_ao_null_channel_layouts), value);
-        }
-
-        public string Mpv_ao_null_format
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_null_format), "no");
-            set => _dataSetting.SetValue(nameof(Mpv_ao_null_format), value);
-        }
-
-        public double Mpv_ao_null_latency
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_null_latency), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_ao_null_latency), value);
-        }
-
-        public int Mpv_ao_null_outburst
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_null_outburst), 256);
-            set => _dataSetting.SetValue(nameof(Mpv_ao_null_outburst), value);
-        }
-
-        public double Mpv_ao_null_speed
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_null_speed), 1.0);
-            set => _dataSetting.SetValue(nameof(Mpv_ao_null_speed), value);
-        }
-
-        public bool Mpv_ao_null_untimed
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_null_untimed), false);
-            set => _dataSetting.SetValue(nameof(Mpv_ao_null_untimed), value);
-        }
-
-        public bool Mpv_ao_pcm_append
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_pcm_append), false);
-            set => _dataSetting.SetValue(nameof(Mpv_ao_pcm_append), value);
-        }
-
-        public string Mpv_ao_pcm_file
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_pcm_file), "");
-            set => _dataSetting.SetValue(nameof(Mpv_ao_pcm_file), value);
-        }
-
-        public bool Mpv_ao_pcm_waveheader
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ao_pcm_waveheader), true);
-            set => _dataSetting.SetValue(nameof(Mpv_ao_pcm_waveheader), value);
         }
 
         public int Mpv_audio_backward_batch
@@ -288,12 +198,6 @@ namespace mpv_winui.Modules.Settings
 
         // ---- Colour & HDR ----
 
-        public int Mpv_dither_size_fruit
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dither_size_fruit), 6);
-            set => _dataSetting.SetValue(nameof(Mpv_dither_size_fruit), value);
-        }
-
         public double Mpv_gamma_factor
         {
             get => _dataSetting.GetValue(nameof(Mpv_gamma_factor), 1.0);
@@ -434,12 +338,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_drag_and_drop), value);
         }
 
-        public string Mpv_dump_stats
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dump_stats), "");
-            set => _dataSetting.SetValue(nameof(Mpv_dump_stats), value);
-        }
-
         public string Mpv_edition
         {
             get => _dataSetting.GetValue(nameof(Mpv_edition), "auto");
@@ -468,12 +366,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_flatten_editions), false);
             set => _dataSetting.SetValue(nameof(Mpv_flatten_editions), value);
-        }
-
-        public string Mpv_focus_on
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_focus_on), "open");
-            set => _dataSetting.SetValue(nameof(Mpv_focus_on), value);
         }
 
         public string Mpv_framedrop
@@ -518,12 +410,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_initial_audio_sync), value);
         }
 
-        public bool Mpv_js_memory_report
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_js_memory_report), false);
-            set => _dataSetting.SetValue(nameof(Mpv_js_memory_report), value);
-        }
-
         public bool Mpv_keepaspect
         {
             get => _dataSetting.GetValue(nameof(Mpv_keepaspect), true);
@@ -548,18 +434,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_libplacebo_opts), value);
         }
 
-        public string Mpv_log_file
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_log_file), "");
-            set => _dataSetting.SetValue(nameof(Mpv_log_file), value);
-        }
-
-        public double Mpv_mc
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_mc), -1.0);
-            set => _dataSetting.SetValue(nameof(Mpv_mc), value);
-        }
-
         public bool Mpv_media_controls
         {
             get => _dataSetting.GetValue(nameof(Mpv_media_controls), true);
@@ -570,12 +444,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_merge_files), false);
             set => _dataSetting.SetValue(nameof(Mpv_merge_files), value);
-        }
-
-        public string Mpv_metadata_codepage
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_metadata_codepage), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_metadata_codepage), value);
         }
 
         public double Mpv_monitoraspect
@@ -618,12 +486,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_ofopts), "");
             set => _dataSetting.SetValue(nameof(Mpv_ofopts), value);
-        }
-
-        public bool Mpv_on_all_workspaces
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_on_all_workspaces), false);
-            set => _dataSetting.SetValue(nameof(Mpv_on_all_workspaces), value);
         }
 
         public bool Mpv_orawts
@@ -704,40 +566,16 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_profile), value);
         }
 
-        public bool Mpv_quiet
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_quiet), false);
-            set => _dataSetting.SetValue(nameof(Mpv_quiet), value);
-        }
-
         public bool Mpv_rar_list_all_volumes
         {
             get => _dataSetting.GetValue(nameof(Mpv_rar_list_all_volumes), false);
             set => _dataSetting.SetValue(nameof(Mpv_rar_list_all_volumes), value);
         }
 
-        public bool Mpv_really_quiet
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_really_quiet), false);
-            set => _dataSetting.SetValue(nameof(Mpv_really_quiet), value);
-        }
-
         public bool Mpv_rebase_start_time
         {
             get => _dataSetting.GetValue(nameof(Mpv_rebase_start_time), true);
             set => _dataSetting.SetValue(nameof(Mpv_rebase_start_time), value);
-        }
-
-        public bool Mpv_register
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_register), false);
-            set => _dataSetting.SetValue(nameof(Mpv_register), value);
-        }
-
-        public string Mpv_register_rpath
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_register_rpath), "");
-            set => _dataSetting.SetValue(nameof(Mpv_register_rpath), value);
         }
 
         public string Mpv_reset_on_next_file
@@ -768,18 +606,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_scaler_resizes_only), true);
             set => _dataSetting.SetValue(nameof(Mpv_scaler_resizes_only), value);
-        }
-
-        public string Mpv_screen
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_screen), "default");
-            set => _dataSetting.SetValue(nameof(Mpv_screen), value);
-        }
-
-        public string Mpv_screen_name
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_screen_name), "");
-            set => _dataSetting.SetValue(nameof(Mpv_screen_name), value);
         }
 
         public string Mpv_scripts
@@ -866,12 +692,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_temporal_dither_period), value);
         }
 
-        public bool Mpv_terminal
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_terminal), true);
-            set => _dataSetting.SetValue(nameof(Mpv_terminal), value);
-        }
-
         public string Mpv_title
         {
             get => _dataSetting.GetValue(nameof(Mpv_title), "${?media-title:${media-title}}${!media-title:No file} - mpv");
@@ -882,12 +702,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_treat_srgb_as_power22), "auto");
             set => _dataSetting.SetValue(nameof(Mpv_treat_srgb_as_power22), value);
-        }
-
-        public bool Mpv_unregister
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_unregister), false);
-            set => _dataSetting.SetValue(nameof(Mpv_unregister), value);
         }
 
         public bool Mpv_untimed
@@ -908,40 +722,16 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_use_filedir_conf), value);
         }
 
-        public string Mpv_vaapi_device
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vaapi_device), "");
-            set => _dataSetting.SetValue(nameof(Mpv_vaapi_device), value);
-        }
-
         public string Mpv_wasapi_exclusive_buffer
         {
             get => _dataSetting.GetValue(nameof(Mpv_wasapi_exclusive_buffer), "default");
             set => _dataSetting.SetValue(nameof(Mpv_wasapi_exclusive_buffer), value);
         }
 
-        public string Mpv_wayland_app_id
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_wayland_app_id), "mpv");
-            set => _dataSetting.SetValue(nameof(Mpv_wayland_app_id), value);
-        }
-
-        public int Mpv_wid
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_wid), -1);
-            set => _dataSetting.SetValue(nameof(Mpv_wid), value);
-        }
-
         public bool Mpv_write_filename_in_watch_later_config
         {
             get => _dataSetting.GetValue(nameof(Mpv_write_filename_in_watch_later_config), false);
             set => _dataSetting.SetValue(nameof(Mpv_write_filename_in_watch_later_config), value);
-        }
-
-        public string Mpv_x11_name
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_x11_name), "");
-            set => _dataSetting.SetValue(nameof(Mpv_x11_name), value);
         }
 
         // ---- OSD ----
@@ -1090,12 +880,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_clipboard_monitor), false);
             set => _dataSetting.SetValue(nameof(Mpv_clipboard_monitor), value);
-        }
-
-        public bool Mpv_clipboard_xwayland
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_clipboard_xwayland), false);
-            set => _dataSetting.SetValue(nameof(Mpv_clipboard_xwayland), value);
         }
 
         public string Mpv_cover_art_auto
@@ -1290,12 +1074,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_input_gamepad), value);
         }
 
-        public string Mpv_input_ipc_client
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_input_ipc_client), "");
-            set => _dataSetting.SetValue(nameof(Mpv_input_ipc_client), value);
-        }
-
         public int Mpv_input_key_fifo_size
         {
             get => _dataSetting.GetValue(nameof(Mpv_input_key_fifo_size), 7);
@@ -1324,18 +1102,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_input_tablet_emulate_mouse), true);
             set => _dataSetting.SetValue(nameof(Mpv_input_tablet_emulate_mouse), value);
-        }
-
-        public bool Mpv_input_terminal
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_input_terminal), true);
-            set => _dataSetting.SetValue(nameof(Mpv_input_terminal), value);
-        }
-
-        public bool Mpv_input_test
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_input_test), false);
-            set => _dataSetting.SetValue(nameof(Mpv_input_test), value);
         }
 
         public bool Mpv_input_touch_emulate_mouse
@@ -1416,34 +1182,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_load_unsafe_playlists), value);
         }
 
-        public bool Mpv_msg_color
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_msg_color), true);
-            set => _dataSetting.SetValue(nameof(Mpv_msg_color), value);
-        }
-
         public string Mpv_msg_level
         {
             get => _dataSetting.GetValue(nameof(Mpv_msg_level), "");
             set => _dataSetting.SetValue(nameof(Mpv_msg_level), value);
-        }
-
-        public bool Mpv_msg_module
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_msg_module), false);
-            set => _dataSetting.SetValue(nameof(Mpv_msg_module), value);
-        }
-
-        public bool Mpv_msg_time
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_msg_time), false);
-            set => _dataSetting.SetValue(nameof(Mpv_msg_time), value);
-        }
-
-        public bool Mpv_native_fs
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_native_fs), true);
-            set => _dataSetting.SetValue(nameof(Mpv_native_fs), value);
         }
 
         public bool Mpv_native_keyrepeat
@@ -1456,12 +1198,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_native_touch), false);
             set => _dataSetting.SetValue(nameof(Mpv_native_touch), value);
-        }
-
-        public string Mpv_ontop_level
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_ontop_level), "window");
-            set => _dataSetting.SetValue(nameof(Mpv_ontop_level), value);
         }
 
         public bool Mpv_pause
@@ -1534,42 +1270,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_start), "none");
             set => _dataSetting.SetValue(nameof(Mpv_start), value);
-        }
-
-        public string Mpv_term_osd
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_term_osd), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_term_osd), value);
-        }
-
-        public bool Mpv_term_osd_bar
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_term_osd_bar), false);
-            set => _dataSetting.SetValue(nameof(Mpv_term_osd_bar), value);
-        }
-
-        public string Mpv_term_osd_bar_chars
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_term_osd_bar_chars), "[-+-]");
-            set => _dataSetting.SetValue(nameof(Mpv_term_osd_bar_chars), value);
-        }
-
-        public string Mpv_term_playing_msg
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_term_playing_msg), "");
-            set => _dataSetting.SetValue(nameof(Mpv_term_playing_msg), value);
-        }
-
-        public string Mpv_term_status_msg
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_term_status_msg), "");
-            set => _dataSetting.SetValue(nameof(Mpv_term_status_msg), value);
-        }
-
-        public string Mpv_term_title
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_term_title), "");
-            set => _dataSetting.SetValue(nameof(Mpv_term_title), value);
         }
 
         public string Mpv_watch_history_path
@@ -2084,36 +1784,6 @@ namespace mpv_winui.Modules.Settings
 
         // ---- Video & rendering ----
 
-        public string Mpv_angle_d3d11_feature_level
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_angle_d3d11_feature_level), "11_0");
-            set => _dataSetting.SetValue(nameof(Mpv_angle_d3d11_feature_level), value);
-        }
-
-        public string Mpv_angle_d3d11_warp
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_angle_d3d11_warp), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_angle_d3d11_warp), value);
-        }
-
-        public string Mpv_angle_egl_windowing
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_angle_egl_windowing), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_angle_egl_windowing), value);
-        }
-
-        public bool Mpv_angle_flip
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_angle_flip), true);
-            set => _dataSetting.SetValue(nameof(Mpv_angle_flip), value);
-        }
-
-        public string Mpv_angle_renderer
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_angle_renderer), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_angle_renderer), value);
-        }
-
         public string Mpv_background
         {
             get => _dataSetting.GetValue(nameof(Mpv_background), "tiles");
@@ -2138,60 +1808,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_correct_pts), value);
         }
 
-        public double Mpv_cscale_blur
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cscale_blur), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_cscale_blur), value);
-        }
-
-        public double Mpv_cscale_clamp
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cscale_clamp), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_cscale_clamp), value);
-        }
-
-        public double Mpv_cscale_param1
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cscale_param1), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_cscale_param1), value);
-        }
-
-        public double Mpv_cscale_param2
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cscale_param2), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_cscale_param2), value);
-        }
-
-        public double Mpv_cscale_radius
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cscale_radius), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_cscale_radius), value);
-        }
-
-        public double Mpv_cscale_taper
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cscale_taper), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_cscale_taper), value);
-        }
-
-        public string Mpv_cscale_window
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cscale_window), "");
-            set => _dataSetting.SetValue(nameof(Mpv_cscale_window), value);
-        }
-
-        public double Mpv_cscale_wparam
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cscale_wparam), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_cscale_wparam), value);
-        }
-
-        public double Mpv_cscale_wtaper
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cscale_wtaper), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_cscale_wtaper), value);
-        }
-
         public string Mpv_d3d11_composition_size
         {
             get => _dataSetting.GetValue(nameof(Mpv_d3d11_composition_size), "");
@@ -2208,30 +1824,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_d3d11_output_mode), "auto");
             set => _dataSetting.SetValue(nameof(Mpv_d3d11_output_mode), value);
-        }
-
-        public double Mpv_deband_grain
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_deband_grain), 32.0);
-            set => _dataSetting.SetValue(nameof(Mpv_deband_grain), value);
-        }
-
-        public int Mpv_deband_iterations
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_deband_iterations), 1);
-            set => _dataSetting.SetValue(nameof(Mpv_deband_iterations), value);
-        }
-
-        public double Mpv_deband_range
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_deband_range), 16.0);
-            set => _dataSetting.SetValue(nameof(Mpv_deband_range), value);
-        }
-
-        public double Mpv_deband_threshold
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_deband_threshold), 48.0);
-            set => _dataSetting.SetValue(nameof(Mpv_deband_threshold), value);
         }
 
         public string Mpv_deinterlace_field_parity
@@ -2252,100 +1844,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_display_tags), value);
         }
 
-        public double Mpv_dscale_antiring
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_antiring), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_antiring), value);
-        }
-
-        public double Mpv_dscale_blur
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_blur), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_blur), value);
-        }
-
-        public double Mpv_dscale_clamp
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_clamp), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_clamp), value);
-        }
-
-        public double Mpv_dscale_param1
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_param1), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_param1), value);
-        }
-
-        public double Mpv_dscale_param2
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_param2), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_param2), value);
-        }
-
-        public double Mpv_dscale_radius
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_radius), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_radius), value);
-        }
-
-        public double Mpv_dscale_taper
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_taper), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_taper), value);
-        }
-
-        public string Mpv_dscale_window
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_window), "");
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_window), value);
-        }
-
-        public double Mpv_dscale_wparam
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_wparam), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_wparam), value);
-        }
-
-        public double Mpv_dscale_wtaper
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_dscale_wtaper), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_dscale_wtaper), value);
-        }
-
-        public int Mpv_egl_config_id
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_egl_config_id), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_egl_config_id), value);
-        }
-
-        public string Mpv_egl_output_format
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_egl_output_format), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_egl_output_format), value);
-        }
-
-        public bool Mpv_gpu_debug
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_gpu_debug), false);
-            set => _dataSetting.SetValue(nameof(Mpv_gpu_debug), value);
-        }
-
-        public string Mpv_gpu_dumb_mode
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_gpu_dumb_mode), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_gpu_dumb_mode), value);
-        }
-
         public string Mpv_gpu_hwdec_interop
         {
             get => _dataSetting.GetValue(nameof(Mpv_gpu_hwdec_interop), "auto");
             set => _dataSetting.SetValue(nameof(Mpv_gpu_hwdec_interop), value);
-        }
-
-        public bool Mpv_gpu_sw
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_gpu_sw), false);
-            set => _dataSetting.SetValue(nameof(Mpv_gpu_sw), value);
         }
 
         public int Mpv_gpu_tex_pad_x
@@ -2430,258 +1932,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_mf_type), "");
             set => _dataSetting.SetValue(nameof(Mpv_mf_type), value);
-        }
-
-        public int Mpv_opengl_check_pattern_a
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_check_pattern_a), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_check_pattern_a), value);
-        }
-
-        public int Mpv_opengl_check_pattern_b
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_check_pattern_b), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_check_pattern_b), value);
-        }
-
-        public string Mpv_opengl_dwmflush
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_dwmflush), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_dwmflush), value);
-        }
-
-        public string Mpv_opengl_early_flush
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_early_flush), "no");
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_early_flush), value);
-        }
-
-        public string Mpv_opengl_es
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_es), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_es), value);
-        }
-
-        public bool Mpv_opengl_glfinish
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_glfinish), false);
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_glfinish), value);
-        }
-
-        public bool Mpv_opengl_pbo
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_pbo), false);
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_pbo), value);
-        }
-
-        public bool Mpv_opengl_rectangle_textures
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_rectangle_textures), false);
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_rectangle_textures), value);
-        }
-
-        public int Mpv_opengl_swapinterval
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_swapinterval), 1);
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_swapinterval), value);
-        }
-
-        public bool Mpv_opengl_waitvsync
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_opengl_waitvsync), false);
-            set => _dataSetting.SetValue(nameof(Mpv_opengl_waitvsync), value);
-        }
-
-        public double Mpv_scale_blur
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_scale_blur), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_scale_blur), value);
-        }
-
-        public double Mpv_scale_clamp
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_scale_clamp), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_scale_clamp), value);
-        }
-
-        public double Mpv_scale_param1
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_scale_param1), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_scale_param1), value);
-        }
-
-        public double Mpv_scale_param2
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_scale_param2), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_scale_param2), value);
-        }
-
-        public double Mpv_scale_radius
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_scale_radius), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_scale_radius), value);
-        }
-
-        public double Mpv_scale_taper
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_scale_taper), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_scale_taper), value);
-        }
-
-        public string Mpv_scale_window
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_scale_window), "");
-            set => _dataSetting.SetValue(nameof(Mpv_scale_window), value);
-        }
-
-        public double Mpv_scale_wparam
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_scale_wparam), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_scale_wparam), value);
-        }
-
-        public double Mpv_scale_wtaper
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_scale_wtaper), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_scale_wtaper), value);
-        }
-
-        public double Mpv_sigmoid_center
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sigmoid_center), 0.75);
-            set => _dataSetting.SetValue(nameof(Mpv_sigmoid_center), value);
-        }
-
-        public double Mpv_sigmoid_slope
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sigmoid_slope), 6.5);
-            set => _dataSetting.SetValue(nameof(Mpv_sigmoid_slope), value);
-        }
-
-        public bool Mpv_sws_allow_zimg
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_allow_zimg), true);
-            set => _dataSetting.SetValue(nameof(Mpv_sws_allow_zimg), value);
-        }
-
-        public bool Mpv_sws_bitexact
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_bitexact), false);
-            set => _dataSetting.SetValue(nameof(Mpv_sws_bitexact), value);
-        }
-
-        public double Mpv_sws_cgb
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_cgb), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_sws_cgb), value);
-        }
-
-        public int Mpv_sws_chs
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_chs), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_sws_chs), value);
-        }
-
-        public double Mpv_sws_cs
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_cs), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_sws_cs), value);
-        }
-
-        public int Mpv_sws_cvs
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_cvs), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_sws_cvs), value);
-        }
-
-        public bool Mpv_sws_fast
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_fast), false);
-            set => _dataSetting.SetValue(nameof(Mpv_sws_fast), value);
-        }
-
-        public double Mpv_sws_lgb
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_lgb), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_sws_lgb), value);
-        }
-
-        public double Mpv_sws_ls
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_ls), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_sws_ls), value);
-        }
-
-        public string Mpv_sws_scaler
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_sws_scaler), "lanczos");
-            set => _dataSetting.SetValue(nameof(Mpv_sws_scaler), value);
-        }
-
-        public double Mpv_tscale_antiring
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_antiring), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_antiring), value);
-        }
-
-        public double Mpv_tscale_blur
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_blur), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_blur), value);
-        }
-
-        public double Mpv_tscale_clamp
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_clamp), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_clamp), value);
-        }
-
-        public double Mpv_tscale_param1
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_param1), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_param1), value);
-        }
-
-        public double Mpv_tscale_param2
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_param2), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_param2), value);
-        }
-
-        public double Mpv_tscale_radius
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_radius), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_radius), value);
-        }
-
-        public double Mpv_tscale_taper
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_taper), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_taper), value);
-        }
-
-        public string Mpv_tscale_window
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_window), "");
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_window), value);
-        }
-
-        public double Mpv_tscale_wparam
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_wparam), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_wparam), value);
-        }
-
-        public double Mpv_tscale_wtaper
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_tscale_wtaper), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_tscale_wtaper), value);
-        }
-
-        public string Mpv_vd
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vd), "");
-            set => _dataSetting.SetValue(nameof(Mpv_vd), value);
         }
 
         public bool Mpv_vd_apply_cropping
@@ -2786,12 +2036,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_vd_queue_max_secs), value);
         }
 
-        public string Mpv_vf
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vf), "");
-            set => _dataSetting.SetValue(nameof(Mpv_vf), value);
-        }
-
         public string Mpv_video_aspect_method
         {
             get => _dataSetting.GetValue(nameof(Mpv_video_aspect_method), "container");
@@ -2886,12 +2130,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_video_timing_offset), 0.05);
             set => _dataSetting.SetValue(nameof(Mpv_video_timing_offset), value);
-        }
-
-        public string Mpv_vo
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo), "");
-            set => _dataSetting.SetValue(nameof(Mpv_vo), value);
         }
 
         public bool Mpv_vo_direct3d_disable_texture_align
@@ -3020,298 +2258,10 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_vo_image_webp_quality), value);
         }
 
-        public bool Mpv_vo_kitty_alt_screen
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_alt_screen), true);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_alt_screen), value);
-        }
-
-        public bool Mpv_vo_kitty_auto_multiplexer_passthrough
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_auto_multiplexer_passthrough), false);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_auto_multiplexer_passthrough), value);
-        }
-
-        public int Mpv_vo_kitty_cols
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_cols), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_cols), value);
-        }
-
-        public bool Mpv_vo_kitty_config_clear
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_config_clear), true);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_config_clear), value);
-        }
-
-        public int Mpv_vo_kitty_height
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_height), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_height), value);
-        }
-
-        public int Mpv_vo_kitty_left
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_left), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_left), value);
-        }
-
-        public int Mpv_vo_kitty_rows
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_rows), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_rows), value);
-        }
-
-        public int Mpv_vo_kitty_top
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_top), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_top), value);
-        }
-
-        public bool Mpv_vo_kitty_use_shm
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_use_shm), false);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_use_shm), value);
-        }
-
-        public int Mpv_vo_kitty_width
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_kitty_width), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_kitty_width), value);
-        }
-
         public string Mpv_vo_mmcss_profile
         {
             get => _dataSetting.GetValue(nameof(Mpv_vo_mmcss_profile), "Playback");
             set => _dataSetting.SetValue(nameof(Mpv_vo_mmcss_profile), value);
-        }
-
-        public double Mpv_vo_null_fps
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_null_fps), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_null_fps), value);
-        }
-
-        public bool Mpv_vo_sixel_alt_screen
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_alt_screen), true);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_alt_screen), value);
-        }
-
-        public bool Mpv_vo_sixel_buffered
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_buffered), false);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_buffered), value);
-        }
-
-        public int Mpv_vo_sixel_cols
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_cols), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_cols), value);
-        }
-
-        public bool Mpv_vo_sixel_config_clear
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_config_clear), true);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_config_clear), value);
-        }
-
-        public string Mpv_vo_sixel_dither
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_dither), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_dither), value);
-        }
-
-        public bool Mpv_vo_sixel_fixedpalette
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_fixedpalette), true);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_fixedpalette), value);
-        }
-
-        public int Mpv_vo_sixel_height
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_height), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_height), value);
-        }
-
-        public int Mpv_vo_sixel_left
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_left), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_left), value);
-        }
-
-        public int Mpv_vo_sixel_pad_x
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_pad_x), -1);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_pad_x), value);
-        }
-
-        public int Mpv_vo_sixel_pad_y
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_pad_y), -1);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_pad_y), value);
-        }
-
-        public int Mpv_vo_sixel_reqcolors
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_reqcolors), 256);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_reqcolors), value);
-        }
-
-        public int Mpv_vo_sixel_rows
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_rows), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_rows), value);
-        }
-
-        public int Mpv_vo_sixel_threshold
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_threshold), -1);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_threshold), value);
-        }
-
-        public int Mpv_vo_sixel_top
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_top), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_top), value);
-        }
-
-        public int Mpv_vo_sixel_width
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_sixel_width), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_sixel_width), value);
-        }
-
-        public bool Mpv_vo_tct_256
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_tct_256), false);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_tct_256), value);
-        }
-
-        public string Mpv_vo_tct_algo
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_tct_algo), "half-blocks");
-            set => _dataSetting.SetValue(nameof(Mpv_vo_tct_algo), value);
-        }
-
-        public string Mpv_vo_tct_buffering
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_tct_buffering), "line");
-            set => _dataSetting.SetValue(nameof(Mpv_vo_tct_buffering), value);
-        }
-
-        public int Mpv_vo_tct_height
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_tct_height), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_tct_height), value);
-        }
-
-        public int Mpv_vo_tct_width
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vo_tct_width), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vo_tct_width), value);
-        }
-
-        public bool Mpv_vulkan_async_compute
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vulkan_async_compute), true);
-            set => _dataSetting.SetValue(nameof(Mpv_vulkan_async_compute), value);
-        }
-
-        public bool Mpv_vulkan_async_transfer
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vulkan_async_transfer), true);
-            set => _dataSetting.SetValue(nameof(Mpv_vulkan_async_transfer), value);
-        }
-
-        public string Mpv_vulkan_device
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vulkan_device), "");
-            set => _dataSetting.SetValue(nameof(Mpv_vulkan_device), value);
-        }
-
-        public int Mpv_vulkan_display_display
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vulkan_display_display), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vulkan_display_display), value);
-        }
-
-        public int Mpv_vulkan_display_mode
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vulkan_display_mode), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vulkan_display_mode), value);
-        }
-
-        public int Mpv_vulkan_display_plane
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vulkan_display_plane), 0);
-            set => _dataSetting.SetValue(nameof(Mpv_vulkan_display_plane), value);
-        }
-
-        public int Mpv_vulkan_queue_count
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vulkan_queue_count), 1);
-            set => _dataSetting.SetValue(nameof(Mpv_vulkan_queue_count), value);
-        }
-
-        public string Mpv_vulkan_swap_mode
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_vulkan_swap_mode), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_vulkan_swap_mode), value);
-        }
-
-        public string Mpv_zimg_dither
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_zimg_dither), "random");
-            set => _dataSetting.SetValue(nameof(Mpv_zimg_dither), value);
-        }
-
-        public bool Mpv_zimg_fast
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_zimg_fast), true);
-            set => _dataSetting.SetValue(nameof(Mpv_zimg_fast), value);
-        }
-
-        public string Mpv_zimg_scaler
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_zimg_scaler), "lanczos");
-            set => _dataSetting.SetValue(nameof(Mpv_zimg_scaler), value);
-        }
-
-        public string Mpv_zimg_scaler_chroma
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_zimg_scaler_chroma), "bilinear");
-            set => _dataSetting.SetValue(nameof(Mpv_zimg_scaler_chroma), value);
-        }
-
-        public double Mpv_zimg_scaler_chroma_param_a
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_zimg_scaler_chroma_param_a), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_zimg_scaler_chroma_param_a), value);
-        }
-
-        public double Mpv_zimg_scaler_chroma_param_b
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_zimg_scaler_chroma_param_b), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_zimg_scaler_chroma_param_b), value);
-        }
-
-        public double Mpv_zimg_scaler_param_a
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_zimg_scaler_param_a), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_zimg_scaler_param_a), value);
-        }
-
-        public double Mpv_zimg_scaler_param_b
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_zimg_scaler_param_b), 0.0);
-            set => _dataSetting.SetValue(nameof(Mpv_zimg_scaler_param_b), value);
-        }
-
-        public string Mpv_zimg_threads
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_zimg_threads), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_zimg_threads), value);
         }
 
     }
