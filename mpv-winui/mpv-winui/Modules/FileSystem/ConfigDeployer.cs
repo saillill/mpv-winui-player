@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using mpv_winui.Modules.Common.Utils;
 
 namespace mpv_winui.Modules.FileSystem
 {
@@ -397,7 +398,11 @@ namespace mpv_winui.Modules.FileSystem
                     lines.Add(pair.Value + "\t" + pair.Key.Replace(Path.DirectorySeparatorChar, '/'));
                 }
                 lines.Sort(StringComparer.OrdinalIgnoreCase);
-                File.WriteAllLines(manifestPath, lines);
+
+                // Atomic: the manifest is the record of what this layer deployed,
+                // so a torn write would leave the next launch's diff against a
+                // half-written list and it could redeploy or skip files.
+                AtomicFile.WriteAllLines(manifestPath, lines);
             }
             catch (Exception ex)
             {

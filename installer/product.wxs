@@ -35,9 +35,29 @@
       </Directory>
     </StandardDirectory>
 
-    <!-- Harvest every published file (WiX v5: no separate heat step needed). -->
+    <!--
+      Harvest every published file (WiX v5: no separate heat step needed).
+
+      Debug symbols are excluded on purpose. The publish output carries
+      mpvw.pdb (~95 MB) and mpv_winrt.pdb (~44 MB) next to the binaries, and a
+      bare <Files> harvested them too: the Release MSI shipped ~136 MB of
+      symbols, leaked private symbol information in a shipped product, and grew
+      the install tree from 158 to 160 files. package.ps1 already drops *.pdb
+      from the portable zip (robocopy /XF *.pdb), so excluding them here keeps
+      the two distribution channels in agreement.
+
+      The Exclude pattern MUST repeat the $(var.SourceDir) prefix used by
+      Include: WiX compares full paths for Files/Exclude wildcard matching, so a
+      bare "**\*.pdb" would match nothing and the symbols would silently stay
+      in. ** also matches zero directories, so this covers a pdb at the harvest
+      root as well as any nested one.
+
+      NOTE: Exclude is a child element of <Files> in WiX v5, not an attribute.
+    -->
     <ComponentGroup Id="FilesComponentGroup" Directory="INSTALLFOLDER">
-      <Files Include="$(var.SourceDir)\**\*" />
+      <Files Include="$(var.SourceDir)\**\*">
+        <Exclude Files="$(var.SourceDir)\**\*.pdb" />
+      </Files>
     </ComponentGroup>
 
     <!-- Start-menu shortcut with the app icon. -->
@@ -47,7 +67,7 @@
             Id="StartMenuMpvWinui"
             Name="mpv-winui-player"
             Description="mpv-winui-player - mpv 图形播放器"
-            Target="[INSTALLFOLDER]mpv-winui.exe"
+            Target="[INSTALLFOLDER]mpvw.exe"
             WorkingDirectory="INSTALLFOLDER"
             Icon="MpvWinuiIcon" />
         <RemoveFolder Id="RemoveProgramMenuDir" Directory="ProgramMenuFolder" On="uninstall" />
@@ -55,21 +75,35 @@
       </Component>
     </StandardDirectory>
 
-    <!-- mpv-winui:// protocol registration (per-user, HKCU). -->
+    <!--
+      mpvw:// protocol registration (per-user, HKCU).
+
+      The scheme is mpvw, which is what the executable is named and what
+      Package.appxmanifest already declares. This used to register mpv-winui
+      while the app only parsed mpvw, so the association the installer created
+      was one the app could not start from: the shell handed over a URI and the
+      app silently ignored it.
+
+      RemoveRegistryKey clears the same key under the retired scheme. Without it
+      an upgrade leaves that association behind and Windows keeps offering
+      mpv-winui:// for a program that no longer accepts it. It is a no-op on a
+      machine that never had the old scheme registered.
+    -->
     <Component Id="ProtocolRegistration" Guid="*" Directory="INSTALLFOLDER">
-      <RegistryKey Root="HKCU" Key="Software\Classes\mpv-winui">
+      <RemoveRegistryKey Root="HKCU" Key="Software\Classes\mpv-winui" Action="removeOnInstall" />
+      <RegistryKey Root="HKCU" Key="Software\Classes\mpvw">
         <RegistryValue
             Type="string"
             Name="URL Protocol"
             Value=""
             KeyPath="yes" />
         <RegistryKey Key="DefaultIcon">
-          <RegistryValue Type="string" Value="[INSTALLFOLDER]mpv-winui.exe,0" />
+          <RegistryValue Type="string" Value="[INSTALLFOLDER]mpvw.exe,0" />
         </RegistryKey>
         <RegistryKey Key="shell\open\command">
           <RegistryValue
               Type="string"
-              Value="&quot;[INSTALLFOLDER]mpv-winui.exe&quot; &quot;%1&quot;" />
+              Value="&quot;[INSTALLFOLDER]mpvw.exe&quot; &quot;%1&quot;" />
         </RegistryKey>
       </RegistryKey>
     </Component>
