@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <utility>
 #include <dxgi1_2.h>
+#include <winrt/Windows.Security.Cryptography.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
@@ -92,6 +93,31 @@ namespace winrt::mpv_winrt::implementation
         // A cover larger than this is not a cover; the cap stops a corrupt tag
         // from making the decode allocate gigabytes.
         constexpr size_t kMaxCoverArtBytes = 32u * 1024u * 1024u;
+
+        // Raw bytes as a random-access stream XAML can hand to a BitmapImage.
+        //
+        // There is deliberately no DataWriter here. A projected DataWriter closes
+        // the stream it wraps when it is destroyed, and its local dies at the end
+        // of this function - after the caller already owns the stream - which
+        // surfaced as ObjectDisposedException (0x80000013) on every successful
+        // call. DataWriter offers no way to hand ownership off (there is no
+        // Detach on it), so the bytes go through an IBuffer instead: nothing
+        // except this function ever holds the stream, so nothing can close it.
+        winrt::Windows::Storage::Streams::IRandomAccessStream
+            StreamFromBytes(const std::vector<uint8_t>& bytes)
+        {
+            auto memory = winrt::Windows::Storage::Streams::InMemoryRandomAccessStream();
+
+            const auto buffer =
+                winrt::Windows::Security::Cryptography::CryptographicBuffer::CreateFromByteArray(bytes);
+
+            memory.WriteAsync(buffer).get();
+
+            // Hand it back at the start: the caller is going to read a picture
+            // from it, and the write above left the position at the end.
+            memory.Seek(0);
+            return memory;
+        }
 
         // One General-stream field, or an empty string when absent.
         std::string ReadMediaInfoField(void* handle, const char* field)
@@ -2650,17 +2676,29 @@ namespace winrt::mpv_winrt::implementation
         m_coverArtMime = winrt::hstring();
         m_coverArtForPath = winrt::to_hstring(path);
 
+        // Both options go on the handle BEFORE it is opened, and that order is
+        // load-bearing rather than stylistic.
+        //
+        // MediaInfo parses the container when Open is called. Cover_Data is what
+        // asks it to keep the embedded picture, and the request has no effect on
+        // a file that has already been parsed: setting it afterwards leaves the
+        // field present but empty for that open. Measured directly - the first
+        // Open in a process returned 0 base64 characters and every later one
+        // returned 46888 for the same file, because the option is stored
+        // process-wide and the first open was the only one that preceded it.
+        //
+        // Complete=1 is the neighbour with the same requirement: without it the
+        // complete-info fields (and the cover among them) are not gathered.
+        api.Option(handle, "Complete", "1");
+        api.Option(handle, "Cover_Data", "base64");
+
         if (api.Open(handle, path.c_str()))
         {
-            // Complete=1 is what makes Cover_Data materialise at all; without
-            // it the field exists and reads back empty.
-            api.Option(handle, "Complete", "1");
-            api.Option(handle, "Cover_Data", "base64");
+            const auto coverField = ReadMediaInfoField(handle, "Cover_Data");
 
-            const auto cover = ReadMediaInfoField(handle, "Cover_Data");
-            if (!cover.empty() && cover.size() <= kMaxCoverArtBytes * 4 / 3 + 4)
+            if (!coverField.empty() && coverField.size() <= kMaxCoverArtBytes * 4 / 3 + 4)
             {
-                m_coverArtBase64 = winrt::to_hstring(cover);
+                m_coverArtBase64 = winrt::to_hstring(coverField);
                 m_coverArtMime = winrt::to_hstring(ReadMediaInfoField(handle, "Cover_Mime"));
             }
 
@@ -2703,24 +2741,16 @@ namespace winrt::mpv_winrt::implementation
             return false;
         }
 
-        auto memory = winrt::Windows::Storage::Streams::InMemoryRandomAccessStream();
-
-        winrt::Windows::Storage::Streams::DataWriter writer(memory);
-        writer.WriteBytes(winrt::array_view<const uint8_t>(bytes));
-        writer.StoreAsync().get();
-        writer.FlushAsync().get();
-
-        memory.Seek(0);
-        stream = memory;
+        stream = StreamFromBytes(bytes);
         return true;
     }
 
-    // The file's own tags, keyed the way mpv keys its metadata so the music page
-    // has one vocabulary whether a value comes from here or from media-title.
     // The named file's cover, regardless of what is playing.
     //
-    // Shares the cache with TryGetCoverArt through ReadMediaInfoTags: asking for
-    // a track that is already cached costs a string compare.
+    // The album page shows a whole album's art, and the file it wants a picture
+    // from is usually not the one loaded. Shares the cache with TryGetCoverArt
+    // through ReadMediaInfoTags: asking for a track that is already cached costs
+    // a string compare.
     bool MpvPlayer::TryGetCoverArtForPath(
         winrt::hstring const& path,
         winrt::Windows::Storage::Streams::IRandomAccessStream& stream)
@@ -2750,18 +2780,12 @@ namespace winrt::mpv_winrt::implementation
             return false;
         }
 
-        auto memory = winrt::Windows::Storage::Streams::InMemoryRandomAccessStream();
-
-        winrt::Windows::Storage::Streams::DataWriter writer(memory);
-        writer.WriteBytes(winrt::array_view<const uint8_t>(bytes));
-        writer.StoreAsync().get();
-        writer.FlushAsync().get();
-
-        memory.Seek(0);
-        stream = memory;
+        stream = StreamFromBytes(bytes);
         return true;
     }
 
+    // The file's own tags, keyed the way mpv keys its metadata so the music page
+    // has one vocabulary whether a value comes from here or from media-title.
     winrt::Windows::Foundation::Collections::IMap<winrt::hstring, winrt::hstring> MpvPlayer::GetMediaTags()
     {
         auto tags = winrt::single_threaded_map<winrt::hstring, winrt::hstring>();
