@@ -20,7 +20,10 @@
 #include "Events/VolumeChangedEventArgs.h"
 #include "Events/WindowChangedEventArgs.h"
 #include <vector>
+#include <algorithm>
+#include <utility>
 #include <dxgi1_2.h>
+#include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <microsoft.ui.xaml.media.dxinterop.h>
@@ -33,6 +36,113 @@ namespace winrt::mpv_winrt::implementation
 {
     namespace
     {
+        // ---- MediaInfo, loaded on demand -----------------------------------
+        //
+        // Not linked. MediaInfo.dll is a runtime payload beside mpvw.exe
+        // (mpv-winui.csproj copies it) and ARM64 has no builder for it, so a
+        // lazy LoadLibrary means the music page loses its cover on such a build
+        // instead of the player failing to start.
+        //
+        // The ANSI entry points are used deliberately: MediaInfo_* take wchar_t,
+        // so handing them char* buffers truncates every result at the first NUL -
+        // which reads back as a version string of "O".
+        struct MediaInfoApi
+        {
+            HMODULE Module{nullptr};
+            void* (__stdcall* New)(){nullptr};
+            void (__stdcall* Delete)(void*){nullptr};
+            size_t(__stdcall* Open)(void*, const char*){nullptr};
+            void (__stdcall* Close)(void*){nullptr};
+            const char* (__stdcall* Get)(void*, int, size_t, const char*, int, int){nullptr};
+            const char* (__stdcall* Option)(void*, const char*, const char*){nullptr};
+
+            bool Ready() const
+            {
+                return Module && New && Delete && Open && Close && Get && Option;
+            }
+        };
+
+        MediaInfoApi& MediaInfoInstance()
+        {
+            static MediaInfoApi api = []
+            {
+                MediaInfoApi a;
+                a.Module = ::LoadLibraryW(L"MediaInfo.dll");
+                if (!a.Module)
+                {
+                    return a;
+                }
+
+                a.New = reinterpret_cast<decltype(a.New)>(::GetProcAddress(a.Module, "MediaInfoA_New"));
+                a.Delete = reinterpret_cast<decltype(a.Delete)>(::GetProcAddress(a.Module, "MediaInfoA_Delete"));
+                a.Open = reinterpret_cast<decltype(a.Open)>(::GetProcAddress(a.Module, "MediaInfoA_Open"));
+                a.Close = reinterpret_cast<decltype(a.Close)>(::GetProcAddress(a.Module, "MediaInfoA_Close"));
+                a.Get = reinterpret_cast<decltype(a.Get)>(::GetProcAddress(a.Module, "MediaInfoA_Get"));
+                a.Option = reinterpret_cast<decltype(a.Option)>(::GetProcAddress(a.Module, "MediaInfoA_Option"));
+                return a;
+            }();
+
+            return api;
+        }
+
+        // MediaInfo_stream_C / MediaInfo_info_C, from MediaInfo_Const.h.
+        constexpr int kStreamGeneral = 0;
+        constexpr int kInfoText = 1;
+
+        // A cover larger than this is not a cover; the cap stops a corrupt tag
+        // from making the decode allocate gigabytes.
+        constexpr size_t kMaxCoverArtBytes = 32u * 1024u * 1024u;
+
+        // One General-stream field, or an empty string when absent.
+        std::string ReadMediaInfoField(void* handle, const char* field)
+        {
+            const char* value = MediaInfoInstance().Get(handle, kStreamGeneral, 0, field, kInfoText, 0);
+            return value ? std::string(value) : std::string();
+        }
+
+        // MediaInfo returns Cover_Data as base64.
+        std::vector<uint8_t> DecodeBase64(const std::string& text)
+        {
+            const auto digit = [](char c) -> int
+            {
+                if (c >= 'A' && c <= 'Z') return c - 'A';
+                if (c >= 'a' && c <= 'z') return c - 'a' + 26;
+                if (c >= '0' && c <= '9') return c - '0' + 52;
+                if (c == '+') return 62;
+                if (c == '/') return 63;
+                return -1;
+            };
+
+            std::vector<uint8_t> out;
+            out.reserve(text.size() * 3 / 4);
+
+            uint32_t accumulator = 0;
+            int bits = 0;
+            for (const char c : text)
+            {
+                const int value = digit(c);
+                if (value < 0)
+                {
+                    if (c == '=')
+                    {
+                        break;
+                    }
+
+                    continue;
+                }
+
+                accumulator = (accumulator << 6) | static_cast<uint32_t>(value);
+                bits += 6;
+                if (bits >= 8)
+                {
+                    bits -= 8;
+                    out.push_back(static_cast<uint8_t>((accumulator >> bits) & 0xFF));
+                }
+            }
+
+            return out;
+        }
+
         // mpv_node -> flat string for the generic ObserveProperty surface.
         // Nested maps/arrays and NONE (property unavailable) render empty.
         winrt::hstring NodeToHString(const mpv_node* node)
@@ -2279,6 +2389,19 @@ namespace winrt::mpv_winrt::implementation
         return GetHStringProperty("mpv-version");
     }
 
+    winrt::hstring MpvPlayer::GetPropertyString(winrt::hstring const& name)
+    {
+        if (!m_mpv || name.empty())
+        {
+            return winrt::hstring();
+        }
+
+        // A property that does not exist (e.g. video-params before a file is
+        // loaded) is not an error here: it reads as empty, which is what the
+        // caller logs.
+        return GetHStringProperty(winrt::to_string(name).c_str());
+    }
+
     winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvMenuItem> MpvPlayer::GetMenu()
     {
         if (!m_mpv)
@@ -2501,5 +2624,193 @@ namespace winrt::mpv_winrt::implementation
 
         mpv_free_node_contents(&node);
         return profiles.GetView();
+    }
+
+    // Reads one file's tags and cover through MediaInfo and caches them.
+    //
+    // The cache key is the path, so a music-page switch costs one MediaInfo
+    // open rather than one per getter. Returns false only when MediaInfo itself
+    // is unusable; a file with no cover art caches an empty cover and reads back
+    // as "no art", which is a designed outcome.
+    bool MpvPlayer::ReadMediaInfoTags(const std::string& path)
+    {
+        auto& api = MediaInfoInstance();
+        if (!api.Ready() || path.empty())
+        {
+            return false;
+        }
+
+        void* handle = api.New();
+        if (!handle)
+        {
+            return false;
+        }
+
+        m_coverArtBase64 = winrt::hstring();
+        m_coverArtMime = winrt::hstring();
+        m_coverArtForPath = winrt::to_hstring(path);
+
+        if (api.Open(handle, path.c_str()))
+        {
+            // Complete=1 is what makes Cover_Data materialise at all; without
+            // it the field exists and reads back empty.
+            api.Option(handle, "Complete", "1");
+            api.Option(handle, "Cover_Data", "base64");
+
+            const auto cover = ReadMediaInfoField(handle, "Cover_Data");
+            if (!cover.empty() && cover.size() <= kMaxCoverArtBytes * 4 / 3 + 4)
+            {
+                m_coverArtBase64 = winrt::to_hstring(cover);
+                m_coverArtMime = winrt::to_hstring(ReadMediaInfoField(handle, "Cover_Mime"));
+            }
+
+            api.Close(handle);
+        }
+
+        api.Delete(handle);
+        return true;
+    }
+
+    // The embedded picture as a stream XAML can decode.
+    //
+    // Decoded here rather than in C# because MediaInfo hands the payload back as
+    // base64 text; the managed side would otherwise carry its own decoder just
+    // to unwrap it.
+    bool MpvPlayer::TryGetCoverArt(winrt::Windows::Storage::Streams::IRandomAccessStream& stream)
+    {
+        const auto path = winrt::to_string(GetCurrentPath());
+        if (path.empty())
+        {
+            return false;
+        }
+
+        if (m_coverArtForPath != winrt::to_hstring(path))
+        {
+            if (!ReadMediaInfoTags(path))
+            {
+                return false;
+            }
+        }
+
+        if (m_coverArtBase64.empty())
+        {
+            return false;
+        }
+
+        const auto bytes = DecodeBase64(winrt::to_string(m_coverArtBase64));
+        if (bytes.empty())
+        {
+            return false;
+        }
+
+        auto memory = winrt::Windows::Storage::Streams::InMemoryRandomAccessStream();
+
+        winrt::Windows::Storage::Streams::DataWriter writer(memory);
+        writer.WriteBytes(winrt::array_view<const uint8_t>(bytes));
+        writer.StoreAsync().get();
+        writer.FlushAsync().get();
+
+        memory.Seek(0);
+        stream = memory;
+        return true;
+    }
+
+    // The file's own tags, keyed the way mpv keys its metadata so the music page
+    // has one vocabulary whether a value comes from here or from media-title.
+    // The named file's cover, regardless of what is playing.
+    //
+    // Shares the cache with TryGetCoverArt through ReadMediaInfoTags: asking for
+    // a track that is already cached costs a string compare.
+    bool MpvPlayer::TryGetCoverArtForPath(
+        winrt::hstring const& path,
+        winrt::Windows::Storage::Streams::IRandomAccessStream& stream)
+    {
+        const auto narrow = winrt::to_string(path);
+        if (narrow.empty())
+        {
+            return false;
+        }
+
+        if (m_coverArtForPath != path)
+        {
+            if (!ReadMediaInfoTags(narrow))
+            {
+                return false;
+            }
+        }
+
+        if (m_coverArtBase64.empty())
+        {
+            return false;
+        }
+
+        const auto bytes = DecodeBase64(winrt::to_string(m_coverArtBase64));
+        if (bytes.empty())
+        {
+            return false;
+        }
+
+        auto memory = winrt::Windows::Storage::Streams::InMemoryRandomAccessStream();
+
+        winrt::Windows::Storage::Streams::DataWriter writer(memory);
+        writer.WriteBytes(winrt::array_view<const uint8_t>(bytes));
+        writer.StoreAsync().get();
+        writer.FlushAsync().get();
+
+        memory.Seek(0);
+        stream = memory;
+        return true;
+    }
+
+    winrt::Windows::Foundation::Collections::IMap<winrt::hstring, winrt::hstring> MpvPlayer::GetMediaTags()
+    {
+        auto tags = winrt::single_threaded_map<winrt::hstring, winrt::hstring>();
+
+        auto& api = MediaInfoInstance();
+        const auto path = winrt::to_string(GetCurrentPath());
+        if (!api.Ready() || path.empty())
+        {
+            return tags;
+        }
+
+        void* handle = api.New();
+        if (!handle)
+        {
+            return tags;
+        }
+
+        if (api.Open(handle, path.c_str()))
+        {
+            api.Option(handle, "Complete", "1");
+
+            const std::pair<const char*, const char*> fields[] = {
+                {"Title", "title"},
+                {"Performer", "artist"},
+                {"Album", "album"},
+                {"Album/Performer", "album_artist"},
+                {"Genre", "genre"},
+                {"Recorded_Date", "date"},
+                {"Duration", "duration_ms"},
+            };
+
+            for (const auto& [field, key] : fields)
+            {
+                const auto value = ReadMediaInfoField(handle, field);
+                if (!value.empty())
+                {
+                    tags.Insert(winrt::to_hstring(key), winrt::to_hstring(value));
+                }
+            }
+
+            api.Close(handle);
+        }
+
+        api.Delete(handle);
+        return tags;
+    }
+
+    winrt::hstring MpvPlayer::GetCoverArtMimeType()
+    {
+        return m_coverArtMime;
     }
 } // namespace winrt::mpv_winrt::implementation
