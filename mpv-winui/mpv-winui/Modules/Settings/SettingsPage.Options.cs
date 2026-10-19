@@ -46,6 +46,7 @@ private List<Option> BuildSettings()
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
         var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
+        var sPlayerAppearance = AppContext.AppLang.SectionPlayerAppearance;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
         var sProgramAssociations = AppContext.AppLang.SectionProgramAssociations;
@@ -338,7 +339,8 @@ private List<Option> BuildSettings()
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
         {
-            [nameof(AppSettings.ThemeType)] = 0,
+            [nameof(AppSettings.PlayerStyle)] = 0,
+            [nameof(AppSettings.ThemeType)] = 1,
             [nameof(AppSettings.BackdropType)] = 1,
             [nameof(AppSettings.UiFont)] = 5,
             [nameof(AppSettings.TestMpvCommandLog)] = 6,
@@ -711,10 +713,11 @@ private List<Option> BuildSettings()
             // table claimed two sections were at the same position, so the
             // next person to add a sibling would have been reading a lie.
             [sProgramInterface] = 0,
-            [sProgramLanguageLog] = 1,
-            [sProgramConfig] = 2,
-            [sProgramTesting] = 3,
-            [sProgramAssociations] = 4,
+            [sPlayerAppearance] = 1,
+            [sProgramLanguageLog] = 2,
+            [sProgramConfig] = 3,
+            [sProgramTesting] = 4,
+            [sProgramAssociations] = 5,
 
             // playback
             [sPlayback] = 0,
@@ -799,6 +802,7 @@ private List<Option> BuildSettings()
         var sectionMap = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             // program
+            [nameof(AppSettings.PlayerStyle)] = sPlayerAppearance,
             [nameof(AppSettings.ThemeType)] = sProgramInterface,
             [nameof(AppSettings.BackdropType)] = sProgramInterface,
             [nameof(AppSettings.UiFont)] = sProgramInterface,

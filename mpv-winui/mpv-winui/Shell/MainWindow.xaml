@@ -7,28 +7,514 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:mpv_winui"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:pc="using:mpv_winui.Modules.Player"
     mc:Ignorable="d">
 
-    <Grid x:Name="Body">
+    <!-- The shell owns everything that must survive a change of page: the title
+         bar, the navigation pane, the tab strip and the player control bar.
+
+         ShellFrame only ever hosts MpvPlayerPage. That is not a placeholder -
+         the video SwapChainPanel inside that page is bound to libmpv once, and
+         detaching it would break playback, so navigation between library views
+         happens inside the page rather than by navigating this frame. -->
+    <!-- The shell keeps the pane's brush as its own base: it is only ever
+         visible through the pane and the title row, both of which want an opaque
+         pane anyway (the official player's pane stays opaque over Mica). The
+         surfaces that DO want the backdrop through them - the content area and
+         the status bar - are veiled in code, because "veil or solid" is a
+         runtime question: it depends on whether a backdrop is actually in play.
+         See MainWindow_Style.ApplyShellBackdropVeil. -->
+    <Grid
+        x:Name="Body"
+        Background="{ThemeResource MpvShellPaneBrush}">
         <Grid.RowDefinitions>
+            <!-- Both chrome rows are fixed heights, not Auto.
+
+                 Auto made the window's own height a function of what its
+                 content happened to measure: the first layout pass ran with the
+                 title row's natural height, the bar's template finished
+                 measuring a moment later, and the second pass moved the
+                 window's bottom edge. That is the reported "on first open the
+                 window grows a little, and it flickers". Fixed rows are the
+                 same height on every pass, from the first frame on, so there is
+                 no second pass to see. -->
             <RowDefinition
                 x:Name="TitleBarRow"
-                Height="Auto" />
+                Height="{StaticResource MpvShellTitleRowLength}" />
             <RowDefinition Height="*" />
+            <RowDefinition
+                x:Name="ShellBarRow"
+                Height="{StaticResource MpvShellBarRowLength}" />
         </Grid.RowDefinitions>
 
+        <!-- The pane's own surface, carried up through the title bar row.
+
+             In the official player the navigation pane is one surface that
+             runs from the window's very top edge: the title bar's back arrow,
+             icon and title are drawn ON it, not in a separate band above it.
+             The NavigationView itself lives in the row below (moving it up
+             would also move its toggle and search under the title bar's drag
+             region - measured in tools/mvpw-lab: with the NavigationView
+             spanning both rows its PaneRoot does reach y=0, but its
+             TogglePaneButton stays at y=4 and would become unclickable), so the
+             top band of that surface is this Border: same brush as the pane,
+             pane width, painted behind the title bar.
+
+             Width is assigned from UpdateShellPaneChrome because it has to
+             follow the pane through all three of its shapes. -->
+        <Border
+            x:Name="ShellNavPaneSurface"
+            Grid.Row="0"
+            Width="{StaticResource MpvNavPaneRailWidth}"
+            HorizontalAlignment="Left"
+            Background="{ThemeResource MpvShellPaneBrush}"
+            IsHitTestVisible="False" />
+
         <TitleBar x:Name="ShellTitleBar">
-            <TitleBar.IconSource>
-                <BitmapIconSource
-                    ShowAsMonochrome="False"
-                    UriSource="App.ico" />
-            </TitleBar.IconSource>
+            <!-- No IconSource and no Title: the back button, the icon and the
+                 title are one cluster in the LeftHeader, so the button can sit
+                 to the LEFT of the icon the way the official player's title bar
+                 has it, and the icon-to-title gap and the title's font size are
+                 ours to set. The framework's own title text is left empty; the
+                 window title (taskbar, Alt-Tab) still comes from AppWindow.
+
+                 The cluster's geometry follows the navigation pane, not the
+                 other way round. Every fixed point is a rail multiple:
+                 * the back button is exactly one rail wide, so the framework's
+                   own centring puts its arrow on the pane's axis (rail/2);
+                 * the app icon sits at rail + 20 (measured off the official:
+                   118px at 175% = 67.4 DIP against a 47.4 DIP rail);
+                 * the title follows the icon with an 11 DIP gap, which is the
+                   official's own (its text starts 11.4 DIP right of the mark).
+
+                 One accepted trade-off, so the next reader does not file it as
+                 a defect: because this title is a plain TextBlock and not the
+                 control's own title element, it does not dim when the window
+                 is deactivated (the framework's TitleTextDeactivated state
+                 applies to PART_TitleText only). It reads as a small difference
+                 on an inactive window, and the alternative - reaching into the
+                 template for PART_TitleText - would trade a cosmetic detail for
+                 a dependency on an internal name.
+
+                 While a file plays the button withdraws to the library (the
+                 video keeps running); once the library covers the video it
+                 returns to it; otherwise it goes Home, and dims when Home is
+                 already up. -->
+            <TitleBar.LeftHeader>
+                <!-- Back, then the pane's own toggle, then the icon and the
+                     title: the official player's order, and one row.
+
+                     The toggle is OURS, not the framework's. NavigationView
+                     draws its PaneToggleButton inside the pane root, which sits
+                     in the row below the title bar - so the official's
+                     "hamburger immediately right of the back arrow, on the
+                     title row" was impossible while the framework owned it, and
+                     what the app actually showed was a hamburger stacked under
+                     the title bar, on the rail's axis, looking like the first
+                     navigation item. Turning it off and drawing our own here is
+                     the only arrangement that puts the two keys in one cluster.
+                     Its width is a rail so the two keys have the same pitch, and
+                     its click is the same IsPaneOpen toggle the framework's
+                     button performed. -->
+                <StackPanel Orientation="Horizontal">
+                    <Button
+                        x:Name="ShellBackButton"
+                        Width="{StaticResource MpvNavPaneRailWidth}"
+                        Height="{StaticResource MpvShellTitleRowHeight}"
+                        Padding="{StaticResource MpvCompactButtonPadding}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="ShellBackButton_Click">
+                        <FontIcon
+                            FontSize="16"
+                            Glyph="&#xE72B;" />
+                    </Button>
+                    <Button
+                        x:Name="ShellPaneToggleButton"
+                        Width="{StaticResource MpvNavPaneRailWidth}"
+                        Height="{StaticResource MpvShellTitleRowHeight}"
+                        Padding="{StaticResource MpvCompactButtonPadding}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="ShellPaneToggleButton_Click">
+                        <FontIcon
+                            FontSize="16"
+                            Glyph="&#xE700;" />
+                    </Button>
+                    <BitmapIcon
+                        Width="{StaticResource MpvShellAppIconSize}"
+                        Height="{StaticResource MpvShellAppIconSize}"
+                        Margin="{StaticResource MpvShellAppIconMargin}"
+                        ShowAsMonochrome="False"
+                        UriSource="App.ico" />
+                    <TextBlock
+                        x:Name="ShellTitleText"
+                        Margin="{StaticResource MpvShellTitleMargin}"
+                        VerticalAlignment="Center"
+                        FontSize="{StaticResource MpvShellTitleFontSize}"
+                        TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </TitleBar.LeftHeader>
         </TitleBar>
 
-        <Frame
-            x:Name="ShellFrame"
+        <NavigationView
+            x:Name="ShellNav"
             Grid.Row="1"
-            Grid.RowSpan="1" />
+            CompactModeThresholdWidth="760"
+            CompactPaneLength="{StaticResource MpvNavPaneRailWidth}"
+            DisplayModeChanged="ShellNav_DisplayModeChanged"
+            ExpandedModeThresholdWidth="1120"
+            IsBackButtonVisible="Collapsed"
+            IsPaneToggleButtonVisible="False"
+            IsSettingsVisible="False"
+            OpenPaneLength="{StaticResource MpvNavPaneWidth}"
+            PaneClosed="ShellNav_PaneClosed"
+            PaneClosing="ShellNav_PaneClosing"
+            PaneDisplayMode="Auto"
+            PaneOpened="ShellNav_PaneOpened"
+            PaneOpening="ShellNav_PaneOpening"
+            SelectionChanged="ShellNav_SelectionChanged">
+            <!--
+              PaneDisplayMode is Auto: the full pane at normal widths, the 48px
+              icon rail on a narrower window, and the overlay pane below it. The
+              window does the collapsing; the user never has to.
+
+              The two thresholds moved up with the pane's width (240 -> 320):
+              1120 leaves 800 DIP of content beside a 320 pane, which is where
+              the content column stops being able to hold a row of cards, and
+              760 is where the 48 rail plus a 640 content floor stops fitting.
+              Keeping the old 960/640 against a 320 pane would have opened the
+              pane into a 640-DIP content area, i.e. straight into an unusable
+              layout.
+
+              The toggle is the shell's own, in the title row, not the
+              framework's - see UpdateShellPaneChrome for why. There is no
+              collapse affordance at all while the pane is expanded, which is
+              the arrangement the user asked for.
+            -->
+            <NavigationView.Resources>
+                <ResourceDictionary>
+                    <ResourceDictionary.ThemeDictionaries>
+                        <!-- The pane's fill, in the pane's two shapes and in
+                             every theme.
+
+                             The pane used to be left to the framework and the
+                             two shapes disagreed: the expanded/rail surface
+                             resolved to a fully transparent brush, while the
+                             open overlay pane picked up the in-app acrylic -
+                             which, on a machine with transparency effects off,
+                             renders as its #2C2C2C fallback. So the same panel
+                             was #202020 in one shape and #2C2C2C in the other,
+                             and the only thing that marked the boundary was the
+                             content grid's 1px border (now gone).
+
+                             Both keys are now pinned to MpvShellPaneBrush, and
+                             they are aliased per theme dictionary rather than
+                             once, because the app switches themes live: a plain
+                             StaticResource alias would keep whatever brush the
+                             theme in force at load resolved to.
+
+                             That brush is also the darkest of the window's
+                             three blocks - pane / content / status bar - which
+                             is the relationship the official player has.
+                             Measured on its own window at 175% scaling: pane
+                             #1D231A against content #2D2E2C and status
+                             #2F2E2C. This app had it the other way round, a
+                             #2C2C2C pane on a #202020 everything-else, which
+                             reads as a lighter slab stuck onto the window
+                             rather than as the window's own deeper end.
+
+                             Solid rather than acrylic on purpose: the content
+                             behind it is opaque (Body paints the pane brush and
+                             the content grid paints the base brush on top), so
+                             an in-app acrylic has almost nothing to blur and
+                             only ever contributes a tint. -->
+                        <ResourceDictionary x:Key="Default">
+                            <StaticResource
+                                x:Key="NavigationViewDefaultPaneBackground"
+                                ResourceKey="MpvShellPaneBrush" />
+                            <StaticResource
+                                x:Key="NavigationViewExpandedPaneBackground"
+                                ResourceKey="MpvShellPaneBrush" />
+                        </ResourceDictionary>
+                        <ResourceDictionary x:Key="Light">
+                            <StaticResource
+                                x:Key="NavigationViewDefaultPaneBackground"
+                                ResourceKey="MpvShellPaneBrush" />
+                            <StaticResource
+                                x:Key="NavigationViewExpandedPaneBackground"
+                                ResourceKey="MpvShellPaneBrush" />
+                        </ResourceDictionary>
+                        <ResourceDictionary x:Key="HighContrast">
+                            <StaticResource
+                                x:Key="NavigationViewDefaultPaneBackground"
+                                ResourceKey="MpvShellPaneBrush" />
+                            <StaticResource
+                                x:Key="NavigationViewExpandedPaneBackground"
+                                ResourceKey="MpvShellPaneBrush" />
+                        </ResourceDictionary>
+                    </ResourceDictionary.ThemeDictionaries>
+
+                    <!-- The content host stays transparent so the shell's own
+                         surface shows through it: the pane and the content then
+                         differ by the pane's fill alone, with no seam between
+                         them. The border is explicitly zeroed rather than left
+                         to the framework's default: this app previously asked
+                         for a 1px left edge to draw that seam, and the request
+                         is that the seam be gone, not merely thinner. -->
+                    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+                    <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                </ResourceDictionary>
+            </NavigationView.Resources>
+
+            <!-- The library's search, in the pane's own search slot.
+
+                 This is the framework's AutoSuggestBox slot, not custom
+                 PaneHeader content, and that is the whole point: the framework
+                 lays this slot out BELOW the pane toggle, and in the rail it
+                 swaps the box for its own search button on the same axis. That
+                 is the official player's own arrangement - back arrow in the
+                 title bar, then hamburger, then search, then the sections - and
+                 it is measured in tools/mvpw-lab:
+                   rail    : toggle y=4..44, search button y=44..84 (glyph centre
+                             on rail/2), first item at y=88
+                   overlay : toggle y=4..44, box y=44..84, first item at y=88.
+
+                 The previous custom markup put the box in the PaneHeader, where
+                 it sat beside the hamburger (the two overlapped), and parked a
+                 second search button in the PaneFooter - next to Settings, at
+                 the bottom. Both are gone.
+
+                 The margin is vertical only: the slot already insets the box
+                 from the pane's edges, and 4 top/bottom centres a 32 box in the
+                 slot's 40. -->
+            <NavigationView.AutoSuggestBox>
+                <AutoSuggestBox
+                    x:Name="ShellLibrarySearch"
+                    Margin="0,4,0,4"
+                    TextChanged="ShellLibrarySearch_TextChanged"
+                    QueryIcon="Find" />
+            </NavigationView.AutoSuggestBox>
+
+            <NavigationView.PaneFooter>
+                <!-- Settings sits in the footer rather than in the menu list,
+                     which is where the official Media Player puts it too. The
+                     label is AppLang's, not the framework's built-in settings
+                     item, because this app's UI language is chosen in-app and
+                     does not follow the Windows display language.
+
+                     The footer used to carry two more entries - the rail's
+                     search button and a "motion demo" button. The search has
+                     moved into the pane's own search slot (it belongs under the
+                     hamburger, not beside Settings, and the framework already
+                     draws a rail button for it there), and the motion demo is
+                     gone.
+
+                     The insets are what put the glyph on the pane's axis, and
+                     they are the one number that has to follow the rail width:
+                     a 16px glyph centres on rail/2 when its left edge sits at
+                     rail/2 - 8, so the chain is
+                         margin 4 + padding 4 + inner MpvNavPaneFooterIconMargin 8
+                         = 16 = 48/2 - 8.
+                     Measured in tools/mvpw-lab at rail 48: footer glyph cx=24,
+                     the same axis as the pane toggle, the rail's search button
+                     and every navigation item's icon. -->
+                <StackPanel>
+                    <Button
+                        x:Name="ShellSettingsButton"
+                        Margin="4,0,4,8"
+                        Padding="4,6,4,6"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="ShellSettingsButton_Click">
+                        <StackPanel
+                            Margin="{StaticResource MpvNavPaneFooterIconMargin}"
+                            Orientation="Horizontal"
+                            Spacing="{StaticResource MpvSpaceM}">
+                            <FontIcon FontSize="16" Glyph="&#xE713;" />
+                            <!-- The label is NOT collapsed to hide it in the
+                                 rail. Collapsing changes the footer's desired
+                                 size, and the NavigationView measures its own
+                                 pane from that - so in the rail the label went
+                                 away only after the pane had already settled,
+                                 and coming back the other way it arrived one
+                                 beat after the pane opened. That is the
+                                 reported "Settings word shows up a frame late".
+
+                                 It keeps its box in both shapes and is hidden
+                                 with Opacity instead. Opacity is render-only,
+                                 so the measurement never changes and nothing has
+                                 to wait for the pane animation to finish. The
+                                 collapse in the rail is done by the pane's own
+                                 width, which clips the label. -->
+                            <TextBlock
+                                x:Name="ShellSettingsText"
+                                VerticalAlignment="Center"
+                                Opacity="1" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </NavigationView.PaneFooter>
+
+            <NavigationView.Content>
+                <Grid x:Name="ShellContentView">
+                    <!-- ONE opaque surface.
+
+                         There were two here briefly - a solid fill and a
+                         translucent "veil" for when a backdrop was behind the
+                         window - switched at run time. Both were wrong on this
+                         machine: the veil is #66 alpha, so 0.6 x #202020 is
+                         exactly #0F0F0F, and that is the black strip that
+                         appeared above the library. A translucent layer over an
+                         opaque one can only ever darken it; it cannot reveal a
+                         backdrop that is not being composited.
+
+                         So the shell paints the base colour and the backdrop
+                         question is answered where it belongs - by the window's
+                         own SystemBackdrop, with no XAML participation. -->
+                    <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" />
+
+                    <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- The top band: the library's open-file command only.
+
+                         It carried a TabView of tabs until now, one tab per
+                         playlist entry. That was a THIRD rendering of the same
+                         mpv playlist (the queue section, the side panel and
+                         these tabs), and it was the one nobody asked for: the
+                         tabs only acted as a selector for files that were
+                         already listed twice elsewhere, and while a video played
+                         they were hidden anyway - "the tab strip does nothing
+                         during playback, delete the feature".
+
+                         Removing it is what this row is now: one button, on the
+                         row above the library, aligned to the same left gutter
+                         as the page heading so the two do not read as two
+                         unrelated pieces of chrome. -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+
+
+                        <!-- The library's open-file command, on the same band as
+                             the pane's search box - which is where the official
+                             player's own open affordance sits, though that one
+                             is inside its empty state rather than a permanent
+                             button. This one is mpvw's own addition and is kept
+                             because it is the only open command that stays
+                             reachable once the library has cards in it. The
+                             words and the icon come from AppLang and FluentIcons
+                             in code. -->
+                        <!-- The open affordance, with the official player's own
+                             three-item menu behind it.
+
+                             A DropDownButton rather than a plain Button: the
+                             official's "添加文件" opens a menu of three ways to add
+                             something (a file, a folder, or a URL), each with a
+                             glyph and a one-line explanation underneath. One
+                             button that only browsed for files was half of that
+                             flow, and URL playback in particular was unreachable
+                             from here.
+
+                             Because the three items carry a description, they are
+                             MenuFlyoutItems with a StackPanel body rather than
+                             strings: the official menu is two lines per item and
+                             a single-line item would have lost the explanation. -->
+                        <DropDownButton
+                            x:Name="ShellOpenFileButton"
+                            Grid.Column="1"
+                            Margin="12,6,24,6"
+                            Padding="{StaticResource MpvCompactButtonPadding}"
+                            VerticalAlignment="Center">
+                            <DropDownButton.Content>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource MpvSpaceS}">
+                                    <!-- PathIcon draws its geometry at native size,
+                                         so the Viewbox is what makes a 16px icon an
+                                         actual 16px icon; without it the 24-unit
+                                         glyph is clipped by the element. -->
+                                    <Viewbox
+                                        Width="16"
+                                        Height="16">
+                                        <PathIcon
+                                            x:Name="ShellOpenFileIcon"
+                                            Width="24"
+                                            Height="24" />
+                                    </Viewbox>
+                                    <TextBlock
+                                        x:Name="ShellOpenFileText"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DropDownButton.Content>
+                            <DropDownButton.Flyout>
+                                <MenuFlyout x:Name="ShellOpenFileMenu">
+                                    <MenuFlyoutItem
+                                        x:Name="OpenFileMenuItem"
+                                        Click="ShellOpenFileMenuItem_Click" />
+                                    <MenuFlyoutItem
+                                        x:Name="OpenFolderMenuItem"
+                                        Click="ShellOpenFolderMenuItem_Click" />
+                                    <MenuFlyoutItem
+                                        x:Name="OpenUrlMenuItem"
+                                        Click="ShellOpenUrlMenuItem_Click" />
+                                </MenuFlyout>
+                            </DropDownButton.Flyout>
+                        </DropDownButton>
+                    </Grid>
+
+                    <Frame
+                        x:Name="ShellFrame"
+                        Grid.Row="1"
+                        Grid.RowSpan="1">
+                        <Frame.ContentTransitions>
+                            <!-- The framework's own page transition, which runs
+                                 on the compositor. Hand-rolling a slide here
+                                 would be exactly the "do not invent what the
+                                 framework already does" case. -->
+                            <TransitionCollection>
+                                <NavigationThemeTransition />
+                            </TransitionCollection>
+                        </Frame.ContentTransitions>
+                    </Frame>
+                    </Grid>
+                </Grid>
+            </NavigationView.Content>
+        </NavigationView>
+
+        <!-- The status bar, the third block. It paints its own surface now:
+             the three blocks are pane (dark) / content (light) / bar (in
+             between), and the bar has to be its own colour or the boundary the
+             official player draws between the video and the controls does not
+             exist - which is exactly what "当前状态栏与内容区没有分界" was. The
+             bar's own gradient still paints over the video in overlay mode
+             (PlayerControl.SetOverlayMode), so this brush is only visible where
+             the bar has a surface of its own: windowed playback. -->
+        <Grid
+            x:Name="ShellPlayerBarSurface"
+            Grid.Row="2"
+            Grid.Column="0">
+            <!-- The bar's two surfaces, same rule as the content area: solid
+                 when no backdrop, veil when there is. Kept as siblings of the
+                 control rather than as its parent's Background so that a brush
+                 change never lands on an element that also takes input. -->
+            <Border x:Name="ShellBarSolid" Background="{ThemeResource MpvShellBarBrush}" />
+            <pc:PlayerControl
+                x:Name="ShellPlayerBar"
+                VerticalAlignment="Stretch"
+                NextTrackButtonVisibility="Visible"
+                PreviousTrackButtonVisibility="Visible" />
+        </Grid>
 
     </Grid>
 

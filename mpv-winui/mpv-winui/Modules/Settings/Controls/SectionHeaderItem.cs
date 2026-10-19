@@ -9,6 +9,24 @@ public sealed class SectionHeaderItem
     public string Caption { get; set; } = string.Empty;
 
     /// <summary>
+    /// One line saying what the section is for, shown under the caption.
+    ///
+    /// The section table has carried a description per section all along - the
+    /// settings search reads it - and the browse list never showed it, so the
+    /// only place it appeared was in a search result. The motion bench renders
+    /// it, which is where the row design was agreed, and a caption on its own
+    /// leaves a reader guessing what "Demuxer" or "Tone mapping" covers.
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>Bound by the header template; a section with no description
+    /// collapses the line rather than reserving an empty one.</summary>
+    public Microsoft.UI.Xaml.Visibility DescriptionVisibility =>
+        string.IsNullOrEmpty(Description)
+            ? Microsoft.UI.Xaml.Visibility.Collapsed
+            : Microsoft.UI.Xaml.Visibility.Visible;
+
+    /// <summary>
     /// Stable id of the folder this header opens (built-in section id, or the
     /// id of a folder the user created). Carried on the header so a rename or
     /// delete resolves to a stored id instead of the localized caption, which

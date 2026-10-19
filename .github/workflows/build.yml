@@ -1,7 +1,15 @@
 name: build
 
+# Manual runs are kept for producing release artifacts. The push and
+# pull_request triggers exist because the gates below (checks, tests, packaging)
+# otherwise only ran when somebody remembered to press the button, which is how
+# a settings value that grew mpv.conf to 896 MB per launch reached a release
+# with the test suite sitting right there, never invoked.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
   build:
@@ -33,14 +41,49 @@ jobs:
     - name: Check settings drift
       run: python tools/check-settings-drift.py
 
-    - name: Download deps
+    - name: Check XAML
+      # XAML cannot carry "--" inside a comment (WMC9997) and nothing in the
+      # editing tooling prevents it. Documented as having cost this repo five
+      # full build cycles, with a failed build still being deployed as success on
+      # the fifth, and it was not in CI.
+      run: python tools/check-xaml.py
+
+    - name: Check generated settings are fresh
+      # gen-schema-options.py --check existed and was never invoked by anything,
+      # so the ~14k lines of *.Gen.cs in the tree were only ever re-generated
+      # when somebody remembered.
+      run: python tools/gen-schema-options.py --check
+
+    - name: Download native deps
+      # Was: two curl downloads piped straight into Expand-Archive, with no
+      # integrity check, feeding binaries that end up in a signed MSI. The
+      # script verifies the sha256 published on each upstream release page and
+      # installs the per-architecture layout the projects resolve.
+      shell: pwsh
+      run: .\tools\fetch-mpv-libs.ps1 -Root . -Platform ${{ matrix.platform }}
+
+    # Optional code-signing: only runs when both secrets are configured.
+    # A fresh fork without secrets still gets the unpackaged Release zip.
+    #
+    # Moved above Update Package because that script needs the publisher below,
+    # and it now also derives the publisher rather than relying on the manifest's
+    # development identity being edited by hand.
+    - name: Decode the pfx and derive the package publisher
+      if: env.Pfx_Base64 != '' && env.Pfx_Key != ''
       run: |
-        curl -L -o mpv-libs.zip "https://github.com/ikas-mc/mpv-windows-builder/releases/download/20260731/mpv-2.dll.zip"
-        Expand-Archive -Path mpv-libs.zip -DestinationPath "${{github.workspace}}\mpv-winui\libs" -Force
-        Remove-Item -Path mpv-libs.zip -Force
-        curl -L -o mediainfo.zip "https://github.com/ikas-mc/MediaInfoLib-builder/releases/download/0.1.0/mediainfo.dll.zip"
-        Expand-Archive -Path mediainfo.zip -DestinationPath "${{github.workspace}}\mpv-winui\libs" -Force
-        Remove-Item -Path mediainfo.zip -Force
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
+        $certificatePath = "GitHubActionsWorkflow.pfx"
+        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+
+        # Identity.Publisher must equal the signing certificate's subject or
+        # Windows refuses to install the package (0x80073CF0). The value in the
+        # repository is the development identity, which is right for sideloading
+        # and wrong here, so it is taken from the certificate that will actually
+        # sign the package instead of being kept in sync by hand.
+        $pw = ConvertTo-SecureString -String "${{ secrets.Pfx_Key }}" -AsPlainText -Force
+        $subject = (Get-PfxCertificate -FilePath $certificatePath -Password $pw).Subject
+        Write-Host "signing certificate subject: $subject"
+        "APPX_PUBLISHER=$subject" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
     - name: Update Package
       run: |
@@ -48,6 +91,7 @@ jobs:
         .\update-package.ps1
 
     - name: Restore nuget
+      # packages.config restore, needed before the C++ component builds.
       run: |
         nuget restore  mpv-winui\mpv-winrt\mpv-winrt.vcxproj  -SolutionDirectory mpv-winui
         nuget restore  mpv-winui\mpv-winui\mpv-winui.csproj  -SolutionDirectory mpv-winui
@@ -55,14 +99,30 @@ jobs:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
 
-    # Optional code-signing: only runs when both secrets are configured.
-    # A fresh fork without secrets still gets the unpackaged Release zip.
-    - name: Decode the pfx
-      if: env.Pfx_Base64 != '' && env.Pfx_Key != ''
+    - name: Build the C++ component
+      # Built explicitly, the way build.ps1 does it. The publish step below would
+      # build it too, but as an implicit side effect of a step that also produces
+      # the artifact, which left nowhere for the tests to run before packaging.
+      shell: pwsh
+      run: msbuild mpv-winui\mpv-winrt\mpv-winrt.vcxproj /t:Build /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:VisualStudioVersion=17.0 /m /v:m /nologo
+      env:
+        Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }}
+
+    - name: Test
+      # Neither suite ran in CI before. mpv-conf-test was invoked by build.ps1
+      # only, and mpv-winrt-test by nothing at all, because its test class
+      # referenced app code through a Compile link that had never been added and
+      # so the project did not compile.
+      shell: pwsh
       run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
-        $certificatePath = "GitHubActionsWorkflow.pfx"
-        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+        dotnet test mpv-winui\mpv-conf-test\mpv-conf-test.csproj -c $env:Configuration -v:minimal
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        dotnet test mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj -c $env:Configuration -p:Platform=$env:Platform -v:minimal
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      env:
+        Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }}
 
     - name: Create Unpackaged
       run: msbuild mpv-winui\mpv-winui\mpv-winui.csproj /t:Publish /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:BuildMpvWinrtWithReference=true /p:GenerateAppxPackageOnBuild=false /p:AppxPackageSigningEnabled=false

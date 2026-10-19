@@ -32,7 +32,11 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private bool PlayerControl_OnFullScreenRequest()
+        /// <summary>
+        /// Raised by the shell's bar, not wired in this page's XAML any more -
+        /// the bar moved to MainWindow so it can stay mounted across pages.
+        /// </summary>
+        internal bool HandleFullScreenRequest()
         {
             // mpv's "fullscreen" property is the single source of truth: the
             // property change event (MpvPlayerPage_WindowChanged) applies the
@@ -43,7 +47,10 @@ namespace mpv_winui.Modules.Player
             return _isFullScreen;
         }
 
-        private bool PlayerControl_OnFullWindowRequest()
+        /// <summary>
+        /// Raised by the shell's bar. See <see cref="HandleFullScreenRequest"/>.
+        /// </summary>
+        internal bool HandleFullWindowRequest()
         {
             // Track the state ourselves: GoToState's return value only reports
             // whether the state changed, so re-entering an already-active state
