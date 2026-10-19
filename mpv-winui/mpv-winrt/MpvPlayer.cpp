@@ -157,6 +157,12 @@ namespace winrt::mpv_winrt::implementation
         // refresh-rate property has to be published now that the core is up.
         UpdateDisplayRefreshRate(refreshRate);
 
+        // idle-active is the only property that says "nothing is loaded". It
+        // used to be unobserved while the PlaybackStateChanged handler below
+        // still had a CoreIdle case, so IsIdle was hard-coded false and the app
+        // never learned that playback had started. Registered before Pause so
+        // the idle report arrives first on a load.
+        mpv_observe_property(m_mpv, MpvObserveId::CoreIdle, "idle-active", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::Pause, "pause", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::PausedForCache, "paused-for-cache", MPV_FORMAT_FLAG);
         mpv_observe_property(m_mpv, MpvObserveId::Duration, "duration", MPV_FORMAT_DOUBLE);
@@ -388,7 +394,21 @@ namespace winrt::mpv_winrt::implementation
                     switch (event->reply_userdata)
                     {
                         case MpvObserveId::CoreIdle:
-                            break;
+                            {
+                                // The transition the app switches pages on.
+                                // prop->data is null while a property is
+                                // unavailable (right after the observe and
+                                // during teardown), which reads as "not idle"
+                                // rather than as a spurious idle report.
+                                int idle = prop->format == MPV_FORMAT_FLAG && prop->data
+                                    ? *static_cast<int*>(prop->data)
+                                    : 0;
+                                int paused = 0;
+                                mpv_get_property(m_mpv, "pause", MPV_FORMAT_FLAG, &paused);
+                                auto args = winrt::make<implementation::PlaybackStateChangedEventArgs>(paused != 0, idle != 0);
+                                m_playbackStateChangedEvent(args);
+                                break;
+                            }
 
                         case MpvObserveId::PausedForCache:
                             {
@@ -399,7 +419,9 @@ namespace winrt::mpv_winrt::implementation
                         case MpvObserveId::Pause:
                             {
                                 int video_paused = prop->data ? *static_cast<int*>(prop->data) : 0;
-                                auto args = winrt::make<implementation::PlaybackStateChangedEventArgs>(video_paused, false);
+                                int idle = 0;
+                                mpv_get_property(m_mpv, "idle-active", MPV_FORMAT_FLAG, &idle);
+                                auto args = winrt::make<implementation::PlaybackStateChangedEventArgs>(video_paused, idle != 0);
                                 m_playbackStateChangedEvent(args);
                                 break;
                             }
