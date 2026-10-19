@@ -1394,5 +1394,7 @@
   "WatchLaterDisabled": "--write-filename-in-watch-later-config를 사용하면 최근 파일을 선택할 수 있습니다.",
   "WatchLaterEmpty": "나중에 볼 파일이 없습니다.",
   "Window": "창",
-  "Yes": "예"
+  "Yes": "예",
+  "SectionPlayerAppearance": "플레이어 모양",
+  "SectionDescPlayerAppearance": "컨트롤 바 스킨"
 }

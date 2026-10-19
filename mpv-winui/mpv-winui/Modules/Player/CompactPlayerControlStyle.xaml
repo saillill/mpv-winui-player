@@ -39,9 +39,13 @@
                              unchanged, so the VisualStates that collapse them
                              still bind - and none of those setters targets a
                              container, only the named leaves. -->
+                        <!-- Same two rows as the default bar: the slider, then the
+                             button row at its shared height. See the note in
+                             CenterPlayerControlStyle.xaml for why these are tokens
+                             and not numbers. -->
                         <Grid.RowDefinitions>
                             <RowDefinition Height="28" />
-                            <RowDefinition Height="60" />
+                            <RowDefinition Height="{StaticResource MpvTransportBarHeight}" />
                         </Grid.RowDefinitions>
                         <ProgressBar
                             x:Name="BufferingProgressBar"
@@ -96,28 +100,30 @@
                                          classic bar's proportions at that size
                                          (stroke 7% of the outside diameter, ink
                                          60%), not free-hand numbers. -->
-                                    <Grid Width="36" Height="36">
+                                    <Grid
+                                        Width="{StaticResource MpvTransportButtonSize}"
+                                        Height="{StaticResource MpvTransportButtonSize}">
                                         <Ellipse StrokeThickness="3" Stroke="{StaticResource MpvTransportPlayRingBrush}" />
                                         <Viewbox
-                                            Width="31"
-                                            Height="31"
+                                            Width="{StaticResource MpvTransportButtonSize}"
+                                            Height="{StaticResource MpvTransportButtonSize}"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center">
                                             <PathIcon
                                                 x:Name="PlayGlyph"
-                                                Width="24"
-                                                Height="24"
+                                                Width="{StaticResource MpvTransportIconSize}"
+                                                Height="{StaticResource MpvTransportIconSize}"
                                                 Data="F1 M5 5.27368C5 3.56682 6.82609 2.48151 8.32538 3.2973L20.687 10.0235C22.2531 10.8756 22.2531 13.124 20.687 13.9762L8.32538 20.7024C6.82609 21.5181 5 20.4328 5 18.726V5.27368Z" />
                                         </Viewbox>
                                         <Viewbox
-                                            Width="31"
-                                            Height="31"
+                                            Width="{StaticResource MpvTransportButtonSize}"
+                                            Height="{StaticResource MpvTransportButtonSize}"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center">
                                             <PathIcon
                                                 x:Name="PauseGlyph"
-                                                Width="24"
-                                                Height="24"
+                                                Width="{StaticResource MpvTransportIconSize}"
+                                                Height="{StaticResource MpvTransportIconSize}"
                                                 Data="F1 M5.74609 3C4.7796 3 3.99609 3.7835 3.99609 4.75V19.25C3.99609 20.2165 4.7796 21 5.74609 21H9.24609C10.2126 21 10.9961 20.2165 10.9961 19.25V4.75C10.9961 3.7835 10.2126 3 9.24609 3H5.74609ZM14.7461 3C13.7796 3 12.9961 3.7835 12.9961 4.75V19.25C12.9961 20.2165 13.7796 21 14.7461 21H18.2461C19.2126 21 19.9961 20.2165 19.9961 19.25V4.75C19.9961 3.7835 19.2126 3 18.2461 3H14.7461Z"
                                                 Visibility="Collapsed" />
                                         </Viewbox>

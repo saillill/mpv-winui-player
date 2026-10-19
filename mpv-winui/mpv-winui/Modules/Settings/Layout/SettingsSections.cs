@@ -79,6 +79,7 @@ internal static class SettingsSections
         new("SectionProgramConfig", "\uECC5", l => l.SectionProgramConfig, l => l.SectionDescProgramConfig),
         new("SectionProgramAssociations", "\uE8E5", l => l.SectionProgramAssociations, l => l.SectionDescProgramAssociations),
         new("SectionProgramTesting", "\uE9D9", l => l.SectionProgramTesting, l => l.SectionDescProgramTesting),
+        new("SectionPlayerAppearance", "\uE7F8", l => l.SectionPlayerAppearance, l => l.SectionDescPlayerAppearance),
         new("SectionPlayback", "\uE102", l => l.SectionPlayback, l => l.SectionDescPlayback),
         new("SectionPlaybackSeeking", "\uE786", l => l.SectionPlaybackSeeking, l => l.SectionDescPlaybackSeeking),
         new("SectionPlaybackSeekPreview", "\uE720", l => l.SectionPlaybackSeekPreview, l => l.SectionDescPlaybackSeekPreview),

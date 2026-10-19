@@ -22,6 +22,7 @@ using mpv_winui.Modules.Common.View;
 
 using mpv_winui.Modules.Common.Utils;
 
+using mpv_winui.Modules.Settings;
 using mpv_winui.Modules.Settings.Controls;
 
 using System;
@@ -65,6 +66,80 @@ namespace mpv_winui.Modules.Player
         public event OnPanelVisibleChangedHandler? OnPanelVisibleChanged;
 
         public event OnPositionChangedHandler? OnPositionChanged;
+
+        /// <summary>
+
+        /// Applies the user's control-bar skin.
+
+        ///
+
+        /// Three states, and the default is "no style" - the control draws its own
+
+        /// template from PlayerControl.xaml. The two alternates are whole
+
+        /// ControlTemplates in their own resource dictionaries, which is why this
+
+        /// assigns a Style rather than setting properties.
+
+        ///
+
+        /// Idempotent: assigning the same Style twice is a no-op in WinUI, and this
+
+        /// runs once per setting change rather than per frame.
+
+        /// </summary>
+
+        internal void ApplyPlayerStyle()
+
+        {
+
+            var style = AppContext.AppSetting.PlayerStyle;
+
+
+
+            switch (style)
+
+            {
+
+                case AppSettings.PlayerStyle_Center:
+
+                {
+
+                    Style = Application.Current.Resources["CenterPlayerControlStyle"] as Style;
+
+                    break;
+
+                }
+
+
+
+                case AppSettings.PlayerStyle_Compact:
+
+                {
+
+                    Style = Application.Current.Resources["CompactPlayerControlStyle"] as Style;
+
+                    break;
+
+                }
+
+
+
+                default:
+
+                {
+
+                    Style = null;
+
+                    break;
+
+                }
+
+            }
+
+        }
+
+
 
         /// <summary>
         /// The coalesced position, for consumers that need the value rather than
@@ -390,7 +465,23 @@ namespace mpv_winui.Modules.Player
 
         {
 
-            if (key == nameof(AppContext.AppSetting.VolumeMax))
+            if (key == nameof(AppContext.AppSetting.PlayerStyle))
+
+            {
+
+                // The skin is a Style on this control, so it is applied here rather
+
+                // than by the page: the settings window has no reference to the
+
+                // page, and routing it through the page would be a second path for
+
+                // one setting.
+
+                DispatcherQueue.TryEnqueue(ApplyPlayerStyle);
+
+            }
+
+            else if (key == nameof(AppContext.AppSetting.VolumeMax))
 
             {
 

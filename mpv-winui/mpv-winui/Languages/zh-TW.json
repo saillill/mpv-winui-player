@@ -1387,5 +1387,7 @@
   "WatchLaterDisabled": "啟用 --write-filename-in-watch-later-config 以選擇最近的檔案。",
   "WatchLaterEmpty": "未找到稍後觀看檔案。",
   "Window": "視窗",
-  "Yes": "是"
+  "Yes": "是",
+  "SectionPlayerAppearance": "播放器外觀",
+  "SectionDescPlayerAppearance": "狀態列面板樣式"
 }
