@@ -1711,7 +1711,7 @@
                         <StackPanel
                             Grid.Row="0"
                             Margin="0,0,0,8"
-                            Spacing="{StaticResource MpvSpaceXS}">
+                            Spacing="{StaticResource MpvSpaceXs}">
                             <TextBlock
                                 x:Name="MusicTitle"
                                 FontSize="34"
