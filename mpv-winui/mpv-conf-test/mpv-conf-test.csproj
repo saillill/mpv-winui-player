@@ -43,6 +43,8 @@
              overflow button decided by a question the menu does not ask) are
              only visible by asking the table directly. -->
         <Compile Include="..\mpv-winui\Modules\Player\ControlBarAdaptiveLayout.cs" Link="Player\ControlBarAdaptiveLayout.cs" />
+        <Compile Include="..\mpv-winui\Modules\Player\Audio\SpectrumAnalyzer.cs" Link="Player\Audio\SpectrumAnalyzer.cs" />
+        <Compile Include="..\mpv-winui\Modules\Player\Audio\AlbumColorExtractor.cs" Link="Player\Audio\AlbumColorExtractor.cs" />
         <Compile Include="..\mpv-winui\Modules\Motion\SpringMath.cs" Link="Motion\SpringMath.cs" />
         <!-- The atomic-replace writer the settings layer now uses for mpv.conf,
              its state file and script-opts. Linked for the usual reason: the

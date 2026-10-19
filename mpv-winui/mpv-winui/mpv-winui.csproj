@@ -130,6 +130,7 @@
           needs its own exclusions, so the AI stack is excluded at both levels.
         -->
         <PackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="2.1.74" ExcludeAssets="all" />
+        <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="NLog" Version="6.2.0" />
         <PackageReference Include="System.Management" Version="10.0.11" />
     </ItemGroup>

@@ -1618,22 +1618,35 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- The artwork glow: a blurred, oversized copy of the cover
-                     behind it, which is what makes the reference players' pages
-                     read as one surface rather than a picture pasted on a
-                     background. Visibility is driven from the artwork itself, so
-                     a track with no cover simply shows the flat page colour. -->
-                <Image
+                <!-- The page wash: the cover's own colour, darkened, over the
+                     whole surface. This is what makes the page belong to the
+                     album instead of being a picture pasted on a neutral
+                     background, and it is why the extractor exists.
+
+                     It replaced an oversized blurred copy of the cover. That read
+                     as two pictures layered; a flat tint in the cover's hue reads
+                     as one surface, costs one Fill instead of a scaled Image, and
+                     leaves the artwork as the only sharp thing on screen.
+
+                     Driven from ApplyPalette, so a coverless track sets the theme
+                     brush here rather than leaving the previous album's colour. -->
+                <Rectangle
+                    x:Name="MusicPageWash"
+                    Grid.RowSpan="2"
+                    Fill="{ThemeResource MpvMusicPageBrush}" />
+
+                <!-- The glow behind the cover: the saturated hue at low opacity,
+                     so the artwork sits in light that came from itself. -->
+                <Ellipse
                     x:Name="MusicArtworkGlow"
                     Grid.Row="0"
-                    Margin="-80"
-                    Opacity="0.45"
-                    Stretch="UniformToFill"
-                    Visibility="Collapsed">
-                    <Image.RenderTransform>
-                        <ScaleTransform ScaleX="1.25" ScaleY="1.25" />
-                    </Image.RenderTransform>
-                </Image>
+                    Width="520"
+                    Height="520"
+                    Margin="-80,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Opacity="0"
+                    Fill="{ThemeResource MpvMusicArtworkFallbackBrush}" />
 
                 <Grid
                     Grid.Row="0"
@@ -1672,72 +1685,120 @@
                         </Border>
                     </Grid>
 
-                    <!-- Track, artist, album: the reference players lead with the
-                         title at a large size and put the artist directly under
-                         it, which is what this column does. -->
-                    <StackPanel
+                    <!-- The reading column. Three bands, top to bottom: what
+                         is playing, then the lyrics as the page's subject, then
+                         nothing - the album line moved up into the header so the
+                         lyrics get the rest of the height instead of whatever a
+                         StackPanel left over.
+
+                         The reference players are all built this way: the lyrics
+                         are the page and the metadata serves them. Stacking all
+                         five elements in one StackPanel was what made the lyrics
+                         look like a footnote under a title. -->
+                    <Grid
                         Grid.Column="1"
-                        VerticalAlignment="Center"
-                        Spacing="{StaticResource MpvSpaceM}">
-                        <TextBlock
-                            x:Name="MusicTitle"
-                            FontSize="34"
-                            FontWeight="SemiBold"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap" />
-                        <TextBlock
-                            x:Name="MusicArtist"
-                            FontSize="18"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            TextTrimming="CharacterEllipsis" />
-                        <TextBlock
-                            x:Name="MusicAlbum"
-                            FontSize="14"
-                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                            TextTrimming="CharacterEllipsis" />
+                        RowSpacing="{StaticResource MpvSpaceM}">
+                        <Grid.RowDefinitions>
+                            <!-- Header: auto, so a long title wraps rather than
+                                 pushing the lyrics down. -->
+                            <RowDefinition Height="Auto" />
+                            <!-- Lyrics: the star row. They take the leftover
+                                 height, which is what makes the reading position
+                                 stable between songs of different title lengths. -->
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                        <!-- Lyrics. A ListView rather than a TextBlock so the
-                             current line can be highlighted and scrolled to -
-                             the same behaviour the reference players have. -->
-                        <ListView
-                            x:Name="MusicLyricsView"
-                            MaxHeight="240"
-                            Margin="0,16,0,0"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            IsItemClickEnabled="True"
-                            ItemClick="MusicLyricsView_ItemClick"
-                            SelectionMode="None"
-                            Visibility="Collapsed">
-                            <ListView.ItemContainerStyle>
-                                <Style
-                                    BasedOn="{StaticResource DefaultListViewItemStyle}"
-                                    TargetType="ListViewItem">
-                                    <Setter Property="Margin" Value="0" />
-                                    <Setter Property="Padding" Value="0,3" />
-                                    <Setter Property="HorizontalContentAlignment" Value="Left" />
-                                    <Setter Property="MinHeight" Value="0" />
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="local:LyricLine">
-                                    <TextBlock
-                                        FontSize="15"
-                                        Opacity="{x:Bind Opacity, Mode=OneWay}"
-                                        Text="{x:Bind Text}"
-                                        TextWrapping="Wrap" />
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                        <StackPanel
+                            Grid.Row="0"
+                            Margin="0,0,0,8"
+                            Spacing="{StaticResource MpvSpaceXS}">
+                            <TextBlock
+                                x:Name="MusicTitle"
+                                FontSize="34"
+                                FontWeight="SemiBold"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap" />
+                            <TextBlock
+                                x:Name="MusicArtist"
+                                FontSize="18"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                TextTrimming="CharacterEllipsis" />
+                            <TextBlock
+                                x:Name="MusicAlbum"
+                                FontSize="13"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
 
-                        <TextBlock
-                            x:Name="MusicLyricsEmpty"
-                            Margin="0,16,0,0"
-                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            TextWrapping="Wrap"
-                            Visibility="Collapsed" />
-                    </StackPanel>
+                        <!-- The reading frame.
+
+                             A fixed-height column with the list centred inside it,
+                             so the active line lands near the middle of the frame
+                             rather than at its top edge. The spacers are the
+                             mechanism: half the frame minus half a line is dead
+                             space above the first line and below the last, which
+                             is what lets the first and last lyric sit at the
+                             reading position instead of pinned to an edge. -->
+                        <Grid
+                            Grid.Row="1"
+                            MinHeight="200"
+                            VerticalAlignment="Stretch">
+                            <ListView
+                                x:Name="MusicLyricsView"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                IsItemClickEnabled="True"
+                                ItemClick="MusicLyricsView_ItemClick"
+                                SelectionMode="None"
+                                Visibility="Collapsed">
+                                <ListView.ItemContainerStyle>
+                                    <Style
+                                        BasedOn="{StaticResource DefaultListViewItemStyle}"
+                                        TargetType="ListViewItem">
+                                        <Setter Property="Margin" Value="0" />
+                                        <Setter Property="Padding" Value="0,5" />
+                                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                        <Setter Property="MinHeight" Value="0" />
+                                        <Setter Property="IsTabStop" Value="False" />
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="local:LyricLine">
+                                        <!-- Scale and opacity both, not opacity
+                                             alone: a colour step of 0.55 to 1.0 is
+                                             barely visible on a dark page, and the
+                                             size change is what a reader notices
+                                             from a distance. 1.0 -> 1.18 is the
+                                             step the reference players use. -->
+                                        <TextBlock
+                                            FontSize="16"
+                                            Opacity="{x:Bind Opacity, Mode=OneWay}"
+                                            Text="{x:Bind Text}"
+                                            TextWrapping="Wrap">
+                                            <TextBlock.RenderTransform>
+                                                <ScaleTransform
+                                                    CenterX="0"
+                                                    ScaleX="{x:Bind Scale, Mode=OneWay}"
+                                                    ScaleY="{x:Bind Scale, Mode=OneWay}" />
+                                            </TextBlock.RenderTransform>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock
+                                x:Name="MusicLyricsEmpty"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                Visibility="Collapsed" />
+                        </Grid>
+                    </Grid>
                 </Grid>
 
                 <!-- The rhythm strip: bars between the page and the transport bar

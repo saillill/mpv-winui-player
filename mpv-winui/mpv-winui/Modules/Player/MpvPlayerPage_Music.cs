@@ -5,6 +5,8 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Media.Animation;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Common.View;
+using mpv_winui.Modules.Motion;
+using mpv_winui.Modules.Player.Audio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +37,14 @@ namespace mpv_winui.Modules.Player
         private string _mediaTitle = string.Empty;
 
         private IReadOnlyList<LyricLine> _lyrics = [];
+
+        /// <summary>
+        /// The current cover's colours, or <c>None</c> when it has no usable hue.
+        ///
+        /// Held so the album page and a re-entered music page can tint from the
+        /// same answer without decoding the cover again.
+        /// </summary>
+        private AlbumColorExtractor.Palette _palette = AlbumColorExtractor.None;
 
         private int _currentLyricIndex = -1;
 
@@ -168,6 +178,38 @@ namespace mpv_winui.Modules.Player
             tags.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value) ? value : fallback;
 
         /// <summary>
+        /// Paints the page with the cover's colour.
+        ///
+        /// Two surfaces, two opacities: the wash is the darkened hue over the whole
+        /// page, and the glow is the saturated hue behind the cover, so the artwork
+        /// sits in light that came from itself.
+        ///
+        /// With no palette both go back to the theme's own page brush rather than
+        /// to a hardcoded grey - a coverless track should look like the rest of the
+        /// app, not like a special case.
+        /// </summary>
+        private void ApplyPalette()
+        {
+            if (_palette.Surface == 0)
+            {
+                MusicPageWash.Fill = (Brush)Application.Current.Resources["MpvMusicPageBrush"];
+
+                MusicArtworkGlow.Fill = (Brush)Application.Current.Resources["MpvMusicArtworkFallbackBrush"];
+
+                MusicArtworkGlow.Opacity = 0.0;
+
+                return;
+            }
+
+            MusicPageWash.Fill = ArtworkPalette.Brush(_palette.Surface);
+
+            MusicArtworkGlow.Fill = ArtworkPalette.Brush(_palette.Accent);
+
+            // Faint: it is light coming off the cover, not a second picture.
+            MusicArtworkGlow.Opacity = 0.22;
+        }
+
+        /// <summary>
         /// The embedded cover, decoded from the file's own bytes.
         ///
         /// Not from the swap chain: audio-display=embedded-first does make mpv
@@ -185,9 +227,13 @@ namespace mpv_winui.Modules.Player
         {
             MusicArtwork.Visibility = Visibility.Collapsed;
 
-            MusicArtworkGlow.Visibility = Visibility.Collapsed;
-
             MusicArtworkFallbackIcon.Visibility = Visibility.Visible;
+
+            // Cleared here, not only on success: a track without a cover must not
+            // keep the previous track's colour on the page.
+            _palette = AlbumColorExtractor.None;
+
+            ApplyPalette();
 
             try
             {
@@ -201,19 +247,20 @@ namespace mpv_winui.Modules.Player
                     return;
                 }
 
+                // The palette is read from the same stream, before BitmapImage
+                // takes it: decoding twice would be a second full-file read for a
+                // colour, and the thumbnail decode here is 48x48.
+                _palette = await ArtworkPalette.FromStreamAsync(stream);
+
+                ApplyPalette();
+
                 var bitmap = new BitmapImage();
 
                 await bitmap.SetSourceAsync(stream);
 
-                // Both copies, because the glow is the same picture scaled up
-                // behind the slot; one BitmapImage can back two Images.
                 MusicArtwork.Source = bitmap;
 
-                MusicArtworkGlow.Source = bitmap;
-
                 MusicArtwork.Visibility = Visibility.Visible;
-
-                MusicArtworkGlow.Visibility = Visibility.Visible;
 
                 MusicArtworkFallbackIcon.Visibility = Visibility.Collapsed;
             }
@@ -291,6 +338,7 @@ namespace mpv_winui.Modules.Player
             if (_currentLyricIndex >= 0 && _currentLyricIndex < _lyrics.Count)
             {
                 _lyrics[_currentLyricIndex].Opacity = 0.55;
+                _lyrics[_currentLyricIndex].Scale = 1.0;
             }
 
             _currentLyricIndex = index;
@@ -298,9 +346,112 @@ namespace mpv_winui.Modules.Player
             if (index >= 0)
             {
                 _lyrics[index].Opacity = 1.0;
+                _lyrics[index].Scale = 1.18;
 
-                MusicLyricsView.ScrollIntoView(_lyrics[index]);
+                // The line arriving, not the line leaving: popping the outgoing one
+                // would draw the eye backwards.
+                if (MusicLyricsView.ContainerFromIndex(index) is ListViewItem current)
+                {
+                    MotionBehaviors.SpringPop(current, peak: 1.02f);
+                }
+
+                ScrollLyricsTo(index);
             }
+        }
+
+        /// <summary>
+        /// Glides the active line to the reading position.
+        ///
+        /// Not <c>ListView.ScrollIntoView</c>: that jumps, and it parks the line at
+        /// whichever edge it had to scroll towards, so the words you are reading
+        /// move out from under your eye on every line. This centres the line, which
+        /// is what a fixed reading position means.
+        ///
+        /// The target is the row's top within the content, minus half the viewport,
+        /// plus half the row - the arithmetic that puts the middle of the line on
+        /// the middle of the frame.
+        /// </summary>
+        private void ScrollLyricsTo(int index)
+        {
+            if (index < 0 || index >= _lyrics.Count)
+            {
+                return;
+            }
+
+            if (MusicLyricsView.ContainerFromIndex(index) is not ListViewItem container)
+            {
+                // Not realised yet: the list virtualises, so a line off screen has
+                // no container to measure. ScrollIntoView is the only option before
+                // one exists, and it is correct here - the list is far enough away
+                // that there is nothing for the eye to track anyway.
+                MusicLyricsView.ScrollIntoView(_lyrics[index]);
+
+                return;
+            }
+
+            var scroller = FindScrollViewer(MusicLyricsView);
+
+            if (scroller?.Content is not UIElement content)
+            {
+                return;
+            }
+
+            var rowTop = container
+                .TransformToVisual(content)
+                .TransformPoint(new Windows.Foundation.Point(0, 0)).Y;
+
+            var target = rowTop
+                - (scroller.ViewportHeight / 2.0)
+                + (container.ActualHeight / 2.0);
+
+            var maxOffset = Math.Max(0, scroller.ScrollableHeight);
+
+            target = Math.Clamp(target, 0, maxOffset);
+
+            var distance = Math.Abs(target - scroller.VerticalOffset);
+
+            // A small move is not worth animating; the eye cannot see 10 px of
+            // easing and the animation would still cost a frame.
+            if (distance < 12)
+            {
+                scroller.ChangeView(null, target, null, disableAnimation: true);
+
+                return;
+            }
+
+            // disableAnimation: false is what makes it a glide. The duration is the
+            // ScrollViewer's own, which is tuned against the platform's motion -
+            // overriding it per call is how a UI ends up with five different
+            // scroll speeds.
+            scroller.ChangeView(null, target, null, disableAnimation: false);
+        }
+
+        /// <summary>
+        /// The ScrollViewer inside a ListView.
+        ///
+        /// Walked rather than cached: the template is applied lazily, so a field
+        /// captured at load time would be null for the first track.
+        /// </summary>
+        private static ScrollViewer? FindScrollViewer(DependencyObject root)
+        {
+            var count = VisualTreeHelper.GetChildrenCount(root);
+
+            for (var i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+
+                if (child is ScrollViewer scroller)
+                {
+                    return scroller;
+                }
+
+                if (FindScrollViewer(child) is { } found)
+                {
+                    return found;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>Clicking a lyric line seeks to it: the reference players do, and it is free.</summary>
@@ -314,89 +465,144 @@ namespace mpv_winui.Modules.Player
 
         // ------------------------------------------------------- rhythm strip
 
-        private Storyboard? _rhythmStoryboard;
+        private AudioCapture? _audioCapture;
+
+        private readonly List<Border> _rhythmBars = [];
+
+        private bool _rhythmRendering;
 
         /// <summary>
-        /// The bars between the page and the transport bar.
+        /// Starts the real spectrum.
         ///
-        /// Built in code rather than as sixteen Borders in markup: the bar count is
-        /// a layout decision (one per column of the strip), and the animation is
-        /// per-bar, so sixteen near-identical element + storyboard pairs are
-        /// clearer generated than written out.
+        /// The bars are real: WASAPI loopback captures what the machine is playing,
+        /// <see cref="SpectrumAnalyzer"/> turns each block into sixteen
+        /// logarithmically spaced band levels, and this draws them.
         ///
-        /// Deterministic pseudo-random rather than a real analyser: mpv does not
-        /// expose per-band levels to the host, and a synthetic pulse driven by the
-        /// bar's own columns still reads as "the music is playing". Deliberately
-        /// not driven by volume - a quiet passage would then look stopped.
+        /// It used to be sixteen Storyboards with hand-picked periods and phases -
+        /// a synthetic pulse. That is replaced rather than kept as a fallback
+        /// because a fallback here is a second behaviour, and the fake one is
+        /// indistinguishable from the real one to anyone who has not measured it.
+        ///
+        /// If capture cannot start (no render device, no loopback) the bars stay
+        /// flat and the page is otherwise unaffected: a visualiser that cannot
+        /// hear is a still image, not an error.
         /// </summary>
         private void StartRhythm()
         {
-            if (_rhythmStoryboard is not null)
+            if (_audioCapture is not null)
             {
                 return;
             }
 
             MusicRhythmStrip.Children.Clear();
 
-            var board = new Storyboard();
+            _rhythmBars.Clear();
 
             var columns = MusicRhythmStrip.ColumnDefinitions.Count;
+
+            var accent = (Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
 
             for (var i = 0; i < columns; i++)
             {
                 var bar = new Border
                 {
-                    Width = double.NaN,
                     VerticalAlignment = VerticalAlignment.Bottom,
                     CornerRadius = new CornerRadius(2),
-                    Background = (Brush)Application.Current.Resources["AccentFillColorDefaultBrush"],
-                    Height = 6,
+                    Background = accent,
+
+                    // Resting height: a floor of 2 rather than 0 so a silent band is
+                    // a line on the baseline instead of nothing at all, which would
+                    // make the strip vanish between tracks.
+                    Height = 2,
                 };
 
                 Grid.SetColumn(bar, i);
 
                 MusicRhythmStrip.Children.Add(bar);
 
-                // Each bar gets its own period and phase so the row reads as a
-                // wave rather than as one block pulsing.
-                var phase = i * 0.37;
-
-                var period = 0.55 + (i % 5) * 0.11;
-
-                var peak = 18 + (i % 7) * 3;
-
-                var grow = new DoubleAnimation
-                {
-                    From = 6,
-                    To = peak,
-                    Duration = new Duration(TimeSpan.FromSeconds(period)),
-                    AutoReverse = true,
-                    RepeatBehavior = RepeatBehavior.Forever,
-                    BeginTime = TimeSpan.FromSeconds(phase),
-                    EnableDependentAnimation = true,
-                };
-
-                Storyboard.SetTarget(grow, bar);
-
-                Storyboard.SetTargetProperty(grow, "Height");
-
-                board.Children.Add(grow);
+                _rhythmBars.Add(bar);
             }
 
-            _rhythmStoryboard = board;
-
-            board.Begin();
-
             MusicRhythmStrip.Visibility = Visibility.Visible;
+
+            _audioCapture = new AudioCapture();
+
+            if (!_audioCapture.Start(columns))
+            {
+                // Capture is unavailable; leave the bars at rest rather than
+                // pretending. Disposing stops it from being started twice.
+                _audioCapture.Dispose();
+                _audioCapture = null;
+                return;
+            }
+
+            if (!_rhythmRendering)
+            {
+                _rhythmRendering = true;
+
+                CompositionTarget.Rendering += OnRhythmRendering;
+            }
         }
 
         private void StopRhythm()
         {
-            _rhythmStoryboard?.Stop();
+            if (_rhythmRendering)
+            {
+                _rhythmRendering = false;
 
-            _rhythmStoryboard = null;
+                CompositionTarget.Rendering -= OnRhythmRendering;
+            }
+
+            _audioCapture?.Dispose();
+
+            _audioCapture = null;
+
+            _rhythmBars.Clear();
 
             MusicRhythmStrip.Children.Clear();
+        }
+
+        /// <summary>
+        /// One frame of the strip.
+        ///
+        /// The levels arrive already smoothed (the analyser's decay), so this only
+        /// maps dB onto pixels. Running it from Rendering rather than a timer keeps
+        /// it in step with the compositor and stops it when the window is hidden.
+        /// </summary>
+        private void OnRhythmRendering(object? sender, object e)
+        {
+            var levels = _audioCapture?.LatestLevels();
+
+            if (levels is null || levels.Length != _rhythmBars.Count)
+            {
+                return;
+            }
+
+            // The strip's own height is the scale: a bar at 0 dB fills it, one at
+            // -60 dB sits on the baseline. Measured from the Grid rather than
+            // hardcoded so a different row height cannot clip the peaks.
+            var available = MusicRhythmStrip.ActualHeight;
+
+            if (available <= 4)
+            {
+                return;
+            }
+
+            const double floorDb = -60.0;
+
+            for (var i = 0; i < levels.Length; i++)
+            {
+                // 0 dB is full height; -60 dB is the 2px floor. Clamped because a
+                // clipped sample can exceed 0.
+                var normalised = Math.Clamp((levels[i] - floorDb) / -floorDb, 0.0, 1.0);
+
+                // Squared so the quiet half of the range is visible: dB is already
+                // logarithmic, and a straight map spends most of the height in the
+                // top 10 dB.
+                var height = 2.0 + (normalised * normalised * (available - 2.0));
+
+                _rhythmBars[i].Height = height;
+            }
         }
     }
 }

@@ -22,6 +22,8 @@ namespace mpv_winui.Modules.Player
     {
         private double _opacity = 0.55;
 
+        private double _scale = 1.0;
+
         public LyricLine(string text, TimeSpan time)
         {
             Text = text;
@@ -51,6 +53,32 @@ namespace mpv_winui.Modules.Player
 
                 _opacity = value;
                 PropertyChanged?.Invoke(this, new(nameof(Opacity)));
+            }
+        }
+
+        /// <summary>
+        /// Size multiplier for the current line; 1.0 for the ones around it.
+        ///
+        /// A scale rather than a second FontSize: two sizes would drift apart, and
+        /// a transform costs the text layout nothing - changing FontSize forces a
+        /// re-measure of every line in the list on each track advance.
+        ///
+        /// The epsilon guard is not decoration. Position arrives about ten times a
+        /// second, and without it every tick would notify a binding that has
+        /// nothing to redraw.
+        /// </summary>
+        public double Scale
+        {
+            get => _scale;
+            set
+            {
+                if (Math.Abs(_scale - value) < 0.001)
+                {
+                    return;
+                }
+
+                _scale = value;
+                PropertyChanged?.Invoke(this, new(nameof(Scale)));
             }
         }
 
