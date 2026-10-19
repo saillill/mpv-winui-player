@@ -158,6 +158,8 @@ namespace mpv_winui.Modules.Language
         public string SettingsHelpImportConfig { get; set; } = "Restore settings from a settings file.";
         public string SettingsConfigExported { get; set; } = "Settings exported.";
         public string SettingsConfigImported { get; set; } = "Settings imported. Some options take effect on the next launch.";
+        public string SettingsConfigExportFailed { get; set; } = "Could not export the settings. Check the log for details.";
+        public string SettingsConfigImportFailed { get; set; } = "Could not import the settings. Check the log for details.";
         public string SettingsOpenMpvConf { get; set; } = "Edit mpv.conf";
         public string SettingsHelpOpenMpvConf { get; set; } = "Open mpv.conf in your text editor. Lines here override the settings window — anything you write wins.";
         public string SettingsOpenMpvConfMissing { get; set; } = "mpv.conf was not found. Launch the player once so it can create it.";
@@ -215,6 +217,42 @@ namespace mpv_winui.Modules.Language
         public string WatchLaterEmpty { get; set; } = "No watch later files found.";
         public string WatchLaterDisabled { get; set; } = "Enable --write-filename-in-watch-later-config to select recent files.";
         public string Playlist { get; set; } = "Playlist";
+
+    // The music page.
+    public string MusicNoLyrics { get; set; } = "No lyrics found for this track.";
+    public string MusicPage { get; set; } = "Now playing";
+
+    // The music library's three tabs.
+    public string MusicTabSongs { get; set; } = "Songs";
+    public string MusicTabAlbums { get; set; } = "Albums";
+    public string MusicTabArtists { get; set; } = "Artists";
+
+    // The screenshot menu and its result.
+    public string ScreenshotMenuTitle { get; set; } = "Screenshot";
+    public string ScreenshotWithSubtitles { get; set; } = "Include subtitles";
+    public string ScreenshotWithoutSubtitles { get; set; } = "Without subtitles";
+    public string ScreenshotWindow { get; set; } = "Window, as displayed";
+    public string ScreenshotVideoFrame { get; set; } = "Video frame, no scaling";
+    public string ScreenshotSucceededTitle { get; set; } = "Screenshot saved";
+    public string ScreenshotSucceededDetail { get; set; } = "Saved to {0}";
+    public string ScreenshotFailedTitle { get; set; } = "Screenshot failed";
+    public string ScreenshotFailedDetail { get; set; } = "mpv could not write the file. Check the log for details.";
+
+    // The shell's open menu: a title and a one-line explanation per leg.
+    public string ShellOpenFileTitle { get; set; } = "Add file to play queue";
+    public string ShellOpenFileDescription { get; set; } = "Browse for a file to add";
+    public string ShellOpenFolderTitle { get; set; } = "Add folder to play queue";
+    public string ShellOpenFolderDescription { get; set; } = "Pick a folder and add all its media";
+    public string ShellOpenUrlTitle { get; set; } = "Add media from a URL";
+    public string ShellOpenUrlDescription { get; set; } = "Enter a URL and add the media at that address";
+
+    // Drag and drop onto the window.
+    public string DropPlayTitle { get; set; } = "Drop to play";
+    public string DropPlayDescription { get; set; } = "Release to start playing. Hold Shift to add it to the queue instead.";
+    public string DropUnsupportedTitle { get; set; } = "Cannot play this file";
+    public string DropUnsupportedDescription { get; set; } = "Drop a video, an audio file or a media link. Folders open as a playlist.";
+    public string DropUnsupportedDetail { get; set; } = "Nothing in “{0}” is a format this player opens.";
+    public string DropSkippedDetail { get; set; } = "{0} of {1} file(s) are not a format this player opens, and were skipped.";
         public string PlaylistImport { get; set; } = "Import Playlist…";
         public string PlaylistExport { get; set; } = "Export Playlist…";
         public string PlaylistFilterPlaceholder { get; set; } = "Filter playlist…";
@@ -384,7 +422,7 @@ namespace mpv_winui.Modules.Language
         public string SettingsAutoWindowResize { get; set; } = "Auto-fit window to video";
         public string SettingsHelpAutoWindowResize { get; set; } = "Resize the window when video resolution changes.";
         public string SettingsWindowAspectRatioLock { get; set; } = "Lock aspect ratio to the video";
-        public string SettingsHelpWindowAspectRatioLock { get; set; } = "On: the window follows the video aspect ratio - corrected when a video opens and while dragging. Off: resize the window freely.";
+        public string SettingsHelpWindowAspectRatioLock { get; set; } = "On: the window is fitted to the video's aspect ratio when a video opens. Off: the window keeps the size it had. Dragging always resizes only the side you drag.";
         public string SettingsAdLavcDownmix { get; set; } = "Decoder stereo downmix";
         public string SettingsHelpAdLavcDownmix { get; set; } = "Downmix multichannel audio to stereo at decoder level.";
         public string MoreSkipBackward { get; set; } = "Skip Backward";

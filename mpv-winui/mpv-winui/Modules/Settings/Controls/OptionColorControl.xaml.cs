@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using mpv_winui.Modules.Common.View;
+using mpv_winui.Modules.Motion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,8 +47,24 @@ public sealed partial class OptionColorControl : OptionControlBase
     private void OnHeaderTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
         _expanded = !_expanded;
-        ExpandedPanel.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         ExpandIcon.Glyph = _expanded ? "\uE70E" : "\uE70D";
+
+        if (_expanded)
+        {
+            ExpandedPanel.Visibility = Visibility.Visible;
+            MotionBehaviors.RowReveal(ExpandedPanel);
+        }
+        else
+        {
+            MotionBehaviors.RowCollapse(ExpandedPanel, completed: () =>
+            {
+                if (!_expanded)
+                {
+                    ExpandedPanel.Visibility = Visibility.Collapsed;
+                    MotionBehaviors.Reset(ExpandedPanel);
+                }
+            });
+        }
     }
 
     private void UpdateSwatch()

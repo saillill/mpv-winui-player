@@ -307,11 +307,26 @@ public sealed partial class SettingsPage
         return text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
     }
 
-    /// <summary>Writes a config file as UTF-8 without a BOM so mpv and the app agree.</summary>
+    /// <summary>
+    /// Writes a config file as UTF-8 without a BOM so mpv and the app agree.
+    ///
+    /// <para>Atomic, like the other config writers: input.conf is rewritten on
+    /// every rebind and carries the user's own edits, so an interruption in the
+    /// middle of a plain overwrite would truncate it and lose their bindings.</para>
+    /// </summary>
     private static void WriteConfigLines(string path, IEnumerable<string> lines)
     {
-        File.WriteAllLines(path, lines, new System.Text.UTF8Encoding(false));
+        AtomicFile.WriteAllLines(path, lines, new System.Text.UTF8Encoding(false));
     }
+    /// <summary>
+    /// Restores the bundled <c>input.conf</c> over the user's copy.
+    ///
+    /// <para>Called only from the "reset all settings" flow, which reports its
+    /// own result through the footer status line. There is no action row for
+    /// this, so it deliberately writes no per-row status: the old code assigned
+    /// a shared <c>_actionStatus</c> field here, which no row read and no user
+    /// ever saw.</para>
+    /// </summary>
     private void ResetShortcuts()
     {
         var bundled = Path.Combine(System.AppContext.BaseDirectory, "Config", "input.conf");
@@ -322,10 +337,10 @@ public sealed partial class SettingsPage
             "input.conf");
         if (!File.Exists(bundled))
         {
-            _actionStatus = AppContext.AppLang.ResetShortcutsMissing;
+            AppContext.AppLogger.Warn("reset shortcuts skipped: bundled input.conf not found");
             return;
         }
 
         File.Copy(bundled, target, overwrite: true);
-        _actionStatus = AppContext.AppLang.ResetShortcutsDone;    }
+    }
 }

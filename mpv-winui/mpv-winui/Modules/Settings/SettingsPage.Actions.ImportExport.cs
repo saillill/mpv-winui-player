@@ -6,6 +6,7 @@ using mpv_winui.Modules.Activation;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
+using mpv_winui.Modules.MpvConf;
 using mpv_winui.Modules.Player;
 using mpv_winui.Modules.Settings.Controls;
 using System;
@@ -21,6 +22,13 @@ namespace mpv_winui.Modules.Settings;
 
 public sealed partial class SettingsPage
 {
+    /// <summary>
+    /// The in-app mpv.conf editor, kept so a second click brings the open window
+    /// forward and re-reads the file instead of stacking a duplicate window on
+    /// the same file. Cleared when it closes.
+    /// </summary>
+    private static MpvConfTextWindow? _mpvConfTextWindow;
+
     private void FireAndForgetExport()
     {
         _ = ExportConfigAsync();
@@ -65,11 +73,17 @@ public sealed partial class SettingsPage
                     .AppendLine(text);
             }
             await File.WriteAllTextAsync(file.Path, builder.ToString());
-            _actionStatus = AppContext.AppLang.SettingsConfigExported;
+            // The handler that called us returned before the picker resolved,
+            // so the control read ActionStatus while it was still empty. Setting
+            // the status notifies the row, which is what makes the line appear
+            // at all; without it the row reported nothing whether the export
+            // succeeded or failed.
+            SetActionStatus("ActionExportConfig", AppContext.AppLang.SettingsConfigExported);
         }
         catch (System.Exception ex)
         {
             AppContext.AppLogger.Error(ex, "Export config failed");
+            SetActionStatus("ActionExportConfig", AppContext.AppLang.SettingsConfigExportFailed);
         }
     }
 
@@ -106,60 +120,114 @@ public sealed partial class SettingsPage
             }
 
             AppContext.AppSetting.ImportAll(values);
-            _actionStatus = AppContext.AppLang.SettingsConfigImported;
+
+            // Importing writes settings the whole page renders from, so the
+            // page is rebuilt rather than patched. That means:
+            //   * the result line cannot live in this instance's dictionary --
+            //     the next page gets a fresh one -- so it travels as part of
+            //     the navigation parameter;
+            //   * the search box has to travel too, because it is owned by the
+            //     window and the new page would otherwise come up with
+            //     SearchBox == null, which silently kills search (every query
+            //     reads SearchBox?.Text and gives up when it is null).
+            var status = AppContext.AppLang.SettingsConfigImported;
             Frame?.BackStack.Clear();
-            Frame?.Navigate(typeof(SettingsPage));
+            Frame?.Navigate(typeof(SettingsPage), new SettingsNavigationArgs(
+                SearchBox,
+                "ActionImportConfig",
+                status));
         }
         catch (System.Exception ex)
         {
             AppContext.AppLogger.Error(ex, "Import config failed");
+            // Nothing was rebuilt, so the line goes on the current instance.
+            SetActionStatus("ActionImportConfig", AppContext.AppLang.SettingsConfigImportFailed);
         }
     }
 
     /// <summary>
-    /// Opens the deployed mpv.conf in whatever the user associates with .conf.
+    /// Opens mpv.conf in the app's own editor.
     ///
     /// This is the raw escape hatch the settings window promises: mpv.conf is
     /// the authority, so tens of options that have no row here are still
     /// reachable, and a hand-written line always beats both the managed block
     /// and everything the UI does at runtime.
-    ///
-    /// The file is opened through the shell rather than launched as a storage
-    /// item: the whole point is editing it as text, and LaunchFileAsync would
-    /// hand it to whatever app "opens" it, which for a .conf is often nothing
-    /// or a browser instead of an editor.
     /// </summary>
-    private void FireAndForgetOpenMpvConf()
-    {
-        _ = OpenMpvConfAsync();
-    }
-
-    private async Task OpenMpvConfAsync()
+    private void FireAndForgetOpenMpvConfEditor()
     {
         try
         {
             if (!ManagedMpvConfig.MpvConfExists)
             {
-                // Nothing to edit. Saying so beats an explorer stub that would
-                // leave the user staring at an empty folder.
-                _actionStatus = AppContext.AppLang.SettingsOpenMpvConfMissing;
+                // Nothing to edit. Saying so beats a window on an empty file,
+                // which reads as the editor having failed to load.
+                SetActionStatus("ActionOpenMpvConf", AppContext.AppLang.SettingsOpenMpvConfMissing);
                 return;
             }
 
-            await Task.Run(() => Process.Start(new ProcessStartInfo
+            if (_mpvConfTextWindow is null)
             {
-                FileName = ManagedMpvConfig.MpvConfPath,
-                UseShellExecute = true,
-            }));
+                _mpvConfTextWindow = new MpvConfTextWindow();
+                _mpvConfTextWindow.Closed += (_, _) =>
+                {
+                    _mpvConfTextWindow = null;
 
-            // Re-read what the file now names, so rows the user has just taken
-            // over pick up their "overridden by mpv.conf" marker without
-            // waiting for a restart.
-            MpvConfOverrides.Refresh();
+                    // The editor writes the file directly, so the page has to
+                    // re-read what the file now names or every row keeps the
+                    // "overridden by mpv.conf" verdict it had on open.
+                    //
+                    // No result line here, deliberately. Closing an editor that
+                    // saves as it goes is not an action whose outcome needs
+                    // announcing, and a green "saved" on the row said the same
+                    // thing the file already says.
+                    MpvConfOverrides.Refresh();
+                };
+            }
+            else
+            {
+                // Already open: bring it forward on the file's current contents
+                // rather than leaving a stale copy behind the settings window.
+                _mpvConfTextWindow.ReloadFromDisk();
+            }
+
+            _mpvConfTextWindow.Activate();
         }
         catch (System.Exception ex)
         {
-            AppContext.AppLogger.Error(ex, "Open mpv.conf failed");
+            AppContext.AppLogger.Error(ex, "open mpv.conf editor failed");
+            SetActionStatus("ActionOpenMpvConf", AppContext.AppLang.SettingsOpenMpvConfMissing);
+        }
+    }
+
+    /// <summary>
+    /// Shows mpv.conf in Explorer with the file itself selected.
+    ///
+    /// Selecting rather than merely opening the folder: the user asked for this
+    /// to know where the file lives, and a folder listing of a thousand files
+    /// does not answer that.
+    /// </summary>
+    private void FireAndForgetRevealMpvConf()
+    {
+        try
+        {
+            var path = ManagedMpvConfig.MpvConfPath;
+            if (!File.Exists(path))
+            {
+                SetActionStatus("ActionOpenMpvConf", AppContext.AppLang.SettingsOpenMpvConfMissing);
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = "/select,\"" + path + "\"",
+                UseShellExecute = true,
+            });
+            SetActionStatus("ActionOpenMpvConf", string.Empty);
+        }
+        catch (System.Exception ex)
+        {
+            AppContext.AppLogger.Error(ex, "reveal mpv.conf failed");
         }
     }
 }

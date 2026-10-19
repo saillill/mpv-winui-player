@@ -158,9 +158,25 @@ internal static class SettingsSections
         // The split is drawn along lines mpv's own vocabulary already
         // contains, and every one of the 100 options lands in exactly one
         // theme (the generator reports any that do not).
+        // Two of the themes that split came to are gone: every option in them
+        // (terminal verbosity, and the Wayland / X11 / VA-API set) was one this
+        // application cannot reach, so the generator now denies them and the
+        // sections have nothing left to hold. A caption for an empty section is
+        // what this table must not keep, hence their absence rather than a
+        // placeholder.
+        //
+        // 章节与时间线 and 窗口与界面 were added on 2026-10-11, when the two
+        // theme lists they replace turned out to hold options that contradicted
+        // their own captions: 编码输出 carried the Matroska chapter options and
+        // the seek index, and 渲染与色彩微调 carried the backdrop material, the
+        // taskbar progress and the screen-edge snapping. Both lists had been
+        // written by guessing from the option name, so the fix was to file each
+        // option by what it does -- and, for the seven whose subject already has
+        // a section (audio, subtitles, streaming), to file them there instead of
+        // in a General theme at all (SECTION_OVERRIDE in the generator).
         new("SectionGenGeneralEncoding", "\uE718", l => l.SectionGenGeneralEncoding, l => l.SectionDescGenGeneralEncoding),
-        new("SectionGenGeneralTerminal", "\uE715", l => l.SectionGenGeneralTerminal, l => l.SectionDescGenGeneralTerminal),
-        new("SectionGenGeneralPlatform", "\uE717", l => l.SectionGenGeneralPlatform, l => l.SectionDescGenGeneralPlatform),
+        new("SectionGenGeneralChapters", "\uE736", l => l.SectionGenGeneralChapters, l => l.SectionDescGenGeneralChapters),
+        new("SectionGenGeneralDesktop", "\uE737", l => l.SectionGenGeneralDesktop, l => l.SectionDescGenGeneralDesktop),
         new("SectionGenGeneralScripting", "\uE716", l => l.SectionGenGeneralScripting, l => l.SectionDescGenGeneralScripting),
         new("SectionGenGeneralRendering", "\uE719", l => l.SectionGenGeneralRendering, l => l.SectionDescGenGeneralRendering),
     ];
@@ -261,6 +277,16 @@ internal static class SettingsSections
             ? (FallbackIcon, string.Empty)
             : (section.Icon, section.Description(AppContext.AppLang));
     }
+
+    /// <summary>
+    /// Just the glyph for a section caption, or the table's fallback.
+    ///
+    /// Separate from <see cref="MetaFor"/> because the row's leading icon asks
+    /// for this once per realised row - several hundred times while a category
+    /// is being browsed - and MetaFor would resolve the localized description
+    /// each time only for the caller to drop it.
+    /// </summary>
+    internal static string IconFor(string? caption) => ForCaption(caption)?.Icon ?? FallbackIcon;
 
     /// <summary>Stable key of the category a caption belongs to, or null.</summary>
     internal static string? CategoryKeyFor(string? caption) =>

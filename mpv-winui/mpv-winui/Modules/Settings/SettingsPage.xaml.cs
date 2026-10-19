@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Modules.Motion;
 using mpv_winui.Modules.AppModel;
 using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Language;
@@ -21,6 +22,29 @@ using Microsoft.Windows.Storage.Pickers;
 
 namespace mpv_winui.Modules.Settings;
 
+/// <summary>
+/// What a <see cref="SettingsPage"/> is told as it is navigated to.
+///
+/// The page is built by the frame from its type, so anything it needs from the
+/// window that owns it has to travel as the navigation parameter -- <see cref="Microsoft.UI.Xaml.Controls.Frame.Navigate(Type, object)"/>
+/// takes exactly one. The top bar's search box was the first such passenger;
+/// the import action became the second, because importing rebuilds the page and
+/// needs its "settings imported" line to survive into the new instance. A plain
+/// <c>AutoSuggestBox</c> used to be passed bare, which left no room to carry
+/// anything else and made the rebuild drop the box on the floor.
+/// </summary>
+/// <param name="SearchBox">The window's search box, or null when there is none.</param>
+/// <param name="ActionStatusRowKey">Row key whose result line should be
+/// restored on arrival, or null.</param>
+/// <param name="ActionStatusText">The already-localized text for that row.
+/// Carried as text rather than as a key into the old page's dictionary because
+/// the dictionary dies with the instance it belonged to -- that is exactly the
+/// bug this parameter exists to fix.</param>
+internal sealed record SettingsNavigationArgs(
+    AutoSuggestBox? SearchBox,
+    string? ActionStatusRowKey = null,
+    string? ActionStatusText = null);
+
 public sealed partial class SettingsPage : Page
 {
 
@@ -33,8 +57,49 @@ public sealed partial class SettingsPage : Page
     private List<string> ActiveCategoryKeys { get; } = [];
 
     public List<string> CategoryOrder { get; } = [];
-    private string _actionStatus = string.Empty;
+
+    /// <summary>
+    /// Result line for each action row, keyed by the row's <see cref="Option.Key"/>.
+    ///
+    /// <para><b>Why keyed rather than one field.</b> This used to be a single
+    /// shared <c>_actionStatus</c> string that every action row read back through
+    /// <c>ActionStatus = () =&gt; _actionStatus</c>. Because all rows invoked the
+    /// same closure, any one action's result appeared under <em>every</em> action
+    /// row on the page: clicking "关联媒体文件" made the export, import and
+    /// mpv.conf rows each claim "文件关联已创建。". Keying the value by the row that
+    /// produced it keeps one action's result out of its neighbours' text.</para>
+    /// </summary>
+    private readonly Dictionary<string, string> _actionStatus = new(StringComparer.Ordinal);
+
     private int _resetStatusGeneration;
+
+    /// <summary>
+    /// Records the result of an action row. Passing an empty string clears that
+    /// row's line without disturbing any other row's.
+    /// </summary>
+    private void SetActionStatus(string key, string status)
+    {
+        _actionStatus[key] = status;
+
+        // Tell only the row that produced the result to re-read it. Rebuilding
+        // the whole list to publish one line was both wasteful and the
+        // mechanism by which a line could land on the wrong card: the list is
+        // non-virtualized and its containers are recycled, so a container
+        // re-used for a different row could still be showing the previous
+        // row's text. A targeted notification leaves every other card alone.
+        Settings.FirstOrDefault(o => string.Equals(o.Key, key, StringComparison.Ordinal))
+            ?.NotifyActionStatusChanged();
+    }
+
+    /// <summary>The result line for one action row, empty when it has none.</summary>
+    private string GetActionStatus(string key) =>
+        _actionStatus.TryGetValue(key, out var text) ? text : string.Empty;
+
+    /// <summary>
+    /// Clears every action row's result line. Used when the language changes,
+    /// because the stored strings are in the language that produced them.
+    /// </summary>
+    private void ClearActionStatuses() => _actionStatus.Clear();
 
     /// <summary>
     /// Section currently drilled into (localized label), null while the
@@ -42,6 +107,12 @@ public sealed partial class SettingsPage : Page
     /// switches: section labels change with the language.
     /// </summary>
     private string? _selectedSection;
+
+    /// <summary>
+    /// The view the content transition last ran for, so a rebuild of the same
+    /// view does not animate. See <c>AnimateViewChange</c>.
+    /// </summary>
+    private string _lastMotionView = string.Empty;
 
     /// <summary>Stable category keys, parallel to the localized category order.</summary>
     private static readonly string[] CategoryKeys =
@@ -78,9 +149,20 @@ public sealed partial class SettingsPage : Page
         InitCustomizeMode();
         OptionsControl.SectionCardClicked += OnSectionCardClicked;
         _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
+
+        // One-shot, for the pane's shape change to settle the content. Cheap
+        // when idle: the handler returns on a flag it clears itself.
+        LayoutUpdated += SettingsPage_LayoutUpdated;
         WarmDeviceChoices();
         LoadSearchHistory();
         RebuildLocalizedContent();
+        // The footer lays its status line and its action buttons out
+        // independently of each other, so the line's wrap width has to be
+        // re-derived whenever either side changes size. See
+        // UpdateFooterStatusWidth for why they are not in one column.
+        FooterBorder.SizeChanged += (_, _) => UpdateFooterStatusWidth();
+        BrowseActions.SizeChanged += (_, _) => UpdateFooterStatusWidth();
+        CustomizeActions.SizeChanged += (_, _) => UpdateFooterStatusWidth();
     }
 
     /// <summary>A folded section's card was opened: drill in.
@@ -132,6 +214,10 @@ public sealed partial class SettingsPage : Page
         // cached: a language switch changes every caption, so the cache has to
         // go before the tree is rebuilt.
         SettingsSections.Invalidate();
+        // The stored action results are sentences in the language that produced
+        // them. A rebuild happens on a language switch, so keeping them would
+        // leave e.g. "File associations created." on an otherwise Chinese page.
+        ClearActionStatuses();
         var selectedKey = CurrentCategoryKey;
         var offset = OptionsControl.GetScrollOffset();
         // Section labels are localized; a drilled-in section cannot survive
@@ -584,12 +670,13 @@ public sealed partial class SettingsPage : Page
                 Content = AppContext.AppLang.CustomizeRestoreCategories,
                 Icon = new FontIcon { Glyph = "\uE72C" },
             };
-            restore.Tapped += (_, _) =>
-            {
-                RestoreHiddenCategories();
-                RestoreHiddenSections();
-                RebuildLocalizedContent();
-            };
+            restore.Tapped += (_, _) => EditLayout(
+                () =>
+                {
+                    RestoreHiddenCategories();
+                    RestoreHiddenSections();
+                },
+                RebuildLocalizedContent);
             CategoryNav.FooterMenuItems.Add(restore);
         }
 
@@ -688,8 +775,19 @@ public sealed partial class SettingsPage : Page
 
     private void ShowResetStatus(string text)
     {
+        // Fade in only when the line was blank. Replacing a message that is
+        // already on screen should read as a change, not as the line being
+        // announced all over again.
+        var wasEmpty = string.IsNullOrEmpty(SaveStatusText.Text);
+
         SaveStatusText.Text = text;
         SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+
+        if (wasEmpty)
+        {
+            MotionBehaviors.FadeIn(SaveStatusText);
+        }
+
         var generation = ++_resetStatusGeneration;
         _ = ClearResetStatusAsync(generation);
     }
@@ -755,6 +853,46 @@ public sealed partial class SettingsPage : Page
         ApplyPaneMode();
     }
 
+    /// <summary>Gap kept between the footer's status line and its buttons, in DIPs.</summary>
+    private const double FooterStatusGap = 12;
+
+    /// <summary>
+    /// Bounds the footer's status line so it cannot slide under the action
+    /// buttons.
+    ///
+    /// The two share the footer row but not a column: the line is capped and
+    /// centred on the reading column, the buttons are pinned to the window's
+    /// right edge. While the window is wide enough for the cap they cannot meet,
+    /// because the capped line ends a reading measure short of where the buttons
+    /// begin. Narrower than that the line's box fills the footer, and a message
+    /// long enough to reach them would be drawn underneath -- the
+    /// unsaved-changes warning is shown for as long as the draft is dirty, so
+    /// that is not a flicker. Its wrap width is therefore clamped to whatever
+    /// room is left once the visible action group has taken its own.
+    ///
+    /// The reserve is read from the buttons rather than declared as a constant
+    /// because their width is not ours to fix: it moves with the language, and it
+    /// changes outright when the customize session swaps one group for the other.
+    /// Taking the wider of the two costs nothing -- the hidden group measures
+    /// zero -- and removes the need to know which one is showing.
+    /// </summary>
+    private void UpdateFooterStatusWidth()
+    {
+        var content = FooterBorder.ActualWidth - FooterBorder.Padding.Left - FooterBorder.Padding.Right;
+        if (content <= 0)
+        {
+            return;
+        }
+
+        var actions = Math.Max(BrowseActions.ActualWidth, CustomizeActions.ActualWidth);
+        var room = content - (actions > 0 ? actions + FooterStatusGap : 0);
+
+        // The second limit is the reading column: past the cap the line is
+        // confined by it, below the cap by the room the buttons leave.
+        var cap = (double)Application.Current.Resources["MpvContentMaxWidth"];
+        SaveStatusText.MaxWidth = Math.Max(0, Math.Min(cap, room));
+    }
+
     /// <summary>
     /// Puts the pane into the shape the width and the user's last choice call for.
     ///
@@ -768,6 +906,13 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private void ApplyPaneMode()
     {
+        // Where the content sits now, so the change can be given a journey.
+        // Measured rather than derived from a pane width: the two shapes differ
+        // by the expanded length minus the icon rail, the rail's width is not a
+        // public number, and hard-coding 48 would silently stop matching the
+        // day it changes.
+        BeginPaneDrawerSlide();
+
         if (IsNarrow)
         {
             CategoryNav.PaneDisplayMode = NavigationViewPaneDisplayMode.LeftMinimal;
@@ -789,6 +934,87 @@ public sealed partial class SettingsPage : Page
 
         ApplyPaneModeButtonLabel();
     }
+
+    private double? _paneSlideFromX;
+    private bool _paneSlidePending;
+
+    /// <summary>
+    /// Remembers where the content is, so the pane's shape change can be
+    /// followed by a slide that makes it look animated.
+    ///
+    /// Switching <c>PaneDisplayMode</c> between the expanded pane and the icon
+    /// rail is instant and cannot be tweened - the pane's width is a layout
+    /// property the NavigationView owns. The pane therefore still snaps; what
+    /// this buys is that the content beside it does not, which is the half of
+    /// the motion the user actually watches. The pane's own edge is the one
+    /// part of the transition that remains a cut, and that is a limitation of
+    /// the control rather than of the animation.
+    /// </summary>
+    private void BeginPaneDrawerSlide()
+    {
+        try
+        {
+            var toNav = SettingsContentRoot.TransformToVisual(CategoryNav);
+            _paneSlideFromX = toNav.TransformPoint(new Windows.Foundation.Point(0, 0)).X;
+            _paneSlidePending = true;
+        }
+        catch
+        {
+            // Before the first layout there is nothing to measure; skipping the
+            // slide is correct and the pane change still happens.
+            _paneSlideFromX = null;
+            _paneSlidePending = false;
+        }
+    }
+
+    private void SettingsPage_LayoutUpdated(object? sender, object e)
+    {
+        if (!_paneSlidePending)
+        {
+            return;
+        }
+
+        _paneSlidePending = false;
+        var from = _paneSlideFromX;
+        _paneSlideFromX = null;
+
+        if (from is not { } previousX)
+        {
+            return;
+        }
+
+        double nowX;
+        try
+        {
+            var toNav = SettingsContentRoot.TransformToVisual(CategoryNav);
+            nowX = toNav.TransformPoint(new Windows.Foundation.Point(0, 0)).X;
+        }
+        catch
+        {
+            return;
+        }
+
+        // Where the content used to be, relative to where it is now. Starting
+        // the translation there and settling to zero replays the move the
+        // layout just made, so the content appears to travel with the pane
+        // instead of jumping.
+        var travelled = previousX - nowX;
+        if (Math.Abs(travelled) < 1.0)
+        {
+            return;
+        }
+
+        MotionBehaviors.SettleFrom(
+            SettingsContentRoot,
+            (float)travelled,
+            TimeSpan.FromMilliseconds(GetPaneSlideMs()));
+    }
+
+    /// <summary>
+    /// The pane slide borrows the section transition's duration so the two read
+    /// as the same gesture; both are the settings surface rearranging itself.
+    /// </summary>
+    private static double GetPaneSlideMs() => MotionTokens.MediumMs;
 
     /// <summary>The user's immediate icon-only choice, while the window is wide.
     /// Deliberately not persisted: it is a way of looking at the list, not a
@@ -857,15 +1083,36 @@ public sealed partial class SettingsPage : Page
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+
+        // Two shapes arrive here. SettingsNavigationArgs is the current one.
+        // A bare AutoSuggestBox is what SettingsWindow used to pass before the
+        // import path needed to carry a status line as well; accepting it keeps
+        // an older call site from silently losing the search box.
+        var args = e.Parameter switch
+        {
+            SettingsNavigationArgs typed => typed,
+            AutoSuggestBox legacy => new SettingsNavigationArgs(legacy),
+            _ => null,
+        };
+
         // The constructor rebuilds content before the box exists (the frame
         // instantiates the page by type); the top-bar box arrives here, and
         // the bits the constructor skipped get applied now.
-        if (SearchBox is null && e.Parameter is AutoSuggestBox box)
+        if (args?.SearchBox is { } box && SearchBox is null)
         {
             SearchBox = box;
             SearchBox.PlaceholderText = AppContext.AppLang.SearchPlaceholder;
             AutomationProperties.SetName(SearchBox, AppContext.AppLang.Search);
             RestoreSearchHistorySuggestions();
+        }
+
+        // A rebuilt page starts with an empty status dictionary, so a result
+        // produced by the instance that navigated away has to be re-seeded.
+        // Seeding notifies the row directly; nothing else needs rebuilding.
+        if (args?.ActionStatusRowKey is { Length: > 0 } rowKey
+            && !string.IsNullOrEmpty(args.ActionStatusText))
+        {
+            SetActionStatus(rowKey, args.ActionStatusText);
         }
     }
 
@@ -1179,8 +1426,50 @@ public sealed partial class SettingsPage : Page
         },
     };
 
+    /// <summary>
+    /// Plays the content transition when the settings tree moves to a different
+    /// view: another section, the category overview, or the customize surface.
+    ///
+    /// Keyed on the view rather than run unconditionally at the end of
+    /// <see cref="UpdateOptions"/> - that method also runs for a language
+    /// switch, a settings reset, a customize edit and the initial build, and
+    /// pulsing the whole list on each of those would read as a glitch rather
+    /// than as a transition.
+    ///
+    /// The first render is skipped for the same reason: there is nothing to
+    /// transition from, and animating the page in on open would make the window
+    /// feel slower than it is.
+    /// </summary>
+    private void AnimateViewChange()
+    {
+        var view = _customizeMode
+            ? "customize"
+            : _selectedSection ?? "overview";
+
+        if (string.Equals(view, _lastMotionView, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var isFirstRender = string.IsNullOrEmpty(_lastMotionView);
+        _lastMotionView = view;
+
+        if (isFirstRender)
+        {
+            return;
+        }
+
+        // The scroll viewer, not the list inside it: animating the list would
+        // leave the scrollbar and the surrounding padding sitting still while
+        // the cards slid underneath them.
+        var target = _customizeMode ? (FrameworkElement)CustomizeRoot : BrowseHost;
+        MotionBehaviors.SectionSwitch(target);
+    }
+
     private void UpdateOptions()
     {
+        AnimateViewChange();
+
         // Customize mode owns the layout: the bookmark-manager surface (folder
         // tree + the selected node's cards) replaces the browsing view. The
         // tree is rebuilt here so its labels follow the language and its node
