@@ -1047,7 +1047,7 @@
                          tabs belong to the heading, not to a toolbar under it -
                          and splitting them over two rows is what made the video
                          library read as a page with two unrelated headers. -->
-                    <Grid ColumnSpacing="20">
+                    <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -1070,7 +1070,7 @@
                             VerticalAlignment="Bottom"
                             Margin="0,0,0,6"
                             Orientation="Horizontal"
-                            Spacing="28"
+                            Spacing="24"
                             Visibility="Collapsed">
                             <RadioButton
                                 x:Name="VideoTabAll"
@@ -1094,7 +1094,7 @@
                             VerticalAlignment="Bottom"
                             Margin="0,0,0,6"
                             Orientation="Horizontal"
-                            Spacing="28"
+                            Spacing="24"
                             Visibility="Collapsed">
                             <RadioButton
                                 x:Name="MusicTabSongs"
@@ -1764,7 +1764,7 @@
                     <Grid
                         Padding="20"
                         Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                        ColumnSpacing="28"
+                        ColumnSpacing="24"
                         CornerRadius="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -2199,7 +2199,7 @@
                     Grid.Row="1"
                     Height="36"
                     Padding="48,0,48,0"
-                    ColumnSpacing="3">
+                    ColumnSpacing="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />

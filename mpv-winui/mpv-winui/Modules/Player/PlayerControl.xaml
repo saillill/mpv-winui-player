@@ -15,7 +15,7 @@
         <!-- Equalizer flyout band row (audit A9): sliders bind TwoWay to
              EqualizerBand.Value instead of being rebuilt on every open. -->
         <DataTemplate x:Key="EqualizerFlyoutBandTemplate" x:DataType="local:EqualizerBand">
-            <Grid ColumnSpacing="10">
+            <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="60" />
                     <ColumnDefinition Width="Auto" />
@@ -357,7 +357,7 @@
                         Visibility="Collapsed">
                         <TextBlock
                             x:Name="CompactTimeText"
-                            Margin="0,0,10,0"
+                            Margin="0,0,8,0"
                             VerticalAlignment="Center"
                             FontSize="{StaticResource MpvTransportTimeFontSize}" />
                     </AppBarElementContainer>
@@ -783,7 +783,7 @@
                                 Placement="Top">
                                 <StackPanel
                                     Width="360"
-                                    Spacing="10">
+                                    Spacing="8">
                                     <TextBlock
                                         x:Name="DelayTitle"
                                         FontWeight="SemiBold"

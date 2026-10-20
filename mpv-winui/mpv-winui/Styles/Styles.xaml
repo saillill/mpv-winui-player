@@ -239,7 +239,7 @@
                                 x:Name="SwitchAreaGrid"
                                 Grid.RowSpan="3"
                                 Grid.ColumnSpan="3"
-                                Margin="0,5"
+                                Margin="0,4"
                                 Background="{ThemeResource ToggleSwitchContainerBackground}"
                                 Control.IsTemplateFocusTarget="True"
                                 CornerRadius="{TemplateBinding CornerRadius}" />
