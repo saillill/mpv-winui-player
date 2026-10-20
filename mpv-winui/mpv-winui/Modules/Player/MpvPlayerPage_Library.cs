@@ -1071,6 +1071,9 @@ namespace mpv_winui.Modules.Player
                 ? AppContext.AppLang.LibraryUnknownAlbum
                 : AppContext.AppLang.LibraryUnknownArtist;
 
+            // Grouped by tag, then filed under an index letter. The letter is the
+            // PRIMARY sort key: without it a pinyin-ordered library lists 周杰伦 under
+            // Z after 王菲 under W - each heading correct, the sequence wrong.
             var groups = entries
                 .GroupBy(entry =>
                 {
@@ -1078,19 +1081,45 @@ namespace mpv_winui.Modules.Player
 
                     return string.IsNullOrWhiteSpace(key) ? "\uFFFF" : key;
                 }, StringComparer.CurrentCultureIgnoreCase)
-                .OrderBy(group => group.Key, StringComparer.CurrentCultureIgnoreCase)
-                .Select(group => new VideoFolderGroup(
-                    group.Key == "\uFFFF" ? unknownLabel : group.Key,
-                    group.ToList()));
+                .Select(group =>
+                {
+                    var name = group.Key == "\uFFFF" ? unknownLabel : group.Key;
+
+                    return new VideoFolderGroup(
+                        name,
+                        group.ToList(),
+                        Path: string.Empty,
+                        Letter: LibraryIndexLetter.For(name, ch => PinyinInitial.For(ch.ToString())));
+                })
+                // Index order first, then the culture's own order inside a letter - so
+                // the rail can jump to a letter and the entries there still read the
+                // way the user expects.
+                .OrderBy(group => Array.IndexOf(LibraryIndexLetter.All, group.Letter))
+                .ThenBy(group => group.Name, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+
+            // Letter -> the presenter hosting that group's header, filled as the groups
+            // are built so the rail knows where to jump instead of walking the visual
+            // tree and guessing which presenter is which.
+            _groupHeaders.Clear();
 
             foreach (var group in groups)
             {
-                VideoFolderGroups.Children.Add(new ContentPresenter
+                var header = new ContentPresenter
                 {
                     Content = group,
                     ContentTemplate = headerTemplate,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
-                });
+                };
+
+                VideoFolderGroups.Children.Add(header);
+
+                if (!string.IsNullOrEmpty(group.Letter))
+                {
+                    // First group wins: several albums can share a letter and the rail
+                    // should land on the first of them.
+                    _groupHeaders.TryAdd(group.Letter, header);
+                }
 
                 var repeater = new ItemsRepeater
                 {
@@ -1102,6 +1131,79 @@ namespace mpv_winui.Modules.Player
                 repeater.ElementPrepared += LibraryGrid_ElementPrepared;
                 VideoFolderGroups.Children.Add(repeater);
             }
+
+            BuildLibraryIndexRail(groups);
+        }
+
+        /// <summary>Where each letter's first group header lives. Rebuilt with the groups.</summary>
+        private readonly Dictionary<string, FrameworkElement> _groupHeaders = new(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Builds the A-Z rail for the music library's grouped tabs.
+        ///
+        /// Every letter is shown, dimmed when empty. The reference does the same, and
+        /// hiding them would make the rail move as the library changes - a person could
+        /// not learn where a letter sits, or see that Q is empty without trying Q.
+        ///
+        /// Only the music library has one. The video library groups by directory, which
+        /// has no initial to jump to, and the queue is mpv's own playlist.
+        /// </summary>
+        private void BuildLibraryIndexRail(IEnumerable<VideoFolderGroup> groups)
+        {
+            var isMusicGrouped = _librarySection == LibrarySectionMusic
+                && _musicGrouping != MusicGrouping.Songs;
+
+            if (!isMusicGrouped)
+            {
+                LibraryIndexRail.ItemsSource = null;
+
+                LibraryIndexRail.Visibility = Visibility.Collapsed;
+
+                return;
+            }
+
+            var inUse = groups
+                .Select(group => group.Letter)
+                .Where(letter => !string.IsNullOrEmpty(letter))
+                .Distinct(StringComparer.Ordinal);
+
+            // One table decides the letters and their order for both the rail and the
+            // grouping, so the two cannot disagree about which bucket exists.
+            LibraryIndexRail.ItemsSource = LibraryIndexLetter.BuildRail(inUse);
+
+            LibraryIndexRail.ItemTemplate = (DataTemplate)Resources["LibraryIndexLetterTemplate"];
+
+            LibraryIndexRail.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Jumps to the first group filed under the clicked letter.
+        ///
+        /// StartBringIntoView rather than a hand-computed offset: the groups live in a
+        /// StackPanel inside a ScrollViewer, so the framework already knows how to scroll
+        /// a descendant to the top. Doing the arithmetic by hand is how the lyrics scroll
+        /// ended up needing its own centring maths for no benefit.
+        /// </summary>
+        private void IndexRailButton_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.Tag is not string letter)
+            {
+                return;
+            }
+
+            if (!_groupHeaders.TryGetValue(letter, out var header))
+            {
+                return;
+            }
+
+            header.StartBringIntoView(new BringIntoViewOptions
+            {
+                // 0.0 pins the heading to the top of the viewport, which is what a jump
+                // list means - a ratio in the middle would leave the previous group
+                // showing above the one that was clicked.
+                VerticalAlignmentRatio = 0.0,
+                AnimationDesired = true,
+            });
         }
 
         /// <summary>
@@ -2395,7 +2497,8 @@ namespace mpv_winui.Modules.Player
     public sealed record VideoFolderGroup(
         string Name,
         IReadOnlyList<LibraryEntry> Items,
-        string Path = "")
+        string Path = "",
+        string Letter = "")
     {
         /// <summary>How many entries the group holds, as text for the row template.</summary>
         public string CountText => Items.Count.ToString();

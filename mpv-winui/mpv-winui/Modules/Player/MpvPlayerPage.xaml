@@ -137,6 +137,8 @@
 
         <view:AspectHeightConverter x:Key="SixteenByNine" Aspect="1.7777777777777777" />
 
+        <view:IndexLetterOpacityConverter x:Key="IndexLetterOpacity" />
+
         <DataTemplate x:Key="LibraryCardTemplate" x:DataType="local:LibraryEntry">
             <Button
                 AutomationProperties.Name="{x:Bind Title}"
@@ -248,6 +250,32 @@
                             TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                 </StackPanel>
+            </Button>
+        </DataTemplate>
+
+        <!-- One letter in the A-Z rail.
+
+             A Button, not a TextBlock with a Tapped handler: it brings keyboard focus,
+             a pointer-over state and an automation name, none of which a TextBlock has.
+             IsEnabled follows HasContent so an empty letter cannot be clicked at all, and
+             the opacity makes that visible - a full-weight letter that does nothing reads
+             as broken rather than as empty.
+
+             Tag carries the letter so one handler on the page serves every item. -->
+        <DataTemplate x:Key="LibraryIndexLetterTemplate" x:DataType="local:LibraryIndexBucket">
+            <Button
+                MinHeight="18"
+                Padding="0"
+                HorizontalAlignment="Stretch"
+                Background="Transparent"
+                BorderThickness="0"
+                Click="IndexRailButton_Click"
+                IsEnabled="{x:Bind HasContent}">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="12"
+                    Opacity="{x:Bind HasContent, Converter={StaticResource IndexLetterOpacity}}"
+                    Text="{x:Bind Letter}" />
             </Button>
         </DataTemplate>
 
@@ -1058,6 +1086,28 @@
                             Visibility="Collapsed" />
                     </Grid>
                 </ScrollViewer>
+
+                <!-- The A-Z rail, in its own column so it does not scroll away.
+
+                     A sibling of the ScrollViewer rather than a child: a jump list you
+                     have to scroll to find is not a jump list.
+
+                     Built in code from LibraryIndexLetter.BuildRail - the same table the
+                     grouping sorts by - so the letters cannot disagree with the groups
+                     they point at. Shown only for the music library's grouped tabs; the
+                     video library groups by directory, which has no initial.
+
+                     Items are LibraryIndexBucket, whose HasContent drives both IsEnabled
+                     and the dim, so an empty letter cannot be clicked and does not look
+                     clickable. -->
+                <ItemsRepeater
+                    x:Name="LibraryIndexRail"
+                    Grid.Row="1"
+                    Width="40"
+                    Margin="0,0,6,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Visibility="Collapsed" />
 
                 <!-- The empty state is one centred block, which is what the
                      official player does: measured, its illustration-plus-text
