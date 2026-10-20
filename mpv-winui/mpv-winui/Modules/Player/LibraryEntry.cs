@@ -312,6 +312,14 @@ namespace mpv_winui.Modules.Player
                 MediaIconPath = isVideo ? FluentIcons.Filmstrip
                     : isAudio ? FluentIcons.Music
                     : FluentIcons.List,
+
+                // Nothing has been read from the file yet, and saying so is better than
+                // saying nothing: an album card with two empty caption lines reads as
+                // broken rather than as untagged, and these are the same buckets the
+                // grouping already files such tracks under. FromFileWithTags replaces
+                // both with the real tags when the pass runs.
+                AlbumTitle = global::mpv_winui.AppContext.AppLang.LibraryUnknownAlbum,
+                AlbumArtistText = global::mpv_winui.AppContext.AppLang.LibraryUnknownArtist,
             };
         }
     }

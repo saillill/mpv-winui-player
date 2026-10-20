@@ -317,6 +317,137 @@
             </Button>
         </DataTemplate>
 
+        <!-- The album card: a square cover, the album name, then its artist.
+
+             The two captions use {Binding}, NOT {x:Bind}, and that is deliberate. A single
+             {x:Bind AlbumTitle} anywhere in this file makes the WindowsAppSDK 2.3.9 XAML
+             compiler fail with WMC9999 - an internal error that names no file, no line, and
+             does not appear in a 9.6 MB diagnostic log at all. Bisection placed it exactly:
+             a byte-copy of the video card compiles, the same copy with one {x:Bind} to this
+             property does not, and the property is declared identically to Title.
+
+             {Binding} is resolved at runtime against the DataContext, so no compiled binding
+             code is generated for it - the half that crashes. The trade is speed and
+             compile-time checking on two text lines, which is worth paying to get the card.
+
+             Because a Binding path is a bare string, a rename would fail silently at
+             runtime. These two are the only such paths in the file.
+
+             Every other binding here stays {x:Bind}: those compile, and there is no reason
+             to move a working mechanism onto the slower one.
+
+             Square: Height={Binding ActualWidth} with no converter, because a square IS the
+             width. The video card needs a converter only for 16:9.
+
+             Element names are prefixed Album* because the overlay code finds its controls by
+             name inside whichever template it was handed, and the video card already owns
+             CardHoverOverlay / CardPlayButton / CardMoreButton. -->
+        <DataTemplate x:Key="AlbumCardTemplate" x:DataType="local:LibraryEntry">
+            <Button
+                AutomationProperties.Name="{Binding AlbumTitle}"
+                Click="LibraryCard_Click"
+                PointerCanceled="LibraryCard_PointerCanceled"
+                PointerEntered="LibraryCard_PointerEntered"
+                PointerExited="LibraryCard_PointerExited"
+                Style="{StaticResource LibraryCardButtonStyle}">
+                <StackPanel>
+                    <Border
+                        Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                        Style="{StaticResource LibraryCardMediaStyle}">
+                        <Grid>
+                            <Viewbox
+                                Width="48"
+                                Height="48"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="{x:Bind IconVisibility, Mode=OneWay}">
+                                <PathIcon
+                                    Width="24"
+                                    Height="24"
+                                    Data="{x:Bind MediaIcon}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Viewbox>
+                            <Image
+                                Source="{x:Bind Thumbnail, Mode=OneWay}"
+                                Stretch="UniformToFill"
+                                Visibility="{x:Bind ThumbnailVisibility, Mode=OneWay}" />
+
+                            <Grid
+                                x:Name="AlbumCardHoverOverlay"
+                                IsHitTestVisible="False"
+                                Visibility="Collapsed">
+                                <Border
+                                    Background="#59000000"
+                                    CornerRadius="4"
+                                    IsHitTestVisible="False" />
+                                <Button
+                                    x:Name="AlbumCardPlayButton"
+                                    Width="32"
+                                    Height="32"
+                                    Margin="8"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Bottom"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    BorderThickness="0"
+                                    CornerRadius="16"
+                                    Click="CardPlay_Click"
+                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    <FontIcon
+                                        FontSize="14"
+                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                        Glyph="&#xE768;" />
+                                </Button>
+                                <Button
+                                    x:Name="AlbumCardMoreButton"
+                                    Width="32"
+                                    Height="32"
+                                    Margin="8"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    BorderThickness="0"
+                                    CornerRadius="16"
+                                    Click="CardMore_Click"
+                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                </Button>
+                                <Border
+                                    x:Name="AlbumCardSelectionBox"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="8"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    CornerRadius="4"
+                                    Visibility="{x:Bind SelectionVisibility, Mode=OneWay}">
+                                    <FontIcon
+                                        FontSize="12"
+                                        Glyph="{x:Bind SelectionGlyph, Mode=OneWay}" />
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel
+                        Margin="{StaticResource MpvMediaTileCaptionMargin}"
+                        Spacing="{StaticResource MpvSpaceXxs}">
+                        <TextBlock
+                            MaxLines="2"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            Text="{Binding AlbumTitle}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{Binding AlbumArtistText}"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+
         <!-- The card's overflow menu, one definition shared by every card.
              A MenuFlyout is shown with ShowAt and does not have to live inside
              the item it points at, so keeping it here leaves the item template

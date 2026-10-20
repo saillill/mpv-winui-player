@@ -1083,7 +1083,10 @@ namespace mpv_winui.Modules.Player
         {
             VideoFolderGroups.Children.Clear();
 
-            var cardTemplate = (DataTemplate)Resources["LibraryCardTemplate"];
+            // The album card, not the video one: square cover, album then artist. Both
+            // grouped music tabs render albums, and the video card's 16:9 crop loses the
+            // sleeve while its single caption loses the artist.
+            var cardTemplate = (DataTemplate)Resources["AlbumCardTemplate"];
             var headerTemplate = (DataTemplate)Resources["VideoFolderHeaderTemplate"];
 
             var byAlbum = _musicGrouping == MusicGrouping.Albums;
@@ -1149,7 +1152,7 @@ namespace mpv_winui.Modules.Player
                     ItemTemplate = cardTemplate,
                     ItemsSource = group.Items,
                 };
-                repeater.Layout = CardLayout();
+                repeater.Layout = AlbumCardLayout();
 
                 repeater.ElementPrepared += LibraryGrid_ElementPrepared;
                 VideoFolderGroups.Children.Add(repeater);
@@ -1462,6 +1465,25 @@ namespace mpv_winui.Modules.Player
         /// 253 x 200 is the markup's pair: 253 wide through 16:9 is 142, plus the two
         /// caption lines. Change both together - the markup comment says so too.
         /// </summary>
+        /// <summary>
+        /// The album grid: squarer, narrower tiles than the video grid.
+        ///
+        /// MinItemWidth 170 is the reference's own cover size (255 px at DPI 1.5), and
+        /// MinItemHeight leaves room for a square cover plus the album and artist lines.
+        ///
+        /// Its own method rather than a parameter on CardLayout(): the two widths mean
+        /// different things - a 16:9 card is 253 wide BECAUSE it is 142 tall, while a
+        /// square tile is 170 for its own sake - and a shared method taking two magic
+        /// numbers would hide which one belongs to which kind of card.
+        /// </summary>
+        private static UniformGridLayout AlbumCardLayout() => new()
+        {
+            MinItemWidth = 170,
+            MinItemHeight = 246,
+            MinColumnSpacing = 12,
+            MinRowSpacing = 20,
+        };
+
         private static UniformGridLayout CardLayout() => new()
         {
             MinItemWidth = 253,
@@ -2096,22 +2118,40 @@ namespace mpv_winui.Modules.Player
         {
             var lang = AppContext.AppLang;
 
-            if (FindDescendant(card, "CardPlayButton") is Button playButton)
+            var play = FindDescendant(card, "CardPlayButton")
+                ?? FindDescendant(card, "AlbumCardPlayButton");
+
+            if (play is Button playButton)
             {
                 AutomationProperties.SetName(playButton, lang.LibraryCardPlay);
                 ToolTipService.SetToolTip(playButton, lang.LibraryCardPlay);
             }
 
-            if (FindDescendant(card, "CardMoreButton") is Button moreButton)
+            var more = FindDescendant(card, "CardMoreButton")
+                ?? FindDescendant(card, "AlbumCardMoreButton");
+
+            if (more is Button moreButton)
             {
                 AutomationProperties.SetName(moreButton, lang.LibraryCardMore);
                 ToolTipService.SetToolTip(moreButton, lang.LibraryCardMore);
             }
         }
 
-        /// <summary>The card's overlay, by name, from the card root.</summary>
+        /// <summary>
+        /// The card's overlay, by name, from the card root.
+        ///
+        /// Two spellings because there are two templates. The album card names its parts
+        /// Album* rather than reusing the video card's names - two DataTemplates in one
+        /// file sharing an x:Name is a separate problem - so a single-name lookup would
+        /// leave album cards with no hover layer: PointerEntered fires, this returns
+        /// null, and the card looks inert with nothing to report.
+        ///
+        /// A candidate list rather than stripping a prefix: these are three fixed names,
+        /// and a prefix rule would be a guess about how the next template gets named.
+        /// </summary>
         private static FrameworkElement? FindCardOverlay(DependencyObject card) =>
-            FindDescendant(card, "CardHoverOverlay") as FrameworkElement;
+            FindDescendant(card, "CardHoverOverlay") as FrameworkElement
+            ?? FindDescendant(card, "AlbumCardHoverOverlay") as FrameworkElement;
 
         /// <summary>
         /// Depth-first search of a realised card for one named element.
