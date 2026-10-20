@@ -29,6 +29,19 @@
 `check-localization` 会把它们报成「没有 AppLang 属性的伴随表键（expected）」——
 **这是预期的，不是缺陷**。
 
+⚠️ **但「没有 AppLang 属性」不等于「可以留着」。** 这条 warning 曾经是
+一个桶：任何没有属性对应的键都落进去，于是 11 个**设置早已删除**的键
+（6 个 `SettingsTheme*` / `SettingsHelpTheme*`、`ThemeCustomName`、
+4 个生成分区 `SectionGenGeneralPlatform|Terminal` 及其描述）在 9 份文件里
+一直躺着，而检查器说「expected」。现在分成两类：
+
+| 类别 | 判据 | 级别 |
+|---|---|---|
+| 伴随表 | 前缀 `Customize`，或键为 `ApplyAndExit`（`CustomizeStrings.Load` 读它们） | warning（预期） |
+| 陈旧键 | 其余一切：无 AppLang 属性，也没有任何读取者 | **ERROR** |
+
+判据是**有没有读取者**，不是键名像不像。删设置时顺手删掉它的文案键。
+
 ## 新增/修改文案的流程
 
 1. 在 `AppLang.cs` 增加属性（默认值写英文），并保证属性名唯一。
@@ -40,6 +53,14 @@
 > 应改生成器或 schema，**不要手改 `AppLang.Gen.cs`** —— 下一次生成会覆盖。
 > 那 1096 个键当前**在 9 份 JSON 里一个都没有**，所以生成行的标签与描述
 > 一律显示英文；这是已知欠账（见设计约束 §7 A-16）。
+
+> **编辑 JSON 的两条实测陷阱**（都已在本次工作里踩过）：
+> 1. `Path.read_text()` **会规范化换行**。之后 `split("\r\n")` 得到的是
+>    单条超长行，「这个键在不在」的答案一律为 False。用 `read_bytes()` 再
+>    `decode`。
+> 2. 不要用 `json.dump` 重写这些文件。它们是一个键一行、两空格缩进、CRLF、
+>    无 BOM、以 `}\r\n` 结尾。重写会把 87 行的新增变成 1400 行的整文件重写，
+>    而 `git diff --stat` 里看不出差别 —— 只能靠行数看出来。**按行增删。**
 
 ## 菜单栏
 
