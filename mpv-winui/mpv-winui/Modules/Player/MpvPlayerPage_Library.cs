@@ -499,7 +499,12 @@ namespace mpv_winui.Modules.Player
             }
 
             _librarySection = key;
+
             ApplySectionHeader();
+
+            // Announced here rather than at each call site: this is the one place
+            // the section changes, so one report cannot drift from the value.
+            LibrarySectionChanged?.Invoke(_librarySection);
 
             // The queue has nothing to read from disk: its rows are mpv's own
             // playlist. Selecting it shows the panel and asks for a refresh
@@ -1148,8 +1153,27 @@ namespace mpv_winui.Modules.Player
                         continue;
                     }
 
-                    _libraryAll[i] = LibraryEntry.FromFileWithTags(
-                        entry.Path, entry.Title, entry.Time, found) ?? entry;
+                    var replaced = LibraryEntry.FromFileWithTags(
+                        entry.Path, entry.Title, entry.Time, found);
+
+                    if (replaced is null)
+                    {
+                        continue;
+                    }
+
+                    // The tag read builds a NEW entry, and the thumbnail is not a
+                    // tag - so it has to be carried across or the card loses its
+                    // cover. This is the "cover shows once, then goes grey" bug:
+                    // the thumbnails load into the instances this loop replaces.
+                    //
+                    // The instance being replaced is the authority: it already holds
+                    // whatever LoadThumbnailsAsync decoded for this path.
+                    if (entry.Thumbnail is { } existing)
+                    {
+                        replaced.SetThumbnail(existing);
+                    }
+
+                    _libraryAll[i] = replaced;
                 }
 
                 // The grid holds the same objects the list did, so it has to be
@@ -2134,6 +2158,20 @@ namespace mpv_winui.Modules.Player
         /// way in - the one inside the empty state.
         /// </summary>
         internal event Action<bool>? EmptyStateVisibleChanged;
+
+        /// <summary>
+        /// The section now up, as one of the LibrarySection* keys.
+        ///
+        /// Separate from <see cref="ShellStateChanged"/> on purpose: that one
+        /// answers "is a video playing", which is a different question from "which
+        /// section is the user looking at". The shell needs the second to keep its
+        /// open-file button on Home only, and widening ShellPageState would change
+        /// a value every other shell consumer switches on.
+        /// </summary>
+        internal event Action<string>? LibrarySectionChanged;
+
+        /// <summary>The section currently up.</summary>
+        internal string CurrentLibrarySection => _librarySection;
 
         private void RaiseShellState()
         {
