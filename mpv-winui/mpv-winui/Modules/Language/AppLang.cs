@@ -487,6 +487,8 @@ namespace mpv_winui.Modules.Language
         // would make every existing translation report as an orphan key.
 
         // Section captions split each category into topic groups.
+        public string SectionProgramInterface { get; set; } = "Interface";
+        public string SectionDescProgramInterface { get; set; } = "Theme, backdrop material, UI font";
 
         /// <summary>
         /// The control bar's appearance.
@@ -498,8 +500,7 @@ namespace mpv_winui.Modules.Language
         public string SectionPlayerAppearance { get; set; } = "Player appearance";
 
         /// <summary>See <see cref="SectionPlayerAppearance"/>.</summary>
-        public string SectionDescPlayerAppearance { get; set; } =
-            "Theme, backdrop, interface font, control bar skin and layout";
+        public string SectionDescPlayerAppearance { get; set; } = "Control bar skin";
 
         /// <summary>The control-bar skin choice.</summary>
         public string SettingsPlayerStyle { get; set; } = "Control bar skin";

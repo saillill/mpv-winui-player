@@ -39,13 +39,6 @@ public sealed partial class SettingsPage
                 Section = sPlayerAppearance,
                 Description = lang.SettingsHelpPlayerStyle,
                 Type = OptionType.StringList,
-
-                // Three real skins, no Custom entry. Without this a typed value is
-                // stored, announced, and then matches no case in ApplyPlayerStyle - whose
-                // default arm sets Style = null, so the bar silently reverts to the
-                // default skin and the setting appears not to work.
-                AllowCustom = false,
-
                 Choices =
                 [
                     new OptionChoice(AppSettings.PlayerStyle_Default, lang.PlayerStyleDefault),

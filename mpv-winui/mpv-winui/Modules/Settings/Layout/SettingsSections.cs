@@ -74,6 +74,7 @@ internal static class SettingsSections
     /// </summary>
     internal static readonly Section[] All =
     [
+        new("SectionProgramInterface", "\uE771", l => l.SectionProgramInterface, l => l.SectionDescProgramInterface),
         new("SectionProgramLanguageLog", "\uE8C1", l => l.SectionProgramLanguageLog, l => l.SectionDescProgramLanguageLog),
         new("SectionProgramConfig", "\uECC5", l => l.SectionProgramConfig, l => l.SectionDescProgramConfig),
         new("SectionProgramAssociations", "\uE8E5", l => l.SectionProgramAssociations, l => l.SectionDescProgramAssociations),

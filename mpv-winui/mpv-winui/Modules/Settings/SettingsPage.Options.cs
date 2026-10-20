@@ -45,6 +45,7 @@ private List<Option> BuildSettings()
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
+        var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
         var sPlayerAppearance = AppContext.AppLang.SectionPlayerAppearance;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
@@ -712,7 +713,8 @@ private List<Option> BuildSettings()
             // through to the minimum optionOrder inside each group) but the
             // table claimed two sections were at the same position, so the
             // next person to add a sibling would have been reading a lie.
-            [sPlayerAppearance] = 0,
+            [sProgramInterface] = 0,
+            [sPlayerAppearance] = 1,
             [sProgramLanguageLog] = 2,
             [sProgramConfig] = 3,
             [sProgramTesting] = 4,
@@ -808,9 +810,9 @@ private List<Option> BuildSettings()
         {
             // program
             [nameof(AppSettings.PlayerStyle)] = sPlayerAppearance,
-            [nameof(AppSettings.ThemeType)] = sPlayerAppearance,
-            [nameof(AppSettings.BackdropType)] = sPlayerAppearance,
-            [nameof(AppSettings.UiFont)] = sPlayerAppearance,
+            [nameof(AppSettings.ThemeType)] = sProgramInterface,
+            [nameof(AppSettings.BackdropType)] = sProgramInterface,
+            [nameof(AppSettings.UiFont)] = sProgramInterface,
             [nameof(AppSettings.CurrentLanguage)] = sProgramLanguageLog,
             [nameof(AppSettings.CheckForUpdates)] = sProgramConfig,
             // preset keys are option keys, not AppSettings properties
@@ -1092,7 +1094,7 @@ private List<Option> BuildSettings()
             ["ActionExportConfig"] = sProgramConfig,
             ["ActionImportConfig"] = sProgramConfig,
             ["ActionOpenMpvConf"] = sProgramConfig,
-            [nameof(AppSettings.ControlBarLayout)] = sPlayerAppearance,
+            [nameof(AppSettings.ControlBarLayout)] = sProgramInterface,
             // ControlBarHiddenIcons is deliberately absent: it is the pre-split
             // name of a per-style pair (ControlBarHiddenIconsClassic /
             // ...ModernX), so no row can ever carry it again. The AppSettings

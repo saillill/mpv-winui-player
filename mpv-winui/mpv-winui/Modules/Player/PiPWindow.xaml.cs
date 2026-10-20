@@ -195,16 +195,6 @@ public sealed partial class PiPWindow : Window
         // Claim the configured screen corner on entry (the user can drag the
         // window around afterwards).
         PositionAtAnchor(width, height);
-
-        // Both halves of the bar's appearance, in the order that makes the second one
-        // land on the right template: the skin is a Style on the control, the layout is
-        // inside it.
-        //
-        // ApplyPlayerStyle was called from exactly one place in the app (the main page's
-        // UpdatePlayControlStyle), so before this line the PiP bar kept the default skin
-        // no matter what the user chose - it was never applied once, not applied and then
-        // stale.
-        PiPControls.ApplyPlayerStyle();
         PiPControls.ApplyControlBarStyle();
         AppWindow.Show();
         ApplyPiPSize(width, height);
