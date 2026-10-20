@@ -202,7 +202,7 @@
                                      a backdrop with a background would swallow the click
                                      that should reach the card behind it. -->
                                 <Border
-                                    Background="#59000000"
+                                    Background="{ThemeResource SmokeFillColorDefaultBrush}"
                                     CornerRadius="4"
                                     IsHitTestVisible="False" />
 
@@ -377,7 +377,7 @@
                                 IsHitTestVisible="False"
                                 Visibility="Collapsed">
                                 <Border
-                                    Background="#59000000"
+                                    Background="{ThemeResource SmokeFillColorDefaultBrush}"
                                     CornerRadius="4"
                                     IsHitTestVisible="False" />
                                 <Button
@@ -994,7 +994,7 @@
                  picture still has a defined edge inside the swap chain. -->
             <Grid
                 x:Name="VideoContainer"
-                Background="#22000000">
+                Background="{ThemeResource SmokeFillColorDefaultBrush}">
                 <SwapChainPanel
                     x:Name="PlayerView"
                     ContextRequested="PlayerView_ContextRequested">

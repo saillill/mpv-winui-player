@@ -207,6 +207,33 @@ namespace mpv_winui.Modules.Player
             {
                 cardMenu.Closed -= LibraryCardMenu_Closed;
             }
+
+            // The data, not only the events. Leaving these populated was how a rebuilt
+            // library could show entries from the folder that had just been unbound, and
+            // it is the same missing-owner problem that made cover art vanish when the
+            // tag pass replaced the entry objects.
+            //
+            // Two kinds, two calls: the three collections below are `readonly`, so they
+            // must be emptied rather than reassigned, while the rest take the empty value
+            // they were declared with.
+            _libraryThumbnails.Clear();
+            _libraryWithoutThumbnail.Clear();
+            _groupHeaders.Clear();
+
+            _libraryAll = [];
+            _albumTracks = [];
+            _lyrics = [];
+            _palette = Audio.AlbumColorExtractor.None;
+
+            // The "loaded once" flag belongs with the data it describes: with the caches
+            // empty, a set flag would make the next entry skip the reload and show nothing.
+            _libraryLoaded = false;
+
+            // Two references that outlive their usefulness in a way a plain field does not:
+            // one points at a live element, the other at the entry its menu belongs to.
+            _activeCardOverlay = null;
+            _cardMenuEntry = null;
+            _openAlbum = null;
         }
 
         private void ApplyLibraryStrings()

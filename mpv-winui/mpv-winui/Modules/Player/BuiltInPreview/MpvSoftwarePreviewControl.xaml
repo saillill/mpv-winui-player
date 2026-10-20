@@ -8,7 +8,7 @@
 
     <Border
         x:Name="PreviewCard"
-        Background="#E6000000"
+        Background="{ThemeResource SmokeFillColorDefaultBrush}"
         Canvas.ZIndex="2"
         CornerRadius="6"
         IsHitTestVisible="False"

@@ -121,7 +121,6 @@ namespace mpv_winui.Modules.Player
             bool isSeparatorPre = false;
             foreach (var entry in items)
             {
-                //TODO
                 if (!CheckMpvMenu(entry))
                 {
                     continue;
