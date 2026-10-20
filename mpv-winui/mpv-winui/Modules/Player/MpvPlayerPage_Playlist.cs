@@ -548,7 +548,6 @@ namespace mpv_winui.Modules.Player
         private int _dragSourceIndex = -1;
         private Point _dragStartPoint;
         private bool _dragActive;
-        private bool _dragSetup;
 
         private static PlaylistItem? FindPlaylistItem(DependencyObject? source)
         {

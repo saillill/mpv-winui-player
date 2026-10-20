@@ -1636,7 +1636,6 @@ namespace mpv_winui.Modules.Player
 
                 UpdatePlaybackStatusUI(false);
 
-                //UpdatePlayPauseUI(false);
 
                 UpdateVolumeUI(false);
 

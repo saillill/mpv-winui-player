@@ -565,10 +565,6 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
-        {
-        }
-
         void IParameterRefreshSupportView.OnRefresh(object? parameter)
         {
             var paths = parameter as IReadOnlyList<FileItem>;
