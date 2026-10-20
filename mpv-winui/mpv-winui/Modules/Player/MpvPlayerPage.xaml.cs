@@ -247,6 +247,7 @@ namespace mpv_winui.Modules.Player
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
             _mediaPlayer.VolumeChanged -= MpvPlayerPage_VolumeChanged;
+            _mediaPlayer.LogMessage -= MpvPlayer_LogMessage;
             _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
             _mediaPlayer.DiscMenuActiveChanged -= MpvPlayerPage_DiscMenuActiveChanged;
@@ -460,13 +461,21 @@ namespace mpv_winui.Modules.Player
             await AppContext.WaitAll();
             _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
-            // No swap-chain subscription here. It used to be VoConfigured,
-            // which the component stopped raising in c49b461 (the raise became
-            // m_swapChainChangedEvent) -- so this line subscribed to an event
-            // that could never fire. The job it was there to do is now native:
-            // AttachSwapChain records the panel and CompletePendingSwapChainAttach
-            // finishes the attach on the next VIDEO_RECONFIG, so callers no
-            // longer re-drive it around vo readiness (222be73).
+            // mpv's own log lines. Nothing subscribed to this event before, so
+            // every line mpv forwarded -- warn and above by default, everything
+            // while debug logging is on -- built an MpvLogEventArgs and raised
+            // it into an empty handler set. The cost is the three to_hstring
+            // conversions per message, and msg-level=all=info is what the
+            // bundled mpv.conf asks for, so it was paying that for lines nobody
+            // could see.
+            //
+            // Mirrored into the app log rather than a second file: the log the
+            // user is told to look at is logs\mpv-winui.<date>.log.txt, and one
+            // file with mpv's lines interleaved is what a bug report needs.
+            // mpv's level names map onto NLog's one-for-one (no/error/warn/info/
+            // verbose/debug/trace); anything else falls back to Info rather than
+            // being dropped.
+            _mediaPlayer.LogMessage += MpvPlayer_LogMessage;
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
                 ? AppContext.AppSetting.OverrideDisplayFps
                 : _lastRefreshRate;
@@ -480,6 +489,40 @@ namespace mpv_winui.Modules.Player
         private void MpvPlayerPage_VolumeChanged(VolumeChangedEventArgs args)
         {
             AppContext.AppSetting.LastVideoVolume = (int)args.Volume;
+        }
+
+        /// <summary>
+        /// Forwards one mpv log line into the app log.
+        /// </summary>
+        /// <remarks>
+        /// Raised on the native event thread, not the UI thread. NLog's Logger
+        /// is thread-safe and the file target opens per write, so no dispatch is
+        /// needed here -- and adding one would queue mpv's output behind the UI,
+        /// which is the opposite of what a log is for when the UI is what hung.
+        /// </remarks>
+        private void MpvPlayer_LogMessage(MpvLogEventArgs args)
+        {
+            var level = args.Level switch
+            {
+                "no" => LogLevel.Off,
+                "fatal" => LogLevel.Fatal,
+                "error" => LogLevel.Error,
+                "warn" => LogLevel.Warn,
+                "info" => LogLevel.Info,
+                "v" => LogLevel.Trace,
+                "debug" => LogLevel.Debug,
+                "trace" => LogLevel.Trace,
+                // mpv occasionally adds a level before this app knows about it.
+                // Logging it at Info keeps the line instead of dropping it.
+                _ => LogLevel.Info,
+            };
+
+            if (level == LogLevel.Off)
+            {
+                return;
+            }
+
+            _logger.Log(level, "[mpv/{0}] {1}", args.Prefix, args.Text);
         }
 
         // A drop (or menu open) landing while CreateAsync is still running

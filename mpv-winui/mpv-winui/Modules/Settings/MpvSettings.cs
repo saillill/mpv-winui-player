@@ -42,7 +42,23 @@ public static partial class MpvSettings
             nameof(AppSettings.D3d11ExclusiveFs) => $"set d3d11-exclusive-fs {(value is true ? "yes" : "no")}",
             nameof(AppSettings.D3d11Flip) => $"set d3d11-flip {(value is true ? "yes" : "no")}",
             nameof(AppSettings.D3d11Adapter) => string.IsNullOrWhiteSpace((string)value) ? null : $"set d3d11-adapter {Q((string)value)}",
-            nameof(AppSettings.VolumeMax) => $"set volume-max {value}",
+            // volume-max has no runtime `set`. mpv exposes it as a property that
+            // exists only while the mixer is active, and with ao=wasapi the mixer
+            // belongs to the system -- so `set volume-max 100` answers
+            // "Command 'no-osd set volume-max 100' not found" every single
+            // launch. Measured: two launches produced two more of exactly that
+            // line, after mpv reported `volume-max is 100 while the mixer is not
+            // active` in its own interface-changes notes.
+            //
+            // Nothing depended on it succeeding. The volume slider's ceiling is
+            // read from AppContext.AppSetting.VolumeMax directly (PlayerControl),
+            // not from mpv's property, and mpv.conf carries volume-max=100 for
+            // the engine itself via BuildConfigLines. So the only effect of this
+            // line was a failed command and an error line per launch.
+            //
+            // Left mapped (MpvOptionNames still names the option) so the row
+            // still persists to mpv.conf and read-back still works.
+            nameof(AppSettings.VolumeMax) => null,
             nameof(AppSettings.AudioGapless) => $"set gapless-audio {(string)value}",
             nameof(AppSettings.KeepOpen) => $"set keep-open {value}",
             nameof(AppSettings.LoopPlaylist) => $"set loop-playlist {(string)value}",
