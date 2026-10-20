@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 
 using Microsoft.UI.Composition;
 
@@ -1656,6 +1656,16 @@ namespace mpv_winui.Modules.Player
 
         {
 
+            // Unreachable: the component declares Seeked and exposes its
+            // accessors, but nothing raises it. c49b461 turned the old
+            // m_seekedEvent() raise into m_seekStartedEvent() and left the
+            // declaration behind, so this handler has been dead since.
+            //
+            // Kept as a record of what it did rather than deleted outright,
+            // because the three statements are the "seek finished" side of a
+            // pair whose "seek started" half still fires: SeekingStarted sets
+            // the buffering flag, and PlaybackRestarted clears it and refreshes
+            // the UI. If Seeked is ever raised again, this is already correct.
             DispatcherQueue.RunAsync(() =>
 
             {
