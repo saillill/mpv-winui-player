@@ -851,13 +851,7 @@ namespace mpv_winui.Modules.Player
                     ItemTemplate = cardTemplate,
                     ItemsSource = group.Items,
                 };
-                repeater.Layout = new UniformGridLayout
-                {
-                    MinItemWidth = 116,
-                    MinItemHeight = 176,
-                    MinColumnSpacing = 8,
-                    MinRowSpacing = 16,
-                };
+                repeater.Layout = CardLayout();
 
                 // The same arrival animation the flat grid uses, so the two tabs
                 // read as one surface.
@@ -1103,13 +1097,7 @@ namespace mpv_winui.Modules.Player
                     ItemTemplate = cardTemplate,
                     ItemsSource = group.Items,
                 };
-                repeater.Layout = new UniformGridLayout
-                {
-                    MinItemWidth = 116,
-                    MinItemHeight = 176,
-                    MinColumnSpacing = 8,
-                    MinRowSpacing = 16,
-                };
+                repeater.Layout = CardLayout();
 
                 repeater.ElementPrepared += LibraryGrid_ElementPrepared;
                 VideoFolderGroups.Children.Add(repeater);
@@ -1195,6 +1183,25 @@ namespace mpv_winui.Modules.Player
         /// "Downloads" folders) stay separate groups: the key is the full path,
         /// only the label is the leaf.
         /// </summary>
+        /// <summary>
+        /// The card grid metrics, in one place.
+        ///
+        /// The flat grid's numbers live in MpvPlayerPage.xaml; these two repeaters are
+        /// built in code and used to carry their own copy. When the card became 16:9
+        /// the markup moved and these did not, which would have laid landscape cards
+        /// out in square cells in both grouped views.
+        ///
+        /// 253 x 200 is the markup's pair: 253 wide through 16:9 is 142, plus the two
+        /// caption lines. Change both together - the markup comment says so too.
+        /// </summary>
+        private static UniformGridLayout CardLayout() => new()
+        {
+            MinItemWidth = 253,
+            MinItemHeight = 200,
+            MinColumnSpacing = 12,
+            MinRowSpacing = 16,
+        };
+
         private static List<VideoFolderGroup> GroupVideoFolders(List<LibraryEntry> entries)
         {
             var groups = new List<VideoFolderGroup>();
@@ -1205,7 +1212,7 @@ namespace mpv_winui.Modules.Player
 
             foreach (var group in byFolder)
             {
-                groups.Add(new VideoFolderGroup(FolderLabel(group.Key), group.ToList()));
+                groups.Add(new VideoFolderGroup(FolderLabel(group.Key), group.ToList(), group.Key));
             }
 
             return groups;
@@ -2385,8 +2392,40 @@ namespace mpv_winui.Modules.Player
     /// because the folder was found on disk. <see cref="CountText"/> is a string
     /// so the row template can bind it to a TextBlock without a conversion.
     /// </summary>
-    public sealed record VideoFolderGroup(string Name, IReadOnlyList<LibraryEntry> Items)
+    public sealed record VideoFolderGroup(
+        string Name,
+        IReadOnlyList<LibraryEntry> Items,
+        string Path = "")
     {
+        /// <summary>How many entries the group holds, as text for the row template.</summary>
         public string CountText => Items.Count.ToString();
+
+        /// <summary>
+        /// True when the group has a real directory to show.
+        ///
+        /// Music groups are built from a tag and have no path, so their header must
+        /// not reserve the grey second line for an empty string - that would indent
+        /// every album row away from the video ones for no reason.
+        /// </summary>
+        public Visibility PathVisibility =>
+            string.IsNullOrWhiteSpace(Path) ? Visibility.Collapsed : Visibility.Visible;
+
+        /// <summary>
+        /// The header's glyph: a folder when the group is a real directory, an album
+        /// when it is a tag.
+        ///
+        /// A path STRING plus a Geometry property, following LibraryEntry - see the
+        /// lifetime rule on FluentIcons. A Geometry may belong to exactly one PathIcon
+        /// for its life, and these groups are rebuilt on every section switch, so a
+        /// cached one would be handed to a second icon and the header would drop its
+        /// glyph after the first visit.
+        /// </summary>
+        public string MediaIconPath =>
+            string.IsNullOrWhiteSpace(Path)
+                ? Modules.Common.View.FluentIcons.Album
+                : Modules.Common.View.FluentIcons.Folder;
+
+        /// <summary>A fresh Geometry per access; see <see cref="MediaIconPath"/>.</summary>
+        public Geometry MediaIcon => Modules.Common.View.FluentIcons.Geometry(MediaIconPath);
     }
 }

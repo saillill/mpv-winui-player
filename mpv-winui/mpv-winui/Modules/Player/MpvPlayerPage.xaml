@@ -396,21 +396,65 @@
         <!-- One folder in the "Video folders" tab: the folder name and how many
              played videos it holds. Binds to VideoFolderGroup (see the library
              partial), which is a record the page builds from the history. -->
+        <!-- One folder's heading, in the reference player's form: a folder glyph,
+             then the name, then the full path dimmed on the same line.
+
+             The path is what tells two folders with the same leaf name apart - the
+             grouping already keys on the full directory for exactly that reason, and
+             showing only "Downloads" twice was the visible half of that problem.
+
+             The glyph is drawn through a Viewbox at 20: PathIcon renders its geometry
+             at the native 24 units, so setting Width alone would clip it.
+
+             PathVisibility is Collapsed for the music library's groups: those are
+             built from an album tag, have no path, and must not reserve the grey line
+             or every album heading would indent away from the video ones. -->
         <DataTemplate x:Key="VideoFolderHeaderTemplate" x:DataType="local:VideoFolderGroup">
-            <StackPanel
+            <Grid
                 Margin="0,16,0,8"
-                Orientation="Horizontal"
-                Spacing="{StaticResource MpvSpaceS}">
+                ColumnSpacing="{StaticResource MpvSpaceS}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Viewbox
+                    Grid.Column="0"
+                    Width="20"
+                    Height="20"
+                    VerticalAlignment="Center">
+                    <PathIcon
+                        Width="24"
+                        Height="24"
+                        Data="{x:Bind MediaIcon}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </Viewbox>
+
                 <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
                     Style="{StaticResource BodyStrongTextBlockStyle}"
                     Text="{x:Bind Name}"
                     TextTrimming="CharacterEllipsis" />
+
                 <TextBlock
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind Path}"
+                    TextTrimming="CharacterEllipsis"
+                    Visibility="{x:Bind PathVisibility}" />
+
+                <TextBlock
+                    Grid.Column="3"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind CountText}" />
-            </StackPanel>
+            </Grid>
         </DataTemplate>
     </Page.Resources>
 
