@@ -1276,7 +1276,7 @@
                             Spacing="8">
                             <Button
                                 x:Name="SelectionPlayButton"
-                                Padding="16,6"
+                                Padding="{StaticResource MpvActionButtonPadding}"
                                 Click="SelectionPlay_Click"
                                 Style="{StaticResource AccentButtonStyle}">
                                 <StackPanel
@@ -1290,7 +1290,7 @@
                             </Button>
                             <Button
                                 x:Name="SelectionQueueButton"
-                                Padding="16,6"
+                                Padding="{StaticResource MpvActionButtonPadding}"
                                 Click="SelectionQueue_Click">
                                 <StackPanel
                                     Orientation="Horizontal"
@@ -1303,7 +1303,7 @@
                             </Button>
                             <Button
                                 x:Name="SelectionPropertiesButton"
-                                Padding="16,6"
+                                Padding="{StaticResource MpvActionButtonPadding}"
                                 Click="SelectionProperties_Click">
                                 <StackPanel
                                     Orientation="Horizontal"
@@ -1554,7 +1554,7 @@
                         Spacing="{StaticResource MpvSpaceS}">
                         <Button
                             x:Name="QueueClearButton"
-                            Padding="12,6"
+                            Padding="{StaticResource MpvActionButtonPaddingTight}"
                             Click="QueueClear_Click">
                             <StackPanel
                                 Orientation="Horizontal"
@@ -1575,7 +1575,7 @@
                         </Button>
                         <Button
                             x:Name="QueueAddToButton"
-                            Padding="12,6"
+                            Padding="{StaticResource MpvActionButtonPaddingTight}"
                             Click="QueueAddTo_Click">
                             <StackPanel
                                 Orientation="Horizontal"
@@ -1820,7 +1820,7 @@
                                 Spacing="{StaticResource MpvSpaceS}">
                                 <Button
                                     x:Name="AlbumPlayAllButton"
-                                    Padding="16,6"
+                                    Padding="{StaticResource MpvActionButtonPadding}"
                                     Click="AlbumPlayAll_Click"
                                     Style="{StaticResource AccentButtonStyle}">
                                     <StackPanel
@@ -1838,7 +1838,7 @@
 
                                 <Button
                                     x:Name="AlbumShuffleButton"
-                                    Padding="16,6"
+                                    Padding="{StaticResource MpvActionButtonPadding}"
                                     Click="AlbumShuffle_Click">
                                     <StackPanel
                                         Orientation="Horizontal"
@@ -1855,7 +1855,7 @@
 
                                 <Button
                                     x:Name="AlbumAddToButton"
-                                    Padding="16,6"
+                                    Padding="{StaticResource MpvActionButtonPadding}"
                                     Click="AlbumAddTo_Click">
                                     <StackPanel
                                         Orientation="Horizontal"

@@ -1176,6 +1176,21 @@
          their heights are hand-matched to controls sitting beside them, and a
          comment at each site says so. -->
     <Thickness x:Key="MpvCompactButtonPadding">8,4</Thickness>
+
+    <!-- Action buttons: an icon plus a label, the shape used by the selection bar, the album
+         header and the library toolbars.
+
+         The vertical 6 is not arbitrary - WinUI's own ButtonPadding is 11,5,11,6, so 6 keeps these
+         the same height as a stock Button with a taller-than-default label. The horizontal 16 is
+         what gives an icon+label pair room to breathe; AccentButtonStyle already supplies the
+         background, radius and states.
+
+         Named rather than left as literals at the call sites so a future density change has one
+         place to move. Three variants because the three contexts genuinely differ, not because the
+         numbers drifted. -->
+    <Thickness x:Key="MpvActionButtonPadding">16,6</Thickness>
+    <Thickness x:Key="MpvActionButtonPaddingTight">12,6</Thickness>
+    <Thickness x:Key="MpvSearchButtonPadding">8,6</Thickness>
     <Thickness x:Key="MpvTinyButtonPadding">6,2</Thickness>
     <!-- The footer row's insets. The horizontal half is the MARGIN, only the
          vertical half is padding, and both horizontal halves of the padding are
