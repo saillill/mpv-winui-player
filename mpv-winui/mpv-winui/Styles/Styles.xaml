@@ -1014,6 +1014,23 @@
 
     <!-- Built-in Fluent icon font shared by the control bar, PiP window and
          track selector so every status-bar glyph renders from one font. -->
+    <!-- The custom icon font, kept deliberately.
+
+         The house style says icons should come from Segoe Fluent Icons. That was checked against
+         the actual font file rather than against a codepoint chart: of the 25 distinct glyphs this
+         app draws, **19 do not exist in the installed SegoeIcons.ttf**.
+
+         The six that do are the ordinary transport glyphs. The nineteen that do not are the ones
+         this font was added for - the playback-mode icons, the equaliser, the compact-bar set.
+         Switching would render them as empty boxes, so this is a functional constraint and not a
+         taste question.
+
+         Note also that this machine has SegoeIcons.ttf (the Windows 11 filename), not
+         "Segoe Fluent Icons.ttf"; a reference to the documented family name would resolve to
+         nothing here.
+
+         If a future Windows ships these codepoints, re-run the comparison before removing this
+         font. The 25 sites are listed by `MpvIconFontFamily` in the player markup. -->
     <FontFamily x:Key="MpvIconFontFamily">ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular</FontFamily>
 
     <!-- Shared card used by the quick-control panel and other code-built

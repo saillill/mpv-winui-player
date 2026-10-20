@@ -201,12 +201,56 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
-            MusicPageWash.Fill = ArtworkPalette.Brush(_palette.Surface);
+            // The theme's own colours, then the cover's tint on top. Reading the base from
+            // resources is what makes the wash follow Light/Dark; using the extracted colour
+            // directly is why it used to ignore the theme completely.
+            MusicPageWash.Fill = ArtworkPalette.Tinted(
+                _palette.Surface,
+                ThemeColor("MpvMusicPageBrush"),
+                WashTintWeight);
 
-            MusicArtworkGlow.Fill = ArtworkPalette.Brush(_palette.Accent);
+            MusicArtworkGlow.Fill = ArtworkPalette.Tinted(
+                _palette.Accent,
+                ThemeColor("MpvMusicArtworkFallbackBrush"),
+                GlowTintWeight);
 
             // Faint: it is light coming off the cover, not a second picture.
             MusicArtworkGlow.Opacity = 0.22;
+        }
+
+        /// <summary>
+        /// How far the page wash moves from the theme colour toward the cover's colour.
+        ///
+        /// Small on purpose. The wash sits behind body text, so it has to keep the theme's
+        /// contrast; 0.30 is enough for two albums to look different and not enough to escape the
+        /// theme, which is what "以官方主题画刷为基底进行偏移" asks for.
+        /// </summary>
+        private const double WashTintWeight = 0.30;
+
+        /// <summary>
+        /// How far the artwork glow moves toward the cover's colour.
+        ///
+        /// Higher than the wash because the glow IS the cover's light - it carries no text and sits
+        /// at 0.22 opacity behind the artwork, so the cover's hue is the subject rather than a tint
+        /// on a background.
+        /// </summary>
+        private const double GlowTintWeight = 0.55;
+
+        /// <summary>
+        /// The colour of a theme brush by key.
+        ///
+        /// Falls back to transparent when the key is missing rather than throwing: a resource rename
+        /// should make the wash neutral, not take the music page down.
+        /// </summary>
+        private static Windows.UI.Color ThemeColor(string key)
+        {
+            if (Application.Current.Resources.TryGetValue(key, out var value)
+                && value is SolidColorBrush brush)
+            {
+                return brush.Color;
+            }
+
+            return Windows.UI.Color.FromArgb(0, 0, 0, 0);
         }
 
         /// <summary>
