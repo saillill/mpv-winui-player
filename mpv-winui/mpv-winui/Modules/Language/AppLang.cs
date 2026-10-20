@@ -532,15 +532,6 @@ namespace mpv_winui.Modules.Language
         public string SectionDescPlaybackSeekPreview { get; set; } = "Thumbnail preview on the seek bar";
         public string SectionWatchLaterStorage { get; set; } = "Storage";
         public string SectionDescWatchLaterStorage { get; set; } = "Watch-later folder and files";
-        // The two libraries' bound folders. Beside Decoding because that is where the
-        // catalog puts it, and because a section's id is this property's name - the
-        // layout persists "SectionLibraryFolders", so it has to live in the file the
-        // layout code and check-sections.py both read.
-        public string SectionLibraryFolders { get; set; } = "Library folders";
-
-        public string SectionDescLibraryFolders { get; set; } =
-            "The folders each library scans. Untick one to remove it from the library.";
-
         public string SectionVideoDecode { get; set; } = "Decoding";
         public string SectionDescVideoDecode { get; set; } = "Hardware decoding, codec selection";
         public string SectionVideoImage { get; set; } = "Image";

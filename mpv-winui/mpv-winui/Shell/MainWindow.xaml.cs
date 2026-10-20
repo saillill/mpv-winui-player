@@ -552,12 +552,6 @@ namespace mpv_winui
         /// </summary>
         private bool _pageIsPlaying;
 
-        /// <summary>True while Home's own empty state is up; see UpdateShellOpenFileButton.</summary>
-        private bool _homeEmpty;
-
-        /// <summary>The player page's current section, as a LibrarySection* key.</summary>
-        private string _activeSection = MpvPlayerPage.LibrarySectionHome;
-
         /// <summary>True while fullwindow mode has the chrome put away.</summary>
         private bool _fullWindow;
 
@@ -580,15 +574,12 @@ namespace mpv_winui
                 _watchedPlayer = page;
                 page.ShellStateChanged += ActivePlayer_ShellStateChanged;
                 page.EmptyStateVisibleChanged += ActivePlayer_EmptyStateVisibleChanged;
-                page.LibrarySectionChanged += ActivePlayer_LibrarySectionChanged;
 
                 // The page may already be showing the library by the time the
                 // shell gets here, so both the button and the chrome are set
                 // from the page's current state rather than waiting for the
                 // next change - a page navigated to while already playing would
                 // otherwise keep the pane up until something else moved.
-                _activeSection = page.CurrentLibrarySection;
-
                 UpdateShellBackButton();
                 ApplyShellPageChrome(page.ShellPageState);
             }
@@ -660,41 +651,14 @@ namespace mpv_winui
         /// The library's empty state owns the open affordance while it is up, so
         /// the shell's button steps aside. See the note in ApplyEmptyStateContent.
         /// </summary>
-        private void ActivePlayer_LibrarySectionChanged(string section)
-        {
-            _activeSection = section;
-
-            UpdateShellOpenFileButton();
-        }
-
         private void ActivePlayer_EmptyStateVisibleChanged(bool empty)
         {
-            _homeEmpty = empty;
+            if (_pageIsPlaying || _fullWindow)
+            {
+                return;
+            }
 
-            UpdateShellOpenFileButton();
-        }
-
-        /// <summary>
-        /// The one place the shell's open-file button is shown or hidden.
-        ///
-        /// It used to have two writers - this one's neighbours - and neither knew
-        /// which section was up, so the button appeared on the video and music
-        /// libraries too and was drawn over by their own chrome. One condition, one
-        /// owner:
-        ///
-        ///     Home AND not playing AND not full-window AND Home is not empty
-        ///
-        /// The empty half is not decoration: Home's own empty state carries an open
-        /// button of its own, and two open buttons on one screen is the duplicate
-        /// this app already removed once.
-        /// </summary>
-        private void UpdateShellOpenFileButton()
-        {
-            var onHome = _activeSection == MpvPlayerPage.LibrarySectionHome;
-
-            ShellOpenFileButton.Visibility = onHome && !_pageIsPlaying && !_fullWindow && !_homeEmpty
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            ShellOpenFileButton.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void ActivePlayer_ShellStateChanged(ShellPage state)
@@ -727,10 +691,11 @@ namespace mpv_winui
             // track ending while full-window was up used to bring the pane back
             // on top of a window that asked for no chrome at all.
             ShellNav.IsPaneVisible = !playing && !_fullWindow;
+            ShellOpenFileButton.Visibility = playing || _fullWindow
+                ? Visibility.Collapsed
+                : Visibility.Visible;
 
             _pageIsPlaying = playing;
-
-            UpdateShellOpenFileButton();
             UpdateShellPaneChrome();
 
             // The bar keeps its own row and its opaque surface in this state,

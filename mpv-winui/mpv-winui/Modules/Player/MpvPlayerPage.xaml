@@ -6,7 +6,6 @@
     xmlns:bc="using:mpv_winui.Modules.Common.Convertor"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:mpv_winui.Modules.Player"
-    xmlns:view="using:mpv_winui.Modules.Common.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pc="using:mpv_winui.Modules.Player"
     xmlns:preview="using:mpv_winui.Modules.Player.BuiltInPreview"
@@ -116,28 +115,17 @@
             <Setter Property="CornerRadius" Value="4" />
         </Style>
 
-        <!-- The media area a thumbnail decodes into: 16:9.
-
-             Landscape because that is what the official video grid uses, and because
-             the files are landscape - a 16:9 frame cropped into the old 112px square
-             lost about half its width, which is what made the thumbnails read as
-             zoomed next to the reference.
-
-             Measured from the reference at DPI 1.5: a 379x213 px card is 253x142 DIP,
-             with 14 DIP between cards, four columns.
-
-             The height is computed from the card's own width rather than fixed. The
-             width belongs to the grid (UniformGridLayout derives the column count from
-             MinItemWidth), so a number would be right at one window size and wrong at
-             every other - either cropping the picture or opening a gap under it. -->
+        <!-- The media area a thumbnail decodes into. Sized rather than left to
+             the aspect ratio of whatever the shell returns: cards in a grid
+             have to line up, and UniformToFill crops a portrait poster and a
+             landscape frame to the same box. The height tracks the nominal
+             item width set on the grid, because the official home tiles are
+             square. -->
         <Style x:Key="LibraryCardMediaStyle" TargetType="Border">
+            <Setter Property="Height" Value="112" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
         </Style>
-
-        <view:AspectHeightConverter x:Key="SixteenByNine" Aspect="1.7777777777777777" />
-
-        <view:IndexLetterOpacityConverter x:Key="IndexLetterOpacity" />
 
         <DataTemplate x:Key="LibraryCardTemplate" x:DataType="local:LibraryEntry">
             <Button
@@ -148,9 +136,7 @@
                 PointerExited="LibraryCard_PointerExited"
                 Style="{StaticResource LibraryCardButtonStyle}">
                 <StackPanel>
-                    <Border
-                        Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}, Converter={StaticResource SixteenByNine}}"
-                        Style="{StaticResource LibraryCardMediaStyle}">
+                    <Border Style="{StaticResource LibraryCardMediaStyle}">
                         <Grid>
                             <!-- The media-kind icon shows until a thumbnail
                                  arrives, and for good when the shell has none.
@@ -198,73 +184,35 @@
                                      the card behind it, so clicking the
                                      thumbnail would do nothing. The two buttons
                                      keep their own hit test. -->
-                                <!-- The scrim. Not hit-testable: it is a backdrop, and
-                                     a backdrop with a background would swallow the click
-                                     that should reach the card behind it. -->
                                 <Border
-                                    Background="#59000000"
+                                    Background="#66000000"
                                     CornerRadius="4"
                                     IsHitTestVisible="False" />
-
-                                <!-- Play at the lower-left, the overflow at the
-                                     lower-right, both as circles. The reference puts
-                                     them in the corners so they do not sit on the
-                                     thumbnail's subject, and drops the text labels -
-                                     at 32px a glyph is unambiguous and a word is not
-                                     legible. -->
-                                <Button
-                                    x:Name="CardPlayButton"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="8"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Bottom"
-                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                    BorderThickness="0"
-                                    CornerRadius="16"
-                                    Click="CardPlay_Click"
-                                    PointerPressed="CardOverlayButton_PointerPressed">
-                                    <FontIcon
-                                        FontSize="14"
-                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                        Glyph="&#xE768;" />
-                                </Button>
-
-                                <Button
-                                    x:Name="CardMoreButton"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="8"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Bottom"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    BorderThickness="0"
-                                    CornerRadius="16"
-                                    Click="CardMore_Click"
-                                    PointerPressed="CardOverlayButton_PointerPressed">
-                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
-                                </Button>
-
-                                <!-- The tick box, upper-left. Shown only in selection
-                                     mode, which the entry carries - a box on every card
-                                     outside the mode would read as a bulk-edit screen.
-                                     The whole card toggles it while the mode is on (see
-                                     LibraryCard_Click), so the box is an indicator
-                                     rather than a second hit target. -->
-                                <Border
-                                    x:Name="CardSelectionBox"
-                                    Width="24"
-                                    Height="24"
-                                    Margin="8"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                    CornerRadius="4"
-                                    Visibility="{x:Bind SelectionVisibility, Mode=OneWay}">
-                                    <FontIcon
-                                        FontSize="12"
-                                        Glyph="{x:Bind SelectionGlyph, Mode=OneWay}" />
-                                </Border>
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource MpvSpaceM}">
+                                    <Button
+                                        x:Name="CardPlayButton"
+                                        Click="CardPlay_Click"
+                                        PointerPressed="CardOverlayButton_PointerPressed">
+                                        <StackPanel
+                                            Orientation="Horizontal"
+                                            Spacing="{StaticResource MpvSpaceS}">
+                                            <FontIcon FontSize="16" Glyph="&#xE768;" />
+                                            <TextBlock
+                                                x:Name="CardPlayText"
+                                                VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button
+                                        x:Name="CardMoreButton"
+                                        Click="CardMore_Click"
+                                        PointerPressed="CardOverlayButton_PointerPressed">
+                                        <SymbolIcon Symbol="More" />
+                                    </Button>
+                                </StackPanel>
                             </Grid>
                         </Grid>
                     </Border>
@@ -285,163 +233,6 @@
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Text="{x:Bind Subtitle}"
-                            TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
-                </StackPanel>
-            </Button>
-        </DataTemplate>
-
-        <!-- One letter in the A-Z rail.
-
-             A Button, not a TextBlock with a Tapped handler: it brings keyboard focus,
-             a pointer-over state and an automation name, none of which a TextBlock has.
-             IsEnabled follows HasContent so an empty letter cannot be clicked at all, and
-             the opacity makes that visible - a full-weight letter that does nothing reads
-             as broken rather than as empty.
-
-             Tag carries the letter so one handler on the page serves every item. -->
-        <DataTemplate x:Key="LibraryIndexLetterTemplate" x:DataType="local:LibraryIndexBucket">
-            <Button
-                MinHeight="18"
-                Padding="0"
-                HorizontalAlignment="Stretch"
-                Background="Transparent"
-                BorderThickness="0"
-                Click="IndexRailButton_Click"
-                IsEnabled="{x:Bind HasContent}">
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    FontSize="12"
-                    Opacity="{x:Bind HasContent, Converter={StaticResource IndexLetterOpacity}}"
-                    Text="{x:Bind Letter}" />
-            </Button>
-        </DataTemplate>
-
-        <!-- The album card: a square cover, the album name, then its artist.
-
-             The two captions use {Binding}, NOT {x:Bind}, and that is deliberate. A single
-             {x:Bind AlbumTitle} anywhere in this file makes the WindowsAppSDK 2.3.9 XAML
-             compiler fail with WMC9999 - an internal error that names no file, no line, and
-             does not appear in a 9.6 MB diagnostic log at all. Bisection placed it exactly:
-             a byte-copy of the video card compiles, the same copy with one {x:Bind} to this
-             property does not, and the property is declared identically to Title.
-
-             {Binding} is resolved at runtime against the DataContext, so no compiled binding
-             code is generated for it - the half that crashes. The trade is speed and
-             compile-time checking on two text lines, which is worth paying to get the card.
-
-             Because a Binding path is a bare string, a rename would fail silently at
-             runtime. These two are the only such paths in the file.
-
-             Every other binding here stays {x:Bind}: those compile, and there is no reason
-             to move a working mechanism onto the slower one.
-
-             Square: Height={Binding ActualWidth} with no converter, because a square IS the
-             width. The video card needs a converter only for 16:9.
-
-             Element names are prefixed Album* because the overlay code finds its controls by
-             name inside whichever template it was handed, and the video card already owns
-             CardHoverOverlay / CardPlayButton / CardMoreButton. -->
-        <DataTemplate x:Key="AlbumCardTemplate" x:DataType="local:LibraryEntry">
-            <Button
-                AutomationProperties.Name="{Binding AlbumTitle}"
-                Click="LibraryCard_Click"
-                PointerCanceled="LibraryCard_PointerCanceled"
-                PointerEntered="LibraryCard_PointerEntered"
-                PointerExited="LibraryCard_PointerExited"
-                Style="{StaticResource LibraryCardButtonStyle}">
-                <StackPanel>
-                    <Border
-                        Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
-                        Style="{StaticResource LibraryCardMediaStyle}">
-                        <Grid>
-                            <Viewbox
-                                Width="48"
-                                Height="48"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Visibility="{x:Bind IconVisibility, Mode=OneWay}">
-                                <PathIcon
-                                    Width="24"
-                                    Height="24"
-                                    Data="{x:Bind MediaIcon}"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </Viewbox>
-                            <Image
-                                Source="{x:Bind Thumbnail, Mode=OneWay}"
-                                Stretch="UniformToFill"
-                                Visibility="{x:Bind ThumbnailVisibility, Mode=OneWay}" />
-
-                            <Grid
-                                x:Name="AlbumCardHoverOverlay"
-                                IsHitTestVisible="False"
-                                Visibility="Collapsed">
-                                <Border
-                                    Background="#59000000"
-                                    CornerRadius="4"
-                                    IsHitTestVisible="False" />
-                                <Button
-                                    x:Name="AlbumCardPlayButton"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="8"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Bottom"
-                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                    BorderThickness="0"
-                                    CornerRadius="16"
-                                    Click="CardPlay_Click"
-                                    PointerPressed="CardOverlayButton_PointerPressed">
-                                    <FontIcon
-                                        FontSize="14"
-                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                        Glyph="&#xE768;" />
-                                </Button>
-                                <Button
-                                    x:Name="AlbumCardMoreButton"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="8"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Bottom"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    BorderThickness="0"
-                                    CornerRadius="16"
-                                    Click="CardMore_Click"
-                                    PointerPressed="CardOverlayButton_PointerPressed">
-                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
-                                </Button>
-                                <Border
-                                    x:Name="AlbumCardSelectionBox"
-                                    Width="24"
-                                    Height="24"
-                                    Margin="8"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                    CornerRadius="4"
-                                    Visibility="{x:Bind SelectionVisibility, Mode=OneWay}">
-                                    <FontIcon
-                                        FontSize="12"
-                                        Glyph="{x:Bind SelectionGlyph, Mode=OneWay}" />
-                                </Border>
-                            </Grid>
-                        </Grid>
-                    </Border>
-
-                    <StackPanel
-                        Margin="{StaticResource MpvMediaTileCaptionMargin}"
-                        Spacing="{StaticResource MpvSpaceXxs}">
-                        <TextBlock
-                            MaxLines="2"
-                            Style="{StaticResource BodyTextBlockStyle}"
-                            Text="{Binding AlbumTitle}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{Binding AlbumArtistText}"
                             TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                 </StackPanel>
@@ -490,16 +281,6 @@
                 Tag="copy-title">
                 <MenuFlyoutItem.Icon>
                     <SymbolIcon Symbol="Copy" />
-                </MenuFlyoutItem.Icon>
-            </MenuFlyoutItem>
-            <MenuFlyoutSeparator />
-            <!-- Enters selection mode. The reference puts it last in the card menu,
-                 which is also where this one ends. -->
-            <MenuFlyoutItem
-                Click="CardMenu_Click"
-                Tag="select">
-                <MenuFlyoutItem.Icon>
-                    <FontIcon Glyph="&#xE73A;" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
         </MenuFlyout>
@@ -603,65 +384,21 @@
         <!-- One folder in the "Video folders" tab: the folder name and how many
              played videos it holds. Binds to VideoFolderGroup (see the library
              partial), which is a record the page builds from the history. -->
-        <!-- One folder's heading, in the reference player's form: a folder glyph,
-             then the name, then the full path dimmed on the same line.
-
-             The path is what tells two folders with the same leaf name apart - the
-             grouping already keys on the full directory for exactly that reason, and
-             showing only "Downloads" twice was the visible half of that problem.
-
-             The glyph is drawn through a Viewbox at 20: PathIcon renders its geometry
-             at the native 24 units, so setting Width alone would clip it.
-
-             PathVisibility is Collapsed for the music library's groups: those are
-             built from an album tag, have no path, and must not reserve the grey line
-             or every album heading would indent away from the video ones. -->
         <DataTemplate x:Key="VideoFolderHeaderTemplate" x:DataType="local:VideoFolderGroup">
-            <Grid
+            <StackPanel
                 Margin="0,16,0,8"
-                ColumnSpacing="{StaticResource MpvSpaceS}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Viewbox
-                    Grid.Column="0"
-                    Width="20"
-                    Height="20"
-                    VerticalAlignment="Center">
-                    <PathIcon
-                        Width="24"
-                        Height="24"
-                        Data="{x:Bind MediaIcon}"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </Viewbox>
-
+                Orientation="Horizontal"
+                Spacing="{StaticResource MpvSpaceS}">
                 <TextBlock
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
                     Style="{StaticResource BodyStrongTextBlockStyle}"
                     Text="{x:Bind Name}"
                     TextTrimming="CharacterEllipsis" />
-
                 <TextBlock
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind Path}"
-                    TextTrimming="CharacterEllipsis"
-                    Visibility="{x:Bind PathVisibility}" />
-
-                <TextBlock
-                    Grid.Column="3"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind CountText}" />
-            </Grid>
+            </StackPanel>
         </DataTemplate>
     </Page.Resources>
 
@@ -1222,102 +959,6 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- The selection bar. Hidden until something is ticked: the
-                     reference reserves no space for it, and a permanently empty row
-                     would push the grid down for a state most visits never enter.
-
-                     The count and 清除 sit left, the actions right, and play is the
-                     accent button - the same emphasis the reference gives it. -->
-                <Border
-                    x:Name="LibrarySelectionBar"
-                    Grid.Row="1"
-                    Margin="48,0,48,8"
-                    Padding="16,8"
-                    VerticalAlignment="Top"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Visibility="Collapsed">
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            Orientation="Horizontal"
-                            Spacing="8">
-                            <FontIcon
-                                FontSize="14"
-                                Glyph="&#xE73E;"
-                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock
-                                x:Name="LibrarySelectionCount"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource BodyTextBlockStyle}" />
-                            <Button
-                                Padding="4,0"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Click="SelectionClear_Click">
-                                <TextBlock
-                                    x:Name="LibrarySelectionClearText"
-                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                    Style="{StaticResource CaptionTextBlockStyle}" />
-                            </Button>
-                        </StackPanel>
-
-                        <StackPanel
-                            Grid.Column="1"
-                            Orientation="Horizontal"
-                            Spacing="8">
-                            <Button
-                                x:Name="SelectionPlayButton"
-                                Padding="16,6"
-                                Click="SelectionPlay_Click"
-                                Style="{StaticResource AccentButtonStyle}">
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    Spacing="8">
-                                    <FontIcon FontSize="12" Glyph="&#xE768;" />
-                                    <TextBlock
-                                        x:Name="SelectionPlayText"
-                                        VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                            <Button
-                                x:Name="SelectionQueueButton"
-                                Padding="16,6"
-                                Click="SelectionQueue_Click">
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    Spacing="8">
-                                    <FontIcon FontSize="12" Glyph="&#xE710;" />
-                                    <TextBlock
-                                        x:Name="SelectionQueueText"
-                                        VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                            <Button
-                                x:Name="SelectionPropertiesButton"
-                                Padding="16,6"
-                                Click="SelectionProperties_Click">
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    Spacing="8">
-                                    <FontIcon FontSize="12" Glyph="&#xE946;" />
-                                    <TextBlock
-                                        x:Name="SelectionPropertiesText"
-                                        VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
                 <ScrollViewer
                     x:Name="LibraryScroll"
                     Grid.Row="1"
@@ -1338,16 +979,10 @@
                                      are (its music placeholder squares are the
                                      giveaway); the nominal item width here matches
                                      the tile height set in the card style. -->
-                                <!-- Landscape cards. MinItemWidth 253 is the
-                                     reference's own card width at DPI 1.5, so a
-                                     maximised window lands on four columns as the
-                                     screenshot does. MinItemHeight suits the widest
-                                     card that layout can produce (253 through 16:9
-                                     is 142) plus the two caption lines. -->
                                 <UniformGridLayout
-                                    MinColumnSpacing="{StaticResource MpvSpaceM}"
-                                    MinItemHeight="200"
-                                    MinItemWidth="253"
+                                    MinColumnSpacing="{StaticResource MpvSpaceS}"
+                                    MinItemHeight="176"
+                                    MinItemWidth="116"
                                     MinRowSpacing="{StaticResource MpvSpaceL}" />
                             </ItemsRepeater.Layout>
                         </ItemsRepeater>
@@ -1361,28 +996,6 @@
                             Visibility="Collapsed" />
                     </Grid>
                 </ScrollViewer>
-
-                <!-- The A-Z rail, in its own column so it does not scroll away.
-
-                     A sibling of the ScrollViewer rather than a child: a jump list you
-                     have to scroll to find is not a jump list.
-
-                     Built in code from LibraryIndexLetter.BuildRail - the same table the
-                     grouping sorts by - so the letters cannot disagree with the groups
-                     they point at. Shown only for the music library's grouped tabs; the
-                     video library groups by directory, which has no initial.
-
-                     Items are LibraryIndexBucket, whose HasContent drives both IsEnabled
-                     and the dim, so an empty letter cannot be clicked and does not look
-                     clickable. -->
-                <ItemsRepeater
-                    x:Name="LibraryIndexRail"
-                    Grid.Row="1"
-                    Width="40"
-                    Margin="0,0,6,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Visibility="Collapsed" />
 
                 <!-- The empty state is one centred block, which is what the
                      official player does: measured, its illustration-plus-text

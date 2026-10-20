@@ -216,7 +216,6 @@ namespace mpv_winui.Modules.Player
             ApplyQueueStrings();
             ApplyVideoStrings();
             ApplyCardStrings();
-            ApplySelectionStrings();
             ApplyPlaylistPanelStrings();
         }
 
@@ -226,27 +225,6 @@ namespace mpv_winui.Modules.Player
         /// one place with a stable handle on its items - and because a language
         /// change has to reach them.
         /// </summary>
-        /// <summary>
-        /// The selection bar's labels.
-        ///
-        /// In code rather than in the markup because the bar is built once and the
-        /// language can change while it is open; a literal in XAML would need the page
-        /// reloaded to follow.
-        /// </summary>
-        private void ApplySelectionStrings()
-        {
-            var lang = AppContext.AppLang;
-
-            LibrarySelectionClearText.Text = lang.LibrarySelectionClear;
-            SelectionPlayText.Text = lang.LibrarySelectionPlay;
-            SelectionQueueText.Text = lang.LibrarySelectionQueue;
-            SelectionPropertiesText.Text = lang.LibrarySelectionProperties;
-
-            // The count string is a format with a {0}, so the bar is refreshed rather
-            // than assigned - the number is the point of the label.
-            UpdateSelectionBar();
-        }
-
         private void ApplyCardStrings()
         {
             var lang = AppContext.AppLang;
@@ -270,7 +248,6 @@ namespace mpv_winui.Modules.Player
                     "open-location" => lang.LibraryCardOpenLocation,
                     "copy-path" => lang.LibraryCardCopyPath,
                     "copy-title" => lang.LibraryCardCopyTitle,
-                    "select" => lang.LibraryCardSelect,
                     _ => menuItem.Text,
                 };
             }
@@ -874,7 +851,13 @@ namespace mpv_winui.Modules.Player
                     ItemTemplate = cardTemplate,
                     ItemsSource = group.Items,
                 };
-                repeater.Layout = CardLayout();
+                repeater.Layout = new UniformGridLayout
+                {
+                    MinItemWidth = 116,
+                    MinItemHeight = 176,
+                    MinColumnSpacing = 8,
+                    MinRowSpacing = 16,
+                };
 
                 // The same arrival animation the flat grid uses, so the two tabs
                 // read as one surface.
@@ -1083,10 +1066,7 @@ namespace mpv_winui.Modules.Player
         {
             VideoFolderGroups.Children.Clear();
 
-            // The album card, not the video one: square cover, album then artist. Both
-            // grouped music tabs render albums, and the video card's 16:9 crop loses the
-            // sleeve while its single caption loses the artist.
-            var cardTemplate = (DataTemplate)Resources["AlbumCardTemplate"];
+            var cardTemplate = (DataTemplate)Resources["LibraryCardTemplate"];
             var headerTemplate = (DataTemplate)Resources["VideoFolderHeaderTemplate"];
 
             var byAlbum = _musicGrouping == MusicGrouping.Albums;
@@ -1097,9 +1077,6 @@ namespace mpv_winui.Modules.Player
                 ? AppContext.AppLang.LibraryUnknownAlbum
                 : AppContext.AppLang.LibraryUnknownArtist;
 
-            // Grouped by tag, then filed under an index letter. The letter is the
-            // PRIMARY sort key: without it a pinyin-ordered library lists 周杰伦 under
-            // Z after 王菲 under W - each heading correct, the sequence wrong.
             var groups = entries
                 .GroupBy(entry =>
                 {
@@ -1107,263 +1084,36 @@ namespace mpv_winui.Modules.Player
 
                     return string.IsNullOrWhiteSpace(key) ? "\uFFFF" : key;
                 }, StringComparer.CurrentCultureIgnoreCase)
-                .Select(group =>
-                {
-                    var name = group.Key == "\uFFFF" ? unknownLabel : group.Key;
-
-                    return new VideoFolderGroup(
-                        name,
-                        group.ToList(),
-                        Path: string.Empty,
-                        Letter: LibraryIndexLetter.For(name, ch => PinyinInitial.For(ch.ToString())));
-                })
-                // Index order first, then the culture's own order inside a letter - so
-                // the rail can jump to a letter and the entries there still read the
-                // way the user expects.
-                .OrderBy(group => Array.IndexOf(LibraryIndexLetter.All, group.Letter))
-                .ThenBy(group => group.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ToList();
-
-            // Letter -> the presenter hosting that group's header, filled as the groups
-            // are built so the rail knows where to jump instead of walking the visual
-            // tree and guessing which presenter is which.
-            _groupHeaders.Clear();
+                .OrderBy(group => group.Key, StringComparer.CurrentCultureIgnoreCase)
+                .Select(group => new VideoFolderGroup(
+                    group.Key == "\uFFFF" ? unknownLabel : group.Key,
+                    group.ToList()));
 
             foreach (var group in groups)
             {
-                var header = new ContentPresenter
+                VideoFolderGroups.Children.Add(new ContentPresenter
                 {
                     Content = group,
                     ContentTemplate = headerTemplate,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
-                };
-
-                VideoFolderGroups.Children.Add(header);
-
-                if (!string.IsNullOrEmpty(group.Letter))
-                {
-                    // First group wins: several albums can share a letter and the rail
-                    // should land on the first of them.
-                    _groupHeaders.TryAdd(group.Letter, header);
-                }
+                });
 
                 var repeater = new ItemsRepeater
                 {
                     ItemTemplate = cardTemplate,
                     ItemsSource = group.Items,
                 };
-                repeater.Layout = AlbumCardLayout();
+                repeater.Layout = new UniformGridLayout
+                {
+                    MinItemWidth = 116,
+                    MinItemHeight = 176,
+                    MinColumnSpacing = 8,
+                    MinRowSpacing = 16,
+                };
 
                 repeater.ElementPrepared += LibraryGrid_ElementPrepared;
                 VideoFolderGroups.Children.Add(repeater);
             }
-
-            BuildLibraryIndexRail(groups);
-        }
-
-        /// <summary>Where each letter's first group header lives. Rebuilt with the groups.</summary>
-        private readonly Dictionary<string, FrameworkElement> _groupHeaders = new(StringComparer.Ordinal);
-
-        /// <summary>
-        /// Builds the A-Z rail for the music library's grouped tabs.
-        ///
-        /// Every letter is shown, dimmed when empty. The reference does the same, and
-        /// hiding them would make the rail move as the library changes - a person could
-        /// not learn where a letter sits, or see that Q is empty without trying Q.
-        ///
-        /// Only the music library has one. The video library groups by directory, which
-        /// has no initial to jump to, and the queue is mpv's own playlist.
-        /// </summary>
-        private void BuildLibraryIndexRail(IEnumerable<VideoFolderGroup> groups)
-        {
-            var isMusicGrouped = _librarySection == LibrarySectionMusic
-                && _musicGrouping != MusicGrouping.Songs;
-
-            if (!isMusicGrouped)
-            {
-                LibraryIndexRail.ItemsSource = null;
-
-                LibraryIndexRail.Visibility = Visibility.Collapsed;
-
-                return;
-            }
-
-            var inUse = groups
-                .Select(group => group.Letter)
-                .Where(letter => !string.IsNullOrEmpty(letter))
-                .Distinct(StringComparer.Ordinal);
-
-            // One table decides the letters and their order for both the rail and the
-            // grouping, so the two cannot disagree about which bucket exists.
-            LibraryIndexRail.ItemsSource = LibraryIndexLetter.BuildRail(inUse);
-
-            LibraryIndexRail.ItemTemplate = (DataTemplate)Resources["LibraryIndexLetterTemplate"];
-
-            LibraryIndexRail.Visibility = Visibility.Visible;
-        }
-
-        /// <summary>
-        /// Jumps to the first group filed under the clicked letter.
-        ///
-        /// StartBringIntoView rather than a hand-computed offset: the groups live in a
-        /// StackPanel inside a ScrollViewer, so the framework already knows how to scroll
-        /// a descendant to the top. Doing the arithmetic by hand is how the lyrics scroll
-        /// ended up needing its own centring maths for no benefit.
-        /// </summary>
-        private void IndexRailButton_Click(object sender, RoutedEventArgs e)
-        {
-            if ((sender as FrameworkElement)?.Tag is not string letter)
-            {
-                return;
-            }
-
-            if (!_groupHeaders.TryGetValue(letter, out var header))
-            {
-                return;
-            }
-
-            header.StartBringIntoView(new BringIntoViewOptions
-            {
-                // 0.0 pins the heading to the top of the viewport, which is what a jump
-                // list means - a ratio in the middle would leave the previous group
-                // showing above the one that was clicked.
-                VerticalAlignmentRatio = 0.0,
-                AnimationDesired = true,
-            });
-        }
-
-        // ---------------------------------------------------------- selection mode
-
-        /// <summary>True while cards are being ticked.</summary>
-        private bool _selectionMode;
-
-        /// <summary>
-        /// Enters or leaves selection mode.
-        ///
-        /// The entries' own flag is what the tick boxes bind to, so both the flag and
-        /// the visible bar move together - a mode that was on while the bar was hidden
-        /// would leave ticks the user could not act on.
-        /// </summary>
-        /// <remarks>
-        /// Leaving clears every tick. The reference does the same, and keeping them would
-        /// mean a mode re-entered later started with a selection nobody could see, from a
-        /// list that may have changed shape in between.
-        /// </remarks>
-        private void SetSelectionMode(bool on)
-        {
-            if (_selectionMode == on)
-            {
-                return;
-            }
-
-            _selectionMode = on;
-
-            foreach (var entry in _visibleEntries)
-            {
-                entry.SetSelectionMode(on);
-
-                if (!on)
-                {
-                    entry.SetSelected(false);
-                }
-            }
-
-            UpdateSelectionBar();
-        }
-
-        /// <summary>
-        /// Refreshes the selection bar from the current ticks.
-        ///
-        /// Called after every toggle and after the mode changes, rather than from a
-        /// collection-changed handler: the ticks live on the entries, so there is no
-        /// collection to observe.
-        /// </summary>
-        private void UpdateSelectionBar()
-        {
-            var selected = _visibleEntries.Count(entry => entry.IsSelected);
-
-            LibrarySelectionBar.Visibility = _selectionMode && selected > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-
-            LibrarySelectionCount.Text = string.Format(
-                AppContext.AppLang.LibrarySelectionCount, selected);
-
-            // No ticks means nothing to act on: the buttons dim rather than vanish, so
-            // the bar does not resize under the pointer as the first card is ticked.
-            var hasSelection = selected > 0;
-
-            SelectionPlayButton.IsEnabled = hasSelection;
-            SelectionQueueButton.IsEnabled = hasSelection;
-            SelectionPropertiesButton.IsEnabled = selected == 1;
-        }
-
-        /// <summary>
-        /// Leaves selection mode and clears every tick.
-        ///
-        /// The reference's 清除 does both: the bar goes away and the cards stop showing
-        /// tick boxes. Unticking alone would leave the mode on with nothing selected - a
-        /// state the user had already asked to leave, still on, and reachable no other
-        /// way back out except through another card's menu.
-        ///
-        /// Escape is not wired here on purpose: this page forwards keystrokes to mpv
-        /// (MpvPlayerPage_InputForwarding), so an Escape handler would compete with the
-        /// player's own binding instead of sitting above it.
-        /// </summary>
-        private void SelectionClear_Click(object sender, RoutedEventArgs e) =>
-            SetSelectionMode(false);
-
-        /// <summary>Plays the first ticked file and queues the rest.</summary>
-        private void SelectionPlay_Click(object sender, RoutedEventArgs e)
-        {
-            var paths = _visibleEntries
-                .Where(entry => entry.IsSelected && !entry.IsMissing)
-                .Select(entry => entry.Path)
-                .ToList();
-
-            if (paths.Count == 0)
-            {
-                return;
-            }
-
-            PlayFiles(paths, OpenMode.Replace).FireAndForget(OnException);
-        }
-
-        /// <summary>Appends the ticked files to the queue without starting them.</summary>
-        private void SelectionQueue_Click(object sender, RoutedEventArgs e)
-        {
-            var paths = _visibleEntries
-                .Where(entry => entry.IsSelected && !entry.IsMissing)
-                .Select(entry => entry.Path)
-                .ToList();
-
-            if (paths.Count == 0)
-            {
-                return;
-            }
-
-            PlayFiles(paths, OpenMode.Append).FireAndForget(OnException);
-        }
-
-        /// <summary>
-        /// Opens the one ticked file's location in Explorer, with the file selected.
-        ///
-        /// The reference calls this "属性" and shows a real property sheet. This app has
-        /// no property sheet, and opening the containing folder with the file selected is
-        /// what its own "open file location" already does - a capability rather than a
-        /// stand-in. The button is enabled only for a single selection, which is the
-        /// same rule the reference applies.
-        /// </summary>
-        private void SelectionProperties_Click(object sender, RoutedEventArgs e)
-        {
-            var entry = _visibleEntries.FirstOrDefault(item => item.IsSelected);
-
-            if (entry is null)
-            {
-                return;
-            }
-
-            FileLauncher.ShellLaunchFileAsync(entry.Path).FireAndForget(OnException);
         }
 
         /// <summary>
@@ -1423,15 +1173,6 @@ namespace mpv_winui.Modules.Player
                         replaced.SetThumbnail(existing);
                     }
 
-                    // The tick is state on the ENTRY, so a rebuild that replaces the
-                    // entry would silently untick a card the user had just selected.
-                    // Outside the thumbnail check on purpose: selection must survive
-                    // whether or not a cover has decoded yet, and the thumbnail source
-                    // and the entry being replaced are different objects.
-                    replaced.SetSelected(entry.IsSelected);
-
-                    replaced.SetSelectionMode(_selectionMode);
-
                     _libraryAll[i] = replaced;
                 }
 
@@ -1454,44 +1195,6 @@ namespace mpv_winui.Modules.Player
         /// "Downloads" folders) stay separate groups: the key is the full path,
         /// only the label is the leaf.
         /// </summary>
-        /// <summary>
-        /// The card grid metrics, in one place.
-        ///
-        /// The flat grid's numbers live in MpvPlayerPage.xaml; these two repeaters are
-        /// built in code and used to carry their own copy. When the card became 16:9
-        /// the markup moved and these did not, which would have laid landscape cards
-        /// out in square cells in both grouped views.
-        ///
-        /// 253 x 200 is the markup's pair: 253 wide through 16:9 is 142, plus the two
-        /// caption lines. Change both together - the markup comment says so too.
-        /// </summary>
-        /// <summary>
-        /// The album grid: squarer, narrower tiles than the video grid.
-        ///
-        /// MinItemWidth 170 is the reference's own cover size (255 px at DPI 1.5), and
-        /// MinItemHeight leaves room for a square cover plus the album and artist lines.
-        ///
-        /// Its own method rather than a parameter on CardLayout(): the two widths mean
-        /// different things - a 16:9 card is 253 wide BECAUSE it is 142 tall, while a
-        /// square tile is 170 for its own sake - and a shared method taking two magic
-        /// numbers would hide which one belongs to which kind of card.
-        /// </summary>
-        private static UniformGridLayout AlbumCardLayout() => new()
-        {
-            MinItemWidth = 170,
-            MinItemHeight = 246,
-            MinColumnSpacing = 12,
-            MinRowSpacing = 20,
-        };
-
-        private static UniformGridLayout CardLayout() => new()
-        {
-            MinItemWidth = 253,
-            MinItemHeight = 200,
-            MinColumnSpacing = 12,
-            MinRowSpacing = 16,
-        };
-
         private static List<VideoFolderGroup> GroupVideoFolders(List<LibraryEntry> entries)
         {
             var groups = new List<VideoFolderGroup>();
@@ -1502,7 +1205,7 @@ namespace mpv_winui.Modules.Player
 
             foreach (var group in byFolder)
             {
-                groups.Add(new VideoFolderGroup(FolderLabel(group.Key), group.ToList(), group.Key));
+                groups.Add(new VideoFolderGroup(FolderLabel(group.Key), group.ToList()));
             }
 
             return groups;
@@ -1575,36 +1278,6 @@ namespace mpv_winui.Modules.Player
             {
                 _ = LoadLibraryAsync();
             }
-        }
-
-        /// <summary>
-        /// Rebuilds the library after a folder was bound or unbound.
-        ///
-        /// Clears <see cref="_libraryLoaded"/> first, and that line is the whole point:
-        /// the loader is guarded by it so the library loads once rather than on every
-        /// section switch. Leaving it set would make this do nothing at all - the symptom
-        /// being "I unticked the folder and the files are still listed", which is exactly
-        /// the bug this exists to fix.
-        ///
-        /// The full reload rather than an incremental removal, because a folder change
-        /// alters which files exist, and that changes the grouping, the album cards, the
-        /// index rail's letters and the empty state. Four things to get right instead of
-        /// one loader that already gets all four right.
-        /// </summary>
-        private void ReloadLibraryForFolderChange()
-        {
-            // Nothing to refresh when the user is not looking at the library; entering
-            // the section reloads anyway because the flag is now clear.
-            if (!_libraryVisible)
-            {
-                _libraryLoaded = false;
-
-                return;
-            }
-
-            _libraryLoaded = false;
-
-            _ = LoadLibraryAsync();
         }
 
         private async Task LoadLibraryAsync()
@@ -2001,18 +1674,6 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
-            // In selection mode a click ticks rather than plays: the card's tick box is
-            // an indicator, so the whole card is the hit target. Checked first, so a
-            // tick cannot be mistaken for a play request on the Albums tab.
-            if (_selectionMode)
-            {
-                entry.ToggleSelection();
-
-                UpdateSelectionBar();
-
-                return;
-            }
-
             // On the Albums tab a card stands for its album, not for one track:
             // clicking it opens the album, which is what the reference player does
             // and what makes the tab more than a differently-sorted list.
@@ -2135,53 +1796,29 @@ namespace mpv_winui.Modules.Player
         }
 
         /// <summary>
-        /// Names the overlay's two corner buttons for screen readers and tooltips.
-        ///
-        /// The buttons carry glyphs rather than words now - at 32px a label is not
-        /// legible and the reference uses bare icons - so the text exists only where it
-        /// is needed: the automation name and the tooltip.
-        ///
-        /// Called as the card is entered rather than from the template, which is shared
-        /// and so cannot carry a page-level string.
+        /// Fills the overlay's two labels from AppLang. Called as the card is
+        /// entered rather than from the template, which is shared and so cannot
+        /// carry a page-level string.
         /// </summary>
         private static void ApplyCardOverlayStrings(FrameworkElement card)
         {
             var lang = AppContext.AppLang;
 
-            var play = FindDescendant(card, "CardPlayButton")
-                ?? FindDescendant(card, "AlbumCardPlayButton");
-
-            if (play is Button playButton)
+            if (FindDescendant(card, "CardPlayText") is TextBlock playText)
             {
-                AutomationProperties.SetName(playButton, lang.LibraryCardPlay);
-                ToolTipService.SetToolTip(playButton, lang.LibraryCardPlay);
+                playText.Text = lang.LibraryCardPlay;
             }
 
-            var more = FindDescendant(card, "CardMoreButton")
-                ?? FindDescendant(card, "AlbumCardMoreButton");
-
-            if (more is Button moreButton)
+            if (FindDescendant(card, "CardMoreButton") is Button moreButton)
             {
                 AutomationProperties.SetName(moreButton, lang.LibraryCardMore);
                 ToolTipService.SetToolTip(moreButton, lang.LibraryCardMore);
             }
         }
 
-        /// <summary>
-        /// The card's overlay, by name, from the card root.
-        ///
-        /// Two spellings because there are two templates. The album card names its parts
-        /// Album* rather than reusing the video card's names - two DataTemplates in one
-        /// file sharing an x:Name is a separate problem - so a single-name lookup would
-        /// leave album cards with no hover layer: PointerEntered fires, this returns
-        /// null, and the card looks inert with nothing to report.
-        ///
-        /// A candidate list rather than stripping a prefix: these are three fixed names,
-        /// and a prefix rule would be a guess about how the next template gets named.
-        /// </summary>
+        /// <summary>The card's overlay, by name, from the card root.</summary>
         private static FrameworkElement? FindCardOverlay(DependencyObject card) =>
-            FindDescendant(card, "CardHoverOverlay") as FrameworkElement
-            ?? FindDescendant(card, "AlbumCardHoverOverlay") as FrameworkElement;
+            FindDescendant(card, "CardHoverOverlay") as FrameworkElement;
 
         /// <summary>
         /// Depth-first search of a realised card for one named element.
@@ -2282,16 +1919,6 @@ namespace mpv_winui.Modules.Player
                     // method.
                     _mediaPlayer.OpenAsync((FileItem[])[new FileItem(entry.Path)], OpenMode.Append)
                         .FireAndForget(OnException);
-                    break;
-                case "select":
-                    SetSelectionMode(true);
-
-                    // The card that opened the menu starts ticked: choosing "select"
-                    // on a specific card means that card, and starting with nothing
-                    // ticked makes the click look like it did nothing.
-                    entry.SetSelected(true);
-
-                    UpdateSelectionBar();
                     break;
                 case "open-location":
                     // Explorer with the file selected, which is what "open the
@@ -2758,41 +2385,8 @@ namespace mpv_winui.Modules.Player
     /// because the folder was found on disk. <see cref="CountText"/> is a string
     /// so the row template can bind it to a TextBlock without a conversion.
     /// </summary>
-    public sealed record VideoFolderGroup(
-        string Name,
-        IReadOnlyList<LibraryEntry> Items,
-        string Path = "",
-        string Letter = "")
+    public sealed record VideoFolderGroup(string Name, IReadOnlyList<LibraryEntry> Items)
     {
-        /// <summary>How many entries the group holds, as text for the row template.</summary>
         public string CountText => Items.Count.ToString();
-
-        /// <summary>
-        /// True when the group has a real directory to show.
-        ///
-        /// Music groups are built from a tag and have no path, so their header must
-        /// not reserve the grey second line for an empty string - that would indent
-        /// every album row away from the video ones for no reason.
-        /// </summary>
-        public Visibility PathVisibility =>
-            string.IsNullOrWhiteSpace(Path) ? Visibility.Collapsed : Visibility.Visible;
-
-        /// <summary>
-        /// The header's glyph: a folder when the group is a real directory, an album
-        /// when it is a tag.
-        ///
-        /// A path STRING plus a Geometry property, following LibraryEntry - see the
-        /// lifetime rule on FluentIcons. A Geometry may belong to exactly one PathIcon
-        /// for its life, and these groups are rebuilt on every section switch, so a
-        /// cached one would be handed to a second icon and the header would drop its
-        /// glyph after the first visit.
-        /// </summary>
-        public string MediaIconPath =>
-            string.IsNullOrWhiteSpace(Path)
-                ? Modules.Common.View.FluentIcons.Album
-                : Modules.Common.View.FluentIcons.Folder;
-
-        /// <summary>A fresh Geometry per access; see <see cref="MediaIconPath"/>.</summary>
-        public Geometry MediaIcon => Modules.Common.View.FluentIcons.Geometry(MediaIconPath);
     }
 }

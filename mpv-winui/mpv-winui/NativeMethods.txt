@@ -46,6 +46,3 @@ SetLayeredWindowAttributes
 LAYERED_WINDOW_ATTRIBUTES_FLAGS
 CommandLineToArgvW
 LocalFree
-CompareStringEx
-CSTR_LESS_THAN
-CSTR_EQUAL
