@@ -685,7 +685,8 @@ MVID/时间戳），所以 **md5 不一致不能当作"代码变了"的证据** 
 - `check-sections.py` 现在会检查**caption 译文**（缺键 = ERROR，英文残留 = WARNING）
   和**排序键重复**（WARNING，附说明）。新规则做过反向验证：喂合成输入确认
   缺键被报成 ERROR、英文残留被报成 WARNING。
-- `generate-settings-category-map.py` 加了拒跑保护（见上）。
+- `generate-settings-category-map.py` 加了拒跑保护（见上）。**后来已整体删除** ——
+  一个永远拒绝运行的脚本不提供任何价值，它的历史记录保留在本文件里。
 
 顺带查实：`optionOrder` 有 8 组重复键（184 / 193–196 / 220 / 322 / 323），
 **改动前后完全一致**（`3053352` 与 `e77cae4` 都是 300 键 / 8 组）。
