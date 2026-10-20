@@ -481,32 +481,6 @@ namespace mpv_winui.Modules.Player
         // before initialization, losing the request. Callers now await this.
         private TaskCompletionSource _playerReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        private Task WaitForPlayerReadyAsync()
-        {
-            return _isPlayerInitialized ? Task.CompletedTask : _playerReadyTcs.Task;
-        }
-
-        private void PlayerView_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
-        {
-            // input.conf: MBTN_LEFT cycle pause
-            SendMouseButton("MBTN_LEFT");
-        }
-
-        private void TopBarOntop_Click(object sender, RoutedEventArgs e)
-        {
-            AppContext.SendMpvCommand("cycle ontop");
-        }
-
-        private void TopBarScreenshot_Click(object sender, RoutedEventArgs e)
-        {
-            AppContext.SendMpvCommand("screenshot");
-        }
-
-        private void TopBarPlaylist_Click(object sender, RoutedEventArgs e)
-        {
-            ShowPlayQueue();
-        }
-
         private void AppQuit()
         {
             // Exit() tears the process down without running window teardown,

@@ -565,14 +565,6 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void ShowMediaInfoWindow()
-        {
-            if (App.Window is MainWindow window)
-            {
-                window.OpenMediaInfoWindow(_mediaPlayer?.GetCurrentPath());
-            }
-        }
-
         private void ShowMenuEditorWindow(string filePath, MenuType type)
         {
             if (App.Window is MainWindow window)

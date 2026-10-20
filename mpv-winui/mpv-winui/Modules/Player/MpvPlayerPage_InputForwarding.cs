@@ -262,26 +262,6 @@ namespace mpv_winui.Modules.Player
     
 
     // ----- mouse forwarding (from MpvPlayerPage_Mouse.cs) -----
-    private void VideoArea_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
-    {
-        var point = e.GetCurrentPoint(PlayerView);
-        var props = point.Properties;
-
-        var key = props.IsHorizontalMouseWheel
-            ? (props.MouseWheelDelta > 0 ? "WHEEL_LEFT" : "WHEEL_RIGHT")
-            : (props.MouseWheelDelta > 0 ? "WHEEL_UP" : "WHEEL_DOWN");
-
-        SendMouseButton(key);
-        e.Handled = true;
-    }
-
-    private void PlayerView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-        // input.conf: MBTN_LEFT_DBL cycle fullscreen
-        SendMouseButton("MBTN_LEFT_DBL");
-        e.Handled = true;
-    }
-
     private static void SendMouseButton(string keyName)
     {
         if (_selfWeakReference?.TryGetTarget(out var self) == true)

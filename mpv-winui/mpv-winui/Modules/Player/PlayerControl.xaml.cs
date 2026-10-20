@@ -860,11 +860,6 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         public event EventHandler? TransportInteraction;
 
-        private void OnTransportInteraction(object sender, RoutedEventArgs e)
-        {
-            TransportInteraction?.Invoke(this, EventArgs.Empty);
-        }
-
         /// <summary>
         /// The bar's single interaction funnel.
         ///
