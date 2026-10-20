@@ -1118,7 +1118,14 @@ namespace mpv_winui.Modules.Player
 
             _mediaPlayer?.FileLoaded += MediaPlayer_MediaOpened;
 
-            _mediaPlayer?.PlaybackFailed += MediaPlayer_MediaFailed;
+            // FileFailed, not PlaybackFailed. The latter is the pre-c49b461
+            // name for this event and the component has not raised it since
+            // that refactor renamed the raise to m_fileFailedEvent; the C#
+            // side kept subscribing to the old name, so a file that failed to
+            // load never reached MediaPlayer_MediaFailed and the Error visual
+            // state was unreachable. The arg type differs in name only --
+            // both runtimeclasses carry one String Message.
+            _mediaPlayer?.FileFailed += MediaPlayer_MediaFailed;
 
             _mediaPlayer?.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
 
@@ -1150,7 +1157,7 @@ namespace mpv_winui.Modules.Player
 
             _mediaPlayer?.FileLoaded -= MediaPlayer_MediaOpened;
 
-            _mediaPlayer?.PlaybackFailed -= MediaPlayer_MediaFailed;
+            _mediaPlayer?.FileFailed -= MediaPlayer_MediaFailed;
 
             _mediaPlayer?.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
 
@@ -1701,7 +1708,7 @@ namespace mpv_winui.Modules.Player
 
 
 
-        private void MediaPlayer_MediaFailed(PlaybackFailedEventArgs args)
+        private void MediaPlayer_MediaFailed(FileFailedEventArgs args)
 
         {
 

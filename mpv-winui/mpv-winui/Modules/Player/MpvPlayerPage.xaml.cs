@@ -460,7 +460,13 @@ namespace mpv_winui.Modules.Player
             await AppContext.WaitAll();
             _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
-            _mediaPlayer.VoConfigured += MpvPlayer_SwapChainChanged;
+            // No swap-chain subscription here. It used to be VoConfigured,
+            // which the component stopped raising in c49b461 (the raise became
+            // m_swapChainChangedEvent) -- so this line subscribed to an event
+            // that could never fire. The job it was there to do is now native:
+            // AttachSwapChain records the panel and CompletePendingSwapChainAttach
+            // finishes the attach on the next VIDEO_RECONFIG, so callers no
+            // longer re-drive it around vo readiness (222be73).
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
                 ? AppContext.AppSetting.OverrideDisplayFps
                 : _lastRefreshRate;
