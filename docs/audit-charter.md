@@ -79,7 +79,8 @@
 
 **冲突**：`Xxs=2` 与 `Compact=6` 不在 4/8/12/16/24/48 体系内。
 
-实测非标准间距使用 **77 处 / 18 个不同值**，其中最多的：`6`(31 处)、`10`(9)、`2`(8)、`7`(7)、`28`(3)、`18`(3)。
+实测（已重测）：初测「77 处」按数字计数，把 `Padding="4,6,4,6"` 里的两个 `6` 算成两次使用。
+**按属性计数是 65 处 / 18 个不同值**，其中最多：`6`(27 个属性)、`10`(8)、`2`(7)、`7`(5)、`28`(3)。
 
 **已决定：B2**（严格执行 4/8/12/16/24/48）。
 
@@ -96,11 +97,14 @@
 
 **规范**：优先用官方 `TextBlock` 样式（`Caption`/`Body`/`BodyStrong`/`Subtitle`/`Title`/`TitleLarge`/`Display`），不手写 `FontSize`/`LineHeight`。
 
-**现状**：`LineHeight` 零使用（好）；`FontSize` 手写 **99 处 / 15 个值**，其中 `34`(14)、`23`(12)、`16`(21)、`11`(6)，另有 `64`、`96`（应为 Display 级）。
+**现状（已重测）**：`LineHeight` 零使用（好）；`FontSize` 手写 **97 处**，但**其中 58 处是
+`FontIcon`**——那是图标尺寸机制，不是文字字号。真正的文字字号是 **39 处**，且全部没有 `Style`。
 
 官方样式已用：`CaptionTextBlockStyle`(36)、`BodyTextBlockStyle`(7)。
 
-**处置**：这 99 处**不整体替换**。逐处判断：能用官方样式的换样式；属于图标字号/数字尺寸的（如 `64`/`96` 的封面占位）标注为图形尺寸，不当作排版字号。
+**处置**：97 处**不整体替换**。58 个图标尺寸不属于排版，排除；39 处文字里只有 **3 处**
+满足「已声明 `TextTrimming` 与 `TextWrapping`」，可安全换官方样式。其余 36 处会被样式**额外引入**
+换行/截断。详见 `docs/fontsize-classification.md`。
 
 ### 1.4 圆角、图标、按钮
 
@@ -117,7 +121,10 @@
 
 **规范**：全部引用主题画刷，不硬编码十六进制。
 
-**现状**：硬编码 **61 处 / 7 个文件**，集中度极高：
+**现状（已重测）**：初测「61 处」是按十六进制字面量计数，包含注释里的文本与
+`ThemeDictionaries` 内的画刷定义。**重测后：26 处是合法的主题画刷定义，29 处是真正的内联字面量。**
+
+以下是原始的分文件分布（含后来判定为合法的那部分）：
 
 | 文件 | 处数 | 说明 |
 |---|---|---|
@@ -217,7 +224,7 @@ MainWindow.xaml:486   <NavigationThemeTransition />   <!-- 挂在 Frame 上 -->
 **全局服务**（`AppContext`，实测 14 个静态成员）：
 `Logger`、`AppLang`、`AppSetting`、`RunMpvCommand`、`SetMpvLogLevel`、`GetAudioDevices`、`GetGpuAdapters`、`SendMpvCommand`、`WritePluginConfigs`、`WriteManagedMpvConfig`、`NotifySettingChanged`、`AvailableLanguages`、`Init`、`SwitchLanguage`、`WaitAll`
 
-**页面局部状态**：`MpvPlayerPage` 家族共 **73 个私有字段**，分布：
+**页面局部状态**：`MpvPlayerPage` 家族共 **85 个私有字段**（初测 73 是漏计了分部类文件），分布：
 
 ```
 Library.cs     22    Music.cs        8    Display.cs     10
@@ -269,7 +276,8 @@ CleanupDisplayInfo()                   CleanupPlaylistRefresh()
 所以清理移入单一方法 `TeardownPage()` 加守卫：`OnNavigatedFrom` 为主（视觉树仍挂载），
 `Unloaded` 保留为后备（无导航的卸载）。`Loaded` 复位守卫，否则重新加载的页面会泄漏。
 
-**核心交付物**：「状态归属表」（73 个私有字段逐条标注初始化/清理/触发者）需在 S3 阶段产出，是清理前的必经步骤。
+**核心交付物**：「状态归属表」**已产出**（`docs/state-ownership.md`，85 个私有字段逐条标注写入与清理）。
+结论：不存在「持有活对象的强引用且无清理」的字段；剩余为瞬时标志位，风险低。
 
 ### 2.4 已修复的残留问题（作为规范的反面教材）
 
@@ -544,12 +552,12 @@ Exit  (1,0)->(1,1)   = cubic-bezier(1, 0, 1, 1)
 **P0（1 项）**
 - `Modules/Player/ResizeGrip.xaml` + `.xaml.cs`（22 行）——零引用
 
-**P1（待你确认）**
-- 硬编码颜色 61 处（按 §1.5 分三档）
-- 非标准间距 77 处（取决于 §1.2 的 B1/B2/B3 选择）
-- 手写 `FontSize` 99 处（逐处判断，非批量删除）
+**P1（执行状态）**
+- ~~硬编码颜色 61 处~~ → **重测 29 处内联**，已处理 6 处，其余已分档
+- ~~非标准间距 77 处~~ → **重测 65 个属性**，已改 14 处数值 + 9 处令牌化
+- ~~手写 `FontSize` 99 处~~ → **重测 97 处（58 个是图标）**，已改 3 处
 - ~~6 个 `ControlTemplate` 覆盖中的动画部分~~ → **已核查，全部合规，撤出清理清单**
-- `TODO` 10 处
+- `TODO` 10 处 → **已分类**：1 条空标记已删，其余 9 条是作者的重构笔记，保留
 
 **P2（保留）**
 - `Modules/Motion/` 全部（在用）
