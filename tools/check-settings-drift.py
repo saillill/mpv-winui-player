@@ -98,10 +98,10 @@ UNMAPPED_OK = {
     "DisplayPeak",
     "ControlBarCustomOrderClassic", "ControlBarCustomOrderModernX",
     "ControlBarZonesClassic", "ControlBarZonesModernX",
-    "ControlBarOrderStyleMigrated", "WindowPiPShowTopButtons", "WindowPiPShowControls",
+    "WindowPiPShowTopButtons", "WindowPiPShowControls",
     "WindowPiPOpacity", "WindowPiPAspectRatioLock", "WindowPiPAnchor",
     "WindowAspectRatioLock",
-    "LastVideoVolume", "AudioVolume",
+    "LastVideoVolume", 
     # Which control-bar skin to draw. Read by MpvPlayerPage_PlayControl.cs.
     "PlayerStyle",
     # Preview behaviour: app-side wiring of the in-process previewer and of the
@@ -132,9 +132,9 @@ UNMAPPED_OK = {
     "MetadataOsdMessageMaxLength", "CoverArtPreferEmbedded", "CoverArtAlwaysScan",
     "CoverArtLoadFromFilesystem", "CoverArtPreload", "CoverArtNames", "CoverArtImageExts",
     "HdrOverrideMode",
-    "CoverArtExts", "MetadataOsdShowAlbum",
+    
     # ManagedMpvConfig channel (ytdl_hook script options in mpv.conf)
-    "YtdlPath", "YtdlAllFormats", "YtdlThumbnails", "YtdlExclude", "YtdlTryFirst", "YtdlUseManifests",
+    
     # Special cases handled outside ToCommand
     "Volume",               # passed at mpv Initialize, not applied at runtime
     "ShowOsdPlayingMsg",    # merged into the OsdPlayingMsg case
@@ -171,6 +171,17 @@ def main() -> int:
     dead = mpvsettings - appsettings
     for key in sorted(dead):
         errors.append(f"MpvSettings maps unknown property '{key}' (not in AppSettings)")
+
+    # The exemption list has to keep up with the property store. It used to be read
+    # only as a skip set, so a deleted property's exemption stayed behind and the
+    # list went on describing settings that no longer existed. Nine had accumulated.
+    # An exemption that outlives its subject is worse than none: the next reader
+    # treats the list as a description of the code.
+    stale_exemptions = UNMAPPED_OK - appsettings
+    for key in sorted(stale_exemptions):
+        errors.append(
+            f"UNMAPPED_OK names '{key}', which is not an AppSettings property any more "
+            f"- remove the exemption or restore the property")
 
     # Properties not surfaced in the settings tree. Many are intentional
     # (computed, per-style, config-only) so this is a warning, not an error.
