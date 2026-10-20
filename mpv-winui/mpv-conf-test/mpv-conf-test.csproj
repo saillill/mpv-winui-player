@@ -43,11 +43,39 @@
              overflow button decided by a question the menu does not ask) are
              only visible by asking the table directly. -->
         <Compile Include="..\mpv-winui\Modules\Player\ControlBarAdaptiveLayout.cs" Link="Player\ControlBarAdaptiveLayout.cs" />
+        <Compile Include="..\mpv-winui\Modules\Player\LibraryIndexLetter.cs" Link="Player\LibraryIndexLetter.cs" />
+        <Compile Include="..\mpv-winui\Modules\Player\Audio\SpectrumAnalyzer.cs" Link="Player\Audio\SpectrumAnalyzer.cs" />
+        <Compile Include="..\mpv-winui\Modules\Player\Audio\AlbumColorExtractor.cs" Link="Player\Audio\AlbumColorExtractor.cs" />
+        <Compile Include="..\mpv-winui\Modules\Motion\SpringMath.cs" Link="Motion\SpringMath.cs" />
+        <!-- The atomic-replace writer the settings layer now uses for mpv.conf,
+             its state file and script-opts. Linked for the usual reason: the
+             property that matters is not "it wrote something" but "a reader
+             either sees the whole old file or the whole new one, and no
+             temporary is left behind", which only a real file system can show. -->
+        <Compile Include="..\mpv-winui\Modules\Common\Utils\AtomicFile.cs" Link="Common\Utils\AtomicFile.cs" />
+        <!-- The mpvw:// protocol contract. Linked for the usual reason, and here
+             it is the whole point: the scheme was written in four places (two
+             constants and two string literals) and the parser accepted a fifth
+             value, so a registration could succeed and produce an association the
+             app then ignored. Nothing in the build could see that because none of
+             those values was reachable from a test. Pure BCL on purpose. -->
+        <Compile Include="..\mpv-winui\Modules\Activation\MpvProtocolUri.cs" Link="Activation\MpvProtocolUri.cs" />
+        <!-- The language-code guard. Linked for the usual reason: the code comes
+             from a stored setting and used to be concatenated into a path and an
+             mpv command unvalidated, so what matters is exactly which inputs are
+             accepted, which is a pure predicate and testable on its own. -->
+        <Compile Include="..\mpv-winui\Modules\Language\LanguageCode.cs" Link="Language\LanguageCode.cs" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Content Include="..\mpv-winui\Data\MpvConfEditor\*.json" Link="Data\MpvConfEditor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    </ItemGroup>
+    <!--
+      A Content item used to point at ..\mpv-winui\Data\MpvConfEditor\*.json.
+      That directory does not exist and is not in the repository, and no test in
+      this project reads a data file at all, so the item resolved to nothing and
+      always had. Removed rather than redirected: the option schema now lives in
+      mpv-winui\MpvConfOptions\mpv-options.json (shipped with the app) and
+      appdata-sample\mpv-conf-editor\, and if a test ever needs one of those, the
+      dependency should be added together with the test that uses it.
+    -->
 
     <ItemGroup>
       <Compile Remove="..\mpv-winui\Modules\MpvConf\Option\MpvConfOptionControl.xaml.cs" />

@@ -47,31 +47,14 @@ namespace mpv_winui.Modules.Player
             PlayerControl.ToggleControlPanel();
         }
 
-        public void UpdatePlayControlStyle()
-        {
-            var style = AppContext.AppSetting.PlayerStyle;
-
-            switch (style)
-            {
-                case AppSettings.PlayerStyle_Center:
-                {
-                    PlayerControl.Style = Application.Current.Resources["CenterPlayerControlStyle"] as Style;
-                    break;
-                }
-
-                case AppSettings.PlayerStyle_Compact:
-                {
-                    PlayerControl.Style = Application.Current.Resources["CompactPlayerControlStyle"] as Style;
-                    break;
-                }
-
-                case AppSettings.PlayerStyle_Default:
-                default:
-                {
-                    PlayerControl?.Style = null;
-                    break;
-                }
-            }
-        }
+        /// <summary>
+        /// Applies the saved skin at startup.
+        ///
+        /// The assignment lives on PlayerControl.ApplyPlayerStyle, which the
+        /// setting-change event also calls; this exists for the one caller that
+        /// runs before any setting can change. Keeping two copies of the switch is
+        /// how the two paths would drift apart.
+        /// </summary>
+        public void UpdatePlayControlStyle() => PlayerControl?.ApplyPlayerStyle();
     }
 }

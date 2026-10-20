@@ -6,6 +6,7 @@
     xmlns:bc="using:mpv_winui.Modules.Common.Convertor"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:mpv_winui.Modules.Player"
+    xmlns:view="using:mpv_winui.Modules.Common.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pc="using:mpv_winui.Modules.Player"
     xmlns:preview="using:mpv_winui.Modules.Player.BuiltInPreview"
@@ -90,29 +91,621 @@
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
         </MenuFlyout>
+
+        <!-- A library card, in Fluent's media-tile form: the thumbnail is the
+             tile. No card background and no border, because a bordered box
+             around a poster is a doubled edge - the picture already has one.
+             The hover highlight comes from the Button itself.
+             Local to this page on purpose, the way OptionCardStyle is local to
+             OptionListControl: a card shell is not an application-wide token,
+             and promoting it into Styles.xaml would invite the next screen to
+             restate it slightly differently.
+             A Button rather than a Border. The card opens the file it stands
+             for, and a Border with a Tapped handler would give that up on the
+             keyboard and to a screen reader - the automation name below is what
+             a card announces, and without a control to hang it on there would
+             be nothing to announce. -->
+        <Style x:Key="LibraryCardButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
+        <!-- The media area a thumbnail decodes into: 16:9.
+
+             Landscape because that is what the official video grid uses, and because
+             the files are landscape - a 16:9 frame cropped into the old 112px square
+             lost about half its width, which is what made the thumbnails read as
+             zoomed next to the reference.
+
+             Measured from the reference at DPI 1.5: a 379x213 px card is 253x142 DIP,
+             with 14 DIP between cards, four columns.
+
+             The height is computed from the card's own width rather than fixed. The
+             width belongs to the grid (UniformGridLayout derives the column count from
+             MinItemWidth), so a number would be right at one window size and wrong at
+             every other - either cropping the picture or opening a gap under it. -->
+        <Style x:Key="LibraryCardMediaStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
+        </Style>
+
+        <view:AspectHeightConverter x:Key="SixteenByNine" Aspect="1.7777777777777777" />
+
+        <view:IndexLetterOpacityConverter x:Key="IndexLetterOpacity" />
+
+        <DataTemplate x:Key="LibraryCardTemplate" x:DataType="local:LibraryEntry">
+            <Button
+                AutomationProperties.Name="{x:Bind Title}"
+                Click="LibraryCard_Click"
+                PointerCanceled="LibraryCard_PointerCanceled"
+                PointerEntered="LibraryCard_PointerEntered"
+                PointerExited="LibraryCard_PointerExited"
+                Style="{StaticResource LibraryCardButtonStyle}">
+                <StackPanel>
+                    <Border
+                        Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}, Converter={StaticResource SixteenByNine}}"
+                        Style="{StaticResource LibraryCardMediaStyle}">
+                        <Grid>
+                            <!-- The media-kind icon shows until a thumbnail
+                                 arrives, and for good when the shell has none.
+                                 Official Fluent geometry, bound from the row's
+                                 own media kind - see FluentIcons. Sized to the
+                                 official placeholder, which fills about half
+                                 the tile; the Viewbox is what makes the
+                                 24-unit glyph actually 48px, since PathIcon
+                                 draws its geometry at native size. -->
+                            <Viewbox
+                                Width="48"
+                                Height="48"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="{x:Bind IconVisibility, Mode=OneWay}">
+                                <PathIcon
+                                    Width="24"
+                                    Height="24"
+                                    Data="{x:Bind MediaIcon}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Viewbox>
+                            <Image
+                                Source="{x:Bind Thumbnail, Mode=OneWay}"
+                                Stretch="UniformToFill"
+                                Visibility="{x:Bind ThumbnailVisibility, Mode=OneWay}" />
+
+                            <!-- The hover overlay. Shown and hidden by the
+                                 card's pointer events in code (and by
+                                 MotionBehaviors.FadeIn/FadeOut), never by a
+                                 VisualState, so one reusable template instance
+                                 cannot be left dressed by a state machine when
+                                 it is recycled for another item. Collapsed at
+                                 rest, so it is neither visible nor hit-testable
+                                 until a pointer is on the card. The two labels
+                                 are filled from AppLang when the card is
+                                 entered, which keeps a shared template free of
+                                 localized text. -->
+                            <Grid
+                                x:Name="CardHoverOverlay"
+                                IsHitTestVisible="False"
+                                Visibility="Collapsed">
+                                <!-- The scrim is not hit-testable: it is a
+                                     backdrop, and a backdrop with a background
+                                     would swallow the click that should reach
+                                     the card behind it, so clicking the
+                                     thumbnail would do nothing. The two buttons
+                                     keep their own hit test. -->
+                                <!-- The scrim. Not hit-testable: it is a backdrop, and
+                                     a backdrop with a background would swallow the click
+                                     that should reach the card behind it. -->
+                                <Border
+                                    Background="#59000000"
+                                    CornerRadius="4"
+                                    IsHitTestVisible="False" />
+
+                                <!-- Play at the lower-left, the overflow at the
+                                     lower-right, both as circles. The reference puts
+                                     them in the corners so they do not sit on the
+                                     thumbnail's subject, and drops the text labels -
+                                     at 32px a glyph is unambiguous and a word is not
+                                     legible. -->
+                                <Button
+                                    x:Name="CardPlayButton"
+                                    Width="32"
+                                    Height="32"
+                                    Margin="8"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Bottom"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    BorderThickness="0"
+                                    CornerRadius="16"
+                                    Click="CardPlay_Click"
+                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    <FontIcon
+                                        FontSize="14"
+                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                        Glyph="&#xE768;" />
+                                </Button>
+
+                                <Button
+                                    x:Name="CardMoreButton"
+                                    Width="32"
+                                    Height="32"
+                                    Margin="8"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    BorderThickness="0"
+                                    CornerRadius="16"
+                                    Click="CardMore_Click"
+                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                </Button>
+
+                                <!-- The tick box, upper-left. Shown only in selection
+                                     mode, which the entry carries - a box on every card
+                                     outside the mode would read as a bulk-edit screen.
+                                     The whole card toggles it while the mode is on (see
+                                     LibraryCard_Click), so the box is an indicator
+                                     rather than a second hit target. -->
+                                <Border
+                                    x:Name="CardSelectionBox"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="8"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    CornerRadius="4"
+                                    Visibility="{x:Bind SelectionVisibility, Mode=OneWay}">
+                                    <FontIcon
+                                        FontSize="12"
+                                        Glyph="{x:Bind SelectionGlyph, Mode=OneWay}" />
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                    <StackPanel
+                        Margin="{StaticResource MpvMediaTileCaptionMargin}"
+                        Spacing="{StaticResource MpvSpaceXxs}">
+                        <!-- Two lines, not the settings page's single truncated
+                             line: a media title is a name, and the difference
+                             between two files is usually in the part that a
+                             one-line cut removes. -->
+                        <TextBlock
+                            MaxLines="2"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            Text="{x:Bind Title}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind Subtitle}"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+
+        <!-- One letter in the A-Z rail.
+
+             A Button, not a TextBlock with a Tapped handler: it brings keyboard focus,
+             a pointer-over state and an automation name, none of which a TextBlock has.
+             IsEnabled follows HasContent so an empty letter cannot be clicked at all, and
+             the opacity makes that visible - a full-weight letter that does nothing reads
+             as broken rather than as empty.
+
+             Tag carries the letter so one handler on the page serves every item. -->
+        <DataTemplate x:Key="LibraryIndexLetterTemplate" x:DataType="local:LibraryIndexBucket">
+            <Button
+                MinHeight="18"
+                Padding="0"
+                HorizontalAlignment="Stretch"
+                Background="Transparent"
+                BorderThickness="0"
+                Click="IndexRailButton_Click"
+                IsEnabled="{x:Bind HasContent}">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="12"
+                    Opacity="{x:Bind HasContent, Converter={StaticResource IndexLetterOpacity}}"
+                    Text="{x:Bind Letter}" />
+            </Button>
+        </DataTemplate>
+
+        <!-- The album card: a square cover, the album name, then its artist.
+
+             The two captions use {Binding}, NOT {x:Bind}, and that is deliberate. A single
+             {x:Bind AlbumTitle} anywhere in this file makes the WindowsAppSDK 2.3.9 XAML
+             compiler fail with WMC9999 - an internal error that names no file, no line, and
+             does not appear in a 9.6 MB diagnostic log at all. Bisection placed it exactly:
+             a byte-copy of the video card compiles, the same copy with one {x:Bind} to this
+             property does not, and the property is declared identically to Title.
+
+             {Binding} is resolved at runtime against the DataContext, so no compiled binding
+             code is generated for it - the half that crashes. The trade is speed and
+             compile-time checking on two text lines, which is worth paying to get the card.
+
+             Because a Binding path is a bare string, a rename would fail silently at
+             runtime. These two are the only such paths in the file.
+
+             Every other binding here stays {x:Bind}: those compile, and there is no reason
+             to move a working mechanism onto the slower one.
+
+             Square: Height={Binding ActualWidth} with no converter, because a square IS the
+             width. The video card needs a converter only for 16:9.
+
+             Element names are prefixed Album* because the overlay code finds its controls by
+             name inside whichever template it was handed, and the video card already owns
+             CardHoverOverlay / CardPlayButton / CardMoreButton. -->
+        <DataTemplate x:Key="AlbumCardTemplate" x:DataType="local:LibraryEntry">
+            <Button
+                AutomationProperties.Name="{Binding AlbumTitle}"
+                Click="LibraryCard_Click"
+                PointerCanceled="LibraryCard_PointerCanceled"
+                PointerEntered="LibraryCard_PointerEntered"
+                PointerExited="LibraryCard_PointerExited"
+                Style="{StaticResource LibraryCardButtonStyle}">
+                <StackPanel>
+                    <Border
+                        Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                        Style="{StaticResource LibraryCardMediaStyle}">
+                        <Grid>
+                            <Viewbox
+                                Width="48"
+                                Height="48"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="{x:Bind IconVisibility, Mode=OneWay}">
+                                <PathIcon
+                                    Width="24"
+                                    Height="24"
+                                    Data="{x:Bind MediaIcon}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Viewbox>
+                            <Image
+                                Source="{x:Bind Thumbnail, Mode=OneWay}"
+                                Stretch="UniformToFill"
+                                Visibility="{x:Bind ThumbnailVisibility, Mode=OneWay}" />
+
+                            <Grid
+                                x:Name="AlbumCardHoverOverlay"
+                                IsHitTestVisible="False"
+                                Visibility="Collapsed">
+                                <Border
+                                    Background="#59000000"
+                                    CornerRadius="4"
+                                    IsHitTestVisible="False" />
+                                <Button
+                                    x:Name="AlbumCardPlayButton"
+                                    Width="32"
+                                    Height="32"
+                                    Margin="8"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Bottom"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    BorderThickness="0"
+                                    CornerRadius="16"
+                                    Click="CardPlay_Click"
+                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    <FontIcon
+                                        FontSize="14"
+                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                        Glyph="&#xE768;" />
+                                </Button>
+                                <Button
+                                    x:Name="AlbumCardMoreButton"
+                                    Width="32"
+                                    Height="32"
+                                    Margin="8"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    BorderThickness="0"
+                                    CornerRadius="16"
+                                    Click="CardMore_Click"
+                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                </Button>
+                                <Border
+                                    x:Name="AlbumCardSelectionBox"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="8"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    CornerRadius="4"
+                                    Visibility="{x:Bind SelectionVisibility, Mode=OneWay}">
+                                    <FontIcon
+                                        FontSize="12"
+                                        Glyph="{x:Bind SelectionGlyph, Mode=OneWay}" />
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel
+                        Margin="{StaticResource MpvMediaTileCaptionMargin}"
+                        Spacing="{StaticResource MpvSpaceXxs}">
+                        <TextBlock
+                            MaxLines="2"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            Text="{Binding AlbumTitle}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{Binding AlbumArtistText}"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+
+        <!-- The card's overflow menu, one definition shared by every card.
+             A MenuFlyout is shown with ShowAt and does not have to live inside
+             the item it points at, so keeping it here leaves the item template
+             free of command wiring and gives the menu texts a single place to be
+             localized (ApplyCardStrings). Items are enabled per target in
+             CardMore_Click, the way the playlist pane's own menu is. -->
+        <MenuFlyout x:Key="LibraryCardContextMenu">
+            <MenuFlyoutItem
+                Click="CardMenu_Click"
+                Tag="play">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE768;" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem
+                Click="CardMenu_Click"
+                Tag="add-queue">
+                <MenuFlyoutItem.Icon>
+                    <SymbolIcon Symbol="Add" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem
+                Click="CardMenu_Click"
+                Tag="open-location">
+                <MenuFlyoutItem.Icon>
+                    <SymbolIcon Symbol="OpenFile" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem
+                Click="CardMenu_Click"
+                Tag="copy-path">
+                <MenuFlyoutItem.Icon>
+                    <SymbolIcon Symbol="Copy" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem
+                Click="CardMenu_Click"
+                Tag="copy-title">
+                <MenuFlyoutItem.Icon>
+                    <SymbolIcon Symbol="Copy" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <!-- Enters selection mode. The reference puts it last in the card menu,
+                 which is also where this one ends. -->
+            <MenuFlyoutItem
+                Click="CardMenu_Click"
+                Tag="select">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE73A;" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+        </MenuFlyout>
+
+        <!-- The video library's underline tabs.
+             A RadioButton rather than a Pivot or a SelectorBar: the project
+             depends on neither, and this needs nothing from them, while the
+             built-in CheckStates machine already drives the one thing a tab has
+             to show - which one is picked. The template drops Fluent's radio
+             circle for a text label over a 2px indicator, which is the official
+             player's tab shape.
+             Only Foreground and Opacity are driven from a state, so
+             check-visual-state-layout stays quiet: no negative margins and no
+             alignment overrides in any setter. -->
+        <Style x:Key="MpvUnderlineTabStyle" TargetType="RadioButton">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <!-- The template replaces Fluent's, so it does not inherit the
+                 default style's focus behaviour: without this the tab has no
+                 keyboard-focus indicator at all. The margin tucks the rect up
+                 under the label row and off the underline. -->
+            <Setter Property="UseSystemFocusVisuals" Value="True" />
+            <Setter Property="FocusVisualMargin" Value="0,0,0,-4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid Background="Transparent">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="2" />
+                            </Grid.RowDefinitions>
+                            <Border
+                                x:Name="TabHover"
+                                Grid.RowSpan="2"
+                                Background="Transparent"
+                                CornerRadius="4" />
+                            <ContentPresenter
+                                x:Name="TabContent"
+                                Grid.Row="0"
+                                Margin="0,0,0,7"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                FontWeight="SemiBold"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <Border
+                                x:Name="TabIndicator"
+                                Grid.Row="1"
+                                Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                CornerRadius="1"
+                                Opacity="0" />
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CheckStates">
+                                    <VisualState x:Name="Checked">
+                                        <VisualState.Setters>
+                                            <Setter Target="TabContent.Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                                            <Setter Target="TabIndicator.Opacity" Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Unchecked">
+                                        <VisualState.Setters>
+                                            <Setter Target="TabContent.Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <Setter Target="TabIndicator.Opacity" Value="0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Indeterminate" />
+                                </VisualStateGroup>
+                                <!-- Hover tints the backdrop, never the indicator
+                                     or the text colour: those two belong to
+                                     CheckStates, and a second group writing the
+                                     same property would let a hovered tab drop
+                                     its underline. -->
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Target="TabHover.Background" Value="Transparent" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="TabHover.Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="TabHover.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled" />
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- One folder in the "Video folders" tab: the folder name and how many
+             played videos it holds. Binds to VideoFolderGroup (see the library
+             partial), which is a record the page builds from the history. -->
+        <!-- One folder's heading, in the reference player's form: a folder glyph,
+             then the name, then the full path dimmed on the same line.
+
+             The path is what tells two folders with the same leaf name apart - the
+             grouping already keys on the full directory for exactly that reason, and
+             showing only "Downloads" twice was the visible half of that problem.
+
+             The glyph is drawn through a Viewbox at 20: PathIcon renders its geometry
+             at the native 24 units, so setting Width alone would clip it.
+
+             PathVisibility is Collapsed for the music library's groups: those are
+             built from an album tag, have no path, and must not reserve the grey line
+             or every album heading would indent away from the video ones. -->
+        <DataTemplate x:Key="VideoFolderHeaderTemplate" x:DataType="local:VideoFolderGroup">
+            <Grid
+                Margin="0,16,0,8"
+                ColumnSpacing="{StaticResource MpvSpaceS}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Viewbox
+                    Grid.Column="0"
+                    Width="20"
+                    Height="20"
+                    VerticalAlignment="Center">
+                    <PathIcon
+                        Width="24"
+                        Height="24"
+                        Data="{x:Bind MediaIcon}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </Viewbox>
+
+                <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Text="{x:Bind Name}"
+                    TextTrimming="CharacterEllipsis" />
+
+                <TextBlock
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind Path}"
+                    TextTrimming="CharacterEllipsis"
+                    Visibility="{x:Bind PathVisibility}" />
+
+                <TextBlock
+                    Grid.Column="3"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind CountText}" />
+            </Grid>
+        </DataTemplate>
     </Page.Resources>
 
-    <Grid x:Name="PageRoot">
+    <!-- The drop target is the PAGE, not VideoContainer.
+         It used to be VideoContainer, and the library covers that - so on Home,
+         the one page whose empty state is inviting you to open something, a drop
+         had nowhere to land. Dragging onto the window is the gesture people
+         actually make, so the page takes it and the library is dropped on as
+         readily as the video is. -->
+    <Grid
+        x:Name="PageRoot"
+        AllowDrop="True"
+        DragEnter="OnDragEnter"
+        DragLeave="OnDragLeave"
+        DragOver="OnDragOver"
+        Drop="OnDrop">
         <Grid.RowDefinitions>
             <RowDefinition
                 x:Name="MenuRow"
                 Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition
-                x:Name="PlayControlRow"
-                Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*" />
-            <ColumnDefinition
-                x:Name="PlaylistColumn"
-                Width="0"
-                MaxWidth="420" />
-        </Grid.ColumnDefinitions>
+        <!-- The menu row, with the playing page's three tool keys at its right
+             end.
+
+             They belong HERE and not on the picture: the report was explicit -
+             "the position should be at the far right of the settings bar, not
+             floating" - and it is also the row that is always on screen while a
+             file is up, so nothing has to hover over the video to reach them.
+             The floating version that briefly lived over the top-right of the
+             picture was both asked against and useless: it sat on the frame and
+             had to be hidden over the library, which made three permanent
+             actions flicker in and out. -->
+        <Grid
+            Grid.Row="0"
+            ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
         <MenuBar
             x:Name="MainMenuBar"
-            Grid.Row="0"
-            Grid.ColumnSpan="1">
+            Grid.Column="0">
             <MenuBarItem
                 Title="File"
                 IsTabStop="False">
@@ -310,233 +903,1536 @@
             </MenuBarItem>
         </MenuBar>
 
+            <!-- The three tool keys, at the far right of the menu row. Same
+                 36x36 pitch as the transport buttons, transparent fill so the row
+                 keeps one surface, and no scrim: a menu row is already opaque. -->
+            <StackPanel
+                x:Name="PlaybackTools"
+                Grid.Column="1"
+                Margin="0,0,8,0"
+                VerticalAlignment="Center"
+                Orientation="Horizontal"
+                Visibility="Collapsed">
+                <Button
+                    x:Name="ScreenshotButton"
+                    Width="{StaticResource MpvTransportButtonSize}"
+                    Height="{StaticResource MpvTransportButtonSize}"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    CornerRadius="{StaticResource ControlCornerRadius}"
+                    Click="ScreenshotButton_Click">
+                    <PathIcon
+                        x:Name="ScreenshotIcon"
+                        Width="{StaticResource MpvTransportIconSize}"
+                        Height="{StaticResource MpvTransportIconSize}" />
+                </Button>
+                <Button
+                    x:Name="MediaInfoButton"
+                    Width="{StaticResource MpvTransportButtonSize}"
+                    Height="{StaticResource MpvTransportButtonSize}"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    CornerRadius="{StaticResource ControlCornerRadius}"
+                    Click="MediaInfoButton_Click">
+                    <PathIcon
+                        x:Name="MediaInfoIcon"
+                        Width="{StaticResource MpvTransportIconSize}"
+                        Height="{StaticResource MpvTransportIconSize}" />
+                </Button>
+                <Button
+                    x:Name="PlaylistPanelButton"
+                    Width="{StaticResource MpvTransportButtonSize}"
+                    Height="{StaticResource MpvTransportButtonSize}"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    CornerRadius="{StaticResource ControlCornerRadius}"
+                    Click="PlaylistPanelButton_Click">
+                    <PathIcon
+                        x:Name="PlaylistPanelIcon"
+                        Width="{StaticResource MpvTransportIconSize}"
+                        Height="{StaticResource MpvTransportIconSize}" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- The content area is a two-layer stack.
+             Layer 0 is the video. It is always Visible and always in the tree,
+             because libmpv binds this SwapChainPanel once: detaching it,
+             reparenting it or collapsing it all risk breaking playback, and
+             nothing about the switch below touches it.
+             Layer 1 is the library skeleton, which covers the video with an
+             opaque surface while nothing is playing. Covering rather than
+             swapping is the whole trick - it means the switch has no opinion
+             about layer 0 at all. -->
         <Grid
-            x:Name="PlaylistContainer"
-            Grid.Row="0"
-            Grid.RowSpan="3"
-            Grid.Column="1"
-            Canvas.ZIndex="1"
-            Visibility="Collapsed">
+            x:Name="ContentHost"
+            Grid.Row="1"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
+
+            <!-- Playback-level messages: a refused drop, a mixed drop that
+                 skipped files, and anything else that needs saying without a
+                 dialog. An InfoBar rather than a ContentDialog because none of
+                 these is a question - the official player reports the same class
+                 of problem the same way, and a modal box would block the window
+                 the user is about to drop something else onto. -->
+            <InfoBar
+                x:Name="PlaybackInfoBar"
+                Grid.Row="0"
+                MaxWidth="560"
+                Margin="16"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Canvas.ZIndex="30"
+                IsClosable="True"
+                IsOpen="False" />
+
+            <!-- No drop handlers here any more: the page owns them now (see
+                 PageRoot). VideoContainer keeps its dark tint so a letterboxed
+                 picture still has a defined edge inside the swap chain. -->
+            <Grid
+                x:Name="VideoContainer"
+                Background="#22000000">
+                <SwapChainPanel
+                    x:Name="PlayerView"
+                    ContextRequested="PlayerView_ContextRequested">
+                    <Border Background="Transparent" />
+                </SwapChainPanel>
+                <preview:MpvSoftwarePreviewControl
+                    x:Name="MpvPreview"
+                    Width="192"
+                    Height="108"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    x:Load="{x:Bind _enableBuiltInPreview}"
+                    Canvas.ZIndex="2"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed">
+                    <preview:MpvSoftwarePreviewControl.RenderTransform>
+                        <TranslateTransform x:Name="PreviewControlTranslation" />
+                    </preview:MpvSoftwarePreviewControl.RenderTransform>
+                </preview:MpvSoftwarePreviewControl>
+            </Grid>
+
+            <Grid
+                x:Name="LibraryHost"
+                Canvas.ZIndex="1"
+                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel
+                    Grid.Row="0"
+                    Margin="{StaticResource MpvBreadcrumbBarMargin}">
+                    <!-- The heading keeps its explicit 40 / SemiBold.
+                         Measured against the official player's own window, the
+                         two headings' ink is IDENTICAL - 38.9 DIP of cap height
+                         on both, at 175% scaling. (An earlier reading of 68.6
+                         for ours was the heading and the subtitle measured as
+                         one band; they are two lines 13.1 DIP apart, and
+                         separating them is what showed the sizes already
+                         agreed.) So this is not the number to change: what
+                         disagreed was the left inset and the vertical offset,
+                         and those are the gutter and the margin around it. -->
+                    <!-- The heading row: the title, then the section's own tabs
+                         on the same baseline, then the section's top-right
+                         command.
+
+                         The official player puts them together like this - the
+                         tabs belong to the heading, not to a toolbar under it -
+                         and splitting them over two rows is what made the video
+                         library read as a page with two unrelated headers. -->
+                    <Grid ColumnSpacing="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            x:Name="LibrarySectionTitle"
+                            Grid.Column="0"
+                            VerticalAlignment="Bottom"
+                            FontSize="{StaticResource MpvPageHeadingFontSize}"
+                            FontWeight="SemiBold"
+                            Style="{StaticResource TitleTextBlockStyle}"
+                            TextTrimming="CharacterEllipsis" />
+
+                        <!-- The tabs, on the heading's own baseline. -->
+                        <StackPanel
+                            x:Name="LibraryHeadingTabs"
+                            Grid.Column="1"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,0,6"
+                            Orientation="Horizontal"
+                            Spacing="28"
+                            Visibility="Collapsed">
+                            <RadioButton
+                                x:Name="VideoTabAll"
+                                Checked="VideoTabAll_Checked"
+                                GroupName="VideoLibraryTabs"
+                                IsChecked="True"
+                                Style="{StaticResource MpvUnderlineTabStyle}" />
+                            <RadioButton
+                                x:Name="VideoTabFolders"
+                                Checked="VideoTabFolders_Checked"
+                                GroupName="VideoLibraryTabs"
+                                Style="{StaticResource MpvUnderlineTabStyle}" />
+                        </StackPanel>
+
+                        <!-- The music library's tabs: Songs / Albums / Artists,
+                             the three the official player offers. Hidden unless the
+                             music section is up, in ApplySectionHeader. -->
+                        <StackPanel
+                            x:Name="MusicHeadingTabs"
+                            Grid.Column="1"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,0,6"
+                            Orientation="Horizontal"
+                            Spacing="28"
+                            Visibility="Collapsed">
+                            <RadioButton
+                                x:Name="MusicTabSongs"
+                                Checked="MusicTabSongs_Checked"
+                                GroupName="MusicLibraryTabs"
+                                IsChecked="True"
+                                Style="{StaticResource MpvUnderlineTabStyle}" />
+                            <RadioButton
+                                x:Name="MusicTabAlbums"
+                                Checked="MusicTabAlbums_Checked"
+                                GroupName="MusicLibraryTabs"
+                                Style="{StaticResource MpvUnderlineTabStyle}" />
+                            <RadioButton
+                                x:Name="MusicTabArtists"
+                                Checked="MusicTabArtists_Checked"
+                                GroupName="MusicLibraryTabs"
+                                Style="{StaticResource MpvUnderlineTabStyle}" />
+                        </StackPanel>
+
+                        <!-- The section's top-right command: Add folder, which the
+                             official player keeps on the heading row. -->
+                        <Button
+                            x:Name="VideoAddFolderButton"
+                            Grid.Column="2"
+                            VerticalAlignment="Bottom"
+                            Click="VideoAddFolder_Click">
+                            <StackPanel
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <Viewbox
+                                    Width="16"
+                                    Height="16"
+                                    VerticalAlignment="Center">
+                                    <PathIcon
+                                        x:Name="VideoAddFolderIcon"
+                                        Width="24"
+                                        Height="24" />
+                                </Viewbox>
+                                <TextBlock
+                                    x:Name="VideoAddFolderText"
+                                    VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                    <TextBlock
+                        x:Name="LibrarySectionSubtitle"
+                        Margin="0,8,0,0"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        TextTrimming="CharacterEllipsis"
+                        Visibility="Collapsed" />
+
+                    <!-- The video library's chrome: the All videos / Video
+                         folders tabs, then the toolbar (Play all on the left,
+                         the sort on the right, Add folder in the top-right
+                         corner of the strip). Collapsed for every other
+                         section, from ApplySectionHeader. Labels and icons are
+                         set in code, from AppLang and FluentIcons. -->
+                    <StackPanel
+                        x:Name="VideoChrome"
+                        Margin="0,16,0,0"
+                        Spacing="{StaticResource MpvSpaceM}"
+                        Visibility="Collapsed">
+                        <!-- The tabs and the Add folder command moved up to the heading row, where
+                             the official player keeps them. What stays here is the
+                             row's own content: Play all on the left, the sort on
+                             the right. -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button
+                                x:Name="VideoPlayAllButton"
+                                Grid.Column="0"
+                                HorizontalAlignment="Left"
+                                Click="VideoPlayAll_Click">
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource MpvSpaceS}">
+                                    <Viewbox
+                                        Width="16"
+                                        Height="16"
+                                        VerticalAlignment="Center">
+                                        <PathIcon
+                                            x:Name="VideoPlayAllIcon"
+                                            Width="24"
+                                            Height="24" />
+                                    </Viewbox>
+                                    <TextBlock
+                                        x:Name="VideoPlayAllText"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <DropDownButton
+                                x:Name="VideoSortButton"
+                                Grid.Column="1"
+                                HorizontalAlignment="Right">
+                                <DropDownButton.Flyout>
+                                    <MenuFlyout>
+                                        <RadioMenuFlyoutItem
+                                            x:Name="SortByNameAsc"
+                                            Click="VideoSort_Click"
+                                            GroupName="VideoSort"
+                                            Tag="name-asc" />
+                                        <RadioMenuFlyoutItem
+                                            x:Name="SortByNameDesc"
+                                            Click="VideoSort_Click"
+                                            GroupName="VideoSort"
+                                            Tag="name-desc" />
+                                        <RadioMenuFlyoutItem
+                                            x:Name="SortByNewest"
+                                            Click="VideoSort_Click"
+                                            GroupName="VideoSort"
+                                            Tag="newest" />
+                                        <RadioMenuFlyoutItem
+                                            x:Name="SortByOldest"
+                                            Click="VideoSort_Click"
+                                            GroupName="VideoSort"
+                                            Tag="oldest" />
+                                    </MenuFlyout>
+                                </DropDownButton.Flyout>
+                            </DropDownButton>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- The selection bar. Hidden until something is ticked: the
+                     reference reserves no space for it, and a permanently empty row
+                     would push the grid down for a state most visits never enter.
+
+                     The count and 清除 sit left, the actions right, and play is the
+                     accent button - the same emphasis the reference gives it. -->
+                <Border
+                    x:Name="LibrarySelectionBar"
+                    Grid.Row="1"
+                    Margin="48,0,48,8"
+                    Padding="16,8"
+                    VerticalAlignment="Top"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Visibility="Collapsed">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <FontIcon
+                                FontSize="14"
+                                Glyph="&#xE73E;"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock
+                                x:Name="LibrarySelectionCount"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BodyTextBlockStyle}" />
+                            <Button
+                                Padding="4,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="SelectionClear_Click">
+                                <TextBlock
+                                    x:Name="LibrarySelectionClearText"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Style="{StaticResource CaptionTextBlockStyle}" />
+                            </Button>
+                        </StackPanel>
+
+                        <StackPanel
+                            Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                x:Name="SelectionPlayButton"
+                                Padding="16,6"
+                                Click="SelectionPlay_Click"
+                                Style="{StaticResource AccentButtonStyle}">
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE768;" />
+                                    <TextBlock
+                                        x:Name="SelectionPlayText"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                x:Name="SelectionQueueButton"
+                                Padding="16,6"
+                                Click="SelectionQueue_Click">
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE710;" />
+                                    <TextBlock
+                                        x:Name="SelectionQueueText"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                x:Name="SelectionPropertiesButton"
+                                Padding="16,6"
+                                Click="SelectionProperties_Click">
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE946;" />
+                                    <TextBlock
+                                        x:Name="SelectionPropertiesText"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <ScrollViewer
+                    x:Name="LibraryScroll"
+                    Grid.Row="1"
+                    Padding="{StaticResource MpvBrowseHostPadding}"
+                    HorizontalScrollBarVisibility="Disabled"
+                    HorizontalScrollMode="Disabled"
+                    VerticalScrollBarVisibility="Auto"
+                    VerticalScrollMode="Auto"
+                    ViewChanged="LibraryScroll_ViewChanged">
+                    <Grid>
+                        <ItemsRepeater
+                            x:Name="LibraryGrid"
+                            ItemTemplate="{StaticResource LibraryCardTemplate}">
+                            <ItemsRepeater.Layout>
+                                <!-- The official home grid: about six square tiles
+                                     across at the window width the two were
+                                     compared at. Square because the official tiles
+                                     are (its music placeholder squares are the
+                                     giveaway); the nominal item width here matches
+                                     the tile height set in the card style. -->
+                                <!-- Landscape cards. MinItemWidth 253 is the
+                                     reference's own card width at DPI 1.5, so a
+                                     maximised window lands on four columns as the
+                                     screenshot does. MinItemHeight suits the widest
+                                     card that layout can produce (253 through 16:9
+                                     is 142) plus the two caption lines. -->
+                                <UniformGridLayout
+                                    MinColumnSpacing="{StaticResource MpvSpaceM}"
+                                    MinItemHeight="200"
+                                    MinItemWidth="253"
+                                    MinRowSpacing="{StaticResource MpvSpaceL}" />
+                            </ItemsRepeater.Layout>
+                        </ItemsRepeater>
+
+                        <!-- The "Video folders" tab: one header and one card
+                             grid per folder, built in code because the groups
+                             change shape as the list does. Exactly one of the
+                             two is visible at a time (ApplyLibraryFilter). -->
+                        <StackPanel
+                            x:Name="VideoFolderGroups"
+                            Visibility="Collapsed" />
+                    </Grid>
+                </ScrollViewer>
+
+                <!-- The A-Z rail, in its own column so it does not scroll away.
+
+                     A sibling of the ScrollViewer rather than a child: a jump list you
+                     have to scroll to find is not a jump list.
+
+                     Built in code from LibraryIndexLetter.BuildRail - the same table the
+                     grouping sorts by - so the letters cannot disagree with the groups
+                     they point at. Shown only for the music library's grouped tabs; the
+                     video library groups by directory, which has no initial.
+
+                     Items are LibraryIndexBucket, whose HasContent drives both IsEnabled
+                     and the dim, so an empty letter cannot be clicked and does not look
+                     clickable. -->
+                <ItemsRepeater
+                    x:Name="LibraryIndexRail"
+                    Grid.Row="1"
+                    Width="40"
+                    Margin="0,0,6,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Visibility="Collapsed" />
+
+                <!-- The empty state is one centred block, which is what the
+                     official player does: measured, its illustration-plus-text
+                     pair centres within 2.1 DIP of the content column's own
+                     centre. So it does NOT take the page gutter - a gutter is
+                     for left-aligned text and this is not left-aligned. What it
+                     does share with the heading is the type: the title is the
+                     same ramp step and the description the same Body, so the
+                     two blocks read as one page rather than two designs. -->
+                <Grid
+                    x:Name="LibraryEmptyState"
+                    Grid.Row="1"
+                    MaxWidth="720"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                    <!-- A two-column GRID, not a horizontal StackPanel.
+                         The StackPanel sized its two columns from their content,
+                         so every section's empty state had a different
+                         icon-to-text column split - the illustration is 264 in
+                         all of them, but the text column was as wide as the
+                         longest wrapped line of THAT section's description. With
+                         the pair centred, that moved the illustration left and
+                         right and the text's first character with it, a few DIP
+                         on every section change. That is the reported "the big
+                         icon and the description are not aligned the same way on
+                         every page, and they jump around when you switch".
+                         A fixed 264 + gap + fixed text column means every
+                         section renders in exactly the same box: the icon's left
+                         edge, the text's left edge and both baselines are
+                         section-independent by construction. -->
+                    <!-- Literals, not the MpvSpace* tokens: ColumnDefinition
+                         Width is a GridLength and those tokens are x:Double, so
+                         a StaticResource through it throws inside the XAML
+                         loader. Here that was not even visible as a crash - the
+                         page failed to load, MainWindow.Open's catch swallowed
+                         it, and the Frame stayed blank. -->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="264" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="320" />
+                    </Grid.ColumnDefinitions>
+                    <!-- The official player's empty state is a large gradient
+                         illustration beside the text, not a grey glyph above
+                         it, and this is the same idea built from the same
+                         official icon set: the section's own media icon, at
+                         illustration size, in the sampled brand gradient (see
+                         MpvEmptyStateIconBrush). Which icon it is depends on
+                         the section, so Data is set in code - see
+                         ApplyEmptyStateContent. The text column keeps the
+                         official left alignment; only the pair as a whole is
+                         centred in the room. -->
+                    <!-- PathIcon draws its geometry at native size; the
+                         Viewbox is what gives the glyph its size at all
+                         (without it a 24-unit glyph renders ~24px in the
+                         corner of the box). 216 = the 24 grid at 9x - the
+                         user asked for at least 1.5x over the previous 144,
+                         and the jump is meant to be unmistakable. -->
+                    <Viewbox
+                        Grid.Column="0"
+                        Width="264"
+                        Height="264"
+                        VerticalAlignment="Center">
+                        <PathIcon
+                            x:Name="LibraryEmptyIcon"
+                            Width="24"
+                            Height="24"
+                            Foreground="{StaticResource MpvEmptyStateIconBrush}" />
+                    </Viewbox>
+                    <StackPanel
+                        Grid.Column="2"
+                        Spacing="{StaticResource MpvSpaceM}"
+                        VerticalAlignment="Center">
+                        <TextBlock
+                            x:Name="LibraryEmptyTitle"
+                            Style="{StaticResource TitleTextBlockStyle}" />
+                        <TextBlock
+                            x:Name="LibraryEmptyDescription"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            TextWrapping="Wrap" />
+                        <Button
+                            x:Name="LibraryOpenFileButton"
+                            Margin="0,4,0,0"
+                            HorizontalAlignment="Left"
+                            Click="LibraryOpenFileButton_Click"
+                            Style="{StaticResource AccentButtonStyle}">
+                            <!-- The official puts the affordance's own icon in
+                                 the button; the label alone made it read as a
+                                 generic dialog action. -->
+                            <StackPanel
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <Viewbox
+                                    Width="16"
+                                    Height="16"
+                                    VerticalAlignment="Center">
+                                    <PathIcon
+                                        x:Name="LibraryOpenFileIcon"
+                                        Width="24"
+                                        Height="24" />
+                                </Viewbox>
+                                <TextBlock
+                                    x:Name="LibraryOpenFileButtonText"
+                                    VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- The play queue. A third surface in the slot the grid and
+                     the empty state share, and it draws the very same mpv
+                     playlist the right-hand pane and the tab strip draw
+                     (PlaylistItems), so all three are one collection reported
+                     three ways. Only the queue section renders it; the rest of
+                     the library never does. -->
+                <Grid
+                    x:Name="QueueHost"
+                    Grid.Row="1"
+                    Margin="{StaticResource MpvBrowseHostPadding}"
+                    Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Clear and Add to, the two actions the official queue
+                         offers. The words are set from AppLang in code so a
+                         language change reaches them like every other string;
+                         the icons are stock Symbol glyphs, which is why each
+                         AppBarButton carries no FontIcon of its own.
+
+                         The two buttons are wrapped in ONE bordered card rather
+                         than sitting bare on the surface, which is both what the
+                         official queue does and what was reported missing: two
+                         text-plus-icon pairs floating on the page read as
+                         leftovers from a toolbar, not as a control.
+
+                         Margin is the page gutter on BOTH sides, so this row
+                         lines up with the heading above it exactly - "the queue
+                         buttons are not aligned with the queue heading, and they
+                         sit too close to the navigation pane" was the left
+                         margin being 0 while everything else on the page starts
+                         at MpvContentGutter.
+
+                         The dashed outline the report put around them is not
+                         reproduced: that was an annotation on the screenshot,
+                         not a design element. -->
+
+
+                    <!-- Clear and Add to, as the official queue draws them: two
+                         separate outlined pill buttons, each with a glyph and a
+                         label, sitting side by side.
+
+                         They were a CommandBar inside one shared card. That is not
+                         the official control at all - a CommandBar collapses to
+                         an overflow menu as it narrows, treats its items as
+                         toolbar entries rather than as buttons, and the card
+                         around the pair made one wide box where the official has
+                         two pills with a gap. Reported as "these two are not the
+                         official style, they are drawn by hand and the styling is
+                         a mess", which was right.
+
+                         Buttons, then, with the standard control chrome doing the
+                         work: no custom template, no card, no CommandBar. -->
+                    <StackPanel
+                        Grid.Row="0"
+                        Margin="0,0,0,12"
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource MpvSpaceS}">
+                        <Button
+                            x:Name="QueueClearButton"
+                            Padding="12,6"
+                            Click="QueueClear_Click">
+                            <StackPanel
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <Viewbox
+                                    Width="16"
+                                    Height="16"
+                                    VerticalAlignment="Center">
+                                    <PathIcon
+                                        x:Name="QueueClearIcon"
+                                        Width="24"
+                                        Height="24" />
+                                </Viewbox>
+                                <TextBlock
+                                    x:Name="QueueClearText"
+                                    VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            x:Name="QueueAddToButton"
+                            Padding="12,6"
+                            Click="QueueAddTo_Click">
+                            <StackPanel
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <Viewbox
+                                    Width="16"
+                                    Height="16"
+                                    VerticalAlignment="Center">
+                                    <PathIcon
+                                        x:Name="QueueAddToIcon"
+                                        Width="24"
+                                        Height="24" />
+                                </Viewbox>
+                                <TextBlock
+                                    x:Name="QueueAddToText"
+                                    VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <ListView
+                        x:Name="QueueView"
+                        Grid.Row="1"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        ContextRequested="QueueView_ContextRequested"
+                        IsItemClickEnabled="True"
+                        ItemClick="QueueView_ItemClick"
+                        ItemsSource="{x:Bind PlaylistItems, Mode=OneWay}"
+                        SelectionMode="None">
+                        <ListView.ItemContainerStyle>
+                            <Style
+                                BasedOn="{StaticResource DefaultListViewItemStyle}"
+                                TargetType="ListViewItem">
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="local:PlaylistItem">
+                                <Grid Height="44">
+                                    <!-- The current row's highlight sits behind
+                                         the content, and the accent play glyph
+                                         in the icon column is the now-playing
+                                         marker the official queue puts on the
+                                         row that is on air. -->
+                                    <Border
+                                        Margin="8,1"
+                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                        CornerRadius="4"
+                                        Visibility="{x:Bind IsCurrent}" />
+                                    <Grid
+                                        Margin="12,0"
+                                        ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon
+                                            Grid.Column="0"
+                                            FontSize="16"
+                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Glyph="&#xE768;"
+                                            Visibility="{x:Bind IsCurrent}" />
+                                        <FontIcon
+                                            Grid.Column="0"
+                                            FontSize="16"
+                                            Glyph="&#xE8B2;"
+                                            Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent)}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Text="{x:Bind Filename}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTipService.ToolTip="{x:Bind Path}" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind DurationText}" />
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <!-- The empty queue, the same shape the other sections use
+                         for an empty state. Its words are Home's empty strings
+                         (nothing has been played yet describes both), and the
+                         toolbar above stays reachable, so Add to is still there
+                         when the queue has nothing in it. -->
+                    <Grid
+                        x:Name="QueueEmptyState"
+                        Grid.Row="1"
+                        MaxWidth="640"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="216" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="320" />
+                        </Grid.ColumnDefinitions>
+                        <Viewbox
+                            Grid.Column="0"
+                            Width="216"
+                            Height="216"
+                            VerticalAlignment="Center">
+                            <PathIcon
+                                x:Name="QueueEmptyIcon"
+                                Width="24"
+                                Height="24"
+                                Foreground="{StaticResource MpvEmptyStateIconBrush}" />
+                        </Viewbox>
+                        <StackPanel
+                            Grid.Column="2"
+                            Spacing="{StaticResource MpvSpaceM}"
+                            VerticalAlignment="Center">
+                            <TextBlock
+                                x:Name="QueueEmptyTitle"
+                                Style="{StaticResource TitleTextBlockStyle}" />
+                            <TextBlock
+                                x:Name="QueueEmptyDescription"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource BodyTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <!-- The album page.
+
+                 The reference player's album view: the cover and the album's
+                 identity in one card at the top, its action row under it, then the
+                 track table. Reached from the music library's Albums tab; it is a
+                 surface in this page rather than a Page in the frame, because
+                 libmpv binds the SwapChainPanel once and a Frame navigation
+                 detaches it.
+
+                 Canvas.ZIndex 3 puts it above both the library and the music
+                 page: it is opened from the library, and closing it must reveal
+                 whichever surface was underneath. -->
+            <Grid
+                x:Name="AlbumHost"
+                Canvas.ZIndex="3"
+                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel
+                    Grid.Row="0"
+                    Margin="{StaticResource MpvBreadcrumbBarMargin}">
+
+                    <!-- Back to the list. A plain button rather than a breadcrumb
+                         control: the album is one level deep and the reference
+                         player draws the same single chevron here. -->
+                    <Button
+                        x:Name="AlbumBackButton"
+                        Margin="0,0,0,16"
+                        Padding="8,4"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="AlbumBack_Click">
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="{StaticResource MpvSpaceS}">
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                FontSize="14"
+                                Glyph="&#xE72B;" />
+                            <TextBlock
+                                x:Name="AlbumBackText"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- The album card: cover on the left, identity and actions on
+                         the right, as one rounded surface. -->
+                    <Grid
+                        Padding="20"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        ColumnSpacing="28"
+                        CornerRadius="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid
+                            Grid.Column="0"
+                            Width="200"
+                            Height="200">
+                            <Border
+                                Background="{ThemeResource MpvMusicArtworkFallbackBrush}"
+                                CornerRadius="8">
+                                <FontIcon
+                                    x:Name="AlbumArtworkFallbackIcon"
+                                    FontSize="64"
+                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            </Border>
+                            <Border CornerRadius="8">
+                                <Image
+                                    x:Name="AlbumArtwork"
+                                    Stretch="UniformToFill"
+                                    Visibility="Collapsed" />
+                            </Border>
+                        </Grid>
+
+                        <StackPanel
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Spacing="{StaticResource MpvSpaceS}">
+                            <TextBlock
+                                x:Name="AlbumTitle"
+                                FontSize="30"
+                                FontWeight="SemiBold"
+                                MaxLines="2"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="Wrap" />
+
+                            <TextBlock
+                                x:Name="AlbumArtist"
+                                FontSize="16"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                TextTrimming="CharacterEllipsis" />
+
+                            <TextBlock
+                                x:Name="AlbumSummary"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+
+                            <StackPanel
+                                Margin="0,12,0,0"
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <Button
+                                    x:Name="AlbumPlayAllButton"
+                                    Padding="16,6"
+                                    Click="AlbumPlayAll_Click"
+                                    Style="{StaticResource AccentButtonStyle}">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <FontIcon
+                                            FontFamily="{StaticResource MpvIconFontFamily}"
+                                            FontSize="14"
+                                            Glyph="&#xE768;" />
+                                        <TextBlock
+                                            x:Name="AlbumPlayAllText"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button
+                                    x:Name="AlbumShuffleButton"
+                                    Padding="16,6"
+                                    Click="AlbumShuffle_Click">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <FontIcon
+                                            FontFamily="{StaticResource MpvIconFontFamily}"
+                                            FontSize="14"
+                                            Glyph="&#xE8B1;" />
+                                        <TextBlock
+                                            x:Name="AlbumShuffleText"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button
+                                    x:Name="AlbumAddToButton"
+                                    Padding="16,6"
+                                    Click="AlbumAddTo_Click">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <FontIcon
+                                            FontFamily="{StaticResource MpvIconFontFamily}"
+                                            FontSize="14"
+                                            Glyph="&#xE710;" />
+                                        <TextBlock
+                                            x:Name="AlbumAddToText"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <ScrollViewer
+                    Grid.Row="1"
+                    Padding="{StaticResource MpvBrowseHostPadding}"
+                    HorizontalScrollBarVisibility="Disabled"
+                    HorizontalScrollMode="Disabled"
+                    VerticalScrollBarVisibility="Auto"
+                    VerticalScrollMode="Auto">
+                    <StackPanel>
+                        <!-- Column headings, then one row template. A ListView
+                             rather than an ItemsRepeater because rows are clicked
+                             and the current one is highlighted. -->
+                        <Grid
+                            Padding="12,0"
+                            ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" MinWidth="160" />
+                                <ColumnDefinition Width="2*" MinWidth="120" />
+                                <ColumnDefinition Width="2*" MinWidth="120" />
+                                <ColumnDefinition Width="Auto" MinWidth="56" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                x:Name="AlbumColumnTitle"
+                                Grid.Column="0"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <TextBlock
+                                x:Name="AlbumColumnArtist"
+                                Grid.Column="1"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <TextBlock
+                                x:Name="AlbumColumnGenre"
+                                Grid.Column="2"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                            <TextBlock
+                                x:Name="AlbumColumnLength"
+                                Grid.Column="3"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                        </Grid>
+
+                        <TextBlock
+                            x:Name="AlbumEmptyText"
+                            Margin="12,24,12,0"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap"
+                            Visibility="Collapsed" />
+
+                        <ListView
+                            x:Name="AlbumTrackList"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            IsItemClickEnabled="True"
+                            ItemClick="AlbumTrackList_ItemClick"
+                            SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style
+                                    BasedOn="{StaticResource DefaultListViewItemStyle}"
+                                    TargetType="ListViewItem">
+                                    <Setter Property="Margin" Value="0" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="MinHeight" Value="0" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:LibraryEntry">
+                                    <Grid
+                                        Height="44"
+                                        ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MinWidth="160" />
+                                            <ColumnDefinition Width="2*" MinWidth="120" />
+                                            <ColumnDefinition Width="2*" MinWidth="120" />
+                                            <ColumnDefinition Width="Auto" MinWidth="56" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Margin="12,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Text="{x:Bind Title}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{x:Bind Artist}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{x:Bind Genre}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            Margin="0,0,12,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                            Text="{x:Bind DurationText}"
+                                            Visibility="{x:Bind DurationVisibility}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- The music page.
+
+                 A page of its own rather than the video page with black bars:
+                 audio has no frame to letterbox, so everything the video surface
+                 shows - the swap chain, the zoom/aspect keys, the overlay
+                 transport for fullscreen - is dead weight there. This is the
+                 layout the reference players use: artwork on the left, the track
+                 and its artist on the right, lyrics under them, and the transport
+                 bar shared with the video page underneath.
+
+                 It covers the video layer exactly like LibraryHost does, so
+                 neither ever unmounts the SwapChainPanel: libmpv binds that panel
+                 once and detaching it breaks playback. -->
+            <Grid
+                x:Name="MusicHost"
+                Canvas.ZIndex="2"
+                Background="{ThemeResource MpvMusicPageBrush}"
+                Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- The page wash: the cover's own colour, darkened, over the
+                     whole surface. This is what makes the page belong to the
+                     album instead of being a picture pasted on a neutral
+                     background, and it is why the extractor exists.
+
+                     It replaced an oversized blurred copy of the cover. That read
+                     as two pictures layered; a flat tint in the cover's hue reads
+                     as one surface, costs one Fill instead of a scaled Image, and
+                     leaves the artwork as the only sharp thing on screen.
+
+                     Driven from ApplyPalette, so a coverless track sets the theme
+                     brush here rather than leaving the previous album's colour. -->
+                <Rectangle
+                    x:Name="MusicPageWash"
+                    Grid.RowSpan="2"
+                    Fill="{ThemeResource MpvMusicPageBrush}" />
+
+                <!-- The glow behind the cover: the saturated hue at low opacity,
+                     so the artwork sits in light that came from itself. -->
+                <Ellipse
+                    x:Name="MusicArtworkGlow"
+                    Grid.Row="0"
+                    Width="520"
+                    Height="520"
+                    Margin="-80,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Opacity="0"
+                    Fill="{ThemeResource MpvMusicArtworkFallbackBrush}" />
+
+                <Grid
+                    Grid.Row="0"
+                    Padding="48,24,48,24"
+                    ColumnSpacing="48">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Cover art. mpv hands us the embedded picture through the
+                         audio-display option; the fallback is the page's own
+                         record-sleeve glyph, so a file with no artwork still has
+                         something in the slot rather than a hole. -->
+                    <Grid
+                        Grid.Column="0"
+                        Width="360"
+                        Height="360"
+                        VerticalAlignment="Center">
+                        <Border
+                            Background="{ThemeResource MpvMusicArtworkFallbackBrush}"
+                            CornerRadius="12">
+                            <FontIcon
+                                x:Name="MusicArtworkFallbackIcon"
+                                FontSize="96"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        </Border>
+                        <Border CornerRadius="12">
+                            <Border.Shadow>
+                                <ThemeShadow />
+                            </Border.Shadow>
+                            <Image
+                                x:Name="MusicArtwork"
+                                Stretch="UniformToFill"
+                                Visibility="Collapsed" />
+                        </Border>
+                    </Grid>
+
+                    <!-- The reading column. Three bands, top to bottom: what
+                         is playing, then the lyrics as the page's subject, then
+                         nothing - the album line moved up into the header so the
+                         lyrics get the rest of the height instead of whatever a
+                         StackPanel left over.
+
+                         The reference players are all built this way: the lyrics
+                         are the page and the metadata serves them. Stacking all
+                         five elements in one StackPanel was what made the lyrics
+                         look like a footnote under a title. -->
+                    <Grid
+                        Grid.Column="1"
+                        RowSpacing="{StaticResource MpvSpaceM}">
+                        <Grid.RowDefinitions>
+                            <!-- Header: auto, so a long title wraps rather than
+                                 pushing the lyrics down. -->
+                            <RowDefinition Height="Auto" />
+                            <!-- Lyrics: the star row. They take the leftover
+                                 height, which is what makes the reading position
+                                 stable between songs of different title lengths. -->
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel
+                            Grid.Row="0"
+                            Margin="0,0,0,8"
+                            Spacing="{StaticResource MpvSpaceXs}">
+                            <TextBlock
+                                x:Name="MusicTitle"
+                                FontSize="34"
+                                FontWeight="SemiBold"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap" />
+                            <TextBlock
+                                x:Name="MusicArtist"
+                                FontSize="18"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                TextTrimming="CharacterEllipsis" />
+                            <TextBlock
+                                x:Name="MusicAlbum"
+                                FontSize="13"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+
+                        <!-- The reading frame.
+
+                             A fixed-height column with the list centred inside it,
+                             so the active line lands near the middle of the frame
+                             rather than at its top edge. The spacers are the
+                             mechanism: half the frame minus half a line is dead
+                             space above the first line and below the last, which
+                             is what lets the first and last lyric sit at the
+                             reading position instead of pinned to an edge. -->
+                        <Grid
+                            Grid.Row="1"
+                            MinHeight="200"
+                            VerticalAlignment="Stretch">
+                            <ListView
+                                x:Name="MusicLyricsView"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                IsItemClickEnabled="True"
+                                ItemClick="MusicLyricsView_ItemClick"
+                                SelectionMode="None"
+                                Visibility="Collapsed">
+                                <ListView.ItemContainerStyle>
+                                    <Style
+                                        BasedOn="{StaticResource DefaultListViewItemStyle}"
+                                        TargetType="ListViewItem">
+                                        <Setter Property="Margin" Value="0" />
+                                        <Setter Property="Padding" Value="0,5" />
+                                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                        <Setter Property="MinHeight" Value="0" />
+                                        <Setter Property="IsTabStop" Value="False" />
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="local:LyricLine">
+                                        <!-- Scale and opacity both, not opacity
+                                             alone: a colour step of 0.55 to 1.0 is
+                                             barely visible on a dark page, and the
+                                             size change is what a reader notices
+                                             from a distance. 1.0 -> 1.18 is the
+                                             step the reference players use. -->
+                                        <TextBlock
+                                            FontSize="16"
+                                            Opacity="{x:Bind Opacity, Mode=OneWay}"
+                                            Text="{x:Bind Text}"
+                                            TextWrapping="Wrap">
+                                            <TextBlock.RenderTransform>
+                                                <ScaleTransform
+                                                    CenterX="0"
+                                                    ScaleX="{x:Bind Scale, Mode=OneWay}"
+                                                    ScaleY="{x:Bind Scale, Mode=OneWay}" />
+                                            </TextBlock.RenderTransform>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock
+                                x:Name="MusicLyricsEmpty"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                Visibility="Collapsed" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+
+                <!-- The rhythm strip: bars between the page and the transport bar
+                     that move with the audio, which is the "音乐律动" the request
+                     asks for at the seam. A hand-built level meter rather than a
+                     visualiser script: it needs to sit in this app's own layout,
+                     and mpv's af visualiser draws into the video frame, not into
+                     XAML. Driven by the audio peak mpv already reports. -->
+                <Grid
+                    x:Name="MusicRhythmStrip"
+                    Grid.Row="1"
+                    Height="36"
+                    Padding="48,0,48,0"
+                    ColumnSpacing="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </Grid>
+
+            <!-- The drop overlay: a full-window surface that says what will
+                 happen before the file lands.
+                 It covers the whole page rather than sitting on one card grid,
+                 because the drop target is the whole page. Drawn above the panel
+                 so a drop is visible whatever is on screen, and hit-test-inert so
+                 it can never intercept the drag it is describing. -->
+
+            <Grid
+                x:Name="DropOverlay"
+                Canvas.ZIndex="20"
+                Background="{ThemeResource MpvDropOverlayBrush}"
+                IsHitTestVisible="False"
+                Visibility="Collapsed">
+
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="{StaticResource MpvSpaceM}">
+
+                    <Border
+                        Width="72"
+                        Height="72"
+                        HorizontalAlignment="Center"
+                        Background="{ThemeResource MpvDropOverlayIconSurfaceBrush}"
+                        CornerRadius="36">
+
+                        <FontIcon
+                            x:Name="DropOverlayIcon"
+                            FontSize="32"
+                            Glyph="&#xE768;" />
+
+                    </Border>
+
+                    <TextBlock
+                        x:Name="DropOverlayTitle"
+                        HorizontalAlignment="Center"
+                        FontSize="{StaticResource MpvPanelTitleFontSize}"
+                        FontWeight="SemiBold"
+                        Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                    <TextBlock
+                        x:Name="DropOverlayDescription"
+                        MaxWidth="420"
+                        HorizontalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource BodyTextBlockStyle}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+
+                </StackPanel>
+
+            </Grid>            <!-- The playlist side panel.
+                 The official player's playlist is a panel that comes IN over the
+                 picture rather than a column that takes width away from it, and
+                 that is also what the navigation pane does in this shell - so it
+                 slides in from the right with the same surface and the same
+                 dismissal rules. It is not a second three-star column: the video
+                 keeps the full width, and this covers part of it while it is up.
+                 Canvas.ZIndex above both the video and the library, so it works
+                 in either state; the rows are the very same PlaylistItems the
+                 queue section binds to, so the two cannot disagree about what is
+                 queued.
+                 Hidden by default. The slide is a RepositionThemeTransition on a
+                 translate transform, driven by the same 167 ms token the pane
+                 uses, so it feels like the pane rather than like a new kind of
+                 motion. -->
+            <!-- The playlist, as a POP-OUT panel.
+
+     It used to be an in-layout side panel: a scrim plus a column pinned to the
+     right edge of the content area. That is a docked panel wearing a slide
+     animation - it belongs to the page's layout, it is clipped to the window, and
+     it covers the picture while it is up. What was asked for is the other shape:
+     a panel that POPS OUT over the window, the way the transport's own menus do.
+
+     So this is a Popup with ShouldConstrainToRootBounds="False", which is the
+     same mechanism the track selector and the quick-control panel already use
+     for exactly this reason (see the popup-chrome note in AGENTS.md). It floats
+     above everything, it can extend past the window edge, and it dismisses on a
+     click outside.
+
+     The rows are the very same shape the library's queue section uses - same
+     template, same icons, same highlight - because the two are two views of one
+     collection and the request was explicit that they must not drift apart. -->
+<Popup
+    x:Name="PlaylistPanelPopup"
+    ShouldConstrainToRootBounds="False"
+    IsLightDismissEnabled="True">
+    <Border
+        x:Name="PlaylistPanelSurface"
+        Width="{StaticResource MpvPlaylistPanelWidth}"
+        MaxHeight="{StaticResource MpvPlaylistPanelMaxHeight}"
+        Background="{ThemeResource MpvShellPaneBrush}"
+        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        BorderThickness="1"
+        CornerRadius="{StaticResource OverlayCornerRadius}">
+        <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="44" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <CommandBar
-                x:Name="PlaylistToolBar"
-                Grid.Row="0"
-                Height="44"
-                Margin="8,0"
-                HorizontalAlignment="Right"
-                DefaultLabelPosition="Collapsed"
-                IsDynamicOverflowEnabled="False">
-                <AppBarButton
-                    Grid.Column="1"
-                    Width="40"
-                    Click="ClosePlaylist_Click"
-                    Icon="ClosePane"
-                    Label="Close pane" />
-                <AppBarButton
-                    Grid.Column="1"
-                    Width="40"
-                    Click="ImportPlaylist_Click"
-                    Icon="OpenFile"
-                    Label="Import playlist" />
-                <AppBarButton
-                    Grid.Column="1"
-                    Width="40"
-                    Click="ExportPlaylist_Click"
-                    Icon="Save"
-                    Label="Export playlist" />
-                <AppBarButton
-                    Grid.Column="1"
-                    Width="40"
-                    Click="RefreshPlaylist_Click"
-                    Icon="Refresh"
-                    Label="Refresh playlist" />
-            </CommandBar>
 
-            <AutoSuggestBox
-                x:Name="PlaylistFilterBox"
-                Grid.Row="1"
-                Height="32"
-                Margin="8,0,8,6"
-                VerticalAlignment="Center"
-                PlaceholderText="Filter"
-                QueryIcon="Find"
-                TextChanged="PlaylistFilterBox_TextChanged" />
+            <Grid
+                Grid.Row="0"
+                Height="{StaticResource MpvPlaylistPanelHeaderHeight}"
+                Padding="16,0,8,0">
+                <TextBlock
+                    x:Name="PlaylistPanelTitle"
+                    VerticalAlignment="Center"
+                    FontSize="{StaticResource MpvPanelTitleFontSize}"
+                    FontWeight="SemiBold" />
+                <Button
+                    x:Name="PlaylistPanelCloseButton"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Padding="{StaticResource MpvCompactButtonPadding}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="PlaylistPanelCloseButton_Click">
+                    <FontIcon
+                        FontSize="16"
+                        Glyph="&#xE711;" />
+                </Button>
+            </Grid>
 
             <ListView
-                x:Name="PlaylistView"
-                Grid.Row="2"
-                Padding="4,0,8,4"
+                x:Name="PlaylistPanelView"
+                Grid.Row="1"
+                Padding="4,0,4,8"
                 Background="Transparent"
                 BorderThickness="0"
-                ContextRequested="PlaylistView_ContextRequested"
+                ContextRequested="PlaylistPanelView_ContextRequested"
                 IsItemClickEnabled="True"
-                ItemClick="PlaylistView_ItemClick"
-                ItemsSource="{x:Bind FilteredPlaylistItems, Mode=OneWay}"
-                SelectionMode="Single">
+                ItemClick="PlaylistPanelView_ItemClick"
+                ItemsSource="{x:Bind PlaylistItems, Mode=OneWay}"
+                SelectionMode="None">
                 <ListView.ItemContainerStyle>
                     <Style
                         BasedOn="{StaticResource DefaultListViewItemStyle}"
                         TargetType="ListViewItem">
                         <Setter Property="Margin" Value="0" />
-                        <Setter Property="Padding" Value="16,8,8,8" />
+                        <Setter Property="Padding" Value="0" />
                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     </Style>
                 </ListView.ItemContainerStyle>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="local:PlaylistItem">
-                        <Grid
-                            Height="28"
-                            ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <FontIcon
-                                Grid.RowSpan="2"
-                                Grid.Column="0"
-                                Margin="0,0,4,0"
-                                FontSize="14"
-                                Glyph="&#xE768;"
+                        <Grid Height="44">
+                            <Border
+                                Margin="8,1"
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="4"
                                 Visibility="{x:Bind IsCurrent}" />
-                            <FontIcon
-                                Grid.RowSpan="2"
-                                Grid.Column="0"
-                                Margin="0,0,4,0"
-                                FontSize="14"
-                                Glyph="&#xE8B2;"
-                                Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent)}" />
-                            <TextBlock
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                FontSize="12"
-                                TextTrimming="CharacterEllipsis"
-                                ToolTipService.ToolTip="{x:Bind Title}">
-                                <Run Text="{x:Bind Index}" />
-                                <Run Text="." />
-                                <Run Text="{x:Bind Title}" />
-                            </TextBlock>
-                            <TextBlock
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                FontSize="10"
-                                Opacity="0.8"
-                                Text="{x:Bind Filename}"
-                                TextTrimming="CharacterEllipsis"
-                                ToolTipService.ToolTip="{x:Bind Filename}" />
-                            <TextBlock
-                                Grid.RowSpan="2"
-                                Grid.Column="2"
-                                VerticalAlignment="Center"
-                                FontSize="10"
-                                Opacity="0.8"
-                                Text="{x:Bind DurationText}"
-                                ToolTipService.ToolTip="{x:Bind ResolutionText}" />
+                            <Grid
+                                Margin="12,0"
+                                ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon
+                                    Grid.Column="0"
+                                    FontSize="16"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Glyph="&#xE768;"
+                                    Visibility="{x:Bind IsCurrent}" />
+                                <FontIcon
+                                    Grid.Column="0"
+                                    FontSize="16"
+                                    Glyph="&#xE8B2;"
+                                    Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent)}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind Filename}"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTipService.ToolTip="{x:Bind Path}" />
+                                <TextBlock
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind DurationText}" />
+                            </Grid>
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-
-            <!-- Right-edge drag grip: resizes the playlist column (280-420px,
-                 persisted in AppSetting.PlaylistWidth). -->
-            <Border
-                x:Name="PlaylistResizeGrip"
-                Grid.Row="0"
-                Grid.RowSpan="3"
-                Width="8"
-                HorizontalAlignment="Left"
-                Background="Transparent"
-                PointerMoved="PlaylistResizeGrip_PointerMoved"
-                PointerPressed="PlaylistResizeGrip_PointerPressed"
-                PointerReleased="PlaylistResizeGrip_PointerReleased" />
+        </Grid>
+    </Border>
+</Popup>
         </Grid>
 
-        <Grid
-            x:Name="VideoContainer"
-            Grid.Row="1"
-            Grid.Column="0"
-            AllowDrop="True"
-            Background="#22000000"
-            DragEnter="OnDragEnter"
-            DragOver="OnDragOver"
-            Drop="OnDrop">
-            <SwapChainPanel
-                x:Name="PlayerView"
-                ContextRequested="PlayerView_ContextRequested">
-                <Border Background="Transparent" />
-            </SwapChainPanel>
-            <preview:MpvSoftwarePreviewControl
-                x:Name="MpvPreview"
-                Width="192"
-                Height="108"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                x:Load="{x:Bind _enableBuiltInPreview}"
-                Canvas.ZIndex="2"
-                IsHitTestVisible="False"
-                Visibility="Collapsed">
-                <preview:MpvSoftwarePreviewControl.RenderTransform>
-                    <TranslateTransform x:Name="PreviewControlTranslation" />
-                </preview:MpvSoftwarePreviewControl.RenderTransform>
-            </preview:MpvSoftwarePreviewControl>
-        </Grid>
-
-        <pc:PlayerControl
-            x:Name="PlayerControl"
-            Grid.Row="2"
-            Grid.Column="0"
-            VerticalAlignment="Stretch"
-            NextTrackButtonVisibility="Visible"
-            OnFullScreenRequest="PlayerControl_OnFullScreenRequest"
-            OnFullWindowRequest="PlayerControl_OnFullWindowRequest"
-            PreviousTrackButtonVisibility="Visible" />
         <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup>
-                <VisualState x:Name="HidePlaylist">
-                    <VisualState.Setters>
-                        <Setter Target="PlaylistColumn.Width" Value="0" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="ShowPlaylist">
-                    <VisualState.Setters>
-                        <Setter Target="PlaylistContainer.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
             <VisualStateGroup>
                 <VisualState x:Name="NormalWindow">
                     <VisualState.Setters />
                 </VisualState>
                 <VisualState x:Name="FullWindow">
                     <VisualState.Setters>
-                        <Setter Target="PlayControlRow.Height" Value="0" />
                         <Setter Target="MenuRow.Height" Value="0" />
-                        <Setter Target="PlayerControl.(Grid.Row)" Value="1" />
-                        <!-- The playlist toolbar deliberately keeps its windowed
-                             geometry here. It used to be re-dressed for full
-                             window (HorizontalAlignment Left plus a
-                             "4,-6,8,0" margin) and both halves were wrong.
-
-                             The -6 top margin pulls a Height=44 toolbar out of
-                             the Height=44 row that clips it, so the buttons lose
-                             their top edge and the sidebar's first row stops
-                             lining up with the video area beside it. The
-                             alignment flip moved the playlist buttons to the
-                             opposite end of the pane on a state change that has
-                             nothing to do with them: PlayerControl is
-                             Grid.Column="0" and never overlaps this column, so
-                             there is no window-control cluster to dodge either.
-
-                             NormalWindow restores the base XAML values anyway,
-                             so the re-dress only made the two states disagree. -->
+                        <!-- One setter, deliberately.
+                             The control bar lives in the shell now
+                             (MainWindow.ShellPlayerBar), so there is nothing
+                             to move here; the shell's ChangeFullWindow hides
+                             the navigation chrome in step with this state.
+                             An earlier version also re-dressed the playlist
+                             toolbar here, with a negative top margin on a row
+                             that clips it. That class of setter is now
+                             forbidden by tools/check-visual-state-layout.py,
+                             and the playlist column those setters addressed no
+                             longer exists at all. -->
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

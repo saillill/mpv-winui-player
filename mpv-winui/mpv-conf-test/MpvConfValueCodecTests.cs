@@ -2,6 +2,14 @@ using mpv_winui.Modules.Settings;
 
 namespace mpv_conf_test;
 
+/// <summary>A stand-in for the enum-typed settings the reader must stay total for.</summary>
+public enum SampleChoice
+{
+    Off,
+    Auto,
+    On,
+}
+
 /// <summary>
 /// The escaping pair has to be a bijection, and this fixture is the assertion
 /// that keeps it one.
@@ -36,6 +44,17 @@ public class MpvConfValueCodecTests
     [TestCase("\\")]
     [TestCase("\"")]
     [TestCase("\\\\\"\\\"")]
+    // Newlines: mpv allows them in a double-quoted value only as \n, and a value
+    // is written one per physical line, so an unescaped one would split the line
+    // on the next read.
+    [TestCase("\n")]
+    [TestCase("\r\n")]
+    [TestCase("\r")]
+    [TestCase("line one\nline two")]
+    [TestCase("a\nb\r\nc\rd")]
+    [TestCase("trailing newline\n")]
+    [TestCase("\nleading newline")]
+    [TestCase("mix\\nliteral\nreal")]
     public void RoundTripReturnsTheOriginalValue(string original)
     {
         Assert.That(MpvConfValueCodec.Unquote(MpvConfValueCodec.Quote(original)),
@@ -43,11 +62,40 @@ public class MpvConfValueCodecTests
     }
 
     [Test]
+    public void QuoteEscapesNewlinesSoAValueStaysOnOneLine()
+    {
+        var quoted = MpvConfValueCodec.Quote("line one\nline two\r\nthree");
+
+        Assert.That(quoted, Does.Not.Contain('\n'));
+        Assert.That(quoted, Does.Not.Contain('\r'));
+        Assert.That(quoted, Is.EqualTo("\"line one\\nline two\\r\\nthree\""));
+    }
+
+    [Test]
+    public void UnquoteDecodesTheNewlineEscapesQuoteEmits()
+    {
+        Assert.That(MpvConfValueCodec.Unquote("\"a\\nb\""), Is.EqualTo("a\nb"));
+        Assert.That(MpvConfValueCodec.Unquote("\"a\\rb\""), Is.EqualTo("a\rb"));
+        Assert.That(MpvConfValueCodec.Unquote("\"a\\r\\nb\""), Is.EqualTo("a\r\nb"));
+    }
+
+    [Test]
+    public void UnquoteLeavesUnrecognisedEscapesAlone()
+    {
+        // mpv's parser is the authority on the file. An escape this decoder does
+        // not know must survive verbatim rather than be guessed at, or a
+        // hand-written value would be corrupted on read.
+        Assert.That(MpvConfValueCodec.Unquote("\"a\\tb\""), Is.EqualTo("a\\tb"));
+        Assert.That(MpvConfValueCodec.Unquote("\"a\\qb\""), Is.EqualTo("a\\qb"));
+    }
+
+    [Test]
     public void RoundTripSurvivesRepeatedPassesOverHostileCharacters()
     {
         // Exhaustive over the characters that actually appear in the failure:
-        // a backslash, a quote, and the separators binding them together.
-        char[] alphabet = ['a', '\\', '"', ' ', '=', '#', '/', ';'];
+        // a backslash, a quote, the separators binding them together, and the
+        // pair of line breaks the line-oriented writer must keep escaped.
+        char[] alphabet = ['a', '\\', '"', ' ', '=', '#', '/', ';', '\n', '\r'];
         var value = new System.Text.StringBuilder();
         var checkedCount = 0;
 
@@ -124,6 +172,28 @@ public class MpvConfValueCodecTests
         Assert.That(value, Is.EqualTo("wasapi/device"));
     }
 
+    [TestCase("wasapi/device")]
+    [TestCase("line one\nline two")]
+    [TestCase("a\r\nb")]
+    [TestCase("quote\"and\\slash\nand newline")]
+    public void RepeatedWriteReadDoesNotGrowTheLineForHostileValues(string original)
+    {
+        // The newline escapes go through the same doubling risk as the
+        // backslashes did: \n -> \\n -> \\\\n if the inverse is not symmetric.
+        var value = original;
+        var lengths = new List<int>();
+        for (var launch = 0; launch < 12; launch++)
+        {
+            var line = MpvConfValueCodec.Quote(value);
+            lengths.Add(line.Length);
+            value = MpvConfValueCodec.Unquote(line);
+        }
+
+        Assert.That(lengths.Distinct().Count(), Is.EqualTo(1),
+            $"line length must be constant across launches, got [{string.Join(", ", lengths)}]");
+        Assert.That(value, Is.EqualTo(original));
+    }
+
     // --- reading a value back -------------------------------------------------
     //
     // These are the EXACT values the app wrote and then could not read. The live
@@ -165,6 +235,39 @@ public class MpvConfValueCodecTests
         Assert.That(MpvConfValueCodec.ParseMpvValue(typeof(double), "+0.5"), Is.EqualTo(0.5d));
     }
 
+    // The *type* of the parsed value, not just its number.
+    //
+    // Every assertion above uses Is.EqualTo, and NUnit compares numbers across
+    // their types: a boxed Int64 130 is "equal to" the int 130, so a reader that
+    // returned the wrong width passed every one of them. That is exactly the
+    // hole an AppSettings.Int32 property fell through - TryWriteSetting hands
+    // the parsed object to PropertyInfo.SetValue, which does NOT coerce, and
+    // `Object of type 'System.Int64' cannot be converted to type
+    // 'System.Int32'` is what the log recorded. These cases pin the runtime
+    // type so a widening regression cannot hide behind value equality again.
+    [TestCase(typeof(int), "130", typeof(int))]
+    [TestCase(typeof(int), "  42  ", typeof(int))]
+    [TestCase(typeof(int), "-1", typeof(int))]
+    [TestCase(typeof(int), "inf", typeof(int))]
+    [TestCase(typeof(int), "1024MiB", typeof(int))]
+    [TestCase(typeof(long), "130", typeof(long))]
+    [TestCase(typeof(long), "inf", typeof(long))]
+    [TestCase(typeof(double), "1.5", typeof(double))]
+    [TestCase(typeof(double), "no", typeof(double))]
+    [TestCase(typeof(float), "1.5", typeof(float))]
+    [TestCase(typeof(bool), "yes", typeof(bool))]
+    [TestCase(typeof(string), "\"x\"", typeof(string))]
+    [TestCase(typeof(SampleChoice), "Auto", typeof(SampleChoice))]
+    [TestCase(typeof(SampleChoice), "on", typeof(SampleChoice))]
+    public void ParsedValueCarriesTheRequestedTypeNotAWiderOne(Type type, string text, Type expected)
+    {
+        var value = MpvConfValueCodec.ParseMpvValue(type, text);
+
+        Assert.That(value, Is.Not.Null, $"ParseMpvValue({type.Name}, \"{text}\") returned null");
+        Assert.That(value!.GetType(), Is.EqualTo(expected),
+            $"ParseMpvValue({type.Name}, \"{text}\") returned {value.GetType().Name}; SetValue would reject it");
+    }
+
     [TestCase(typeof(int), "1GiB")]      // a unit the encoder never emits
     [TestCase(typeof(double), "maybe")]
     [TestCase(typeof(bool), "perhaps")]
@@ -200,5 +303,87 @@ public class MpvConfValueCodecTests
                     Is.EqualTo(stored), $"{type.Name} from '{encoded}'");
             }
         });
+    }
+}
+
+/// <summary>
+/// Where a value ends, as opposed to what it looks like. The counterpart to the
+/// quoting pair above: <c>Quote</c> decides what goes into mpv.conf,
+/// <c>StripComment</c> decides where the value stops.
+///
+/// <para>Regression guard for a defect that was not caught because this file did
+/// not exist. <c>StripComment</c> scanned for the first <c>#</c> with no regard
+/// for quotes, on the stated assumption that no written value is "a quoted
+/// string containing '#'". That assumption is false for exactly the settings
+/// users notice: colour values are quoted and start with a hash, and the default
+/// <c>osd-back-color</c> is <c>#AF000000</c>. The line on disk reads
+/// <c>osd-back-color="#AF000000"</c>, the scan cut it at the hash, the fragment
+/// did not parse, and the setting reverted to its default on the next launch
+/// with nothing logged.</para>
+///
+/// <para>The round-trip case is the one that generalises: whatever
+/// <c>Quote</c> produces, <c>StripComment</c> must not shorten. That is the
+/// assertion that fails on the old implementation for every value containing a
+/// hash.</para>
+/// </summary>
+[TestFixture]
+public class MpvConfValueCodecStripCommentTests
+{
+    [TestCase("volume=100", "volume=100")]
+    [TestCase("volume=100  # loud", "volume=100")]
+    [TestCase("volume=100# loud", "volume=100")]
+    [TestCase("volume=100   ", "volume=100")]
+    [TestCase("# whole line", "")]
+    [TestCase("   # an indented comment", "")]
+    [TestCase("", "")]
+    [TestCase("   ", "")]
+    public void StripsOnlyRealComments(string input, string expected)
+    {
+        Assert.That(MpvConfValueCodec.StripComment(input), Is.EqualTo(expected));
+    }
+
+    [TestCase("osd-back-color=\"#AF000000\"", "osd-back-color=\"#AF000000\"")]
+    [TestCase("osd-back-color=\"#AF000000\"  # OSD background", "osd-back-color=\"#AF000000\"")]
+    [TestCase("screenshot-template=\"shot-%#n\"", "screenshot-template=\"shot-%#n\"")]
+    [TestCase("sub-file=\"C:\\\\dir#1\\\\a.srt\"", "sub-file=\"C:\\\\dir#1\\\\a.srt\"")]
+    [TestCase("-x=\"a#b\" # trailing", "-x=\"a#b\"")]
+    public void KeepsHashInsideQuotes(string input, string expected)
+    {
+        Assert.That(MpvConfValueCodec.StripComment(input), Is.EqualTo(expected));
+    }
+
+    [TestCase("#AF000000")]
+    [TestCase("#00000000")]
+    [TestCase("a#b")]
+    [TestCase("shot-%#n")]
+    [TestCase("C:\\dir#1\\a.srt")]
+    public void AQuotedValueSurvivesTheReadPath(string value)
+    {
+        var quoted = MpvConfValueCodec.Quote(value);
+
+        foreach (var line in new[] { $"option={quoted}", $"option={quoted}   # note" })
+        {
+            var body = MpvConfValueCodec.StripComment(line);
+            var equals = body.IndexOf('=');
+            Assert.That(equals, Is.GreaterThanOrEqualTo(0), line);
+
+            var raw = body[(equals + 1)..].Trim();
+            Assert.That(MpvConfValueCodec.ParseMpvValue(typeof(string), raw),
+                Is.EqualTo(value), $"round trip through '{line}'");
+        }
+    }
+
+    [Test]
+    public void EscapedQuoteDoesNotEndTheQuotedRun()
+    {
+        // Quote() escapes '"' as '\"', so a value that itself contains a quote
+        // produces a line whose quoted run the scanner has to follow correctly.
+        var value = "say \"#hi\"";
+        var line = $"option={MpvConfValueCodec.Quote(value)}  # note";
+
+        var body = MpvConfValueCodec.StripComment(line);
+        var raw = body[(body.IndexOf('=') + 1)..].Trim();
+
+        Assert.That(MpvConfValueCodec.ParseMpvValue(typeof(string), raw), Is.EqualTo(value));
     }
 }

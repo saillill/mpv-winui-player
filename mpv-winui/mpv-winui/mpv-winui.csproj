@@ -64,11 +64,73 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />
-        <PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.9" />
-        <PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.6" />
-        <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="2.4.0" />
-        <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.6" />
+        <!--
+          Windows App SDK: referenced as the meta-package, pinned as one version.
+
+          The split packages this replaced (Base 2.0.4 / Foundation 2.3.9 /
+          InteractiveExperiences 2.1.6 / WinUI 2.3.6 / Runtime 2.4.0) matched no
+          shipped meta-package: every meta-package from 2.3.x through 2.5.x pins
+          Foundation/IE/WinUI to a matching triple and pins Runtime with an exact
+          version (e.g. [2.5.1]), so taking components from four different places
+          produced a combination Microsoft never tested, and NuGet could not warn
+          about it, because each split package only depends on Base, so the
+          mismatch is invisible to restore.
+
+          2.5.1 is the choice because it is the closest shipped family to what the
+          project was already resolving: the old set was ahead of the 2.3.1 family
+          in every component (Runtime 2.4.0 vs [2.3.1], Foundation 2.3.9 vs 2.3.5,
+          WinUI 2.3.6 vs 2.3.0, IE 2.1.6 vs 2.1.3) and behind the 2.5.1 family, so
+          both candidates are a convergence; 2.5.1 converges forward instead of
+          downgrading Runtime. Its transitive set is
+          Base 2.0.4 / Foundation 2.3.12 / IE 2.1.9 / WinUI 2.3.9 /
+          DWrite 2.1.0 / Runtime [2.5.1].
+
+          Known cost, accepted deliberately: the meta-package also pulls in
+          WindowsAppSDK.Widgets, .AI, .ML and .Search. They carry no code this app
+          references, but they do appear in the restore graph, which is the price
+          of a tested-as-a-whole version set. If the extra reference graph ever
+          becomes a problem, the honest way back is to pin the exact set above as
+          five individual packages rather than to float one of them.
+        -->
+        <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
+        <!--
+          Excluding the four feature areas the meta-package drags in that this app
+          never calls.
+
+          Those references are not inert. With WindowsAppSDKSelfContained the
+          framework payload of every referenced component is copied into the
+          published output, and the AI/ML components bring real runtimes with
+          them: a Release x64 build measured 20.7 MB of onnxruntime.dll,
+          17.8 MB of DirectML.dll, Microsoft.ML.OnnxRuntime.dll and AI Fabric
+          assemblies, none of which a video player loads. Excluding their assets
+          keeps what the meta-package is actually wanted for, a version set that
+          Microsoft tests together, without shipping a machine-learning stack to
+          watch films.
+
+          The versions are spelled out because a PackageReference needs one. They
+          are exactly what the 2.5.1 meta-package pins, so they agree today; if a
+          later meta-package raises one of them, these lines produce an NU1605
+          downgrade error rather than silently diverging, which is the intended
+          failure. Delete a line here and that component's payload comes back.
+        -->
+        <PackageReference Include="Microsoft.WindowsAppSDK.AI" Version="2.5.5" ExcludeAssets="all" />
+        <PackageReference Include="Microsoft.WindowsAppSDK.ML" Version="2.1.94" ExcludeAssets="all" />
+        <PackageReference Include="Microsoft.WindowsAppSDK.Search" Version="2.5.5" ExcludeAssets="all" />
+        <PackageReference Include="Microsoft.WindowsAppSDK.Widgets" Version="2.0.5" ExcludeAssets="all" />
+        <!--
+          One level deeper, and the reason this cannot be left out: WindowsAppSDK.ML
+          depends on Microsoft.Windows.AI.MachineLearning, and that package's
+          buildTransitive targets hard-fail the build below Windows 10 19H1:
+
+            Microsoft.Windows.AI.MachineLearning requires SupportedOSPlatformVersion
+            Windows 10 19H1 (build 18362) or later.
+
+          This app targets 17763. Excluding only the four named components left
+          that target in the graph and produced exactly that error. Pulling it in
+          needs its own exclusions, so the AI stack is excluded at both levels.
+        -->
+        <PackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="2.1.74" ExcludeAssets="all" />
+        <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="NLog" Version="6.2.0" />
         <PackageReference Include="System.Management" Version="10.0.11" />
     </ItemGroup>
@@ -133,20 +195,23 @@
         </Content>
     </ItemGroup>
 
-    <ItemGroup>
-        <Content Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Include="..\libs\bin\mpv-2.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Include="..\libs\bin\mpv-2.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
+    <!--
+      mpv and MediaInfo are per-architecture native DLLs, so they are resolved
+      from libs\bin\$(Platform)\.
 
+      These used to be two hardcoded x64 pairs (Debug|x64 and Release|x64, one
+      item each for the two files). The effect was not that ARM64 lacked the
+      DLLs but that it built "successfully" without them: no item matched, so
+      nothing was copied, and the package shipped with no mpv engine in it. The
+      Include is conditioned on existence so that the item list stays clean, and
+      the CheckNativeRuntimeLibraries target below turns the absent case into a
+      build error instead of a silently incomplete package.
+    -->
     <ItemGroup>
-        <Content Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Include="..\libs\bin\MediaInfo.dll">
+        <Content Include="..\libs\bin\$(Platform)\mpv-2.dll" Condition="Exists('..\libs\bin\$(Platform)\mpv-2.dll')">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Include="..\libs\bin\MediaInfo.dll">
+        <Content Include="..\libs\bin\$(Platform)\MediaInfo.dll" Condition="Exists('..\libs\bin\$(Platform)\MediaInfo.dll')">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
@@ -172,7 +237,29 @@
         <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
         <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
         <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
-        <SupportedOSPlatformVersion>10.0.22000.0</SupportedOSPlatformVersion>
+        <!--
+          SupportedOSPlatformVersion is deliberately NOT set here.
+
+          This group used to assign it 10.0.22000.0 unconditionally. Property
+          assignment is last-wins, so that line silently replaced the 10.0.17763.0
+          declared at the top of the file, and the effective floor became Windows
+          11 for every configuration, including Debug. Nothing else agreed with
+          it: TargetPlatformMinVersion above, app.manifest, and
+          Package.appxmanifest all say 17763.
+
+          17763 is the correct value, not 22000: the Windows App SDK 2.5.1
+          assemblies this app references ship under lib\net6.0-windows10.0.17763.0\,
+          so 17763 is the floor the framework itself supports. Leaving the stray
+          override in place did not make the app Windows 11 only, it only made
+          the analyzer believe so, which is the worse outcome: CA1416 would stay
+          silent about genuinely Windows 11 only APIs while the package manifest
+          kept promising support for 1809 and later.
+
+          With the override gone, SupportedOSPlatformVersion falls back to
+          TargetPlatformMinVersion (17763) and all four declarations agree. Any
+          API that needs a newer build now produces a CA1416 warning at compile
+          time, which is the point.
+        -->
         <PackageCertificateThumbprint>103E497FCC93E634D6CF01D48A6779F3788332CD</PackageCertificateThumbprint>
         <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
         <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
@@ -275,5 +362,29 @@
         </ItemGroup>
         <RemoveDir Directories="@(_LocaleDir)" />
         <Message Importance="normal" Text="Trimmed @(_LocaleDir->Count()) unused framework locale folder(s); kept: $(ShippedLocaleCultures)" />
+    </Target>
+
+    <!--
+      Fails the build when the native runtime libraries for the target
+      architecture are missing.
+
+      This is the guard that the x64-only Content conditions never provided. The
+      app loads mpv-2.dll at runtime, so a package built without it does not fail
+      at build time, at package time, or even at launch: it fails when the user
+      presses play, with a missing-DLL error, after a package has already been
+      shipped. An absent per-architecture runtime library is a packaging defect
+      and is reported as one here, before anything is copied.
+
+      Runs before the build rather than before publish so the ordinary developer
+      build catches it too.
+    -->
+    <Target Name="CheckNativeRuntimeLibraries" BeforeTargets="BeforeBuild">
+        <PropertyGroup>
+            <_NativeRuntimeDir>$(MSBuildThisFileDirectory)..\libs\bin\$(Platform)\</_NativeRuntimeDir>
+        </PropertyGroup>
+        <Error Condition="!Exists('$(_NativeRuntimeDir)mpv-2.dll')"
+               Text="The mpv runtime library for platform '$(Platform)' is missing: '$(_NativeRuntimeDir)mpv-2.dll'. Native libraries are per-architecture and live in libs\bin\&lt;Platform&gt;\. Run tools\fetch-mpv-libs.ps1 (or .\build.ps1 -FetchMpvLibs) for x64. For ARM64 an aarch64 build of mpv-2.dll must be supplied and placed at that path; without it this configuration would produce a package with no player in it, which is why the build stops here." />
+        <Error Condition="!Exists('$(_NativeRuntimeDir)MediaInfo.dll')"
+               Text="The MediaInfo runtime library for platform '$(Platform)' is missing: '$(_NativeRuntimeDir)MediaInfo.dll'. It ships alongside mpv-2.dll in libs\bin\&lt;Platform&gt;\ and is loaded by the app for media information; without it the media-information panel fails at runtime." />
     </Target>
 </Project>

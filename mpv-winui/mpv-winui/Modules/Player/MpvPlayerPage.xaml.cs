@@ -27,6 +27,23 @@ namespace mpv_winui.Modules.Player
         private Task? _task;
         private bool _hdrModeAppliedOnce;
 
+        /// <summary>
+        /// The player control bar, which the shell owns so that it is not
+        /// unmounted when the content area changes.
+        ///
+        /// This is a property rather than the XAML-declared field it used to be,
+        /// which is why the ~34 call sites in this page's partials still read
+        /// <c>PlayerControl.Something</c> unchanged. The return type is spelled
+        /// out in full because the member name is the same as its type name -
+        /// the "Color Color" case - and a short name there resolves to the type,
+        /// not the property.
+        ///
+        /// Timed so that it is never null: App.OnLaunched assigns Window before
+        /// calling Open(), and Open() is what navigates this page into existence.
+        /// </summary>
+        private mpv_winui.Modules.Player.PlayerControl PlayerControl =>
+            (App.Window as MainWindow)?.PlayerBar!;
+
         public MpvPlayerPage()
         {
             _selfWeakReference = new(this);
@@ -50,6 +67,23 @@ namespace mpv_winui.Modules.Player
             // idempotent rebuild.
             BuildMainMenuBar();
             SetupCustomMenuBarItems();
+
+            SetupLibrary();
+
+            // The three tool keys live on this page (see PlaybackTools in the
+            // XAML), so their icons and labels are set here too.
+            ApplyPlaybackToolStrings();
+
+            // Pressing any transport button while the library is covering a
+            // running video brings the video back first, then does what the
+            // button does. One subscription on the bar's own funnel - see the
+            // note on TransportInteraction.
+            if (App.Window is MainWindow)
+            {
+                PlayerControl.TransportInteraction += MpvPlayerPage_TransportInteraction;
+
+                PlayerControl.PositionTicked += UpdateLyricsHighlight;
+            }
 
             _task = CreateAsync();
 
@@ -77,11 +111,22 @@ namespace mpv_winui.Modules.Player
                 SetupPlayerView();
                 SetupPlayControl();
 
+                // First moment the watch history path exists, so the first
+                // moment the library can be filled.
+                LoadLibraryFirstTime();
+
                 _mediaPlayer.PlaylistChanged += MpvPlayerPage_PlaylistChanged;
                 _mediaPlayer.VolumeChanged += MpvPlayerPage_VolumeChanged;
                 _mediaPlayer.WindowChanged += MpvPlayerPage_WindowChanged;
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.DiscMenuActiveChanged += MpvPlayerPage_DiscMenuActiveChanged;
+                // Drives the content area. FileStarted is the transition into
+                // the playing page - it is the only event that means "a file is
+                // loading", and it fires whether the previous state was the
+                // library or the video. PlaybackStateChanged supplies the idle
+                // edge that brings the library back.
+                _mediaPlayer.FileStarted += MpvPlayerPage_LibraryFileStarted;
+                _mediaPlayer.PlaybackStateChanged += MpvPlayerPage_LibraryPlaybackStateChanged;
 
                 AppContext.RunMpvCommand = cmd => _ = _mediaPlayer.RunCommandAsync(cmd);
                 AppContext.SetMpvLogLevel = level => _mediaPlayer.SetLogLevel(level);
@@ -165,12 +210,15 @@ namespace mpv_winui.Modules.Player
             AppContext.LanguageChanged -= AppContext_LanguageChanged;
             CleanupDisplayInfo();
             CleanupPlaylistRefresh();
+            TeardownLibrary();
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
             _mediaPlayer.VolumeChanged -= MpvPlayerPage_VolumeChanged;
             _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
             _mediaPlayer.DiscMenuActiveChanged -= MpvPlayerPage_DiscMenuActiveChanged;
+            _mediaPlayer.FileStarted -= MpvPlayerPage_LibraryFileStarted;
+            _mediaPlayer.PlaybackStateChanged -= MpvPlayerPage_LibraryPlaybackStateChanged;
 
             TeardownPlayerView();
             CleanupKeyboardInput();
@@ -183,12 +231,67 @@ namespace mpv_winui.Modules.Player
 
         private void MpvPlayerPage_ApplyHdrModeOnce()
         {
+            LogColorDecision();
+
             if (_hdrModeAppliedOnce)
             {
                 return;
             }
             _hdrModeAppliedOnce = true;
             AppContext.SendMpvCommand($"script-message-to hdr_auto mode {AppContext.AppSetting.HdrAutoMode}");
+        }
+
+        /// <summary>
+        /// Records what mpv decided about colour for this file.
+        ///
+        /// The reported symptoms - HDR clips not tone-mapped, HDR clips washed out
+        /// on an HDR display - are both invisible in the current logs, because
+        /// nothing writes the properties the decision is made from. This is the
+        /// only place that can: the values only exist once a file is loaded.
+        ///
+        /// Debug level, one line per file, and every read is the generic property
+        /// getter, so a property this mpv build does not have simply logs empty
+        /// rather than failing the load.
+        /// </summary>
+        private void LogColorDecision()
+        {
+            if (!_logger.IsDebugEnabled || _mediaPlayer is null)
+            {
+                return;
+            }
+
+            try
+            {
+                static string Read(mpv_winrt.MpvPlayer player, string name)
+                {
+                    var value = player.GetPropertyString(name);
+
+                    return string.IsNullOrEmpty(value) ? "-" : value;
+                }
+
+                _logger.Debug(
+                    "colour decision: vo={} csp={} gamma={} primaries={} sig-peak={} "
+                    + "tone-mapping={} current-tone-mapping={} target-peak={} target-trc={} "
+                    + "target-prim={} ref-white={} peak-percentile={} compute-peak={}",
+                    Read(_mediaPlayer, "current-vo"),
+                    Read(_mediaPlayer, "d3d11-output-csp"),
+                    Read(_mediaPlayer, "video-params/gamma"),
+                    Read(_mediaPlayer, "video-params/primaries"),
+                    Read(_mediaPlayer, "video-params/sig-peak"),
+                    Read(_mediaPlayer, "tone-mapping"),
+                    Read(_mediaPlayer, "current-tone-mapping"),
+                    Read(_mediaPlayer, "target-peak"),
+                    Read(_mediaPlayer, "target-trc"),
+                    Read(_mediaPlayer, "target-prim"),
+                    Read(_mediaPlayer, "hdr-reference-white"),
+                    Read(_mediaPlayer, "hdr-peak-percentile"),
+                    Read(_mediaPlayer, "hdr-compute-peak"));
+            }
+            catch (Exception ex)
+            {
+                // Diagnostics must never be able to break a load.
+                _logger.Warn(ex, "colour decision log failed");
+            }
         }
 
         private void AppContext_SettingChanged(string key, object? value)
@@ -233,6 +336,18 @@ namespace mpv_winui.Modules.Player
             else if (key == nameof(AppContext.AppSetting.DisplayPeak))
             {
                 DispatcherQueue.TryEnqueue(ApplyDisplayPeak);
+            }
+            else if (key == nameof(AppContext.AppSetting.VideoLibraryFolders)
+                || key == nameof(AppContext.AppSetting.MusicLibraryFolders))
+            {
+                // A folder was bound or unbound from the settings window, so what the
+                // library contains has changed. A full reload rather than an incremental
+                // removal: the list is history plus every bound folder, so this changes
+                // the grouping, the album cards, the rail's letter set and the empty
+                // state - and unloading one folder means getting all four right.
+                //
+                // Dispatched because the event comes from the settings window's thread.
+                DispatcherQueue.TryEnqueue(ReloadLibraryForFolderChange);
             }
             else if (key == nameof(AppContext.AppSetting.ThumbnailUpdateInterval))
             {
@@ -281,6 +396,7 @@ namespace mpv_winui.Modules.Player
             }
 
             PlayerControl?.ApplyLocalizedStrings();
+            ApplyLibraryStrings();
         }
 
         private async Task CreateAsync()
@@ -353,7 +469,7 @@ namespace mpv_winui.Modules.Player
 
         private void TopBarPlaylist_Click(object sender, RoutedEventArgs e)
         {
-            TogglePlaylist(true);
+            ShowPlayQueue();
         }
 
         private void AppQuit()

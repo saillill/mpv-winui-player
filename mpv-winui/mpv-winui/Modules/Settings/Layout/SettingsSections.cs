@@ -74,16 +74,20 @@ internal static class SettingsSections
     /// </summary>
     internal static readonly Section[] All =
     [
-        new("SectionProgramInterface", "\uE771", l => l.SectionProgramInterface, l => l.SectionDescProgramInterface),
         new("SectionProgramLanguageLog", "\uE8C1", l => l.SectionProgramLanguageLog, l => l.SectionDescProgramLanguageLog),
         new("SectionProgramConfig", "\uECC5", l => l.SectionProgramConfig, l => l.SectionDescProgramConfig),
         new("SectionProgramAssociations", "\uE8E5", l => l.SectionProgramAssociations, l => l.SectionDescProgramAssociations),
         new("SectionProgramTesting", "\uE9D9", l => l.SectionProgramTesting, l => l.SectionDescProgramTesting),
+        new("SectionPlayerAppearance", "\uE7F8", l => l.SectionPlayerAppearance, l => l.SectionDescPlayerAppearance),
         new("SectionPlayback", "\uE102", l => l.SectionPlayback, l => l.SectionDescPlayback),
         new("SectionPlaybackSeeking", "\uE786", l => l.SectionPlaybackSeeking, l => l.SectionDescPlaybackSeeking),
         new("SectionPlaybackSeekPreview", "\uE720", l => l.SectionPlaybackSeekPreview, l => l.SectionDescPlaybackSeekPreview),
         new("SectionReversePlayback", "\uE8AB", l => l.SectionReversePlayback, l => l.SectionDescReversePlayback),
         new("SectionWatchLaterStorage", "\uE8B7", l => l.SectionWatchLaterStorage, l => l.SectionDescWatchLaterStorage),
+        // The two libraries' bound folders. Sits in Video rather than in Audio because
+        // both rows do the same thing to the same kind of thing, and an unbind that
+        // lives in two categories depending on media kind is harder to find than one.
+        new("SectionLibraryFolders", "\uE8B7", l => l.SectionLibraryFolders, l => l.SectionDescLibraryFolders),
         new("SectionVideoDecode", "\uE714", l => l.SectionVideoDecode, l => l.SectionDescVideoDecode),
         new("SectionVideoImage", "\uE7F4", l => l.SectionVideoImage, l => l.SectionDescVideoImage),
         new("SectionVideoFilters", "\uE70F", l => l.SectionVideoFilters, l => l.SectionDescVideoFilters),

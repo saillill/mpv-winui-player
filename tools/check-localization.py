@@ -154,6 +154,17 @@ def main() -> int:
         action="store_true",
         help="also scan XAML for hardcoded UI strings",
     )
+    parser.add_argument(
+        "--languages",
+        default="",
+        metavar="zh-CN,en-US",
+        help=(
+            "only check these language files (comma-separated stems). The default "
+            "checks all nine, which is the honest state: the generated Schema* "
+            "layer and the seven non-CJK languages are known-incomplete and "
+            "registered as an exception in docs/settings-design-contract.md 7."
+        ),
+    )
     args = parser.parse_args()
 
     props = parse_applang_props_all()
@@ -165,6 +176,19 @@ def main() -> int:
     warnings: list[str] = []
     lang_dir = ROOT / "mpv-winui" / "mpv-winui" / "Languages"
     lang_files = sorted(lang_dir.glob("*.json"))
+
+    selected = [s.strip() for s in args.languages.split(",") if s.strip()]
+    if selected:
+        wanted = {s.lower() for s in selected}
+        lang_files = [p for p in lang_files if p.stem.lower() in wanted]
+        unknown = wanted - {p.stem.lower() for p in lang_files}
+        if unknown:
+            print(f"ERROR: --languages names files that do not exist: {sorted(unknown)}",
+                  file=sys.stderr)
+            return 2
+        if not lang_files:
+            print("ERROR: --languages selected no files", file=sys.stderr)
+            return 2
     en_data: dict[str, str] = {}
     for path in lang_files:
         data = json.loads(path.read_text(encoding="utf-8-sig"))
@@ -177,10 +201,22 @@ def main() -> int:
             # tells you the generated layer was never translated, which is the
             # actual state. Families are the leading CamelCase word followed by
             # "_", so SchemaLabel_Mpv_x -> SchemaLabel_*.
-            errors.append(
-                f"{path.name}: missing {len(missing)} AppLang key(s): "
-                f"{_summarise(missing)}"
-                + (f" (e.g. {sorted(missing)[0]})" if len(missing) > 12 else ""))
+            #
+            # Schema* is reported separately: it is generated from mpv's own
+            # option table, so "746 missing" is one decision about the generated
+            # layer, while a missing Shell* or Library* key is a label a person
+            # still has to write.
+            generated = {k for k in missing if k.startswith(("SchemaLabel_", "SchemaDesc_"))}
+            hand_written = missing - generated
+            if hand_written:
+                errors.append(
+                    f"{path.name}: missing {len(hand_written)} hand-written AppLang key(s): "
+                    f"{_summarise(hand_written)}"
+                    + (f" (e.g. {sorted(hand_written)[0]})" if len(hand_written) > 12 else ""))
+            if generated:
+                warnings.append(
+                    f"{path.name}: missing {len(generated)} generated Schema* key(s) "
+                    f"(known exception, see settings-design-contract 7)")
         if extra:
             # Expected, not a defect: the customize-mode shell keeps its own
             # translation table (see CustomizeStrings) because AppLang's are read

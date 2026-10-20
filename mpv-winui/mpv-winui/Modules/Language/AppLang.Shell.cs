@@ -50,6 +50,51 @@ namespace mpv_winui.Modules.Language
 
         public string LibrarySortNameAsc { get; set; } = "A-Z";
 
+        /// <summary>
+        /// The music library's fallback group for a file with no album tag.
+        ///
+        /// A group, not an error: an untagged file still belongs in the library,
+        /// and every reference player shows one "unknown" bucket rather than
+        /// hiding those tracks.
+        /// </summary>
+        public string LibraryUnknownAlbum { get; set; } = "Unknown album";
+
+        /// <summary>See <see cref="LibraryUnknownAlbum"/>.</summary>
+        public string LibraryUnknownArtist { get; set; } = "Unknown artist";
+
+        // ---- album page --------------------------------------------------
+
+        /// <summary>The album page's action row, alongside <see cref="LibraryPlayAll"/>.</summary>
+        public string LibraryShufflePlay { get; set; } = "Shuffle";
+
+        /// <summary>"Add to" on the album page, same meaning as the queue's.</summary>
+        public string LibraryAlbumAddTo { get; set; } = "Add to";
+
+        /// <summary>Back from an album to the library list.</summary>
+        public string LibraryAlbumBack { get; set; } = "Back to music";
+
+        /// <summary>
+        /// "{0} songs, {1}" - the count and total length under the album title.
+        /// The separator is a middle dot in Latin languages, which is what the
+        /// reference player uses; a translator can drop it for their language.
+        /// </summary>
+        public string LibraryAlbumSummary { get; set; } = "{0} songs \u00b7 {1}";
+
+        /// <summary>The track table's column headings.</summary>
+        public string LibraryColumnTitle { get; set; } = "Title";
+
+        /// <summary>See <see cref="LibraryColumnTitle"/>.</summary>
+        public string LibraryColumnArtist { get; set; } = "Artist";
+
+        /// <summary>See <see cref="LibraryColumnTitle"/>.</summary>
+        public string LibraryColumnGenre { get; set; } = "Genre";
+
+        /// <summary>See <see cref="LibraryColumnTitle"/>.</summary>
+        public string LibraryColumnLength { get; set; } = "Length";
+
+        /// <summary>Shown when an album's files cannot be listed any more.</summary>
+        public string LibraryAlbumEmpty { get; set; } = "These files are no longer in the library.";
+
         public string LibrarySortNameDesc { get; set; } = "Z-A";
 
         public string LibrarySortNewest { get; set; } = "Newest first";
@@ -71,6 +116,48 @@ namespace mpv_winui.Modules.Language
         public string LibraryCardCopyPath { get; set; } = "Copy file path";
 
         public string LibraryCardCopyTitle { get; set; } = "Copy title";
+
+        // ---- library folders ----------------------------------------------
+
+        /// <summary>The video library's list of bound folders.</summary>
+        public string SettingsVideoLibraryFolders { get; set; } = "Video library folders";
+
+        /// <summary>The music library's list of bound folders.</summary>
+        public string SettingsMusicLibraryFolders { get; set; } = "Music library folders";
+
+        /// <summary>What unticking a video folder does, and where they come from.</summary>
+        public string SettingsHelpVideoLibraryFolders { get; set; } =
+            "Folders the video library scans. Add one with the add-folder button on the "
+            + "library page; untick it here to remove it.";
+
+        /// <summary>What unticking a music folder does, and where they come from.</summary>
+        public string SettingsHelpMusicLibraryFolders { get; set; } =
+            "Folders the music library scans. Add one with the add-folder button on the "
+            + "library page; untick it here to remove it.";
+
+        /// <summary>Shown when a library has no folder bound at all.</summary>
+        public string SettingsLibraryFoldersNone { get; set; } =
+            "No folder is bound. Use the add-folder button on the library page.";
+
+        // ---- selection ----------------------------------------------------
+
+        /// <summary>The card menu's entry into selection mode.</summary>
+        public string LibraryCardSelect { get; set; } = "Select";
+
+        /// <summary>"{0} selected" - the count on the selection bar.</summary>
+        public string LibrarySelectionCount { get; set; } = "{0} selected";
+
+        /// <summary>Clears the ticks and leaves selection mode.</summary>
+        public string LibrarySelectionClear { get; set; } = "Clear";
+
+        /// <summary>Plays the ticked files.</summary>
+        public string LibrarySelectionPlay { get; set; } = "Play";
+
+        /// <summary>Appends the ticked files to the play queue.</summary>
+        public string LibrarySelectionQueue { get; set; } = "Add to play queue";
+
+        /// <summary>Shows the one ticked file in Explorer.</summary>
+        public string LibrarySelectionProperties { get; set; } = "Show in folder";
 
         public string LibraryEmptyHomeTitle { get; set; } = "No recent media";
 

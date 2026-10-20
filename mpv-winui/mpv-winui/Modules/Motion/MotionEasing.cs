@@ -1,4 +1,5 @@
 using Microsoft.UI.Composition;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace mpv_winui.Modules.Motion;
@@ -57,4 +58,20 @@ public static class MotionEasing
 
     /// <summary>Linear - opacity only. 83 ms.</summary>
     public static LinearEasingFunction Linear(Compositor compositor) => For(compositor).Linear;
+
+    /// <summary>
+    /// A damped spring's value at <paramref name="t"/>, 0..~1, where 1 is the
+    /// resting target and values above 1 are the overshoot.
+    ///
+    /// The arithmetic lives in <see cref="SpringMath"/>, which has no dependency on
+    /// a Compositor and is therefore asserted by number in the test project. This
+    /// forwarder stays because the shape of a keyframe table is a motion concern and
+    /// every caller in this app reaches for it here.
+    ///
+    /// Composition cannot express this as a bezier - its cubic beziers are clamped
+    /// to a valid timing function and cannot overshoot - and it has no spring easing
+    /// function of its own, so callers sample the curve into keyframes.
+    /// </summary>
+    internal static float SpringValue(double t, double damping, double frequency) =>
+        SpringMath.Value(t, damping, frequency);
 }

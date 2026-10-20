@@ -487,8 +487,35 @@ namespace mpv_winui.Modules.Language
         // would make every existing translation report as an orphan key.
 
         // Section captions split each category into topic groups.
-        public string SectionProgramInterface { get; set; } = "Interface";
-        public string SectionDescProgramInterface { get; set; } = "Theme, backdrop material, UI font";
+
+        /// <summary>
+        /// The control bar's appearance.
+        ///
+        /// A section of its own rather than a row inside Interface: it has nothing
+        /// to do with the window chrome, and folding it in would put a
+        /// player-only control between the theme and the backdrop.
+        /// </summary>
+        public string SectionPlayerAppearance { get; set; } = "Player appearance";
+
+        /// <summary>See <see cref="SectionPlayerAppearance"/>.</summary>
+        public string SectionDescPlayerAppearance { get; set; } =
+            "Theme, backdrop, interface font, control bar skin and layout";
+
+        /// <summary>The control-bar skin choice.</summary>
+        public string SettingsPlayerStyle { get; set; } = "Control bar skin";
+
+        /// <summary>See <see cref="SettingsPlayerStyle"/>.</summary>
+        public string SettingsHelpPlayerStyle { get; set; }
+            = "The transport bar's layout while a file is playing. Standard is the bar the rest of this window uses; Centre puts the controls in the middle of the picture; Compact narrows the bar and drops the volume slider.";
+
+        /// <summary>Skin name: the default bar.</summary>
+        public string PlayerStyleDefault { get; set; } = "Standard";
+
+        /// <summary>Skin name: controls centred over the picture.</summary>
+        public string PlayerStyleCenter { get; set; } = "Centre";
+
+        /// <summary>Skin name: narrow bar.</summary>
+        public string PlayerStyleCompact { get; set; } = "Compact";
         public string SectionProgramLanguageLog { get; set; } = "Language & logging";
         public string SectionDescProgramLanguageLog { get; set; } = "Interface language, debug logging";
         public string SectionProgramTesting { get; set; } = "Testing";
@@ -504,6 +531,15 @@ namespace mpv_winui.Modules.Language
         public string SectionDescPlaybackSeekPreview { get; set; } = "Thumbnail preview on the seek bar";
         public string SectionWatchLaterStorage { get; set; } = "Storage";
         public string SectionDescWatchLaterStorage { get; set; } = "Watch-later folder and files";
+        // The two libraries' bound folders. Beside Decoding because that is where the
+        // catalog puts it, and because a section's id is this property's name - the
+        // layout persists "SectionLibraryFolders", so it has to live in the file the
+        // layout code and check-sections.py both read.
+        public string SectionLibraryFolders { get; set; } = "Library folders";
+
+        public string SectionDescLibraryFolders { get; set; } =
+            "The folders each library scans. Untick one to remove it from the library.";
+
         public string SectionVideoDecode { get; set; } = "Decoding";
         public string SectionDescVideoDecode { get; set; } = "Hardware decoding, codec selection";
         public string SectionVideoImage { get; set; } = "Image";

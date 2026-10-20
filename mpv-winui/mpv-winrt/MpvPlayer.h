@@ -152,9 +152,17 @@ namespace winrt::mpv_winrt::implementation
         winrt::hstring GetDiscPath(winrt::mpv_winrt::DiscType type);
         void SetDiscPath(winrt::mpv_winrt::DiscType type, winrt::hstring const& path);
 
+        bool TryGetCoverArt(winrt::Windows::Storage::Streams::IRandomAccessStream& stream);
+        bool TryGetCoverArtForPath(winrt::hstring const& path,
+                                   winrt::Windows::Storage::Streams::IRandomAccessStream& stream);
+        winrt::Windows::Foundation::Collections::IMap<winrt::hstring, winrt::hstring> GetMediaTags();
+        winrt::hstring GetCoverArtMimeType();
+
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvMenuItem> GetMenu();
         winrt::Windows::Foundation::Collections::IVectorView<winrt::hstring> GetSubtitleExtensions();
         winrt::hstring GetVersion();
+
+        winrt::hstring GetPropertyString(winrt::hstring const& name);
 
         winrt::event_token FileStarted(winrt::mpv_winrt::FileStartedEventHandler const& handler);
         void FileStarted(winrt::event_token const& token) noexcept;
@@ -244,6 +252,14 @@ namespace winrt::mpv_winrt::implementation
         void SetInt64Property(const char* name, int64_t value);
         void SetStringProperty(const char* name, const std::string& value);
         void SetUserData(const char* key, const std::string& value);
+
+        // MediaInfo, loaded on demand for the music page. Held open for the
+        // current file only: Open/Close around each read keeps this from
+        // pinning a removable drive.
+        bool ReadMediaInfoTags(const std::string& path);
+        winrt::hstring m_coverArtBase64;
+        winrt::hstring m_coverArtMime;
+        winrt::hstring m_coverArtForPath;
 
         mpv_handle* m_mpv{nullptr};
         std::atomic<IDXGISwapChain*> m_swapChain{nullptr};
