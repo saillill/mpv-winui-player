@@ -34,6 +34,15 @@ Write-Host "==> Checking XAML"
 & python "$root\tools\check-xaml.py"
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+# A Lua script that shadows one of mpv's built-ins has to keep accepting the
+# script-opts mpv ships for it: mpv.conf hands select.lua a key its local copy
+# did not declare, so every launch logged "unknown key populate_menu_data" and
+# dropped the value. Cheap (reads one DLL and a few files) and the drift it
+# catches is invisible in a build that otherwise succeeds.
+Write-Host "==> Checking script-opts"
+& python "$root\tools\check-script-opts.py"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 # Use the VS Build Tools MSBuild when available; otherwise fall back to PATH.
 $msbuild = 'C:\BuildTools\MSBuild\Current\Bin\MSBuild.exe'
 if (-not (Test-Path -LiteralPath $msbuild)) {
