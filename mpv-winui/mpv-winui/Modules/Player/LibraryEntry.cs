@@ -117,6 +117,24 @@ namespace mpv_winui.Modules.Player
         public string MediaIconPath { get; init; } = FluentIcons.List;
 
         /// <summary>
+        /// The album card's first caption: the album, or the localized "unknown".
+        ///
+        /// Plain data, filled by <see cref="FromFileWithTags"/>, NOT a computed
+        /// property reaching for AppLang. x:Bind compiles against the declared
+        /// property, and a property whose body calls into a static global crashes this
+        /// XAML compiler with an internal error whose own message fails to load -
+        /// which is why this looks like an arbitrary failure. Every other caption the
+        /// card binds (Title, Subtitle) is data for the same reason.
+        ///
+        /// Empty at construction and filled by the builder, so the fallback is decided
+        /// where AppContext is reachable rather than inside a data template.
+        /// </summary>
+        public string AlbumTitle { get; init; } = string.Empty;
+
+        /// <summary>The album card's second caption: the artist, or the localized "unknown".</summary>
+        public string AlbumArtistText { get; init; } = string.Empty;
+
+        /// <summary>
         /// A fresh Geometry for the media-kind icon, parsed per access.
         /// x:Bind evaluates this once per template application, which is what
         /// keeps every PathIcon holding a geometry of its own.
@@ -221,6 +239,12 @@ namespace mpv_winui.Modules.Player
                 MediaIconPath = entry.MediaIconPath,
                 Album = tags.Album,
                 Artist = string.IsNullOrWhiteSpace(tags.Artist) ? tags.AlbumArtist : tags.Artist,
+                AlbumTitle = string.IsNullOrWhiteSpace(tags.Album)
+                    ? global::mpv_winui.AppContext.AppLang.LibraryUnknownAlbum
+                    : tags.Album,
+                AlbumArtistText = string.IsNullOrWhiteSpace(tags.Artist) && string.IsNullOrWhiteSpace(tags.AlbumArtist)
+                    ? global::mpv_winui.AppContext.AppLang.LibraryUnknownArtist
+                    : (string.IsNullOrWhiteSpace(tags.Artist) ? tags.AlbumArtist : tags.Artist),
                 Genre = tags.Genre,
                 Duration = tags.Duration,
             };
