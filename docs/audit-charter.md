@@ -487,7 +487,45 @@ Fluent 公开的运动令牌里也没有同名项。一个不存在的选项不�
 
 **结论**：音乐页动效的改造不依赖 BetterLyrics/Nagi，可以完全靠官方 API 推进。若你希望我采用那两个项目的具体参数，需要你提供可访问的链接或本地副本。
 
-**待确认 I**：是否接受"只用官方 API"这一路径？还是你能提供参照项目的可查来源？
+**I 项已核查（第三次检索成功）：两个来源都可访问，且结论对项目有利。**
+
+### 官方 Fluent 运动值
+
+`fluent2.microsoft.design/motion` 只讲原则（功能、自然、一致、宜人），**不给数值**。具体值在
+Windows 应用指南里：
+
+| 框架键 | 值 |
+|---|---|
+| `ControlFasterAnimationDuration` | 83 ms |
+| `ControlFastAnimationDuration` | 167 ms |
+| `ControlNormalAnimationDuration` | 250 ms |
+
+曲线：
+- **Fast Out, Slow In** = `cubic-bezier(0, 0, 0, 1)`
+- **Slow Out, Fast In** = `cubic-bezier(1, 0, 1, 1)`
+
+### 项目已有值与官方完全一致
+
+`MotionTokens` 里：
+
+```
+ShortMs 83     MediumMs 167    LongMs 250
+Enter (0,0)->(0,1)   = cubic-bezier(0, 0, 0, 1)
+Exit  (1,0)->(1,1)   = cubic-bezier(1, 0, 1, 1)
+```
+
+而且注释**直接写了官方键名**作为对应。**运动令牌本来就是从官方取值**——这是按「有几条曲线」计数的
+审查方式看不到的。
+
+### BetterLyrics
+
+仓库存在（`jayfunc/BetterLyrics`，WinUI3 + Win2D）。其歌词动画由 `LyricsAnimator`
+**根据播放位置计算过渡**，Win2D 负责渲染——是**属性过渡**，不是固定时长的关键帧表。
+
+与本页的逐行高亮是**不同架构**，没有可直接照搬的参数表。
+
+**结论**：参照项目确认了**方向**（按播放位置驱动、画布渲染），但不提供可引用的时长数值；
+官方的时长与曲线本项目已经全部采用。**I 项不影响任何后续实现。**
 
 ---
 
