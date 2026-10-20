@@ -6,6 +6,7 @@
     xmlns:bc="using:mpv_winui.Modules.Common.Convertor"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:mpv_winui.Modules.Player"
+    xmlns:view="using:mpv_winui.Modules.Common.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pc="using:mpv_winui.Modules.Player"
     xmlns:preview="using:mpv_winui.Modules.Player.BuiltInPreview"
@@ -115,17 +116,26 @@
             <Setter Property="CornerRadius" Value="4" />
         </Style>
 
-        <!-- The media area a thumbnail decodes into. Sized rather than left to
-             the aspect ratio of whatever the shell returns: cards in a grid
-             have to line up, and UniformToFill crops a portrait poster and a
-             landscape frame to the same box. The height tracks the nominal
-             item width set on the grid, because the official home tiles are
-             square. -->
+        <!-- The media area a thumbnail decodes into: 16:9.
+
+             Landscape because that is what the official video grid uses, and because
+             the files are landscape - a 16:9 frame cropped into the old 112px square
+             lost about half its width, which is what made the thumbnails read as
+             zoomed next to the reference.
+
+             Measured from the reference at DPI 1.5: a 379x213 px card is 253x142 DIP,
+             with 14 DIP between cards, four columns.
+
+             The height is computed from the card's own width rather than fixed. The
+             width belongs to the grid (UniformGridLayout derives the column count from
+             MinItemWidth), so a number would be right at one window size and wrong at
+             every other - either cropping the picture or opening a gap under it. -->
         <Style x:Key="LibraryCardMediaStyle" TargetType="Border">
-            <Setter Property="Height" Value="112" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
         </Style>
+
+        <view:AspectHeightConverter x:Key="SixteenByNine" Aspect="1.7777777777777777" />
 
         <DataTemplate x:Key="LibraryCardTemplate" x:DataType="local:LibraryEntry">
             <Button
@@ -136,7 +146,9 @@
                 PointerExited="LibraryCard_PointerExited"
                 Style="{StaticResource LibraryCardButtonStyle}">
                 <StackPanel>
-                    <Border Style="{StaticResource LibraryCardMediaStyle}">
+                    <Border
+                        Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}, Converter={StaticResource SixteenByNine}}"
+                        Style="{StaticResource LibraryCardMediaStyle}">
                         <Grid>
                             <!-- The media-kind icon shows until a thumbnail
                                  arrives, and for good when the shell has none.
@@ -979,10 +991,16 @@
                                      are (its music placeholder squares are the
                                      giveaway); the nominal item width here matches
                                      the tile height set in the card style. -->
+                                <!-- Landscape cards. MinItemWidth 253 is the
+                                     reference's own card width at DPI 1.5, so a
+                                     maximised window lands on four columns as the
+                                     screenshot does. MinItemHeight suits the widest
+                                     card that layout can produce (253 through 16:9
+                                     is 142) plus the two caption lines. -->
                                 <UniformGridLayout
-                                    MinColumnSpacing="{StaticResource MpvSpaceS}"
-                                    MinItemHeight="176"
-                                    MinItemWidth="116"
+                                    MinColumnSpacing="{StaticResource MpvSpaceM}"
+                                    MinItemHeight="200"
+                                    MinItemWidth="253"
                                     MinRowSpacing="{StaticResource MpvSpaceL}" />
                             </ItemsRepeater.Layout>
                         </ItemsRepeater>
