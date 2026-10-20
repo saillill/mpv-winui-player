@@ -42,22 +42,32 @@ public static partial class MpvSettings
             nameof(AppSettings.D3d11ExclusiveFs) => $"set d3d11-exclusive-fs {(value is true ? "yes" : "no")}",
             nameof(AppSettings.D3d11Flip) => $"set d3d11-flip {(value is true ? "yes" : "no")}",
             nameof(AppSettings.D3d11Adapter) => string.IsNullOrWhiteSpace((string)value) ? null : $"set d3d11-adapter {Q((string)value)}",
-            // volume-max has no runtime `set`. mpv exposes it as a property that
-            // exists only while the mixer is active, and with ao=wasapi the mixer
-            // belongs to the system -- so `set volume-max 100` answers
-            // "Command 'no-osd set volume-max 100' not found" every single
-            // launch. Measured: two launches produced two more of exactly that
-            // line, after mpv reported `volume-max is 100 while the mixer is not
-            // active` in its own interface-changes notes.
+            // volume-max: observed to fail, cause not established.
             //
-            // Nothing depended on it succeeding. The volume slider's ceiling is
-            // read from AppContext.AppSetting.VolumeMax directly (PlayerControl),
-            // not from mpv's property, and mpv.conf carries volume-max=100 for
-            // the engine itself via BuildConfigLines. So the only effect of this
-            // line was a failed command and an error line per launch.
+            // What was measured: this app sends `no-osd set volume-max 100` at
+            // startup and mpv answers "Command 'no-osd set volume-max 100' not
+            // found" -- the same line, once per launch, in three consecutive
+            // launches. That is the whole of the evidence.
             //
-            // Left mapped (MpvOptionNames still names the option) so the row
-            // still persists to mpv.conf and read-back still works.
+            // What was NOT established: why. The plausible story is that
+            // volume-max is derived from mixer state and ao=wasapi hands the
+            // mixer to the system, but I could not confirm it here. The test
+            // harness (mpv-winrt-test) could not be made to observe a rejection
+            // at all -- even a deliberately bogus option name (`set
+            // no-such-option 1`) came back silent -- so it cannot settle this,
+            // and the only other mpv host is mpvw.exe, which the project
+            // forbids driving.
+            //
+            // Why mapping to null is still the right move: nothing reads mpv's
+            // volume-max back. The volume slider's ceiling comes from
+            // AppContext.AppSetting.VolumeMax directly (PlayerControl), and the
+            // engine gets volume-max from mpv.conf via BuildConfigLines. So the
+            // runtime set had no observable benefit, and it produced an error
+            // line per launch. Mapping to null removes a known-failing command
+            // without removing the setting or its persistence.
+            //
+            // If someone later establishes the cause and it turns out a
+            // different command form works, this is the line to revisit.
             nameof(AppSettings.VolumeMax) => null,
             nameof(AppSettings.AudioGapless) => $"set gapless-audio {(string)value}",
             nameof(AppSettings.KeepOpen) => $"set keep-open {value}",

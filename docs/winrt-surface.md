@@ -106,22 +106,30 @@ m_seekedEvent          ->  m_seekStartedEvent
 [mpv/main]    Command 'no-osd set alang auto' not found.                   x1
 ```
 
-### 5.1 `volume-max`（已修）
+### 5.1 `volume-max`（已改，**原因未查明**）
 
-`ToCommand` 为它发出运行时 `set`，而 mpv 每次拒绝。原因是 `volume-max` 是
-**仅当混音器活跃时**才存在的属性，`ao=wasapi` 下混音器归系统所有 —— mpv 自己的
-interface-changes 就写着 "volume-max is 100 while the mixer is not active"。
+`ToCommand` 为它发出运行时 `set`，mpv 每次拒绝 —— 这一点是实测的：连续三次
+启动，三次出现同一行 `Command 'no-osd set volume-max 100' not found`。
 
-没有任何东西依赖这条命令成功：音量滑块上限直接读
-`AppContext.AppSetting.VolumeMax`，引擎侧的值由 `mpv.conf` 的 `volume-max=100`
-在启动时给出。所以它的唯一效果是每次启动一条失败命令和一行错误。
+**原因没有查明。** 唯一说得通的故事是 `volume-max` 由混音器状态派生、
+`ao=wasapi` 下混音器归系统所有；但这只是故事。我尝试用 `mpv-winrt-test`
+做区分实验，**失败了**：那个宿主连一个故意写错的选项名
+（`set no-such-option 1`）都测不出拒绝，全程静默 —— 说明它看不见这条路径，
+它的"静默"不能当作"接受"。而唯一另一个能跑 mpv 的宿主是 `mpvw.exe`，
+项目规则禁止驱动它。
 
-修法：`ToCommand` 对 `VolumeMax` 返回 `null`。选项仍留在 `MpvOptionNames` 里，
-所以设置行照常写进 mpv.conf、读回也照常解析；`ApplyMpv` 本来就把 `null` 命令
-当作"只持久化、不下发"。
+修法仍然成立，但理由比"找到原因"弱：**没有任何东西读回 mpv 的 `volume-max`**。
+滑块上限直接读 `AppContext.AppSetting.VolumeMax`，引擎的值由 `mpv.conf`
+经 `BuildConfigLines` 给出。既然没有可观测收益、却每次启动产出一条错误，
+把 `ToCommand` 映射成 `null` 就是在不动设置、不动持久化的前提下拿掉一条
+已知会失败的命令。
 
 **实测验证**：修前三次启动三条错误，修后一次启动零条，而 mpv 日志转发仍在工作
-（日志里累计 20 行 `[mpv/`）—— 证明被消掉的是那条命令，不是转发本身。
+（日志里累计 20 行 `[mpv/`）—— 被消掉的是那条命令，不是转发本身。
+
+> 若日后查明原因、且发现换一种命令形式可用，这一行就是要改回来的地方。
+> 上面那句 "mixer is not active" 出自网页搜索片段，**不是**我核对过的一手来源，
+> 已经不再写进代码注释。
 
 ### 5.2 `alang auto`（**只记录，未改**）
 
@@ -141,16 +149,9 @@ interface-changes 就写着 "volume-max is 100 while the mixer is not active"。
 `ToCommand`，可能把 `slang`（同一形态、却**零报错**）一起改坏 —— 两者共用
 `IsNullOrWhiteSpace ? null : $"set ..."` 的写法，这个差异本身就是未解释的证据。
 
-**下一步需要的外部条件**：一个能跑 `--input-ipc-server` 的独立 mpv（或允许在
-本轮之外手工验证一次 `set alang auto` 与 `set alang eng`）。两者都不成立之前，
-把它留在文档里比改坏它更有价值。
-
-`FileEnded` 与 `FileStopped` 在 `MPV_EVENT_END_FILE` 里按 reason 分流触发，
-播放结束时进入空 handler 集合 —— 开销是一次 `winrt::event<>::operator()`
-对空集合的检查，可以忽略。`LogMessage` 的代价不同：它每次日志消息都会构造一个
-`MpvLogEventArgs`（两次 `winrt::to_hstring`），而 `msg-level = all=info` 在
-默认配置里就是开的。**这是这五个里唯一有实际成本的**，但接上它需要先决定
-这些日志往哪写。
+**下一步需要的外部条件**：一个能观察命令拒绝的 mpv 宿主（独立 `mpv.exe` 带
+`--input-ipc-server`，或一个至少能测出 `set no-such-option 1` 被拒的测试夹具）。
+两者都不成立之前，把它留在文档里比改坏它更有价值。
 
 ## 六、为什么不删 IDL
 
