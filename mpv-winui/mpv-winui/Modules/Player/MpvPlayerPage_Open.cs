@@ -148,5 +148,14 @@ namespace mpv_winui.Modules.Player
             await _mediaPlayer.OpenAsync((FileItem[])[new FileItem(url, FileType.Url)], openMode);
         }
 
+        private async ValueTask PlayFile(string file, OpenMode openMode)
+        {
+            await _mediaPlayer.OpenAsync((FileItem[])[new FileItem(file, FileType.File)], openMode);
+        }
+
+        private async ValueTask PlayFolder(string folder, OpenMode openMode)
+        {
+            await _mediaPlayer.OpenAsync((FileItem[])[new FileItem(folder, FileType.Folder)], openMode);
+        }
     }
 }

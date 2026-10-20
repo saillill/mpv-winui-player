@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 
 using Microsoft.UI.Composition;
 
@@ -860,6 +860,11 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         public event EventHandler? TransportInteraction;
 
+        private void OnTransportInteraction(object sender, RoutedEventArgs e)
+        {
+            TransportInteraction?.Invoke(this, EventArgs.Empty);
+        }
+
         /// <summary>
         /// The bar's single interaction funnel.
         ///
@@ -1118,14 +1123,7 @@ namespace mpv_winui.Modules.Player
 
             _mediaPlayer?.FileLoaded += MediaPlayer_MediaOpened;
 
-            // FileFailed, not PlaybackFailed. The latter is the pre-c49b461
-            // name for this event and the component has not raised it since
-            // that refactor renamed the raise to m_fileFailedEvent; the C#
-            // side kept subscribing to the old name, so a file that failed to
-            // load never reached MediaPlayer_MediaFailed and the Error visual
-            // state was unreachable. The arg type differs in name only --
-            // both runtimeclasses carry one String Message.
-            _mediaPlayer?.FileFailed += MediaPlayer_MediaFailed;
+            _mediaPlayer?.PlaybackFailed += MediaPlayer_MediaFailed;
 
             _mediaPlayer?.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
 
@@ -1135,13 +1133,7 @@ namespace mpv_winui.Modules.Player
 
             _mediaPlayer?.VolumeChanged += PlaybackSession_VolumeChanged;
 
-            // No Seeked subscription: the component declares that event but has
-            // not raised it since c49b461 renamed the raise to
-            // m_seekStartedEvent. Subscribing was a no-op that read as a live
-            // handler -- the seek-finished state is already covered by
-            // PlaybackRestarted (PlaybackSession_SeekingEnded clears buffering
-            // and refreshes the UI). tools/check-winrt-events.py fails the build
-            // if this is ever re-added without a raise behind it.
+            _mediaPlayer?.Seeked += MediaPlayer_Seeked;
 
             _mediaPlayer?.LoopFileChanged += MediaPlayer_RepeatStateChanged;
 
@@ -1163,7 +1155,7 @@ namespace mpv_winui.Modules.Player
 
             _mediaPlayer?.FileLoaded -= MediaPlayer_MediaOpened;
 
-            _mediaPlayer?.FileFailed -= MediaPlayer_MediaFailed;
+            _mediaPlayer?.PlaybackFailed -= MediaPlayer_MediaFailed;
 
             _mediaPlayer?.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
 
@@ -1172,6 +1164,8 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.PlaybackRestarted -= PlaybackSession_SeekingEnded;
 
             _mediaPlayer?.VolumeChanged -= PlaybackSession_VolumeChanged;
+
+            _mediaPlayer?.Seeked -= MediaPlayer_Seeked;
 
             _mediaPlayer?.LoopFileChanged -= MediaPlayer_RepeatStateChanged;
 
@@ -1647,6 +1641,7 @@ namespace mpv_winui.Modules.Player
 
                 UpdatePlaybackStatusUI(false);
 
+                //UpdatePlayPauseUI(false);
 
                 UpdateVolumeUI(false);
 
@@ -1656,13 +1651,23 @@ namespace mpv_winui.Modules.Player
 
 
 
-        // MediaPlayer_Seeked was here. It became unreachable when c49b461 renamed
-        // the native raise from m_seekedEvent to m_seekStartedEvent, and it was
-        // kept for one round "as a record of what it did" -- which was a mistake:
-        // a dead method is not documentation, and its presence suggested the
-        // seek-finished path was handled there when it is handled by
-        // PlaybackSession_SeekingEnded. Deleted, with the reasoning recorded in
-        // the subscription site above and in tools/check-winrt-events.py.
+        private void MediaPlayer_Seeked()
+
+        {
+
+            DispatcherQueue.RunAsync(() =>
+
+            {
+
+                _isBuffering = false;
+
+                UpdatePlaybackStatusUI(true);
+
+                UpdateTimeTexts(MediaPlayer?.Position() ?? 0.0, MediaPlayer?.Duration() ?? 0.0);
+
+            });
+
+        }
 
 
 
@@ -1702,7 +1707,7 @@ namespace mpv_winui.Modules.Player
 
 
 
-        private void MediaPlayer_MediaFailed(FileFailedEventArgs args)
+        private void MediaPlayer_MediaFailed(PlaybackFailedEventArgs args)
 
         {
 

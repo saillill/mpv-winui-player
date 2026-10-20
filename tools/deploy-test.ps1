@@ -107,36 +107,5 @@ if ($Verify) {
     & (Join-Path $PSScriptRoot 'compare-deploy.ps1')
 }
 
-if ($xbf -ne $srcXbf) {
-    # An overlay cannot remove a .xbf whose .xaml was deleted, and the count
-    # below then reports "the deploy is incomplete" for a deploy that copied
-    # everything. Measured: ResizeGrip.xaml was removed in 0129738, and every
-    # later deploy failed here with dst=41 src=40 -- a permanent false failure
-    # that says nothing about the build.
-    #
-    # Pruning the surplus is the narrow fix, not a wipe: the invariant above is
-    # "never delete-and-recreate the destination" (the WinAppSDK runtime DLLs
-    # live there and must survive), and removing one stale .xbf whose source no
-    # longer exists touches nothing else. A compiled XAML with no source is dead
-    # weight either way -- the dll never asks for it.
-    $srcXbfNames = @{}
-    Get-ChildItem -LiteralPath $src -Recurse -File -Filter *.xbf | ForEach-Object {
-        $srcXbfNames[$_.FullName.Substring($src.Length).TrimStart('\', '/')] = $true
-    }
-    $pruned = @()
-    Get-ChildItem -LiteralPath $dst -Recurse -File -Filter *.xbf | ForEach-Object {
-        $rel = $_.FullName.Substring($dst.Length).TrimStart('\', '/')
-        if (-not $srcXbfNames.ContainsKey($rel)) {
-            Remove-Item -LiteralPath $_.FullName -Force
-            $pruned += $rel
-        }
-    }
-    $xbf = @(Get-ChildItem -LiteralPath $dst -Recurse -File -Filter *.xbf).Count
-    if ($pruned.Count -gt 0) {
-        Write-Host ""
-        Write-Host "pruned stale .xbf (source removed from the build):"
-        $pruned | ForEach-Object { Write-Host "  $_" }
-    }
-    if ($xbf -ne $srcXbf) { throw "xbf count is $xbf but the build produced $srcXbf -- the deploy is incomplete" }
-}
+if ($xbf -ne $srcXbf) { throw "xbf count is $xbf but the build produced $srcXbf -- the deploy is incomplete" }
 exit 0

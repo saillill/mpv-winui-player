@@ -60,6 +60,10 @@ public sealed partial class OptionLayoutControl : OptionControlBase
         BuildCards(newValue.LayoutChoices ?? []);
     }
 
+    protected override void OnOptionStateChanged()
+    {
+    }
+
     private void BuildCards(IList<OptionLayoutChoice> choices)
     {
         StyleCards.Items.Clear();

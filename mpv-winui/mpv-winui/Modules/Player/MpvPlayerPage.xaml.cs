@@ -247,7 +247,6 @@ namespace mpv_winui.Modules.Player
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
             _mediaPlayer.VolumeChanged -= MpvPlayerPage_VolumeChanged;
-            _mediaPlayer.LogMessage -= MpvPlayer_LogMessage;
             _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
             _mediaPlayer.DiscMenuActiveChanged -= MpvPlayerPage_DiscMenuActiveChanged;
@@ -461,21 +460,7 @@ namespace mpv_winui.Modules.Player
             await AppContext.WaitAll();
             _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
-            // mpv's own log lines. Nothing subscribed to this event before, so
-            // every line mpv forwarded -- warn and above by default, everything
-            // while debug logging is on -- built an MpvLogEventArgs and raised
-            // it into an empty handler set. The cost is the three to_hstring
-            // conversions per message, and msg-level=all=info is what the
-            // bundled mpv.conf asks for, so it was paying that for lines nobody
-            // could see.
-            //
-            // Mirrored into the app log rather than a second file: the log the
-            // user is told to look at is logs\mpv-winui.<date>.log.txt, and one
-            // file with mpv's lines interleaved is what a bug report needs.
-            // mpv's level names map onto NLog's one-for-one (no/error/warn/info/
-            // verbose/debug/trace); anything else falls back to Info rather than
-            // being dropped.
-            _mediaPlayer.LogMessage += MpvPlayer_LogMessage;
+            _mediaPlayer.VoConfigured += MpvPlayer_SwapChainChanged;
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
                 ? AppContext.AppSetting.OverrideDisplayFps
                 : _lastRefreshRate;
@@ -491,44 +476,36 @@ namespace mpv_winui.Modules.Player
             AppContext.AppSetting.LastVideoVolume = (int)args.Volume;
         }
 
-        /// <summary>
-        /// Forwards one mpv log line into the app log.
-        /// </summary>
-        /// <remarks>
-        /// Raised on the native event thread, not the UI thread. NLog's Logger
-        /// is thread-safe and the file target opens per write, so no dispatch is
-        /// needed here -- and adding one would queue mpv's output behind the UI,
-        /// which is the opposite of what a log is for when the UI is what hung.
-        /// </remarks>
-        private void MpvPlayer_LogMessage(MpvLogEventArgs args)
-        {
-            var level = args.Level switch
-            {
-                "no" => LogLevel.Off,
-                "fatal" => LogLevel.Fatal,
-                "error" => LogLevel.Error,
-                "warn" => LogLevel.Warn,
-                "info" => LogLevel.Info,
-                "v" => LogLevel.Trace,
-                "debug" => LogLevel.Debug,
-                "trace" => LogLevel.Trace,
-                // mpv occasionally adds a level before this app knows about it.
-                // Logging it at Info keeps the line instead of dropping it.
-                _ => LogLevel.Info,
-            };
-
-            if (level == LogLevel.Off)
-            {
-                return;
-            }
-
-            _logger.Log(level, "[mpv/{0}] {1}", args.Prefix, args.Text);
-        }
-
         // A drop (or menu open) landing while CreateAsync is still running
         // used to enqueue loadfile into a native handle that silently no-ops
         // before initialization, losing the request. Callers now await this.
         private TaskCompletionSource _playerReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private Task WaitForPlayerReadyAsync()
+        {
+            return _isPlayerInitialized ? Task.CompletedTask : _playerReadyTcs.Task;
+        }
+
+        private void PlayerView_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+        {
+            // input.conf: MBTN_LEFT cycle pause
+            SendMouseButton("MBTN_LEFT");
+        }
+
+        private void TopBarOntop_Click(object sender, RoutedEventArgs e)
+        {
+            AppContext.SendMpvCommand("cycle ontop");
+        }
+
+        private void TopBarScreenshot_Click(object sender, RoutedEventArgs e)
+        {
+            AppContext.SendMpvCommand("screenshot");
+        }
+
+        private void TopBarPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            ShowPlayQueue();
+        }
 
         private void AppQuit()
         {
@@ -612,6 +589,10 @@ namespace mpv_winui.Modules.Player
             {
                 _pendingPaths = e.Parameter as IReadOnlyList<FileItem>;
             }
+        }
+
+        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+        {
         }
 
         void IParameterRefreshSupportView.OnRefresh(object? parameter)

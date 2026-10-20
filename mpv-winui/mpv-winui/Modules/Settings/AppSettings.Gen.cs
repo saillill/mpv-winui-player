@@ -16,6 +16,12 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_ad_lavc_ac3drc), value);
         }
 
+        public string Mpv_ad_lavc_o
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_ad_lavc_o), "");
+            set => _dataSetting.SetValue(nameof(Mpv_ad_lavc_o), value);
+        }
+
         public int Mpv_ad_lavc_threads
         {
             get => _dataSetting.GetValue(nameof(Mpv_ad_lavc_threads), 1);
@@ -44,6 +50,18 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_ad_queue_max_secs), 1.0);
             set => _dataSetting.SetValue(nameof(Mpv_ad_queue_max_secs), value);
+        }
+
+        public int Mpv_audio_backward_batch
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_audio_backward_batch), 10);
+            set => _dataSetting.SetValue(nameof(Mpv_audio_backward_batch), value);
+        }
+
+        public string Mpv_audio_backward_overlap
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_audio_backward_overlap), "auto");
+            set => _dataSetting.SetValue(nameof(Mpv_audio_backward_overlap), value);
         }
 
         public string Mpv_audio_client_name
@@ -104,6 +122,12 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_audio_set_media_role), false);
             set => _dataSetting.SetValue(nameof(Mpv_audio_set_media_role), value);
+        }
+
+        public string Mpv_audio_swresample_o
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_audio_swresample_o), "");
+            set => _dataSetting.SetValue(nameof(Mpv_audio_swresample_o), value);
         }
 
         public bool Mpv_mute
@@ -223,6 +247,12 @@ namespace mpv_winui.Modules.Settings
         }
 
         // ---- General ----
+
+        public bool Mpv_access_references
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_access_references), true);
+            set => _dataSetting.SetValue(nameof(Mpv_access_references), value);
+        }
 
         public bool Mpv_allow_delayed_peak_detect
         {
@@ -1376,6 +1406,12 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_demuxer_lavf_linearize_timestamps), value);
         }
 
+        public string Mpv_demuxer_lavf_o
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_demuxer_lavf_o), "");
+            set => _dataSetting.SetValue(nameof(Mpv_demuxer_lavf_o), value);
+        }
+
         public string Mpv_demuxer_lavf_probe_info
         {
             get => _dataSetting.GetValue(nameof(Mpv_demuxer_lavf_probe_info), "auto");
@@ -1532,6 +1568,12 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_stream_dump), value);
         }
 
+        public string Mpv_stream_lavf_o
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_stream_lavf_o), "");
+            set => _dataSetting.SetValue(nameof(Mpv_stream_lavf_o), value);
+        }
+
         public string Mpv_stream_record
         {
             get => _dataSetting.GetValue(nameof(Mpv_stream_record), "");
@@ -1670,6 +1712,12 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_sub_gray), false);
             set => _dataSetting.SetValue(nameof(Mpv_sub_gray), value);
+        }
+
+        public string Mpv_sub_lavc_o
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_sub_lavc_o), "");
+            set => _dataSetting.SetValue(nameof(Mpv_sub_lavc_o), value);
         }
 
         public bool Mpv_sub_past_video_end
@@ -1928,6 +1976,12 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_vd_lavc_framedrop), value);
         }
 
+        public string Mpv_vd_lavc_o
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_vd_lavc_o), "");
+            set => _dataSetting.SetValue(nameof(Mpv_vd_lavc_o), value);
+        }
+
         public bool Mpv_vd_lavc_show_all
         {
             get => _dataSetting.GetValue(nameof(Mpv_vd_lavc_show_all), false);
@@ -1986,6 +2040,18 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_video_aspect_method), "container");
             set => _dataSetting.SetValue(nameof(Mpv_video_aspect_method), value);
+        }
+
+        public int Mpv_video_backward_batch
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_video_backward_batch), 1);
+            set => _dataSetting.SetValue(nameof(Mpv_video_backward_batch), value);
+        }
+
+        public string Mpv_video_backward_overlap
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_video_backward_overlap), "auto");
+            set => _dataSetting.SetValue(nameof(Mpv_video_backward_overlap), value);
         }
 
         public string Mpv_video_crop

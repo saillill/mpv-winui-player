@@ -84,20 +84,6 @@ def applang_props():
     return sections, descs, categories
 
 
-def category_values():
-    """{property name: default caption} for every SettingsCategory* property.
-
-    A property is a *source* of a caption, and since the six-domain restructure
-    several resolve to the same one on purpose (Network and Shortcuts both feed
-    Playback and Interface; they were mpv-manual chapters, not domains). So the
-    checker has to compare values, not property names.
-    """
-    text = APPLANG.read_text(encoding="utf-8-sig")
-    return dict(re.findall(
-        r'public string (SettingsCategory[A-Za-z0-9]+) \{ get; set; \} = "([^"]*)"',
-        text))
-
-
 def catalog_rows():
     text = CATALOG.read_text(encoding="utf-8-sig")
     rows = re.findall(
@@ -397,36 +383,15 @@ def main():
         if desc != expected:
             errors.append(f"{cap} is paired with {desc}, expected {expected}")
 
-    # --- categories ---------------------------------------------------------
-    # A SettingsCategory* property is a *source* of a caption, not necessarily a
-    # category of its own. Since the six-domain restructure several resolve to
-    # the same caption on purpose: Network and Shortcuts were mpv-manual
-    # chapters, and what they hold belongs to Playback and Interface. So the
-    # invariant is not "one row per property" -- it is:
-    #
-    #   * no row names a property AppLang does not declare
-    #   * no two rows share a key (they would collide in the rail)
-    #   * every declared property resolves to a caption some row actually shows
-    #
-    # The last one is the useful half: a property whose caption no row shows is
-    # a category the user can never reach.
     cat_names = {c[1] for c in cats}
+    for name in sorted(categories - cat_names):
+        errors.append(f"AppLang.{name} has no row in SettingsSections.Categories")
     for name in sorted(cat_names - categories):
         errors.append(f"SettingsSections.Categories names {name}, which AppLang does not declare")
 
     keys = [c[0] for c in cats]
     for dup in sorted({k for k in keys if keys.count(k) > 1}):
         errors.append(f"duplicate category key: {dup}")
-
-    values = category_values()
-    shown = {values[c[1]] for c in cats if c[1] in values}
-    for name in sorted(categories):
-        value = values.get(name)
-        if value is not None and value not in shown:
-            errors.append(
-                f"AppLang.{name} resolves to {value!r}, which no "
-                f"SettingsSections.Categories row shows -- that category is "
-                f"unreachable")
 
     # --- caption translations ------------------------------------------------
     # Every section caption, every section description and every category

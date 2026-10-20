@@ -471,43 +471,16 @@ namespace mpv_winui.Modules.Language
         public string SettingsSubFontSize { get; set; } = "Subtitle font size";
         public string SettingsSubDelay { get; set; } = "Subtitle delay (s)";
         public string SettingsVideoPreview { get; set; } = "Video preview thumbnails";
-        // Settings categories, organised by what a person came to change rather
-        // than by mpv's own subsystem tree.
-        //
-        // The nine categories this replaces (Desktop / Playback / Video / Audio
-        // / Subtitles / Window / Network / Shortcuts / OSD) followed the layout
-        // of the mpv manual, which is a reference document's structure: it puts
-        // the network cache under its own heading because the manual has a
-        // chapter for it, not because someone looking for "make streaming stop
-        // stuttering" would think to go there. Six domains, the PotPlayer
-        // arrangement:
-        //
-        //   Playback   playback behaviour, seeking, cache, playlists, streams
-        //   Video      output, decoding, scaling, colour/HDR, screenshots
-        //   Audio      output device, volume, channels, cover art
-        //   Subtitles  style, position, ASS, filtering
-        //   Interface  window, OSD, menus, theme
-        //   Program    language, config, integration, shortcuts, libraries
-        //
-        // The properties keep their old names on purpose. They are read at ~320
-        // call sites as `var video = AppContext.AppLang.SettingsCategoryVideo`
-        // and then assigned to Option.Category; renaming them would rewrite
-        // every one of those for no gain, since what matters is the value they
-        // resolve to. What the old name means now is "the domain this subject
-        // belongs to", and the comment on each says which.
-        public string SettingsCategoryProgram { get; set; } = "Program";
+        // Settings categories follow the layout of the mpv manual (DOCS/man/options.rst).
+        public string SettingsCategoryProgram { get; set; } = "Desktop";
         public string SettingsCategoryPlayback { get; set; } = "Playback";
         public string SettingsCategoryVideo { get; set; } = "Video";
         public string SettingsCategoryAudio { get; set; } = "Audio";
         public string SettingsCategorySubtitles { get; set; } = "Subtitles";
-        /// <summary>Window and OSD. The domain is called Interface.</summary>
-        public string SettingsCategoryWindow { get; set; } = "Interface";
-        /// <summary>Streaming and cache, which are playback behaviour.</summary>
-        public string SettingsCategoryNetwork { get; set; } = "Playback";
-        /// <summary>Shortcuts live with the rest of the interface.</summary>
-        public string SettingsCategoryShortcuts { get; set; } = "Interface";
-        /// <summary>OSD is part of the interface.</summary>
-        public string SettingsCategoryOsd { get; set; } = "Interface";
+        public string SettingsCategoryWindow { get; set; } = "Window";
+        public string SettingsCategoryNetwork { get; set; } = "Network";
+        public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
+        public string SettingsCategoryOsd { get; set; } = "OSD";
         // There is no SettingsCategoryAdvanced: the category was removed and its
         // options filed by subject. The language files still carry the string, and
         // that is deliberate - a stale caption costs nothing, while deleting it
@@ -2034,30 +2007,5 @@ namespace mpv_winui.Modules.Language
         }
 
         private string _fallback_CustomizeExitTip = "Leave customize mode; unsaved changes are confirmed first";
-
-        // Player right-click menu. These were hardcoded English strings in
-        // MpvPlayerPage_MpvMenu.cs, so a translated interface had an English
-        // menu. check-localization cannot catch a caption that never became a
-        // property, which is why they survived every earlier sweep.
-        // Grouped as the menu now is: Open, Track, View.
-        public string MenuSectionOpen { get; set; } = "Open";
-        public string MenuOpenFile { get; set; } = "Open file";
-        public string MenuOpenFolder { get; set; } = "Open folder";
-        public string MenuOpenUrl { get; set; } = "Open URL";
-        public string MenuOpenClipboard { get; set; } = "Open from clipboard";
-        public string MenuOpenDisc { get; set; } = "Open disc";
-        public string MenuOpenDvd { get; set; } = "DVD";
-        public string MenuOpenBluRay { get; set; } = "Blu-ray";
-        public string MenuRecent { get; set; } = "Recent";
-        public string MenuOpenWatchHistory { get; set; } = "Watch history";
-        public string MenuOpenWatchLater { get; set; } = "Watch later";
-        public string MenuSectionTrack { get; set; } = "Track";
-        public string MenuLoadSubtitle { get; set; } = "Load subtitle";
-        public string MenuSectionView { get; set; } = "View";
-        public string MenuTogglePlaylist { get; set; } = "Playlist";
-        public string MenuToggleFullScreen { get; set; } = "Full screen";
-        public string MenuToggleFullWindow { get; set; } = "Full window";
-        public string MenuAlwaysOnTop { get; set; } = "Always on top";
-        public string MenuQuit { get; set; } = "Quit";
     }
 }

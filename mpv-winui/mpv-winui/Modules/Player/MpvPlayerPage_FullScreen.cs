@@ -9,6 +9,29 @@ namespace mpv_winui.Modules.Player
         private bool _isFullScreen;
         private bool _isFullWindow;
 
+        private void VideoArea_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            // In fullscreen/full-window the control bar overlays the video with
+            // a gradient mask: the bar pops out while the pointer is inside the
+            // mask and retracts when it leaves.
+            if (!_isFullWindow && !_isFullScreen)
+            {
+                return;
+            }
+
+            // Activity-based: any movement over the video area expands the
+            // overlay bar (the bar itself handles moves over the mask/bar via
+            // RootGrid_PointerMoved), and the idle timer retracts it.
+            if (sender is FrameworkElement area)
+            {
+                PlayerControl.NotifyOverlayPointerActivity(e.GetCurrentPoint(area).Position);
+            }
+            else
+            {
+                PlayerControl.NotifyOverlayPointerActivity(default);
+            }
+        }
+
         /// <summary>
         /// Raised by the shell's bar, not wired in this page's XAML any more -
         /// the bar moved to MainWindow so it can stay mounted across pages.

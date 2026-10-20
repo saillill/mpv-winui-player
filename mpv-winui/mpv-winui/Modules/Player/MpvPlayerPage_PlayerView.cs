@@ -9,11 +9,13 @@ namespace mpv_winui.Modules.Player
     public sealed partial class MpvPlayerPage
     {
         private Action<ViewSize>? _sizeChangedAction;
+        private bool _playerViewLoaded = false;
         private void SetupPlayerView()
         {
             var size = new ViewSize(PlayerView.ActualWidth, PlayerView.ActualHeight, PlayerView.CompositionScaleX, PlayerView.CompositionScaleY);
             UpdatePlayerViewSize(size);
             _mediaPlayer.AttachSwapChain(PlayerView);
+            _playerViewLoaded = true;
 
             // Throttle, not debounce: during a drag-resize the panel size
             // changes continuously and the composition swapchain must track it
@@ -33,16 +35,21 @@ namespace mpv_winui.Modules.Player
             _sizeChangedAction = null;
             PlayerView.SizeChanged -= PlayerView_SizeChanged;
             PlayerView.CompositionScaleChanged -= PlayerView_CompositionScaleChanged;
+            _mediaPlayer.VoConfigured -= MpvPlayer_SwapChainChanged;
         }
 
-        // MpvPlayer_SwapChainChanged used to live here: it re-measured the panel
-        // and re-attached the swap chain on VoConfigured. That event has not
-        // been raised since c49b461 renamed the raise to m_swapChainChangedEvent,
-        // so the handler could not run -- and the work it did is native now
-        // (222be73: AttachSwapChain records the panel, CompletePendingSwapChainAttach
-        // completes it on VIDEO_RECONFIG). Panel size is covered by
-        // PlayerView_SizeChanged and PlayerView_CompositionScaleChanged above.
-        // Re-wiring it to SwapChainChanged would attach the chain twice.
+        private void MpvPlayer_SwapChainChanged()
+        {
+            DispatcherQueue.RunAsync(() =>
+            {
+                if (_playerViewLoaded)
+                {
+                    var size = new ViewSize(PlayerView.ActualWidth, PlayerView.ActualHeight, PlayerView.CompositionScaleX, PlayerView.CompositionScaleY);
+                    UpdatePlayerViewSize(size);
+                    _mediaPlayer.AttachSwapChain(PlayerView);
+                }
+            });
+        }
 
         private async void PlayerView_SizeChanged(object sender, SizeChangedEventArgs e)
         {
