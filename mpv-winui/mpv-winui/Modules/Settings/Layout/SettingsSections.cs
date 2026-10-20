@@ -85,6 +85,10 @@ internal static class SettingsSections
         new("SectionPlaybackSeekPreview", "\uE720", l => l.SectionPlaybackSeekPreview, l => l.SectionDescPlaybackSeekPreview),
         new("SectionReversePlayback", "\uE8AB", l => l.SectionReversePlayback, l => l.SectionDescReversePlayback),
         new("SectionWatchLaterStorage", "\uE8B7", l => l.SectionWatchLaterStorage, l => l.SectionDescWatchLaterStorage),
+        // The two libraries' bound folders. Sits in Video rather than in Audio because
+        // both rows do the same thing to the same kind of thing, and an unbind that
+        // lives in two categories depending on media kind is harder to find than one.
+        new("SectionLibraryFolders", "\uE8B7", l => l.SectionLibraryFolders, l => l.SectionDescLibraryFolders),
         new("SectionVideoDecode", "\uE714", l => l.SectionVideoDecode, l => l.SectionDescVideoDecode),
         new("SectionVideoImage", "\uE7F4", l => l.SectionVideoImage, l => l.SectionDescVideoImage),
         new("SectionVideoFilters", "\uE70F", l => l.SectionVideoFilters, l => l.SectionDescVideoFilters),

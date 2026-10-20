@@ -1577,6 +1577,36 @@ namespace mpv_winui.Modules.Player
             }
         }
 
+        /// <summary>
+        /// Rebuilds the library after a folder was bound or unbound.
+        ///
+        /// Clears <see cref="_libraryLoaded"/> first, and that line is the whole point:
+        /// the loader is guarded by it so the library loads once rather than on every
+        /// section switch. Leaving it set would make this do nothing at all - the symptom
+        /// being "I unticked the folder and the files are still listed", which is exactly
+        /// the bug this exists to fix.
+        ///
+        /// The full reload rather than an incremental removal, because a folder change
+        /// alters which files exist, and that changes the grouping, the album cards, the
+        /// index rail's letters and the empty state. Four things to get right instead of
+        /// one loader that already gets all four right.
+        /// </summary>
+        private void ReloadLibraryForFolderChange()
+        {
+            // Nothing to refresh when the user is not looking at the library; entering
+            // the section reloads anyway because the flag is now clear.
+            if (!_libraryVisible)
+            {
+                _libraryLoaded = false;
+
+                return;
+            }
+
+            _libraryLoaded = false;
+
+            _ = LoadLibraryAsync();
+        }
+
         private async Task LoadLibraryAsync()
         {
             var generation = ++_libraryGeneration;

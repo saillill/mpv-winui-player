@@ -337,6 +337,18 @@ namespace mpv_winui.Modules.Player
             {
                 DispatcherQueue.TryEnqueue(ApplyDisplayPeak);
             }
+            else if (key == nameof(AppContext.AppSetting.VideoLibraryFolders)
+                || key == nameof(AppContext.AppSetting.MusicLibraryFolders))
+            {
+                // A folder was bound or unbound from the settings window, so what the
+                // library contains has changed. A full reload rather than an incremental
+                // removal: the list is history plus every bound folder, so this changes
+                // the grouping, the album cards, the rail's letter set and the empty
+                // state - and unloading one folder means getting all four right.
+                //
+                // Dispatched because the event comes from the settings window's thread.
+                DispatcherQueue.TryEnqueue(ReloadLibraryForFolderChange);
+            }
             else if (key == nameof(AppContext.AppSetting.ThumbnailUpdateInterval))
             {
                 DispatcherQueue.TryEnqueue(() =>

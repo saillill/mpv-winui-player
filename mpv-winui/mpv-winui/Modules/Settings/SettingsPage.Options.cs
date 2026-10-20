@@ -59,6 +59,7 @@ private List<Option> BuildSettings()
         var sPlaybackSeeking = AppContext.AppLang.SectionPlaybackSeeking;
         var sPlaybackSeekPreview = AppContext.AppLang.SectionPlaybackSeekPreview;
         var sWatchLaterStorage = AppContext.AppLang.SectionWatchLaterStorage;
+        var sLibraryFolders = AppContext.AppLang.SectionLibraryFolders;
         var sVideoDecode = AppContext.AppLang.SectionVideoDecode;
         var sVideoImage = AppContext.AppLang.SectionVideoImage;
         var sVideoFilters = AppContext.AppLang.SectionVideoFilters;
@@ -727,13 +728,19 @@ private List<Option> BuildSettings()
             [sWatchLaterStorage] = 5,
 
             // video
-            [sVideoDecode] = 0,
-            [sVideoImage] = 1,
-            [sVideoFilters] = 2,
-            [sVideoSync] = 3,
-            [sGpuScaling] = 4,
-            [sGpuBackground] = 5,
-            [sGpuD3d11] = 6,
+            //
+            // The folder lists come first: "what is in my library" is the question this
+            // section answers. The numbers stay dense from 0 - the table is a
+            // per-category sequence where the smallest sorts first, so "before 0" is
+            // expressed by renumbering, not by a negative value.
+            [sLibraryFolders] = 0,
+            [sVideoDecode] = 1,
+            [sVideoImage] = 2,
+            [sVideoFilters] = 3,
+            [sVideoSync] = 4,
+            [sGpuScaling] = 5,
+            [sGpuBackground] = 6,
+            [sGpuD3d11] = 7,
             [sGpuShaders] = 7,
             [sToneMapping] = 8,
             [sTargetColorspace] = 9,
@@ -830,6 +837,9 @@ private List<Option> BuildSettings()
             // watchLater
             [nameof(AppSettings.WatchLaterOptions)] = sWatchLaterStorage,
             [nameof(AppSettings.WatchLaterDir)] = sWatchLaterStorage,
+            // library folders
+            [nameof(AppSettings.VideoLibraryFolders)] = sLibraryFolders,
+            [nameof(AppSettings.MusicLibraryFolders)] = sLibraryFolders,
             // video
             [nameof(AppSettings.Hwdec)] = sVideoDecode,
             [nameof(AppSettings.HwdecCodecs)] = sVideoDecode,

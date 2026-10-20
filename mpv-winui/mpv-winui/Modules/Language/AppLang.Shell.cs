@@ -117,6 +117,28 @@ namespace mpv_winui.Modules.Language
 
         public string LibraryCardCopyTitle { get; set; } = "Copy title";
 
+        // ---- library folders ----------------------------------------------
+
+        /// <summary>The video library's list of bound folders.</summary>
+        public string SettingsVideoLibraryFolders { get; set; } = "Video library folders";
+
+        /// <summary>The music library's list of bound folders.</summary>
+        public string SettingsMusicLibraryFolders { get; set; } = "Music library folders";
+
+        /// <summary>What unticking a video folder does, and where they come from.</summary>
+        public string SettingsHelpVideoLibraryFolders { get; set; } =
+            "Folders the video library scans. Add one with the add-folder button on the "
+            + "library page; untick it here to remove it.";
+
+        /// <summary>What unticking a music folder does, and where they come from.</summary>
+        public string SettingsHelpMusicLibraryFolders { get; set; } =
+            "Folders the music library scans. Add one with the add-folder button on the "
+            + "library page; untick it here to remove it.";
+
+        /// <summary>Shown when a library has no folder bound at all.</summary>
+        public string SettingsLibraryFoldersNone { get; set; } =
+            "No folder is bound. Use the add-folder button on the library page.";
+
         // ---- selection ----------------------------------------------------
 
         /// <summary>The card menu's entry into selection mode.</summary>

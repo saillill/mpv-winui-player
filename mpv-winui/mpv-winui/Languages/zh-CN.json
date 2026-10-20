@@ -2239,5 +2239,12 @@
   "LibrarySelectionClear": "清除",
   "LibrarySelectionPlay": "播放",
   "LibrarySelectionQueue": "加入播放队列",
-  "LibrarySelectionProperties": "在文件夹中显示"
+  "LibrarySelectionProperties": "在文件夹中显示",
+  "SectionLibraryFolders": "媒体库文件夹",
+  "SectionDescLibraryFolders": "各媒体库扫描的文件夹。取消勾选即可从媒体库中移除。",
+  "SettingsVideoLibraryFolders": "视频库文件夹",
+  "SettingsMusicLibraryFolders": "音乐库文件夹",
+  "SettingsLibraryFoldersNone": "尚未绑定文件夹。请使用媒体库页面的添加文件夹按钮。",
+  "SettingsHelpVideoLibraryFolders": "视频库扫描的文件夹。通过媒体库页面的添加文件夹按钮添加；在此取消勾选即可移除。",
+  "SettingsHelpMusicLibraryFolders": "音乐库扫描的文件夹。通过媒体库页面的添加文件夹按钮添加；在此取消勾选即可移除。"
 }

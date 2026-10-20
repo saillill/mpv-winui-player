@@ -1402,5 +1402,12 @@
   "LibrarySelectionClear": "Clear",
   "LibrarySelectionPlay": "Play",
   "LibrarySelectionQueue": "Add to play queue",
-  "LibrarySelectionProperties": "Show in folder"
+  "LibrarySelectionProperties": "Show in folder",
+  "SectionLibraryFolders": "Library folders",
+  "SectionDescLibraryFolders": "The folders each library scans. Untick one to remove it from the library.",
+  "SettingsVideoLibraryFolders": "Video library folders",
+  "SettingsMusicLibraryFolders": "Music library folders",
+  "SettingsLibraryFoldersNone": "No folder is bound. Use the add-folder button on the library page.",
+  "SettingsHelpVideoLibraryFolders": "Folders the video library scans. Add one with the add-folder button on the library page; untick it here to remove it.",
+  "SettingsHelpMusicLibraryFolders": "Folders the music library scans. Add one with the add-folder button on the library page; untick it here to remove it."
 }
