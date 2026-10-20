@@ -43,6 +43,16 @@ Write-Host "==> Checking script-opts"
 & python "$root\tools\check-script-opts.py"
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+# An event the app subscribes to has to be raised by the native component. Two
+# real defects shipped with this shape: PlayerControl listened for
+# PlaybackFailed and MpvPlayerPage for VoConfigured, both renamed by c49b461.
+# The IDL kept the old names, so both subscriptions compiled and never fired --
+# one of them made the Error visual state unreachable. Static, so it runs here
+# rather than after the build.
+Write-Host "==> Checking WinRT events"
+& python "$root\tools\check-winrt-events.py"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 # Use the VS Build Tools MSBuild when available; otherwise fall back to PATH.
 $msbuild = 'C:\BuildTools\MSBuild\Current\Bin\MSBuild.exe'
 if (-not (Test-Path -LiteralPath $msbuild)) {

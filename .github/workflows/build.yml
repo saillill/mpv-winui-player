@@ -54,6 +54,14 @@ jobs:
       # when somebody remembered.
       run: python tools/gen-schema-options.py --check
 
+    - name: Check WinRT event wiring
+      # Two defects shipped with this shape: the app subscribed to
+      # PlaybackFailed and VoConfigured, both renamed by c49b461. The IDL kept
+      # the old names, so both compiled and never fired; one of them left the
+      # Error visual state unreachable. Source-only, so it runs before the
+      # native download.
+      run: python tools/check-winrt-events.py
+
     - name: Download native deps
       # Was: two curl downloads piped straight into Expand-Archive, with no
       # integrity check, feeding binaries that end up in a signed MSI. The

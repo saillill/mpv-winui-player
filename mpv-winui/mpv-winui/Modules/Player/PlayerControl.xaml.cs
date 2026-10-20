@@ -1135,7 +1135,13 @@ namespace mpv_winui.Modules.Player
 
             _mediaPlayer?.VolumeChanged += PlaybackSession_VolumeChanged;
 
-            _mediaPlayer?.Seeked += MediaPlayer_Seeked;
+            // No Seeked subscription: the component declares that event but has
+            // not raised it since c49b461 renamed the raise to
+            // m_seekStartedEvent. Subscribing was a no-op that read as a live
+            // handler -- the seek-finished state is already covered by
+            // PlaybackRestarted (PlaybackSession_SeekingEnded clears buffering
+            // and refreshes the UI). tools/check-winrt-events.py fails the build
+            // if this is ever re-added without a raise behind it.
 
             _mediaPlayer?.LoopFileChanged += MediaPlayer_RepeatStateChanged;
 
@@ -1166,8 +1172,6 @@ namespace mpv_winui.Modules.Player
             _mediaPlayer?.PlaybackRestarted -= PlaybackSession_SeekingEnded;
 
             _mediaPlayer?.VolumeChanged -= PlaybackSession_VolumeChanged;
-
-            _mediaPlayer?.Seeked -= MediaPlayer_Seeked;
 
             _mediaPlayer?.LoopFileChanged -= MediaPlayer_RepeatStateChanged;
 
@@ -1652,33 +1656,13 @@ namespace mpv_winui.Modules.Player
 
 
 
-        private void MediaPlayer_Seeked()
-
-        {
-
-            // Unreachable: the component declares Seeked and exposes its
-            // accessors, but nothing raises it. c49b461 turned the old
-            // m_seekedEvent() raise into m_seekStartedEvent() and left the
-            // declaration behind, so this handler has been dead since.
-            //
-            // Kept as a record of what it did rather than deleted outright,
-            // because the three statements are the "seek finished" side of a
-            // pair whose "seek started" half still fires: SeekingStarted sets
-            // the buffering flag, and PlaybackRestarted clears it and refreshes
-            // the UI. If Seeked is ever raised again, this is already correct.
-            DispatcherQueue.RunAsync(() =>
-
-            {
-
-                _isBuffering = false;
-
-                UpdatePlaybackStatusUI(true);
-
-                UpdateTimeTexts(MediaPlayer?.Position() ?? 0.0, MediaPlayer?.Duration() ?? 0.0);
-
-            });
-
-        }
+        // MediaPlayer_Seeked was here. It became unreachable when c49b461 renamed
+        // the native raise from m_seekedEvent to m_seekStartedEvent, and it was
+        // kept for one round "as a record of what it did" -- which was a mistake:
+        // a dead method is not documentation, and its presence suggested the
+        // seek-finished path was handled there when it is handled by
+        // PlaybackSession_SeekingEnded. Deleted, with the reasoning recorded in
+        // the subscription site above and in tools/check-winrt-events.py.
 
 
 
