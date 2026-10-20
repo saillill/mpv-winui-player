@@ -605,6 +605,11 @@ public static partial class MpvSettings
                     ? "override-display-fps="
                       + ((double)value).ToString(CultureInfo.InvariantCulture)
                     : null,
+
+            // No runtime command (see ToCommand), so this is the only producer.
+            // mpv.conf takes the integer as written; the option is a float with
+            // a 100..1000 range and an integer is a legal value for it.
+            nameof(AppSettings.VolumeMax) => "volume-max=" + (int)value,
             _ => null,
         };
     }
@@ -959,6 +964,11 @@ public static partial class MpvSettings
         nameof(AppSettings.GpuShaderCacheDir),
         nameof(AppSettings.DemuxerCacheDir),
         nameof(AppSettings.OverrideDisplayFps),
+        // volume-max: no runtime command (see ToCommand), written by
+        // ConfigOnlyConfLine instead. ConfigOnlyKeys is what keeps ApplyAll
+        // from trying to send it, and what tells check-conf-lines that this
+        // option is owned and formatted rather than silently dropped.
+        nameof(AppSettings.VolumeMax),
     };
 
     /// <summary>AppSettings keys applied after the first file loads.</summary>
