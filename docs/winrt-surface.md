@@ -79,9 +79,71 @@ m_seekedEvent          ->  m_seekStartedEvent
 - `PlayerControl` 订阅 `Seeked` → `MediaPlayer_Seeked` 是死代码。它的活由
   `SeekStarted` / `PlaybackRestarted` 那一对承担。处理体保留并注明不可达。
 
-## 四、仍然无人接收的 5 个（测量，未处理）
+## 四、曾经无人接收的 5 个
 
 `FileEnded`、`FileStopped`、`BufferingChanged`、`SwapChainChanged`、`LogMessage`。
+
+**`LogMessage` 已接入**，见下面第五节。它接上后第一次启动就报出了一条
+此前无人可见的错误，因此独立成节。
+
+其余四个（`FileEnded`、`FileStopped`、`BufferingChanged`、`SwapChainChanged`）
+仍然无人接收，且**刻意不接**：它们每个触发点只做一次
+`winrt::event<>::operator()` 对空集合的检查，没有参数构造，没有字符串转换。
+`FileEnded`/`FileStopped` 的语义由 `PlaybackStateChanged` 的 idle 边沿覆盖，
+`SwapChainChanged` 的职责已在 `222be73` 内化进 C++。接上它们只会增加一条
+没有消费者的代码路径。
+
+## 五、`LogMessage` 接上后立刻报出的东西
+
+`LogMessage` 是这五个里唯一有实际成本的：mpv 从 initialize 起就以 `warn`
+请求日志，每条都构造 `MpvLogEventArgs`（三次 `winrt::to_hstring`）并投进空集合。
+接上之后第一批输出：
+
+```
+[mpv/select]  script-opts: unknown key populate_menu_data, ignoring        x8
+[mpv/vo/gpu-next/d3d11] Failed to query swap chain's output information    x8
+[mpv/main]    Command 'no-osd set volume-max 100' not found.               x3
+[mpv/main]    Command 'no-osd set alang auto' not found.                   x1
+```
+
+### 5.1 `volume-max`（已修）
+
+`ToCommand` 为它发出运行时 `set`，而 mpv 每次拒绝。原因是 `volume-max` 是
+**仅当混音器活跃时**才存在的属性，`ao=wasapi` 下混音器归系统所有 —— mpv 自己的
+interface-changes 就写着 "volume-max is 100 while the mixer is not active"。
+
+没有任何东西依赖这条命令成功：音量滑块上限直接读
+`AppContext.AppSetting.VolumeMax`，引擎侧的值由 `mpv.conf` 的 `volume-max=100`
+在启动时给出。所以它的唯一效果是每次启动一条失败命令和一行错误。
+
+修法：`ToCommand` 对 `VolumeMax` 返回 `null`。选项仍留在 `MpvOptionNames` 里，
+所以设置行照常写进 mpv.conf、读回也照常解析；`ApplyMpv` 本来就把 `null` 命令
+当作"只持久化、不下发"。
+
+**实测验证**：修前三次启动三条错误，修后一次启动零条，而 mpv 日志转发仍在工作
+（日志里累计 20 行 `[mpv/`）—— 证明被消掉的是那条命令，不是转发本身。
+
+### 5.2 `alang auto`（**只记录，未改**）
+
+`MpvSettings.ToCommand` 发 `set alang auto`，mpv 回答 not found。链路是：
+`mpv.conf` 里 `alang = auto` → `LoadFromConfig` 读进
+`AppSettings.AudioLanguage` → `ToCommand` 原样发回 mpv。
+
+**为什么没有改**：我无法验证到底是哪里不对。三种可能各自都能解释这一条错误——
+
+1. `auto` 不是合法的语言代码（`alang` 是 `<lang>,<lang>` 列表），配置文件宽容、
+   命令接口严格；
+2. `alang` 的运行时写入形式不是 `set`；
+3. 该次启动的时序让 `alang` 落在一个尚未就绪的路径上。
+
+本机**没有独立的 `mpv.exe`**，唯一能跑 mpv 的是 `mpvw.exe`，而项目规则禁止
+驱动它（IPC、点击、UIA 都不行）。所以我不能做那个区分实验。凭其中一种猜测去改
+`ToCommand`，可能把 `slang`（同一形态、却**零报错**）一起改坏 —— 两者共用
+`IsNullOrWhiteSpace ? null : $"set ..."` 的写法，这个差异本身就是未解释的证据。
+
+**下一步需要的外部条件**：一个能跑 `--input-ipc-server` 的独立 mpv（或允许在
+本轮之外手工验证一次 `set alang auto` 与 `set alang eng`）。两者都不成立之前，
+把它留在文档里比改坏它更有价值。
 
 `FileEnded` 与 `FileStopped` 在 `MPV_EVENT_END_FILE` 里按 reason 分流触发，
 播放结束时进入空 handler 集合 —— 开销是一次 `winrt::event<>::operator()`
@@ -90,7 +152,7 @@ m_seekedEvent          ->  m_seekStartedEvent
 默认配置里就是开的。**这是这五个里唯一有实际成本的**，但接上它需要先决定
 这些日志往哪写。
 
-## 五、为什么不删 IDL
+## 六、为什么不删 IDL
 
 `mpv-winrt-projection` 带 `<PackageVersion>0.3.0-prerelease</PackageVersion>`、
 `<GeneratePackageOnBuild>true</GeneratePackageOnBuild>`、作者 `ikas`，是发布为
@@ -100,7 +162,7 @@ NuGet 包的可复用组件。IDL 是契约，删除事件是**对带版本号�
 `nuget.config` 指向 feed。也就是说这个包只在本地生成过 —— 但"仓库里没有发布路径"
 不等于"从未发布"，两者不是同一个论断。要动 IDL 需要这一点的外部确认。
 
-## 六、9 个类型未被 C# 引用
+## 七、9 个类型未被 C# 引用
 
 ```
 FileFailedEventArgs            MpvChapter        TrackType
@@ -113,7 +175,7 @@ TrackListCountChangedEventArgs
 `FileFailedEventArgs` 在本轮接入 `FileFailed` 后**已在用**，所以这一组现在应重新
 测量；其余 8 个仍然只是 IDL 的公开面。
 
-## 七、C++ 内部没有独立死代码（复核过）
+## 八、C++ 内部没有独立死代码（复核过）
 
 - `m_*Event` 成员由 `MPVWINRT_EVENT` 宏用 `m_##field##Event` 令牌拼接使用，
   按名搜索看不见 —— 第一版在这里报了 4 个假"未使用成员"
