@@ -41,7 +41,35 @@
 
 **响应式断点**：沿用 `NavigationView` 的 `CompactModeThresholdWidth` / `ExpandedModeThresholdWidth`，不自定义断点。主轴窗口当前值 `CompactModeThresholdWidth="760"`（`Shell/MainWindow.xaml:163`）。
 
-**待确认 A**：当前主窗口用 `MainWindow` 自绘侧栏，而非 `NavigationView` 折叠。是否改造为原生 `NavigationView`？改造会影响导航动画、返回栈和现有拖放逻辑，属于中等风险项。
+**A 项已核查：不存在需要改造的东西。**
+
+我最初的判断「主窗口自绘侧栏」是**错的**。实际读 `MainWindow.xaml:160` 后：
+
+```xml
+<NavigationView x:Name="ShellNav"
+                PaneDisplayMode="Auto"
+                CompactModeThresholdWidth="760"
+                ExpandedModeThresholdWidth="1120"
+                OpenPaneLength="{StaticResource MpvNavPaneWidth}"
+                CompactPaneLength="{StaticResource MpvNavPaneRailWidth}"
+                SelectionChanged="ShellNav_SelectionChanged">
+```
+
+- **原生 `NavigationView` 已在使用**，包括 `Auto` 显示模式与双断点
+- **原生 `NavigationViewItem` 已在使用**：`BuildShellNavigation()`（`MainWindow.xaml.cs:202`）创建
+  `NavigationViewItem` 与 `NavigationViewItemSeparator` 填入 `MenuItems`，带图标、本地化标题、
+  `Tag` 键与选中态恢复
+- **`NavigationView.PaneFooter`**（设置入口）与 **`NavigationView.Content`**（`ShellFrame`）都是原生结构
+- 面板里的 `NavigationViewDefaultPaneBackground` 等覆盖键，是 `NavigationView` **自己的**主题键，
+  不是自绘色板
+
+**我为什么会判错**：看到自绘的折叠按钮与标题栏装饰，就推断面板也是自绘的，没有读到
+`NavigationView` 元素本身。**你基于那个错误判断批准了一次并不存在的迁移。**
+
+现有文件里的偏差都各有注释说明理由：折叠按钮放在标题行、设置标签用 `Opacity` 而非 `Collapsed`
+（因为折叠会改变测量尺寸）、返回按钮收起。**这些是选择，不是缺少原生控件。**
+
+> **A 项结论：无需改造。** 这也意味着 `ConnectedAnimation`（E 项）不再被它阻塞。
 
 ### 1.2 间距
 
@@ -139,7 +167,36 @@
 1. 给现有 5 处 `Navigate` 补充 `NavigationTransitionInfo`（低风险）
 2. `ConnectedAnimation`（音乐库卡片 → 播放页封面）作为独立需求，需单独评估
 
-**待确认 E**：第 2 步是否纳入本次范围？
+**E 项已核查：本架构里没有可作用的场景，且要求的那项过渡已经装好了。**
+
+任务书把「0 处 `ConnectedAnimation`、0 处 `NavigationTransitionInfo`」列为两个缺口，你批准补上。
+但读导航实际发生的位置后，两个判断都不成立：
+
+```
+MainWindow.xaml:16
+  ShellFrame only ever hosts MpvPlayerPage. That is not a placeholder -
+  the video SwapChainPanel inside that page is bound to libmpv once, and
+  detaching it would break playback, so navigation between library views
+  happens inside the page rather than by navigating this frame.
+```
+
+全应用**只有一处 `Navigate`**，在启动时，**没有可以「从哪来」的源页面**。
+
+- `ConnectedAnimation` 的语义是**元素在两个页面之间**过渡
+- `NavigationTransitionInfo` 的语义是**页面进入 Frame**
+
+这里两样都没有作用对象，因为应用**刻意从不换页**——它在一个页面内切换分区，好让 `SwapChainPanel` 存活。
+
+而真正有意义的那项过渡**已经装了**：
+
+```xml
+MainWindow.xaml:486   <NavigationThemeTransition />   <!-- 挂在 Frame 上 -->
+```
+
+**所以 E 不是「未做」，是「不适用」。** 实现它等于加一个没有调用者的机制。
+
+> **E 项结论：不加。** 这与「不能凭错误判断删除活代码」是同一条原则的另一面——
+> 审查的职责是**对架构判断正确**，两个方向都算。
 
 ### 2.3 状态边界（跨页残留）
 
@@ -432,10 +489,10 @@ x(t) = 1 - e^(-ζωt) * (cos(ωd t) + (ζω / ωd) sin(ωd t))
 
 | 编号 | 你的选择 |
 |---|---|
-| A | 改造为原生 `NavigationView` |
+| A | ~~改造为原生 `NavigationView`~~ → **已核查：原生控件已在使用，无需改造** |
 | B | **B2** 严格执行 4/8/12/16/24/48 |
 | D | **D2 严格版**：底色与律动均改主题色 |
-| E | **纳入** `ConnectedAnimation` |
+| E | ~~纳入 `ConnectedAnimation`~~ → **已核查：本架构无适用场景，且 `NavigationThemeTransition` 已启用** |
 | H | **H2** 删除弹簧，改用 Fluent SoftLanding |
 | J | 迁移清理到 `OnNavigatedFrom` |
 
