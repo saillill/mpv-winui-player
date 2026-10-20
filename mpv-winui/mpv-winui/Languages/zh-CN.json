@@ -2233,5 +2233,11 @@
   "SettingsHelpPlayerStyle": "播放时状态栏的布局。标准即本窗口其余部分使用的那一条；居中把控件放到画面中央；紧凑收窄状态栏并去掉音量滑块。",
   "PlayerStyleDefault": "标准",
   "PlayerStyleCenter": "居中",
-  "PlayerStyleCompact": "紧凑"
+  "PlayerStyleCompact": "紧凑",
+  "LibraryCardSelect": "选择",
+  "LibrarySelectionCount": "已选择 {0} 项",
+  "LibrarySelectionClear": "清除",
+  "LibrarySelectionPlay": "播放",
+  "LibrarySelectionQueue": "加入播放队列",
+  "LibrarySelectionProperties": "在文件夹中显示"
 }

@@ -1396,5 +1396,11 @@
   "Window": "Fenster",
   "Yes": "Ja",
   "SectionPlayerAppearance": "Player-Darstellung",
-  "SectionDescPlayerAppearance": "Skin der Steuerleiste"
+  "SectionDescPlayerAppearance": "Skin der Steuerleiste",
+  "LibraryCardSelect": "Select",
+  "LibrarySelectionCount": "{0} selected",
+  "LibrarySelectionClear": "Clear",
+  "LibrarySelectionPlay": "Play",
+  "LibrarySelectionQueue": "Add to play queue",
+  "LibrarySelectionProperties": "Show in folder"
 }

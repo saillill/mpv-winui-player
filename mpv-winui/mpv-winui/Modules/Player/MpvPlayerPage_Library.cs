@@ -216,6 +216,7 @@ namespace mpv_winui.Modules.Player
             ApplyQueueStrings();
             ApplyVideoStrings();
             ApplyCardStrings();
+            ApplySelectionStrings();
             ApplyPlaylistPanelStrings();
         }
 
@@ -225,6 +226,27 @@ namespace mpv_winui.Modules.Player
         /// one place with a stable handle on its items - and because a language
         /// change has to reach them.
         /// </summary>
+        /// <summary>
+        /// The selection bar's labels.
+        ///
+        /// In code rather than in the markup because the bar is built once and the
+        /// language can change while it is open; a literal in XAML would need the page
+        /// reloaded to follow.
+        /// </summary>
+        private void ApplySelectionStrings()
+        {
+            var lang = AppContext.AppLang;
+
+            LibrarySelectionClearText.Text = lang.LibrarySelectionClear;
+            SelectionPlayText.Text = lang.LibrarySelectionPlay;
+            SelectionQueueText.Text = lang.LibrarySelectionQueue;
+            SelectionPropertiesText.Text = lang.LibrarySelectionProperties;
+
+            // The count string is a format with a {0}, so the bar is refreshed rather
+            // than assigned - the number is the point of the label.
+            UpdateSelectionBar();
+        }
+
         private void ApplyCardStrings()
         {
             var lang = AppContext.AppLang;
@@ -248,6 +270,7 @@ namespace mpv_winui.Modules.Player
                     "open-location" => lang.LibraryCardOpenLocation,
                     "copy-path" => lang.LibraryCardCopyPath,
                     "copy-title" => lang.LibraryCardCopyTitle,
+                    "select" => lang.LibraryCardSelect,
                     _ => menuItem.Text,
                 };
             }
@@ -1206,6 +1229,140 @@ namespace mpv_winui.Modules.Player
             });
         }
 
+        // ---------------------------------------------------------- selection mode
+
+        /// <summary>True while cards are being ticked.</summary>
+        private bool _selectionMode;
+
+        /// <summary>
+        /// Enters or leaves selection mode.
+        ///
+        /// The entries' own flag is what the tick boxes bind to, so both the flag and
+        /// the visible bar move together - a mode that was on while the bar was hidden
+        /// would leave ticks the user could not act on.
+        /// </summary>
+        /// <remarks>
+        /// Leaving clears every tick. The reference does the same, and keeping them would
+        /// mean a mode re-entered later started with a selection nobody could see, from a
+        /// list that may have changed shape in between.
+        /// </remarks>
+        private void SetSelectionMode(bool on)
+        {
+            if (_selectionMode == on)
+            {
+                return;
+            }
+
+            _selectionMode = on;
+
+            foreach (var entry in _visibleEntries)
+            {
+                entry.SetSelectionMode(on);
+
+                if (!on)
+                {
+                    entry.SetSelected(false);
+                }
+            }
+
+            UpdateSelectionBar();
+        }
+
+        /// <summary>
+        /// Refreshes the selection bar from the current ticks.
+        ///
+        /// Called after every toggle and after the mode changes, rather than from a
+        /// collection-changed handler: the ticks live on the entries, so there is no
+        /// collection to observe.
+        /// </summary>
+        private void UpdateSelectionBar()
+        {
+            var selected = _visibleEntries.Count(entry => entry.IsSelected);
+
+            LibrarySelectionBar.Visibility = _selectionMode && selected > 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            LibrarySelectionCount.Text = string.Format(
+                AppContext.AppLang.LibrarySelectionCount, selected);
+
+            // No ticks means nothing to act on: the buttons dim rather than vanish, so
+            // the bar does not resize under the pointer as the first card is ticked.
+            var hasSelection = selected > 0;
+
+            SelectionPlayButton.IsEnabled = hasSelection;
+            SelectionQueueButton.IsEnabled = hasSelection;
+            SelectionPropertiesButton.IsEnabled = selected == 1;
+        }
+
+        /// <summary>
+        /// Leaves selection mode and clears every tick.
+        ///
+        /// The reference's 清除 does both: the bar goes away and the cards stop showing
+        /// tick boxes. Unticking alone would leave the mode on with nothing selected - a
+        /// state the user had already asked to leave, still on, and reachable no other
+        /// way back out except through another card's menu.
+        ///
+        /// Escape is not wired here on purpose: this page forwards keystrokes to mpv
+        /// (MpvPlayerPage_InputForwarding), so an Escape handler would compete with the
+        /// player's own binding instead of sitting above it.
+        /// </summary>
+        private void SelectionClear_Click(object sender, RoutedEventArgs e) =>
+            SetSelectionMode(false);
+
+        /// <summary>Plays the first ticked file and queues the rest.</summary>
+        private void SelectionPlay_Click(object sender, RoutedEventArgs e)
+        {
+            var paths = _visibleEntries
+                .Where(entry => entry.IsSelected && !entry.IsMissing)
+                .Select(entry => entry.Path)
+                .ToList();
+
+            if (paths.Count == 0)
+            {
+                return;
+            }
+
+            PlayFiles(paths, OpenMode.Replace).FireAndForget(OnException);
+        }
+
+        /// <summary>Appends the ticked files to the queue without starting them.</summary>
+        private void SelectionQueue_Click(object sender, RoutedEventArgs e)
+        {
+            var paths = _visibleEntries
+                .Where(entry => entry.IsSelected && !entry.IsMissing)
+                .Select(entry => entry.Path)
+                .ToList();
+
+            if (paths.Count == 0)
+            {
+                return;
+            }
+
+            PlayFiles(paths, OpenMode.Append).FireAndForget(OnException);
+        }
+
+        /// <summary>
+        /// Opens the one ticked file's location in Explorer, with the file selected.
+        ///
+        /// The reference calls this "属性" and shows a real property sheet. This app has
+        /// no property sheet, and opening the containing folder with the file selected is
+        /// what its own "open file location" already does - a capability rather than a
+        /// stand-in. The button is enabled only for a single selection, which is the
+        /// same rule the reference applies.
+        /// </summary>
+        private void SelectionProperties_Click(object sender, RoutedEventArgs e)
+        {
+            var entry = _visibleEntries.FirstOrDefault(item => item.IsSelected);
+
+            if (entry is null)
+            {
+                return;
+            }
+
+            FileLauncher.ShellLaunchFileAsync(entry.Path).FireAndForget(OnException);
+        }
+
         /// <summary>
         /// Fills in album / artist / length for the music entries, in one batch.
         ///
@@ -1262,6 +1419,15 @@ namespace mpv_winui.Modules.Player
                     {
                         replaced.SetThumbnail(existing);
                     }
+
+                    // The tick is state on the ENTRY, so a rebuild that replaces the
+                    // entry would silently untick a card the user had just selected.
+                    // Outside the thumbnail check on purpose: selection must survive
+                    // whether or not a cover has decoded yet, and the thumbnail source
+                    // and the entry being replaced are different objects.
+                    replaced.SetSelected(entry.IsSelected);
+
+                    replaced.SetSelectionMode(_selectionMode);
 
                     _libraryAll[i] = replaced;
                 }
@@ -1783,6 +1949,18 @@ namespace mpv_winui.Modules.Player
                 return;
             }
 
+            // In selection mode a click ticks rather than plays: the card's tick box is
+            // an indicator, so the whole card is the hit target. Checked first, so a
+            // tick cannot be mistaken for a play request on the Albums tab.
+            if (_selectionMode)
+            {
+                entry.ToggleSelection();
+
+                UpdateSelectionBar();
+
+                return;
+            }
+
             // On the Albums tab a card stands for its album, not for one track:
             // clicking it opens the album, which is what the reference player does
             // and what makes the tab more than a differently-sorted list.
@@ -1905,17 +2083,23 @@ namespace mpv_winui.Modules.Player
         }
 
         /// <summary>
-        /// Fills the overlay's two labels from AppLang. Called as the card is
-        /// entered rather than from the template, which is shared and so cannot
-        /// carry a page-level string.
+        /// Names the overlay's two corner buttons for screen readers and tooltips.
+        ///
+        /// The buttons carry glyphs rather than words now - at 32px a label is not
+        /// legible and the reference uses bare icons - so the text exists only where it
+        /// is needed: the automation name and the tooltip.
+        ///
+        /// Called as the card is entered rather than from the template, which is shared
+        /// and so cannot carry a page-level string.
         /// </summary>
         private static void ApplyCardOverlayStrings(FrameworkElement card)
         {
             var lang = AppContext.AppLang;
 
-            if (FindDescendant(card, "CardPlayText") is TextBlock playText)
+            if (FindDescendant(card, "CardPlayButton") is Button playButton)
             {
-                playText.Text = lang.LibraryCardPlay;
+                AutomationProperties.SetName(playButton, lang.LibraryCardPlay);
+                ToolTipService.SetToolTip(playButton, lang.LibraryCardPlay);
             }
 
             if (FindDescendant(card, "CardMoreButton") is Button moreButton)
@@ -2028,6 +2212,16 @@ namespace mpv_winui.Modules.Player
                     // method.
                     _mediaPlayer.OpenAsync((FileItem[])[new FileItem(entry.Path)], OpenMode.Append)
                         .FireAndForget(OnException);
+                    break;
+                case "select":
+                    SetSelectionMode(true);
+
+                    // The card that opened the menu starts ticked: choosing "select"
+                    // on a specific card means that card, and starting with nothing
+                    // ticked makes the click look like it did nothing.
+                    entry.SetSelected(true);
+
+                    UpdateSelectionBar();
                     break;
                 case "open-location":
                     // Explorer with the file selected, which is what "open the

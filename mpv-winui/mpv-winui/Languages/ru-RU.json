@@ -1396,5 +1396,11 @@
   "Window": "Окно",
   "Yes": "Да",
   "SectionPlayerAppearance": "Внешний вид проигрывателя",
-  "SectionDescPlayerAppearance": "Оформление панели управления"
+  "SectionDescPlayerAppearance": "Оформление панели управления",
+  "LibraryCardSelect": "Select",
+  "LibrarySelectionCount": "{0} selected",
+  "LibrarySelectionClear": "Clear",
+  "LibrarySelectionPlay": "Play",
+  "LibrarySelectionQueue": "Add to play queue",
+  "LibrarySelectionProperties": "Show in folder"
 }

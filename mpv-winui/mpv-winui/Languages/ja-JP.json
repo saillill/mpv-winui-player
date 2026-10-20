@@ -1396,5 +1396,11 @@
   "Window": "ウィンドウ",
   "Yes": "はい",
   "SectionPlayerAppearance": "プレイヤーの外観",
-  "SectionDescPlayerAppearance": "コントロールバーのスキン"
+  "SectionDescPlayerAppearance": "コントロールバーのスキン",
+  "LibraryCardSelect": "Select",
+  "LibrarySelectionCount": "{0} selected",
+  "LibrarySelectionClear": "Clear",
+  "LibrarySelectionPlay": "Play",
+  "LibrarySelectionQueue": "Add to play queue",
+  "LibrarySelectionProperties": "Show in folder"
 }

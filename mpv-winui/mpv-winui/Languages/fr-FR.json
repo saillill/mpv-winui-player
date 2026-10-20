@@ -1396,5 +1396,11 @@
   "Window": "Fenêtre",
   "Yes": "Oui",
   "SectionPlayerAppearance": "Apparence du lecteur",
-  "SectionDescPlayerAppearance": "Habillage de la barre de contrôle"
+  "SectionDescPlayerAppearance": "Habillage de la barre de contrôle",
+  "LibraryCardSelect": "Select",
+  "LibrarySelectionCount": "{0} selected",
+  "LibrarySelectionClear": "Clear",
+  "LibrarySelectionPlay": "Play",
+  "LibrarySelectionQueue": "Add to play queue",
+  "LibrarySelectionProperties": "Show in folder"
 }

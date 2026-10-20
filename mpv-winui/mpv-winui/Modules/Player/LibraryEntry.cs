@@ -20,7 +20,7 @@ namespace mpv_winui.Modules.Player
     /// none, and the first thing anyone asked on seeing them was why the music
     /// and video libraries were blank.
     /// </summary>
-    public sealed class LibraryEntry : INotifyPropertyChanged
+    public sealed partial class LibraryEntry : INotifyPropertyChanged
     {
         /// <summary>Absolute path, and the identity of the card.</summary>
         public string Path { get; init; } = string.Empty;
@@ -191,6 +191,21 @@ namespace mpv_winui.Modules.Player
 
         private void Raise([CallerMemberName] string? name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        /// <summary>
+        /// Announces a property from the selection half.
+        ///
+        /// The selection file is a separate partial of this class, and `Raise` is
+        /// private to this one - a partial class shares its members, so this exists only
+        /// to keep the selection file readable rather than to bridge anything.
+        /// </summary>
+        internal void RaiseSelectionChanged(string name) => Raise(name);
+
+        /// <summary>Called by the page when selection mode turns on or off.</summary>
+        internal void SetSelectionMode(bool on) => SelectionMode = on;
+
+        /// <summary>Called by the page when a card is ticked or unticked.</summary>
+        internal void SetSelected(bool selected) => IsSelected = selected;
 
         /// <summary>
         /// Builds a card from a history entry, or null when the entry has no

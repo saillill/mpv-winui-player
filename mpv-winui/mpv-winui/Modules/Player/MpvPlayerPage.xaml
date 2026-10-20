@@ -198,35 +198,73 @@
                                      the card behind it, so clicking the
                                      thumbnail would do nothing. The two buttons
                                      keep their own hit test. -->
+                                <!-- The scrim. Not hit-testable: it is a backdrop, and
+                                     a backdrop with a background would swallow the click
+                                     that should reach the card behind it. -->
                                 <Border
-                                    Background="#66000000"
+                                    Background="#59000000"
                                     CornerRadius="4"
                                     IsHitTestVisible="False" />
-                                <StackPanel
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Orientation="Horizontal"
-                                    Spacing="{StaticResource MpvSpaceM}">
-                                    <Button
-                                        x:Name="CardPlayButton"
-                                        Click="CardPlay_Click"
-                                        PointerPressed="CardOverlayButton_PointerPressed">
-                                        <StackPanel
-                                            Orientation="Horizontal"
-                                            Spacing="{StaticResource MpvSpaceS}">
-                                            <FontIcon FontSize="16" Glyph="&#xE768;" />
-                                            <TextBlock
-                                                x:Name="CardPlayText"
-                                                VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button
-                                        x:Name="CardMoreButton"
-                                        Click="CardMore_Click"
-                                        PointerPressed="CardOverlayButton_PointerPressed">
-                                        <SymbolIcon Symbol="More" />
-                                    </Button>
-                                </StackPanel>
+
+                                <!-- Play at the lower-left, the overflow at the
+                                     lower-right, both as circles. The reference puts
+                                     them in the corners so they do not sit on the
+                                     thumbnail's subject, and drops the text labels -
+                                     at 32px a glyph is unambiguous and a word is not
+                                     legible. -->
+                                <Button
+                                    x:Name="CardPlayButton"
+                                    Width="32"
+                                    Height="32"
+                                    Margin="8"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Bottom"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    BorderThickness="0"
+                                    CornerRadius="16"
+                                    Click="CardPlay_Click"
+                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    <FontIcon
+                                        FontSize="14"
+                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                        Glyph="&#xE768;" />
+                                </Button>
+
+                                <Button
+                                    x:Name="CardMoreButton"
+                                    Width="32"
+                                    Height="32"
+                                    Margin="8"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    BorderThickness="0"
+                                    CornerRadius="16"
+                                    Click="CardMore_Click"
+                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                </Button>
+
+                                <!-- The tick box, upper-left. Shown only in selection
+                                     mode, which the entry carries - a box on every card
+                                     outside the mode would read as a bulk-edit screen.
+                                     The whole card toggles it while the mode is on (see
+                                     LibraryCard_Click), so the box is an indicator
+                                     rather than a second hit target. -->
+                                <Border
+                                    x:Name="CardSelectionBox"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="8"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    CornerRadius="4"
+                                    Visibility="{x:Bind SelectionVisibility, Mode=OneWay}">
+                                    <FontIcon
+                                        FontSize="12"
+                                        Glyph="{x:Bind SelectionGlyph, Mode=OneWay}" />
+                                </Border>
                             </Grid>
                         </Grid>
                     </Border>
@@ -321,6 +359,16 @@
                 Tag="copy-title">
                 <MenuFlyoutItem.Icon>
                     <SymbolIcon Symbol="Copy" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <!-- Enters selection mode. The reference puts it last in the card menu,
+                 which is also where this one ends. -->
+            <MenuFlyoutItem
+                Click="CardMenu_Click"
+                Tag="select">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE73A;" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
         </MenuFlyout>
@@ -1042,6 +1090,102 @@
                         </Grid>
                     </StackPanel>
                 </StackPanel>
+
+                <!-- The selection bar. Hidden until something is ticked: the
+                     reference reserves no space for it, and a permanently empty row
+                     would push the grid down for a state most visits never enter.
+
+                     The count and 清除 sit left, the actions right, and play is the
+                     accent button - the same emphasis the reference gives it. -->
+                <Border
+                    x:Name="LibrarySelectionBar"
+                    Grid.Row="1"
+                    Margin="48,0,48,8"
+                    Padding="16,8"
+                    VerticalAlignment="Top"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Visibility="Collapsed">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <FontIcon
+                                FontSize="14"
+                                Glyph="&#xE73E;"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock
+                                x:Name="LibrarySelectionCount"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BodyTextBlockStyle}" />
+                            <Button
+                                Padding="4,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="SelectionClear_Click">
+                                <TextBlock
+                                    x:Name="LibrarySelectionClearText"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Style="{StaticResource CaptionTextBlockStyle}" />
+                            </Button>
+                        </StackPanel>
+
+                        <StackPanel
+                            Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                x:Name="SelectionPlayButton"
+                                Padding="16,6"
+                                Click="SelectionPlay_Click"
+                                Style="{StaticResource AccentButtonStyle}">
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE768;" />
+                                    <TextBlock
+                                        x:Name="SelectionPlayText"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                x:Name="SelectionQueueButton"
+                                Padding="16,6"
+                                Click="SelectionQueue_Click">
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE710;" />
+                                    <TextBlock
+                                        x:Name="SelectionQueueText"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                x:Name="SelectionPropertiesButton"
+                                Padding="16,6"
+                                Click="SelectionProperties_Click">
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE946;" />
+                                    <TextBlock
+                                        x:Name="SelectionPropertiesText"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
 
                 <ScrollViewer
                     x:Name="LibraryScroll"

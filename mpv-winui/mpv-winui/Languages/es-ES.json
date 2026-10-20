@@ -1396,5 +1396,11 @@
   "Window": "Ventana",
   "Yes": "Sí",
   "SectionPlayerAppearance": "Aspecto del reproductor",
-  "SectionDescPlayerAppearance": "Estilo de la barra de control"
+  "SectionDescPlayerAppearance": "Estilo de la barra de control",
+  "LibraryCardSelect": "Select",
+  "LibrarySelectionCount": "{0} selected",
+  "LibrarySelectionClear": "Clear",
+  "LibrarySelectionPlay": "Play",
+  "LibrarySelectionQueue": "Add to play queue",
+  "LibrarySelectionProperties": "Show in folder"
 }

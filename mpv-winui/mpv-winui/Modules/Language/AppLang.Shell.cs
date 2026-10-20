@@ -117,6 +117,26 @@ namespace mpv_winui.Modules.Language
 
         public string LibraryCardCopyTitle { get; set; } = "Copy title";
 
+        // ---- selection ----------------------------------------------------
+
+        /// <summary>The card menu's entry into selection mode.</summary>
+        public string LibraryCardSelect { get; set; } = "Select";
+
+        /// <summary>"{0} selected" - the count on the selection bar.</summary>
+        public string LibrarySelectionCount { get; set; } = "{0} selected";
+
+        /// <summary>Clears the ticks and leaves selection mode.</summary>
+        public string LibrarySelectionClear { get; set; } = "Clear";
+
+        /// <summary>Plays the ticked files.</summary>
+        public string LibrarySelectionPlay { get; set; } = "Play";
+
+        /// <summary>Appends the ticked files to the play queue.</summary>
+        public string LibrarySelectionQueue { get; set; } = "Add to play queue";
+
+        /// <summary>Shows the one ticked file in Explorer.</summary>
+        public string LibrarySelectionProperties { get; set; } = "Show in folder";
+
         public string LibraryEmptyHomeTitle { get; set; } = "No recent media";
 
         public string LibraryEmptyHomeDescription { get; set; } = "Media you play shows up here.";

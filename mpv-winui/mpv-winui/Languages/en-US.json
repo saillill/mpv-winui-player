@@ -1487,5 +1487,11 @@
   "SettingsHelpPlayerStyle": "The transport bar's layout while a file is playing. Standard is the bar the rest of this window uses; Centre puts the controls in the middle of the picture; Compact narrows the bar and drops the volume slider.",
   "PlayerStyleDefault": "Standard",
   "PlayerStyleCenter": "Centre",
-  "PlayerStyleCompact": "Compact"
+  "PlayerStyleCompact": "Compact",
+  "LibraryCardSelect": "Select",
+  "LibrarySelectionCount": "{0} selected",
+  "LibrarySelectionClear": "Clear",
+  "LibrarySelectionPlay": "Play",
+  "LibrarySelectionQueue": "Add to play queue",
+  "LibrarySelectionProperties": "Show in folder"
 }

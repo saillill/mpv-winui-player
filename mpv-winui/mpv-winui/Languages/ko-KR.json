@@ -1396,5 +1396,11 @@
   "Window": "창",
   "Yes": "예",
   "SectionPlayerAppearance": "플레이어 모양",
-  "SectionDescPlayerAppearance": "컨트롤 바 스킨"
+  "SectionDescPlayerAppearance": "컨트롤 바 스킨",
+  "LibraryCardSelect": "Select",
+  "LibrarySelectionCount": "{0} selected",
+  "LibrarySelectionClear": "Clear",
+  "LibrarySelectionPlay": "Play",
+  "LibrarySelectionQueue": "Add to play queue",
+  "LibrarySelectionProperties": "Show in folder"
 }

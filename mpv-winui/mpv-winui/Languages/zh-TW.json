@@ -1389,5 +1389,11 @@
   "Window": "視窗",
   "Yes": "是",
   "SectionPlayerAppearance": "播放器外觀",
-  "SectionDescPlayerAppearance": "狀態列面板樣式"
+  "SectionDescPlayerAppearance": "狀態列面板樣式",
+  "LibraryCardSelect": "Select",
+  "LibrarySelectionCount": "已選 {0} 項",
+  "LibrarySelectionClear": "Clear",
+  "LibrarySelectionPlay": "Play",
+  "LibrarySelectionQueue": "Add to play queue",
+  "LibrarySelectionProperties": "Show in folder"
 }
