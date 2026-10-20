@@ -93,6 +93,11 @@ namespace mpv_winui.Modules.Player
 
         private async void MpvPlayerPage_Loaded(object sender, RoutedEventArgs e)
         {
+            // A new arrival means a new departure to guard against. Without this the flag stays
+            // latched after the first teardown and the second Unloaded returns early - while the
+            // subscriptions below are re-established, so they would never be released again.
+            _tornDown = false;
+
             if (_task is { } task)
             {
                 try
@@ -200,8 +205,36 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void MpvPlayerPage_Unloaded(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// True once the page has torn itself down. Guards <see cref="TeardownPage"/>.
+        /// </summary>
+        private bool _tornDown;
+
+        /// <summary>
+        /// Tears the page down exactly once, whichever event gets here first.
+        ///
+        /// NavigationCacheMode is Disabled, so a navigation destroys this page and BOTH
+        /// OnNavigatedFrom and Unloaded fire. The body ends with `_mediaPlayer.Destroy()`, and
+        /// running that twice is a crash rather than a leak - which is why the migration to
+        /// OnNavigatedFrom could not be a copy.
+        ///
+        /// OnNavigatedFrom is the primary because it is the navigation-correct event and because
+        /// it runs while the visual tree is still attached: TeardownPlayerView and
+        /// CleanupPlayControl reach for named elements, and Unloaded runs after detach, which is
+        /// where those calls are most fragile.
+        ///
+        /// Unloaded is kept as the fallback for a page that is unloaded without a navigation -
+        /// the window closing, or the element being reparented - where OnNavigatedFrom never runs.
+        /// </summary>
+        private void TeardownPage()
         {
+            if (_tornDown)
+            {
+                return;
+            }
+
+            _tornDown = true;
+
             AppContext.RunMpvCommand = null;
             AppContext.SetMpvLogLevel = null;
             AppContext.GetAudioDevices = null;
@@ -228,6 +261,8 @@ namespace mpv_winui.Modules.Player
             CleanupPlayControl();
             _mediaPlayer.Destroy();
         }
+
+        private void MpvPlayerPage_Unloaded(object sender, RoutedEventArgs e) => TeardownPage();
 
         private void MpvPlayerPage_ApplyHdrModeOnce()
         {
@@ -533,8 +568,18 @@ namespace mpv_winui.Modules.Player
 
         private long _lastExceptionNotifyTicks;
 
+        /// <summary>
+        /// Teardown on the navigation-correct event; see <see cref="TeardownPage"/>.
+        ///
+        /// The body used to live in Unloaded with this override empty. Unloaded happens to fire
+        /// on navigation today only because the page is not cached, so the teardown was tied to a
+        /// coincidence rather than to the intent.
+        /// </summary>
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            base.OnNavigatedFrom(e);
+
+            TeardownPage();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
