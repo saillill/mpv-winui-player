@@ -6,8 +6,8 @@ Why generate instead of hand-write
 ----------------------------------
 `SettingsPage.Options.*.cs` holds 317 hand-written rows. The bundled schema
 (`MpvConfOptions/mpv-options.json`, produced by `mpv --list-options`) has
-820 entries, of which 264 are already wired up -- leaving 548 with no row
-and no AppSettings property. Hand-writing 548 rows x (property + command
+820 entries, of which 458 are already wired up -- leaving 362 with no row
+and no AppSettings property. Hand-writing 362 rows x (property + command
 case + name map entry + Option literal) is roughly 12k lines of largely
 mechanical code that would drift from the schema on the next mpv bump.
 
@@ -15,9 +15,9 @@ So the schema drives it:
 
     mpv-options.json
         |
-        +-- AppSettings.Gen.cs        548 properties, typed from `values`
-        +-- MpvSettings.Gen.cs        548 name-map entries + value grammar
-        +-- SettingsPage.Options.Gen.cs  548 Option literals
+        +-- AppSettings.Gen.cs        362 properties, typed from `values`
+        +-- MpvSettings.Gen.cs        362 name-map entries + value grammar
+        +-- SettingsPage.Options.Gen.cs  362 Option literals
         +-- MpvConfOptions/schema-labels.en.json  label + description text
 
 Every generated file carries a "do not edit" banner and is rewritten whole,
@@ -492,7 +492,7 @@ def _as_str(raw) -> str:
 #
 # The generator's only other filters are "deprecated" and "already covered by a
 # hand-written row", which between them let the whole of mpv's option table
-# through. That is where the settings tree's bulk came from: 548 of its rows were
+# through. That is where the settings tree's bulk came from: 362 of its rows were
 # the manual, transcribed. Every option here is still reachable by writing it into
 # mpv.conf -- which the page documents, and which wins over anything the window
 # sets (docs/mpv-conf-precedence.md) -- so a row is not capability, it is an

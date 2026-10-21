@@ -37,17 +37,17 @@ def parse_applang_props_all() -> set[str]:
     AppLang is spread over three files and the check used to read one of them:
 
       * AppLang.cs               -- the hand-written vocabulary
-      * AppLang.Gen.cs           -- the 1098 SchemaLabel_*/SchemaDesc_* the
-                                    generator emits for the 548 schema rows
+      * AppLang.Gen.cs           -- the 724 SchemaLabel_*/SchemaDesc_* the
+                                    generator emits for the 362 schema rows
       * AppLang.Sections.Gen.cs  -- the generated section captions and
                                     descriptions (SectionGen*/SectionDescGen*)
 
     Reading only the first had two opposite effects, and both looked like real
-    findings. The 1098 generated properties were reported as "extra keys" --
+    findings. The 724 generated properties were reported as "extra keys" --
     language-file entries no AppLang property claims -- which is backwards. The
     26 `SectionGen*` keys were reported the same way for the same reason. And
     underneath that noise the actual defect was invisible: all nine language
-    files are missing every one of the 1098 generated keys.
+    files are missing every one of the 724 generated keys.
 
     Globbed rather than listed, so a fourth partial cannot reintroduce the bug.
 
@@ -70,9 +70,9 @@ def _summarise(keys) -> str:
     A family is the leading CamelCase word -- matched lazily up to the next
     capital, which is what keeps `CustomizeAddCategoryOption` from collapsing to
     its whole self and `SchemaLabel_Mpv_ad` from doing the same. Without this, a
-    systematic gap (1098 keys) and an incidental one (6 keys) look the same on
+    systematic gap (724 keys) and an incidental one (6 keys) look the same on
     the console: an unreadable wall that people learn to scroll past, which is
-    how the 1098 stayed invisible for a week.
+    how the 724 stayed invisible for a week.
     """
     counts: dict[str, int] = {}
     for key in keys:
@@ -196,8 +196,8 @@ def main() -> int:
         missing = props - keys
         extra = keys - props
         if missing:
-            # Summarise by family when the gap is systematic. A list of 1098
-            # names tells you nothing; "548x SchemaLabel_*, 548x SchemaDesc_*"
+            # Summarise by family when the gap is systematic. A list of 724
+            # names tells you nothing; "362x SchemaLabel_*, 362x SchemaDesc_*"
             # tells you the generated layer was never translated, which is the
             # actual state. Families are the leading CamelCase word followed by
             # "_", so SchemaLabel_Mpv_x -> SchemaLabel_*.

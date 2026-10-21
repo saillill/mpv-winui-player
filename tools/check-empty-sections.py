@@ -55,7 +55,7 @@ def generated_sections() -> dict[str, int]:
     sectionMap literal in SettingsPage.Options.cs and nothing else, so the 13
     sections the generator registers were invisible and every one of them was
     reported as EMPTY -- "in catalog, no option files under it". They are in
-    fact the *only* sections the 548 generated rows use, so the report was
+    fact the *only* sections the 362 generated rows use, so the report was
     exactly inverted: the sections holding over half the tree were the ones
     being called empty.
 

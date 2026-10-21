@@ -203,7 +203,7 @@ the orientation, not a substitute.
   `optionOrder`, plus `categoryOrder`. A row with no `sectionMap` entry makes
   `BuildSettings` throw on open (fail-loud, deliberately).
 - **The tree has two halves.** Hand-written rows live in the `Options.*.cs`
-  partials; 548 schema-generated rows live in `SettingsPage.Options.Gen.cs`
+  partials; 362 schema-generated rows live in `SettingsPage.Options.Gen.cs`
   (`tools/gen-schema-options.py`). Edit the generator or `MpvConfOptions/mpv-options.json`,
   never a `.Gen.` file — the next run overwrites it. Anything that enumerates
   options, sections or mpv names must read **both** halves; six checkers did not,

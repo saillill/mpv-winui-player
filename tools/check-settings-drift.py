@@ -45,11 +45,11 @@ def parse_mpvsettings_cases(src: Path) -> set[str]:
     mapped = set(re.findall(r'nameof\(AppSettings\.(\w+)\)\s*=>', text))
 
     # The schema-generated rows are mapped through one `_ => GeneratedCommand`
-    # arm plus a name-map dictionary, not through a case each: 549 arms would
-    # be 549 lines of switch that the generator cannot refresh. The mapping is
+    # arm plus a name-map dictionary, not through a case each: 362 arms would
+    # be 362 lines of switch that the generator cannot refresh. The mapping is
     # real all the same -- GeneratedCommand builds "set <name> <literal>" from
     # the dictionary entry -- so the dictionary keys are read here as if they
-    # were cases. Missing this is how the check reported all 549 as unmapped.
+    # were cases. Missing this is how the check reported all 362 as unmapped.
     gen = src.parent / "MpvSettings.Gen.cs"
     if gen.exists():
         gen_text = gen.read_text(encoding="utf-8-sig")

@@ -260,7 +260,7 @@ def load_exposed() -> set[str]:
     """Every mpv option the settings window can set, from BOTH halves.
 
     The window's rows come from two places: the hand-written option files, whose
-    mpv names live in MpvSettings.cs, and the 548 schema-generated rows, whose
+    mpv names live in MpvSettings.cs, and the 362 schema-generated rows, whose
     mpv names live in MpvSettings.Gen.cs (the `GeneratedOptionNames` map, read by
     GeneratedCommand at runtime). They are one tree at runtime and have to be one
     set here.
@@ -315,7 +315,7 @@ def write_markdown(opts, exposed, by_reason, curated, shipped=(), path="docs/mis
         f"  - 其中**不建议暴露**：**{sum(by_reason.values())}** 条（理由见下）",
         f"  - 其中**建议补充**：**{len(curated)}** 条",
         "",
-        "> 「已暴露」同时统计手写行与 `MpvSettings.Gen.cs` 里 schema 生成的 548 行。",
+        "> 「已暴露」同时统计手写行与 `MpvSettings.Gen.cs` 里 schema 生成的 362 行。",
         "> 早先只统计手写那一半，于是本文件长期声称 266 条已暴露 / 550 条未暴露；",
         "> 真实数字是 **%d / %d**。如果某条你记得「应该还没做」，先看下面第二节。"
         % (len(exposed), sum(by_reason.values()) + len(curated)),

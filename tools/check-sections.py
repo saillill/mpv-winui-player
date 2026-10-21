@@ -156,11 +156,11 @@ def option_blocks(text):
 
     Brace matching, not a line regex. The regex this replaced required the
     closing `},` to start its own line, which the generator's output never does:
-    SettingsPage.Options.Gen.cs closes all 549 of its blocks with `});` at the
+    SettingsPage.Options.Gen.cs closes all 362 of its blocks with `});` at the
     end of the last property line, so the pattern matched ZERO of them. The
     option keys therefore came out 322 short, and every generated key was then
     reported by the reverse check below as a sectionMap entry "naming no built
-    option" -- 549 false warnings that buried the one genuine stale key
+    option" -- 362 false warnings that buried the one genuine stale key
     (ControlBarHiddenIcons, since removed).
 
     Matching braces cannot be fooled by how the block is closed. It also stops
@@ -200,9 +200,9 @@ def option_keys():
     version of this script only understood nameof(...) and reported two live
     options as orphans.
 
-    The hand-written half and the generated half both have to be read: the 548
+    The hand-written half and the generated half both have to be read: the 362
     schema rows are real rows on the same list, and a check that knew only about
-    the hand-written half would report all 548 of their sectionMap entries as
+    the hand-written half would report all 362 of their sectionMap entries as
     dead. See option_blocks() for the failure that actually happened here.
 
     Shortcut:N keys are generated at runtime from input.conf and have no
@@ -254,7 +254,7 @@ def section_map_keys():
     instead of appearing inline, so the literal scan below cannot see them.
     Their entries are read from SettingsPage.Sections.Gen.cs and unioned in:
     the two halves are one map at runtime, and a check that only knew about
-    the hand-written half would report all 549 generated keys as unmapped.
+    the hand-written half would report all 362 generated keys as unmapped.
     """
     text = CORE_OPTIONS.read_text(encoding="utf-8-sig")
     parts = text.split("var sectionMap = new Dictionary<string, string>", 1)
