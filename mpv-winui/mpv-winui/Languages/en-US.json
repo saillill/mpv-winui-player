@@ -550,7 +550,6 @@
   "SectionDescGenGeneralScripting": "Script loading, config files and the command-line pipeline",
   "SectionDescGenOsd": "Osd options",
   "SectionDescGenPlayerWindow": "Player Window options",
-  "SectionDescGenStreaming": "Streaming options",
   "SectionDescGenSubtitles": "Subtitles options",
   "SectionDescGenTracks": "Tracks options",
   "SectionDescGpuBackground": "Background color",
@@ -599,7 +598,6 @@
   "SectionGenGeneralScripting": "Scripts and config plumbing",
   "SectionGenOsd": "Osd",
   "SectionGenPlayerWindow": "Player Window",
-  "SectionGenStreaming": "Streaming",
   "SectionGenSubtitles": "Subtitles",
   "SectionGenTracks": "Tracks",
   "SectionGpuBackground": "Background",
@@ -1520,5 +1518,11 @@
   "MenuToggleFullScreen": "Full screen",
   "MenuToggleFullWindow": "Full window",
   "MenuTogglePlaylist": "Playlist",
+  "SectionDescGenStreamCache": "How far ahead to read, how much cache to keep, and what to do while buffering",
+  "SectionDescGenStreamDemuxer": "Container probing, raw stream parameters and Matroska compatibility switches - normally only needed when a file plays wrong",
+  "SectionDescGenStreamNetwork": "HTTP/TLS, cookies, yt-dlp and network streams",
+  "SectionGenStreamCache": "Cache & read-ahead",
+  "SectionGenStreamDemuxer": "Demuxer details",
+  "SectionGenStreamNetwork": "Network & streaming",
   "SettingsHelpMusicLibraryFolders": "Folders the music library scans. Add one with the add-folder button on the library page; untick it here to remove it."
 }

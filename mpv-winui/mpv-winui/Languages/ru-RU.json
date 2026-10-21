@@ -514,7 +514,6 @@
   "SectionDescGenGeneralScripting": "Script loading, config files and the command-line pipeline",
   "SectionDescGenOsd": "Osd options",
   "SectionDescGenPlayerWindow": "Player Window options",
-  "SectionDescGenStreaming": "Streaming options",
   "SectionDescGenSubtitles": "Subtitles options",
   "SectionDescGenTracks": "Tracks options",
   "SectionDescGpuBackground": "Цвет фона",
@@ -563,7 +562,6 @@
   "SectionGenGeneralScripting": "Scripts and config plumbing",
   "SectionGenOsd": "Osd",
   "SectionGenPlayerWindow": "Player Window",
-  "SectionGenStreaming": "Streaming",
   "SectionGenSubtitles": "Subtitles",
   "SectionGenTracks": "Tracks",
   "SectionGpuBackground": "Фон",
@@ -1520,5 +1518,11 @@
   "MenuToggleFullScreen": "Полный экран",
   "MenuToggleFullWindow": "Во всё окно",
   "MenuTogglePlaylist": "Список воспроизведения",
+  "SectionDescGenStreamCache": "Насколько читать вперёд, сколько держать в кэше и что делать при буферизации",
+  "SectionDescGenStreamDemuxer": "Определение контейнера, параметры необработанных потоков и переключатели совместимости Matroska — обычно нужны только при неправильном воспроизведении файла",
+  "SectionDescGenStreamNetwork": "HTTP/TLS, cookies, yt-dlp и сетевые потоки",
+  "SectionGenStreamCache": "Кэш и упреждающее чтение",
+  "SectionGenStreamDemuxer": "Детали демультиплексора",
+  "SectionGenStreamNetwork": "Сеть и потоковое видео",
   "PlayerStyleCompact": "Компактная"
 }

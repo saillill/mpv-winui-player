@@ -514,7 +514,6 @@
   "SectionDescGenGeneralScripting": "脚本加载、配置文件与命令行管道",
   "SectionDescGenOsd": "全部 OSD 相关选项",
   "SectionDescGenPlayerWindow": "播放器行为与窗口的全部选项",
-  "SectionDescGenStreaming": "网络、缓存、解复用等全部选项",
   "SectionDescGenSubtitles": "全部字幕相关选项",
   "SectionDescGenTracks": "音视频轨道选择的全部选项",
   "SectionDescGpuBackground": "背景顏色",
@@ -563,7 +562,6 @@
   "SectionGenGeneralScripting": "脚本与配置管线",
   "SectionGenOsd": "OSD 选项",
   "SectionGenPlayerWindow": "播放器与窗口选项",
-  "SectionGenStreaming": "流媒体与缓存选项",
   "SectionGenSubtitles": "字幕选项",
   "SectionGenTracks": "轨道选项",
   "SectionGpuBackground": "背景",
@@ -1520,5 +1518,11 @@
   "MenuToggleFullScreen": "全螢幕",
   "MenuToggleFullWindow": "視窗全螢幕",
   "MenuTogglePlaylist": "播放清單",
+  "SectionDescGenStreamCache": "讀到什麼程度、快取多大、卡頓時先攢多少",
+  "SectionDescGenStreamDemuxer": "容器探測、裸流參數與 mkv 相容開關，通常只在檔案播放異常時才需要",
+  "SectionDescGenStreamNetwork": "HTTP/TLS、cookies、yt-dlp 與網路串流",
+  "SectionGenStreamCache": "快取與預讀",
+  "SectionGenStreamDemuxer": "解封裝細節",
+  "SectionGenStreamNetwork": "網路與串流",
   "PlayerStyleCompact": "精簡"
 }

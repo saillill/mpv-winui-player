@@ -514,7 +514,6 @@
   "SectionDescGenGeneralScripting": "Script loading, config files and the command-line pipeline",
   "SectionDescGenOsd": "Osd options",
   "SectionDescGenPlayerWindow": "Player Window options",
-  "SectionDescGenStreaming": "Streaming options",
   "SectionDescGenSubtitles": "Subtitles options",
   "SectionDescGenTracks": "Tracks options",
   "SectionDescGpuBackground": "Hintergrundfarbe",
@@ -563,7 +562,6 @@
   "SectionGenGeneralScripting": "Scripts and config plumbing",
   "SectionGenOsd": "Osd",
   "SectionGenPlayerWindow": "Player Window",
-  "SectionGenStreaming": "Streaming",
   "SectionGenSubtitles": "Subtitles",
   "SectionGenTracks": "Tracks",
   "SectionGpuBackground": "Hintergrund",
@@ -1520,5 +1518,11 @@
   "MenuToggleFullScreen": "Vollbild",
   "MenuToggleFullWindow": "Fenster ausfüllen",
   "MenuTogglePlaylist": "Wiedergabeliste",
+  "SectionDescGenStreamCache": "Wie weit vorausgelesen wird, wie viel Cache bleibt und was beim Puffern geschieht",
+  "SectionDescGenStreamDemuxer": "Container-Erkennung, Rohstream-Parameter und Matroska-Kompatibilitätsschalter - normalerweise nur nötig, wenn eine Datei falsch wiedergegeben wird",
+  "SectionDescGenStreamNetwork": "HTTP/TLS, Cookies, yt-dlp und Netzwerk-Streams",
+  "SectionGenStreamCache": "Cache & Vorauslesen",
+  "SectionGenStreamDemuxer": "Demuxer-Details",
+  "SectionGenStreamNetwork": "Netzwerk & Streaming",
   "PlayerStyleCompact": "Kompakt"
 }

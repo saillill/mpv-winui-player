@@ -147,7 +147,14 @@ internal static class SettingsSections
         new("SectionGenSubtitles", "\uE703", l => l.SectionGenSubtitles, l => l.SectionDescGenSubtitles),
         new("SectionGenOsd", "\uE704", l => l.SectionGenOsd, l => l.SectionDescGenOsd),
         new("SectionGenAudio", "\uE705", l => l.SectionGenAudio, l => l.SectionDescGenAudio),
-        new("SectionGenStreaming", "\uE707", l => l.SectionGenStreaming, l => l.SectionDescGenStreaming),
+        // "Streaming & cache" was one 50-row folder doing three unrelated jobs:
+        // opening a URL, how much read-ahead to keep, and the demuxer's own
+        // probing behaviour for raw or unusual containers. The first is what
+        // someone arrives for; the third is a mechanism that only matters when a
+        // file plays wrong. Split accordingly - see STREAM_SUBTHEMES.
+        new("SectionGenStreamNetwork", "\uE710", l => l.SectionGenStreamNetwork, l => l.SectionDescGenStreamNetwork),
+        new("SectionGenStreamCache", "\uE9A9", l => l.SectionGenStreamCache, l => l.SectionDescGenStreamCache),
+        new("SectionGenStreamDemuxer", "\uEA80", l => l.SectionGenStreamDemuxer, l => l.SectionDescGenStreamDemuxer),
         new("SectionGenTracks", "\uE708", l => l.SectionGenTracks, l => l.SectionDescGenTracks),
 
         // "Video & rendering" and "Player & window" are no longer one folder

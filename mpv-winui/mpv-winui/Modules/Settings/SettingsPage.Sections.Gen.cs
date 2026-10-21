@@ -46,7 +46,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_target_lut)] = lang.SectionGenColourHdr;
             sectionMap[nameof(AppContext.AppSetting.Mpv_tone_mapping_param)] = lang.SectionGenColourHdr;
 
-            // 字幕选项 -- 25 row(s), from mpv's "Subtitles"
+            // 字幕选项 -- 24 row(s), from mpv's "Subtitles"
             sectionOrder[lang.SectionGenSubtitles] = 1001;
             advancedSections.Add(lang.SectionGenSubtitles);
 
@@ -68,7 +68,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_fps)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_glyph_limit)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_gray)] = lang.SectionGenSubtitles;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_sub_lavc_o)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_past_video_end)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_scale_with_window)] = lang.SectionGenSubtitles;
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_speed)] = lang.SectionGenSubtitles;
@@ -97,19 +96,16 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_osd_prune_delay)] = lang.SectionGenOsd;
             sectionMap[nameof(AppContext.AppSetting.Mpv_osd_status_msg)] = lang.SectionGenOsd;
 
-            // 音频选项 -- 33 row(s), from mpv's "Audio"
+            // 音频选项 -- 29 row(s), from mpv's "Audio"
             sectionOrder[lang.SectionGenAudio] = 1003;
             advancedSections.Add(lang.SectionGenAudio);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_lavc_ac3drc)] = lang.SectionGenAudio;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_ad_lavc_o)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_lavc_threads)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_queue_enable)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_queue_max_bytes)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_queue_max_samples)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ad_queue_max_secs)] = lang.SectionGenAudio;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_audio_backward_batch)] = lang.SectionGenAudio;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_audio_backward_overlap)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_client_name)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_demuxer)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_fallback_to_null)] = lang.SectionGenAudio;
@@ -120,7 +116,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_resample_max_output_size)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_resample_phase_shift)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_set_media_role)] = lang.SectionGenAudio;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_audio_swresample_o)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_mute)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_openal_direct_channels)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_openal_num_buffers)] = lang.SectionGenAudio;
@@ -135,65 +130,8 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_volume_gain_min)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_wasapi_exclusive_buffer)] = lang.SectionGenAudio;
 
-            // 流媒体与缓存选项 -- 52 row(s), from mpv's "Streaming & cache"
-            sectionOrder[lang.SectionGenStreaming] = 1004;
-            advancedSections.Add(lang.SectionGenStreaming);
-
-            sectionMap[nameof(AppContext.AppSetting.Mpv_cookies)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_curl_enabled)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_curl_http_version)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_backward_playback_step)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_cache_unlink_files)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_cache_wait)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_donate_buffer)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_hysteresis_bytes)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_allow_mimetype)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_analyzeduration)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_buffersize)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_format)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_hacks)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_linearize_timestamps)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_o)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_probe_info)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_probescore)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_probesize)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_propagate_opts)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_crop_compat)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_probe_start_time)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_probe_video_duration)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_subtitle_preroll)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_subtitle_preroll_secs)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_subtitle_preroll_secs_index)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawaudio_channels)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawaudio_format)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawaudio_rate)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_codec)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_format)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_fps)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_h)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_mp_format)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_size)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_w)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_sbr_probesize)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_seekable_cache)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_termination_timeout)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_thread)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_hls_bitrate)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_rtsp_transport)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_stream_buffer_size)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_stream_dump)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_stream_lavf_o)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_stream_record)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_tls_ca_file)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_tls_cert_file)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_tls_key_file)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_ytdl)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_ytdl_format)] = lang.SectionGenStreaming;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_ytdl_raw_options)] = lang.SectionGenStreaming;
-
             // 轨道选项 -- 5 row(s), from mpv's "Tracks"
-            sectionOrder[lang.SectionGenTracks] = 1005;
+            sectionOrder[lang.SectionGenTracks] = 1004;
             advancedSections.Add(lang.SectionGenTracks);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_aid)] = lang.SectionGenTracks;
@@ -203,7 +141,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_vlang)] = lang.SectionGenTracks;
 
             // 播放器与窗口选项 -- 17 row(s), from mpv's "Player & window"
-            sectionOrder[lang.SectionGenPlayerWindow] = 1006;
+            sectionOrder[lang.SectionGenPlayerWindow] = 1005;
             advancedSections.Add(lang.SectionGenPlayerWindow);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_clipboard_backends)] = lang.SectionGenPlayerWindow;
@@ -225,7 +163,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_watch_history_path)] = lang.SectionGenPlayerWindow;
 
             // 视频输出与着色器 -- 36 row(s), from mpv's "Video & rendering"
-            sectionOrder[lang.SectionGenVideoOutput] = 1007;
+            sectionOrder[lang.SectionGenVideoOutput] = 1006;
             advancedSections.Add(lang.SectionGenVideoOutput);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_background)] = lang.SectionGenVideoOutput;
@@ -265,8 +203,8 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_image_webp_quality)] = lang.SectionGenVideoOutput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_mmcss_profile)] = lang.SectionGenVideoOutput;
 
-            // 硬件解码 -- 21 row(s), from mpv's "Video & rendering"
-            sectionOrder[lang.SectionGenVideoDecode] = 1008;
+            // 硬件解码 -- 20 row(s), from mpv's "Video & rendering"
+            sectionOrder[lang.SectionGenVideoDecode] = 1007;
             advancedSections.Add(lang.SectionGenVideoDecode);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_hwdec_extra_frames)] = lang.SectionGenVideoDecode;
@@ -280,7 +218,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_lavc_fast)] = lang.SectionGenVideoDecode;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_lavc_film_grain)] = lang.SectionGenVideoDecode;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_lavc_framedrop)] = lang.SectionGenVideoDecode;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_vd_lavc_o)] = lang.SectionGenVideoDecode;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_lavc_show_all)] = lang.SectionGenVideoDecode;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_lavc_skipframe)] = lang.SectionGenVideoDecode;
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_lavc_skipidct)] = lang.SectionGenVideoDecode;
@@ -292,7 +229,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_vd_queue_max_secs)] = lang.SectionGenVideoDecode;
 
             // 缩放与抖动 -- 5 row(s), from mpv's "Video & rendering"
-            sectionOrder[lang.SectionGenVideoScale] = 1009;
+            sectionOrder[lang.SectionGenVideoScale] = 1008;
             advancedSections.Add(lang.SectionGenVideoScale);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_correct_pts)] = lang.SectionGenVideoScale;
@@ -301,8 +238,8 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_scale_x)] = lang.SectionGenVideoScale;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_scale_y)] = lang.SectionGenVideoScale;
 
-            // 图像处理 -- 18 row(s), from mpv's "Video & rendering"
-            sectionOrder[lang.SectionGenVideoProcess] = 1010;
+            // 图像处理 -- 16 row(s), from mpv's "Video & rendering"
+            sectionOrder[lang.SectionGenVideoProcess] = 1009;
             advancedSections.Add(lang.SectionGenVideoProcess);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_deinterlace_field_parity)] = lang.SectionGenVideoProcess;
@@ -310,8 +247,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_interpolation_preserve)] = lang.SectionGenVideoProcess;
             sectionMap[nameof(AppContext.AppSetting.Mpv_interpolation_threshold)] = lang.SectionGenVideoProcess;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_aspect_method)] = lang.SectionGenVideoProcess;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_video_backward_batch)] = lang.SectionGenVideoProcess;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_video_backward_overlap)] = lang.SectionGenVideoProcess;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_crop)] = lang.SectionGenVideoProcess;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_latency_hacks)] = lang.SectionGenVideoProcess;
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_margin_ratio_bottom)] = lang.SectionGenVideoProcess;
@@ -325,7 +260,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_timing_offset)] = lang.SectionGenVideoProcess;
 
             // 窗口行为 -- 16 row(s), from mpv's "Player & window"
-            sectionOrder[lang.SectionGenWindowFrame] = 1011;
+            sectionOrder[lang.SectionGenWindowFrame] = 1010;
             advancedSections.Add(lang.SectionGenWindowFrame);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_autofit)] = lang.SectionGenWindowFrame;
@@ -346,7 +281,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_window_scale)] = lang.SectionGenWindowFrame;
 
             // 输入与交互 -- 22 row(s), from mpv's "Player & window"
-            sectionOrder[lang.SectionGenWindowInput] = 1012;
+            sectionOrder[lang.SectionGenWindowInput] = 1011;
             advancedSections.Add(lang.SectionGenWindowInput);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_ar_delay)] = lang.SectionGenWindowInput;
@@ -373,7 +308,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_native_touch)] = lang.SectionGenWindowInput;
 
             // 脚本与配置加载 -- 12 row(s), from mpv's "Player & window"
-            sectionOrder[lang.SectionGenWindowScripts] = 1013;
+            sectionOrder[lang.SectionGenWindowScripts] = 1012;
             advancedSections.Add(lang.SectionGenWindowScripts);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_idle)] = lang.SectionGenWindowScripts;
@@ -390,7 +325,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_script_opts)] = lang.SectionGenWindowScripts;
 
             // 光盘与媒体源 -- 13 row(s), from mpv's "Player & window"
-            sectionOrder[lang.SectionGenWindowMedia] = 1014;
+            sectionOrder[lang.SectionGenWindowMedia] = 1013;
             advancedSections.Add(lang.SectionGenWindowMedia);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_bluray_angle)] = lang.SectionGenWindowMedia;
@@ -408,7 +343,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_start)] = lang.SectionGenWindowMedia;
 
             // 编码输出 -- 10 row(s), from mpv's "General"
-            sectionOrder[lang.SectionGenGeneralEncoding] = 1015;
+            sectionOrder[lang.SectionGenGeneralEncoding] = 1014;
             advancedSections.Add(lang.SectionGenGeneralEncoding);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_oac)] = lang.SectionGenGeneralEncoding;
@@ -423,7 +358,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_ovcopts)] = lang.SectionGenGeneralEncoding;
 
             // 章节与时间线 -- 9 row(s), from mpv's "General"
-            sectionOrder[lang.SectionGenGeneralChapters] = 1016;
+            sectionOrder[lang.SectionGenGeneralChapters] = 1015;
             advancedSections.Add(lang.SectionGenGeneralChapters);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_chapter_merge_threshold)] = lang.SectionGenGeneralChapters;
@@ -437,7 +372,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_ordered_chapters_files)] = lang.SectionGenGeneralChapters;
 
             // 窗口与界面 -- 9 row(s), from mpv's "General"
-            sectionOrder[lang.SectionGenGeneralDesktop] = 1017;
+            sectionOrder[lang.SectionGenGeneralDesktop] = 1016;
             advancedSections.Add(lang.SectionGenGeneralDesktop);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_backdrop_type)] = lang.SectionGenGeneralDesktop;
@@ -451,7 +386,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_title)] = lang.SectionGenGeneralDesktop;
 
             // 脚本与配置管线 -- 22 row(s), from mpv's "General"
-            sectionOrder[lang.SectionGenGeneralScripting] = 1018;
+            sectionOrder[lang.SectionGenGeneralScripting] = 1017;
             advancedSections.Add(lang.SectionGenGeneralScripting);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_archive_exts)] = lang.SectionGenGeneralScripting;
@@ -477,11 +412,10 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_use_filedir_conf)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config)] = lang.SectionGenGeneralScripting;
 
-            // 渲染与色彩微调 -- 24 row(s), from mpv's "General"
-            sectionOrder[lang.SectionGenGeneralRendering] = 1019;
+            // 渲染与色彩微调 -- 23 row(s), from mpv's "General"
+            sectionOrder[lang.SectionGenGeneralRendering] = 1018;
             advancedSections.Add(lang.SectionGenGeneralRendering);
 
-            sectionMap[nameof(AppContext.AppSetting.Mpv_access_references)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_allow_delayed_peak_detect)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_container_fps_override)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_corner_rounding)] = lang.SectionGenGeneralRendering;
@@ -505,6 +439,71 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_temporal_dither_period)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_treat_srgb_as_power22)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_use_embedded_icc_profile)] = lang.SectionGenGeneralRendering;
+
+            // 网络与流媒体 -- 14 row(s), from mpv's "Streaming & cache"
+            sectionOrder[lang.SectionGenStreamNetwork] = 1019;
+            advancedSections.Add(lang.SectionGenStreamNetwork);
+
+            sectionMap[nameof(AppContext.AppSetting.Mpv_cookies)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_curl_enabled)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_curl_http_version)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_hls_bitrate)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_rtsp_transport)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_stream_buffer_size)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_stream_dump)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_stream_record)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tls_ca_file)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tls_cert_file)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_tls_key_file)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ytdl)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ytdl_format)] = lang.SectionGenStreamNetwork;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_ytdl_raw_options)] = lang.SectionGenStreamNetwork;
+
+            // 解复用细节 -- 28 row(s), from mpv's "Streaming & cache"
+            sectionOrder[lang.SectionGenStreamDemuxer] = 1020;
+            advancedSections.Add(lang.SectionGenStreamDemuxer);
+
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_allow_mimetype)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_analyzeduration)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_buffersize)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_format)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_hacks)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_linearize_timestamps)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_probe_info)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_probescore)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_probesize)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_lavf_propagate_opts)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_crop_compat)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_probe_start_time)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_probe_video_duration)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_subtitle_preroll)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_subtitle_preroll_secs)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_mkv_subtitle_preroll_secs_index)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawaudio_channels)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawaudio_format)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawaudio_rate)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_codec)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_format)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_fps)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_h)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_mp_format)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_size)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_w)] = lang.SectionGenStreamDemuxer;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_sbr_probesize)] = lang.SectionGenStreamDemuxer;
+
+            // 缓存与预读 -- 8 row(s), from mpv's "Streaming & cache"
+            sectionOrder[lang.SectionGenStreamCache] = 1021;
+            advancedSections.Add(lang.SectionGenStreamCache);
+
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_backward_playback_step)] = lang.SectionGenStreamCache;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_cache_unlink_files)] = lang.SectionGenStreamCache;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_cache_wait)] = lang.SectionGenStreamCache;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_donate_buffer)] = lang.SectionGenStreamCache;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_hysteresis_bytes)] = lang.SectionGenStreamCache;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_seekable_cache)] = lang.SectionGenStreamCache;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_termination_timeout)] = lang.SectionGenStreamCache;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_thread)] = lang.SectionGenStreamCache;
 
         }
     }

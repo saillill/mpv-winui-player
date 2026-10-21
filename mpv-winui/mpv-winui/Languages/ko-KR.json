@@ -514,7 +514,6 @@
   "SectionDescGenGeneralScripting": "Script loading, config files and the command-line pipeline",
   "SectionDescGenOsd": "Osd options",
   "SectionDescGenPlayerWindow": "Player Window options",
-  "SectionDescGenStreaming": "Streaming options",
   "SectionDescGenSubtitles": "Subtitles options",
   "SectionDescGenTracks": "Tracks options",
   "SectionDescGpuBackground": "배경색",
@@ -563,7 +562,6 @@
   "SectionGenGeneralScripting": "Scripts and config plumbing",
   "SectionGenOsd": "Osd",
   "SectionGenPlayerWindow": "Player Window",
-  "SectionGenStreaming": "Streaming",
   "SectionGenSubtitles": "Subtitles",
   "SectionGenTracks": "Tracks",
   "SectionGpuBackground": "배경",
@@ -1520,5 +1518,11 @@
   "MenuToggleFullScreen": "전체 화면",
   "MenuToggleFullWindow": "창 전체 화면",
   "MenuTogglePlaylist": "재생목록",
+  "SectionDescGenStreamCache": "얼마나 미리 읽고 캐시를 얼마나 유지하며 버퍼링 중 어떻게 할지",
+  "SectionDescGenStreamDemuxer": "컨테이너 탐색, 원시 스트림 매개변수, Matroska 호환 스위치. 보통 파일 재생이 이상할 때만 필요합니다",
+  "SectionDescGenStreamNetwork": "HTTP/TLS, 쿠키, yt-dlp, 네트워크 스트림",
+  "SectionGenStreamCache": "캐시 및 미리 읽기",
+  "SectionGenStreamDemuxer": "디먹서 세부 설정",
+  "SectionGenStreamNetwork": "네트워크 및 스트리밍",
   "PlayerStyleCompact": "콤팩트"
 }

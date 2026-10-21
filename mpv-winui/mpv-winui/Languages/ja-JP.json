@@ -514,7 +514,6 @@
   "SectionDescGenGeneralScripting": "Script loading, config files and the command-line pipeline",
   "SectionDescGenOsd": "Osd options",
   "SectionDescGenPlayerWindow": "Player Window options",
-  "SectionDescGenStreaming": "Streaming options",
   "SectionDescGenSubtitles": "Subtitles options",
   "SectionDescGenTracks": "Tracks options",
   "SectionDescGpuBackground": "背景色",
@@ -563,7 +562,6 @@
   "SectionGenGeneralScripting": "Scripts and config plumbing",
   "SectionGenOsd": "Osd",
   "SectionGenPlayerWindow": "Player Window",
-  "SectionGenStreaming": "Streaming",
   "SectionGenSubtitles": "Subtitles",
   "SectionGenTracks": "Tracks",
   "SectionGpuBackground": "背景",
@@ -1520,5 +1518,11 @@
   "MenuToggleFullScreen": "全画面",
   "MenuToggleFullWindow": "ウィンドウ全画面",
   "MenuTogglePlaylist": "プレイリスト",
+  "SectionDescGenStreamCache": "どこまで先読みするか、キャッシュをどれだけ保持するか、途切れたときの挙動",
+  "SectionDescGenStreamDemuxer": "コンテナのプローブ、生ストリームのパラメーター、Matroska 互換スイッチ。通常はファイルの再生がおかしいときだけ必要です",
+  "SectionDescGenStreamNetwork": "HTTP/TLS、Cookie、yt-dlp、ネットワークストリーム",
+  "SectionGenStreamCache": "キャッシュと先読み",
+  "SectionGenStreamDemuxer": "デマルチプレクサの詳細",
+  "SectionGenStreamNetwork": "ネットワークとストリーミング",
   "PlayerStyleCompact": "コンパクト"
 }

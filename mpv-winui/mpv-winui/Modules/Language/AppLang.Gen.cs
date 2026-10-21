@@ -8,12 +8,8 @@ namespace mpv_winui.Modules.Language
 {
     public partial class AppLang
     {
-        public string SchemaLabel_Mpv_access_references { get; set; } = "Follow file references";
-        public string SchemaDesc_Mpv_access_references { get; set; } = "Follow any references in the file being opened (default: yes). Disabling this is helpful if the file is automatically scanned (e.g. thumbnail generation). If the thumbnail scanner for example encounters a playlist file, which contains network URLs, and the scanner should not open these, enabling this option will prevent it. This option also disables ordered chapters, mov reference files, opening of archives, and a number of other features.";
         public string SchemaLabel_Mpv_ad_lavc_ac3drc { get; set; } = "AC-3 dynamic range compression";
         public string SchemaDesc_Mpv_ad_lavc_ac3drc { get; set; } = "Select the Dynamic Range Compression level for AC-3 audio streams. <level> is a float value ranging from 0 to 1, where 0 means no compression (which is the default) and 1 means full compression (make loud passages more silent and vice versa). Values up to 6 are also accepted, but are purely experimental. This option only shows an effect if the AC-3 stream contains the required range compression information.";
-        public string SchemaLabel_Mpv_ad_lavc_o { get; set; } = "libavcodec decoder options";
-        public string SchemaDesc_Mpv_ad_lavc_o { get; set; } = "Pass AVOptions to libavcodec decoder. Note, a patch to make the o= unneeded and pass all unknown options through the AVOption system is welcome. A full list of AVOptions can be found in the FFmpeg manual.";
         public string SchemaLabel_Mpv_ad_lavc_threads { get; set; } = "Audio decoder threads";
         public string SchemaDesc_Mpv_ad_lavc_threads { get; set; } = "Number of threads to use for decoding. Whether threading is actually supported depends on codec. As of this writing, it's supported for some lossless codecs only. 0 means autodetect number of cores on the machine and use that, up to the maximum of 16 (default: 1).";
         public string SchemaLabel_Mpv_ad_queue_enable { get; set; } = "Decode on a separate thread";
@@ -30,10 +26,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_allow_delayed_peak_detect { get; set; } = "When using --hdr-compute-peak, allow delaying the detected peak by a frame when beneficial for performance. In particular, this is required to avoid an unnecessary FBO indirection when no advanced rendering is required otherwise. Has no effect if there already is an indirect pass, such as when advanced scaling is enabled. Defaults to no. (Only affects --vo=gpu-next, note that --vo=gpu always delays the peak.)";
         public string SchemaLabel_Mpv_archive_exts { get; set; } = "Archive extensions";
         public string SchemaDesc_Mpv_archive_exts { get; set; } = "Archive file extensions to try to match when using --autocreate-playlist or --directory-filter-types.";
-        public string SchemaLabel_Mpv_audio_backward_batch { get; set; } = "Backward decode batch";
-        public string SchemaDesc_Mpv_audio_backward_batch { get; set; } = "Number of keyframe ranges to decode at once when backward decoding (default: 1 for video, 10 for audio). Another pointless tuning parameter nobody should use. This should affect performance only. In theory, setting a number higher than 1 for audio will reduce overhead due to less frequent backstep operations and less redundant decoding work due to fewer decoded overlap frames (see --audio-backward-overlap). On the other hand, it requires a larger reversal buffer, and could make playback less smooth due to breaking pipelining (e.g. by decoding a lot, and then doing nothing for a while).";
-        public string SchemaLabel_Mpv_audio_backward_overlap { get; set; } = "Backward decode overlap";
-        public string SchemaDesc_Mpv_audio_backward_overlap { get; set; } = "Number of overlapping keyframe ranges to use for backward decoding (default: auto) (\"keyframe\" to be understood as in the mpv/ffmpeg specific meaning). Backward decoding works by forward decoding in small steps. Some codecs cannot restart decoding from any packet (even if it's marked as seek point), which becomes noticeable with backward decoding (in theory this is a problem with seeking too, but --hr-seek-demuxer-offset can fix it for seeking). In particular, MDCT based audio codecs are affected.";
         public string SchemaLabel_Mpv_audio_client_name { get; set; } = "Reported application name";
         public string SchemaDesc_Mpv_audio_client_name { get; set; } = "The application name the player reports to the audio API. Can be useful if you want to force a different audio profile (e.g. with PulseAudio), or to set your own application name when using libmpv.";
         public string SchemaLabel_Mpv_audio_demuxer { get; set; } = "External audio demuxer";
@@ -54,8 +46,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_audio_resample_phase_shift { get; set; } = "Log2 of the number of polyphase entries. (..., 10->1024, 11->2048, 12->4096, ...) (default: 10->1024)";
         public string SchemaLabel_Mpv_audio_set_media_role { get; set; } = "Report media role";
         public string SchemaDesc_Mpv_audio_set_media_role { get; set; } = "If enabled, mpv will set the appropriate media role on supported audio servers to indicate whether mpv is playing a video or an audio-only file. This is disabled by default since per media role volumes have often caused unexpected and confusing behavior.";
-        public string SchemaLabel_Mpv_audio_swresample_o { get; set; } = "libswresample options";
-        public string SchemaDesc_Mpv_audio_swresample_o { get; set; } = "Set AVOptions on the SwrContext or AVAudioResampleContext. These should be documented by FFmpeg.";
         public string SchemaLabel_Mpv_autofit { get; set; } = "Initial window size cap";
         public string SchemaDesc_Mpv_autofit { get; set; } = "Set the initial window size to a maximum size specified by WxH, without changing the window's aspect ratio. The size is measured in pixels, or if a number is followed by a percentage sign (%), in percents of the screen size.";
         public string SchemaLabel_Mpv_autofit_larger { get; set; } = "Window maximum size";
@@ -146,8 +136,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_demuxer_lavf_hacks { get; set; } = "By default, some formats will be handled differently from other formats by explicitly checking for them. Most of these compensate for weird or imperfect behavior from libavformat demuxers. Passing no disables these. For debugging and testing only.";
         public string SchemaLabel_Mpv_demuxer_lavf_linearize_timestamps { get; set; } = "Smooth timestamp resets";
         public string SchemaDesc_Mpv_demuxer_lavf_linearize_timestamps { get; set; } = "Attempt to linearize timestamp resets in demuxed streams (default: auto). This was tested only for single audio streams. It's unknown whether it works correctly for video (but likely won't). Note that the implementation is slightly incorrect either way, and will introduce a discontinuity by about 1 codec frame size.";
-        public string SchemaLabel_Mpv_demuxer_lavf_o { get; set; } = "libavformat demuxer options";
-        public string SchemaDesc_Mpv_demuxer_lavf_o { get; set; } = "Pass AVOptions to libavformat demuxer.";
         public string SchemaLabel_Mpv_demuxer_lavf_probe_info { get; set; } = "Probe stream info";
         public string SchemaDesc_Mpv_demuxer_lavf_probe_info { get; set; } = "Whether to probe stream information (default: auto). Technically, this controls whether libavformat's avformat_find_stream_info() function is called. Usually it's safer to call it, but it can also make startup slower.";
         public string SchemaLabel_Mpv_demuxer_lavf_probescore { get; set; } = "Format detection threshold";
@@ -524,8 +512,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_stream_buffer_size { get; set; } = "Size of the low level stream byte buffer (default: 128KB). This is used as buffer between demuxer and low level I/O (e.g. sockets). Generally, this can be very small, and the main purpose is similar to the internal buffer FILE in the C standard library will have.";
         public string SchemaLabel_Mpv_stream_dump { get; set; } = "Dump stream to file";
         public string SchemaDesc_Mpv_stream_dump { get; set; } = "Instead of playing a file, read its byte stream and write it to the given destination file. The destination is overwritten. Can be useful to test network-related behavior.";
-        public string SchemaLabel_Mpv_stream_lavf_o { get; set; } = "libavformat stream options";
-        public string SchemaDesc_Mpv_stream_lavf_o { get; set; } = "Set AVOptions on streams opened with libavformat. Unknown or misspelled options are silently ignored. (They are mentioned in the terminal output in verbose mode, i.e. --v. In general we can't print errors, because other options such as e.g. user agent are not available with all protocols, and printing errors for unknown options would end up being too noisy.)";
         public string SchemaLabel_Mpv_stream_record { get; set; } = "Record stream";
         public string SchemaDesc_Mpv_stream_record { get; set; } = "Write received/read data from the demuxer to the given output file. The output file will always be overwritten without asking. The output format is determined by the extension of the output file.";
         public string SchemaLabel_Mpv_stretch_dvd_subs { get; set; } = "Stretch DVD subtitles";
@@ -562,8 +548,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_sub_glyph_limit { get; set; } = "Set the maximum number of cached glyphs in libass cache for the subtitle track. 0 means libass uses its default value.";
         public string SchemaLabel_Mpv_sub_gray { get; set; } = "Grayscale image subtitles";
         public string SchemaDesc_Mpv_sub_gray { get; set; } = "Convert image subtitles to grayscale. Can help to make yellow DVD/Vobsubs look nicer.";
-        public string SchemaLabel_Mpv_sub_lavc_o { get; set; } = "libavcodec subtitle options";
-        public string SchemaDesc_Mpv_sub_lavc_o { get; set; } = "Pass AVOptions to libavcodec decoder. Note, a patch to make the o= unneeded and pass all unknown options through the AVOption system is welcome. A full list of AVOptions can be found in the FFmpeg manual.";
         public string SchemaLabel_Mpv_sub_past_video_end { get; set; } = "Subtitles past video end";
         public string SchemaDesc_Mpv_sub_past_video_end { get; set; } = "After the last frame of video, if this option is enabled, subtitles will continue to update based on audio timestamps. Otherwise, the subtitles for the last video frame will stay onscreen.";
         public string SchemaLabel_Mpv_sub_scale_with_window { get; set; } = "Scale with window";
@@ -622,8 +606,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_vd_lavc_film_grain { get; set; } = "Enables film grain application on the GPU. If video decoding is done on the CPU, doing film grain application on the GPU can speed up decoding. This option can also help hardware decoding, as it can reduce the number of frame copies done.";
         public string SchemaLabel_Mpv_vd_lavc_framedrop { get; set; } = "Decoder frame dropping";
         public string SchemaDesc_Mpv_vd_lavc_framedrop { get; set; } = "Set framedropping mode used with --framedrop (see skiploopfilter for available skip values).";
-        public string SchemaLabel_Mpv_vd_lavc_o { get; set; } = "libavcodec options";
-        public string SchemaDesc_Mpv_vd_lavc_o { get; set; } = "Pass AVOptions to libavcodec decoder. Note, a patch to make the o= unneeded and pass all unknown options through the AVOption system is welcome. A full list of AVOptions can be found in the FFmpeg manual.";
         public string SchemaLabel_Mpv_vd_lavc_show_all { get; set; } = "Show corrupt frames";
         public string SchemaDesc_Mpv_vd_lavc_show_all { get; set; } = "Show even broken/corrupt frames (default: no). If this option is set to no, libavcodec won't output frames that were either decoded before an initial keyframe was decoded, or frames that are recognized as corrupted.";
         public string SchemaLabel_Mpv_vd_lavc_skipframe { get; set; } = "Skip frames";
@@ -646,10 +628,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_vid { get; set; } = "Select video channel. auto selects the default, no disables video.";
         public string SchemaLabel_Mpv_video_aspect_method { get; set; } = "Aspect determination";
         public string SchemaDesc_Mpv_video_aspect_method { get; set; } = "This sets the default video aspect determination method (if the aspect is _not_ overridden by the user with --video-aspect-override or others).";
-        public string SchemaLabel_Mpv_video_backward_batch { get; set; } = "Backward decode batch";
-        public string SchemaDesc_Mpv_video_backward_batch { get; set; } = "Number of keyframe ranges to decode at once when backward decoding (default: 1 for video, 10 for audio). Another pointless tuning parameter nobody should use. This should affect performance only. In theory, setting a number higher than 1 for audio will reduce overhead due to less frequent backstep operations and less redundant decoding work due to fewer decoded overlap frames (see --audio-backward-overlap). On the other hand, it requires a larger reversal buffer, and could make playback less smooth due to breaking pipelining (e.g. by decoding a lot, and then doing nothing for a while).";
-        public string SchemaLabel_Mpv_video_backward_overlap { get; set; } = "Backward decode overlap";
-        public string SchemaDesc_Mpv_video_backward_overlap { get; set; } = "Number of overlapping keyframe ranges to use for backward decoding (default: auto) (\"keyframe\" to be understood as in the mpv/ffmpeg specific meaning). Backward decoding works by forward decoding in small steps. Some codecs cannot restart decoding from any packet (even if it's marked as seek point), which becomes noticeable with backward decoding (in theory this is a problem with seeking too, but --hr-seek-demuxer-offset can fix it for seeking). In particular, MDCT based audio codecs are affected.";
         public string SchemaLabel_Mpv_video_crop { get; set; } = "Video crop";
         public string SchemaDesc_Mpv_video_crop { get; set; } = "Crop the video by starting at the x, y offset for w, h pixels. The crop is applied to the source video rectangle (before anamorphic stretch) by the VO. A crop rectangle that is not within the video rectangle will be ignored. This works with hwdec, unlike the equivalent 'lavfi-crop'. When offset is omitted, the central area will be cropped. Setting the crop to empty one --video-crop=0x0+0+0 overrides container crop and disables cropping. Setting the crop to --video-crop=\"\" disables manual cropping and restores the container crop if it's specified.";
         public string SchemaLabel_Mpv_video_latency_hacks { get; set; } = "Latency hacks";
