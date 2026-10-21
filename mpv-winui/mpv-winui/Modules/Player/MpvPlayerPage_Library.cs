@@ -318,10 +318,6 @@ namespace mpv_winui.Modules.Player
             VideoTabFolders.Content = lang.LibraryTabVideoFolders;
             VideoAddFolderText.Text = lang.LibraryAddFolder;
             VideoPlayAllText.Text = lang.LibraryPlayAll;
-            // Same reason as the nav pane's settings button: the label is
-            // built in code, so the accessible name is set beside it.
-            AutomationProperties.SetName(VideoAddFolderButton, lang.LibraryAddFolder);
-            AutomationProperties.SetName(VideoPlayAllButton, lang.LibraryPlayAll);
 
             // The music section's three tabs and its Add folder command. The
             // words come from AppLang like every other label.
@@ -379,8 +375,6 @@ namespace mpv_winui.Modules.Player
             // PathIcon rather than the CommandBar's Label/Icon pair.
             QueueClearText.Text = lang.LibraryQueueClear;
             QueueAddToText.Text = lang.LibraryQueueAddTo;
-            AutomationProperties.SetName(QueueClearButton, lang.LibraryQueueClear);
-            AutomationProperties.SetName(QueueAddToButton, lang.LibraryQueueAddTo);
 
             QueueClearIcon.Data = FluentIcons.Geometry(FluentIcons.Delete);
             QueueAddToIcon.Data = FluentIcons.Geometry(FluentIcons.Add);

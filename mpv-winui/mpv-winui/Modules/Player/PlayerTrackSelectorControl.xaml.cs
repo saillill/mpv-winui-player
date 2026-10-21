@@ -4,7 +4,6 @@ using mpv_winrt;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Microsoft.UI.Xaml.Automation;
 
 namespace mpv_winui.Modules.Player
 {
@@ -59,10 +58,6 @@ namespace mpv_winui.Modules.Player
             var lang = AppContext.AppLang;
             SubtitleTabText.Text = lang.SettingsCategorySubtitles;
             SecondSubtitleTabText.Text = lang.SecondSubtitle;
-            // Its header is an icon plus two text blocks, one of which is
-            // empty when no second-subtitle track exists, so WinUI leaves the
-            // pivot item unnamed. Name it from the same string.
-            AutomationProperties.SetName(SecondSubPivotItem, lang.SecondSubtitle);
             VideoTabText.Text = lang.SettingsCategoryVideo;
             AudioTabText.Text = lang.SettingsCategoryAudio;
         }

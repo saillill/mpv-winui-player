@@ -55,8 +55,8 @@ namespace mpv_winui.Modules.Player
             RegisterMenuAction("open-dvda-img", p => p.OpenDvdaImgAsync());
             RegisterMenuAction("open-bd-img", p => p.OpenBdImgAsync());
             RegisterMenuAction("load-subtitle", p => p.LoadSubtitleAsync());
-            RegisterMenuAction("screenshot", p => p._mediaPlayer.CommandArgsAsync(["screenshot"]).AsTask());
-            RegisterMenuAction("screenshot-no-sub", p => p._mediaPlayer.CommandArgsAsync(["screenshot", "video"]).AsTask());
+            RegisterMenuAction("screenshot", p => p._mediaPlayer.RunCommandAsync(["screenshot"]).AsTask());
+            RegisterMenuAction("screenshot-no-sub", p => p._mediaPlayer.RunCommandAsync(["screenshot", "video"]).AsTask());
             RegisterMenuAction("conf-folder", async p =>
             {
                 var storageFolder = await AppData.Current.OpenLocalDataFolderAsync();
