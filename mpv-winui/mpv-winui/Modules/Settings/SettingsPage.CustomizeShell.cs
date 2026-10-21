@@ -131,26 +131,6 @@ public sealed partial class SettingsPage
                 : "SystemFillColorSuccessBrush"];
     }
 
-    /// <summary>
-    /// One-off footer message with a severity tint. Used where an action is
-    /// refused or produces no visible change: a Windows-settings-style line
-    /// beats a button that silently does nothing.
-    /// </summary>
-    private void ShowCustomizeNotice(string message, bool caution = false)
-    {
-        // Fade in only when the line was blank - see ShowResetStatus.
-        var wasEmpty = string.IsNullOrEmpty(SaveStatusText.Text);
-
-        SaveStatusText.Text = message;
-        SaveStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[
-            caution ? "SystemFillColorCautionBrush" : "SystemFillColorSuccessBrush"];
-
-        if (wasEmpty)
-        {
-            MotionBehaviors.FadeIn(SaveStatusText);
-        }
-    }
-
     // ===== footer actions =====
 
     /// <summary>

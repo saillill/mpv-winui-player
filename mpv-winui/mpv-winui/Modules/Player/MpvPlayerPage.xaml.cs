@@ -93,6 +93,11 @@ namespace mpv_winui.Modules.Player
 
         private async void MpvPlayerPage_Loaded(object sender, RoutedEventArgs e)
         {
+            // A new arrival means a new departure to guard against. Without this the flag stays
+            // latched after the first teardown and the second Unloaded returns early - while the
+            // subscriptions below are re-established, so they would never be released again.
+            _tornDown = false;
+
             if (_task is { } task)
             {
                 try
@@ -200,8 +205,36 @@ namespace mpv_winui.Modules.Player
             }
         }
 
-        private void MpvPlayerPage_Unloaded(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// True once the page has torn itself down. Guards <see cref="TeardownPage"/>.
+        /// </summary>
+        private bool _tornDown;
+
+        /// <summary>
+        /// Tears the page down exactly once, whichever event gets here first.
+        ///
+        /// NavigationCacheMode is Disabled, so a navigation destroys this page and BOTH
+        /// OnNavigatedFrom and Unloaded fire. The body ends with `_mediaPlayer.Destroy()`, and
+        /// running that twice is a crash rather than a leak - which is why the migration to
+        /// OnNavigatedFrom could not be a copy.
+        ///
+        /// OnNavigatedFrom is the primary because it is the navigation-correct event and because
+        /// it runs while the visual tree is still attached: TeardownPlayerView and
+        /// CleanupPlayControl reach for named elements, and Unloaded runs after detach, which is
+        /// where those calls are most fragile.
+        ///
+        /// Unloaded is kept as the fallback for a page that is unloaded without a navigation -
+        /// the window closing, or the element being reparented - where OnNavigatedFrom never runs.
+        /// </summary>
+        private void TeardownPage()
         {
+            if (_tornDown)
+            {
+                return;
+            }
+
+            _tornDown = true;
+
             AppContext.RunMpvCommand = null;
             AppContext.SetMpvLogLevel = null;
             AppContext.GetAudioDevices = null;
@@ -214,6 +247,7 @@ namespace mpv_winui.Modules.Player
 
             _mediaPlayer.PlaylistChanged -= MpvPlayerPage_PlaylistChanged;
             _mediaPlayer.VolumeChanged -= MpvPlayerPage_VolumeChanged;
+            _mediaPlayer.LogMessage -= MpvPlayer_LogMessage;
             _mediaPlayer.WindowChanged -= MpvPlayerPage_WindowChanged;
             _mediaPlayer.MediaInfoChanged -= MpvPlayerPage_MediaInfoChanged;
             _mediaPlayer.DiscMenuActiveChanged -= MpvPlayerPage_DiscMenuActiveChanged;
@@ -228,6 +262,8 @@ namespace mpv_winui.Modules.Player
             CleanupPlayControl();
             _mediaPlayer.Destroy();
         }
+
+        private void MpvPlayerPage_Unloaded(object sender, RoutedEventArgs e) => TeardownPage();
 
         private void MpvPlayerPage_ApplyHdrModeOnce()
         {
@@ -337,6 +373,18 @@ namespace mpv_winui.Modules.Player
             {
                 DispatcherQueue.TryEnqueue(ApplyDisplayPeak);
             }
+            else if (key == nameof(AppContext.AppSetting.VideoLibraryFolders)
+                || key == nameof(AppContext.AppSetting.MusicLibraryFolders))
+            {
+                // A folder was bound or unbound from the settings window, so what the
+                // library contains has changed. A full reload rather than an incremental
+                // removal: the list is history plus every bound folder, so this changes
+                // the grouping, the album cards, the rail's letter set and the empty
+                // state - and unloading one folder means getting all four right.
+                //
+                // Dispatched because the event comes from the settings window's thread.
+                DispatcherQueue.TryEnqueue(ReloadLibraryForFolderChange);
+            }
             else if (key == nameof(AppContext.AppSetting.ThumbnailUpdateInterval))
             {
                 DispatcherQueue.TryEnqueue(() =>
@@ -413,7 +461,21 @@ namespace mpv_winui.Modules.Player
             await AppContext.WaitAll();
             _logger.Debug("CreateAsync: pending settings flushed at {}ms", sw.ElapsedMilliseconds);
 
-            _mediaPlayer.VoConfigured += MpvPlayer_SwapChainChanged;
+            // mpv's own log lines. Nothing subscribed to this event before, so
+            // every line mpv forwarded -- warn and above by default, everything
+            // while debug logging is on -- built an MpvLogEventArgs and raised
+            // it into an empty handler set. The cost is the three to_hstring
+            // conversions per message, and msg-level=all=info is what the
+            // bundled mpv.conf asks for, so it was paying that for lines nobody
+            // could see.
+            //
+            // Mirrored into the app log rather than a second file: the log the
+            // user is told to look at is logs\mpv-winui.<date>.log.txt, and one
+            // file with mpv's lines interleaved is what a bug report needs.
+            // mpv's level names map onto NLog's one-for-one (no/error/warn/info/
+            // verbose/debug/trace); anything else falls back to Info rather than
+            // being dropped.
+            _mediaPlayer.LogMessage += MpvPlayer_LogMessage;
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
                 ? AppContext.AppSetting.OverrideDisplayFps
                 : _lastRefreshRate;
@@ -429,36 +491,44 @@ namespace mpv_winui.Modules.Player
             AppContext.AppSetting.LastVideoVolume = (int)args.Volume;
         }
 
+        /// <summary>
+        /// Forwards one mpv log line into the app log.
+        /// </summary>
+        /// <remarks>
+        /// Raised on the native event thread, not the UI thread. NLog's Logger
+        /// is thread-safe and the file target opens per write, so no dispatch is
+        /// needed here -- and adding one would queue mpv's output behind the UI,
+        /// which is the opposite of what a log is for when the UI is what hung.
+        /// </remarks>
+        private void MpvPlayer_LogMessage(MpvLogEventArgs args)
+        {
+            var level = args.Level switch
+            {
+                "no" => LogLevel.Off,
+                "fatal" => LogLevel.Fatal,
+                "error" => LogLevel.Error,
+                "warn" => LogLevel.Warn,
+                "info" => LogLevel.Info,
+                "v" => LogLevel.Trace,
+                "debug" => LogLevel.Debug,
+                "trace" => LogLevel.Trace,
+                // mpv occasionally adds a level before this app knows about it.
+                // Logging it at Info keeps the line instead of dropping it.
+                _ => LogLevel.Info,
+            };
+
+            if (level == LogLevel.Off)
+            {
+                return;
+            }
+
+            _logger.Log(level, "[mpv/{0}] {1}", args.Prefix, args.Text);
+        }
+
         // A drop (or menu open) landing while CreateAsync is still running
         // used to enqueue loadfile into a native handle that silently no-ops
         // before initialization, losing the request. Callers now await this.
         private TaskCompletionSource _playerReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        private Task WaitForPlayerReadyAsync()
-        {
-            return _isPlayerInitialized ? Task.CompletedTask : _playerReadyTcs.Task;
-        }
-
-        private void PlayerView_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
-        {
-            // input.conf: MBTN_LEFT cycle pause
-            SendMouseButton("MBTN_LEFT");
-        }
-
-        private void TopBarOntop_Click(object sender, RoutedEventArgs e)
-        {
-            AppContext.SendMpvCommand("cycle ontop");
-        }
-
-        private void TopBarScreenshot_Click(object sender, RoutedEventArgs e)
-        {
-            AppContext.SendMpvCommand("screenshot");
-        }
-
-        private void TopBarPlaylist_Click(object sender, RoutedEventArgs e)
-        {
-            ShowPlayQueue();
-        }
 
         private void AppQuit()
         {
@@ -521,8 +591,18 @@ namespace mpv_winui.Modules.Player
 
         private long _lastExceptionNotifyTicks;
 
+        /// <summary>
+        /// Teardown on the navigation-correct event; see <see cref="TeardownPage"/>.
+        ///
+        /// The body used to live in Unloaded with this override empty. Unloaded happens to fire
+        /// on navigation today only because the page is not cached, so the teardown was tied to a
+        /// coincidence rather than to the intent.
+        /// </summary>
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            base.OnNavigatedFrom(e);
+
+            TeardownPage();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -532,10 +612,6 @@ namespace mpv_winui.Modules.Player
             {
                 _pendingPaths = e.Parameter as IReadOnlyList<FileItem>;
             }
-        }
-
-        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
-        {
         }
 
         void IParameterRefreshSupportView.OnRefresh(object? parameter)

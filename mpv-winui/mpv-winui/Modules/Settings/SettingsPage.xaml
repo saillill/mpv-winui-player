@@ -72,7 +72,7 @@
             <Button
                 x:Name="PaneModeButton"
                 Margin="4,4,4,8"
-                Padding="8,6"
+                Padding="{StaticResource MpvSearchButtonPadding}"
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Left"
                 Background="Transparent"

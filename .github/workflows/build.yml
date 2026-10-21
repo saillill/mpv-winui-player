@@ -54,6 +54,14 @@ jobs:
       # when somebody remembered.
       run: python tools/gen-schema-options.py --check
 
+    - name: Check WinRT event wiring
+      # Two defects shipped with this shape: the app subscribed to
+      # PlaybackFailed and VoConfigured, both renamed by c49b461. The IDL kept
+      # the old names, so both compiled and never fired; one of them left the
+      # Error visual state unreachable. Source-only, so it runs before the
+      # native download.
+      run: python tools/check-winrt-events.py
+
     - name: Download native deps
       # Was: two curl downloads piped straight into Expand-Archive, with no
       # integrity check, feeding binaries that end up in a signed MSI. The
@@ -61,6 +69,16 @@ jobs:
       # installs the per-architecture layout the projects resolve.
       shell: pwsh
       run: .\tools\fetch-mpv-libs.ps1 -Root . -Platform ${{ matrix.platform }}
+
+    - name: Check script-opts coverage
+      # Reads mpv-2.dll, so it has to run after the download above. It exists
+      # because a local Lua script that shadows an mpv built-in has to keep
+      # accepting the script-opts mpv ships for it: mpv.conf carries
+      # `script-opt=select-populate_menu_data=no`, the project's select.lua
+      # declared two options where mpv's declares five, and every launch logged
+      # "unknown key populate_menu_data, ignoring" while silently dropping it.
+      # This is the step that notices the next time an mpv bump widens that gap.
+      run: python tools/check-script-opts.py
 
     # Optional code-signing: only runs when both secrets are configured.
     # A fresh fork without secrets still gets the unpackaged Release zip.

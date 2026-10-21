@@ -242,6 +242,18 @@ GENERATED_ICON_GLYPH = {
     # SettingsSections.All before being used.
     "IconChapters": "\\uE736",
     "IconDesktop": "\\uE737",
+    # The video/window sub-folders. Each needs its own glyph: a section card is
+    # recognised by its icon, so four video folders wearing the same film strip
+    # would undo the split they exist for. Verified absent from
+    # SettingsSections.All and from this table before being used.
+    "IconVideoOutput": "\\uE7B3",     # monitor, output chain
+    "IconVideoDecode": "\\uE7C1",     # chip, hardware decode
+    "IconVideoScale": "\\uE8B2",      # resize arrows
+    "IconVideoProcess": "\\uE8A5",    # sliders, filters
+    "IconWindowFrame": "\\uE8B9",     # window
+    "IconWindowInput": "\\uE90F",     # keyboard/mouse
+    "IconWindowScripts": "\\uEA37",   # script/code
+    "IconWindowMedia": "\\uE81C",     # disc
 }
 
 
@@ -268,6 +280,88 @@ def general_theme_meta(key: str) -> tuple[str, str, str]:
         if k == key:
             return cap, desc, icon
     return "其他", "未能归类的 mpv 选项", "IconSettings"
+
+
+# Second-level folders for the two groups mpv leaves as one 250-row pile.
+#
+# mpv's grouping is by subsystem, not by what a person is trying to change:
+# "Video & rendering" is 254 options covering the output driver, hardware
+# decoding, five scalers, deinterlacing, HDR and shader compilation. Filing all
+# of it under one folder made the folder the whole category -- you opened Video
+# and got a 254-row wall under a single heading.
+#
+# The split below is by *what the option changes*, which is the axis a reader
+# arrives with. Prefixes match longest-first, exactly like general_theme(); an
+# option that matches nothing keeps its group's own folder rather than being
+# scattered into a guessed one.
+VIDEO_SUBTHEMES = [
+    ("video-output", "IconVideoOutput", "视频输出与着色器",
+     "画面通过哪个后端输出、如何合成，以及 GPU 着色器的加载与缓存",
+     ["vo", "gpu", "d3d11", "opengl", "vulkan", "egl", "glsl",
+      "shader", "spirv", "angle", "libplacebo", "background", "display",
+      "lut"]),
+    ("video-decode", "IconVideoDecode", "硬件解码",
+     "解码器选择、硬件加速方式与解码线程",
+     ["hwdec", "vd", "decode"]),
+    ("video-scale", "IconVideoScale", "缩放与抖动",
+     "放大缩小算法、抖动与色带消除",
+     ["scale", "cscale", "dscale", "tscale", "zimg", "sws", "dither",
+      "deband", "sigmoid", "correct", "mf"]),
+    ("video-process", "IconVideoProcess", "图像处理",
+     "反交错、旋转、裁剪、插帧、几何与同步",
+     ["deinterlace", "interpolation", "vf", "lavfi", "frames", "image",
+      "video", "display-fps", "video-sync"]),
+]
+
+WINDOW_SUBTHEMES = [
+    ("window-frame", "IconWindowFrame", "窗口行为",
+     "窗口几何、边框、最大化与任务栏呈现",
+     ["geometry", "autofit", "border", "window", "fs-screen",
+      "force-window", "show-in-taskbar"]),
+    ("window-input", "IconWindowInput", "输入与交互",
+     "键鼠绑定、触摸与手柄、点击行为",
+     ["input", "native-keyrepeat", "native-touch"]),
+    ("window-scripts", "IconWindowScripts", "脚本与配置加载",
+     "启动时加载哪些脚本、配置文件与命令",
+     ["load", "script", "msg-level", "idle"]),
+    ("window-media", "IconWindowMedia", "光盘与媒体源",
+     "DVD / 蓝光设备、播放列表与媒体时长处理",
+     ["bluray", "dvd", "cdrom", "playlist", "length", "start", "end",
+      "force-media-title", "force-seekable"]),
+]
+
+
+def _subtheme(name: str, table) -> str | None:
+    """The sub-folder for one option name, or None.
+
+    Matches whole dash-separated *segments*, not raw character prefixes. A
+    character-prefix rule put `video-scale-x` in the generic `video` bucket
+    (because "video" is one character longer than "scale") when the thing it
+    describes is the scaler. Segment matching asks the narrower question --
+    does the name contain this word -- and then prefers the table order, which
+    is written most-specific-first.
+    """
+    segments = name.split("-")
+    best: tuple[int, int, str] | None = None
+    for order, (key, _icon, _cap, _desc, patterns) in enumerate(table):
+        for pattern in patterns:
+            pseg = pattern.split("-")
+            n = len(pseg)
+            for i in range(len(segments) - n + 1):
+                if segments[i:i + n] == pseg:
+                    # Longer patterns win; ties go to the earlier table entry.
+                    score = (n, -order)
+                    if best is None or score > (best[0], best[1]):
+                        best = (n, -order, key)
+                    break
+    return best[2] if best else None
+
+
+def _subtheme_meta(key: str, table, fallback: str) -> tuple[str, str, str]:
+    for k, icon, cap, desc, _p in table:
+        if k == key:
+            return cap, desc, icon
+    return "其他", fallback, "IconSettings"
 
 # Second-level folder each generated row lands in, per group. One folder per
 # group keeps 205 Video rows from becoming a 205-row flat list on the
@@ -701,17 +795,41 @@ def _option_literal(r: dict, gvar: str, svar: str) -> str:
     return "\n".join(lines)
 
 
+def _subtheme_key(sub: str) -> str:
+    """SectionGen + the whole stem in PascalCase: video-output -> SectionGenVideoOutput.
+
+    One function, used by both folder_for and folder_meta. They had their own
+    copies of this transformation and they disagreed, which is how every new
+    sub-folder ended up captioned "其他" / "未能归类" while its rows filed
+    correctly -- the rows asked one function, the captions asked the other.
+
+    The whole stem goes in: an earlier cut split on the first dash and dropped
+    the leading word, so `video-output` became SectionGenOutput and matched no
+    table entry.
+    """
+    return "SectionGen" + "".join(p.title() for p in sub.split("-"))
+
+
 def folder_for(row: dict) -> str:
     """Stable folder key for one row.
 
-    Every group keeps its own folder except General, which is split into
-    themes -- see GENERAL_THEMES for why. Returning a key rather than a
-    section constant keeps this independent of how a folder is named in C#.
+    General is split by theme, and the two 100-plus-row groups are split by
+    what the option changes -- see GENERAL_THEMES, VIDEO_SUBTHEMES and
+    WINDOW_SUBTHEMES for why. Returning a key rather than a section constant
+    keeps this independent of how a folder is named in C#.
     """
     if row["name"] in SECTION_OVERRIDE:
         return SECTION_OVERRIDE[row["name"]]
-    if row["group"] != "General":
-        return GROUP_TO_SECTION[row["group"]]
+
+    group = row["group"]
+    if group == "Video & rendering":
+        if (sub := _subtheme(row["name"], VIDEO_SUBTHEMES)) is not None:
+            return _subtheme_key(sub)
+    if group == "Player & window":
+        if (sub := _subtheme(row["name"], WINDOW_SUBTHEMES)) is not None:
+            return _subtheme_key(sub)
+    if group != "General":
+        return GROUP_TO_SECTION[group]
     return "SectionGenGeneral" + general_theme(row["name"])
 
 
@@ -720,6 +838,16 @@ def folder_meta(key: str) -> tuple[str, str, str, str]:
     for g, sec in GROUP_TO_SECTION.items():
         if sec == key:
             return g, CAPTIONS[g][0], CAPTIONS[g][1], GROUP_TO_ICON[g]
+
+    # The video/window sub-folders: same group, their own caption and glyph.
+    for table, group in (
+        (VIDEO_SUBTHEMES, "Video & rendering"),
+        (WINDOW_SUBTHEMES, "Player & window"),
+    ):
+        for sub, icon, cap, desc, _patterns in table:
+            if key == _subtheme_key(sub):
+                return group, cap, desc, icon
+
     theme = key[len("SectionGenGeneral"):]
     cap, desc, icon = general_theme_meta(theme)
     return "General", cap, desc, icon
@@ -751,16 +879,34 @@ def gen_section_glue(rows: list[dict]) -> str:
     for r in rows:
         by_folder.setdefault(folder_for(r), []).append(r)
 
-    # Folder order: the eight coherent mpv groups in their declared order,
-    # then the General themes in the order GENERAL_THEMES lists them. Encoding
-    # and Terminal lead, because those are the two a person is most likely to
-    # want and least likely to find by guessing.
+    # Folder order: the group folders in their declared order, then the
+    # video/window sub-folders in table order, then the General themes. A
+    # sub-folder has to sort next to its group rather than falling through to
+    # the end, or the Video category would open with its own rows and bury the
+    # four folders that hold most of them.
+    sub_order = {k: i for i, (k, *_r) in enumerate(VIDEO_SUBTHEMES + WINDOW_SUBTHEMES)}
+    group_index = {sec: i for i, sec in enumerate(GROUP_TO_SECTION.values())}
+    video_stems = {"".join(s.split("-")): s for s, *_r in VIDEO_SUBTHEMES}
+    window_stems = {"".join(s.split("-")): s for s, *_r in WINDOW_SUBTHEMES}
+
     def sort_key(sec: str) -> tuple[int, int]:
-        if not sec.startswith("SectionGenGeneral"):
-            return (0, list(GROUP_TO_SECTION.values()).index(sec))
-        theme = sec[len("SectionGenGeneral"):]
-        order = [k for k, _c, _d, _i, _p in GENERAL_THEMES] + ["其他"]
-        return (1, order.index(theme) if theme in order else len(order))
+        # (block, index within block). Sub-themes share block 1 with the group
+        # folders they belong to, offset past them, so Video opens with its own
+        # folder and then the four that hold most of its rows.
+        if sec in group_index:
+            return (0, group_index[sec])
+        if sec.startswith("SectionGenGeneral"):
+            theme = sec[len("SectionGenGeneral"):]
+            order = [k for k, _c, _d, _i, _p in GENERAL_THEMES] + ["其他"]
+            return (0, 1000 + (order.index(theme) if theme in order else len(order)))
+        stem = sec[len("SectionGen"):].lower()
+        if stem in video_stems:
+            return (0, 100 + group_index.get("SectionGenVideoRendering", 0) * 10
+                    + sub_order[video_stems[stem]])
+        if stem in window_stems:
+            return (0, 100 + group_index.get("SectionGenPlayerWindow", 0) * 10
+                    + sub_order[window_stems[stem]])
+        return (0, 9000)
 
     folders = sorted(by_folder, key=sort_key)
 

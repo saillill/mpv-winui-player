@@ -53,7 +53,7 @@
                     <Grid
                         MinHeight="44"
                         Padding="12,4,8,4"
-                        ColumnSpacing="10">
+                        ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />

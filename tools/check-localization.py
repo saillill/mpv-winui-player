@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Check localization consistency for mpv-winui-player.
 
 * Every writable AppLang property must exist in each Languages/<lang>.json.
@@ -218,15 +218,31 @@ def main() -> int:
                     f"{path.name}: missing {len(generated)} generated Schema* key(s) "
                     f"(known exception, see settings-design-contract 7)")
         if extra:
-            # Expected, not a defect: the customize-mode shell keeps its own
-            # translation table (see CustomizeStrings) because AppLang's are read
-            # by reflection and cannot hold translations. Those keys, plus the
-            # theme editor's, ship in every language file without an AppLang
-            # property behind them. Reported so a genuinely orphaned key is still
-            # visible -- by count and family, not as a wall of names.
-            warnings.append(
-                f"{path.name}: {len(extra)} companion-table key(s) with no AppLang "
-                f"property (expected): {_summarise(extra)}")
+            # Two very different things ended up in `extra`, and reporting them
+            # as one "expected" warning is how eleven dead keys stayed in the
+            # tree: every file carried them, the checker said "expected", and
+            # nothing distinguished them from the customize table that really
+            # does live here on purpose.
+            #
+            #   * the customize-mode shell's companion table (CustomizeStrings)
+            #     plus ApplyAndExit -- read by CustomizeStrings.Load, and having
+            #     no AppLang property is the design (see its class docstring);
+            #   * everything else -- no AppLang property AND no reader. Those
+            #     are keys nothing asks for: a setting that was removed, or a
+            #     generated section that no longer exists. They are dead weight
+            #     in nine files that every future translator pays for.
+            expected = {k for k in extra
+                        if k.startswith("Customize") or k == "ApplyAndExit"}
+            stale = extra - expected
+            if expected:
+                warnings.append(
+                    f"{path.name}: {len(expected)} companion-table key(s) with no AppLang "
+                    f"property (expected): {_summarise(expected)}")
+            if stale:
+                errors.append(
+                    f"{path.name}: {len(stale)} stale key(s) with no AppLang property and "
+                    f"no reader: {_summarise(stale)}"
+                    + (f" (e.g. {sorted(stale)[0]})" if len(stale) > 12 else ""))
         if path.name == "en-US.json":
             en_data = data
 

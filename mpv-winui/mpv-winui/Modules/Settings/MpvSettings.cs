@@ -42,7 +42,33 @@ public static partial class MpvSettings
             nameof(AppSettings.D3d11ExclusiveFs) => $"set d3d11-exclusive-fs {(value is true ? "yes" : "no")}",
             nameof(AppSettings.D3d11Flip) => $"set d3d11-flip {(value is true ? "yes" : "no")}",
             nameof(AppSettings.D3d11Adapter) => string.IsNullOrWhiteSpace((string)value) ? null : $"set d3d11-adapter {Q((string)value)}",
-            nameof(AppSettings.VolumeMax) => $"set volume-max {value}",
+            // volume-max: observed to fail, cause not established.
+            //
+            // What was measured: this app sends `no-osd set volume-max 100` at
+            // startup and mpv answers "Command 'no-osd set volume-max 100' not
+            // found" -- the same line, once per launch, in three consecutive
+            // launches. That is the whole of the evidence.
+            //
+            // What was NOT established: why. The plausible story is that
+            // volume-max is derived from mixer state and ao=wasapi hands the
+            // mixer to the system, but I could not confirm it here. The test
+            // harness (mpv-winrt-test) could not be made to observe a rejection
+            // at all -- even a deliberately bogus option name (`set
+            // no-such-option 1`) came back silent -- so it cannot settle this,
+            // and the only other mpv host is mpvw.exe, which the project
+            // forbids driving.
+            //
+            // Why mapping to null is still the right move: nothing reads mpv's
+            // volume-max back. The volume slider's ceiling comes from
+            // AppContext.AppSetting.VolumeMax directly (PlayerControl), and the
+            // engine gets volume-max from mpv.conf via BuildConfigLines. So the
+            // runtime set had no observable benefit, and it produced an error
+            // line per launch. Mapping to null removes a known-failing command
+            // without removing the setting or its persistence.
+            //
+            // If someone later establishes the cause and it turns out a
+            // different command form works, this is the line to revisit.
+            nameof(AppSettings.VolumeMax) => null,
             nameof(AppSettings.AudioGapless) => $"set gapless-audio {(string)value}",
             nameof(AppSettings.KeepOpen) => $"set keep-open {value}",
             nameof(AppSettings.LoopPlaylist) => $"set loop-playlist {(string)value}",
@@ -579,6 +605,11 @@ public static partial class MpvSettings
                     ? "override-display-fps="
                       + ((double)value).ToString(CultureInfo.InvariantCulture)
                     : null,
+
+            // No runtime command (see ToCommand), so this is the only producer.
+            // mpv.conf takes the integer as written; the option is a float with
+            // a 100..1000 range and an integer is a legal value for it.
+            nameof(AppSettings.VolumeMax) => "volume-max=" + (int)value,
             _ => null,
         };
     }
@@ -933,6 +964,11 @@ public static partial class MpvSettings
         nameof(AppSettings.GpuShaderCacheDir),
         nameof(AppSettings.DemuxerCacheDir),
         nameof(AppSettings.OverrideDisplayFps),
+        // volume-max: no runtime command (see ToCommand), written by
+        // ConfigOnlyConfLine instead. ConfigOnlyKeys is what keeps ApplyAll
+        // from trying to send it, and what tells check-conf-lines that this
+        // option is owned and formatted rather than silently dropped.
+        nameof(AppSettings.VolumeMax),
     };
 
     /// <summary>AppSettings keys applied after the first file loads.</summary>

@@ -20,7 +20,7 @@ namespace mpv_winui.Modules.Player
     /// none, and the first thing anyone asked on seeing them was why the music
     /// and video libraries were blank.
     /// </summary>
-    public sealed class LibraryEntry : INotifyPropertyChanged
+    public sealed partial class LibraryEntry : INotifyPropertyChanged
     {
         /// <summary>Absolute path, and the identity of the card.</summary>
         public string Path { get; init; } = string.Empty;
@@ -117,6 +117,24 @@ namespace mpv_winui.Modules.Player
         public string MediaIconPath { get; init; } = FluentIcons.List;
 
         /// <summary>
+        /// The album card's first caption: the album, or the localized "unknown".
+        ///
+        /// Plain data, filled by <see cref="FromFileWithTags"/>, NOT a computed
+        /// property reaching for AppLang. x:Bind compiles against the declared
+        /// property, and a property whose body calls into a static global crashes this
+        /// XAML compiler with an internal error whose own message fails to load -
+        /// which is why this looks like an arbitrary failure. Every other caption the
+        /// card binds (Title, Subtitle) is data for the same reason.
+        ///
+        /// Empty at construction and filled by the builder, so the fallback is decided
+        /// where AppContext is reachable rather than inside a data template.
+        /// </summary>
+        public string AlbumTitle { get; init; } = string.Empty;
+
+        /// <summary>The album card's second caption: the artist, or the localized "unknown".</summary>
+        public string AlbumArtistText { get; init; } = string.Empty;
+
+        /// <summary>
         /// A fresh Geometry for the media-kind icon, parsed per access.
         /// x:Bind evaluates this once per template application, which is what
         /// keeps every PathIcon holding a geometry of its own.
@@ -175,6 +193,21 @@ namespace mpv_winui.Modules.Player
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         /// <summary>
+        /// Announces a property from the selection half.
+        ///
+        /// The selection file is a separate partial of this class, and `Raise` is
+        /// private to this one - a partial class shares its members, so this exists only
+        /// to keep the selection file readable rather than to bridge anything.
+        /// </summary>
+        internal void RaiseSelectionChanged(string name) => Raise(name);
+
+        /// <summary>Called by the page when selection mode turns on or off.</summary>
+        internal void SetSelectionMode(bool on) => SelectionMode = on;
+
+        /// <summary>Called by the page when a card is ticked or unticked.</summary>
+        internal void SetSelected(bool selected) => IsSelected = selected;
+
+        /// <summary>
         /// Builds a card from a history entry, or null when the entry has no
         /// usable path.
         /// </summary>
@@ -221,6 +254,12 @@ namespace mpv_winui.Modules.Player
                 MediaIconPath = entry.MediaIconPath,
                 Album = tags.Album,
                 Artist = string.IsNullOrWhiteSpace(tags.Artist) ? tags.AlbumArtist : tags.Artist,
+                AlbumTitle = string.IsNullOrWhiteSpace(tags.Album)
+                    ? global::mpv_winui.AppContext.AppLang.LibraryUnknownAlbum
+                    : tags.Album,
+                AlbumArtistText = string.IsNullOrWhiteSpace(tags.Artist) && string.IsNullOrWhiteSpace(tags.AlbumArtist)
+                    ? global::mpv_winui.AppContext.AppLang.LibraryUnknownArtist
+                    : (string.IsNullOrWhiteSpace(tags.Artist) ? tags.AlbumArtist : tags.Artist),
                 Genre = tags.Genre,
                 Duration = tags.Duration,
             };
@@ -273,6 +312,14 @@ namespace mpv_winui.Modules.Player
                 MediaIconPath = isVideo ? FluentIcons.Filmstrip
                     : isAudio ? FluentIcons.Music
                     : FluentIcons.List,
+
+                // Nothing has been read from the file yet, and saying so is better than
+                // saying nothing: an album card with two empty caption lines reads as
+                // broken rather than as untagged, and these are the same buckets the
+                // grouping already files such tracks under. FromFileWithTags replaces
+                // both with the real tags when the pass runs.
+                AlbumTitle = global::mpv_winui.AppContext.AppLang.LibraryUnknownAlbum,
+                AlbumArtistText = global::mpv_winui.AppContext.AppLang.LibraryUnknownArtist,
             };
         }
     }

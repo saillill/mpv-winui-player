@@ -91,4 +91,41 @@ internal static class ArtworkPalette
 
         return new SolidColorBrush(color) { Opacity = opacity };
     }
+
+    /// <summary>
+    /// The theme's own colour, moved a little toward the artwork's colour.
+    ///
+    /// This is what "the dynamic colour must be an offset from an official theme brush" means in
+    /// practice: the result never leaves the theme's lightness, it only takes some of the cover's
+    /// hue. At <paramref name="weight"/> 0 the output IS the theme colour; at 1 it is the artwork.
+    ///
+    /// A per-channel lerp toward the base rather than an HSL round trip. Recomputing hue and
+    /// saturation in HSL would discard the theme's luminance balance - which is the thing the theme
+    /// exists to provide - to gain a precision nobody asked for.
+    ///
+    /// Alpha comes from the theme colour, not from the artwork: a cover can be fully opaque and the
+    /// wash still has to be translucent over the page.
+    /// </summary>
+    /// <param name="artworkArgb">The extracted cover colour, packed ARGB.</param>
+    /// <param name="baseColor">The active theme's brush colour, read by the caller.</param>
+    /// <param name="weight">0..1; how far to move toward the artwork.</param>
+    internal static SolidColorBrush Tinted(uint artworkArgb, Color baseColor, double weight)
+    {
+        weight = Math.Clamp(weight, 0.0, 1.0);
+
+        var artR = (byte)((artworkArgb >> 16) & 0xFF);
+        var artG = (byte)((artworkArgb >> 8) & 0xFF);
+        var artB = (byte)(artworkArgb & 0xFF);
+
+        static byte Lerp(byte from, byte to, double t) =>
+            (byte)Math.Clamp(Math.Round(from + ((to - from) * t)), 0, 255);
+
+        var color = Color.FromArgb(
+            baseColor.A,
+            Lerp(baseColor.R, artR, weight),
+            Lerp(baseColor.G, artG, weight),
+            Lerp(baseColor.B, artB, weight));
+
+        return new SolidColorBrush(color);
+    }
 }

@@ -239,7 +239,7 @@
                                 x:Name="SwitchAreaGrid"
                                 Grid.RowSpan="3"
                                 Grid.ColumnSpan="3"
-                                Margin="0,5"
+                                Margin="0,4"
                                 Background="{ThemeResource ToggleSwitchContainerBackground}"
                                 Control.IsTemplateFocusTarget="True"
                                 CornerRadius="{TemplateBinding CornerRadius}" />
@@ -1014,6 +1014,23 @@
 
     <!-- Built-in Fluent icon font shared by the control bar, PiP window and
          track selector so every status-bar glyph renders from one font. -->
+    <!-- The custom icon font, kept deliberately.
+
+         The house style says icons should come from Segoe Fluent Icons. That was checked against
+         the actual font file rather than against a codepoint chart: of the 25 distinct glyphs this
+         app draws, **19 do not exist in the installed SegoeIcons.ttf**.
+
+         The six that do are the ordinary transport glyphs. The nineteen that do not are the ones
+         this font was added for - the playback-mode icons, the equaliser, the compact-bar set.
+         Switching would render them as empty boxes, so this is a functional constraint and not a
+         taste question.
+
+         Note also that this machine has SegoeIcons.ttf (the Windows 11 filename), not
+         "Segoe Fluent Icons.ttf"; a reference to the documented family name would resolve to
+         nothing here.
+
+         If a future Windows ships these codepoints, re-run the comparison before removing this
+         font. The 25 sites are listed by `MpvIconFontFamily` in the player markup. -->
     <FontFamily x:Key="MpvIconFontFamily">ms-appx:///Assets/FluentSystemIcons-Regular.ttf#FluentSystemIcons-Regular</FontFamily>
 
     <!-- Shared card used by the quick-control panel and other code-built
@@ -1159,6 +1176,21 @@
          their heights are hand-matched to controls sitting beside them, and a
          comment at each site says so. -->
     <Thickness x:Key="MpvCompactButtonPadding">8,4</Thickness>
+
+    <!-- Action buttons: an icon plus a label, the shape used by the selection bar, the album
+         header and the library toolbars.
+
+         The vertical 6 is not arbitrary - WinUI's own ButtonPadding is 11,5,11,6, so 6 keeps these
+         the same height as a stock Button with a taller-than-default label. The horizontal 16 is
+         what gives an icon+label pair room to breathe; AccentButtonStyle already supplies the
+         background, radius and states.
+
+         Named rather than left as literals at the call sites so a future density change has one
+         place to move. Three variants because the three contexts genuinely differ, not because the
+         numbers drifted. -->
+    <Thickness x:Key="MpvActionButtonPadding">16,6</Thickness>
+    <Thickness x:Key="MpvActionButtonPaddingTight">12,6</Thickness>
+    <Thickness x:Key="MpvSearchButtonPadding">8,6</Thickness>
     <Thickness x:Key="MpvTinyButtonPadding">6,2</Thickness>
     <!-- The footer row's insets. The horizontal half is the MARGIN, only the
          vertical half is padding, and both horizontal halves of the padding are

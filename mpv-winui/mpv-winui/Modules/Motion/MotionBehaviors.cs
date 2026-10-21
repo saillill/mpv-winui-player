@@ -724,22 +724,22 @@ public static class MotionBehaviors
 
         animation.Duration = TimeSpan.FromMilliseconds(MotionTokens.SpringSettleMs);
 
-        // The spring runs on the scalar and is lifted to a uniform scale, so the
-        // three axes cannot disagree about it.
+        // Out to the peak and back, decelerating, with no rebound. This used to be a 24-sample
+        // table off the spring curve, which overshot the peak and undershot on the way back; the
+        // house style does not allow an invented curve when an official one expresses the intent.
+        //
+        // MotionEasing.Move is the project's "element already on screen, moving" curve -
+        // cubic-bezier(0.55, 0.55, 0, 1). Monotonic, so the scale never passes its peak. The
+        // duration is unchanged, so the page's rhythm is unchanged: only the rebound is gone.
         animation.InsertKeyFrame(0f, Vector3.One);
 
-        const int samples = 24;
-
-        for (var i = 1; i < samples; i++)
-        {
-            var t = (double)i / samples;
-
-            var value = 1f
-                + ((peak - 1f) * MotionEasing.SpringValue(
-                    t, MotionTokens.SpringDamping, MotionTokens.SpringFrequency));
-
-            animation.InsertKeyFrame((float)t, new Vector3(value, value, 1f));
-        }
+        // One peak with the Move easing, then back. Not two InsertKeyFrame calls at the same
+        // offset - that overwrites rather than composes, and the first version of this patch
+        // did exactly that.
+        animation.InsertKeyFrame(
+            0.45f,
+            new Vector3(peak, peak, 1f),
+            MotionEasing.Move(compositor));
 
         animation.InsertKeyFrame(1f, Vector3.One);
 

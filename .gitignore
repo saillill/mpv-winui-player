@@ -381,3 +381,6 @@ FodyWeavers.xsd
 /dist/
 /mpv-winui-lazy/cache/
 /update-ms.ps1
+
+# Local scratch for one-off probes; never part of the repo.
+_work/

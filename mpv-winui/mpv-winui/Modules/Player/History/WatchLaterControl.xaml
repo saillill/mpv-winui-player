@@ -70,7 +70,7 @@
                         <TextBlock
                             Grid.Row="1"
                             Grid.Column="1"
-                            FontSize="12"
+                            Style="{StaticResource CaptionTextBlockStyle}"
                             Text="{x:Bind Path}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="NoWrap"

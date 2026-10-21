@@ -45,7 +45,6 @@ private List<Option> BuildSettings()
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
-        var sProgramInterface = AppContext.AppLang.SectionProgramInterface;
         var sPlayerAppearance = AppContext.AppLang.SectionPlayerAppearance;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
         var sProgramTesting = AppContext.AppLang.SectionProgramTesting;
@@ -59,6 +58,7 @@ private List<Option> BuildSettings()
         var sPlaybackSeeking = AppContext.AppLang.SectionPlaybackSeeking;
         var sPlaybackSeekPreview = AppContext.AppLang.SectionPlaybackSeekPreview;
         var sWatchLaterStorage = AppContext.AppLang.SectionWatchLaterStorage;
+        var sLibraryFolders = AppContext.AppLang.SectionLibraryFolders;
         var sVideoDecode = AppContext.AppLang.SectionVideoDecode;
         var sVideoImage = AppContext.AppLang.SectionVideoImage;
         var sVideoFilters = AppContext.AppLang.SectionVideoFilters;
@@ -712,8 +712,7 @@ private List<Option> BuildSettings()
             // through to the minimum optionOrder inside each group) but the
             // table claimed two sections were at the same position, so the
             // next person to add a sibling would have been reading a lie.
-            [sProgramInterface] = 0,
-            [sPlayerAppearance] = 1,
+            [sPlayerAppearance] = 0,
             [sProgramLanguageLog] = 2,
             [sProgramConfig] = 3,
             [sProgramTesting] = 4,
@@ -727,13 +726,19 @@ private List<Option> BuildSettings()
             [sWatchLaterStorage] = 5,
 
             // video
-            [sVideoDecode] = 0,
-            [sVideoImage] = 1,
-            [sVideoFilters] = 2,
-            [sVideoSync] = 3,
-            [sGpuScaling] = 4,
-            [sGpuBackground] = 5,
-            [sGpuD3d11] = 6,
+            //
+            // The folder lists come first: "what is in my library" is the question this
+            // section answers. The numbers stay dense from 0 - the table is a
+            // per-category sequence where the smallest sorts first, so "before 0" is
+            // expressed by renumbering, not by a negative value.
+            [sLibraryFolders] = 0,
+            [sVideoDecode] = 1,
+            [sVideoImage] = 2,
+            [sVideoFilters] = 3,
+            [sVideoSync] = 4,
+            [sGpuScaling] = 5,
+            [sGpuBackground] = 6,
+            [sGpuD3d11] = 7,
             [sGpuShaders] = 7,
             [sToneMapping] = 8,
             [sTargetColorspace] = 9,
@@ -803,9 +808,9 @@ private List<Option> BuildSettings()
         {
             // program
             [nameof(AppSettings.PlayerStyle)] = sPlayerAppearance,
-            [nameof(AppSettings.ThemeType)] = sProgramInterface,
-            [nameof(AppSettings.BackdropType)] = sProgramInterface,
-            [nameof(AppSettings.UiFont)] = sProgramInterface,
+            [nameof(AppSettings.ThemeType)] = sPlayerAppearance,
+            [nameof(AppSettings.BackdropType)] = sPlayerAppearance,
+            [nameof(AppSettings.UiFont)] = sPlayerAppearance,
             [nameof(AppSettings.CurrentLanguage)] = sProgramLanguageLog,
             [nameof(AppSettings.CheckForUpdates)] = sProgramConfig,
             // preset keys are option keys, not AppSettings properties
@@ -830,6 +835,9 @@ private List<Option> BuildSettings()
             // watchLater
             [nameof(AppSettings.WatchLaterOptions)] = sWatchLaterStorage,
             [nameof(AppSettings.WatchLaterDir)] = sWatchLaterStorage,
+            // library folders
+            [nameof(AppSettings.VideoLibraryFolders)] = sLibraryFolders,
+            [nameof(AppSettings.MusicLibraryFolders)] = sLibraryFolders,
             // video
             [nameof(AppSettings.Hwdec)] = sVideoDecode,
             [nameof(AppSettings.HwdecCodecs)] = sVideoDecode,
@@ -1084,7 +1092,7 @@ private List<Option> BuildSettings()
             ["ActionExportConfig"] = sProgramConfig,
             ["ActionImportConfig"] = sProgramConfig,
             ["ActionOpenMpvConf"] = sProgramConfig,
-            [nameof(AppSettings.ControlBarLayout)] = sProgramInterface,
+            [nameof(AppSettings.ControlBarLayout)] = sPlayerAppearance,
             // ControlBarHiddenIcons is deliberately absent: it is the pre-split
             // name of a per-style pair (ControlBarHiddenIconsClassic /
             // ...ModernX), so no row can ever carry it again. The AppSettings

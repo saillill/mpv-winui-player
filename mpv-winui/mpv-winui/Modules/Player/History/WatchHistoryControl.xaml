@@ -75,7 +75,7 @@
                         <TextBlock
                             Grid.Row="0"
                             Grid.Column="2"
-                            FontSize="12"
+                            Style="{StaticResource CaptionTextBlockStyle}"
                             Text="{x:Bind Title}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="NoWrap"
@@ -84,7 +84,7 @@
                             Grid.Row="1"
                             Grid.Column="1"
                             Grid.ColumnSpan="2"
-                            FontSize="12"
+                            Style="{StaticResource CaptionTextBlockStyle}"
                             Text="{x:Bind Path}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="NoWrap"

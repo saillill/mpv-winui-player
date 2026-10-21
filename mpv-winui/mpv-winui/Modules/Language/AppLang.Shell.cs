@@ -117,6 +117,48 @@ namespace mpv_winui.Modules.Language
 
         public string LibraryCardCopyTitle { get; set; } = "Copy title";
 
+        // ---- library folders ----------------------------------------------
+
+        /// <summary>The video library's list of bound folders.</summary>
+        public string SettingsVideoLibraryFolders { get; set; } = "Video library folders";
+
+        /// <summary>The music library's list of bound folders.</summary>
+        public string SettingsMusicLibraryFolders { get; set; } = "Music library folders";
+
+        /// <summary>What unticking a video folder does, and where they come from.</summary>
+        public string SettingsHelpVideoLibraryFolders { get; set; } =
+            "Folders the video library scans. Add one with the add-folder button on the "
+            + "library page; untick it here to remove it.";
+
+        /// <summary>What unticking a music folder does, and where they come from.</summary>
+        public string SettingsHelpMusicLibraryFolders { get; set; } =
+            "Folders the music library scans. Add one with the add-folder button on the "
+            + "library page; untick it here to remove it.";
+
+        /// <summary>Shown when a library has no folder bound at all.</summary>
+        public string SettingsLibraryFoldersNone { get; set; } =
+            "No folder is bound. Use the add-folder button on the library page.";
+
+        // ---- selection ----------------------------------------------------
+
+        /// <summary>The card menu's entry into selection mode.</summary>
+        public string LibraryCardSelect { get; set; } = "Select";
+
+        /// <summary>"{0} selected" - the count on the selection bar.</summary>
+        public string LibrarySelectionCount { get; set; } = "{0} selected";
+
+        /// <summary>Clears the ticks and leaves selection mode.</summary>
+        public string LibrarySelectionClear { get; set; } = "Clear";
+
+        /// <summary>Plays the ticked files.</summary>
+        public string LibrarySelectionPlay { get; set; } = "Play";
+
+        /// <summary>Appends the ticked files to the play queue.</summary>
+        public string LibrarySelectionQueue { get; set; } = "Add to play queue";
+
+        /// <summary>Shows the one ticked file in Explorer.</summary>
+        public string LibrarySelectionProperties { get; set; } = "Show in folder";
+
         public string LibraryEmptyHomeTitle { get; set; } = "No recent media";
 
         public string LibraryEmptyHomeDescription { get; set; } = "Media you play shows up here.";
