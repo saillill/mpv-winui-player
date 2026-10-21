@@ -220,6 +220,12 @@ namespace mpv_winui
                     },
                 };
 
+                // The only stable handle a test can reach this item by: the
+                // caption is localized, so matching on it works in exactly one
+                // language. Attached property, not a member of the control;
+                // not rendered, and the accessible name stays the caption.
+                AutomationProperties.SetAutomationId(item, "ShellNav_" + section.Key);
+
                 if (string.Equals(section.Key, previousKey, StringComparison.Ordinal))
                 {
                     restore = item;
