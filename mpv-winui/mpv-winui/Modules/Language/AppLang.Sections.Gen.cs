@@ -26,8 +26,12 @@ namespace mpv_winui.Modules.Language
         public string SectionDescGenOsd { get; set; } = "全部 OSD 相关选项";
         public string SectionGenPlayerWindow { get; set; } = "播放器与窗口选项";
         public string SectionDescGenPlayerWindow { get; set; } = "播放器行为与窗口的全部选项";
-        public string SectionGenStreaming { get; set; } = "流媒体与缓存选项";
-        public string SectionDescGenStreaming { get; set; } = "网络、缓存、解复用等全部选项";
+        public string SectionGenStreamCache { get; set; } = "缓存与预读";
+        public string SectionDescGenStreamCache { get; set; } = "读到什么程度、缓存多大、卡顿时先攒多少";
+        public string SectionGenStreamDemuxer { get; set; } = "解复用细节";
+        public string SectionDescGenStreamDemuxer { get; set; } = "容器探测、裸流参数与 mkv 兼容开关，通常只在文件播放异常时才需要";
+        public string SectionGenStreamNetwork { get; set; } = "网络与流媒体";
+        public string SectionDescGenStreamNetwork { get; set; } = "HTTP/TLS、cookies、yt-dlp 与网络流";
         public string SectionGenSubtitles { get; set; } = "字幕选项";
         public string SectionDescGenSubtitles { get; set; } = "全部字幕相关选项";
         public string SectionGenTracks { get; set; } = "轨道选项";

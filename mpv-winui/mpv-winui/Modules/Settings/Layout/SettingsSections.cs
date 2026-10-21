@@ -35,31 +35,32 @@ internal static class SettingsSections
         Func<AppLang, string> Description);
 
     /// <summary>Top-level categories, in settings-window order.</summary>
+    ///
+    /// Six domains, ordered the way someone works through a new player: set it
+    /// up (Program), then the three things a media file consists of (Video,
+    /// Audio, Subtitles), then the two surfaces around them (Playback for how
+    /// files are opened and moved through, Interface for what you see and
+    /// click).
+    ///
+    /// The nine categories this replaces followed the mpv manual's chapters.
+    /// That is a reference document's structure, not a user's: it gives Network
+    /// its own top-level heading because the manual has a chapter for it, while
+    /// "streaming stutters" is a playback problem and belongs beside cache and
+    /// buffering. Shortcuts and OSD were two more top-level headings holding
+    /// four and five sections - the same "bucket" problem the old Advanced
+    /// category had.
+    ///
+    /// Several SettingsCategory* properties now resolve to the same caption on
+    /// purpose; see the comment on them in AppLang.cs. This array lists each
+    /// domain once, in order.
     internal static readonly Category[] Categories =
     [
         new("program", l => l.SettingsCategoryProgram),
-        new("playback", l => l.SettingsCategoryPlayback),
         new("video", l => l.SettingsCategoryVideo),
         new("audio", l => l.SettingsCategoryAudio),
         new("subtitles", l => l.SettingsCategorySubtitles),
-        new("window", l => l.SettingsCategoryWindow),
-        new("network", l => l.SettingsCategoryNetwork),
-        new("shortcuts", l => l.SettingsCategoryShortcuts),
-        new("osd", l => l.SettingsCategoryOsd),
-        // Screenshots used to be their own top-level category, which gave a
-        // two-section, sixteen-option topic the same weight as Video. It is a
-        // picture feature: the sections now live inside Video, and the category
-        // is gone.
-        //
-        // "Advanced" went the same way, for a different reason. It was a bucket
-        // of renderer internals and scaler tuning, and a bucket is precisely what
-        // makes an option hard to find: the graphics API is a fact about the
-        // output chain, not about being advanced, and someone looking for it
-        // looks under Video. Every option it held now sits in the section it
-        // describes - gpu-api and gpu-context with the output chain, the
-        // antiringing knobs with the scaler, the testing and file-association
-        // rows in Program's own folding sections. Nobody has to know the app has
-        // an "advanced" tier to find any of them.
+        new("playback", l => l.SettingsCategoryPlayback),
+        new("interface", l => l.SettingsCategoryWindow),
     ];
 
     /// <summary>
@@ -146,7 +147,14 @@ internal static class SettingsSections
         new("SectionGenSubtitles", "\uE703", l => l.SectionGenSubtitles, l => l.SectionDescGenSubtitles),
         new("SectionGenOsd", "\uE704", l => l.SectionGenOsd, l => l.SectionDescGenOsd),
         new("SectionGenAudio", "\uE705", l => l.SectionGenAudio, l => l.SectionDescGenAudio),
-        new("SectionGenStreaming", "\uE707", l => l.SectionGenStreaming, l => l.SectionDescGenStreaming),
+        // "Streaming & cache" was one 50-row folder doing three unrelated jobs:
+        // opening a URL, how much read-ahead to keep, and the demuxer's own
+        // probing behaviour for raw or unusual containers. The first is what
+        // someone arrives for; the third is a mechanism that only matters when a
+        // file plays wrong. Split accordingly - see STREAM_SUBTHEMES.
+        new("SectionGenStreamNetwork", "\uE710", l => l.SectionGenStreamNetwork, l => l.SectionDescGenStreamNetwork),
+        new("SectionGenStreamCache", "\uE9A9", l => l.SectionGenStreamCache, l => l.SectionDescGenStreamCache),
+        new("SectionGenStreamDemuxer", "\uEA80", l => l.SectionGenStreamDemuxer, l => l.SectionDescGenStreamDemuxer),
         new("SectionGenTracks", "\uE708", l => l.SectionGenTracks, l => l.SectionDescGenTracks),
 
         // "Video & rendering" and "Player & window" are no longer one folder

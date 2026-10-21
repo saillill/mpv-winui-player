@@ -207,8 +207,11 @@ SECTION_OVERRIDE = {
     "secondary-sid": "SectionGenSubtitles",
     "stretch-dvd-subs": "SectionGenSubtitles",
     "teletext-page": "SectionGenSubtitles",
-    "hls-bitrate": "SectionGenStreaming",
-    "rtsp-transport": "SectionGenStreaming",
+    # Both are network-stream settings. They used to be pinned to the unsplit
+    # Streaming folder; now that it has sub-folders they belong in the network
+    # one, and pinning to the parent would leave them outside every card.
+    "hls-bitrate": "SectionGenStreamNetwork",
+    "rtsp-transport": "SectionGenStreamNetwork",
 }
 
 # Icons for the generated folders, including every General sub-theme. Checked
@@ -253,7 +256,13 @@ GENERATED_ICON_GLYPH = {
     "IconWindowFrame": "\\uE8B9",     # window
     "IconWindowInput": "\\uE90F",     # keyboard/mouse
     "IconWindowScripts": "\\uEA37",   # script/code
-    "IconWindowMedia": "\\uE81C",     # disc
+    "IconWindowMedia": "\\uE81C",
+    # Streaming sub-folders. IconNetwork already exists above; these two are
+    # their own glyphs, checked against the hand-written set: E9A9 and EA80 are
+    # not used by any other section. (E74E and E8FD were the obvious picks and
+    # both collided -- with SectionCache and SectionDemuxerPlaylist.)
+    "IconCache": "\\uE9A9",
+    "IconDemuxer": "\\uEA80",
 }
 
 
@@ -328,6 +337,25 @@ WINDOW_SUBTHEMES = [
      "DVD / 蓝光设备、播放列表与媒体时长处理",
      ["bluray", "dvd", "cdrom", "playlist", "length", "start", "end",
       "force-media-title", "force-seekable"]),
+]
+
+
+# "Streaming & cache" was one 50-row folder holding three unrelated jobs:
+# opening a URL, how much read-ahead to keep, and the demuxer's own probing
+# behaviour for raw/unusual containers. The first is what a person wants; the
+# third is a decoder-side mechanism that only matters when a file plays wrong.
+STREAM_SUBTHEMES = [
+    ("stream-network", "IconNetwork", "网络与流媒体",
+     "HTTP/TLS、cookies、yt-dlp 与网络流",
+     ["cookies", "curl", "tls", "ytdl", "hls", "rtsp", "stream"]),
+    ("stream-cache", "IconCache", "缓存与预读",
+     "读到什么程度、缓存多大、卡顿时先攒多少",
+     ["demuxer-cache", "demuxer-hysteresis", "demuxer-seekable-cache",
+      "demuxer-thread", "demuxer-termination", "demuxer-backward",
+      "demuxer-donate", "cache"]),
+    ("stream-demuxer", "IconDemuxer", "解复用细节",
+     "容器探测、裸流参数与 mkv 兼容开关，通常只在文件播放异常时才需要",
+     ["demuxer"]),
 ]
 
 
@@ -524,6 +552,32 @@ DENY_EXACT = {
     #     disagreeing with the first.
     "input-test", "input-ipc-client",
     "register", "register-rpath", "unregister",
+
+    # --- group 4: parameters of something else's insides -------------------
+    #
+    # The first three groups ask "can this application reach it" and "does it
+    # pick the pipeline". This one asks a different question: is the value a
+    # decision, or is it a knob on an implementation detail the user did not
+    # choose and cannot observe?
+    #
+    #   *-o is raw passthrough to libavcodec / libswresample / libavformat.
+    #   The value is a "key=value,key=value" string interpreted by a library
+    #   this app calls, with no validation and no feedback: a typo is a silent
+    #   behaviour change, and the options are not even documented here. A row
+    #   for one is a text box with a promise attached that the app cannot keep.
+    "ad-lavc-o", "vd-lavc-o", "sub-lavc-o", "audio-swresample-o",
+    "demuxer-lavf-o", "stream-lavf-o",
+    #
+    #   Reverse playback's batch and overlap sizes. These tune how mpv splits a
+    #   backward seek into decoder-sized chunks -- a performance detail of a
+    #   feature the toolbar already drives. Exposing them invites tuning a
+    #   number whose effect is invisible until it is wrong.
+    "audio-backward-batch", "audio-backward-overlap",
+    "video-backward-batch", "video-backward-overlap",
+    #
+    #   Reference counting on decoded frames: a debugging aid for decoder
+    #   authors. Default "yes" is correct for everyone who is not one.
+    "access-references",
 }
 
 DENY_PREFIX = (
@@ -828,6 +882,9 @@ def folder_for(row: dict) -> str:
     if group == "Player & window":
         if (sub := _subtheme(row["name"], WINDOW_SUBTHEMES)) is not None:
             return _subtheme_key(sub)
+    if group == "Streaming & cache":
+        if (sub := _subtheme(row["name"], STREAM_SUBTHEMES)) is not None:
+            return _subtheme_key(sub)
     if group != "General":
         return GROUP_TO_SECTION[group]
     return "SectionGenGeneral" + general_theme(row["name"])
@@ -843,6 +900,7 @@ def folder_meta(key: str) -> tuple[str, str, str, str]:
     for table, group in (
         (VIDEO_SUBTHEMES, "Video & rendering"),
         (WINDOW_SUBTHEMES, "Player & window"),
+        (STREAM_SUBTHEMES, "Streaming & cache"),
     ):
         for sub, icon, cap, desc, _patterns in table:
             if key == _subtheme_key(sub):
