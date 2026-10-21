@@ -2034,5 +2034,30 @@ namespace mpv_winui.Modules.Language
         }
 
         private string _fallback_CustomizeExitTip = "Leave customize mode; unsaved changes are confirmed first";
+
+        // Player right-click menu. These were hardcoded English strings in
+        // MpvPlayerPage_MpvMenu.cs, so a translated interface had an English
+        // menu. check-localization cannot catch a caption that never became a
+        // property, which is why they survived every earlier sweep.
+        // Grouped as the menu now is: Open, Track, View.
+        public string MenuSectionOpen { get; set; } = "Open";
+        public string MenuOpenFile { get; set; } = "Open file";
+        public string MenuOpenFolder { get; set; } = "Open folder";
+        public string MenuOpenUrl { get; set; } = "Open URL";
+        public string MenuOpenClipboard { get; set; } = "Open from clipboard";
+        public string MenuOpenDisc { get; set; } = "Open disc";
+        public string MenuOpenDvd { get; set; } = "DVD";
+        public string MenuOpenBluRay { get; set; } = "Blu-ray";
+        public string MenuRecent { get; set; } = "Recent";
+        public string MenuOpenWatchHistory { get; set; } = "Watch history";
+        public string MenuOpenWatchLater { get; set; } = "Watch later";
+        public string MenuSectionTrack { get; set; } = "Track";
+        public string MenuLoadSubtitle { get; set; } = "Load subtitle";
+        public string MenuSectionView { get; set; } = "View";
+        public string MenuTogglePlaylist { get; set; } = "Playlist";
+        public string MenuToggleFullScreen { get; set; } = "Full screen";
+        public string MenuToggleFullWindow { get; set; } = "Full window";
+        public string MenuAlwaysOnTop { get; set; } = "Always on top";
+        public string MenuQuit { get; set; } = "Quit";
     }
 }
