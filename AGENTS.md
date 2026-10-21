@@ -43,7 +43,9 @@ Two rules that bite when files move:
    The assembly name is `mpvw`, not `mpv-winui` — `b777f30` added
    `<AssemblyName>mpvw</AssemblyName>`, which renamed the exe, the dll and the pri.
 2. **Check** — run the self-checks in `tools/` (see below). This is the gate.
-3. **Hand over** — report the path of the built or deployed output and stop.
+3. **Verify behaviour through MCP** — `tools/mvpw-mcp/` drives the deployed app
+   and asserts control state, instead of a screenshot and an opinion.
+4. **Hand over** — report the path of the built or deployed output and stop.
 
 > **Run `python tools\check-xaml.py` *before* `build.ps1`, not after.** XAML
 > cannot carry `--` inside a comment (WMC9997), and nothing in this repo's
@@ -66,7 +68,52 @@ Two rules that bite when files move:
   Trust `git diff --check` plus "no whole-file rewrite in `--stat`". Full rule in
   §5.6 of `docs/settings-design-contract.md`.
 
+### Driving the app: MCP, not a screenshot (2026-10-22)
+
+The section below says UI probes "have never once worked". That was true of the
+probes written before `uiautomation`/UIA3 was used, and the owner's brief for
+2026-10-21 asked for the opposite: replace manual clicking and eyeballing with
+programmable calls. Measured on the deployed build, they work:
+
+- UI Automation reads this WinUI 3 window (`WinUIDesktopWin32WindowClass`,
+  ~60 AutomationIds: `ShellNav`, `ShellTitleText`, `ProgressSlider`,
+  `PlayQueue`…). `Grid` is not a UIA node, so a container you can see may have
+  no element -- assert its children instead.
+- mpv answers on `\\.\pipe\mpvpipe` while the app runs (`pause`, `volume`;
+  `time-pos` is `property unavailable` until something is loaded, which is a
+  valid answer, not a failure).
+- Nav items needed ids to be addressable at all; they now carry
+  `ShellNav_<key>` (`AutomationProperties.SetAutomationId`, an attached
+  property -- `NavigationViewItem.AutomationId` does not compile).
+
+```
+python tools/mvpw-mcp/verify_e2e.py            # 19 steps, launch -> assert -> close
+python tools/mvpw-mcp/verify_settings.py       # settings window opens and builds its rows
+python tools/mvpw-mcp/verify_mcp_protocol.py   # the server itself, over stdio JSON-RPC
+```
+
+The seven tools are `launch_app`, `get_ui_snapshot`, `invoke_control`,
+`assert_element_state`, `screenshot_region`, `read_playback_state`,
+`trigger_screenshot` (plus `close_app`). Register the server with:
+
+```json
+"mvpw": { "command": "python",
+          "args": ["<repo>/tools/mvpw-mcp/mcpw_server.py"] }
+```
+
+**What is still not allowed.** The app must not be left running -- every script
+ends by closing it and asserting the process is gone. The next section
+("Do not launch the app") still applies to everything this one does not cover;
+it is not deleted, only narrowed. See also 2026-10-22. A screenshot still proves
+only appearance; it is for diagnosis now, not for the pass/fail verdict. And do
+not deploy into a running installation.
+
 ### Do not launch the app
+
+> **Superseded in part by "Driving the app: MCP" above (2026-10-22).** That
+> section is the current rule for behaviour checks; this one still governs
+> everything else, and its closing rules -- do not leave the app running, do not
+> deploy into a running install -- still hold. Read both.
 
 **Do not start `mpvw.exe`, and do not write or run UI-automation probes against
 it.** The person this project is built for tests it themselves and has said so
@@ -180,7 +227,17 @@ methods beats reading the file top to bottom.
   Rules and rationale: `docs/deploy-layout.md` §2.5.
 - **Mouse input**: libmpv never sees Win32 mouse input in composition mode. The app forwards keyboard/mouse via the input-forwarding partial (MpvPlayerPage_InputForwarding.cs); display monitoring lives in MpvPlayerPage_Display.cs.
 - **Command strings**: `mpv_command_string` parses C-style escapes. Windows paths need doubled backslashes inside quotes (`Q()` in `MpvSettings.cs`).
-- **Command ordering**: settings ApplyAll, menu commands and `OpenAsync` run through `MpvCommandQueue` (FIFO worker); input forwarding stays direct.
+- **Command ordering**: there is none. `MpvPlayerPage.xaml.cs:147` sends
+  `MpvSettings.BuildApplyAllCommands()` as one batch, and the open path calls
+  `_mediaPlayer.OpenAsync(...)` directly from each caller
+  (`MpvPlayerPage_History.cs:58,68`, `MpvPlayerPage_Library.cs:2164`,
+  `MpvPlayerPage_Drop.cs`). Input forwarding is direct too.
+  > This bullet used to say all three ran through `MpvCommandQueue` (a FIFO
+  > worker). That class still exists at `Modules/Player/MpvCommandQueue.cs` and
+  > nothing constructs it: `git grep -n 'MpvCommandQueue' -- '*.cs'` returns
+  > three hits, all inside the file, and `git log --all -S 'new MpvCommandQueue'`
+  > finds no commit that ever did. Corrected 2026-10-22; the file is a deletion
+  > candidate, not a mechanism.
 - **Position UI**: event-driven; `time-pos` observed natively + 100ms coalescing timer — never reintroduce polling.
 - **Fullscreen**: driven by mpv's `fullscreen` property (`HandleFullscreenProperty`). State-based, never toggle-based. Always call `RefreshAdaptiveState()` after presenter transitions.
 - **PiP**: dedicated borderless always-on-top window reusing `PlayerControl`. ExitPiP defers sizing until main window is shown and laid out (ActualWidth=0 bug).
