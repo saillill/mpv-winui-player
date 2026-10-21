@@ -203,7 +203,7 @@ the orientation, not a substitute.
   `optionOrder`, plus `categoryOrder`. A row with no `sectionMap` entry makes
   `BuildSettings` throw on open (fail-loud, deliberately).
 - **The tree has two halves.** Hand-written rows live in the `Options.*.cs`
-  partials; 548 schema-generated rows live in `SettingsPage.Options.Gen.cs`
+  partials; 362 schema-generated rows live in `SettingsPage.Options.Gen.cs`
   (`tools/gen-schema-options.py`). Edit the generator or `MpvConfOptions/mpv-options.json`,
   never a `.Gen.` file — the next run overwrites it. Anything that enumerates
   options, sections or mpv names must read **both** halves; six checkers did not,
@@ -225,6 +225,51 @@ the orientation, not a substitute.
   `Languages/*.json`, reading all three `AppLang*.cs` partials.
 - `tools/check-sections.py`: sections, icons, sort keys, and the sectionMap
   guard mirrored at commit time.
+
+### Cross-language contracts that are checked
+
+Three defects in this repo had one shape: **two things agreed to a contract,
+nothing compared them, and the break was silent.** Each now has a checker, and
+the rule for adding the next one is written down here because the pattern
+recurred more often than the specific bugs did.
+
+| Contract | Checker |
+|---|---|
+| C# event subscription ↔ C++ `m_*Event` raise | `check-winrt-events.py` |
+| Local Lua script ↔ `script-opts` the pinned mpv sends it | `check-script-opts.py` |
+| `AppLang` property ↔ nine language files | `check-localization.py` |
+| `AppSettings` ↔ `ToCommand` ↔ `MpvConfOptionNames` | `check-settings-drift.py`, `check-conf-lines.py` |
+
+The three that bit hardest:
+
+- **`PlaybackFailed` / `VoConfigured`.** `c49b461` renamed the native raises;
+  the IDL kept the old declarations, so both C# subscriptions compiled and never
+  fired. `MediaPlayer_MediaFailed` never ran and the `Error` visual state was
+  unreachable.
+- **`populate_menu_data`.** `mpv-2.dll` hardcodes
+  `script-opt=select-populate_menu_data=no` for its bundled `select.lua`; the
+  project's localized copy declared two of the five options, so every launch
+  logged "unknown key … ignoring" and dropped the value.
+- **`MpvSpaceXS`.** A `{StaticResource}` name that differed from the key by one
+  character threw inside `InitializeComponent()`, which `Frame.Navigate`
+  swallows — the symptom was an empty window with no dialog and no log line.
+
+**When adding a checker, three rules:**
+
+1. **See it fail first.** Inject the real defect, not a synthetic one — the two
+   above were replayed by reintroducing the actual subscription line. A checker
+   that has never been red is a checker whose blind spot is unknown.
+2. **Refuse unconvincing input.** "Parsed zero items" must be an error, not a
+   clean bill of health; otherwise a regex that stops matching reports success
+   forever (`check-script-opts` exits 2 when the DLL yields no `script-opt`
+   lines).
+3. **Ask what the code reads, not what a comment says it does.** Six checkers
+   here were green while measuring the wrong half of the tree.
+
+**Beware the reverse-test that cannot fail.** The first version of the
+script-opts reverse test replaced `"…,\n"` in a CRLF file, so the injection
+never applied and every case reported the baseline — indistinguishable from a
+passing checker.
 
 ### Right-click menu
 

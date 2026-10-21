@@ -21,6 +21,16 @@ local input = require "mp.input"
 local options = {
     history_date_format = "%Y-%m-%d %H:%M:%S",
     hide_history_duplicates = true,
+    -- Declared here even though this copy has no use for them: mpv's own
+    -- mpv.conf carries `script-opt=select-populate_menu_data=no`, so before
+    -- these were listed every launch logged
+    --   [mpv/select] script-opts: unknown key populate_menu_data, ignoring
+    -- and dropped the value. Keeping the upstream keys present in the table is
+    -- what makes that quiet; `tools/check-script-opts.py` enforces it.
+    -- Defaults match mpv's built-in copy.
+    menu_conf_path = "~~/menu.conf",
+    max_playlist_items = 25,
+    populate_menu_data = true,
 }
 
 require "mp.options".read_options(options, nil, function () end)

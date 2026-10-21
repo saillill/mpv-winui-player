@@ -222,9 +222,9 @@
                                     Background="{ThemeResource AccentFillColorDefaultBrush}"
                                     BorderThickness="0"
                                     CornerRadius="16"
-                                    Click="CardPlay_Click"
-                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    Click="CardPlay_Click">
                                     <FontIcon
+                                        FontFamily="{StaticResource MpvIconFontFamily}"
                                         FontSize="14"
                                         Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                                         Glyph="&#xE768;" />
@@ -240,9 +240,11 @@
                                     Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                     BorderThickness="0"
                                     CornerRadius="16"
-                                    Click="CardMore_Click"
-                                    PointerPressed="CardOverlayButton_PointerPressed">
-                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                    Click="CardMore_Click">
+                                    <FontIcon
+                                        FontFamily="{StaticResource MpvIconFontFamily}"
+                                        FontSize="14"
+                                        Glyph="&#xE712;" />
                                 </Button>
 
                                 <!-- The tick box, upper-left. Shown only in selection
@@ -390,9 +392,9 @@
                                     Background="{ThemeResource AccentFillColorDefaultBrush}"
                                     BorderThickness="0"
                                     CornerRadius="16"
-                                    Click="CardPlay_Click"
-                                    PointerPressed="CardOverlayButton_PointerPressed">
+                                    Click="CardPlay_Click">
                                     <FontIcon
+                                        FontFamily="{StaticResource MpvIconFontFamily}"
                                         FontSize="14"
                                         Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                                         Glyph="&#xE768;" />
@@ -407,9 +409,11 @@
                                     Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                     BorderThickness="0"
                                     CornerRadius="16"
-                                    Click="CardMore_Click"
-                                    PointerPressed="CardOverlayButton_PointerPressed">
-                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                    Click="CardMore_Click">
+                                    <FontIcon
+                                        FontFamily="{StaticResource MpvIconFontFamily}"
+                                        FontSize="14"
+                                        Glyph="&#xE712;" />
                                 </Button>
                                 <Border
                                     x:Name="AlbumCardSelectionBox"

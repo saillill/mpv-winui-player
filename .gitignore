@@ -381,3 +381,14 @@ FodyWeavers.xsd
 /dist/
 /mpv-winui-lazy/cache/
 /update-ms.ps1
+
+# Local scratch for one-off probes; never part of the repo.
+_work/
+
+# Cloud reference clone used for the upstream diff audit (2026-10-21).
+# It is a full git checkout of saillill/mpv-winui-player and must never be
+# committed; `git remote add cloud` is how the same content is reached.
+_cloud/
+
+# `uiautomation` writes its diagnostic log into the current directory.
+@AutomationLog.txt

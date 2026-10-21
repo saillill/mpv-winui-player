@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Check localization consistency for mpv-winui-player.
 
 * Every writable AppLang property must exist in each Languages/<lang>.json.
@@ -37,17 +37,17 @@ def parse_applang_props_all() -> set[str]:
     AppLang is spread over three files and the check used to read one of them:
 
       * AppLang.cs               -- the hand-written vocabulary
-      * AppLang.Gen.cs           -- the 1098 SchemaLabel_*/SchemaDesc_* the
-                                    generator emits for the 548 schema rows
+      * AppLang.Gen.cs           -- the 724 SchemaLabel_*/SchemaDesc_* the
+                                    generator emits for the 362 schema rows
       * AppLang.Sections.Gen.cs  -- the generated section captions and
                                     descriptions (SectionGen*/SectionDescGen*)
 
     Reading only the first had two opposite effects, and both looked like real
-    findings. The 1098 generated properties were reported as "extra keys" --
+    findings. The 724 generated properties were reported as "extra keys" --
     language-file entries no AppLang property claims -- which is backwards. The
     26 `SectionGen*` keys were reported the same way for the same reason. And
     underneath that noise the actual defect was invisible: all nine language
-    files are missing every one of the 1098 generated keys.
+    files are missing every one of the 724 generated keys.
 
     Globbed rather than listed, so a fourth partial cannot reintroduce the bug.
 
@@ -70,9 +70,9 @@ def _summarise(keys) -> str:
     A family is the leading CamelCase word -- matched lazily up to the next
     capital, which is what keeps `CustomizeAddCategoryOption` from collapsing to
     its whole self and `SchemaLabel_Mpv_ad` from doing the same. Without this, a
-    systematic gap (1098 keys) and an incidental one (6 keys) look the same on
+    systematic gap (724 keys) and an incidental one (6 keys) look the same on
     the console: an unreadable wall that people learn to scroll past, which is
-    how the 1098 stayed invisible for a week.
+    how the 724 stayed invisible for a week.
     """
     counts: dict[str, int] = {}
     for key in keys:
@@ -196,8 +196,8 @@ def main() -> int:
         missing = props - keys
         extra = keys - props
         if missing:
-            # Summarise by family when the gap is systematic. A list of 1098
-            # names tells you nothing; "548x SchemaLabel_*, 548x SchemaDesc_*"
+            # Summarise by family when the gap is systematic. A list of 724
+            # names tells you nothing; "362x SchemaLabel_*, 362x SchemaDesc_*"
             # tells you the generated layer was never translated, which is the
             # actual state. Families are the leading CamelCase word followed by
             # "_", so SchemaLabel_Mpv_x -> SchemaLabel_*.
@@ -218,15 +218,31 @@ def main() -> int:
                     f"{path.name}: missing {len(generated)} generated Schema* key(s) "
                     f"(known exception, see settings-design-contract 7)")
         if extra:
-            # Expected, not a defect: the customize-mode shell keeps its own
-            # translation table (see CustomizeStrings) because AppLang's are read
-            # by reflection and cannot hold translations. Those keys, plus the
-            # theme editor's, ship in every language file without an AppLang
-            # property behind them. Reported so a genuinely orphaned key is still
-            # visible -- by count and family, not as a wall of names.
-            warnings.append(
-                f"{path.name}: {len(extra)} companion-table key(s) with no AppLang "
-                f"property (expected): {_summarise(extra)}")
+            # Two very different things ended up in `extra`, and reporting them
+            # as one "expected" warning is how eleven dead keys stayed in the
+            # tree: every file carried them, the checker said "expected", and
+            # nothing distinguished them from the customize table that really
+            # does live here on purpose.
+            #
+            #   * the customize-mode shell's companion table (CustomizeStrings)
+            #     plus ApplyAndExit -- read by CustomizeStrings.Load, and having
+            #     no AppLang property is the design (see its class docstring);
+            #   * everything else -- no AppLang property AND no reader. Those
+            #     are keys nothing asks for: a setting that was removed, or a
+            #     generated section that no longer exists. They are dead weight
+            #     in nine files that every future translator pays for.
+            expected = {k for k in extra
+                        if k.startswith("Customize") or k == "ApplyAndExit"}
+            stale = extra - expected
+            if expected:
+                warnings.append(
+                    f"{path.name}: {len(expected)} companion-table key(s) with no AppLang "
+                    f"property (expected): {_summarise(expected)}")
+            if stale:
+                errors.append(
+                    f"{path.name}: {len(stale)} stale key(s) with no AppLang property and "
+                    f"no reader: {_summarise(stale)}"
+                    + (f" (e.g. {sorted(stale)[0]})" if len(stale) > 12 else ""))
         if path.name == "en-US.json":
             en_data = data
 

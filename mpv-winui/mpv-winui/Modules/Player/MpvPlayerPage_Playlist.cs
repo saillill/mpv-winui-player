@@ -309,21 +309,6 @@ namespace mpv_winui.Modules.Player
             AppContext.AppLogger.Info($"exported playlist ({PlaylistItems.Count} items): {file.Path}");
         }
 
-        private void ImportPlaylist_Click(object sender, RoutedEventArgs e)
-        {
-            ImportPlaylistAsync().FireAndForget(OnException);
-        }
-
-        private void ExportPlaylist_Click(object sender, RoutedEventArgs e)
-        {
-            ExportPlaylistAsync().FireAndForget(OnException);
-        }
-
-        private void RefreshPlaylist_Click(object sender, RoutedEventArgs e)
-        {
-            RefreshPlaylistAsync();
-        }
-
         // ------------------------------------------------------- play queue
 
         /// <summary>
@@ -563,26 +548,6 @@ namespace mpv_winui.Modules.Player
         private int _dragSourceIndex = -1;
         private Point _dragStartPoint;
         private bool _dragActive;
-        private bool _dragSetup;
-
-        private void SetupPlaylistDrag()
-        {
-            if (_dragSetup)
-            {
-                return;
-            }
-            _dragSetup = true;
-            // Handlers are attached to the queue host, not the ListView:
-            // ListViewItem captures the pointer on press, and captured pointer
-            // events are routed to the capturer's ancestor chain - they never
-            // reach a handler on the ListView itself. QueueHost is on that
-            // chain, so move/release still arrive.
-            QueueHost.AddHandler(PointerPressedEvent, new PointerEventHandler(QueueView_PointerPressed), true);
-            QueueHost.AddHandler(PointerMovedEvent, new PointerEventHandler(QueueView_PointerMoved), true);
-            QueueHost.AddHandler(PointerReleasedEvent, new PointerEventHandler(QueueView_PointerReleased), true);
-            QueueHost.AddHandler(PointerCanceledEvent, new PointerEventHandler(QueueView_PointerReleased), true);
-            QueueHost.AddHandler(PointerCaptureLostEvent, new PointerEventHandler(QueueView_PointerReleased), true);
-        }
 
         private static PlaylistItem? FindPlaylistItem(DependencyObject? source)
         {

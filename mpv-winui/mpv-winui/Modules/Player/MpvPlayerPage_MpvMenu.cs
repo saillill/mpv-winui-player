@@ -30,90 +30,75 @@ namespace mpv_winui.Modules.Player
             return flyout;
         }
 
+        /// <summary>
+        /// The app's own menu entries, above mpv's script-supplied ones.
+        ///
+        /// Organised the way the settings window is: by what a person came to do,
+        /// not by which subsystem answers. The previous list mixed three
+        /// different jobs under one "File" submenu - opening a file, opening a
+        /// URL, and pulling something out of history - and then put the playlist
+        /// toggle both there and under "Window", so the same command appeared
+        /// twice with two different captions.
+        ///
+        /// Now: Open (get media in), Recent (resume something), Track (choose
+        /// what plays), View (change how it looks), and Quit at the root.
+        /// </summary>
         private void AddOpenHeaderItems(IList<MenuFlyoutItemBase> target)
         {
-            var openSub = new MenuFlyoutSubItem { Text = "File" };
+            var lang = AppContext.AppLang;
+
+            var openSub = new MenuFlyoutSubItem { Text = lang.MenuSectionOpen };
             target.Add(openSub);
 
-            var item = new MenuFlyoutItem { Text = "Open File", Tag = "open" };
-            item.Click += Item_Click;
-            openSub.Items.Add(item);
-
-            item = new MenuFlyoutItem { Text = "Open Folder", Tag = "open-folder" };
-            item.Click += Item_Click;
-            openSub.Items.Add(item);
-
-            item = new MenuFlyoutItem { Text = "Open URL", Tag = "open-url" };
-            item.Click += Item_Click;
-            openSub.Items.Add(item);
-
-            item = new MenuFlyoutItem { Text = "Open from Clipboard", Tag = "open-clipboard" };
-            item.Click += Item_Click;
-            openSub.Items.Add(item);
+            AddItem(openSub.Items, lang.MenuOpenFile, "open");
+            AddItem(openSub.Items, lang.MenuOpenFolder, "open-folder");
+            AddItem(openSub.Items, lang.MenuOpenUrl, "open-url");
+            AddItem(openSub.Items, lang.MenuOpenClipboard, "open-clipboard");
 
             openSub.Items.Add(new MenuFlyoutSeparator());
 
-            item = new MenuFlyoutItem { Text = "Open Watch History", Tag = "open-watch-history" };
-            item.Click += Item_Click;
-            openSub.Items.Add(item);
+            // Discs are an "open" action, not a separate topic; they were missing
+            // from this menu entirely while the tags existed in Item_Click.
+            var discSub = new MenuFlyoutSubItem { Text = lang.MenuOpenDisc };
+            AddItem(discSub.Items, lang.MenuOpenDvd, "open-dvd");
+            AddItem(discSub.Items, lang.MenuOpenBluRay, "open-bd");
+            openSub.Items.Add(discSub);
 
-            item = new MenuFlyoutItem { Text = "Open Watch Later", Tag = "open-watch-later" };
-            item.Click += Item_Click;
-            openSub.Items.Add(item);
+            var recentSub = new MenuFlyoutSubItem { Text = lang.MenuRecent };
+            AddItem(recentSub.Items, lang.MenuOpenWatchHistory, "open-watch-history");
+            AddItem(recentSub.Items, lang.MenuOpenWatchLater, "open-watch-later");
+            target.Add(recentSub);
 
-            item = new MenuFlyoutItem { Text = "Playlist", Tag = "playlist" };
+            var trackSub = new MenuFlyoutSubItem { Text = lang.MenuSectionTrack };
+            AddItem(trackSub.Items, lang.MenuLoadSubtitle, "load-subtitle");
+            target.Add(trackSub);
+        }
+
+        private void AddItem(IList<MenuFlyoutItemBase> target, string text, string tag)
+        {
+            var item = new MenuFlyoutItem { Text = text, Tag = tag };
             item.Click += Item_Click;
             target.Add(item);
         }
 
         private void AddCustomFooterItems(IList<MenuFlyoutItemBase> target)
         {
-            var subItem = new MenuFlyoutSubItem
-            {
-                Text = "Window",
-                MinWidth = 200
-            };
-            target.Add(subItem);
+            var lang = AppContext.AppLang;
 
-            var item = new MenuFlyoutItem
+            var viewSub = new MenuFlyoutSubItem
             {
-                Text = "Toggle Playlist",
-                Tag = "playlist"
+                Text = lang.MenuSectionView,
+                MinWidth = 200,
             };
-            item.Click += Item_Click;
-            subItem.Items.Add(item);
+            target.Add(viewSub);
 
-            item = new MenuFlyoutItem
-            {
-                Text = "Toggle Full Screen",
-                Tag = "fullscreen"
-            };
-            item.Click += Item_Click;
-            subItem.Items.Add(item);
+            AddItem(viewSub.Items, lang.MenuTogglePlaylist, "playlist");
+            AddItem(viewSub.Items, lang.MenuToggleFullScreen, "fullscreen");
+            AddItem(viewSub.Items, lang.MenuToggleFullWindow, "fullwindow");
+            AddItem(viewSub.Items, lang.MenuAlwaysOnTop, "ontop");
 
-            item = new MenuFlyoutItem
-            {
-                Text = "Toggle Full Window",
-                Tag = "fullwindow"
-            };
-            item.Click += Item_Click;
-            subItem.Items.Add(item);
-
-            item = new MenuFlyoutItem
-            {
-                Text = "Always On Top",
-                Tag = "ontop"
-            };
-            item.Click += Item_Click;
-            subItem.Items.Add(item);
-
-            item = new MenuFlyoutItem
-            {
-                Text = "Quit",
-                Tag = "quit"
-            };
-            item.Click += Item_Click;
-            target.Add(item);
+            target.Add(new MenuFlyoutSeparator());
+            AddItem(target, lang.MenuQuit, "quit");
         }
 
         private void AddMenuDataItems(IList<MenuFlyoutItemBase> target, IReadOnlyList<MpvMenuItem> items)
@@ -276,36 +261,6 @@ namespace mpv_winui.Modules.Player
             }
 
             _mediaPlayer.RunCommandAsync(cmd).FireAndForget(OnException);
-        }
-
-        private List<string> TokenizeCommand(string cmd)
-        {
-            var args = new List<string>();
-            var i = 0;
-            while (i < cmd.Length)
-            {
-                if (char.IsWhiteSpace(cmd[i]))
-                {
-                    i++;
-                    continue;
-                }
-
-                if (cmd[i] == '"')
-                {
-                    i++;
-                    var end = cmd.IndexOf('"', i);
-                    args.Add(end < 0 ? cmd[i..] : cmd[i..end]);
-                    i = end < 0 ? cmd.Length : end + 1;
-                }
-                else
-                {
-                    var end = cmd.IndexOfAny([' ', '\t'], i);
-                    args.Add(end < 0 ? cmd[i..] : cmd[i..end]);
-                    i = end < 0 ? cmd.Length : end + 1;
-                }
-            }
-
-            return args;
         }
 
         private void PlayerView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)

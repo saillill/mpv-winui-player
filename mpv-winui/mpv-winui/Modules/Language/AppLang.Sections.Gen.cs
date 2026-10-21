@@ -26,13 +26,31 @@ namespace mpv_winui.Modules.Language
         public string SectionDescGenOsd { get; set; } = "全部 OSD 相关选项";
         public string SectionGenPlayerWindow { get; set; } = "播放器与窗口选项";
         public string SectionDescGenPlayerWindow { get; set; } = "播放器行为与窗口的全部选项";
-        public string SectionGenStreaming { get; set; } = "流媒体与缓存选项";
-        public string SectionDescGenStreaming { get; set; } = "网络、缓存、解复用等全部选项";
+        public string SectionGenStreamCache { get; set; } = "缓存与预读";
+        public string SectionDescGenStreamCache { get; set; } = "读到什么程度、缓存多大、卡顿时先攒多少";
+        public string SectionGenStreamDemuxer { get; set; } = "解复用细节";
+        public string SectionDescGenStreamDemuxer { get; set; } = "容器探测、裸流参数与 mkv 兼容开关，通常只在文件播放异常时才需要";
+        public string SectionGenStreamNetwork { get; set; } = "网络与流媒体";
+        public string SectionDescGenStreamNetwork { get; set; } = "HTTP/TLS、cookies、yt-dlp 与网络流";
         public string SectionGenSubtitles { get; set; } = "字幕选项";
         public string SectionDescGenSubtitles { get; set; } = "全部字幕相关选项";
         public string SectionGenTracks { get; set; } = "轨道选项";
         public string SectionDescGenTracks { get; set; } = "音视频轨道选择的全部选项";
-        public string SectionGenVideoRendering { get; set; } = "视频渲染选项";
-        public string SectionDescGenVideoRendering { get; set; } = "视频、缩放、滤镜等全部选项";
+        public string SectionGenVideoDecode { get; set; } = "硬件解码";
+        public string SectionDescGenVideoDecode { get; set; } = "解码器选择、硬件加速方式与解码线程";
+        public string SectionGenVideoOutput { get; set; } = "视频输出与着色器";
+        public string SectionDescGenVideoOutput { get; set; } = "画面通过哪个后端输出、如何合成，以及 GPU 着色器的加载与缓存";
+        public string SectionGenVideoProcess { get; set; } = "图像处理";
+        public string SectionDescGenVideoProcess { get; set; } = "反交错、旋转、裁剪、插帧、几何与同步";
+        public string SectionGenVideoScale { get; set; } = "缩放与抖动";
+        public string SectionDescGenVideoScale { get; set; } = "放大缩小算法、抖动与色带消除";
+        public string SectionGenWindowFrame { get; set; } = "窗口行为";
+        public string SectionDescGenWindowFrame { get; set; } = "窗口几何、边框、最大化与任务栏呈现";
+        public string SectionGenWindowInput { get; set; } = "输入与交互";
+        public string SectionDescGenWindowInput { get; set; } = "键鼠绑定、触摸与手柄、点击行为";
+        public string SectionGenWindowMedia { get; set; } = "光盘与媒体源";
+        public string SectionDescGenWindowMedia { get; set; } = "DVD / 蓝光设备、播放列表与媒体时长处理";
+        public string SectionGenWindowScripts { get; set; } = "脚本与配置加载";
+        public string SectionDescGenWindowScripts { get; set; } = "启动时加载哪些脚本、配置文件与命令";
     }
 }

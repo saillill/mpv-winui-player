@@ -313,28 +313,32 @@ private List<Option> BuildSettings()
             // after sectionMap instead; see the loop that resolves Section.
         }
 
-        // WinUI 3 settings shell: 9 top-level categories. "Input" is merged
-        // into Shortcuts and Screenshot folded into Video rather than standing
-        // beside it. Advanced is deliberately last: the file associations and
-        // the diagnostic switches used to sit under Program, where they read as
-        // ordinary preferences.
-        // No "advanced" category. Every option is filed by subject, and the ones
-        // that are genuinely obscure sit in a section that folds away inside the
-        // category they belong to. A catch-all bucket was the thing that made
-        // those options hard to find: nobody looks for the graphics API under a
-        // heading called Advanced, and the heading itself said nothing about what
-        // was in it.
+        // WinUI 3 settings shell: six top-level domains, ordered the way someone
+        // works through a new player - set it up, then the three parts a media
+        // file is made of, then the two surfaces around them.
+        //
+        // This replaced nine categories that followed the mpv manual's chapters
+        // (Desktop / Playback / Video / Audio / Subtitles / Window / Network /
+        // Shortcuts / OSD). A manual's structure is for looking things up by
+        // name; it gave Network its own top-level heading because the manual has
+        // a chapter for it, while "streaming stutters" is a playback problem and
+        // belongs beside cache and buffering. Shortcuts and OSD were two more
+        // headings holding four and five sections - the same bucket problem the
+        // old Advanced category had.
+        //
+        // network, shortcuts and osd still exist as variables and still feed
+        // rows; they now resolve to the Playback and Interface captions (see
+        // AppLang.cs). They must not appear in this array: it is the rail's
+        // order, and three entries sharing one caption would draw the same
+        // domain three times.
         var categoryOrder = new[]
         {
             program,
-            playback,
             video,
             audio,
             subtitles,
+            playback,
             window,
-            network,
-            shortcuts,
-            osd,
         };
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)
