@@ -362,13 +362,36 @@ def read_playback_state() -> dict:
     return out
 
 
-def trigger_screenshot(fmt: str = "png", path: str | None = None) -> dict:
-    """Ask mpv itself to write a screenshot (screenshot-to-file)."""
+def trigger_screenshot(fmt: str = "png", path: str | None = None,
+                       mode: str = "subtitles") -> dict:
+    """Ask mpv itself to write a screenshot.
+
+    mpv's command is `screenshot-to-file <path> <flags>`, and the third argument
+    is *not* the image format -- it is the screenshot mode flags (`subtitles`,
+    `video`, or both). Passing "png" there returns `invalid parameter`, which is
+    what the first version of this tool did. The format comes from the
+    `screenshot-format` property, so this sets that first, then calls the
+    command with the mode. The app does the same at
+    MpvPlayerPage_PlaylistPanel.cs:221.
+
+    fmt:  png | jpg | webp | jxl | avif, whatever the bundled mpv can write
+    mode: subtitles (default, what the app's menu uses) | video | subtitles+video
+    """
+    if fmt not in ("png", "jpg", "webp", "jxl", "avif"):
+        raise ToolError(f"unsupported format {fmt!r}")
+
+    # screenshot-format must be set before the command runs, and it is a
+    # property, not an argument.
+    fmt_reply = _ipc(["set_property", "screenshot-format", fmt], 800)
+
     if not path:
         stamp = time.strftime("%Y%m%d-%H%M%S")
         base = os.path.join(DEPLOY_DIR, "screenshots")
         os.makedirs(base, exist_ok=True)
         path = os.path.join(base, f"mpvw-{stamp}.{fmt}")
 
-    r = _ipc(["screenshot-to-file", path, fmt])
-    return {"requested": path, "format": fmt, "reply": r}
+    r = _ipc(["screenshot-to-file", path, mode], 801)
+    return {"requested": path, "format": fmt, "mode": mode,
+            "formatReply": fmt_reply, "reply": r,
+            "written": os.path.exists(path) and os.path.getsize(path) > 0}
+
