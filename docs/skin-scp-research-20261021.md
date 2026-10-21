@@ -580,3 +580,58 @@ mpv-winui/mpv-winui/
 **外部**（2026-10-22 实取）：`api.github.com/repos/{tomasklaen/uosc, 0dist/oscc, maoiscat/mpv-osc-modern, Yutsuten/mpv-osc-modern, po5/thumbfast, Samillion/ModernZ}` 与各自的 `/commits?per_page=2/3`、`/contents/`；`raw.githubusercontent.com` 上的 `thumbfast/README.md`、`thumbfast/thumbfast.lua`（MPL 头）、`oscc/README.md`、`oscc/oscc.lua`、`mpv/player/lua/osc.lua`、`mpv/Copyright`、`maoiscat & ModernZ /LICENSE`；`mpv.io/manual/master/` 的 On Screen Controller 与 OSC Preview API 两节；`learn.microsoft.com` 的 [XAML theme resources](https://learn.microsoft.com/en-us/windows/apps/design/style/xaml-theme-resources)、[ResourceDictionary and XAML resource references](https://learn.microsoft.com/en-us/windows/apps/design/style/xaml-resource-dictionary)、[Application.RequestedTheme](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.application.requestedtheme)。
 
 **未核实项**（不臆测，列全）：mpv `osc.lua` 的确切许可（无版权头、`Copyright` 未逐文件列出 `player/lua/`）；本项目 `mpv-2.dll` 的构建是否 `-Dgpl=false`；`mfpbar` 与 `thumb_engine` 的星数/许可/提交；`uosc` 在本项目 composition + DPI 环境下的坐标对齐；§2.4 的运行时行为；§3.5 第 8 条 `UiFont` 是否即时生效。
+
+---
+
+## 10 本轮实测补充（2026-10-22）
+
+§2.4 与 §2.5 留下的两个「需真机确认」，本轮用 `tools/mvpw-mcp/` 跑完了。两个都不是
+猜测，命令与输出如下。
+
+### 10.1 皮肤模板与代码字段：推断不成立（详见 §2.4.1）
+
+```
+python tools/mvpw-mcp/verify_skins.py
+  Standard  pause False -> True   toggled=True
+  Centre    pause False -> True   toggled=True
+  Compact   pause False -> True   toggled=True
+
+python tools/mvpw-mcp/verify_skin_geometry.py
+  PlayPauseButton x: Standard 1655  Centre 1743  Compact 1831
+  Centre/Compact 与 Standard 在全部 5 个被测控件上都不同
+```
+
+「布局会变、按钮失效」这半句不成立：布局确实变，按钮确实能用。三份并列 XAML
+的**维护成本**仍然存在（§2.4.2），但那是重构理由，不是缺陷。
+
+### 10.2 `UiFont` 是否即时生效：生效
+
+`WindowStyleManager.UpdateUiFont()`（`:54-64`）的做法是往
+`Application.Current.Resources` 写 `ContentControlThemeFontFamily`。按 WinUI
+文档，运行期新增的资源对已解析的 XAML 未必有效，所以这条被标为可疑。
+
+实测（`tools/mvpw-mcp/verify_uifont.py`，用等宽字体 Consolas 做判据 —— 同字号下
+行高与字宽都与 Segoe UI 明显不同）：
+
+| 采样控件 | 默认字体 | Consolas |
+|---|---|---|
+| `ShellSettingsText` 高 | **33** | **29** |
+| `ShellTitleText` 高 | 38 | 38 |
+| `TimeRemainingElement` 高 | 28 | 28 |
+
+`ShellSettingsText` 的高度变了 → 该资源写入**确实**到达了活动 UI。另外两个没变，
+是因为它们的 `FontSize` 与行高由各自的样式固定（`ShellTitleText` 16px、
+`TimeRemainingElement` 是时间等宽标签），不是字体没生效。
+
+**结论**：这条不是缺陷。但它的可靠性依赖 WinUI 对 `ContentControlThemeFontFamily`
+的处理，属于「能用但脆」——若将来升级 Windows App SDK 后失效，判据就是上表的行高
+不再变化。
+
+### 10.3 报告里需要你定的两件事
+
+| 问题 | 本报告的立场 | 状态 |
+|---|---|---|
+| 皮肤包目录用 `Skins/` 还是 `Themes/Skins/` | 推荐 **`Skins/`**。`Themes/` 已被框架约定占用：`SliderExt.cs:14` / `CheckBoxExt.cs:12` 的 `DefaultStyleKey` 指向 `Themes/Generic.xaml`，而 `App.xaml` 并不合并该字典 —— 把皮肤塞进去会和「默认样式来源」混淆 | **待你拍板**，不阻塞 |
+| `SCP` 这个名字 | 建议改称 **SkinPack**：`scp` 与 Windows 自带命令、SCP 基金会三重撞名，在搜索与文档里都歧义 | **待你拍板**，不阻塞 |
+
+两件都不影响本轮任何代码，只是命名与目录约定。
