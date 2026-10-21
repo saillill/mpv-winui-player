@@ -887,14 +887,31 @@ namespace mpv_winui.Modules.Player
             var cardTemplate = (DataTemplate)Resources["LibraryCardTemplate"];
             var headerTemplate = (DataTemplate)Resources["VideoFolderHeaderTemplate"];
 
-            foreach (var group in GroupVideoFolders(entries))
+            // Registered here as well as in the music grouped view: the index
+            // rail jumps by looking the letter up in this map, so a header that
+            // was added to the panel but not to the map is a rail button that
+            // scrolls nowhere.
+            _groupHeaders.Clear();
+
+            var groups = GroupVideoFolders(entries);
+
+            foreach (var group in groups)
             {
-                VideoFolderGroups.Children.Add(new ContentPresenter
+                var header = new ContentPresenter
                 {
                     Content = group,
                     ContentTemplate = headerTemplate,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
-                });
+                };
+
+                VideoFolderGroups.Children.Add(header);
+
+                if (!string.IsNullOrEmpty(group.Letter))
+                {
+                    // First group wins, matching the music view: several folders
+                    // can share a letter and the rail lands on the first.
+                    _groupHeaders.TryAdd(group.Letter, header);
+                }
 
                 var repeater = new ItemsRepeater
                 {
@@ -908,6 +925,8 @@ namespace mpv_winui.Modules.Player
                 repeater.ElementPrepared += LibraryGrid_ElementPrepared;
                 VideoFolderGroups.Children.Add(repeater);
             }
+
+            BuildLibraryIndexRail(groups);
         }
 
         // ------------------------------------------------------------ album page
@@ -1192,21 +1211,32 @@ namespace mpv_winui.Modules.Player
         private readonly Dictionary<string, FrameworkElement> _groupHeaders = new(StringComparer.Ordinal);
 
         /// <summary>
-        /// Builds the A-Z rail for the music library's grouped tabs.
+        /// Builds the A-Z rail for a grouped view.
         ///
         /// Every letter is shown, dimmed when empty. The reference does the same, and
         /// hiding them would make the rail move as the library changes - a person could
         /// not learn where a letter sits, or see that Q is empty without trying Q.
         ///
-        /// Only the music library has one. The video library groups by directory, which
-        /// has no initial to jump to, and the queue is mpv's own playlist.
+        /// Both grouped views have one: the music library's album and artist tabs,
+        /// and the video library's folder tab. The video folders were the gap - the
+        /// rail was gated on music, and the folder groups carried no Letter at all,
+        /// so a library of forty folders had no index and no way to ask for one.
+        /// The queue still has none: it is mpv's own playlist.
         /// </summary>
         private void BuildLibraryIndexRail(IEnumerable<VideoFolderGroup> groups)
         {
-            var isMusicGrouped = _librarySection == LibrarySectionMusic
-                && _musicGrouping != MusicGrouping.Songs;
+            // The rail belongs to any grouped view that assigns letters, not
+            // only the music ones. The video folder view files its groups under
+            // letters too (see BuildVideoFolderGroups, which passes
+            // LibraryIndexLetter.For), and gating on music meant a library with
+            // forty folders had a working index that was never shown -- the
+            // reported "the letter buttons do nothing" was really "there are no
+            // letter buttons".
+            var isGrouped = _librarySection == LibrarySectionMusic
+                ? _musicGrouping != MusicGrouping.Songs
+                : _videoFolderView;
 
-            if (!isMusicGrouped)
+            if (!isGrouped)
             {
                 LibraryIndexRail.ItemsSource = null;
 
@@ -1529,7 +1559,17 @@ namespace mpv_winui.Modules.Player
 
             foreach (var group in byFolder)
             {
-                groups.Add(new VideoFolderGroup(FolderLabel(group.Key), group.ToList(), group.Key));
+                var name = FolderLabel(group.Key);
+
+                // The letter is what the index rail jumps by. Without it the
+                // rail had nothing to bind to for videos: the groups were real
+                // and ordered, but every row's Letter was empty, so
+                // BuildRail saw no letters in use and drew nothing.
+                groups.Add(new VideoFolderGroup(
+                    name,
+                    group.ToList(),
+                    group.Key,
+                    Letter: LibraryIndexLetter.For(name, ch => PinyinInitial.For(ch.ToString()))));
             }
 
             return groups;
@@ -1974,20 +2014,34 @@ namespace mpv_winui.Modules.Player
         }
 
         /// <summary>
-        /// One card's thumbnail, from the shell's thumbnail service.
+        /// One card's thumbnail.
         ///
-        /// Not extracted with mpv. A second mpv instance per card would fight
-        /// the playing one for the audio device and the GPU, and the playing
-        /// one cannot be borrowed for it without interrupting playback. The
-        /// shell already has a thumbnail provider for every format Windows can
-        /// preview, backed by a disk cache, so this asks it instead.
+        /// Audio first asks the player for the file's embedded picture, because
+        /// the shell does not reliably have one. Measured: a music library of
+        /// tagged files rendered as a wall of note glyphs, the video grid beside
+        /// it full of frames. The shell's provider answers for what Explorer can
+        /// preview, and for `.flac` / `.m4a` / `.ogg` it commonly answers with a
+        /// type icon rather than the cover -- which the check below then rejects,
+        /// correctly, leaving nothing.
+        ///
+        /// TryGetCoverArtForPath exists for exactly this and was already used by
+        /// the album detail page; only the grid was not asking it. It reads the
+        /// tags, so it works for a file that is not the one playing.
+        ///
+        /// Video still goes to the shell: a frame from the middle of the file is
+        /// the right thumbnail for a video, and mpv would have to decode one.
         ///
         /// Returns null - never throws - when there is no thumbnail to be had.
         /// Null is a designed outcome: the card falls back to the media-kind
         /// icon, which is what a poster-less row should look like anyway.
         /// </summary>
-        private static async Task<BitmapImage?> TryLoadThumbnailAsync(LibraryEntry entry)
+        private async Task<BitmapImage?> TryLoadThumbnailAsync(LibraryEntry entry)
         {
+            if (!entry.IsVideo && await TryLoadEmbeddedCoverAsync(entry) is { } cover)
+            {
+                return cover;
+            }
+
             try
             {
                 var file = await StorageFile.GetFileFromPathAsync(entry.Path);
@@ -2014,6 +2068,53 @@ namespace mpv_winui.Modules.Player
             {
                 // Missing file, no provider, unsupported container, a drive that
                 // went away mid-scan. All of them mean the same thing here.
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// An audio file's embedded cover art, or null when it has none.
+        ///
+        /// The native getter does the tag parsing; this only turns the stream
+        /// into something a card can show. Decoding is capped by the card size,
+        /// so a 3000px sleeve does not cost 36 MB of bitmap per row.
+        /// </summary>
+        private async Task<BitmapImage?> TryLoadEmbeddedCoverAsync(LibraryEntry entry)
+        {
+            if (_mediaPlayer is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                if (!_mediaPlayer.TryGetCoverArtForPath(entry.Path, out var stream) || stream is null)
+                {
+                    return null;
+                }
+
+                using (stream)
+                {
+                    // Physical pixels, matching what the shell path above asks
+                    // for (LibraryThumbnailSize is the same 256 the shell call
+                    // uses). Logical would shrink the decode at high DPI and then
+                    // have the Image scale it back up, which is the softer of the
+                    // two results for the same memory.
+                    var bitmap = new BitmapImage
+                    {
+                        DecodePixelWidth = (int)LibraryThumbnailSize,
+                        DecodePixelType = DecodePixelType.Physical,
+                    };
+
+                    await bitmap.SetSourceAsync(stream);
+                    return bitmap;
+                }
+            }
+            catch (Exception ex)
+            {
+                // A corrupt tag, an unsupported picture format, a file that
+                // vanished. All of them mean "no cover", never "fail the grid".
+                _logger.Debug(ex, "cover art unreadable: {0}", entry.Path);
                 return null;
             }
         }
@@ -2238,17 +2339,22 @@ namespace mpv_winui.Modules.Player
             return null;
         }
 
-        /// <summary>
-        /// Keeps a press on one of the overlay's buttons from reaching the card
-        /// underneath.
-        ///
-        /// WinUI's own ButtonBase already marks the press handled, and that is
-        /// the real guarantee - a click on Play or More cannot also open the
-        /// card. This is the belt to that suspender: if the class handler ever
-        /// stops marking it, the outer card click still cannot fire. Setting
-        /// Handled does not stop the button itself raising Click.
-        /// </summary>
-        private void CardOverlayButton_PointerPressed(object sender, PointerRoutedEventArgs e) => e.Handled = true;
+        // CardOverlayButton_PointerPressed used to live here:
+        //
+        //     private void CardOverlayButton_PointerPressed(...) => e.Handled = true;
+        //
+        // Its comment claimed "setting Handled does not stop the button itself
+        // raising Click", and that claim was the bug. The overlay buttons sit
+        // inside the card's own Button, and marking the press handled at the
+        // instance level suppresses the ButtonBase state machine that turns a
+        // press into a click -- so Play and More showed their hover, took the
+        // press, and never fired Click. Both were dead for pointer input.
+        //
+        // The worry the handler was written for (a press on Play also opening
+        // the card) does not need it: ButtonBase marks the press handled in its
+        // own class handler, which runs before any instance handler, so the
+        // outer card never sees it. Removing the handler is what restores the
+        // buttons.
 
         private void CardPlay_Click(object sender, RoutedEventArgs e)
         {

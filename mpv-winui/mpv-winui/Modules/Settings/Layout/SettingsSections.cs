@@ -142,13 +142,32 @@ internal static class SettingsSections
         // glyph would show two identical icons a level apart. These are
         // picked from the codepoints the hand-written 46 do not occupy, so
         // `check-sections.py` stays green without one of them having to move.
-        new("SectionGenVideoRendering", "\uE700", l => l.SectionGenVideoRendering, l => l.SectionDescGenVideoRendering),
         new("SectionGenColourHdr", "\uE701", l => l.SectionGenColourHdr, l => l.SectionDescGenColourHdr),
         new("SectionGenSubtitles", "\uE703", l => l.SectionGenSubtitles, l => l.SectionDescGenSubtitles),
         new("SectionGenOsd", "\uE704", l => l.SectionGenOsd, l => l.SectionDescGenOsd),
         new("SectionGenAudio", "\uE705", l => l.SectionGenAudio, l => l.SectionDescGenAudio),
         new("SectionGenStreaming", "\uE707", l => l.SectionGenStreaming, l => l.SectionDescGenStreaming),
         new("SectionGenTracks", "\uE708", l => l.SectionGenTracks, l => l.SectionDescGenTracks),
+
+        // "Video & rendering" and "Player & window" are no longer one folder
+        // each. mpv groups by subsystem, so those two held 254 and 128 options
+        // between them: opening Video gave a 254-row wall under a single
+        // heading, and Player & window mixed the window frame with input
+        // bindings, script loading, disc devices and screenshots.
+        //
+        // They are now split by what an option changes -- the axis someone
+        // arrives with -- in VIDEO_SUBTHEMES / WINDOW_SUBTHEMES in
+        // tools/gen-schema-options.py. Each sub-folder carries its own glyph
+        // because a section card is recognised by its icon; four video folders
+        // in the same film strip would defeat the split.
+        new("SectionGenVideoOutput", "\uE7B3", l => l.SectionGenVideoOutput, l => l.SectionDescGenVideoOutput),
+        new("SectionGenVideoDecode", "\uE7C1", l => l.SectionGenVideoDecode, l => l.SectionDescGenVideoDecode),
+        new("SectionGenVideoScale", "\uE8B2", l => l.SectionGenVideoScale, l => l.SectionDescGenVideoScale),
+        new("SectionGenVideoProcess", "\uE8A5", l => l.SectionGenVideoProcess, l => l.SectionDescGenVideoProcess),
+        new("SectionGenWindowFrame", "\uE8B9", l => l.SectionGenWindowFrame, l => l.SectionDescGenWindowFrame),
+        new("SectionGenWindowInput", "\uE90F", l => l.SectionGenWindowInput, l => l.SectionDescGenWindowInput),
+        new("SectionGenWindowScripts", "\uEA37", l => l.SectionGenWindowScripts, l => l.SectionDescGenWindowScripts),
+        new("SectionGenWindowMedia", "\uE81C", l => l.SectionGenWindowMedia, l => l.SectionDescGenWindowMedia),
         new("SectionGenPlayerWindow", "\uE709", l => l.SectionGenPlayerWindow, l => l.SectionDescGenPlayerWindow),
 
         // mpv's `General` group split into themes. It was one folder called
