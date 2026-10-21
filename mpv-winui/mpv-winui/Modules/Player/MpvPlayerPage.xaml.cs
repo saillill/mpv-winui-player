@@ -144,26 +144,10 @@ namespace mpv_winui.Modules.Player
                 if (string.IsNullOrWhiteSpace(lang)) lang = "en-US";
                 AppContext.SendMpvCommand($"no-osd set user-data/mpvw/language {lang}");
                 ApplyDisplayPeak();
-                // Send these as LINES, one call each.
-                //
-                // BuildApplyAllCommands returns whole command lines
-                // ("no-osd set alang auto"). Handing that List to the
-                // IList<string> overload of RunCommandAsync sends each line as
-                // ONE argv element, and MpvPlayer::Command maps argv directly to
-                // mpv_command -- so mpv saw a command literally named
-                // "no-osd set alang auto" and rejected the whole batch. Proven
-                // against the live player: ["no-osd","set","alang","jpn"] applies
-                // and ["no-osd set alang jpn"] returns invalid parameter.
-                //
-                // The settings window never had this bug because it goes through
-                // MpvSettings.ApplyAll -> SendMpvCommand -> CommandString, which
-                // parses a line. This is the same path.
-                foreach (var command in MpvSettings.BuildApplyAllCommands())
+                var applyCommands = MpvSettings.BuildApplyAllCommands();
+                if (applyCommands.Count > 0)
                 {
-                    if (!string.IsNullOrWhiteSpace(command))
-                    {
-                        await _mediaPlayer.RunCommandAsync(command);
-                    }
+                    await _mediaPlayer.RunCommandAsync(applyCommands);
                 }
 
                 // Playback speed needs no special case here any more. It is a

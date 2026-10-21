@@ -49,6 +49,15 @@
                  the pane / content / bar RELATIONSHIP is unchanged - only how
                  much of the wallpaper comes through. The bar keeps the most
                  alpha because its glyphs sit over moving video. -->
+            <SolidColorBrush
+                x:Key="MpvShellPaneMicaBrush"
+                Color="#1FFFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvShellContentMicaBrush"
+                Color="#66F3F3F3" />
+            <SolidColorBrush
+                x:Key="MpvShellBarMicaBrush"
+                Color="#B3EDEDED" />
 
             <!-- The drag-and-drop overlay. A light scrim over whatever is on
                  screen, plus a slightly lighter disc for the glyph, so the
@@ -67,6 +76,9 @@
                  glyph disappears on a bright one. Light theme uses the same
                  translucency in black - the picture behind is not theme-aware,
                  so a white scrim would vanish on snow and glare on a title card. -->
+            <SolidColorBrush
+                x:Key="MpvPlaybackToolSurfaceBrush"
+                Color="#66000000" />
 
             <!-- Chapter boundaries on the progress track. Mid-grey with a
                  two-thirds alpha: dark enough to see on a light track, light
@@ -123,6 +135,15 @@
                 Color="#262626" />
 
             <!-- See the light dictionary: the same relationship, veiled. -->
+            <SolidColorBrush
+                x:Key="MpvShellPaneMicaBrush"
+                Color="#1FFFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvShellContentMicaBrush"
+                Color="#66000000" />
+            <SolidColorBrush
+                x:Key="MpvShellBarMicaBrush"
+                Color="#B3262626" />
 
             <!-- See the light dictionary. -->
             <SolidColorBrush
@@ -133,6 +154,9 @@
                 Color="#14FFFFFF" />
 
             <!-- See the light dictionary: identical here, and deliberately so. -->
+            <SolidColorBrush
+                x:Key="MpvPlaybackToolSurfaceBrush"
+                Color="#66000000" />
 
             <!-- See the light dictionary. Lifted for the dark track. -->
             <SolidColorBrush
@@ -1128,6 +1152,7 @@
     <x:Double x:Key="MpvSpaceS">8</x:Double>
     <x:Double x:Key="MpvSpaceM">12</x:Double>
     <x:Double x:Key="MpvSpaceL">16</x:Double>
+    <x:Double x:Key="MpvSpaceXl">24</x:Double>
 
     <!-- The gap between an option's text block and the control that sets it.
          Deliberately its own token rather than a step on the scale above: it
@@ -1232,6 +1257,7 @@
          DIP of host padding is taken off - the two together are the official's
          56. -->
     <Thickness x:Key="MpvBreadcrumbBarMargin">32,8,32,16</Thickness>
+    <x:Double x:Key="MpvContentGutter">32</x:Double>
 
     <!-- The page heading's size. 40 is measured, not chosen: the official
          player's own heading has 38.9 DIP of cap height at 175% scaling, and a
@@ -1481,6 +1507,7 @@
     <!-- Panel titles are a step down from a page heading: a panel header is
          chrome, not content. 20 is the Subtitle ramp. -->
     <x:Double x:Key="MpvPanelTitleFontSize">20</x:Double>
+    <x:Double x:Key="MpvShellTabStripHeight">40</x:Double>
     <x:Double x:Key="MpvShellAppIconSize">20</x:Double>
     <Thickness x:Key="MpvShellAppIconMargin">10,0,0,0</Thickness>
     <x:Double x:Key="MpvShellTitleFontSize">16</x:Double>
@@ -1546,6 +1573,9 @@
     <!-- Corner radius shared by the flyout presenters (through their default
          template) and the quick-control panel's Border. -->
     <CornerRadius x:Key="MpvPlayerPopupCornerRadius">8</CornerRadius>
+
+    <!-- Depth of the panel's shadow, matching the FlyoutPresenter default. -->
+    <x:Double x:Key="MpvPlayerPopupShadowDepth">32</x:Double>
 
     <!-- The typography and row metrics those same four popups share.
 
