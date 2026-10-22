@@ -288,6 +288,11 @@ namespace winrt::mpv_winrt::implementation
         std::atomic<bool> m_eventThreadRunning{false};
         double m_lastDuration{0.0};
 
+        // The last value handed to SetHoverSec. SetDrawPreview copies it into
+        // the draw-preview map, because mpv now expects the requested time to
+        // travel with the rectangle (see the comment in the .cpp).
+        double m_lastHoverSec{-1.0};
+
         winrt::event<winrt::mpv_winrt::FileStartedEventHandler> m_fileStartedEvent;
         winrt::event<winrt::mpv_winrt::FileLoadedEventHandler> m_fileLoadedEvent;
         winrt::event<winrt::mpv_winrt::FileFailedEventHandler> m_fileFailedEvent;

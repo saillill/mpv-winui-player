@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -492,11 +493,52 @@ public static partial class MpvSettings
             double d => $"set {option} {d.ToString("0.0#####", CultureInfo.InvariantCulture)}",
             // An empty string is how the models express "leave it to mpv",
             // and `set option ""` would instead pin it to an empty value.
-            string s when string.IsNullOrWhiteSpace(s) => $"set {option} ",
+            // An empty string means "leave it to mpv", so it must produce NO
+            // command at all. This used to emit `set option ` with a trailing
+            // space, which reads like "set it to empty" but is not: measured
+            // against the live player, that line is not answered with an error,
+            // it makes mpv drop the IPC connection. 62 of the 76 commands
+            // rejected on a single launch were this shape.
+            string s when string.IsNullOrWhiteSpace(s) => null,
+            // A size or duration formatted by the schema generator arrives as
+            // "512.000 MiB". mpv wants the number and the unit adjacent and
+            // unquoted -- `set vd-queue-max-bytes 512MiB` -- and rejects the
+            // quoted form (6 more of the 76).
+            string s when TryUnitValue(s, out var unit) => $"set {option} {unit}",
             string s => $"set {option} {Q(s)}",
             _ => null,
         };
     }
+
+    /// <summary>
+    /// A size or duration the schema formats as "512.000 MiB", rewritten to the
+    /// form mpv accepts: "512MiB".
+    ///
+    /// The generator stores these as strings because the model has no numeric type
+    /// with a unit, so they arrive here already formatted. mpv reads the number and
+    /// the unit as adjacent tokens and refuses them inside quotes.
+    /// </summary>
+    private static bool TryUnitValue(string value, out string result)
+    {
+        result = string.Empty;
+        var match = UnitValuePattern.Match(value.Trim());
+        if (!match.Success)
+        {
+            return false;
+        }
+        var number = double.Parse(match.Groups["n"].Value, CultureInfo.InvariantCulture);
+        // "1.000 MiB" -> "1MiB": the formatter always writes a fractional
+        // part, and a trailing .0 is not what the mpv manual shows.
+        var text = number == Math.Floor(number) && Math.Abs(number) < 1e15
+            ? ((long)number).ToString(CultureInfo.InvariantCulture)
+            : number.ToString("0.0###", CultureInfo.InvariantCulture);
+        result = text + match.Groups["u"].Value;
+        return true;
+    }
+
+    private static readonly Regex UnitValuePattern = new(
+        @"^(?<n>\d+(?:\.\d+)?)\s*(?<u>B|KiB|MiB|GiB|TiB|kB|KB|MB|GB|TB|[mM]s|s|min|h)$",
+        RegexOptions.Compiled);
 
     /// <summary>
     /// The mpv option a settings key writes, or null when the key does not map
@@ -959,6 +1001,7 @@ public static partial class MpvSettings
     /// <summary>AppSettings mapped to mpv options that only take effect at startup.</summary>
     private static readonly HashSet<string> ConfigOnlyKeys = new(StringComparer.Ordinal)
     {
+        // `set` -- and even `get_property` -- makes mpv drop the IPC
         nameof(AppSettings.InputIpcServer),
         nameof(AppSettings.IccCacheDir),
         nameof(AppSettings.GpuShaderCacheDir),

@@ -185,7 +185,17 @@ namespace mpv_winui.Modules.Player
             });
         }
 
-        public static async ValueTask RunCommandAsync(this MpvPlayer player, IList<string> args)
+        /// <summary>
+        /// Runs one command given as separate arguments -- "screenshot",
+        /// "video" -- not a command line.
+        ///
+        /// This used to be an overload of <see cref="RunCommandAsync(MpvPlayer,
+        /// string)"/> and the two were indistinguishable for a List of strings:
+        /// the startup batch passed whole lines here and every one of them was
+        /// rejected, silently. The distinct name is the fix: a caller holding
+        /// command LINES can no longer pass them to the argv path by accident.
+        /// </summary>
+        public static async ValueTask CommandArgsAsync(this MpvPlayer player, IList<string> args)
         {
             if (args?.Count > 0)
             {
