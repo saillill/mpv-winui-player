@@ -70,13 +70,9 @@ def launch_app(wait_seconds: int = 20) -> dict:
     win = None
     while time.time() < deadline:
         time.sleep(0.5)
-        try:
-            w = auto.WindowControl(searchDepth=1, ProcessId=proc.pid)
-            if w.Exists(0.4, 0.2):
-                win = w
-                break
-        except Exception:
-            pass
+        win = _main_window(proc.pid, timeout=0.3)
+        if win is not None:
+            break
     if win is None:
         try:
             proc.kill()
@@ -89,38 +85,96 @@ def launch_app(wait_seconds: int = 20) -> dict:
 
 
 def close_app(timeout: int = 15) -> dict:
-    """Close the app the way the user would, so mpv flushes state."""
+    """Close the app the way the user would, so mpv flushes state.
+
+    Returns only once the process is actually gone. `_pid()` scans psutil's
+    process table, which is cached for a short while, so a single check right
+    after the close reports the dead process as still alive -- that race made
+    every later launch fail with "already running".
+    """
     pid = _pid()
     if pid is None:
         return {"closed": True, "alreadyClosed": True}
     try:
-        win = auto.WindowControl(searchDepth=1, ProcessId=pid)
-        if win.Exists(1, 0.2):
+        win = _main_window(pid, timeout=1.0)
+        if win is not None:
             win.GetWindowPattern().Close()
     except Exception:
         pass
+
+    # Ask the OS directly (not through psutil's cache) until the pid is gone.
     deadline = time.time() + timeout
     while time.time() < deadline:
         time.sleep(0.3)
-        if _pid() is None:
-            return {"closed": True, "forced": False}
-    for p in psutil.process_iter(["name", "pid"]):
-        if (p.info["name"] or "").lower() == "mpvw.exe":
-            try:
-                psutil.Process(p.info["pid"]).kill()
-            except Exception:
-                pass
-    return {"closed": _pid() is None, "forced": True}
+        if not _pid_alive(pid):
+            # psutil may still list it for one more tick; wait it out.
+            for _ in range(20):
+                if _pid() is None:
+                    return {"closed": True, "forced": False}
+                time.sleep(0.1)
+            return {"closed": True, "forced": False, "psutilLag": True}
+
+    try:
+        psutil.Process(pid).kill()
+    except Exception:
+        pass
+    for _ in range(40):
+        if not _pid_alive(pid):
+            break
+        time.sleep(0.25)
+    return {"closed": not _pid_alive(pid), "forced": True}
+
+
+def _pid_alive(pid: int) -> bool:
+    """True while the pid is a live process, asked of the OS each time."""
+    try:
+        h = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid)  # QUERY_LIMITED
+        if not h:
+            return False
+        code = wintypes.DWORD()
+        ctypes.windll.kernel32.GetExitCodeProcess(h, ctypes.byref(code))
+        ctypes.windll.kernel32.CloseHandle(h)
+        return code.value == 259  # STILL_ACTIVE
+    except Exception:
+        return True
+
 
 
 # --------------------------------------------------------------------- UIA ---
+
+def _main_window(pid: int, timeout: float = 2.0):
+    """The app's own top-level window, not whatever uid=1 search returns first.
+
+    `WindowControl(searchDepth=1, ProcessId=pid)` looked right and once
+    returned the Harness window instead of the player -- searchDepth is measured
+    from the desktop root, so depth 1 is every top-level window and the pid
+    filter is applied after. Enumerate the root's children and match the class
+    the app actually uses.
+    """
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            for w in auto.GetRootControl().GetChildren():
+                try:
+                    if w.ProcessId != pid:
+                        continue
+                    if w.ClassName != "WinUIDesktopWin32WindowClass":
+                        continue
+                    return w
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        time.sleep(0.2)
+    return None
+
 
 def _window():
     pid = _pid()
     if pid is None:
         raise ToolError("mpvw.exe is not running")
-    win = auto.WindowControl(searchDepth=1, ProcessId=pid)
-    if not win.Exists(2, 0.2):
+    win = _main_window(pid, timeout=2.5)
+    if win is None:
         raise ToolError("main window not found")
     return win
 

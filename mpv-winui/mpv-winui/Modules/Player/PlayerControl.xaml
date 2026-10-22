@@ -940,7 +940,15 @@
                 CornerRadius="{StaticResource MpvPlayerPopupCornerRadius}"
                 Translation="0,0,32">
                 <!-- The shadow a FlyoutPresenter gets from
-                     IsDefaultShadowEnabled, which a bare Popup does not. -->
+                     IsDefaultShadowEnabled, which a bare Popup does not.
+
+                     The 32 is a literal on purpose: Translation is a Vector3
+                     and XAML has no resource form for one, so this cannot be a
+                     token. It used to have a companion key
+                     (MpvPlayerPopupShadowDepth) that nothing could read, which
+                     made it look like part of the shared chrome while the real
+                     value stayed here. If you change it, change the track
+                     selector's copy below too. -->
                 <Border.Shadow>
                     <ThemeShadow />
                 </Border.Shadow>

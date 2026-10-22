@@ -1547,9 +1547,6 @@
          template) and the quick-control panel's Border. -->
     <CornerRadius x:Key="MpvPlayerPopupCornerRadius">8</CornerRadius>
 
-    <!-- Depth of the panel's shadow, matching the FlyoutPresenter default. -->
-    <x:Double x:Key="MpvPlayerPopupShadowDepth">32</x:Double>
-
     <!-- The typography and row metrics those same four popups share.
 
          Spacing already had a scale (MpvSpace*, above) and the popups simply
