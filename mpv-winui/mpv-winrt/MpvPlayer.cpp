@@ -1047,7 +1047,18 @@ namespace winrt::mpv_winrt::implementation
     void MpvPlayer::CommandString(hstring const& cmd)
     {
         const auto args = winrt::to_string(cmd);
-        mpv_command_string(m_mpv, args.c_str());
+        // Check the result. This used to discard it, so a malformed line was
+        // indistinguishable from a successful one; the startup settings batch
+        // was rejected in full and the only evidence was mpv's own message that
+        // the "command" named "no-osd set alang auto" did not exist.
+        if (mpv_command_string(m_mpv, args.c_str()) < 0 && m_logMessageEvent)
+        {
+            auto message = winrt::make<implementation::MpvLogEventArgs>(
+                L"warn",
+                L"mpv-winrt",
+                winrt::to_hstring("CommandString rejected: " + args));
+            m_logMessageEvent(message);
+        }
     }
 
     void MpvPlayer::ApplyCommandStrings(IVector<hstring> const& commands)

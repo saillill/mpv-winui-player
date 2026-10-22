@@ -245,6 +245,9 @@ namespace mpv_winui
             }
 
             ShellSettingsText.Text = lang.SettingsTitle;
+            // The button draws an icon + this label, so XAML has no text to
+            // derive an accessible name from; set it from the same string.
+            AutomationProperties.SetName(ShellSettingsButton, lang.SettingsTitle);
 
             // The pane's search and the title bar's open button. The icon is set
             // here rather than bound in markup because a PathIcon takes a
@@ -257,6 +260,9 @@ namespace mpv_winui
             ShellLibrarySearch.PlaceholderText = lang.ShellSearchPlaceholder;
             AutomationProperties.SetName(ShellLibrarySearch, lang.ShellSearchPlaceholder);
             ShellOpenFileText.Text = lang.LibraryOpenFile;
+            // A DropDownButton whose Content is an icon + label: no text for
+            // WinUI to derive a name from, so it is set from the same string.
+            AutomationProperties.SetName(ShellOpenFileButton, lang.LibraryOpenFile);
 
             BuildShellOpenMenu();
             ShellOpenFileIcon.Data = FluentIcons.Geometry(FluentIcons.Folder);
