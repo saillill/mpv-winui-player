@@ -17,8 +17,11 @@ Playback gains a purpose-built control bar, with an adaptive layout,
 chapter and A–B loop markers, and animated panels, alongside quick panels for
 audio, subtitles and video, a track selector, picture-in-picture with a resizable
 window, and aspect-ratio and cropping controls that respect the actual size of the
-video panel. Thumbnail preview is built in and also supports plugins implementing
-the `osc-preview-api`.
+video panel. Thumbnail preview is built in and also supports the `osc-preview-api`:
+the `preview_api_bridge.lua` shipped in the config layer observes mpv's
+`user-data/osc/draw-preview` request and hands it to the player, so a plugin that
+speaks that protocol works without knowing anything about this front end. See
+[`mpv-winui-lazy/docs/preview-api.md`](mpv-winui-lazy/docs/preview-api.md).
 
 The bundled mpv configuration is maintained rather than a one-time drop: it is
 installed on first run and kept current afterwards, including scripts for automatic

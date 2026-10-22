@@ -2513,6 +2513,7 @@ namespace winrt::mpv_winrt::implementation
     }
     void MpvPlayer::SetHoverSec(double sec)
     {
+        m_lastHoverSec = sec;
         SetDoubleProperty("user-data/osc/hover-sec", sec);
     }
     void MpvPlayer::SetDrawPreview(int32_t x, int32_t y, int32_t w, int32_t h)
@@ -2522,10 +2523,16 @@ namespace winrt::mpv_winrt::implementation
             return;
         }
 
+        // The map is the request, in full. mpv moved hover-sec inside it
+        // (59c91de, "osc: add back hover-sec in draw-preview") precisely so a
+        // thumbnailer does not have to correlate two properties: if the
+        // rectangle does not change, a separate hover-sec never fires the
+        // observer that draws. SetHoverSec still writes the standalone
+        // property, for mpv builds that predate the move.
         mpv_node node{};
         mpv_node_list list{};
-        mpv_node values[4]{};
-        const char* keyPtrs[4] = {"x", "y", "w", "h"};
+        mpv_node values[5]{};
+        const char* keyPtrs[5] = {"x", "y", "w", "h", "hover-sec"};
 
         values[0].format = MPV_FORMAT_INT64;
         values[0].u.int64 = static_cast<int64_t>(x);
@@ -2539,7 +2546,10 @@ namespace winrt::mpv_winrt::implementation
         values[3].format = MPV_FORMAT_INT64;
         values[3].u.int64 = static_cast<int64_t>(h);
 
-        list.num = 4;
+        values[4].format = MPV_FORMAT_DOUBLE;
+        values[4].u.double_ = m_lastHoverSec;
+
+        list.num = 5;
         list.keys = (char**)keyPtrs;
         list.values = values;
 

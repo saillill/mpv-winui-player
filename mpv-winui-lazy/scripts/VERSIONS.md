@@ -16,6 +16,7 @@ the file header comment repeats it.
 | `mpvw_hdr_override.lua` | color-kind manual override |
 | `save_global_props.lua` | persist volume/mute |
 | `auto_sub_fonts_dir.lua` | auto-load adjacent fonts dir |
+| `preview_api_bridge.lua` | `osc-preview-api` consumer: mirrors the request where the app can draw it |
 | `stats_mediainfo.lua` | MediaInfo OSD (derived from mpv-lazy discussion #624) |
 
 ## Upstream, pinned
