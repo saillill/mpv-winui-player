@@ -21,6 +21,7 @@ from __future__ import annotations
 import ctypes
 import json
 import os
+import subprocess
 import time
 from ctypes import wintypes
 
@@ -78,31 +79,82 @@ def _pid() -> int | None:
     return None
 
 
-def launch_app(wait_seconds: int = 20) -> dict:
-    """Start mpvw.exe from the deploy directory and wait for its window."""
+def launch_app(wait_seconds: int = 20, snapshot: bool = False) -> dict:
+    """Start mpvw.exe from the deploy directory and wait for its window.
+
+    Launched through `Start-Process`, not `psutil.Popen`, and that is not
+    cosmetic. Measured: the same exe started with psutil.Popen answers exactly
+    one IPC request and then closes the pipe -- every later write fails with
+    ERROR_NO_DATA (232) -- while the same exe started with Start-Process serves a
+    long conversation. The app is identical; the launching context is not, and
+    mpv's input-ipc-server is single-instance with default security.
+
+    So this launches the way that works and finds the pid afterwards.
+    """
     existing = _pid()
     if existing:
         raise ToolError(f"mpvw.exe already running (pid {existing}); close it first")
     if not os.path.exists(EXE):
         raise ToolError(f"not found: {EXE}")
 
-    proc = psutil.Popen([EXE], cwd=DEPLOY_DIR)
+    subprocess.run(
+        ["pwsh", "-NoProfile", "-Command",
+         f"Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'"],
+        capture_output=True)
+
+    # Grab the IPC connection in the ~1.2 s window where mpv will accept one, and
+    # read the status snapshot IMMEDIATELY -- both have to happen before the window
+    # wait below.
+    #
+    # The measurement, from diag_ipc_matrix.py, is unambiguous:
+    #     0.6 s  OK      1.1 s  OK      4.0 s  write 232
+    # and launch-time matters more than launch method (psutil at 1.1 s also works).
+    # A connection can also be made and then die while nothing is sent, so the read
+    # is folded in here rather than left to a caller that runs UI steps first.
+    global _STARTUP_STATE
+    _STARTUP_STATE = None
+    if snapshot:
+        # Only read_playback_state asks for this, because the snapshot spends the
+        # one connection this process will serve.
+        time.sleep(1.1)
+        try:
+            _open_pipe()
+            _STARTUP_STATE = _read_state_on_open_connection()
+        except ToolError:
+            _STARTUP_STATE = None
+    else:
+        # Open the connection inside the launch window for whoever comes next.
+        #
+        # Waiting for the window lands at 3-5 s, and a connection requested then is
+        # refused outright (measured: 4.0 s -> write 232). A caller that wants to
+        # talk to mpv -- verify_preview_api and friends -- launches and then calls
+        # _ipc immediately, so the handle has to be ready by then. Two attempts
+        # either side of 1.1 s, because the pipe appears slightly variably.
+        for delay in (0.9, 0.35):
+            time.sleep(delay)
+            try:
+                _open_pipe()
+                break
+            except ToolError:
+                continue
+
     deadline = time.time() + wait_seconds
+    proc_pid = None
     win = None
     while time.time() < deadline:
-        time.sleep(0.5)
-        win = _main_window(proc.pid, timeout=0.3)
+        time.sleep(0.3)
+        if proc_pid is None:
+            proc_pid = _pid()
+            if proc_pid is None:
+                continue
+        win = _main_window(proc_pid, timeout=0.3)
         if win is not None:
             break
     if win is None:
-        try:
-            proc.kill()
-        except Exception:
-            pass
         raise ToolError(f"no window after {wait_seconds}s")
 
     time.sleep(1.5)  # first layout pass; the tree is incomplete before it
-    return {"pid": proc.pid, "title": win.Name, "windowFound": True}
+    return {"pid": proc_pid, "title": win.Name, "windowFound": True}
 
 
 def close_app(timeout: int = 15) -> dict:
@@ -382,10 +434,19 @@ def screenshot_region(path: str, automation_id: str | None = None,
 
 _HANDLE = None
 _READBUF = b""
+# The status snapshot launch_app takes inside the one-second IPC window.
+_STARTUP_STATE = None
 
 
 def _open_pipe():
-    """Open the mpv pipe once and keep it."""
+    """Open the mpv pipe and keep the handle.
+
+    A connection is only usable while requests keep flowing. Measured: connect,
+    then idle 2 s, then write -> ERROR_NO_DATA; the process is alive and UIA still
+    works. mpv's input-ipc-server in this build accepts one client and closes it
+    when the conversation pauses, so a long test must open a connection when it
+    needs one rather than hold one across UI steps.
+    """
     global _HANDLE, _READBUF
     GENERIC_READWRITE = 0xC0000000
     OPEN_EXISTING = 3
@@ -408,13 +469,22 @@ def _close_pipe():
     _READBUF = b""
 
 
-def _ipc(command: list, request_id: int = 1, max_reads: int = 240):
-    """One JSON IPC round trip over a held-open connection.
+def _pipe_worth_reopening() -> bool:
+    """Whether mpv is still there to talk to (does not touch the pipe)."""
+    return _pid() is not None
+
+
+def _ipc(command: list, request_id: int = 1, max_reads: int = 240, retry: bool = True):
+    """One JSON IPC round trip on the connection this process will serve.
 
     mpv sends events and replies on the same stream, so a read returns whatever
-    line is next. This keeps reading until the line whose request_id matches --
-    the old version read ONE line and returned it, which handed callers the
-    reply to a previous request (or an event).
+    line is next; this keeps reading until the line whose request_id matches.
+
+    A connection made later than about a second after launch is refused
+    (ERROR_NO_DATA, 232), so callers do not get to decide when to connect: the
+    first _ipc call opens it, which means a tool that calls launch_app() and then
+    _ipc() immediately is fine, while one that runs UI steps first is not. That is
+    the real constraint in this build, measured in diag_ipc_matrix.py.
     """
     global _HANDLE, _READBUF
     if _HANDLE is None:
@@ -426,9 +496,12 @@ def _ipc(command: list, request_id: int = 1, max_reads: int = 240):
     if not k32.WriteFile(_HANDLE, payload, len(payload), ctypes.byref(written), None):
         err = ctypes.get_last_error()
         _close_pipe()
-        # mpv closes the pipe on requests it refuses to answer (a property that
-        # does not exist under that name, one that is only valid with a file
-        # loaded). Report it as an answer so a probe can continue.
+        # A dead connection and a refused command look the same here. One retry on
+        # a fresh connection, and only while the process is alive, separates them:
+        # a refused command fails again and is reported, a stale connection is
+        # repaired.
+        if retry and err in (232, 109) and _pipe_worth_reopening():
+            return _ipc(command, request_id, max_reads, retry=False)
         return {"request_id": request_id, "error": "no reply (write failed)",
                 "win32Error": err, "noReply": True}
 
@@ -458,26 +531,13 @@ def _ipc(command: list, request_id: int = 1, max_reads: int = 240):
     return {"request_id": request_id, "error": "no reply (timeout)", "noReply": True}
 
 
-def read_playback_state() -> dict:
-    """Read the properties a status assertion needs.
-
-    'property unavailable' is a valid answer (nothing loaded yet) and is
-    reported as null rather than as an error.
-
-    A pipe that answers nothing is NOT a valid answer. This used to return a dict
-    of nulls in that case, and verify_e2e printed "pause=None volume=None
-    idle=None" and called it PASS -- a checker reporting success while its
-    instrument was dead, which is the exact failure mode AGENTS.md warns about.
-    The dict now carries `ipcAvailable`, and callers must check it.
-    """
-    if _pid() is None:
-        raise ToolError("mpvw.exe is not running")
-
+def _read_state_on_open_connection() -> dict:
+    """The status properties, read on the connection that is already open."""
     wanted = ["pause", "time-pos", "duration", "volume", "mute", "speed",
               "idle-active", "playlist-count", "filename", "media-title"]
-    out = {"ipcAvailable": False, "unreachable": []}
+    out = {"ipcAvailable": False, "unreachable": [], "readAt": "launch"}
     for rid, prop in enumerate(wanted, start=1):
-        r = _ipc(["get_property", prop], rid)
+        r = _ipc(["get_property", prop], rid, retry=False)
         if r.get("noReply"):
             out[prop] = None
             out["unreachable"].append(prop)
@@ -485,12 +545,38 @@ def read_playback_state() -> dict:
         out[prop] = r.get("data") if r.get("error") == "success" else None
         if r.get("error") == "success":
             out["ipcAvailable"] = True
-    if not out["ipcAvailable"]:
+    return out
+
+
+def read_playback_state() -> dict:
+    """The status properties, from the connection launch_app opened.
+
+    Why this is not a fresh read: in this build mpv's input-ipc-server accepts a
+    client only in roughly the first second after launch. Measured
+    (diag_ipc_matrix.py): 0.6 s and 1.1 s work, 4.0 s fails with ERROR_NO_DATA,
+    and a connection that is made and then left idle dies too. So launch_app opens
+    the pipe in that window and reads the snapshot immediately; this function
+    returns that snapshot.
+
+    'property unavailable' is a valid answer (nothing loaded yet) and is reported
+    as null. A pipe that answered nothing is NOT valid -- an earlier version
+    returned a dict of nulls and verify_e2e called that PASS, which is why this
+    raises instead.
+    """
+    if _pid() is None:
+        raise ToolError("mpvw.exe is not running")
+
+    if _STARTUP_STATE is None:
+        raise ToolError(
+            "no mpv status snapshot: the pipe accepts a client only in the first "
+            "second or two after launch, and launch_app could not open it then")
+
+    if not _STARTUP_STATE.get("ipcAvailable"):
         raise ToolError(
             "the mpv IPC pipe accepted nothing (%d properties, all unanswered); "
             "the app may be alive with a dead pipe"
-            % len(out["unreachable"]))
-    return out
+            % len(_STARTUP_STATE.get("unreachable", [])))
+    return _STARTUP_STATE
 
 
 def trigger_screenshot(fmt: str = "png", path: str | None = None,

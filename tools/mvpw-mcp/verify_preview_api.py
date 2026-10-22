@@ -56,7 +56,12 @@ def main():
     time.sleep(2.0)
     T._ipc(["loadfile", CLIP, "replace"], 960)
     time.sleep(3.0)
-    check("clip loaded", T.read_playback_state().get("filename") is not None)
+    # Ask over the connection this script already holds rather than through
+    # read_playback_state, which takes its own snapshot at launch time and is for
+    # the e2e flow. Each process serves one IPC conversation, so a tool that is
+    # using the pipe must not ask for a second one.
+    loaded = T._ipc(["get_property", "filename"], 961)
+    check("clip loaded", loaded.get("error") == "success" and loaded.get("data"))
 
     # ---- 1. the bridge is running: it registered script-message preview-request
     payload = json.dumps({"x": 10, "y": 20, "w": 192, "h": 108, "hover-sec": 7.25})

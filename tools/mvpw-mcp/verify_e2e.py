@@ -51,9 +51,22 @@ def main():
     step("close_app (ensure not running)", T.close_app)
 
     # 1. launch
-    info = step("launch_app", T.launch_app)
+    info = step("launch_app", T.launch_app, snapshot=True)
     if not info:
         return finish(args)
+
+    # 1b. mpv playback state over the IPC pipe -- FIRST, while the connection is
+    # still usable.
+    #
+    # This used to run after the UI steps and always failed. Measured cause: in
+    # this build mpv's input-ipc-server serves one client per process, and the
+    # connection goes away once the conversation pauses (idle 2 s -> ERROR_NO_DATA,
+    # with the app alive and UIA still fine). Running the twelve UI assertions
+    # first spends that window, so the read has to happen here.
+    st = step("read_playback_state", T.read_playback_state)
+    if st:
+        print("      pause=%r volume=%r idle=%r" % (
+            st.get("pause"), st.get("volume"), st.get("idle-active")))
 
     # 2. the shell's own controls are reachable by AutomationId
     step("assert ShellNav exists", T.assert_element_state,
@@ -102,11 +115,7 @@ def main():
     step("select nav home (restore)", T.invoke_control,
          automation_id="ShellNav_home", action="select")
 
-    # 4. mpv playback state over the IPC pipe
-    st = step("read_playback_state", T.read_playback_state)
-    if st:
-        print("      pause=%r volume=%r idle=%r" % (
-            st.get("pause"), st.get("volume"), st.get("idle-active")))
+    # 4. the IPC read already happened in 1b, while the connection was alive
 
     # 5. a diagnosis screenshot (not the pass/fail evidence)
     step("screenshot_region (diagnosis)", T.screenshot_region,
