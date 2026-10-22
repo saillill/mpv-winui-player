@@ -31,6 +31,27 @@ DEPLOY_DIR = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
 EXE = os.path.join(DEPLOY_DIR, "mpvw.exe")
 PIPE = r"\\.\pipe\mpvpipe"
 
+# One kernel32, with every signature declared once.
+#
+# ctypes defaults a foreign function's return type to c_long -- 32 bits here,
+# while HANDLE is 64. CreateFileW then returns a TRUNCATED handle: a non-zero
+# value that looks usable and addresses nothing. The symptom was a pipe that
+# accepted exactly one request and then appeared dead, while a hand-written probe
+# that set restype worked against the same process at the same moment.
+_k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+_k32.CreateFileW.restype = wintypes.HANDLE
+_k32.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                             ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD,
+                             wintypes.HANDLE]
+_k32.CloseHandle.restype = wintypes.BOOL
+_k32.CloseHandle.argtypes = [wintypes.HANDLE]
+_k32.ReadFile.restype = wintypes.BOOL
+_k32.ReadFile.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD,
+                          ctypes.POINTER(wintypes.DWORD), ctypes.c_void_p]
+_k32.WriteFile.restype = wintypes.BOOL
+_k32.WriteFile.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD,
+                           ctypes.POINTER(wintypes.DWORD), ctypes.c_void_p]
+
 # Patterns are obtained through this table; `auto.PatternId` is the public enum.
 PATTERNS = {
     "invoke": auto.PatternId.InvokePattern,
@@ -70,13 +91,9 @@ def launch_app(wait_seconds: int = 20) -> dict:
     win = None
     while time.time() < deadline:
         time.sleep(0.5)
-        try:
-            w = auto.WindowControl(searchDepth=1, ProcessId=proc.pid)
-            if w.Exists(0.4, 0.2):
-                win = w
-                break
-        except Exception:
-            pass
+        win = _main_window(proc.pid, timeout=0.3)
+        if win is not None:
+            break
     if win is None:
         try:
             proc.kill()
@@ -89,38 +106,100 @@ def launch_app(wait_seconds: int = 20) -> dict:
 
 
 def close_app(timeout: int = 15) -> dict:
-    """Close the app the way the user would, so mpv flushes state."""
+    """Close the app the way the user would, so mpv flushes state.
+
+    Returns only once the process is actually gone. `_pid()` scans psutil's
+    process table, which is cached for a short while, so a single check right
+    after the close reports the dead process as still alive -- that race made
+    every later launch fail with "already running".
+    """
+    _close_pipe()
     pid = _pid()
     if pid is None:
         return {"closed": True, "alreadyClosed": True}
     try:
-        win = auto.WindowControl(searchDepth=1, ProcessId=pid)
-        if win.Exists(1, 0.2):
+        win = _main_window(pid, timeout=1.0)
+        if win is not None:
             win.GetWindowPattern().Close()
     except Exception:
         pass
+
+    # Ask the OS directly (not through psutil's cache) until the pid is gone.
     deadline = time.time() + timeout
     while time.time() < deadline:
         time.sleep(0.3)
-        if _pid() is None:
-            return {"closed": True, "forced": False}
-    for p in psutil.process_iter(["name", "pid"]):
-        if (p.info["name"] or "").lower() == "mpvw.exe":
-            try:
-                psutil.Process(p.info["pid"]).kill()
-            except Exception:
-                pass
-    return {"closed": _pid() is None, "forced": True}
+        if not _pid_alive(pid):
+            # psutil may still list it for one more tick; wait it out.
+            for _ in range(20):
+                if _pid() is None:
+                    return {"closed": True, "forced": False}
+                time.sleep(0.1)
+            return {"closed": True, "forced": False, "psutilLag": True}
+
+    try:
+        psutil.Process(pid).kill()
+    except Exception:
+        pass
+    for _ in range(40):
+        if not _pid_alive(pid):
+            break
+        time.sleep(0.25)
+    return {"closed": not _pid_alive(pid), "forced": True}
+
+
+def _pid_alive(pid: int) -> bool:
+    """True while the pid is a live process, asked of the OS each time."""
+    try:
+        h = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid)  # QUERY_LIMITED
+        if not h:
+            return False
+        code = wintypes.DWORD()
+        ctypes.windll.kernel32.GetExitCodeProcess(h, ctypes.byref(code))
+        ctypes.windll.kernel32.CloseHandle(h)
+        return code.value == 259  # STILL_ACTIVE
+    except Exception:
+        return True
+
 
 
 # --------------------------------------------------------------------- UIA ---
+
+def _main_window(pid: int, timeout: float = 2.0):
+    """The app's own top-level window, not whatever uid=1 search returns first.
+
+    `WindowControl(searchDepth=1, ProcessId=pid)` looked right and once
+    returned the Harness window instead of the player -- searchDepth is measured
+    from the desktop root, so depth 1 is every top-level window and the pid
+    filter is applied after. Enumerate the root's children and match the class
+    the app actually uses.
+    """
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            for w in auto.GetRootControl().GetChildren():
+                try:
+                    if w.ProcessId != pid:
+                        continue
+                    # The player page swaps the window's content but not its
+                    # class; accept any visible top-level window of the process
+                    # rather than requiring one specific class name, which made
+                    # this return None while playing.
+                    if not w.IsOffscreen:
+                        return w
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        time.sleep(0.2)
+    return None
+
 
 def _window():
     pid = _pid()
     if pid is None:
         raise ToolError("mpvw.exe is not running")
-    win = auto.WindowControl(searchDepth=1, ProcessId=pid)
-    if not win.Exists(2, 0.2):
+    win = _main_window(pid, timeout=2.5)
+    if win is None:
         raise ToolError("main window not found")
     return win
 
@@ -301,43 +380,82 @@ def screenshot_region(path: str, automation_id: str | None = None,
 
 # --------------------------------------------------------------------- mpv ---
 
-def _ipc(command: list, request_id: int = 1, max_reads: int = 60):
-    """One JSON IPC round trip over the named pipe."""
+_HANDLE = None
+_READBUF = b""
+
+
+def _open_pipe():
+    """Open the mpv pipe once and keep it."""
+    global _HANDLE, _READBUF
     GENERIC_READWRITE = 0xC0000000
     OPEN_EXISTING = 3
-    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
-    k32.CreateFileW.restype = wintypes.HANDLE
+    k32 = _k32
     handle = k32.CreateFileW(PIPE, GENERIC_READWRITE, 0, None, OPEN_EXISTING, 0, None)
     if handle == wintypes.HANDLE(-1).value or handle is None:
         raise ToolError(f"cannot open {PIPE}: error {ctypes.get_last_error()}")
+    _HANDLE = handle
+    _READBUF = b""
 
+
+def _close_pipe():
+    global _HANDLE, _READBUF
+    if _HANDLE is not None:
+        try:
+            _k32.CloseHandle(_HANDLE)
+        except Exception:
+            pass
+    _HANDLE = None
+    _READBUF = b""
+
+
+def _ipc(command: list, request_id: int = 1, max_reads: int = 240):
+    """One JSON IPC round trip over a held-open connection.
+
+    mpv sends events and replies on the same stream, so a read returns whatever
+    line is next. This keeps reading until the line whose request_id matches --
+    the old version read ONE line and returned it, which handed callers the
+    reply to a previous request (or an event).
+    """
+    global _HANDLE, _READBUF
+    if _HANDLE is None:
+        _open_pipe()
+
+    k32 = _k32
     payload = (json.dumps({"command": command, "request_id": request_id}) + "\n").encode()
     written = wintypes.DWORD(0)
-    if not k32.WriteFile(handle, payload, len(payload), ctypes.byref(written), None):
-        k32.CloseHandle(handle)
-        raise ToolError("WriteFile failed")
+    if not k32.WriteFile(_HANDLE, payload, len(payload), ctypes.byref(written), None):
+        err = ctypes.get_last_error()
+        _close_pipe()
+        # mpv closes the pipe on requests it refuses to answer (a property that
+        # does not exist under that name, one that is only valid with a file
+        # loaded). Report it as an answer so a probe can continue.
+        return {"request_id": request_id, "error": "no reply (write failed)",
+                "win32Error": err, "noReply": True}
 
     buf = ctypes.create_string_buffer(65536)
     read = wintypes.DWORD(0)
-    acc = b""
-    try:
-        for _ in range(max_reads):
-            if not k32.ReadFile(handle, buf, 65536, ctypes.byref(read), None):
-                break
-            acc += buf.raw[: read.value]
-            for line in acc.split(b"\n"):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    obj = json.loads(line)
-                except Exception:
-                    continue
-                if obj.get("request_id") == request_id:
-                    return obj
-    finally:
-        k32.CloseHandle(handle)
-    raise ToolError("no matching reply on the mpv pipe")
+    for _ in range(max_reads):
+        while b"\n" in _READBUF:
+            line, _READBUF = _READBUF.split(b"\n", 1)
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except Exception:
+                continue
+            if obj.get("request_id") == request_id:
+                return obj
+        if not k32.ReadFile(_HANDLE, buf, 65536, ctypes.byref(read), None):
+            err = ctypes.get_last_error()
+            _close_pipe()
+            return {"request_id": request_id, "error": "no reply (the pipe closed)",
+                    "win32Error": err, "noReply": True}
+        if read.value:
+            _READBUF += buf.raw[: read.value]
+        else:
+            time.sleep(0.01)
+    return {"request_id": request_id, "error": "no reply (timeout)", "noReply": True}
 
 
 def read_playback_state() -> dict:
@@ -345,30 +463,66 @@ def read_playback_state() -> dict:
 
     'property unavailable' is a valid answer (nothing loaded yet) and is
     reported as null rather than as an error.
+
+    A pipe that answers nothing is NOT a valid answer. This used to return a dict
+    of nulls in that case, and verify_e2e printed "pause=None volume=None
+    idle=None" and called it PASS -- a checker reporting success while its
+    instrument was dead, which is the exact failure mode AGENTS.md warns about.
+    The dict now carries `ipcAvailable`, and callers must check it.
     """
     if _pid() is None:
         raise ToolError("mpvw.exe is not running")
 
     wanted = ["pause", "time-pos", "duration", "volume", "mute", "speed",
               "idle-active", "playlist-count", "filename", "media-title"]
-    out = {}
+    out = {"ipcAvailable": False, "unreachable": []}
     for rid, prop in enumerate(wanted, start=1):
-        try:
-            r = _ipc(["get_property", prop], rid)
-        except ToolError as e:
-            out[prop] = {"error": str(e)}
+        r = _ipc(["get_property", prop], rid)
+        if r.get("noReply"):
+            out[prop] = None
+            out["unreachable"].append(prop)
             continue
         out[prop] = r.get("data") if r.get("error") == "success" else None
+        if r.get("error") == "success":
+            out["ipcAvailable"] = True
+    if not out["ipcAvailable"]:
+        raise ToolError(
+            "the mpv IPC pipe accepted nothing (%d properties, all unanswered); "
+            "the app may be alive with a dead pipe"
+            % len(out["unreachable"]))
     return out
 
 
-def trigger_screenshot(fmt: str = "png", path: str | None = None) -> dict:
-    """Ask mpv itself to write a screenshot (screenshot-to-file)."""
+def trigger_screenshot(fmt: str = "png", path: str | None = None,
+                       mode: str = "subtitles") -> dict:
+    """Ask mpv itself to write a screenshot.
+
+    mpv's command is `screenshot-to-file <path> <flags>`, and the third argument
+    is *not* the image format -- it is the screenshot mode flags (`subtitles`,
+    `video`, or both). Passing "png" there returns `invalid parameter`, which is
+    what the first version of this tool did. The format comes from the
+    `screenshot-format` property, so this sets that first, then calls the
+    command with the mode. The app does the same at
+    MpvPlayerPage_PlaylistPanel.cs:221.
+
+    fmt:  png | jpg | webp | jxl | avif, whatever the bundled mpv can write
+    mode: subtitles (default, what the app's menu uses) | video | subtitles+video
+    """
+    if fmt not in ("png", "jpg", "webp", "jxl", "avif"):
+        raise ToolError(f"unsupported format {fmt!r}")
+
+    # screenshot-format must be set before the command runs, and it is a
+    # property, not an argument.
+    fmt_reply = _ipc(["set_property", "screenshot-format", fmt], 800)
+
     if not path:
         stamp = time.strftime("%Y%m%d-%H%M%S")
         base = os.path.join(DEPLOY_DIR, "screenshots")
         os.makedirs(base, exist_ok=True)
         path = os.path.join(base, f"mpvw-{stamp}.{fmt}")
 
-    r = _ipc(["screenshot-to-file", path, fmt])
-    return {"requested": path, "format": fmt, "reply": r}
+    r = _ipc(["screenshot-to-file", path, mode], 801)
+    return {"requested": path, "format": fmt, "mode": mode,
+            "formatReply": fmt_reply, "reply": r,
+            "written": os.path.exists(path) and os.path.getsize(path) > 0}
+
