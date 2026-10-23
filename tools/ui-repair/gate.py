@@ -29,28 +29,9 @@ PWSH = "pwsh"
 
 
 def run(cmd, cwd=REPO, timeout=1800):
-    """Run a command and decode its output as UTF-8, whatever the console code page is.
-
-    **Measured failure that this fixes.** With `text=True` and no encoding, Python decodes
-    with the ANSI code page (GBK here), but `pwsh` and MSBuild write UTF-8. The result was
-    mojibake that made every CJK pattern unmatched:
-
-        real:      失败!  - 失败:     1，通过:   495
-        decoded:   澶辫触!  - 澶辫触:     1锛岄€氳繃:   495
-
-    That is why `s_build` reported "no recognisable error line" for a build that had
-    printed one, and why its detail line said `0 error line(s)` for a failing build: the
-    Chinese suite summaries were unreadable to the checker. ASCII markers (`: error CS`)
-    survived, which is exactly why the fault was invisible until a test-only failure was
-    injected.
-
-    Errors are replaced rather than dropped: a garbled line still prints, so a future
-    encoding surprise is visible instead of silently swallowing the evidence.
-    """
-    r = subprocess.run(cmd, cwd=cwd, capture_output=True, timeout=timeout)
-    out = (r.stdout or b"").decode("utf-8", "replace") + \
-          (r.stderr or b"").decode("utf-8", "replace")
-    return r.returncode, out
+    r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True,
+                       errors="replace", timeout=timeout)
+    return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 
 def stage(name, fn):
@@ -67,58 +48,12 @@ def s_xaml():
 
 
 def s_build():
-    """build.ps1 must exit 0. The exit code is the reading; the error lines are decoration.
-
-    **What the first version got wrong.** It decided with
-    `ok = code == 0 and not code_errs` but then reported
-    `"%d error line(s)" % len(code_errs)` -- so a build that exited 1 with no
-    `: error CS` line printed "0 error line(s)", which reads like a clean build and is
-    exactly the "healthy-looking output from a failed step" shape this repo has been bitten
-    by before (AGENTS.md: a failed build followed by a deploy that copied stale binaries).
-
-    Measured: `build.ps1` runs two test suites (`mpv-conf-test`, `mpv-winrt-test`) after
-    compiling, so a failing unit test exits 1 with zero compiler errors. Injecting
-    `NarrowWidth = 260` (compiles fine, breaks TightPitchFitsTheNarrowestPortraitBar) made
-    the gate print `FAIL: 0 error line(s)` -- the failure was caught only because the
-    `and` happened to be there, and the message named nothing.
-
-    So the detail line now says what actually failed: the exit code, and the test-suite
-    summary when the output contains one. A non-zero exit with no error lines is exactly
-    the case a reader must be able to see.
-    """
     code, out = run([PWSH, "-NoProfile", "-File", r".\build.ps1",
                      "-Configuration", "Release", "-Platform", "x64"])
+    errs = [l for l in out.splitlines() if re.search(r"error (CS|MSB|XamlCompiler)", l)]
     code_errs = [l for l in out.splitlines() if ": error CS" in l]
-    xaml_errs = [l for l in out.splitlines()
-                 if re.search(r"error (MSB|XamlCompiler)", l)]
-    # dotnet prints its suites in the OS language. Measured on this machine, both lines
-    # arrive on **stdout** (stderr was empty, 0 bytes):
-    #   `  失败 TightPitchFitsTheNarrowestPortraitBar [15 ms]`   (a failing test)
-    #   `失败!  - 失败:     1，通过:   495，已跳过:     0，总计:   496`
-    # The first pattern must not use \w after the word: this SDK writes a CJK test name
-    # there and `\w` does not match it under the default re flags, which is why the first
-    # attempt missed both lines and reported "no recognisable error line".
-    test_fail = [l for l in out.splitlines()
-                 if re.search(r"^\s*(失败|Failed)\s+\S", l)
-                 or re.search(r"(失败|Failed)!\s*[-–]", l)
-                 or re.search(r"(失败|Failed):\s*[1-9]", l)]
-
     ok = code == 0 and not code_errs
-
-    if ok:
-        return True, "exit 0, 0 errors"
-
-    bits = ["exit %d" % code]
-    if code_errs:
-        bits.append("%d CS error(s)" % len(code_errs))
-    if xaml_errs:
-        bits.append("%d MSB/XAML error(s)" % len(xaml_errs))
-    if test_fail:
-        bits.append("test suite failed: " + test_fail[0].strip()[:70])
-    if not (code_errs or xaml_errs or test_fail):
-        # Say so explicitly: a non-zero exit with nothing recognisable is not a pass.
-        bits.append("no recognisable error line -- read the raw output")
-    return False, "; ".join(bits)
+    return ok, "%d error line(s)" % len(code_errs) if not ok else "0 errors"
 
 
 def s_checkers():

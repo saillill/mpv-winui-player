@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Generate the settings-page rows for every mpv option the page does not
 already carry, from the bundled schema.
 
@@ -667,22 +667,11 @@ def gen_appsettings(rows: list[dict]) -> str:
 
 
 def gen_names(rows: list[dict]) -> str:
-    """The name-map fragment: property name -> mpv option name, plus the enum set.
+    """The name-map fragment: property name -> mpv option name.
 
     Kept in its own partial so the hand-written dictionary in MpvSettings.cs
     stays readable, and so `git diff` after an mpv bump shows only the
     options that appeared or disappeared.
-
-    `GeneratedEnumOptions` exists because `GeneratedCommand` has to decide
-    whether to quote a string, and cannot work that out at runtime -- the
-    generated AppSettings property is a plain `string` for a free-text option
-    and for an enumerated one alike.
-
-    Measured why it matters: without this set, `edition` (enum: auto) produced
-    `set edition "auto"` and mpv rejected it 11 times in one day's log. Every
-    enumerated option in the schema shares the fault. A free-text string that
-    contains a space genuinely needs quotes; an enum value is always a bare
-    token, because the schema enumerates the spellings it accepts.
     """
     lines = [BANNER, "using System;\nusing System.Collections.Generic;\n",
              "namespace mpv_winui.Modules.Settings\n{",
@@ -692,22 +681,6 @@ def gen_names(rows: list[dict]) -> str:
              "        {"]
     for r in sorted(rows, key=lambda x: x["name"]):
         lines.append(f'            [nameof(AppSettings.{r["prop"]})] = "{r["name"]}",')
-    lines += ["        };", ""]
-
-    # `meta` is where classify() puts the value grammar; `values` is the schema's raw shape
-    # and is not carried into the rows. Using the wrong one produced an empty set that
-    # looked like a successful generation.
-    enum_rows = [r for r in sorted(rows, key=lambda x: x["name"])
-                 if (r.get("meta") or {}).get("enum")]
-    lines += ["        /// <summary>",
-              "        /// Generated options whose value comes from a fixed set. The literal",
-              "        /// is a bare token, so it must not be quoted -- mpv rejects `set",
-              "        /// edition \"auto\"` while accepting `set edition auto`.",
-              "        /// </summary>",
-              "        private static readonly HashSet<string> GeneratedEnumOptions = new(StringComparer.Ordinal)",
-              "        {"]
-    for r in enum_rows:
-        lines.append(f'            "{r["name"]}",')
     lines += ["        };", "    }", "}", ""]
     return "\n".join(lines)
 

@@ -38,14 +38,10 @@
 
 | id | domain | kind | repro | 症状 | evidence |
 |---|---|---|---|---|---|
+| `upstream-fileassoc` | Activation | port | confirmed | 无任何文件/协议关联 UI；上游有 `ActivationRegistration/`（5 文件） | `repro.py` 输出：association UI 0，registry writers 0 → FAIL |
+| `upstream-displayrequest` | Player | behavior | confirmed | 播放时不阻止息屏；上游有 `SimpleDisplayRequest`/`SystemDisplayRequest` | `repro.py`：display-wake mechanisms 0 → FAIL |
 
-> 2026-10-24：A 区已清空。原来两项（`upstream-fileassoc`、`upstream-displayrequest`）
-> 经两条独立测量确认能力都存在，是**探针 bug**，不是产品缺陷；探针已修并各自在注入真实
-> 缺陷时变红。两项证据写在 `done.py` 记录的 evidence 里。
->
-> 清空后按 PLAYBOOK 跑 `scan.py` / `nightly.py`，又发现 4 个测量问题，全部是探针的
-> （见 §C 最后四行），修完仍是 0 个可开工项。**当前没有已证实的缺陷待修**——
-> 这是测量结果，不是没找。
+> 这两项都写好了 repro，当前 FAIL。修完应翻转为 PASS，**且连跑两次**。
 
 ## B. 已验证存在，不必移植（本会话结论）
 
@@ -69,15 +65,6 @@
 | 182 个 `x:Key` 孤儿资源 | `audit-resource-keys.py` 四种读取方式，0 孤儿 | 非缺陷 |
 | 三套皮肤控件位置完全一致 | 几何相同但**像素不同**（`scan-skins-pixels.py`，三个不同 hash） | 无缺陷；`Template` 改的是圆角/画笔，不改控件外框 |
 | 皮肤设置切换到 `Center`/`Compact` 无效 | 上一行同一个误判的起因：脚本写的是 `Centre`/`Standard`，正确值是 `Center`/`Compact`（美式拼写，见 `AppSettings.PlayerStyle_*`） | 探针 bug，不是产品缺陷 |
-| 枚举选项被 mpv 拒绝（`edition` 等 59 个） | **已修** `cfb43d3`：生成器把 59 个枚举选项放进 `GeneratedEnumOptions`，`GeneratedCommand` 对它们不再加引号。这个修复本身已验证（`verify-enum-quoting.py` exit 0，27 个残留引号逐条核对 schema 全部正确）。**但原记录里的三行"实测"是错的**，见下一行 | 真缺陷，已修 |
-| `mpv.conf` 里 83 处带引号的值 | **已修**，同 `cfb43d3`。枚举去引号后 83→27；其余 27 项逐条核对 schema，是 `raw`/`string` 且含逗号或空格，引号正确 | 真缺陷，已修 |
-| `Failed to query swap chain's output information` x274 | mpv 的 d3d11 VO 自己报的，经日志转发。`git grep 'swap chain'` 只命中我们**避让**它的注释，不是应用代码。本轮再次确认：该字符串就在 `mpv-2.dll` 内（offset 58860825），安装型 launch 每次 2 条，与产品代码无关 | 非应用缺陷，不修 |
-| 原记录："`set edition auto` 成功、`set edition "auto"` 失败、`set edition 1` 成功" | **这三条都测错了**。同一个探针把 `set volume 50` 也报成失败——它发的是 `{"command":["command",[...]]}`，多套了一层。用修正后的形状重测（2026-10-24）：`set edition auto`、`set edition "auto"`、`set edition 1` **全部成功**，说明该选项不接受"带引号=失败"这个前提，`cfb43d3` 修的是另一件事（`enum` 值进 `mpv.conf` 时的引号），那部分仍然有效 | 探针 bug，原证据作废 |
-| 启动时 `CommandString rejected: set edition auto` 仍出现 | 无法复现。本轮 28 次干净启动（10 次连续 + 8 次配置重写前后 + 3 个场景 + 若干）**0 次**出现该行；ABI 直调 `mpv_command_string` 在有/无视频输出、有/无媒体三种状态下均 rc=0，且同一进程内 `set volume` 成功、`zzz-not-an-option` 失败，说明读数已校准。今日日志里修复之后（>03:14）仍有 13:46/13:58/14:07/14:12 四条，与上面的 0/28 矛盾，因此**现象存在但触发条件未知**；没有复现前不改产品 | 观察中，不改产品 |
-| `scan.py` 报"4 处间距非令牌"（14/23/25/28px） | 两个独立故障：①UIA rect 是**设备像素**，`MpvSpace*` 是 DIP，本机 1.75×，所以任何真令牌都落在 1.75 倍上。控制项：`LibrarySectionSubtitle` 源码写 `Margin="0,8,0,0"`，实测 14px = 8×1.75。②`siblinghood` 用 `depth` 近似。实测 `ShellTitleText`（TitleBar 内）、`PaneRoot`（Window）、`LibrarySectionTitle`（ShellNav 内）都是 depth 4，那 23px 是标题栏到导航栏的距离。转成 DIP 后 14/28 恰好是 `MpvSpaceS`(8)/`MpvSpaceL`(16)。修后 0 条 | 探针 bug，已修 `b7b1fcf` |
-| `machine-evidence.py` 报"10 个死类型" | 静态使用判定用的是子串，其中 `" %s."` 要求类型名前是**空格**；真实 C# 是 `!MotionGate.Resolve()`、`x:Bind local:TreeHelpers.MenuFor(...)`、`(LayoutDraft)x`。实测 dotted 使用数 12/8/4/2/4，检测器全部匹配 0。第 10 个 `CoverArtProbe` 是 NUnit `[TestFixture]`，靠反射发现，引用计数看不见 | 探针 bug，已修 `68b432b` |
-| `scan-app-log.py` 报"14 类不同问题" | 它扫整份日文件。实测同一分钟：整份 15 条 vs 单次干净启动 3 条。多出的 12 条含 `set edition auto`（`cfb43d3` 已修）与同一选项的 FATAL——QUEUE 早已排除，只有这个脚本还在报 | 探针 bug，已修 `e7d3440` |
-| `diag-edition-accepts.py` 得出"edition 根本不可设" | 请求形状多套了一层 `{"command":["command",[...]]}`，连 `set volume 50` 都"失败"，且没有控制项可暴露这一点。修正后（带成功/失败两个控制）：`edition auto`/`"auto"`/`1`/`0` 全部成功，`always` 失败（schema 的 enum 只有 no/yes/auto，符合预期） | 探针 bug，已修 `e7d3440` |
 
 ## D. 需要先建立测量才能立项
 
