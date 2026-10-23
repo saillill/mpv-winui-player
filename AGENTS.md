@@ -68,27 +68,50 @@ Two rules that bite when files move:
   Trust `git diff --check` plus "no whole-file rewrite in `--stat`". Full rule in
   §5.6 of `docs/settings-design-contract.md`.
 
-### Driving the app: MCP, not a screenshot (2026-10-22)
+### Driving the app
 
-The section below says UI probes "have never once worked". That was true of the
-probes written before `uiautomation`/UIA3 was used, and the owner's brief for
-2026-10-21 asked for the opposite: replace manual clicking and eyeballing with
-programmable calls. Measured on the deployed build, they work:
+**Current rule, in one place.** This section used to be four sections layered on top
+of each other over three months, and the oldest read as a prohibition on exactly what
+the newest allowed. It replaces all of them; the history is at the end.
 
-- UI Automation reads this WinUI 3 window (`WinUIDesktopWin32WindowClass`,
-  ~60 AutomationIds: `ShellNav`, `ShellTitleText`, `ProgressSlider`,
-  `PlayQueue`…). `Grid` is not a UIA node, so a container you can see may have
-  no element -- assert its children instead.
+1. **Launching is allowed.** Start `mpvw.exe` to look at it, to drive it over the
+   MPV IPC pipe, and to run UI automation against it. Behaviour verification is
+   expected, not merely tolerated: `tools/mvpw-mcp/` exists for it, and its
+   verifiers are how a change is shown to work.
+2. **It must never be left running.** Every script closes it and asserts the process
+   is gone. This is the one rule that has never been relaxed.
+3. **Close it with the switch, not `Stop-Process`:**
+   `pwsh tools/deploy-test.ps1 -CloseRunning -Verify`. `-CloseRunning` posts
+   `WM_CLOSE` first and force-kills only a window that has ignored it for 10 seconds,
+   so WinUI shuts down and mpv flushes its log and saves state. Never deploy into a
+   running installation.
+4. **A screenshot proves appearance, not behaviour.** Use one for alignment,
+   spacing, colour, clipping, or to diagnose a mis-render. Declaring a feature
+   verified because it looks right is the specific mistake that once got screenshots
+   banned here.
+5. **The IPC pipe serves one conversation per process**, in roughly the first second
+   after launch. A connection made later is refused, and an idle one dies. Tools that
+   need their own conversation must open it during the launch window --
+   `mpv_tools.open_launch_window()`. Measured, not assumed
+   (`tools/mvpw-mcp/diag_ipc_matrix.py`), and it is the single most common reason a
+   probe "fails".
+
+What works, measured on the deployed build:
+
+- UI Automation reads this WinUI 3 window (`WinUIDesktopWin32WindowClass`, ~60
+  AutomationIds: `ShellNav`, `ShellTitleText`, `ProgressSlider`, `PlayQueue`).
+  `Grid` is not a UIA node, so a container you can see may have no element -- assert
+  its children instead.
 - mpv answers on `\\.\pipe\mpvpipe` while the app runs (`pause`, `volume`;
-  `time-pos` is `property unavailable` until something is loaded, which is a
-  valid answer, not a failure).
-- Nav items needed ids to be addressable at all; they now carry
-  `ShellNav_<key>` (`AutomationProperties.SetAutomationId`, an attached
-  property -- `NavigationViewItem.AutomationId` does not compile).
+  `time-pos` is `property unavailable` until something is loaded, which is a valid
+  answer, not a failure).
+- Nav items needed ids to be addressable at all; they carry `ShellNav_<key>`
+  (`AutomationProperties.SetAutomationId` -- `NavigationViewItem.AutomationId` does
+  not compile).
 
 ```
 python tools/mvpw-mcp/verify_e2e.py            # 19 steps, launch -> assert -> close
-python tools/mvpw-mcp/verify_settings.py       # settings window opens and builds its rows
+python tools/mvpw-mcp/verify_settings.py       # settings window opens and builds rows
 python tools/mvpw-mcp/verify_mcp_protocol.py   # the server itself, over stdio JSON-RPC
 ```
 
@@ -101,88 +124,27 @@ The seven tools are `launch_app`, `get_ui_snapshot`, `invoke_control`,
           "args": ["<repo>/tools/mvpw-mcp/mcpw_server.py"] }
 ```
 
-**What is still not allowed.** The app must not be left running -- every script
-ends by closing it and asserting the process is gone. The next section
-("Do not launch the app") still applies to everything this one does not cover;
-it is not deleted, only narrowed. See also 2026-10-22. A screenshot still proves
-only appearance; it is for diagnosis now, not for the pass/fail verdict. And do
-not deploy into a running installation.
+Practical notes, each learned the hard way:
 
-### Do not launch the app
+- Capture with `CopyFromScreen`, not `PrintWindow`: PrintWindow misses WinUI popups,
+  so a flyout comes out blank.
+- A whole-window screenshot can be evidence of a bug that is not there. The window
+  drop shadow reads as a vertical strip of text at the left edge, and video content
+  behind a panel reads as a render defect. Check the pixels before believing the
+  picture. Five "defects" found by eye were refuted this way in one session.
+- `verify_skins` asserts `transportUsable` (present and enabled), not "toggles
+  pause": an asserted mechanism was refuted by measurement once already.
 
-> **Superseded in part by "Driving the app: MCP" above (2026-10-22).** That
-> section is the current rule for behaviour checks; this one still governs
-> everything else, and its closing rules -- do not leave the app running, do not
-> deploy into a running install -- still hold. Read both.
-
-**Do not start `mpvw.exe`, and do not write or run UI-automation probes against
-it.** The person this project is built for tests it themselves and has said so
-explicitly: UI probes "have never once worked", and a launch-to-assert round trip
-costs more than it proves. The test for whether an action is allowed is a single
-question: **would it put `mpvw.exe` in the process list? If yes, don't.**
-
-So the work loop stops at "builds clean and the self-checks pass". Do not drive
-the app over the mpv IPC pipe, and do not deploy into a running installation.
-
-> This loop previously told agents to launch the exe, drive it over the IPC pipe
-> and verify by screenshot. That contradicted the instruction above, and because
-> this file is what an agent reads first, it was read as permission. Corrected
-> 2026-09-21.
-
-#### Looking at it is allowed; touching it is not (2026-09-21)
-
-The owner has authorised **launching `mpvw.exe` to capture screenshots**, which
-supersedes the "do not take screenshots" clause above. The line is now:
-
-- **Allowed** — start the app, let it settle, capture screenshots of it, close it.
-  Use this for *appearance*: alignment, spacing, colour, clipping, whether a
-  control is where the markup says it should be.
-- **Not allowed** — clicking, typing, dragging, UI automation, the mpv IPC pipe,
-  or anything else that drives the app. Visual verification only. Behaviour is
-  still the owner's to test; a screenshot proves how something looks, never that
-  it works.
-
-Practical notes, learned the hard way:
-
-- Capture with `CopyFromScreen`, not `PrintWindow` — PrintWindow misses WinUI
-  popups, so a flyout or popup will come out blank or absent.
-- Close it with `pwsh tools/deploy-test.ps1 -CloseRunning`, never `Stop-Process`,
-  so WinUI shuts down and mpv flushes its log and state.
-- **Déjà vu is normal.** This file once forbade screenshots precisely because an
-  agent read a permission as broader than it was. The reason it was forbidden was
-  the *assert-and-conclude* loop, not the picture. Taking a picture and then
-  telling the owner what you see is fine; taking a picture and declaring the
-  feature verified is not.
-
-#### Closing it is allowed (2026-09-21)
-
-The rule above is about **putting** `mpvw.exe` into the process list. Taking it
-out again is a different act, and the project's owner has authorised it: when a
-deploy is blocked because the app is open, close it yourself instead of stopping
-to ask.
-
-Use the switch, not `Stop-Process`:
-
-```
-pwsh tools/deploy-test.ps1 -CloseRunning -Verify
-```
-
-`-CloseRunning` posts `WM_CLOSE` first and only force-kills a window that has not
-answered in 10 seconds. That matters: a graceful close lets WinUI shut down and
-lets mpv flush its log and save its state, which a `Stop-Process` does not.
-
-**What this does *not* authorise.** Closing is not permission to **drive** it.
-Read "Looking at it is allowed; touching it is not" above: relaunching after a
-deploy to *look* at the result is now allowed, but clicking, typing, dragging and
-UI automation are not, and the app must not be left running. Behaviour is still
-the owner's to test.
-
-> The `-CloseRunning` close path was added on 2026-09-21 and its first run did
-> **not** exercise it (the app had already been closed by hand). It has since
-> fired for real: it printed `closing mpvw.exe (1 process(es))...` and the
-> graceful path was enough — no `did not close in 10s -- forcing` fallback. The
-> force-kill branch underneath it is still unexercised, which is the branch you
-> want never to need.
+**History, so the contradiction is not reintroduced.** 2026-09-21 first banned
+launching outright, after an agent treated a narrow permission as a general one.
+Later that day screenshots were allowed (appearance only), then closing was allowed,
+then on 2026-10-22 the MCP path allowed driving it properly -- because a
+launch-to-assert loop is what catches the bugs. Every silent verifier failure fixed
+in this repo was found by driving the app and none by reading it: a checker reporting
+19/19 while its instrument was dead, an IPC client truncating its own handle, a
+skinning verdict produced by a probe that could not run. The bans were right about the
+failure mode (assert-and-conclude) and wrong about the remedy (never look). Rule 4 is
+the part worth keeping.
 
 ### Reading a crash
 
@@ -260,7 +222,7 @@ the orientation, not a substitute.
   `optionOrder`, plus `categoryOrder`. A row with no `sectionMap` entry makes
   `BuildSettings` throw on open (fail-loud, deliberately).
 - **The tree has two halves.** Hand-written rows live in the `Options.*.cs`
-  partials; 362 schema-generated rows live in `SettingsPage.Options.Gen.cs`
+  partials; 356 schema-generated rows live in `SettingsPage.Options.Gen.cs`
   (`tools/gen-schema-options.py`). Edit the generator or `MpvConfOptions/mpv-options.json`,
   never a `.Gen.` file — the next run overwrites it. Anything that enumerates
   options, sections or mpv names must read **both** halves; six checkers did not,
