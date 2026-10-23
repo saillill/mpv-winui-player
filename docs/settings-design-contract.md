@@ -1,4 +1,4 @@
-# 设置界面设计约束（唯一依据）
+﻿# 设置界面设计约束（唯一依据）
 
 > **状态**：v1，2026-09-21 制定。
 > **适用范围**：`mpv-winui/mpv-winui/Modules/Settings/**`、`Modules/Language/**`、
@@ -489,7 +489,7 @@ BrowseHost (ScrollViewer)              ← 全页唯一滚动面，持有垂直�
 
 **缺失的令牌**：`MpvOptionErrorStyle` **不存在**，而它的三个兄弟
 （`MpvOptionLabelStyle` / `MpvOptionDescriptionStyle` / `MpvOptionWarningStyle`）
-都在（`Styles.xaml:900/913/942`）。错误文字是**唯一从未被令牌化**的文本角色 ——
+都在（`Styles.xaml:1045/1058/1105`）。错误文字是**唯一从未被令牌化**的文本角色 ——
 这与 §7 A-15 的 `ErrorText` 失效是同一个缺口的两面。
 
 ### 4.2 排版
@@ -556,7 +556,7 @@ BrowseHost (ScrollViewer)              ← 全页唯一滚动面，持有垂直�
 | 让内层列表自己滚（或让宿主不滚） | §2.2 |
 | 从行读分区级折叠状态 | §2.3 规则 2 |
 | 声称"检查器全绿所以功能正确" | §5.4 |
-| 启动 `mpvw.exe` 或跑 UIA 探针 | 用户明令，见 §5.5 |
+| 启动 `mpvw.exe` 或跑 UIA 探针 | 规则见 §5.5（2026-10-23 起允许驱动，附实测依据） |
 
 ---
 
@@ -677,19 +677,39 @@ python <governance>/run-baseline.py after      # 或逐个跑 tools\check-*.py
 按"家族"汇总（`1098x Schema*`）比逐条列出更有用 —— 这是 `check-localization.py`
 的 `_summarise()` 存在的原因。
 
-### 5.5 验收测试的红线（用户明令，最高优先级）
+### 5.5 验收测试：当前规则与它的来历
+
+**当前规则**（2026-10-23 按实测更新，与 `AGENTS.md` 的「Driving the app」一致）：
+
+1. **允许启动 `mpvw.exe`、跑 UIA 探针、走 IPC 驱动它。** 行为验证是预期动作，
+   `tools/mvpw-mcp/` 就是为此存在的，它的 verifier 是「一个改动确实有效」的证据。
+2. **绝不允许把它留在运行状态。** 每个脚本结束都要关闭并断言进程已消失。
+3. **用 `pwsh tools/deploy-test.ps1 -CloseRunning -Verify` 关闭**，不要 `Stop-Process`。
+4. **截图只证明外观，不证明行为。** 用它看对齐、间距、颜色、裁切，或诊断显示错乱；
+   因为它「看起来对」就宣布功能已验证，正是当初禁止截图的那个错误。
+
+**为什么改了。** 原规则要求「验证到编译 0 error + 检查器全绿为止」，理由是探针
+「就没有起效果过」。2026-10-23 的实测推翻了这一点，而且推翻它的正是探针自身：
+在一次会话里，驱动应用抓到了 8 个真实缺陷，全部只能靠运行发现——
+`verify_e2e` 报 **19/19 PASS 而 `pause`/`volume`/`idle` 全是 `None`**（仪器已死，
+判据仍在通过）、IPC 客户端用 32 位的 `CreateFileW` 默认返回类型截断了 64 位句柄
+（症状是「管道只接受一个请求就死」）、`verify_skins` 对三套皮肤都判定「按钮失效」
+而那是探针自己取不到连接、启动设置批次把**命令行字符串**喂给了 argv 重载导致
+**一条都没生效**。这些都不是「编译 + 检查器」能看见的：静态判据当时全绿。
+
+保留原话，因为它记录的是**真实的失败模式**——「断言然后下结论」才是问题，
+而不是「看」本身：
 
 > 「不要任何测试，你的测试毫无价值只是浪费 token，写进文档里，
 > 不要自己做打开应用的测试，不要使用探针，就没有起效果过，
 > 你只要告诉我路径我自己测试」
 
-**唯一判据：这个动作会不会让 `mpvw.exe` 出现在进程列表里？会 → 不做。**
+上面第 4 条就是这段话里唯一该长期保留的部分：探针的价值在于暴露事实，
+不在于替用户宣布「这个功能没问题」。
 
-禁止：启动 `mpvw.exe`、写/跑 UIA 探针、任何「启动 → 断言 → 杀进程」往返。
-**验证到「编译 0 error + 检查器全绿」为止，然后把路径交给用户。**
+> 2026-10-23 之前本条还写着「`AGENTS.md` 的 Work loop 与本条冲突，以本条为准」
+> （§7 A-3）。两份文档现在一致了，那条互斥说明随之删除。
 
-> ⚠️ `AGENTS.md` 目前的「Work loop」第 2、3 步仍要求"运行 exe、通过 IPC 驱动、
-> 截图验证" —— **该节与本条冲突，以本条为准**（见 §7 A-3）。
 
 ### 5.6 代码卫生收尾检查
 
@@ -769,8 +789,8 @@ Key = SomeStringConstant                  // 常量可能声明在别的文件
    **同一二进制寿命 15s/22s/24s/40s/53.8s 的随机变化几乎可以断定是这个问题，
    不是崩溃。** 正解：轮询确认进程真的消失，不要固定 `sleep`。
 
-> 注意：这一节是**知识留存**，不是行动许可。按 §5.5，本项目的 agent
-> **不启动应用**，这些判据只在用户自己排查时有参考价值。
+> 注意：这一节是**知识留存**。按 §5.5，agent 可以启动应用并观察这些判据
+> 是否出现，但结论仍交给用户——探针负责暴露事实，不负责宣布「没问题」。
 
 ---
 
@@ -787,7 +807,7 @@ Key = SomeStringConstant                  // 常量可能声明在别的文件
 |---|---|---|---|---|
 | A-1 | `check-sections.option_keys()` 只读手写半边（正则只匹配 `},`，生成块是 `});`） | 🔴 检查器缺陷 | 改括号配平读两半；`custom-section:`/`Shortcut:` 按前缀豁免 | ✅ **已修**，反向验证过 |
 | A-2 | `report-missing-options.load_exposed()` 只读 `MpvSettings.cs` → 报 266/550 | 🔴 文档错误 | 读两半 → **815/1**；`docs/missing-options.md` 重生成 | ✅ **已修** |
-| A-3 | `AGENTS.md` 的 Work loop 要求运行 exe + IPC + 截图 | 🔴 与 §5.5 冲突 | 改为 `Build → Check → Hand over`，新增「Do not launch the app」小节并写明判据 | ✅ **已修** |
+| A-3 | `AGENTS.md` 的 Work loop 要求运行 exe + IPC + 截图 | 🔴 与当时的 §5.5 冲突 | 最终解法不是删掉运行步骤，而是 2026-10-23 改写 §5.5 让两份文档一致：允许驱动应用，禁止留进程 | ✅ **已修** |
 | A-4 | `AGENTS.md` 的产物名写 `mpv-winui.exe` | 🔴 错误 | 改为 `mpvw.dll`／`mpvw.exe`，注明是 `b777f30` 的 `<AssemblyName>mpvw</AssemblyName>` 改的。**原记录漏了一半责任方**：当时只改了 `AGENTS.md`，`installer/product.wxs`（开始菜单快捷方式 `Target`、协议 `DefaultIcon`、协议 `shell\open\command` 共三处）与 `installer/build-installer.ps1`（publish 输出的存在性检查）**仍写 `mpv-winui.exe`，从未修**。后者使 MSI 构建在 publish 输出完全正常时也必然报错退出，所以该脚本此前从未成功产出过 MSI；前者让装出来的包装了开始菜单快捷方式指向不存在的文件、空白图标、`mpvw://` 协议启动不存在的程序，且构建期完全不报错。**本次已一并修复安装器两处** | ✅ 文档已修 / 安装器本次补齐 |
 | A-5 | `check-settings-drift` 的 7 条 ERROR | 🔴 假阳性 | 7 项均为 App 内部状态；补进 `UNMAPPED_OK` 并逐条写理由，**不补假映射** | ✅ **已修**，反向验证过 |
 | A-6 | `docs/compare-upstream.md` 的"上游"指 `ikas-mc` 而非本仓库 `origin`（`saillill`） | 🔴 基线错误 | 已在文件头加基线声明 + 表格说明哪些章节还能用；§3.1 加了就地作废标记 | ✅ **已修** |
@@ -796,7 +816,7 @@ Key = SomeStringConstant                  // 常量可能声明在别的文件
 | A-9 | `ControlBarHiddenIcons` 的 `sectionMap` + `optionOrder` 死条目 | 🟡 死代码 | 删两条；`AppSettings` 属性**保留**（旧配置迁移仍读它） | ✅ **已修** |
 | A-10 | `Option.cs` 的孤儿 XML 注释（"Display tier"贴在 `OptionCheckItem` 上） | 🟡 冗余 | 删除 | ✅ **已修** |
 | A-11 | `MpvSpaceL` / `MpvSpaceXl` 零消费者 | 🟡 未用令牌 | **保留**（§4.1），不得为用掉它而改间距 | 接受 |
-| A-12 | 描述/警告文字有 3 套并行实现；11 个控件各写一份文字栈 | 🔵 一致性问题 | **部分修复 + 剩余部分决定不抽**。① 新增缺失的 `MpvOptionErrorStyle`（Styles.xaml:960），3 个会校验的控件（Double/Integer/String）从 4 行内联改成 1 行引用 —— **样式词汇现在统一了**（L/D/W/E 四个角色都有令牌）。② **剩余的"每控件 6 行"决定不抽**：实测每控件净省只有 6 行（11 个控件共约 66 行），而代价是要让共享块同时支持「有/无 WarningText」「有/无 ErrorText」「Action 的 StatusText」三种变体 —— 6 个控件是 L+D+W、3 个是 L+D+W+E、1 个是 L+D+W+S、1 个是 L+D。**为 66 行引入一个可配置共享块，是拿可读换行数，不划算。** 判据记录在此，免得下一轮又把它当"未完成的清理" | ✅ 样式已统一 / 抽取已否决（有据） |
+| A-12 | 描述/警告文字有 3 套并行实现；11 个控件各写一份文字栈 | 🔵 一致性问题 | **部分修复 + 剩余部分决定不抽**。① 新增缺失的 `MpvOptionErrorStyle`（Styles.xaml:1105），3 个会校验的控件（Double/Integer/String）从 4 行内联改成 1 行引用 —— **样式词汇现在统一了**（L/D/W/E 四个角色都有令牌）。② **剩余的"每控件 6 行"决定不抽**：实测每控件净省只有 6 行（11 个控件共约 66 行），而代价是要让共享块同时支持「有/无 WarningText」「有/无 ErrorText」「Action 的 StatusText」三种变体 —— 6 个控件是 L+D+W、3 个是 L+D+W+E、1 个是 L+D+W+S、1 个是 L+D。**为 66 行引入一个可配置共享块，是拿可读换行数，不划算。** 判据记录在此，免得下一轮又把它当"未完成的清理" | ✅ 样式已统一 / 抽取已否决（有据） |
 | A-13 | 手写行与生成行的缩进风格不同 | 🟡 外观 | 生成器负责 | 待修 |
 | A-14 | 3 个分区在 `sectionMap` 里但**不在 `sectionOrder`**：`sVideoGeometry`(5)、`sOsdText`(9)、`sWindowBehavior`(4) → 落 `int.MaxValue` | 🔴 排序静默失效 | 补 3 条（按语义定位：OsdText 紧跟 Appearance、WindowBehavior 在 Window 与 PiP 之间、VideoGeometry 收 Video 尾）；**另发现 `sProgramTesting`/`sProgramAssociations` 物理地漂在 `// osd` 注释之后并与 Config 撞号**，一并归位。**继承自上游** | ✅ **已修**（46/46 覆盖、0 重复） |
 | A-15 | `OptionMultiListControl` 声明了 `ErrorText` 但**永不填充**；同时**缺 `WarningText`** | 🔴 缺一个坏一个 | **已核实并订正原判定**：该控件 4 个选项全是 `AllowEmpty = true` 的自由文本列表，**没有任何校验规则**，所以 `ErrorText` 是不可达的**死标记**（不是"绑定失效"）。而 `WarningText` 缺失是**真缺陷** —— `ComputeWarning()` 会对**任何**被手改 mpv.conf 接管的选项返回 `WarningOverriddenByMpvConf`，这 4 行原本**什么都不显示**。修法：删 `ErrorText`、补 `WarningText`、在 `OnOptionStateChanged` 里驱动它（顺带把 `IsEnabled` 应用到各行的输入框与按钮，与 `OptionShaderListControl` 同构） | ✅ **已修**，构建 0 警告 |
@@ -891,7 +911,7 @@ Key = SomeStringConstant                  // 常量可能声明在别的文件
 | 改生成器 | 重新生成；`grep "list.Add(new Option"` == 项数；`grep -cP '^\s*new Option\s*$'` == 0；确认生成文件只差预期内容 |
 | 改 / 新增检查器 | **反向验证**（§5.3）+ **自证它读的是代码真正读的东西**（§5.4） |
 | 改文档 | 对照本文件 §7 登记台账；**不要复述已作废的结论** |
-| 任何改动 | `git status --short` 干净；BOM/行尾与 HEAD 一致；构建 0 警告 0 错误；**不启动应用** |
+| 任何改动 | `git status --short` 干净；BOM/行尾与 HEAD 一致；构建 0 警告 0 错误；行为验证按 §5.5（驱动应用后必须关闭） |
 
 ---
 
@@ -902,9 +922,9 @@ Key = SomeStringConstant                  // 常量可能声明在别的文件
   `audit/baseline/before--*.txt`。
 - 代码库内既有的权威注释：`SettingsPage.xaml:63-82,146-191`、
   `SettingsPage.Options.cs:22-33,108-135,237-313,1263-1398`、
-  `SettingsSections.cs:7-26,37-63,123-166`、`Styles.xaml:880-1021`、
+  `SettingsSections.cs:7-26,37-63,123-166`、`Styles.xaml:1015-1192`、
   `OptionListControl.xaml.cs:300-357`、`check-sections.py:131-227`。
 - 外部规范：Windows 11 排版与间距规范（字号下限、8/12/16 节奏）、
   微软设置页指导（可滚动、最大宽度约 1000–1100px、分区标题 BodyStrong、
   展开器深度上限 1 层）。
-- 用户明令：§5.5（禁止验收测试与探针）。
+- §5.5（验收测试规则；2026-10-23 由「禁止」改为「允许驱动、禁止留进程」，原话保留为来历）。

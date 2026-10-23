@@ -192,14 +192,15 @@ methods beats reading the file top to bottom.
 - **Command ordering**: there is none. `MpvPlayerPage.xaml.cs:147` sends
   `MpvSettings.BuildApplyAllCommands()` as one batch, and the open path calls
   `_mediaPlayer.OpenAsync(...)` directly from each caller
-  (`MpvPlayerPage_History.cs:58,68`, `MpvPlayerPage_Library.cs:2164`,
+  (`MpvPlayerPage_History.cs:58,68`, `MpvPlayerPage_Library.cs:2170`,
   `MpvPlayerPage_Drop.cs`). Input forwarding is direct too.
   > This bullet used to say all three ran through `MpvCommandQueue` (a FIFO
-  > worker). That class still exists at `Modules/Player/MpvCommandQueue.cs` and
-  > nothing constructs it: `git grep -n 'MpvCommandQueue' -- '*.cs'` returns
-  > three hits, all inside the file, and `git log --all -S 'new MpvCommandQueue'`
-  > finds no commit that ever did. Corrected 2026-10-22; the file is a deletion
-  > candidate, not a mechanism.
+  > worker). Nothing ever constructed it, and the file has since been deleted:
+  > `Modules/Player/MpvCommandQueue.cs` does not exist, `git grep -n
+  > 'MpvCommandQueue' -- '*.cs'` returns nothing, and `git log --all -S 'new
+  > MpvCommandQueue'` finds no commit that ever did. Corrected 2026-10-22, and the
+  > deletion recorded 2026-10-23 -- the earlier note still described the file as
+  > present, which is the same rot this paragraph is about.
 - **Position UI**: event-driven; `time-pos` observed natively + 100ms coalescing timer — never reintroduce polling.
 - **Fullscreen**: driven by mpv's `fullscreen` property (`HandleFullscreenProperty`). State-based, never toggle-based. Always call `RefreshAdaptiveState()` after presenter transitions.
 - **PiP**: dedicated borderless always-on-top window reusing `PlayerControl`. ExitPiP defers sizing until main window is shown and laid out (ActualWidth=0 bug).
