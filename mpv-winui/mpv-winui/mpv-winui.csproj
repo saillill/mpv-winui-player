@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
@@ -61,6 +61,24 @@
         <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.3.1" />
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2526" />
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools.MSIX" Version="1.7.260610101">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <!--
+          WinUI analyzer: the WUI0xxx-WUI4xxx rules for WinUI 3 correctness
+          (UWP API remnants, layout and binding pitfalls, MVVM, interop).
+
+          Added because nothing was checking those rules: before this reference the
+          only diagnostics were the XAML compiler's WMC warnings and the CsWinRT
+          source-generator analyzers, so a review could say "the build is clean"
+          while never having run the checks this project needs most. It found 214
+          findings on the first run, and the first thing it found was that one of
+          its own rules was wrong (WUI2003 claims Pivot is UWP-only; `winapp
+          find-api` reports Microsoft.UI.Xaml.Controls.Pivot with 308 members).
+
+          PrivateAssets=all: it must not flow to consuming projects.
+        -->
+        <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinUIAnalyzer" Version="0.7.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
