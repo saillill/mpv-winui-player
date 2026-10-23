@@ -96,8 +96,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_cover_art_files { get; set; } = "Use an external file as cover art while playing audio. This makes it appear on the track list and subject to automatic track selection. Options like --audio-display control whether such tracks are supposed to be selected.";
         public string SchemaLabel_Mpv_cover_art_whitelist { get; set; } = "Cover art filenames";
         public string SchemaDesc_Mpv_cover_art_whitelist { get; set; } = "Filenames to load as cover art, sorted by descending priority. They are combined with the extensions in --image-exts. This has no effect if cover-art-auto is no.";
-        public string SchemaLabel_Mpv_cuda_decode_device { get; set; } = "CUDA decode device";
-        public string SchemaDesc_Mpv_cuda_decode_device { get; set; } = "Choose the GPU device used for decoding when using the cuda or nvdec hwdecs with the OpenGL GPU backend, and with the cuda-copy or nvdec-copy hwdecs in all cases.";
         public string SchemaLabel_Mpv_curl_enabled { get; set; } = "libcurl network backend";
         public string SchemaDesc_Mpv_curl_enabled { get; set; } = "Enable the libcurl-based network backend (default: yes).";
         public string SchemaLabel_Mpv_curl_http_version { get; set; } = "HTTP protocol version";
@@ -176,8 +174,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_demuxer_rawvideo_size { get; set; } = "Frame size in bytes when using --demuxer=rawvideo.";
         public string SchemaLabel_Mpv_demuxer_rawvideo_w { get; set; } = "Raw video width";
         public string SchemaDesc_Mpv_demuxer_rawvideo_w { get; set; } = "Image dimension in pixels for --demuxer=rawvideo.";
-        public string SchemaLabel_Mpv_demuxer_sbr_probesize { get; set; } = "SBR probe size";
-        public string SchemaDesc_Mpv_demuxer_sbr_probesize { get; set; } = "Integer; Range 32 to 2147483647; Default: 128";
         public string SchemaLabel_Mpv_demuxer_seekable_cache { get; set; } = "Seek using cache";
         public string SchemaDesc_Mpv_demuxer_seekable_cache { get; set; } = "Debugging option to control whether seeking can use the demuxer cache (default: auto). Normally you don't ever need to set this; the default auto does the right thing and enables cache seeking it if --cache is set to yes (or is implied yes if --cache=auto).";
         public string SchemaLabel_Mpv_demuxer_termination_timeout { get; set; } = "Shutdown wait";
@@ -298,8 +294,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_input_doubleclick_time { get; set; } = "Time in milliseconds to recognize two consecutive button presses as a double-click (default: 300).";
         public string SchemaLabel_Mpv_input_dragging_deadzone { get; set; } = "Drag start threshold";
         public string SchemaDesc_Mpv_input_dragging_deadzone { get; set; } = "Begin the built-in window dragging when the mouse moves outside a deadzone of N pixels while the mouse button is being held down (default: 3). This only affects VOs which support the begin-vo-dragging command.";
-        public string SchemaLabel_Mpv_input_gamepad { get; set; } = "Gamepad support";
-        public string SchemaDesc_Mpv_input_gamepad { get; set; } = "Enable/disable SDL2 Gamepad support. Disabled by default.";
         public string SchemaLabel_Mpv_input_key_fifo_size { get; set; } = "Key event buffer";
         public string SchemaDesc_Mpv_input_key_fifo_size { get; set; } = "Specify the size of the FIFO that buffers key events (default: 7). If it is too small, some events may be lost. The main disadvantage of setting it to a very large value is that if you hold down a key triggering some particularly slow command then the player may be unresponsive while it processes all the queued commands.";
         public string SchemaLabel_Mpv_input_media_keys { get; set; } = "Capture media keys";
@@ -382,12 +376,6 @@ namespace mpv_winui.Modules.Language
         public string SchemaDesc_Mpv_of { get; set; } = "Specifies the output format (overrides autodetection by the file name extension of the file specified by --o). See --of=help for a full list of supported formats.";
         public string SchemaLabel_Mpv_ofopts { get; set; } = "Output container options";
         public string SchemaDesc_Mpv_ofopts { get; set; } = "Specifies the output format options for libavformat. See --ofopts=help for a full list of supported options.";
-        public string SchemaLabel_Mpv_openal_direct_channels { get; set; } = "OpenAL direct channels";
-        public string SchemaDesc_Mpv_openal_direct_channels { get; set; } = "Enable OpenAL Soft's direct channel extension when available to avoid tinting the sound with ambisonics or HRTF. Default: yes.";
-        public string SchemaLabel_Mpv_openal_num_buffers { get; set; } = "OpenAL buffer count";
-        public string SchemaDesc_Mpv_openal_num_buffers { get; set; } = "Integer; Range 2 to 128; Default: 4";
-        public string SchemaLabel_Mpv_openal_num_samples { get; set; } = "OpenAL samples per buffer";
-        public string SchemaDesc_Mpv_openal_num_samples { get; set; } = "Specify the number of complete samples to use for each buffer. Higher values are better for lower CPU usage. Default: 8192.";
         public string SchemaLabel_Mpv_orawts { get; set; } = "Pass through timestamps";
         public string SchemaDesc_Mpv_orawts { get; set; } = "Copies input pts to the output video (not supported by some output container formats, e.g. AVI). In this mode, discontinuities are not fixed and all pts are passed through as-is. Never seek backwards or use multiple input files in this mode!";
         public string SchemaLabel_Mpv_ordered_chapters { get; set; } = "Ordered chapters";

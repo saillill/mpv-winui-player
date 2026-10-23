@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace mpv_winui.Modules.Settings;
 
@@ -490,13 +491,83 @@ public static partial class MpvSettings
             bool b => $"set {option} {(b ? "yes" : "no")}",
             int i => $"set {option} {i.ToString(CultureInfo.InvariantCulture)}",
             double d => $"set {option} {d.ToString("0.0#####", CultureInfo.InvariantCulture)}",
-            // An empty string is how the models express "leave it to mpv",
-            // and `set option ""` would instead pin it to an empty value.
-            string s when string.IsNullOrWhiteSpace(s) => $"set {option} ",
+            // An empty string means "leave it to mpv", so it must produce NO
+            // command at all. This used to emit `set option ` with a trailing
+            // space, which reads like "set it to empty" but is not: measured
+            // against the live player, that line is not answered with an error,
+            // it makes mpv drop the IPC connection. 62 of the 76 commands
+            // rejected on a single launch were this shape.
+            string s when string.IsNullOrWhiteSpace(s) => null,
+            // A zero size or duration is the schema's way of saying "no limit",
+            // which is mpv's default, so it produces no command either. Some
+            // options reject `0` and `0B` alike (demuxer-lavf-probesize,
+            // stream-buffer-size) and there is nothing to gain by trying.
+            string s when IsZeroQuantity(s) => null,
+            // A size or duration formatted by the schema generator arrives as
+            // "512.000 MiB". mpv wants the number and the unit adjacent and
+            // unquoted, e.g. 512MiB, and rejects the quoted form (6 more of
+            // the 76).
+            //
+            // Do not write an example as "<set option value>" prose here: the
+            // generator scrapes MpvSettings.cs with a regex that looks for that
+            // shape to learn which options the hand-written rows own, and a
+            // command inside a comment counts as a mapping. One such comment
+            // named an option the schema generates, so the generator silently
+            // stopped generating it and the settings row and its two language
+            // keys became orphans.
+            string s when TryUnitValue(s, out var unit) => $"set {option} {unit}",
             string s => $"set {option} {Q(s)}",
             _ => null,
         };
     }
+
+    /// <summary>
+    /// Whether a formatted quantity is zero, so nothing should be sent for it.
+    ///
+    /// Separate from <see cref="TryUnitValue"/> because that one answers "can I
+    /// spell this as number+unit", and a zero fails there while still needing to
+    /// be recognised: falling through to the generic branch would emit `"0 B"`
+    /// quoted, which mpv rejects.
+    /// </summary>
+    private static bool IsZeroQuantity(string value)
+    {
+        var match = UnitValuePattern.Match(value.Trim());
+        if (!match.Success)
+        {
+            return false;
+        }
+        return double.Parse(match.Groups["n"].Value, CultureInfo.InvariantCulture) == 0;
+    }
+
+    /// <summary>
+    /// A size or duration the schema formats as "512.000 MiB", rewritten to the
+    /// form mpv accepts: "512MiB".
+    ///
+    /// The generator stores these as strings because the model has no numeric
+    /// type with a unit, so they arrive here already formatted. mpv reads the
+    /// number and the unit as adjacent tokens and refuses them inside quotes.
+    /// </summary>
+    private static bool TryUnitValue(string value, out string result)
+    {
+        result = string.Empty;
+        var match = UnitValuePattern.Match(value.Trim());
+        if (!match.Success)
+        {
+            return false;
+        }
+        var number = double.Parse(match.Groups["n"].Value, CultureInfo.InvariantCulture);
+        // "1.000 MiB" -> "1MiB": the formatter always writes a fractional
+        // part, and a trailing .0 is not what the mpv manual shows.
+        var text = number == Math.Floor(number) && Math.Abs(number) < 1e15
+            ? ((long)number).ToString(CultureInfo.InvariantCulture)
+            : number.ToString("0.0###", CultureInfo.InvariantCulture);
+        result = text + match.Groups["u"].Value;
+        return true;
+    }
+
+    private static readonly Regex UnitValuePattern = new(
+        @"^(?<n>\d+(?:\.\d+)?)\s*(?<u>B|KiB|MiB|GiB|TiB|kB|KB|MB|GB|TB|[mM]s|s|min|h)$",
+        RegexOptions.Compiled);
 
     /// <summary>
     /// The mpv option a settings key writes, or null when the key does not map
@@ -959,6 +1030,23 @@ public static partial class MpvSettings
     /// <summary>AppSettings mapped to mpv options that only take effect at startup.</summary>
     private static readonly HashSet<string> ConfigOnlyKeys = new(StringComparer.Ordinal)
     {
+        // Measured, not assumed (tools/mvpw-mcp/diag_writable.py): these cannot be
+        // set on a running player.
+        //
+        //   init-only    player-operation-mode, demuxer-rawvideo-size
+        //                readable, refused on `set`. This set is what they are
+        //                for, and ConfigOnlyConfLine writes them to mpv.conf so
+        //                the value still reaches mpv at startup.
+        //
+        // Six others used to be listed here -- openal-direct-channels,
+        // openal-num-buffers, openal-num-samples, cuda-decode-device,
+        // input-gamepad, demuxer-sbr-probesize. They are gone from this list
+        // because they are gone from the schema: they do not exist in the bundled
+        // mpv (v0.41.0-dev-ge8673660a), so there is no setting to apply and no row
+        // to render. Listing them here would not compile, which is the right
+        // outcome -- the drift is fixed at its source rather than suppressed.
+        nameof(AppSettings.Mpv_player_operation_mode),
+        nameof(AppSettings.Mpv_demuxer_rawvideo_size),
         nameof(AppSettings.InputIpcServer),
         nameof(AppSettings.IccCacheDir),
         nameof(AppSettings.GpuShaderCacheDir),

@@ -275,7 +275,7 @@ Get-ChildItem -Recurse -File -Include *.cs,*.xaml |
   Where-Object { $_.FullName -notmatch '\\(bin|obj|packages|AppPackages)\\' } |
   Sort-Object Length -Descending | Select-Object -First 12 Name,Length
 ```
-→ 329 个 `.cs`、80 个 `.xaml`；最大 5 个：`SettingsPage.Options.Gen.cs` 258828、
+→ **241 个源 `.cs`、40 个源 `.xaml`**（`git ls-files` 口径）；最大 5 个：`SettingsPage.Options.Gen.cs` 258828、
 `AppLang.cs` 164432、`MpvPlayerPage.xaml` 131359、`AppLang.Gen.cs` 129508、
 `MpvPlayerPage_Library.cs` 125617。
 

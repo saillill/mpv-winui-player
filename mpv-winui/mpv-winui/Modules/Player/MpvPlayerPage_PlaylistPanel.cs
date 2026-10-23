@@ -218,7 +218,7 @@ namespace mpv_winui.Modules.Player
 
                 var path = Path.Combine(directory, fileName);
 
-                await _mediaPlayer.RunCommandAsync(["screenshot-to-file", path, mode]);
+                await _mediaPlayer.CommandArgsAsync(["screenshot-to-file", path, mode]);
 
                 ShowPlaybackInfoBar(
                     InfoBarSeverity.Success,
@@ -253,7 +253,7 @@ namespace mpv_winui.Modules.Player
         /// overlay's own "i" key is wired to.
         /// </summary>
         private void MediaInfoButton_Click(object sender, RoutedEventArgs e) =>
-            _ = _mediaPlayer.RunCommandAsync(["script-binding", "stats/display-stats-toggle"]);
+            _ = _mediaPlayer.CommandArgsAsync(["script-binding", "stats/display-stats-toggle"]);
 
         /// <summary>
         /// Shows the three tool keys exactly while a file is up.

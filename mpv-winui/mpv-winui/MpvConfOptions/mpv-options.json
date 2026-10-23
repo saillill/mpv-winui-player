@@ -1941,24 +1941,6 @@
     ]
   },
   {
-    "name": "cuda-decode-device",
-    "group": "General",
-    "desc": "One of: auto; or a number; Default: auto",
-    "link": "https://mpv.io/manual/master/#options-cuda-decode-device",
-    "deprecated": false,
-    "default": "auto",
-    "values": [
-      {
-        "type": "string",
-        "enum": [
-          {
-            "value": "auto"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "name": "curl-buffer-size",
     "group": "Streaming & cache",
     "desc": "ByteSize; Default: 4.000 MiB",
@@ -3109,21 +3091,6 @@
     "values": [
       {
         "type": "float"
-      }
-    ]
-  },
-  {
-    "name": "demuxer-sbr-probesize",
-    "group": "Streaming & cache",
-    "desc": "Integer; Range 32 to 2147483647; Default: 128",
-    "link": "https://mpv.io/manual/master/#options-demuxer-sbr-probesize",
-    "deprecated": false,
-    "default": "128",
-    "values": [
-      {
-        "type": "int",
-        "minimum": 32.0,
-        "maximum": 2147483647.0
       }
     ]
   },
@@ -5204,19 +5171,6 @@
     ]
   },
   {
-    "name": "input-gamepad",
-    "group": "Player & window",
-    "desc": "Flag; Default: no",
-    "link": "https://mpv.io/manual/master/#options-input-gamepad",
-    "deprecated": false,
-    "default": "no",
-    "values": [
-      {
-        "type": "bool"
-      }
-    ]
-  },
-  {
     "name": "input-ime",
     "group": "Player & window",
     "desc": "Flag; Default: no",
@@ -6138,49 +6092,6 @@
             "value": "desktop"
           }
         ]
-      }
-    ]
-  },
-  {
-    "name": "openal-direct-channels",
-    "group": "Audio",
-    "desc": "Flag; Default: yes",
-    "link": "https://mpv.io/manual/master/#options-openal-direct-channels",
-    "deprecated": false,
-    "default": "yes",
-    "values": [
-      {
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "name": "openal-num-buffers",
-    "group": "Audio",
-    "desc": "Integer; Range 2 to 128; Default: 4",
-    "link": "https://mpv.io/manual/master/#options-openal-num-buffers",
-    "deprecated": false,
-    "default": "4",
-    "values": [
-      {
-        "type": "int",
-        "minimum": 2.0,
-        "maximum": 128.0
-      }
-    ]
-  },
-  {
-    "name": "openal-num-samples",
-    "group": "Audio",
-    "desc": "Integer; Range 256 to 32768; Default: 8192",
-    "link": "https://mpv.io/manual/master/#options-openal-num-samples",
-    "deprecated": false,
-    "default": "8192",
-    "values": [
-      {
-        "type": "int",
-        "minimum": 256.0,
-        "maximum": 32768.0
       }
     ]
   },

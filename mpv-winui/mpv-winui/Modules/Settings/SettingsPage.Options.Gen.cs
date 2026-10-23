@@ -639,7 +639,7 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_osd_status_msg), AppContext.AppSetting.Mpv_osd_status_msg = (string)v!),
             });
 
-        // ---- 音频选项 (29 rows) ----
+        // ---- 音频选项 (26 rows) ----
         var catAudio = AppContext.AppLang.SettingsCategoryAudio;
         var secAudio = AppContext.AppLang.SectionGenAudio;
             list.Add(new Option
@@ -844,43 +844,6 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Mpv_mute,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_mute), AppContext.AppSetting.Mpv_mute = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_openal_direct_channels),
-                Label = lang.SchemaLabel_Mpv_openal_direct_channels,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_openal_direct_channels,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_openal_direct_channels,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_openal_direct_channels), AppContext.AppSetting.Mpv_openal_direct_channels = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_openal_num_buffers),
-                Label = lang.SchemaLabel_Mpv_openal_num_buffers,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_openal_num_buffers,
-                Type = OptionType.Integer,
-                Min = 2,
-                Max = 128,
-                Getter = () => (double)AppContext.AppSetting.Mpv_openal_num_buffers,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_openal_num_buffers), AppContext.AppSetting.Mpv_openal_num_buffers = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_openal_num_samples),
-                Label = lang.SchemaLabel_Mpv_openal_num_samples,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_openal_num_samples,
-                Type = OptionType.Integer,
-                Min = 256,
-                Max = 32768,
-                Getter = () => (double)AppContext.AppSetting.Mpv_openal_num_samples,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_openal_num_samples), AppContext.AppSetting.Mpv_openal_num_samples = Convert.ToInt32(v)),
             });
             list.Add(new Option
             {
@@ -1942,7 +1905,7 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config), AppContext.AppSetting.Mpv_write_filename_in_watch_later_config = (bool)v!),
             });
 
-        // ---- 渲染与色彩微调 (23 rows) ----
+        // ---- 渲染与色彩微调 (22 rows) ----
         var catGeneralRendering = AppContext.AppLang.SettingsCategoryProgram;
         var secGeneralRendering = AppContext.AppLang.SectionGenGeneralRendering;
             list.Add(new Option
@@ -1979,21 +1942,6 @@ public sealed partial class SettingsPage
                 Max = 1.0,
                 Getter = () => AppContext.AppSetting.Mpv_corner_rounding,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_corner_rounding), AppContext.AppSetting.Mpv_corner_rounding = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_cuda_decode_device),
-                Label = lang.SchemaLabel_Mpv_cuda_decode_device,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_cuda_decode_device,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("auto", "auto"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_cuda_decode_device,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_cuda_decode_device), AppContext.AppSetting.Mpv_cuda_decode_device = (string)v!),
             });
             list.Add(new Option
             {
@@ -3601,7 +3549,7 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_timing_offset), AppContext.AppSetting.Mpv_video_timing_offset = (double)v!),
             });
 
-        // ---- 解复用细节 (28 rows) ----
+        // ---- 解复用细节 (27 rows) ----
         var catStreamDemuxer = AppContext.AppLang.SettingsCategoryNetwork;
         var secStreamDemuxer = AppContext.AppLang.SectionGenStreamDemuxer;
             list.Add(new Option
@@ -3981,19 +3929,6 @@ public sealed partial class SettingsPage
                 Max = 8192,
                 Getter = () => (double)AppContext.AppSetting.Mpv_demuxer_rawvideo_w,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_w), AppContext.AppSetting.Mpv_demuxer_rawvideo_w = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_demuxer_sbr_probesize),
-                Label = lang.SchemaLabel_Mpv_demuxer_sbr_probesize,
-                Category = catStreamDemuxer,
-                Section = secStreamDemuxer,
-                Description = lang.SchemaDesc_Mpv_demuxer_sbr_probesize,
-                Type = OptionType.Integer,
-                Min = 32,
-                Max = 2147483647,
-                Getter = () => (double)AppContext.AppSetting.Mpv_demuxer_sbr_probesize,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_demuxer_sbr_probesize), AppContext.AppSetting.Mpv_demuxer_sbr_probesize = Convert.ToInt32(v)),
             });
 
         // ---- 缓存与预读 (8 rows) ----
@@ -4528,7 +4463,7 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_script_opts), AppContext.AppSetting.Mpv_script_opts = (string)v!),
             });
 
-        // ---- 输入与交互 (22 rows) ----
+        // ---- 输入与交互 (21 rows) ----
         var catWindowInput = AppContext.AppLang.SettingsCategoryWindow;
         var secWindowInput = AppContext.AppLang.SectionGenWindowInput;
             list.Add(new Option
@@ -4668,17 +4603,6 @@ public sealed partial class SettingsPage
                 Type = OptionType.Integer,
                 Getter = () => (double)AppContext.AppSetting.Mpv_input_dragging_deadzone,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_input_dragging_deadzone), AppContext.AppSetting.Mpv_input_dragging_deadzone = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_input_gamepad),
-                Label = lang.SchemaLabel_Mpv_input_gamepad,
-                Category = catWindowInput,
-                Section = secWindowInput,
-                Description = lang.SchemaDesc_Mpv_input_gamepad,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_input_gamepad,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_input_gamepad), AppContext.AppSetting.Mpv_input_gamepad = (bool)v!),
             });
             list.Add(new Option
             {

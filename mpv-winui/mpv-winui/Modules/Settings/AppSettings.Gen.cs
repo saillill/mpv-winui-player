@@ -112,24 +112,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_mute), value);
         }
 
-        public bool Mpv_openal_direct_channels
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_openal_direct_channels), true);
-            set => _dataSetting.SetValue(nameof(Mpv_openal_direct_channels), value);
-        }
-
-        public int Mpv_openal_num_buffers
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_openal_num_buffers), 4);
-            set => _dataSetting.SetValue(nameof(Mpv_openal_num_buffers), value);
-        }
-
-        public int Mpv_openal_num_samples
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_openal_num_samples), 8192);
-            set => _dataSetting.SetValue(nameof(Mpv_openal_num_samples), value);
-        }
-
         public bool Mpv_replaygain_clip
         {
             get => _dataSetting.GetValue(nameof(Mpv_replaygain_clip), false);
@@ -288,12 +270,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_corner_rounding), 0.0);
             set => _dataSetting.SetValue(nameof(Mpv_corner_rounding), value);
-        }
-
-        public string Mpv_cuda_decode_device
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_cuda_decode_device), "auto");
-            set => _dataSetting.SetValue(nameof(Mpv_cuda_decode_device), value);
         }
 
         public bool Mpv_d3d11va_zero_copy
@@ -1038,12 +1014,6 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(Mpv_input_dragging_deadzone), value);
         }
 
-        public bool Mpv_input_gamepad
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_input_gamepad), false);
-            set => _dataSetting.SetValue(nameof(Mpv_input_gamepad), value);
-        }
-
         public int Mpv_input_key_fifo_size
         {
             get => _dataSetting.GetValue(nameof(Mpv_input_key_fifo_size), 7);
@@ -1494,12 +1464,6 @@ namespace mpv_winui.Modules.Settings
         {
             get => _dataSetting.GetValue(nameof(Mpv_demuxer_rawvideo_w), 1280);
             set => _dataSetting.SetValue(nameof(Mpv_demuxer_rawvideo_w), value);
-        }
-
-        public int Mpv_demuxer_sbr_probesize
-        {
-            get => _dataSetting.GetValue(nameof(Mpv_demuxer_sbr_probesize), 128);
-            set => _dataSetting.SetValue(nameof(Mpv_demuxer_sbr_probesize), value);
         }
 
         public string Mpv_demuxer_seekable_cache

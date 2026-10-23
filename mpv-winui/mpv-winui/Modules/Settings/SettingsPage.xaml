@@ -503,8 +503,8 @@
                                                     <Grid
                                                         MinHeight="32"
                                                         ColumnSpacing="{StaticResource MpvSpaceS}"
-                                                        ContextFlyout="{x:Bind local:TreeHelpers.MenuFor(Content)}"
-                                                        Opacity="{x:Bind local:TreeHelpers.OpacityFor(Content)}">
+                                                        ContextFlyout="{x:Bind local:TreeHelpers.MenuFor(Content), Mode=OneWay}"
+                                                        Opacity="{x:Bind local:TreeHelpers.OpacityFor(Content), Mode=OneWay}">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto" />
                                                             <ColumnDefinition Width="Auto" />
@@ -521,17 +521,17 @@
                                                             FontSize="12"
                                                             Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                                             Glyph="&#xE76F;"
-                                                            ToolTipService.ToolTip="{x:Bind local:TreeHelpers.DragTip(Content)}" />
+                                                            ToolTipService.ToolTip="{x:Bind local:TreeHelpers.DragTip(Content), Mode=OneWay}" />
                                                         <FontIcon
                                                             Grid.Column="1"
                                                             VerticalAlignment="Center"
                                                             FontSize="14"
                                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                            Glyph="{x:Bind local:TreeHelpers.GlyphFor(Content)}" />
+                                                            Glyph="{x:Bind local:TreeHelpers.GlyphFor(Content), Mode=OneWay}" />
                                                         <TextBlock
                                                             Grid.Column="2"
                                                             VerticalAlignment="Center"
-                                                            Text="{x:Bind local:TreeHelpers.TextFor(Content)}"
+                                                            Text="{x:Bind local:TreeHelpers.TextFor(Content), Mode=OneWay}"
                                                             TextTrimming="CharacterEllipsis" />
                                                         <!-- Custom folders only:
                                                              an inline pencil, so the
@@ -555,11 +555,11 @@
                                                             Padding="{StaticResource MpvTinyButtonPadding}"
                                                             Background="Transparent"
                                                             BorderThickness="0"
-                                                            AutomationProperties.Name="{x:Bind local:TreeHelpers.EditTip(Content)}"
+                                                            AutomationProperties.Name="{x:Bind local:TreeHelpers.EditTip(Content), Mode=OneWay}"
                                                             Click="EditTreeNode_Click"
                                                             Tag="{x:Bind}"
-                                                            ToolTipService.ToolTip="{x:Bind local:TreeHelpers.EditTip(Content)}"
-                                                            Visibility="{x:Bind local:TreeHelpers.EditVisibility(Content)}">
+                                                            ToolTipService.ToolTip="{x:Bind local:TreeHelpers.EditTip(Content), Mode=OneWay}"
+                                                            Visibility="{x:Bind local:TreeHelpers.EditVisibility(Content), Mode=OneWay}">
                                                             <FontIcon FontSize="12" Glyph="&#xE70F;" />
                                                         </Button>
                                                     </Grid>

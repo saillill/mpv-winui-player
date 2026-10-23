@@ -35,7 +35,7 @@
             IsItemClickEnabled="True"
             IsTabStop="False"
             ItemClick="HistoryListView_ItemClick"
-            ItemsSource="{x:Bind Items}"
+            ItemsSource="{x:Bind Items, Mode=OneWay}"
             SelectionMode="Single">
             <ListView.ItemContainerStyle>
                 <Style
@@ -71,24 +71,24 @@
                             VerticalAlignment="Center"
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="{x:Bind bc:BindConvertor.FormatTime(Time)}" />
+                            Text="{x:Bind bc:BindConvertor.FormatTime(Time), Mode=OneWay}" />
                         <TextBlock
                             Grid.Row="0"
                             Grid.Column="2"
                             Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{x:Bind Title}"
+                            Text="{x:Bind Title, Mode=OneWay}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="NoWrap"
-                            ToolTipService.ToolTip="{x:Bind Title}" />
+                            ToolTipService.ToolTip="{x:Bind Title, Mode=OneWay}" />
                         <TextBlock
                             Grid.Row="1"
                             Grid.Column="1"
                             Grid.ColumnSpan="2"
                             Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{x:Bind Path}"
+                            Text="{x:Bind Path, Mode=OneWay}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="NoWrap"
-                            ToolTipService.ToolTip="{x:Bind Path}" />
+                            ToolTipService.ToolTip="{x:Bind Path, Mode=OneWay}" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
@@ -111,7 +111,7 @@
             ActionButtonContent="Yes"
             CloseButtonContent="No"
             IsLightDismissEnabled="True"
-            Target="{x:Bind ClearButton}"
+            Target="{x:Bind ClearButton, Mode=OneWay}"
             Title="Clear history"
             Subtitle="Are you sure you want to clear the history?" />
     </Grid>

@@ -23,7 +23,7 @@
 | 8 | 激活 Activation | `Modules/Activation/` | 3 | [README](Modules/Activation/README.md) |
 | 9 | 平台 Mpv (Win32) | `Modules/Mpv/` | 3 | [README](Modules/Mpv/README.md) |
 | 10 | 应用模型 AppModel | `Modules/AppModel/` | 1 | [README](Modules/AppModel/README.md) |
-| 11 | 关于 About | `Modules/About/` | 2 | [README](Modules/About/README.md) |
+| 11 | 关于 About | `Modules/About/` | 0（对话框在 `Player/MpvPlayerPage_MenuBar.cs`） | [README](Modules/About/README.md) |
 | **I1** | **基础设施 · 动效** | `Modules/Motion/` | 5 | [README](Modules/Motion/README.md) |
 | **I2** | **基础设施 · 公共** | `Modules/Common/` | 33 | [README](Modules/Common/README.md) |
 | R | 资源 | `Assets/ Languages/ Menus/ MpvConfOptions/ Styles/ Themes/` | 69 | 见各区 README |
