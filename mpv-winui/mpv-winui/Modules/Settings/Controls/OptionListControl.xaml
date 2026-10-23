@@ -148,13 +148,13 @@
                 <TextBlock
                     Style="{StaticResource MpvSectionHeaderStyle}"
                     Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                    Text="{x:Bind Caption}" />
+                    Text="{x:Bind Caption, Mode=OneWay}" />
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind Description}"
+                    Text="{x:Bind Description, Mode=OneWay}"
                     TextWrapping="Wrap"
-                    Visibility="{x:Bind DescriptionVisibility}" />
+                    Visibility="{x:Bind DescriptionVisibility, Mode=OneWay}" />
             </StackPanel>
         </DataTemplate>
 
@@ -189,33 +189,33 @@
                         VerticalAlignment="Center"
                         Style="{StaticResource MpvSectionHeaderStyle}"
                         Margin="0"
-                        Text="{x:Bind Caption}"
+                        Text="{x:Bind Caption, Mode=OneWay}"
                         TextWrapping="Wrap" />
                     <Button
                         Grid.Column="2"
                         VerticalAlignment="Center"
-                        AutomationProperties.Name="{x:Bind Edit.MoreAutomationName}"
-                        ToolTipService.ToolTip="{x:Bind Edit.SectionMoreTip}">
+                        AutomationProperties.Name="{x:Bind Edit.MoreAutomationName, Mode=OneWay}"
+                        ToolTipService.ToolTip="{x:Bind Edit.SectionMoreTip, Mode=OneWay}">
                         <FontIcon FontSize="{StaticResource MpvInlineIconSize}" Glyph="&#xE712;" />
                         <Button.Flyout>
                             <MenuFlyout>
-                                <MenuFlyoutItem Click="RenameSection_Click" Text="{x:Bind Edit.RenameCaption}" />
+                                <MenuFlyoutItem Click="RenameSection_Click" Text="{x:Bind Edit.RenameCaption, Mode=OneWay}" />
                                 <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Click="SectionMoveUp_Click" Text="{x:Bind Edit.MoveUpCaption}" />
-                                <MenuFlyoutItem Click="SectionMoveDown_Click" Text="{x:Bind Edit.MoveDownCaption}" />
+                                <MenuFlyoutItem Click="SectionMoveUp_Click" Text="{x:Bind Edit.MoveUpCaption, Mode=OneWay}" />
+                                <MenuFlyoutItem Click="SectionMoveDown_Click" Text="{x:Bind Edit.MoveDownCaption, Mode=OneWay}" />
                                 <MenuFlyoutSeparator />
                                 <!-- One slot for both directions: the caption
                                      comes from the folder's state, so a hidden
                                      folder offers a way back instead of
                                      offering to hide itself again. -->
-                                <MenuFlyoutItem Click="SectionHide_Click" Text="{x:Bind HideToggleCaption}" />
+                                <MenuFlyoutItem Click="SectionHide_Click" Text="{x:Bind HideToggleCaption, Mode=OneWay}" />
                                 <!-- Only a folder the user made can be deleted;
                                      IsCustom gates it so no built-in section is
                                      ever offered a destructive action. -->
                                 <MenuFlyoutItem
                                     Click="SectionDelete_Click"
-                                    Text="{x:Bind Edit.DeleteSectionCaption}"
-                                    Visibility="{x:Bind DeleteVisibility}" />
+                                    Text="{x:Bind Edit.DeleteSectionCaption, Mode=OneWay}"
+                                    Visibility="{x:Bind DeleteVisibility, Mode=OneWay}" />
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
@@ -238,7 +238,7 @@
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Text="{x:Bind Caption}" />
+                    Text="{x:Bind Caption, Mode=OneWay}" />
             </Grid>
         </DataTemplate>
 
@@ -255,7 +255,7 @@
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
-                ContextFlyout="{x:Bind Edit.RowMenu}"
+                ContextFlyout="{x:Bind Edit.RowMenu, Mode=OneWay}"
                 CornerRadius="4"
                 Opacity="{x:Bind CardOpacity, Mode=OneWay}">
                 <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
@@ -275,7 +275,7 @@
                         FontSize="{StaticResource MpvInlineIconSize}"
                         Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                         Glyph="&#xE76F;"
-                        ToolTipService.ToolTip="{x:Bind Edit.DragHandleTip}" />
+                        ToolTipService.ToolTip="{x:Bind Edit.DragHandleTip, Mode=OneWay}" />
 
                     <StackPanel Grid.Column="1" Spacing="{StaticResource MpvSpaceCompact}">
                         <!-- Label/description are the built-in localized text
@@ -286,12 +286,12 @@
                             <TextBlock
                                 Style="{StaticResource BodyTextBlockStyle}"
                                 FontWeight="SemiBold"
-                                Text="{x:Bind Label}"
+                                Text="{x:Bind Label, Mode=OneWay}"
                                 TextWrapping="Wrap" />
                             <TextBlock
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="{x:Bind Description}"
+                                Text="{x:Bind Description, Mode=OneWay}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
                         <!-- The setting's own key, shown only in customize mode
@@ -302,7 +302,7 @@
                         <TextBlock
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                            Text="{x:Bind Key}"
+                            Text="{x:Bind Key, Mode=OneWay}"
                             TextWrapping="Wrap" />
                     </StackPanel>
 
@@ -316,9 +316,9 @@
                         VerticalAlignment="Top"
                         Background="Transparent"
                         BorderThickness="0"
-                        AutomationProperties.Name="{x:Bind Edit.RenameCaption}"
+                        AutomationProperties.Name="{x:Bind Edit.RenameCaption, Mode=OneWay}"
                         Click="EditRowInline_Click"
-                        ToolTipService.ToolTip="{x:Bind Edit.EditTip}">
+                        ToolTipService.ToolTip="{x:Bind Edit.EditTip, Mode=OneWay}">
                         <FontIcon FontSize="{StaticResource MpvInlineIconSize}" Glyph="&#xE70F;" />
                     </Button>
 
@@ -327,8 +327,8 @@
                         MinWidth="0"
                         Padding="{StaticResource MpvCompactButtonPadding}"
                         VerticalAlignment="Top"
-                        AutomationProperties.Name="{x:Bind Edit.MoreAutomationName}"
-                        ToolTipService.ToolTip="{x:Bind Edit.MoreTip}">
+                        AutomationProperties.Name="{x:Bind Edit.MoreAutomationName, Mode=OneWay}"
+                        ToolTipService.ToolTip="{x:Bind Edit.MoreTip, Mode=OneWay}">
                         <FontIcon FontSize="{StaticResource MpvInlineIconSize}" Glyph="&#xE712;" />
                         <Button.Flyout>
                             <!-- Customizing a row means re-labelling it, hiding
@@ -340,7 +340,7 @@
                                  menu: one row offering two menus that look
                                  different reads as two different menus. -->
                             <MenuFlyout>
-                                <MenuFlyoutItem Click="RenameRow_Click" Text="{x:Bind Edit.RenameCaption}" />
+                                <MenuFlyoutItem Click="RenameRow_Click" Text="{x:Bind Edit.RenameCaption, Mode=OneWay}" />
                                 <MenuFlyoutSeparator />
                                 <!-- One slot for both directions: the caption
                                      comes from the row's state, so a hidden row
@@ -367,13 +367,13 @@
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Stretch"
                 VerticalContentAlignment="Center"
-                AutomationProperties.Name="{x:Bind AccessibleName}"
+                AutomationProperties.Name="{x:Bind AccessibleName, Mode=OneWay}"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 Click="SectionCard_Click"
                 CornerRadius="4"
-                Tag="{x:Bind SectionId}">
+                Tag="{x:Bind SectionId, Mode=OneWay}">
                 <Grid ColumnSpacing="{StaticResource MpvSectionCardColumnSpacing}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -385,7 +385,7 @@
                         VerticalAlignment="Center"
                         FontFamily="Segoe Fluent Icons"
                         FontSize="{StaticResource MpvSectionCardIconSize}"
-                        Glyph="{x:Bind Icon}" />
+                        Glyph="{x:Bind Icon, Mode=OneWay}" />
 
                     <StackPanel
                         Grid.Column="1"
@@ -395,13 +395,13 @@
                              for it that also preserves this line's metrics
                              (Body is 14/20), and the contract says not to trade
                              appearance for a token. -->
-                        <TextBlock FontSize="14" Text="{x:Bind Caption}" />
+                        <TextBlock FontSize="14" Text="{x:Bind Caption, Mode=OneWay}" />
                         <TextBlock
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="{x:Bind Description}"
+                            Text="{x:Bind Description, Mode=OneWay}"
                             TextTrimming="CharacterEllipsis"
-                            Visibility="{x:Bind DescriptionVisibility}" />
+                            Visibility="{x:Bind DescriptionVisibility, Mode=OneWay}" />
                     </StackPanel>
 
                     <FontIcon

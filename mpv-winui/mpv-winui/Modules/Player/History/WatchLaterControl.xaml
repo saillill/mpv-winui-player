@@ -30,7 +30,7 @@
             IsItemClickEnabled="True"
             IsTabStop="False"
             ItemClick="WatchLaterListView_ItemClick"
-            ItemsSource="{x:Bind Items}"
+            ItemsSource="{x:Bind Items, Mode=OneWay}"
             SelectionMode="Single">
             <ListView.ItemContainerStyle>
                 <Style
@@ -66,15 +66,15 @@
                             VerticalAlignment="Center"
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="{x:Bind bc:BindConvertor.FormatDate(Time)}" />
+                            Text="{x:Bind bc:BindConvertor.FormatDate(Time), Mode=OneWay}" />
                         <TextBlock
                             Grid.Row="1"
                             Grid.Column="1"
                             Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{x:Bind Path}"
+                            Text="{x:Bind Path, Mode=OneWay}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="NoWrap"
-                            ToolTipService.ToolTip="{x:Bind Path}" />
+                            ToolTipService.ToolTip="{x:Bind Path, Mode=OneWay}" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

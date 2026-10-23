@@ -505,8 +505,16 @@ public static partial class MpvSettings
             string s when IsZeroQuantity(s) => null,
             // A size or duration formatted by the schema generator arrives as
             // "512.000 MiB". mpv wants the number and the unit adjacent and
-            // unquoted -- `set vd-queue-max-bytes 512MiB` -- and rejects the
-            // quoted form (6 more of the 76).
+            // unquoted, e.g. 512MiB, and rejects the quoted form (6 more of
+            // the 76).
+            //
+            // Do not write an example as "<set option value>" prose here: the
+            // generator scrapes MpvSettings.cs with a regex that looks for that
+            // shape to learn which options the hand-written rows own, and a
+            // command inside a comment counts as a mapping. One such comment
+            // named an option the schema generates, so the generator silently
+            // stopped generating it and the settings row and its two language
+            // keys became orphans.
             string s when TryUnitValue(s, out var unit) => $"set {option} {unit}",
             string s => $"set {option} {Q(s)}",
             _ => null,
@@ -1022,29 +1030,21 @@ public static partial class MpvSettings
     /// <summary>AppSettings mapped to mpv options that only take effect at startup.</summary>
     private static readonly HashSet<string> ConfigOnlyKeys = new(StringComparer.Ordinal)
     {
-        // `set` -- and even `get_property` -- makes mpv drop the IPC
-        // Measured, not assumed (tools/mvpw-mcp/diag_writable.py): none of the
-        // eight below can be set on a running player.
-        //
-        //   name absent  openal-*, cuda-decode-device, input-gamepad,
-        //                demuxer-sbr-probesize
-        //                `get_property` answers "property not found" for all six,
-        //                so no spelling of `set` could ever work. They are still
-        //                in the app's schema, which was generated against an older
-        //                mpv -- that drift is a separate defect and this set does
-        //                not fix it; it only stops the app from attempting six
-        //                commands it cannot win on every launch.
+        // Measured, not assumed (tools/mvpw-mcp/diag_writable.py): these cannot be
+        // set on a running player.
         //
         //   init-only    player-operation-mode, demuxer-rawvideo-size
         //                readable, refused on `set`. This set is what they are
         //                for, and ConfigOnlyConfLine writes them to mpv.conf so
         //                the value still reaches mpv at startup.
-        nameof(AppSettings.Mpv_openal_direct_channels),
-        nameof(AppSettings.Mpv_openal_num_buffers),
-        nameof(AppSettings.Mpv_openal_num_samples),
-        nameof(AppSettings.Mpv_cuda_decode_device),
-        nameof(AppSettings.Mpv_input_gamepad),
-        nameof(AppSettings.Mpv_demuxer_sbr_probesize),
+        //
+        // Six others used to be listed here -- openal-direct-channels,
+        // openal-num-buffers, openal-num-samples, cuda-decode-device,
+        // input-gamepad, demuxer-sbr-probesize. They are gone from this list
+        // because they are gone from the schema: they do not exist in the bundled
+        // mpv (v0.41.0-dev-ge8673660a), so there is no setting to apply and no row
+        // to render. Listing them here would not compile, which is the right
+        // outcome -- the drift is fixed at its source rather than suppressed.
         nameof(AppSettings.Mpv_player_operation_mode),
         nameof(AppSettings.Mpv_demuxer_rawvideo_size),
         nameof(AppSettings.InputIpcServer),

@@ -96,7 +96,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_osd_prune_delay)] = lang.SectionGenOsd;
             sectionMap[nameof(AppContext.AppSetting.Mpv_osd_status_msg)] = lang.SectionGenOsd;
 
-            // 音频选项 -- 29 row(s), from mpv's "Audio"
+            // 音频选项 -- 26 row(s), from mpv's "Audio"
             sectionOrder[lang.SectionGenAudio] = 1003;
             advancedSections.Add(lang.SectionGenAudio);
 
@@ -117,9 +117,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_resample_phase_shift)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_audio_set_media_role)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_mute)] = lang.SectionGenAudio;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_openal_direct_channels)] = lang.SectionGenAudio;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_openal_num_buffers)] = lang.SectionGenAudio;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_openal_num_samples)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_pitch)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_replaygain_clip)] = lang.SectionGenAudio;
             sectionMap[nameof(AppContext.AppSetting.Mpv_replaygain_fallback)] = lang.SectionGenAudio;
@@ -280,7 +277,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_window_minimized)] = lang.SectionGenWindowFrame;
             sectionMap[nameof(AppContext.AppSetting.Mpv_window_scale)] = lang.SectionGenWindowFrame;
 
-            // 输入与交互 -- 22 row(s), from mpv's "Player & window"
+            // 输入与交互 -- 21 row(s), from mpv's "Player & window"
             sectionOrder[lang.SectionGenWindowInput] = 1011;
             advancedSections.Add(lang.SectionGenWindowInput);
 
@@ -296,7 +293,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_default_bindings)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_doubleclick_time)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_dragging_deadzone)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_input_gamepad)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_key_fifo_size)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_media_keys)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_preprocess_wheel)] = lang.SectionGenWindowInput;
@@ -412,14 +408,13 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_use_filedir_conf)] = lang.SectionGenGeneralScripting;
             sectionMap[nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config)] = lang.SectionGenGeneralScripting;
 
-            // 渲染与色彩微调 -- 23 row(s), from mpv's "General"
+            // 渲染与色彩微调 -- 22 row(s), from mpv's "General"
             sectionOrder[lang.SectionGenGeneralRendering] = 1018;
             advancedSections.Add(lang.SectionGenGeneralRendering);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_allow_delayed_peak_detect)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_container_fps_override)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_corner_rounding)] = lang.SectionGenGeneralRendering;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_cuda_decode_device)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_d3d11va_zero_copy)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_error_diffusion)] = lang.SectionGenGeneralRendering;
             sectionMap[nameof(AppContext.AppSetting.Mpv_fbo_format)] = lang.SectionGenGeneralRendering;
@@ -459,7 +454,7 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_ytdl_format)] = lang.SectionGenStreamNetwork;
             sectionMap[nameof(AppContext.AppSetting.Mpv_ytdl_raw_options)] = lang.SectionGenStreamNetwork;
 
-            // 解复用细节 -- 28 row(s), from mpv's "Streaming & cache"
+            // 解复用细节 -- 27 row(s), from mpv's "Streaming & cache"
             sectionOrder[lang.SectionGenStreamDemuxer] = 1020;
             advancedSections.Add(lang.SectionGenStreamDemuxer);
 
@@ -490,7 +485,6 @@ namespace mpv_winui.Modules.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_mp_format)] = lang.SectionGenStreamDemuxer;
             sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_size)] = lang.SectionGenStreamDemuxer;
             sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_w)] = lang.SectionGenStreamDemuxer;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_demuxer_sbr_probesize)] = lang.SectionGenStreamDemuxer;
 
             // 缓存与预读 -- 8 row(s), from mpv's "Streaming & cache"
             sectionOrder[lang.SectionGenStreamCache] = 1021;

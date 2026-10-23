@@ -188,14 +188,14 @@
                     Grid.Row="1"
                     Padding="0,0,12,0"
                     ContextRequested="ProfileList_ContextRequested"
-                    ItemsSource="{x:Bind Profiles}"
+                    ItemsSource="{x:Bind Profiles, Mode=OneWay}"
                     SelectionChanged="ProfileList_SelectionChanged"
                     SelectionMode="Single">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:MpvConfProfileItem">
                             <TextBlock
                                 FontFamily="Consolas"
-                                Text="{x:Bind Name}"
+                                Text="{x:Bind Name, Mode=OneWay}"
                                 TextDecorations="{x:Bind Decorations, Mode=OneWay}"
                                 TextTrimming="CharacterEllipsis" />
                         </DataTemplate>
@@ -217,7 +217,7 @@
                     x:Name="GroupList"
                     Grid.Row="1"
                     Padding="0,0,12,0"
-                    ItemsSource="{x:Bind Groups}"
+                    ItemsSource="{x:Bind Groups, Mode=OneWay}"
                     SelectionChanged="GroupList_SelectionChanged"
                     SelectionMode="Single">
                     <ListView.ItemTemplate>
@@ -241,7 +241,7 @@
                 IsItemClickEnabled="False"
                 ItemContainerStyle="{StaticResource MpvOptionListViewItemStyle}"
                 ItemTemplate="{StaticResource MpvEditorTemplate}"
-                ItemsSource="{x:Bind Items}"
+                ItemsSource="{x:Bind Items, Mode=OneWay}"
                 SelectionMode="Single">
                 <GridView.ItemsPanel>
                     <ItemsPanelTemplate>

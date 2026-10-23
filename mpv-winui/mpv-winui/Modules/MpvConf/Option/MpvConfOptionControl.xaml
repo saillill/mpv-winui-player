@@ -141,7 +141,7 @@
                 SelectionChanged="OnTypeSelectionChanged">
                 <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="schema:MpvConfSchemaItemValue">
-                        <TextBlock Text="{x:Bind Type}" />
+                        <TextBlock Text="{x:Bind Type, Mode=OneWay}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
@@ -169,9 +169,9 @@
                 <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="schema:MpvConfSchemaEnumValue">
                         <TextBlock>
-                            <Run Text="{x:Bind Value}" />
+                            <Run Text="{x:Bind Value, Mode=OneWay}" />
                             <Run Text=" - " />
-                            <Run Text="{x:Bind Desc, FallbackValue=''}" />
+                            <Run Text="{x:Bind Desc, FallbackValue='', Mode=OneWay}" />
                         </TextBlock>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>

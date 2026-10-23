@@ -148,13 +148,13 @@
             DragItemsStarting="MenuTree_DragItemsStarting"
             DragOver="MenuTree_DragOver"
             Drop="MenuTree_Drop"
-            ItemsSource="{x:Bind Nodes}"
+            ItemsSource="{x:Bind Nodes, Mode=OneWay}"
             SelectionChanged="MenuTree_SelectionChanged">
             <TreeView.ItemTemplate>
                 <DataTemplate x:DataType="local:MenuTreeItem">
                     <TreeViewItem
                         Height="32"
-                        ItemsSource="{x:Bind Children}">
+                        ItemsSource="{x:Bind Children, Mode=OneWay}">
                         <TextBlock
                             VerticalAlignment="Center"
                             FontFamily="Consolas"
@@ -169,7 +169,7 @@
             x:Name="Breadcrumb"
             Grid.Row="1"
             Grid.Column="1"
-            ItemsSource="{x:Bind BreadcrumbItems}" />
+            ItemsSource="{x:Bind BreadcrumbItems, Mode=OneWay}" />
 
         <StackPanel
             Grid.Row="2"

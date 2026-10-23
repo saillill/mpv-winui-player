@@ -13,7 +13,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.Storage.Pickers;
+using Microsoft.Windows.Storage.Pickers;
 
 namespace mpv_winui.Modules.Player
 {
@@ -362,10 +362,10 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         private async Task AddToQueueAsync()
         {
-            // The lambda parameter is typed to pick the multi-file overload;
-            // the two PickFolderAsync helpers take the same shape otherwise and
-            // the call would not resolve.
-            var files = await FilePickerHelper.PickFolderAsync((FileOpenPicker picker) =>
+            // Named for what it does. The old helper was PickFolderAsync but
+            // opened a FILE picker, and the explicit lambda parameter existed
+            // only to pick between two overloads of that name; both are gone.
+            var files = await FilePickerHelper.PickMultipleFilesAsync(picker =>
             {
                 picker.SuggestedStartLocation = PickerLocationId.VideosLibrary;
             });

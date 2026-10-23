@@ -22,7 +22,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock
                     VerticalAlignment="Center"
-                    Text="{x:Bind Band}" />
+                    Text="{x:Bind Band, Mode=OneWay}" />
                 <StackPanel
                     Grid.Column="1"
                     Spacing="2">
@@ -32,7 +32,7 @@
                         Text="{x:Bind ValueText, Mode=OneWay}" />
                     <Slider
                         Width="160"
-                        AutomationProperties.Name="{x:Bind Band}"
+                        AutomationProperties.Name="{x:Bind Band, Mode=OneWay}"
                         Maximum="12"
                         Minimum="-12"
                         StepFrequency="0.5"

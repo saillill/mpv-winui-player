@@ -23,7 +23,7 @@
                 <Slider
                     Width="36"
                     Height="130"
-                    AutomationProperties.Name="{x:Bind Band}"
+                    AutomationProperties.Name="{x:Bind Band, Mode=OneWay}"
                     HorizontalAlignment="Center"
                     Maximum="12"
                     Minimum="-12"
@@ -38,7 +38,7 @@
                     HorizontalAlignment="Center"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Margin="0,0,0,6"
-                    Text="{x:Bind Band}" />
+                    Text="{x:Bind Band, Mode=OneWay}" />
             </StackPanel>
         </DataTemplate>
     </UserControl.Resources>
