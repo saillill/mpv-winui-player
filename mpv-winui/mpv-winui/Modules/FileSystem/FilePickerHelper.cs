@@ -80,7 +80,11 @@ namespace mpv_winui.Modules.FileSystem
             // folder a second press rather than a lost selection.
             var folder = await picker.PickSingleFolderAsync();
 
-            return folder is null ? null : [folder.Path];
+            // Explicit array cast: a bare collection expression here is typed as
+            // IReadOnlyList<string>, which has no concrete type for the WinRT
+            // marshaller and is not trim/AOT safe (CsWinRT1032). One folder, one
+            // element, and the concrete array is what the boundary needs.
+            return folder is null ? null : (string[])[folder.Path];
         }
 
         public static async Task<IReadOnlyList<StorageFile>?> PickFolderAsync(Action<FileOpenPicker>? configure = null)
