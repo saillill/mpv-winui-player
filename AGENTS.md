@@ -317,6 +317,11 @@ passing checker.
 
 ## Pointers
 
+- **Fixing UI defects over many rounds: start at `docs/ui-repair/README.md`.** It is a
+  self-contained brief for a long-running repair task — the loop, what may be decided
+  without asking, the evidence rules, and the tool chain in `tools/ui-repair/`. The queue
+  it drives is `docs/ui-repair/QUEUE.md`; the reasoning authority is
+  `docs/ui-repair/BASELINE.md`.
 - **Changing anything under `Modules/Settings/`: read
   `docs/settings-design-contract.md` first.** It is the single authority for the
   settings UI — structure, naming and grouping rules, UI and interaction
