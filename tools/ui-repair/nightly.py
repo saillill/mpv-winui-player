@@ -217,29 +217,32 @@ def build_report(data):
     for item in auto:
         lines.append("- %s" % item)
 
-    # Findings a machine CAN call: the app is not writing its log. There is no judgement in
-    # "a launch produces no log file" -- either the file appears or it does not -- and the
-    # consequence (76 AppLogger calls going nowhere) is measured, not inferred.
-    #
-    # The marker is read from the script's STDOUT capture (applog.txt, English), not from the
-    # Chinese markdown it writes (app-log.md). The first version looked for the Chinese
-    # sentence in the English capture and silently found nothing -- so the strongest finding
-    # of the whole scan was collected and then dropped from the report.
-    log_is_stale = False
+    # The app's own log is the strongest evidence available, because the app decided those
+    # lines were problems. It is read from the directory NLog actually writes to --
+    # `%LOCALAPPDATA%\mpv-winui\mpv-winui\logs` -- not the one beside it, which holds only
+    # display-info.log. Getting that wrong produced a fabricated "the app stopped logging"
+    # finding earlier; the scan script now checks both and reports which it used.
+    log_note = ""
     applog_path = data.get("logs", {}).get("applog")
     if applog_path and os.path.exists(applog_path):
         body = io.open(applog_path, encoding="utf-8", errors="replace").read()
-        log_is_stale = "the newest app log is" in body
-        if log_is_stale:
-            m = __import__("re").search(
-                r"the newest app log is ([\d.]+) days old", body)
-            age = m.group(1) if m else "?"
-            lines.append("- **应用不写日志**：最新一份 %s 天前，今天启动不产生新文件；"
-                         "`NLog` 已引用但无任何配置，76 处 `AppLogger.*` 写向空目标。"
-                         "修法是补 NLog 配置或改用内置 `File` 日志，不需要产品判断。"
-                         % age)
+        m = __import__("re").search(r"log dir\s*:\s*(.+)", body)
+        used_dir = m.group(1).strip() if m else "?"
+        m2 = __import__("re").search(r"distinct problems:\s*(\d+)", body)
+        m3 = __import__("re").search(r"(?:ERROR|WARN)\s+(\d+) line", body)
+        n_distinct = m2.group(1) if m2 else "?"
+        if "the newest app log is" in body:
+            log_note = "日志过期（应用未写新文件）"
+            lines.append("- **应用不写日志**：见 `_work/nightly/applog.txt`。")
+        elif n_distinct not in ("0", "?"):
+            log_note = "%s 类不同问题" % n_distinct
+            lines.append("- **应用日志里有 %s 类不同问题**（目录 `%s`），"
+                         "明细在 `_work/nightly/app-log.md`。这不是需要判断的设计取舍，"
+                         "而是应用自己判定为 ERROR/WARN 的行。" % (n_distinct, used_dir))
+    if log_note:
+        lines.append("")
 
-    if not auto and not log_is_stale:
+    if not auto and not log_note:
         lines.append("无。本轮没有可证明安全的全自动修改项。")
     lines.append("")
     lines.append("> 全自动改代码只允许「不改变布局、且有等价证明」的替换。"
