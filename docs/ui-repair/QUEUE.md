@@ -65,6 +65,10 @@
 | 182 个 `x:Key` 孤儿资源 | `audit-resource-keys.py` 四种读取方式，0 孤儿 | 非缺陷 |
 | 三套皮肤控件位置完全一致 | 几何相同但**像素不同**（`scan-skins-pixels.py`，三个不同 hash） | 无缺陷；`Template` 改的是圆角/画笔，不改控件外框 |
 | 皮肤设置切换到 `Center`/`Compact` 无效 | 上一行同一个误判的起因：脚本写的是 `Centre`/`Standard`，正确值是 `Center`/`Compact`（美式拼写，见 `AppSettings.PlayerStyle_*`） | 探针 bug，不是产品缺陷 |
+| 枚举选项被 mpv 拒绝（`edition` 等 59 个） | **已修** `cfb43d3`。实测：`set edition auto` 成功、`set edition "auto"` 失败、`set edition 1` 成功。干净启动 0 次 `CommandString rejected`（修前 11 次） | 真缺陷，已修 |
+| `mpv.conf` 里 83 处带引号的值 | **已修**，同 `cfb43d3`。枚举去引号后 83→27；其余 27 项逐条核对 schema，是 `raw`/`string` 且含逗号或空格，引号正确 | 真缺陷，已修 |
+| `Failed to query swap chain's output information` x274 | mpv 的 d3d11 VO 自己报的，经日志转发。`git grep 'swap chain'` 只命中我们**避让**它的注释，不是应用代码 | 非应用缺陷，不修 |
+| 启动时 `CommandString rejected: set edition auto` 仍有 2 次 | 同一份日志累积了修复前后的记录；干净启动实测 0 次 | 已排除 |
 
 ## D. 需要先建立测量才能立项
 
