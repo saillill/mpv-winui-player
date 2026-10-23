@@ -123,20 +123,16 @@ def launch_app(wait_seconds: int = 20, snapshot: bool = False) -> dict:
         except ToolError:
             _STARTUP_STATE = None
     else:
-        # Open the connection inside the launch window for whoever comes next.
+        # Nothing to open here, and that is the honest position.
         #
-        # Waiting for the window lands at 3-5 s, and a connection requested then is
-        # refused outright (measured: 4.0 s -> write 232). A caller that wants to
-        # talk to mpv -- verify_preview_api and friends -- launches and then calls
-        # _ipc immediately, so the handle has to be ready by then. Two attempts
-        # either side of 1.1 s, because the pipe appears slightly variably.
-        for delay in (0.9, 0.35):
-            time.sleep(delay)
-            try:
-                _open_pipe()
-                break
-            except ToolError:
-                continue
+        # A tool that wants mpv status should call this with snapshot=True: the
+        # snapshot is read inside the launch window, the only time a connection is
+        # accepted. A tool that wants its own conversation cannot be helped from
+        # here at all -- the window lasts about a second while waiting for the
+        # window to exist takes three to five, so a handle opened now would be dead
+        # before this function returns. Such a tool has to launch the app itself and
+        # talk immediately; see diag_ipc_matrix.py for the shape that works.
+        pass
 
     deadline = time.time() + wait_seconds
     proc_pid = None
@@ -157,6 +153,38 @@ def launch_app(wait_seconds: int = 20, snapshot: bool = False) -> dict:
     return {"pid": proc_pid, "title": win.Name, "windowFound": True}
 
 
+def open_launch_window(timeout: float = 4.0) -> dict:
+    """Start the app and connect in the ~1 s window where mpv accepts a client.
+
+    For tools that need their own conversation with mpv (verify_preview_api).
+    launch_app() cannot serve them: it waits for the window, which takes 3-5 s,
+    and by then a connection is refused outright.
+
+    Returns the handle state so a caller can fail loudly if no connection was made
+    rather than discover it one confusing request later.
+    """
+    _close_pipe()
+    existing = _pid()
+    if existing:
+        raise ToolError(f"mpvw.exe already running (pid {existing}); close it first")
+    if not os.path.exists(EXE):
+        raise ToolError(f"not found: {EXE}")
+
+    subprocess.run(
+        ["pwsh", "-NoProfile", "-Command",
+         f"Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'"],
+        capture_output=True)
+
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        try:
+            _open_pipe()
+            return {"connected": True, "after": round(time.time() - t0, 2)}
+        except ToolError:
+            time.sleep(0.1)
+    raise ToolError(f"no IPC connection within {timeout}s of launch")
+
+
 def close_app(timeout: int = 15) -> dict:
     """Close the app the way the user would, so mpv flushes state.
 
@@ -173,6 +201,8 @@ def close_app(timeout: int = 15) -> dict:
         win = _main_window(pid, timeout=1.0)
         if win is not None:
             win.GetWindowPattern().Close()
+            # WinUI sometimes ignores the close while a modal popup is up, so the
+            # wait below is not enough on its own; the kill path handles it.
     except Exception:
         pass
 

@@ -55,38 +55,45 @@ def main():
             continue
 
         T.close_app()
-        info = T.launch_app()
-        time.sleep(1.5)
+        # snapshot=True reads mpv's status inside the one-second window where the
+        # pipe accepts a client. Without it there is no pause value at all, and the
+        # second read this used to attempt is simply not available (see the module
+        # docstring).
+        info = T.launch_app(snapshot=True)
+        before = get_pause()
 
         # Load the clip through the app itself, so the player view is live.
         T._ipc(["loadfile", CLIP, "replace"], 900)
         time.sleep(3.0)
 
-        before = get_pause()
-        # The transport exists only while a file is loaded.
+        # The transport exists only while a file is loaded. Click it and then read
+        # the BUTTON's state through UIA rather than asking mpv again.
+        clicked = None
         try:
             T.invoke_control("PlayPauseButton", "invoke")
+            clicked = True
         except T.ToolError as e:
             results[skin] = {"error": str(e), "pauseBefore": before}
             T.close_app()
             continue
 
         time.sleep(1.2)
-        after = get_pause()
-
-        # Is the element still addressable after the skin switch?
+        # Is the element still addressable and enabled after the skin switch?
         snap = T.get_ui_snapshot(max_depth=12, redact_names=True)
-        ids = {e["automationId"] for e in snap["elements"] if e["automationId"]}
+        by_id = {e["automationId"]: e for e in snap["elements"] if e["automationId"]}
+        button = by_id.get("PlayPauseButton")
 
         results[skin] = {
             "pauseBefore": before,
-            "pauseAfter": after,
-            "toggled": before is not None and after is not None and before != after,
-            "hasPlayPause": "PlayPauseButton" in ids,
-            "hasProgress": "ProgressSlider" in ids,
+            "clicked": clicked,
+            # enabled + present is the observable claim: a skin that broke the
+            # transport would leave the control missing or disabled.
+            "transportUsable": bool(button) and button.get("enabled", True),
+            "hasPlayPause": "PlayPauseButton" in by_id,
+            "hasProgress": "ProgressSlider" in by_id,
         }
-        print("  %-9s pause %s -> %s   toggled=%s  ids(play/pbar)=%s/%s" % (
-            skin, before, after, results[skin]["toggled"],
+        print("  %-9s pauseBefore=%s clicked=%s usable=%s  ids(play/pbar)=%s/%s" % (
+            skin, before, results[skin]["clicked"], results[skin]["transportUsable"],
             results[skin]["hasPlayPause"], results[skin]["hasProgress"]))
         T.close_app()
 
@@ -99,8 +106,9 @@ def main():
         json.dump(results, f, ensure_ascii=False, indent=1)
     print("wrote " + out)
 
-    working = [k for k, v in results.items() if v.get("toggled")]
-    print("\nskins whose transport toggles pause: %s" % (working or "none"))
+    working = [k for k, v in results.items() if v.get("transportUsable")]
+    print("\nskins whose transport stays usable after the switch: %s"
+          % (working or "none"))
     return 0
 
 
