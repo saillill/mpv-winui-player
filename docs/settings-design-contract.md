@@ -231,9 +231,8 @@ BrowseHost (ScrollViewer)              ← 全页唯一滚动面，持有垂直�
   不是应用级令牌。** 11 个 `DataTemplate` 各自只写三行
   （`Border Style=` + 宿主控件 + `x:Bind`）。**禁止在模板里重述圆角/内边距/背景/边框。**
 - **另外两个"卡片外壳"是刻意的例外，因为它们内容不同**，不适用 `OptionCardStyle`：
-  `OptionListControl.xaml:163-224`（自定义模式的分区行，Padding `12,8,12,8`，
-  在 `CustomizeSectionTemplate` 里，第 163 行）与 `:249-355`（分区卡片，Padding
-  `12,12,12,12`，在 `CustomizeTemplate` 里，第 249 行）。
+  `OptionListControl.xaml:129-137`（自定义模式的分区行，Padding `12,8,12,8`）
+  与 `:216-225`（分区卡片，Padding `12,12,12,12`）。
   *待办*：提升为应用级令牌时**不要直接 `BasedOn`** —— 两者 Padding 不同，
   需要各自覆盖（风险：中）。
 - **类型 → 模板的映射只有一处**：`OptionTemplateSelector.SelectTemplateCore` 的
