@@ -1,16 +1,37 @@
 using System.Collections.Generic;
-using Windows.Storage;
+using Microsoft.Windows.Storage;
 
 namespace mpv_winui.Modules.Settings
 {
+    /// <summary>
+    /// Settings backend for the PACKAGED build.
+    ///
+    /// Same store as UnpackageAppDataSetting, reached from the other side: packaged
+    /// builds use ApplicationData.GetDefault(), unpackaged ones
+    /// ApplicationData.GetForUnpackaged(publisher, product). Both are the Windows App
+    /// SDK surface -- this file was the last one still on Windows.Storage
+    /// (ApplicationData.Current), which the WinUI analyzer flags as WUI1001.
+    ///
+    /// The two APIs are not spelling variants: the old Current only answers inside a
+    /// package, and the replacement makes that explicit by requiring either
+    /// GetDefault (packaged) or an identity (unpackaged). That is why this is a
+    /// one-line change here and a larger one in UnpackageAppDataSetting, which was
+    /// already migrated when the app went self-contained.
+    ///
+    /// Not exercised by the running app on this machine: AppSettings chooses this
+    /// backend only when PackageHelper.IsPackaged is true, and the deployed build is
+    /// unpackaged. It is kept correct rather than dead, which is the point of
+    /// migrating it at all.
+    /// </summary>
     public class AppDataSetting : IDataSetting
     {
         private readonly ApplicationDataContainer _container;
 
         public AppDataSetting(string typeName)
         {
-            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-            _container = localSettings.CreateContainer(typeName, ApplicationDataCreateDisposition.Always);
+            var application = ApplicationData.GetDefault();
+            _container = application.LocalSettings.CreateContainer(
+                typeName, ApplicationDataCreateDisposition.Always);
         }
 
         public T GetValue<T>(string propertyName, T defaultValue)

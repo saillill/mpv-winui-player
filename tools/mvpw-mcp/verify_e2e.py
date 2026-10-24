@@ -17,6 +17,25 @@ import mpvw_tools as T
 RESULTS = []
 
 
+def wait_for(automation_id, timeout=8.0):
+    """Poll until the element is in the tree, then return. Replaces a guessed sleep.
+
+    Returns the elapsed time so a step can report how long it actually took; raises the
+    last error if it never appears, so a genuine absence still fails the run.
+    """
+    import time as _t
+    t0 = _t.time()
+    last = None
+    while _t.time() - t0 < timeout:
+        try:
+            T.assert_element_state(automation_id=automation_id, visible=True)
+            return round(_t.time() - t0, 2)
+        except Exception as e:
+            last = e
+            _t.sleep(0.25)
+    raise last if last else AssertionError("no " + automation_id)
+
+
 def step(name, fn, **kw):
     t0 = time.time()
     try:
@@ -91,19 +110,19 @@ def main():
 
     step("select nav music", T.invoke_control,
          automation_id="ShellNav_music", action="select")
-    time.sleep(1.2)
+    waited = wait_for("LibrarySectionTitle")
     step("assert section title still present after nav", T.assert_element_state,
          automation_id="LibrarySectionTitle", visible=True)
 
     step("select nav videos", T.invoke_control,
          automation_id="ShellNav_videos", action="select")
-    time.sleep(1.2)
+    waited = wait_for("VideoAddFolderButton")
     step("assert VideoAddFolderButton exists", T.assert_element_state,
          automation_id="VideoAddFolderButton", visible=True)
 
     step("select nav queue", T.invoke_control,
          automation_id="ShellNav_queue", action="select")
-    time.sleep(1.2)
+    wait_for("QueueEmptyTitle")
     # Assert the empty state's *text*, not the Grid that holds it: a Grid is
     # not a UI Automation node in WinUI, so QueueEmptyState never appears in
     # the tree (measured 2026-10-22). Its children do.

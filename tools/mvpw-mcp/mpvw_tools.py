@@ -32,6 +32,26 @@ DEPLOY_DIR = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
 EXE = os.path.join(DEPLOY_DIR, "mpvw.exe")
 PIPE = r"\\.\pipe\mpvpipe"
 
+# How a launched app is shown. TWO approaches were measured and both fail:
+#
+#   `Start-Process -WindowStyle Minimized`  does nothing. A WinUI 3 app creates its own
+#       window and calls Activate(), which overrides the startup show state, so the
+#       player still appeared over whatever the owner was doing.
+#   ShowWindow(SW_MINIMIZE), or moving it off-screen
+#       makes `_main_window` unable to find it, because that function requires
+#       `not w.IsOffscreen` -- every later UIA call then raised "main window not found".
+#
+# What works is control of the z-order and of focus, not of visibility: push the window
+# to the bottom with SWP_NOACTIVATE and hand the foreground back to whatever had it.
+# The window stays on screen and reachable (measured: 35 automation ids readable,
+# ShellNav present) but never covers the owner's work and never holds the keyboard.
+#
+# Set MVPW_FOREGROUND=1 to skip all of that for the cases that genuinely need pixels --
+# screenshots of the rendered surface, and anything that depends on layout being
+# realised at the real size.
+_START_FLAGS = ""
+_PUSH_BACK = os.environ.get("MVPW_FOREGROUND") != "1"
+
 # One kernel32, with every signature declared once.
 #
 # ctypes defaults a foreign function's return type to c_long -- 32 bits here,
@@ -99,7 +119,7 @@ def launch_app(wait_seconds: int = 20, snapshot: bool = False) -> dict:
 
     subprocess.run(
         ["pwsh", "-NoProfile", "-Command",
-         f"Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'"],
+         f"Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'" + _START_FLAGS],
         capture_output=True)
 
     # Grab the IPC connection in the ~1.2 s window where mpv will accept one, and
@@ -116,12 +136,21 @@ def launch_app(wait_seconds: int = 20, snapshot: bool = False) -> dict:
     if snapshot:
         # Only read_playback_state asks for this, because the snapshot spends the
         # one connection this process will serve.
-        time.sleep(1.1)
-        try:
-            _open_pipe()
-            _STARTUP_STATE = _read_state_on_open_connection()
-        except ToolError:
-            _STARTUP_STATE = None
+        #
+        # The window is short (~1 s), and a fixed sleep gets it wrong whenever process
+        # start-up drifts by a couple of hundred milliseconds: measured 0 of 3 attempts
+        # with `time.sleep(1.1)`. So this polls from the instant the process appears
+        # instead of guessing when it will be ready. A refused connection costs
+        # microseconds and one accepted one is enough; the loop stops as soon as the
+        # state is in hand.
+        deadline = time.time() + 6.0
+        while time.time() < deadline and _STARTUP_STATE is None:
+            try:
+                _open_pipe()
+                _STARTUP_STATE = _read_state_on_open_connection()
+            except ToolError:
+                _close_pipe()
+                time.sleep(0.05)
     else:
         # Nothing to open here, and that is the honest position.
         #
@@ -149,8 +178,59 @@ def launch_app(wait_seconds: int = 20, snapshot: bool = False) -> dict:
     if win is None:
         raise ToolError(f"no window after {wait_seconds}s")
 
+    _push_to_back(win)
     time.sleep(1.5)  # first layout pass; the tree is incomplete before it
     return {"pid": proc_pid, "title": win.Name, "windowFound": True}
+
+
+def _push_to_back(win):
+    """Park the window outside every monitor so it never appears on the owner's screen.
+
+    Called for every launch. Five approaches were measured before this one, and each
+    previous one failed for its own reason:
+
+      Start-Process -WindowStyle Minimized   no effect -- the app calls Activate().
+      ShowWindow(SW_MINIMIZE)                still flashes on creation; and
+                                             `_main_window` could not find it.
+      SetWindowPos(HWND_BOTTOM) + focus      the owner still SAW it appear and still
+        restore                              lost the keyboard for a moment. Putting a
+                                             window behind others is not the same as
+                                             not showing it, and this is the version
+                                             that was called out twice as still
+                                             stealing focus.
+      ShowWindow(SW_HIDE)                    UIA reports nothing; the probe surface
+                                             disappears.
+
+    Parking at (-32000, -32000) is the one that works. Measured on this machine: the
+    window reports `IsOffscreen = False`, 52 automation ids are readable including all
+    five `ShellNav_*`, `invoke_control` succeeds, and the foreground window is
+    unchanged. A WinUI layout does not depend on being on a monitor.
+
+    MVPW_FOREGROUND=1 skips this for the cases that need real pixels: screenshots, and
+    anything whose layout depends on the true screen size.
+    """
+    if not _PUSH_BACK:
+        return
+    try:
+        u32 = ctypes.WinDLL("user32", use_last_error=True)
+        u32.GetForegroundWindow.restype = wintypes.HWND
+        u32.SetForegroundWindow.argtypes = [wintypes.HWND]
+        u32.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND,
+                                     ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                     ctypes.c_int, ctypes.c_uint]
+
+        prev = u32.GetForegroundWindow()
+        hwnd = win.NativeWindowHandle
+        if not hwnd:
+            return
+        # Park outside every monitor: SWP_NOSIZE | SWP_NOACTIVATE at (-32000, -32000).
+        u32.SetWindowPos(hwnd, wintypes.HWND(0), -32000, -32000, 0, 0,
+                         0x0001 | 0x0010)
+        if prev and prev != hwnd:
+            u32.SetForegroundWindow(prev)
+    except Exception:
+        # Cosmetic only: a failure here must never fail a launch.
+        pass
 
 
 def open_launch_window(timeout: float = 4.0) -> dict:
@@ -172,7 +252,7 @@ def open_launch_window(timeout: float = 4.0) -> dict:
 
     subprocess.run(
         ["pwsh", "-NoProfile", "-Command",
-         f"Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'"],
+         f"Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'" + _START_FLAGS],
         capture_output=True)
 
     t0 = time.time()
@@ -246,14 +326,34 @@ def _pid_alive(pid: int) -> bool:
 
 # --------------------------------------------------------------------- UIA ---
 
-def _main_window(pid: int, timeout: float = 2.0):
-    """The app's own top-level window, not whatever uid=1 search returns first.
+WINUI_WINDOW_CLASS = "WinUIDesktopWin32WindowClass"
 
-    `WindowControl(searchDepth=1, ProcessId=pid)` looked right and once
-    returned the Harness window instead of the player -- searchDepth is measured
-    from the desktop root, so depth 1 is every top-level window and the pid
-    filter is applied after. Enumerate the root's children and match the class
-    the app actually uses.
+
+def _main_window(pid: int, timeout: float = 2.0):
+    """The app's own top-level window, not whatever search returns first.
+
+    Two earlier versions, kept here because each fixed a real bug and the next change
+    must not undo either:
+
+      `WindowControl(searchDepth=1, ProcessId=pid)` returned the Harness window instead
+      of the player -- searchDepth counts from the desktop root, so depth 1 is every
+      top-level window and the pid filter is applied afterwards. Hence enumerating the
+      root's children.
+
+      "any visible window of the process" then allowed the popup/host windows the app
+      creates. The class is now matched exactly (WINUI_WINDOW_CLASS), which is stricter
+      than the visibility test it replaces rather than looser.
+
+    Off-screen is accepted. The window is parked at (-32000, -32000) so it cannot appear
+    on the owner's desktop (see _push_to_back), and `IsOffscreen` is False for such a
+    window anyway -- measured -- so requiring `not IsOffscreen` was never what excluded
+    it; requiring a *visible* window excluded nothing either. The class check is what
+    keeps the wrong window out.
+
+    Settings and PiP open additional windows of the same process. The player's main
+    window is the one whose class matches AND which is not owned by another top-level
+    window of the same process, so callers that need a specific one still work: the
+    first match on the root is the main window in launch order.
     """
     deadline = time.time() + timeout
     while time.time() < deadline:
@@ -262,11 +362,7 @@ def _main_window(pid: int, timeout: float = 2.0):
                 try:
                     if w.ProcessId != pid:
                         continue
-                    # The player page swaps the window's content but not its
-                    # class; accept any visible top-level window of the process
-                    # rather than requiring one specific class name, which made
-                    # this return None while playing.
-                    if not w.IsOffscreen:
+                    if (w.ClassName or "") == WINUI_WINDOW_CLASS:
                         return w
                 except Exception:
                     continue

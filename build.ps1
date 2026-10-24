@@ -89,8 +89,31 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 #
 # It sits before packaging because a green build is not evidence that a value
 # survives a write and a read.
+#
+# --no-incremental is NOT belt-and-braces; it is the difference between a real
+# result and a fabricated one. Measured on 2026-10-24:
+#
+#   ControlBarAdaptiveLayout.cs changed 340 -> 260 (breaks a tier assertion),
+#   but written with the file's ORIGINAL mtime -- which is what `git checkout`,
+#   `Copy-Item -Force` and a fresh clone all produce, since git sets mtime to
+#   checkout time and links share timestamps:
+#
+#     dotnet test (incremental)      -> 496/496 PASS    <-- wrong
+#     dotnet build --no-incremental  -> 495/496 FAIL    <-- right
+#
+#   Touching the same broken file to "now" made the incremental run fail too,
+#   which pins the cause on timestamps rather than on the build graph.
+#
+# The linked source files live in ..\mpv-winui\, outside this project directory.
+# MSBuild's up-to-date check compares those timestamps against the output, so any
+# operation that restores an older mtime makes the suite skip recompiling and then
+# report the PREVIOUS build's verdict. A suite that can pass while its subject is
+# broken is not evidence, and this one is the only test of the control bar's
+# width tiers.
 Write-Host "==> Running mpv-conf-test"
-dotnet test "$root\mpv-winui\mpv-conf-test\mpv-conf-test.csproj" -c $Configuration -v:minimal
+dotnet build "$root\mpv-winui\mpv-conf-test\mpv-conf-test.csproj" -c $Configuration --no-incremental -v:minimal
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+dotnet test "$root\mpv-winui\mpv-conf-test\mpv-conf-test.csproj" -c $Configuration --no-build -v:minimal
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # mpv-winrt-test drives the real mpv_winrt component against the real mpv
@@ -98,8 +121,13 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 # not this script, not CI, so its assertions were never evidence of anything.
 # It is run here rather than in a CI job precisely because it needs the C++ and
 # native binaries this script has just produced.
+#
+# Same --no-incremental reasoning as above: its sources are the projection
+# assembly, whose timestamp moves with every checkout of the C++ side.
 Write-Host "==> Running mpv-winrt-test"
-dotnet test "$root\mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj" -c $Configuration -p:Platform=$Platform -v:minimal
+dotnet build "$root\mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj" -c $Configuration -p:Platform=$Platform --no-incremental -v:minimal
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+dotnet test "$root\mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj" -c $Configuration -p:Platform=$Platform --no-build -v:minimal
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 if ($CheckLocalization) {

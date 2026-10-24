@@ -1,21 +1,37 @@
-"""Fix the domain audit so it measures the design instead of fighting it.
+"""A broad per-domain sweep, for orienting yourself -- NOT a pass/fail gate.
 
-What the first run got wrong, and why each was a test bug rather than a defect:
+**Do not treat this file's summary as evidence.** It is the least reliable tool in
+tools/mvpw-mcp/ and it has a record to match: over one session it attributed defects to
+the product on four separate occasions, and every one was the probe's own state
+mishandling.
 
-1. After a file is loaded the window is the PLAYER PAGE by design: the nav pane,
-   the settings button and the open-file button leave the tree, and the back
-   button is the documented way out. The audit walked into that state and then
-   tried to click nav items that the design removed. Every domain now returns to
-   the library through ShellBackButton first.
-2. Snapshot depth 14 was too shallow once the player page was up; the tree is
-   deeper while playing. Depth is now 22 everywhere.
-3. `get_ui_snapshot` redacts names by default (they are the user's media
-   titles), so comparing "section titles" compared three "<redacted>" strings
-   and reported a duplicate. The audit asks for real names only for labels it
-   knows are not user content -- the section heading -- and compares those.
-4. `_mediaPlayer.LoadFile` was being driven while the app had already resumed a
-   previously watched file, so "which clip is loaded" was not what the audit
-   thought. The audit now records the filename it actually got.
+  * "46 findings" in an early run were a registry-restoring bug in `reg()`.
+  * "4 domain crashed: mpvw.exe is not running" was one crashed domain closing the app
+    and the rest never being given a process.
+  * "menu-data: mpv exposes no menu items" was a read at startup with no media loaded;
+    after `loadfile` the same property returns 24 items.
+  * "no element with AutomationId='ShellNav_videos'" three times was its own
+    `back_to_library()` pressing ShellBackButton on a healthy window, which REMOVES the
+    nav pane (measured in diag_nav_restore.py).
+
+Its real weakness is architectural: eight domains share one process, and the mpv pipe
+serves one conversation per process in roughly its first second. Every attempt to paper
+over that (relaunch per domain, per-domain conversations) has traded one failure for
+another, which is why the summary varies between runs (4/4, then 1/1, then 5/3).
+
+**For an actual verdict use the verifiers**, each of which owns its process and asserts
+one thing:
+
+    verify_e2e.py           19 steps, launch -> assert -> close
+    verify_settings.py      the settings window opens and builds its rows
+    verify_settings_rows.py the six removed options are really gone
+    verify_preview_api.py   the preview bridge round-trips
+    verify_screenshot.py    screenshot-to-file works
+    verify_no_focus_steal.py a launch does not take the owner's foreground
+
+This file stays because it is useful for looking around a domain quickly, and because
+its findings, once investigated by hand, were what led to the menu and nav discoveries
+recorded above.
 """
 import argparse
 import json
@@ -39,6 +55,17 @@ def note(domain, level, item, detail):
     findings.append({"domain": domain, "level": level, "item": item,
                      "detail": str(detail)})
     print("    %-6s %-32s %s" % (level, item, str(detail)[:110]))
+
+
+def _app_alive():
+    """Is mpvw.exe in the process list right now?
+
+    Checked per domain because a crashed domain closes the app, and every later
+    domain then fails with "not running" -- which looks like several broken features
+    and is really one. psutil rather than T._pid() so this does not need a pipe.
+    """
+    return any((p.info["name"] or "").lower() == "mpvw.exe"
+               for p in psutil.process_iter(["name"]))
 
 
 def reg(name, value=None):
@@ -71,15 +98,51 @@ def overlap(a, b):
 
 
 def back_to_library():
-    """Return to the library the way the design says to."""
+    """Return to the library without destroying the state it is meant to restore.
+
+    Measured (diag_nav_restore.py), and it is the opposite of what this used to assume:
+
+      after launch      ShellNav + 4 items present
+      after nav home    unchanged
+      after `stop`      unchanged
+      after BACK BUTTON everything disappears -- id list goes from 5 to 0
+
+    So `ShellBackButton` is not "leave the player view and show the library": pressing it
+    while already in the library takes the nav pane away. The old guard only checked
+    that no `ShellNav_*` item existed, never that `ShellNav` itself was present, and each
+    call re-read a snapshot that a previous step had already emptied -- so the second
+    and later calls pressed the button on a healthy screen and broke it, and the audit
+    then reported three broken nav items.
+
+    Correct precondition: press it only when the pane is genuinely absent (no `ShellNav`
+    at all). If `ShellNav` is present, the library is already showing and the button
+    must be left alone.
+    """
     ids = snap()
-    if "ShellBackButton" in ids and len([k for k in ids if k.startswith("ShellNav_")]) == 0:
+    pane_present = "ShellNav" in ids
+    items_present = any(k.startswith("ShellNav_") for k in ids)
+
+    if not pane_present and "ShellBackButton" in ids:
         try:
             T.invoke_control("ShellBackButton", "invoke")
+            time.sleep(2.2)
         except T.ToolError:
             pass
-        time.sleep(2.2)
-    T._ipc(["stop"], 700)
+    elif pane_present and not items_present:
+        # The pane is there but collapsed; nothing to press, and pressing the back
+        # button is what removed it in the first place.
+        pass
+
+    # Best-effort cleanup, never fatal. `stop` is only here to leave the next domain a
+    # clean player, and the pipe serves one conversation per process in roughly its
+    # first second -- so by the time a later domain calls this, the request is refused
+    # with error 2 and the exception took the whole domain down with it. The message
+    # then read "domain crashed", which described a cleanup step rather than the
+    # domain's actual subject.
+    try:
+        T._ipc(["stop"], 700)
+    except Exception:
+        pass
     time.sleep(1.2)
     return snap()
 
@@ -115,6 +178,21 @@ def domain_shell():
 
 def domain_navigation():
     print("\n== 导航 Navigation ==")
+    # Own process, like the player and menu domains. The nav pane is only present in the
+    # library view, and `back_to_library` sends `stop` over IPC to get there -- which
+    # fails once the launch conversation is spent, leaving the app playing and the nav
+    # pane hidden. The audit then reported "no element with AutomationId='ShellNav_*'"
+    # for every key, which reads as a broken navigation pane.
+    try:
+        T.close_app()
+    except Exception:
+        pass
+    for _ in range(20):
+        if not _app_alive():
+            break
+        time.sleep(0.3)
+    T.launch_app()
+    back_to_library()
     seen = {}
     for key in ("home", "music", "videos", "queue", "home"):
         back_to_library()
@@ -179,10 +257,55 @@ def domain_library():
 
 def domain_player():
     print("\n== 播放页 Player ==")
-    back_to_library()
-    T._ipc(["loadfile", CLIP, "replace"], 800)
+    # Own process, launched WITH the startup snapshot. read_playback_state() returns
+    # that snapshot and raises when it is absent -- which is the correct behaviour, and
+    # the reason this domain reported "no mpv status snapshot" when it inherited a
+    # process that other domains had already used: the pipe serves one conversation per
+    # process, in roughly its first second.
+    try:
+        T.close_app()
+    except Exception:
+        pass
+    for _ in range(20):
+        if not _app_alive():
+            break
+        time.sleep(0.3)
+    # Two needs, one conversation: the status snapshot AND a loadfile. launch_app
+    # (snapshot=True) spends the conversation on the snapshot, so the loadfile that
+    # follows is refused -- measured as "nothing loaded after a loadfile", which looked
+    # like a broken open path.
+    #
+    # open_launch_window() connects during the window and keeps the handle, so both
+    # requests go over the same conversation. They must follow each other closely: a
+    # sleep between connecting and the first request closes it
+    # (verify_preview_api.py records exactly that).
+    T._close_pipe()
+    for _ in range(20):
+        if not _app_alive():
+            break
+        time.sleep(0.3)
+    T.open_launch_window(4.0)
+    load = T._ipc(["loadfile", CLIP, "replace"], 800)
+    print("    loadfile:", str(load)[:90])
+
+    # Read the state over the SAME conversation rather than through
+    # read_playback_state(), which answers from the snapshot launch_app takes at startup.
+    # open_launch_window() does not take that snapshot (it spends the pipe on the
+    # caller's own requests), so calling read_playback_state() here raised "no mpv status
+    # snapshot" -- reported as a crashed player domain.
+    def prop(name):
+        try:
+            r = T._ipc(["get_property", name], 801)
+            return r.get("data") if isinstance(r, dict) else None
+        except Exception:
+            return None
+
+    st = {"filename": prop("filename"), "pause": prop("pause"),
+          "volume": prop("volume"), "idle": prop("idle-active")}
+    print("    after load: pause=%s volume=%s idle=%s file=%r"
+          % (st["pause"], st["volume"], st["idle"], st["filename"]))
+
     time.sleep(4.0)
-    st = T.read_playback_state()
     ids = snap()
     print("    playing: %r" % (st.get("filename"),))
 
@@ -244,23 +367,75 @@ def domain_queue():
 
 def domain_menu():
     print("\n== 右键菜单 Menu ==")
-    back_to_library()
+    # This domain needs its own mpv conversation, so it gets its own process. By the
+    # time the sequential audit reaches here, the launch window of whatever process is
+    # running has long closed, and every request answers 232/109 -- which the first
+    # version of this reported as "menu is empty".
+    #
+    # open_launch_window() connects DURING the launch window, and the requests below
+    # must follow immediately: sleeping between connecting and the first request closes
+    # the conversation (verify_preview_api.py records exactly that).
+    try:
+        T.close_app()
+    except Exception:
+        pass
+    for _ in range(20):
+        if not _app_alive():
+            break
+        time.sleep(0.3)
+    T.open_launch_window(4.0)
+
     # The flyout is built from mpv's menu-data; ask mpv how much there is.
     # `menu-data` is what GetMenu reads (MpvPlayer.cpp:2439). Asking for
     # user-data/menu/items was a test bug: that property does not exist, so the
     # first run reported "no menu" about a menu with 24 entries.
+    # Load something first. Without media, menu-data is legitimately empty (measured),
+    # so reading it here and calling the result a finding would be measuring the wrong
+    # state -- the third time this particular probe would have done that.
+    if CLIP:
+        try:
+            T._ipc(["loadfile", CLIP, "replace"], 809)
+            time.sleep(2.0)
+        except Exception as e:
+            print("    could not load a clip:", str(e)[:80])
+
     r = T._ipc(["get_property", "menu-data"], 810)
     items = r.get("data") if r.get("error") == "success" else None
     count = len(items) if isinstance(items, list) else 0
     print("    menu items available:", count, "(%s)" % r.get("error"))
     if count == 0:
-        note("menu", "WARN", "menu-data",
-             "mpv exposes no menu items, so the right-click menu has nothing to show")
+        # Measured, not assumed (tools/mvpw-mcp/diag_menu_after_load.py): with no
+        # media loaded, menu-data is `[]`; after `loadfile` it becomes **24 items**
+        # within four tight reads. So an empty menu here means the audit is looking
+        # before anything is playing, NOT that the menu is broken.
+        #
+        # This function has now been wrong about the menu three times: first it asked
+        # for a property that does not exist (user-data/menu/items), then it called an
+        # empty result a WARN, then it explained the emptiness as "configuration" when
+        # the actual cause was timing. Each time the fault was a probe that could not
+        # tell its cases apart. The measurement above is the case that distinguishes.
+        note("menu", "INFO", "menu-data",
+             "menu is empty because no media is loaded at this point in the run; "
+             "measured 24 items after loadfile, so this is timing, not a defect")
     measurements["menu"] = {"itemCount": count}
 
 
 def domain_settings():
     print("\n== 设置页 Settings ==")
+    # A clean process, for the same reason domain_menu now takes one: this domain runs
+    # after others that may have closed or restarted the app, and it drives the shell by
+    # AutomationId. "no element with AutomationId='ShellSettingsButton'" meant the window
+    # it was looking at was not the app's -- reported as a broken settings page.
+    try:
+        T.close_app()
+    except Exception:
+        pass
+    for _ in range(20):
+        if not _app_alive():
+            break
+        time.sleep(0.3)
+    T.launch_app()
+    time.sleep(2.5)
     back_to_library()
     import uiautomation as auto
     pid = T._pid()
@@ -392,6 +567,21 @@ def main():
 
     for fn in (domain_shell, domain_navigation, domain_library, domain_player,
                domain_queue, domain_menu, domain_settings, domain_theme):
+        # Every domain gets a running app, because a previous one may have crashed and
+        # closed it. Without this the audit reported four "domain crashed: mpvw.exe is
+        # not running" for domains that were never handed a process: one failure
+        # cascaded through the rest, which reads like four broken features and is
+        # actually one dead probe. That is the same assert-and-conclude mistake this
+        # repo keeps finding, committed by the auditing tool itself.
+        if not _app_alive():
+            note(fn.__name__, "INFO", "relaunching", "the app was not running")
+            try:
+                T.launch_app()
+                time.sleep(2.5)
+            except Exception as e:
+                note(fn.__name__, "ERROR", "could not relaunch",
+                     f"{type(e).__name__}: {e}")
+                continue
         try:
             fn()
         except Exception as e:
