@@ -123,13 +123,35 @@ def s_build():
 
 def s_checkers():
     import glob
-    tools = glob.glob(os.path.join(REPO, "tools", "check-*.py"))
+    # The list is the glob, which already covered check-doc-ranges.py -- and that is the
+    # point worth recording: the checker was IN the gate and the gate was green, while it
+    # printed "4 ranges have drifted" and exited 0 on every run. Presence in this list is
+    # not evidence; the exit code is. It exits 1 on drift now.
+    #
+    # A checker that is missing from tools/ is a failure rather than a silently shorter
+    # list, because a renamed or deleted checker would otherwise reduce the gate's
+    # coverage without saying so.
+    tools = sorted(glob.glob(os.path.join(REPO, "tools", "check-*.py")))
+    if not tools:
+        return False, "no check-*.py found -- the glob matched nothing"
     bad = []
     for p in tools:
         code, out = run([sys.executable, p])
         if code != 0:
-            last = out.strip().splitlines()[-1][:100] if out.strip() else ""
-            bad.append("%s: %s" % (os.path.basename(p), last))
+            # The FIRST line that names the problem, not the last line of output. Measured:
+            # check-doc-ranges ends with three lines of explanatory prose, so "the last
+            # line" made the gate's detail read
+            #     check-doc-ranges.py: four ranges it used to print were real ...
+            # which names no finding at all. A failure summary has to say what failed.
+            lines = [l.strip() for l in out.splitlines() if l.strip()]
+            reason = ""
+            for l in lines:
+                if re.search(r"^(FAIL|ERROR|FATAL)\b", l) or ":" in l and "%" in l:
+                    reason = l
+                    break
+            if not reason:
+                reason = lines[-1] if lines else "(no output)"
+            bad.append("%s: %s" % (os.path.basename(p), reason[:110]))
     return (not bad), ("%d/%d passed" % (len(tools) - len(bad), len(tools))
                        if not bad else "; ".join(bad[:3]))
 

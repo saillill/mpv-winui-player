@@ -40,13 +40,22 @@ def main() -> int:
     for sid in gen_ids:
         print(f"    {sid}")
 
+    # The codepoints in `used` / `gen_codes` are ints parsed from "\uE701", i.e. 0xE701.
+    # Formatting them as f"E{c:03X}" therefore produces "EE701" -- the letter E, plus the
+    # E that is already part of the number. Measured: 0xE701 -> 'EE701'. This is the
+    # checker whose whole job is telling you which glyph to avoid, so printing a glyph
+    # name that appears nowhere makes the finding unusable. `:04X` is the correct width:
+    # the Segoe Fluent range used here is E700-EA00, four hex digits including the E.
+    def glyph(c):
+        return f"\\u{c:04X}"
+
     collisions = sorted(set(gen_codes) & used)
     print(f"generated vs hand-written collisions : "
-          f"{[f'E{c:03X}' for c in collisions] if collisions else 'none'}")
+          f"{', '.join(glyph(c) for c in collisions) if collisions else 'none'}")
 
     dupes = {c for c in gen_codes if gen_codes.count(c) > 1}
     print(f"collisions among generated           : "
-          f"{[f'E{c:03X}' for c in sorted(dupes)] if dupes else 'none'}")
+          f"{', '.join(glyph(c) for c in sorted(dupes)) if dupes else 'none'}")
 
     if len(sys.argv) > 1 and sys.argv[1] == "--free":
         need = int(sys.argv[2]) if len(sys.argv) > 2 else 9
