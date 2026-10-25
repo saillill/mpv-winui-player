@@ -125,12 +125,10 @@ namespace mpv_winui.Modules.Player
                 _mediaPlayer.WindowChanged += MpvPlayerPage_WindowChanged;
                 _mediaPlayer.MediaInfoChanged += MpvPlayerPage_MediaInfoChanged;
                 _mediaPlayer.DiscMenuActiveChanged += MpvPlayerPage_DiscMenuActiveChanged;
-                // Drives the content area. FileStarted is the transition into
-                // the playing page - it is the only event that means "a file is
-                // loading", and it fires whether the previous state was the
-                // library or the video. PlaybackStateChanged supplies the idle
-                // edge that brings the library back.
-                _mediaPlayer.FileStarted += MpvPlayerPage_LibraryFileStarted;
+                // FileStarted / FileLoaded are attached earlier, in CreateAsync right after
+                // InitializeAsync returns. Subscribing them here was the defect documented in
+                // SubscribePerLoadEvents: the first file is already loaded by the time Loaded
+                // runs, so the handler was never called for it.
                 _mediaPlayer.PlaybackStateChanged += MpvPlayerPage_LibraryPlaybackStateChanged;
 
                 AppContext.RunMpvCommand = cmd => _ = _mediaPlayer.RunCommandAsync(cmd);
@@ -180,27 +178,9 @@ namespace mpv_winui.Modules.Player
                 // hdr_auto registers its script-message handler after mpv
                 // scripts load; the startup batch races that registration, so
                 // the saved HDR mode is applied once the first file loads.
-                // The third link of the play chain, and the only one that proves
-                // mpv itself got as far as reading the file.
-                //
-                // **Subscribed BEFORE the HDR handler, deliberately.** Both ride
-                // FileLoaded, and the HDR handler does real work (reads mpv
-                // properties, sends a script message). if that work throws, the
-                // multicast invocation stops there and every later handler is
-                // skipped - which is exactly how a per-load diagnostic can appear
-                // to "never fire" while its event is demonstrably being raised.
-                // Recording the fact first keeps the diagnostic independent of the
-                // code it is meant to observe.
-                _mediaPlayer.FileLoaded += MpvPlayerPage_PlayChainFileLoaded;
-                _mediaPlayer.FileLoaded += MpvPlayerPage_ApplyHdrModeOnce;
-
-                // Proof the subscription itself ran, with the time it ran at.
-                // Without this line, "the handler never fires" and "the += ran
-                // after the event" are the same observation, and the first one
-                // sends a reader looking in the wrong component. Measured: mpv
-                // raised file-loaded at 15.0375 and this line printed at 16.7265,
-                // so the event had already gone by.
-                PlayChain.Page("subscribed", "FileLoaded handlers attached");
+                // That handler and the play-chain one are attached in
+                // SubscribePerLoadEvents, right after InitializeAsync -- see the
+                // comment there for why they cannot wait for Loaded.
 
                 SetupKeyboardInput();
                 SetupMouseInput();
@@ -552,8 +532,66 @@ namespace mpv_winui.Modules.Player
 
             _isPlayerInitialized = true;
             _playerReadyTcs.TrySetResult();
+
+            // Subscribe the per-load events HERE, not in Loaded.
+            //
+            // **The defect this fixes.** Every subscription used to happen in
+            // MpvPlayerPage_Loaded, which runs after the page's first layout - and mpv is
+            // already initialised by then, because CreateAsync started in the constructor.
+            // A file handed to the app at launch is therefore loaded before anyone is
+            // listening. Measured:
+            //
+            //     mpv raised file-loaded  at 02:15:15.0375
+            //     FileLoaded handlers attached at 02:15:16.7265   <- 1.7 s too late
+            //
+            // FileStarted survived by luck (it fires twice, once before the load), so the
+            // page switch worked while FileLoaded never arrived - which is indistinguishable
+            // from "mpv never finished loading" and sent the search into the native
+            // component for hours.
+            //
+            // Both events are routed through one handler each, and the handlers are
+            // idempotent with respect to re-subscription, so the later Loaded pass below
+            // no longer re-adds them.
+            SubscribePerLoadEvents();
             _logger.Debug("CreateAsync: player initialized at {}ms", sw.ElapsedMilliseconds);
         }
+
+        /// <summary>
+        /// Attaches the handlers that must be listening before the first file is loaded.
+        ///
+        /// Safe to call twice: <see cref="_perLoadEventsSubscribed"/> makes the second call
+        /// a no-op, so the constructor path (via <see cref="CreateAsync"/>) and the
+        /// Loaded path cannot double-subscribe and fire every handler twice per file.
+        /// </summary>
+        private void SubscribePerLoadEvents()
+        {
+            if (_perLoadEventsSubscribed || _mediaPlayer is null)
+            {
+                return;
+            }
+
+            _perLoadEventsSubscribed = true;
+
+            // Drives the content area. FileStarted is the transition into the playing
+            // page - it fires whether the previous state was the library or the video.
+            _mediaPlayer.FileStarted += MpvPlayerPage_LibraryFileStarted;
+
+            // Third link of the play chain. Subscribed before the HDR handler
+            // deliberately: both ride FileLoaded, and the HDR handler does real work. If
+            // that work throws, the multicast invocation stops and every later handler is
+            // skipped - which is how a per-load diagnostic can appear never to fire while
+            // its event is demonstrably raised.
+            _mediaPlayer.FileLoaded += MpvPlayerPage_PlayChainFileLoaded;
+            _mediaPlayer.FileLoaded += MpvPlayerPage_ApplyHdrModeOnce;
+
+            PlayChain.Page("subscribed", "FileLoaded handlers attached");
+        }
+
+        /// <summary>
+        /// True once <see cref="SubscribePerLoadEvents"/> has run, so the Loaded pass does
+        /// not subscribe a second time.
+        /// </summary>
+        private bool _perLoadEventsSubscribed;
 
         private void MpvPlayerPage_VolumeChanged(VolumeChangedEventArgs args)
         {
