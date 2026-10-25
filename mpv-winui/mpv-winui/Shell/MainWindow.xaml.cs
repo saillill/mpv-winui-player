@@ -1,4 +1,4 @@
-using Microsoft.UI.Windowing;
+﻿﻿using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -712,22 +712,11 @@ namespace mpv_winui
         /// </summary>
         private void UpdateShellOpenFileButton()
         {
-            // The shell's own open button no longer appears anywhere.
-            //
-            // Reported: "首页 打开文件 按钮位置太靠上，应与音乐库 添加文件夹 按钮处于相同位置".
-            // This button lives on its own band above the whole library (Grid.Row="0" of the
-            // content area), which measured 75 px higher than the heading row every other
-            // section uses:
-            //
-            //     home    heading top=479   this button top=404   <- 75 px above
-            //     music   heading top=407   Add folder top=445   <- on the heading row
-            //
-            // Home's affordance is now the library's own heading slot -- the same control
-            // the other two sections use -- so it lands on the same row by construction
-            // instead of by a second set of coordinates that has to be kept in step.
-            // Leaving this one visible would restore the two-open-buttons duplicate this
-            // app already removed once.
-            ShellOpenFileButton.Visibility = Visibility.Collapsed;
+            var onHome = _activeSection == MpvPlayerPage.LibrarySectionHome;
+
+            ShellOpenFileButton.Visibility = onHome && !_pageIsPlaying && !_fullWindow && !_homeEmpty
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         private void ActivePlayer_ShellStateChanged(ShellPage state)

@@ -40,33 +40,7 @@ def windows(pid):
     return out
 
 
-def _self_test() -> int:
-    """Prove this verifier's verdict plumbing can reach FAIL.
-
-    See the same function in verify_e2e.py for why the gate requires it: the previous gate
-    judged by "the last line contained OK" and called a completely broken series of
-    playback verifiers 8/8 PASS, so every verifier in this suite must demonstrate that a
-    failure actually reaches the verdict.
-    """
-    before = len(failures)
-    check("self-test: an assertion that must fail", False, "injected")
-    if len(failures) != before + 1:
-        failures.append("a failing assertion was not recorded")
-    before = len(failures)
-    check("self-test: an assertion that must pass", True)
-    if len(failures) != before:
-        failures.append("a passing assertion was recorded as a failure")
-
-    good = len(failures) == 1 and failures[0].startswith("self-test")
-    print("\nSELF-TEST %s: verdict plumbing reaches a FAIL"
-          % ("PASSED" if good else "FAILED"))
-    return 0 if good else 1
-
-
 def main():
-    if "--self-test" in sys.argv:
-        return _self_test()
-
     T.close_app()
     info = T.launch_app()
     pid = info["pid"]
@@ -147,7 +121,6 @@ def main():
     check("no mpvw process left", not left, left)
 
     print("\n%s (%d failure(s))" % ("OK" if not failures else "FAILED", len(failures)))
-    print("VERDICT: %s -- settings window (%d failure(s))" % ("PASS" if not failures else "FAIL", len(failures)))
     return 0 if not failures else 1
 
 

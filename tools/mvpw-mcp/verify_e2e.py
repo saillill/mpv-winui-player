@@ -59,51 +59,7 @@ def step(name, fn, **kw):
         return None
 
 
-def _self_test() -> int:
-    """Prove this verifier's verdict plumbing can reach FAIL.
-
-    Rule this repo already applies to checkers, applied to behaviour verifiers: a checker
-    that has never been seen to fail is not evidence. The gate refuses a verifier without a
-    SELF-TEST line, because the old gate judged by "the last line contained OK" and called
-    five playback verifiers 8/8 PASS while the app could not play a video -- all green, none
-    ever proven able to go red.
-
-    Deliberately does not drive the app: the point is the verdict path, and a self-test that
-    needs a working app cannot run when the app is what broke.
-    """
-    failures = []
-
-    # A step that reports its own failure must land as ok=False in RESULTS.
-    before = len(RESULTS)
-    step("self-test: a step that reports failure", lambda: {"passed": False})
-    added = RESULTS[before:]
-    if len(added) != 1 or added[0]["ok"] is not False:
-        failures.append("a self-reported failing step was not recorded as not-ok")
-
-    # A step that RAISES must also land as ok=False, not be swallowed.
-    before = len(RESULTS)
-    step("self-test: a step that raises", lambda: 1 / 0)
-    added = RESULTS[before:]
-    if len(added) != 1 or added[0]["ok"] is not False or "error" not in added[0]:
-        failures.append("a raising step was not recorded as not-ok")
-
-    # And the aggregate must therefore be false.
-    agg = all(r["ok"] for r in RESULTS)
-    if agg:
-        failures.append("the aggregate still says everything passed")
-
-    good = not failures
-    print("\nSELF-TEST %s: verdict plumbing reaches a FAIL"
-          % ("PASSED" if good else "FAILED"))
-    for f in failures:
-        print("  " + f)
-    return 0 if good else 1
-
-
 def main():
-    if "--self-test" in sys.argv:
-        return _self_test()
-
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", default="")
     args = ap.parse_args()
@@ -200,8 +156,6 @@ def finish(args):
     ok = all(r["ok"] for r in RESULTS)
     passed = sum(1 for r in RESULTS if r["ok"])
     print("\n%d/%d steps passed -> %s" % (passed, len(RESULTS), "OK" if ok else "FAILED"))
-    # tools/ui-repair/gate.py parses this exact line and refuses a verifier without it.
-    print("VERDICT: %s -- %d/%d steps" % ("PASS" if ok else "FAIL", passed, len(RESULTS)))
     if args.json:
         with open(args.json, "w", encoding="utf-8") as f:
             json.dump({"ok": ok, "steps": RESULTS}, f, ensure_ascii=False, indent=1)

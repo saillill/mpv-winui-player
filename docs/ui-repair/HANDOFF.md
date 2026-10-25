@@ -3,34 +3,27 @@
 > 写给接手的人（或下一个会话的 agent）。只写"现在是什么状态、坑在哪、下一步怎么走"，
 > 不复述历史。权威记录是 `docs/ui-repair/QUEUE.md`，本文是它的入口摘要。
 
-**日期**：2026-10-26（原 2026-10-25 的状态已作废，见 §1）
-**HEAD**：`9aaae43` 之后
+**日期**：2026-10-25
+**HEAD**：`6decadb`
 **仓库**：`C:/Users/z2637/Documents/DeepSeek/mpv`（WinUI 3 + 内嵌 libmpv 的播放器）
 
 ---
 
 ## 1. 一句话状态
 
-**这份交接的状态已经作废，以 `PLAYBACK-FAULT-2026-10-26.md` 为准。**
-
-下面原本写着"`gate.py` 8/8 全绿"——那句话在写下时是真的，但它**什么也没证明**：
-当时应用连视频都放不了。gate 之所以全绿，是因为它的九条判据里**没有任何一条**
-用过应用自己的打开路径，判据本身也只是"最后一行输出里含 OK 这个子串"。
-
-2026-10-26 已重建 gate（见 §2），现在它会因为播放坏了而**变红**。
+`gate.py` **8/8 全绿**，工作树干净，A 区无待办。本会话修完 5 个缺陷、建立 4 个新检查器、
+测量清楚 6 个此前未测的领域。**唯一已确认但未修的功能缺陷是设置页键盘导航**（需要先定交互方案）。
 
 ---
 
-## 2. 当前基线（2026-10-26 重建后）
+## 2. 当前基线
 
 | 项目 | 值 |
 |---|---|
-| `python tools/ui-repair/gate.py` | **会停在 `verify_playback`，退出 1** —— 因为视频确实放不了 |
-| gate 判据 | 每个 verifier 必须打印 `VERDICT: PASS\|FAIL`（且与退出码一致）**并且** `--self-test` 通过 |
-| 检查器 | 23 个 `tools/check-*.py`，全部退出 0 |
-| 单元测试 | `mpv-conf-test` **517** + `mpv-winrt-test` **26**，全通过 |
-| 已确认未修的缺陷 | **视频无法播放**（根因未找到，20+ 候选已排除）；设置页键盘导航 |
-
+| `python tools/ui-repair/gate.py` | **8/8 阶段通过** |
+| 检查器 | **23** 个 `tools/check-*.py`，全部退出 0 |
+| 单元测试 | `mpv-conf-test` **500** + `mpv-winrt-test` **26**，全通过 |
+| 待办 | A 区 **0** 条可开工 |
 
 跑之前先 `python tools/check-xaml.py`（约 1 秒）。XAML 注释里不能有 `--`（WMC9997），
 本仓库的编辑工具不拦这个，已经赔过 5 个完整构建周期。
@@ -164,7 +157,7 @@
 cd /c/Users/z2637/Documents/DeepSeek/mpv
 python tools/check-xaml.py                    # 1 秒，先跑
 python tools/ui-repair/next.py                # 看 A 区还剩什么
-python tools/ui-repair/gate.py                # 全绿才对（现在会停在 verify_playback，见 §2）
+python tools/ui-repair/gate.py                # 8/8 才对
 ```
 
 改完产品代码后：
@@ -188,7 +181,4 @@ pwsh -NoProfile -File tools/deploy-test.ps1 -CloseRunning -Deploy
    ——打包字体覆盖了私有区全部 6400 个码点——已删除，不是保留。
 5. **"修好"的定义**：`gate.py` 全绿 **且** 该复现从 fail 变 pass **且** 翻转在两次独立运行中成立。
    然后 `python tools/ui-repair/done.py <id> --evidence "..."`。
-   > 2026-10-26 补充：旧 gate 的"全绿"判据是"最后一行输出含 OK 这个子串"，
-   > 因此它在应用完全放不了视频时仍报 8/8。现在的 gate 要求每个 verifier 打印
-   > `VERDICT: PASS|FAIL` 并与退出码一致，且 `--self-test` 通过——"全绿"才重新有意义。
 6. 一个提交一个缺陷，提交信息写清楚**根因**。

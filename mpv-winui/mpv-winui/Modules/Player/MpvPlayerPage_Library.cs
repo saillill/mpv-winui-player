@@ -10,7 +10,6 @@ using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Motion;
 using mpv_winui.Modules.Player.History;
 using System;
-using System.ComponentModel;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -317,15 +316,11 @@ namespace mpv_winui.Modules.Player
 
             VideoTabAll.Content = lang.LibraryTabAllVideos;
             VideoTabFolders.Content = lang.LibraryTabVideoFolders;
-            // NOT the heading action's label: that one is section-dependent and is owned by
-            // ApplySectionHeader, which runs BEFORE this method in ApplyLibraryStrings.
-            // Setting it unconditionally here silently undid the Home branch -- measured
-            // after the first attempt: all three sections showed "添加文件夹" on the heading
-            // row, including Home, whose XAML and code both said "Open file".
+            VideoAddFolderText.Text = lang.LibraryAddFolder;
             VideoPlayAllText.Text = lang.LibraryPlayAll;
-            // Same reason as the nav pane's settings button: the label is built in code, so
-            // the accessible name is set beside it. The heading action's own name is NOT set
-            // here for the same reason as its text above -- ApplySectionHeader owns it.
+            // Same reason as the nav pane's settings button: the label is
+            // built in code, so the accessible name is set beside it.
+            AutomationProperties.SetName(VideoAddFolderButton, lang.LibraryAddFolder);
             AutomationProperties.SetName(VideoPlayAllButton, lang.LibraryPlayAll);
 
             // The music section's three tabs and its Add folder command. The
@@ -386,14 +381,6 @@ namespace mpv_winui.Modules.Player
             QueueAddToText.Text = lang.LibraryQueueAddTo;
             AutomationProperties.SetName(QueueClearButton, lang.LibraryQueueClear);
             AutomationProperties.SetName(QueueAddToButton, lang.LibraryQueueAddTo);
-
-            // The queue's right-hand action. Reported as 播放队列也应有右上角"添加文件"按钮 --
-            // measured, the queue had only Clear (x=936) and Add to (x=1087), both against the
-            // left gutter, while every library section carries its own action in the top right.
-            // It reuses the library's open-file string so the two read as the same action.
-            QueueOpenFileText.Text = lang.LibraryOpenFile;
-            AutomationProperties.SetName(QueueOpenFileButton, lang.LibraryOpenFile);
-            QueueOpenFileIcon.Data = FluentIcons.Geometry(FluentIcons.FolderOpen);
 
             QueueClearIcon.Data = FluentIcons.Geometry(FluentIcons.Delete);
             QueueAddToIcon.Data = FluentIcons.Geometry(FluentIcons.Add);
@@ -466,43 +453,9 @@ namespace mpv_winui.Modules.Player
             // the top-right one appears once the library has folders. The previous
             // arrangement had both at once, which is the duplicate that was
             // reported against on the Home section.
-            //
-            // **Home now uses this same slot, and that is the point.** Reported:
-            // "首页 打开文件 按钮位置太靠上，应与音乐库 添加文件夹 按钮处于相同位置".
-            // Measured before the change, by UI Automation rectangles:
-            //
-            //     home    heading top=479   ShellOpenFileButton top=404  <- 75 px ABOVE
-            //     music   heading top=407   VideoAddFolderButton top=445  <- on the row
-            //
-            // Home's only open command was the shell's DropDownButton, which lives on its
-            // own band above the whole library (Grid.Row=0 of the content area). So on
-            // Home the affordance sat in a different row from every other section's, and
-            // the two never lined up. Driving it from this slot instead means one row, one
-            // position, one owner -- and the shell button is hidden on Home as a
-            // consequence (see UpdateShellOpenFileButton).
-            var showHeadingAction = (isVideos && hasVideoFolders)
-                || (isMusic && hasMusicFolders)
-                || (isHome && string.IsNullOrWhiteSpace(_libraryFilter));
-            VideoAddFolderButton.Visibility = showHeadingAction
+            VideoAddFolderButton.Visibility = (isVideos && hasVideoFolders) || (isMusic && hasMusicFolders)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
-
-            // One slot, two commands. The heading action is "Add folder" on the two media
-            // libraries and "Open file" on Home, so its words and glyph follow the section
-            // rather than the XAML. Set here, next to the visibility that decides whether
-            // anyone can see it, so the two can never disagree.
-            if (isHome)
-            {
-                VideoAddFolderText.Text = lang.LibraryOpenFile;
-                AutomationProperties.SetName(VideoAddFolderButton, lang.LibraryOpenFile);
-                VideoAddFolderIcon.Data = FluentIcons.Geometry(FluentIcons.Folder);
-            }
-            else
-            {
-                VideoAddFolderText.Text = lang.LibraryAddFolder;
-                AutomationProperties.SetName(VideoAddFolderButton, lang.LibraryAddFolder);
-                VideoAddFolderIcon.Data = FluentIcons.Geometry(FluentIcons.FolderAdd);
-            }
         }
 
         /// <summary>
@@ -850,17 +803,6 @@ namespace mpv_winui.Modules.Player
         private void VideoAddFolder_Click(object sender, RoutedEventArgs e)
         {
             // The same command the empty state's "Add folder" button uses.
-            //
-            // On Home the heading slot carries "Open file" instead of "Add folder" (see
-            // ApplySectionHeader for the placement reasoning), so it has to run the file
-            // picker rather than the folder binder. Doing the wrong one here would be
-            // invisible in a screenshot and obvious to a user: a folder picker under a
-            // label that says "open a file".
-            if (_librarySection == LibrarySectionHome)
-            {
-                LibraryOpenFileButton_Click(sender, e);
-                return;
-            }
             _ = AddLibraryFoldersAsync(_librarySection == LibrarySectionMusic);
         }
 
@@ -1296,17 +1238,9 @@ namespace mpv_winui.Modules.Player
             // forty folders had a working index that was never shown -- the
             // reported "the letter buttons do nothing" was really "there are no
             // letter buttons".
-            // Only the music library's grouped tabs have an alphabet rail.
-            //
-            // The video library used to qualify whenever the folder view was up, and measured
-            // on the deployed build it did: `VideoTabFolders` exposed a rail of 27 letter
-            // buttons while `VideoTabAll` exposed none. Reported as "视频库不需要右侧的字母排序栏",
-            // and the report is right -- the video library groups by DIRECTORY, and a directory
-            // has no initial to jump to. The letters were keying off the first character of a
-            // folder name, which is an ordering nobody asked for and does not help anyone find
-            // a folder whose name they already know.
             var isGrouped = _librarySection == LibrarySectionMusic
-                && _musicGrouping != MusicGrouping.Songs;
+                ? _musicGrouping != MusicGrouping.Songs
+                : _videoFolderView;
 
             if (!isGrouped)
             {
@@ -2073,12 +2007,8 @@ namespace mpv_winui.Modules.Player
                 if (image is null)
                 {
                     _libraryWithoutThumbnail.Add(entry.Path);
-                    PlayChain.Page("thumb", "none for " + System.IO.Path.GetFileName(entry.Path));
                     continue;
                 }
-
-                PlayChain.Page("thumb", "got " + image.PixelWidth + "x" + image.PixelHeight
-                    + " for " + System.IO.Path.GetFileName(entry.Path));
 
                 _libraryThumbnails[entry.Path] = image;
 
@@ -2543,224 +2473,11 @@ namespace mpv_winui.Modules.Player
             // hover path covers the rest.
             if (args.Element is FrameworkElement card)
             {
-                // ItemsRepeater does NOT set DataContext on a realised element. That is the
-                // one way it differs from GridView/ListView here, and it silently broke the
-                // album card.
-                //
-                // The album and artist templates bind their two captions with {Binding}, not
-                // {x:Bind}, because a single {x:Bind AlbumTitle} makes the WindowsAppSDK
-                // 2.3.9 XAML compiler fail with WMC9999 (see the long comment on
-                // AlbumCardTemplate). {Binding} resolves against the DataContext, so with no
-                // DataContext every path in those templates resolves to null.
-                //
-                // Measured before this line existed, on the album tab:
-                //
-                //     stddev 0.0, distinct colours 1, whole card = rgb(32,32,32)
-                //
-                // a flat grey rectangle with no cover, no caption and not even the fallback
-                // glyph -- the reported "长条形的灰色底". The song tab measured stddev 17.1 /
-                // 94 colours on the same run, because its template is all {x:Bind} and needs
-                // no DataContext.
-                //
-                // Set here because a DataTemplate has no hook of its own, and ElementPrepared
-                // runs for every realised element including recycled ones -- which is also
-                // what a recycled card needs.
-                if (sender.ItemsSourceView is { } view
-                    && args.Index >= 0 && args.Index < view.Count)
-                {
-                    var item = view.GetAt(args.Index);
-                    card.DataContext = item;
-
-                    // Write the two captions directly instead of relying on {Binding}.
-                    //
-                    // Measured: with DataContext correctly set to the LibraryEntry and the
-                    // entry carrying album="i Love" artist="未知艺术家", the card's two
-                    // TextBlocks still came out EMPTY -- UIA showed two TextControl children
-                    // at the right rectangles with name='', and the whole card rendered as
-                    // one flat rgb(32,32,32).
-                    //
-                    // The template cannot use {x:Bind} here: a single {x:Bind AlbumTitle}
-                    // makes the WindowsAppSDK 2.3.9 XAML compiler fail with WMC9999 (see the
-                    // comment on AlbumCardTemplate). {Binding} was the workaround, and it is
-                    // not resolving inside an ItemsRepeater DataTemplate even with a correct
-                    // DataContext. Rather than fight the binding engine, the two strings are
-                    // assigned where the data is already in hand -- this runs for every
-                    // realised element, including recycled ones, so it also fixes reuse.
-                    SetCardCaption(card, "AlbumCardTitleText", (item as LibraryEntry)?.AlbumTitle);
-                    SetCardCaption(card, "AlbumCardArtistText", (item as LibraryEntry)?.AlbumArtistText);
-                    SetCardCover(card, item as LibraryEntry);
-                    SetCardMediaSquare(card);
-                }
-
                 ApplyCardOverlayStrings(card);
             }
 
             var delay = TimeSpan.FromMilliseconds(Math.Min(args.Index, 8) * 20);
             MotionBehaviors.PosterEnter(args.Element, delay: delay);
-        }
-
-        /// <summary>
-        /// Shows or hides the album card's cover from code, and hides the fallback glyph
-        /// while a cover is up.
-        ///
-        /// Same reason as <see cref="SetCardCaption"/>: the template's bindings do not take
-        /// effect here. Measured -- the .flac's thumbnail loaded at 600x600 and
-        /// LibraryEntry raised PropertyChanged for Thumbnail, yet the card stayed a flat
-        /// rgb(32,32,32) because neither the Image's Source nor its Visibility followed.
-        ///
-        /// A null thumbnail is not an error: it is the poster-less state, and the media-kind
-        /// glyph stays visible for it.
-        /// </summary>
-        private static void SetCardCover(FrameworkElement card, LibraryEntry? entry)
-        {
-            // FindName does not reach into a DataTemplate's instantiated content: the names
-            // belong to the template instance, not to the root the handler was given.
-            // Measured -- "no AlbumCardCoverImage on Button" for every card while the element
-            // was demonstrably in the tree. Walking the visual tree is what works.
-            if (FindDescendant<Image>(card, "AlbumCardCoverImage") is not Image cover)
-            {
-                return;
-            }
-
-            if (entry?.Thumbnail is { } image)
-            {
-                cover.Source = image;
-                cover.Visibility = Visibility.Visible;
-                if (FindDescendant<FrameworkElement>(card, "AlbumCardFallbackIcon") is { } glyph)
-                {
-                    glyph.Visibility = Visibility.Collapsed;
-                }
-            }
-            else
-            {
-                cover.Source = null;
-                cover.Visibility = Visibility.Collapsed;
-                if (FindDescendant<FrameworkElement>(card, "AlbumCardFallbackIcon") is { } glyph)
-                {
-                    glyph.Visibility = Visibility.Visible;
-                }
-
-                // The thumbnail arrives LATER: it is fetched asynchronously after the card is
-                // already on screen, and the template's {x:Bind Thumbnail} does not deliver
-                // the update (same reason as the captions). So the one card that is waiting
-                // gets a one-shot listener that repaints when its image lands.
-                //
-                // Guarded by the handler being removed on the first raise: the entry outlives
-                // the card, and a listener kept alive per recycle would repaint elements that
-                // are already showing something else.
-                if (entry is not null)
-                {
-                    void OnThumbnailReady(object? s, PropertyChangedEventArgs e)
-                    {
-                        if (e.PropertyName != nameof(LibraryEntry.Thumbnail))
-                        {
-                            return;
-                        }
-
-                        entry.PropertyChanged -= OnThumbnailReady;
-                        SetCardCover(card, entry);
-                    }
-
-                    entry.PropertyChanged -= OnThumbnailReady;
-                    entry.PropertyChanged += OnThumbnailReady;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gives the album card's media area its square height, in code.
-        ///
-        /// The template asks for `Height="{Binding ActualWidth, RelativeSource={RelativeSource
-        /// Self}}"`, which is a self-referential {Binding}. Every other {Binding} in this
-        /// template turned out not to resolve (the captions came out empty), and {x:Bind}
-        /// cannot replace it: `{x:Bind ActualWidth}` in this DataTemplate crashes the
-        /// WindowsAppSDK 2.3.9 XAML compiler with WMC9999, exactly like {x:Bind AlbumTitle}.
-        ///
-        /// A zero-height media Border would explain a cover that loads but never shows, so the
-        /// height is set here once the real width is known. SizeChanged keeps it square through
-        /// a window resize; the handler is removed when the element is recycled, because
-        /// ElementPrepared runs again for the next item that lands on this card.
-        /// </summary>
-        private static void SetCardMediaSquare(FrameworkElement card)
-        {
-            if (FindDescendant<Border>(card, "AlbumCardMediaBorder") is not Border media)
-            {
-                return;
-            }
-
-            void Fit()
-            {
-                if (media.ActualWidth > 0)
-                {
-                    media.Height = media.ActualWidth;
-                }
-            }
-
-            media.SizeChanged -= OnMediaSizeChanged;
-            media.SizeChanged += OnMediaSizeChanged;
-            Fit();
-
-            static void OnMediaSizeChanged(object sender, SizeChangedEventArgs e)
-            {
-                if (sender is Border b && b.ActualWidth > 0)
-                {
-                    b.Height = b.ActualWidth;
-                }
-            }
-        }
-
-        /// <summary>
-        /// The first descendant with this name, found by walking the visual tree.
-        ///
-        /// This exists because FrameworkElement.FindName does not search inside a realised
-        /// DataTemplate: the name belongs to the template instance, and the element the
-        /// ElementPrepared handler receives is the template's root, not its namescope owner.
-        /// </summary>
-        private static T? FindDescendant<T>(DependencyObject root, string name)
-            where T : FrameworkElement
-        {
-            var count = VisualTreeHelper.GetChildrenCount(root);
-            for (var i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(root, i);
-                if (child is T typed && typed.Name == name)
-                {
-                    return typed;
-                }
-
-                if (FindDescendant<T>(child, name) is { } found)
-                {
-                    return found;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Writes one caption inside a realised card, by name.
-        ///
-        /// The album card's two captions cannot use a binding: {x:Bind} to these properties
-        /// crashes the WindowsAppSDK 2.3.9 XAML compiler (WMC9999), and {Binding} inside an
-        /// ItemsRepeater DataTemplate did not resolve even with a correct DataContext --
-        /// measured, both TextBlocks stayed empty while the entry carried album="i Love" and
-        /// artist="未知艺术家", and the card rendered as one flat rgb(32,32,32). Setting the
-        /// text here is the one mechanism known to work.
-        ///
-        /// A missing name is ignored rather than thrown: this same handler serves the video
-        /// card, which has no album captions at all.
-        /// </summary>
-        private static void SetCardCaption(FrameworkElement card, string name, string? text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return;
-            }
-
-            if (FindDescendant<TextBlock>(card, name) is { } block)
-            {
-                block.Text = text;
-            }
         }
 
         private void LibraryIdleTimer_Tick(object? sender, object e)

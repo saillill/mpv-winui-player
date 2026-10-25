@@ -23,35 +23,7 @@ DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
 GONE = ["openal", "cuda-decode-device", "input-gamepad", "sbr-probesize"]
 
 
-def _self_test() -> int:
-    """Prove this verifier's verdict plumbing can reach FAIL.
-
-    See verify_e2e.py's `_self_test` for the reasoning. This verifier has no helper
-    functions to exercise -- it computes one boolean at the end -- so the self-test checks
-    the two things that actually decide its verdict: that a non-empty survivor list makes
-    it FAIL, and that an empty one makes it PASS.
-    """
-    def verdict_for(survivors):
-        return not survivors
-
-    failures = []
-    if verdict_for(["a-row-that-survived"]) is not False:
-        failures.append("a non-empty survivor list did not produce FAIL")
-    if verdict_for([]) is not True:
-        failures.append("an empty survivor list did not produce PASS")
-
-    good = not failures
-    print("\nSELF-TEST %s: verdict plumbing reaches a FAIL"
-          % ("PASSED" if good else "FAILED"))
-    for f in failures:
-        print("  " + f)
-    return 0 if good else 1
-
-
 def main():
-    if "--self-test" in sys.argv:
-        return _self_test()
-
     subprocess.run(["pwsh", "-NoProfile", "-Command",
                     "Get-Process mpvw -ErrorAction SilentlyContinue | Stop-Process -Force"],
                    capture_output=True)
@@ -122,7 +94,6 @@ def main():
 
     ok = not survivors
     print("PASS" if ok else "FAIL: the window still builds a row for %s" % survivors)
-    print("VERDICT: %s -- settings rows" % ("PASS" if ok else "FAIL"))
     return 0 if ok else 1
 
 

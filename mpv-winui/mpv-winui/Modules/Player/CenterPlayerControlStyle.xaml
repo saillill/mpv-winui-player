@@ -412,18 +412,9 @@
                                     Style="{StaticResource SquareIconButtonStyle}"
                                     Visibility="Collapsed">
                                     <Button.Content>
-                                        <!-- Segoe Fluent Icons E712 is the horizontal
-                                             three-dot "More". This said E10C, which is
-                                             GlobalNavButton — the hamburger menu — so the
-                                             overlay bar's menu button showed the wrong icon
-                                             while the app bar's own More button had already
-                                             been corrected to E712 for exactly this reason
-                                             (see PlayerControl.xaml). Reported as
-                                             "菜单悬浮按钮图标不正确". -->
                                         <FontIcon
-                                            FontFamily="{StaticResource SymbolThemeFontFamily}"
                                             FontSize="{StaticResource MpvTransportIconSize}"
-                                            Glyph="&#xE712;" />
+                                            Glyph="&#xE10C;" />
                                     </Button.Content>
                                     <Button.Flyout>
                                         <MenuFlyout

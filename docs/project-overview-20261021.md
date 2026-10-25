@@ -29,7 +29,7 @@ mpvw 是一个**三层结构**的 WinUI 3 播放器：C# 界面层 + C++/WinRT �
 | `mpv-winrt-test` | net10.0 测试 | 真机驱动 `mpv_winrt`（封面、标签、属性） | `mpv-winui/mpv-winrt-test/` |
 
 `mpv-winui-lazy/` 不是工程，是被 `csproj` 以 `Content Include` 整目录拷进输出、首次运行由
-`ConfigDeployer` 部署到 `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv` 的**配置层**。
+`ConfigDeployer` 部署到 `%LOCALAPPDATA%\mpv-winui\mpv` 的**配置层**。
 
 ### 1.2 C# 应用内部（`mpv-winui/mpv-winui/`）
 

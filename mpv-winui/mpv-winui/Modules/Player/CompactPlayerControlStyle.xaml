@@ -243,13 +243,9 @@
                                 IsTabStop="False"
                                 Style="{StaticResource SquareIconButtonStyle}">
                                 <Button.Content>
-                                    <!-- E712 is the horizontal three-dot "More"; E10C is
-                                         GlobalNavButton, the hamburger. Same correction as
-                                         CenterPlayerControlStyle.xaml and PlayerControl.xaml. -->
                                     <FontIcon
-                                        FontFamily="{StaticResource SymbolThemeFontFamily}"
                                         FontSize="{StaticResource MpvTransportIconSize}"
-                                        Glyph="&#xE712;" />
+                                        Glyph="&#xE10C;" />
                                 </Button.Content>
                                 <Button.Flyout>
                                     <MenuFlyout

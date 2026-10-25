@@ -16,8 +16,8 @@
 
 | 这里的子目录 | 对应 AppData 位置 | 用途 | 本分支是否还需要手动拷 |
 | :--- | :--- | :--- | :--- |
-| `mpv-conf-editor/` | `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv-conf-editor\` | mpv.conf 编辑器的选项定义（名称、类型、说明、取值范围） | **需要** —— 见下 |
-| `mpv/` | `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv\` | 一份精简的 mpv 配置样例 | **不需要**，已被 `mpv-winui-lazy/` 取代 |
+| `mpv-conf-editor/` | `%LOCALAPPDATA%\mpv-winui\mpv-conf-editor\` | mpv.conf 编辑器的选项定义（名称、类型、说明、取值范围） | **需要** —— 见下 |
+| `mpv/` | `%LOCALAPPDATA%\mpv-winui\mpv\` | 一份精简的 mpv 配置样例 | **不需要**，已被 `mpv-winui-lazy/` 取代 |
 | `menu.json`、`mpvw-menu.conf` | `%LOCALAPPDATA%\mpv-winui\` | 菜单样例 | 视需要 |
 
 ## 关于 `mpv-conf-editor/`（唯一仍然有用的部分）
@@ -45,4 +45,4 @@ return MpvConfSchemaService.LoadFromDirectory(definitionDirectory);
 | 改了会怎样 | 影响所有安装（自动部署并清理旧文件） | 什么都不影响 |
 
 `mpv/` 子目录属于上游遗留：本分支的 `ConfigDeployer` 已经会用 `mpv-winui-lazy/`
-自动部署并维护 `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv`，所以这部分样例不必再手工拷贝。
+自动部署并维护 `%LOCALAPPDATA%\mpv-winui\mpv`，所以这部分样例不必再手工拷贝。

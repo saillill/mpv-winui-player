@@ -89,25 +89,12 @@ the newest allowed. It replaces all of them; the history is at the end.
    spacing, colour, clipping, or to diagnose a mis-render. Declaring a feature
    verified because it looks right is the specific mistake that once got screenshots
    banned here.
-5. **The IPC pipe accepts one client at a time and drops it fast.** Corrected
-   2026-10-26 by measurement, because the previous wording ("in roughly the first
-   second after launch... a connection made later is refused") was wrong in both
-   halves and produced a night of false "the probe is broken" conclusions:
-
-   - **Connecting works at any time.** `CreateFile(\\.\pipe\mpvpipe)` succeeded at
-     +1.05 s and again at +6.05 s on a fresh process. It is not a launch window.
-   - **The accepted connection dies after roughly 0.4 s**, whether or not it is
-     being used: with a `get_property` round-trip every 100 ms the writes started
-     failing with `err=232` (`ERROR_NO_DATA`) at +1.42 s. So "keep it busy" does
-     not keep it alive.
-   - Only **one** client at a time; a second connect alternates `write 232` /
-     `read 109` (`ERROR_BROKEN_PIPE`).
-
-   Practical rule: connect and write **in the same breath**, do all the reading you
-   need from that one burst, and take a fresh connection for the next burst. Never
-   `sleep` between connect and the first write. `_work/probe/probe_pipe_lifetime2.py`
-   measures all three facts in about 20 s.
-   `mpv_tools.open_launch_window()` still works; it is just not the only time it can.
+5. **The IPC pipe serves one conversation per process**, in roughly the first second
+   after launch. A connection made later is refused, and an idle one dies. Tools that
+   need their own conversation must open it during the launch window --
+   `mpv_tools.open_launch_window()`. Measured, not assumed
+   (`tools/mvpw-mcp/diag_ipc_matrix.py`), and it is the single most common reason a
+   probe "fails".
 
 What works, measured on the deployed build:
 
@@ -181,21 +168,8 @@ methods beats reading the file top to bottom.
 ### Test facts
 
 - IPC: `NamedPipeClientStream('.', 'mpvpipe')`; send JSON `{"command":[...],"request_id":N}`, read lines until the matching request_id.
-- Logs: `%LOCALAPPDATA%\mpv-winui\mpv-winui\logs\mpv-winui.<date>.log.txt`, plus `display-info.log`.
-  Note the **doubled** `mpv-winui`: `%LOCALAPPDATA%\mpv-winui\logs\` also exists and is a
-  decoy -- its newest file is from 2026-09-25 while the live one is written every run. This
-  line said the single-nesting path until 2026-10-26 and cost a session's worth of "the log
-  is empty" before the real directory was found.
-- mpv's own config dir is `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv\` (also doubled). Editing
-  `%LOCALAPPDATA%\mpv-winui\mpv\mpv.conf` does nothing. And even in the right one, the
-  options `MpvPlayer::Initialize` sets before `mpv_initialize` (`d3d11-output-mode`,
-  `force-window`, `d3d11-composition-size`, `gpu-api`) **override** the file, so changing
-  those there proves nothing -- change the C++ or the setting instead.
-  `ConfigDeployer` re-copies the bundled layer each launch except its `UserOwnedFiles`
-  (`mpv.conf`, `input.conf`, `menus.json`, `custom_menu.json`) and `UserOwnedDirs`
-  (`script-opts`); `mpv/scripts/` IS re-deployed, so excluding scripts means renaming that
-  directory, not `load-scripts=no`.
-- Config runs from `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv` (synced by ConfigDeployer at startup).
+- Logs: `%LOCALAPPDATA%\mpv-winui\logs\mpv-winui.<date>.log.txt`, plus `display-info.log`.
+- Config runs from `%LOCALAPPDATA%\mpv-winui\mpv` (synced by ConfigDeployer at startup).
 - Settings are in registry `HKCU\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app`; booleans stored as `"true"` / `"false"`.
 - Defaults live in `AppSettings*.cs` (core + domain partials); live mpv mapping is `MpvSettings.ToCommand`.
 - PrintWindow misses WinUI popups; use CopyFromScreen for visual verification.
