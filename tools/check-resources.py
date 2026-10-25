@@ -17,6 +17,8 @@ What counts as defined:
     generic.xaml when it can be found, and otherwise accepted by a conservative
     shape rule - a key the app defines is checked, a framework-looking key is not
     rejected just because the package is not restored on this machine.
+  * the base `SystemColor*Color` theme colours, which WinUI supplies but no XAML file
+    declares -- see SYSTEM_THEME_COLOURS below.
 
 Deliberately not a full XAML resource resolver: it does not follow
 ResourceDictionary.Source, does not understand keyed lookups through
@@ -52,6 +54,56 @@ WELL_KNOWN_FRAMEWORK = {
     "HeaderTextBlockStyle",
 }
 
+# WinUI's base theme COLOURS. They are a fixed set the framework resolves by name and
+# no XAML on this machine declares: the SDK's generic.xaml declares the matching
+# `SystemColor*ColorBrush` brushes as x:Keys, but the bare `Color` forms appear only as
+# `Color="{ThemeResource SystemColorButtonTextColor}"` -- 734 such usages in
+# microsoft.windowsappsdk.winui/1.8.251105000/lib/.../Themes/generic.xaml, and zero
+# `x:Key` declarations for any of them. So the allow-list built from generic.xaml can
+# never contain them, and this table is where they come from.
+#
+# Named after the Win32 system colours the contrast themes set (COLOR_WINDOW etc.), which
+# is why they change with the user's scheme. Needed from the day Styles.xaml gained a
+# HighContrast dictionary: every brush there is defined AS one of these, and without this
+# the checker reported five of them as "not defined anywhere in the app".
+SYSTEM_THEME_COLOURS = {
+    "SystemColorWindowColor",
+    "SystemColorWindowTextColor",
+    "SystemColorButtonFaceColor",
+    "SystemColorButtonTextColor",
+    "SystemColorHighlightColor",
+    "SystemColorHighlightTextColor",
+    "SystemColorGrayTextColor",
+    "SystemColorHotlightColor",
+    # Menu / scrollbar / 3D-face companions, same family and same origin.
+    "SystemColorMenuColor",
+    "SystemColorMenuTextColor",
+    "SystemColorScrollbarColor",
+    "SystemColorActiveCaptionColor",
+    "SystemColorInactiveCaptionColor",
+    "SystemColorCaptionTextColor",
+    "SystemColorActiveBorderColor",
+    "SystemColorInactiveBorderColor",
+    "SystemColorAppWorkspaceColor",
+    "SystemColorBackgroundColor",
+    "SystemColorButtonShadowColor",
+    "SystemColorButtonHilightColor",
+    "SystemColorButtonDkShadowColor",
+    "SystemColorButtonLightColor",
+    "SystemColorGradientActiveCaptionColor",
+    "SystemColorGradientInactiveCaptionColor",
+    "SystemColorDesktopColor",
+    "SystemColorControlColor",
+    "SystemColorControlTextColor",
+    "SystemColorControlDarkColor",
+    "SystemColorControlLightColor",
+    "SystemColorControlDarkDarkColor",
+    "SystemColorInfoColor",
+    "SystemColorInfoTextColor",
+    "SystemColorMenuBarColor",
+    "SystemColorMenuHighlightColor",
+}
+
 
 def app_xaml_files():
     for path in APP.rglob("*.xaml"):
@@ -75,7 +127,7 @@ def collect_defined_keys():
 
 def collect_framework_keys():
     """WinUI's own keys, read from the package's generic.xaml when it is present."""
-    keys = set(WELL_KNOWN_FRAMEWORK)
+    keys = set(WELL_KNOWN_FRAMEWORK) | set(SYSTEM_THEME_COLOURS)
 
     root = pathlib.Path.home() / ".nuget" / "packages"
 

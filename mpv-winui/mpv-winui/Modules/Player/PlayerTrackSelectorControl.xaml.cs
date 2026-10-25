@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using mpv_winrt;
 using System;
@@ -63,6 +63,14 @@ namespace mpv_winui.Modules.Player
             // empty when no second-subtitle track exists, so WinUI leaves the
             // pivot item unnamed. Name it from the same string.
             AutomationProperties.SetName(SecondSubPivotItem, lang.SecondSubtitle);
+            // The other three headers have the same shape -- an icon plus a
+            // localized TextBlock plus a count TextBlock -- so WinUI leaves them
+            // unnamed for the same reason it left the second one unnamed.
+            // Measured: only SecondSubPivotItem reported a name; the other three
+            // reported "" while their captions were already localized and visible.
+            AutomationProperties.SetName(SubtitlePivotItem, lang.SettingsCategorySubtitles);
+            AutomationProperties.SetName(VideoPivotItem, lang.SettingsCategoryVideo);
+            AutomationProperties.SetName(AudioPivotItem, lang.SettingsCategoryAudio);
             VideoTabText.Text = lang.SettingsCategoryVideo;
             AudioTabText.Text = lang.SettingsCategoryAudio;
         }

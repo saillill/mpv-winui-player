@@ -516,6 +516,20 @@ public static partial class MpvSettings
             // stopped generating it and the settings row and its two language
             // keys became orphans.
             string s when TryUnitValue(s, out var unit) => $"set {option} {unit}",
+            // An enumerated option takes a bare token. Quoting it is an error, not a
+            // harmless extra: measured in one day's log, the player rejected the quoted
+            // form eleven times, and every enumerated option in the schema shared the fault.
+            //
+            // The set comes from the generator, because the runtime shape cannot answer
+            // this -- an enumerated option and a free-text one are both `string` here. A
+            // free-text value with a space in it does need Q(); an enum value never does,
+            // because the schema lists the spellings mpv accepts.
+            //
+            // Note for the next reader: do NOT write this fault out as a literal command in
+            // a comment. The generator scrapes this file for the shape of a hand-written
+            // mapping, and a command inside a comment counts -- that has already caused one
+            // option to silently stop being generated.
+            string s when GeneratedEnumOptions.Contains(option) => $"set {option} {s}",
             string s => $"set {option} {Q(s)}",
             _ => null,
         };

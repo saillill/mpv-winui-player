@@ -86,14 +86,33 @@ public sealed class WindowStyleManager : IDisposable
         return ResolveTheme();
     }
 
-    /// <summary>Resolves the effective element theme from the current setting.</summary>
+    /// <summary>
+    /// Resolves the effective element theme from the current setting.
+    ///
+    /// Auto must return <see cref="ElementTheme.Default"/>, not whichever of
+    /// Light/Dark the system currently reports.
+    ///
+    /// An element's RequestedTheme selects which ThemeDictionaries entry WinUI
+    /// resolves {ThemeResource} against: an explicit Light or Dark pins it to that
+    /// one dictionary and the HighContrast entry is never consulted. Default defers
+    /// to the framework, and is the only value that also follows a contrast theme.
+    ///
+    /// Measured before this change: with the app on Auto and a contrast theme
+    /// applied, the shell kept painting #202020 -- the DARK dictionary's surface --
+    /// under both hcblack (Window = 32 32 32) and hcwhite (Window = 255 250 239).
+    /// It was reading the system app-theme preference, which does not change for a
+    /// contrast theme, and then hard-pinning RequestedTheme to that value. So the
+    /// HighContrast dictionary in Styles.xaml was present in the compiled .xbf and
+    /// unreachable. Auto is the default setting, so this was the normal path.
+    /// </summary>
     public static ElementTheme ResolveTheme()
     {
         return AppContext.AppSetting.ThemeType switch
         {
             AppSettings.ThemeType_Dark => ElementTheme.Dark,
             AppSettings.ThemeType_Light => ElementTheme.Light,
-            _ => App.Current.RequestedTheme == ApplicationTheme.Light ? ElementTheme.Light : ElementTheme.Dark,
+            // Auto: follow the system, contrast themes included.
+            _ => ElementTheme.Default,
         };
     }
 

@@ -1,5 +1,6 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
@@ -272,7 +273,15 @@ namespace mpv_winui.Modules.Player
                     VerticalScrollMode = ScrollMode.Auto,
                     Padding = new Thickness(0, 0, 4, 0),
                 };
-                pivot.Items.Add(new PivotItem { Header = header, Content = scroller });
+                var item = new PivotItem { Header = header, Content = scroller };
+                // The header is an icon plus a TextBlock, and WinUI leaves a PivotItem
+                // unnamed when its Header is a panel rather than a string -- the same shape
+                // as the track selector's four tabs, where only the explicitly named item
+                // reported a name. Measured before this line: all three tabs reported
+                // Name='' while their captions were localized and visible, so a screen
+                // reader announced three anonymous tabs.
+                AutomationProperties.SetName(item, text);
+                pivot.Items.Add(item);
             }
             ControlPanelHost.ContentPanel.Children.Add(pivot);
         }

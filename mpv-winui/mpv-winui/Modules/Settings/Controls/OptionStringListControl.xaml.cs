@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using mpv_winui.Modules.Motion;
@@ -38,6 +39,20 @@ public sealed partial class OptionStringListControl : OptionControlBase
         LabelText.Text = newValue.Label;
         UpdateDescription(DescriptionText);
         Combo.IsEnabled = newValue.IsEnabled;
+
+        // The free-text field that appears when the user picks "custom". It had no
+        // accessible name, so a screen reader reached a focusable 195x56 text box and
+        // announced nothing: measured on the deployed build, `CustomInput` reported
+        // `Name == ""`, `HelpText == ""`, `IsKeyboardFocusable == true`.
+        //
+        // The row's own label is the right name -- it is what a sighted user reads beside
+        // the box -- and it is already in `LabelText.Text` two lines up, so this follows
+        // the same "one string, one place" rule the other option controls use
+        // (`OptionListControl` names its toggles from `lang.*`, `OptionColorControl` names
+        // its swatch from `AppLang.A11yColorSwatch`). Naming it from the row label rather
+        // than from a new AppLang key keeps the nine language files unchanged, and the
+        // label is already localized.
+        AutomationProperties.SetName(CustomInput, newValue.Label);
 
         _loading = true;
         try

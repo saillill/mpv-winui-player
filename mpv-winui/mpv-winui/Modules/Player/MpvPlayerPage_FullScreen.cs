@@ -1,4 +1,4 @@
-using Microsoft.UI.Windowing;
+﻿﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 
@@ -29,6 +29,25 @@ namespace mpv_winui.Modules.Player
         /// </summary>
         internal bool HandleFullWindowRequest()
         {
+            // **Ask the shell first, and only flip state if it agrees.**
+            //
+            // The order here is the fix for a measured defect. This method used to flip its
+            // own visual state and then call `ChangeFullWindow`, which decides whether the
+            // window's chrome may be replaced. When the shell refused -- the library page is
+            // up, so there is no video to fill the window -- the page had ALREADY gone to
+            // `FullWindow`: its menu row collapsed while the shell kept the title row and bar
+            // row, and the result was a windowed frame with a full-window page inside it and
+            // no control bar anywhere in the tree (53 elements -> 31, no ProgressSlider).
+            //
+            // Now the page asks `CanEnterFullWindow` before touching the visual state, so
+            // there is no half-applied state to unwind.
+            var window = App.Window as MainWindow;
+            var wantFull = !_isFullWindow;
+            if (wantFull && window is { CanEnterFullWindow: false })
+            {
+                return false;
+            }
+
             // Track the state ourselves: GoToState's return value only reports
             // whether the state changed, so re-entering an already-active state
             // used to flip _isFullWindow the wrong way and left the overlay
@@ -44,10 +63,7 @@ namespace mpv_winui.Modules.Player
                 _isFullWindow = true;
             }
 
-            if (App.Window is MainWindow window)
-            {
-                window.ChangeFullWindow(_isFullWindow);
-            }
+            window?.ChangeFullWindow(_isFullWindow);
 
             PlayerControl.SetOverlayMode(_isFullWindow);
             PlayerControl.RefreshAdaptiveState();

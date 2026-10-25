@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -1114,6 +1114,27 @@ public sealed partial class SettingsPage : Page
         {
             SetActionStatus(rowKey, args.ActionStatusText);
         }
+
+        // The pane-mode button's accessible name and tooltip, applied once per page.
+        //
+        // **Why here, and what it fixes.** `ApplyPaneModeButtonLabel()` is the only code
+        // that calls `AutomationProperties.SetName(PaneModeButton, ...)` and sets its
+        // tooltip, and it was reachable only from `ApplyPaneMode()`, which runs only from
+        // `SettingsPage_SizeChanged`. That handler returns early when the width CLASS has
+        // not changed, and at the settings window's default size the class is "not narrow"
+        // while `IsNarrow` also starts false -- so on the common path the method never ran.
+        //
+        // Measured on the deployed build: `PaneModeButton` had `Name == ""` and
+        // `HelpText == ""` while `IsEnabled`, `IsKeyboardFocusable` and its 405x49 box were
+        // all normal. Every neighbouring control in the same window reported correctly
+        // (`SearchBox` = 搜索, `CustomizeToggle` = 自定义, `PaneToggleButton` = 设置), which
+        // is what made this a real defect rather than a UIA quirk: the one control that
+        // opens the navigation pane was announced as nothing.
+        //
+        // Resizing did not repair it either: at 900 DIP the narrow layout swaps this button
+        // out, and returning to a wide window rebuilds the pane button without ever
+        // crossing the early-return guard.
+        ApplyPaneModeButtonLabel();
     }
 
     internal void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)

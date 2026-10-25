@@ -147,6 +147,63 @@
                 x:Key="MpvMusicArtworkFallbackBrush"
                 Color="#1AFFFFFF" />
         </ResourceDictionary>
+        <ResourceDictionary x:Key="HighContrast">
+            <!-- The third dictionary. Light and Dark above each define the same 12 keys and
+                 encode three surface shades (pane darkest, bar between, content lightest).
+                 Nothing defined those keys for the contrast theme, so every surface fell back
+                 to one colour and the separation was gone.
+
+                 One flat surface, NOT three shades, and that is deliberate. The installed
+                 contrast themes make Window and ButtonFace the same value in every scheme:
+
+                     hc1      Window=45 50 54      ButtonFace=45 50 54
+                     hc2      Window=0 0 0         ButtonFace=0 0 0
+                     hcblack  Window=32 32 32      ButtonFace=32 32 32
+                     hcwhite  Window=255 250 239   ButtonFace=255 250 239
+
+                 Contrast schemes provide one background and one text colour; a design that
+                 invents three background shades has to fight them. So here the structure is
+                 carried the way the scheme intends, by the border colour below, which is
+                 WindowText and therefore always contrasts with Window, instead of by three
+                 near-identical fills.
+
+                 Solid, never translucent: Light and Dark use alpha so wallpaper or video shows
+                 through, which is exactly what a contrast theme must not do. -->
+            <SolidColorBrush
+                x:Key="MpvPlayControlBackground"
+                Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush
+                x:Key="MpvControlBackground"
+                Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush
+                x:Key="SystemAccentColor2Brush"
+                Color="{ThemeResource SystemColorHighlightColor}" />
+            <Color x:Key="NavContentBackGroundColor">{ThemeResource SystemColorWindowColor}</Color>
+            <Color x:Key="NavContentBorderColor">{ThemeResource SystemColorWindowTextColor}</Color>
+            <SolidColorBrush
+                x:Key="MpvShellPaneBrush"
+                Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush
+                x:Key="MpvShellBarBrush"
+                Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush
+                x:Key="MpvDropOverlayBrush"
+                Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush
+                x:Key="MpvDropOverlayIconSurfaceBrush"
+                Color="{ThemeResource SystemColorWindowColor}" />
+            <!-- Non-text decoration on the seek track: the scheme's own "present but
+                 de-emphasised" colour, which is what a chapter tick is. -->
+            <SolidColorBrush
+                x:Key="MpvChapterTickBrush"
+                Color="{ThemeResource SystemColorGrayTextColor}" />
+            <SolidColorBrush
+                x:Key="MpvMusicPageBrush"
+                Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush
+                x:Key="MpvMusicArtworkFallbackBrush"
+                Color="{ThemeResource SystemColorWindowColor}" />
+        </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
     <x:Double x:Key="ToggleSwitchPreContentMargin">4</x:Double>
     <x:Double x:Key="ToggleSwitchPostContentMargin">4</x:Double>

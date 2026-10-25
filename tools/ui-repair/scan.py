@@ -13,13 +13,31 @@ Checks, each printing the value that decided it:
   a11y     interactive control with no accessible name
   spacing  vertical gaps between named siblings that match no MpvSpace* token
 
+**Units, and the bug the first version had.** UIA `BoundingRectangle` reports DEVICE
+PIXELS; the `MpvSpace*` tokens in Styles.xaml are DIP. Comparing one to the other quantises
+every gap by the display scale, so on a 175% display each token appears at 1.75x its
+declared value and no real gap can ever match. Measured here: `GetDpiForWindow` returns 168
+(scale 1.75), and `LibrarySectionSubtitle`, which is authored `Margin="0,8,0,0"`, measures
+14 px -- exactly 8 x 1.75. So `check_spacing` converts to DIP before comparing, and the
+scale is measured from the window rather than assumed from the doc.
+
+**Siblinghood is inferred from `depth`, which is wrong, and the output says so.** The
+snapshot carries no parentId (see `check_spacing`'s own note), so same-depth is used as a
+proxy. It is not siblinghood: `ShellTitleText`, `PaneRoot` and `LibrarySectionTitle` sit at
+the same depth in different containers, so their apparent gaps are cross-container and carry
+no meaning. The check therefore re-walks the live tree to get TRUE parents and reports only
+gaps between real siblings as findings; depth-only candidates are printed separately as
+"unconfirmed" so the distinction is visible instead of buried.
+
 Findings are candidates. One becomes a queue item only after a second, different check
 agrees -- which is what the two-run discipline in PLAYBOOK.md is for.
 """
 import collections
+import ctypes
 import io
 import json
 import sys
+from ctypes import wintypes
 
 sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
 
@@ -31,6 +49,57 @@ INTERACTIVE = {"ButtonControl", "CheckBoxControl", "RadioButtonControl",
                "ComboBoxControl", "SliderControl", "EditControl",
                "MenuItemControl", "TabItemControl", "HyperlinkControl",
                "ListItemControl", "ToggleButtonControl"}
+
+# Tolerance in DIP. A layout gap is a sum of authored values and text-line remainders, so
+# an exact match is not available; 0.5 DIP is below a device pixel at any supported scale,
+# so anything inside it cannot be told apart from the token.
+DIP_TOLERANCE = 0.5
+
+
+def display_scale():
+    """Device pixels per DIP for the app window, measured from the window's own DPI."""
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    user32.GetDpiForWindow.restype = wintypes.UINT
+    try:
+        hwnd = T._window().NativeWindowHandle
+        dpi = user32.GetDpiForWindow(wintypes.HWND(hwnd))
+        if dpi:
+            return dpi / 96.0, dpi
+    except Exception:
+        pass
+    return 1.0, 96
+
+
+def true_parents():
+    """automationId -> parent automationId, from the live tree.
+
+    The snapshot has no parentId, and equal `depth` is not siblinghood -- at depth 4 the
+    live tree puts ShellTitleText (inside a TitleBar), PaneRoot (a Window) and
+    LibrarySectionTitle (inside a navigation pane) in one list. This walks once to recover
+    the real edges.
+    """
+    parents = {}
+    try:
+        win = T._window()
+    except Exception:
+        return parents
+
+    def walk(ctrl, parent, depth=0):
+        if depth > 26:
+            return
+        try:
+            aid = ctrl.AutomationId or ""
+            kids = ctrl.GetChildren()
+        except Exception:
+            return
+        if aid:
+            parents[aid] = parent
+        for k in kids:
+            walk(k, aid or parent, depth + 1)
+
+    walk(win, None)
+    return parents
+
 
 
 def snapshot():
@@ -72,23 +141,23 @@ def check_a11y(els):
     return out
 
 
-def check_spacing(els):
-    """Vertical gaps between same-depth, vertically adjacent named siblings.
+def check_spacing(els, scale, parents):
+    """Vertical gaps between TRUE siblings, in DIP, compared against token values.
 
-    Two corrections over the first version, both from measurement:
+    Two corrections, both from measurement:
 
-      * `parentId` does not exist in the snapshot. The only structural hint is `depth`,
-        so same-depth is used as the sibling proxy. Without it the check compared
-        ShellTitleText against ShellNav (23px) and ShellSettingsText against
-        ProgressSlider (39px) -- different levels entirely, and neither a spacing
-        problem.
-      * ShellNav_home -> ShellNav_music is 7px and IS same-level, but NavigationView
-        owns that pitch internally; the app cannot set it from a token. Items the
-        framework lays out are excluded by name prefix.
+      * `parentId` does not exist in the snapshot, so same-depth was used as a sibling
+        proxy. Measured, it is not one: `ShellTitleText` (a TitleBar child) and `PaneRoot`
+        (a Window) and `LibrarySectionTitle` (inside ShellNav) all report depth 4. Their
+        apparent gaps -- 23px in the old output -- are between unrelated containers and
+        mean nothing. Real parents come from `true_parents()`; anything that is not a real
+        sibling is reported as unconfirmed instead of as a finding.
+      * UIA rects are device pixels and MpvSpace* tokens are DIP. Without the conversion
+        every token appears at `scale` times its declared value (14px/1.75 = 8 DIP, i.e.
+        MpvSpaceS), so on a scaled display nothing could ever match a token.
 
-    A finding here is a candidate: something the app positions with a bare number where a
-    token exists. Anything owning its own metrics (nav items, command bar buttons) is out
-    of scope by construction, not by wishful thinking.
+    Anything owning its own metrics (nav items, command bar buttons) is out of scope by
+    construction, not by wishful thinking.
     """
     FRAMEWORK_OWNED = ("ShellNav_", "ShellNav", "MenuBar", "ContentElement")
 
@@ -96,19 +165,34 @@ def check_spacing(els):
             and len(e["rect"]) == 4]
     rows.sort(key=lambda e: (e.get("depth", 0), e["rect"][1], e["rect"][0]))
 
-    odd = collections.Counter()
+    confirmed = collections.Counter()
+    unconfirmed = collections.Counter()
+
     for a, b in zip(rows, rows[1:]):
         if a.get("depth") != b.get("depth"):
             continue
-        if any(x in (a["automationId"] or "") for x in FRAMEWORK_OWNED):
+        aid_a, aid_b = a["automationId"], b["automationId"]
+        if any(x in aid_a for x in FRAMEWORK_OWNED):
             continue
-        if any(x in (b["automationId"] or "") for x in FRAMEWORK_OWNED):
+        if any(x in aid_b for x in FRAMEWORK_OWNED):
             continue
-        gap = b["rect"][1] - a["rect"][3]
+        gap_px = b["rect"][1] - a["rect"][3]
         h_overlap = min(a["rect"][2], b["rect"][2]) - max(a["rect"][0], b["rect"][0])
-        if 0 < gap <= 40 and h_overlap > 0 and gap not in TOKEN_VALUES:
-            odd[(gap, a["automationId"], b["automationId"])] += 1
-    return odd
+        if not (0 < gap_px <= 40 * scale and h_overlap > 0):
+            continue
+
+        dip = gap_px / scale
+        if any(abs(dip - tok) <= DIP_TOLERANCE for tok in TOKEN_VALUES):
+            continue
+
+        # Real siblings only. The snapshot's depth proxy lets A->B and B->C pair up even
+        # when B is in another container; requiring the same real parent removes that.
+        if parents.get(aid_a) is not None and parents.get(aid_a) == parents.get(aid_b):
+            confirmed[(round(dip, 1), aid_a, aid_b)] += 1
+        else:
+            unconfirmed[(round(dip, 1), aid_a, aid_b)] += 1
+
+    return confirmed, unconfirmed
 
 
 def main():
@@ -116,8 +200,13 @@ def main():
     T.launch_app()
     els = snapshot()
     wr = window_rect()
+    scale, dpi = display_scale()
+    parents = true_parents()
     print("elements: %d" % len(els))
     print("window  : %s (%dx%d)" % (wr, wr[2] - wr[0], wr[3] - wr[1]))
+    print("scale   : %.2f px/DIP (GetDpiForWindow=%d)  tokens compared in DIP"
+          % (scale, dpi))
+    print("parents : %d named controls resolved from the live tree" % len(parents))
 
     findings = {}
 
@@ -135,13 +224,26 @@ def main():
     if a11y:
         findings["a11y"] = [[t, a] for t, a, _ in a11y]
 
-    gaps = check_spacing(els)
-    print("\nvertical gaps matching no MpvSpace token: %d" % len(gaps))
-    for (v, a, b), n in sorted(gaps.items()):
-        print("   %3dpx  %-24s -> %-24s  x%d" % (v, a[:24], b[:24], n))
-    if gaps:
-        findings["spacing"] = [{"gap": v, "from": a, "to": b, "count": n}
-                               for (v, a, b), n in sorted(gaps.items())]
+    confirmed, unconfirmed = check_spacing(els, scale, parents)
+    print("\nvertical gaps between TRUE siblings, no MpvSpace token: %d"
+          % len(confirmed))
+    for (dip, a, b), n in sorted(confirmed.items()):
+        print("   %5.1f DIP  %-24s -> %-24s  x%d" % (dip, a[:24], b[:24], n))
+    if confirmed:
+        findings["spacing"] = [{"dip": d, "from": a, "to": b, "count": n}
+                               for (d, a, b), n in sorted(confirmed.items())]
+
+    # Kept visible rather than dropped: these come from the depth proxy, and the point of
+    # printing them separately is that depth is not siblinghood -- the old output reported
+    # four of these AS findings, and all four were cross-container.
+    print("\nunconfirmed (same depth, different real parent -- not a finding): %d"
+          % len(unconfirmed))
+    for (dip, a, b), n in sorted(unconfirmed.items()):
+        print("   %5.1f DIP  %-24s -> %-24s  x%d" % (dip, a[:24], b[:24], n))
+    if unconfirmed:
+        findings["spacingUnconfirmed"] = [
+            {"dip": d, "from": a, "to": b, "count": n}
+            for (d, a, b), n in sorted(unconfirmed.items())]
 
     T.close_app()
     out = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\ui-repair-scan.json"

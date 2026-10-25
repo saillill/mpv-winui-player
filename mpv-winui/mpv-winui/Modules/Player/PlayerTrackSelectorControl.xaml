@@ -22,7 +22,7 @@
             Padding="{StaticResource MpvPopupContentPadding}"
             IsHeaderItemsCarouselEnabled="False"
             IsTabStop="False">
-            <PivotItem>
+            <PivotItem x:Name="SubtitlePivotItem">
                 <PivotItem.Header>
                     <StackPanel
                         Orientation="Horizontal"
@@ -104,7 +104,7 @@
                     </ListView.ItemTemplate>
                 </ListView>
             </PivotItem>
-            <PivotItem>
+            <PivotItem x:Name="VideoPivotItem">
                 <PivotItem.Header>
                     <StackPanel
                         Orientation="Horizontal"
@@ -145,7 +145,7 @@
                     </ListView.ItemTemplate>
                 </ListView>
             </PivotItem>
-            <PivotItem>
+            <PivotItem x:Name="AudioPivotItem">
                 <PivotItem.Header>
                     <StackPanel
                         Orientation="Horizontal"

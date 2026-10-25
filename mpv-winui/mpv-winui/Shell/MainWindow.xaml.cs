@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Windowing;
+﻿﻿using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -44,12 +44,22 @@ namespace mpv_winui
             // or the window keeps a 96 DIP strip of bar colour under a picture
             // that has already stopped showing controls - reported as "after the
             // status bar disappears, a solid colour strip is left behind".
+            //
+            // **Only in the windowed shape.** In full window the bar is moved to row 1
+            // (see ChangeFullWindow) and this row is already 0; resizing it here would
+            // resize a row the bar is not in and leave the bar with a zero-height cell.
+            // Measured: with this handler adjusting the row in full window, the entire
+            // control bar left the accessible tree (53 elements / 52 ids -> 15 / 15) and
+            // could not be brought back by a click, because the row it had moved to was
+            // collapsed by a handler that thought it was still in row 2.
             ShellPlayerBar.OnPanelVisibleChanged += visible =>
             {
                 if (_fullWindow)
                 {
-                    ShellBarRow.Height = visible ? MpvShellBarRowLength : new GridLength(0);
+                    return;
                 }
+
+                ShellBarRow.Height = visible ? MpvShellBarRowLength : new GridLength(0);
             };
 
             ShellPlayerBar.OnFullScreenRequest += () =>
@@ -866,15 +876,73 @@ namespace mpv_winui
         /// Collapsing the NavigationView would collapse the frame inside it,
         /// which is the video.
         /// </summary>
+        /// <summary>
+        /// True when the shell's chrome is fully replaced by the video, so a window that
+        /// hides its own rows cannot be left with a page that has nothing to show.
+        ///
+        /// Read by <c>MpvPlayerPage.HandleFullWindowRequest</c> BEFORE it flips its own visual
+        /// state. That ordering is the point: flipping after the shell has refused left the
+        /// page in `FullWindow` while the shell stayed windowed -- measured, the title row and
+        /// bar row remained, the library filled the rest, and the control bar was gone from
+        /// the tree (53 elements -> 31, no ProgressSlider).
+        /// </summary>
+        internal bool CanEnterFullWindow => _pageIsPlaying;
+
         public void ChangeFullWindow(bool full)
         {
             _fullWindow = full;
+
+            // **Full window is a PLAYER state, so it cannot be entered from the library.**
+            //
+            // Measured defect this fixes. `FullWindowButton` lives on the shell bar, which is
+            // mounted across pages, and it was enabled while the library was up. Clicking it
+            // with nothing loaded took the window to full window, which:
+            //
+            //   * collapses TitleBarRow and ShellBarRow to 0 and moves the bar into row 1;
+            //   * sets ShellNav.IsPaneVisible = false;
+            //   * leaves the LIBRARY page as the content of ShellFrame, because
+            //     HandleFullWindowRequest only switches the PAGE's visual state -- and with
+            //     nothing playing there is no video page behind the library.
+            //
+            // Result, measured four ways: the reachable tree fell 52 ids -> 15, every
+            // control-bar id vanished, the screenshot showed the library with no bar at all,
+            // and NO route back existed -- ShellBackButton invoked without effect, and
+            // `ShellNav_home`, `FullWindowButton`, `ShellSettingsButton` and
+            // `ShellOpenFileButton` were all gone from the tree, so the window was stuck
+            // until the process was killed.
+            //
+            // The bar is mounted for playback, so the state that hides the window's chrome
+            // has to be the state that also replaces the page with the video.
+            if (full && !CanEnterFullWindow)
+            {
+                return;
+            }
 
             if (full)
             {
                 TitleBarRow.Height = new GridLength(0);
                 ShellBarRow.Height = new GridLength(0);
                 Grid.SetRow(ShellPlayerBarSurface, 1);
+
+                // **Cover the navigation pane, do not share a cell with it.**
+                //
+                // `Body` has three ROW definitions and no COLUMN definitions, so
+                // `ShellNav` (Grid.Row=1) and `ShellPlayerBarSurface` both live in the single
+                // implicit column. Two children of one Grid cell are stacked, and a
+                // NavigationView with a visible pane covers the cell's full width -- so
+                // moving the bar into row 1 without this put it UNDER the pane: measured,
+                // the whole bar vanished from the tree (53 elements / 52 automation ids ->
+                // 15 / 15, every control-bar id gone) and nothing was clickable, including
+                // FullWindowButton itself, so the state could not be left through the UI.
+                //
+                // Hiding the pane and floating the bar above it is what this method already
+                // intended: it collapses `ShellBarSolid` because "the bar floats over the
+                // picture", which only makes sense if the bar is on top.
+                //
+                // Z-order is raised on the surface rather than lowered on ShellNav, because
+                // ShellNav still owns the video page's host and must keep laying out.
+                Canvas.SetZIndex(ShellPlayerBarSurface, 10);
+
                 ShellNav.IsPaneVisible = false;
                 ShellOpenFileButton.Visibility = Visibility.Collapsed;
                 UpdateShellPaneChrome();
@@ -894,6 +962,7 @@ namespace mpv_winui
                 TitleBarRow.Height = MpvShellTitleRowLength;
                 ShellBarRow.Height = MpvShellBarRowLength;
                 Grid.SetRow(ShellPlayerBarSurface, 2);
+                Canvas.SetZIndex(ShellPlayerBarSurface, 0);
 
                 // Restoring the windowed shape does not mean restoring the
                 // pane: leaving full-window while a video is the page lands back
