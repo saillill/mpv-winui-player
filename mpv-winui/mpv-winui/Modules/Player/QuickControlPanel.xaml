@@ -14,10 +14,10 @@
             <StackPanel
                 Width="44"
                 HorizontalAlignment="Center"
-                Spacing="4">
+                Spacing="{StaticResource MpvSpaceXs}">
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontSize="12"
+                    FontSize="{StaticResource MpvTransportTimeFontSize}"
                     Margin="0,6,0,0"
                     Text="{x:Bind ValueText, Mode=OneWay}" />
                 <Slider
@@ -59,7 +59,7 @@
                 x:Name="ContentRoot"
                 Padding="8"
                 HorizontalAlignment="Stretch"
-                Spacing="8" />
+                Spacing="{StaticResource MpvSpaceS}" />
         </ScrollViewer>
     </Grid>
 </UserControl>

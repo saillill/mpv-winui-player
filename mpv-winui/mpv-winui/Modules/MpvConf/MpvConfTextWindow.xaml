@@ -31,7 +31,7 @@
             Grid.Row="0"
             Padding="12,0,150,0"
             Background="#252526"
-            ColumnSpacing="8">
+            ColumnSpacing="{StaticResource MpvSpaceS}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -39,7 +39,7 @@
             <TextBlock
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                FontSize="12"
+                FontSize="{StaticResource MpvTransportTimeFontSize}"
                 FontWeight="SemiBold"
                 Foreground="#CCCCCC"
                 Text="mpv.conf" />
@@ -48,7 +48,7 @@
                 Grid.Column="1"
                 VerticalAlignment="Center"
                 FontFamily="Consolas"
-                FontSize="11"
+                FontSize="{StaticResource MpvPopupCaptionFontSize}"
                 Foreground="#7A7A7A"
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="NoWrap" />
@@ -178,7 +178,7 @@
                 x:Name="StatusText"
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                FontSize="11"
+                FontSize="{StaticResource MpvPopupCaptionFontSize}"
                 Foreground="#E0A96D"
                 TextTrimming="CharacterEllipsis" />
 
@@ -186,8 +186,8 @@
                 Grid.Column="1"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
-                Spacing="8">
-                <StackPanel Orientation="Horizontal" Spacing="4">
+                Spacing="{StaticResource MpvSpaceS}">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceXs}">
                     <Rectangle
                         Width="8"
                         Height="8"
@@ -197,10 +197,10 @@
                     <TextBlock
                         x:Name="LegendKeyText"
                         VerticalAlignment="Center"
-                        FontSize="11"
+                        FontSize="{StaticResource MpvPopupCaptionFontSize}"
                         Foreground="#7A7A7A" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceXs}">
                     <Rectangle
                         Width="8"
                         Height="8"
@@ -210,10 +210,10 @@
                     <TextBlock
                         x:Name="LegendValueText"
                         VerticalAlignment="Center"
-                        FontSize="11"
+                        FontSize="{StaticResource MpvPopupCaptionFontSize}"
                         Foreground="#7A7A7A" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceXs}">
                     <Rectangle
                         Width="8"
                         Height="8"
@@ -223,10 +223,10 @@
                     <TextBlock
                         x:Name="LegendCommentText"
                         VerticalAlignment="Center"
-                        FontSize="11"
+                        FontSize="{StaticResource MpvPopupCaptionFontSize}"
                         Foreground="#7A7A7A" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource MpvSpaceXs}">
                     <Rectangle
                         Width="8"
                         Height="8"
@@ -236,7 +236,7 @@
                     <TextBlock
                         x:Name="LegendSectionText"
                         VerticalAlignment="Center"
-                        FontSize="11"
+                        FontSize="{StaticResource MpvPopupCaptionFontSize}"
                         Foreground="#7A7A7A" />
                 </StackPanel>
             </StackPanel>

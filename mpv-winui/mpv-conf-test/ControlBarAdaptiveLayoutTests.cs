@@ -268,4 +268,62 @@ public class ControlBarAdaptiveLayoutTests
                 $"{id} must be visible at Wide");
         }
     }
+    // ===== player skin =====
+
+    [Test]
+    public void CompactDropsTheVolumeSlider()
+    {
+        // SettingsHelpPlayerStyle: "Compact narrows the bar and drops the volume
+        // slider". This is the one part of the promise that names a control.
+        Assert.That(
+            ControlBarAdaptiveLayout.SkinHides("Compact", ControlBarAdaptiveLayout.VolumeSliderId),
+            Is.True);
+    }
+
+    [Test]
+    public void CompactKeepsEverythingElse()
+    {
+        // The skin may not silently delete features: only the volume slider is
+        // named by the setting's own description.
+        foreach (var id in new[] { "play", "tracks", "panel", "aspect", "pip", "fullwindow",
+                                   "fullscreen", "rate", "random", ControlBarAdaptiveLayout.VolumeId })
+        {
+            Assert.That(
+                ControlBarAdaptiveLayout.SkinHides("Compact", id),
+                Is.False,
+                $"Compact must not hide {id}");
+        }
+    }
+
+    [Test]
+    public void StandardAndCenterHideNothing()
+    {
+        // Standard is "the bar the rest of this window uses"; Centre's promise is
+        // positional, not a hide rule, so neither removes a control here.
+        foreach (var style in new[] { "Default", "Center" })
+        {
+            foreach (var id in new[] { ControlBarAdaptiveLayout.VolumeSliderId,
+                                       ControlBarAdaptiveLayout.VolumeId, "tracks" })
+            {
+                Assert.That(
+                    ControlBarAdaptiveLayout.SkinHides(style, id),
+                    Is.False,
+                    $"{style} must not hide {id}");
+            }
+        }
+    }
+
+    [Test]
+    public void SkinHidesIsCaseInsensitiveAndNullSafe()
+    {
+        // PlayerStyle is a persisted string, so a hand-edited or older value must
+        // not throw and must not accidentally match.
+        Assert.That(
+            ControlBarAdaptiveLayout.SkinHides("compact", ControlBarAdaptiveLayout.VolumeSliderId),
+            Is.True);
+        Assert.That(ControlBarAdaptiveLayout.SkinHides(null, "volume-slider"), Is.False);
+        Assert.That(ControlBarAdaptiveLayout.SkinHides("", "volume-slider"), Is.False);
+        Assert.That(ControlBarAdaptiveLayout.SkinHides("Compact", null), Is.False);
+    }
+
 }

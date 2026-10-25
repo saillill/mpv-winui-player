@@ -17,6 +17,22 @@ namespace mpv_winui.Modules.Common.Utils
         }
 
         /// <summary>
+        /// Show a window WITHOUT taking the foreground: it becomes visible and is laid out
+        /// normally, and `GetForegroundWindow()` keeps pointing at whatever had it.
+        ///
+        /// Needed because `Window.Activate()` is the only thing that makes a WinUI window appear
+        /// at launch -- skipping it leaves no window at all (measured: the automation harness
+        /// then times out with "no window after 20s"). So an automated launch has to show the
+        /// window, and must do it without stealing the foreground from whatever the user is
+        /// running: a game in exclusive fullscreen drops its display mode and its controller the
+        /// moment a window takes the foreground.
+        /// </summary>
+        public static void ShowNoActivate(Window window)
+        {
+            PInvoke.ShowWindow(new HWND(GetHwnd(window)), SHOW_WINDOW_CMD.SW_SHOWNOACTIVATE);
+        }
+
+        /// <summary>
         /// A minimized window still reports AppWindow.IsVisible, so callers
         /// skip the Show() branch and SetForegroundWindow only lights up the
         /// taskbar entry — restore it explicitly first.

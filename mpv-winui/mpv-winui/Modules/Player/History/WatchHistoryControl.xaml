@@ -50,7 +50,7 @@
                 <DataTemplate x:DataType="local:WatchHistoryItem">
                     <Grid
                         Height="32"
-                        ColumnSpacing="8">
+                        ColumnSpacing="{StaticResource MpvSpaceS}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="24" />
                             <ColumnDefinition Width="Auto" />

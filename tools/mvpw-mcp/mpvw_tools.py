@@ -41,16 +41,39 @@ PIPE = r"\\.\pipe\mpvpipe"
 #       makes `_main_window` unable to find it, because that function requires
 #       `not w.IsOffscreen` -- every later UIA call then raised "main window not found".
 #
-# What works is control of the z-order and of focus, not of visibility: push the window
-# to the bottom with SWP_NOACTIVATE and hand the foreground back to whatever had it.
-# The window stays on screen and reachable (measured: 35 automation ids readable,
-# ShellNav present) but never covers the owner's work and never holds the keyboard.
+# What did NOT work, and why this does:
 #
-# Set MVPW_FOREGROUND=1 to skip all of that for the cases that genuinely need pixels --
-# screenshots of the rendered surface, and anything that depends on layout being
-# realised at the real size.
+#   Start-Process -WindowStyle Minimized   no effect -- the app calls Activate(), which
+#                                         overrides the startup show state, so the player
+#                                         still appeared over whatever the owner was doing.
+#   ShowWindow(SW_MINIMIZE)               still flashes on creation, and `_main_window`
+#                                         could not find it.
+#   SetWindowPos(HWND_BOTTOM) + focus     the owner still SAW it appear and still lost the
+#     restore                             keyboard for a moment.
+#   ShowWindow(SW_HIDE)                   UIA reports nothing; the probe surface disappears.
+#   parking at (-32000,-32000)            removes the DWELL, but not the FLASH: the window
+#                                         still spends the three to five seconds between
+#                                         creation and parking on a monitor, fully active.
+#
+# That flash is what the user experiences as "verification keeps taking over my controller": a
+# game in exclusive fullscreen drops its display mode and its controller the instant a window
+# takes the foreground, and a 0.5 s foreground poll never sees it because it is over before the
+# poll runs. The app does not open any gamepad device (measured: `gamepad`, `XInput`, `SDL2` and
+# `hid.dll` all occur zero times in mpv-2.dll, mpvw.dll and mpv_winrt.dll, and no gamepad module
+# is loaded at runtime), so the foreground flash is the entire mechanism.
+#
+# The fix is to stop the flash at its source: launch with MVPW_NO_ACTIVATE=1, which makes
+# App.OnLaunched skip `window.Activate()`. The window is then created without ever taking the
+# foreground, and parking it afterwards is only about keeping it off the screen.
+#
+# MVPW_FOREGROUND=1 still skips the parking for the cases that genuinely need pixels; with
+# PrintWindow-based capture that is now almost nothing.
 _START_FLAGS = ""
 _PUSH_BACK = os.environ.get("MVPW_FOREGROUND") != "1"
+
+# Passed on the launch line so the app never calls Activate(). Kept separate from _START_FLAGS
+# because that one is about how PowerShell starts the process, not about the app's behaviour.
+_NO_ACTIVATE_ENV = "MVPW_NO_ACTIVATE=1"
 
 # One kernel32, with every signature declared once.
 #
@@ -119,7 +142,8 @@ def launch_app(wait_seconds: int = 20, snapshot: bool = False) -> dict:
 
     subprocess.run(
         ["pwsh", "-NoProfile", "-Command",
-         f"Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'" + _START_FLAGS],
+         f"$env:MVPW_NO_ACTIVATE='1'; Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'"
+         + _START_FLAGS],
         capture_output=True)
 
     # Grab the IPC connection in the ~1.2 s window where mpv will accept one, and
@@ -252,7 +276,8 @@ def open_launch_window(timeout: float = 4.0) -> dict:
 
     subprocess.run(
         ["pwsh", "-NoProfile", "-Command",
-         f"Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'" + _START_FLAGS],
+         f"$env:MVPW_NO_ACTIVATE='1'; Start-Process '{EXE}' -WorkingDirectory '{DEPLOY_DIR}'"
+         + _START_FLAGS],
         capture_output=True)
 
     t0 = time.time()
@@ -533,10 +558,25 @@ def assert_element_state(automation_id: str, exists: bool = True,
 
 
 def screenshot_region(path: str, automation_id: str | None = None,
-                      rect: list[int] | None = None) -> dict:
-    """Capture the window, one element, or [left, top, right, bottom] to a PNG."""
-    from PIL import ImageGrab
+                      rect: list[int] | None = None,
+                      method: str = "background") -> dict:
+    """Capture the window, one element, or [left, top, right, bottom] to a PNG.
 
+    `method="background"` (the default) renders the window with
+    `PrintWindow(PW_RENDERFULLCONTENT)` into a bitmap this process owns, so **the window never
+    has to be on a monitor**. That matters because the old behaviour -- `ImageGrab` of the
+    desktop -- is what forced every screenshot probe to drag the window out of its parked
+    position onto the screen, which the user experienced as "verification keeps jumping to the
+    foreground and takes over an exclusive window".
+
+    Measured on this machine with the window parked at (-32000,-32000): PrintWindow returned a
+    full 2880x1536 image of the real UI (library grid, nav pane, search box, control bar), not
+    blank, and `GetForegroundWindow` was unchanged throughout.
+
+    `method="screen"` keeps the old desktop grab for the cases that need true composited pixels
+    (GPU-composited video, popups drawn in a separate window). Those still require the window
+    on-screen -- so they are opt-in and the result says which method produced it.
+    """
     if rect is None:
         if automation_id:
             el = _find(automation_id)
@@ -550,10 +590,23 @@ def screenshot_region(path: str, automation_id: str | None = None,
                 raise ToolError("main window has no on-screen rectangle")
 
     os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
-    img = ImageGrab.grab(bbox=tuple(rect), all_screens=True)
-    img.save(path)
-    return {"path": os.path.abspath(path), "rect": rect,
-            "width": img.width, "height": img.height}
+
+    if method == "screen":
+        from PIL import ImageGrab
+        img = ImageGrab.grab(bbox=tuple(rect), all_screens=True)
+        img.save(path)
+        return {"path": os.path.abspath(path), "rect": rect,
+                "width": img.width, "height": img.height, "method": "ImageGrab(screen)"}
+
+    # Background path: whole window only. A sub-rectangle is produced by cropping, because
+    # PrintWindow renders the window, not an arbitrary screen region.
+    import background_capture as _bgcap
+    win = _window()
+    hwnd = win.NativeWindowHandle
+    full = _bgcap.capture_window(path, hwnd)
+    full["rect"] = _rect(win)
+    full["method"] = full.get("method", "PrintWindow")
+    return full
 
 
 # --------------------------------------------------------------------- mpv ---

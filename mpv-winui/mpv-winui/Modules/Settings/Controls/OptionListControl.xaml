@@ -16,7 +16,7 @@
                  customize pane title - no exact ramp step also preserves the
                  line height. Text, so no icon token applies either.
              Swapped to tokens/ramp in this pass: FontSize="12" ->
-             CaptionTextBlockStyle, Spacing="2" -> MpvSpaceXxs.
+             CaptionTextBlockStyle, Spacing="{StaticResource MpvSpaceXxs}" -> MpvSpaceXxs.
 
              Promoted to named tokens since (values unchanged): the collapsed
              card's MinHeight="72" -> MpvSectionCardMinHeight, its
@@ -383,7 +383,7 @@
 
                     <FontIcon
                         VerticalAlignment="Center"
-                        FontFamily="Segoe Fluent Icons"
+                        FontFamily="{StaticResource SymbolThemeFontFamily}"
                         FontSize="{StaticResource MpvSectionCardIconSize}"
                         Glyph="{x:Bind Icon, Mode=OneWay}" />
 
@@ -395,7 +395,7 @@
                              for it that also preserves this line's metrics
                              (Body is 14/20), and the contract says not to trade
                              appearance for a token. -->
-                        <TextBlock FontSize="14" Text="{x:Bind Caption, Mode=OneWay}" />
+                        <TextBlock FontSize="{StaticResource MpvPopupLabelFontSize}" Text="{x:Bind Caption, Mode=OneWay}" />
                         <TextBlock
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -407,7 +407,7 @@
                     <FontIcon
                         Grid.Column="2"
                         VerticalAlignment="Center"
-                        FontFamily="Segoe Fluent Icons"
+                        FontFamily="{StaticResource SymbolThemeFontFamily}"
                         FontSize="{StaticResource MpvSectionCardChevronSize}"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Glyph="&#xE76C;" />
@@ -496,7 +496,7 @@
                 x:Name="PaneTitleText"
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                FontSize="16"
+                FontSize="{StaticResource MpvShellTitleFontSize}"
                 FontWeight="SemiBold"
                 TextTrimming="CharacterEllipsis" />
 

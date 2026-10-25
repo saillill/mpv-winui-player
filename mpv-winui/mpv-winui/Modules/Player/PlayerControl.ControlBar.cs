@@ -208,6 +208,25 @@ namespace mpv_winui.Modules.Player
                         visible = false;
                     }
 
+                    // The PlayerStyle skin, a third input beside the width tier and the
+                    // user's hidden-icon preference.
+                    //
+                    // This is what `SettingsHelpPlayerStyle` promises: "Compact narrows the
+                    // bar and drops the volume slider". Before this, PlayerStyle reached only
+                    // `ApplyPlayerStyle`, which assigns a Style whose single setter is
+                    // Template -- and WinUI never applies a Template setter to a UserControl,
+                    // so all three skins rendered the same inline tree and the setting had no
+                    // visible effect at all (instrumented: styleSet=True while Template
+                    // stayed null).
+                    //
+                    // Only the volume slider is dropped: that is the one claim in the string
+                    // that names a control, so it is the one that can be asserted.
+                    if (visible
+                        && ControlBarAdaptiveLayout.SkinHides(AppContext.AppSetting.PlayerStyle, id))
+                    {
+                        visible = false;
+                    }
+
                     SetHidden(!visible, elements);
                 }
 

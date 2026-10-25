@@ -249,4 +249,33 @@ internal static class ControlBarAdaptiveLayout
     /// </summary>
     public const string VolumeId = "volume";
     public const string VolumeSliderId = "volume-slider";
+    /// <summary>
+    /// True when the chosen player skin removes this control from the bar.
+    ///
+    /// This is the whole of what `PlayerStyle` does to the control bar, and it exists
+    /// because the setting previously did nothing: it reached only
+    /// <c>PlayerControl.ApplyPlayerStyle</c>, which assigns a <c>Style</c> whose single setter
+    /// is <c>Template</c> -- and WinUI never applies a Template setter to a
+    /// <c>UserControl</c>, which is what <c>PlayerControl</c> is. Measured: the Style was
+    /// assigned while <c>Control.Template</c> stayed null, so all three skins rendered the
+    /// same inline tree.
+    ///
+    /// The rule is taken from the setting's own description
+    /// (<c>Languages/en-US.json:1470</c>): "Compact narrows the bar and drops the volume
+    /// slider". That is the only part of the promise that names a control, so it is the only
+    /// part encoded here; Centre's promise is positional and is not a hide rule.
+    ///
+    /// Pure and side-effect free so <c>mpv-conf-test</c> can assert it without a window.
+    /// </summary>
+    public static bool SkinHides(string playerStyle, string id)
+    {
+        if (string.IsNullOrEmpty(playerStyle) || string.IsNullOrEmpty(id))
+        {
+            return false;
+        }
+
+        return string.Equals(playerStyle, "Compact", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(id, VolumeSliderId, StringComparison.OrdinalIgnoreCase);
+    }
+
 }

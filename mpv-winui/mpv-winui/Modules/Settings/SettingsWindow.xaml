@@ -166,7 +166,7 @@
                     x:Name="SettingsTitleText"
                     Grid.Column="1"
                     VerticalAlignment="Center"
-                    FontSize="16"
+                    FontSize="{StaticResource MpvShellTitleFontSize}"
                     FontWeight="SemiBold" />
                 <Grid
                     x:Name="SearchPillHost"

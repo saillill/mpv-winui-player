@@ -441,7 +441,7 @@
                                             x:Name="TreeTitleText"
                                             Grid.Column="0"
                                             VerticalAlignment="Center"
-                                            FontSize="14"
+                                            FontSize="{StaticResource MpvPopupLabelFontSize}"
                                             FontWeight="SemiBold"
                                             TextTrimming="CharacterEllipsis" />
                                         <Button
@@ -471,7 +471,7 @@
                                         x:Name="TreeHintText"
                                         Grid.Row="1"
                                         Margin="12,0,12,8"
-                                        FontSize="12"
+                                        FontSize="{StaticResource MpvTransportTimeFontSize}"
                                         Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                         TextWrapping="Wrap" />
 

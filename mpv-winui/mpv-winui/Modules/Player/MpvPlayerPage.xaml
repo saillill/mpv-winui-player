@@ -227,7 +227,7 @@
                                         FontFamily="{StaticResource MpvIconFontFamily}"
                                         FontSize="14"
                                         Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                        Glyph="&#xE768;" />
+                                        Glyph="&#xF605;" />
                                 </Button>
 
                                 <Button
@@ -313,7 +313,7 @@
                 IsEnabled="{x:Bind HasContent, Mode=OneWay}">
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontSize="12"
+                    FontSize="{StaticResource MpvTransportTimeFontSize}"
                     Opacity="{x:Bind HasContent, Converter={StaticResource IndexLetterOpacity}, Mode=OneWay}"
                     Text="{x:Bind Letter, Mode=OneWay}" />
             </Button>
@@ -397,7 +397,7 @@
                                         FontFamily="{StaticResource MpvIconFontFamily}"
                                         FontSize="14"
                                         Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                        Glyph="&#xE768;" />
+                                        Glyph="&#xF605;" />
                                 </Button>
                                 <Button
                                     x:Name="AlbumCardMoreButton"
@@ -701,7 +701,7 @@
              actions flicker in and out. -->
         <Grid
             Grid.Row="0"
-            ColumnSpacing="8">
+            ColumnSpacing="{StaticResource MpvSpaceS}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -1051,7 +1051,7 @@
                          tabs belong to the heading, not to a toolbar under it -
                          and splitting them over two rows is what made the video
                          library read as a page with two unrelated headers. -->
-                    <Grid ColumnSpacing="16">
+                    <Grid ColumnSpacing="{StaticResource MpvSpaceL}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -1243,7 +1243,7 @@
                     BorderThickness="1"
                     CornerRadius="8"
                     Visibility="Collapsed">
-                    <Grid ColumnSpacing="12">
+                    <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -1253,7 +1253,7 @@
                             Grid.Column="0"
                             VerticalAlignment="Center"
                             Orientation="Horizontal"
-                            Spacing="8">
+                            Spacing="{StaticResource MpvSpaceS}">
                             <FontIcon
                                 FontSize="14"
                                 Glyph="&#xE73E;"
@@ -1277,7 +1277,7 @@
                         <StackPanel
                             Grid.Column="1"
                             Orientation="Horizontal"
-                            Spacing="8">
+                            Spacing="{StaticResource MpvSpaceS}">
                             <Button
                                 x:Name="SelectionPlayButton"
                                 Padding="{StaticResource MpvActionButtonPadding}"
@@ -1285,7 +1285,7 @@
                                 Style="{StaticResource AccentButtonStyle}">
                                 <StackPanel
                                     Orientation="Horizontal"
-                                    Spacing="8">
+                                    Spacing="{StaticResource MpvSpaceS}">
                                     <FontIcon FontSize="12" Glyph="&#xE768;" />
                                     <TextBlock
                                         x:Name="SelectionPlayText"
@@ -1298,7 +1298,7 @@
                                 Click="SelectionQueue_Click">
                                 <StackPanel
                                     Orientation="Horizontal"
-                                    Spacing="8">
+                                    Spacing="{StaticResource MpvSpaceS}">
                                     <FontIcon FontSize="12" Glyph="&#xE710;" />
                                     <TextBlock
                                         x:Name="SelectionQueueText"
@@ -1311,7 +1311,7 @@
                                 Click="SelectionProperties_Click">
                                 <StackPanel
                                     Orientation="Horizontal"
-                                    Spacing="8">
+                                    Spacing="{StaticResource MpvSpaceS}">
                                     <FontIcon FontSize="12" Glyph="&#xE946;" />
                                     <TextBlock
                                         x:Name="SelectionPropertiesText"
@@ -1634,7 +1634,7 @@
                                         Visibility="{x:Bind IsCurrent, Mode=OneWay}" />
                                     <Grid
                                         Margin="12,0"
-                                        ColumnSpacing="12">
+                                        ColumnSpacing="{StaticResource MpvSpaceM}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
@@ -1809,7 +1809,7 @@
 
                             <TextBlock
                                 x:Name="AlbumArtist"
-                                FontSize="16"
+                                FontSize="{StaticResource MpvShellTitleFontSize}"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 TextTrimming="CharacterEllipsis" />
 
@@ -1833,7 +1833,7 @@
                                         <FontIcon
                                             FontFamily="{StaticResource MpvIconFontFamily}"
                                             FontSize="14"
-                                            Glyph="&#xE768;" />
+                                            Glyph="&#xF605;" />
                                         <TextBlock
                                             x:Name="AlbumPlayAllText"
                                             VerticalAlignment="Center" />
@@ -1867,7 +1867,7 @@
                                         <FontIcon
                                             FontFamily="{StaticResource MpvIconFontFamily}"
                                             FontSize="14"
-                                            Glyph="&#xE710;" />
+                                            Glyph="&#xF109;" />
                                         <TextBlock
                                             x:Name="AlbumAddToText"
                                             VerticalAlignment="Center" />
@@ -1891,7 +1891,7 @@
                              and the current one is highlighted. -->
                         <Grid
                             Padding="12,0"
-                            ColumnSpacing="16">
+                            ColumnSpacing="{StaticResource MpvSpaceL}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" MinWidth="160" />
                                 <ColumnDefinition Width="2*" MinWidth="120" />
@@ -1946,7 +1946,7 @@
                                 <DataTemplate x:DataType="local:LibraryEntry">
                                     <Grid
                                         Height="44"
-                                        ColumnSpacing="16">
+                                        ColumnSpacing="{StaticResource MpvSpaceL}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" MinWidth="160" />
                                             <ColumnDefinition Width="2*" MinWidth="120" />
@@ -2164,7 +2164,7 @@
                                              from a distance. 1.0 -> 1.18 is the
                                              step the reference players use. -->
                                         <TextBlock
-                                            FontSize="16"
+                                            FontSize="{StaticResource MpvShellTitleFontSize}"
                                             Opacity="{x:Bind Opacity, Mode=OneWay}"
                                             Text="{x:Bind Text, Mode=OneWay}"
                                             TextWrapping="Wrap">
@@ -2203,7 +2203,7 @@
                     Grid.Row="1"
                     Height="36"
                     Padding="48,0,48,0"
-                    ColumnSpacing="4">
+                    ColumnSpacing="{StaticResource MpvSpaceXs}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
@@ -2379,7 +2379,7 @@
                                 Visibility="{x:Bind IsCurrent, Mode=OneWay}" />
                             <Grid
                                 Margin="12,0"
-                                ColumnSpacing="12">
+                                ColumnSpacing="{StaticResource MpvSpaceM}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />

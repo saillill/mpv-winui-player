@@ -11,7 +11,7 @@
         <StackPanel Spacing="{StaticResource MpvSpaceS}">
             <TextBlock
                 x:Name="BarHint"
-                FontSize="12"
+                FontSize="{StaticResource MpvTransportTimeFontSize}"
                 Visibility="Collapsed"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 TextWrapping="Wrap" />

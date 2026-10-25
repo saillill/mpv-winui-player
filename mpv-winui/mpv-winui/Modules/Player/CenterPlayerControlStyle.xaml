@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -135,7 +135,7 @@
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal"
-                                Spacing="8">
+                                Spacing="{StaticResource MpvSpaceS}">
                                 <Button
                                     x:Name="VolumeMuteButton"
                                     VerticalAlignment="Center"
@@ -168,7 +168,7 @@
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal"
-                                Spacing="8">
+                                Spacing="{StaticResource MpvSpaceS}">
                                 <Button
                                     x:Name="ShuffleButton"
                                     Padding="6"
@@ -292,7 +292,7 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal"
-                                Spacing="8">
+                                Spacing="{StaticResource MpvSpaceS}">
                                 <Button
                                     x:Name="PlaybackRateButton"
                                     Style="{StaticResource SquareIconButtonStyle}">
@@ -347,7 +347,7 @@
                                     Style="{StaticResource SquareIconButtonStyle}">
                                     <Button.Content>
                                         <FontIcon
-                                            FontFamily="Segoe Fluent Icons"
+                                            FontFamily="{StaticResource SymbolThemeFontFamily}"
                                             FontSize="{StaticResource MpvTransportIconSize}"
                                             Glyph="&#xED1F;" />
                                     </Button.Content>

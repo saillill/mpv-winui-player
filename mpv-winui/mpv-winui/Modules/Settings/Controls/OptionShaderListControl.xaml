@@ -36,7 +36,7 @@
                         <TextBlock
                             Grid.Column="1"
                             VerticalAlignment="Center"
-                            FontSize="12"
+                            FontSize="{StaticResource MpvTransportTimeFontSize}"
                             Text="{x:Bind Path, Mode=OneWay}"
                             TextTrimming="CharacterEllipsis"
                             ToolTipService.ToolTip="{x:Bind Path, Mode=OneWay}" />

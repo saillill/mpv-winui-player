@@ -62,8 +62,8 @@
     </Page.Resources>
 
     <Grid
-        ColumnSpacing="8"
-        RowSpacing="8">
+        ColumnSpacing="{StaticResource MpvSpaceS}"
+        RowSpacing="{StaticResource MpvSpaceS}">
         <Grid.RowDefinitions>
             <RowDefinition Height="48" />
             <RowDefinition Height="Auto" />
@@ -175,7 +175,7 @@
             Grid.Row="2"
             Grid.Column="1"
             Orientation="Horizontal"
-            Spacing="8">
+            Spacing="{StaticResource MpvSpaceS}">
             <RadioButton
                 x:Name="KindSubmenuRadio"
                 Checked="KindRadio_Checked"
@@ -197,7 +197,7 @@
             Grid.Row="3"
             Grid.Column="1"
             Padding="0,0,12,0">
-            <StackPanel Spacing="8">
+            <StackPanel Spacing="{StaticResource MpvSpaceS}">
                 <Border
                     x:Name="NameRow"
                     Style="{StaticResource EditorRowStyle}">

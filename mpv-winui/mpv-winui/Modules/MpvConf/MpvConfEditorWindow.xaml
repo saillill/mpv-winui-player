@@ -17,7 +17,7 @@
             x:Name="TitleText"
             Margin="12,0,0,0"
             VerticalAlignment="Center"
-            FontSize="16"
+            FontSize="{StaticResource MpvShellTitleFontSize}"
             FontWeight="SemiBold"
             Text="Mpv Conf Editor"
             TextTrimming="CharacterEllipsis"

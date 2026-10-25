@@ -68,7 +68,7 @@
 
     <Grid
         HorizontalAlignment="Stretch"
-        RowSpacing="8">
+        RowSpacing="{StaticResource MpvSpaceS}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -78,7 +78,7 @@
         <Grid
             Grid.Row="0"
             Padding="8,0"
-            ColumnSpacing="8">
+            ColumnSpacing="{StaticResource MpvSpaceS}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -166,7 +166,7 @@
         <Grid
             Grid.Row="1"
             Margin="8,0,0,8"
-            ColumnSpacing="8">
+            ColumnSpacing="{StaticResource MpvSpaceS}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120" />
                 <ColumnDefinition Width="160" />
