@@ -26,13 +26,7 @@ import psutil
 
 import mpvw_tools as T
 
-# Fixture directory for the probe clips this file loads. Derived from __file__
-# (this file lives at <repo>/tools/...), so archiving or renaming anything
-# outside the repo cannot silently point these at a path that no longer exists.
-# The clips themselves live in tools/mvpw-mcp/fixtures/ and are committed.
-FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp", "fixtures")
-
-CLIP = os.path.join(FIXTURES, "sdr-bt709.mp4")
+CLIP = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\sdr-bt709.mp4"
 
 
 def mpv_alive() -> bool:

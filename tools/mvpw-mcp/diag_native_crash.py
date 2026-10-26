@@ -29,18 +29,12 @@ import psutil
 
 import mpvw_tools as T
 
-# Fixture directory for the probe clips this file loads. Derived from __file__
-# (this file lives at <repo>/tools/...), so archiving or renaming anything
-# outside the repo cannot silently point these at a path that no longer exists.
-# The clips themselves live in tools/mvpw-mcp/fixtures/ and are committed.
-FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp", "fixtures")
-
 # Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
 # moving the checkout does not silently repoint these paths at an old copy.
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-A = os.path.join(FIXTURES, "sdr-bt709.mp4")
-B = os.path.join(FIXTURES, "hdr10-pq.mp4")
+A = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\sdr-bt709.mp4"
+B = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\hdr10-pq.mp4"
 LONG = REPO + r"\_work\mcp\clips\long-60s.mp4"
 REG = r"HKCU:\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app"
 

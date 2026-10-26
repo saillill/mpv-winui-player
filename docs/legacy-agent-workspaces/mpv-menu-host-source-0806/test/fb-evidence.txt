@@ -1,6 +1,0 @@
-﻿menu resp: {"data":null,"request_id":1,"error":"success"}
-no host spawned (expected)
-warn: [   0.004][v][cplayer] Setting option 'script-opts' = 'dyn_menu-host_menu_path=C:\nonexistent\MpvMenuHost.exe' (flags = 8)
-warn: [   0.048][w][dyn_menu] 找不到 MpvMenuHost.exe: C:\nonexistent\MpvMenuHost.exe，回退原生菜单
-FALLBACK warn found
-mpv still alive (no crash)
