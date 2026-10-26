@@ -13,9 +13,9 @@ mpv-winui/mpv-winui/Modules/Player/CompactPlayerControlStyle.xaml:31:SPACING-LIT
 mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:219:SPACING-LITERAL
 mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:237:SPACING-LITERAL
 mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:260:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:400:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:417:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:433:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:1016:SPACING-LITERAL
+mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:399:SPACING-LITERAL
+mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:416:SPACING-LITERAL
+mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:432:SPACING-LITERAL
+mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:1015:SPACING-LITERAL
 mpv-winui/mpv-winui/Modules/Player/QuickControlPanel.xaml:60:SPACING-LITERAL
 mpv-winui/mpv-winui/Modules/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

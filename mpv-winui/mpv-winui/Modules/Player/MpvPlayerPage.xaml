@@ -310,8 +310,7 @@
                 Background="Transparent"
                 BorderThickness="0"
                 Click="IndexRailButton_Click"
-                IsEnabled="{x:Bind HasContent, Mode=OneWay}"
-                PointerEntered="IndexRailLetter_PointerEntered">
+                IsEnabled="{x:Bind HasContent, Mode=OneWay}">
                 <TextBlock
                     HorizontalAlignment="Center"
                     FontSize="{StaticResource MpvTransportTimeFontSize}"

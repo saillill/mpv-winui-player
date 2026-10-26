@@ -18,26 +18,19 @@
 
 ---
 
-## 当前基线（2026-10-26 实测）
+## 当前基线（2026-10-24 实测）
 
 | 项 | 结果 |
 |---|---|
-| `gate.py` | **14/14 阶段通过**（其中 9 个行为验证器，每个都带 `--self-test` 证明能变红） |
-| `verify_playback` | PASS（`idle=no` 根因修复后实测 `file-loaded 1`、`time-pos` 推进） |
-| `verify_music_cards` | PASS（专辑/艺术家封面 stddev 13.7 / 88 色） |
-| `verify_letter_rail` | PASS（视频库无字母栏；音乐库有且不重叠） |
-| `verify_queue_button` | PASS（右上角打开文件按钮） |
-| `verify_home_button` | PASS |
-| `verify_overlay_buttons` | PASS（8/8 未被遮挡） |
-| 25 个 `tools/check-*.py` | 0 失败 |
+| `verify_e2e` | 19/19 |
+| `verify_settings` | 0 failure |
+| `verify_settings_rows` | PASS |
+| `verify_screenshot` | PASS |
+| `verify_no_focus_steal` | 3/3 |
+| 17 个 `tools/check-*.py` | 0 失败 |
 | 构建 | 0 错误 |
-| 部署 | `identical 500 / differing: 0` |
-| 测试 | mpv-conf-test 517 + mpv-winrt-test 29 |
+| 部署 | `identical: 658 / differing: 0` |
 | WUI 分析器 | 24 条，**全部已证误报** |
-
-> 上一版这张表写的是 `verify_e2e 19/19`、17 个检查器、`identical: 658`，而且
-> **没有 `verify_playback`** ——那份基线是在视频根本无法播放的状态下测出来的，却读起来
-> 像一次全绿。9 项 UI 缺陷的逐项结论见 `STATUS-9-DEFECTS.md`。
 
 ---
 
