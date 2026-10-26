@@ -398,6 +398,28 @@ namespace mpv_winui.Modules.Player
             AddToQueueAsync().FireAndForget(OnException);
         }
 
+        /// <summary>
+        /// The queue's right-hand 添加文件. Opens the shell's file picker and plays what was
+        /// picked.
+        ///
+        /// Calls OpenFileFromShell directly rather than routing through
+        /// LibraryOpenFileButton_Click, and that distinction is the whole reason this method
+        /// exists. That handler branches on the current section:
+        ///
+        ///     if (_librarySection is LibrarySectionMusic or LibrarySectionVideos)
+        ///         AddLibraryFoldersAsync(...)   // adds a FOLDER, not a file
+        ///     else
+        ///         OpenFileFromShell();
+        ///
+        /// From the queue the else branch happens to be taken, so it would work today -- but it
+        /// is one added section check away from silently turning this button into a
+        /// folder-picker. Naming the action keeps the two from drifting.
+        /// </summary>
+        private void QueueOpenFile_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileFromShell();
+        }
+
         private void MpvPlayerPage_PlaylistChanged()
         {
             // Unconditional now. The playlist used to be refreshed only while

@@ -310,7 +310,8 @@
                 Background="Transparent"
                 BorderThickness="0"
                 Click="IndexRailButton_Click"
-                IsEnabled="{x:Bind HasContent, Mode=OneWay}">
+                IsEnabled="{x:Bind HasContent, Mode=OneWay}"
+                PointerEntered="IndexRailLetter_PointerEntered">
                 <TextBlock
                     HorizontalAlignment="Center"
                     FontSize="{StaticResource MpvTransportTimeFontSize}"
@@ -353,11 +354,15 @@
                 PointerExited="LibraryCard_PointerExited"
                 Style="{StaticResource LibraryCardButtonStyle}">
                 <StackPanel>
+                    <!-- The square height is set from code (SetCardMediaSquare): the
+                         self-referential {Binding ActualWidth} does not resolve in this
+                         template, and {x:Bind} to it crashes the XAML compiler. -->
                     <Border
-                        Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                        x:Name="AlbumCardMediaBorder"
                         Style="{StaticResource LibraryCardMediaStyle}">
                         <Grid>
                             <Viewbox
+                                x:Name="AlbumCardFallbackIcon"
                                 Width="48"
                                 Height="48"
                                 HorizontalAlignment="Center"
@@ -369,10 +374,16 @@
                                     Data="{x:Bind MediaIcon, Mode=OneWay}"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Viewbox>
+                            <!-- Named, and driven from code, for the same reason as the two
+                                 captions above: this template's bindings do not take effect.
+                                 Measured: the thumbnail for the .flac loaded at 600x600 and
+                                 the PropertyChanged for Thumbnail fired, yet the card stayed
+                                 flat because neither this Source nor its Visibility updated.
+                                 ElementPrepared sets both once it has the entry. -->
                             <Image
-                                Source="{x:Bind Thumbnail, Mode=OneWay}"
+                                x:Name="AlbumCardCoverImage"
                                 Stretch="UniformToFill"
-                                Visibility="{x:Bind ThumbnailVisibility, Mode=OneWay}" />
+                                Visibility="Collapsed" />
 
                             <Grid
                                 x:Name="AlbumCardHoverOverlay"
@@ -437,15 +448,15 @@
                         Margin="{StaticResource MpvMediaTileCaptionMargin}"
                         Spacing="{StaticResource MpvSpaceXxs}">
                         <TextBlock
+                            x:Name="AlbumCardTitleText"
                             MaxLines="2"
                             Style="{StaticResource BodyTextBlockStyle}"
-                            Text="{Binding AlbumTitle}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="Wrap" />
                         <TextBlock
+                            x:Name="AlbumCardArtistText"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{Binding AlbumArtistText}"
                             TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                 </StackPanel>
@@ -630,6 +641,11 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+                <!-- Two rows: the folder name, then its path on a line of its own. -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
                 <Viewbox
                     Grid.Column="0"
@@ -650,16 +666,27 @@
                     Text="{x:Bind Name, Mode=OneWay}"
                     TextTrimming="CharacterEllipsis" />
 
+                <!-- The path on its own line, and larger than it used to be.
+                     Reported as 视频文件夹内应显示大路径. Measured before: the name was
+                     BodyStrong (~14 px) and the path Caption (~12 px) on the SAME row, so the
+                     two read as one run-on label and the path (the only thing that tells two
+                     folders called "Downloads" apart) was the quietest element in the header.
+                     It now spans the remaining columns on a second row at Subtitle size, which
+                     is deliberately larger than the name above it: for a video folder the
+                     location is the useful part. -->
                 <TextBlock
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
+                    Margin="0,2,0,0"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
                     Text="{x:Bind Path, Mode=OneWay}"
                     TextTrimming="CharacterEllipsis"
                     Visibility="{x:Bind PathVisibility, Mode=OneWay}" />
 
                 <TextBlock
+                    Grid.Row="0"
                     Grid.Column="3"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -1551,11 +1578,22 @@
 
                          Buttons, then, with the standard control chrome doing the
                          work: no custom template, no card, no CommandBar. -->
-                    <StackPanel
+                    <!-- A three-column Grid, not one StackPanel: the queue needs a
+                         right-aligned 添加文件 the way every library section has one in the
+                         top right corner. Measured before this: the queue exposed only
+                         QueueClearButton at x=936 and QueueAddToButton at x=1087, both
+                         hard against the left gutter, and nothing on the right at all.
+                         Reported as 播放队列也应有右上角"添加文件"按钮. -->
+                    <Grid
                         Grid.Row="0"
                         Margin="0,0,0,12"
-                        Orientation="Horizontal"
-                        Spacing="{StaticResource MpvSpaceS}">
+                        ColumnSpacing="{StaticResource MpvSpaceS}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <Button
                             x:Name="QueueClearButton"
                             Padding="{StaticResource MpvActionButtonPaddingTight}"
@@ -1579,6 +1617,7 @@
                         </Button>
                         <Button
                             x:Name="QueueAddToButton"
+                            Grid.Column="1"
                             Padding="{StaticResource MpvActionButtonPaddingTight}"
                             Click="QueueAddTo_Click">
                             <StackPanel
@@ -1598,7 +1637,33 @@
                                     VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
-                    </StackPanel>
+
+                        <!-- The queue's own 添加文件, right aligned like the library's
+                             添加文件夹. Same shape as its neighbours: glyph plus label, text
+                             set from AppLang in code so it localizes. -->
+                        <Button
+                            x:Name="QueueOpenFileButton"
+                            Grid.Column="3"
+                            Padding="{StaticResource MpvActionButtonPaddingTight}"
+                            Click="QueueOpenFile_Click">
+                            <StackPanel
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <Viewbox
+                                    Width="16"
+                                    Height="16"
+                                    VerticalAlignment="Center">
+                                    <PathIcon
+                                        x:Name="QueueOpenFileIcon"
+                                        Width="24"
+                                        Height="24" />
+                                </Viewbox>
+                                <TextBlock
+                                    x:Name="QueueOpenFileText"
+                                    VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
 
                     <ListView
                         x:Name="QueueView"

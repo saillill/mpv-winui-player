@@ -43,59 +43,17 @@ namespace mpv_winui.Modules.Settings
 
             lock (_gate)
             {
-                if (!_values.TryGetValue(propertyName, out var value) || value is null)
+                if (!_values.TryGetValue(propertyName, out var value))
                 {
                     return defaultValue;
                 }
-                if (value is T typed)
-                {
-                    return typed;
-                }
-                if (typeof(T) == typeof(bool))
-                {
-                    if (value is string s && bool.TryParse(s, out var b))
-                    {
-                        return (T)(object)b;
-                    }
-                    if (value is int i)
-                    {
-                        return (T)(object)(i != 0);
-                    }
-                    if (value is byte[] bytes && bytes.Length > 0)
-                    {
-                        return (T)(object)(bytes[0] != 0);
-                    }
-                }
-                if (value is string text)
-                {
-                    if (typeof(T) == typeof(int) && int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i))
-                    {
-                        return (T)(object)i;
-                    }
-                    if (typeof(T) == typeof(double) && double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var d))
-                    {
-                        return (T)(object)d;
-                    }
-                    if (typeof(T) == typeof(float) && float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var f))
-                    {
-                        return (T)(object)f;
-                    }
-                    if (typeof(T) == typeof(long) && long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var l))
-                    {
-                        return (T)(object)l;
-                    }
-                    if (typeof(T) == typeof(uint) && uint.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var u))
-                    {
-                        return (T)(object)u;
-                    }
-                    if (typeof(T) == typeof(ulong) && ulong.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var ul))
-                    {
-                        return (T)(object)ul;
-                    }
-                }
-            }
 
-            return defaultValue;
+                // One converter for every backend. The bool arm used to be
+                // copied here and into UnpackageAppDataSetting, and both copies
+                // accepted `int` only -- while a REG_DWORD arrives as `uint`.
+                // See SettingValueCodec for the measurement.
+                return SettingValueCodec.Coerce(value, defaultValue);
+            }
         }
 
         public bool SetValue<T>(string propertyName, T value)

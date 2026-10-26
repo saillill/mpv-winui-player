@@ -15,7 +15,35 @@ namespace mpv_winui.Modules.Player
         {
             // Diagnostics for the aspect lock: this handler is the only place
             // that publishes the video ratio, so log what actually arrives.
-            _logger.Debug("media info changed: video={}x{}", args.VideoWidth, args.VideoHeight);
+            //
+            // INFO for the 0x0 edge only, DEBUG for every other report. The
+            // asymmetry is deliberate: a file that loads and then reports
+            // `video=0x0` is a defect the user feels (nothing appears), while a
+            // file that simply has no picture reports 0x0 as normal. Logging the
+            // 0x0 transition at INFO is what makes the next occurrence visible
+            // without debug logging enabled at all -- the state that hid this for
+            // two days (see SettingValueCodec for why debug logging was dark).
+            if (args.VideoWidth > 0 && args.VideoHeight > 0)
+            {
+                _logger.Debug("media info changed: video={}x{} file={}",
+                    args.VideoWidth, args.VideoHeight, args.Filename);
+                PlayChain.SurfaceSized((int)args.VideoWidth, (int)args.VideoHeight, args.Filename);
+            }
+            else if (_videoWidth > 0 || _videoHeight > 0)
+            {
+                // Had a real size, now 0x0. This is the shape of "the file loaded
+                // and no picture appeared", and it is why the aspect fit is then
+                // skipped as "no active video" further down the chain.
+                PlayChain.SurfaceLost(string.Format(
+                    "mpv reported {0}x{1} after {2}x{3}, file now {4}",
+                    args.VideoWidth, args.VideoHeight, _videoWidth, _videoHeight,
+                    args.Filename));
+            }
+            else
+            {
+                _logger.Debug("media info changed: video={}x{} file={}",
+                    args.VideoWidth, args.VideoHeight, args.Filename);
+            }
 
             // The main window's aspect-lock reads these (mpv reports 0x0 when
             // nothing is playing, which clears the lock's "active video" gate).

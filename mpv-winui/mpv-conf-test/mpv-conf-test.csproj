@@ -37,6 +37,14 @@
              invisible to every static checker, because none of them write a
              value out and read it back. -->
         <Compile Include="..\mpv-winui\Modules\Settings\MpvConfValueCodec.cs" Link="Settings\MpvConfValueCodec.cs" />
+        <!-- The settings store's own value converter. Linked for the same reason:
+             it is a pure function, and the defect it carried was invisible to
+             every static checker. A REG_DWORD bool is surfaced by
+             ApplicationDataContainer as an unsigned integral, while the bool arm
+             matched `int` only, so EnableDebugLog read back as false while both
+             the registry and the settings window said "enabled", and two days of
+             app logs contained zero DEBUG and zero INFO lines. -->
+        <Compile Include="..\mpv-winui\Modules\Settings\SettingValueCodec.cs" Link="Settings\SettingValueCodec.cs" />
         <!-- The control bar's width/orientation tiers. Linked for the same
              reason: the rules are pure data, and the two defects they carried
              (a portrait window that was never recognised as portrait, and an

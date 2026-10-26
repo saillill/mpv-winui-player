@@ -72,6 +72,12 @@ namespace mpv_winui.Modules.Player
         {
             if (files?.Count > 0)
             {
+                // Logged before anything else, so the log can tell "the request
+                // never left the app" from "mpv was asked and refused". Only the
+                // first path: a folder open with 5000 files must not write 5000
+                // lines.
+                PlayChain.Open(files.Count, files[0].Path, files[0].Type, action);
+
                 var allSub = true;
                 foreach (var file in files)
                 {
@@ -115,6 +121,7 @@ namespace mpv_winui.Modules.Player
                         {
                             player.Command(["osd-auto", "loadfile", files[i].Path, i == 0 ? "replace+play" : "append"]);
                         }
+                        PlayChain.Sent(files[0].Path);
                         break;
                     }
 
@@ -124,6 +131,7 @@ namespace mpv_winui.Modules.Player
                         {
                             player.Command(["osd-auto", "loadfile", files[i].Path, "append"]);
                         }
+                        PlayChain.Sent(files[0].Path);
                         break;
                     }
 
@@ -133,6 +141,7 @@ namespace mpv_winui.Modules.Player
                         {
                             player.Command(["osd-auto", "loadfile", files[i].Path, i > 0 ? "insert-next" : "insert-next-play"]);
                         }
+                        PlayChain.Sent(files[0].Path);
                         break;
                     }
                 }

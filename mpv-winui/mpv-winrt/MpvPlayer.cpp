@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "MpvPlayer.h"
 #include "MpvPlayer.g.cpp"
 #include "Events/MediaInfoChangedEventArgs.h"
@@ -427,18 +427,41 @@ namespace winrt::mpv_winrt::implementation
         }
     }
 
+    void MpvPlayer::EmitPlayChainEvent(wchar_t const* name)
+    {
+        if (!m_logMessageEvent)
+        {
+            return;
+        }
+
+        // Info, through the same LogMessage channel mpv's own lines use, so it
+        // lands in the one file a bug report already points at. The "play-chain:"
+        // prefix is what ties it to the C# side's lines: the native half proves the
+        // event reached HandleMpvEvent, the C# half proves a handler ran. A gap
+        // between them localises the break to the event projection.
+        std::wstring text = L"play-chain: mpv raised ";
+        text += name;
+        auto message = winrt::make<implementation::MpvLogEventArgs>(
+            L"info",
+            L"mpv-winrt",
+            winrt::hstring(text));
+        m_logMessageEvent(message);
+    }
+
     void MpvPlayer::HandleMpvEvent(mpv_event* event)
     {
         switch (event->event_id)
         {
             case MPV_EVENT_START_FILE:
                 {
+                    EmitPlayChainEvent(L"start-file");
                     m_fileStartedEvent();
                     break;
                 }
 
             case MPV_EVENT_FILE_LOADED:
                 {
+                    EmitPlayChainEvent(L"file-loaded");
                     m_fileLoadedEvent();
                     break;
                 }
@@ -1029,19 +1052,122 @@ namespace winrt::mpv_winrt::implementation
         }
 
         const size_t count = args.Size();
+
+        // Convert to UTF-8 first, then take the pointers.
+        //
+        // **The defect this fixes.** The previous version interleaved them:
+        //
+        //     utf8Args.reserve(count);
+        //     for (auto const& item : args) {
+        //         utf8Args.push_back(to_string(item));
+        //         cArgs.push_back(utf8Args.back().c_str());   // pointer into utf8Args
+        //     }
+        //
+        // `reserve(count)` does not prevent reallocation here, because `to_string`
+        // of a non-ASCII hstring produces MORE than one byte -- the vector grows,
+        // every `c_str()` already stored in `cArgs` dangles, and mpv is handed
+        // pointers into freed storage. mpv_command still returns 0 (it accepts the
+        // command), and then reads a path of garbage: no START_FILE, no
+        // FILE_LOADED, nothing. That is exactly the observed shape -- `loadfile
+        // accepted (0)` followed by total silence -- for a path that is fine when
+        // replayed over IPC.
+        //
+        // It only bites when a conversion reallocates, so an all-ASCII path could
+        // get through by luck. Two-pass conversion removes the class of bug rather
+        // than the instance: build every string, THEN collect the pointers, with the
+        // vector final and never touched again.
         std::vector<std::string> utf8Args;
         std::vector<const char*> cArgs;
         utf8Args.reserve(count);
-        cArgs.reserve(count + 1);
-
         for (auto const& item : args)
         {
             utf8Args.push_back(to_string(item));
-            cArgs.push_back(utf8Args.back().c_str());
+        }
+
+        cArgs.reserve(count + 1);
+        for (auto const& converted : utf8Args)
+        {
+            cArgs.push_back(converted.c_str());
         }
 
         cArgs.push_back(nullptr);
-        mpv_command(m_mpv, cArgs.data());
+
+        // Report the rejection instead of discarding it.
+        //
+        // This is the sibling of the fix already applied to CommandString below,
+        // and its absence was the reason "the video does not play" had no evidence
+        // anywhere: every playback command in this app goes through Command
+        // (loadfile, set, seek, playlist-*), and a refusal from mpv was thrown away
+        // silently. CommandString had already been taught to report, which made the
+        // two disagree -- a rejected settings line left a log entry and a rejected
+        // loadfile left nothing at all.
+        //
+        // Measured consequence: a file whose path mpv could not open produced
+        // `play-chain: loadfile sent`, no `file-loaded`, and no explanation.
+        const int result = mpv_command(m_mpv, cArgs.data());
+        if (result < 0 && m_logMessageEvent)
+        {
+            std::string joined;
+            for (size_t i = 0; i < count; ++i)
+            {
+                if (i > 0)
+                {
+                    joined += ' ';
+                }
+                joined += utf8Args[i];
+            }
+
+            auto message = winrt::make<implementation::MpvLogEventArgs>(
+                L"warn",
+                L"mpv-winrt",
+                winrt::to_hstring("Command rejected (" + std::to_string(result) + "): " + joined));
+            m_logMessageEvent(message);
+        }
+        else if (count > 1 && utf8Args[1] == "loadfile" && m_logMessageEvent)
+        {
+            // Report the accepted case too, and report what mpv's own state says
+            // about it one instruction later.
+            //
+            // The app logged `loadfile accepted (0)` with a correct argv and then
+            // mpv raised no START_FILE at all. The question that splits the two
+            // remaining explanations -- "mpv swallowed the command" versus "mpv
+            // took it and did not start" -- is answerable in this one line: read
+            // the properties back immediately.
+            //
+            //   path changed        -> mpv took it; the defect is downstream
+            //   path unchanged      -> mpv did not act on it
+            //   playlist-count > 0  -> mpv already held something before the call
+            char* pathNow = nullptr;
+            mpv_get_property(m_mpv, "path", MPV_FORMAT_STRING, &pathNow);
+            int64_t playlistCount = 0;
+            mpv_get_property(m_mpv, "playlist-count", MPV_FORMAT_INT64, &playlistCount);
+            int idleNow = -1;
+            mpv_get_property(m_mpv, "idle-active", MPV_FORMAT_FLAG, &idleNow);
+            const std::wstring state =
+                std::wstring(L"path=") + (pathNow ? winrt::to_hstring(pathNow).c_str() : L"<null>")
+                + L" playlist-count=" + std::to_wstring(playlistCount)
+                + L" idle=" + std::to_wstring(idleNow);
+            if (pathNow)
+            {
+                mpv_free(pathNow);
+            }
+
+            auto message = winrt::make<implementation::MpvLogEventArgs>(
+                L"info",
+                L"mpv-winrt",
+                winrt::hstring(std::wstring(L"play-chain: loadfile accepted (")
+                    + std::to_wstring(result) + L") argv=[" +
+                    [&] {
+                        std::wstring joined;
+                        for (size_t i = 0; i < count; ++i)
+                        {
+                            if (i) { joined += L" | "; }
+                            joined += winrt::to_hstring(utf8Args[i]).c_str();
+                        }
+                        return joined;
+                    }() + L"] immediately: " + state));
+            m_logMessageEvent(message);
+        }
     }
 
     void MpvPlayer::CommandString(hstring const& cmd)

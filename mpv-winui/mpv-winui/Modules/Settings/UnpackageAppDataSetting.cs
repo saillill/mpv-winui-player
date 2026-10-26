@@ -25,58 +25,10 @@ namespace mpv_winui.Modules.Settings
 
             try
             {
-                var value = _container.Values[propertyName];
-                if (value is T t)
-                {
-                    return t;
-                }
-                if (typeof(T) == typeof(bool))
-                {
-                    if (value is string s && bool.TryParse(s, out var b))
-                    {
-                        return (T)(object)b;
-                    }
-                    if (value is int i)
-                    {
-                        return (T)(object)(i != 0);
-                    }
-                    if (value is byte[] bytes && bytes.Length > 0)
-                    {
-                        return (T)(object)(bytes[0] != 0);
-                    }
-                }
-                if (value is string text)
-                {
-                    // Imported config files store every value as a string; the
-                    // registry then holds REG_SZ instead of the original type,
-                    // so numeric properties need string -> number conversion.
-                    // InvariantCulture keeps round-trips stable across regions
-                    // (export/import must not depend on the user's number format).
-                    if (typeof(T) == typeof(int) && int.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var i))
-                    {
-                        return (T)(object)i;
-                    }
-                    if (typeof(T) == typeof(double) && double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d))
-                    {
-                        return (T)(object)d;
-                    }
-                    if (typeof(T) == typeof(float) && float.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var f))
-                    {
-                        return (T)(object)f;
-                    }
-                    if (typeof(T) == typeof(long) && long.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var l))
-                    {
-                        return (T)(object)l;
-                    }
-                    if (typeof(T) == typeof(uint) && uint.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var u))
-                    {
-                        return (T)(object)u;
-                    }
-                    if (typeof(T) == typeof(ulong) && ulong.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var ul))
-                    {
-                        return (T)(object)ul;
-                    }
-                }
+                // One converter for every backend; see SettingValueCodec for the
+                // defect this replaced (a REG_DWORD bool read back as false, so
+                // EnableDebugLog never took effect while it looked enabled).
+                return SettingValueCodec.Coerce(_container.Values[propertyName], defaultValue);
             }
             catch (System.Exception)
             {

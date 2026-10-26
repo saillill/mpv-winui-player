@@ -109,7 +109,7 @@ zh-CN/          ...
 | | `Languages/` | `LanguageManager` 读 `BaseDirectory/Languages/<lang>.json`（**路径硬编码**） |
 | | `Menus/` | `menus.json` 菜单定义（`MenuDefinitionSource.BundledPath`） |
 | | `MpvConfOptions/` | `mpv-options.json`，mpv.conf 编辑器的选项定义（`MpvConfSchemaService`） |
-| | `mpv-winui-lazy/` | 部署到 `%LOCALAPPDATA%\mpv-winui\mpv` 的配置层 |
+| | `mpv-winui-lazy/` | 部署到 `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv` 的配置层 |
 | | `Modules/` `Shell/` `Styles/` `Themes/`（仅 build） | 各页面编译出的 `.xbf`；publish 时内联进 `resources.pri` |
 | 框架 | `Microsoft.UI.Xaml/` | WinUI 的 XAML 资源 |
 | 语言 | `en-us/ de-DE/ …`（9 个） | Windows App SDK 的框架语言资源（`.mui`） |

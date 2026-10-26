@@ -20,7 +20,21 @@ namespace mpv_winui.Modules.Common.Utils
                 var level = AppContext.AppSetting.EnableDebugLog ? LogLevel.Trace : LogLevel.Debug;
                 builder.ForLogger().FilterMinLevel(level).WriteToDebug();
 #else
-                var level = AppContext.AppSetting.EnableDebugLog ? LogLevel.Debug : LogLevel.Warn;
+                // Info, not Warn, and the change is deliberate.
+                //
+                // The play chain (Modules/Player/PlayChain.cs) is logged at Info
+                // precisely so that a user reporting "the video does not play" does
+                // not have to have had debug logging on for the report to be
+                // diagnosable. At Warn those lines were filtered out, which is why
+                // two days of logs could hold a complete "file loaded, nothing
+                // appeared" failure and show only mpv's own warnings.
+                //
+                // The volume cost is bounded by what writes at Info: the play chain
+                // (one line per link per load), settings load/ownership at startup,
+                // and mpv's forwarded info lines when debug logging is on. mpv's own
+                // chatter stays at Warn otherwise (see the SetMpvLogLevel call
+                // below), so playback itself does not add lines.
+                var level = AppContext.AppSetting.EnableDebugLog ? LogLevel.Debug : LogLevel.Info;
 #endif
                 builder.ForLogger()
                     .FilterMinLevel(level)

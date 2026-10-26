@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using mpv_winui.Modules.Common.Utils;
 using System;
 
@@ -80,6 +80,20 @@ namespace mpv_winui.Modules.Player
             MainWindow.VideoPanelPhysicalHeight = height;
 
             _mediaPlayer?.UpdateSize(width, height);
+
+            // INFO only in the degenerate case, and that case is the point.
+            //
+            // `1x1` is what the two clamps above produce when the panel has no
+            // measured size, and it is indistinguishable from "everything worked"
+            // in every other log line. A player that loads a file and shows
+            // nothing looks exactly like a player whose swap chain was sized to a
+            // square millimetre, so the one time it happens has to say so.
+            if (width <= 1 || height <= 1)
+            {
+                PlayChain.SurfaceLost(string.Format(
+                    "video panel measured {0}x{1} physical (logical {2}x{3}, scale {4}x{5})",
+                    width, height, size.Width, size.Height, size.WidthScale, size.HidthScale));
+            }
         }
 
         private double _lastCompositionScaleX;

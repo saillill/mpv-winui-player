@@ -166,13 +166,58 @@ def s_deploy():
 
 
 def verifier(script):
+    """Run one verifier and judge it by its exit code AND its own verdict line.
+
+    **The defect this replaces.** The old rule was
+
+        ok = code == 0 and ("OK" in tail or "PASS" in tail or "passed -> OK" in tail)
+
+    where `tail` was the LAST non-empty line. That is a substring test, not a verdict, and
+    it fails in both directions:
+
+      * false PASS -- any output whose final line happens to contain "OK" passes, even if
+        every assertion above it failed. The word "OK" appears in ordinary progress text,
+        in a table of per-item results, and in the phrase "not OK".
+      * blind to silence -- a verifier whose assertions never ran (a dead instrument, an
+        empty result set, a regex that stopped matching) usually still exits 0 and its last
+        line still looks fine. Five playback verifiers sent `loadfile` over IPC and never
+        exercised the app at all; this gate called that 8/8 PASS while the app could not
+        play a video.
+
+    So a verifier now has to do two things the old code never asked for:
+
+      1. print a machine-readable verdict line the gate can parse exactly, and
+      2. prove it can fail, on demand, via --self-test.
+
+    Both are required. (2) is the rule this repo already states for checkers -- "a checker
+    that has never been seen to fail is not evidence" -- applied to behaviour verifiers.
+    """
     def inner():
+        # (1) the verifier's own explicit verdict
         code, out = run([sys.executable, os.path.join(MCP, script)])
-        last = [l.strip() for l in out.splitlines() if l.strip()]
-        tail = last[-1][:100] if last else ""
-        ok = code == 0 and ("OK" in tail or "PASS" in tail
-                            or "passed -> OK" in tail)
-        return ok, tail
+        m = re.search(r"^VERDICT:\s*(PASS|FAIL)\b", out, re.M)
+        if not m:
+            last = [l.strip() for l in out.splitlines() if l.strip()]
+            return False, ("no 'VERDICT: PASS|FAIL' line -- this verifier predates the "
+                           "contract and cannot be trusted; tail: %s"
+                           % (last[-1][:80] if last else "<empty>"))
+        stated_pass = m.group(1) == "PASS"
+        if code != 0 and stated_pass:
+            return False, "printed VERDICT: PASS but exited %d -- the two disagree" % code
+        if code == 0 and not stated_pass:
+            return False, "printed VERDICT: FAIL but exited 0 -- the two disagree"
+        if not stated_pass:
+            return False, "verifier says FAIL"
+
+        # (2) and it must be able to report a failure
+        scode, sout = run([sys.executable, os.path.join(MCP, script), "--self-test"])
+        sm = re.search(r"^SELF-TEST\s+(PASSED|FAILED)\b", sout, re.M)
+        if not sm:
+            return False, ("no 'SELF-TEST PASSED|FAILED' line -- this verifier has never "
+                           "been shown to detect a broken subject")
+        if scode != 0 or sm.group(1) != "PASSED":
+            return False, "self-test did not pass (exit %d, %s)" % (scode, sm.group(1))
+        return True, "verdict PASS, self-test proved it can fail"
     return inner
 
 
@@ -182,10 +227,25 @@ def main():
         ("build", s_build),
         ("static checkers", s_checkers),
         ("deploy consistency", s_deploy),
+        # Playback first among the behaviour verifiers, and it is the reason this file was
+        # rewritten: the old stage list had no playback verifier that used the app's own
+        # open path, so "8/8 stages passed" was printed while a video could not be played
+        # at all. A gate that cannot see the product's primary feature is not a gate.
+        ("verify_playback", verifier("verify_playback.py")),
         ("verify_e2e", verifier("verify_e2e.py")),
         ("verify_settings", verifier("verify_settings.py")),
         ("verify_settings_rows", verifier("verify_settings_rows.py")),
         ("verify_screenshot", verifier("verify_screenshot.py")),
+        # The UI verifiers, added with the defects they prove. Each one measures a property of
+        # the real window -- image content, control geometry, what is on screen -- because every
+        # defect in the queue was found by measurement and none by reading the XAML. They are in
+        # the gate so that a future edit which re-breaks one of them fails HERE rather than in
+        # somebody's screenshot review.
+        ("verify_music_cards", verifier("verify_music_cards.py")),
+        ("verify_letter_rail", verifier("verify_letter_rail.py")),
+        ("verify_queue_button", verifier("verify_queue_button.py")),
+        ("verify_home_button", verifier("verify_home_button.py")),
+        ("verify_overlay_buttons", verifier("verify_overlay_buttons.py")),
     ]
 
     results = []

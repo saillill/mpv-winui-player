@@ -18,19 +18,26 @@
 
 ---
 
-## 当前基线（2026-10-24 实测）
+## 当前基线（2026-10-26 实测）
 
 | 项 | 结果 |
 |---|---|
-| `verify_e2e` | 19/19 |
-| `verify_settings` | 0 failure |
-| `verify_settings_rows` | PASS |
-| `verify_screenshot` | PASS |
-| `verify_no_focus_steal` | 3/3 |
-| 17 个 `tools/check-*.py` | 0 失败 |
+| `gate.py` | **14/14 阶段通过**（其中 9 个行为验证器，每个都带 `--self-test` 证明能变红） |
+| `verify_playback` | PASS（`idle=no` 根因修复后实测 `file-loaded 1`、`time-pos` 推进） |
+| `verify_music_cards` | PASS（专辑/艺术家封面 stddev 13.7 / 88 色） |
+| `verify_letter_rail` | PASS（视频库无字母栏；音乐库有且不重叠） |
+| `verify_queue_button` | PASS（右上角打开文件按钮） |
+| `verify_home_button` | PASS |
+| `verify_overlay_buttons` | PASS（8/8 未被遮挡） |
+| 25 个 `tools/check-*.py` | 0 失败 |
 | 构建 | 0 错误 |
-| 部署 | `identical: 658 / differing: 0` |
+| 部署 | `identical 500 / differing: 0` |
+| 测试 | mpv-conf-test 517 + mpv-winrt-test 29 |
 | WUI 分析器 | 24 条，**全部已证误报** |
+
+> 上一版这张表写的是 `verify_e2e 19/19`、17 个检查器、`identical: 658`，而且
+> **没有 `verify_playback`** ——那份基线是在视频根本无法播放的状态下测出来的，却读起来
+> 像一次全绿。9 项 UI 缺陷的逐项结论见 `STATUS-9-DEFECTS.md`。
 
 ---
 
@@ -111,7 +118,7 @@
 | Player | ~~播放中/暂停/空闲三态的控制栏布局~~ **已建**：三态各 6/6 控件可用，且窗口态下控制栏本就不该隐藏（`SetOverlayMode(true)` 只在 PiP / 全窗口 / 全屏调用）。**未覆盖**：从播放页进入全窗口后 1.5s 浮层自动隐藏——唯一入口是用户自己的打开文件路径，IPC 驱动做不到 |
 | 历史与稍后看 | **结构已审，运行时未测**（入口够不到，原因见下）。①**列表项渲染**：两者都是 `ContentDialog` + 代码构造（`MpvPlayerPage_History.cs:14/33`），行模板在 `WatchHistoryControl.xaml:49-94` / `WatchLaterControl.xaml`。②**空态：逻辑成立且分三种**——`UpdateEmptyState()`（`WatchHistoryControl.xaml.cs:69-96`）按 `Items.Count==0` 切 `HistoryListView` 与 `EmptyTextBlock` 的可见性，两者严格互斥；再按「历史文件不存在但开关开着」→`WatchHistoryEmpty`、「开关关着」→`WatchHistoryDisabled`、「文件存在但没条目」→`WatchHistoryNoEntries` 三选一，不是一句笼统的空提示。③**滚动**：两个控件都是 `ListView`（自身可滚），内层无嵌套滚动。**为什么没跑运行时**：唯一入口是播放页 File 菜单的 `open-watch-history`/`open-watch-later`（`MpvPlayerPage.xaml:771/775`）或 `PlayerView` 的右键菜单（`MpvPlayerPage_MpvMenu.cs:68-69`），而 `MainMenuBar` 在库页面被 `Visibility.Collapsed`、`MenuRow` 同时压成 0（`MpvPlayerPage_Library.cs:2800-2802`）；IPC `loadfile` 又**不会**把页面切到播放页（只有用户自己的打开路径会）。本机 `watch_later` 目录当前 0 条目，因此即便拿到对话框也只会看到空态。**要测需要**：一个用户态打开文件的自动化路径（如拖放或 Open 对话框注入），这本身是新的测量手段 |
 | 图标规范 | **已建检查器并修完确定的缺陷**（check-icon-standard.py，纳入 gate）。先纠正一个我自己犯的错：图标是**两套系统**——框架符号字体 115 处（不写 FontFamily，用 Segoe 码点，合法）+ 打包的 FluentSystemIcons 33 处（MpvIconFontFamily）。我第一版要求统一成一套，报出 74 条里 58 条是误报，规则已删。真正测出的：①**错字形 4 处**——Segoe 码点被放进 Fluent 字体。U+E768 在 Fluent 是 line_48（一条线）、在 Segoe 是"播放"，却挂在三个播放按钮下（CardPlayButton/AlbumCardPlayButton/AlbumPlayAllButton）；U+E710 在 Fluent 是 home_32、挂在"添加"按钮下。已换 U+F605(play_20)/U+F109(add_20)。②**硬编码字体名 3 处**——FontFamily=""Segoe Fluent Icons""（CenterPlayerControlStyle.xaml + OptionListControl.xaml ×2），同文件另外 8 个 FontIcon 都是继承的，只有这 2 处是例外；已改 SymbolThemeFontFamily。③**未 token 化尺寸 2 处**——PlayerControl.xaml 的 ShuffleSymbol/PiPSymbol 写 FontSize=""20""，同文件其余 16 处都用 MpvTransportIconSize。**一个必须记住的教训**：打包字体覆盖了私有区**全部 6400 个码点**（fontTools 实测，全部是真 ic_fluent_* 名字），所以"码点是否存在于字体"是**永不触发的检查**，我写出来后删掉了，改用字形名里的设计尺寸做判据。剩 51 条（13 个文件里与图标尺寸 token 等值的字面量）进基线与 gate 共存，且已验证：注入 4 条新违规会红、51 条已知不会掩盖 |
-| 排版规范 | **已建检查器**（check-typography-standard.py，纳入 gate）。两套 token 都完整：间距 MpvSpaceXxs/Xs/Compact/S/M/L = 2/4/6/8/12/16；字号 MpvPageHeadingFontSize 40、MpvPanelTitleFontSize 20、MpvShellTitleFontSize 16、MpvPopupLabelFontSize 14、MpvPopupTitleFontSize 12、MpvTransportTimeFontSize 12、MpvPopupCaptionFontSize 11；行高 MpvBreadcrumbLineHeight 32。实测 **93 条**与 token 等值的字面量（FONT-LITERAL 24 + SPACING-LITERAL 69），分布在 20 个文件。这**不是**"没人遵守的规则"：仓库已有 **129 处** MpvSpace* token 用法，比对侧字面量 69 处，比例 1.87:1 —— 是真实的同类型不一致。判据刻意收窄：①Margin=""8,0,8,0"" 这类简写**不报**，因为把其中一个数字换成资源要重写整个属性，而简写表达的是一种关系（横 8、纵 0），token 表达不了；报它会产生几百条作者理应无视的噪声，那正是教人无视检查器的做法。②只有 TextBlock/TextBox 等文本元素的 FontSize 才归排版管，图标字号归图标检查器。93 条进基线与 gate 共存；已验证注入 Spacing=""8"" 和 TextBlock FontSize=""16"" 都会红、恢复后绿。**顺带量到但判定为合理**：全仓库 20 处硬编码颜色，其中 18 处在 MpvConfTextWindow.xaml（mpv.conf 代码查看器，自带固定深色配色是它的设计），另 2 处是 PlayerControl.xaml 的 AB 循环 A/B 标记色 #FFFF8C00/#FF00BFFF（功能性配色，非主题色）。两处都不改 |
+| 排版规范 | **已建检查器**（check-typography-standard.py，纳入 gate）。两套 token 都完整：间距 MpvSpaceXxs/Xs/Compact/S/M/L = 2/4/6/8/12/16；字号 MpvPageHeadingFontSize 40、MpvPanelTitleFontSize 20、MpvShellTitleFontSize 16、MpvPopupLabelFontSize 14、MpvPopupTitleFontSize 12、MpvTransportTimeFontSize 12、MpvPopupCaptionFontSize 11；行高 MpvBreadcrumbLineHeight 32。实测 **93 条**与 token 等值的字面量（FONT-LITERAL 24 + SPACING-LITERAL 69），分布在 20 个文件。**已清 76 条，剩 17 条判定不改**（提交 9398df1）。分界由**类型**决定，不是口味：Spacing/RowSpacing/ColumnSpacing/FontSize 是 double，MpvSpace* 与字号 token 都是 x:Double，替换类型正确；Margin/Padding 是 Thickness，裸 double **不是** Thickness 且 XAML 不会隐式转换，替过去是**编译错误而不是修复**。剩 17 条不改的实测理由：Styles.xaml 里**没有**尺度命名的 Thickness token（现有的全是角色名 MpvCardPadding/MpvActionButtonPadding），加一套等于引入新概念；而且 CompactPlayerControlStyle.xaml:31 的注释写明「Padding=""4"" is 4 on every side, so 8 vertical, plus 28 (progress/time) + 60 (transport)」——这个数字参与高度预算，换成 token 只是把它藏起来，并没有解耦。这**不是**"没人遵守的规则"：仓库已有 **129 处** MpvSpace* token 用法，比对侧字面量 69 处，比例 1.87:1 —— 是真实的同类型不一致。判据刻意收窄：①Margin=""8,0,8,0"" 这类简写**不报**，因为把其中一个数字换成资源要重写整个属性，而简写表达的是一种关系（横 8、纵 0），token 表达不了；报它会产生几百条作者理应无视的噪声，那正是教人无视检查器的做法。②只有 TextBlock/TextBox 等文本元素的 FontSize 才归排版管，图标字号归图标检查器。93 条进基线与 gate 共存；已验证注入 Spacing=""8"" 和 TextBlock FontSize=""16"" 都会红、恢复后绿。**顺带量到但判定为合理**：全仓库 20 处硬编码颜色，其中 18 处在 MpvConfTextWindow.xaml（mpv.conf 代码查看器，自带固定深色配色是它的设计），另 2 处是 PlayerControl.xaml 的 AB 循环 A/B 标记色 #FFFF8C00/#FF00BFFF（功能性配色，非主题色）。两处都不改 |
 | 菜单编辑器 | **已建** `_work/probe_menueditor.py`。先分清**有两个编辑器**：`Modules/Menu/MenuEditor/MenuEditorWindow`（编辑 `menu.conf`，只从播放页菜单开，够不到）与设置页 **Customize 布局**（书签管理器形状，库页面可达）——测的是后者。①**树操作**：实测 6 个 `TreeItemControl`，名字为 程序/播放/画面/声音/字幕/界面，全部 `enabled=true`。②**拖拽**：XAML 声明 `AllowDrop` + `CanDragItems` + `CanReorderItems` + 双横条拖拽手柄（`SettingsPage.xaml:491-497` + 手柄注释），但 **UIA 不暴露 `DropTargetPattern`**（`GetDropTargetPattern()` 抛 `AttributeError`），所以"拖拽可用"只能由声明+手柄佐证，**不能由 UIA 断言**；这是 WinUI TreeView 的暴露限制，不是缺陷。③**保存往返**：两轮都通过——退出再进 Customize 后文件夹集合 `sameSet=true`（6→6），**关掉整个设置窗口重开**后仍 `sameSet=true`（6）。比较用集合**且**比数量，避免空对空蒙混。**注意**：`FolderTree` 的 UIA `AutomationId` 实测是 `'ListControl'` 而不是 `FolderTree`（`TreeView` 默认如此），按 aid 找会漏掉 |
 | MediaInfo | ~~长值换行、复制、分节折叠~~ **已建** `_work/probe_mediainfo.py`。①**长值换行：成立**，`MediaInfoRowTemplate` 的 value 列 `TextWrapping="Wrap"` + `IsTextSelectionEnabled="True"`（`MediaInfoUserControl.xaml:30-36`），换行高度可测。②**复制：成立**，每张卡有 `CopySection_Click`（`:88-91`），底部有 `CopyAllButton`（`:184-186`）。③**分节折叠：不存在**——`Modules/MediaInfo/` 全目录 `grep -iE "Expander|IsExpanded|Collaps|ToggleButton|Chevron"` 只命中的是 `Visibility="Collapsed"` 和加载态的显隐，**没有任何展开/折叠机制**。D 区这一格原本把"分节折叠"列为待测项，实测结果是"该功能没有"，不是"没测"。**入口**：`MediaInfoButton` 在播放列表面板里，只有可访问名（"媒体信息"/"Media info"）**没有 AutomationId**，`MediaInfoWindow` 也不设 `AutomationId`/**不用 `MPV` 标题**（`AppWindow.Title = lang.MediaInfoTitle`），所以按 id 或按标题都找不到它——要用可访问名定位。 |
 | 无障碍 | ~~8 状态 × 238 交互实例复测~~ **已建** `scan-a11y-surfaces.py`：主窗口 + 设置窗口 + 控制面板三处走遍，按"有没有名字"和"是否靠邻居 TextBlock 标名"分开统计，元素数为 0 的界面报 UNMEASURED 而非通过。修完四处真缺陷后，三处均 0 bare（见 §C 末四行）。**未覆盖**：`MoreButton` 打开的 More 菜单在 Wide 档不存在（`HasOverflowContent` 为假，设计如此），要测它得先把窗口收到 Standard 档 |

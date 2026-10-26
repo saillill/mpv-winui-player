@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "MpvPlayer.g.h"
 #include <atomic>
 #include <d3d11_4.h>
@@ -239,6 +239,12 @@ namespace winrt::mpv_winrt::implementation
         void StopEventThread();
         void ProcessEvents();
         void HandleMpvEvent(mpv_event* event);
+
+        // Writes one line when a lifecycle event is dispatched, so the app log can
+        // tell "mpv never raised it" apart from "the C# handler never ran". Those
+        // two produce identical silence otherwise, and separating them is the whole
+        // reason the play chain exists.
+        void EmitPlayChainEvent(wchar_t const* name);
 
         void CompletePendingSwapChainAttach();
         void StartPropertyObservers();
