@@ -56,13 +56,13 @@ REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "mpv-winui" / "mpv-winui"
 
 APPLANG = SRC / "Lexicon" / "Language" / "AppLang.cs"
-CATALOG = SRC / "Modules" / "Settings" / "Layout" / "SettingsSections.cs"
+CATALOG = SRC / "Domains" / "Settings" / "Layout" / "SettingsSections.cs"
 LANGUAGES = SRC / "Languages"
-OPTIONS = (SRC / "Modules" / "Settings" / "SettingsPage.Options.cs",
-           SRC / "Modules" / "Settings" / "SettingsPage.Options.Program.cs")
-OPTION_FILES = tuple(sorted((SRC / "Modules" / "Settings").glob("SettingsPage.Options*.cs")))
-CORE_OPTIONS = SRC / "Modules" / "Settings" / "SettingsPage.Options.cs"
-GEN_SECTIONS = SRC / "Modules" / "Settings" / "SettingsPage.Sections.Gen.cs"
+OPTIONS = (SRC / "Domains" / "Settings" / "SettingsPage.Options.cs",
+           SRC / "Domains" / "Settings" / "SettingsPage.Options.Program.cs")
+OPTION_FILES = tuple(sorted((SRC / "Domains" / "Settings").glob("SettingsPage.Options*.cs")))
+CORE_OPTIONS = SRC / "Domains" / "Settings" / "SettingsPage.Options.cs"
+GEN_SECTIONS = SRC / "Domains" / "Settings" / "SettingsPage.Sections.Gen.cs"
 
 
 def applang_props():
@@ -212,7 +212,7 @@ def option_keys():
     # Constants can live outside the options files -- FileAssociationCheckListKey
     # is declared in SettingsPage.Actions.cs -- so sweep the whole Settings
     # folder rather than just the files that build options.
-    for path in sorted((SRC / "Modules" / "Settings").glob("*.cs")):
+    for path in sorted((SRC / "Domains" / "Settings").glob("*.cs")):
         for name, value in re.findall(
                 r'const\s+string\s+(\w+)\s*=\s*"([^"]+)"',
                 path.read_text(encoding="utf-8-sig")):

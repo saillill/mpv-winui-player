@@ -24,8 +24,8 @@ using mpv_winui.Modules.Common.Utils;
 
 using mpv_winui.Infrastructure.Motion;
 
-using mpv_winui.Modules.Settings;
-using mpv_winui.Modules.Settings.Controls;
+using mpv_winui.Domains.SettingsModel;
+using mpv_winui.Domains.Settings.Controls;
 
 using System;
 

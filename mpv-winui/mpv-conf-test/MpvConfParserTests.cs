@@ -1,4 +1,4 @@
-using mpv_winui.Modules.MpvConf.Conf;
+using mpv_winui.Domains.MpvConf.Conf;
 
 namespace mpv_conf_test;
 

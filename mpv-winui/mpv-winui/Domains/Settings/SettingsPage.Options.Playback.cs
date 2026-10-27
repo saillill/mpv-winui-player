@@ -1,0 +1,904 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Win32;
+using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Modules.FileSystem;
+using mpv_winui.Lexicon.Language;
+using mpv_winui.Modules.Player;
+using mpv_winui.Domains.Settings.Controls;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Windows.Storage;
+using Microsoft.Windows.Storage.Pickers;
+
+namespace mpv_winui.Domains.Settings;
+
+public sealed partial class SettingsPage
+{
+    private List<Option> BuildPlaybackControlOptions()
+    {
+        var sPlayback = AppContext.AppLang.SectionPlayback;
+
+        var playback = AppContext.AppLang.SettingsCategoryPlayback;
+        var window = AppContext.AppLang.SettingsCategoryWindow;
+        var network = AppContext.AppLang.SettingsCategoryNetwork;
+        var audio = AppContext.AppLang.SettingsCategoryAudio;
+        var video = AppContext.AppLang.SettingsCategoryVideo;
+        var lang = AppContext.AppLang;
+
+        return
+        [
+            // ===== Playback Control =====
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.Hwdec),
+                Label = lang.SettingsHwdec,
+                Category = video,
+                Description = lang.SettingsHelpHwdec,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("auto-safe", lang.OptionValueAutoSafe),
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("no", lang.OptionValueNo),
+                    new OptionChoice("d3d11va", "D3D11 VA"),
+                    new OptionChoice("nvdec", "NVDEC"),
+                    new OptionChoice("dxva2", "DXVA2"),
+                ],
+                Getter = () => AppContext.AppSetting.Hwdec,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Hwdec), AppContext.AppSetting.Hwdec = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HwdecCodecs),
+                Label = lang.SettingsHwdecCodecs,
+                Category = video,
+                Description = lang.SettingsHelpHwdecCodecs,
+                Type = OptionType.String,
+Placeholder = "h264,hevc,vp9,av1",
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.HwdecCodecs,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HwdecCodecs), AppContext.AppSetting.HwdecCodecs = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VolumeMax),
+                Label = lang.SettingsVolumeMax,
+                Category = audio,
+                Description = lang.SettingsHelpVolumeMax,
+                Type = OptionType.Integer,
+                Min = 100,
+                Max = 300,
+                Step = 10,
+                Getter = () => (double)AppContext.AppSetting.VolumeMax,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VolumeMax), AppContext.AppSetting.VolumeMax = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.KeepOpen),
+                Description = lang.SettingsHelpKeepOpen,
+                Label = lang.SettingsKeepOpen,
+                Category = window,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("yes", lang.OptionValueKeepOpenYes),
+                    new OptionChoice("no", lang.OptionValueKeepOpenNo),
+                    new OptionChoice("always", lang.OptionValueKeepOpenAlways),
+                ],
+                Getter = () => AppContext.AppSetting.KeepOpen,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.KeepOpen), AppContext.AppSetting.KeepOpen = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.StartFullscreen),
+                Description = lang.SettingsHelpStartFullscreen,
+                Label = lang.SettingsStartFullscreen,
+                Category = window,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.StartFullscreen,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.StartFullscreen), AppContext.AppSetting.StartFullscreen = (bool)v!)
+            },
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AutoWindowResize),
+                Label = lang.SettingsAutoWindowResize,
+                Category = window,
+                Description = lang.SettingsHelpAutoWindowResize,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.AutoWindowResize,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.AutoWindowResize = (bool)v!;
+                    ApplyMpv(nameof(AppContext.AppSetting.AutoWindowResize), AppContext.AppSetting.AutoWindowResize);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowTitle),
+                Description = lang.SettingsHelpWindowTitle,
+                Label = lang.SettingsWindowTitle,
+                Category = window,
+                Type = OptionType.String,
+Placeholder = "${media-title} - mpv-winui",
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.WindowTitle,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowTitle = (string)v!;
+                    if (App.Window is MainWindow mainWindow)
+                    {
+                        mainWindow.UpdateTitle(string.Empty);
+                    }
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.LoopPlaylist),
+                Description = lang.SettingsHelpLoopPlaylist,
+                Label = lang.SettingsLoopPlaylist,
+                Category = playback,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueOff),
+                    new OptionChoice("inf", lang.OptionValueLoopInfinite),
+                    new OptionChoice("force", lang.OptionValueLoopForce),
+                ],
+                Getter = () => AppContext.AppSetting.LoopPlaylist,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopPlaylist), AppContext.AppSetting.LoopPlaylist = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.LoopFile),
+                Description = lang.SettingsHelpLoopFile,
+                Label = lang.SettingsLoopFile,
+                Category = playback,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.LoopFile,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.LoopFile), AppContext.AppSetting.LoopFile = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiP),
+                Label = lang.SettingsPiP,
+                Category = window,
+                Description = lang.SettingsHelpPiP,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiP,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiP = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiP), v);
+                    RefreshWarningsAndEnabled();
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPSize),
+                Description = lang.SettingsHelpWindowPiPSize,
+                Label = lang.SettingsPiPSize,
+                Category = window,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("320x180", lang.OptionValuePiPSmall),
+                    new OptionChoice("480x270", lang.OptionValuePiPMedium),
+                    new OptionChoice("640x360", lang.OptionValuePiPLarge),
+                    new OptionChoice("960x540", lang.OptionValuePiPXLarge),
+                ],
+                Getter = () => AppContext.AppSetting.WindowPiPSize,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiPSize = (string)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPSize), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPAspectRatioLock),
+                Label = lang.SettingsPiPAspectRatioLock,
+                Category = window,
+                Description = lang.SettingsHelpPiPAspectRatioLock,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiPAspectRatioLock,
+                Setter = v => AppContext.AppSetting.WindowPiPAspectRatioLock = (bool)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPAnchor),
+                Label = lang.SettingsPiPAnchor,
+                Category = window,
+                Description = lang.SettingsHelpPiPAnchor,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("bottom-right", lang.OptionValuePiPAnchorBottomRight),
+                    new OptionChoice("bottom-left", lang.OptionValuePiPAnchorBottomLeft),
+                    new OptionChoice("top-right", lang.OptionValuePiPAnchorTopRight),
+                    new OptionChoice("top-left", lang.OptionValuePiPAnchorTopLeft),
+                ],
+                Getter = () => AppContext.AppSetting.WindowPiPAnchor,
+                Setter = v => AppContext.AppSetting.WindowPiPAnchor = (string)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPShowTopButtons),
+                Label = lang.SettingsPiPTopButtons,
+                Category = window,
+                Description = lang.SettingsHelpPiPTopButtons,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiPShowTopButtons,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiPShowTopButtons = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPShowTopButtons), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPShowControls),
+                Label = lang.SettingsPiPControls,
+                Category = window,
+                Description = lang.SettingsHelpPiPControls,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowPiPShowControls,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiPShowControls = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPShowControls), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowPiPOpacity),
+                Label = lang.SettingsPiPOpacity,
+                Category = window,
+                Description = lang.SettingsHelpPiPOpacity,
+                Type = OptionType.Double,
+                Min = 0.2,
+                Max = 1.0,
+                Step = 0.05,
+                Getter = () => AppContext.AppSetting.WindowPiPOpacity,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowPiPOpacity = Convert.ToDouble(v);
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowPiPOpacity), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowAspectRatioLock),
+                Label = lang.SettingsWindowAspectRatioLock,
+                Category = window,
+                Description = lang.SettingsHelpWindowAspectRatioLock,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowAspectRatioLock,
+                // NotifySettingChanged matters here: MainWindow listens for it to
+                // re-fit the open window the moment the lock is turned on
+                // (otherwise the change only applies to the next video).
+                Setter = v =>
+                {
+                    AppContext.AppSetting.WindowAspectRatioLock = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.WindowAspectRatioLock), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowStartMaximized),
+                Label = lang.SettingsStartMaximized,
+                Category = window,
+                Description = lang.SettingsHelpStartMaximized,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowStartMaximized,
+                Setter = v => AppContext.AppSetting.WindowStartMaximized = (bool)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WindowRememberSize),
+                Label = lang.SettingsRememberWindowSize,
+                Category = window,
+                Description = lang.SettingsHelpRememberWindowSize,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.WindowRememberSize,
+                Setter = v => AppContext.AppSetting.WindowRememberSize = (bool)v!
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.SavePositionOnQuit),
+                Description = lang.SettingsHelpSavePositionOnQuit,
+                Label = lang.SettingsSavePositionOnQuit,
+                Category = playback,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.SavePositionOnQuit,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.SavePositionOnQuit), AppContext.AppSetting.SavePositionOnQuit = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.Speed),
+                Description = lang.SettingsHelpSpeed,
+                Label = lang.SettingsSpeed,
+                Category = playback,
+                Type = OptionType.Double,
+                Min = 0.25,
+                Max = 4,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.Speed,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Speed), AppContext.AppSetting.Speed = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.Interpolation),
+                Label = lang.SettingsInterpolation,
+                Category = video,
+                Description = lang.SettingsHelpInterpolation,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Interpolation,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Interpolation), AppContext.AppSetting.Interpolation = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ResumePlayback),
+                Label = lang.SettingsResumePlayback,
+                Category = playback,
+                Description = lang.SettingsHelpResumePlayback,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.ResumePlayback,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ResumePlayback), AppContext.AppSetting.ResumePlayback = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CacheSecs),
+                Label = lang.SettingsCacheSecs,
+                Category = network,
+                Description = lang.SettingsHelpCacheSecs,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 600,
+                Step = 10,
+                Getter = () => (double)AppContext.AppSetting.CacheSecs,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CacheSecs), AppContext.AppSetting.CacheSecs = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CacheEnabled),
+                Description = lang.SettingsHelpCacheEnabled,
+                Label = lang.SettingsCacheEnabled,
+                Category = network,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueNo),
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                    new OptionChoice("yes", lang.OptionValueYes),
+                ],
+                Getter = () => AppContext.AppSetting.CacheEnabled,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CacheEnabled), AppContext.AppSetting.CacheEnabled = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CachePause),
+                Label = lang.SettingsCachePause,
+                Category = network,
+                Description = lang.SettingsHelpCachePause,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.CachePause,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CachePause), AppContext.AppSetting.CachePause = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.DemuxerReadahead),
+                Label = lang.SettingsDemuxerReadahead,
+                Category = network,
+                Description = lang.SettingsHelpDemuxerReadahead,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 30,
+                Step = 0.5,
+                Getter = () => AppContext.AppSetting.DemuxerReadahead,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DemuxerReadahead), AppContext.AppSetting.DemuxerReadahead = (double)v!)
+            },
+
+                                                                                                                        new Option
+            {
+                Key = nameof(AppContext.AppSetting.UserAgent),
+                Label = lang.SettingsUserAgent,
+                Category = network,
+                Description = lang.SettingsHelpUserAgent,
+                Type = OptionType.String,
+Placeholder = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.UserAgent,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.UserAgent), AppContext.AppSetting.UserAgent = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.Referrer),
+                Label = lang.SettingsReferrer,
+                Category = network,
+                Description = lang.SettingsHelpReferrer,
+                Type = OptionType.String,
+Placeholder = "https://example.com/",
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Referrer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Referrer), AppContext.AppSetting.Referrer = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HttpHeaderFields),
+                Label = lang.SettingsHttpHeaderFields,
+                Category = network,
+                Description = lang.SettingsHelpHttpHeaderFields,
+                Type = OptionType.String,
+Placeholder = "Accept-Language: zh-CN,Referer: https://example.com/",
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.HttpHeaderFields,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HttpHeaderFields), AppContext.AppSetting.HttpHeaderFields = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.HttpProxy),
+                Label = lang.SettingsHttpProxy,
+                Category = network,
+                Description = lang.SettingsHelpHttpProxy,
+                Type = OptionType.String,
+Placeholder = "http://127.0.0.1:7890",
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.HttpProxy,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.HttpProxy), AppContext.AppSetting.HttpProxy = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CookiesFile),
+                Label = lang.SettingsCookiesFile,
+                Category = network,
+                Description = lang.SettingsHelpCookiesFile,
+                Type = OptionType.String,
+                // No placeholder: this is a path-mode field, and those show the
+                // placeholder as the current value when empty. An example path
+                // would read as a configured one. There is no real default to
+                // show either, so the empty box plus Browse is the honest state.
+                AllowEmpty = true,
+                PickFile = true,
+                OpenFolder = true,
+                FileTypeFilter = [".txt"],
+                Getter = () => AppContext.AppSetting.CookiesFile,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CookiesFile), AppContext.AppSetting.CookiesFile = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.TlsVerify),
+                Label = lang.SettingsTlsVerify,
+                Category = network,
+                Description = lang.SettingsHelpTlsVerify,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.TlsVerify,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.TlsVerify), AppContext.AppSetting.TlsVerify = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.PrefetchPlaylist),
+                Label = lang.SettingsPrefetchPlaylist,
+                Category = network,
+                Description = lang.SettingsHelpPrefetchPlaylist,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.PrefetchPlaylist,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.PrefetchPlaylist), AppContext.AppSetting.PrefetchPlaylist = (bool)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.NetworkTimeout),
+                Label = lang.SettingsNetworkTimeout,
+                Category = network,
+                Description = lang.SettingsHelpNetworkTimeout,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 600,
+                Step = 5,
+                Getter = () => (double)AppContext.AppSetting.NetworkTimeout,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.NetworkTimeout), AppContext.AppSetting.NetworkTimeout = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlMaxRedirects),
+                Label = lang.SettingsCurlMaxRedirects,
+                Category = network,
+                Description = lang.SettingsHelpCurlMaxRedirects,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 100,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.CurlMaxRedirects,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlMaxRedirects), AppContext.AppSetting.CurlMaxRedirects = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlMaxRetries),
+                Label = lang.SettingsCurlMaxRetries,
+                Category = network,
+                Description = lang.SettingsHelpCurlMaxRetries,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 100,
+                Step = 1,
+                Getter = () => (double)AppContext.AppSetting.CurlMaxRetries,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlMaxRetries), AppContext.AppSetting.CurlMaxRetries = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlConnectTimeout),
+                Label = lang.SettingsCurlConnectTimeout,
+                Category = network,
+                Description = lang.SettingsHelpCurlConnectTimeout,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 600,
+                Step = 5,
+                Getter = () => (double)AppContext.AppSetting.CurlConnectTimeout,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlConnectTimeout), AppContext.AppSetting.CurlConnectTimeout = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlBufferSize),
+                Label = lang.SettingsCurlBufferSize,
+                Category = network,
+                Description = lang.SettingsHelpCurlBufferSize,
+                Type = OptionType.Integer,
+                Min = 32768,
+                Max = 64 * 1024 * 1024,
+                Step = 1024 * 1024,
+                Getter = () => (double)AppContext.AppSetting.CurlBufferSize,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlBufferSize), AppContext.AppSetting.CurlBufferSize = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.CurlMaxRequestSize),
+                Label = lang.SettingsCurlMaxRequestSize,
+                Category = network,
+                Description = lang.SettingsHelpCurlMaxRequestSize,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 1024 * 1024 * 1024,
+                Step = 1024 * 1024,
+                Getter = () => (double)AppContext.AppSetting.CurlMaxRequestSize,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.CurlMaxRequestSize), AppContext.AppSetting.CurlMaxRequestSize = Convert.ToInt32(v))
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AutoCreatePlaylist),
+                Label = lang.SettingsAutoCreatePlaylist,
+                Category = playback,
+                Description = lang.SettingsHelpAutoCreatePlaylist,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("no", lang.OptionValueNo),
+                    new OptionChoice("filter", lang.OptionValueAutoPlaylistFilter),
+                    new OptionChoice("same", lang.OptionValueAutoPlaylistSame),
+                ],
+                Getter = () => AppContext.AppSetting.AutoCreatePlaylist,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AutoCreatePlaylist), AppContext.AppSetting.AutoCreatePlaylist = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.DirectoryMode),
+                Description = lang.SettingsHelpDirectoryMode,
+                Label = lang.SettingsDirectoryMode,
+                Category = playback,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("ignore", lang.OptionValueDirModeIgnore),
+                    new OptionChoice("lazy", lang.OptionValueDirModeLazy),
+                    new OptionChoice("recursive", lang.OptionValueDirModeRecursive),
+                    new OptionChoice("auto", lang.OptionValueAuto),
+                ],
+                Getter = () => AppContext.AppSetting.DirectoryMode,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DirectoryMode), AppContext.AppSetting.DirectoryMode = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.DirectoryFilterTypes),
+                Label = lang.SettingsDirectoryFilterTypes,
+                Category = playback,
+                Description = lang.SettingsHelpDirectoryFilterTypes,
+                Type = OptionType.CheckList,
+                ListSeparator = ',',
+                AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.DirectoryFilterTypes,
+                    KnownDirectoryFilterTypes,
+                    group: lang.SettingsCategoryPlayback),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
+                Getter = () => AppContext.AppSetting.DirectoryFilterTypes,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.DirectoryFilterTypes), AppContext.AppSetting.DirectoryFilterTypes = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.VideoExts),
+                Label = lang.SettingsVideoExts,
+                Category = playback,
+                Description = lang.SettingsHelpVideoExts,
+                Type = OptionType.CheckList,
+                ListSeparator = ',',
+                AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.VideoExts,
+                    KnownVideoExtensions,
+                    group: lang.FileAssociationGroupVideo),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
+                Getter = () => AppContext.AppSetting.VideoExts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.VideoExts), AppContext.AppSetting.VideoExts = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ImageExts),
+                Description = lang.SettingsHelpImageExts,
+                Label = lang.SettingsImageExts,
+                Category = playback,
+                Type = OptionType.CheckList,
+                ListSeparator = ',',
+                AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.ImageExts,
+                    KnownImageExtensions,
+                    group: lang.FileAssociationGroupImage),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
+                Getter = () => AppContext.AppSetting.ImageExts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ImageExts), AppContext.AppSetting.ImageExts = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ImageDisplayDuration),
+                Label = lang.SettingsImageDisplayDuration,
+                Category = playback,
+                Description = lang.SettingsHelpImageDisplayDuration,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 3600,
+                Step = 0.5,
+                Getter = () => AppContext.AppSetting.ImageDisplayDuration,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.ImageDisplayDuration), AppContext.AppSetting.ImageDisplayDuration = (double)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AudioExts),
+                Description = lang.SettingsHelpAudioExts,
+                Label = lang.SettingsAudioExts,
+                Category = audio,
+                Type = OptionType.CheckList,
+                ListSeparator = ',',
+                AllowEmpty = true,
+                CheckItemsProvider = () => BuildExtensionCheckItems(
+                    AppContext.AppSetting.AudioExts,
+                    KnownAudioExtensions,
+                    group: lang.FileAssociationGroupAudio),
+                CheckChanged = (option, value, isChecked, _) => UpdateExtensionOption(option, value, isChecked),
+                Getter = () => AppContext.AppSetting.AudioExts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AudioExts), AppContext.AppSetting.AudioExts = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.WatchLaterOptions),
+                Label = lang.SettingsWatchLaterOptions,
+                Category = playback,
+                Description = lang.SettingsHelpWatchLaterOptions,
+                Type = OptionType.MultiList,
+                ListSeparator = ',',
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.WatchLaterOptions,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.WatchLaterOptions), AppContext.AppSetting.WatchLaterOptions = (string)v!)
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.EnableVideoPreview),
+                Label = lang.SettingsVideoPreview,
+                Category = playback,
+                Description = lang.SettingsHelpVideoPreview,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.EnableVideoPreview,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.EnableVideoPreview = (bool)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.EnableVideoPreview), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbnailPreviewWidth),
+                Label = lang.SettingsThumbnailSize,
+                Category = playback,
+                Description = lang.SettingsHelpThumbnailSize,
+                Type = OptionType.StringList,
+                Choices =
+                [
+                    new OptionChoice("180", lang.OptionValueThumbSmall),
+                    new OptionChoice("248", lang.OptionValueThumbMedium),
+                    new OptionChoice("320", lang.OptionValueThumbLarge),
+                ],
+                Getter = () => AppContext.AppSetting.ThumbnailPreviewWidth,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbnailPreviewWidth = (string)v!;
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ThumbnailPreviewWidth), v);
+                }
+            },
+
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.ThumbnailUpdateInterval),
+                Label = lang.SettingsThumbnailInterval,
+                Category = playback,
+                Description = lang.SettingsHelpThumbnailInterval,
+                Type = OptionType.Integer,
+                Min = 40,
+                Max = 600,
+                Step = 20,
+                Getter = () => AppContext.AppSetting.ThumbnailUpdateInterval,
+                Setter = v =>
+                {
+                    AppContext.AppSetting.ThumbnailUpdateInterval = Convert.ToInt32(v);
+                    AppContext.NotifySettingChanged(nameof(AppContext.AppSetting.ThumbnailUpdateInterval), v);
+                }
+            },
+
+            // Added in the advanced batch: ab-loop-a
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AbLoopA),
+                Label = lang.SettingsAbLoopA,
+                Category = playback,
+                Description = lang.SettingsHelpAbLoopA,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100000,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.AbLoopA,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AbLoopA), AppContext.AppSetting.AbLoopA = (double)v!)
+            },
+
+            // Added in the advanced batch: ab-loop-b
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AbLoopB),
+                Label = lang.SettingsAbLoopB,
+                Category = playback,
+                Description = lang.SettingsHelpAbLoopB,
+                Type = OptionType.Double,
+                Min = 0,
+                Max = 100000,
+                Step = 0.1,
+                Getter = () => AppContext.AppSetting.AbLoopB,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AbLoopB), AppContext.AppSetting.AbLoopB = (double)v!)
+            },
+
+            // Added in the advanced batch: ab-loop-count
+            new Option
+            {
+                Key = nameof(AppContext.AppSetting.AbLoopCount),
+                Label = lang.SettingsAbLoopCount,
+                Category = playback,
+                Description = lang.SettingsHelpAbLoopCount,
+                Type = OptionType.Integer,
+                Min = -1,
+                Max = 9999,
+                Step = 1,
+                Getter = () => AppContext.AppSetting.AbLoopCount,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.AbLoopCount), AppContext.AppSetting.AbLoopCount = (int)v!)
+            },
+
+        ];
+    }
+
+    private static readonly string[] KnownVideoExtensions =
+        "3g2,3gp,avi,flv,m2ts,m4v,mj2,mkv,mov,mp4,mpeg,mpg,ogv,rmvb,ts,webm,wmv,y4m,rm".Split(',');
+
+    private static readonly string[] KnownImageExtensions =
+        "avif,bmp,gif,heic,heif,j2k,jp2,jpeg,jpg,jxl,png,qoi,tga,tif,tiff,webp".Split(',');
+
+    private static readonly string[] KnownAudioExtensions =
+        "aac,ac3,alac,ape,dsf,dts,flac,m4a,mka,mp3,ogg,opus,tak,tta,wav,wma,wv".Split(',');
+
+    private static readonly string[] KnownCoverArtNames =
+        "cover,folder,album,front,thumb,back".Split(',');
+
+    private static readonly string[] KnownDirectoryFilterTypes =
+        ["video", "audio", "image", "sub", "playlist"];
+
+    private static List<OptionCheckItem> BuildExtensionCheckItems(
+        string? current,
+        IEnumerable<string> known,
+        string? group,
+        char separator = ',')
+    {
+        var knownList = known as IReadOnlyList<string> ?? known.ToList();
+        var currentSet = new HashSet<string>(
+            (current ?? string.Empty).Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            StringComparer.OrdinalIgnoreCase);
+        var knownSet = new HashSet<string>(knownList, StringComparer.OrdinalIgnoreCase);
+
+        var items = knownList
+            .Select(ext => new OptionCheckItem(ext, ext, currentSet.Contains(ext), group: group))
+            .ToList();
+
+        // Keep any custom/unknown extensions the user has already entered.
+        foreach (var ext in currentSet.Where(e => !knownSet.Contains(e)).OrderBy(e => e, StringComparer.OrdinalIgnoreCase))
+        {
+            items.Add(new OptionCheckItem(ext, ext, true, group: "Custom"));
+        }
+
+        return items;
+    }
+
+    private static void UpdateExtensionOption(Option option, string ext, bool isChecked)
+    {
+        var separator = option.ListSeparator == '\0' ? ',' : option.ListSeparator;
+        var current = (option.Getter?.Invoke() as string) ?? string.Empty;
+        var set = new HashSet<string>(
+            current.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            StringComparer.OrdinalIgnoreCase);
+
+        if (isChecked)
+        {
+            set.Add(ext);
+        }
+        else
+        {
+            set.Remove(ext);
+        }
+
+        var value = string.Join(separator, set);
+        option.Setter?.Invoke(value);
+        option.NotifyChanged();
+    }
+}

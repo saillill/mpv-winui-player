@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-SETTINGS = REPO / "mpv-winui" / "mpv-winui" / "Modules" / "Settings"
+SETTINGS = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "Settings"
 CORE = SETTINGS / "SettingsPage.Options.cs"
 GEN_SECTIONS = SETTINGS / "SettingsPage.Sections.Gen.cs"
 

@@ -1,4 +1,5 @@
-using mpv_winui.Modules.Settings;
+using mpv_winui.Domains.MpvConf;
+using mpv_winui.Domains.SettingsModel;
 using NUnit.Framework;
 
 namespace mpv_conf_test

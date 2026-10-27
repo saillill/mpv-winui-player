@@ -1,0 +1,257 @@
+﻿<basewin:BaseWindow
+    x:Class="mpv_winui.Domains.Settings.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:basewin="using:mpv_winui.Modules.Common.View">
+
+    <Grid x:Name="RootGrid">
+        <Grid.Resources>
+            <!-- Slim search-pill TextBox: remove the stock 32px MinHeight so the
+                 28px AutoSuggestBox keeps its full rounded silhouette, and add
+                 left padding so the overlaid magnifier never collides with the
+                 placeholder/text. The TextBox keeps the stock template, so the
+                 focused accent border (the "blue bar") still comes from the
+                 built-in Focused visual state.
+
+                 The left padding sizes the magnifier-to-placeholder gap on its
+                 own. Measured against the baseline, 32 left the placeholder
+                 about 8 DIP clear of the glyph, which read as the icon crowding
+                 the text; 44 opens it to about 12 DIP, the gap the Windows 11
+                 settings search uses. The pill's height is fixed by the control
+                 (28), so the vertical pair does not set the box's size; they
+                 only place the line box inside it, which is what the placeholder
+                 was low by. 5/5 centred it 3 DIP below the pill's midline. -->
+            <Style x:Key="SearchTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="Padding" Value="44,2,10,2" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="14" />
+            </Style>
+
+            <Style x:Key="BareAutoSuggestBoxStyle" TargetType="AutoSuggestBox">
+                <Setter Property="TextBoxStyle" Value="{StaticResource SearchTextBoxStyle}" />
+                <!-- Off, like the inner TextBox: the system focus visual draws a
+                     rectangle around the whole control, and with only its lower
+                     edge reading as accent it came out as a blue bar wider than
+                     the pill itself. The underline is SearchFocusBar's job. -->
+                <Setter Property="UseSystemFocusVisuals" Value="False" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="AutoSuggestBox">
+                            <Grid x:Name="LayoutRoot">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <!-- The pill's outline is this Border, not the
+                                     TextBox's own border.
+
+                                     The stock TextBox repaints its bottom edge in
+                                     the accent colour for its Focused state, and
+                                     that blue line was on screen while the box did
+                                     not have focus. Giving the TextBox no border
+                                     removes the edge the accent could ever paint,
+                                     and draws the silhouette once, here, where it
+                                     cannot disagree with itself. -->
+                                <Border
+                                    x:Name="PillChrome"
+                                    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                                    BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{TemplateBinding CornerRadius}">
+                                    <TextBox x:Name="TextBox"
+                                             Style="{TemplateBinding TextBoxStyle}"
+                                             PlaceholderText="{TemplateBinding PlaceholderText}"
+                                             Width="{TemplateBinding Width}"
+                                             Height="{TemplateBinding Height}"
+                                             Foreground="{ThemeResource TextControlForeground}"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             FontSize="{TemplateBinding FontSize}"
+                                             FontFamily="{TemplateBinding FontFamily}"
+                                             FontWeight="{TemplateBinding FontWeight}"
+                                             FontStretch="{TemplateBinding FontStretch}"
+                                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                             ScrollViewer.BringIntoViewOnFocusChange="False"
+                                             Canvas.ZIndex="0"
+                                             Margin="0"
+                                             DesiredCandidateWindowAlignment="BottomEdge"
+                                             UseSystemFocusVisuals="False"
+                                             CornerRadius="{TemplateBinding CornerRadius}" />
+                                </Border>
+                                <Popup x:Name="SuggestionsPopup" ShouldConstrainToRootBounds="False">
+                                    <Border x:Name="SuggestionsContainer"
+                                            Padding="{ThemeResource AutoSuggestListMargin}"
+                                            BorderThickness="{ThemeResource AutoSuggestListBorderThemeThickness}"
+                                            BorderBrush="{ThemeResource AutoSuggestBoxSuggestionsListBorderBrush}"
+                                            Background="{ThemeResource AutoSuggestBoxSuggestionsListBackground}"
+                                            CornerRadius="{ThemeResource OverlayCornerRadius}">
+                                        <!-- WMC1510: these TemplateBindings are
+                                             lifted verbatim from the framework's
+                                             own AutoSuggestBox template, so the
+                                             property paths are already annotated
+                                             for trimming; the warning is only
+                                             emitted because the copy lives in the
+                                             app instead of the framework. -->
+                                        <ListView x:Name="SuggestionsList"
+                                                  x:SuppressXamlTrimWarnings="True"
+                                                  DisplayMemberPath="{TemplateBinding DisplayMemberPath}"
+                                                  IsItemClickEnabled="True"
+                                                  ItemTemplate="{TemplateBinding ItemTemplate}"
+                                                  ItemTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                                  ItemContainerStyle="{TemplateBinding ItemContainerStyle}"
+                                                  MaxHeight="{ThemeResource AutoSuggestListMaxHeight}"
+                                                  Margin="{ThemeResource AutoSuggestListPadding}" />
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <!-- Auto, not a fixed 40: in the narrow shape the search field opens
+                 as a second row underneath the title, so this bar has to be able
+                 to grow. Its resting height is set by the Border's MinHeight. -->
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Windows-settings top bar: title left, pill search centre. The
+             magnifier is overlaid inside the pill (drawn on top of the TextBox),
+             the TextBox has left padding so caption text never overlaps it, and
+             the box height rides the template binding. Height and corner radius
+             come from one token pair so the pill cannot lose its silhouette to a
+             height that no longer matches its radius. -->
+        <Border
+            Grid.Row="0"
+            MinHeight="52"
+            Padding="{StaticResource MpvTitleBarPadding}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <!-- The pane's reopen button, in this bar rather than inside the
+                     NavigationView, so it can sit to the left of the search the
+                     way it does in the Windows 11 top bar. The NavigationView's
+                     own toggle cannot move there: it belongs to the pane's layout,
+                     not to the window's. Hidden while the pane is expanded, where
+                     it would be decoration. -->
+                <Button
+                    x:Name="PaneToggleButton"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Width="36"
+                    Height="36"
+                    Padding="0"
+                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="PaneToggleButton_Click"
+                    Visibility="Collapsed">
+                    <FontIcon FontSize="16" Glyph="&#xE700;" />
+                </Button>
+                <TextBlock
+                    x:Name="SettingsTitleText"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    FontSize="{StaticResource MpvShellTitleFontSize}"
+                    FontWeight="SemiBold" />
+                <Grid
+                    x:Name="SearchPillHost"
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    Width="{StaticResource MpvSearchPillWidth}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                    <!-- Two shapes of one control, swapped in code at the width
+                         below which the pane goes icon-only: the pill, and a
+                         bare magnifier button. The pill used to be the only
+                         shape, so a narrow window kept a 340 DIP search field
+                         and lost the row it was standing on.
+
+                         The magnifier that sits inside the pill cannot be the
+                         compact shape: it is IsHitTestVisible="False" by
+                         design, so that clicks fall through to the TextBox
+                         underneath it. The compact shape is therefore its own
+                         Button in the same cell, carrying the same glyph and
+                         the same inset token. It is hidden at rest. -->
+                    <AutoSuggestBox
+                        x:Name="SearchBox"
+                        Height="{StaticResource MpvSearchPillHeight}"
+                        CornerRadius="{StaticResource MpvSearchPillCornerRadius}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource BareAutoSuggestBoxStyle}"
+                        PlaceholderText="Find a setting"
+                        QuerySubmitted="SearchBox_QuerySubmitted"
+                        SuggestionChosen="SearchBox_SuggestionChosen"
+                        TextChanged="SearchBox_TextChanged" />
+                    <FontIcon
+                        x:Name="SearchGlyph"
+                        Glyph="&#xE721;"
+                        FontSize="14"
+                        Margin="{StaticResource MpvSearchGlyphMargin}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        IsHitTestVisible="False" />
+                    <Button
+                        x:Name="SearchCompactButton"
+                        Width="{StaticResource MpvSearchPillHeight}"
+                        Height="{StaticResource MpvSearchPillHeight}"
+                        Padding="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="SearchCompactButton_Click"
+                        Visibility="Collapsed">
+                        <!-- The button carries no text of its own, so its
+                             accessible name is the only thing that says what it
+                             does; both it and the tooltip are filled from
+                             AppLang by the window's language-changed path, the
+                             same way the page fills the pill's own name. -->
+                        <FontIcon FontSize="14" Glyph="&#xE721;" />
+                    </Button>
+                    <!-- The focus underline.
+
+                         It is drawn here rather than left to the TextBox because
+                         the pill's outline is a Border in the AutoSuggestBox
+                         template, and the stock TextBox paints its own bottom
+                         edge in the accent colour for its Focused state whether
+                         or not it actually has focus, which is the blue line
+                         that was showing at rest. Owning it here means it can
+                         only ever be on while the field really is focused, and
+                         it is inset from the rounded ends the way the framework
+                         draws it. -->
+                    <Rectangle
+                        x:Name="SearchFocusBar"
+                        Height="2"
+                        Margin="16,0,16,4"
+                        VerticalAlignment="Bottom"
+                        Fill="{ThemeResource AccentFillColorDefaultBrush}"
+                        IsHitTestVisible="False"
+                        RadiusX="1"
+                        RadiusY="1"
+                        Visibility="Collapsed" />
+                </Grid>
+            </Grid>
+        </Border>
+        <Frame
+            x:Name="PageFrame"
+            Grid.Row="1"
+            Loaded="PageFrame_Loaded" />
+    </Grid>
+</basewin:BaseWindow>

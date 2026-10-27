@@ -7,7 +7,7 @@ using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.FileSystem;
-using mpv_winui.Modules.Settings;
+using mpv_winui.Domains.MpvConf;
 using NLog;
 using System;
 using System.Collections.Generic;

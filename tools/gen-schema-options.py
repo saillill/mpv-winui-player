@@ -66,7 +66,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 APP = REPO / "mpv-winui" / "mpv-winui"
 SCHEMA = APP / "MpvConfOptions" / "mpv-options.json"
-SETTINGS = APP / "Modules" / "Settings"
+SETTINGS = APP / "Domains" / "Settings"
 LANGDIR = APP / "Languages"
 # The English label/description source, kept OUT of Languages/ on purpose:
 # that directory is scanned by check-localization.py as "one file per UI
@@ -642,7 +642,7 @@ def gen_appsettings(rows: list[dict]) -> str:
     for r in rows:
         by_group.setdefault(r["group"], []).append(r)
 
-    parts = [BANNER, "namespace mpv_winui.Modules.Settings\n{\n    public partial class AppSettings\n    {"]
+    parts = [BANNER, "namespace mpv_winui.Domains.SettingsModel\n{\n    public partial class AppSettings\n    {"]
     for group in sorted(by_group):
         parts.append(f"        // ---- {group} ----\n")
         for r in sorted(by_group[group], key=lambda x: x["name"]):
@@ -685,7 +685,7 @@ def gen_names(rows: list[dict]) -> str:
     token, because the schema enumerates the spellings it accepts.
     """
     lines = [BANNER, "using System;\nusing System.Collections.Generic;\n",
-             "namespace mpv_winui.Modules.Settings\n{",
+             "namespace mpv_winui.Domains.MpvConf\n{",
              "    public static partial class MpvSettings\n    {",
              "        /// <summary>Name map for the schema-generated rows.</summary>",
              "        private static readonly Dictionary<string, string> GeneratedOptionNames = new(StringComparer.Ordinal)",
@@ -733,8 +733,8 @@ def gen_options(rows: list[dict]) -> str:
         return (1, order.index(theme) if theme in order else len(order))
 
     out = [BANNER, "using System;\nusing System.Collections.Generic;\nusing System.Linq;",
-           "using mpv_winui.Modules.Settings.Controls;\n",
-           "namespace mpv_winui.Modules.Settings;\n",
+           "using mpv_winui.Domains.Settings.Controls;\n",
+           "namespace mpv_winui.Domains.Settings;\n",
            "public sealed partial class SettingsPage\n{",
            "    /// <summary>",
            "    /// One row per mpv option the hand-written page does not cover.",
@@ -998,7 +998,7 @@ def gen_section_glue(rows: list[dict]) -> str:
     lines = [
         BANNER,
         "using System;\nusing System.Collections.Generic;\n",
-        "namespace mpv_winui.Modules.Settings\n{",
+        "namespace mpv_winui.Domains.Settings\n{",
         "    public sealed partial class SettingsPage\n    {",
         "        /// <summary>",
         "        /// Registration for the schema-generated rows.",
@@ -1167,7 +1167,7 @@ def gen_sections(rows: list[dict]) -> str:
              "// Paste the entries below into SettingsSections.All, replacing any of the",
              "// same name. That array is the list the page actually reads; there is no",
              "// registry method to call.",
-             "namespace mpv_winui.Modules.Settings\n{",
+             "namespace mpv_winui.Domains.Settings\n{",
              "    public sealed partial class SettingsPage\n    {",
              "        // ---- schema-generated sections ----"]
     for i, folder in enumerate(sorted(folders, key=key)):

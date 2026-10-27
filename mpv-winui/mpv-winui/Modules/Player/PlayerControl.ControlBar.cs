@@ -11,7 +11,7 @@ using Microsoft.UI.Xaml.Media.Animation;
 using mpv_winrt;
 using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.Common.Utils;
-using mpv_winui.Modules.Settings.Controls;
+using mpv_winui.Domains.Settings.Controls;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;

@@ -6,7 +6,7 @@ using mpv_winui.Modules.FileSystem;
 using mpv_winui.Modules.Menu.MenuBar;
 using mpv_winui.Modules.Menu.MenuEditor;
 using mpv_winui.Modules.Player.Menu;
-using mpv_winui.Modules.Settings.Controls;
+using mpv_winui.Domains.Settings.Controls;
 using System;
 using System.Collections.Generic;
 using System.IO;

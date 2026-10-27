@@ -29,11 +29,11 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "mpv-winui" / "mpv-winui"
-CATALOG = SRC / "Modules" / "Settings" / "Layout" / "SettingsSections.cs"
-PAGE = SRC / "Modules" / "Settings" / "SettingsPage.Options.cs"
+CATALOG = SRC / "Domains" / "Settings" / "Layout" / "SettingsSections.cs"
+PAGE = SRC / "Domains" / "Settings" / "SettingsPage.Options.cs"
 # The schema-generated rows register their sections here instead of in PAGE.
 # See generated_sections() for why this file has to be read.
-GEN_SECTIONS = SRC / "Modules" / "Settings" / "SettingsPage.Sections.Gen.cs"
+GEN_SECTIONS = SRC / "Domains" / "Settings" / "SettingsPage.Sections.Gen.cs"
 
 ALIAS = re.compile(
     r'var\s+(s[A-Za-z0-9_]+)\s*=\s*AppContext\.AppLang\.(Section[A-Za-z0-9]+)')
@@ -108,7 +108,7 @@ def main():
 
     # Options that set their section inline instead of through the map.
     inline_hits = 0
-    for other in sorted((SRC / "Modules" / "Settings").glob("SettingsPage.Options*.cs")):
+    for other in sorted((SRC / "Domains" / "Settings").glob("SettingsPage.Options*.cs")):
         body = other.read_text(encoding="utf-8-sig")
         for m in INLINE.finditer(body):
             name = aliases.get(m.group(1))

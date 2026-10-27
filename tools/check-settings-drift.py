@@ -22,7 +22,9 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-SRC = REPO / "mpv-winui" / "mpv-winui" / "Modules" / "Settings"
+MODEL = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "SettingsModel"
+CONF = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "MpvConf"
+PAGE = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "Settings"
 
 for stream in (sys.stdout, sys.stderr):
     try:
@@ -151,9 +153,9 @@ UNMAPPED_OK = {
 
 
 def main() -> int:
-    appsettings = parse_appsettings_props(SRC)
-    mpvsettings = parse_mpvsettings_cases(SRC / "MpvSettings.cs")
-    option_keys = parse_option_keys(SRC)
+    appsettings = parse_appsettings_props(MODEL)
+    mpvsettings = parse_mpvsettings_cases(CONF / "MpvSettings.cs")
+    option_keys = parse_option_keys(PAGE)
 
     if not appsettings:
         print("ERROR: could not parse AppSettings properties", file=sys.stderr)

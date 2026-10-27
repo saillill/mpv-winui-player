@@ -1,7 +1,7 @@
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
-using mpv_winui.Modules.Settings;
+using mpv_winui.Domains.SettingsModel;
 
 namespace mpv_winui.Modules.Player
 {

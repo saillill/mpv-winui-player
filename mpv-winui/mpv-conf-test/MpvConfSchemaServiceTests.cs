@@ -1,4 +1,4 @@
-using mpv_winui.Modules.MpvConf.Schema;
+using mpv_winui.Domains.MpvConf.Schema;
 namespace mpv_conf_test;
 
 [TestFixture]

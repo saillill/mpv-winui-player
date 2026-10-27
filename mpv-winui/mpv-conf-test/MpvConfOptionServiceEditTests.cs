@@ -1,6 +1,6 @@
-using mpv_winui.Modules.MpvConf.Conf;
-using mpv_winui.Modules.MpvConf.Option;
-using mpv_winui.Modules.MpvConf.Schema;
+using mpv_winui.Domains.MpvConf.Conf;
+using mpv_winui.Domains.MpvConf.Option;
+using mpv_winui.Domains.MpvConf.Schema;
 
 namespace mpv_conf_test;
 
