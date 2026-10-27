@@ -25,9 +25,20 @@ import time
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import mpvw_tools as T
+import os
 
-LONG = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\hdr10-pq.mp4"
-CLIP = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\sdr-bt709.mp4"
+# Fixture directory for the probe clips this file loads. Derived from __file__
+# (this file lives at <repo>/tools/...), so archiving or renaming anything
+# outside the repo cannot silently point these at a path that no longer exists.
+# The clips themselves live in tools/mvpw-mcp/fixtures/ and are committed.
+FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp", "fixtures")
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+LONG = os.path.join(FIXTURES, "hdr10-pq.mp4")
+CLIP = os.path.join(FIXTURES, "sdr-bt709.mp4")
 REG = r"HKCU:\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app"
 findings = []
 
@@ -178,7 +189,7 @@ def main():
             time.sleep(2.5)
     T.close_app()
 
-    out = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\redundancy2.json"
+    out = REPO + r"\_work\mcp\redundancy2.json"
     with open(out, "w", encoding="utf-8") as f:
         json.dump({"findings": findings, "results": results}, f,
                   ensure_ascii=False, indent=1)

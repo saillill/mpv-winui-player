@@ -3,7 +3,7 @@ import io
 import json
 import os
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 GEN = os.path.join(REPO, r"mpv-winui\mpv-winui\Modules\Settings\MpvSettings.Gen.cs")
 CONF = os.path.join(os.environ["LOCALAPPDATA"], "mpv-winui", "mpv", "mpv.conf")
 

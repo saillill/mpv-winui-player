@@ -28,9 +28,7 @@ import re
 import subprocess
 import sys
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
-
-
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def sh(*args):
     r = subprocess.run(args, cwd=REPO, capture_output=True, text=True,
                        errors="replace")

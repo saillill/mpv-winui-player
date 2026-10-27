@@ -17,14 +17,21 @@ the library page may be fine on the player page, and a snapshot of one state wou
 the other's absence as a defect.
 """
 import json
+import os
 import sys
 import time
 
-sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 
 import mpvw_tools as T
 
-CLIP = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\sdr-bt709.mp4"
+# Fixture directory for the probe clips this file loads. Derived from __file__
+# (this file lives at <repo>/tools/...), so archiving or renaming anything
+# outside the repo cannot silently point these at a path that no longer exists.
+# The clips themselves live in tools/mvpw-mcp/fixtures/ and are committed.
+FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp", "fixtures")
+
+CLIP = os.path.join(FIXTURES, "sdr-bt709.mp4")
 
 # The states the design actually has. Each is reached by a nav item or a control, so the
 # walk is repeatable rather than "click around and see".
@@ -96,7 +103,7 @@ def main():
 
     total = sum(len(v) for v in found.values())
     print("\ntotal unnamed interactive across states: %d" % total)
-    out = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\a11y-names.json"
+    out = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "_work", "a11y-names.json")
     import io
     io.open(out, "w", encoding="utf-8").write(
         json.dumps(found, indent=2, ensure_ascii=False))

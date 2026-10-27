@@ -10,10 +10,11 @@ the transition where the pane disappears is visible instead of inferred.
 """
 import ctypes
 import ctypes.wintypes as wt
+import os
 import sys
 import time
 
-sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 
 import mpvw_tools as T
 

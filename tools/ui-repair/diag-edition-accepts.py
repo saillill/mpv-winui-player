@@ -27,9 +27,10 @@ Controls first. If the volume control fails, this script prints that the probe i
 and concludes nothing -- the rule that would have caught the original mistake.
 """
 import json
+import os
 import sys
 
-sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 
 import mpvw_tools as T
 

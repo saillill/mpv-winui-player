@@ -21,6 +21,11 @@ import time
 from ctypes import wintypes
 
 import mpvw_tools as T
+import os
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 WATCH = ["VideoSortButton", "VideoAddFolderButton", "VideoPlayAllButton",
          "LibraryScroll", "LibrarySectionTitle"]
@@ -111,7 +116,7 @@ def main():
         data, geo = sample(size)
         samples.append({"size": size, "geo": geo, "data": data})
         T.screenshot_region(
-            path=r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\shots\08-videos-" + size + ".png")
+            path=REPO + r"\_work\mcp\shots\08-videos-" + size + ".png")
 
     # Prove the comparison can report a violation: shift one rectangle past the
     # client edge and run it through the same arithmetic.
@@ -123,7 +128,7 @@ def main():
     assert injected > 1, "the comparison cannot detect an overflow"
 
     T.close_app()
-    out = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\sort-overflow.json"
+    out = REPO + r"\_work\mcp\sort-overflow.json"
     with open(out, "w", encoding="utf-8") as f:
         json.dump(samples, f, ensure_ascii=False, indent=1)
     print("wrote", out)

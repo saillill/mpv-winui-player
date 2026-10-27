@@ -52,6 +52,7 @@
              only visible by asking the table directly. -->
         <Compile Include="..\mpv-winui\Modules\Player\ControlBarAdaptiveLayout.cs" Link="Player\ControlBarAdaptiveLayout.cs" />
         <Compile Include="..\mpv-winui\Modules\Player\LibraryIndexLetter.cs" Link="Player\LibraryIndexLetter.cs" />
+    <Compile Include="..\mpv-winui\Modules\Player\IndexRailHover.cs" Link="Player\IndexRailHover.cs" />
         <Compile Include="..\mpv-winui\Modules\Player\Audio\SpectrumAnalyzer.cs" Link="Player\Audio\SpectrumAnalyzer.cs" />
         <Compile Include="..\mpv-winui\Modules\Player\Audio\AlbumColorExtractor.cs" Link="Player\Audio\AlbumColorExtractor.cs" />
         <Compile Include="..\mpv-winui\Modules\Motion\SpringMath.cs" Link="Motion\SpringMath.cs" />

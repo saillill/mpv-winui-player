@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MpvMenuHost (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "MpvMenuHost (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

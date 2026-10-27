@@ -18,10 +18,11 @@ library view (an async scan or a first-layout pass), and the honest fix is for p
 wait for the specific element rather than for a fixed sleep -- the app is not broken; the
 probe is early.
 """
+import os
 import sys
 import time
 
-sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 
 import mpvw_tools as T
 

@@ -13,13 +13,14 @@ mismatch between the value ctypes returns and the value the OS accepts.
 import ctypes
 import io
 import json
+import os
 import sys
 import time
 from ctypes import wintypes
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 import mpvw_tools as T
 
 PIPE = r"\\.\pipe\mpvpipe"

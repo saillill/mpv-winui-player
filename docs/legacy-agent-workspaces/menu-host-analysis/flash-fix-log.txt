@@ -1,0 +1,51 @@
+09:03:46.427 [39548] THEME dark=False
+09:03:46.559 [39548] ACRYLIC controller ok tint=0.45
+09:03:46.577 [39548] START items=1 path=C:\Users\z2637\Documents\Codex\2026-08-06\c-users-z2637-documents-codex-2026\work\three_level_test.json pipe= test=0
+09:03:46.623 [39548] STYLE caption=False thick=False
+09:03:46.626 [39548] HOOKS mouse=4000591 kb=134649
+09:03:46.626 [39548] WINDOW size=300x81 pos=800,600 scale=1 workW=1920 (pass1)
+09:03:46.631 [39548] CHILD PREWARM spawned id=c39548-639216902266273339
+09:03:46.639 [39548] WINDOW resize 300x81 at 800,600 (pass2, shown)
+09:03:46.735 [30616] THEME dark=False
+09:03:46.918 [30616] ACRYLIC controller ok tint=0.45
+09:03:46.937 [30616] START items=5 path= pipe= test=
+09:03:46.938 [30616] PREWARM start id=c39548-639216902266273339
+09:03:46.976 [30616] STYLE caption=False thick=False
+09:03:46.977 [30616] PREWARM ready
+09:03:47.019 [39548] CHILD PREWARM pid=30616
+09:03:48.134 [39548] SELECT called idx=0 submenu=True
+09:03:48.158 [39548] SUBMENU spawn items=1 pos=1104,641 json=C:\Users\z2637\AppData\Local\Temp\mpv-menu-host-items-39548-639216902281349346.json
+09:03:48.159 [39548] SUBMENU trigger id=c39548-639216902266273339 pos=1104,641
+09:03:48.230 [30616] ITEMS deleted C:\Users\z2637\AppData\Local\Temp\mpv-menu-host-items-39548-639216902281349346.json
+09:03:48.230 [30616] PREWARM trigger items=1
+09:03:48.234 [30616] HOOKS mouse=593373 kb=462355
+09:03:48.235 [30616] WINDOW size=300x81 pos=1104,641 scale=1 workW=1920 (pass1)
+09:03:48.240 [30616] CHILD PREWARM spawned id=c30616-639216902282353606
+09:03:48.247 [30616] WINDOW resize 300x81 at 1104,641 (pass2, shown)
+09:03:48.349 [12852] THEME dark=False
+09:03:48.504 [12852] ACRYLIC controller ok tint=0.45
+09:03:48.524 [12852] START items=5 path= pipe= test=
+09:03:48.525 [12852] PREWARM start id=c30616-639216902282353606
+09:03:48.574 [12852] STYLE caption=False thick=False
+09:03:48.575 [12852] PREWARM ready
+09:03:48.679 [30616] CHILD PREWARM pid=12852
+09:03:49.051 [30616] SELECT called idx=0 submenu=True
+09:03:49.072 [30616] SUBMENU spawn items=2 pos=1408,682 json=C:\Users\z2637\AppData\Local\Temp\mpv-menu-host-items-30616-639216902290526494.json
+09:03:49.073 [30616] SUBMENU trigger id=c30616-639216902282353606 pos=1408,682
+09:03:49.084 [12852] ITEMS deleted C:\Users\z2637\AppData\Local\Temp\mpv-menu-host-items-30616-639216902290526494.json
+09:03:49.085 [12852] PREWARM trigger items=2
+09:03:49.089 [12852] HOOKS mouse=200273 kb=134757
+09:03:49.090 [12852] WINDOW size=300x113 pos=1408,682 scale=1 workW=1920 (pass1)
+09:03:49.097 [12852] WINDOW resize 300x113 at 1408,682 (pass2, shown)
+09:03:49.903 [12852] SELECT called idx=0 submenu=False
+09:03:49.903 [12852] SELECT idx=0 title=leaf-1 cmd=cycle pause
+09:03:49.904 [12852] IPC attempt 1
+09:03:49.906 [12852] IPC attempt 1 result=False
+09:03:50.167 [12852] IPC attempt 2
+09:03:50.168 [12852] IPC attempt 2 result=False
+09:03:50.433 [12852] IPC attempt 3
+09:03:50.433 [12852] IPC attempt 3 result=False
+09:03:50.697 [12852] IPC attempt 4
+09:03:50.698 [12852] IPC attempt 4 result=False
+09:03:50.961 [12852] IPC attempt 5
+09:03:50.961 [12852] IPC attempt 5 result=False

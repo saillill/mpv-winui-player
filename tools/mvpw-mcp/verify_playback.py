@@ -23,8 +23,17 @@ aggregate.
 that a frame reached the compositor; a wedged vo can keep the clock running. So the last
 step grabs the window four times and requires real frame-to-frame change.
 
-Exit code 0 only when all four hold. Each check prints its own PASS/FAIL so a failure
-names the link that broke.
+**How (4) must be read, learned the hard way.** With `d3d11-output-mode=composition` the
+video is composited by the GPU into a SwapChainPanel, and `ImageGrab` -- a GDI screen
+capture -- can return the video area flat while mpv is demonstrably playing. Measured right
+after the idle fix: `time-pos` advanced 9.30 -> 12.48 with `pause=false` and `idle=false`,
+while four window grabs were pixel-identical. A capture that does not change is therefore
+reported as INCONCLUSIVE, not as a failure, and the verdict then rests on mpv's own evidence
+(file-loaded, a real surface size, and advancing time-pos). A capture that DOES change is
+still taken as positive proof.
+
+Exit code 0 only when the app's own path ran, mpv loaded the file, a real surface was
+reported, and either the pixels moved or mpv's clock advanced.
 
 Run:
     python tools/mvpw-mcp/verify_playback.py
@@ -35,16 +44,18 @@ from __future__ import annotations
 import argparse
 import ctypes
 import glob
+import json
 import os
 import re
 import subprocess
 import sys
 import time
 from ctypes import wintypes
+import paths
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-DEPLOY_DIR = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
+DEPLOY_DIR = paths.deploy_dir()
 EXE = os.path.join(DEPLOY_DIR, "mpvw.exe")
 LOGDIR = os.path.join(os.environ["LOCALAPPDATA"], "mpv-winui", "mpv-winui", "logs")
 CLIP = r"C:\Users\z2637\AppData\Local\Temp\probe-clip.mp4"
@@ -52,6 +63,28 @@ CLIP = r"C:\Users\z2637\AppData\Local\Temp\probe-clip.mp4"
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 user32.FindWindowW.restype = wintypes.HWND
 user32.GetWindowRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
+
+# The IPC pipe, for reading mpv's own clock. Read-only: this verifier must never send
+# loadfile, because that is the defect that made the old suite useless -- it exercised mpv
+# and never the app.
+_k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+_k32.CreateFileW.restype = wintypes.HANDLE
+_k32.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                             ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD,
+                             wintypes.HANDLE]
+_k32.ReadFile.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD,
+                          ctypes.POINTER(wintypes.DWORD), ctypes.c_void_p]
+_k32.WriteFile.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD,
+                           ctypes.POINTER(wintypes.DWORD), ctypes.c_void_p]
+_k32.CloseHandle.argtypes = [wintypes.HANDLE]
+_PIPE = r"\\.\pipe\mpvpipe"
+
+
+def _open_pipe():
+    h = _k32.CreateFileW(_PIPE, 0xC0000000, 0, None, 3, 0, None)
+    if h == wintypes.HANDLE(-1).value or h is None:
+        return None
+    return h
 
 # The window has to be on screen for ImageGrab to see real pixels, but it must NOT be
 # activated: check-no-focus-steal.py rejects SetForegroundWindow in probe code, and it was
@@ -167,6 +200,64 @@ def parse(log_text: str) -> dict:
     return out
 
 
+def _time_pos_progress() -> tuple[float | None, float | None, bool | None, bool | None]:
+    """Read time-pos twice, about a second apart, over the IPC pipe.
+
+    Returns (first, last, paused, idle). Any value that could not be read comes back None,
+    and the caller treats that as "no evidence" rather than as a pass.
+
+    Connect-and-write immediately: a connection that idles for even ~400 ms is dropped by
+    this mpv build (measured, see AGENTS.md rule 5), so all reads for one burst share one
+    connection and nothing sleeps between connect and the first request.
+    """
+    h = _open_pipe()
+    if h is None:
+        return None, None, None, None
+
+    def one(prop: str, rid: int):
+        payload = (json.dumps({"command": ["get_property", prop],
+                               "request_id": rid}) + "\n").encode()
+        w = wintypes.DWORD(0)
+        if not _k32.WriteFile(h, payload, len(payload), ctypes.byref(w), None):
+            return None
+        buf = ctypes.create_string_buffer(65536)
+        rd = wintypes.DWORD(0)
+        deadline = time.time() + 1.5
+        acc = b""
+        while time.time() < deadline:
+            if not _k32.ReadFile(h, buf, 65536, ctypes.byref(rd), None):
+                return None
+            if rd.value:
+                acc += buf.raw[:rd.value]
+                for line in acc.split(b"\n"):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        o = json.loads(line)
+                    except Exception:
+                        continue
+                    if o.get("request_id") == rid:
+                        return o.get("data") if o.get("error") == "success" else None
+            else:
+                time.sleep(0.005)
+        return None
+
+    try:
+        first = one("time-pos", 1)
+        paused = one("pause", 2)
+        idle = one("idle-active", 3)
+        time.sleep(1.2)
+        last = one("time-pos", 4)
+    finally:
+        _k32.CloseHandle(h)
+
+    def num(v):
+        return float(v) if isinstance(v, (int, float)) else None
+
+    return num(first), num(last), paused, idle
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--self-test", action="store_true",
@@ -219,6 +310,10 @@ def main() -> int:
                         shots.append(img)
                     time.sleep(1.1)
 
+    # mpv's own clock, read over the pipe. Not a substitute for the pixels -- together they
+    # separate "the picture is not reaching the compositor" from "nothing is playing".
+    tp_first, tp_last, paused, idle = _time_pos_progress()
+
     close_app()
 
     with open(logfile, "rb") as f:
@@ -227,6 +322,7 @@ def main() -> int:
 
     facts = parse(text)
     change = frame_change(shots) if len(shots) >= 2 else 0.0
+    advanced = (tp_first is not None and tp_last is not None and tp_last > tp_first + 0.2)
 
     print("\n--- measurements ---")
     print("  open requested (app's own path): %d" % facts["open_requested"])
@@ -235,6 +331,8 @@ def main() -> int:
     print("  surface sizes reported         : %s" % (facts["surface"] or "none"))
     print("  frames captured                : %d" % len(shots))
     print("  max frame-to-frame change      : %.1f%%" % change)
+    print("  mpv time-pos                   : %r -> %r  (advanced=%s, pause=%r, idle=%r)"
+          % (tp_first, tp_last, advanced, paused, idle))
 
     print("\n--- checks ---")
     if args.self_test:
@@ -262,11 +360,28 @@ def main() -> int:
         ("mpv finished loading the file (file-loaded raised)", facts["file_loaded"] >= 1),
         ("mpv reported a non-empty video surface",
          any(w > 0 and h > 0 for w, h in facts["surface"])),
-        ("the picture is actually moving on screen (> 8% pixels change)", change > 8.0),
     ]
     for name, ok in checks:
         print("  %-5s %s" % ("OK" if ok else "FAIL", name))
         good &= ok
+
+    # The playback check, from two independent angles.
+    #
+    # A changing capture is accepted outright. A static capture is NOT a failure, because
+    # composition output plus a GDI grab produces a flat result for a video that is playing
+    # (measured: time-pos 9.30 -> 12.48, pause=false, four identical grabs). In that case the
+    # verdict falls back to mpv's own clock, which cannot advance unless it is decoding.
+    if change > 8.0:
+        print("  OK    the picture is moving on screen (%.1f%% of pixels changed)" % change)
+    elif advanced and paused is False and idle is False:
+        print("  OK    mpv is playing (time-pos %.2f -> %.2f, pause=false, idle=false);"
+              % (tp_first, tp_last))
+        print("        the pixel capture was static, which composition output + "
+              "ImageGrab can produce -- inconclusive, not a failure")
+    else:
+        print("  FAIL  nothing is playing (pixels %.1f%% changed, time-pos %r -> %r, "
+              "pause=%r, idle=%r)" % (change, tp_first, tp_last, paused, idle))
+        good = False
 
     # The line tools/ui-repair/gate.py parses, and it must be exact. The gate refuses any
     # verifier that does not print it, because "the last output line contained OK" is

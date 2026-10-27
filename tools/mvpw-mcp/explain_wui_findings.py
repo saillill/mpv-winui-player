@@ -28,9 +28,10 @@ counting source lines.
 """
 import re
 import subprocess
+import os
 import sys
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 XAML = REPO + r"\mpv-winui\mpv-winui\Modules\MediaInfo\MediaInfoUserControl.xaml"
 REPORT = REPO + r"\mpv-winui\mpv-winui\Modules\MediaInfo\MediaInfoReport.cs"
 

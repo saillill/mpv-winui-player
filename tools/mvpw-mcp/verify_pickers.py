@@ -11,19 +11,19 @@ it CAN: the app survives the click, and a second top-level window appears while
 the dialog is up. It then cancels by closing that window.
 """
 import subprocess
+import os
 import sys
 import time
 
-sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 
 import psutil
 import uiautomation as auto
 
 import mpvw_tools as T
+import paths
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
-
-
+DEPLOY = paths.deploy_dir()
 def alive():
     return any((p.info["name"] or "").lower() == "mpvw.exe"
                for p in psutil.process_iter(["name"]))

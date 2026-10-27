@@ -435,6 +435,14 @@ public static partial class MpvSettings
                 continue;
             }
 
+            // Options the embedding depends on. Sending these would override a decision
+            // Initialize made for the embedded case -- and for `idle` that override is what
+            // stopped the app from playing anything at all. See EmbeddingOwnedKeys.
+            if (EmbeddingOwnedKeys.Contains(prop.Name))
+            {
+                continue;
+            }
+
             object? value;
             try
             {
@@ -1098,6 +1106,45 @@ public static partial class MpvSettings
     private static readonly HashSet<string> SessionStateKeys = new(StringComparer.Ordinal)
     {
         nameof(AppSettings.Speed),
+    };
+
+    /// <summary>
+    /// Options the embedding itself depends on. The settings window may show them and store a
+    /// value, but the startup batch must never send them, because doing so replaces a decision
+    /// <c>MpvPlayer::Initialize</c> made for a reason.
+    ///
+    /// **This is the root cause of "the video will not play", found by bisection.**
+    ///
+    /// The startup batch is 515 commands and runs before the first user open. Sending a prefix
+    /// of it and then a plain `loadfile` gives, measured in the real app process:
+    ///
+    ///     cut=0    fileloaded=1   loads
+    ///     cut=152  fileloaded=1   loads
+    ///     cut=153  fileloaded=0   BLOCKED, and every later loadfile is dead too
+    ///
+    /// Command 152 is `no-osd set idle no`. `AppSettings.Mpv_idle` defaults to "no" because it
+    /// mirrors mpv's own default, so every launch sent it without anyone asking. But
+    /// <c>MpvPlayer::Initialize</c> sets <c>idle=yes</c> deliberately: with `idle=no` mpv exits
+    /// its playloop when there is no file, and an embedded player is ALWAYS in that state at
+    /// startup. After the batch runs, `mpv_command` still returns 0 for `loadfile` and mpv then
+    /// does nothing at all -- no START_FILE, no FILE_LOADED, no further log line. That is the
+    /// exact symptom this task started from.
+    ///
+    /// A separate set from its neighbours on purpose: <see cref="ConfigOnlyKeys"/> means "must
+    /// be written to mpv.conf", <see cref="StartupDeferredKeys"/> means "mpv cannot accept this
+    /// yet", <see cref="SessionStateKeys"/> means "applying it would be a reset". This one means
+    /// "the app owns this option; the batch must not override it".
+    /// </summary>
+    private static readonly HashSet<string> EmbeddingOwnedKeys = new(StringComparer.Ordinal)
+    {
+        // Without idle=yes the playloop exits before any file is opened.
+        nameof(AppSettings.Mpv_idle),
+
+        // Force-window and the composition output are chosen by Initialize for the embedded
+        // case; mpv.conf values for them are already documented as ignored (AGENTS.md), and
+        // sending them through `set` after init has the same effect as leaving them alone.
+        nameof(AppSettings.Mpv_force_window),
+        nameof(AppSettings.Mpv_d3d11_output_mode),
     };
 
     // --- read-back: mpv.conf -> AppSettings ---------------------------------

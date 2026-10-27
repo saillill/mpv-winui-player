@@ -24,7 +24,7 @@ import re
 import subprocess
 import sys
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 APPSRC = os.path.join(REPO, "mpv-winui", "mpv-winui")
 
 

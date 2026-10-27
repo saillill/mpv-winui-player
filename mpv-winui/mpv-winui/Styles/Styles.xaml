@@ -1469,12 +1469,24 @@
          Changing this moves the axis everything in the pane is centred on
          (rail/2: 32 -> 24), so these numbers follow it and are kept here as
          tokens rather than as three separate literals:
-           * MpvShellAppIconMargin keeps the title bar's app icon on the
-             official's offset: measured 118px = 67.4 DIP at 175%, i.e. the
-             icon's centre sits 20 DIP right of the rail's edge (48 + 20 = 68).
+           * MpvShellAppIconMargin is the app icon's left inset inside the title
+             bar's LeftHeader. **The claim that it puts the icon's centre 20 DIP
+             right of the rail's edge (48 + 20 = 68) does not hold for the current
+             markup, and the value below is 10, not 20.** Measured from
+             MainWindow.xaml rather than assumed: LeftHeader holds a horizontal
+             StackPanel of back button (48) + pane toggle (48), then the icon, so
+             the icon's left edge starts at 96; with a 10 inset and a 20-wide box
+             its centre lands at 96 + 10 + 10 = 116 DIP, not 68. The
+             "118px = 67.4 DIP at 175%" line describes a one-rail layout, which is
+             not the shape the markup has had since the pane toggle joined the
+             cluster. Corrected 2026-10-26 by reading the markup; the token value
+             is unchanged, so this is a note about the number rather than a change
+             to it.
            * MpvNavPaneFooterIconMargin is the pane footer's inner left inset;
              with the button's own 4 margin + 4 padding it puts the footer
-             glyph's centre on rail/2 (4 + 4 + 8 + 8 = 24).
+             glyph's centre on rail/2 (4 + 4 + 8 + 8 = 24). Verified: this token
+             supplies the 8, and the 4 + 4 come from the footer button itself
+             (MainWindow.xaml:318 says so in the same terms).
          MpvShellTitleFontSize / MpvShellTitleMargin size and place the title
          that is drawn beside the app icon (see MainWindow.xaml: the icon and
          the title are one cluster in the title bar's LeftHeader, so the

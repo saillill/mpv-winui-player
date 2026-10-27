@@ -13,7 +13,7 @@ import os
 import re
 import sys
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 QUEUE = os.path.join(REPO, r"docs\ui-repair\QUEUE.md")
 DOMAINS = os.path.join(REPO, r"mpv-winui\mpv-winui\Modules")
 

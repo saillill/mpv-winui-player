@@ -25,6 +25,11 @@ import sys
 import time
 
 import mpvw_tools as T
+import os
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 REG = r"HKCU:\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app"
 SAMPLES = ["ShellTitleText", "ShellSettingsText", "TimeRemainingElement"]
@@ -67,7 +72,7 @@ verdict = ("the resource write does reach the live UI" if changed
            else "the setting has no visible effect (write is too late, as suspected)")
 print("verdict -> " + verdict)
 
-path = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\uifont.json"
+path = REPO + r"\_work\mcp\uifont.json"
 with open(path, "w", encoding="utf-8") as f:
     json.dump({"results": results, "changed": changed, "verdict": verdict},
               f, ensure_ascii=False, indent=1)

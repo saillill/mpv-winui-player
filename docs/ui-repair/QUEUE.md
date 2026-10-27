@@ -18,19 +18,26 @@
 
 ---
 
-## 当前基线（2026-10-24 实测）
+## 当前基线（2026-10-26 实测）
 
 | 项 | 结果 |
 |---|---|
-| `verify_e2e` | 19/19 |
-| `verify_settings` | 0 failure |
-| `verify_settings_rows` | PASS |
-| `verify_screenshot` | PASS |
-| `verify_no_focus_steal` | 3/3 |
-| 17 个 `tools/check-*.py` | 0 失败 |
+| `gate.py` | **14/14 阶段通过**（其中 9 个行为验证器，每个都带 `--self-test` 证明能变红） |
+| `verify_playback` | PASS（`idle=no` 根因修复后实测 `file-loaded 1`、`time-pos` 推进） |
+| `verify_music_cards` | PASS（专辑/艺术家封面 stddev 13.7 / 88 色） |
+| `verify_letter_rail` | PASS（视频库无字母栏；音乐库有且不重叠） |
+| `verify_queue_button` | PASS（右上角打开文件按钮） |
+| `verify_home_button` | PASS |
+| `verify_overlay_buttons` | PASS（8/8 未被遮挡） |
+| 25 个 `tools/check-*.py` | 0 失败 |
 | 构建 | 0 错误 |
-| 部署 | `identical: 658 / differing: 0` |
+| 部署 | `identical 500 / differing: 0` |
+| 测试 | mpv-conf-test 517 + mpv-winrt-test 29 |
 | WUI 分析器 | 24 条，**全部已证误报** |
+
+> 上一版这张表写的是 `verify_e2e 19/19`、17 个检查器、`identical: 658`，而且
+> **没有 `verify_playback`** ——那份基线是在视频根本无法播放的状态下测出来的，却读起来
+> 像一次全绿。9 项 UI 缺陷的逐项结论见 `STATUS-9-DEFECTS.md`。
 
 ---
 
@@ -39,13 +46,25 @@
 | id | domain | kind | repro | 症状 | evidence |
 |---|---|---|---|---|---|
 
-> 2026-10-24：A 区已清空。原来两项（`upstream-fileassoc`、`upstream-displayrequest`）
-> 经两条独立测量确认能力都存在，是**探针 bug**，不是产品缺陷；探针已修并各自在注入真实
-> 缺陷时变红。两项证据写在 `done.py` 记录的 evidence 里。
+> **2026-10-26：`overlay-lost-after-play` 撤回，它不是缺陷。** 我一度把它当成缺陷，还写了一个
+> 会变红的验证器——那是**误判**，用户确认后已删除。
 >
-> 清空后按 PLAYBOOK 跑 `scan.py` / `nightly.py`，又发现 4 个测量问题，全部是探针的
-> （见 §C 最后四行），修完仍是 0 个可开工项。**当前没有已证实的缺陷待修**——
-> 这是测量结果，不是没找。
+> 实际发生的事：点卡片上的播放键，界面切到播放页，音乐库与卡片**一起**隐藏。这是设计行为，
+> 用户明确回答「切到播放页是期望行为，我不需要停留音乐库」。我测到的「播放后卡内控件从 4 个
+> 变成 2 个」，真实含义是**卡片不在了**，不是悬浮层坏了。
+>
+> 错在哪：我测的是「卡内控件数」，而这个数字下降有两个完全不同的原因——悬浮层被收起，或者
+> 卡片被移走。我没有先确认那张卡还在不在，就顺着第一个解释往下修了三轮。判断依据其实一直
+> 拿得到：`LibraryGrid` 的矩形在播放后变成 `None`，一眼就能看出整个库已经不在屏幕上。
+>
+> 教训写在这里而不是丢进 git 历史：**当一个测量值下降时，先确认被测量的东西还在不在。**
+
+> 2026-10-24：A 区当时清空过。两项（`upstream-fileassoc`、`upstream-displayrequest`）
+> 经独立测量确认能力都存在，是**探针 bug**，不是产品缺陷。
+>
+> 更早那句「当前没有已证实的缺陷待修」在当时成立，但成立的原因值得记住：悬停行为当时
+> **根本无法测量**（`SetCursorPos` 不产生 WinUI 会处理的指针消息，非前台窗口又收不到悬停
+> 输入）。能测之后缺陷才浮出来。**先有测量能力，才有缺陷清单。**
 
 ## B. 已验证存在，不必移植（本会话结论）
 

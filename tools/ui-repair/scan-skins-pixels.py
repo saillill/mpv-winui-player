@@ -23,14 +23,20 @@ import subprocess
 import sys
 import time
 
-sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 
 import ctypes
 import ctypes.wintypes as wt
 
 import mpvw_tools as T
 
-CLIP = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\sdr-bt709.mp4"
+# Fixture directory for the probe clips this file loads. Derived from __file__
+# (this file lives at <repo>/tools/...), so archiving or renaming anything
+# outside the repo cannot silently point these at a path that no longer exists.
+# The clips themselves live in tools/mvpw-mcp/fixtures/ and are committed.
+FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp", "fixtures")
+
+CLIP = os.path.join(FIXTURES, "sdr-bt709.mp4")
 SKINS = ("Default", "Center", "Compact")
 REG = (r"HKCU:\Software\Classes\Local Settings\Software\mpv-winui"
        r"\mpv-winui\app")

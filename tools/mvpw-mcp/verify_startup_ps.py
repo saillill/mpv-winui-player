@@ -23,13 +23,19 @@ import re
 import subprocess
 import sys
 import time
+import os
+import paths
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
+DEPLOY = paths.deploy_dir()
 EXE = DEPLOY + r"\mpvw.exe"
 REG = r"HKCU:\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app"
-OUT = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\startup-verified.json"
+OUT = REPO + r"\_work\mcp\startup-verified.json"
 
 # Properties the startup batch sets, with the AppSettings key that stores the
 # intended value.
@@ -86,7 +92,7 @@ def main():
     pairs_ps = ",\n".join(
         "  @('%s','%s')" % (p, k) for p, k in PAIRS)
     script = PS_DRIVER.replace("@PAIRS@", pairs_ps).replace("@REG@", REG)
-    path = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\drive_pipe.ps1"
+    path = REPO + r"\_work\mcp\drive_pipe.ps1"
     io.open(path, "w", encoding="utf-8").write(script)
 
     # Start the app the way that works, then drive the pipe immediately.

@@ -1,4 +1,4 @@
-﻿# 设置界面设计约束（唯一依据）
+# 设置界面设计约束（唯一依据）
 
 > **状态**：v1，2026-09-21 制定。
 > **适用范围**：`mpv-winui/mpv-winui/Modules/Settings/**`、`Modules/Language/**`、
@@ -33,7 +33,7 @@
 | `x:Name` | 127 个声明，**0 个断引用**，11 个零引用 | 同上 §1 |
 | 重复 `Option` 键 | **0**（跨层与层内均为 0） | 选项审计 + §5.4 |
 | `sectionOrder` 覆盖 | **46 / 46**，0 重复键、0 悬空 | `audit/check-section-order.py` |
-| 检查器 | **17 个：15 通过 / 2 失败**（`check-settings-drift` 7 ERROR、`check-localization` 1098×9 缺键） | `run-baseline.py` |
+| 检查器 | **25 个，全部通过**（2026-10-26 实测）。本行原先记的是「17 个：15 通过 / 2 失败（`check-settings-drift` 7 ERROR、`check-localization` 1098×9 缺键）」——那 7 个 ERROR 和那些缺键后来都修掉了，这一行没跟着改，于是它长期在描述一个已经不存在的状态。一个说自己正红着的状态行，和一个说自己全绿的状态行，都能过期；区别只在于前者会被怀疑。 | `run-baseline.py` |
 | Release 构建 | **≈24–29s，0 警告 0 错误** | 本机实测（多次） |
 
 ---

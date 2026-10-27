@@ -11,9 +11,10 @@ typographic Style definitions) rather than by guessing a delta, and prints its b
 so the citation can be corrected to something true.
 """
 import io
+import os
 
-XAML = (r"C:\Users\z2637\Documents\DeepSeek\mpv\mpv-winui\mpv-winui"
-        r"\Styles\Styles.xaml")
+XAML = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                    "mpv-winui", "mpv-winui", "Styles", "Styles.xaml")
 
 rows = io.open(XAML, encoding="utf-8-sig").read().split("\n")
 

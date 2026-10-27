@@ -9,7 +9,11 @@
 ## 0. 一句话结论
 
 mpvw 是一个**三层结构**的 WinUI 3 播放器：C# 界面层 + C++/WinRT 原生层 + mpv 配置/Lua 层。
-当前 HEAD **构建 0 错误、17 个自检器全绿、测试 496 + 26 全通过、部署与构建产物一致**。
+当前 HEAD **构建 0 错误、25 个自检器全绿、测试 517 + 29 全通过、部署与构建产物一致**。
+
+> 这三个数字在 2026-10-26 校正过：原先写的是「17 个自检器」「496 + 26」，那是当时的实测
+> 值，之后又加了 8 个检查器和 24 个测试。校正前它们已经陈旧，而一个陈旧的状态行比没有
+> 状态行更糟——它看起来像刚刚核对过。
 项目不缺功能，缺的是**结构可读性**：`Modules/` 下 13 个目录里有 5 个是「按实现机制」而不是
 「按功能域」命名的（`Common`、`Mpv`、`Motion`、`MpvConf`、`Menu`），且 3 个文件超过 100 KB
 （最大 258 KB），这正是「上下文过大、每次只能局部打转」的直接原因。
@@ -279,13 +283,11 @@ Get-ChildItem -Recurse -File -Include *.cs,*.xaml |
 `AppLang.cs` 164432、`MpvPlayerPage.xaml` 131359、`AppLang.Gen.cs` 129508、
 `MpvPlayerPage_Library.cs` 125617。
 
-**E3** 17 个检查器
+**E3** 25 个检查器（2026-10-26 校正：这里原先只列了 17 个，且是手工枚举，
+新加的 8 个不会被这个列表带进来。改用通配，免得不带也就没人发现）
+
 ```powershell
-foreach ($c in @('check-xaml','check-localization','check-sections','check-settings-drift',
-  'check-empty-sections','check-conf-lines','check-script-opts','check-winrt-events',
-  'check-ui-tooltips','check-visual-state-layout','check-section-icons','check-search-index',
-  'check-placeholders','check-resources','check-scroll-maxwidth','check-mpvconf-precedence',
-  'check-conflict-rules')) { & python "tools/$c.py"; "exit=$LASTEXITCODE" }
+foreach ($c in Get-ChildItem tools -Filter 'check-*.py') { & python $c.FullName; "exit=$LASTEXITCODE" }
 ```
 
 **E4** 构建

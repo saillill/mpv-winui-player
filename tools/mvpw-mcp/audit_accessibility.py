@@ -24,9 +24,20 @@ import time
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import mpvw_tools as T
+import os
 
-CLIPS = [r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\sdr-bt709.mp4"]
-OUT = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\a11y-runtime.json"
+# Fixture directory for the probe clips this file loads. Derived from __file__
+# (this file lives at <repo>/tools/...), so archiving or renaming anything
+# outside the repo cannot silently point these at a path that no longer exists.
+# The clips themselves live in tools/mvpw-mcp/fixtures/ and are committed.
+FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp", "fixtures")
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+CLIPS = [os.path.join(FIXTURES, "sdr-bt709.mp4")]
+OUT = REPO + r"\_work\mcp\a11y-runtime.json"
 
 INTERACTIVE = {
     "ButtonControl", "CheckBoxControl", "ComboBoxControl", "EditControl",

@@ -9,6 +9,7 @@ a search query narrows it without throwing.
 
 Run: python tools/mvpw-mcp/verify_settings.py
 """
+import os
 import sys
 import time
 
@@ -16,6 +17,11 @@ import psutil
 import uiautomation as auto
 
 import mpvw_tools as T
+
+# Derived, not literal -- see the same note in verify_e2e.py. This file lives at
+# <repo>/tools/mvpw-mcp/.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SHOT = os.path.join(REPO, "_work", "mcp", "settings.png")
 
 failures = []
 
@@ -131,8 +137,7 @@ def main():
         scrolls = [k for k, v in ids.items() if type(v).__name__ == "PaneControl"]
         check("settings page has content panes", len(scrolls) >= 1, len(scrolls))
 
-        shot = T.screenshot_region(
-            path=r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\settings.png")
+        shot = T.screenshot_region(path=SHOT)
         print("  screenshot: %s" % shot["path"])
 
         try:

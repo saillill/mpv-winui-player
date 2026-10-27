@@ -9,7 +9,7 @@ import json
 import os
 import re
 
-ROOT = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APP = os.path.join(ROOT, "mpv-winui", "mpv-winui")
 SET = os.path.join(APP, "Modules", "Settings")
 LANG = os.path.join(APP, "Modules", "Language")

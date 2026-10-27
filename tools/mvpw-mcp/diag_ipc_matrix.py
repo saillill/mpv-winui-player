@@ -27,8 +27,9 @@ from ctypes import wintypes
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import psutil
+import paths
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
+DEPLOY = paths.deploy_dir()
 EXE = DEPLOY + r"\mpvw.exe"
 PIPE = r"\\.\pipe\mpvpipe"
 

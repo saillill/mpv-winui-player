@@ -26,9 +26,20 @@ from ctypes import wintypes
 from PIL import Image
 
 import mpvw_tools as T
+import os
 
-CLIP = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\sdr-bt709.mp4"
-SHOTS = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\shots"
+# Fixture directory for the probe clips this file loads. Derived from __file__
+# (this file lives at <repo>/tools/...), so archiving or renaming anything
+# outside the repo cannot silently point these at a path that no longer exists.
+# The clips themselves live in tools/mvpw-mcp/fixtures/ and are committed.
+FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp", "fixtures")
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+CLIP = os.path.join(FIXTURES, "sdr-bt709.mp4")
+SHOTS = REPO + r"\_work\mcp\shots"
 
 
 def client_rect(pid):
@@ -109,7 +120,7 @@ def main():
     for name in ("09-strip-playing", "09-strip-library"):
         strip_profile(SHOTS + "\\" + name + ".png", name)
 
-    out = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\strip.json"
+    out = REPO + r"\_work\mcp\strip.json"
     with open(out, "w", encoding="utf-8") as f:
         json.dump({"library": {"client": c, "negative": neg},
                    "playing": {"client": c2, "negative": neg2}},

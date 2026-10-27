@@ -20,7 +20,7 @@ import re
 import subprocess
 import sys
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 QUEUE = os.path.join(REPO, r"docs\ui-repair\QUEUE.md")
 REPRO = os.path.join(REPO, r"tools\ui-repair\repro.py")
 

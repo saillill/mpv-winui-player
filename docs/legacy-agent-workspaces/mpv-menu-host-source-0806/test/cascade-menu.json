@@ -1,0 +1,10 @@
+{
+  "title": "级联测试",
+  "items": [
+    { "title": "播放控制", "submenu": [
+      { "title": "暂停", "cmd": ["cycle", "pause"] },
+      { "title": "前进 5 秒", "cmd": ["seek", "5", "exact"] }
+    ] },
+    { "title": "直接命令", "cmd": ["show-text", "hello"] }
+  ]
+}

@@ -23,7 +23,7 @@ import re
 import subprocess
 import sys
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MCP = os.path.join(REPO, "tools", "mvpw-mcp")
 PWSH = "pwsh"
 
@@ -207,7 +207,19 @@ def verifier(script):
         if code == 0 and not stated_pass:
             return False, "printed VERDICT: FAIL but exited 0 -- the two disagree"
         if not stated_pass:
-            return False, "verifier says FAIL"
+            # Report the verifier's own FAIL lines, not just the word "FAIL".
+            #
+            # Measured 2026-10-26: this stage printed `verifier says FAIL` and nothing
+            # else, so the only way to learn what failed was to re-run the verifier by
+            # hand -- and a re-run is a different measurement, which came back PASS.
+            # "A gate that cannot say what it saw" is the same shape as the silent
+            # checker this file was rewritten to remove: the verdict was right and the
+            # evidence was thrown away. Keep the first three FAIL lines.
+            fails = [l.strip() for l in out.splitlines() if re.match(r"\s*FAIL\b", l)]
+            tail = [l.strip() for l in out.splitlines() if l.strip()]
+            detail = fails[0][:150] if fails else (tail[-1][:150] if tail else "")
+            more = "" if len(fails) <= 1 else " (+%d more FAIL line(s))" % (len(fails) - 1)
+            return False, "verifier says FAIL: %s%s" % (detail, more)
 
         # (2) and it must be able to report a failure
         scode, sout = run([sys.executable, os.path.join(MCP, script), "--self-test"])
@@ -236,6 +248,18 @@ def main():
         ("verify_settings", verifier("verify_settings.py")),
         ("verify_settings_rows", verifier("verify_settings_rows.py")),
         ("verify_screenshot", verifier("verify_screenshot.py")),
+        # The UI verifiers, added with the defects they prove. Each one measures a property of
+        # the real window -- image content, control geometry, what is on screen -- because every
+        # defect in the queue was found by measurement and none by reading the XAML. They are in
+        # the gate so that a future edit which re-breaks one of them fails HERE rather than in
+        # somebody's screenshot review.
+        ("verify_music_cards", verifier("verify_music_cards.py")),
+        ("verify_video_folder_cover", verifier("verify_video_folder_cover.py")),
+        ("verify_card_overlay", verifier("verify_card_overlay.py")),
+        ("verify_letter_rail", verifier("verify_letter_rail.py")),
+        ("verify_queue_button", verifier("verify_queue_button.py")),
+        ("verify_home_button", verifier("verify_home_button.py")),
+        ("verify_overlay_buttons", verifier("verify_overlay_buttons.py")),
     ]
 
     results = []

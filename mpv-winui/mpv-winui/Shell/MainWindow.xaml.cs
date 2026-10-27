@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.UI.Windowing;
+using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -574,7 +574,19 @@ namespace mpv_winui
         /// </summary>
         private bool _pageIsPlaying;
 
-        /// <summary>True while Home's own empty state is up; see UpdateShellOpenFileButton.</summary>
+        /// <summary>
+        /// True while Home's own empty state is up.
+        ///
+        /// Assigned but never read. It used to gate the shell's open-file button, because
+        /// Home's empty state carries an open button of its own and the shell's must not
+        /// appear beside it. Since 1b49ab9 that button is collapsed unconditionally, so
+        /// nothing consults this flag: `ActivePlayer_EmptyStateVisibleChanged` writes it
+        /// and the only other reference in the tree is this declaration.
+        ///
+        /// Not deleted here because deleting it means also deleting that handler and its
+        /// `EmptyStateVisibleChanged` subscription, which is a behaviour-adjacent edit this
+        /// note is not entitled to make. Recorded instead.
+        /// </summary>
         private bool _homeEmpty;
 
         /// <summary>The player page's current section, as a LibrarySection* key.</summary>
@@ -697,26 +709,60 @@ namespace mpv_winui
         }
 
         /// <summary>
-        /// The one place the shell's open-file button is shown or hidden.
+        /// Collapses the shell's open-file button. Not a decision, and not the only writer.
         ///
-        /// It used to have two writers - this one's neighbours - and neither knew
-        /// which section was up, so the button appeared on the video and music
-        /// libraries too and was drawn over by their own chrome. One condition, one
-        /// owner:
+        /// This used to be described as "the one place the shell's open-file button is
+        /// shown or hidden", deciding by
         ///
         ///     Home AND not playing AND not full-window AND Home is not empty
         ///
-        /// The empty half is not decoration: Home's own empty state carries an open
-        /// button of its own, and two open buttons on one screen is the duplicate
-        /// this app already removed once.
+        /// That description stopped being true at 1b49ab9 (2026-10-26) and is kept here
+        /// only to record what was replaced. What the method does NOW is one unconditional
+        /// assignment, because Home's affordance moved into the library's own heading slot
+        /// -- the same control the other sections use -- so this button has nowhere left
+        /// to be. Its three callers (section change, empty-state change, chrome apply)
+        /// still call it, and the calls are now no-ops that keep the state consistent if a
+        /// later change gives the button a condition again.
+        ///
+        /// **It is not the only thing that writes this button's Visibility.**
+        /// `ChangeFullWindow(bool)` writes it twice: it collapses it on entering
+        /// full-window, and sets it to Visible-or-Collapsed on leaving, so a window that
+        /// leaves full-window while browsing puts this button back. Those two lines
+        /// predate 1b49ab9 (blame: 0b17cc0) and were not updated by it.
+        ///
+        /// So the claim "no longer appears anywhere" below is true on the paths that call
+        /// this method, and not true after a full-window round trip. That is a leftover,
+        /// not a missing feature: Home's open command moved to the library's own heading
+        /// slot (`VideoAddFolderButton`, relabelled `LibraryOpenFile`), which the
+        /// verification run of 2026-10-26 read from the automation tree as the name
+        /// "打开文件" on Home. Whether to clear the leftover is a behaviour question,
+        /// logged rather than changed here.
         /// </summary>
         private void UpdateShellOpenFileButton()
         {
-            var onHome = _activeSection == MpvPlayerPage.LibrarySectionHome;
-
-            ShellOpenFileButton.Visibility = onHome && !_pageIsPlaying && !_fullWindow && !_homeEmpty
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            // Collapsed unconditionally.
+            //
+            // Reported: "首页 打开文件 按钮位置太靠上，应与音乐库 添加文件夹 按钮处于相同位置".
+            // This button lives on its own band above the whole library (Grid.Row="0" of the
+            // content area), which measured 75 px higher than the heading row every other
+            // section uses:
+            //
+            //     home    heading top=479   this button top=404   <- 75 px above
+            //     music   heading top=407   Add folder top=445   <- on the heading row
+            //
+            // Home's affordance is now the library's own heading slot -- the same control
+            // the other two sections use -- so it lands on the same row by construction
+            // instead of by a second set of coordinates that has to be kept in step.
+            // Leaving this one visible would restore the two-open-buttons duplicate this
+            // app already removed once.
+            //
+            // Caveat, measured from the code and NOT from the window: this is the state on
+            // the paths that call this method. `ChangeFullWindow` also writes the same
+            // property (see the summary above) and can make it Visible again. The
+            // verification run of 2026-10-26 saw no `ShellOpenFileButton` in the automation
+            // tree on a normal launch, which is consistent with this line -- it did not
+            // exercise a full-window round trip, so it does not settle the other path.
+            ShellOpenFileButton.Visibility = Visibility.Collapsed;
         }
 
         private void ActivePlayer_ShellStateChanged(ShellPage state)

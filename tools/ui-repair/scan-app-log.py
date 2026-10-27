@@ -43,7 +43,7 @@ import re
 import sys
 import time
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 LOCAL = os.environ.get("LOCALAPPDATA", "")
 
 # Checked in order; the first that has mpv-winui.*.log.txt wins. The second is the one that

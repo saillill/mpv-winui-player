@@ -25,10 +25,15 @@ import time
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import mpvw_tools as T
+import os
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 LOG = (r"C:\Users\z2637\AppData\Local\mpv-winui\mpv-winui\logs"
        r"\mpv-winui.2026-10-22.log.txt")
-OUT = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\rejected.json"
+OUT = REPO + r"\_work\mcp\rejected.json"
 
 
 def rejected_lines():

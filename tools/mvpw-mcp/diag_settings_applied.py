@@ -25,9 +25,14 @@ from ctypes import wintypes
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import psutil
+import os
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 PIPE = r"\\.\pipe\mpvpipe"
-DEPLOY = (r"C:\Users\z2637\Documents\DeepSeek\mpv\mpv-winui\mpv-winui\bin\x64"
+DEPLOY = (REPO + r"\mpv-winui\mpv-winui\bin\x64"
           r"\Release\net10.0-windows10.0.26100.0\win-x64")
 EXE = DEPLOY + r"\mpvw.exe"
 REG = r"HKCU:\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app"
@@ -147,7 +152,7 @@ def main():
                for p in psutil.process_iter(["name"]))
     print("\nprocess left:", left)
 
-    out = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\settings-applied.json"
+    out = REPO + r"\_work\mcp\settings-applied.json"
     with open(out, "w", encoding="utf-8") as f:
         json.dump(rows, f, ensure_ascii=False, indent=1)
     print("wrote", out)

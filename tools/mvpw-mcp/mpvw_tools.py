@@ -27,8 +27,9 @@ from ctypes import wintypes
 
 import psutil
 import uiautomation as auto
+import paths
 
-DEPLOY_DIR = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
+DEPLOY_DIR = paths.deploy_dir()
 EXE = os.path.join(DEPLOY_DIR, "mpvw.exe")
 PIPE = r"\\.\pipe\mpvpipe"
 

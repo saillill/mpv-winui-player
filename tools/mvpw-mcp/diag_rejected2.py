@@ -27,13 +27,17 @@ import os
 import re
 import sys
 
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 LOG = (r"C:\Users\z2637\AppData\Local\mpv-winui\mpv-winui\logs"
        r"\mpv-winui.2026-10-22.log.txt")
-SCHEMA = (r"C:\Users\z2637\Documents\DeepSeek\mpv\mpv-winui\mpv-winui"
+SCHEMA = (REPO + r"\mpv-winui\mpv-winui"
           r"\MpvConfOptions\mpv-options.json")
-OUT = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\rejected-classified.json"
+OUT = REPO + r"\_work\mcp\rejected-classified.json"
 
 
 def schema_names():

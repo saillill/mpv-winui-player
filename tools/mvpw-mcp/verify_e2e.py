@@ -8,11 +8,19 @@ Exit code 0 = every step passed. Any failure prints the step and the evidence.
 """
 import argparse
 import json
+import os
 import sys
 import time
 import traceback
 
 import mpvw_tools as T
+
+# Where the diagnostic screenshot goes. Derived, not literal: this was
+# `REPO + r"\_work\mcp\e2e-home.png"`, which stops existing
+# the moment the checkout is renamed -- and the screenshot is the one thing a future
+# reader wants when a step fails. This file lives at <repo>/tools/mvpw-mcp/.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SHOT = os.path.join(REPO, "_work", "mcp", "e2e-home.png")
 
 RESULTS = []
 
@@ -181,8 +189,7 @@ def main():
     # 4. the IPC read already happened in 1b, while the connection was alive
 
     # 5. a diagnosis screenshot (not the pass/fail evidence)
-    step("screenshot_region (diagnosis)", T.screenshot_region,
-         path=r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\e2e-home.png")
+    step("screenshot_region (diagnosis)", T.screenshot_region, path=SHOT)
 
     # 6. must not leave the app running
     step("close_app", T.close_app)

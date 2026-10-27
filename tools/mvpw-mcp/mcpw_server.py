@@ -9,11 +9,13 @@ Tools are the seven the task names:
     launch_app, get_ui_snapshot, invoke_control, assert_element_state,
     screenshot_region, read_playback_state, trigger_screenshot
 
-Register in a client (claude_desktop_config.json / DSH mcpServers):
+Register in a client (claude_desktop_config.json / DSH mcpServers). Use an absolute
+path to *this file* in your own checkout -- the deploy directory is resolved by
+`paths.py` from the file's location, so no other path needs configuring:
 
     "mvpw": {
       "command": "python",
-      "args": ["C:/Users/z2637/Documents/DeepSeek/mpv/tools/mvpw-mcp/mcpw_server.py"]
+      "args": ["<your-checkout>/tools/mvpw-mcp/mcpw_server.py"]
     }
 """
 from __future__ import annotations
@@ -30,7 +32,7 @@ SERVER = {"name": "mvpw-mcp", "version": "0.1.0"}
 TOOLS = [
     {
         "name": "launch_app",
-        "description": "Start mpvw.exe from C:\\Users\\z2637\\Documents\\DeepSeek\\mpv-deploy and wait for its main window. Refuses if an instance is already running.",
+        "description": "Start mpvw.exe from the deploy directory and wait for its main window. Refuses if an instance is already running.",
         "inputSchema": {
             "type": "object",
             "properties": {"wait_seconds": {"type": "integer", "default": 20}},

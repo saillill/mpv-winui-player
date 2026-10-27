@@ -21,7 +21,7 @@ import os
 import re
 import sys
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOC = os.path.join(REPO, r"docs\settings-design-contract.md")
 XAML = os.path.join(REPO, r"mpv-winui\mpv-winui\Styles\Styles.xaml")
 

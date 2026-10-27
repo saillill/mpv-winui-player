@@ -2,9 +2,10 @@
 import io
 import json
 import re
+import os
 import sys
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, REPO + r"\tools")
 
 src = io.open(REPO + r"\tools\gen-schema-options.py", encoding="utf-8-sig").read()

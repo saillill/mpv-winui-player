@@ -23,11 +23,17 @@ from ctypes import wintypes
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import psutil
+import os
+import paths
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+DEPLOY = paths.deploy_dir()
 EXE = DEPLOY + r"\mpvw.exe"
 PIPE = r"\\.\pipe\mpvpipe"
-OUT = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\zero-values.json"
+OUT = REPO + r"\_work\mcp\zero-values.json"
 
 CASES = [
     ("demuxer-lavf-probesize", "0B"),

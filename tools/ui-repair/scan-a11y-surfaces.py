@@ -30,7 +30,7 @@ import os
 import sys
 import time
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(REPO, "tools", "mvpw-mcp"))
 
 import mpvw_tools as T  # noqa: E402

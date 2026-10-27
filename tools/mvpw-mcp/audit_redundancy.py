@@ -20,6 +20,7 @@ Each pair is labelled:
 """
 import io
 import json
+import os
 import sys
 import time
 
@@ -27,8 +28,14 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 
 import mpvw_tools as T
 
-CLIP = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\sdr-bt709.mp4"
-LONG = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\hdr10-pq.mp4"
+# Fixture directory for the probe clips this file loads. Derived from __file__
+# (this file lives at <repo>/tools/...), so archiving or renaming anything
+# outside the repo cannot silently point these at a path that no longer exists.
+# The clips themselves live in tools/mvpw-mcp/fixtures/ and are committed.
+FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp", "fixtures")
+
+CLIP = os.path.join(FIXTURES, "sdr-bt709.mp4")
+LONG = os.path.join(FIXTURES, "hdr10-pq.mp4")
 REG = r"HKCU:\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app"
 findings = []
 
@@ -155,7 +162,7 @@ def queue_pair():
 def duplicate_mpv_mapping():
     """Same mpv property driven by two different app settings."""
     import re
-    root = r"C:\Users\z2637\Documents\DeepSeek\mpv\mpv-winui\mpv-winui\Modules\Settings"
+    root = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "mpv-winui", "mpv-winui", "Modules", "Settings")
     text = io.open(root + r"\MpvSettings.cs", encoding="utf-8-sig").read()
     pairs = re.findall(r'nameof\(AppSettings\.(\w+)\)\]\s*=\s*"([^"]+)"', text)
     by_target = {}
@@ -186,7 +193,7 @@ def main():
             time.sleep(2.5)
 
     T.close_app()
-    out = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\redundancy.json"
+    out = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "_work", "mcp", "redundancy.json")
     with open(out, "w", encoding="utf-8") as f:
         json.dump({"findings": findings, "results": results}, f,
                   ensure_ascii=False, indent=1)

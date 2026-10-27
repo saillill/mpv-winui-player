@@ -20,8 +20,19 @@ import sys
 import time
 
 import mpvw_tools as T
+import os
 
-CLIP = r"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\sdr-bt709.mp4"
+# Fixture directory for the probe clips this file loads. Derived from __file__
+# (this file lives at <repo>/tools/...), so archiving or renaming anything
+# outside the repo cannot silently point these at a path that no longer exists.
+# The clips themselves live in tools/mvpw-mcp/fixtures/ and are committed.
+FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp", "fixtures")
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+CLIP = os.path.join(FIXTURES, "sdr-bt709.mp4")
 REG = r"HKCU:\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app"
 WATCH = ["PlayPauseButton", "ProgressSlider", "VolumeSlider",
          "SkipBackwardButton", "FullScreenButton", "MoreButton"]
@@ -61,7 +72,7 @@ for skin in ("Centre", "Compact"):
     changed[skin] = diffs
     print("%-9s differs from Standard in: %s" % (skin, diffs or "NOTHING"))
 
-path = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\skin-geometry.json"
+path = REPO + r"\_work\mcp\skin-geometry.json"
 with open(path, "w", encoding="utf-8") as f:
     json.dump({"geometry": out, "differsFromStandard": changed}, f,
               ensure_ascii=False, indent=1)

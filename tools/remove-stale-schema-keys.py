@@ -18,10 +18,11 @@ the six option names, not guessed, and the script asserts the count.
 """
 import io
 import json
+import os
 import sys
 
-LANG = (r"C:\Users\z2637\Documents\DeepSeek\mpv\mpv-winui\mpv-winui"
-        + "\\" + r"Languages\zh-CN.json")
+LANG = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                    "mpv-winui", "mpv-winui", "Languages", "zh-CN.json")
 
 GONE_OPTIONS = [
     "openal_direct_channels",

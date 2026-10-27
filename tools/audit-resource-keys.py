@@ -23,7 +23,7 @@ import re
 import sys
 from collections import defaultdict
 
-APP = r"C:\Users\z2637\Documents\DeepSeek\mpv\mpv-winui\mpv-winui"
+APP = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mpv-winui", "mpv-winui")
 KEY = re.compile(r'x:Key="([A-Za-z0-9_.]+)"')
 
 

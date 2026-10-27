@@ -26,6 +26,11 @@ import time
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import mpvw_tools as T
+import os
+
+# Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
+# moving the checkout does not silently repoint these paths at an old copy.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 CASES = [
     ("openal-direct-channels", "yes"),
@@ -37,7 +42,7 @@ CASES = [
     ("cuda-decode-device", "auto"),
     ("player-operation-mode", "cplayer"),
 ]
-OUT = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\mcp\plain-rejects.json"
+OUT = REPO + r"\_work\mcp\plain-rejects.json"
 
 
 def probe(option, value):

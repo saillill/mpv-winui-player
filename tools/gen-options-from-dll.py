@@ -23,11 +23,12 @@ correction of drift, not a re-scoping of which options the app exposes.
 import ctypes
 import io
 import json
+import os
 import sys
 
-DLL = r"C:\Users\z2637\Documents\DeepSeek\mpv\mpv-winui\libs\bin\x64\mpv-2.dll"
-OUT = (r"C:\Users\z2637\Documents\DeepSeek\mpv\mpv-winui\mpv-winui"
-       + "\\" + r"MpvConfOptions\mpv-options.json")
+DLL = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mpv-winui", "libs", "bin", "x64", "mpv-2.dll")
+OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                   "mpv-winui", "mpv-winui", "MpvConfOptions", "mpv-options.json")
 
 MPV_FORMAT_FLAG = 3
 MPV_FORMAT_INT64 = 4

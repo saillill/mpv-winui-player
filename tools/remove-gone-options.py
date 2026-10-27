@@ -37,10 +37,11 @@ silently widen into a platform sweep.
 """
 import io
 import json
+import os
 import sys
 
-SCHEMA = (r"C:\Users\z2637\Documents\DeepSeek\mpv\mpv-winui\mpv-winui"
-          + "\\" + r"MpvConfOptions\mpv-options.json")
+SCHEMA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                      "mpv-winui", "mpv-winui", "MpvConfOptions", "mpv-options.json")
 
 GONE = {
     "openal-direct-channels",

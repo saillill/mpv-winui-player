@@ -11,9 +11,10 @@ After normalising both sides to paths relative to the app project directory, a f
 """
 import io
 import subprocess
+import os
 import sys
 
-REPO = r"C:\Users\z2637\Documents\DeepSeek\mpv"
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PREFIX = "mpv-winui/mpv-winui/"
 
 

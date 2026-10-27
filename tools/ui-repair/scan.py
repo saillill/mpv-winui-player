@@ -36,10 +36,11 @@ import collections
 import ctypes
 import io
 import json
+import os
 import sys
 from ctypes import wintypes
 
-sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 
 import mpvw_tools as T
 
@@ -246,7 +247,7 @@ def main():
             for (d, a, b), n in sorted(unconfirmed.items())]
 
     T.close_app()
-    out = r"C:\Users\z2637\Documents\DeepSeek\mpv\_work\ui-repair-scan.json"
+    out = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "_work", "ui-repair-scan.json")
     io.open(out, "w", encoding="utf-8").write(
         json.dumps(findings, indent=2, ensure_ascii=False))
     print("\nwritten:", out)

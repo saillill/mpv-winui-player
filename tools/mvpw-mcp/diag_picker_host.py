@@ -12,19 +12,19 @@ new ones with their owning process. That distinguishes the two cases honestly:
   no new window at all                   -> the click did not reach the picker
 """
 import subprocess
+import os
 import sys
 import time
 
-sys.path.insert(0, r"C:\Users\z2637\Documents\DeepSeek\mpv\tools\mvpw-mcp")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 
 import psutil
 import uiautomation as auto
 
 import mpvw_tools as T
+import paths
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
-
-
+DEPLOY = paths.deploy_dir()
 def all_windows():
     out = {}
     for w in auto.GetRootControl().GetChildren():
