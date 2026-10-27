@@ -19,8 +19,9 @@ import psutil
 import uiautomation as auto
 
 import mpvw_tools as T
+import paths
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
+DEPLOY = paths.deploy_dir()
 GONE = ["openal", "cuda-decode-device", "input-gamepad", "sbr-probesize"]
 
 

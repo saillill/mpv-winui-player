@@ -22,10 +22,9 @@ import psutil
 import uiautomation as auto
 
 import mpvw_tools as T
+import paths
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
-
-
+DEPLOY = paths.deploy_dir()
 def all_windows():
     out = {}
     for w in auto.GetRootControl().GetChildren():

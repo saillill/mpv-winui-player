@@ -138,7 +138,7 @@ FileAssociationItem.cs    ← 0b17cc0（大重构时移除）
 
 **网络当时不可用（现已恢复，见 §4.1）**：`git ls-remote` 对 `saillill/mpv-config` 与已知可用的 `saillill/mpv-winui-player` **同时**失败（`schannel: failed to receive handshake`），TCP 通但 TLS 不通【已运行】。所以不能靠"先推到云端再删"。改为本地保全。
 
-保全位置：`C:\Users\z2637\Documents\DeepSeek\_work\mpv-repos-20261027\preserve\`
+保全位置：`C:\Users\z2637\Documents\mpv-project\evidence\repo-preservation\mpv-repos-20261027\preserve\`
 
 | 保全物 | 大小 | 覆盖什么 | 验证 |
 |---|---|---|---|
@@ -162,7 +162,7 @@ git apply <preserve>\mpv-config-uncommitted.patch      # 文本部分
 
 23 份文档已**移入新工作区**（不是留在 `_work` 里）：
 
-`C:\Users\z2637\Documents\DeepSeek\mpv-clean\docs\legacy-agent-workspaces\`
+`C:\Users\z2637\Documents\mpv-project\mpv-clean\docs\legacy-agent-workspaces\`
 
 含 `README.md` 说明每份的来源与原位置。这是用户要求的"整理并移入新工作区"。
 

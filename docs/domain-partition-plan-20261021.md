@@ -1,5 +1,23 @@
 # mpvw 功能分区方案（Function-domain partitioning）
 
+> **状态（2026-10-27）：已被取代，保留作历史记录。**
+>
+> 本文件是 2026-10-21 的 12 域草稿。当前采用的方案是
+> `docs/prompt-v2/05-MODULE-DESIGN.md`（9 个功能域 + 3 个非域层）。
+>
+> **采纳了什么**：`Playback`/`Library`/`Playlist` 的拆分理由；
+> "一个功能域 = 一个可独立阅读的目录"这一目标；以及 §6.1 关于"物理移动会牵动
+> XAML 资源 URI 与 `mpv-conf-test` 显式 `Compile Include`"的成本警告
+> （后来实测确认：18 条 `Compile Include` + 2 条 `Compile Remove`）。
+>
+> **否决了什么**：`Home`/`Media`/`Theme`/`Localization`/`Platform` 五个域。
+> 实测这五个在代码里没有独立实体：`Home` 的逻辑在 `MpvPlayerPage_Library.cs` 内；
+> `Theme` 只有 1 个 xaml + 1 个 manager；`Localization` 就是 `Language`；
+> `Platform` 是层不是域。理由见 `05-MODULE-DESIGN.md` §2 与 §7。
+>
+> 本文件仍被 `mpv-winui/mpv-winui/DOMAINS.md` 与 `Modules/Mpv/README.md` 引用，
+> 因此不删除。
+
 **基线**：HEAD `7b42fd5`　**配套**：`docs/project-overview-20261021.md`
 **目标**：让「一个功能域 = 一个可独立阅读的目录」，使人和 AI 都能只读该目录就接手该域，
 不再因为 `Modules/Settings` 有 87 个文件、`Modules/Player` 有 79 个文件而在整个 `Modules/`

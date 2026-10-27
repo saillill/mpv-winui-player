@@ -51,10 +51,11 @@ import subprocess
 import sys
 import time
 from ctypes import wintypes
+import paths
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-DEPLOY_DIR = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
+DEPLOY_DIR = paths.deploy_dir()
 EXE = os.path.join(DEPLOY_DIR, "mpvw.exe")
 LOGDIR = os.path.join(os.environ["LOCALAPPDATA"], "mpv-winui", "mpv-winui", "logs")
 CLIP = r"C:\Users\z2637\AppData\Local\Temp\probe-clip.mp4"

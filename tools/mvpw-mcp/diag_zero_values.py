@@ -24,12 +24,13 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 
 import psutil
 import os
+import paths
 
 # Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
 # moving the checkout does not silently repoint these paths at an old copy.
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
+DEPLOY = paths.deploy_dir()
 EXE = DEPLOY + r"\mpvw.exe"
 PIPE = r"\\.\pipe\mpvpipe"
 OUT = REPO + r"\_work\mcp\zero-values.json"

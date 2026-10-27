@@ -112,7 +112,7 @@ dotnet test mpv-winrt-test                                         → 26 通过
 mpv-winui/mpv-winui/bin/x64/Release/net10.0-windows10.0.26100.0/win-x64/
         mpvw.exe(483 KB) mpvw.dll(3.5 MB) mpvw.pri + 39 个 .xbf + 语言目录
    ↓ pwsh tools/deploy-test.ps1 -CloseRunning -Verify
-C:\Users\z2637\Documents\DeepSeek\mpv-deploy\   （overlay，不删目录；保留 WinAppSDK 运行时 DLL）
+C:\Users\z2637\Documents\mpv-project\mpv-deploy\   （overlay，不删目录；保留 WinAppSDK 运行时 DLL）
    ↓ pwsh tools/compare-deploy.ps1
 identical 500 / differing 0 / 仅部署侧多 160（运行时 DLL + .mui）
 ```

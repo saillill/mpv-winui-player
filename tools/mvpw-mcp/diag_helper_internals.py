@@ -28,10 +28,9 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "mvpw-mcp"))
 import mpvw_tools as T
+import paths
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
-
-
+DEPLOY = paths.deploy_dir()
 def kill_all():
     subprocess.run(["pwsh", "-NoProfile", "-Command",
                     "Get-Process mpvw -ErrorAction SilentlyContinue | Stop-Process -Force"],

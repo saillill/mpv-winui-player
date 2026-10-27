@@ -373,6 +373,15 @@ passing checker.
 
 ## Pointers
 
+- **Start with `docs/README.md`.** It is the index: every document under `docs/` is
+  classified as contract / reference / record / audit, and the class decides whether
+  you may change it. Twelve audit-era documents were deleted on 2026-10-27; the
+  index lists them so a stale link is recognisable rather than mysterious.
+- **Why the directories look the way they do: `docs/prompt-v2/05-MODULE-DESIGN.md`.**
+  It records the measured dependency matrix, the one real cycle
+  (`Settings ⇄ Playback`), and the 9-domain target layout. It supersedes
+  `docs/domain-partition-plan-20261021.md`, which is kept only because
+  `DOMAINS.md` and `Modules/Mpv/README.md` still link to it.
 - **Fixing UI defects over many rounds: start at `docs/ui-repair/README.md`.** It is a
   self-contained brief for a long-running repair task — the loop, what may be decided
   without asking, the evidence rules, and the tool chain in `tools/ui-repair/`. The queue

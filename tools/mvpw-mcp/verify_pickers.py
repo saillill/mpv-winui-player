@@ -21,10 +21,9 @@ import psutil
 import uiautomation as auto
 
 import mpvw_tools as T
+import paths
 
-DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
-
-
+DEPLOY = paths.deploy_dir()
 def alive():
     return any((p.info["name"] or "").lower() == "mpvw.exe"
                for p in psutil.process_iter(["name"]))
