@@ -11,7 +11,7 @@ $publishDir = [System.IO.Path]::GetFullPath("$root\src\mpvw-app\bin\win-$Platfor
 if ($SkipPublish) {
     Write-Host "==> Skipping publish, using existing output: $publishDir"
 } else {
-    Write-Host "==> Publishing mpv-winui [$Configuration|$Platform]"
+    Write-Host "==> Publishing the app [$Configuration|$Platform]"
     # mpv_winrt (C++) must be built with VS MSBuild first - see build.ps1.
     dotnet publish "$root\src\mpvw-app\mpv-winui.csproj" `
         -c $Configuration -p:Platform=$Platform `

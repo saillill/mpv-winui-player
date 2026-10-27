@@ -26,7 +26,7 @@ import re
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOCS = ["AGENTS.md", r"docs\settings-design-contract.md",
+DOCS = [r"docs\settings-design-contract.md",
         r"docs\deploy-layout.md", r"docs\compare-upstream.md",
         r"docs\localization.md"]
 

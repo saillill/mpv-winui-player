@@ -44,7 +44,7 @@ import re
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOCS = ["AGENTS.md", r"docs\settings-design-contract.md", r"docs\deploy-layout.md"]
+DOCS = [r"docs\settings-design-contract.md", r"docs\deploy-layout.md"]
 RANGE = re.compile(r"([A-Za-z0-9_\-./\\]+\.(?:cs|xaml|py|ps1|lua|idl|json|md)):(\d+)-(\d+)")
 
 OPEN = re.compile(

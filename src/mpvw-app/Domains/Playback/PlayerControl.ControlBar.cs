@@ -583,7 +583,7 @@ namespace mpv_winui.Domains.Playback
             /// width-adaptive state currently hides. User-hidden icons stay
             /// hidden; the menu only restores width-collapsed actions so no
             /// function is lost when the window shrinks. The bar itself is never
-            /// rebuilt here (see AGENTS.md).
+            /// rebuilt here: only the menu is, so a resize never loses a hidden icon.
             ///
             /// The entries and their "respects a user hide" flags come from
             /// ControlBarAdaptiveLayout.OverflowEntries — the same table

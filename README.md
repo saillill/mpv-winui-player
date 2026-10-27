@@ -1,47 +1,32 @@
 # mpv-winui-player
 
-A video player for Windows that combines the mpv engine with a native WinUI 3
-interface. Playback is performed by mpv itself; the interface is built with
-Windows App SDK, so everyday use requires neither a command line nor hand-editing
-configuration files.
+A Windows video player built on libmpv with a WinUI 3 interface.
 
-## Differences from the original
-
-The settings window is reorganised. Instead of a single flat list of options, they
-are grouped into cards and folders, and the arrangement is adjustable — rows can be
-reordered, moved, renamed or hidden, so the settings actually in use stay close at
-hand. The mpv configuration editor, the menu editor and the file-association
-section follow the same approach.
-
-Playback gains a purpose-built control bar, with an adaptive layout,
-chapter and A–B loop markers, and animated panels, alongside quick panels for
-audio, subtitles and video, a track selector, picture-in-picture with a resizable
-window, and aspect-ratio and cropping controls that respect the actual size of the
-video panel. Thumbnail preview is built in and also supports the `osc-preview-api`:
-the `preview_api_bridge.lua` shipped in the config layer observes mpv's
-`user-data/osc/draw-preview` request and hands it to the player, so a plugin that
-speaks that protocol works without knowing anything about this front end. See
-[`mpv-winui-lazy/docs/preview-api.md`](mpv-winui-lazy/docs/preview-api.md).
-
-The bundled mpv configuration is maintained rather than a one-time drop: it is
-installed on first run and kept current afterwards, including scripts for automatic
-HDR and VSR switching, cover art, recently opened files, playback statistics and
-console output.
+**Unfinished.** It builds and the core playback path works, but parts of the UI
+are still being reworked and there are no releases.
 
 ## Building
 
-Building requires the .NET SDK, the Windows SDK and the Visual Studio C++ build
-tools. A Release build is produced with:
+Requires the .NET SDK, the Windows SDK, and the Visual Studio C++ build tools.
 
-```bash
+```powershell
 ./build.ps1 -Configuration Release -Platform x64
 ```
 
-Consistency checks for settings and interface text are available under `tools/`.
-Documentation intended for contributors is in `docs/` and `AGENTS.md`.
+`./package.ps1` produces a zipped portable build.
+
+## Layout
+
+| Path | What it is |
+|---|---|
+| `src/mpvw-app/` | the WinUI 3 application |
+| `src/mpvw-native/` | the C++/WinRT component hosting libmpv |
+| `mpv-winui-lazy/` | the mpv configuration layer, installed on first run |
+| `tests/` | the two test suites |
+| `tools/` | generators and the checkers the build runs |
+| `docs/` | design contracts and the upstream comparison |
 
 ## Licence
 
-The application code is licensed under LGPL-2.1. Third-party components and their
-licences are listed in
+LGPL-2.1. Third-party components and their licences are in
 [`mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md`](mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md).

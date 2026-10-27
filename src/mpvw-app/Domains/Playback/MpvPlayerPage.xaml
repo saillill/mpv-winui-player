@@ -2401,7 +2401,8 @@
 
      So this is a Popup with ShouldConstrainToRootBounds="False", which is the
      same mechanism the track selector and the quick-control panel already use
-     for exactly this reason (see the popup-chrome note in AGENTS.md). It floats
+     for exactly this reason: a WinUI popup lives in its own ContentIsland window, so
+          PrintWindow on the main HWND cannot paint it. It floats
      above everything, it can extend past the window edge, and it dismisses on a
      click outside.
 

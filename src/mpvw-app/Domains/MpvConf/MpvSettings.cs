@@ -1143,7 +1143,7 @@ public static partial class MpvSettings
         nameof(AppSettings.Mpv_idle),
 
         // Force-window and the composition output are chosen by Initialize for the embedded
-        // case; mpv.conf values for them are already documented as ignored (AGENTS.md), and
+        // case; mpv.conf values for them are ignored by mpv, and
         // sending them through `set` after init has the same effect as leaving them alone.
         nameof(AppSettings.Mpv_force_window),
         nameof(AppSettings.Mpv_d3d11_output_mode),

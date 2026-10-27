@@ -1,7 +1,11 @@
 # Builds mpv-winui-player locally:
-#   1) mpv_winrt (C++/WinRT) with VS MSBuild (dotnet CLI cannot build C++ projects)
-#   2) mpv-winui (C# WinUI 3) with dotnet build
-# The C# project references the C++ outputs from src\bin\<Platform>\<Configuration>\mpv_winrt\.
+#   1) the C++/WinRT component (src\mpvw-native) with VS MSBuild, because the
+
+#      dotnet CLI cannot build C++ projects
+#   2) the WinUI 3 app (src\mpvw-app) with dotnet build
+#   3) both test suites (tests\conf, tests\native)
+#
+# The app project references the C++ outputs in src\bin\<Platform>\<Configuration>\mpv_winrt\.
 param(
     [ValidateSet('Debug', 'Release')] [string]$Configuration = 'Debug',
     [ValidateSet('x64', 'ARM64')] [string]$Platform = 'x64',
@@ -61,7 +65,7 @@ if (-not (Test-Path -LiteralPath $msbuild)) {
 
 # packages.config restore (needed for a clean clone; no-op when packages already exist).
 if (Get-Command nuget -ErrorAction SilentlyContinue) {
-    Write-Host "==> Restoring NuGet packages (mpv-winrt)"
+    Write-Host "==> Restoring NuGet packages (C++/WinRT component)"
     nuget restore "$root\src\mpvw-native\mpv-winrt.vcxproj" -SolutionDirectory "$root\src" | Out-Null
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 } elseif (-not (Test-Path -LiteralPath "$root\src\packages")) {
@@ -72,7 +76,7 @@ Write-Host "==> Building mpv_winrt (C++/WinRT) [$Configuration|$Platform]"
 & $msbuild "$root\src\mpvw-native\mpv-winrt.vcxproj" /t:Build "/p:Configuration=$Configuration" "/p:Platform=$Platform" /p:VisualStudioVersion=17.0 /m /v:m /nologo
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "==> Building mpv-winui (C# WinUI 3) [$Configuration|$Platform]"
+Write-Host "==> Building the WinUI 3 app [$Configuration|$Platform]"
 dotnet build "$root\src\mpvw-app\mpv-winui.csproj" -c $Configuration -p:Platform=$Platform -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -v:m
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
