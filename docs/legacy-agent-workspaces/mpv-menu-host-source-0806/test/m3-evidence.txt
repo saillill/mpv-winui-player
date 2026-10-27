@@ -1,0 +1,5 @@
+﻿open-menu resp: {"data":null,"request_id":1,"error":"success"}
+HOST WINDOW NOT FOUND
+host still running after test-select (prewarm reuse, cleanup kills it)
+playlist-pos resp: {"data":1,"request_id":2,"error":"success"}
+

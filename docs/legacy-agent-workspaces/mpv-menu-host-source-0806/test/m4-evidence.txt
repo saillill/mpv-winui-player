@@ -1,0 +1,7 @@
+﻿parent host exited (code 0)
+child hosts still running: 3
+pause resp: {"data":true,"request_id":2,"error":"success"}
+
+show resp: {"data":null,"request_id":3,"error":"success"}
+
+right-click host NOT launched

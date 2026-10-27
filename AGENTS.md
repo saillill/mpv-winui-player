@@ -139,8 +139,9 @@ The seven tools are `launch_app`, `get_ui_snapshot`, `invoke_control`,
 
 Practical notes, each learned the hard way:
 
-- Capture with `CopyFromScreen`, not `PrintWindow`: PrintWindow misses WinUI popups,
-  so a flyout comes out blank.
+- Capture with `winapp ui screenshot -a <app>` when you can, and `CopyFromScreen` when
+  you cannot; never `PrintWindow` on the main window and expect a flyout to appear.
+  The mechanism is in Reference > Test facts: a WinUI flyout is a separate owned HWND.
 - A whole-window screenshot can be evidence of a bug that is not there. The window
   drop shadow reads as a vertical strip of text at the left edge, and video content
   behind a panel reads as a render defect. Check the pixels before believing the
@@ -198,8 +199,37 @@ methods beats reading the file top to bottom.
 - Config runs from `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv` (synced by ConfigDeployer at startup).
 - Settings are in registry `HKCU\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app`; booleans stored as `"true"` / `"false"`.
 - Defaults live in `AppSettings*.cs` (core + domain partials); live mpv mapping is `MpvSettings.ToCommand`.
-- PrintWindow misses WinUI popups; use CopyFromScreen for visual verification.
-- UIA BoundingRectangle has a ×1.5 DPI scale factor on this machine.
+- PrintWindow misses WinUI popups; the reason is API semantics, not a WinUI render
+  defect. A WinUI flyout is its **own top-level HWND**
+  (`className: "Microsoft.UI.Content.PopupWindowSiteBridge"`, `ownerHwnd` = the main
+  window, `label: "popup"`), so `PrintWindow` on the main HWND cannot paint it --
+  there is nothing wrong with the flyout. Measured 2026-10-27 with
+  `winapp ui list-windows -a mpvw` after opening the sort flyout: two windows, the
+  popup at 240x272 owned by 197366.
+  Capturing options, in order of preference:
+  1. `winapp ui screenshot -a <app>` -- composites the app's own windows **including
+     owned popups**; its JSON lists both windows and reports `captured: true`, and the
+     four flyout items came out legible. This is the only option that does not need the
+     window in the foreground.
+  2. `CopyFromScreen` -- works, but requires the window to be on screen, in front and
+     unobscured, and it captures whatever is on top (which is how an unrelated
+     full-screen game once got into a "the app is broken" screenshot).
+  Do not use `PrintWindow` on the main window expecting popups to appear.
+- **UIA BoundingRectangle is in physical pixels. There is no scale factor.**
+  This line used to say "a ×1.5 DPI scale factor on this machine", which was wrong twice
+  over: the factor here is **1.75** (168 DPI / 175%), and applying any factor to UIA
+  coordinates is the mistake. Measured 2026-10-27 on mpvw hwnd 197366:
+  `GetWindowRect` = 264,264,3144,1834 and `UIA BoundingRectangle` = 264,264,3144,1834 --
+  identical, 2880x1570, with the measuring process made Per-Monitor-V2 aware. `winapp ui
+  inspect` states the same thing in its own header: `windowDpi:168, scale:1.75,
+  coordinateSpace:"physical-screen-pixels"`.
+  The ×1.5 / ×1.75 myth has a traceable origin worth knowing, because it is a trap:
+  a **DPI-unaware** caller (pwsh by default) asking `GetWindowRect` for the same window
+  gets a virtualised 980x840 while UIA reports 1715x1470; the ratio is 1.75 and it looks
+  exactly like "UIA adds a scale factor". It does not -- the caller was virtualised. Call
+  `SetProcessDpiAwarenessContext(-4)` (or make the process PMv2) and the two agree.
+  When you need DIPs: `DIP = physical / 1.75`. Never multiply UIA coordinates by a factor
+  before feeding them back to `click`/`drag`/`touch`.
 
 ### Architecture gotchas
 
