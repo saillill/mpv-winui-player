@@ -57,7 +57,7 @@ def parse_applang_props_all() -> set[str]:
     shell keeps its own surface). They still show up as extra keys, which is
     now correct and expected; the message says so.
     """
-    lang_dir = ROOT / "mpv-winui" / "mpv-winui" / "Lexicon" / "Language"
+    lang_dir = ROOT / "src" / "mpvw-app" / "Lexicon" / "Language"
     props: set[str] = set()
     for path in sorted(lang_dir.glob("AppLang*.cs")):
         props |= parse_applang_props(path)
@@ -174,7 +174,7 @@ def main() -> int:
 
     errors: list[str] = []
     warnings: list[str] = []
-    lang_dir = ROOT / "mpv-winui" / "mpv-winui" / "Languages"
+    lang_dir = ROOT / "src" / "mpvw-app" / "Languages"
     lang_files = sorted(lang_dir.glob("*.json"))
 
     selected = [s.strip() for s in args.languages.split(",") if s.strip()]
@@ -266,11 +266,11 @@ def main() -> int:
                 f"residue: {', '.join(sorted(untranslated)[:6])}{'…' if len(untranslated) > 6 else ''}"
             )
 
-    menus_path = ROOT / "mpv-winui" / "mpv-winui" / "Menus" / "menus.json"
+    menus_path = ROOT / "src" / "mpvw-app" / "Menus" / "menus.json"
     if menus_path.exists():
         menus = json.loads(menus_path.read_text(encoding="utf-8-sig"))
         actions = parse_menu_actions(
-            ROOT / "mpv-winui" / "mpv-winui" / "Domains" / "Playback" / "MpvPlayerPage_MenuBar.cs"
+            ROOT / "src" / "mpvw-app" / "Domains" / "Playback" / "MpvPlayerPage_MenuBar.cs"
         )
         validate_menu_schema(menus, errors)
         walk_menus(menus, props, actions, errors)
@@ -279,7 +279,7 @@ def main() -> int:
 
     if args.xaml_audit:
         pattern = re.compile(r'(?:Text|Title|ToolTipService\.ToolTip)="([^"{][^"]*)"')
-        xaml_dir = ROOT / "mpv-winui" / "mpv-winui"
+        xaml_dir = ROOT / "src" / "mpvw-app"
         for xaml in sorted(xaml_dir.rglob("*.xaml")):
             rel = xaml.relative_to(ROOT)
             if any(part in {"bin", "obj", "publish"} for part in rel.parts):

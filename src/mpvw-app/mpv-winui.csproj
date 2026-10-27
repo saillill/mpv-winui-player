@@ -161,7 +161,7 @@
         as a ProjectReference (matches upstream GitHub Actions / msbuild).
     -->
     <ItemGroup Condition="'$(BuildMpvWinrtWithReference)' == 'true'">
-        <ProjectReference Include="..\mpv-winrt\mpv-winrt.vcxproj" />
+        <ProjectReference Include="..\mpvw-native\mpv-winrt.vcxproj" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildMpvWinrtWithReference)' != 'true'">
         <Reference Include="mpv_winrt.winmd">

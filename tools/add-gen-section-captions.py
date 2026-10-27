@@ -33,7 +33,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-APP = REPO / "mpv-winui" / "mpv-winui"
+APP = REPO / "src" / "mpvw-app"
 LANGUAGES = APP / "Languages"
 GEN_SECTIONS = APP / "Lexicon" / "Language" / "AppLang.Sections.Gen.cs"
 

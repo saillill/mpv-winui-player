@@ -195,7 +195,7 @@ publish/
 # profile is ignored on creation and silently never committed. Naming the
 # directory to un-ignore keeps the intent (no web publish profiles) while making
 # the desktop ones work.
-!mpv-winui/mpv-winui/Properties/PublishProfiles/*.pubxml
+!src/mpvw-app/Properties/PublishProfiles/*.pubxml
 
 # Microsoft Azure Web App publish settings. Comment the next line if you want to
 # checkin your Azure Web App publish settings, but sensitive information contained
@@ -375,8 +375,8 @@ FodyWeavers.xsd
 .idea/
 .air/
 
-/mpv-winui/libs-dev
-/mpv-winui/libs
+/src/libs-dev
+/src/libs
 /plan.txt
 /dist/
 /mpv-winui-lazy/cache/

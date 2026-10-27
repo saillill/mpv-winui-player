@@ -38,7 +38,7 @@ informational (run by hand, not wired into CI).
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1] / "mpv-winui" / "mpv-winui"
+ROOT = Path(__file__).resolve().parents[1] / "src" / "mpvw-app"
 INTERACTIVE = {
     "Button", "ToggleButton", "AppBarButton", "AppBarToggleButton",
     "RepeatButton", "Slider", "ComboBox", "CheckBox", "RadioButton",

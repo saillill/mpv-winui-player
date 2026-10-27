@@ -37,7 +37,7 @@ import re
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-APP_DIR = REPO / "mpv-winui" / "mpv-winui"
+APP_DIR = REPO / "src" / "mpvw-app"
 STYLES = APP_DIR / "Styles" / "Styles.xaml"
 BASELINE_FILE = REPO / "tools" / "typography-baseline.txt"
 

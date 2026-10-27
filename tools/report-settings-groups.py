@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-SET = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "Settings"
+SET = REPO / "src" / "mpvw-app" / "Domains" / "Settings"
 
 OPTION_FILES = [
     "SettingsPage.Options.Advanced.cs",

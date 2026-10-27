@@ -19,7 +19,7 @@ if (-not (Get-Command wix -ErrorAction SilentlyContinue)) {
     Write-Error "WiX v5 not found. Install it with: dotnet tool install --global wix"
 }
 
-$publishDir = [System.IO.Path]::GetFullPath("$root\mpv-winui\mpv-winui\bin\win-$Platform\publish") + [System.IO.Path]::DirectorySeparatorChar
+$publishDir = [System.IO.Path]::GetFullPath("$root\src\mpvw-app\bin\win-$Platform\publish") + [System.IO.Path]::DirectorySeparatorChar
 
 if (-not $SkipPublish) {
     # build.ps1 compiles mpv_winrt (C++) with VS MSBuild first, then builds the
@@ -30,7 +30,7 @@ if (-not $SkipPublish) {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host "==> Publishing mpv-winui [$Configuration|$Platform]"
-    dotnet publish "$root\mpv-winui\mpv-winui\mpv-winui.csproj" `
+    dotnet publish "$root\src\mpvw-app\mpv-winui.csproj" `
         -c $Configuration -p:Platform=$Platform `
         -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false `
         "-p:PublishDir=$publishDir" -v:m
@@ -51,7 +51,7 @@ New-Item -ItemType Directory -Path "$root\dist" -Force | Out-Null
     -d Version=$Version `
     -d UpgradeCode="E9A3F2B7-1C4D-4E5F-8A6B-9C0D1E2F3A4B" `
     -d SourceDir=$pub `
-    -d AppIcon="$root\mpv-winui\mpv-winui\App.ico" `
+    -d AppIcon="$root\src\mpvw-app\App.ico" `
     -arch $Platform `
     -o $out
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

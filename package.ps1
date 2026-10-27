@@ -7,13 +7,13 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-$publishDir = [System.IO.Path]::GetFullPath("$root\mpv-winui\mpv-winui\bin\win-$Platform\publish") + [System.IO.Path]::DirectorySeparatorChar
+$publishDir = [System.IO.Path]::GetFullPath("$root\src\mpvw-app\bin\win-$Platform\publish") + [System.IO.Path]::DirectorySeparatorChar
 if ($SkipPublish) {
     Write-Host "==> Skipping publish, using existing output: $publishDir"
 } else {
     Write-Host "==> Publishing mpv-winui [$Configuration|$Platform]"
     # mpv_winrt (C++) must be built with VS MSBuild first - see build.ps1.
-    dotnet publish "$root\mpv-winui\mpv-winui\mpv-winui.csproj" `
+    dotnet publish "$root\src\mpvw-app\mpv-winui.csproj" `
         -c $Configuration -p:Platform=$Platform `
         -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false `
         "-p:PublishDir=$publishDir" -v:m

@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-SRC = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "Settings" / "Layout" / "SettingsSections.cs"
+SRC = REPO / "src" / "mpvw-app" / "Domains" / "Settings" / "Layout" / "SettingsSections.cs"
 
 # The escape appears in the source as \uE7C4 -- four hex digits after a
 # literal backslash-u. Writing that as a raw string keeps Python from

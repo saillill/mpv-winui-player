@@ -22,9 +22,9 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-MODEL = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "SettingsModel"
-CONF = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "MpvConf"
-PAGE = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "Settings"
+MODEL = REPO / "src" / "mpvw-app" / "Domains" / "SettingsModel"
+CONF = REPO / "src" / "mpvw-app" / "Domains" / "MpvConf"
+PAGE = REPO / "src" / "mpvw-app" / "Domains" / "Settings"
 
 for stream in (sys.stdout, sys.stderr):
     try:

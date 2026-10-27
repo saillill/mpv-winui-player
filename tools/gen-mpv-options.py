@@ -17,7 +17,7 @@ Usage:
     python tools/gen-mpv-options.py --mpv /path/to/mpv.exe
     python tools/gen-mpv-options.py --mpv mpv --out <file.json>
 
-Output goes to mpv-winui/mpv-winui/MpvConfOptions/mpv-options.json by default,
+Output goes to src/mpvw-app/MpvConfOptions/mpv-options.json by default,
 which the project ships so the editor works with no manual setup.
 """
 
@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-DEFAULT_OUT = REPO / "mpv-winui" / "mpv-winui" / "MpvConfOptions" / "mpv-options.json"
+DEFAULT_OUT = REPO / "src" / "mpvw-app" / "MpvConfOptions" / "mpv-options.json"
 
 MANUAL = "https://mpv.io/manual/master/#options-"
 

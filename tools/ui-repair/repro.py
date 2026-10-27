@@ -38,7 +38,7 @@ def files(pattern, exts=(".cs", ".xaml"), case=True):
     wrong about which case the source uses.
     """
     flag = "-lnE" if case else "-ilnE"
-    r = subprocess.run(["git", "grep", flag, pattern, "--", "mpv-winui/mpv-winui/"],
+    r = subprocess.run(["git", "grep", flag, pattern, "--", "src/mpvw-app/"],
                        cwd=REPO, capture_output=True, text=True, errors="replace")
     out = []
     for line in (r.stdout or "").splitlines():
@@ -48,7 +48,7 @@ def files(pattern, exts=(".cs", ".xaml"), case=True):
 
 
 def count(pattern):
-    r = subprocess.run(["git", "grep", "-cE", pattern, "--", "mpv-winui/mpv-winui/"],
+    r = subprocess.run(["git", "grep", "-cE", pattern, "--", "src/mpvw-app/"],
                        cwd=REPO, capture_output=True, text=True, errors="replace")
     total = 0
     for line in (r.stdout or "").splitlines():

@@ -46,7 +46,7 @@ KNOWN_OTHER = {
 
 
 def main() -> int:
-    pattern = os.path.join(REPO, "mpv-winui", "mpv-winui", "**", "*.xaml")
+    pattern = os.path.join(REPO, "src", "mpvw-app", "**", "*.xaml")
     files = sorted(glob.glob(pattern, recursive=True))
     # Never scan build output: obj/ holds a copy of every XAML as it was when the last build
     # ran, so a fixed source file keeps failing until the next build. Measured -- after the

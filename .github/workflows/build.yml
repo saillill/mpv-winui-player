@@ -20,7 +20,7 @@ jobs:
 
     runs-on: windows-2025
     env:
-      Appx_Package_Dir: ${{github.workspace}}\mpv-winui\Packages\
+      Appx_Package_Dir: ${{github.workspace}}\src\Packages\
       # secrets 不能直接用于 if: 表达式（GitHub 解析期报 Unrecognized named-value），
       # 先经 env 提升，再用 env.X 判断。
       Pfx_Base64: ${{ secrets.BASE64_ENCODED_PFX }}
@@ -111,8 +111,8 @@ jobs:
     - name: Restore nuget
       # packages.config restore, needed before the C++ component builds.
       run: |
-        nuget restore  mpv-winui\mpv-winrt\mpv-winrt.vcxproj  -SolutionDirectory mpv-winui
-        nuget restore  mpv-winui\mpv-winui\mpv-winui.csproj  -SolutionDirectory mpv-winui
+        nuget restore  src\mpvw-native\mpv-winrt.vcxproj  -SolutionDirectory src
+        nuget restore  src\mpvw-app\mpv-winui.csproj  -SolutionDirectory src
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
@@ -122,7 +122,7 @@ jobs:
       # build it too, but as an implicit side effect of a step that also produces
       # the artifact, which left nowhere for the tests to run before packaging.
       shell: pwsh
-      run: msbuild mpv-winui\mpv-winrt\mpv-winrt.vcxproj /t:Build /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:VisualStudioVersion=17.0 /m /v:m /nologo
+      run: msbuild src\mpvw-native\mpv-winrt.vcxproj /t:Build /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:VisualStudioVersion=17.0 /m /v:m /nologo
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
@@ -134,23 +134,23 @@ jobs:
       # so the project did not compile.
       shell: pwsh
       run: |
-        dotnet test mpv-winui\mpv-conf-test\mpv-conf-test.csproj -c $env:Configuration -v:minimal
+        dotnet test tests\conf\mpv-conf-test.csproj -c $env:Configuration -v:minimal
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-        dotnet test mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj -c $env:Configuration -p:Platform=$env:Platform -v:minimal
+        dotnet test tests\native\mpv-winrt-test.csproj -c $env:Configuration -p:Platform=$env:Platform -v:minimal
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
 
     - name: Create Unpackaged
-      run: msbuild mpv-winui\mpv-winui\mpv-winui.csproj /t:Publish /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:BuildMpvWinrtWithReference=true /p:GenerateAppxPackageOnBuild=false /p:AppxPackageSigningEnabled=false
+      run: msbuild src\mpvw-app\mpv-winui.csproj /t:Publish /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:BuildMpvWinrtWithReference=true /p:GenerateAppxPackageOnBuild=false /p:AppxPackageSigningEnabled=false
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
 
     - name: Create Package
       if: env.Pfx_Base64 != '' && env.Pfx_Key != ''
-      run: msbuild mpv-winui\mpv-winui\mpv-winui.csproj /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:BuildMpvWinrtWithReference=true /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=${{env.CertFile}} /p:PackageCertificatePassword=${{ secrets.Pfx_Key }} /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+      run: msbuild src\mpvw-app\mpv-winui.csproj /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:BuildMpvWinrtWithReference=true /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=${{env.CertFile}} /p:PackageCertificatePassword=${{ secrets.Pfx_Key }} /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
       env:
         Appx_Bundle: Never
         Appx_Package_Build_Mode: SideloadOnly
@@ -212,7 +212,7 @@ jobs:
       with:
         name: mpvw-unpackaged-${{ matrix.platform }}-${{ matrix.configuration }}
         archive: true
-        path: ${{github.workspace}}\mpv-winui\mpv-winui\bin\win-${{ matrix.platform }}\publish
+        path: ${{github.workspace}}\src\mpvw-app\bin\win-${{ matrix.platform }}\publish
 
     - name: Upload App Data Sample
       uses: actions/upload-artifact@v7

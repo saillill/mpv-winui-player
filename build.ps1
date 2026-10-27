@@ -1,7 +1,7 @@
 # Builds mpv-winui-player locally:
 #   1) mpv_winrt (C++/WinRT) with VS MSBuild (dotnet CLI cannot build C++ projects)
 #   2) mpv-winui (C# WinUI 3) with dotnet build
-# The C# project references the C++ outputs from mpv-winui\bin\<Platform>\<Configuration>\mpv_winrt\.
+# The C# project references the C++ outputs from src\bin\<Platform>\<Configuration>\mpv_winrt\.
 param(
     [ValidateSet('Debug', 'Release')] [string]$Configuration = 'Debug',
     [ValidateSet('x64', 'ARM64')] [string]$Platform = 'x64',
@@ -14,7 +14,7 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 # The mpv development libraries (mpv-2.dll, mpv.lib, headers) are not committed
 # and are per-architecture, so both the check and the fetch are platform-scoped:
 # a checkout that has x64 libraries is still missing them for ARM64.
-$libsDir = "$root\mpv-winui\libs"
+$libsDir = "$root\src\libs"
 $libsOk = (Test-Path -LiteralPath "$libsDir\bin\$Platform\mpv-2.dll") -and (Test-Path -LiteralPath "$libsDir\lib\$Platform\mpv.lib")
 if (-not $libsOk) {
     if ($FetchMpvLibs) {
@@ -62,18 +62,18 @@ if (-not (Test-Path -LiteralPath $msbuild)) {
 # packages.config restore (needed for a clean clone; no-op when packages already exist).
 if (Get-Command nuget -ErrorAction SilentlyContinue) {
     Write-Host "==> Restoring NuGet packages (mpv-winrt)"
-    nuget restore "$root\mpv-winui\mpv-winrt\mpv-winrt.vcxproj" -SolutionDirectory "$root\mpv-winui" | Out-Null
+    nuget restore "$root\src\mpvw-native\mpv-winrt.vcxproj" -SolutionDirectory "$root\src" | Out-Null
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-} elseif (-not (Test-Path -LiteralPath "$root\mpv-winui\packages")) {
-    Write-Error "nuget.exe not found and mpv-winui\packages is missing. Install nuget.exe or restore packages first."
+} elseif (-not (Test-Path -LiteralPath "$root\src\packages")) {
+    Write-Error "nuget.exe not found and src\packages is missing. Install nuget.exe or restore packages first."
 }
 
 Write-Host "==> Building mpv_winrt (C++/WinRT) [$Configuration|$Platform]"
-& $msbuild "$root\mpv-winui\mpv-winrt\mpv-winrt.vcxproj" /t:Build "/p:Configuration=$Configuration" "/p:Platform=$Platform" /p:VisualStudioVersion=17.0 /m /v:m /nologo
+& $msbuild "$root\src\mpvw-native\mpv-winrt.vcxproj" /t:Build "/p:Configuration=$Configuration" "/p:Platform=$Platform" /p:VisualStudioVersion=17.0 /m /v:m /nologo
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "==> Building mpv-winui (C# WinUI 3) [$Configuration|$Platform]"
-dotnet build "$root\mpv-winui\mpv-winui\mpv-winui.csproj" -c $Configuration -p:Platform=$Platform -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -v:m
+dotnet build "$root\src\mpvw-app\mpv-winui.csproj" -c $Configuration -p:Platform=$Platform -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -v:m
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # The mpv.conf test suite.
@@ -104,16 +104,16 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 #   Touching the same broken file to "now" made the incremental run fail too,
 #   which pins the cause on timestamps rather than on the build graph.
 #
-# The linked source files live in ..\mpv-winui\, outside this project directory.
+# The linked source files live in the app project, , outside this project directory.
 # MSBuild's up-to-date check compares those timestamps against the output, so any
 # operation that restores an older mtime makes the suite skip recompiling and then
 # report the PREVIOUS build's verdict. A suite that can pass while its subject is
 # broken is not evidence, and this one is the only test of the control bar's
 # width tiers.
 Write-Host "==> Running mpv-conf-test"
-dotnet build "$root\mpv-winui\mpv-conf-test\mpv-conf-test.csproj" -c $Configuration --no-incremental -v:minimal
+dotnet build "$root\tests\conf\mpv-conf-test.csproj" -c $Configuration --no-incremental -v:minimal
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-dotnet test "$root\mpv-winui\mpv-conf-test\mpv-conf-test.csproj" -c $Configuration --no-build -v:minimal
+dotnet test "$root\tests\conf\mpv-conf-test.csproj" -c $Configuration --no-build -v:minimal
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # mpv-winrt-test drives the real mpv_winrt component against the real mpv
@@ -125,9 +125,9 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 # Same --no-incremental reasoning as above: its sources are the projection
 # assembly, whose timestamp moves with every checkout of the C++ side.
 Write-Host "==> Running mpv-winrt-test"
-dotnet build "$root\mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj" -c $Configuration -p:Platform=$Platform --no-incremental -v:minimal
+dotnet build "$root\tests\native\mpv-winrt-test.csproj" -c $Configuration -p:Platform=$Platform --no-incremental -v:minimal
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-dotnet test "$root\mpv-winui\mpv-winrt-test\mpv-winrt-test.csproj" -c $Configuration -p:Platform=$Platform --no-build -v:minimal
+dotnet test "$root\tests\native\mpv-winrt-test.csproj" -c $Configuration -p:Platform=$Platform --no-build -v:minimal
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 if ($CheckLocalization) {

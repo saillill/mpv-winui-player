@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-APP = REPO / "mpv-winui" / "mpv-winui"
+APP = REPO / "src" / "mpvw-app"
 SETTINGS = APP / "Domains" / "Settings"
 LANG = APP / "Lexicon" / "Language"
 CORE = SETTINGS / "SettingsPage.Options.cs"

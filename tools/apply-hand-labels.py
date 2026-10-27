@@ -28,7 +28,7 @@ import re
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-APP = REPO / "mpv-winui" / "mpv-winui"
+APP = REPO / "src" / "mpvw-app"
 HAND = APP / "MpvConfOptions" / "labels.hand.json"
 GEN_LANG = APP / "Lexicon" / "Language" / "AppLang.Gen.cs"
 TARGETS = [APP / "Languages" / "zh-CN.json"]

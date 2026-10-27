@@ -52,7 +52,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-PLAYER = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "Playback"
+PLAYER = REPO / "src" / "mpvw-app" / "Domains" / "Playback"
 
 SKIP_DIRS = {"bin", "obj", "packages", ".vs", "node_modules"}
 

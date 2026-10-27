@@ -24,7 +24,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-ROOT = REPO / "mpv-winui"
+ROOT = REPO / "src"
 
 COMMENT = re.compile(r"<!--(.*?)-->", re.S)
 

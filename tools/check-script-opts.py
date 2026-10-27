@@ -40,7 +40,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / "mpv-winui-lazy" / "scripts"
-DEFAULT_DLL = REPO / "mpv-winui" / "libs" / "bin" / "x64" / "mpv-2.dll"
+DEFAULT_DLL = REPO / "src" / "libs" / "bin" / "x64" / "mpv-2.dll"
 
 
 def builtin_script_opts(dll: Path) -> dict[str, set[str]]:

@@ -121,7 +121,7 @@ def find_literal_tokens():
     Raw matches are returned too, so the difference between "81 numbers coincide" and
     "N sites are genuinely inconsistent" stays visible in the report.
     """
-    code, styles = sh("git", "show", "HEAD:mpv-winui/mpv-winui/Styles/Styles.xaml")
+    code, styles = sh("git", "show", "HEAD:src/mpvw-app/Styles/Styles.xaml")
     tokens = {}
     for m in re.finditer(
             r'x:Key="(Mpv[A-Za-z]*Font[A-Za-z]*)"[^>]*>([0-9.]+)</x:Double>', styles):
@@ -130,7 +130,7 @@ def find_literal_tokens():
     consumers = {}
     for name in tokens:
         code, hits = sh("git", "grep", "-l", "StaticResource " + name,
-                        "--", "mpv-winui/mpv-winui/")
+                        "--", "src/mpvw-app/")
         consumers[name] = [h for h in hits.splitlines() if h.strip()]
 
     by_value = {}
@@ -138,7 +138,7 @@ def find_literal_tokens():
         by_value.setdefault(v, []).append(k)
 
     code, hits = sh("git", "grep", "-nE", r'FontSize="[0-9]+"',
-                    "--", "mpv-winui/mpv-winui/")
+                    "--", "src/mpvw-app/")
     rows, raw = [], 0
     for line in hits.splitlines():
         m = re.search(r"^([^:]+):(\d+):(.*)FontSize=\"([0-9]+)\"", line)

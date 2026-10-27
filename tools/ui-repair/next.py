@@ -67,7 +67,7 @@ def show(row, n=None):
     if r:
         print("  read first: %s" % r)
     else:
-        print("  read first: mpv-winui/mpv-winui/DOMAINS.md (no README for this domain)")
+        print("  read first: src/mpvw-app/DOMAINS.md (no README for this domain)")
     if row["repro"].startswith("unverified"):
         print("  NOTE: unverified -- prove it exists before changing any product code")
         print("        (PLAYBOOK.md step 1; two independent measurements)")

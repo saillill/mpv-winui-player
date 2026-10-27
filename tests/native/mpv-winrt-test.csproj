@@ -24,7 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\mpv-winrt-projection\mpv-winrt-projection.csproj" />
+        <ProjectReference Include="..\..\src\mpvw-native-projection\mpv-winrt-projection.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -47,7 +47,7 @@
           drift from what ships, and it is deliberately free of UI types so this
           works without a WinUI runtime.
         -->
-        <Compile Include="..\mpv-winui\Domains\Playback\ControlBarLayoutGrammar.cs" Link="Player\ControlBarLayoutGrammar.cs" />
+        <Compile Include="..\..\src\mpvw-app\Domains\Playback\ControlBarLayoutGrammar.cs" Link="Player\ControlBarLayoutGrammar.cs" />
     </ItemGroup>
 
     <PropertyGroup>

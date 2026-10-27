@@ -11,7 +11,7 @@ Run:  python tools/check-search-index.py
 import re
 import sys
 
-ROOT = "mpv-winui/mpv-winui"
+ROOT = "src/mpvw-app"
 OPTIONS = f"{ROOT}/Domains/Settings"
 PAGE = f"{OPTIONS}/SettingsPage.xaml.cs"
 MPVSETTINGS = f"{ROOT}/Domains/MpvConf/MpvSettings.cs"

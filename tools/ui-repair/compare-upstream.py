@@ -15,7 +15,7 @@ import os
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-PREFIX = "mpv-winui/mpv-winui/"
+PREFIX = "src/mpvw-app/"
 
 
 def run(*args):

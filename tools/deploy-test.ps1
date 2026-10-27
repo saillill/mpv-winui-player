@@ -28,7 +28,7 @@ param([switch]$Verify, [switch]$CloseRunning)
 $ErrorActionPreference = 'Stop'
 
 $repo = Split-Path -Parent $PSScriptRoot
-$src  = Join-Path $repo 'mpv-winui/mpv-winui/bin/x64/Release/net10.0-windows10.0.26100.0/win-x64'
+$src  = Join-Path $repo 'src/mpvw-app/bin/x64/Release/net10.0-windows10.0.26100.0/win-x64'
 $dst  = if ($env:MPVW_DEPLOY_DIR) { $env:MPVW_DEPLOY_DIR } else { Join-Path (Split-Path -Parent $repo) 'mpv-deploy' }
 
 if (-not (Test-Path -LiteralPath (Join-Path $src 'mpvw.dll'))) {

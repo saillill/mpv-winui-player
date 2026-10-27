@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-SRC = REPO / "mpv-winui" / "mpv-winui"
+SRC = REPO / "src" / "mpvw-app"
 CATALOG = SRC / "Domains" / "Settings" / "Layout" / "SettingsSections.cs"
 PAGE = SRC / "Domains" / "Settings" / "SettingsPage.Options.cs"
 # The schema-generated rows register their sections here instead of in PAGE.

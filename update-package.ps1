@@ -9,7 +9,7 @@
 # Identity.Publisher is replaced only when $env:APPX_PUBLISHER is set (see below).
 
 $manifestPaths = @(
-    "mpv-winui/mpv-winui/Package.appxmanifest"
+    "src/mpvw-app/Package.appxmanifest"
 )
 
 foreach ($manifestPath in $manifestPaths) {

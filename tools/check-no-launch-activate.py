@@ -38,8 +38,8 @@ import re
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-APP = REPO / "mpv-winui" / "mpv-winui" / "App.xaml.cs"
-HELPER = REPO / "mpv-winui" / "mpv-winui" / "Platform" / "Win32" / "Win32WindowHelper.cs"
+APP = REPO / "src" / "mpvw-app" / "App.xaml.cs"
+HELPER = REPO / "src" / "mpvw-app" / "Platform" / "Win32" / "Win32WindowHelper.cs"
 TOOLS = REPO / "tools" / "mvpw-mcp" / "mpvw_tools.py"
 
 

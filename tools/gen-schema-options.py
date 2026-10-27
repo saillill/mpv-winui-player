@@ -64,7 +64,7 @@ from collections import Counter
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-APP = REPO / "mpv-winui" / "mpv-winui"
+APP = REPO / "src" / "mpvw-app"
 SCHEMA = APP / "MpvConfOptions" / "mpv-options.json"
 SETTINGS = APP / "Domains" / "Settings"
 LANGDIR = APP / "Languages"

@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-CTL = REPO / "mpv-winui" / "mpv-winui" / "Domains" / "Settings" / "Controls"
+CTL = REPO / "src" / "mpvw-app" / "Domains" / "Settings" / "Controls"
 
 TOKEN = '{StaticResource MpvOptionControlGap}'
 

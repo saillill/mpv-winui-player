@@ -37,8 +37,8 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-NATIVE = REPO / "mpv-winui" / "mpv-winrt"
-APP = REPO / "mpv-winui" / "mpv-winui"
+NATIVE = REPO / "src" / "mpvw-native"
+APP = REPO / "src" / "mpvw-app"
 
 
 def idl_events(src: Path) -> list[str]:

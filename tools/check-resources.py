@@ -35,7 +35,7 @@ import re
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-APP = REPO / "mpv-winui" / "mpv-winui"
+APP = REPO / "src" / "mpvw-app"
 
 # Keys WinUI supplies that are easy to mistake for app keys. Only used to explain a
 # finding better; the real allow-list comes from generic.xaml below.

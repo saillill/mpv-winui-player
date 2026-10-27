@@ -37,7 +37,7 @@ if (-not $Root) {
     $Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 }
 
-$libsDir    = Join-Path $Root 'mpv-winui\libs'
+$libsDir    = Join-Path $Root 'src\libs'
 $binDir     = Join-Path $libsDir "bin\$Platform"
 $libDir     = Join-Path $libsDir "lib\$Platform"
 $includeDir = Join-Path $libsDir 'include'

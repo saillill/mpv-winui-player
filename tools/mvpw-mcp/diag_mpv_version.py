@@ -18,7 +18,7 @@ import os
 # moving the checkout does not silently repoint these paths at an old copy.
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-DLL = REPO + r"\mpv-winui\libs\bin\x64\mpv-2.dll"
+DLL = REPO + r"\src\libs\bin\x64\mpv-2.dll"
 
 
 def main():

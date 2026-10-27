@@ -60,7 +60,7 @@
       already by build.ps1, and the projection is generated from its winmd.
     -->
     <ItemGroup Condition="'$(BuildMpvWinrtWithReference)' == 'true'">
-        <ProjectReference Include="..\mpv-winrt\mpv-winrt.vcxproj">
+        <ProjectReference Include="..\mpvw-native\mpv-winrt.vcxproj">
             <PrivateAssets>all</PrivateAssets>
         </ProjectReference>
     </ItemGroup>

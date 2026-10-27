@@ -24,7 +24,7 @@ import urllib.parse
 import urllib.request
 
 REPO_RAW = "https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets"
-OUT = pathlib.Path(__file__).resolve().parent.parent / "mpv-winui/mpv-winui/Infrastructure/Common/View/FluentIcons.Gen.cs"
+OUT = pathlib.Path(__file__).resolve().parent.parent / "src/mpvw-app/Infrastructure/Common/View/FluentIcons.Gen.cs"
 
 # member name -> (icon folder in Microsoft's repo, svg file name)
 ICONS = [

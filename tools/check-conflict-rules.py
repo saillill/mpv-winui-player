@@ -24,7 +24,7 @@ import glob
 import re
 import sys
 
-ROOT = "mpv-winui/mpv-winui"
+ROOT = "src/mpvw-app"
 FILES = sorted(glob.glob(f"{ROOT}/Domains/Settings/SettingsPage.Actions*.cs"))
 
 

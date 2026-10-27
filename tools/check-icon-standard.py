@@ -36,7 +36,7 @@ import re
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-APP_DIR = REPO / "mpv-winui" / "mpv-winui"
+APP_DIR = REPO / "src" / "mpvw-app"
 STYLES = APP_DIR / "Styles" / "Styles.xaml"
 FONT_FILE = APP_DIR / "Assets" / "FluentSystemIcons-Regular.ttf"
 

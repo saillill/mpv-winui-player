@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-LANG = REPO / "mpv-winui" / "mpv-winui" / "Languages" / "zh-CN.json"
+LANG = REPO / "src" / "mpvw-app" / "Languages" / "zh-CN.json"
 
 # key -> trimmed text. Every entry here replaces one that was over the
 # two-line budget; nothing shorter than the budget is listed, because

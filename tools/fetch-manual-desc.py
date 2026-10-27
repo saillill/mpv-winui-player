@@ -23,7 +23,7 @@ import sys
 import urllib.request
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-APP = REPO / "mpv-winui" / "mpv-winui"
+APP = REPO / "src" / "mpvw-app"
 SCHEMA = APP / "MpvConfOptions" / "mpv-options.json"
 OUT = APP / "MpvConfOptions" / "manual-desc.en.json"
 MANUAL = "https://mpv.io/manual/master/"
