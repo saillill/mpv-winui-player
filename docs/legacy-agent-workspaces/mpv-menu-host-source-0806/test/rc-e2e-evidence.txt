@@ -1,6 +1,0 @@
-﻿mpv pid=30428 prewarm-ready-ms=836 cursor=(900,700)
-right-click resp={"data":null,"request_id":1,"error":"success"}
- trigger-to-visible-ms=129
-host rect=(900,0) 300x806 dpi=96 cursorInside=True
-shot mean=242 std=23.4 darkPx=760 rendered=True
-state=1

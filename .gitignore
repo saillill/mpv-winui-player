@@ -392,3 +392,19 @@ _cloud/
 
 # `uiautomation` writes its diagnostic log into the current directory.
 @AutomationLog.txt
+
+# ---------------------------------------------------------------
+# Development-only material, kept local and out of the published tree.
+# The published repository carries product code, the tests, the build
+# entry points, the checkers CI runs, and the contract docs. Everything
+# that exists to measure, repair or archive one past round of work lives
+# outside it.
+# ---------------------------------------------------------------
+/tools/mvpw-mcp/
+/tools/ui-repair/
+/tools/*.py
+!/tools/check-*.py
+!/tools/gen-*.py
+/docs/alignment/
+/docs/ui-repair/
+/docs/legacy-agent-workspaces/

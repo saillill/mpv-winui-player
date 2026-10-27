@@ -1,7 +1,0 @@
-﻿mpv pid=488 prewarm heartbeat ready=True cursor=(900,700)
-right-click binding resp={"data":null,"request_id":1,"error":"success"}
-
-visible host windows: 1
-host pid=19732 rect=(900,0) 300x806 dpi=96 cursorInside=True
-screenshot saved: C:\Users\z2637\Documents\Codex\2026-08-07\mpv-winui-menu-host-handoff-20260807\work\rc-e2e-menu.png
-state file: 1
