@@ -24,7 +24,6 @@ import subprocess
 import sys
 import time
 import os
-import paths
 
 # Repo root, derived from this file (it lives at <repo>/tools/...), so renaming or
 # moving the checkout does not silently repoint these paths at an old copy.
@@ -32,7 +31,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-DEPLOY = paths.deploy_dir()
+DEPLOY = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"
 EXE = DEPLOY + r"\mpvw.exe"
 REG = r"HKCU:\Software\Classes\Local Settings\Software\mpv-winui\mpv-winui\app"
 OUT = REPO + r"\_work\mcp\startup-verified.json"

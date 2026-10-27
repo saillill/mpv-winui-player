@@ -59,7 +59,7 @@
 
 ## 2. 用官方工具重做上一轮的检查 —— 对照表
 
-上一轮脚本位于 `C:\Users\z2637\Documents\mpv-project\evidence\diagnostics\_rebuild-20261026\`（与 `mpv.old-20261026\_work\rebuild-20261026\` 同内容）【代码】。
+上一轮脚本位于 `C:\Users\z2637\Documents\DeepSeek\_rebuild-20261026\`（与 `mpv.old-20261026\_work\rebuild-20261026\` 同内容）【代码】。
 
 | 上一轮自写程序 | 做了什么 | winapp 官方等价物 | 结论 |
 |---|---|---|---|

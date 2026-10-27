@@ -64,7 +64,7 @@
 | 名称 | 类型 | 用途 | 状态 | 本轮是否使用 | 结论 |
 |---|---|---|---|---|---|
 | `tools/mvpw-mcp/mcpw_server.py` | 自建 MCP 服务器（218 行） | stdio JSON-RPC 2024-11-05，暴露 8 个工具 | **可运行但未注册进 dsh** | **已运行**（手工 stdio 会话，未启动 app） | 【已运行】`initialize` 返回 `mvpw-mcp 0.1.0`；`tools/list` 返回 **8** 个工具（7 个 + `close_app`）；未知方法回 `-32601`；无 app 时 `read_playback_state` / `get_ui_snapshot` 均 `isError: true`、正文 `ToolError: mpvw.exe is not running`；进程正常退出码 0 |
-| `tools/mvpw-mcp/mpvw_tools.py` | 工具实现（793 行） | UIA / 截图 / IPC / 进程 | 与服务器配套 | 已读全文 + **已运行**其中 `background_capture` 一条路径 | 【代码】`DEPLOY_DIR = r"C:\Users\z2637\Documents\mpv-project\mpv-deploy"`（`mpvw_tools.py:31`）硬编码；`_push_to_back` 把窗口停到 `(-32000,-32000)`；`_ipc` 的 `CreateFileW.restype=HANDLE` 修正写在注释里 |
+| `tools/mvpw-mcp/mpvw_tools.py` | 工具实现（793 行） | UIA / 截图 / IPC / 进程 | 与服务器配套 | 已读全文 + **已运行**其中 `background_capture` 一条路径 | 【代码】`DEPLOY_DIR = r"C:\Users\z2637\Documents\DeepSeek\mpv-deploy"`（`mpvw_tools.py:31`）硬编码；`_push_to_back` 把窗口停到 `(-32000,-32000)`；`_ipc` 的 `CreateFileW.restype=HANDLE` 修正写在注释里 |
 | `tools/mvpw-mcp/` 脚本族 | 63 个 `.py` | 验证/探针/审计/诊断 | 与文档宣称的"60 个验证器"**不符** | 统计 + 运行 2 个自检 | 【已运行】真实构成：`verify_*` **23**、`probe_*` **5**、`audit_*` **7**、`diag_*` **20**、支撑模块 **8**（`mcpw_server`/`mpvw_tools`/`background_capture`/`background_window`/`capture_domains`/`explain_wui_findings`/`ui_measure`/`ui_measure_selftest`）= 63。"60" 既不是文件数也不是验证器数 |
 | `winapp` CLI | 原生 CLI（非 MCP） | 打包/签名/运行/API 查询/UI 自动化 | **0.7.1**，`C:\Users\z2637\AppData\Local\Microsoft\WindowsApps\winapp.exe` | **已运行**（6 组 `--help` + 5 次真实调用） | 【已运行】21 个顶层命令；`ui` 22 个动词；`target` 6 个；`find-api` 6 个子命令（另有裸搜索）；`find-ui` 搜索/`--id`/`--list`/`--source` |
 

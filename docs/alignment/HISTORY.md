@@ -12,7 +12,7 @@
 
 | 项 | 值 |
 |---|---|
-| 索引仓库 | `C:\Users\z2637\Documents\mpv-project\mpv-clean`（`https://github.com/saillill/mpv-winui-player.git` 的干净克隆） |
+| 索引仓库 | `C:\Users\z2637\Documents\DeepSeek\mpv-clean`（`https://github.com/saillill/mpv-winui-player.git` 的干净克隆） |
 | 分支 | `main` |
 | HEAD | `0f70f747fce6baf88459ce207b1d88edb6cc2dc7`（`0f70f74`，2026-10-26） |
 | 提交总数 | **733** |
@@ -48,7 +48,7 @@ git log --name-only -M --format='@@%H|%ad' --date=short
 PowerShell 里同样的取数（本文 §2 的计数脚本就是这一段，可直接粘贴运行）：
 
 ```powershell
-Set-Location C:\Users\z2637\Documents\mpv-project\mpv-clean
+Set-Location C:\Users\z2637\Documents\DeepSeek\mpv-clean
 $log = git log --name-only -M --format='@@%H|%ad' --date=short
 $cur = $null; $rows = @()
 foreach ($l in $log) {
