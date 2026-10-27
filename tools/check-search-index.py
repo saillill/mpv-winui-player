@@ -8,11 +8,15 @@ reachable through MpvSettings.ToMpvOptionName -- because if it is not, the
 
 Run:  python tools/check-search-index.py
 """
+import os
 import re
 import sys
 
-ROOT = "src/mpvw-app"
-OPTIONS = f"{ROOT}/Domains/Settings"
+# Absolute, so the checker works from any working directory (a relative
+# path raised FileNotFoundError from anywhere but the repo root).
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.join(REPO, "src", "mpvw-app")
+OPTIONS = os.path.join(ROOT, "Domains", "Settings")
 PAGE = f"{OPTIONS}/SettingsPage.xaml.cs"
 MPVSETTINGS = f"{ROOT}/Domains/MpvConf/MpvSettings.cs"
 

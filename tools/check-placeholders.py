@@ -18,10 +18,18 @@ Putting an example there would display a path the user never set.
 Run:  python tools/check-placeholders.py
 """
 import glob
+import os
 import re
 import sys
 
-OPTION_FILES = "src/mpvw-app/Domains/Settings/SettingsPage.Options*.cs"
+# Resolved from this file, not from the process's working directory. As a bare
+# relative glob this scanned nothing when run from anywhere but the repo root and
+# then reported OK -- "every non-path free-text setting shows an example" -- over
+# zero settings. Measured: `cd C:\ ; python ...\check-placeholders.py` exited 0
+# having read no files.
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OPTION_FILES = os.path.join(
+    REPO, "src", "mpvw-app", "Domains", "Settings", "SettingsPage.Options*.cs")
 
 
 def blocks(src: str):
@@ -45,7 +53,15 @@ def main() -> int:
     example_hints = []       # non-path field showing an example
     missing = []
 
-    for path in sorted(glob.glob(OPTION_FILES)):
+    files = sorted(glob.glob(OPTION_FILES))
+    if not files:
+        # "Parsed nothing" must never be a clean bill of health: a glob that stops
+        # matching reports OK forever. That is exactly what happened while this used
+        # a relative pattern.
+        print(f"FAIL: no option files matched {OPTION_FILES}")
+        return 2
+
+    for path in files:
         src = open(path, encoding="utf-8-sig").read()
         for block in blocks(src):
             # Trailing comma, so StringList is not swept in: a dropdown picks

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Find catalog sections that no option files under, and option sections with no row.
 
 check-sections.py proves the catalog (SettingsSections) and AppLang agree. It
@@ -148,6 +148,27 @@ def main():
     for name, n in sorted(used.items(), key=lambda kv: -kv[1]):
         flag = "" if name in catalog else "   <-- ORPHAN"
         print(f"  {n:4}  {name}{flag}")
+
+    # `unresolved` was printed but never affected the exit code, and neither did
+    # `empty` or `orphan` -- main() ended in an unconditional `return 0`, so this
+    # checker could not fail and nothing could use it as a gate. The distinction
+    # that matters:
+    #
+    #   unresolved  the sectionMap value names a section that does not exist. The
+    #               row will land in no bucket at all. That is a broken mapping,
+    #               not a style opinion -> failure.
+    #   empty       a catalog section with nothing filed under it. Renders as an
+    #               empty card. Also a defect: the section exists to hold rows.
+    #   orphan      options filed under a section the catalog does not declare.
+    #               The row exists but has no caption or icon -> failure.
+    #
+    # All three are exit 1. Reporting them and then returning 0 is what let this
+    # checker sit green while carrying findings.
+    if unresolved or empty or orphan:
+        print()
+        print("FAIL: %d unresolved, %d empty, %d orphan section(s)"
+              % (len(set(unresolved)), len(empty), len(orphan)))
+        return 1
 
     return 0
 

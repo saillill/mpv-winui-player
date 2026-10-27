@@ -61,12 +61,26 @@ def local(tag):
 
 
 def scan_files():
-    out = []
-    for sub in ("Modules", "Shell"):
-        base = APP_DIR / sub
-        if base.is_dir():
-            out.extend(sorted(base.rglob("*.xaml")))
-    return out
+    """Every XAML file in the app project, wherever it lives.
+
+    This used to iterate a hard-coded ("Modules", "Shell") pair. `Modules/` was
+    renamed to `Domains/` in the layout restructure and the list was never
+    updated, so the checker scanned `Shell/MainWindow.xaml` and nothing else --
+    and reported OK, because the only guard was "no files at all". Measured
+    before the fix: 39 XAML files in the project, 34 of them under `Domains/`,
+    and the checker saw 1. Worse, 46 of the 49 baseline entries and all 13
+    typography entries pointed into `Domains/`, so the findings it was supposed
+    to gate were outside its own scan.
+
+    Scanning the whole project directory instead of a list of subdirectories is
+    the fix that cannot rot: a future rename moves the files, and the glob
+    follows them. The build-output trees are excluded explicitly because
+    `dotnet build` leaves copies of every XAML under bin/ and obj/.
+    """
+    return sorted(
+        p for p in APP_DIR.rglob("*.xaml")
+        if not ({"bin", "obj"} & set(p.relative_to(APP_DIR).parts))
+    )
 
 
 def icon_token_values():
@@ -247,7 +261,7 @@ def main():
 
     files = scan_files()
     if not files:
-        print("FAIL: no XAML found under Modules/ or Shell/")
+        print("FAIL: no XAML found under src/mpvw-app/")
         return 1
 
     token_values = icon_token_values()

@@ -57,14 +57,14 @@ def main() -> int:
             if not m:
                 problems.append("%s:%d: not a path:line:kind entry: %r" % (rel, lineno, raw))
                 continue
-            entries.append((m.group(1), int(m.group(2)), m.group(3).strip()))
+            entries.append((lineno, m.group(1), int(m.group(2)), m.group(3).strip()))
 
         if not entries:
             problems.append("%s: parsed zero entries -- the format is wrong, not the code"
                             % rel)
             continue
 
-        for target, line_no, kind in entries:
+        for entry_line, target, line_no, kind in entries:
             checked += 1
             target_path = os.path.join(REPO, target.replace("/", os.sep))
             if not os.path.exists(target_path):
@@ -77,17 +77,26 @@ def main() -> int:
                 continue
             hint = KIND_HINTS.get(kind)
             if hint:
-                # The finding is an ELEMENT, not a single attribute: `<FontIcon` on one line
-                # has its FontSize two lines down, and a Margin is often on the element's own
-                # line. So accept the attribute anywhere within a small window around the
-                # recorded line -- an exact single-line test rejected 24 entries that were
-                # perfectly correct, which is the checker being wrong rather than the
-                # baseline.
+                # The finding is an ELEMENT, not a single attribute. Attributes here are
+                # written one per line, so `<FontIcon` can carry its FontSize several
+                # lines below and a control with x:Name + Grid.Column + Margin +
+                # VerticalAlignment + FontSize + Glyph spans seven. A ±4 window was
+                # measured too narrow: OptionCheckListControl's entry starts at line 43
+                # and its FontSize is on line 48, so the checker called a correct entry
+                # stale. Widen forward only -- a property never appears ABOVE its
+                # element's opening tag.
                 window = "\n".join(
-                    lines[max(0, line_no - 4): min(len(lines), line_no + 4)])
+                    lines[max(0, line_no - 4): min(len(lines), line_no + 8)])
                 if not re.search(hint, window):
-                    stale.append("%s:%d (%s) -> nearest lines read %r"
-                                 % (rel, line_no, kind,
+                    # Name BOTH coordinates. The old message printed
+                    # `rel:line_no`, i.e. the baseline file's name against the
+                    # TARGET file's line number, which reads as "baseline line 43"
+                    # and sends the reader to the wrong file -- it did exactly that
+                    # while this was being investigated. The entry's own position in
+                    # the baseline is tracked as `entry_line` for that reason.
+                    stale.append("%s:%d (baseline line %d, %s) -> target %s:%d, nearest "
+                                 "lines read %r"
+                                 % (rel, entry_line, entry_line, kind, target, line_no,
                                     " / ".join(s.strip() for s in
                                                lines[max(0, line_no - 1):line_no + 2])[:90]))
 

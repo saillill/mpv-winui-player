@@ -26,9 +26,9 @@ import re
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOCS = [r"docs\settings-design-contract.md",
-        r"docs\deploy-layout.md", r"docs\compare-upstream.md",
-        r"docs\localization.md"]
+DOCS = [r"docs\settings-contract.md", r"docs\mpv-conf.md",
+        r"docs\deploy-layout.md", r"docs\localization.md",
+        r"docs\compare-upstream.md", r"docs\upstream-gap.md"]
 
 REF = re.compile(r"([A-Za-z0-9_\-./\\]+\.(?:cs|xaml|py|ps1|lua|idl|json|md))"
                  r":(\d+)(?:[,\-/](\d+))?")

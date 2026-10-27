@@ -65,12 +65,22 @@ def read_tokens():
 
 
 def scan_files():
-    out = []
-    for sub in ("Modules", "Shell"):
-        base = APP_DIR / sub
-        if base.is_dir():
-            out.extend(sorted(base.rglob("*.xaml")))
-    return out
+    """Every XAML file in the app project, wherever it lives.
+
+    This used to iterate a hard-coded ("Modules", "Shell") pair. `Modules/` was
+    renamed to `Domains/` in the layout restructure and the list was never
+    updated, so the checker scanned one file of 39 and reported OK - the only
+    guard was "no files at all". All 13 entries in its own baseline pointed into
+    the directory it was not reading.
+
+    Globbing the project root instead of listing subdirectories is the fix that
+    cannot rot again; bin/ and obj/ are excluded because `dotnet build` copies
+    every XAML into them.
+    """
+    return sorted(
+        p for p in APP_DIR.rglob("*.xaml")
+        if not ({"bin", "obj"} & set(p.relative_to(APP_DIR).parts))
+    )
 
 
 def attr_values(text, name):
@@ -156,7 +166,7 @@ def main():
 
     files = scan_files()
     if not files:
-        print("FAIL: no XAML found under Modules/ or Shell/")
+        print("FAIL: no XAML found under src/mpvw-app/")
         return 1
 
     findings = []

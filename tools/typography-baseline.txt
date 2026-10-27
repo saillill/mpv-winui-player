@@ -10,8 +10,8 @@ src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:174:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:271:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:444:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1050:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:272:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:445:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1051:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

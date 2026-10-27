@@ -18,10 +18,15 @@ number to expect in mpv.conf after a launch.
 Run:  python tools/check-conf-lines.py
 """
 import glob
+import os
 import re
 import sys
 
-MPVSETTINGS = "src/mpvw-app/Domains/MpvConf/MpvSettings.cs"
+# Absolute, so the checker works from any working directory. As a relative path it
+# raised FileNotFoundError from anywhere but the repo root -- which fails loudly,
+# unlike check-placeholders, but still makes the checker unusable outside one cwd.
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MPVSETTINGS = os.path.join(REPO, "src", "mpvw-app", "Domains", "MpvConf", "MpvSettings.cs")
 
 # Same rule as MpvSettings.ConfigOptionName.
 LEGAL = re.compile(r"^[a-z0-9][a-z0-9-]*$")

@@ -21,10 +21,16 @@ code rots:
 Run:  python tools/check-conflict-rules.py
 """
 import glob
+import os
 import re
 import sys
 
-ROOT = "src/mpvw-app"
+# Absolute, so the checker works from any working directory. As a relative
+# path it read zero files from anywhere but the repo root and reported
+# "FAIL: no rule methods found (renamed?)" -- a message that accuses the
+# code of being renamed when the real problem was the reader's own cwd.
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.join(REPO, "src", "mpvw-app")
 FILES = sorted(glob.glob(f"{ROOT}/Domains/Settings/SettingsPage.Actions*.cs"))
 
 
