@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using mpv_winui.Infrastructure.Common.Utils;
+using mpv_winui.Platform.FileSystem;
 
 namespace mpv_winui.Domains.MpvConf;
 
@@ -109,11 +110,7 @@ public static class PluginConfigWriter
         managed["coverart.conf"]["imageExts"] = s.CoverArtImageExts;
         managed["mpvw_hdr_override.conf"]["mode"] = s.HdrOverrideMode;
 
-        var dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "mpv-winui",
-            "mpv",
-            "script-opts");
+        var dir = Path.Combine(AppData.Current.MpvConfigDirectory, "script-opts");
         Directory.CreateDirectory(dir);
 
         foreach (var (file, entries) in managed)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using mpv_winui.Platform.FileSystem;
 
 namespace mpv_winui.Domains.Menu;
 
@@ -29,9 +30,8 @@ public static class MenuShortcutHints
     private static Dictionary<string, string> Load()
     {
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        var path = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "mpv-winui", "mpv", "input.conf");
+        var path = Path.Combine(AppData.Current.MpvConfigDirectory,
+                    "input.conf");
         if (!File.Exists(path))
         {
             return result;

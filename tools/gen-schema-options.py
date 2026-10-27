@@ -495,7 +495,7 @@ def _as_str(raw) -> str:
 # through. That is where the settings tree's bulk came from: 362 of its rows were
 # the manual, transcribed. Every option here is still reachable by writing it into
 # mpv.conf -- which the page documents, and which wins over anything the window
-# sets (docs/mpv-conf-precedence.md) -- so a row is not capability, it is an
+# sets (docs/mpv-conf.md) -- so a row is not capability, it is an
 # invitation to decide something that does not need deciding.
 #
 # Three groups, each with a reason that is about this application and not taste:

@@ -105,9 +105,8 @@ namespace mpv_winui
             // below start: they merge into mpv.conf (ManagedMpvConfig) and the
             // script-opts files, so the bundled layer has to be on disk first.
             // Synchronous and a fast no-op once mpv.conf exists.
-            var mpvDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "mpv-winui", "mpv");
+            var mpvDir = AppData.Current.MpvConfigDirectory;
+            Directory.CreateDirectory(mpvDir);
             ConfigDeployer.EnsureDeployed(mpvDir);
 
             // Get the logger up before the read, not after. The read is the one

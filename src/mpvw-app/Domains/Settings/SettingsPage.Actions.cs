@@ -1,4 +1,4 @@
-﻿using mpv_winui.Domains.MpvConf;
+using mpv_winui.Domains.MpvConf;
 using mpv_winui.Domains.SettingsModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -329,7 +329,7 @@ private static readonly System.Collections.Generic.HashSet<string> NoCustomOptio
         // row is only overridden when the file owns the option by hand - a line
         // the app did not write. That is also exactly the set the runtime apply
         // skips, so the badge and the behaviour come from one verdict
-        // (docs/mpv-conf-precedence.md).
+        // (docs/mpv-conf.md).
         return IsOverriddenByConfigFile(option.Key) ? lang.WarningOverriddenByMpvConf : null;
     }
 

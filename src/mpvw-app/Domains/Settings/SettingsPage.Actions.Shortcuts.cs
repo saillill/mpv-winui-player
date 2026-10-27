@@ -182,11 +182,8 @@ public sealed partial class SettingsPage
 
         try
         {
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "mpv-winui",
-                "mpv",
-                "input.conf");
+            var path = Path.Combine(AppData.Current.MpvConfigDirectory,
+                    "input.conf");
             if (!File.Exists(path))
             {
                 return;
@@ -330,11 +327,8 @@ public sealed partial class SettingsPage
     private void ResetShortcuts()
     {
         var bundled = Path.Combine(System.AppContext.BaseDirectory, "Config", "input.conf");
-        var target = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "mpv-winui",
-            "mpv",
-            "input.conf");
+        var target = Path.Combine(AppData.Current.MpvConfigDirectory,
+                    "input.conf");
         if (!File.Exists(bundled))
         {
             AppContext.AppLogger.Warn("reset shortcuts skipped: bundled input.conf not found");

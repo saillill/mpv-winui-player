@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using mpv_winui.Platform.FileSystem;
 
 namespace mpv_winui.Domains.Menu;
 
@@ -26,9 +27,8 @@ public static class MenuDefinitionSource
 
     public static string BundledPath => Path.Combine(System.AppContext.BaseDirectory, "Menus", "menus.json");
 
-    public static string UserPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "mpv-winui", "mpv", "menus.json");
+    public static string UserPath =>
+        Path.Combine(AppData.Current.MpvConfigDirectory, "menus.json");
 
     public static IReadOnlyList<MenuDefinition>? TryLoad()
     {

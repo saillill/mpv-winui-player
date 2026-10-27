@@ -11,7 +11,7 @@
         <!-- Deliberate literals in this file (stage-5 tokenization pass).
              Tokens/ramp steps are used where they exist AND swapping one in
              cannot move the metrics; everything else stays a literal on purpose,
-             per docs/settings-design-contract.md §4.1:
+             per docs/settings-contract.md §3:
                * FontSize="14" on the collapsed-section caption, and "16" on the
                  customize pane title - no exact ramp step also preserves the
                  line height. Text, so no icon token applies either.

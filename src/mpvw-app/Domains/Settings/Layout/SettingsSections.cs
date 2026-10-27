@@ -1,4 +1,4 @@
-﻿using mpv_winui.Lexicon.Language;
+using mpv_winui.Lexicon.Language;
 using System;
 using System.Collections.Generic;
 
@@ -70,7 +70,7 @@ internal static class SettingsSections
     /// a faithful replacement rather than a reshuffle.
     ///
     /// The icon is a Segoe Fluent Icons glyph; see
-    /// <c>docs/settings-ui-review.md</c> for how they are chosen (rendered and
+    /// <c>docs/settings-contract.md</c> §2 for how they are chosen (rendered and
     /// inspected, not guessed from the code point).
     /// </summary>
     internal static readonly Section[] All =

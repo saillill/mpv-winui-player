@@ -162,7 +162,7 @@ def main() -> int:
             "only check these language files (comma-separated stems). The default "
             "checks all nine, which is the honest state: the generated Schema* "
             "layer and the seven non-CJK languages are known-incomplete and "
-            "registered as an exception in docs/settings-design-contract.md 7."
+            "registered as an exception in docs/settings-contract.md §4."
         ),
     )
     args = parser.parse_args()
@@ -216,7 +216,7 @@ def main() -> int:
             if generated:
                 warnings.append(
                     f"{path.name}: missing {len(generated)} generated Schema* key(s) "
-                    f"(known exception, see settings-design-contract 7)")
+                    f"(known exception, see settings-contract §4)")
         if extra:
             # Two very different things ended up in `extra`, and reporting them
             # as one "expected" warning is how eleven dead keys stayed in the

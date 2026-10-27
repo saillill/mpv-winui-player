@@ -64,7 +64,7 @@ namespace mpv_winui.Domains.Playback
             });
             RegisterMenuAction("mpv-folder", async p =>
             {
-                var storageFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
+                var storageFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(AppData.MpvConfigFolderName);
                 await Launcher.LaunchFolderAsync(storageFolder);
             });
             RegisterMenuAction("playlist", p =>
@@ -487,11 +487,8 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private static List<(string Key, string Description, string Command)> LoadBindings()
         {
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "mpv-winui",
-                "mpv",
-                "input.conf");
+            var path = Path.Combine(AppData.Current.MpvConfigDirectory,
+                    "input.conf");
             if (!File.Exists(path))
             {
                 return [];
@@ -576,7 +573,7 @@ namespace mpv_winui.Domains.Playback
         private async Task OpenConfigFileAsync(string fileName, bool inMpvFolder)
         {
             var folder = inMpvFolder
-                ? await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName)
+                ? await AppData.Current.OpenOrCreateLocalDataFolderAsync(AppData.MpvConfigFolderName)
                 : await AppData.Current.OpenLocalDataFolderAsync();
             var file = await folder.CreateFileAsync(fileName, Windows.Storage.CreationCollisionOption.OpenIfExists);
             await Launcher.LaunchFileAsync(file);

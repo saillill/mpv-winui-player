@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using mpv_winui.Infrastructure.Common.Utils;
+using mpv_winui.Platform.FileSystem;
 
 namespace mpv_winui.Domains.MpvConf;
 
@@ -22,7 +23,7 @@ namespace mpv_winui.Domains.MpvConf;
 /// <para><b>user overrides</b> - an annotated block parked at the very end of
 /// the file, created once if absent and never rewritten, so there is an obvious
 /// place to hand-write an option. mpv reads config top-down, so a line here
-/// beats our block: the precedence model in docs/mpv-conf-precedence.md is a
+/// beats our block: the precedence model in docs/mpv-conf.md is a
 /// position in the file, not a rule in code.</para>
 ///
 /// <para><b>Ownership rule (per line, not per block).</b> An option line is
@@ -117,11 +118,8 @@ public static class ManagedMpvConfig
     /// someone to edit a different mpv.conf than the app maintains, which is
     /// the one failure mode that would make the precedence promise a lie.
     /// </summary>
-    public static string MpvConfPath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "mpv-winui",
-        "mpv",
-        "mpv.conf");
+    public static string MpvConfPath { get; } =
+        Path.Combine(AppData.Current.MpvConfigDirectory, "mpv.conf");
 
     /// <summary>True when the deployed config exists, so the UI can disable a
     /// control whose target is missing rather than failing on click.</summary>

@@ -39,7 +39,7 @@ public sealed class MpvConfManager
     /// stopped compiling, and two shipped defects (an escaped value that doubled
     /// on every launch until mpv.conf reached 896 MB, and six settings whose own
     /// written values could not be read back) went unnoticed because no test could
-    /// run. See A-28 in docs/settings-design-contract.md.</para>
+    /// run. See docs/settings-contract.md §4.1.</para>
     /// </summary>
     public MpvConfManager(string filePath, Action? onBeforeSave = null)
     {

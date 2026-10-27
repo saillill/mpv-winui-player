@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using mpv_winui.Infrastructure.Common.Utils;
+using mpv_winui.Platform.FileSystem;
 
 namespace mpv_winui.Domains.Settings.Layout;
 
@@ -376,10 +377,9 @@ public static class LabelOverrides
 /// </summary>
 public static class SettingsLayoutStore
 {
-    /// <summary>%LOCALAPPDATA%\mpv-winui\mpv\settings-layout.json</summary>
-    public static string FilePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "mpv-winui", "mpv", "settings-layout.json");
+    /// <summary>The mpv config directory's settings-layout.json.</summary>
+    public static string FilePath =>
+        Path.Combine(AppData.Current.MpvConfigDirectory, "settings-layout.json");
 
     // Serialization goes through SettingsLayoutJsonContext: the app is trimmed
     // and AOT-compatible, so the reflection-based overloads throw rather than

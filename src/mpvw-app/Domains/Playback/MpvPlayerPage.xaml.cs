@@ -11,6 +11,7 @@ using mpv_winui.Domains.MpvConf;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace mpv_winui.Domains.Playback
@@ -18,7 +19,6 @@ namespace mpv_winui.Domains.Playback
     public sealed partial class MpvPlayerPage : Page, IParameterRefreshSupportView, IMpvOptionApplySupport, IMpvCommandApplySupport
     {
         private static readonly Logger _logger = LogManager.GetLogger("MpvPlayer");
-        private const string MpvConfigFolderName = "mpv";
         private readonly MpvPlayer _mediaPlayer = new();
         private bool _isPlayerInitialized;
         private static WeakReference<MpvPlayerPage>? _selfWeakReference;
@@ -490,10 +490,11 @@ namespace mpv_winui.Domains.Playback
             var sw = System.Diagnostics.Stopwatch.StartNew();
             InitDisplayInfo();
 
-            var configFolder = await AppData.Current.OpenOrCreateLocalDataFolderAsync(MpvConfigFolderName);
+            var configFolderPath = AppData.Current.MpvConfigDirectory;
+            Directory.CreateDirectory(configFolderPath);
             if (_logger.IsDebugEnabled)
             {
-                _logger.Debug("mpv config folder, path={}", configFolder.Path);
+                _logger.Debug("mpv config folder, path={}", configFolderPath);
             }
 
             // First run: copy the bundled config layer into the mpv config dir
@@ -502,7 +503,7 @@ namespace mpv_winui.Domains.Playback
             // This must run BEFORE WaitAll: the queued config writers (plugin
             // script-opts, the managed mpv.conf block) expect mpv.conf to
             // already exist and merge into it.
-            await ConfigDeployer.EnsureDeployedAsync(configFolder.Path);
+            await ConfigDeployer.EnsureDeployedAsync(configFolderPath);
             _logger.Debug("CreateAsync: config deployed at {}ms", sw.ElapsedMilliseconds);
 
             // Ensure settings-managed config files (script-opts/*.conf, the
@@ -529,7 +530,7 @@ namespace mpv_winui.Domains.Playback
             var refreshRate = AppContext.AppSetting.OverrideDisplayFps > 0
                 ? AppContext.AppSetting.OverrideDisplayFps
                 : _lastRefreshRate;
-            await _mediaPlayer.InitializeAsync(configFolder.Path, AppContext.AppSetting.LastVideoVolume, _lastColorKind, (int)refreshRate);
+            await _mediaPlayer.InitializeAsync(configFolderPath, AppContext.AppSetting.LastVideoVolume, _lastColorKind, (int)refreshRate);
 
             _isPlayerInitialized = true;
             _playerReadyTcs.TrySetResult();
