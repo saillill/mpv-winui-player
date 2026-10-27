@@ -1,0 +1,1117 @@
+<UserControl
+    x:Class="mpv_winui.Domains.Playback.PlayerControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:mpv_winui.Domains.Playback"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
+    xmlns:ycc="using:mpv_winui.Modules.Common.View.Controls"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <!-- Equalizer flyout band row (audit A9): sliders bind TwoWay to
+             EqualizerBand.Value instead of being rebuilt on every open. -->
+        <DataTemplate x:Key="EqualizerFlyoutBandTemplate" x:DataType="local:EqualizerBand">
+            <Grid ColumnSpacing="{StaticResource MpvSpaceS}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="{x:Bind Band, Mode=OneWay}" />
+                <StackPanel
+                    Grid.Column="1"
+                    Spacing="{StaticResource MpvSpaceXxs}">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="{StaticResource MpvTransportTimeFontSize}"
+                        Text="{x:Bind ValueText, Mode=OneWay}" />
+                    <Slider
+                        Width="160"
+                        AutomationProperties.Name="{x:Bind Band, Mode=OneWay}"
+                        Maximum="12"
+                        Minimum="-12"
+                        StepFrequency="0.5"
+                        Value="{x:Bind Value, Mode=TwoWay}" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid x:Name="RootGrid">
+        <Grid.Resources>
+            <LinearGradientBrush
+                x:Key="PiPControlGradientBrush"
+                StartPoint="0,0"
+                EndPoint="0,1">
+                <GradientStop Offset="0" Color="#00000000" />
+                <GradientStop Offset="1" Color="#D9000000" />
+            </LinearGradientBrush>
+            <!-- The transport buttons, at the size the bar is actually built
+                 around.
+
+                 These four numbers are one decision and have to move together,
+                 because the AppBarButton template clamps its content three
+                 different ways:
+
+                   * Width/Height here is the real hit target. 44 is the
+                     official player's own transport pitch (measured: icon
+                     centres 44.0 DIP apart in its status bar), and 44 is also
+                     WinUI's minimum touch target.
+                   * CornerRadius is half the height, so the hover and pressed
+                     pill is a CIRCLE inscribed in the hit target. It used to be
+                     left at ControlCornerRadius (4) with an 8 inset, which drew
+                     a 46x46 rounded square inside a 62x62 button - the
+                     "rectangular hot zone that does not match the button"
+                     report. A circle whose diameter equals the hit box is the
+                     only shape that cannot disagree with it.
+                   * The three AppBar metrics in each CommandBar's Resources
+                     (ContentHeight / ContentViewboxCollapsedMargin /
+                     AppBarThemeCompactHeight) are read by the framework's own
+                     template, so they are literals rather than aliases - see
+                     the note at those blocks.
+
+                 44 rather than the old 62: the icon inside is 20 DIP, and 62
+                 around 20 read as a wide gutter between glyphs rather than as a
+                 row of targets.
+
+                 The corner radius is ControlCornerRadius (4), i.e. a rounded
+                 RECTANGLE the size of the hit box - not half the height. It was
+                 half the height (22, then 28) because "a circle inscribed in the
+                 hit target" sounded like the only shape that could not disagree
+                 with it, and the result was a large round hover blob around
+                 small square-ish glyphs. The official player's own transport
+                 buttons hover as a rounded rectangle, so that is what this is
+                 now, and every button in the bar - play included - uses the same
+                 radius and the same sized box for hit-testing. -->
+            <Style
+                x:Key="AppBarButtonStyle"
+                BasedOn="{StaticResource DefaultAppBarButtonStyle}"
+                TargetType="AppBarButton">
+                <Setter Property="Height" Value="44" />
+                <Setter Property="Width" Value="44" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="AllowFocusOnInteraction" Value="True" />
+            </Style>
+            <Style
+                x:Key="AppBarToggleButtonStyle"
+                BasedOn="{StaticResource DefaultAppBarToggleButtonStyle}"
+                TargetType="AppBarToggleButton">
+                <Setter Property="Height" Value="44" />
+                <Setter Property="Width" Value="44" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="AllowFocusOnInteraction" Value="True" />
+            </Style>
+            <!-- The play button, the one control in the bar that is meant to be
+                 found without looking for it.
+
+                 It stays an AppBarButton on purpose: the control-bar layout
+                 engine moves these buttons between three CommandBars by
+                 identity, and swapping this one for a different control type
+                 would take it out of that machinery.
+
+                 56 hit box with a 50 ring inside: the official button measures
+                 50.5 DIP across its ring and sits alone in the middle of the
+                 bar, so it is bigger than its neighbours (44) but not so much
+                 that the row stops reading as one line. The ring's own
+                 proportions are the official's, measured off its bar at 175%:
+                 stroke 8% of the outside diameter, triangle ink 36% x 39%.
+
+                 The three AppBar metrics that un-clamp the content box cannot
+                 live here: they are ResourceDictionary entries, and a Style can
+                 only set dependency properties, so Resources is set on the
+                 button itself (see the AppBarButton.Resources block on
+                 PlayPauseButton). Without them the template's Viewbox squashes
+                 the 50-DIP ring into a 20-DIP box - which is exactly what made
+                 the old ring render at 16 DIP while the markup said 52. -->
+            <Style
+                x:Key="MpvTransportPlayButtonStyle"
+                BasedOn="{StaticResource AppBarButtonStyle}"
+                TargetType="AppBarButton">
+                <Setter Property="Width" Value="56" />
+                <Setter Property="Height" Value="56" />
+                <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <!-- Accent tint for the PiP subtitle toggle's active glyph. -->
+            <SolidColorBrush x:Key="PiPSubtitleActiveBrush" Color="{ThemeResource SystemAccentColor}" />
+        </Grid.Resources>
+        <Border
+            x:Name="ControlPanelGradient"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Bottom"
+            Background="Transparent">
+            <Grid
+                x:Name="ControlPanelGrid"
+                Padding="4,0"
+                VerticalAlignment="Bottom"
+                Background="Transparent"
+                PointerPressed="ControlPanelGrid_PointerPressed"
+                RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <TranslateTransform x:Name="TranslateVertical" />
+                </Grid.RenderTransform>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Border
+                x:Name="ErrorBorder"
+                Grid.RowSpan="3"
+                Grid.ColumnSpan="3"
+                Width="320"
+                HorizontalAlignment="Center"
+                Canvas.ZIndex="99"
+                Visibility="Collapsed">
+                <TextBlock
+                    x:Name="ErrorTextBlock"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource SystemErrorTextColor}"
+                    IsTextSelectionEnabled="True"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="WrapWholeWords" />
+            </Border>
+            <!-- The timeline row: elapsed time, the slider, remaining time -
+                 all on ONE line, which is the official player's own arrangement
+                 (measured: the two time labels' centres sit within 1 DIP of the
+                 slider track's centre).
+
+                 It used to be two rows - slider above, times below - and that
+                 is the whole reason the bar was 25 DIP taller than the
+                 official's and the times read as detached from the scrubber.
+                 The two TextBlocks are Auto columns on either side of a star
+                 column holding the slider, so the times cost layout width and
+                 nothing else: no second row, no vertical stack, no margin
+                 arithmetic to keep the three in step.
+
+                 Widths: the official's time labels are ~19 DIP of ink at 8.5
+                 DIP type. 12 DIP with a reserved 44 min-width keeps a two-hour
+                 timestamp from re-flowing the slider as it ticks, and still
+                 reads at the same weight. Alignment is Centre so the label's
+                 baseline stays on the slider's centre line without a per-state
+                 vertical nudge. -->
+            <Grid
+                x:Name="TimeTextGrid"
+                Grid.Row="1"
+                Grid.Column="1"
+                Height="32">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    x:Name="TimeElapsedElement"
+                    Grid.Column="0"
+                    MinWidth="44"
+                    Margin="8,0,4,0"
+                    VerticalAlignment="Center"
+                    FontSize="{StaticResource MpvTransportTimeFontSize}"
+                    Text="00:00"
+                    TextAlignment="Center" />
+                <Grid Grid.Column="1">
+                    <Slider
+                        x:Name="ProgressSlider"
+                        MinWidth="80"
+                        VerticalAlignment="Center"
+                        IsThumbToolTipEnabled="False"
+                        AutomationProperties.Name="Playback controls" />
+                    <Canvas
+                        x:Name="AbLoopMarksCanvas"
+                        Margin="7,0"
+                        IsHitTestVisible="False">
+                        <Border
+                            x:Name="AbLoopMarkA"
+                            Width="3"
+                            Height="14"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#FFFF8C00"
+                            CornerRadius="1"
+                            Visibility="Collapsed" />
+                        <Border
+                            x:Name="AbLoopMarkB"
+                            Width="3"
+                            Height="14"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#FF00BFFF"
+                            CornerRadius="1"
+                            Visibility="Collapsed" />
+                    </Canvas>
+                    <Canvas
+                        x:Name="ChapterMarksCanvas"
+                        Margin="7,0"
+                        IsHitTestVisible="False" />
+                    <ProgressBar
+                        x:Name="BufferingProgressBar"
+                        Height="4"
+                        Margin="0,0,0,0"
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource SystemAccentColorLight2}"
+                        IsHitTestVisible="False"
+                        IsIndeterminate="True"
+                        ShowPaused="True"
+                        Visibility="Collapsed" />
+                </Grid>
+                <TextBlock
+                    x:Name="TimeRemainingElement"
+                    Grid.Column="2"
+                    MinWidth="44"
+                    Margin="4,0,8,0"
+                    VerticalAlignment="Center"
+                    FontSize="{StaticResource MpvTransportTimeFontSize}"
+                    PointerPressed="TimeRemainingElement_PointerPressed"
+                    Text="00:00"
+                    TextAlignment="Center" />
+            </Grid>
+            <Grid
+                x:Name="MediaControlsCommandBar"
+                Grid.Row="2"
+                Grid.Column="1"
+                Height="{StaticResource MpvTransportBarHeight}"
+                HorizontalAlignment="Stretch">
+                <Grid.Resources>
+                    <!-- AppBar metrics, read by the framework's own
+                         AppBarButton template.
+
+                         They have to be LITERALS here and beside each
+                         CommandBar: the template looks the keys up by name in
+                         the tree under it, so an alias would have to be
+                         re-keyed, which is not a thing a ThemeResource can do.
+
+                         The set is derived from AppBarButtonStyle, and these
+                         are the numbers that make a 44 button hold a 20 glyph:
+
+                           ContentHeight                  20   (the framework
+                             default is 16, which is what silently shrank every
+                             glyph in this bar to 16 DIP whatever the style
+                             said)
+                           ContentViewboxCollapsedMargin  0,12 = (44 - 20) / 2
+                           AppBarThemeCompactHeight       64   (the collapsed
+                             content root's MinHeight, and - this is the part
+                             that bit - the height of the template's Grid.Clip.
+                             At 44 the clip cut the bottom 12 DIP off the 56
+                             play button: it rendered 87x71 px instead of
+                             87x87, with a flat bottom edge)
+                           InnerBorderMargin              0    (the hit box IS
+                             the button; an inset here is what turned the hover
+                             pill into a small rounded square inside a bigger
+                             rectangle)
+
+                         The three copies of this block must stay in step, and
+                         so must AppBarButtonStyle in this file's resources. -->
+                    <Thickness x:Key="AppBarButtonInnerBorderMargin">0</Thickness>
+                    <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,12</Thickness>
+                    <x:Double x:Key="AppBarButtonContentHeight">20</x:Double>
+                    <x:Double x:Key="AppBarThemeCompactHeight">72</x:Double>
+                    <x:Double x:Key="AppBarMoreButtonColumnMinWidth">0</x:Double>
+                </Grid.Resources>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <CommandBar
+                    x:Name="LeftCommandBar"
+                    Grid.Column="0"
+                    Margin="-3,0"
+                    Height="{StaticResource MpvTransportBarHeight}"
+                    Padding="0"
+                    HorizontalAlignment="Left"
+                    DefaultLabelPosition="Collapsed"
+                    IsDynamicOverflowEnabled="False"
+                    OverflowButtonVisibility="Collapsed"
+                    Style="{StaticResource CommandBarWithoutRevealStyle}">
+                    <CommandBar.Resources>
+                        <!-- Same four AppBar metrics as the Grid above; see the
+                             note there for what each one decides. -->
+                        <Thickness x:Key="AppBarButtonInnerBorderMargin">0</Thickness>
+                        <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,12</Thickness>
+                        <x:Double x:Key="AppBarButtonContentHeight">20</x:Double>
+                        <x:Double x:Key="AppBarThemeCompactHeight">72</x:Double>
+                        <x:Double x:Key="AppBarMoreButtonColumnMinWidth">0</x:Double>
+                    </CommandBar.Resources>
+
+                    <AppBarElementContainer
+                        x:Name="CompactTimeContainer"
+                        Height="{StaticResource MpvTransportBarHeight}"
+                        VerticalAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Visibility="Collapsed">
+                        <TextBlock
+                            x:Name="CompactTimeText"
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvTransportTimeFontSize}" />
+                    </AppBarElementContainer>
+
+                    <AppBarButton
+                        x:Name="PlayPauseButton"
+                        Style="{StaticResource MpvTransportPlayButtonStyle}"
+                        AutomationProperties.Name="Play">
+                        <!-- The one control in the bar that Microsoft draws as a
+                             ringed circle, and the only shape here that is not
+                             an icon.
+
+                             The ring is a Shape rather than part of the glyph
+                             because this button's circle is the brand gradient
+                             (MpvTransportPlayRingBrush), sampled from the
+                             official artwork. Fluent System Icons does now ship
+                             play_circle and pause_circle, but each is a
+                             self-contained monochrome circle: adopting one would
+                             replace the gradient ring with a flat circle and
+                             drop a designed element, so the ring stays and only
+                             the ink inside it swaps.
+
+                             Content rather than Icon: AppBarButton.Icon takes a
+                             single IconElement, and this is a ring plus a glyph.
+                             The control stays an AppBarButton because the
+                             control-bar layout engine moves it between the three
+                             CommandBars as an ICommandBarElement.
+
+                             Both glyphs are present and toggled by visibility
+                             rather than by rewriting Data in a visual state. A
+                             VisualState setter can set Visibility directly;
+                             setting Data would depend on the setter's string
+                             value being run through the geometry type converter,
+                             which is a thing to find out at run time rather than
+                             at build time.
+
+                             No background brushes are overridden here, unlike
+                             the other transport buttons: this button has no fill
+                             of its own, so forcing the on-accent foreground
+                             would paint a white glyph on a transparent button -
+                             invisible in the light theme.
+
+                             The AppBar metrics below are LOCAL to this button
+                             and are the whole reason the ring is the size it
+                             says it is. The framework template wraps content in
+                             a Viewbox of Height=AppBarButtonContentHeight (20,
+                             set per CommandBar for the icon buttons); with that
+                             in scope a 50-DIP ring renders at 20 DIP - and at
+                             16 before the metric was raised, which is exactly
+                             what "the play button is not enlarged per the
+                             official" was measuring. 50 + 3 + 3 = 56 = the
+                             button's own height, so nothing is clipped and
+                             nothing is scaled. -->
+                        <AppBarButton.Resources>
+                            <x:Double x:Key="AppBarButtonContentHeight">50</x:Double>
+                            <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">3</Thickness>
+                            <x:Double x:Key="AppBarThemeCompactHeight">64</x:Double>
+                            <Thickness x:Key="AppBarButtonInnerBorderMargin">0</Thickness>
+                        </AppBarButton.Resources>
+                        <AppBarButton.Content>
+                            <!-- Proportions measured off the official bar at
+                                 175% scaling, as fractions of its 50.5 DIP
+                                 outside diameter: stroke 8%, triangle ink
+                                 36% x 39%. On a 50 ring that is a 4 stroke and
+                                 an 18 x 20 ink.
+
+                                 The two Viewboxes are 27 because PathIcon draws
+                                 its geometry at native size and the source
+                                 glyphs are drawn in a 24-unit box: 27 scales
+                                 the play triangle's 15.7-unit ink to 17.7 DIP
+                                 (35% of 50) and its 18-unit height to 20.3
+                                 (41%). Both are the official's own numbers. -->
+                            <Grid Width="50" Height="50">
+                                <Ellipse
+                                    Stroke="{StaticResource MpvTransportPlayRingBrush}"
+                                    StrokeThickness="4" />
+                                <Viewbox
+                                    Width="27"
+                                    Height="27"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <PathIcon
+                                        x:Name="PlayGlyph"
+                                        Width="24"
+                                        Height="24"
+                                        Data="F1 M5 5.27368C5 3.56682 6.82609 2.48151 8.32538 3.2973L20.687 10.0235C22.2531 10.8756 22.2531 13.124 20.687 13.9762L8.32538 20.7024C6.82609 21.5181 5 20.4328 5 18.726V5.27368Z" />
+                                </Viewbox>
+                                <Viewbox
+                                    Width="27"
+                                    Height="27"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <PathIcon
+                                        x:Name="PauseGlyph"
+                                        Width="24"
+                                        Height="24"
+                                        Data="F1 M5.74609 3C4.7796 3 3.99609 3.7835 3.99609 4.75V19.25C3.99609 20.2165 4.7796 21 5.74609 21H9.24609C10.2126 21 10.9961 20.2165 10.9961 19.25V4.75C10.9961 3.7835 10.2126 3 9.24609 3H5.74609ZM14.7461 3C13.7796 3 12.9961 3.7835 12.9961 4.75V19.25C12.9961 20.2165 13.7796 21 14.7461 21H18.2461C19.2126 21 19.9961 20.2165 19.9961 19.25V4.75C19.9961 3.7835 19.2126 3 18.2461 3H14.7461Z"
+                                        Visibility="Collapsed" />
+                                </Viewbox>
+                            </Grid>
+                        </AppBarButton.Content>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="PreviousTrackButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Previous Track"
+                        Visibility="Collapsed">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF629;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="NextTrackButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Next Track"
+                        Visibility="Collapsed">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF56A;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="SkipBackwardButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Skip Backward"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEAFC;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="SkipForwardButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Skip Forward"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEB01;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="ShuffleButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Shuffle"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon
+                                x:Name="ShuffleSymbol"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                FontSize="{StaticResource MpvTransportIconSize}"
+                                Glyph="&#xEF37;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="RepeatButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Repeat"
+                        Visibility="Collapsed">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                x:Name="RepeatSymbol"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF172;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="AbLoopButton"
+                        Click="AbLoopButton_Click"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="A-B loop"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                x:Name="AbLoopSymbol"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xE0AF;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="ControlPanelButton"
+                        AutomationProperties.Name="Control panel"
+                        Click="ControlPanelButton_Click"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF6AA;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                </CommandBar>
+
+                <CommandBar
+                    x:Name="MiddleCommandBar"
+                    Grid.Column="1"
+                    Height="{StaticResource MpvTransportBarHeight}"
+                    Padding="0"
+                    HorizontalAlignment="Center"
+                    DefaultLabelPosition="Collapsed"
+                    IsDynamicOverflowEnabled="False"
+                    OverflowButtonVisibility="Collapsed"
+                    Style="{StaticResource CommandBarWithoutRevealStyle}">
+                    <CommandBar.Resources>
+                        <!-- Same four AppBar metrics as the Grid above; see the
+                             note there for what each one decides. -->
+                        <Thickness x:Key="AppBarButtonInnerBorderMargin">0</Thickness>
+                        <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,12</Thickness>
+                        <x:Double x:Key="AppBarButtonContentHeight">20</x:Double>
+                        <x:Double x:Key="AppBarThemeCompactHeight">72</x:Double>
+                        <x:Double x:Key="AppBarMoreButtonColumnMinWidth">0</x:Double>
+                    </CommandBar.Resources>
+                </CommandBar>
+
+                <CommandBar
+                    x:Name="RightCommandBar"
+                    Grid.Column="2"
+                    Height="{StaticResource MpvTransportBarHeight}"
+                    HorizontalAlignment="Right"
+                    DefaultLabelPosition="Collapsed"
+                    IsDynamicOverflowEnabled="False"
+                    OverflowButtonVisibility="Collapsed"
+                    Style="{StaticResource CommandBarWithoutRevealStyle}">
+
+                    <CommandBar.Resources>
+                        <!-- Same four AppBar metrics as the Grid above; see the
+                             note there for what each one decides. -->
+                        <Thickness x:Key="AppBarButtonInnerBorderMargin">0</Thickness>
+                        <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,12</Thickness>
+                        <x:Double x:Key="AppBarButtonContentHeight">20</x:Double>
+                        <x:Double x:Key="AppBarThemeCompactHeight">72</x:Double>
+                        <x:Double x:Key="AppBarMoreButtonColumnMinWidth">0</x:Double>
+                    </CommandBar.Resources>
+
+                    <AppBarButton
+                        x:Name="VolumeMuteButton"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        PointerWheelChanged="VolumeMuteButton_PointerWheelChanged"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Mute">
+                        <AppBarButton.Resources>
+                            <!-- The CommandBar's own values, restated because
+                                 the volume button carried a tighter set of its
+                                 own from when the bar was 40 tall. Keeping
+                                 those would leave this one pill a different
+                                 size from its neighbours. -->
+                            <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,12</Thickness>
+                            <Thickness x:Key="AppBarButtonInnerBorderMargin">0</Thickness>
+                        </AppBarButton.Resources>
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                x:Name="AudioMuteSymbol"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEB43;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarElementContainer
+                        x:Name="VolumeSliderContainer"
+                        Height="{StaticResource MpvTransportBarHeight}"
+                        VerticalAlignment="Center"
+                        VerticalContentAlignment="Center">
+                        <!-- Height and VerticalContentAlignment are what put the
+                             track on the speaker glyph's centre line, and they
+                             have to be here rather than on the slider: a
+                             CommandBar lays its items out top-aligned, so an
+                             AppBarElementContainer with no height is as tall as
+                             its content and hangs from the row's top edge,
+                             while the mute button next to it is centred in the
+                             same row. That mismatch is the "volume button is
+                             not aligned with the volume slider" report - the
+                             track sat a few DIP above the glyph's centre.
+
+                             With the container stretched to the row height and
+                             its content centred, both centre on the same line
+                             with no per-control margin to keep in step. The
+                             0,4 margin that used to be here was the old,
+                             opposite attempt: it pushed the slider DOWN inside
+                             a 44-tall row, which is what over-corrected it. -->
+                        <ycc:SliderExt
+                            x:Name="VolumeSlider"
+                            Width="88"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            SmallChange="10"
+                            Value="50"
+                            IsThumbToolTipEnabled="False"
+                            AutomationProperties.Name="Volume" />
+                    </AppBarElementContainer>
+
+                    <AppBarButton
+                        x:Name="PlaybackRateButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Playback Rate"
+                        Visibility="Visible">
+
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF831;" />
+                        </AppBarButton.Icon>
+
+                        <AppBarButton.Flyout>
+                            <MenuFlyout
+                                x:Name="PlaybackRateFlyout"
+                                LightDismissOverlayMode="Off"
+                                Placement="Top">
+                                <ToggleMenuFlyoutItem
+                                    Tag="0.1"
+                                    Text="0.1x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="0.25"
+                                    Text="0.25x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="0.5"
+                                    Text="0.5x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="0.75"
+                                    Text="0.75x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="1.0"
+                                    Text="1.0x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="1.25"
+                                    Text="1.25x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="1.5"
+                                    Text="1.5x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="1.75"
+                                    Text="1.75x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="2.0"
+                                    Text="2.0x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="4.0"
+                                    Text="4.0x" />
+                                <ToggleMenuFlyoutItem
+                                    Tag="8.0"
+                                    Text="8.0x" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem
+                                    x:Name="CustomRateItem"
+                                    Tag="custom"
+                                    Text="Custom…" />
+                            </MenuFlyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="EqualizerButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Equalizer"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF340;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <Flyout
+                                x:Name="EqualizerFlyout"
+                                Opened="EqualizerFlyout_Opened"
+                                Placement="Top">
+                                <StackPanel
+                                    Width="420"
+                                    Spacing="{StaticResource MpvSpaceCompact}">
+                                    <TextBlock
+                                        x:Name="EqualizerTitle"
+                                        FontWeight="SemiBold"
+                                        Text="Equalizer" />
+                                    <ScrollViewer
+                                        MaxHeight="280"
+                                        VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl
+                                            x:Name="EqualizerBandsPanel" />
+                                    </ScrollViewer>
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <Button
+                                            x:Name="EqualizerResetButton"
+                                            Click="EqualizerReset_Click"
+                                            Content="Reset" />
+                                        <Button
+                                            x:Name="EqualizerOffButton"
+                                            Click="EqualizerOff_Click"
+                                            Content="Off" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Flyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="DelayButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Audio/Subtitle delay"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF827;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <Flyout
+                                x:Name="DelayFlyout"
+                                Placement="Top">
+                                <StackPanel
+                                    Width="360"
+                                    Spacing="{StaticResource MpvSpaceS}">
+                                    <TextBlock
+                                        x:Name="DelayTitle"
+                                        FontWeight="SemiBold"
+                                        Text="Audio / subtitle delay" />
+                                    <StackPanel Spacing="{StaticResource MpvSpaceXs}">
+                                        <TextBlock x:Name="AudioDelayLabel" Text="Audio delay" />
+                                        <Slider
+                                            x:Name="AudioDelaySlider"
+                                            Minimum="-10"
+                                            Maximum="10"
+                                            StepFrequency="0.1"
+                                            ValueChanged="AudioDelaySlider_ValueChanged" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="{StaticResource MpvSpaceXs}">
+                                        <TextBlock x:Name="SubDelayLabel" Text="Subtitle delay" />
+                                        <Slider
+                                            x:Name="SubDelaySlider"
+                                            Minimum="-10"
+                                            Maximum="10"
+                                            StepFrequency="0.1"
+                                            ValueChanged="SubDelaySlider_ValueChanged" />
+                                    </StackPanel>
+                                    <Button
+                                        x:Name="DelayResetButton"
+                                        Click="DelayReset_Click"
+                                        Content="Reset" />
+                                </StackPanel>
+                            </Flyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="TrackSelectionButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Tracks">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEBCD;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="ZoomButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Zoom"
+                        Visibility="Visible">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xEE8D;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <MenuFlyout
+                                x:Name="ZoomSelectionFlyout"
+                                LightDismissOverlayMode="Off"
+                                Placement="Top" />
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+                    <AppBarToggleButton
+                        x:Name="PiPButton"
+                        Style="{StaticResource AppBarToggleButtonStyle}"
+                        AutomationProperties.Name="Picture-in-picture"
+                        Visibility="Visible">
+                        <AppBarToggleButton.Icon>
+                            <FontIcon
+                                x:Name="PiPSymbol"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                FontSize="{StaticResource MpvTransportIconSize}"
+                                Glyph="&#xF5FE;" />
+                        </AppBarToggleButton.Icon>
+                    </AppBarToggleButton>
+
+                    <AppBarButton
+                        x:Name="FullWindowButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Full Window"
+                        Visibility="Collapsed">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                x:Name="FullWindowSymbol"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xF160;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="FullScreenButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        AutomationProperties.Name="Full Screen">
+                        <AppBarButton.Icon>
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                x:Name="FullScreenSymbol"
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                Glyph="&#xE685;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton
+                        x:Name="MoreButton"
+                        Style="{StaticResource AppBarButtonStyle}"
+                        Visibility="Collapsed">
+                        <AppBarButton.Icon>
+                            <!-- Segoe Fluent Icons E712 is the horizontal
+                                 three-dot "More". The FluentSystemIcons face the
+                                 rest of this bar uses has no such glyph at the
+                                 codepoint that was here, so the button rendered
+                                 as an unrelated shape. -->
+                            <FontIcon FontSize="{StaticResource MpvTransportIconSize}"
+                                FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                Glyph="&#xE712;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <MenuFlyout
+                                x:Name="MoreFlyout"
+                                LightDismissOverlayMode="Off"
+                                Placement="Top"
+                                Opening="MoreFlyout_Opening" />
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+
+                    <CommandBar.SecondaryCommands />
+                </CommandBar>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- The quick-control panel is a Popup rather than a Flyout on purpose.
+             A Flyout is a Popup the framework keeps inside the window, so in a
+             portrait window the panel's 440-DIP pivot was cut off at the right
+             edge and the "音频输出设备" row lost its value column. Popup exposes
+             ShouldConstrainToRootBounds, and only setting it false lets the
+             panel draw outside the window and show its whole width; Flyout
+             never exposes it.
+
+             The chrome the FlyoutPresenter used to supply (background, border,
+             corner radius) sits on the Border here, because a bare Popup draws
+             none of it.
+
+             It sits before the VisualStateGroups on purpose: a Grid's children
+             have to be contiguous, and a child declared after the attached
+             property block is a second assignment to Children (WMC0035). -->
+        <Popup
+            x:Name="ControlPanelPopup"
+            IsLightDismissEnabled="True"
+            Opened="ControlPanelPopup_Opened"
+            ShouldConstrainToRootBounds="False">
+            <Border
+                Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource MpvPlayerPopupCornerRadius}"
+                Translation="0,0,32">
+                <!-- The shadow a FlyoutPresenter gets from
+                     IsDefaultShadowEnabled, which a bare Popup does not.
+
+                     The 32 is a literal on purpose: Translation is a Vector3
+                     and XAML has no resource form for one, so this cannot be a
+                     token. It used to have a companion key
+                     (MpvPlayerPopupShadowDepth) that nothing could read, which
+                     made it look like part of the shared chrome while the real
+                     value stayed here. If you change it, change the track
+                     selector's copy below too. -->
+                <Border.Shadow>
+                    <ThemeShadow />
+                </Border.Shadow>
+                <local:QuickControlPanel x:Name="ControlPanelHost" />
+            </Border>
+        </Popup>
+
+        <!-- The track selector is the same shape as the control panel above, and
+             for the same reason: it used to be a Flyout, so the framework kept it
+             inside the window and the list was clipped at the window edge. Same
+             chrome, same escape, same anchoring mode. -->
+        <Popup
+            x:Name="TrackSelectionPopup"
+            IsLightDismissEnabled="True"
+            ShouldConstrainToRootBounds="False">
+            <Border
+                Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource MpvPlayerPopupCornerRadius}"
+                Translation="0,0,32">
+                <Border.Shadow>
+                    <ThemeShadow />
+                </Border.Shadow>
+                <local:PlayerTrackSelectorControl
+                    x:Name="TrackSelectorControl"
+                    MaxHeight="420"
+                    MaxWidth="560" />
+            </Border>
+        </Popup>
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="MediaStates">
+                <VisualState x:Name="Normal" />
+                <VisualState x:Name="Buffering">
+                    <VisualState.Setters>
+                        <Setter Target="BufferingProgressBar.Visibility" Value="Visible" />
+                        <Setter Target="BufferingProgressBar.ShowPaused" Value="False" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="MediaLoading">
+                    <VisualState.Setters>
+                        <Setter Target="BufferingProgressBar.Visibility" Value="Visible" />
+                        <Setter Target="BufferingProgressBar.ShowPaused" Value="False" />
+                    </VisualState.Setters>
+                    <Storyboard>
+                        <DoubleAnimation
+                            Storyboard.TargetName="ProgressSlider"
+                            Storyboard.TargetProperty="Opacity"
+                            To="0.8"
+                            Duration="0" />
+                        <DoubleAnimation
+                            Storyboard.TargetName="MediaControlsCommandBar"
+                            Storyboard.TargetProperty="Opacity"
+                            To="0.8"
+                            Duration="0" />
+                    </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Error">
+                    <VisualState.Setters>
+                        <Setter Target="ErrorBorder.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Disabled">
+                    <Storyboard />
+                </VisualState>
+            </VisualStateGroup>
+
+            <VisualStateGroup x:Name="PlayPauseStates">
+                <VisualState x:Name="PlayState" />
+                <VisualState x:Name="PauseState">
+                    <VisualState.Setters>
+                        <Setter Target="PlayGlyph.Visibility" Value="Collapsed" />
+                        <Setter Target="PauseGlyph.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+
+            <VisualStateGroup x:Name="VolumeMuteStates">
+                <VisualState x:Name="VolumeState" />
+                <VisualState x:Name="MuteState">
+                    <VisualState.Setters>
+                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xEB4B;" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="VolumeState0">
+                    <VisualState.Setters>
+                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xF6F9;" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="VolumeState1">
+                    <VisualState.Setters>
+                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xF6FB;" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="VolumeState2">
+                    <VisualState.Setters>
+                        <Setter Target="AudioMuteSymbol.Glyph" Value="&#xEB43;" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+
+            <VisualStateGroup x:Name="FullScreenStates">
+                <VisualState x:Name="NonFullScreenState" />
+                <VisualState x:Name="FullScreenState">
+                    <VisualState.Setters>
+                        <Setter Target="FullScreenSymbol.Glyph" Value="&#xE688;" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+
+            <VisualStateGroup x:Name="FullWindowStates">
+                <VisualState x:Name="NonFullWindowState" />
+                <VisualState x:Name="FullWindowState">
+                    <VisualState.Setters>
+                        <Setter Target="FullWindowSymbol.Glyph" Value="&#xF166;" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+
+            <VisualStateGroup x:Name="PlaybackModeStates">
+                <VisualState x:Name="ModeNoRepeat">
+                    <VisualState.Setters>
+                        <Setter Target="ShuffleSymbol.Glyph" Value="&#xF175;" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ModeSequence">
+                    <VisualState.Setters>
+                        <Setter Target="ShuffleSymbol.Glyph" Value="&#xF172;" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ModeRepeatOne">
+                    <VisualState.Setters>
+                        <Setter Target="ShuffleSymbol.Glyph" Value="&#xEF34;" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ModeShuffle">
+                    <VisualState.Setters>
+                        <Setter Target="ShuffleSymbol.Glyph" Value="&#xEF37;" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="ControlPanelVisibilityStates">
+                <VisualState x:Name="ControlPanelFadeIn" />
+                <VisualState x:Name="ControlPanelFadeOut" />
+            </VisualStateGroup>
+
+            <!--
+                Width adaptation no longer lives here. The states are kept (the
+                names are referenced elsewhere) but carry no setters: visibility
+                is decided by ControlBarAdaptiveLayout + ApplyControlBarVisibility,
+                which sets every button explicitly at every tier. Keeping setters
+                here made two writers fight - the state only ever added
+                "Collapsed", and the empty Wide state left showing a control
+                again up to the framework.
+            -->
+            <VisualStateGroup x:Name="WidthAdaptiveStates">
+                <VisualState x:Name="Wide" />
+                <VisualState x:Name="Medium" />
+                <VisualState x:Name="Compact" />
+                <VisualState x:Name="Narrow" />
+            </VisualStateGroup>
+
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+</UserControl>

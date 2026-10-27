@@ -1,0 +1,201 @@
+﻿<UserControl
+    x:Class="mpv_winui.Domains.Playback.PlayerTrackSelectorControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:mpv_winui.Domains.Playback"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style
+            x:Key="TrackListViewItemStyle"
+            BasedOn="{StaticResource DefaultListViewItemStyle}"
+            TargetType="ListViewItem">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="MinHeight" Value="{StaticResource MpvPopupRowMinHeight}" />
+            <Setter Property="IsTabStop" Value="False" />
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Pivot
+            MinHeight="240"
+            Padding="{StaticResource MpvPopupContentPadding}"
+            IsHeaderItemsCarouselEnabled="False"
+            IsTabStop="False">
+            <PivotItem x:Name="SubtitlePivotItem">
+                <PivotItem.Header>
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource MpvSpaceS}">
+                        <FontIcon
+                            FontSize="{StaticResource MpvPopupIconSize}"
+                            Glyph="&#xED1E;" />
+                        <TextBlock
+                            x:Name="SubtitleTabText"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvPopupTitleFontSize}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvPopupCaptionFontSize}"
+                            Text="{x:Bind SubtitleListView.SelectedIndex, Mode=OneWay}" />
+                    </StackPanel>
+                </PivotItem.Header>
+                <ListView
+                    x:Name="SubtitleListView"
+                    Margin="{StaticResource MpvPopupListMargin}"
+                    IsItemClickEnabled="True"
+                    IsTabStop="False"
+                    ItemClick="SubtitleListView_ItemClick"
+                    ItemContainerStyle="{StaticResource TrackListViewItemStyle}"
+                    ItemsSource="{x:Bind SubtitleItems, Mode=OneWay}"
+                    SelectionMode="Single"
+                    SingleSelectionFollowsFocus="False">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="local:TrackItem">
+                            <TextBlock
+                                MaxLines="2"
+                                FontSize="{StaticResource MpvPopupLabelFontSize}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Label, Mode=OneWay}"
+                                TextWrapping="NoWrap"
+                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneWay}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </PivotItem>
+            <PivotItem x:Name="SecondSubPivotItem">
+                <PivotItem.Header>
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource MpvSpaceS}">
+                        <FontIcon
+                            FontSize="{StaticResource MpvPopupIconSize}"
+                            Glyph="&#xED1E;" />
+                        <TextBlock
+                            x:Name="SecondSubtitleTabText"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvPopupTitleFontSize}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvPopupCaptionFontSize}"
+                            Text="{x:Bind SecondSubListView.SelectedIndex, Mode=OneWay}" />
+                    </StackPanel>
+                </PivotItem.Header>
+                <ListView
+                    x:Name="SecondSubListView"
+                    Margin="{StaticResource MpvPopupListMargin}"
+                    IsItemClickEnabled="True"
+                    IsTabStop="False"
+                    ItemClick="SecondSubListView_ItemClick"
+                    ItemContainerStyle="{StaticResource TrackListViewItemStyle}"
+                    ItemsSource="{x:Bind SecondSubItems, Mode=OneWay}"
+                    SelectionMode="Single"
+                    SingleSelectionFollowsFocus="False">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="local:TrackItem">
+                            <TextBlock
+                                FontSize="{StaticResource MpvPopupLabelFontSize}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Label, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap"
+                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneWay}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </PivotItem>
+            <PivotItem x:Name="VideoPivotItem">
+                <PivotItem.Header>
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource MpvSpaceS}">
+                        <FontIcon
+                            FontSize="{StaticResource MpvPopupIconSize}"
+                            Glyph="&#xE8B2;" />
+                        <TextBlock
+                            x:Name="VideoTabText"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvPopupTitleFontSize}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvPopupCaptionFontSize}"
+                            Text="{x:Bind VideoListView.SelectedIndex, Mode=OneWay}" />
+                    </StackPanel>
+                </PivotItem.Header>
+                <ListView
+                    x:Name="VideoListView"
+                    Margin="{StaticResource MpvPopupListMargin}"
+                    IsItemClickEnabled="True"
+                    IsTabStop="False"
+                    ItemClick="VideoListView_ItemClick"
+                    ItemContainerStyle="{StaticResource TrackListViewItemStyle}"
+                    ItemsSource="{x:Bind VideoItems, Mode=OneWay}"
+                    SelectionMode="Single"
+                    SingleSelectionFollowsFocus="False">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="local:TrackItem">
+                            <TextBlock
+                                FontSize="{StaticResource MpvPopupLabelFontSize}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Label, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap"
+                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneWay}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </PivotItem>
+            <PivotItem x:Name="AudioPivotItem">
+                <PivotItem.Header>
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource MpvSpaceS}">
+                        <FontIcon
+                            FontSize="{StaticResource MpvPopupIconSize}"
+                            Glyph="&#xE8D6;" />
+                        <TextBlock
+                            x:Name="AudioTabText"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvPopupTitleFontSize}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvPopupCaptionFontSize}"
+                            Text="{x:Bind AudioListView.SelectedIndex, Mode=OneWay}" />
+                    </StackPanel>
+                </PivotItem.Header>
+                <ListView
+                    x:Name="AudioListView"
+                    Margin="{StaticResource MpvPopupListMargin}"
+                    IsItemClickEnabled="True"
+                    IsTabStop="False"
+                    ItemClick="AudioListView_ItemClick"
+                    ItemContainerStyle="{StaticResource TrackListViewItemStyle}"
+                    ItemsSource="{x:Bind AudioItems, Mode=OneWay}"
+                    SelectionMode="Single"
+                    SingleSelectionFollowsFocus="False">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="local:TrackItem">
+                            <TextBlock
+                                FontSize="{StaticResource MpvPopupLabelFontSize}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Label, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap"
+                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneWay}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </PivotItem>
+        </Pivot>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="SecondSubGroupStates">
+                <VisualState x:Name="NormalState" />
+                <VisualState x:Name="SecondSubState">
+                    <VisualState.Setters>
+                        <Setter Target="SecondSubPivotItem.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+</UserControl>

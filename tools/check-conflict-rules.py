@@ -25,7 +25,7 @@ import re
 import sys
 
 ROOT = "mpv-winui/mpv-winui"
-FILES = sorted(glob.glob(f"{ROOT}/Modules/Settings/SettingsPage.Actions*.cs"))
+FILES = sorted(glob.glob(f"{ROOT}/Domains/Settings/SettingsPage.Actions*.cs"))
 
 
 def read(path):

@@ -21,7 +21,7 @@ import glob
 import re
 import sys
 
-MPVSETTINGS = "mpv-winui/mpv-winui/Modules/Settings/MpvSettings.cs"
+MPVSETTINGS = "mpv-winui/mpv-winui/Domains/MpvConf/MpvSettings.cs"
 
 # Same rule as MpvSettings.ConfigOptionName.
 LEGAL = re.compile(r"^[a-z0-9][a-z0-9-]*$")

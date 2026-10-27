@@ -1,4 +1,4 @@
-using mpv_winui.Modules.Player;
+using mpv_winui.Domains.Playback;
 using NUnit.Framework;
 
 namespace mpv_conf_test;

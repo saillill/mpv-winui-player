@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
-using mpv_winui.Modules.Player;
+using mpv_winui.Domains.Playback;
 using System.Collections.Generic;
 
 namespace mpv_winui.Domains.Library;

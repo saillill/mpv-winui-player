@@ -20,7 +20,7 @@ print("schema entry :", json.dumps(entry, ensure_ascii=False))
 print("deprecated   :", entry.get("deprecated"))
 print("is_denied    :", ns["is_denied"]("edition"))
 
-mpv = io.open(REPO + r"\mpv-winui\mpv-winui\Modules\Settings\MpvSettings.cs",
+mpv = io.open(REPO + r"\mpv-winui\mpv-winui\Domains\MpvConf\MpvSettings.cs",
               encoding="utf-8-sig").read()
 
 wired = set(re.findall(

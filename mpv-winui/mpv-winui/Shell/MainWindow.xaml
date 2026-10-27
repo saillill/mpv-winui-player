@@ -7,7 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:mpv_winui"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:pc="using:mpv_winui.Modules.Player"
+    xmlns:pc="using:mpv_winui.Domains.Playback"
     mc:Ignorable="d">
 
     <!-- The shell owns everything that must survive a change of page: the title

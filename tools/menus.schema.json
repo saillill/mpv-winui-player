@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/saillill/mpv-winui-player/tree/main/tools/menus.schema.json",
   "title": "mpv-winui menu bar definition",
-  "description": "Structure of the config-driven menu bar (Menus/menus.json). Each entry is a separator, a submenu (children), or a leaf running either an app action or a raw mpv command. See Modules/Player/Menu/MenuDefinition.cs.",
+  "description": "Structure of the config-driven menu bar (Menus/menus.json). Each entry is a separator, a submenu (children), or a leaf running either an app action or a raw mpv command. See Domains/Playback/Menu/MenuDefinition.cs.",
   "type": "array",
   "items": { "$ref": "#/definitions/menuItem" },
   "definitions": {

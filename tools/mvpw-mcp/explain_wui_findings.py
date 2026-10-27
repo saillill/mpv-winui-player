@@ -32,8 +32,8 @@ import os
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-XAML = REPO + r"\mpv-winui\mpv-winui\Modules\MediaInfo\MediaInfoUserControl.xaml"
-REPORT = REPO + r"\mpv-winui\mpv-winui\Modules\MediaInfo\MediaInfoReport.cs"
+XAML = REPO + r"\mpv-winui\mpv-winui\Domains\MediaInfo\MediaInfoUserControl.xaml"
+REPORT = REPO + r"\mpv-winui\mpv-winui\Domains\MediaInfo\MediaInfoReport.cs"
 
 
 def diagnostics():

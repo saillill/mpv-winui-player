@@ -1,5 +1,5 @@
 using System;
-using mpv_winui.Modules.Player.Audio;
+using mpv_winui.Domains.Playback.Audio;
 
 namespace mpv_winui_test;
 

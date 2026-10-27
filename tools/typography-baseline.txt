@@ -2,16 +2,16 @@
 #   <repo-relative path>:<line>:<kind>
 # Regenerate with: python tools/check-typography-standard.py --update-baseline
 
-mpv-winui/mpv-winui/Modules/Menu/MenuEditor/MenuEditorPage.xaml:258:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/MpvConf/MpvConfEditorPage.xaml:103:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/MpvConf/Option/MpvConfOptionControl.xaml:13:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/CenterPlayerControlStyle.xaml:59:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/CenterPlayerControlStyle.xaml:18:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/CenterPlayerControlStyle.xaml:174:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:271:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:444:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/MpvPlayerPage.xaml:1050:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Player/QuickControlPanel.xaml:60:SPACING-LITERAL
-mpv-winui/mpv-winui/Modules/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Menu/MenuEditor/MenuEditorPage.xaml:258:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/MpvConf/MpvConfEditorPage.xaml:103:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/MpvConf/Option/MpvConfOptionControl.xaml:13:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Playback/CenterPlayerControlStyle.xaml:59:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Playback/CenterPlayerControlStyle.xaml:18:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Playback/CenterPlayerControlStyle.xaml:174:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Playback/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Playback/MpvPlayerPage.xaml:271:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Playback/MpvPlayerPage.xaml:444:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Playback/MpvPlayerPage.xaml:1050:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
+mpv-winui/mpv-winui/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

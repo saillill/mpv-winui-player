@@ -1,4 +1,4 @@
-using mpv_winui.Modules.Activation;
+using mpv_winui.Platform.Activation;
 
 namespace mpv_conf_test;
 

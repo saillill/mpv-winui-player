@@ -21,7 +21,7 @@ import glob
 import re
 import sys
 
-OPTION_FILES = "mpv-winui/mpv-winui/Modules/Settings/SettingsPage.Options*.cs"
+OPTION_FILES = "mpv-winui/mpv-winui/Domains/Settings/SettingsPage.Options*.cs"
 
 
 def blocks(src: str):

@@ -12,9 +12,9 @@ import re
 import sys
 
 ROOT = "mpv-winui/mpv-winui"
-OPTIONS = f"{ROOT}/Modules/Settings"
+OPTIONS = f"{ROOT}/Domains/Settings"
 PAGE = f"{OPTIONS}/SettingsPage.xaml.cs"
-MPVSETTINGS = f"{OPTIONS}/MpvSettings.cs"
+MPVSETTINGS = f"{ROOT}/Domains/MpvConf/MpvSettings.cs"
 
 
 def read(path):

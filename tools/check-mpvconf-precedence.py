@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SETTINGS = ROOT / "mpv-winui/mpv-winui/Modules/Settings/MpvSettings.cs"
+SETTINGS = ROOT / "mpv-winui/mpv-winui/Domains/MpvConf/MpvSettings.cs"
 
 # "set <name>" / "no-osd set <name>", the only shapes that name an mpv option.
 SET_NAME = re.compile(r"set ([a-z0-9][a-z0-9/-]*)\s")
@@ -89,7 +89,7 @@ def config_only_keys(src: str) -> set[str]:
 def appsettings_properties() -> set[str]:
     """Property names across the partial AppSettings files, plus the interfaces."""
     names: set[str] = set()
-    for path in (ROOT / "mpv-winui/mpv-winui/Modules/Settings").glob("AppSettings*.cs"):
+    for path in (ROOT / "mpv-winui/mpv-winui/Domains/SettingsModel").glob("AppSettings*.cs"):
         text = path.read_text(encoding="utf-8")
         names.update(PROP_BLOCK.findall(text))
         names.update(PROP_INLINE.findall(text))

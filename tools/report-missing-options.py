@@ -21,11 +21,11 @@ import re
 import sys
 
 CATALOGUE = "mpv-winui/mpv-winui/MpvConfOptions/mpv-options.json"
-MPVSETTINGS = "mpv-winui/mpv-winui/Modules/Settings/MpvSettings.cs"
+MPVSETTINGS = "mpv-winui/mpv-winui/Domains/MpvConf/MpvSettings.cs"
 # The schema-generated half declares its mappings in this file instead. It has
 # to be read alongside MpvSettings.cs or every generated option counts as
 # unexposed -- see load_exposed().
-MPVSETTINGS_GEN = "mpv-winui/mpv-winui/Modules/Settings/MpvSettings.Gen.cs"
+MPVSETTINGS_GEN = "mpv-winui/mpv-winui/Domains/MpvConf/MpvSettings.Gen.cs"
 
 # --- excluded, each with the reason it will never earn a settings row --------
 # Labels stay English because they identify the rule in code; the report shows

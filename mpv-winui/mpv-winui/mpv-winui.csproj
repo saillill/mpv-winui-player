@@ -170,7 +170,7 @@
         <Content Include="..\bin\$(Platform)\$(Configuration)\mpv_winrt\mpv_winrt.dll" Link="mpv_winrt.dll" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
     <ItemGroup>
-        <Page Update="Modules\Player\MpvPlayerPage.xaml">
+        <Page Update="Domains\Playback\MpvPlayerPage.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
     </ItemGroup>

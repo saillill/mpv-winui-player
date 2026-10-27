@@ -4,7 +4,7 @@ import json
 import os
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-GEN = os.path.join(REPO, r"mpv-winui\mpv-winui\Modules\Settings\MpvSettings.Gen.cs")
+GEN = os.path.join(REPO, r"mpv-winui\mpv-winui\Domains\MpvConf\MpvSettings.Gen.cs")
 CONF = os.path.join(os.environ["LOCALAPPDATA"], "mpv-winui", "mpv", "mpv.conf")
 
 src = io.open(GEN, encoding="utf-8-sig").read()

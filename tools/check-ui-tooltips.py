@@ -21,7 +21,7 @@ it. Two shapes exist here:
 - A XAML with x:Class (UserControl/Page): the code-behind is the sibling
   <Class>.xaml.cs, so every .cs in that directory is scanned.
 - A ResourceDictionary that only holds Styles/ControlTemplates (Themes/
-  Generic.xaml, Modules/Player/*Style.xaml): the names inside a ControlTemplate
+  Generic.xaml, Domains/Playback/*Style.xaml): the names inside a ControlTemplate
   are template parts of the templated control, and the file that names them is
   that control's code-behind - which need not live in the same directory.
   Ownership is therefore resolved from the enclosing Style/ControlTemplate
@@ -29,7 +29,7 @@ it. Two shapes exist here:
   <Style x:Key="PlayButtonStyle" TargetType="Button"> inside the template do not
   take over) to <Type>.xaml.cs anywhere in the project. This is what used to be
   a blind spot: Themes/Generic.xaml names 14 of its buttons in
-  Modules/Player/PlayerControl.xaml.cs, and a sibling-only scan reported all 14
+  Domains/Playback/PlayerControl.xaml.cs, and a sibling-only scan reported all 14
   as unnamed.
 
 Prints elements failing either rule. Exit code is always 0; the report is

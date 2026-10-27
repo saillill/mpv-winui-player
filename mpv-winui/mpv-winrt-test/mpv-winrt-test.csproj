@@ -38,7 +38,7 @@
           The linked file that ControlBarLayoutGrammarTests.cs documents and
           depends on, and which was never added.
 
-          The test class carries `using mpv_winui.Modules.Player;` and its own
+          The test class carries `using mpv_winui.Domains.Playback;` and its own
           summary says the class under test "is compiled into this assembly via a
           linked Compile item (see mpv-winrt-test.csproj)". That item was absent,
           so the file did not compile, so this project could not build, which is
@@ -47,7 +47,7 @@
           drift from what ships, and it is deliberately free of UI types so this
           works without a WinUI runtime.
         -->
-        <Compile Include="..\mpv-winui\Modules\Player\ControlBarLayoutGrammar.cs" Link="Player\ControlBarLayoutGrammar.cs" />
+        <Compile Include="..\mpv-winui\Domains\Playback\ControlBarLayoutGrammar.cs" Link="Player\ControlBarLayoutGrammar.cs" />
     </ItemGroup>
 
     <PropertyGroup>

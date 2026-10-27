@@ -270,7 +270,7 @@ def main() -> int:
     if menus_path.exists():
         menus = json.loads(menus_path.read_text(encoding="utf-8-sig"))
         actions = parse_menu_actions(
-            ROOT / "mpv-winui" / "mpv-winui" / "Modules" / "Player" / "MpvPlayerPage_MenuBar.cs"
+            ROOT / "mpv-winui" / "mpv-winui" / "Domains" / "Playback" / "MpvPlayerPage_MenuBar.cs"
         )
         validate_menu_schema(menus, errors)
         walk_menus(menus, props, actions, errors)

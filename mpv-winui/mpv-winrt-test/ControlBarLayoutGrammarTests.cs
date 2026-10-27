@@ -1,4 +1,4 @@
-using mpv_winui.Modules.Player;
+using mpv_winui.Domains.Playback;
 
 namespace mpv_winrt_test
 {

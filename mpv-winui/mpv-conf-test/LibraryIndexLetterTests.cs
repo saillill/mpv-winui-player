@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using mpv_winui.Modules.Player;
+using mpv_winui.Domains.Playback;
 
 namespace mpv_winui_test;
 

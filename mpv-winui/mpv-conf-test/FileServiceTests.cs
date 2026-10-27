@@ -1,4 +1,4 @@
-using mpv_winui.Modules.FileSystem;
+using mpv_winui.Platform.FileSystem;
 
 namespace mpv_conf_test;
 

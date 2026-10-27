@@ -1,4 +1,4 @@
-namespace mpv_winui.Modules.FileSystem
+namespace mpv_winui.Platform.FileSystem
 {
     public class AppData
     {
