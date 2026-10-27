@@ -35,7 +35,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 APP = REPO / "mpv-winui" / "mpv-winui"
 LANGUAGES = APP / "Languages"
-GEN_SECTIONS = APP / "Modules" / "Language" / "AppLang.Sections.Gen.cs"
+GEN_SECTIONS = APP / "Lexicon" / "Language" / "AppLang.Sections.Gen.cs"
 
 # Which files take the generated Chinese text. The generator's captions are
 # written in Simplified; zh-TW is mapped through the same table because the

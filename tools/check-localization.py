@@ -57,7 +57,7 @@ def parse_applang_props_all() -> set[str]:
     shell keeps its own surface). They still show up as extra keys, which is
     now correct and expected; the message says so.
     """
-    lang_dir = ROOT / "mpv-winui" / "mpv-winui" / "Modules" / "Language"
+    lang_dir = ROOT / "mpv-winui" / "mpv-winui" / "Lexicon" / "Language"
     props: set[str] = set()
     for path in sorted(lang_dir.glob("AppLang*.cs")):
         props |= parse_applang_props(path)

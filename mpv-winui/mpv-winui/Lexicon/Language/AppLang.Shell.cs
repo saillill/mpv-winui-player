@@ -1,4 +1,4 @@
-namespace mpv_winui.Modules.Language
+namespace mpv_winui.Lexicon.Language
 {
     /// <summary>
     /// Strings for the shell chrome - the navigation pane and the tab strip -

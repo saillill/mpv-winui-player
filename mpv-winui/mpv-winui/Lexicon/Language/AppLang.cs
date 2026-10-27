@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text.Json;
 using NLog;
 
-namespace mpv_winui.Modules.Language
+namespace mpv_winui.Lexicon.Language
 {
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     public partial class AppLang

@@ -19,7 +19,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 LANG = REPO / "mpv-winui" / "mpv-winui" / "Languages" / "zh-CN.json"
-APP = REPO / "mpv-winui" / "mpv-winui" / "Modules" / "Language" / "AppLang.cs"
+APP = REPO / "mpv-winui" / "mpv-winui" / "Lexicon" / "Language" / "AppLang.cs"
 
 # Groups whose text actually shows up beside an option control.
 GROUPS = (

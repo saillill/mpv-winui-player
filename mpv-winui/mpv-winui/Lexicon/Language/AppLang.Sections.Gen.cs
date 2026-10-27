@@ -4,7 +4,7 @@
 //     To change what appears here, change the generator or the schema.
 // </auto-generated>
 
-namespace mpv_winui.Modules.Language
+namespace mpv_winui.Lexicon.Language
 {
     public partial class AppLang
     {

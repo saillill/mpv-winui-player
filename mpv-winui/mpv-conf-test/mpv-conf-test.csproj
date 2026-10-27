@@ -55,7 +55,7 @@
     <Compile Include="..\mpv-winui\Modules\Player\IndexRailHover.cs" Link="Player\IndexRailHover.cs" />
         <Compile Include="..\mpv-winui\Modules\Player\Audio\SpectrumAnalyzer.cs" Link="Player\Audio\SpectrumAnalyzer.cs" />
         <Compile Include="..\mpv-winui\Modules\Player\Audio\AlbumColorExtractor.cs" Link="Player\Audio\AlbumColorExtractor.cs" />
-        <Compile Include="..\mpv-winui\Modules\Motion\SpringMath.cs" Link="Motion\SpringMath.cs" />
+        <Compile Include="..\mpv-winui\Infrastructure\Motion\SpringMath.cs" Link="Motion\SpringMath.cs" />
         <!-- The atomic-replace writer the settings layer now uses for mpv.conf,
              its state file and script-opts. Linked for the usual reason: the
              property that matters is not "it wrote something" but "a reader
@@ -73,7 +73,7 @@
              from a stored setting and used to be concatenated into a path and an
              mpv command unvalidated, so what matters is exactly which inputs are
              accepted, which is a pure predicate and testable on its own. -->
-        <Compile Include="..\mpv-winui\Modules\Language\LanguageCode.cs" Link="Language\LanguageCode.cs" />
+        <Compile Include="..\mpv-winui\Lexicon\Language\LanguageCode.cs" Link="Language\LanguageCode.cs" />
     </ItemGroup>
 
     <!--

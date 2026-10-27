@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using mpv_winui.Modules.AppModel;
+using mpv_winui.Platform.AppModel;
 using NLog;
 using System;
 using System.Linq;

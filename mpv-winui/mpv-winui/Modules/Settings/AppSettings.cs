@@ -1,4 +1,4 @@
-﻿using mpv_winui.Modules.AppModel;
+﻿using mpv_winui.Platform.AppModel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

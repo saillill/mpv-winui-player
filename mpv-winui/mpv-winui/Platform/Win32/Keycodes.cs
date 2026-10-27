@@ -18,7 +18,7 @@
 using System;
 using System.Text;
 
-namespace mpv
+namespace mpv_winui.Platform.Win32
 {
     // Keys in the range [0, MP_KEY_BASE) follow unicode.
     // Special keys come after this.

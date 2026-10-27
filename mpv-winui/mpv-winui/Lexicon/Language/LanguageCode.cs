@@ -1,6 +1,6 @@
 using System;
 
-namespace mpv_winui.Modules.Language
+namespace mpv_winui.Lexicon.Language
 {
     /// <summary>
     /// Turns a language code into something safe to build a file name from.

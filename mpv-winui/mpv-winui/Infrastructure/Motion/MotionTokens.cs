@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace mpv_winui.Modules.Motion;
+namespace mpv_winui.Infrastructure.Motion;
 
 /// <summary>
 /// The single source of numbers for motion in this app.

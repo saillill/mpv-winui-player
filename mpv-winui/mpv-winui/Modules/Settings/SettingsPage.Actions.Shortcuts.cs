@@ -5,7 +5,7 @@ using Microsoft.Win32;
 using mpv_winui.Modules.Activation;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
-using mpv_winui.Modules.Language;
+using mpv_winui.Lexicon.Language;
 using mpv_winui.Modules.Player;
 using mpv_winui.Modules.Settings.Controls;
 using System;

@@ -1,4 +1,4 @@
-﻿using mpv_winui.Modules.Language;
+﻿using mpv_winui.Lexicon.Language;
 using System;
 using System.Collections.Generic;
 

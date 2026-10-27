@@ -2,7 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using mpv_winui.Modules.Motion;
+using mpv_winui.Infrastructure.Motion;
 using System;
 using System.Collections.Generic;
 using System.Linq;

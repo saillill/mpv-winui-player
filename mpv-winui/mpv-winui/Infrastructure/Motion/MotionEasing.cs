@@ -2,7 +2,7 @@ using Microsoft.UI.Composition;
 using System;
 using System.Runtime.CompilerServices;
 
-namespace mpv_winui.Modules.Motion;
+namespace mpv_winui.Infrastructure.Motion;
 
 /// <summary>
 /// Easing functions for the four official curves, built once per

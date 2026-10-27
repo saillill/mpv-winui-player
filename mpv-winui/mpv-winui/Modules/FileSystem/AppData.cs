@@ -1,4 +1,4 @@
-using mpv_winui.Modules.AppModel;
+using mpv_winui.Platform.AppModel;
 using System;
 using System.IO;
 using System.Threading.Tasks;

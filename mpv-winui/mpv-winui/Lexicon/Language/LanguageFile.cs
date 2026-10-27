@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using NLog;
 
-namespace mpv_winui.Modules.Language;
+namespace mpv_winui.Lexicon.Language;
 
 /// <summary>
 /// Reads a language file once for its several consumers.

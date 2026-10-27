@@ -16,12 +16,12 @@
  */
 
 using System;
-using static mpv.Keycodes;
+using static mpv_winui.Platform.Win32.Keycodes;
 using static Windows.Win32.PInvoke;
 
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
-namespace mpv
+namespace mpv_winui.Platform.Win32
 {
     public partial class W32Common
     {

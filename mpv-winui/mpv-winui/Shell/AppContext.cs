@@ -1,6 +1,6 @@
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.FileSystem;
-using mpv_winui.Modules.Language;
+using mpv_winui.Lexicon.Language;
 using mpv_winui.Modules.Settings;
 using mpv_winrt;
 using NLog;

@@ -1,7 +1,7 @@
 using System;
 using Windows.UI.ViewManagement;
 
-namespace mpv_winui.Modules.Motion;
+namespace mpv_winui.Infrastructure.Motion;
 
 /// <summary>
 /// The gate every behaviour in this module consults before animating.

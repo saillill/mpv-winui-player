@@ -16,9 +16,9 @@
  */
 
 using Windows.Win32.UI.Input.KeyboardAndMouse;
-using static mpv.Keycodes;
+using static mpv_winui.Platform.Win32.Keycodes;
 
-namespace mpv
+namespace mpv_winui.Platform.Win32
 {
     public static class W32Keyboard
     {

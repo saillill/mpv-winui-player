@@ -22,7 +22,7 @@ using mpv_winui.Modules.Common.View;
 
 using mpv_winui.Modules.Common.Utils;
 
-using mpv_winui.Modules.Motion;
+using mpv_winui.Infrastructure.Motion;
 
 using mpv_winui.Modules.Settings;
 using mpv_winui.Modules.Settings.Controls;

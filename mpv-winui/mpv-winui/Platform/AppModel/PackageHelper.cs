@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
-namespace mpv_winui.Modules.AppModel
+namespace mpv_winui.Platform.AppModel
 {
     public class PackageHelper
     {

@@ -7,7 +7,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Common.View;
 using mpv_winui.Modules.FileSystem;
-using mpv_winui.Modules.Motion;
+using mpv_winui.Infrastructure.Motion;
 using mpv_winui.Modules.Player.History;
 using System;
 using System.ComponentModel;

@@ -7,7 +7,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Numerics;
 
-namespace mpv_winui.Modules.Motion;
+namespace mpv_winui.Infrastructure.Motion;
 
 /// <summary>
 /// The named, reusable motion behaviours. Nothing in this app should build a

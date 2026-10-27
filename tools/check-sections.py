@@ -55,7 +55,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "mpv-winui" / "mpv-winui"
 
-APPLANG = SRC / "Modules" / "Language" / "AppLang.cs"
+APPLANG = SRC / "Lexicon" / "Language" / "AppLang.cs"
 CATALOG = SRC / "Modules" / "Settings" / "Layout" / "SettingsSections.cs"
 LANGUAGES = SRC / "Languages"
 OPTIONS = (SRC / "Modules" / "Settings" / "SettingsPage.Options.cs",

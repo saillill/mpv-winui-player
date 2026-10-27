@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace mpv_winui.Modules.Language
+namespace mpv_winui.Lexicon.Language
 {
     /// <summary>
     /// Language-file concerns: enumerating available languages and resolving

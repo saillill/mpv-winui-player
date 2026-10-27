@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 
-namespace mpv_winui.Modules.Language;
+namespace mpv_winui.Lexicon.Language;
 
 /// <summary>
 /// Translations for the customize-mode shell.

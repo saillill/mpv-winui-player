@@ -1,5 +1,5 @@
 using System;
-using mpv_winui.Modules.Motion;
+using mpv_winui.Infrastructure.Motion;
 using System;
 
 namespace mpv_winui_test;

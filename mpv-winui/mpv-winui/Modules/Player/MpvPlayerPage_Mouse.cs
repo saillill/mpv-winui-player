@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Input;
 using Microsoft.UI.Xaml.Input;
-using mpv;
+using mpv_winui.Platform.Win32;
 using System;
 using Windows.Foundation;
 

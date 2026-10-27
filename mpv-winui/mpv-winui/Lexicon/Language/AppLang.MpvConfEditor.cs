@@ -1,6 +1,6 @@
 using System;
 
-namespace mpv_winui.Modules.Language
+namespace mpv_winui.Lexicon.Language
 {
     /// <summary>
     /// Strings for the in-app mpv.conf editor and the two buttons that reach it.

@@ -1,6 +1,6 @@
 using System;
 
-namespace mpv_winui.Modules.Motion;
+namespace mpv_winui.Infrastructure.Motion;
 
 /// <summary>
 /// The damped-spring curve, as arithmetic.

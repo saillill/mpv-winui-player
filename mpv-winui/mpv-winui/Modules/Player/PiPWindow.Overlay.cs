@@ -9,7 +9,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Composition;
 using mpv_winrt;
 using mpv_winui.Modules.Common.Utils;
-using mpv_winui.Modules.Motion;
+using mpv_winui.Infrastructure.Motion;
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;

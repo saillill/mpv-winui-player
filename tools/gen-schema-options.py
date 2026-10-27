@@ -1056,7 +1056,7 @@ def gen_section_captions(rows: list[dict]) -> str:
     """
     folders = sorted({folder_for(r) for r in rows})
 
-    lines = [BANNER, "namespace mpv_winui.Modules.Language\n{",
+    lines = [BANNER, "namespace mpv_winui.Lexicon.Language\n{",
              "    public partial class AppLang\n    {"]
     for folder in folders:
         _group, cap, desc, _icon = folder_meta(folder)
@@ -1120,7 +1120,7 @@ def gen_applang_partial(rows: list[dict], labels: dict) -> str:
     hand-written titles and the manual prose existed, so they never reached
     a window. One label map, two writers.
     """
-    lines = [BANNER, "namespace mpv_winui.Modules.Language\n{",
+    lines = [BANNER, "namespace mpv_winui.Lexicon.Language\n{",
              "    public partial class AppLang\n    {"]
     for r in sorted(rows, key=lambda x: x["prop"]):
         label = labels[f"SchemaLabel_{r['prop']}"]
@@ -1224,8 +1224,8 @@ def main() -> int:
         SETTINGS / "MpvSettings.Gen.cs": gen_names(rows),
         SETTINGS / "SettingsPage.Options.Gen.cs": gen_options(rows),
         SETTINGS / "SettingsPage.Sections.Gen.cs": gen_section_glue(rows),
-        APP / "Modules" / "Language" / "AppLang.Gen.cs": gen_applang_partial(rows, labels),
-        APP / "Modules" / "Language" / "AppLang.Sections.Gen.cs": gen_section_captions(rows),
+        APP / "Lexicon" / "Language" / "AppLang.Gen.cs": gen_applang_partial(rows, labels),
+        APP / "Lexicon" / "Language" / "AppLang.Sections.Gen.cs": gen_section_captions(rows),
         GEN_LABELS: json.dumps(labels, ensure_ascii=False, indent=2) + "\n",
     }
 
