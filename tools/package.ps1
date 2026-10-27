@@ -5,7 +5,7 @@ param(
     [switch]$SkipPublish
 )
 $ErrorActionPreference = 'Stop'
-$root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
 $publishDir = [System.IO.Path]::GetFullPath("$root\src\mpvw-app\bin\win-$Platform\publish") + [System.IO.Path]::DirectorySeparatorChar
 if ($SkipPublish) {
@@ -36,7 +36,7 @@ New-Item -ItemType Directory -Path $staging -Force | Out-Null
 
 # Publish output without PDBs (keeps the archive lean).
 robocopy $pub $staging /E /XF *.pdb /NFL /NDL /NJH /NJS /NP | Out-Null
-# The mpv config layer (mpv-winui-lazy) is included in the publish output by the
+# The mpv config layer (data) is included in the publish output by the
 # csproj and is auto-deployed to %LOCALAPPDATA%\mpv-winui\mpv on first run
 # (ConfigDeployer), so no manual copy is needed here.
 

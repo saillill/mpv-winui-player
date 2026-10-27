@@ -32,7 +32,7 @@ mpvw 是一个**三层结构**的 WinUI 3 播放器：C# 界面层 + C++/WinRT �
 | `mpv-conf-test` | net10.0 测试 | mpv.conf 解析/写回、纯逻辑（布局、调色、频谱、拼音索引…） | `mpv-winui/mpv-conf-test/` |
 | `mpv-winrt-test` | net10.0 测试 | 真机驱动 `mpv_winrt`（封面、标签、属性） | `mpv-winui/mpv-winrt-test/` |
 
-`mpv-winui-lazy/` 不是工程，是被 `csproj` 以 `Content Include` 整目录拷进输出、首次运行由
+`data/` 不是工程，是被 `csproj` 以 `Content Include` 整目录拷进输出、首次运行由
 `ConfigDeployer` 部署到 `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv` 的**配置层**。
 
 ### 1.2 C# 应用内部（`mpv-winui/mpv-winui/`）
@@ -64,7 +64,7 @@ mpvw 是一个**三层结构**的 WinUI 3 播放器：C# 界面层 + C++/WinRT �
 （第二个 libmpv 实例，软件渲染，供进度条缩略图）、`Types/`（12 个值类型）、`Events/`（15 组
 事件参数）。**MIDL 的 `import` 相对工程目录解析**，不是相对文件——移动 IDL 时要改 import 路径。
 
-### 1.4 配置层（`mpv-winui-lazy/`）
+### 1.4 配置层（`data/`）
 
 `mpv.conf`（20 KB，主配置）、`input.conf`（14 KB，键位 + `#menu:` 注解，右键菜单的真正来源）、
 `profiles.conf`、`script-opts.conf`、`scripts/`（18 个 Lua）、`script-opts/`、`fonts/`、`licenses/`、
@@ -238,7 +238,7 @@ compare-deploy.ps1                           ← 逐文件比对 + .xbf 计数 +
    要保证同一个 `namespace`，且 `csproj` 用的是默认通配（无显式列出），所以技术上无阻。
 3. **`docs/` 里 18 份文档有 4 份已被后续提交推翻**（见干扰项清单）。是删除、还是移到
    `docs/archive/`？我建议后者。
-4. **`mpv-winui-lazy/scripts/` 里 `dyn_menu.lua`(66 KB) 与 `dynamic_menu.lua`(6.6 KB) 并存**：
+4. **`data/scripts/` 里 `dyn_menu.lua`(66 KB) 与 `dynamic_menu.lua`(6.6 KB) 并存**：
    前者是 mpv-menu-plugin 的 GPL 源 + 本项目补丁，后者是本项目写的 VSR/HDR 动态子菜单，
    通过 `menu-ready` 脚本消息串联。**它们不是重复**。确认后我会在 `VERSIONS.md` 里写清关系，
    避免下一轮再被误判为重复项。

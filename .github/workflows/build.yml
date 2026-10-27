@@ -106,7 +106,7 @@ jobs:
     - name: Update Package
       run: |
         $env:VERSION_BUILD_NUMBER = "${{github.run_number}}"
-        .\update-package.ps1
+        .\tools\update-package.ps1
 
     - name: Restore nuget
       # packages.config restore, needed before the C++ component builds.
@@ -164,7 +164,7 @@ jobs:
 
     - name: Create Release Zip
       shell: pwsh
-      run: .\package.ps1 -Configuration $env:Configuration -Platform $env:Platform -SkipPublish
+      run: .\tools\package.ps1 -Configuration $env:Configuration -Platform $env:Platform -SkipPublish
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
@@ -177,7 +177,7 @@ jobs:
       shell: pwsh
       run: |
         $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
-        .\installer\build-installer.ps1 -Configuration $env:Configuration -Platform $env:Platform -SkipPublish -Version "1.0.${{github.run_number}}"
+        .\tools\installer\build-installer.ps1 -Configuration $env:Configuration -Platform $env:Platform -SkipPublish -Version "1.0.${{github.run_number}}"
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}

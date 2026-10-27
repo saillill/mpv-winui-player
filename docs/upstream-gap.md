@@ -86,7 +86,7 @@ git grep -l -i 'AppConfData' -- '*.cs' '*.xaml'   →  0 文件
 
 ### 本仓库的做法
 
-同样的三条设置，但放在 `mpv-winui-lazy/profiles.conf` 里，用 `profile-cond` 条件激活：
+同样的三条设置，但放在 `data/profiles.conf` 里，用 `profile-cond` 条件激活：
 
 ```ini
 [mpvw-sdr]
@@ -160,7 +160,7 @@ git rev-parse '5b3d46a:LICENSE.txt'         # 应不同（GPLv3）
 git grep -l -i 'AppConfData' -- '*.cs' '*.xaml'
 
 # 色彩设置的两处来源
-git grep -n 'd3d11-output' -- 'mpv-winui-lazy/profiles.conf'
+git grep -n 'd3d11-output' -- 'data/profiles.conf'
 git grep -n 'SetUserData("mpvw/color-kind"' -- 'src/mpvw-native/MpvPlayer.cpp'
 ```
 

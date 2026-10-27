@@ -1,4 +1,4 @@
-# Sync mpv-winui-lazy config project into the app config dir
+# Sync data config project into the app config dir
 # (%LOCALAPPDATA%\mpv-winui\mpv, unpackaged mode).
 param(
     [switch]$DryRun

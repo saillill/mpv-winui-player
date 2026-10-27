@@ -1,9 +1,9 @@
 # Builds the MSI installer for mpv-winui-player (WiX v5).
 #
 # Usage:
-#   .\installer\build-installer.ps1                    # publish + package
-#   .\installer\build-installer.ps1 -SkipPublish       # use existing publish output
-#   .\installer\build-installer.ps1 -Version 1.2.0
+#   .\tools\installer\build-installer.ps1                    # publish + package
+#   .\tools\installer\build-installer.ps1 -SkipPublish       # use existing publish output
+#   .\tools\installer\build-installer.ps1 -Version 1.2.0
 #
 # Output: dist\mpv-winui-setup-<Platform>-<Version>.msi
 param(
@@ -13,7 +13,7 @@ param(
     [switch]$SkipPublish
 )
 $ErrorActionPreference = 'Stop'
-$root = Split-Path -Parent $PSScriptRoot
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 if (-not (Get-Command wix -ErrorAction SilentlyContinue)) {
     Write-Error "WiX v5 not found. Install it with: dotnet tool install --global wix"
@@ -47,7 +47,7 @@ Write-Host "==> Building MSI (wix build, harvesting $pub)"
 $out = "$root\dist\mpv-winui-setup-$Platform-$Version.msi"
 New-Item -ItemType Directory -Path "$root\dist" -Force | Out-Null
 
-& wix build "$root\installer\product.wxs" `
+& wix build "$PSScriptRoot\product.wxs" `
     -d Version=$Version `
     -d UpgradeCode="E9A3F2B7-1C4D-4E5F-8A6B-9C0D1E2F3A4B" `
     -d SourceDir=$pub `

@@ -2,7 +2,7 @@
 
 > **状态**：v1，2026-09-21 制定。
 > **适用范围**：`mpv-winui/mpv-winui/Modules/Settings/**`、`Modules/Language/**`、
-> `Styles/Styles.xaml`、`tools/**` 中与设置相关的检查器，以及 `mpv-winui-lazy/mpv.conf`
+> `Styles/Styles.xaml`、`tools/**` 中与设置相关的检查器，以及 `data/mpv.conf`
 > 的托管区块。
 >
 > **效力**：本文件是设置界面后续**任何**改动的唯一依据。与本文件冲突的旧文档

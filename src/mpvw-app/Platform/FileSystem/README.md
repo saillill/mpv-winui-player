@@ -2,7 +2,7 @@
 
 ## 职责
 
-路径、选择器、启动外部程序、以及**配置层部署**（把 `mpv-winui-lazy/` 同步到
+路径、选择器、启动外部程序、以及**配置层部署**（把 `data/` 同步到
 `%LOCALAPPDATA%\mpv-winui\mpv`）。
 
 ## 入口文件
@@ -38,5 +38,5 @@
 
 ## 上下文裁剪提示
 
-改部署规则 → `ConfigDeployer.cs`（17.5 KB）+ `mpv-winui-lazy/deploy-config.ps1`。
+改部署规则 → `ConfigDeployer.cs`（17.5 KB）+ `data/deploy-config.ps1`。
 换路径 → 只改 `AppData.cs`，然后全库 grep 该常量确认没有重复定义。

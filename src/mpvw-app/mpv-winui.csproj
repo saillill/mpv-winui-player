@@ -181,7 +181,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\mpv-winui-lazy\input.conf">
+        <Content Include="..\..\data\input.conf">
             <Link>Config\input.conf</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -207,8 +207,8 @@
          seed %LOCALAPPDATA%\mpv-winui\mpv on first run (portable zip + MSI).
          Runtime dirs (cache) and the user-override menus.json are excluded. -->
     <ItemGroup>
-        <Content Include="..\..\mpv-winui-lazy\**\*" Exclude="..\..\mpv-winui-lazy\cache\**;..\..\mpv-winui-lazy\_cache\**">
-            <Link>mpv-winui-lazy\%(RecursiveDir)%(Filename)%(Extension)</Link>
+        <Content Include="..\..\data\**\*" Exclude="..\..\data\cache\**;..\..\data\_cache\**">
+            <Link>data\%(RecursiveDir)%(Filename)%(Extension)</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>

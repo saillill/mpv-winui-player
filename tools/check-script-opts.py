@@ -39,7 +39,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPTS = REPO / "mpv-winui-lazy" / "scripts"
+SCRIPTS = REPO / "data" / "scripts"
 DEFAULT_DLL = REPO / "src" / "libs" / "bin" / "x64" / "mpv-2.dll"
 
 

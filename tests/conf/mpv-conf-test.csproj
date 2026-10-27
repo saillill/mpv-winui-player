@@ -82,7 +82,7 @@
       this project reads a data file at all, so the item resolved to nothing and
       always had. Removed rather than redirected: the option schema now lives in
       mpv-winui\MpvConfOptions\mpv-options.json (shipped with the app) and
-      appdata-sample\mpv-conf-editor\, and if a test ever needs one of those, the
+      src\mpvw-app\AppData\mpv-conf-editor\, and if a test ever needs one of those, the
       dependency should be added together with the test that uses it.
     -->
 

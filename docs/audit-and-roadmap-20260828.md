@@ -74,7 +74,7 @@
 ## 2. 文档核验（怀疑论逐条，过期即修）
 
 已修：README.md / README_zh-CN.md 语言列表缺繁体中文；
-mpv-winui-lazy/README.md 中 "dialog.lua 保留" 与删除事实矛盾、
+data/README.md 中 "dialog.lua 保留" 与删除事实矛盾、
 `#menu:` 149→137、部署排除表补 `custom_menu.json`/`*.bak*`；
 VERSIONS.md 的 coverart.lua/recentmenu.lua 来源行（实为
 CogentRedTester/mpv-coverart 与 natural-harmonia-gropius/recent-menu，

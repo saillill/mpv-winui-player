@@ -1,4 +1,4 @@
-# mpv-winui-lazy
+# 配置层（data）
 
 mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)（mpv-lazy）裁剪而成：
 
@@ -50,7 +50,7 @@ mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com
 ## 部署
 
 ```powershell
-powershell -File mpv-winui-lazy\deploy-config.ps1
+powershell -File data\deploy-config.ps1
 ```
 
 目标目录：`%LOCALAPPDATA%\mpv-winui\mpv`。脚本使用 robocopy `/MIR`，会删除目标目录中
@@ -60,7 +60,7 @@ powershell -File mpv-winui-lazy\deploy-config.ps1
 `menus.json` 同样被排除——目标目录中的 `menus.json` 是用户的菜单覆盖配置（App 优先读取），部署不得清除。
 
 > 安装版与便携版首次运行时会由 App 自动执行一次等效部署（`ConfigDeployer`，
-> 源为本程序目录 `mpv-winui-lazy\`），手动运行本脚本仅在需要强制重置配置时使用。
+> 源为本程序目录 `data\`），手动运行本脚本仅在需要强制重置配置时使用。
 
 ## 许可证
 

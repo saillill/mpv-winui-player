@@ -21,12 +21,12 @@ Requires the .NET SDK, the Windows SDK, and the Visual Studio C++ build tools.
 |---|---|
 | `src/mpvw-app/` | the WinUI 3 application |
 | `src/mpvw-native/` | the C++/WinRT component hosting libmpv |
-| `mpv-winui-lazy/` | the mpv configuration layer, installed on first run |
+| `data/` | the mpv configuration layer, installed on first run |
 | `tests/` | the two test suites |
-| `tools/` | generators and the checkers the build runs |
+| `tools/` | generators, the checkers the build runs, and the packaging scripts |
 | `docs/` | design contracts and the upstream comparison |
 
 ## Licence
 
 LGPL-2.1. Third-party components and their licences are in
-[`mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md`](mpv-winui-lazy/licenses/THIRD_PARTY_NOTICES.md).
+[`data/licenses/THIRD_PARTY_NOTICES.md`](data/licenses/THIRD_PARTY_NOTICES.md).

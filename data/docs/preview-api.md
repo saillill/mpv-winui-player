@@ -46,7 +46,7 @@ mpv 使用。
 
 ### 2.2 读出端（Lua）
 
-`mpv-winui-lazy/scripts/preview_api_bridge.lua` 是 2026-10-22 新增的消费方：
+`data/scripts/preview_api_bridge.lua` 是 2026-10-22 新增的消费方：
 
 - 监听 `user-data/osc/draw-preview`；
 - 把请求规整成 `user-data/mpvw/preview-request`（同样字段），这样 WinUI 层可以
@@ -74,7 +74,7 @@ mpv 使用。
 
 ## 3 为什么默认配置下它静默
 
-`mpv-winui-lazy/mpv.conf:198` 写着：
+`data/mpv.conf:198` 写着：
 
 ```
 osc = no   # 【osc.lua】 禁用原生OSC（WinUI 自带控制条）

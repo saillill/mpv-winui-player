@@ -9,7 +9,7 @@ using mpv_winui.Infrastructure.Common.Utils;
 namespace mpv_winui.Platform.FileSystem
 {
     /// <summary>
-    /// Deployment of the bundled mpv config layer (mpv-winui-lazy) into
+    /// Deployment of the bundled mpv config layer (data) into
     /// %LOCALAPPDATA%\mpv-winui\mpv.
     ///
     /// The layer is app-owned infrastructure and is therefore kept in sync on
@@ -41,7 +41,7 @@ namespace mpv_winui.Platform.FileSystem
         /// <summary>Records what this class deployed, to tell "ours, untouched" from "user-edited".</summary>
         private const string ManifestName = "mpv-winui-deploy.manifest";
 
-        // Mirrors the exclusion list in mpv-winui-lazy/deploy-config.ps1: pure
+        // Mirrors the exclusion list in data/deploy-config.ps1: pure
         // runtime data that must never be created, copied or removed.
         private static readonly string[] ExcludedDirs = { "cache", "_cache", "watch_later", "gpu_cache", "icc_cache" };
 
@@ -93,7 +93,7 @@ namespace mpv_winui.Platform.FileSystem
 
         private static void Sync(string targetDir)
         {
-            var sourceDir = Path.Combine(System.AppContext.BaseDirectory, "mpv-winui-lazy");
+            var sourceDir = Path.Combine(System.AppContext.BaseDirectory, "data");
             if (!Directory.Exists(sourceDir))
             {
                 // Developer checkout / source run: no bundled layer, nothing to do.

@@ -1,6 +1,6 @@
 # License
 
-本配置层（mpv-winui-lazy）中由本项目自创的内容，包括但不限于：
+本配置层（`data/`）中由本项目自创的内容，包括但不限于：
 
 - `scripts/hdr_auto.lua`
 - `scripts/vsr_auto.lua`

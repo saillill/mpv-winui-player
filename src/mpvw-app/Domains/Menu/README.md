@@ -16,7 +16,7 @@
 - 右键菜单从 mpv `menu-data` 到 `Flyout` 的转换（B）
 - `menu.conf` 的解析 / 写入 / 树形编辑（C）
 
-**不负责**：`input.conf` 的键位本身（在 `mpv-winui-lazy/input.conf`，由 mpv 读）。
+**不负责**：`input.conf` 的键位本身（在 `data/input.conf`，由 mpv 读）。
 
 ## 入口文件
 
@@ -47,7 +47,7 @@
   `HiddenMenuTitles` 已被移除。
 - **菜单项顺序 = `input.conf` 注解顺序**（与 mpv-menu-plugin 一致），不要在 UI 层重排。
 - **`dyn_menu.lua` 是 GPL-2.0-only 的上游文件 + 有记录的本地补丁**，不是本项目代码。
-  改它要走 `mpv-winui-lazy/scripts/LOCAL-PATCHES.md` 的补丁流程，保持 GPL 边界。
+  改它要走 `data/scripts/LOCAL-PATCHES.md` 的补丁流程，保持 GPL 边界。
 - **`dynamic_menu.lua`（6.6 KB）与 `dyn_menu.lua`（66 KB）不是重复**：
   前者生成 VSR/HDR 动态子菜单，通过 `menu-ready` 脚本消息被后者通知刷新。
   合并它们会破坏这个契约。

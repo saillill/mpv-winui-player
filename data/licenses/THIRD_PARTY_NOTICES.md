@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-This config layer (`mpv-winui-lazy/`) bundles third-party components. Their
+This config layer (`data/`) bundles third-party components. Their
 licenses are stated in their file headers / upstream repositories and
 summarized below. Paths are relative to the layer root. Full license texts for
 fonts and MediaInfo ship in

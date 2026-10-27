@@ -62,7 +62,7 @@ private static readonly string[] UserOwnedFiles =
 
 `mpv.conf` 一旦存在就永不被配置层刷新。**这是对的，也是必须保留的** ——
 它正是"用户手改最高优先级"的实现方式。但它有个副作用：**仓库里
-`mpv-winui-lazy/mpv.conf` 的改进永远到不了已有安装**（该文件顶部的注释记录了
+`data/mpv.conf` 的改进永远到不了已有安装**（该文件顶部的注释记录了
 这个曾经的 bug）。
 
 **结论：不能靠"刷新 mpv.conf"来分发新选项，只能靠让界面写进标记块。**
@@ -70,7 +70,7 @@ private static readonly string[] UserOwnedFiles =
 
 ### 2.4 `mpv.conf` 不是 app 生成的，是手工编写的中文注释配置
 
-`mpv-winui-lazy/mpv.conf` 共 295 行，每行都带中文注释，还带自己的 include 链：
+`data/mpv.conf` 共 295 行，每行都带中文注释，还带自己的 include 链：
 
 ```
  include = "~~/profiles.conf"

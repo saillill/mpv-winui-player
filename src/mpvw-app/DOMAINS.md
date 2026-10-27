@@ -27,7 +27,7 @@
 | **I1** | **基础设施 · 动效** | `Modules/Motion/` | 5 | [README](Modules/Motion/README.md) |
 | **I2** | **基础设施 · 公共** | `Modules/Common/` | 33 | [README](Modules/Common/README.md) |
 | R | 资源 | `Assets/ Languages/ Menus/ MpvConfOptions/ Styles/ Themes/` | 69 | 见各区 README |
-| C | 配置层（非 C#） | `mpv-winui-lazy/` | 56 | [README](../mpv-winui-lazy/docs/README.md) |
+| C | 配置层（非 C#） | `data/` | 56 | [README](../data/docs/README.md) |
 | N | 原生层（C++/WinRT） | `mpv-winui/mpv-winrt/` | 40 | 见 `AGENTS.md` |
 
 文件数由 `Get-ChildItem -Recurse -File | Measure-Object` 实测（2026-10-22）。

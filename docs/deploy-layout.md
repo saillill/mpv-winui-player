@@ -28,7 +28,7 @@ publish 根目录：71 个文件 = 35 dll + 25 winmd + 6 pri + 2 exe + 2 pdb + 1
 ```
 
 六个应用自有子目录：`Assets/ Config/ Languages/ Menus/ MpvConfOptions/
-mpv-winui-lazy/`。
+data/`。
 
 ## 1. 为什么根目录的 dll 不能收进子目录
 
@@ -109,7 +109,7 @@ zh-CN/          ...
 | | `Languages/` | `LanguageManager` 读 `BaseDirectory/Languages/<lang>.json`（**路径硬编码**） |
 | | `Menus/` | `menus.json` 菜单定义（`MenuDefinitionSource.BundledPath`） |
 | | `MpvConfOptions/` | `mpv-options.json`，mpv.conf 编辑器的选项定义（`MpvConfSchemaService`） |
-| | `mpv-winui-lazy/` | 部署到 `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv` 的配置层 |
+| | `data/` | 部署到 `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv` 的配置层 |
 | | `Modules/` `Shell/` `Styles/` `Themes/`（仅 build） | 各页面编译出的 `.xbf`；publish 时内联进 `resources.pri` |
 | 框架 | `Microsoft.UI.Xaml/` | WinUI 的 XAML 资源 |
 | 语言 | `en-us/ de-DE/ …`（9 个） | Windows App SDK 的框架语言资源（`.mui`） |

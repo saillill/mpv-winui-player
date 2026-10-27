@@ -85,7 +85,7 @@ public static class ManagedMpvConfig
     /// this app's own class.</para>
     /// </summary>
     private static string BundledBodyPath =>
-        Path.Combine(System.AppContext.BaseDirectory, "mpv-winui-lazy", "mpv.conf");
+        Path.Combine(System.AppContext.BaseDirectory, "data", "mpv.conf");
 
     /// <summary>
     /// Lines an older build wrote into the managed block that this version no

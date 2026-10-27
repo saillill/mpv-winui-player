@@ -60,7 +60,7 @@
 
 | 文件 | 内容 |
 |---|---|
-| [`audit-and-roadmap-20260828.md`](audit-and-roadmap-20260828.md) | 2026-08-28 的系统审计与"长期路线图"。路线图已被 `prompt-v2/02-TASK.md` 的七项要求取代；保留因为 `mpv-winui-lazy/docs/README.md` 引用它 |
+| [`audit-and-roadmap-20260828.md`](audit-and-roadmap-20260828.md) | 2026-08-28 的系统审计与"长期路线图"。路线图已被 `prompt-v2/02-TASK.md` 的七项要求取代；保留因为 `data/docs/README.md` 引用它 |
 
 ---
 
