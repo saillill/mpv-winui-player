@@ -1,3 +1,4 @@
+using mpv_winui.Infrastructure.Common.Media;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;

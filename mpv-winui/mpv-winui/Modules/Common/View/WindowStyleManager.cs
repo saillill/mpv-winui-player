@@ -3,8 +3,8 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
+using mpv_winui.Infrastructure.Common;
 using mpv_winui.Modules.Common.Utils;
-using mpv_winui.Modules.Settings;
 using System;
 using Windows.UI.ViewManagement;
 
@@ -71,10 +71,10 @@ public sealed class WindowStyleManager : IDisposable
         // contrast) themselves — exactly the Windows Settings behavior.
         _window.SystemBackdrop = AppContext.AppSetting.BackdropType switch
         {
-            AppSettings.BackdropType_Mica => MicaController.IsSupported()
+            ThemeKeys.BackdropType_Mica => MicaController.IsSupported()
                 ? new MicaBackdrop()
                 : null,
-            AppSettings.BackdropType_Acrylic => DesktopAcrylicController.IsSupported()
+            ThemeKeys.BackdropType_Acrylic => DesktopAcrylicController.IsSupported()
                 ? new DesktopAcrylicBackdrop()
                 : null,
             _ => null,
@@ -109,8 +109,8 @@ public sealed class WindowStyleManager : IDisposable
     {
         return AppContext.AppSetting.ThemeType switch
         {
-            AppSettings.ThemeType_Dark => ElementTheme.Dark,
-            AppSettings.ThemeType_Light => ElementTheme.Light,
+            ThemeKeys.ThemeType_Dark => ElementTheme.Dark,
+            ThemeKeys.ThemeType_Light => ElementTheme.Light,
             // Auto: follow the system, contrast themes included.
             _ => ElementTheme.Default,
         };

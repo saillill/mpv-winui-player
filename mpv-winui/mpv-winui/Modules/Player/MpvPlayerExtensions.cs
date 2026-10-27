@@ -1,4 +1,5 @@
 using mpv_winrt;
+using mpv_winui.Infrastructure.Common.Media;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,16 +13,6 @@ namespace mpv_winui.Modules.Player
         One,
         None
     }
-
-    public enum FileType
-    {
-        File,
-        Folder,
-        Url,
-        Other,
-    }
-
-    public record FileItem(string Path, FileType Type = FileType.File);
 
     public enum OpenMode
     {

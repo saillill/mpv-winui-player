@@ -1,3 +1,4 @@
+using mpv_winui.Infrastructure.Common.Media;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using Microsoft.UI.Xaml;

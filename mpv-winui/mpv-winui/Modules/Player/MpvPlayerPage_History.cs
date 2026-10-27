@@ -1,3 +1,4 @@
+using mpv_winui.Infrastructure.Common.Media;
 using Microsoft.UI.Xaml.Controls;
 using mpv_winui.Modules.Common.Utils;
 using mpv_winui.Modules.Player.History;

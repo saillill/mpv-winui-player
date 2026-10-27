@@ -1,6 +1,6 @@
+using mpv_winui.Infrastructure.Common.Media;
 using Microsoft.Windows.AppLifecycle;
 using mpv_winui.Modules.Common.Utils;
-using mpv_winui.Modules.Player;
 using System;
 using System.Collections.Generic;
 using System.IO;

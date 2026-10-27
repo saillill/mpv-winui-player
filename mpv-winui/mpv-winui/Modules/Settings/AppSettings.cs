@@ -1,4 +1,5 @@
-﻿using mpv_winui.Platform.AppModel;
+﻿using mpv_winui.Infrastructure.Common;
+using mpv_winui.Platform.AppModel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -163,10 +164,10 @@ namespace mpv_winui.Modules.Settings
             _dataSetting.ImportAll(values);
         }
 
-        public const string ThemeType_Auto = "Auto";
+        public const string ThemeType_Auto = ThemeKeys.ThemeType_Auto;
 
-        public const string ThemeType_Light = "Light";
-        public const string ThemeType_Dark = "Dark";
+        public const string ThemeType_Light = ThemeKeys.ThemeType_Light;
+        public const string ThemeType_Dark = ThemeKeys.ThemeType_Dark;
 
         public string ThemeType
         {
@@ -174,11 +175,11 @@ namespace mpv_winui.Modules.Settings
             set => _dataSetting.SetValue(nameof(ThemeType), value);
         }
 
-        public const string BackdropType_Acrylic = "Acrylic";
+        public const string BackdropType_Acrylic = ThemeKeys.BackdropType_Acrylic;
 
-        public const string BackdropType_Mica = "Mica";
+        public const string BackdropType_Mica = ThemeKeys.BackdropType_Mica;
 
-        public const string BackdropType_None = "None";
+        public const string BackdropType_None = ThemeKeys.BackdropType_None;
 
         public string BackdropType
         {

@@ -1,8 +1,9 @@
+using mpv_winui.Infrastructure.Controls;
 using System.Collections.Generic;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 
-namespace mpv_winui.Modules.Settings.Controls;
+namespace mpv_winui.Infrastructure.Controls;
 
 /// <summary>
 /// Canonical control-bar icon catalog for the drag canvas. Glyphs and zone
