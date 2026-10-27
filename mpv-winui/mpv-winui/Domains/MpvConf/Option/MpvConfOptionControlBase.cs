@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using System;
 
 namespace mpv_winui.Domains.MpvConf.Option;

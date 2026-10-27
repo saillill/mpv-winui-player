@@ -6,7 +6,7 @@
     xmlns:local="using:mpv_winui.Domains.Playback"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:Microsoft.UI.Xaml.Media"
-    xmlns:ycc="using:mpv_winui.Modules.Common.View.Controls"
+    xmlns:ycc="using:mpv_winui.Infrastructure.Controls"
     d:DesignHeight="300"
     d:DesignWidth="400"
     mc:Ignorable="d">

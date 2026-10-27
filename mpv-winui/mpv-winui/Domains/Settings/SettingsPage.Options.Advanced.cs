@@ -2,7 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using mpv_winui.Platform.FileSystem;
 using mpv_winui.Lexicon.Language;
 using mpv_winui.Domains.Playback;

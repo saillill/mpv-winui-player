@@ -1,4 +1,4 @@
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using mpv_winui.Domains.Playback;
 using System;
 using System.Collections.Generic;

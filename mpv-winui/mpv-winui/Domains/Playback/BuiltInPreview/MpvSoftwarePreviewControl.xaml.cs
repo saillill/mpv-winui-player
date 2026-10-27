@@ -1,7 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using mpv_winrt;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using NLog;
 using System;
 using System.Threading.Tasks;

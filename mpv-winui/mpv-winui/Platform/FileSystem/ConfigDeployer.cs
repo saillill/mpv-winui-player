@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 
 namespace mpv_winui.Platform.FileSystem
 {

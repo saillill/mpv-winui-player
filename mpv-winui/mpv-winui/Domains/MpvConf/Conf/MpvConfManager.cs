@@ -34,7 +34,7 @@ public sealed class MpvConfManager
     /// project.</b> The call used to be an inline check against
     /// <c>ManagedMpvConfig.MpvConfPath</c> followed by <c>MpvConfWatcher.NoteOwnWrite()</c>,
     /// which gave this class a compile-time dependency on
-    /// <c>Modules.Settings</c> — and therefore on <c>AppContext</c> and WinUI.
+    /// <c>Domains.SettingsModel</c> — and therefore on <c>AppContext</c> and WinUI.
     /// <c>mpv-conf-test</c> links this file but not that module, so the whole suite
     /// stopped compiling, and two shipped defects (an escaped value that doubled
     /// on every launch until mpv.conf reached 896 MB, and six settings whose own

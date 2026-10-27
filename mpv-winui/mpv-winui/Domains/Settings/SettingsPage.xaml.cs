@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using mpv_winui.Infrastructure.Motion;
 using mpv_winui.Platform.AppModel;
 using mpv_winui.Platform.FileSystem;

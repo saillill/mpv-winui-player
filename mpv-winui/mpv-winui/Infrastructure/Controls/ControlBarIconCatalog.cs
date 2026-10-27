@@ -16,7 +16,7 @@ namespace mpv_winui.Infrastructure.Controls;
 public static class ControlBarIconCatalog
 {
     /// <summary>Font used by every control-bar glyph (same as the real bar).</summary>
-    public const string FluentFont = mpv_winui.Modules.Common.View.IconFonts.FluentSystemIconsUri;
+    public const string FluentFont = mpv_winui.Infrastructure.Common.View.IconFonts.FluentSystemIconsUri;
 
     /// <summary>Fixed transport buttons, in 原版 (classic) order.</summary>
     public static (string Id, string Label, string Glyph)[] FixedButtons { get; } =

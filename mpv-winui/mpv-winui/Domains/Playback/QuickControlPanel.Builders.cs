@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
-using mpv_winui.Modules.Common.View;
+using mpv_winui.Infrastructure.Common.View;
 using System;
 
 namespace mpv_winui.Domains.Playback;

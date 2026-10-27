@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using mpv_winui.Modules.Common.View;
+using mpv_winui.Infrastructure.Common.View;
 using mpv_winui.Infrastructure.Motion;
 using System;
 using System.Collections.Generic;

@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using mpv_winui.Domains.Playback;
+using mpv_winui.Infrastructure.Common.View;
 using System.Collections.Generic;
 
 namespace mpv_winui.Domains.Library;
@@ -78,9 +79,9 @@ public sealed record VideoFolderGroup(
     /// </summary>
     public string MediaIconPath =>
         string.IsNullOrWhiteSpace(Path)
-            ? Modules.Common.View.FluentIcons.Album
-            : Modules.Common.View.FluentIcons.Folder;
+            ? FluentIcons.Album
+            : FluentIcons.Folder;
 
     /// <summary>A fresh Geometry per access; see <see cref="MediaIconPath"/>.</summary>
-    public Geometry MediaIcon => Modules.Common.View.FluentIcons.Geometry(MediaIconPath);
+    public Geometry MediaIcon => FluentIcons.Geometry(MediaIconPath);
 }

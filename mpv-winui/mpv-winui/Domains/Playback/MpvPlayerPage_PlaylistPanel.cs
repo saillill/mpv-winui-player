@@ -5,7 +5,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Input;
 using Windows.Foundation;
 using Windows.Graphics;
-using mpv_winui.Modules.Common.View;
+using mpv_winui.Infrastructure.Common.View;
 using System;
 using System.IO;
 

@@ -1,7 +1,7 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using mpv_winui.Domains.Playback.BuiltInPreview;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

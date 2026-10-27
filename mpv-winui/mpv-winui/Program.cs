@@ -2,7 +2,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Settings;
 using Microsoft.Windows.AppLifecycle;
-using mpv_winui.Modules.Common.Threading;
+using mpv_winui.Infrastructure.Common;
 using System;
 using System.Threading;
 using WinRT;

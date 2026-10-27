@@ -1,5 +1,5 @@
 using Microsoft.UI.Xaml;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using System;
 
 namespace mpv_winui.Domains.Playback

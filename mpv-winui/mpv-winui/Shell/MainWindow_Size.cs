@@ -1,6 +1,6 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using mpv_winui.Modules.Common.View;
+using mpv_winui.Infrastructure.Common.View;
 using System;
 using Windows.Graphics;
 using WinRT;

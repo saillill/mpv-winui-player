@@ -1,5 +1,5 @@
 using Microsoft.UI.Xaml;
-using mpv_winui.Modules.Common.View;
+using mpv_winui.Infrastructure.Common.View;
 
 namespace mpv_winui
 {

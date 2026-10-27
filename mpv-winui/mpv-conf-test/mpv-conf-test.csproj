@@ -61,7 +61,7 @@
              property that matters is not "it wrote something" but "a reader
              either sees the whole old file or the whole new one, and no
              temporary is left behind", which only a real file system can show. -->
-        <Compile Include="..\mpv-winui\Modules\Common\Utils\AtomicFile.cs" Link="Common\Utils\AtomicFile.cs" />
+        <Compile Include="..\mpv-winui\Infrastructure\Common\Utils\AtomicFile.cs" Link="Common\Utils\AtomicFile.cs" />
         <!-- The mpvw:// protocol contract. Linked for the usual reason, and here
              it is the whole point: the scheme was written in four places (two
              constants and two string literals) and the parser accepted a fifth

@@ -8,7 +8,7 @@ using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Composition;
 using mpv_winrt;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using mpv_winui.Infrastructure.Motion;
 using System;
 using System.Numerics;
@@ -301,7 +301,7 @@ public sealed partial class PiPWindow
         // The popup inherits the PiP window's forced Dark scope; override
         // both the presenter background (theme brushes would resolve dark
         // down here) and the content theme to the app's resolved theme.
-        var theme = mpv_winui.Modules.Common.View.WindowStyleManager.ResolveTheme();
+        var theme = mpv_winui.Infrastructure.Common.View.WindowStyleManager.ResolveTheme();
         var light = theme == ElementTheme.Light;
         var presenterStyle = new Style(typeof(FlyoutPresenter))
         {

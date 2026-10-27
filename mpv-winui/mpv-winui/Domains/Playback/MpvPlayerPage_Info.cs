@@ -1,7 +1,7 @@
 using Microsoft.UI.Dispatching;
 using mpv_winrt;
 using mpv_winui.Platform.AppModel;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 
 namespace mpv_winui.Domains.Playback
 {

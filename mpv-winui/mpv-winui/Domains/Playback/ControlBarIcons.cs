@@ -11,7 +11,7 @@ public static class ControlBarIcons
     /// CenterPlayerControlStyle.xaml). This constant therefore has no consumer
     /// in code today; it is kept as the C# handle for the glyph so the next
     /// consumer does not have to re-derive it.</summary>
-    public const string Shuffle = mpv_winui.Modules.Common.View.FluentIcons.ArrowShuffle;
+    public const string Shuffle = mpv_winui.Infrastructure.Common.View.FluentIcons.ArrowShuffle;
 
     /// <summary>
     /// Fluent "Picture in picture" path (Microsoft Fluent UI System Icons,

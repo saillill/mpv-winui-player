@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using mpv_winui.Modules.Common.View;
+using mpv_winui.Infrastructure.Common.View;
 using mpv_winui.Infrastructure.Motion;
 using System;
 using System.Collections.Generic;

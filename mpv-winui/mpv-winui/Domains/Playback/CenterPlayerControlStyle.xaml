@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:player="using:mpv_winui.Domains.Playback"
-    xmlns:ycc="using:mpv_winui.Modules.Common.View.Controls"
+    xmlns:ycc="using:mpv_winui.Infrastructure.Controls"
     mc:Ignorable="d">
     <Style
         x:Key="CenterPlayerControlStyle"

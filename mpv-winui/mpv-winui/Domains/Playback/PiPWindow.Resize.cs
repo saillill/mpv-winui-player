@@ -8,7 +8,7 @@ using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Input;
 using mpv_winrt;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;

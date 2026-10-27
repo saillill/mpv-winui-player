@@ -1,7 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using mpv_winui.Platform.AppModel;
-using mpv_winui.Modules.Common.View;
+using mpv_winui.Infrastructure.Common.View;
 using mpv_winui.Platform.FileSystem;
 using mpv_winui.Domains.Menu.Service;
 using mpv_winui.Domains.Menu.MenuEditor;

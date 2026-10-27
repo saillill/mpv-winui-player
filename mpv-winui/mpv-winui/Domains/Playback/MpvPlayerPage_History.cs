@@ -1,6 +1,6 @@
 using mpv_winui.Infrastructure.Common.Media;
 using Microsoft.UI.Xaml.Controls;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using mpv_winui.Domains.Playlist;
 using System;
 using System.Threading.Tasks;

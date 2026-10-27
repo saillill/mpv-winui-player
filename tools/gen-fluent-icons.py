@@ -1,4 +1,4 @@
-"""Regenerate Modules/Common/View/FluentIcons.Gen.cs.
+"""Regenerate Infrastructure/Common/View/FluentIcons.Gen.cs.
 
     python tools/gen-fluent-icons.py
 
@@ -24,7 +24,7 @@ import urllib.parse
 import urllib.request
 
 REPO_RAW = "https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets"
-OUT = pathlib.Path(__file__).resolve().parent.parent / "mpv-winui/mpv-winui/Modules/Common/View/FluentIcons.Gen.cs"
+OUT = pathlib.Path(__file__).resolve().parent.parent / "mpv-winui/mpv-winui/Infrastructure/Common/View/FluentIcons.Gen.cs"
 
 # member name -> (icon folder in Microsoft's repo, svg file name)
 ICONS = [
@@ -119,7 +119,7 @@ def main() -> int:
 // file cannot lose them.
 // </auto-generated>
 
-namespace mpv_winui.Modules.Common.View;
+namespace mpv_winui.Infrastructure.Common.View;
 
 public static partial class FluentIcons
 {

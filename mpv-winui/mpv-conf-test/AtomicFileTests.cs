@@ -1,4 +1,4 @@
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 using System.Text;
 
 namespace mpv_conf_test;

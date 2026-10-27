@@ -1,6 +1,6 @@
 using Microsoft.UI.Windowing;
 using mpv_winrt;
-using mpv_winui.Modules.Common.Utils;
+using mpv_winui.Infrastructure.Common.Utils;
 
 namespace mpv_winui.Domains.Playback
 {
