@@ -8,8 +8,8 @@
 **负责**：`MpvPlayerPage` 的全部 UI 与其行为；`PlayerControl` 三套皮肤；PiP 窗口；
 库（Home / Videos / Music / Queue）的**视图**。
 
-**不负责**：库文件夹的持久化（`Modules/Settings/AppSettings.LibraryFolders.cs`）、
-媒体信息窗口（`Modules/MediaInfo`）、mpv 命令的真正执行（`mpv_winrt`）。
+**不负责**：库文件夹的持久化（`Domains/SettingsModel/AppSettings.LibraryFolders.cs`）、
+媒体信息窗口（`Domains/MediaInfo`）、mpv 命令的真正执行（`mpv_winrt`）。
 
 ## 入口文件
 
@@ -35,7 +35,8 @@
 ## 依赖
 
 - 依赖：`Shell/AppContext`（唯一全局出口）、`Settings/AppSettings`（读设置）、
-  `MpvConf/MpvConfOverrides`（判断选项是否被 mpv.conf 接管）、`Motion`、`Common`。
+  `Domains/MpvConf/MpvConfOverrides`（判断选项是否被 mpv.conf 接管）、
+  `Infrastructure/Motion`、`Infrastructure/Common`。
 - **不依赖**：`Menu/MenuEditor`、`MpvConf` 的编辑窗口、`MediaInfo`。
 
 ## 关键状态

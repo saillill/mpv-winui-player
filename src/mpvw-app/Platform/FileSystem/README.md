@@ -25,7 +25,7 @@
 
 ## 依赖
 
-- 依赖：`Common/Utils`（`AtomicFile`）、`Language`。
+- 依赖：`Infrastructure/Common/Utils`（`AtomicFile`）。
 - **不依赖** `Settings`、`Player`。
 
 ## 关键约定

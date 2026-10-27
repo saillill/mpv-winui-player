@@ -26,7 +26,7 @@
 
 ## 依赖
 
-- 只依赖 WinUI。**禁止**依赖任何 `Modules/*` 功能域与 `Shell`。
+- 只依赖 WinUI。**禁止**依赖任何 `Domains/*` 功能域与 `Shell`。
 
 ## 关键约定
 

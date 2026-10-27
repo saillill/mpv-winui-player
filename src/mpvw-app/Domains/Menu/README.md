@@ -38,7 +38,7 @@
 
 ## 依赖
 
-- 依赖：`MpvConf/Conf`（读写 conf 的通用能力）、`Language`、`Common`。
+- 依赖：`MpvConf/Conf`（读写 conf 的通用能力）、`Language`、`Infrastructure/Common`。
 - **不依赖**：`Player`（`MpvPlayerPage_MpvMenu.cs` 反过来依赖本区的模型，方向正确）。
 
 ## 关键约定

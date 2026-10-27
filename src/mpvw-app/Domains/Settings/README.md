@@ -1,27 +1,35 @@
 # 分区 2 · 设置 / Settings
 
-> **改这个区之前必须读 `docs/settings-design-contract.md`（74 KB）。**
-> 它是本区唯一权威：结构、命名、分组规则、UI 与交互约束、强制验证流程、
-> 33 条已知例外。本 README 只是索引，不能替代它。
+> **改这个区之前必须读 `docs/settings-contract.md`。**
+> 它是本区唯一权威：三层分工、命名与分组规则、强制验证流程、已知例外登记。
+> 本 README 只是索引，不能替代它。
 
 ## 职责
 
-设置窗口与设置页：6 个 category、69 个 section、**688 行**选项
-（326 手写 + 362 schema 生成）、布局定制（重排/重命名/隐藏/建文件夹）、
-mpv.conf 的双向同步。
+设置窗口与设置页：6 个 category、69 个 section、**681 行**选项
+（325 手写 + 356 schema 生成）、布局定制（重排/重命名/隐藏/建文件夹）、
+mpv.conf 的双向同步。数字用下面「数字」节的命令重算。
 
-**不负责**：`mpv.conf` 的文本编辑界面（`Modules/MpvConf`）、菜单编辑器（`Modules/Menu`）。
+**不负责**：`mpv.conf` 的文本编辑界面（`Domains/MpvConf`）、菜单编辑器（`Domains/Menu`）。
 
-## 数字（2026-10-22 实测，`tools/report-doc-numbers.py`）
+## 数字
 
-| 项 | 值 |
-|---|---:|
-| category | 6（program / video / audio / subtitles / playback / interface） |
-| section | 69 |
-| 选项行合计 | **688** = 326 手写 + 362 生成 |
-| 生成行的 `SchemaLabel_*` + `SchemaDesc_*` | 724（362 + 362） |
-| `AppSettings` 属性 | 701 |
-| mpv 选项映射 | 633 |
+| 项 | 值 | 重算 |
+|---|---:|---|
+| category | 6（program / video / audio / subtitles / playback / interface） | `python tools/check-sections.py` |
+| section | 69 | 同上 |
+| 选项行合计 | **681** = 325 手写 + 356 生成 | 见下 |
+| `AppSettings` 属性 | 695（`check-settings-drift`）/ 696（`check-mpvconf-precedence`） | 见 `docs/settings-contract.md` §6 |
+| mpv 选项映射 | 627 | `python tools/check-settings-drift.py` |
+
+```powershell
+# 手写行数
+(Select-String -Path (Get-ChildItem src/mpvw-app/Domains/Settings -Filter 'SettingsPage.Options*.cs' |
+  ? { $_.Name -notmatch '\.Gen\.' }).FullName -Pattern '^\s+new Option\s*$' -AllMatches |
+  % { $_.Matches.Count } | Measure-Object -Sum).Sum        # 325
+# 生成行数
+(Select-String -Path src/mpvw-app/Domains/Settings/SettingsPage.Options.Gen.cs -Pattern 'list\.Add\(new Option').Count   # 356
+```
 
 ## 入口文件
 
@@ -31,9 +39,9 @@ mpv.conf 的双向同步。
 | `SettingsPage.xaml(.cs)` | 页面根（70 KB） |
 | `SettingsPage.Options.cs` | **树构建器 `BuildSettings`** + 四张表：`sectionMap`（唯一来源）、`sectionOrder`、`optionOrder`、`categoryOrder` |
 | `SettingsPage.Options.Gen.cs` | **生成文件，禁止手改**（362 行，`tools/gen-schema-options.py`） |
-| `Modules/Settings/Layout/SettingsSections.cs` | category / section 的 Id、图标、标题、描述 |
-| `Modules/Settings/Layout/SettingsLayout.cs` | 用户定制的数据模型 + `SettingsLayoutStore` |
-| `Modules/Settings/Controls/Option*.xaml(.cs)` | 每种 `OptionType` 一个渲染器 |
+| `Domains/Settings/Layout/SettingsSections.cs` | category / section 的 Id、图标、标题、描述 |
+| `Domains/Settings/Layout/SettingsLayout.cs` | 用户定制的数据模型 + `SettingsLayoutStore` |
+| `Domains/Settings/Controls/Option*.xaml(.cs)` | 每种 `OptionType` 一个渲染器 |
 
 ## 对外接口
 
@@ -46,7 +54,8 @@ mpv.conf 的双向同步。
 
 ## 依赖
 
-- 依赖：`MpvConf/Conf`（读写 mpv.conf）、`Language`、`Common/Utils`（`AtomicFile`、`ConfigWriteQueue`）。
+- 依赖：`Domains/MpvConf/Conf`（读写 mpv.conf）、`Lexicon/Language`、
+  `Infrastructure/Common/Utils`（`AtomicFile`、`ConfigWriteQueue`）。
 - **不依赖**：`Player`、`Menu`、`MediaInfo`。
 
 ## 硬规则（违反会静默出错）

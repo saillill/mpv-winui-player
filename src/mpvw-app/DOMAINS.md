@@ -6,7 +6,7 @@
 > 分区**不移动任何文件**——文件名与命名空间保持不变，分区由这份索引 + 各区 README
 > 定义。理由见 `docs/domain-partition-plan-20261021.md` §6.1：物理移动会牵动 XAML
 > 资源 URI、`mpv-conf-test.csproj` 的显式 `Compile Include`、以及
-> `docs/settings-design-contract.md` 里 33 条已知例外，收益不抵风险。
+> `docs/settings-contract.md` §4 登记的已知例外，收益不抵风险。
 
 ## 分区表
 

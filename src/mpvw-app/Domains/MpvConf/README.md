@@ -5,8 +5,8 @@
 `mpv.conf` 的三件事：**读**（解析成结构）、**编辑**（带 schema 补全的编辑器）、
 **写回**（应用的托管块 + 用户手改的保留）。
 
-**不负责**：把设置值翻译成 mpv 命令（那是 `Modules/Settings/MpvSettings.cs`）；
-运行期监听文件变化（`Modules/Settings/MpvConfWatcher.cs`，因为它要和 `MpvConfOverrides`
+**不负责**：把设置值翻译成 mpv 命令（那是 `Domains/MpvConf/MpvSettings.cs`）；
+运行期监听文件变化（`Domains/MpvConf/MpvConfWatcher.cs`，因为它要和 `MpvConfOverrides`
 协同，放在 Settings 侧）。
 
 ## 入口文件
@@ -40,6 +40,6 @@
 
 ## 上下文裁剪提示
 
-改解析 → 只读 `MpvConfParser.cs` + `MpvConfLine.cs`，跑 `mpv-conf-test`（496 个用例）。
+改解析 → 只读 `MpvConfParser.cs` + `MpvConfLine.cs`，跑 `mpv-conf-test`（527 个用例）。
 改 schema → `MpvConfOptions/mpv-options.json`（820 条）+ `Schema/`，改完跑
 `tools/gen-schema-options.py --check`。

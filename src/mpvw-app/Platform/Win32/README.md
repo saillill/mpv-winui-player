@@ -25,7 +25,7 @@
 
 ## 依赖
 
-- 只依赖 .NET。**不依赖任何 `Modules/*`、`Shell`、`Language`。**
+- 只依赖 .NET。**不依赖任何 `Domains/*`、`Shell`、`Language`。**
 
 ## 关键约定
 

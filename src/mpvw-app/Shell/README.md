@@ -29,8 +29,9 @@
 
 ## 依赖
 
-- 依赖：`Modules/Player`（内容区）、`Modules/Settings`（窗口）、`Modules/Language`、`Common`。
-- 被依赖：**所有区都依赖 `AppContext`**，所以它的公共表面只允许增加、不允许改签名。
+- 依赖：`Domains/Playback`（内容区）、`Domains/Settings`（窗口）、`Lexicon/Language`、`Infrastructure/Common`。
+- 被依赖：**所有区都依赖 `AppContext`**（命名空间就是 `mpv_winui`，不是 `mpv_winui.Shell`），
+  所以它的公共表面只允许增加、不允许改签名。
 
 ## 导航项（唯一来源）
 

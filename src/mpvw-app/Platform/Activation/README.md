@@ -28,7 +28,7 @@
 
 ## 历史（避免重造）
 
-云端曾有第二套实现 `Modules/ActivationRegistration/`（6 个文件：Service + 两套 XAML 控件
+云端曾有第二套实现 `Platform/Activation/`（6 个文件：Service + 两套 XAML 控件
 + Item 模型），那是**死代码**——`SettingsPage.xaml` 声明了 `xmlns:ar=` 却从未使用。
 本地已删除（`0b17cc0`），文件关联 UI 并入设置页。**不要把它加回来。**
 

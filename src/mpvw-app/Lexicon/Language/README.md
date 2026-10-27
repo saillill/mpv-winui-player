@@ -5,19 +5,19 @@
 9 种语言的词汇表。`AppLang` 是**唯一的用户可见文案来源**，`Languages/*.json` 是
 运行时加载的译文。
 
-## 实测数字（2026-10-22，`tools/report-doc-numbers.py`）
+## 实测数字
 
 | 文件 | 属性数 | 可手改 |
 |---|---:|---|
 | `AppLang.cs` | 1367 | 是 |
-| `AppLang.Gen.cs` | 724 | **否**（生成器覆盖，362 label + 362 desc） |
+| `AppLang.Gen.cs` | 712 | **否**（生成器覆盖，356 label + 356 desc） |
 | `AppLang.Shell.cs` | 67 | 是 |
 | `AppLang.Sections.Gen.cs` | 44 | **否** |
 | `AppLang.MpvConfEditor.cs` | 6 | 是 |
-| **合计** | **2208** | |
+| **合计** | **2196** | |
 
-9 个 JSON 各有 1485 键；`zh-CN.json` 有 2179（多出的 724 是人工撰写的
-`Schema*` 解释性译文，其余 8 种语言这些键为 0）。
+9 个 JSON 各 1526 键，`zh-CN.json` 2238（多出的 **712** 是 `Schema*` 译文，
+其余 8 种语言这些键为 0）。缺口与后果见 [`docs/localization.md`](../../../../docs/localization.md) §2。
 
 ## 入口文件
 
@@ -53,7 +53,7 @@
 ## 改完必跑
 
 ```bash
-python tools/check-localization.py    # 2208 属性 × 9 文件
+python tools/check-localization.py    # 2196 属性 × 9 文件
 ```
 
 ## 上下文裁剪提示

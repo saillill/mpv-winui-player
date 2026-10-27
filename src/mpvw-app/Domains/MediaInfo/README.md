@@ -25,7 +25,7 @@
 
 ## 依赖
 
-- 依赖：`Common`（`BaseWindow`、`WindowsManager`）、`Language`。
+- 依赖：`Infrastructure/Common`（`BaseWindow`、`WindowsManager`）、`Language`。
 - **不依赖 `Player`**。窗口只接收一个路径参数，不读播放器状态。
 
 ## 已知事实

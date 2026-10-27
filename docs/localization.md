@@ -1,118 +1,189 @@
-﻿# 本地化与菜单栏约定
+# 本地化与菜单
 
-## 两条文案渠道
+用户可见文案只有一条通路：`AppLang` 属性 → `Languages/<lang>.json`。
+菜单是第二条受同一条检查器约束的通路。数字可重算（`§6`）。
 
-1. WinUI 界面文案（按钮、菜单、对话框、设置页等）一律通过
-   `AppLang` 属性读取，文案放在 `mpv-winui/mpv-winui/Languages/<lang>.json`
-   （属性名 = JSON key，共 9 种语言，含 zh-TW）。
-2. mpv 侧文案（右键菜单、OSD、脚本提示）沿用部分 Lua 脚本内置的 i18n 表
-   （如 `dyn_menu.lua`、`select.lua`、`hdr_auto.lua`），这是独立渠道，
-   不并入 AppLang；`zh-TW` 在 lua 读取点归一化为 `zh-CN`，避免 OSD 回退英文。
-   （实测有 5 个脚本提到 `zh-TW`：`dynamic_menu.lua`、`dyn_menu.lua`、
-   `hdr_auto.lua`、`save_global_props.lua`、`select.lua`。）
+---
 
-## `AppLang` 分三个文件（**改之前先确认改哪一个**）
+## 1. `AppLang` 的构成
 
-| 文件 | 属性数 | 内容 | 可手改 |
-|---|---:|---|---|
-| `Modules/Language/AppLang.cs` | 1348 | 手写词汇 | ✅ |
-| `Modules/Language/AppLang.Shell.cs` | 67 | 手写的 shell / 媒体库 / 截屏 / 拖放词汇 | ✅ |
-| `Modules/Language/AppLang.Gen.cs` | 724 | **362** 条生成设置行的 `SchemaLabel_*` / `SchemaDesc_*` | ❌ 生成器覆盖 |
-| `Modules/Language/AppLang.Sections.Gen.cs` | 26 | 13 个生成分区的标题与描述 | ❌ 同上 |
+`Lexicon/Language/` 下 9 个文件，共 **2196** 个属性：
 
-> 这四个数字是 2026-10-21 逐个文件实测的。此前本表写的是 1315 / 1096 / 548，
-> **三个都过时了**（`548` 与实际生成的 362 行不符，`1096` 是 548×2 的乘积，
-> `1315` 也少于现在的 1348）。表格是照着旧提交写的，没有人复核过。
-> 复核方法：`public string (\w+) \{ get; set; \}` 逐文件计数。
+| 文件 | 属性 | 行数 | 手改? |
+|---|---:|---:|---|
+| `AppLang.cs` | 1367 | 2063 | 是 |
+| `AppLang.Gen.cs` | 712 | 724 | **否**（生成器覆盖，356 label + 356 desc） |
+| `AppLang.Shell.cs` | 67 | 229 | 是 |
+| `AppLang.Sections.Gen.cs` | 44 | 56 | **否** |
+| `AppLang.MpvConfEditor.cs` | 6 | 30 | 是 |
 
-⚠️ **格式是 `public string X { get; set; }`，带空格。** 写正则统计属性时
-漏掉空格会得到 0 —— 有些工具就踩过（`parse_applang_props` 一度写成
-`\w+ \{ get; set; \}`，少一个空格就静默返回空集）。
+属性格式固定为 `public string X { get; set; }`——**带空格**。
+`AppLang` 的属性靠反射读取，正则漏掉空格会静默返回空集。
 
-⚠️ **顺带注意**：`CustomizeStrings.cs` 是一张**独立**的伴随表（49 个键），
-**不是** AppLang 成员。它的类文档解释了原因：AppLang 属性靠反射按名读取，
-无法同时承载译文。这 49 个键在 9 份 JSON 里都存在，而
-`check-localization` 会把它们报成「没有 AppLang 属性的伴随表键（expected）」——
-**这是预期的，不是缺陷**。
+`CustomizeStrings.cs`（88 行）是**独立的伴随表**，不是 `AppLang` 成员：
+它从语言 JSON 里按字符串键取值（`Get(key)`），因为 `AppLang` 靠反射读属性、
+无法同时承载「没有对应属性的键」。设置界面的定制模式专用。
 
-⚠️ **但「没有 AppLang 属性」不等于「可以留着」。** 这条 warning 曾经是
-一个桶：任何没有属性对应的键都落进去，于是 11 个**设置早已删除**的键
-（6 个 `SettingsTheme*` / `SettingsHelpTheme*`、`ThemeCustomName`、
-4 个生成分区 `SectionGenGeneralPlatform|Terminal` 及其描述）在 9 份文件里
-一直躺着，而检查器说「expected」。现在分成两类：
+---
 
-| 类别 | 判据 | 级别 |
-|---|---|---|
-| 伴随表 | 前缀 `Customize`，或键为 `ApplyAndExit`（`CustomizeStrings.Load` 读它们） | warning（预期） |
-| 陈旧键 | 其余一切：无 AppLang 属性，也没有任何读取者 | **ERROR** |
+## 2. 九个语言文件
 
-判据是**有没有读取者**，不是键名像不像。删设置时顺手删掉它的文案键。
+`src/mpvw-app/Languages/*.json`，运行时加载。
 
-## 新增/修改文案的流程
+| 文件 | 键数 | 缺 `AppLang` 属性 | 多余键 | `Schema*` 键 |
+|---|---:|---:|---:|---:|
+| `de-DE` / `en-US` / `es-ES` / `fr-FR` / `ja-JP` / `ko-KR` / `ru-RU` / `zh-TW` | 各 1526 | **712** | 42 | 0 |
+| `zh-CN` | 2238 | **0** | 42 | **712** |
 
-1. 在 `AppLang.cs` 增加属性（默认值写英文），并保证属性名唯一。
-2. 同步更新 9 份 `Languages/*.json`（缺 key 会导致校验脚本报错）。
-3. 代码中只引用 `AppContext.AppLang.<Property>`，不在 XAML/C# 直接写面向
-   用户的硬编码文本。
+两个事实：
 
-> 若改的是**生成行**的文案（`SchemaLabel_*` / `SchemaDesc_*`），
-> 应改生成器或 schema，**不要手改 `AppLang.Gen.cs`** —— 下一次生成会覆盖。
->
-> **生成键的真实覆盖状况（2026-10-21 实测，此前的说法是错的）**：
->
-> | | 数量 |
-> |---|---:|
-> | 生成的 `SchemaLabel_*` / `SchemaDesc_*` 属性 | **724** |
-> | `zh-CN.json` 提供的 | **724**（全覆盖） |
-> | 其余 8 份各自缺失 | **724** |
->
-> 所以准确的说法是「**除 zh-CN 外的 8 份文件一个都没有**」，而不是
-> 「9 份一个都没有」。zh-CN 那 724 条是**人工撰写的解释性译文**
-> （见 `d9fc05a`，提交信息写着 manual-sourced descriptions），不是直译：
-> 例如 `SchemaDesc_Mpv_access_references` 写的是「打开文件时跟随其中指向其它
-> 文件的引用……缩略图生成这类自动扫描的场景下建议关闭」，把后果和适用场景都
-> 讲清楚了。
->
-> 这决定了补全工作的性质：剩下 7 种语言 × 362 条标签 + 362 条说明，
-> 要做出同等质量需要逐条判断语义，不是照着英文替换。**本轮没有做**，
-> 因为无法在不牺牲质量的前提下完成；账仍记在设计约束 §7 A-16。
-> 非中文界面的 362 行生成设置仍然显示英文标签与英文说明。
+1. **只有 `zh-CN` 是完整的。** 其余 8 个各缺 712 个 `Schema*` 键——那正好是生成层
+   `AppLang.Gen.cs` 的全部属性。缺的这 712 个键在界面上回落成英文 schema 文本。
+2. **每个文件都有 42 个「多余键」**（没有对应 `AppLang` 属性）。这是设计：
+   41 个 `Customize*` + 1 个 `Apply*` 属于上面那张伴随表。
+   `check-localization` 把它们归为 `expected`，不是错误。
 
-> **编辑 JSON 的两条实测陷阱**（都已在本次工作里踩过）：
-> 1. `Path.read_text()` **会规范化换行**。之后 `split("\r\n")` 得到的是
->    单条超长行，「这个键在不在」的答案一律为 False。用 `read_bytes()` 再
->    `decode`。
-> 2. 不要用 `json.dump` 重写这些文件。它们是一个键一行、两空格缩进、CRLF、
->    无 BOM、以 `}\r\n` 结尾。重写会把 87 行的新增变成 1400 行的整文件重写，
->    而 `git diff --stat` 里看不出差别 —— 只能靠行数看出来。**按行增删。**
+缺 `Schema*` 这一项已从 ERROR 降级为 **WARNING**（`check-localization.py:209-219`），
+所以默认九文件口径现在退出码 0。窄口径 `--languages=zh-CN,en-US` 同样 0。
 
-## 菜单栏
+---
 
-- 菜单结构（顺序、子菜单、图标、动作）由 `Menus/menus.json` 定义；
-  文案通过 `labelKey` 引用 `AppLang` 属性，切语言时会重建菜单栏。
-- 用户可以在 `%LOCALAPPDATA%\mpv-winui\mpv\menus.json` 覆盖内置配置
-  （改顺序、增删项、加图标、加 mpv 命令项）；文件损坏时回退内置默认。
-- 叶子项两种行为：`action`（必须是 `MpvPlayerPage_MenuBar.cs` 里
-  `KnownMenuActions` 白名单的 id）或 `mpvCommand`（原始 mpv 命令）。
-- 未知 `action`、未知 `labelKey`、既无 action 也无命令的项会被跳过并记录
-  日志，不影响启动。
-- **菜单栏的构建不依赖 mpv。** 它挂在 `MpvPlayerPage` 构造函数里，与
-  `ApplyLocalizedStrings()` 并列（只依赖 `AppLang` + `menus.json`，两者在
-  `AppContext.Init` 里已就绪）。曾经它只在 `MpvPlayerPage_Loaded` 的
-  `if (_isPlayerInitialized)` 分支里构建 —— 也就是**必须先等 mpv 起来**，
-  于是「中文出现慢」和「中文永远不出现」是同一个缺陷的两种表现。
-  `_isPlayerInitialized` 分支里保留一次幂等重建。
+## 3. 加载与校验
 
-## 校验
+### 3.1 路径
+
+| 用途 | 路径 |
+|---|---|
+| 内置语言文件 | `<AppContext.BaseDirectory>\Languages\<code>.json` |
+| 用户覆盖 | `%LOCALAPPDATA%\mpv-winui\languages` |
+| 默认语言 | `en-US`（`LanguageManager.DefaultLanguage`） |
+
+用户目录优先于内置（`UserLanguageDirectory`，`LanguageManager.cs:17-21`）。
+`GetAvailableLanguages` 枚举内置目录，过滤掉不安全的文件名；
+目录缺失时回落内置的 `[en-US, zh-CN]`。
+
+### 3.2 `LanguageCode.IsSafe` 为什么存在
+
+语言代码来自持久化的 `CurrentLanguage` 设置，曾被直接拼进
+`Path.Combine(userDir, code + ".json")`。一个 `..\..\some` 就能让应用打开
+语言目录之外的文件——读的只是一次 JSON 解析，但「打开哪个路径」不该由存储的字符串决定。
+
+规则：只接受 ASCII 字母数字，`xx` 或 `xx-YY` 形状，允许更多子标签
+（`zh-Hans-CN`），总长 ≤ 64，每段长度 1..8。分隔符、点、冒号、空格、盘符一律拒绝。
+
+它单独成文件、不依赖 WinUI 与 `AppContext`，所以 `mpv-conf-test` 能链接它并直接断言
+——与 `MpvProtocolUri`、`MpvConfValueCodec` 同样的理由。
+
+### 3.3 切换语言时发生什么
+
+`AppContext.SwitchLanguage(code)`：
+
+1. `LanguageManager.Normalize(code)` 归一化（校验也在这里，因为值会被持久化并
+   插值进 mpv 命令）
+2. 写 `AppSetting.CurrentLanguage`
+3. `LanguageManager.Load(AppLang, lang)`
+4. `SendMpvCommand($"set user-data/mpvw/language {lang}")` —— 让 Lua 菜单脚本
+   重新解析自己的翻译表
+5. 触发 `LanguageChanged`
+
+第 4 步是必要的：`dyn_menu.lua` / `dynamic_menu.lua` / `select.lua` 各自内置 8 语言表，
+它们通过 `user-data/mpvw/language` 这个属性知道该用哪一份。
+
+---
+
+## 4. 菜单
+
+### 4.1 `menus.json`
+
+`src/mpvw-app/Menus/menus.json`——**顶层是数组**，7 个条目，递归共 **67 个节点**。
+每个节点：
+
+| 字段 | 含义 |
+|---|---|
+| `id` | 稳定标识 |
+| `labelKey` | 必须是 `AppLang` 的属性名 |
+| `action` | 必须是 `RegisterMenuAction("…")` 注册过的 id |
+| `children` | 子菜单（可选） |
+
+结构受 `tools/menus.schema.json` 约束，由 `check-localization.py` 内联校验
+（不依赖 `jsonschema` 包）。
+
+### 4.2 用户覆盖
+
+`MenuDefinitionSource.UserPath` = `%LOCALAPPDATA%\mpv-winui\mpv\menus.json`。
+**用户目录优先于内置**，且 `ConfigDeployer` 把 `menus.json` 列进 `UserOwnedFiles`、
+`deploy-config.ps1` 把它排除在 robocopy `/MIR` 之外——否则部署会删掉用户的自定义。
+
+### 4.3 另一条菜单通路：`input.conf` 的 `#menu:`
+
+播放页的右键菜单来自 `dyn_menu.lua` 的 `menu-data` 属性，项目按 `input.conf` 里的
+注释顺序渲染（与 mpv-menu-plugin 一致），纯文本、无图标、不重命名。
+要隐藏条目直接改 `input.conf`。
+
+---
+
+## 5. 改文案的规则
+
+| 规则 | 依据 |
+|---|---|
+| 所有用户可见文案必须走 `AppLang` | 不接受在 XAML 或 C# 里写死字符串 |
+| 新文案至少写 `en-US.json` + `zh-CN.json` | 其余 7 种回落英文字面量；缺失会被检查器报为 hand-written 缺失 |
+| 改 `.Gen.` 属性无效 | 生成器下次覆盖；改生成器或 `MpvConfOptions/mpv-options.json` |
+| `CustomizeStrings` 的键没有 `AppLang` 属性是设计 | 检查器按 `Customize*` + `Apply*` 归为 expected，不要「修」 |
+| 改完跑 `python tools/check-localization.py` | 2196 属性 × 9 文件 + `menus.json` 结构 + 动作白名单 |
+
+---
+
+## 6. 重算本文每个数字
 
 ```powershell
-python tools\check-localization.py              # 必查项
-python tools\check-localization.py --xaml-audit # 额外输出硬编码文案清单
+# 每个 AppLang 文件的属性数与行数
+python -c "
+import re, glob, os
+for f in sorted(glob.glob('src/mpvw-app/Lexicon/Language/AppLang*.cs')):
+    t = open(f, encoding='utf-8-sig').read()
+    print(os.path.basename(f),
+          len(re.findall(r'public\s+string\s+\w+\s*\{\s*get;\s*set;\s*\}', t)),
+          t.count(chr(10)))
+"                          # 合计 2196
+
+# 每种语言的缺口
+python -c "
+import json, glob, os, re
+props = set()
+for f in glob.glob('src/mpvw-app/Lexicon/Language/AppLang*.cs'):
+    props |= set(re.findall(r'public\s+string\s+(\w+)\s*\{\s*get;\s*set;\s*\}', open(f, encoding='utf-8-sig').read()))
+for f in sorted(glob.glob('src/mpvw-app/Languages/*.json')):
+    d = json.load(open(f, encoding='utf-8-sig'))
+    print(os.path.basename(f), len(d), 'missing', len(props - set(d)),
+          'extra', len(set(d) - props),
+          'schema', sum(1 for k in d if k.startswith('Schema')))
+"
+
+# 菜单节点数
+python -c "
+import json
+d = json.load(open('src/mpvw-app/Menus/menus.json', encoding='utf-8-sig'))
+def walk(a):
+    return sum(1 + (walk(x['children']) if isinstance(x, dict) and isinstance(x.get('children'), list) else 0) for x in a)
+print('top', len(d), 'total', walk(d))       # top 7, total 67
+"
+
+# CustomizeStrings 行数
+(Get-Content src\mpvw-app\Lexicon\Language\CustomizeStrings.cs).Count      # 88
+
+python tools/check-localization.py                                          # 2196 props, 9 files
+python tools/check-localization.py --languages=zh-CN,en-US                   # 窄口径
 ```
 
-也可以 `.\build.ps1 -Configuration Debug -Platform x64 -CheckLocalization`
-在构建后自动校验。注意 `-Debug x64` 这类缩写不可靠（`-Debug` 是 PowerShell
-公共参数，不会设置 `-Configuration`），必须写全参数名。
+---
 
-**读输出时注意**：这个检查器把「缺键」按**家族**汇总（`724x Schema*`），
-而不是逐条打印 724 个名字 —— 一行读不完的清单会被学会跳过。
+## 7. 原因不明
+
+- **为什么只有 `zh-CN` 补齐了 712 个 `Schema*`**：其余 8 种（含 `en-US`）为 0。
+  `check-localization` 的注释把缺口登记为已知例外，但"为什么 default 语言 `en-US`
+  也没有"没有说明——生成行的标签本来就取自英文 schema 文本，所以 `en-US` 缺键时
+  界面上看到的中英文都正确，缺口在别的语言才显形。这个解释是从行为推的，
+  代码里没有写。
+- **`AppLang.cs`（1367 属性 / 2063 行）为什么持续手写增长而不拆分**：它已有
+  `Shell` / `MpvConfEditor` 两个 partial，但主体仍是单文件。
