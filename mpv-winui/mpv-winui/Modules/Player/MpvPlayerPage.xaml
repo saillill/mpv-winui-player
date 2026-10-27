@@ -6,6 +6,7 @@
     xmlns:bc="using:mpv_winui.Modules.Common.Convertor"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:mpv_winui.Modules.Player"
+    xmlns:lib="using:mpv_winui.Domains.Library"
     xmlns:view="using:mpv_winui.Modules.Common.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pc="using:mpv_winui.Modules.Player"
@@ -642,7 +643,7 @@
              PathVisibility is Collapsed for the music library's groups: those are
              built from an album tag, have no path, and must not reserve the grey line
              or every album heading would indent away from the video ones. -->
-        <DataTemplate x:Key="VideoFolderHeaderTemplate" x:DataType="local:VideoFolderGroup">
+        <DataTemplate x:Key="VideoFolderHeaderTemplate" x:DataType="lib:VideoFolderGroup">
             <Grid
                 Margin="0,16,0,8"
                 ColumnSpacing="{StaticResource MpvSpaceS}">
