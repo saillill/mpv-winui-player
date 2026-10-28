@@ -91,6 +91,16 @@ def check():
     else:
         notes.append("Win32WindowHelper.ShowNoActivate uses SW_SHOWNOACTIVATE")
 
+    # The launch driver is development-only: it lived in tools/mvpw-mcp, which
+    # .gitignore keeps out of the repository, and it has since moved to the
+    # archive. Its absence is a fact about this checkout, not a defect in the
+    # app, so it is reported and skipped -- returning early here is what kept
+    # the FileNotFoundError from masking the two checks above.
+    if not TOOLS.is_file():
+        notes.append("SKIPPED launch-site scan: %s is not present (development-"
+                      "only driver, not tracked)" % TOOLS.relative_to(REPO).as_posix())
+        return problems, notes
+
     tools_text = TOOLS.read_text(encoding="utf-8", errors="replace")
     launches = len(re.findall(r"Start-Process '\{EXE\}'", tools_text))
     with_env = len(re.findall(r"MVPW_NO_ACTIVATE='1'", tools_text))

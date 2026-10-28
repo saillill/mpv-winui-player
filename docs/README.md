@@ -13,7 +13,7 @@
 | [`deploy-layout.md`](deploy-layout.md) | 配置层如何部署、构建产物在哪、哪些文件不能被覆盖 | 改部署或打包的人 |
 | [`localization.md`](localization.md) | `AppLang` 构成、9 个语言文件的缺口、菜单与 `menus.json` | 改文案或菜单的人 |
 | [`motion.md`](motion.md) | 三条曲线、三个时长、Translation 通道、减弱动画闸门 | 加或改动效的人 |
-| [`verification.md`](verification.md) | 26 个检查器、两个测试套件、构建链路、**验证盲区** | 任何人提交前 |
+| [`verification.md`](verification.md) | 28 个检查器、两个测试套件、构建链路、**验证盲区** | 任何人提交前 |
 | [`upstream-gap.md`](upstream-gap.md) | 与上游的许可边界、15 条提交的逐条处置、结构性差异 | 想「上游有这个我们为什么没有」的人 |
 | [`history-filtering-log.md`](history-filtering-log.md) | 历史筛选工作的记录，只增不改 | 查历史决策的人 |
 
@@ -41,7 +41,11 @@
 - 文件数与行数统一只数 `.cs` / `.xaml`；`README.md` 等非代码文件不计入。
 - 重算命令：文件数与行数见 [`architecture.md`](architecture.md) §7，依赖方向同节，
   检查器与测试见 [`verification.md`](verification.md) §6。
-- `tools/report-doc-numbers.py` 未入库且已失效（硬编码旧根，抛 `FileNotFoundError`），
-  不要依赖它。
+- `tools/` 下只有被跟踪的脚本可用。开发期的一次性工具（`report-doc-numbers.py` 等
+  17 个）现在归在仓库内的 `archive/`（被 `.gitignore` 排除，不随仓库分发）；其中两个本来就已失效，
+  原因见 `verification.md` §4.5。
 - 本目录的文档必须经 `check-doc-freshness.py`：不得写日期基线、不得保留历史态表述、
   不得声称某个仍存在的文件已被删除。
+- 文档里写出的 `tools/`、`docs/` 路径必须能在**干净检出**里找到，由
+  `check-doc-tooling.py` 用 `git ls-files` 判定。本机存在但被 `.gitignore` 排除的
+  路径不算存在：README 的读者 clone 之后没有它。

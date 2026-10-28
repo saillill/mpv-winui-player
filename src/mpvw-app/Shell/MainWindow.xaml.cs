@@ -275,6 +275,13 @@ namespace mpv_winui
             // WinUI to derive a name from, so it is set from the same string.
             AutomationProperties.SetName(ShellOpenFileButton, lang.LibraryOpenFile);
 
+            // The title row's hamburger is a bare glyph, so it has neither a
+            // name nor a tooltip unless one is set. Its word depends on the
+            // pane state, which UpdateShellPaneChrome owns; that method calls
+            // this one at startup and on every language change, and calls
+            // ApplyPaneToggleText for the state half.
+            ApplyPaneToggleText();
+
             BuildShellOpenMenu();
             ShellOpenFileIcon.Data = FluentIcons.Geometry(FluentIcons.Folder);
 
@@ -359,6 +366,25 @@ namespace mpv_winui
                 || ShellNav.DisplayMode == NavigationViewDisplayMode.Expanded
                 ? Visibility.Collapsed
                 : Visibility.Visible;
+
+            ApplyPaneToggleText();
+        }
+
+        /// <summary>
+        /// Names the hamburger after what pressing it will do.
+        ///
+        /// The button is a single FontIcon: UIA reports a control with no
+        /// accessible name and no tooltip, which is what a screen reader reads
+        /// out for the one control that opens the whole navigation pane. The
+        /// word is Expand or Collapse depending on IsPaneOpen, so it is derived
+        /// here rather than fixed in markup.
+        /// </summary>
+        private void ApplyPaneToggleText()
+        {
+            var lang = AppContext.AppLang;
+            var label = ShellNav.IsPaneOpen ? lang.Collapse : lang.Expand;
+            AutomationProperties.SetName(ShellPaneToggleButton, label);
+            ToolTipService.SetToolTip(ShellPaneToggleButton, label);
         }
 
         /// <summary>

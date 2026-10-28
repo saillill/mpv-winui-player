@@ -202,7 +202,7 @@ section 的 `Id` **就是** `AppLang` 的属性名（类文档 `:10-25`）。例
 
 | # | 当前事实 |
 |---|---|
-| A-2 | `tools/report-missing-options.py` **不可用**：`:375` 报 `curated names that are not mpv options: ['cuda-decode-device']`（该名在 `:219`），而 `mpv-options.json` 里该选项 0 次。脚本产出的任何数字都不成立 |
+| A-2 | `report-missing-options.py`（现归在 `archive/`，不随仓库分发）**不可用**：`:375` 报 `curated names that are not mpv options: ['cuda-decode-device']`（该名在 `:219`），而 `mpv-options.json` 里该选项 0 次。脚本产出的任何数字都不成立 |
 | A-7 | `Options.Advanced.cs` 文件头**没有**说明注释（第 1 行是 `using Microsoft.UI.Xaml;`）。文件里 102 行 |
 | A-11 | `MpvSpaceXl` **不存在**（全仓 0 次）；`MpvSpaceL` 有 **5 处**消费者（`MediaInfoUserControl.xaml:19`、`MpvPlayerPage.xaml:1116,1417,1994,2049`） |
 | A-13 | 缩进一致（生成 `SettingsPage.Options.Gen.cs:32,34` 与手写 `SettingsPage.Options.Playback.cs:35` 同为 12/16 空格）。不同的是**语法形态**：生成用 `list.Add(new Option { … });`，手写是集合表达式元素 `new Option { … },` |

@@ -224,6 +224,18 @@ namespace mpv_winui.Domains.Playback
             SelectionQueueText.Text = lang.LibrarySelectionQueue;
             SelectionPropertiesText.Text = lang.LibrarySelectionProperties;
 
+            // The three action buttons draw an icon plus a TextBlock, so UIA
+            // reports the button with an empty name: it does not fold a child
+            // TextBlock's text into the parent. Named and tooltipped here, in
+            // the same pass that sets the visible words, so a language change
+            // cannot leave the accessible name in the previous one.
+            AutomationProperties.SetName(SelectionPlayButton, lang.LibrarySelectionPlay);
+            AutomationProperties.SetName(SelectionQueueButton, lang.LibrarySelectionQueue);
+            AutomationProperties.SetName(SelectionPropertiesButton, lang.LibrarySelectionProperties);
+            ToolTipService.SetToolTip(SelectionPlayButton, lang.LibrarySelectionPlay);
+            ToolTipService.SetToolTip(SelectionQueueButton, lang.LibrarySelectionQueue);
+            ToolTipService.SetToolTip(SelectionPropertiesButton, lang.LibrarySelectionProperties);
+
             // The count string is a format with a {0}, so the bar is refreshed rather
             // than assigned - the number is the point of the label.
             UpdateSelectionBar();

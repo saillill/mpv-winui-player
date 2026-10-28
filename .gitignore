@@ -394,18 +394,16 @@ _cloud/
 @AutomationLog.txt
 
 # ---------------------------------------------------------------
-# Development-only material, kept local and out of the published tree.
-# The published repository carries product code, the tests, the build
-# entry points, the checkers CI runs, and the contract docs. Everything
-# that exists to measure, repair or archive one past round of work lives
-# outside it.
+# Development-only material.
+#
+# The one-off scripts, the MCP driver, the repair queue and the archived
+# agent workspaces all live in ./archive/ now, which the next block
+# ignores as a whole. Listing their old locations here as well was how a
+# tracked document could cite a path that a clean checkout does not have:
+# `check-doc-tooling.py` exists because four documents did exactly that.
+#
+# AGENTS.md is NOT development-only. It is the entry point for anyone
+# changing the code, so it ships with the repository and the documentation
+# checkers police it like any other document.
 # ---------------------------------------------------------------
-/tools/mvpw-mcp/
-/tools/ui-repair/
-/tools/*.py
-!/tools/check-*.py
-!/tools/gen-*.py
-/docs/alignment/
-/docs/ui-repair/
-/docs/legacy-agent-workspaces/
-/AGENTS.md
+/archive/

@@ -2,9 +2,17 @@ using mpv_winrt;
 
 namespace mpv_winrt_test
 {
+    /// <summary>
+    /// The drive-the-real-component suite: initialise, batch command semantics,
+    /// real playback callbacks and property observation.
+    ///
+    /// The file was called UnitTest1.cs and the class Tests -- the template's
+    /// default names, kept while it accumulated six real tests. A name that says
+    /// "unfinished" is how a suite gets mistaken for a placeholder and skipped.
+    /// </summary>
     [Parallelizable(ParallelScope.Self)]
     [TestFixture]
-    public class Tests
+    public class MpvPlayerTests
     {
         [Test]
         public void MpvInitialize()

@@ -94,7 +94,8 @@ WinUI 有自己的控制栏，原生 OSC 会和它叠在一起。OSC 关掉，�
 ## 4 验证
 
 ```bash
-python tools/mvpw-mcp/verify_preview_api.py
+# 该验证脚本随 MCP 工具栈一起归到了仓库内的 archive/ 目录（.gitignore 排除，不随仓库分发）；
+# 这里保留它当初校验的协议行为作为规格描述。
 ```
 
 实测输出（2026-10-22，9/9 通过）：

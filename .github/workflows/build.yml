@@ -48,6 +48,22 @@ jobs:
       # the fifth, and it was not in CI.
       run: python tools/check-xaml.py
 
+    - name: Check documented paths exist in a clean checkout
+      # Four documents cited tools/ paths that only exist on a developer's
+      # machine (they were gitignored), so a reader who cloned the repository
+      # was sent to files that were not there. Every other doc checker asks
+      # whether a citation resolves locally; this one asks git.
+      run: python tools/check-doc-tooling.py
+
+    - name: Check documentation still describes this tree
+      run: python tools/check-doc-freshness.py
+
+    - name: Check accessible names and tooltips
+      # Icon-only commands carry neither, and UIA does not fold a child
+      # TextBlock's text into the parent control. This checker had no failure
+      # path at all until it was found printing 38 findings and exiting 0.
+      run: python tools/check-ui-tooltips.py
+
     - name: Check generated settings are fresh
       # gen-schema-options.py --check existed and was never invoked by anything,
       # so the ~14k lines of *.Gen.cs in the tree were only ever re-generated

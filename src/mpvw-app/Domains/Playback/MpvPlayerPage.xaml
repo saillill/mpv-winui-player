@@ -319,12 +319,14 @@
                 MinHeight="18"
                 Padding="0"
                 HorizontalAlignment="Stretch"
+                AutomationProperties.LabeledBy="{Binding ElementName=IndexLetterText}"
                 Background="Transparent"
                 BorderThickness="0"
                 Click="IndexRailButton_Click"
                 IsEnabled="{x:Bind HasContent, Mode=OneWay}"
                 PointerEntered="IndexRailLetter_PointerEntered">
                 <TextBlock
+                    x:Name="IndexLetterText"
                     HorizontalAlignment="Center"
                     FontSize="{StaticResource MpvTransportTimeFontSize}"
                     Opacity="{x:Bind HasContent, Converter={StaticResource IndexLetterOpacity}, Mode=OneWay}"
@@ -1326,6 +1328,7 @@
                                 Style="{StaticResource BodyTextBlockStyle}" />
                             <Button
                                 Padding="4,0"
+                                AutomationProperties.LabeledBy="{Binding ElementName=LibrarySelectionClearText}"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 Click="SelectionClear_Click">
@@ -1533,6 +1536,7 @@
                             x:Name="LibraryOpenFileButton"
                             Margin="0,4,0,0"
                             HorizontalAlignment="Left"
+                            AutomationProperties.LabeledBy="{Binding ElementName=LibraryOpenFileButtonText}"
                             Click="LibraryOpenFileButton_Click"
                             Style="{StaticResource AccentButtonStyle}">
                             <!-- The official puts the affordance's own icon in

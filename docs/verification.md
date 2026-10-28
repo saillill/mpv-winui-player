@@ -38,18 +38,19 @@
 
 ---
 
-## 2. 26 个检查器
+## 2. 28 个检查器
 
-总数：`(git ls-files 'tools/check-*.py' | Measure-Object).Count` → **26**。
+总数：`(git ls-files 'tools/check-*.py' | Measure-Object).Count` → **28**。
 
 | 由谁调用 | 数量 | 名单 |
 |---|---|---|
 | `build.ps1` | 4 | `check-xaml`、`check-script-opts`、`check-winrt-events`、`check-localization`（`-CheckLocalization` 时） |
-| CI | 5 | 上述 4 个 + `check-settings-drift` |
-| **两边都不跑** | **21** | 其余 |
+| CI | 8 | 上述 4 个 + `check-settings-drift`、`check-doc-tooling`、`check-doc-freshness`、`check-ui-tooltips` |
+| **两边都不跑** | **20** | 其余 |
 
-能跑全 26 个的只有 `tools/ui-repair/gate.py`，但它所在目录被 `.gitignore` 排除，
-且未被任何 `.ps1` / `.yml` 调用（实测 0 处）。
+本仓库没有任何一条链路会跑全 28 个：`build.ps1` 跑 4 个、CI 跑 8 个，两边并集 8 个。
+开发期曾有一份能跑全量的 gate 脚本，它随该轮工作一起归到了 `archive/`（不随仓库分发），
+因此本仓库不再提供全量入口——这也正是下面那张「两边都不跑」表存在的原因。
 
 | 检查器 | 比较的两样东西 | 链路 |
 |---|---|---|
@@ -79,11 +80,17 @@
 | `check-doc-ranges` | 每条 `file:a-b` 的起止是否同一块（glob 扫 `docs/*.md`） | 手动 |
 | `check-doc-references` | 文档里 `file:line` 是否存在（同上） | 手动 |
 | `check-doc-freshness` | 文档里不得有日期基线 / 历史态 / 已删文件的虚报声称 | 手动 |
+| `check-doc-tooling` | 文档写出的 `tools/`、`docs/` 路径 ↔ `git ls-files`（干净检出里是否真有） | 手动 |
+| `check-advanced-flag` | 折叠后每个分区实际留下的行数 ↔ 分区底限与折叠底限；行序是否按分区成组 | 手动 |
+| `check-ui-tooltips` | 每个交互控件的可访问名称与工具提示 ↔ 三种设置路径（XAML、`Apply*Strings`、`FindDescendant`） | 手动 |
 
 `check-doc-ranges` 与 `check-doc-references` 用 glob 扫 `docs/*.md`，排除
 `history-filtering-log.md`（只增不改的记录，它的 `file:line` 是正确的历史）。
 `check-doc-freshness` 扫得更宽：`docs/*.md` + 根 `README.md` + `src/**/README.md` +
 `data/docs/*.md`，跳过 `bin`/`obj`/`packages`。
+`check-doc-tooling` 用同一组扫描根，但问的是另一个问题：`check-doc-references` 校验的
+`file:line` 在**本机工作区**能否解析，而本机工作区也包含被 `.gitignore` 排除的材料。
+文档里写出来给人运行或阅读的路径，必须在**干净检出**里存在——判定用 `git ls-files`。
 
 `check-doc-references` 只有**一个**豁免：所在行被标成「已修 / 已删除 / ✅」的引用。
 这类行记录的是那处改动发生时的行号，是正确的历史，改它等于伪造记录。**上游文件不豁免**
@@ -176,11 +183,11 @@ PiP、HDR/VSR、MediaInfo 标签与封面、`mpv.conf` 优先级、任何 UI。
 
 ### 4.5 其余既存问题
 
-- `tools/report-missing-options.py` **不可用**：`exit 1`，报
+- `report-missing-options.py`（现归在 `archive/`，不随仓库分发）**不可用**：`exit 1`，报
   `curated names that are not mpv options: ['cuda-decode-device']`（该名在
   `mpv-options.json` 里 0 次）。它产出的任何数字都不成立。
-- `tools/report-doc-numbers.py` 未入库且已失效（指向旧路径，抛 `FileNotFoundError`），
-  不要依赖它。
+- `report-doc-numbers.py`（同上，同样在 `archive/`）**已失效**：指向旧路径，抛
+  `FileNotFoundError`。两个脚本产出的任何数字都不成立。
 
 ### 4.6 没有 UI 层测试
 
@@ -198,10 +205,12 @@ PiP、HDR/VSR、MediaInfo 标签与封面、`mpv.conf` 优先级、任何 UI。
 | `check-settings-drift` | 不跑 | **跑** |
 | `gen-schema-options.py --check` | 不跑 | **跑** |
 | `check-localization` | 可选 | **必跑** |
+| `check-doc-tooling` / `check-doc-freshness` / `check-ui-tooltips` | 不跑 | **跑** |
 | `--no-incremental` | 有 | **无** |
 
-本地过、CI 红是可能的（`check-settings-drift` 与生成器新鲜度只在 CI 跑）。
-CI 过也不等于 26 个检查器都过——两边并集只有 5 个。
+本地过、CI 红是可能的（`check-settings-drift`、生成器新鲜度，以及三个只在 CI 跑的
+文档与无障碍检查器）。
+CI 过也不等于 28 个检查器都过——两边并集只有 8 个。
 
 **加检查器的三条规则**：
 ① 先看它红——注入**真实**违规，不是合成违规；② 拒绝不可信输入——
@@ -216,7 +225,7 @@ CI 过也不等于 26 个检查器都过——两边并集只有 5 个。
 ```powershell
 Select-String -Path build.ps1 -Pattern 'check-|MSBuild|dotnet build|dotnet test|Write-Host "==>'
 
-(git ls-files 'tools/check-*.py' | Measure-Object).Count                    # 26
+(git ls-files 'tools/check-*.py' | Measure-Object).Count                    # 28
 Select-String -Path build.ps1 -Pattern 'check-[\w-]+\.py' -AllMatches | % { $_.Matches.Value } | Sort-Object -Unique   # 4
 Select-String -Path .github/workflows/build.yml -Pattern 'check-[\w-]+\.py' -AllMatches | % { $_.Matches.Value } | Sort-Object -Unique   # 5
 (Get-ChildItem -Recurse -File -Include *.ps1,*.yml | Select-String 'gate\.py').Count   # 0
@@ -242,6 +251,7 @@ Select-String -Path tests\conf\mpv-conf-test.csproj -Pattern 'Compile Include=' 
 
 ## 7. 原因不明
 
-- **为什么 21 个检查器不在任何链路上**：`gate.py` 能跑全 26 个，但它所在目录被
-  `.gitignore` 排除、也没有任何 `.ps1`/`.yml` 调它。是"只在需要时手动跑"的设计，
-  还是流水线遗漏，仓库里没有说明。
+- **为什么 20 个检查器不在任何链路上**：它们是针对具体改动类型的局部约束（改设置、
+  改分区、改文档各有一组），全量跑一次约 8 秒但会连无关的检查器一起红。是"只在需要时
+  手动跑"的设计，还是流水线遗漏，仓库里没有说明——但 CI 已经补进了三个曾经完全不跑
+  的（文档断链、文档新鲜度、无障碍），因为那三个的失效是静默的。

@@ -77,7 +77,7 @@ python tools/check-sections.py
 python tools/check-localization.py
 python tools/check-settings-drift.py
 python tools/check-empty-sections.py
-python tools/diagnose-advanced-flag.py
+python tools/check-advanced-flag.py
 python tools/check-conf-lines.py
 ```
 

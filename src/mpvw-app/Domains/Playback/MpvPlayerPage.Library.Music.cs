@@ -215,6 +215,18 @@ namespace mpv_winui.Domains.Playback
             AlbumShuffleText.Text = lang.LibraryShufflePlay;
             AlbumAddToText.Text = lang.LibraryAlbumAddTo;
 
+            // Same reason as the selection bar: an icon beside a TextBlock
+            // leaves the button itself unnamed to UIA, so the four album
+            // actions carry their accessible name and tooltip from here.
+            AutomationProperties.SetName(AlbumBackButton, lang.LibraryAlbumBack);
+            AutomationProperties.SetName(AlbumPlayAllButton, lang.LibraryPlayAll);
+            AutomationProperties.SetName(AlbumShuffleButton, lang.LibraryShufflePlay);
+            AutomationProperties.SetName(AlbumAddToButton, lang.LibraryAlbumAddTo);
+            ToolTipService.SetToolTip(AlbumBackButton, lang.LibraryAlbumBack);
+            ToolTipService.SetToolTip(AlbumPlayAllButton, lang.LibraryPlayAll);
+            ToolTipService.SetToolTip(AlbumShuffleButton, lang.LibraryShufflePlay);
+            ToolTipService.SetToolTip(AlbumAddToButton, lang.LibraryAlbumAddTo);
+
             AlbumTitle.Text = _openAlbum ?? string.Empty;
 
             // The artist line is the album's own artist, which every track of an

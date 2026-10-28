@@ -19,20 +19,33 @@ namespace mpv_winrt_test;
 [Explicit("Probe: needs the native payloads and a tagged media file.")]
 public class CoverArtProbe
 {
-    private const string Clip = @"D:\Workspace\WorkBuddy\MPV\.workbuddy\tmp\clips\tagged.mp3";
+    /// <summary>
+    /// A media file with cover art, supplied by the person running the probe.
+    ///
+    /// This was a constant pointing at D:\Workspace\WorkBuddy\... - one
+    /// developer machine's scratch directory. It never existed on any other
+    /// checkout, so the fixture could only ever report "test clip not present"
+    /// and the probe has never actually run anywhere. An environment variable
+    /// keeps the probe honest: unset still skips (an [Explicit] fixture must not
+    /// fail a normal run), but set runs it.
+    /// </summary>
+    private static readonly string? Clip =
+        Environment.GetEnvironmentVariable("MVPW_COVERART_CLIP");
 
     [Test]
     public async Task CoverArtComesBackAsAJpegStream()
     {
-        if (!File.Exists(Clip))
+        var clip = Clip;
+        if (string.IsNullOrEmpty(clip) || !File.Exists(clip))
         {
-            Assert.Ignore("test clip not present");
+            Assert.Ignore("set MVPW_COVERART_CLIP to a media file with cover art");
+            return;
         }
 
         var player = new MpvPlayer();
         player.Initialize("", 1, 1, 30, DisplayColorKind.SDR, 60);
 
-        player.LoadFile(Clip, 0);
+        player.LoadFile(clip, 0);
 
         // LoadFile is asynchronous inside mpv; the path property is what the
         // cover getter keys off, so wait for it rather than for a fixed delay.
@@ -75,15 +88,17 @@ public class CoverArtProbe
     [Test]
     public async Task CoverArtForAPathReadsThatFileRatherThanThePlayingOne()
     {
-        if (!File.Exists(Clip))
+        var clip = Clip;
+        if (string.IsNullOrEmpty(clip) || !File.Exists(clip))
         {
-            Assert.Ignore("test clip not present");
+            Assert.Ignore("set MVPW_COVERART_CLIP to a media file with cover art");
+            return;
         }
 
         var player = new MpvPlayer();
         player.Initialize("", 1, 1, 30, DisplayColorKind.SDR, 60);
 
-        var hasCover = player.TryGetCoverArtForPath(Clip, out var stream);
+        var hasCover = player.TryGetCoverArtForPath(clip, out var stream);
         TestContext.Out.WriteLine($"TryGetCoverArtForPath with nothing playing: {hasCover}, size {stream?.Size}");
 
         Assert.That(hasCover, Is.True,
