@@ -1,16 +1,14 @@
 """Report doc references that point at nothing -- excluding ones that describe history.
 
-A citation is only reported when both of these hold, because a checker that cries wolf
-gets ignored and then misses the real thing:
+A citation is reported unless the row it sits in is marked fixed. That single exemption
+exists because a row saying "已修 / 已删除 / ✅" quotes line numbers from BEFORE the fix:
+those numbers are correct history, and "correcting" them would falsify a record that is
+right.
 
-  1. The row it sits in is not marked fixed. A row that says "已修 / 已删除 / ✅" quotes
-     line numbers from BEFORE the fix; those numbers are correct history, and
-     "correcting" them would falsify a record that is right.
-
-  2. The file it names is not an upstream file. A document may cite an upstream path
-     that does not exist here by design -- the local equivalent has a different name.
-     `upstream-gap.md` states which commit it compares against, so a filename that
-     only exists upstream is not a broken link.
+**There is no exemption for upstream files.** A path that only exists in the upstream
+repository cannot be resolved here, so it cannot be checked -- which means it does not
+belong in a citation at all. Describe the upstream code by what it does, and cite only
+files this tree contains.
 
 The symbol check is deliberately absent: a citation sentence names several symbols, and
 checking which of them exist produces a false positive per symbol rather than one finding.
@@ -44,7 +42,6 @@ REF = re.compile(r"([A-Za-z0-9_\-./\\]+\.(?:cs|xaml|py|ps1|lua|idl|json|md))"
                  r":(\d+)(?:[,\-/](\d+))?")
 
 FIXED = ("已修", "已删除", "已作废", "已解决", "✅")
-UPSTREAM = ("上游", "upstream", "ikas-mc", "原版")
 
 
 def resolve(path):
@@ -74,18 +71,14 @@ def main():
             le = text.find("\n", m.end())
             row = text[ls:le if le > 0 else len(text)]
 
-            # Look at the enclosing bullet too, not just the physical line: a
-            # citation often sits on its own line under a lead-in that says what it
-            # refers to ("上游对这两个函数的全部调用点都在 ..." followed by the
-            # filenames). Checking only the line calls that upstream reference
-            # missing, because nothing on its own line says "上游".
+            # The whole enclosing paragraph, not just the physical line: a table row
+            # can wrap, and a lead-in sentence can name the file on the line after it.
+            # Judging by the single line would report a correct citation as broken.
             para_start = max(text.rfind("\n\n", 0, m.start()) + 2, m.start() - 400)
             context = text[para_start:le if le > 0 else len(text)]
             checked += 1
 
             if any(tag in context for tag in FIXED):
-                continue
-            if any(tag in context for tag in UPSTREAM):
                 continue
 
             state = resolve(raw)

@@ -85,6 +85,10 @@
 `check-doc-freshness` 扫得更宽：`docs/*.md` + 根 `README.md` + `src/**/README.md` +
 `data/docs/*.md`，跳过 `bin`/`obj`/`packages`。
 
+`check-doc-references` 只有**一个**豁免：所在行被标成「已修 / 已删除 / ✅」的引用。
+这类行记录的是那处改动发生时的行号，是正确的历史，改它等于伪造记录。**上游文件不豁免**
+——本仓库解析不了的路径无法校验，就不该作为引用出现；描述上游行为用文字，不要写行号。
+
 按改动类型该跑哪几个，见 [`settings-contract.md`](settings-contract.md) §5（带命令）。
 通用判据：改 XAML 就跑 `check-xaml` + `check-resources` + `check-scroll-maxwidth`；
 改设置就跑 `check-settings-drift` + `check-conf-lines` + `check-mpvconf-precedence`；

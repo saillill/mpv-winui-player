@@ -176,17 +176,19 @@ git grep -n 'SetUserData("mpvw/color-kind"' -- 'src/mpvw-native/MpvPlayer.cpp'
 
 **不是功能缺失**，依据：
 
-- 上游对这两个函数的**全部**调用点都在 `if (_logger.IsTraceEnabled)` 内
-  （`MpvPlayerPage_Input.cs:60,151`、`MpvPlayerPage_Mouse.cs:263`）；
+- 这一层唯一还在 trace 分支里的地方就是输入转发：
+  `MpvPlayerPage_InputForwarding.cs:215`、`MpvPlayerPage_Mouse.cs:227,261` 各有一处
+  `if (_logger.IsTraceEnabled)`，那里本来是唯一会调键名函数的位置；
 - 本仓库的 `SendKeydown` / `SendKeyup`（`MpvPlayerPage_InputForwarding.cs:62,75`）
   与上游逐行等价，只多出 trace 代码块留下的空花括号；
-- 全库 grep 无其他消费者。
+- 这两个函数名在 `*.cs` / `*.cpp` / `*.h` 里 0 命中（只出现在本文）。
 
 代价：排查按键问题时少了一条「按键名 → 键码」的 trace 输出。
 
 ### 7.2 `MpvPlayerPage_InputForwarding.cs`：逻辑等价 + 增强
 
-上游该文件叫 `MpvPlayerPage_Input.cs`；本仓库 `MpvPlayerPage_InputForwarding.cs` 274 行，
+上游对应的文件是 208 行（名字不同，无法按本仓库路径校验）；本仓库承担同一职责的
+`MpvPlayerPage_InputForwarding.cs` 是 274 行，
 方法齐备并多出 `IsSliderNavigationKey`、`IsTextInputFocused`、`SendMouseButton` 等。
 **不算偏离**——上游有的这里都有。
 
