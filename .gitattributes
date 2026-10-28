@@ -1,0 +1,42 @@
+# Line endings, declared once for the whole repository.
+#
+# CRLF everywhere, because that is what this project's own tooling already
+# writes and what .editorconfig already declares for C#:
+#   src/mpvw-app/.editorconfig          end_of_line = crlf
+#   tools/check-icon-standard.py        newline="\r\n"   (--update-baseline)
+#   tools/check-typography-standard.py  newline="\r\n"   (--update-baseline)
+#   tools/gen-mpv-options.py            newline="\r\n"   (generated JSON)
+#
+# Declaring it here rather than relying on a developer's core.autocrlf means the
+# blob in the index, the working tree, and every `git diff` agree. Without this
+# file the index held LF while the working tree held CRLF, which is invisible in
+# a diff and only surfaces when someone else clones.
+#
+# `text=auto eol=crlf` also means binary detection is by content, not by this
+# file guessing extensions -- but the explicit `-text` block below pins the
+# binaries that matter, so a font whose header happens to look like text can
+# never be normalised.
+
+* text=auto eol=crlf
+
+# --- Binary: never touched, never diffed --------------------------------
+*.png    -text
+*.jpg    -text
+*.jpeg   -text
+*.gif    -text
+*.ico    -text
+*.ttf    -text
+*.otf    -text
+*.exe    -text
+*.dll    -text
+*.lib    -text
+*.winmd  -text
+*.nupkg  -text
+*.zip    -text
+
+# --- Exception: a real bash script --------------------------------------
+# tools/deploy-test.sh runs under bash (it calls Unix `find` and `cp`). A CRLF
+# line ending makes bash treat the trailing \r as part of each command, so the
+# script fails on its first line. It is the only POSIX script in the tree;
+# everything else is PowerShell, which reads either ending.
+tools/deploy-test.sh  text eol=lf

@@ -17,11 +17,29 @@
 | `b5ddfb6` | 2026-10-18 15:26 | `Change LICENSE`：LGPL-2.1 → **GPLv3** |
 | `5b3d46a` | 2026-10-25 12:12 | d3d11 显示信息修复 —— **GPLv3 期** |
 
-本仓库 `LICENSE.txt` 与上游 `9a06de2` 的 `LICENSE.txt` **逐字节相同**（blob `8000a6faacf4`），
-未跟随上游改成 GPLv3。
+本仓库 `LICENSE.txt` 是 **LGPL-2.1**（blob `8000a6faacf4`，可用
+`git rev-parse HEAD:LICENSE.txt` 复核）。上游在 `b5ddfb6` 改成了 GPLv3，本仓库未跟随。
+
+**本仓库无法验证上游侧的对象**：上表三个提交（`9a06de2`、`b5ddfb6`、`5b3d46a`）
+都不在本地历史里，`git cat-file -t` 三者全部报 `Not a valid object name`。
+「与上游逐字节相同」这个结论来自上游侧的比对，不是本地可重算的事实——
+要复核必须先 `git fetch` 上游到独立远程。表格里的日期、摘要与处置同理。
 
 **因此**：`b5ddfb6` 之前的可以按 LGPL-2.1 移植；之后的不能直接取用代码，
 只能读其行为描述后独立重写。这不是偏好，是许可约束。
+
+### 1.1 `main` 不设远程跟踪
+
+本仓库的 `main` **不配置 upstream 跟踪分支**，`git fetch` / `git push` 都只对显式
+指定的远程生效。远程 `cloud` 指向 `saillill/mpv-winui-player`，即本仓库自己的发布点，
+不是许可上游。
+
+原因是许可：一旦把 `ikas-mc` 或 `saillill` 的 `main` 设为跟踪上游，例行 `git pull`
+就会把 GPLv3 期的提交拉进来，本仓库的 LGPL-2.1 声明随即失效。要比较上游必须先
+`git fetch` 到独立远程（例如 `upstream-gate`），逐条判定后再决定，而不是合并。
+
+许可变更时同步更新的位置：`LICENSE.txt`、`data/licenses/THIRD_PARTY_NOTICES.md`、
+以及本节表格。
 
 ## 二、逐条处置（15 条）
 

@@ -313,9 +313,10 @@ def main():
     items = parse(proc.stdout)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    # CRLF to match the other JSON this project ships (Languages\*.json); the
-    # repository checks out CRLF, so emitting LF here would show up as a
+    # CRLF, because .gitattributes declares `* text=auto eol=crlf`: every text
+    # file is checked out with CRLF, so emitting LF here would show up as a
     # whole-file difference the first time anyone touches it in an editor.
+    # (The index stores LF either way -- that is what `text=auto` means.)
     args.out.write_text(json.dumps(items, ensure_ascii=False, indent=2) + "\n",
                         encoding="utf-8", newline="\r\n")
 
