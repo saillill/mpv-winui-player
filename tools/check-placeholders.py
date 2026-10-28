@@ -55,8 +55,7 @@ def main() -> int:
     files = sorted(glob.glob(OPTION_FILES))
     if not files:
         # "Parsed nothing" must never be a clean bill of health: a glob that stops
-        # matching reports OK forever. That is exactly what happened while this used
-        # a relative pattern.
+        # matching reports OK forever, over zero settings.
         print(f"FAIL: no option files matched {OPTION_FILES}")
         return 2
 

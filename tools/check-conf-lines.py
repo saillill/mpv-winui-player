@@ -8,9 +8,9 @@ cannot parse sitting in the user's config. Three ways that can go wrong:
      ToConfLine rejects them, and this checks the rule holds.
   2. A name that is not a legal option name could be mapped.
   3. A startup-only option has no runtime command by design, so ToCommand
-     cannot format it. If nobody formats it, it is silently dropped from the
-     file the moment it becomes startup-only - which is exactly what happened
-     to override-display-fps during the rewrite.
+     cannot format it. If nothing else formats it either, the value is
+     silently dropped from the file as soon as the option becomes
+     startup-only, with no error anywhere.
 
 It also reports how many lines the managed block will hold, which is the
 number to expect in mpv.conf after a launch.

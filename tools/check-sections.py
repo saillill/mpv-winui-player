@@ -462,10 +462,10 @@ def main():
     # unsatisfied: BuildSettings() throws InvalidOperationException, which
     # surfaces as a stowed exception in Microsoft.UI.Xaml.dll and kills the
     # process -- no managed stack, no log line, just "clicking Settings closes
-    # the app". That happened for real: rebuilding the subtitles map dropped
-    # SubHdrPeak while the option itself stayed, and the only symptom was a
-    # crash on click. The runtime guard is correct; this is the same guard run
-    # at commit time so the crash never reaches a user.
+    # the app". A sectionMap entry can go missing while the option that needed
+    # it stays, and that crash-on-click is the only symptom. The runtime guard
+    # is correct; this is the same guard run at commit time so the crash never
+    # reaches a user.
     keys, consts = option_keys()
     mapped = section_map_keys()
     if mapped is None:
