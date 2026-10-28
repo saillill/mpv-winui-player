@@ -79,11 +79,9 @@ def parse_option_keys(src_dir: Path) -> set[str]:
 # reason. Adding a fake `ToCommand` arm instead would write app state into
 # mpv.conf; deleting the check would lose the signal for the next real omission.
 #
-# Seven entries were missing when this list was audited (2026-09-21). They are
-# not new settings -- they had simply never been classified, so the check had
-# been failing on them for as long as it existed, which is what made the one
-# real problem in this area (EnableVideoPreview, below) indistinguishable from
-# the noise.
+# Every app-owned setting belongs in this list, with its reason. An unclassified
+# one makes the check fail, and a check that is failing anyway cannot separate a
+# real omission from the noise.
 UNMAPPED_OK = {
     # UI-only
     #
@@ -121,9 +119,7 @@ UNMAPPED_OK = {
     # MpvConfEditorPage.xaml.cs. Nothing to do with mpv itself.
     "EnableSaveBackup",
     # UI-only settings persisted by their own handlers (window title from
-    # MainWindow). PlaylistWidth used to be here too; the resizable playlist
-    # column it belonged to was removed with the split layout, so the setting
-    # no longer exists.
+    # MainWindow).
     "WindowTitle",
     # PluginConfigWriter channel (script-opts/*.conf)
     "HdrAutoLog", "MetadataOsdEnabled", "MetadataOsdAutohideTimeout",
@@ -140,13 +136,10 @@ UNMAPPED_OK = {
     # Special cases handled outside ToCommand
     "Volume",               # passed at mpv Initialize, not applied at runtime
     "ShowOsdPlayingMsg",    # merged into the OsdPlayingMsg case
-    # Speed was listed here until 2026-09-21, and its presence was itself the
-    # finding: it is NOT app-owned, it was simply unmapped, while the check's
-    # message ("has no ToCommand mapping") was accurate and being silenced by
-    # hand. MpvSettings.ToCommand now has a Speed arm, so the property no longer
-    # lands in `appsettings - mpvsettings` at all. Kept out of ApplyAll by
-    # MpvSettings.SessionStateKeys instead, which is where that decision belongs
-    # -- it is about reset semantics, not about whether the value reaches mpv.
+    # `Speed` is NOT app-owned and must not be listed here: `MpvSettings.ToCommand`
+    # has an arm for it, so it never lands in `appsettings - mpvsettings`. Keeping
+    # it out of ApplyAll is `MpvSettings.SessionStateKeys`'s job -- that decision is
+    # about reset semantics, not about whether the value reaches mpv.
     "LoopFile",             # controlled by the status-bar repeat button
     "LoopPlaylist",         # controlled by the bundled mpv.conf
 }
@@ -174,11 +167,11 @@ def main() -> int:
     for key in sorted(dead):
         errors.append(f"MpvSettings maps unknown property '{key}' (not in AppSettings)")
 
-    # The exemption list has to keep up with the property store. It used to be read
-    # only as a skip set, so a deleted property's exemption stayed behind and the
-    # list went on describing settings that no longer existed. Nine had accumulated.
-    # An exemption that outlives its subject is worse than none: the next reader
-    # treats the list as a description of the code.
+    # The exemption list has to keep up with the property store: read as a bare skip
+    # set, an exemption outlives the property it excused and the list goes on
+    # describing settings that do not exist. An exemption that outlives its subject
+    # is worse than none -- the next reader treats the list as a description of the
+    # code, so a stale entry is a false statement nobody checks.
     stale_exemptions = UNMAPPED_OK - appsettings
     for key in sorted(stale_exemptions):
         errors.append(

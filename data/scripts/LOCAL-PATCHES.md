@@ -1,10 +1,10 @@
 # Local modifications to GPL scripts
 
 `dyn_menu.lua` is GPL-2.0-only source from tsl0922/mpv-menu-plugin. The GPL
-boundary matters here (see AGENTS.md): the file stays an *unmodified upstream
-file plus a documented patch*, never rewritten in place, and no GPL binary
-(menu.dll) is shipped. (`dialog.lua` from the same source was removed — no
-menu references it anymore.)
+boundary is the reason for the shape of this file: it stays an *unmodified
+upstream file plus a documented patch*, never rewritten in place, and no GPL
+binary (`menu.dll`) is shipped. (`dialog.lua` from the same source carries no
+patch, because no menu references it.)
 
 ## dyn_menu.lua — project-local patch
 

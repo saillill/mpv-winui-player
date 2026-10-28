@@ -9,11 +9,11 @@
 
 | 层 | 路径 | 文件数 | 代码行数 | 语言 |
 |---|---|---:|---:|---|
-| 应用 | `src/mpvw-app/` | 388 | 82610 | C# + XAML |
+| 应用 | `src/mpvw-app/` | 388 | 82791 | C# + XAML |
 | 原生 | `src/mpvw-native/` | 60 | — | C++/WinRT |
 | 投影 | `src/mpvw-native-projection/` | 2 | — | csproj + README |
 | 配置 | `data/` | 58 | — | mpv 配置 / Lua / VBS |
-
+应用层的 82791 行只数 `.cs` / `.xaml`（288 个文件）；`README.md`、`.editorconfig`、`NativeMethods.*`、manifest、csproj 不计入。
 `src/mpvw-native/` 的代码行数不统计：它由生成文件与手写文件混在一起（`MpvPlayer.cpp` 单文件
 103676 字节），手写与生成无法用路径区分，任何数字都会误导。
 
@@ -27,9 +27,9 @@
 
 | 禁止 | 原因（来自代码） |
 |---|---|
-| 在 `Infrastructure/` 里引用任何 `Domains.*` | `Infrastructure` 被 13 个文件当作叶子依赖；加一条反向引用就把这个数字变成传递闭包，且 `SpringMath.cs`、`AtomicFile.cs`、`FileService.cs` 已被链接进测试工程，反向依赖会立刻让测试工程编译失败 |
+| 在 `Infrastructure/` 里引用任何 `Domains.*` | `Infrastructure` 是所有域与 `Shell` 的叶子依赖；加一条反向引用就形成环，且 `SpringMath.cs`、`AtomicFile.cs`、`FileService.cs` 已被链接进测试工程，反向依赖会立刻让测试工程编译失败 |
 | 在 `Lexicon/` 里引用任何域 | `Lexicon` 实测出度为 0（`§3`），它是纯词汇表；`LanguageManager.cs:26,71` 只用 `System.AppContext.BaseDirectory` |
-| 在 `Platform/` 里引用任何域 | `Platform` 实测只有 1 条出边指向 `Infrastructure`，`ActivationService.cs:1,3`、`ConfigDeployer.cs:7`、`FileService.cs:7` 是全部 |
+| 在 `Platform/` 里引用任何域 | `Platform` 实测只有 1 条出边指向 `Infrastructure`，`ActivationService.cs:1,3`、`ConfigDeployer.cs:8`、`FileService.cs:7` 是全部 |
 | 直接 `new` 第二个 `mpv_winrt.MpvPlayer` | 唯一例外是 `MpvPreviewer`（缩略图预览），它由原生层自己管理；应用侧只允许经 `MpvPlayer` 一个实例 |
 | 在 XAML 注释里写 `--` | 触发 `WMC9997`，`tools/check-xaml.py` 在构建前拦截 |
 
@@ -49,7 +49,7 @@ C++/WinRT 组件，宿主 libmpv。两个运行时类：`MpvPlayer`（播放器�
 
 ### 1.3 投影层（`src/mpvw-native-projection/`）
 
-**只有两个文件**：`mpv-winrt-projection.csproj` 和一份 1 行 README。
+**只有两个文件**：`mpv-winrt-projection.csproj` 和一份两行的 `README.md`。
 它的作用是**把 C++ 组件的 winmd 投影成 .NET 程序集并打成 nupkg**，让 `dotnet` 侧无需
 MSBuild 就能引用原生组件。
 
@@ -73,9 +73,9 @@ mpv 的配置树，首次运行由 `ConfigDeployer` 部署到 `%LOCALAPPDATA%\mp
 
 | 禁止 | 原因（来自代码） |
 |---|---|
-| 用程序重写 `mpv.conf` 全文 | 它是 289 行手工中文注释的资产，程序只允许改标记块内部（`ManagedMpvConfig.cs:14-28`） |
-| 把 `mpv.conf` / `input.conf` / `menus.json` / `custom_menu.json` / `saved-props.json` / `recent.json` / `deploy-config.ps1` 加进 `ConfigDeployer` 的刷新范围 | 它们在 `UserOwnedFiles`（`ConfigDeployer.cs:44-49`），一旦存在就永不被覆盖；移除它们会让用户手改永久丢失 |
-| 让 `script-opts/` 跟随 `data/` 刷新 | `UserOwnedDirs`（`ConfigDeployer.cs:55`），设置窗口会写这些文件 |
+| 用程序重写 `mpv.conf` 全文 | 它是 `data/mpv.conf` 那份手工中文注释的资产，程序只允许改标记块内部（`ManagedMpvConfig.cs:14-28`） |
+| 把 `mpv.conf` / `input.conf` / `menus.json` / `custom_menu.json` / `saved-props.json` / `recent.json` / `deploy-config.ps1` 加进 `ConfigDeployer` 的刷新范围 | 它们在 `UserOwnedFiles`（`ConfigDeployer.cs:57-61`），一旦存在就永不被覆盖；移除它们会让用户手改永久丢失 |
+| 让 `script-opts/` 跟随 `data/` 刷新 | `UserOwnedDirs`（`ConfigDeployer.cs:67`），设置窗口会写这些文件 |
 
 ---
 
@@ -85,12 +85,12 @@ mpv 的配置树，首次运行由 `ConfigDeployer` 部署到 `%LOCALAPPDATA%\mp
 
 | 域 | 文件 | 代码行 | 负责 | 不负责 |
 |---|---:|---:|---|---|
-| `Settings` | 65 | 26986 | 设置树构建、选项渲染、依赖门控、布局定制 | `mpv.conf` 文本编辑（那是 `MpvConf`）；设置的持久化存储本身（那是 `SettingsModel`） |
-| `Playback` | 72 | 25306 | 播放页全部 UI、控制栏三套皮肤、PiP、缩略图预览、库视图、音频可视化 | 库文件夹的持久化（`SettingsModel`）；mpv 命令的真正执行（`mpv_winrt`）；媒体元数据解析（`MediaInfo`） |
-| `MpvConf` | 30 | 7854 | 读写/解析 `mpv.conf`、托管块所有权判定、schema 模型、`script-opts` 写入 | 把设置值翻译成 mpv 命令（`Settings`→`MpvSettings`）；界面渲染（`Settings`） |
+| `Settings` | 64 | 26980 | 设置树构建、选项渲染、依赖门控、布局定制 | `mpv.conf` 文本编辑（那是 `MpvConf`）；设置的持久化存储本身（那是 `SettingsModel`） |
+| `Playback` | 71 | 25304 | 播放页全部 UI、控制栏三套皮肤、PiP、缩略图预览、库视图、音频可视化 | 库文件夹的持久化（`SettingsModel`）；mpv 命令的真正执行（`mpv_winrt`）；媒体元数据解析（`MediaInfo`） |
+| `MpvConf` | 29 | 7849 | 读写/解析 `mpv.conf`、托管块所有权判定、schema 模型、`script-opts` 写入 | 把设置值翻译成 mpv 命令（`Settings`→`MpvSettings`）；界面渲染（`Settings`） |
 | `SettingsModel` | 16 | 5265 | `AppSettings` 属性、注册表/ApplicationData 存储、值编解码 | 呈现，以及任何 mpv 映射 |
-| `Menu` | 19 | 2007 | 菜单栏构建、菜单编辑器、`menu.conf` 读写 | 菜单项的本地化文案（`Lexicon`） |
-| `MediaInfo` | 7 | 745 | MediaInfo 报告模型与窗口 | 播放、封面之外的媒体读取 |
+| `Menu` | 18 | 2007 | 菜单栏构建、菜单编辑器、`menu.conf` 读写 | 菜单项的本地化文案（`Lexicon`） |
+| `MediaInfo` | 6 | 745 | MediaInfo 报告模型与窗口 | 播放、封面之外的媒体读取 |
 | `Playlist` | 8 | 693 | 稍后观看 / 播放历史的解析与两个控件 | 队列本体（那是 mpv 的 `playlist` 属性，由 `Playback` 呈现） |
 | `Library` | 1 | 87 | 库条目类型定义 | 库视图（那是 `Playback`） |
 
@@ -110,11 +110,11 @@ mpv 的配置树，首次运行由 `ConfigDeployer` 部署到 `%LOCALAPPDATA%\mp
 
 | 路径 | 文件 | 代码行 | 职责 |
 |---|---:|---:|---|
-| `Infrastructure/` | 41 | 3524 | `Common`（原子写、日志、窗口基类、图标）、`Controls`、`Converters`、`Motion` |
-| `Platform/` | 18 | 2335 | `Activation`（文件关联/协议）、`AppModel`（打包判定）、`FileSystem`（路径、部署）、`Win32`（钩子、窗口） |
-| `Lexicon/` | 10 | 3422 | `AppLang` 词汇表（2196 个属性）+ 语言加载 |
-| `Shell/` | 9 | 2512 | `MainWindow`、`AppContext`（唯一全局出口） |
-| 应用根 | 11 | 200 | `App.xaml(.cs)`、`Program.cs`、manifest、csproj |
+| `Infrastructure/` | 39 | 3524 | `Common`（原子写、日志、窗口基类、图标）、`Controls`、`Converters`、`Motion` |
+| `Platform/` | 14 | 2530 | `Activation`（文件关联/协议）、`AppModel`（打包判定）、`FileSystem`（路径、部署）、`Win32`（钩子、窗口） |
+| `Lexicon/` | 9 | 3422 | `AppLang` 词汇表（2196 个属性）+ 语言加载 |
+| `Shell/` | 8 | 2511 | `MainWindow`、`AppContext`（唯一全局出口） |
+| 应用根 | 11 | 200 | `App.xaml(.cs)`、`Program.cs`、manifest、csproj。**这一行是例外**：11 个文件全计，200 行只是 3 个 `.cs`/`.xaml` 的行数 |
 
 `Shell` 命名空间是 `mpv_winui`（不是 `mpv_winui.Shell`），因此 `AppContext` 是不带
 子命名空间前缀的全局类型。`§3` 的脚本把它归到 `(root)`，读数时注意。
@@ -179,7 +179,7 @@ Shell(out=9) ──▶ Settings, Playback, MpvConf, SettingsModel, MediaInfo, Me
 | `Playlist` | `Infrastructure` | 4 |
 | `Library` | `Playback` 1, `Infrastructure` 1 | |
 | `SettingsModel` | `Platform` 2, `Infrastructure` 1 | |
-| `Platform` | `Infrastructure` | 3（`ActivationService.cs:1,3`、`ConfigDeployer.cs:7`、`FileService.cs:7`） |
+| `Platform` | `Infrastructure` | 3（`ActivationService.cs:1,3`、`ConfigDeployer.cs:8`、`FileService.cs:7`） |
 | `Infrastructure` | `Platform` | 2（`LoggerHelper.cs`、`UpdateChecker.cs`） |
 
 ### 3.1 四个真实的环
@@ -208,7 +208,8 @@ Shell(out=9) ──▶ Settings, Playback, MpvConf, SettingsModel, MediaInfo, Me
 
 后果：`§3` 的脚本会把它们算成 `Platform -> Infrastructure` 的边，而实际是**自引用**。
 去掉这两条后的真实 `Platform -> Infrastructure` 边是 3 条（上表已按真实值写）。
-这是纯命名遗留，**不是缺陷**；改名会牵动 `Infrastructure/Common/README.md` 列出的公开接口。
+两个文件的命名空间与它们的目录不一致。改名会牵动 `Infrastructure/Common/README.md`
+列出的公开接口，因此保持现状。
 
 ---
 
@@ -239,7 +240,7 @@ Shell(out=9) ──▶ Settings, Playback, MpvConf, SettingsModel, MediaInfo, Me
 
 ## 5. 域 README 与本文的关系
 
-`src/mpvw-app/DOMAINS.md` 与 14 份域/层 `README.md` 是**索引**，不是契约。
+`src/mpvw-app/DOMAINS.md` 与 15 份域/层 `README.md` 是**索引**，不是契约。
 与本文冲突时以本文与代码为准。它们不参与构建、不被任何检查器读取（实测
 `git grep DOMAINS.md` 在 `.md` 之外无命中）。
 
@@ -252,8 +253,8 @@ Shell(out=9) ──▶ Settings, Playback, MpvConf, SettingsModel, MediaInfo, Me
   `Seeked`、`VoConfigured`。不是缺陷，是 ABI——删它们会改变投影的公开表面。
 - **4 个事件 raise 但无人订阅**：`FileEnded`、`FileStopped`、`BufferingChanged`、
   `SwapChainChanged`。
-- **两个基线检查器只扫 1 个 XAML**、**`DOCS` 列表指向已删文档**：见
-  [`verification.md`](verification.md) §4 与 [`README.md`](README.md) 末节。
+- **两个基线检查器只报数量、不区分新增与既存**：见
+  [`verification.md`](verification.md) §4.2。
 
 ## 7. 重算本文每个数字
 
@@ -267,13 +268,21 @@ git ls-files src/mpvw-native | Measure-Object       # 60
 git ls-files src/mpvw-native-projection | Measure-Object  # 2
 git ls-files data | Measure-Object                  # 58
 
-# 应用层代码行数（cs + xaml）
-python -c "import glob;fs=[f for f in glob.glob('src/mpvw-app/**/*',recursive=True) if f.endswith(('.cs','.xaml'))];n=0`nfor f in fs: d=open(f,'rb').read(); n+=d.count(b'\n')+(0 if d.endswith(b'\n') or not d else 1)`nprint(len(fs),n)"
-
-# 某域的文件数与行数：把上面 glob 换成
-#   src/mpvw-app/Domains/Settings/**/*   → 64 / 26986
-#   src/mpvw-app/Domains/Playback/**/*   → 71 / 25306
-#   …（其余域见 §2 表头）
+# 代码行数：只数【已跟踪】的 .cs / .xaml。
+# 不要用 glob('src/mpvw-app/**/*')——bin/obj 也在树里，那种写法报 412 / 140630。
+function Measure-Lines($prefix) {
+    git ls-files $prefix | Select-String '\.(cs|xaml)$' | ForEach-Object {
+        $d = [System.IO.File]::ReadAllBytes($_.ToString())
+        $n = 0; foreach ($b in $d) { if ($b -eq 10) { $n++ } }
+        if ($d.Length -gt 0 -and $d[-1] -ne 10) { $n++ }
+        [pscustomobject]@{ N = $n }
+    } | Measure-Object N -Sum | Select-Object Count, Sum
+}
+Measure-Lines src/mpvw-app                           # 288 / 82791
+Measure-Lines src/mpvw-app/Domains/Settings          # 64 / 26980
+Measure-Lines src/mpvw-app/Domains/Playback          # 71 / 25304
+Measure-Lines src/mpvw-app/Infrastructure            # 39 / 3524
+# 其余域与层照此替换前缀，见 §2 两张表
 ```
 
 依赖边表用一段脚本重算（放在仓库外跑，不要提交）。要点：

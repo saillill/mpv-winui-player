@@ -22,11 +22,10 @@ import os
 import re
 import sys
 
-# Resolved from this file, not from the process's working directory. As a bare
-# relative glob this scanned nothing when run from anywhere but the repo root and
-# then reported OK -- "every non-path free-text setting shows an example" -- over
-# zero settings. Measured: `cd C:\ ; python ...\check-placeholders.py` exited 0
-# having read no files.
+# Resolved from this file, not from the process's working directory. A bare
+# relative glob reads nothing outside the repo root and then reports OK over zero
+# settings, which is why the count is also asserted below: "parsed nothing" must
+# be an error, not a clean bill of health.
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OPTION_FILES = os.path.join(
     REPO, "src", "mpvw-app", "Domains", "Settings", "SettingsPage.Options*.cs")

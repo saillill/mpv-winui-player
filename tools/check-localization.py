@@ -34,20 +34,18 @@ def parse_applang_props(src: Path) -> set[str]:
 def parse_applang_props_all() -> set[str]:
     """AppLang properties from the hand-written class AND every partial.
 
-    AppLang is spread over three files and the check used to read one of them:
+    AppLang is spread over three files and all three must be read:
 
       * AppLang.cs               -- the hand-written vocabulary
-      * AppLang.Gen.cs           -- the 724 SchemaLabel_*/SchemaDesc_* the
-                                    generator emits for the 362 schema rows
+      * AppLang.Gen.cs           -- the SchemaLabel_*/SchemaDesc_* the generator
+                                    emits for the schema rows
       * AppLang.Sections.Gen.cs  -- the generated section captions and
                                     descriptions (SectionGen*/SectionDescGen*)
 
-    Reading only the first had two opposite effects, and both looked like real
-    findings. The 724 generated properties were reported as "extra keys" --
-    language-file entries no AppLang property claims -- which is backwards. The
-    26 `SectionGen*` keys were reported the same way for the same reason. And
-    underneath that noise the actual defect was invisible: all nine language
-    files are missing every one of the 724 generated keys.
+    Reading only the first inverts the result: generated properties that ARE
+    claimed by AppLang get reported as "extra keys" in the language files, and
+    the real gap -- the generated keys missing from every language file -- is
+    hidden under that noise.
 
     Globbed rather than listed, so a fourth partial cannot reintroduce the bug.
 

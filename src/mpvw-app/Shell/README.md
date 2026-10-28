@@ -44,9 +44,9 @@
 | `videos` | E8B2 | 视频库 |
 | `queue` | EA37 | 播放队列（`videos` 之后插入分隔线） |
 
-`playlists` 已删除（与 queue 重复，注释记录在 `ShellSections` 上方）。
-每项的 `AutomationId` 是 `ShellNav_<key>`（2026-10-22 加，供 MCP 断言用；
-`AutomationProperties.SetAutomationId` 是附加属性，不是控件的 CLR 成员）。
+导航项只有上面这些：`playlists` 与 `queue` 重复，不在其中（注释记录在 `ShellSections` 上方）。
+每项的 `AutomationId` 是 `ShellNav_<key>`，供 MCP 断言用；
+`AutomationProperties.SetAutomationId` 是附加属性，不是控件的 CLR 成员。
 
 ## 关键约定
 

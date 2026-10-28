@@ -15,7 +15,7 @@ It is a maintenance defect with a specific, measured cost: change the token and 
 that meant the same thing silently keeps the old value, so the two drift apart and the drift is
 invisible in review. That is the whole reason a token exists.
 
-What is checked, in `Modules/` and `Shell/`:
+What is checked, across every `.xaml` under `src/mpvw-app/`:
 
   SPACING-LITERAL   `Margin`/`Padding`/`Spacing`/`RowSpacing`/`ColumnSpacing` carrying a single
                     number that equals a `MpvSpace*` token.
@@ -67,15 +67,13 @@ def read_tokens():
 def scan_files():
     """Every XAML file in the app project, wherever it lives.
 
-    This used to iterate a hard-coded ("Modules", "Shell") pair. `Modules/` was
-    renamed to `Domains/` in the layout restructure and the list was never
-    updated, so the checker scanned one file of 39 and reported OK - the only
-    guard was "no files at all". All 13 entries in its own baseline pointed into
-    the directory it was not reading.
+    Globbing the project root instead of listing subdirectories is deliberate: a
+    directory rename moves the files and the glob follows them. A hard-coded list
+    does not follow, and the failure is silent -- the checker keeps printing OK
+    over a shrinking set, and the baselines end up pointing into a directory the
+    scan never reads.
 
-    Globbing the project root instead of listing subdirectories is the fix that
-    cannot rot again; bin/ and obj/ are excluded because `dotnet build` copies
-    every XAML into them.
+    bin/ and obj/ are excluded because `dotnet build` copies every XAML into them.
     """
     return sorted(
         p for p in APP_DIR.rglob("*.xaml")

@@ -44,7 +44,7 @@
 ## 硬规则
 
 1. **所有用户可见文案必须走 `AppLang`**，不准在 XAML 或 C# 里写死字符串。
-2. **新文案只写 `en-US.json` + `zh-CN.json`**（其余 7 种由后续翻译跟进；
+2. **新文案写 `en-US.json` + `zh-CN.json`**（每个语言文件都必须有键；
    缺失会被 `check-localization.py` 报为 hand-written 缺失）。
 3. **属性格式是 `public string X { get; set; }`，带空格**。正则漏空格会静默返回空集。
 4. **`CustomizeStrings` 的键没有 `AppLang` 属性是设计**，`check-localization` 会报

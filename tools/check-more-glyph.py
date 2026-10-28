@@ -1,27 +1,19 @@
 """A "More" button must use the three-dot glyph, not the hamburger.
 
-Reported: 视频和音频的播放悬浮按钮、菜单悬浮按钮图标均不正确.
+Every control named `MoreButton` must use `&#xE712;`.
 
-Half of that was a real, silent defect with a documented precedent. `PlayerControl.xaml`'s
-app-bar More button already carried this comment:
+`E712` is the horizontal three-dot "More". `E10C` is `GlobalNavButton`, the hamburger —
+a different idea, and the same control showing one on the floating bar and the other on the
+app bar is the defect this catches. `E712` also has to be declared against a font that has
+it: the FluentSystemIcons face used elsewhere in the control bar has no glyph there, so a
+correct codepoint on the wrong face still renders as an unrelated shape.
 
-    Segoe Fluent Icons E712 is the horizontal three-dot "More". The FluentSystemIcons face
-    the rest of this bar uses has no such glyph at the codepoint that was here, so the button
-    rendered as an unrelated shape.
+Reading the XAML rather than the rendered pixels is deliberate: the glyph is a literal, the
+failure mode is a wrong literal, and a pixel comparison cannot tell a hamburger from three
+dots reliably at 16 px.
 
-That fix was applied to ONE of the three places that draw a More button. The two overlay
-styles -- CenterPlayerControlStyle.xaml (video, full player) and CompactPlayerControlStyle.xaml
-(audio, compact) -- still said E10C, which is GlobalNavButton, the hamburger menu. So the same
-button showed a hamburger on the floating bar and three dots on the app bar, which is exactly
-what "图标不正确" describes.
-
-This checker is the generalisation: every control named MoreButton must use E712. It reads the
-XAML rather than the rendered pixels because the glyph is a literal there and the failure mode
-is a wrong literal, not a layout problem -- and because a pixel comparison cannot tell a
-hamburger from three dots reliably at 16 px.
-
-Exit codes: 0 clean, 1 findings, 2 nothing parsed (a checker that silently matches nothing
-reports success forever -- see AGENTS.md).
+Exit codes: 0 clean, 1 findings, 2 nothing parsed. The third exists because a checker
+whose pattern stops matching would otherwise report success forever.
 """
 from __future__ import annotations
 

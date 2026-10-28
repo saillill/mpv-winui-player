@@ -2,17 +2,14 @@
 
 mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com/hooke007/mpv_PlayKit)（mpv-lazy）裁剪而成：
 
-- 移除了 ModernZ / k7f_zen / 旧 WinUI 菜单宿主（工具目录与 dead 配置）；
-- `input.conf` 恢复 mpv 数据菜单（136 条 `#menu:`，沿用此前 mpv-lazy/tsl0922 排版）；
-  动态「滤镜与增强」子菜单（Nvidia VSR / RTX Video HDR）仍由 `dynamic_menu.lua` 生成；
-- `shaders/` 已移除：本项目不再随包分发着色器。VSR 与 RTX Video HDR 走的是
-  mpv 的 `d3d11vpp` 视频滤镜（见 `vsr_auto.lua`、`hdr_auto.lua`），与着色器无关；
-  用户仍可在「设置 > 着色器与缓存」中指定自己的 `.glsl`；
-- 依赖 `menu.dll` 的 dialog.lua 动作（视频/音频/字幕“加载文件”、复制文件路径/元数据、
-  导出播放列表）已从菜单移除——`menu` 脚本二进制不再随包分发，App 菜单栏已提供等价的
-  “文件 > 加载字幕”等入口；`dialog.lua` 脚本本身也已删除（无任何菜单引用它，
-  详见 `scripts/LOCAL-PATCHES.md`）；
-- `input_plus.lua` 已移除（F3-F5 临时清滤镜/着色器、`,`/`.` 按住倍速、Ctrl+←/→ 流媒体式跳转等绑定随之删除）；
+ `input.conf` 使用 mpv 数据菜单（136 条 `#menu:`，mpv-lazy/tsl0922 排版）；
+动态「滤镜与增强」子菜单（Nvidia VSR / RTX Video HDR）由 `dynamic_menu.lua` 生成。
+本项目**不随包分发着色器**：VSR 与 RTX Video HDR 走 mpv 的 `d3d11vpp` 视频滤镜
+（`vsr_auto.lua`、`hdr_auto.lua`），用户在「设置 > 着色器与缓存」里可指定自己的 `.glsl`。
+
+菜单动作只经 App 菜单栏与输入配置，不经 `menu.dll`：`menu` 脚本二进制不随包分发，
+「文件 > 加载字幕」等等价入口都在 App 菜单栏。
+
 - `dyn_menu.lua` / `dynamic_menu.lua` 内置 8 语言菜单翻译表（en-US / zh-CN / ja-JP / ko-KR /
   de-DE / fr-FR / es-ES / ru-RU），App 通过 `user-data/mpvw/language` 写入界面语言后自动重解析；
 - `select.lua`（轨道/章节/版本/音频设备/按键绑定/历史/稍后观看/属性选择菜单）同样内置 8 语言表；
@@ -37,7 +34,7 @@ mpv-winui-player 的配置层，基于 [hooke007/mpv_PlayKit](https://github.com
 | `profiles.conf` | 条件配置组（根，被 `mpv.conf` include） |
 | `script-opts.conf` | 脚本选项追加（根，被 `mpv.conf` include） |
 | `deploy-config.ps1` | 手动部署脚本（根，`$PSScriptRoot` 即本层根目录） |
-| `scripts/` | Lua 脚本（mpv-menu-plugin 的 `dyn_menu.lua` 为 GPL-2.0-only；已移除随附的 `menu.dll` 二进制，当前 mpv 走自带 `menu-data` 渲染路径） |
+| `scripts/` | Lua 脚本（mpv-menu-plugin 的 `dyn_menu.lua` 为 GPL-2.0-only；当前 mpv 走自带 `menu-data` 渲染路径，不需要 `menu.dll`） |
 | `script-opts/` | 脚本选项（`dyn_menu.conf` 控制菜单数据通道与标题长度上限） |
 | `vs/` | 可选 VapourSynth 脚本（需自行安装 VapourSynth 运行库） |
 | `fonts/` | 随包可选字体（Source Han Sans / LXGW WenKai）；OSD 与字幕默认使用系统 `sans-serif`，可在设置中切换 |

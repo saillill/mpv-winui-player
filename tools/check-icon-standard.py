@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """Icon standard: two glyph systems exist, and each element must be consistent with it.
 
-The first version of this checker assumed a single icon font and reported 74 "violations", of
-which almost none were real. What the measurement actually shows:
+The app runs two glyph systems on purpose. `--verbose` prints the split; today it is
+146 total, 113 on the framework symbol font, 33 on FluentSystemIcons.
 
-    FontIcon total  148
-    no FontFamily   115   these inherit the framework symbol font and use Segoe codepoints
-                          (&#xE8C8; copy, &#xE74D; delete, ...) -- legitimate, not a defect
-    MpvIconFont      33   these declare MpvIconFontFamily (FluentSystemIcons)
+    no FontFamily   inherits the framework symbol font, uses Segoe codepoints
+                    (&#xE8C8; copy, &#xE74D; delete, ...) -- legitimate, not a defect
+    MpvIconFont     declares MpvIconFontFamily (FluentSystemIcons) for the app's own marks
 
-So the app deliberately runs two systems: the framework's for platform-standard marks, and the
-bundled Fluent set for the app's own. `SymbolThemeFontFamily` is a third spelling of the first.
-A rule that demands one font is wrong, and shipping it would have meant 58 bogus findings.
+`SymbolThemeFontFamily` is a third spelling of the framework font. A rule that demands one font
+is wrong: the framework set carries platform-standard marks and the bundled set carries the
+app's own, and the two codepoint ranges overlap with different meanings.
 
 What is checkable, and each verified against the shipped font file with fontTools:
 
@@ -28,7 +27,7 @@ What is checkable, and each verified against the shipped font file with fontTool
                    MpvSectionCardChevronSize 12, MpvShellAppIconSize 20).
 
 Deliberately NOT checked: an icon without `FontFamily`. It inherits the framework symbol font and
-uses that font's codepoints; demanding a token there was the first version's error.
+uses that font's codepoints, so demanding a token there would flag correct XAML.
 """
 import argparse
 import pathlib
@@ -63,19 +62,13 @@ def local(tag):
 def scan_files():
     """Every XAML file in the app project, wherever it lives.
 
-    This used to iterate a hard-coded ("Modules", "Shell") pair. `Modules/` was
-    renamed to `Domains/` in the layout restructure and the list was never
-    updated, so the checker scanned `Shell/MainWindow.xaml` and nothing else --
-    and reported OK, because the only guard was "no files at all". Measured
-    before the fix: 39 XAML files in the project, 34 of them under `Domains/`,
-    and the checker saw 1. Worse, 46 of the 49 baseline entries and all 13
-    typography entries pointed into `Domains/`, so the findings it was supposed
-    to gate were outside its own scan.
+    Globbing the project root instead of listing subdirectories is deliberate: a
+    directory rename moves the files and the glob follows them. A hard-coded list
+    does not follow, and the failure is silent -- the checker keeps printing OK
+    over a shrinking set, and the baselines end up pointing into a directory the
+    scan never reads.
 
-    Scanning the whole project directory instead of a list of subdirectories is
-    the fix that cannot rot: a future rename moves the files, and the glob
-    follows them. The build-output trees are excluded explicitly because
-    `dotnet build` leaves copies of every XAML under bin/ and obj/.
+    bin/ and obj/ are excluded because `dotnet build` copies every XAML into them.
     """
     return sorted(
         p for p in APP_DIR.rglob("*.xaml")
@@ -212,8 +205,8 @@ def check_file(path, fluent_cps, token_values, glyph_sizes, glyph_name):
         # Only a literal that EQUALS a tokenised value is a violation. The scale is
         # 12/14/16/20; a glyph at 8, 18, 32, 64 or 96 is a deliberate decorative size
         # (measured: AlbumArtworkFallbackIcon 64, MusicArtworkFallbackIcon 96,
-        # DropOverlayIcon 32, all inside fixed-size Borders), and demanding a role token
-        # there is the same over-reach that made the first version report 58 findings.
+        # DropOverlayIcon 32, all inside fixed-size Borders). Demanding a role token
+        # for a decorative size flags correct XAML.
         size = re.search(r'FontSize="([^"]+)"', attrs)
         if size is not None:
             value = size.group(1)

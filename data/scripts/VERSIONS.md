@@ -71,7 +71,7 @@ that can be checked mechanically.
 | `select.lua` | **checked** | unknown — localisation source not recorded |
 | `console.lua` | checked | unknown — localisation source not recorded |
 
-## GPL-2.0-only (license boundary — see AGENTS.md)
+## GPL-2.0-only (license boundary)
 
 | Script | Source | Note |
 |---|---|---|

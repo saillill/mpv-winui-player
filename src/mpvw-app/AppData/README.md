@@ -44,5 +44,5 @@ return MpvConfSchemaService.LoadFromDirectory(definitionDirectory);
 | 内容 | 完整的 mpv 配置 + 脚本 + 工具 | 上游早期的精简样例 |
 | 改了会怎样 | 影响所有安装（自动部署并清理旧文件） | 什么都不影响 |
 
-`mpv/` 子目录属于上游遗留：本分支的 `ConfigDeployer` 已经会用 `data/`
-自动部署并维护 `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv`，所以这部分样例不必再手工拷贝。
+`mpv/` 子目录是手工样例，不属于自动部署路径。`ConfigDeployer` 从 `data/` 部署并维护
+`%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv`，所以这部分不需要手工拷贝。

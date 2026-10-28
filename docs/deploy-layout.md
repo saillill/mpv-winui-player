@@ -70,14 +70,14 @@
 
 用 `mpv-winui-deploy.manifest`（`<sha256>\t<relpath>`，纯文本）记录上次部署的哈希。
 目标哈希与记录一致 → 我们的，可覆盖；不一致 → 用户改过，保留并记 warn。
-没有 manifest 的旧安装：视为我们的，但**先备份**成 `<name>.bak-<timestamp>`。
+没有 manifest 时（首次部署）：视为我们的，但**先备份**成 `<name>.bak-<timestamp>`。
 
 **为什么 manifest 是纯文本而不是 JSON**：AOT 下 `System.Text.Json` 需要 source
 generator；纯文本无依赖且便于人工排查同步问题（`ConfigDeployer.cs:388-390`）。
 
 ### 3.4 被删的文件也会被清掉
 
-`PruneRemoved`（`:243-292`）：在旧 manifest 里、当前 bundle 不再提供、
+`PruneRemoved`（`:243-292`）：在 manifest 里、当前 bundle 不再提供、
 且哈希仍是部署时的值 → 删除。少了这一步，把文件移进子目录会让旧副本永久留存
 （一个 9 MB 的工具二进制是明显例子）。
 
@@ -113,7 +113,6 @@ generator；纯文本无依赖且便于人工排查同步问题（`ConfigDeploye
 
 **`Modules/` 目录不存在。** 应用代码按域分在 `src/mpvw-app/Domains/<域>/`，
 非域层在 `Infrastructure/`、`Platform/`、`Lexicon/`、`Shell/`。
-旧的 `mpv-winui/mpv-winui/Modules/` 布局在这次重构中已消失。
 
 ### 4.2 打包
 

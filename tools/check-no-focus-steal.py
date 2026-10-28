@@ -1,28 +1,25 @@
 #!/usr/bin/env python3
 """No probe, checker or verifier may bring the app to the foreground.
 
-**The defect this exists for.** A long verification session made the player window keep
-appearing in front of the user's other work. Measured, one candidate at a time:
+**Why this is about the scripts, not the app.** The app does not take the foreground: launch
+and close cycles leave it unchanged, and opening the settings window does too, because Windows
+refuses `SetForegroundWindow` from a process that does not own the foreground.
 
-    launch / close cycles            foreground unchanged (3/3, twice)
-    opening the settings window      foreground unchanged, even with the main window moved
-                                     on-screen -- because Windows refuses SetForegroundWindow
-                                     from a process that does not own the foreground
-    the probes themselves            SEVEN of them call SetWindowPos(..., SWP_SHOWWINDOW)
-                                     to drag the window from its parked position onto the
-                                     screen so they can screenshot it
+What DOES steal it is a probe calling `SetWindowPos(..., SWP_SHOWWINDOW)` to drag the window
+from its parked position onto the screen so it can be screenshotted. The app then appears in
+front of the user's other work, and the app looks like the cause.
 
-So the jumping was caused by the measuring scripts, not by the app. `tools/mvpw-mcp/
-background_window.py` fixes it (`OnScreen` moves with SWP_NOACTIVATE and restores the original
-rectangle), and this checker keeps it fixed: a small fix that is not enforced comes back.
+`tools/mvpw-mcp/background_window.py` does the move correctly (`OnScreen` uses
+`SWP_NOACTIVATE` and restores the original rectangle). This checker keeps it that way: a small
+fix that is not enforced comes back.
 
 What counts as a violation, in `tools/` and in `_work/`:
 
   * `SetForegroundWindow(` / `BringWindowToTop(` / `SwitchToThisWindow(` / `SetActiveWindow(`
     -- these take the foreground by definition;
   * `SetWindowPos(` combined with `SWP_SHOWWINDOW` (0x0040) or the literal pair
-    `0x0004 | 0x0010` used to mean "move and show", where the intent is to make the window
-    visible on a monitor.
+    `0x0004 | 0x0010` -- "move and show". The intent is to park the window back on a
+    monitor for a screenshot, and that intent does not require taking the foreground.
 
 Allowed, with the reason in the file:
 

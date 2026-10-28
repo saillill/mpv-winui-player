@@ -5,11 +5,10 @@
 entries -- then every later entry misses, and the checker reports violations that are not
 new.
 
-**This bit twice in one session.** Adding seven lines to MpvPlayerPage.xaml made both
-checkers report "NEW violations" for literals nobody had touched, and adding three more made
-it happen again. Both times the temptation was to "fix" the literals, which would have been
-work on a non-defect. The shift has to be applied to the baseline instead, and the size of
-the shift is not recorded anywhere -- it has to be measured.
+Editing a line above an entry shifts every later entry, and both checkers then report "NEW
+violations" for literals nobody touched. The temptation is to "fix" those literals, which is
+work on a non-defect. The shift belongs to the baseline, and its size is recorded nowhere, so
+it has to be measured.
 
 A line number that no longer points at the thing it names is a baseline that is silently
 wrong in the other direction too: an entry could drift onto a DIFFERENT literal and start

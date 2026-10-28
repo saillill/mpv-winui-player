@@ -8,23 +8,16 @@ its full-window shape: the menu row collapses to zero, and the shell hides the
 rest of its chrome in step with it. A `NormalWindow` state with no setters
 switches it back.
 
-That state used to also re-dress the playlist toolbar:
+The two shapes this rejects, and why reading the XAML does not reveal either:
 
-    <Setter Target="PlaylistToolBar.HorizontalAlignment" Value="Left" />
-    <Setter Target="PlaylistToolBar.Margin" Value="4,-6,8,0" />
+A NEGATIVE MARGIN on a setter usually asks for more room than the parent row
+gives. A `Height="44"` toolbar in a `Height="44"` row with `Margin="4,-6,8,0"`
+asks for 50px in a 44px row, so the row clips it: the buttons lose their top
+edge and the neighbouring column stops lining up with the video area.
 
-Both halves were wrong, and both were wrong in ways that reading the code does
-not reveal. The toolbar had `Height="44"` and lived in a `RowDefinition` that
-was also `Height="44"`. A -6 top margin therefore asked for 6px more than the
-row gave, so the row clipped it: the buttons lost their top edge and the
-sidebar's first row stopped lining up with the video area next to it. That is
-the bug the user reported as "全屏下和侧栏间距有问题". Separately, flipping the
-alignment moved the playlist buttons to the other end of the pane on a state
-change that has nothing to do with them.
-
-The playlist toolbar and its column are gone now, but the check stays: the
-shape of the bug is generic, and the next element to be re-dressed inside a
-VisualState will look just as innocent.
+AN ALIGNMENT CHANGE moves an element the state does not own. A full-window state
+re-aligning a toolbar that has nothing to do with full-window survives review,
+because the setter reads as one line and its effect only shows in that state.
 
 Neither symptom is visible without running the app, which is exactly why this
 check exists: the repo has no automated UI test, and a magic number added to a

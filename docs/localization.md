@@ -64,8 +64,8 @@
 
 ### 3.2 `LanguageCode.IsSafe` 为什么存在
 
-语言代码来自持久化的 `CurrentLanguage` 设置，曾被直接拼进
-`Path.Combine(userDir, code + ".json")`。一个 `..\..\some` 就能让应用打开
+语言代码来自持久化的 `CurrentLanguage` 设置，必须经本函数校验后才能拼进
+`Path.Combine(userDir, code + ".json")`。不校验时一个 `..\..\some` 就能让应用打开
 语言目录之外的文件——读的只是一次 JSON 解析，但「打开哪个路径」不该由存储的字符串决定。
 
 规则：只接受 ASCII 字母数字，`xx` 或 `xx-YY` 形状，允许更多子标签

@@ -33,7 +33,7 @@
 - **`ConfigDeployer` 必须在任何配置写入之前完成**：`ManagedMpvConfig` 和
   `PluginConfigWriter` 是**合并**进已存在的文件，配置层不在磁盘上就无从合并。
 - **部署是增量的**：只覆盖"我们部署且用户没改过"的文件；用户改过的保留。
-  这条规则是 `mpv.conf` 曾被写坏之后加的，不要简化。
+  这条规则不能简化：整文件覆盖写坏过一次 `mpv.conf`，`AtomicFile` 与增量部署是它的两道防线。
 - **路径常量集中在 `AppData`**，不要在别处拼 `%LOCALAPPDATA%`。
 
 ## 上下文裁剪提示

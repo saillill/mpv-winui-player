@@ -3,7 +3,7 @@
 `mpvw` 与上游 `ikas-mc/mpv-winui-player` 的关系、许可边界，以及 15 条未纳入的提交逐条处置。
 
 - 本仓库：`saillill/mpv-winui-player`（`mpvw`），LGPL-2.1
-- 上游：`ikas-mc/mpv-winui-player`，HEAD `5b3d46a`（2026-10-25）
+- 上游：`ikas-mc/mpv-winui-player`，对比到 `5b3d46a` 为止（见 §五的清单命令）
 - 共同祖先：`2b74e2a`（2026-09-12）
 - 上游领先 15 条（`2b74e2a..5b3d46a`）
 
@@ -31,8 +31,8 @@
 | `753cabf` | 09-14 | LGPL | 3 | menu editor 换行与新增子节点后选中 | **不移植**。本仓库菜单编辑器已独立演进（11 文件），改动点已不存在 |
 | `276a7e0` | 09-15 | LGPL | 1 | fix track selector binding | **不移植**。本仓库音轨选择器实现不同（5 文件），需先复现 |
 | `c426a73` | 09-18 | LGPL | 15 | add wizard for app conf data | **不移植**。本仓库无 `AppConfData` 功能线（0 文件命中） |
-| `1a52bcb` | 09-18 | LGPL | 10 | 保持屏幕常亮 | **待议**。本仓库有 4 文件命中，需确认是否已等效 |
-| `a12c6c4` | 09-19 | LGPL | 3 | 鼠标键显示/隐藏控制栏 | **待议**。本仓库有 5 文件命中，需确认 |
+| `1a52bcb` | 09-18 | LGPL | 10 | 保持屏幕常亮 | **已具备**。本仓库走 mpv 的 `stop-screensaver`：默认值 `"yes"`（`AppSettings.Gen.cs:601`），映射在 `MpvSettings.Gen.cs:261,426`，设置行在 `SettingsPage.Options.Gen.cs:1589-1602`。不需要 `DisplayRequest` |
+| `a12c6c4` | 09-19 | LGPL | 3 | 鼠标键显示/隐藏控制栏 | **已具备**。`HandlePlayControl` 在左键或中键按下时 `TogglePlayerControl()`（`MpvPlayerPage_PlayControl.cs:24-48`）；鼠标事件经 `MpvPlayerPage_Mouse.cs` 转发给 mpv |
 | `8de677e` | 09-20 | LGPL | 8 | 单实例配置 | **不移植**。本仓库无单实例机制（0 文件命中） |
 | `22f0e0c` | 09-22 | LGPL | 7 | history / watch later 对话框优化 | **不移植**。本仓库两者已整体重写（21 文件） |
 | `7757cea` | 10-18 | LGPL | 3 | 窗口尺寸位置保存重构 | **不移植**。本仓库实现不同（18 文件命中） |
@@ -43,7 +43,7 @@
 | `be1b4c6` | 10-20 | GPLv3 | 1 | update package version | **不移植**（许可） |
 | `5b3d46a` | 10-25 | GPLv3 | 5 | d3d11 composition 显示信息 | **本仓库已等效**，理由见第四节 |
 
-统计：待议 2 条、不移植 11 条（含 4 条许可限制）、不采纳 1 条、已等效 1 条。
+统计：已具备 2 条、不移植 11 条（含 4 条许可限制）、不采纳 1 条、已等效 1 条。
 
 ## 三、`9a06de2`（zip 解析）：本仓库无此缺陷
 
@@ -164,11 +164,46 @@ git grep -n 'd3d11-output' -- 'data/profiles.conf'
 git grep -n 'SetUserData("mpvw/color-kind"' -- 'src/mpvw-native/MpvPlayer.cpp'
 ```
 
-## 六、遗留的 2 条待议
+## 七、结构与实现上的主动差异
 
-| 提交 | 需要确认什么 |
-|---|---|
-| `1a52bcb` 保持屏幕常亮 | 本仓库 4 文件命中，需确认是否已具备等效行为（`DisplayRequest` 或 mpv 侧 `stop-screensaver`） |
-| `a12c6c4` 鼠标键显示/隐藏控制栏 | 本仓库 5 文件命中，需确认鼠标绑定是否已覆盖该场景 |
+以下几处本仓库与上游同名文件的做法不同。**都不是缺陷**，是有原因的选择；
+原因成立就不该「改回上游写法」。
 
-这两条都不影响本次重建的验收，留作后续功能比对。
+### 7.1 `Keycodes.cs`：删了键名表，只损失 trace 级日志
+
+上游 `Keycodes.cs` 610 行，含 `key_names` / `modifier_names` 两张表与
+`mp_input_get_key_name` / `mp_input_get_key_from_name`；本仓库 270 行，这些全部删掉。
+
+**不是功能缺失**，依据：
+
+- 上游对这两个函数的**全部**调用点都在 `if (_logger.IsTraceEnabled)` 内
+  （`MpvPlayerPage_Input.cs:60,151`、`MpvPlayerPage_Mouse.cs:263`）；
+- 本仓库的 `SendKeydown` / `SendKeyup`（`MpvPlayerPage_InputForwarding.cs:62,75`）
+  与上游逐行等价，只多出 trace 代码块留下的空花括号；
+- 全库 grep 无其他消费者。
+
+代价：排查按键问题时少了一条「按键名 → 键码」的 trace 输出。
+
+### 7.2 `MpvPlayerPage_InputForwarding.cs`：逻辑等价 + 增强
+
+上游该文件叫 `MpvPlayerPage_Input.cs`；本仓库 `MpvPlayerPage_InputForwarding.cs` 274 行，
+方法齐备并多出 `IsSliderNavigationKey`、`IsTextInputFocused`、`SendMouseButton` 等。
+**不算偏离**——上游有的这里都有。
+
+### 7.3 `WindowStyleManager.UpdateBackdrop()`：改成无参、内部读设置
+
+上游签名 `UpdateBackdrop(string backdropType)`，由调用方指定材质；本仓库改成无参
+`UpdateBackdrop()`，内部读设置，另加 `UpdateUiFont`、`ResolveTheme`。
+调用方因此不需要知道材质从哪来。
+
+### 7.4 目录是拍平的
+
+上游 `Modules/Player/PlayerControl/*`；本仓库拍平为 `Domains/Playback/*`
+（文件内容基本沿用上游）。XAML 移动是自传播的：`.xaml` 编译成同相对路径的 `.xbf`，
+页面按资源 URI 加载，所以移动源文件后输出跟着走。
+
+### 7.5 `PlayerTrackSelectorControl` 与 `MenuConfWriter` 已对齐上游
+
+- `PlayerTrackSelectorControl.xaml:40,81,122,163` 四处 `SelectedIndex` 绑定都带 `Mode=OneWay`。
+- `MenuConfWriter.cs:27,45` 用 `Append('\n')` 而非 `AppendLine()`（注释在 `:23`、`:44`，写明平台换行
+  会破坏 `menu.conf`）；测试直接比原始字节，CRLF 会失败。

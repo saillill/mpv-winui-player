@@ -161,17 +161,17 @@ section 的 `Id` **就是** `AppLang` 的属性名（类文档 `:10-25`）。例
 
 ## 4. 已知例外登记
 
-逐条对当前代码核验。**「仍成立」= 旧说法与代码一致；「已失效」= 旧说法不再成立。**
+逐条对当前代码核验。**「成立」= 说法与代码一致；「按现状」= 代码如此，但不是设计意图。**
 
-### 4.1 仍然成立
+### 4.1 成立
 
 | # | 内容 | 证据 |
 |---|---|---|
 | A-1 | `check-sections` 按括号配平读两半 | `tools/check-sections.py:179-193` |
-| A-3 | 允许驱动应用、禁止遗留进程 | `AGENTS.md:77,81,84` |
+| A-3 | 允许驱动应用、禁止遗留进程 | 见 §4.3 |
 | A-4 | 产物名 `mpvw.exe`/`mpvw.dll` | `tools/installer/product.wxs:70,101,106`、`build-installer.ps1:42` |
 | A-5 | `check-settings-drift` 的 `UNMAPPED_OK` | `tools/check-settings-drift.py:87`；实测 exit 0 |
-| A-6 | `compare-upstream.md` 的基线声明 | `docs/compare-upstream.md:3-11` |
+| A-6 | 与上游的基线声明在 `upstream-gap.md` | `docs/upstream-gap.md:1-8` |
 | A-8 | `sectionOrder` 无重复条目 | 实测 47 条、重复 0 |
 | A-9 | `ControlBarHiddenIcons` 无 `sectionMap`/`optionOrder` 条目，属性保留 | `SettingsPage.Options.cs:1101-1102`、`AppSettings.cs:569-572` |
 | A-10 | `Option.cs` 无孤儿 XML 注释 | 全文 0 次 "Display tier" |
@@ -183,12 +183,12 @@ section 的 `Id` **就是** `AppLang` 的属性名（类文档 `:10-25`）。例
 | A-21 | `CustomizeStrings` 的键无 `AppLang` 属性，设计如此 | `CustomizeStrings.cs:7-23`；检查器按 `Customize*`+`Apply*` 归 expected |
 | A-23 | `check-sections` 查 `sectionOrder` 完整性 | `tools/check-sections.py:526-552` |
 | A-25 | `MpvConfWatcher` 保留（242 行），耦合已解 | `MpvConfWatcher.cs`；`MpvConfManager.cs:44-47` 接 `onBeforeSave` |
-| A-26 | 转义损坏 896 MB 已修 | `MpvConfValueCodec.cs:46`(`Quote`)/`:71`(`Unquote`)；隔离文件 `_corrupt-20260920-150845\mpv.conf` = 939559174 B |
+| A-26 | 转义损坏已修 | `MpvConfValueCodec.cs:46`(`Quote`)/`:71`(`Unquote`)；隔离副本 `_corrupt-*\mpv.conf` = 939559174 B |
 | A-28 | `mpv-conf-test` 能编译（`MpvConfManager` 不再依赖 Settings） | `MpvConfManager.cs:44-47,89`；`tests/conf/mpv-conf-test.csproj:3` |
 | A-29 | 6 个设置能读回（`no`/`inf`/`MiB`） | `MpvConfValueCodec.cs:149,123-131,162-169,185-187` |
 | A-30 | `build.ps1` 跑真测试 | `build.ps1:117-120,134` |
 | A-31 | `deploy-test.sh` 有 GNU find 探测 | `tools/deploy-test.sh:36-50` |
-| A-32 | 桌面 `mpvw-TEST.lnk` 仍不存在 | `Test-Path` = False |
+| A-32 | 桌面 `mpvw-TEST.lnk` 不存在 | `Test-Path` = False |
 | A-33 | `check-resources.py` 在仓库内且通过 | 实测 `OK: 182 resource key(s)` |
 | EX-1 | `OptionCardStyle` 仍是 `OptionListControl.xaml` 局部样式 | `OptionListControl.xaml:39`，11 个模板引用 |
 | EX-2 | 三处刻意保留：搜索胶囊、`Generic.xaml` 仅两条隐式样式、`LeftContentToggleSwitchStyle` | `Styles.xaml:1318-1347`、`Themes/Generic.xaml`（13 行）、`Styles.xaml:225` |
@@ -198,31 +198,43 @@ section 的 `Id` **就是** `AppLang` 的属性名（类文档 `:10-25`）。例
 | EX-14 | `MpvOptionControlGap = 24` 独立令牌 | `Styles.xaml:1189-1196`，20 处消费 |
 | EX-15 | `.Gen.` 文件禁止手改 | 各文件首行 `auto-generated` |
 
-### 4.2 已失效（旧说法不再成立，按现状记录）
+### 4.2 按现状（代码如此，但不是设计意图）
 
-| # | 旧说法 | 现在的实际 |
-|---|---|---|
-| A-2 | 已暴露 815 / 未暴露 1，`missing-options.md` 已重生成 | **`tools/report-missing-options.py` 现在 exit 1**：`:375` 报 `curated names that are not mpv options: ['cuda-decode-device']`（该名在 `:219`），而 `mpv-options.json` 里该选项 0 次。`docs/missing-options.md` 已删除。脚本本身不可用，它产出的任何数字都不成立 |
-| A-7 | 至少改 `Options.Advanced.cs` 文件头注释 | 文件头**仍未加**（第 1 行是 `using Microsoft.UI.Xaml;`）。文件里 102 条行 |
-| A-11 | `MpvSpaceL`/`MpvSpaceXl` 零消费者但保留 | `MpvSpaceXl` **已不存在**（全仓 0 次）；`MpvSpaceL` 有 **5 处**消费者（`MediaInfoUserControl.xaml:19`、`MpvPlayerPage.xaml:1116,1417,1994,2049`） |
-| A-13 | 手写行与生成行缩进风格不同 | 缩进**已一致**（生成 `SettingsPage.Options.Gen.cs:32,34` 与手写 `SettingsPage.Options.Playback.cs:35` 同为 12/16 空格）。仍不同的是**语法形态**：生成用 `list.Add(new Option { … });`，手写是集合表达式元素 `new Option { … },` |
-| A-16 | 549 生成行未本地化，9 文件各缺 1096 键，待修 | 生成行 **356**、`Schema*` 属性 **712**。`Schema*` 键数：**zh-CN 712**，其余 8 个语言文件 **0**。检查器已把这条降为 WARNING（`check-localization.py:209-219`），exit 0 |
-| A-20 | `SectionDragSurface` 保留 | 该名**已不存在**；`HeaderGrid`/`CustomizeHost` 也已删。零引用 `x:Name` 的总数**无法确认**（无对应检查器） |
-| A-22 | BOM 不统一，`MpvSettings.cs` 有 BOM | 实测两者**都无 BOM**（`git ls-files --eol` 均为 `i/lf w/crlf`）。旧规则说"工作区应为 LF"与实测**相反**：`core.autocrlf=true` 下工作区是 CRLF、索引是 LF |
-| A-24 | 548 条 schema 生成选项，数字待订正 | 裁定成立（生成分区保留），但**陈旧数字仍在代码里**：`gen-schema-options.py:1014`、`SettingsSections.cs:134`、`MpvSettings.cs:360,361,486` 都写 548；`gen-schema-options.py:851` 写 549。实际 **356 行 / 712 键** |
-| A-27 | 检查器无「写→读→再写」往返断言 | `Quote`/`Unquote` 往返**已有**（`MpvConfValueCodecTests.cs:59-61,93-122`）。仍缺的是 `ToConfLine` 的字节级往返：`ToConfLine` 在 `tests/conf/*.cs` 中 **0 次**命中 |
-| A-33 附带 | 审计脚本 `audit-resource-keys.py` 可用 | 它硬编码旧根 `mpv-winui/mpv-winui`（`:26`），实测输出 `defined x:Key resources: 0`——静默测了个空目录，结果不可用 |
-| A-34 | 缺口 746，默认口径红 | 缺口 **712**；默认九文件口径现在**绿**（降级为 WARNING），窄口径 `--languages=zh-CN,en-US` 也绿 |
-| A-35 | 三个写入者写 `hdr-reference-white`/`hdr-peak-percentile` | 配置层（`profiles.conf`）**已移除**这两个键。仍是**两个**写入者：`MpvPlayerPage_Display.cs:443-449` 与设置行 `MpvSettings.Gen.cs:131-132`（经 `SettingsPage.Options.Gen.cs:47`、`:60`）。落盘证据 `%LOCALAPPDATA%\mpv-winui\mpv\mpv.conf` 第 421-422 行（部署后的文件，不是仓库内 `data/mpv.conf`） |
-| EX-3 | 间距令牌化率 74/109 = 67.9%，25 个非零字面量 | 口径不同，不可直接比较。本次统计 `Domains/Settings/**/*.xaml` 的 120 处间距值：`{StaticResource}` **83**、字面 `0` **8**、其它字面量 **35**。令牌化率约 **69%** |
-| EX-4 | `ColumnSpacing="18"`、`Margin="0,10,0,0"` 待决 | 前者已升格为令牌 `MpvSectionCardColumnSpacing`（`Styles.xaml:1268`）；后者全仓 **0** 次。剩下的是重复字面量 `Margin="0,12,0,0"` × 3（`OptionCheckListControl.xaml:54`、`OptionColorControl.xaml:60`、`OptionLayoutControl.xaml:26`） |
-| EX-5 | `MpvOptionErrorStyle` 不存在 | 已定义（`Styles.xaml:1162`），3 处消费 |
-| EX-6 | `Padding="16,16,16,16"` 未接令牌 | 已用 `Padding="{StaticResource MpvCardPadding}"`（`OptionListControl.xaml:366`） |
-| EX-7 | 17 个检查器（15 通过 / 2 失败） | 现在 **25** 个。本轮逐条实跑 25 个，**全部 exit 0** |
-| EX-10 | 59 分区 = 59 个互不相同图标 | **69** 分区、**68** 个不同图标、**1 处共享**（`\uE8B7`：`SettingsSections.cs:87` 与 `:91`）。检查器报 WARNING 而非失败 |
-| EX-11 | 顶层 9 个分类 | **6** 个（见 §2.1） |
-| EX-12 | 窗口下限 720×560 | `PreferredMinimumWidth = 560`、`PreferredMinimumHeight = 560`（`SettingsWindow.xaml.cs:81-82`）。`CategoryFloor = 8` 未随之改 |
-| EX-16 | 四张表条数为 299/46/307 等旧值 | `optionOrder` **323**、`sectionOrder` **47**、`sectionMap` 手写 **325** |
+| # | 当前事实 |
+|---|---|
+| A-2 | `tools/report-missing-options.py` **不可用**：`:375` 报 `curated names that are not mpv options: ['cuda-decode-device']`（该名在 `:219`），而 `mpv-options.json` 里该选项 0 次。脚本产出的任何数字都不成立 |
+| A-7 | `Options.Advanced.cs` 文件头**没有**说明注释（第 1 行是 `using Microsoft.UI.Xaml;`）。文件里 102 行 |
+| A-11 | `MpvSpaceXl` **不存在**（全仓 0 次）；`MpvSpaceL` 有 **5 处**消费者（`MediaInfoUserControl.xaml:19`、`MpvPlayerPage.xaml:1116,1417,1994,2049`） |
+| A-13 | 缩进一致（生成 `SettingsPage.Options.Gen.cs:32,34` 与手写 `SettingsPage.Options.Playback.cs:35` 同为 12/16 空格）。不同的是**语法形态**：生成用 `list.Add(new Option { … });`，手写是集合表达式元素 `new Option { … },` |
+| A-16 | 生成行 **356**、`Schema*` 属性 **712**。`Schema*` 键数：**zh-CN 712**，其余 8 个语言文件 **0**。`check-localization.py:209-219` 把这条降为 WARNING，exit 0 |
+| A-20 | `SectionDragSurface`、`HeaderGrid`、`CustomizeHost` 都**不存在**。零引用 `x:Name` 的总数无法确认（无对应检查器） |
+| A-22 | `MpvSettings.cs` 与 `ManagedMpvConfig.cs` **都无 BOM**（`git ls-files --eol` 均为 `i/lf w/crlf`）。`core.autocrlf=true` 下工作区是 CRLF、索引是 LF |
+| A-24 | **陈旧数字仍在代码里**：`gen-schema-options.py:1014`、`SettingsSections.cs:134`、`MpvSettings.cs:360,361,486` 都写 548；`gen-schema-options.py:851` 写 549。实际 **356 行 / 712 键** |
+| A-27 | `Quote`/`Unquote` 往返**已有**（`MpvConfValueCodecTests.cs:59-61,93-122`）。缺的是 `ToConfLine` 的字节级往返：`ToConfLine` 在 `tests/conf/*.cs` 中 **0 次**命中 |
+| A-33 附带 | `audit-resource-keys.py` 硬编码旧根 `mpv-winui/mpv-winui`（`:26`），实测输出 `defined x:Key resources: 0`——测了个空目录，不可用 |
+| A-34 | 缺口 **712**；默认九文件口径**绿**（降级为 WARNING），窄口径 `--languages=zh-CN,en-US` 也绿 |
+| A-35 | `profiles.conf` 的 `[HDR_generic]` 不含 `hdr-reference-white`/`hdr-peak-percentile`。**两个**写入者：`MpvPlayerPage_Display.cs:443-449` 与设置行 `MpvSettings.Gen.cs:131-132`（经 `SettingsPage.Options.Gen.cs:47`、`:60`） |
+| EX-3 | `Domains/Settings/**/*.xaml` 的 120 处间距值：`{StaticResource}` **83**、字面 `0` **8**、其它字面量 **35**。令牌化率约 **69%** |
+| EX-4 | `ColumnSpacing="18"` 已升格为令牌 `MpvSectionCardColumnSpacing`（`Styles.xaml:1268`）；`Margin="0,10,0,0"` 全仓 **0** 次。剩下重复字面量 `Margin="0,12,0,0"` × 3（`OptionCheckListControl.xaml:54`、`OptionColorControl.xaml:60`、`OptionLayoutControl.xaml:26`） |
+| EX-5 | `MpvOptionErrorStyle` 已定义（`Styles.xaml:1162`），3 处消费 |
+| EX-6 | `Padding="16,16,16,16"` 已改用 `{StaticResource MpvCardPadding}`（`OptionListControl.xaml:366`） |
+| EX-7 | 共 **26** 个检查器，逐条实跑全部 exit 0 |
+| EX-10 | **69** 分区、**68** 个不同图标、**1 处共享**（`\uE8B7`：`SettingsSections.cs:87` 与 `:91`）。检查器报 WARNING 而非失败 |
+| EX-11 | 顶层 **6** 个分类（见 §2.1） |
+| EX-12 | `PreferredMinimumWidth = 560`、`PreferredMinimumHeight = 560`（`SettingsWindow.xaml.cs:81-82`）。`CategoryFloor = 8` 未随之改 |
+| EX-16 | `optionOrder` **323**、`sectionOrder` **47**、`sectionMap` 手写 **325** |
+
+### 4.3 应用驱动与进程生命周期
+
+改动涉及启动 `mpvw.exe` 时遵守：
+
+1. **允许启动**。可以启动 `mpvw.exe` 看界面、经 IPC 驱动、跑 UI 自动化。
+   `tools/mvpw-mcp/` 就是为这件事存在的，它的 verify 脚本是证明改动生效的手段。
+2. **绝不能留在运行状态**。每个脚本都要关掉它并断言进程已消失。
+3. **用开关关，不要 `Stop-Process`**：`pwsh tools/deploy-test.ps1 -CloseRunning -Verify`。
+   `-CloseRunning` 先投递 `WM_CLOSE`，只对 10 秒内无视它的窗口强杀，
+   这样 WinUI 正常关闭、mpv 刷日志并存状态。**不要往运行中的安装部署。**
+4. **截图证外观，不证行为**。用来看对齐、间距、颜色、裁切，或诊断渲染错误。
 
 ---
 
@@ -244,22 +256,19 @@ python tools/check-scroll-maxwidth.py          # 滚动内容列
 .\build.ps1 -Configuration Release -Platform x64   # 大范围改动后
 ```
 
-**其中 4 个不能作为证据**：`check-icon-standard.py` 与 `check-typography-standard.py`
-的扫描根仍写 `("Modules","Shell")`（`Modules` 已不存在），39 个 XAML 只看 1 个；
-`check-empty-sections.py:152` 与 `check-placeholders.py:94` 恒 `return 0`。
-另 `check-baseline-lines.py` 现在就有 1 条 stale（`icon-standard-baseline.txt:43`）却 exit 0。
-详见 `verification.md` §4。
+**其中 2 个只报数量、不报新增**：`check-icon-standard.py` 与 `check-typography-standard.py`
+输出 `no NEW violations (N known)`，N 是基线里的既存数量——它们能证明没有新增，
+不能证明既存的那些已经被处理。详见 `verification.md` §4。
 
 ---
 
-## 6. 本次实测发现的不一致
+## 6. 按现状记录的不一致
 
 | 问题 | 事实 |
 |---|---|
 | 两个检查器对同一属性集给出不同的数 | `check-settings-drift.py` 报 695、`check-mpvconf-precedence.py` 报 696。同一目录、正则不同，差的那个属性未查明 |
 | 代码注释里的陈旧数字 | `548`/`549` 出现在 5 处，实际 **356** |
 | `report-missing-options.py` 不可用 | exit 1，`cuda-decode-device` 不在 schema 里 |
-| 文档引用已删文件 | `SettingsSections.cs:73` 引用 `docs/settings-ui-review.md`；`AGENTS.md` 引用 `docs/prompt-v2/05-MODULE-DESIGN.md` |
 
 ## 7. 重算本文每个数字
 
@@ -295,5 +304,5 @@ Select-String -Path tools/gen-schema-options.py,src/mpvw-app/Domains/Settings/La
 - **695 vs 696**：两个检查器对同一目录给不同的属性数，差的那一个属性是哪个、
   谁的口径正确，读了两个正则仍不能确定（`check-mpvconf-precedence.py` 的
   `PROP_BLOCK`/`PROP_INLINE` 定义未逐条比对过全部 696 个名字）。
-- **`CategoryFloor = 8` 与窗口宽度**：旧文档说改高度 560 必须重算这个下限，
-  但代码里两者没有可见的推导关系，也未找到记录该推导的注释。
+- **`CategoryFloor = 8` 与窗口宽度**：`CategoryFloor` 这个下限与窗口高度 560
+  在代码里没有可见的推导关系，也没有注释记录它。

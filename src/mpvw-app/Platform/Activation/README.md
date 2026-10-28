@@ -26,11 +26,11 @@
 - 依赖：`Common/Utils`、`Language`。
 - **不依赖 `Player`**：激活只解析参数，开文件由 `Shell/MainWindow.Open` 负责。
 
-## 历史（避免重造）
+## 边界
 
-云端曾有第二套实现 `Platform/Activation/`（6 个文件：Service + 两套 XAML 控件
-+ Item 模型），那是**死代码**——`SettingsPage.xaml` 声明了 `xmlns:ar=` 却从未使用。
-本地已删除（`0b17cc0`），文件关联 UI 并入设置页。**不要把它加回来。**
+文件关联的 UI 在设置页，不在这一层。这一层只有解析与注册：`ActivationService`、
+`ActivationRegistrationService`、`MpvProtocolUri`。**不要在这里加 XAML 控件或 Item 模型**
+——UI 归 `Domains/Settings`。
 
 ## 上下文裁剪提示
 

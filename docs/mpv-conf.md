@@ -5,49 +5,49 @@
 
 ---
 
-## 1. 文件在哪（这里有一处代码冲突，先读）
+## 1. 文件在哪
+
+配置目录只有一个定义：`AppData.Current.MpvConfigDirectory`
+（`AppData.cs:55` → `ResolveLocalData(MpvConfigFolderName)`）。它建立在
+`EnsureLocalFolder()` 已解析出的 ApplicationData 根之上，因此与 mpv 收到的
+`config-dir` 由构造保证一致，不靠两份常量列表碰巧相同。
 
 | 角色 | 路径 | 代码 |
 |---|---|---|
-| 设置层读写的 `mpv.conf` | `%LOCALAPPDATA%\mpv-winui\mpv\mpv.conf` | `ManagedMpvConfig.cs:120-124`；读走 `MpvSettings.cs:1192` |
-| 部署层（`AppContext.Init`） | `%LOCALAPPDATA%\mpv-winui\mpv` | `AppContext.cs:108-111` |
-| **mpv 实际读的目录** | **`%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv`** | `MpvPlayerPage.xaml.cs:493` → `AppData.GetForUnpackaged("mpv-winui","mpv-winui")`（`AppData.cs:22-24,52`）→ `MpvPlayer.cpp:250` 的 `config-dir` |
+| **唯一的配置目录** | `%LOCALAPPDATA%\mpv-winui\mpv-winui\mpv` | `AppData.cs:55`；根由 `GetForUnpackaged(AppDataPublisher, AppDataId)` 产生（两者都是 `"mpv-winui"`，故双层） |
+| 设置层读写的 `mpv.conf` | 上者 + `\mpv.conf` | `ManagedMpvConfig.cs:121-122`；读走 `MpvSettings.cs:1192` |
+| mpv 收到的 `config-dir` | 上者 | `MpvPlayerPage.xaml.cs:493` → `MpvPlayer.cpp:250` |
 
-### 1.1 冲突（已修复）
+**10 处直接消费 + 9 处经 `MpvConfPath`，没有任何一处手拼路径：**
 
-**修复前**：设置层写到的目录，不是 mpv 读的目录。两边差一级 `mpv-winui`——设置层
-`...\mpv-winui\mpv\`，mpv 读 `...\mpv-winui\mpv-winui\mpv\`。
+```
+# 直接消费 AppData.Current.MpvConfigDirectory
+AppContext.cs:108                      MpvPlayerPage_MenuBar.cs:490
+MpvPlayerPage.xaml.cs:493              SettingsLayout.cs:382
+ManagedMpvConfig.cs:122                SettingsPage.Actions.Shortcuts.cs:185,330
+PluginConfigWriter.cs:113              MenuDefinitionSource.cs:31
+MenuShortcutHints.cs:33
 
-实测证据（修复前）：`mpv-winui\mpv` 的 mpv.conf 719 行 / 有托管块 / 有状态文件；
-`mpv-winui\mpv-winui\mpv` 的 mpv.conf 294 行 / 无托管块 / 无状态文件 /
-`script-opts` 无托管标记。设置在界面里改对了也写进了文件，但那个文件 mpv 不读。
+# 经 ManagedMpvConfig.MpvConfPath（后者在 :122 由上面的派生点构成）
+MpvConfOverrides.cs:212                MpvSettings.cs:1192
+MpvConfTextWindow.xaml.cs:245,372      SettingsPage.Actions.ImportExport.cs:213
+MpvConfWatcher.cs:92,179               MpvConfEditorPage.xaml.cs:65
+MpvConfManager.cs:35（注释）
+```
 
-**成因**：`AppData.GetForUnpackaged(publisher, product)` 把两个参数都拼进路径
-（两者都是 `"mpv-winui"`），产生双层目录；而 `ManagedMpvConfig`、`PluginConfigWriter`、
-`MenuDefinitionSource`、`SettingsLayout`、`AppContext`、三个 `input.conf` 写入点
-各自用 `Path.Combine(LOCALAPPDATA,"mpv-winui","mpv",…)` 硬拼单层。
+重算：`git grep -n 'MpvConfigDirectory' -- '*.cs'` →
+`git grep -n 'ManagedMpvConfig\.MpvConfPath' -- '*.cs'`。
 
-**修法**：全部改走一个派生点 `AppData.Current.MpvConfigDirectory`
-（`AppData.cs`），它建立在 `EnsureLocalFolder()` 已经解析出的根之上，
-所以与 mpv 的 `config-dir` 由构造保证一致，不靠两份常量列表碰巧相同。
+`ConfigDeployer.MigrateLegacyConfigDirectory`（`ConfigDeployer.cs:106`，在 `:258`
+被调用）仍会在首次 `Sync` 时把上一级目录 `%LOCALAPPDATA%\mpv-winui\mpv` 折叠进来。
+它按 `UserOwnedFiles` / 其余层文件 / `ExcludedDirs` 三档决定覆盖方向，
+被覆盖的文件先存为 `<name>.bak-premigration`，完成后写
+`mpv-winui-migrated.stamp` 不再重跑。
 
-**已存在安装的数据迁移**：`ConfigDeployer.MigrateLegacyConfigDirectory` 在首次
-`Sync` 时把旧目录折叠进来。策略按文件归属分：
+### 1.1 `mpv.conf` 一旦存在就永不刷新
 
-| 文件 | 策略 | 理由 |
-|---|---|---|
-| `UserOwnedFiles`（mpv.conf、input.conf、menus.json…）与 `script-opts/` | **旧目录覆盖目标** | 旧副本才是设置窗口一直在写、用户一直在改的；目标里那份是打包原样。实测：旧 mpv.conf 719 行带两个标记块，目标 294 行什么都不带 |
-| 其余层文件 | **目标保留** | 目标由同一 bundle 部署，至少一样新 |
-| `ExcludedDirs`（cache 等） | 跳过 | 搬缓存等于复制几个 GB 再重建 |
-
-目标文件在被覆盖前先保存为 `<name>.bak-premigration`。迁移完成后写
-`mpv-winui-migrated.stamp`，之后不再重跑（否则每次启动都会用旧副本覆盖回去）。
-
-### 1.2 另一个可见影响
-
-`data/mpv.conf` 有 289 行，部署到双层目录后是 294 行。差 5 行是旧版本残留
-（`gpu-context`、`title-bar`、`ytdl` 等已从源文件删除、部署副本里仍在），
-因为 `mpv.conf` 在 `UserOwnedFiles` 里（`ConfigDeployer.cs:44-49`），一旦存在就永不刷新。
+`mpv.conf` 在 `UserOwnedFiles` 里（`ConfigDeployer.cs:57-61`），一旦存在就永不覆盖。
+因此 `data/mpv.conf`（289 行）与部署副本可以不一致——源文件删掉的行，副本里仍在。
 详见 [`deploy-layout.md`](deploy-layout.md)。
 
 ---
@@ -145,7 +145,7 @@
 | 键 | 内容 | 谁写 |
 |---|---|---|
 | `managed` | 上次写进托管块的行（含两个标记），hex 编码 | 每次写入后无条件写 |
-| `body` | 部署时的 body 基线 | **只有旧版本写过**；现在优先读打包模板，这个键只为兼容老安装而先读 |
+| `body` | 部署时的 body 基线 | 由 `ReadBodyFromState()` 先读（`ManagedMpvConfig.cs:549`），读不到才落回打包模板 `ReadBodyFromBundle()`（`:545`） |
 
 为什么 hex 编码：一个多行块要塞进一行。为什么用纯文本而非 JSON：AOT 下
 `System.Text.Json` 需要 source generator，纯文本无依赖且便于人工查看
@@ -213,8 +213,8 @@
 - **`MpvConfWatcher.NoteOwnWrite()` 在写盘前戳计数器**，不是之后。
   否则 watcher 的重载起点可能落在旧值上，把程序自己写的东西误判成手改。
 - **`AtomicFile`**：`File.WriteAllText` 先截断再填充，中途失败会留下半个文件。
-  历史上有过 `mpv.conf` 因转义缺陷涨到 896 MB 的事故，隔离文件仍在
-  `%LOCALAPPDATA%\mpv-winui\mpv\_corrupt-20260920-150845\`（939559174 字节）。
+  写盘必须原子：一次转义缺陷曾让 `mpv.conf` 涨到 896 MB（939559174 字节），
+  隔离副本在 `%LOCALAPPDATA%\mpv-winui\mpv\_corrupt-*\`。
 
 ---
 
@@ -229,13 +229,13 @@
 
 ### 8.2 退休行清理是硬编码的
 
-`RetiredBlockPrefixes = { "script-opts=ytdl_hook-" }`（`ManagedMpvConfig.cs`）。
-老版本写过、新版不再拥有的行会因记录不匹配而读成手改，永久留存。这个列表把它们
-直接丢弃。它是显式清单，不是通用机制。
+`RetiredBlockPrefixes = { "script-opts=ytdl_hook-" }`（`ManagedMpvConfig.cs:104-107`）。
+不在当前 `wanted` 里、因记录不匹配而被读成手改的行会永久留存，这个列表把它们直接丢弃。
+它是显式清单，不是通用机制。
 
-### 8.3 两个写入者仍在写 `hdr-reference-white` / `hdr-peak-percentile`
+### 8.3 `hdr-reference-white` / `hdr-peak-percentile` 有两个写入者
 
-配置层（`data/profiles.conf` 的 `[HDR_generic]`）已移除这两个键，但仍是两个写入者：
+配置层（`data/profiles.conf` 的 `[HDR_generic]`）不含这两个键。两个写入者是
 `MpvPlayerPage_Display.cs:443-449`（显示代码）与设置行（`MpvSettings.Gen.cs:131-132`
 经 `SettingsPage.Options.Gen.cs:47`）。落盘的托管块里能看到
 `hdr-peak-percentile=0.0`、`hdr-reference-white=auto`。

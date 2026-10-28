@@ -27,10 +27,10 @@ it. Two shapes exist here:
   Ownership is therefore resolved from the enclosing Style/ControlTemplate
   TargetType (the outermost one; nested per-part Styles like
   <Style x:Key="PlayButtonStyle" TargetType="Button"> inside the template do not
-  take over) to <Type>.xaml.cs anywhere in the project. This is what used to be
-  a blind spot: Themes/Generic.xaml names 14 of its buttons in
-  Domains/Playback/PlayerControl.xaml.cs, and a sibling-only scan reported all 14
-  as unnamed.
+  take over) to <Type>.xaml.cs anywhere in the project. Resolving ownership from
+  the same directory is not enough: Themes/Generic.xaml names 14 of its buttons in
+  Domains/Playback/PlayerControl.xaml.cs, so a sibling-only scan calls all 14
+  unnamed.
 
 Prints elements failing either rule. Exit code is always 0; the report is
 informational (run by hand, not wired into CI).

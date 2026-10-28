@@ -46,9 +46,8 @@
 | `DropdownFromScale` | **0.94** | 下拉展开的起始缩放 |
 | `PressFromScale` | **0.94** | **未被使用**（见 §7） |
 
-**距离必须大到看得见。** `ContentEnterOffset` 原本是 8，8 px 配 167 ms 被反馈成
-"动画缺失"——肉眼读到的只是一个纯淡入。官方指南把内容入场写作
-"slide up 150 px"，150 是整页量级，卡片按比例缩到 48（`MotionTokens.cs:82-92`
+**距离必须大到看得见。** 8 px 配 167 ms 肉眼读到的只是一个纯淡入。官方指南把内容入场
+写作 "slide up 150 px"，150 是整页量级，卡片按比例缩到 48（`MotionTokens.cs:82-92`
 的注释记录了这段推理）。
 
 ---
@@ -149,12 +148,11 @@ return enabled;
 | 库网格 | `MpvPlayerPage.Library.Cards.cs:814` `Math.Min(args.Index, 8) * 20` |
 | 设置列表 | `OptionListControl.xaml.cs:93` `Math.Min(i, 8) * 20` |
 
-`git grep StaggerStep\|StaggerCap` 无命中——旧文档写的
-`StaggerStepMs = 20` / `StaggerCap = 8` 这两个常量**在代码里不存在**。
-`OptionListControl.xaml.cs:92-93` 的注释明说两个界面用"同一个 20 ms 步长、同一个
-上限八"，但它是靠两处各写一遍字面量实现的。
+`StaggerStepMs` / `StaggerCap` 这两个常量**不存在**（`git grep StaggerStep\|StaggerCap`
+无命中）。`OptionListControl.xaml.cs:92-93` 的注释明说两个界面用"同一个 20 ms 步长、
+同一个上限八"，但它是靠两处各写一遍字面量实现的。
 
-封顶的理由（旧文档记载，代码只留下"cap of eight"的说法）：不封顶时第 40 张卡片要等
+封顶的理由（代码只留下"cap of eight"的说法）：不封顶时第 40 张卡片要等
 800 ms 才开始动，期间用户视线早已落在网格上，看起来像卡顿而不是波浪。
 
 ### 4.2 触发钩子：两种容器，两种正确写法
@@ -168,13 +166,11 @@ return enabled;
 
 ---
 
-## 5. 已完成的一次退让：SpringPop 去掉了回弹
+## 5. SpringPop 用 `Move` 曲线，不回弹
 
-`SpringPop` 现在 **1.0 → peak → 1.0，只用 `Move` 曲线，单调，不回弹**
-（`MotionBehaviors.cs:722-750`）。注释写明：
-
-> 这曾是弹簧曲线上的 24 个采样帧，会越过峰值再回摆；项目风格不接受
-> "在已有官方曲线能表达意图时发明一条曲线"。
+`SpringPop` 是 **1.0 → peak → 1.0，只用 `Move` 曲线，单调，不回弹**
+（`MotionBehaviors.cs:722-750`）。用 `Move` 而不是弹簧曲线，是因为项目风格不接受
+"在已有官方曲线能表达意图时发明一条曲线"。
 
 时长仍是 280 ms（`SpringSettleMs`），所以节奏没变，只是回弹没了。峰值：
 默认 **1.14**（按钮尺寸），满宽行调用方传 **1.02**（`MpvPlayerPage_Music.cs:399`）
@@ -194,10 +190,9 @@ return enabled;
 | 7 | 动画结束后留下 1.0001 的缩放，边框出现发丝缝 | 只停动画、没有精确复位 | 完成回调里 `Scale = Vector3.One` 且 `CenterPoint = Vector3.Zero`（`MotionBehaviors.cs:742-748`） |
 | 8 | 同一 offset 上两次 `InsertKeyFrame` 不是叠加而是覆盖 | Composition 的语义 | 一个峰值帧，不是两个（`MotionBehaviors.cs:734-736` 的注释） |
 
-`PlayerControl.Animation.cs:12-30` 另记了一条：这个面板曾是两套实现——
-主窗口用 XAML Storyboard、PiP 用 16 ms `DispatcherTimer` 补间。两个理由
-（PiP 是第二个顶层窗口，Storyboard 会崩合成器；两者都不能动 Offset 否则被布局搁浅）
-如今都不成立，所以合成一条路径。**这条路径里还有一段仍是 XAML 侧动画**：
+`PlayerControl.Animation.cs:12-30` 另记了一条：主窗口与 PiP 共用一条 Composition 路径，
+不是 XAML Storyboard，也不是 16 ms `DispatcherTimer` 补间。理由是 PiP 是第二个顶层窗口，
+Storyboard 会崩合成器；且两者都不能动 Offset，否则被布局搁浅。**这条路径里还有一段仍是 XAML 侧动画**：
 控制条宿主的高度（高度是布局属性，不能走合成器），它因此只能跑在滑动之后，
 并且只能用近似缓动——这个项目的 WinUI 投影没有在 XAML 侧写 cubic bezier 的入口
 （`CubicEase` 在这里不带控制点成员）。

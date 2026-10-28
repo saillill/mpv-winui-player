@@ -40,9 +40,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $dst 'mpvw.exe'))) {
 
 $running = Get-Process -Name mpvw -ErrorAction SilentlyContinue
 if ($running -and $CloseRunning) {
-    # Closing is allowed; launching is not. See "Do not launch the app" in
-    # AGENTS.md: the rule forbids putting mpvw.exe into the process list, and
-    # the project's owner has explicitly authorised taking it out again.
+    # Launching mpvw.exe is allowed; leaving it running is not. No script may
+    # exit with the process still alive, so this one closes it and asserts it is
+    # gone before returning.
     #
     # Ask first, force second. CloseMainWindow posts WM_CLOSE, which lets WinUI
     # and mpv shut down the way the user's own close button does -- the config

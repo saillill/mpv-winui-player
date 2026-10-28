@@ -1,42 +1,31 @@
 """Does a cited line RANGE still point at the block the doc says it does?
 
-`Styles.xaml:880-1021` was cited as an authority for spacing and typography. The file has
-since grown, so the range covered a visual-state storyboard instead. A single line number
-can be re-derived exactly; a range cannot, because the right answer is "the block moved and
-is now N1-N2" and that needs the block's boundaries.
+A single line number can be re-derived exactly. A range cannot: the right answer when
+a file grows is "the block moved and is now N1-N2", and that needs the block's
+boundaries. So a range whose two ends no longer resolve to one block is a FAILURE
+(exit 1) rather than a printed note -- a range that has drifted silently stops being
+authority for what the document claims.
 
-**Three versions, each defeated by a measurement.**
+**What counts as one block.**
 
-v1 snapped each end to the nearest line starting with `<Style`, `class `, `public `, `def `
-and compared those. Two faults:
+For XAML, the INNERMOST element containing the cited line, compared by opening tag.
+`CustomizeSectionTemplate` and `ShaderListTemplate` are different blocks even when their
+line spans are adjacent; comparing by indentation or by nearest `<Style` puts them
+together and reports healthy ranges as stale.
 
-  * it printed the result and returned 0 in every case, so it reported "4 ranges have
-    drifted" on every run, `gate.py` never ran it, and nobody read the output. Measured
-    2026-10-24: the four were real. `docs/settings-design-contract.md:234` cited
-    `OptionListControl.xaml:129-137` for the customise section row's `Padding 12,8,12,8`;
-    that padding is at line 166 inside `CustomizeSectionTemplate`, and 129-137 is a blank
-    line and `ShaderListTemplate`. The same sentence's `:216-225` had gone the same way.
-    Drift is a FAILURE now (exit 1), which is why it is in the gate's list.
+For code, a run of sibling declarations counts as one region. Citations legitimately
+name "the helpers that read option keys", and the blank lines between them are
+formatting, not block boundaries.
 
-  * the keyword snap itself misfired: a range ending in a comment inside a method walked
-    past that method into the next one.
+**Two orders that a measurement refuted**, kept here because both look correct:
 
-v2 used indentation. Still wrong: a range that starts at a `<Style` and ends at a sibling
-`<Thickness` token is one token region, and indentation put them in different owners.
+  * keeping the LAST matching element returns the root element for every line -- the
+    outermost closes last and overwrites every tighter match;
+  * preferring any containing element over an unnamed one reports the biggest wrapper
+    in the file for every template inside it.
 
-v3 resolves the INNERMOST XAML element containing each cited line and compares that
-element's opening tag -- `CustomizeSectionTemplate` vs `ShaderListTemplate`, which is the
-distinction the real defect was about. For code, a run of sibling declarations counts as
-one region, because citations like `check-sections.py:131-227` legitimately name "the
-helpers that read option keys" and the blank lines between them are formatting.
-
-Two v3 orders that a measurement corrected, kept in the code as comments: keeping the LAST
-matching element returned the root `<UserControl>` for every line (it closes last and
-overwrote every tighter match), and preferring any containing element over an unnamed one
-reported `<UserControl.Resources>` -- a 441-line wrapper -- for every template in the file.
-
-Nothing is repaired automatically here: a wrong guess would put a confident-looking wrong
-citation in the authority document.
+Nothing is repaired automatically. A wrong guess would put a confident-looking wrong
+citation into the authority document, which is worse than a red check.
 """
 import io
 import os
@@ -44,7 +33,18 @@ import re
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DOCS = [r"docs\settings-contract.md", r"docs\deploy-layout.md", r"docs\mpv-conf.md"]
+# Every document under docs/, globbed so a new one cannot be forgotten.
+# Two exclusions, each for a reason the text itself cannot carry:
+#
+#   history-filtering-log.md  append-only record with no `file:a-b` citations.
+#   compare-upstream.md       does not exist; the loop below silently skips a
+#                             missing path, so naming one here would hide a typo.
+EXCLUDE = {"history-filtering-log.md", "compare-upstream.md"}
+DOCS = sorted(
+    "docs" + os.sep + name
+    for name in os.listdir(os.path.join(REPO, "docs"))
+    if name.endswith(".md") and name not in EXCLUDE
+)
 RANGE = re.compile(r"([A-Za-z0-9_\-./\\]+\.(?:cs|xaml|py|ps1|lua|idl|json|md)):(\d+)-(\d+)")
 
 OPEN = re.compile(
@@ -198,14 +198,11 @@ def block_of(rows, line, is_xaml):
 def looks_like_comment_pointer(rows, a, b, doc_line):
     """Does the sentence around the citation describe COMMENTS rather than code?
 
-    Measured false positive this fixes. `docs/settings-design-contract.md:119` says:
-
-        > 反面案例记录在 `SettingsPage.xaml:63-82` 与 `:176-191` 的注释里
-
-    "recorded in the COMMENTS at 63-82". Those lines genuinely contain a 5-line explanatory
-    comment (66-70) and nothing else of interest -- the range is correct. But 63 is a
-    `<SolidColorBrush>` and 82 is a `<Button` attribute, so a block-identity comparison sees
-    two different elements and calls it stale.
+    A doc sentence can say "recorded in the COMMENTS at 63-82". Those lines genuinely
+    contain a short explanatory comment and nothing else of interest -- the range is
+    correct. But the first line is a `<SolidColorBrush>` and the last is a `<Button
+    attribute, so a block-identity comparison sees two different elements and calls it
+    stale.
 
     A citation can name (a) the element a block lives in, or (b) the comments that explain
     it. Case (b) is legitimate and cannot be judged by element identity, so the caller skips
@@ -220,17 +217,14 @@ def looks_like_comment_pointer(rows, a, b, doc_line):
 def looks_like_region_pointer(doc_line):
     """Does the sentence present the citation as a list of places to READ?
 
-    Measured false positive this fixes. `docs/settings-design-contract.md:924-927` is a
-    sentence enumerating authorities:
-
-        代码库内既有的权威注释：`SettingsPage.xaml:63-82,146-191`、
-        `SettingsSections.cs:7-26,37-63,123-166`、`Styles.xaml:1015-1192`、...
+    A doc sentence can enumerate authorities: `SettingsPage.xaml:63-82,146-191`、
+    `SettingsSections.cs:7-26,37-63,123-166`、`Styles.xaml:1015-1192`, and so on.
 
     `Styles.xaml:1015-1192` covers 39 consecutive top-level resources -- the card style and
     the spacing/typography token block. It is a REGION, not one element, and the doc is
-    correctly saying "read 1015-1192 for the tokens". Comparing element identity across 39
-    siblings cannot work, and forcing it would demand the doc break one region citation
-    into 39.
+    correctly saying "read 1015-1192 for the tokens". Comparing element identity across
+    39 siblings cannot work, and forcing it would demand the doc break one region
+    citation into 39.
 
     The distinction that keeps this from being a hole: a region pointer lists several
     citations for the reader, so the sentence contains a citation separator (、 or ,)
@@ -296,8 +290,7 @@ def main():
         print("FAIL: %d of %d citation range(s) no longer point at one block."
               % (len(stale), checked))
         print("Either the citation moved (fix the numbers), or the range is no longer")
-        print("authority for what the doc claims. This exits non-zero on purpose: the")
-        print("four ranges it used to print were real and nothing was reading them.")
+        print("authority for what the doc claims.")
         return 1
     return 0
 

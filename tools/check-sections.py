@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Check the settings section catalog against AppLang.
 
-A settings section used to be identified by its localized caption. Three
-places worked around that independently: SectionMeta() compared the caption
-against 51 hardcoded branches for an icon and a description, this project's
-layout code reflected over the AppLang property names to derive a stable id,
-and the persisted layout stored that id. SettingsSections now holds all of it
-in one table, so the caption, the icon and the description cannot drift apart.
+A settings section is identified by a stable id, not by its localized caption.
+`SettingsSections` holds the caption, the icon and the description for every
+section in one table, so the three cannot drift apart. Keying on the caption
+would mean the id changes when a translation changes: the icon lookup, the
+layout code's reflected id and the persisted layout would each have to
+compensate, and the stored layout would break on a language switch.
 
 That only holds if the table and AppLang agree, which is what this checks:
 
@@ -27,8 +27,7 @@ That only holds if the table and AppLang agree, which is what this checks:
 
 Icon collisions are reported as warnings rather than errors: a section card is
 scanned by its glyph, so two sections sharing one is a real readability
-problem, but it is a design choice rather than a broken invariant. Three pairs
-shared a glyph when the table was introduced.
+problem, but it is a design choice rather than a broken invariant.
 
 Why the translations are checked here and not in check-localization.py: that
 script asserts every AppLang property has a key in every file, which a key
@@ -39,10 +38,10 @@ icon is in the wrong language. Residual-English is reported as a warning (a
 caption that is genuinely the same word in two languages is not a defect), a
 missing key as an error.
 
-The residual-English warnings currently emitted are all of the harmless kind
-and should stay: "Direct3D 11" is a product name, "HTTP" is a protocol, and
-"OSD" is left untranslated in Chinese, Japanese and Korean interfaces too. Do
-not "fix" those by inventing translations.
+The residual-English warnings are all of the harmless kind and stay:
+"Direct3D 11" is a product name, "HTTP" is a protocol, and "OSD" is left
+untranslated in Chinese, Japanese and Korean interfaces too. Do not "fix"
+those by inventing translations.
 
 Exit code 1 on errors.
 """
