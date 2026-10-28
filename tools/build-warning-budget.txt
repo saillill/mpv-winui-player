@@ -1,0 +1,38 @@
+# Accepted build warnings, one code per line: CODE = COUNT
+# Regenerate with: python tools/check-build-warnings.py --write-budget
+# A code not listed here, or a count above its number, fails the check.
+#
+# Every entry here is a defect that could not be fixed and whose reason is
+# recorded. The budget is not a target to live within: it is the list of things
+# still known to be wrong, so that a NEW one shows up as a failure.
+
+# 5 sites. PlayerTrackSelectorControl uses <Pivot>, which the analyzer calls
+# UWP-only. It is not dead code: the control has four pages (subtitles, video,
+# audio, second subtitles), 201 lines of XAML and 209 of code-behind, and it
+# names every pivot item through AutomationProperties.
+#
+# Migrating to SelectorBar is a control rewrite, not baseline cleanup. Recorded
+# 2026-10-28 after checking that the alternatives do not fit: TabView brings its
+# own tab strip chrome and close buttons, and SelectorBar has no page host at
+# all, so the four ListViews would need a visible/hidden state machine that the
+# Pivot currently provides.
+WUI2003 = 5
+
+# 2 sites, both {Binding} in MpvPlayerPage.xaml kept deliberately.
+#
+# All three official remedies were measured and all three failed:
+#
+#   * {x:Bind AlbumTitle} -> WMC9999, an internal XAML compiler crash with no
+#     file or line. Reproduced on 2026-10-28 by changing that one attribute and
+#     rebuilding; the tree already documented the bisection that found it.
+#   * [Bindable] on LibraryEntry -> CS8852, because the attribute's generated
+#     setter cannot assign 13 init-only properties.
+#   * x:SuppressXamlTrimWarnings="True" on the owning element -> the warning is
+#     still emitted; the attribute is not honoured by this compiler version.
+#
+# So the warning stands as an accurate statement: under PublishAot the two paths
+# could be trimmed. The first is {Binding ActualWidth, RelativeSource Self},
+# which resolves against Border -- a WinUI type the trimmer always keeps — so it
+# is a false positive in practice. The second is AlbumTitle on LibraryEntry,
+# which is a real risk and has no known workaround in this toolchain.
+WMC1510 = 2

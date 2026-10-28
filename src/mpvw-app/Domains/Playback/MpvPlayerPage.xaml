@@ -323,14 +323,14 @@
                 Background="Transparent"
                 BorderThickness="0"
                 Click="IndexRailButton_Click"
-                IsEnabled="{x:Bind HasContent, Mode=OneWay}"
+                IsEnabled="{x:Bind HasContent, Mode=OneTime}"
                 PointerEntered="IndexRailLetter_PointerEntered">
                 <TextBlock
                     x:Name="IndexLetterText"
                     HorizontalAlignment="Center"
                     FontSize="{StaticResource MpvTransportTimeFontSize}"
-                    Opacity="{x:Bind HasContent, Converter={StaticResource IndexLetterOpacity}, Mode=OneWay}"
-                    Text="{x:Bind Letter, Mode=OneWay}" />
+                    Opacity="{x:Bind HasContent, Converter={StaticResource IndexLetterOpacity}, Mode=OneTime}"
+                    Text="{x:Bind Letter, Mode=OneTime}" />
             </Button>
         </DataTemplate>
 
@@ -680,9 +680,9 @@
                     VerticalAlignment="Center">
                     <Image
                         x:Name="FolderCoverImage"
-                        Source="{x:Bind Cover, Mode=OneWay}"
+                        Source="{x:Bind Cover, Mode=OneTime}"
                         Stretch="UniformToFill"
-                        Visibility="{x:Bind CoverVisibility, Mode=OneWay}" />
+                        Visibility="{x:Bind CoverVisibility, Mode=OneTime}" />
                     <Viewbox
                         Width="20"
                         Height="20"
@@ -691,7 +691,7 @@
                         <PathIcon
                             Width="24"
                             Height="24"
-                            Data="{x:Bind MediaIcon, Mode=OneWay}"
+                            Data="{x:Bind MediaIcon, Mode=OneTime}"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </Viewbox>
                 </Grid>
@@ -700,7 +700,7 @@
                     Grid.Column="1"
                     VerticalAlignment="Center"
                     Style="{StaticResource BodyStrongTextBlockStyle}"
-                    Text="{x:Bind Name, Mode=OneWay}"
+                    Text="{x:Bind Name, Mode=OneTime}"
                     TextTrimming="CharacterEllipsis" />
 
                 <!-- The path on its own line, and larger than it used to be.
@@ -718,9 +718,9 @@
                     Margin="0,2,0,0"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource SubtitleTextBlockStyle}"
-                    Text="{x:Bind Path, Mode=OneWay}"
+                    Text="{x:Bind Path, Mode=OneTime}"
                     TextTrimming="CharacterEllipsis"
-                    Visibility="{x:Bind PathVisibility, Mode=OneWay}" />
+                    Visibility="{x:Bind PathVisibility, Mode=OneTime}" />
 
                 <TextBlock
                     Grid.Row="0"
@@ -728,7 +728,7 @@
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind CountText, Mode=OneWay}" />
+                    Text="{x:Bind CountText, Mode=OneTime}" />
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -1074,7 +1074,7 @@
                     Height="108"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
-                    x:Load="{x:Bind _enableBuiltInPreview, Mode=OneWay}"
+                    x:Load="{x:Bind _enableBuiltInPreview, Mode=OneTime}"
                     Canvas.ZIndex="2"
                     IsHitTestVisible="False"
                     Visibility="Collapsed">
@@ -1735,7 +1735,7 @@
                                         Margin="8,1"
                                         Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                                         CornerRadius="4"
-                                        Visibility="{x:Bind IsCurrent, Mode=OneWay}" />
+                                        Visibility="{x:Bind IsCurrent, Mode=OneTime}" />
                                     <Grid
                                         Margin="12,0"
                                         ColumnSpacing="{StaticResource MpvSpaceM}">
@@ -1749,24 +1749,24 @@
                                             FontSize="16"
                                             Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                             Glyph="&#xE768;"
-                                            Visibility="{x:Bind IsCurrent, Mode=OneWay}" />
+                                            Visibility="{x:Bind IsCurrent, Mode=OneTime}" />
                                         <FontIcon
                                             Grid.Column="0"
                                             FontSize="16"
                                             Glyph="&#xE8B2;"
-                                            Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent), Mode=OneWay}" />
+                                            Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent), Mode=OneTime}" />
                                         <TextBlock
                                             Grid.Column="1"
                                             VerticalAlignment="Center"
-                                            Text="{x:Bind Filename, Mode=OneWay}"
+                                            Text="{x:Bind Filename, Mode=OneTime}"
                                             TextTrimming="CharacterEllipsis"
-                                            ToolTipService.ToolTip="{x:Bind Path, Mode=OneWay}" />
+                                            ToolTipService.ToolTip="{x:Bind Path, Mode=OneTime}" />
                                         <TextBlock
                                             Grid.Column="2"
                                             VerticalAlignment="Center"
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Style="{StaticResource CaptionTextBlockStyle}"
-                                            Text="{x:Bind DurationText, Mode=OneWay}" />
+                                            Text="{x:Bind DurationText, Mode=OneTime}" />
                                     </Grid>
                                 </Grid>
                             </DataTemplate>
@@ -2481,7 +2481,7 @@
                                 Margin="8,1"
                                 Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                                 CornerRadius="4"
-                                Visibility="{x:Bind IsCurrent, Mode=OneWay}" />
+                                Visibility="{x:Bind IsCurrent, Mode=OneTime}" />
                             <Grid
                                 Margin="12,0"
                                 ColumnSpacing="{StaticResource MpvSpaceM}">
@@ -2495,24 +2495,24 @@
                                     FontSize="16"
                                     Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                     Glyph="&#xE768;"
-                                    Visibility="{x:Bind IsCurrent, Mode=OneWay}" />
+                                    Visibility="{x:Bind IsCurrent, Mode=OneTime}" />
                                 <FontIcon
                                     Grid.Column="0"
                                     FontSize="16"
                                     Glyph="&#xE8B2;"
-                                    Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent), Mode=OneWay}" />
+                                    Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent), Mode=OneTime}" />
                                 <TextBlock
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
-                                    Text="{x:Bind Filename, Mode=OneWay}"
+                                    Text="{x:Bind Filename, Mode=OneTime}"
                                     TextTrimming="CharacterEllipsis"
-                                    ToolTipService.ToolTip="{x:Bind Path, Mode=OneWay}" />
+                                    ToolTipService.ToolTip="{x:Bind Path, Mode=OneTime}" />
                                 <TextBlock
                                     Grid.Column="2"
                                     VerticalAlignment="Center"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Style="{StaticResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind DurationText, Mode=OneWay}" />
+                                    Text="{x:Bind DurationText, Mode=OneTime}" />
                             </Grid>
                         </Grid>
                     </DataTemplate>

@@ -25,14 +25,14 @@
                     Grid.Column="0"
                     VerticalAlignment="Top"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="{x:Bind Label}"
+                    Text="{x:Bind Label, Mode=OneTime}"
                     TextWrapping="Wrap" />
                 <TextBlock
                     Grid.Column="1"
                     VerticalAlignment="Top"
-                    AutomationProperties.Name="{x:Bind AutomationName}"
+                    AutomationProperties.Name="{x:Bind AutomationName, Mode=OneTime}"
                     IsTextSelectionEnabled="True"
-                    Text="{x:Bind Value}"
+                    Text="{x:Bind Value, Mode=OneTime}"
                     TextWrapping="Wrap" />
             </Grid>
         </DataTemplate>
@@ -64,7 +64,7 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Glyph="{x:Bind Glyph}" />
+                            Glyph="{x:Bind Glyph, Mode=OneTime}" />
                         <StackPanel
                             Grid.Column="1"
                             VerticalAlignment="Center"
@@ -74,21 +74,21 @@
                                 VerticalAlignment="Center"
                                 FontSize="{StaticResource MpvPopupLabelFontSize}"
                                 FontWeight="SemiBold"
-                                Text="{x:Bind DisplayName}"
+                                Text="{x:Bind DisplayName, Mode=OneTime}"
                                 TextTrimming="CharacterEllipsis" />
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontSize="{StaticResource MpvTransportTimeFontSize}"
                                 Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                Text="{x:Bind RowCountText}" />
+                                Text="{x:Bind RowCountText, Mode=OneTime}" />
                         </StackPanel>
                         <Button
                             Grid.Column="2"
                             VerticalAlignment="Center"
-                            AutomationProperties.Name="{x:Bind CopyLabel}"
+                            AutomationProperties.Name="{x:Bind CopyLabel, Mode=OneTime}"
                             Click="CopySection_Click"
                             Tag="{x:Bind}"
-                            ToolTipService.ToolTip="{x:Bind CopyLabel}">
+                            ToolTipService.ToolTip="{x:Bind CopyLabel, Mode=OneTime}">
                             <FontIcon FontSize="14" Glyph="&#xE8C8;" />
                         </Button>
                     </Grid>
@@ -96,7 +96,7 @@
                     <ItemsControl
                         Margin="12,0,12,4"
                         ItemTemplate="{StaticResource MediaInfoRowTemplate}"
-                        ItemsSource="{x:Bind Rows}" />
+                        ItemsSource="{x:Bind Rows, Mode=OneTime}" />
                 </StackPanel>
             </Border>
         </DataTemplate>

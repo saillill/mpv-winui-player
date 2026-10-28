@@ -196,6 +196,30 @@ PiP、HDR/VSR、MediaInfo 标签与封面、`mpv.conf` 优先级、任何 UI。
 
 ---
 
+## 4.7 构建警告
+
+构建不设 `TreatWarningsAsErrors`，所以警告是没人有义务读的消息。这里用一个**按代码计数**的
+预算把「被忽略」变成「被计数」：
+
+```bash
+python tools/check-build-warnings.py            # 应用工程，约 30 s
+python tools/check-build-warnings.py --full     # 另加 C++ 与测试工程
+```
+
+预算在 `tools/build-warning-budget.txt`，每个代码一行并附**不能修的理由**。未列入预算的
+代码、或超出其数字的，一律失败——所以新引入的警告会立刻变红，而已登记的旧账不会
+淹没它。当前 7 条：`WUI2003` 5 条（`Pivot`）、`WMC1510` 2 条（AOT 裁剪风险）。
+
+`--no-incremental` 在这里是必需的，实测过一遍：增量构建在刚成功之后只报 2 条而不是 78 条，
+因为 MSBuild 跳过了已经做过的编译，只重跑了 XAML 那一步。一个在不同状态下报 2 和 78 的
+循环不是循环。
+
+**UI 绑定**另有 `tools/ui-binding-smoke.py`：启动真实应用、用 `winapp ui` 读元素树、断言
+具体绑定值已经渲染（不是「窗口起来了」）。它存在的理由是一次实测——把 64 处 `OneWay`
+改成 `OneTime` 之后，单元测试全绿也无法证明 UI 仍然正确。
+
+---
+
 ## 5. CI 与本地链路的差异
 
 | 项 | `build.ps1` | CI |

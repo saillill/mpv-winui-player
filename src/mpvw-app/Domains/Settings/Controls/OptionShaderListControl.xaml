@@ -37,9 +37,9 @@
                             Grid.Column="1"
                             VerticalAlignment="Center"
                             FontSize="{StaticResource MpvTransportTimeFontSize}"
-                            Text="{x:Bind Path, Mode=OneWay}"
+                            Text="{x:Bind Path, Mode=OneTime}"
                             TextTrimming="CharacterEllipsis"
-                            ToolTipService.ToolTip="{x:Bind Path, Mode=OneWay}" />
+                            ToolTipService.ToolTip="{x:Bind Path, Mode=OneTime}" />
                         <Button
                             Grid.Column="2"
                             Loaded="MoveUpButton_Loaded"

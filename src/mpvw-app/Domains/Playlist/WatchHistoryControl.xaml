@@ -71,24 +71,24 @@
                             VerticalAlignment="Center"
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="{x:Bind bc:BindConvertor.FormatTime(Time), Mode=OneWay}" />
+                            Text="{x:Bind bc:BindConvertor.FormatTime(Time), Mode=OneTime}" />
                         <TextBlock
                             Grid.Row="0"
                             Grid.Column="2"
                             Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{x:Bind Title, Mode=OneWay}"
+                            Text="{x:Bind Title, Mode=OneTime}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="NoWrap"
-                            ToolTipService.ToolTip="{x:Bind Title, Mode=OneWay}" />
+                            ToolTipService.ToolTip="{x:Bind Title, Mode=OneTime}" />
                         <TextBlock
                             Grid.Row="1"
                             Grid.Column="1"
                             Grid.ColumnSpan="2"
                             Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{x:Bind Path, Mode=OneWay}"
+                            Text="{x:Bind Path, Mode=OneTime}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="NoWrap"
-                            ToolTipService.ToolTip="{x:Bind Path, Mode=OneWay}" />
+                            ToolTipService.ToolTip="{x:Bind Path, Mode=OneTime}" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
@@ -111,7 +111,7 @@
             ActionButtonContent="Yes"
             CloseButtonContent="No"
             IsLightDismissEnabled="True"
-            Target="{x:Bind ClearButton, Mode=OneWay}"
+            Target="{x:Bind ClearButton, Mode=OneTime}"
             Title="Clear history"
             Subtitle="Are you sure you want to clear the history?" />
     </Grid>

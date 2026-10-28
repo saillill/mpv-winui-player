@@ -56,9 +56,9 @@
                                 MaxLines="2"
                                 FontSize="{StaticResource MpvPopupLabelFontSize}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{x:Bind Label, Mode=OneWay}"
+                                Text="{x:Bind Label, Mode=OneTime}"
                                 TextWrapping="NoWrap"
-                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneWay}" />
+                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneTime}" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -96,10 +96,10 @@
                             <TextBlock
                                 FontSize="{StaticResource MpvPopupLabelFontSize}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{x:Bind Label, Mode=OneWay}"
+                                Text="{x:Bind Label, Mode=OneTime}"
                                 TextTrimming="CharacterEllipsis"
                                 TextWrapping="NoWrap"
-                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneWay}" />
+                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneTime}" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -137,10 +137,10 @@
                             <TextBlock
                                 FontSize="{StaticResource MpvPopupLabelFontSize}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{x:Bind Label, Mode=OneWay}"
+                                Text="{x:Bind Label, Mode=OneTime}"
                                 TextTrimming="CharacterEllipsis"
                                 TextWrapping="NoWrap"
-                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneWay}" />
+                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneTime}" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -178,10 +178,10 @@
                             <TextBlock
                                 FontSize="{StaticResource MpvPopupLabelFontSize}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{x:Bind Label, Mode=OneWay}"
+                                Text="{x:Bind Label, Mode=OneTime}"
                                 TextTrimming="CharacterEllipsis"
                                 TextWrapping="NoWrap"
-                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneWay}" />
+                                ToolTipService.ToolTip="{x:Bind Label, Mode=OneTime}" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
