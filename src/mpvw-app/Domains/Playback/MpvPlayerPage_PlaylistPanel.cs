@@ -60,6 +60,15 @@ namespace mpv_winui.Domains.Playback
             _playlistPanelOpen = true;
 
             PositionPlaylistPanel();
+
+            // The panel sizes to its content up to MaxHeight, and the first pass
+            // above runs before that measurement has happened, so it would place
+            // the panel using a height of 0. Re-place once the real size is
+            // known; SizeChanged also fires when the queue grows or shrinks
+            // while the panel is up, which is the other case that can push the
+            // bottom edge off a short display.
+            PlaylistPanelSurface.SizeChanged -= PlaylistPanelSurface_SizeChanged;
+            PlaylistPanelSurface.SizeChanged += PlaylistPanelSurface_SizeChanged;
         }
 
         /// <summary>The tool key that opens and closes the panel.</summary>
@@ -74,6 +83,16 @@ namespace mpv_winui.Domains.Playback
             PlaylistPanelPopup.IsOpen = false;
 
             _playlistPanelOpen = false;
+
+            PlaylistPanelSurface.SizeChanged -= PlaylistPanelSurface_SizeChanged;
+        }
+
+        private void PlaylistPanelSurface_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_playlistPanelOpen)
+            {
+                PositionPlaylistPanel();
+            }
         }
 
         /// <summary>
@@ -99,8 +118,6 @@ namespace mpv_winui.Domains.Playback
 
             var x = origin.X + PlaylistPanelButton.ActualWidth - width;
 
-            var y = origin.Y;
-
             // Keep it on the display: the popup is unconstrained by design, so
             // this is the only thing standing between a narrow window and a panel
             // hanging in space.
@@ -114,6 +131,23 @@ namespace mpv_winui.Domains.Playback
             var maxX = (area.X + area.Width - App.Window.AppWindow.Position.X) / scale - width;
 
             x = Math.Clamp(x, minX, Math.Max(minX, maxX));
+
+            // Vertically the panel sizes to its content up to MaxHeight and hangs
+            // from the tool row, which on a 1366x768 display put its bottom edge
+            // 112 DIPs below the work area: the lower half of the list could not
+            // be reached by any means, and the x clamp above made the code look
+            // as though it had handled this. The arithmetic lives in
+            // PlaylistPanelPlacement so tests/conf can assert it without a window.
+            //
+            // ActualHeight, not MaxHeight: MaxHeight is the ceiling, and using it
+            // here would lift a short playlist into the middle of the screen for
+            // no reason. Before the first measure ActualHeight is 0, which clamps
+            // to nothing and is corrected by the SizeChanged handler.
+            var minY = (area.Y - App.Window.AppWindow.Position.Y) / scale;
+            var maxY = (area.Y + area.Height - App.Window.AppWindow.Position.Y) / scale;
+
+            var y = PlaylistPanelPlacement.ClampY(
+                origin.Y, PlaylistPanelSurface.ActualHeight, minY, maxY);
 
             PlaylistPanelPopup.HorizontalOffset = x;
 

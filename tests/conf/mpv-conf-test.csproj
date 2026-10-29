@@ -51,6 +51,13 @@
              overflow button decided by a question the menu does not ask) are
              only visible by asking the table directly. -->
         <Compile Include="..\..\src\mpvw-app\Domains\Playback\ControlBarAdaptiveLayout.cs" Link="Player\ControlBarAdaptiveLayout.cs" />
+        <!-- The playlist panel's placement arithmetic. Linked for the usual
+             reason: the popup is unconstrained by design, so this code is the
+             only thing keeping it on the display, and it clamped x but not y.
+             The panel is 640 DIPs tall and hangs from the tool row, so on a
+             1366x768 display its lower half fell outside the work area. Pure
+             arithmetic with no WinUI types, which is what makes it linkable. -->
+        <Compile Include="..\..\src\mpvw-app\Domains\Playback\PlaylistPanelPlacement.cs" Link="Player\PlaylistPanelPlacement.cs" />
         <Compile Include="..\..\src\mpvw-app\Domains\Playback\LibraryIndexLetter.cs" Link="Player\LibraryIndexLetter.cs" />
     <Compile Include="..\..\src\mpvw-app\Domains\Playback\IndexRailHover.cs" Link="Player\IndexRailHover.cs" />
         <Compile Include="..\..\src\mpvw-app\Domains\Playback\Audio\SpectrumAnalyzer.cs" Link="Player\Audio\SpectrumAnalyzer.cs" />
