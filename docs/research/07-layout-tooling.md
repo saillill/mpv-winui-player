@@ -93,21 +93,109 @@ XamlStyler 首次格式化会重写**全部 39 个 .xaml**，必须先在独立�
 
 | 线索 | 可用程度 | 接入成本 | 限制与风险 |
 |---|---|---|---|
-| **XamlStyler** | **高** | **中**（首次全量格式化 39 个文件 + CI 接入） | 会重写全部 XAML，**必须先验证 BOM/CRLF**（本仓库 `* text=auto eol=crlf`）；建议先只加"校验"不加"格式化"（照 OpenConsole 的做法） |
+| **XamlStyler** | **高**（仅被动校验） | **低**（`xstyler -p` 不写文件） | **已实测**：`-p` 模式 78 个文件里 4 个合规、0 文件被改动；主动格式化会**给 32 个文件加 BOM**并重写约 4400 行。见 §3.1 |
 | **WinUIAnalyzer** | **高** | **已完成**（不需要改动） | 已在跑、会红。别为了让它"更灵"去改 `WindowsAppSDKProvidesWinUIAnalyzer`：现在它没被设置，动它只会引入第二个分析器副本或把它关掉 |
-| **4px 网格规则** | **高** | **低**（可作为新检查器，或并入 `check-typography-standard.py`） | 需要先确认现有令牌是否都是 4 的倍数，否则一开就红一片 |
+| **4px 网格规则** | **不推荐** | 低（但会红一片） | **已实测**：仓库的间距刻度是 **2px 基准**（GCD=2），`MpvSpaceCompact`=6 是正式令牌。4px 规则会判定设计系统本身违规。见 §3.2 |
 | **winui-polish 清单** | 中 | 低（人工清单） | 非工具，是审计表；适合作为人工走查的 checklist |
 | `dotnet format` | 中 | 低 | 只管 C#，与 XAML 无关 |
 | 动画缺失检测 | **不可行** | — | 没有成熟工具；只能录制对比或人工 |
 
+### 3.1 XamlStyler：只做校验，不要做格式化（实测）
+
+装了 `XamlStyler.Console 3.2501.8` 在 39 个源 `.xaml` 上实测：
+
+| 项 | 被动校验 `-p` | 主动格式化 |
+|---|---|---|
+| 通过的文件 | **4 / 78** | — |
+| 改动的文件 | **0**（逐字节 sha256 比对） | **35 / 39** |
+| BOM | 不变 | **给 32 个文件加上 BOM**（原来只有 3 个有） |
+| 换行 | 不变 | 保持 CRLF，无混合 |
+| 代码行变化 | 0 | **+4420 / −4677** |
+| 工具幂等性 | — | **不幂等**：第二遍又改 1 个文件，第三遍才稳定 |
+
+格式化后 `build.ps1` 全套通过（527 + 26 测试，警告仍是 2 条 `WMC1510`），
+所以**功能上安全**。但代价是 32 个文件凭空多出 BOM——本仓库 `AGENTS.md`
+专门警告过 BOM 方向的两个坑，而 `git diff` 不显示它。
+
+**最要命的一条**：`tools/check-typography-standard.py` 的基线是**按行号**匹配的
+（`path:line:kind`）。格式化把 13 条基线全部作废，检查器立刻报 "12 NEW violations"——
+但独立复算（同一条规则，不查基线）证明 HEAD 与格式化后**都是 12 条**，缺陷数没变。
+行号一移，整个基线文件失效。
+
+> 结论：用 `xstyler -p` 做 CI 校验可以，但**首次接入前必须先统一格式**，
+> 否则第一天的 CI 就是红的，而红的原因不是新缺陷。
+
+### 3.2 4px 网格：这条规则会跟设计系统打架（实测）
+
+`Styles.xaml` 里 63 个数值令牌（39 `x:Double` + 24 `Thickness`），展开共 123 个数：
+
+| 分类 | 不在 4 倍数上的值 |
+|---|---|
+| layout（间距/尺寸） | **13 / 106** |
+| icon（图标尺寸） | 1 / 10（`MpvInlineIconSize`=14） |
+| type（字号） | 2 / 7（14、11，WinUI 字号阶梯本就不是 4 的倍数） |
+
+**根因不是"有些值没对齐"，是刻度基准不同**：`MpvSpaceXxs 2 / Xs 4 / Compact 6 /
+S 8 / M 12 / L 16`，最大公约数是 **2**。`6` 是正式令牌（`MpvSpaceCompact`），
+在 XAML 里出现 19 次，是最高频的"违规"值。
+
+内联字面量侧：39 个文件、788 个数值，**67 个（9%）** 不在 4 的倍数上。
+最高频同样是 6（19 次）、10（7 次）、7（7 次）。
+
+> 结论：**不要加 4px 规则**。要加就加 **2px** 规则（令牌刻度实际就是它），
+> 或者先把 `MpvSpaceCompact` 从设计系统里拿掉——但那是产品决策，不是 lint 决策。
+
+### 3.3 XamlStyler 的三个可选接入点
+
+按接入成本从低到高，每档都写清了代价：
+
+| 方案 | 做什么 | 代价 |
+|---|---|---|
+| **只加被动校验到 CI** | `xstyler -d src/mpvw-app -r -p` | **接入即红**（74/78 不合规）。要么先允许失败，要么先格式化 |
+| **先格式化一次，再守** | 格式化 → 提交 → CI 加 `-p` | +4400 行 diff、32 个 BOM、13 条 typography 基线作废需重生成 |
+| **只格式化新文件** | `-f` 指定文件 | 手工维护清单，且和"统一格式"的目标相悖 |
+
+`-p` 已经是纯只读（逐字节验证过 0 改动），CI 用它比用格式化安全。
+但**BOM 问题只有主动格式化才有**，所以纯校验路线避开了这个坑。
+
 ### 已识别的取舍点
 
 1. **先加还是先验证**：`WUI2xxx` 为何没触发已经查清（§2.2）。前置条件解除，可以谈新增工具
-2. **XamlStyler 加"格式化"还是只加"校验"**：前者一次性大 diff，后者可增量
-3. **4px 网格**：现有令牌（`MpvSpaceS`=8、`MpvPopupIconSize`=16 等）已知部分是 4 的倍数，
-   但 `MpvPlaylistPanelWidth`=320、`MpvPopupRowMinHeight`=36、`MpvPopupContentPadding`=12,4,12,4
-   需逐个核对
-4. **30 个检查器只有 8 个在链路上**：新增检查器若仍不进 CI，等于没有
+2. **XamlStyler 加"格式化"还是只加"校验"**：都已实测（§3.1）。校验是只读的、安全的，
+   但今天就是红的；格式化功能安全却带 32 个 BOM 和 4400 行 diff
+3. **4px 网格**：已实测（§3.2）。**不建议加**，刻度基准是 2px
+4. **30 个检查器只有 8 个在链路上**：**已实测**——22 个未接入的全部 exit 0，
+   合计 72.4 秒，其中 `check-build-warnings.py` 占 54.9 秒。见 §3.4
+
+### 3.4 把未接入的检查器接进链路（实测成本与信号）
+
+22 个未接入的检查器，在干净树上全部 exit 0。成本分布：
+
+| 检查器 | 耗时 | 备注 |
+|---|---|---|
+| `check-build-warnings.py` | **54.9 s** | 唯一昂贵的一个：它会**重新构建**；`WUI2003 = 0` 全靠它守 |
+| `check-doc-ranges.py` | 10.0 s | 扫全部 `docs/*.md` + 源码块结构 |
+| `check-doc-references.py` | 3.9 s | 166 条引用 |
+| 其余 19 个 | **合计 < 3 s** | 最慢 0.7 s（`check-no-pivot`） |
+
+按 AGENTS.md「先看它红」的规矩，逐个注入**真实**违规验证：
+
+| 检查器 | 注入的违规 | 结果 |
+|---|---|---|
+| `check-no-pivot` | 在 SelectorBar 前加回一个 `<Pivot>` | **变红**（2 条，exit 1） |
+| `check-typography-standard` | `Spacing="{StaticResource MpvSpaceS}"` → `Spacing="8"` | **变红** |
+| `check-resources` | `{StaticResource NoSuchResourceKey}` | **变红** |
+| `check-scroll-maxwidth` | `ScrollViewer > Grid MaxWidth="1060"` | **变红**（缺 `HorizontalScrollMode="Disabled"` 才报，符合设计） |
+| `check-more-glyph` | 真实 `MoreButton` 的 `Glyph` 改成 `&#xE10C;` | **变红** |
+| `check-sections` | 改名一个 `AppLang.Sections.Gen.cs` 的属性 | **变红**（exit 1） |
+
+> 结论：**19 个总耗时不到 3 秒、已验证能变红的检查器，没有理由不进 `build.ps1`。**
+> `check-build-warnings.py` 单独处理——它重复构建一次，应该由 CI 跑而不是本地每次 build。
+> `check-doc-ranges` / `check-doc-references` 属文档类，放 CI 更合适。
+>
+> 特别注意：`check-no-pivot.py` 目前唯一的防线是它自己。`WUI2003` 只扫 XAML，
+> `PlayerControl.ControlPanel.cs` 里那个运行时 `Pivot` 一条分析器警告都不产生
+> （`docs/verification.md` §4.7 已记录）。它耗时 0.7 秒。
 
 ---
 
