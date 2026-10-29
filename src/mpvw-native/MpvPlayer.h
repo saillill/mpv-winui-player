@@ -235,6 +235,7 @@ namespace winrt::mpv_winrt::implementation
         winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvTrack> GetTracks(const char* type);
         void CreateContext();
         void SetOption(std::string const& name, std::string const& value);
+        void SetPropertyString(std::string const& name, std::string const& value);
         void StartEventThread();
         void StopEventThread();
         void ProcessEvents();

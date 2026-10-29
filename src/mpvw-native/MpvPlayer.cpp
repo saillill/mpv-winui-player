@@ -281,6 +281,36 @@ namespace winrt::mpv_winrt::implementation
         }
         m_initialized.store(true);
 
+        // The vo options have to be re-applied AFTER mpv_initialize, and this is
+        // measured, not defensive.
+        //
+        // mpv reads its config files during mpv_initialize, and the values it
+        // reads there REPLACE what mpv_set_option_string stored before the call.
+        // The repository believed the opposite (docs/runtime-facts.md section 1:
+        // "the app settings override the config file"), which is why nobody went
+        // looking when the video rendered into a second top-level window instead
+        // of the app. Measured on this build with the pipe probe:
+        //
+        //   config=yes + force-window=no set before init  -> force-window reads true
+        //   config=no  + force-window=no set before init  -> force-window reads false
+        //
+        // The second line is the control: the option itself is accepted either
+        // way, and data/mpv.conf:35 (force-window = yes) is what wins.
+        //
+        // Re-setting here costs nothing when the config agrees with us, and
+        // makes the app the authority over the four options that decide whether
+        // the video can be embedded at all. Everything else in the config layer
+        // (529 options in the deployed file) is untouched.
+        //
+        // mpv_set_option_string is a no-op once mpv_initialize has run (options
+        // are locked), so this half has to go through the property API; it is
+        // the same path UpdateSize already takes for d3d11-composition-size.
+        SetPropertyString("gpu-api", "d3d11");
+        SetPropertyString("d3d11-output-mode", "composition");
+        SetPropertyString("auto-window-resize", "no");
+        SetPropertyString("force-window", "yes");
+        SetPropertyString("d3d11-composition-size", std::to_string(width) + "x" + std::to_string(height));
+
         // Forward mpv's own log messages (shader compile failures, config
         // warnings, ...) to the app as a WinRT event. Default to warn so the
         // per-message cross-thread forwarding cost stays low; the app raises
@@ -1947,9 +1977,48 @@ namespace winrt::mpv_winrt::implementation
         mpv_command_string(m_mpv, command.c_str());
     }
 
+    void MpvPlayer::SetPropertyString(std::string const& name, std::string const& value)
+    {
+        // The post-initialize counterpart of SetOption. Same contract: the
+        // return value is reported rather than discarded, because an option
+        // that silently did not apply is what hid the embedding defect.
+        const int result = mpv_set_property_string(m_mpv, name.c_str(), value.c_str());
+        if (result < 0 && m_logMessageEvent)
+        {
+            auto message = winrt::make<implementation::MpvLogEventArgs>(
+                L"warn",
+                L"mpv-winrt",
+                winrt::to_hstring("property rejected (" + std::to_string(result) + ", "
+                    + mpv_error_string(result) + "): " + name + "=" + value));
+            m_logMessageEvent(message);
+        }
+    }
+
     void MpvPlayer::SetOption(std::string const& name, std::string const& value)
     {
-        mpv_set_option_string(m_mpv, name.c_str(), value.c_str());
+        // The return value is the only evidence that an option applied, and it
+        // used to be discarded. That made a rejected option indistinguishable
+        // from an accepted one: the player came up with mpv's own default, the
+        // app kept believing it had asked for something else, and nothing
+        // anywhere said so. Measured on this build -- force-window,
+        // gpu-api and d3d11-output-mode were each set here and each read back
+        // as their default over IPC while a top-level mpv window rendered the
+        // video outside the app.
+        //
+        // Warn rather than throw: mpv accepts a number of options only before or
+        // only after mpv_initialize, and a hard failure here would turn one
+        // wrong option into a dead player. The point is that the failure is
+        // loud, not that it is fatal.
+        const int result = mpv_set_option_string(m_mpv, name.c_str(), value.c_str());
+        if (result < 0 && m_logMessageEvent)
+        {
+            auto message = winrt::make<implementation::MpvLogEventArgs>(
+                L"warn",
+                L"mpv-winrt",
+                winrt::to_hstring("option rejected (" + std::to_string(result) + ", "
+                    + mpv_error_string(result) + "): " + name + "=" + value));
+            m_logMessageEvent(message);
+        }
     }
 
     winrt::Windows::Foundation::Collections::IVectorView<winrt::mpv_winrt::MpvPlaylistItem> MpvPlayer::GetPlaylist()

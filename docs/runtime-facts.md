@@ -22,9 +22,25 @@
 `%LOCALAPPDATA%\mpv-winui\logs\`（只有一层）**也存在**，是个诱饵：它的最新文件停在
 2026-09-25，而活的那份每次运行都写。按单层路径去找会得出"日志是空的"这个错误结论。
 
-`%LOCALAPPDATA%\mpv-winui\mpv\mpv.conf` 同样是诱饵，改它没有任何效果——包括在正确的那份里改，
-因为 `MpvPlayer::Initialize` 在 `mpv_initialize` 之前设的选项（`d3d11-output-mode`、
-`force-window`、`d3d11-composition-size`、`gpu-api`）会覆盖配置文件的同名项。
+`%LOCALAPPDATA%\mpv-winui\mpv\mpv.conf` 同样是诱饵（少一层目录）。
+
+**但覆盖方向与本节此前的说法相反，2026-10-29 实测更正。** 旧文说
+「`Initialize` 在 `mpv_initialize` 之前设的选项会覆盖配置文件的同名项」——**恰恰说反了**。
+mpv 在 `mpv_initialize` 期间读配置文件，**配置文件的值会覆盖**此前用
+`mpv_set_option_string` 存进去的值：
+
+| 配置 | 初始化前设 `force-window=no` | 读回 `force-window` |
+|---|---|---|
+| `config=yes`（默认） | 是 | **`true`**（被 `data/mpv.conf:35` 覆盖） |
+| `config=no` | 是 | **`false`** |
+
+第二行是对照组：选项本身两种情况下都被接受，是配置文件赢了。所以想在正确的那份 `mpv.conf`
+里生效，改那一份就行；想让**程序**说了算，必须在 `mpv_initialize` **之后**用
+`mpv_set_property_string` 再设一次（init 之后 `mpv_set_option_string` 是 no-op）。
+
+这条错误判断的实际代价：视频一直渲染在 mpv 自己的顶层窗口里，`SwapChainPanel` 全空，
+而“程序设置会赢”这个错误前提让人不去查配置层，绕了很久。现在 `Initialize` 在两处都设，
+后一处用属性 API，并把两者写进注释。
 
 `ConfigDeployer` 每次启动都把随包的配置层重新展开一次，只放过 `UserOwnedFiles`
 （`mpv.conf`、`input.conf`、`menus.json`、`custom_menu.json`）和 `UserOwnedDirs`（`script-opts`）。
