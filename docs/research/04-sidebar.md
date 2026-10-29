@@ -1,22 +1,18 @@
 # 04 · 侧栏：弹窗改右侧滑出大侧栏
 
-> **现状（实测）**
-> - 实现：`PlaylistPanelPopup`（`MpvPlayerPage.xaml:2416`，逻辑在
->   `MpvPlayerPage_PlaylistPanel.cs`，74 行）
-> - 形态：`Popup` + `ShouldConstrainToRootBounds="False"` + `IsLightDismissEnabled="True"`
-> - 尺寸：`MpvPlaylistPanelWidth=320`、`MpvPlaylistPanelMaxHeight=640`、
->   `MpvPlaylistPanelHeaderHeight=48`（`Styles.xaml:1541,1542,1548`）
-> - 动画：**有**，`RepositionThemeTransition`，167ms（`MpvPlayerPage.xaml:2394-2396`）
-> - 定位：`HorizontalOffset` / `VerticalOffset` 手动算，锚到触发按钮（`_PlaylistPanel.cs:118-120`）
+> **现状（实测，2026-10-29 已改）**
+> - 实现：`PlaylistPanelSurface`（`MpvPlayerPage.xaml`，逻辑在
+>   `MpvPlayerPage_PlaylistPanel.cs`）——**已是 in-layout 网格列，不再是 Popup**
+> - 形态：`ContentHost` 两列，`StageHost` 在列 0，面板在列 1；`Visibility` 切换，
+>   滑入用 `MotionBehaviors.SettleFrom`（167ms move 曲线）
+> - 尺寸：`MpvPlaylistPanelWidth=320`、`MpvPlaylistPanelHeaderHeight=48`
+>   （`MpvPlaylistPanelMaxHeight` 已随 Popup 一起删除——列没有高度上限）
+> - 方向：**已按用户 2026-10-29 的决定改回 in-layout**，注释已重写并记录两次反转的理由
 >
-> **关键历史发现**：XAML 注释明确记录这是一次**返工**——
-> 「It used to be an in-layout side panel: a scrim plus a column pinned to the right
-> edge of the content area. That is a docked panel wearing a slide animation ... What
-> was asked for is the other shape: a panel that POPS OUT over the window」
-> （`MpvPlayerPage.xaml:2398-2415`）
->
-> **也就是说：本次要求的方向（右侧滑出大侧栏）与上一次的需求方向相反。**
-> 这是本项最重要的线索，见 §二 的风险条目。
+> **方向历史（两次反转，都记在 XAML 注释里）**：in-layout → pop-out（理由：docked
+> 面板占画面宽度、被窗口裁切）→ in-layout（理由：需求就是要它成为布局的一部分）。
+> 第一次反转的代价是面板得手算 clamp 才能留在屏内，第二次反转把这个 clamp 连同
+> `PlaylistPanelPlacement` 一起删了——列不可能跑出窗口。
 
 ---
 
@@ -54,32 +50,34 @@
 
 ## 二、适用性评估
 
-### 三个候选形态（供后续会话决策，本文不定案）
+### 三个候选形态（2026-10-29 已选定 C）
 
 | 形态 | 实现路径 | 与现有代码的距离 | 主要代价 |
 |---|---|---|---|
-| **A. 继续 Popup，只是加宽** | 改 `MpvPlaylistPanelWidth` 320 → 更宽 | **最小**，改一个资源键 | Popup 不参与布局，**不会挤压视频**；宽度超过屏幕时靠 `PlacementFor` 兜底 |
-| **B. SplitView Overlay + 右置** | 新增 `SplitView`，`PanePlacement="Right"`、`DisplayMode="Overlay"` | 中，需重写面板容器 | 遮挡关系由 WinUI 管理，动画与遮罩是平台行为；但 `SplitView` 的 Overlay 面板**默认不超出窗口边界** |
-| **C. 改回 in-layout 分区** | 面板参与布局，挤压视频宽度 | **最大**，等于回退那次返工 | 即注释记录的"上一个被否决的方案"。视频宽度会被永久压缩 |
+| **A. 继续 Popup，只是加宽** | 改 `MpvPlaylistPanelWidth` 320 → 更宽 | 最小 | Popup 不参与布局，**不挤压视频**；但要手算 clamp 才能留在屏内（见 10a0d31 修的纵向越界） |
+| **B. SplitView Overlay + 右置** | 新增 `SplitView`，`PanePlacement="Right"`、`DisplayMode="Overlay"` | 中 | Overlay 面板**默认不超出窗口边界**；动画与遮罩变成平台行为，和本仓库的 motion 令牌脱钩 |
+| **C. 改回 in-layout 分区** ✅ | `ContentHost` 加两列，面板是列 1 | 已完成（`741199f`） | 视频宽度被永久压缩——这正是本次想要的 |
 
-### 风险（按严重度排序）
+### 风险（按严重度排序）——改完之后的状态
 
-1. **需求方向与上一次相反。** 注释记录上一次的明确要求是"pop out over the window"，
-   并给出了否决 in-layout 的理由（"docked panel wearing a slide animation"）。
-   **本项若要改成 in-layout 大侧栏，必须先确认这次需求确实推翻了上次的判断**，
-   否则会再次返工。这是本项唯一需要产品决策的点。
-2. **宽度与屏幕。** 320 → 大侧栏后，在 1366×768 或分屏窗口下极易越界。
-   `PlacementFor()` 已处理横向，但**纵向没有对应逻辑**。
-3. **Light dismiss 与大面板的冲突。** 面板越大，误触外部关闭的概率越高。
-   Windows 设置类面板通常在关闭前不要求确认，但侧栏宽度意味着更高的误操作成本。
-4. **`ColumnDefinitions` / `MaxWidth` 检查器。** `check-scroll-maxwidth.py` 会约束可横向滚动
-   容器的子元素宽度；大侧栏若引入横向滚动需同步。
+1. ~~**需求方向与上一次相反。**~~ **已解决**：用户 2026-10-29 明确选择改回 in-layout，
+   注释已重写并记录两次反转的理由。后续改动请读 `MpvPlayerPage.xaml` 里那段注释，
+   不要再"发现"一次方向矛盾然后反转回去。
+2. ~~**宽度与屏幕。** `PlacementFor()` 横向可用，**纵向没有对应逻辑**。~~
+   **已消失**：列不可能跑出窗口。`PlaylistPanelPlacement` 与它的 8 个测试随之删除。
+3. **Light dismiss 与大面板的冲突。** 改 in-layout 后**不再有 light dismiss**——
+   面板用标题栏的关闭按钮收起。误触外部关闭的风险不存在了，但"点外面关掉"的
+   手势也没了；这是这次改形的实际行为变化，需要在人工验收时确认符合预期。
+4. **`check-scroll-maxwidth.py` / `check-typography-standard.py`。** 前者仍绿。
+   后者是**按行号匹配基线**的：把 InfoBar 包进 `StageHost` 让它的发现从 1053 移到 1065，
+   基线条目要跟着挪。同一次改动里已处理。
 
 ### 与其他项的交叉
 
-- 与 **第 05 项（状态栏弹窗）** 共用 `Popup` 机制与关闭规则，改动应一起考虑
+- 与 **第 05 项（状态栏弹窗）**：本面板不再是 Popup，**第五项里"三个 Popup 共用关闭规则"
+  现在只剩两个**（控制面板、轨道选择器）
 - 与 **第 09 项（播放列表）** 共用 `PlaylistItems` 集合，注释已声明"一份集合、两个读视图"
-- 与 **第 01 项** 有交集：若将来走 HWND 嵌入，所有 Popup 都要改成 owned window
+- 与 **第 01 项** 有交集：若将来走 HWND 嵌入，另外两个 Popup 仍要改成 owned window
 
 ---
 

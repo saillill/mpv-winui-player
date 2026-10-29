@@ -7,8 +7,14 @@
 > - `AppSettings.Subtitles.cs` 14KB，`QuickControlPanel.Subtitles.cs` 6KB（快捷面板字幕页）
 > - 播放控制条有字幕延迟滑块（`PlayerControl.Flyouts.cs:97-126`）
 > - `data/mpv.conf` 里有 20+ 条 sub-* 配置
-> - **双字幕已定义但部分不可达**：`MpvSettings.cs` 有 5 条 `secondary-sub-*` 映射，
->   但 `SetSecondSubVisibility(false)` 全仓无调用点（见 `PIVOT-MIGRATION-NOTES.md` §1.4）
+> - **双字幕的映射、菜单、轨选择器都通了**（2026-10-29 实测更正，原句是转抄的旧笔记）：
+>   `MpvSettings.cs` 有 5 条 `secondary-sub-*` 映射；`SetSecondSubVisibility`
+>   **有调用点**——`PlayerControl.xaml.cs:1376`，传 `true`；`data/input.conf:117-123`
+>   与 `AppData/mpv/menu.conf:101-107` 都有次字幕项。
+>   该方法的 `false` 分支目前无人调用，进入的 `SecondSubState` 会**隐藏**次字幕页签
+>   （`PlayerTrackSelectorControl.xaml:167-170`）。在当前调用方式下这是**正确的**：
+>   `visible=true` → `NormalState`（显示页签）。所以 `SetSecondSubVisibility`
+>   语义没反，只是名字容易被读成"是否处于次字幕态"；`false` 分支是死代码。
 >
 > **所以本项不是"加渲染器"，是补功能缺口与配置暴露。**
 
