@@ -6,17 +6,24 @@
 # recorded. The budget is not a target to live within: it is the list of things
 # still known to be wrong, so that a NEW one shows up as a failure.
 
-# 5 sites. PlayerTrackSelectorControl uses <Pivot>, which the analyzer calls
-# UWP-only. It is not dead code: the control has four pages (subtitles, video,
-# audio, second subtitles), 201 lines of XAML and 209 of code-behind, and it
-# names every pivot item through AutomationProperties.
+# 0 sites since 2026-10-29. The five came from <Pivot> in
+# PlayerTrackSelectorControl.xaml, which the analyzer calls UWP-only.
 #
-# Migrating to SelectorBar is a control rewrite, not baseline cleanup. Recorded
-# 2026-10-28 after checking that the alternatives do not fit: TabView brings its
-# own tab strip chrome and close buttons, and SelectorBar has no page host at
-# all, so the four ListViews would need a visible/hidden state machine that the
-# Pivot currently provides.
-WUI2003 = 5
+# Both Pivots are gone. The XAML one is a SelectorBar plus a Visibility-swapped
+# page grid; the runtime one in PlayerControl.ControlPanel.cs is a SelectorBar
+# plus a page grid that now carries the 420px height the Pivot used to own (the
+# runtime form never raised a warning, so only tools/check-no-pivot.py ever saw
+# it -- keep that checker in the loop, this number cannot guard it).
+#
+# The entry stays at 0 instead of being deleted: a code that reappears after its
+# count was driven to zero is a regression, and that is the point of listing it.
+#
+# Do NOT "fix" a future WUI2003 by adding NoWarn, by setting
+# dotnet_diagnostic.WUI2003.severity in .editorconfig, by dropping the WinUI
+# analyzer, or by running --write-budget (it rewrites this file and destroys the
+# reasons). All four were measured to silence the warning while leaving the
+# Pivot in place. See docs/verification.md 4.7.
+WUI2003 = 0
 
 # 2 sites, both {Binding} in MpvPlayerPage.xaml kept deliberately.
 #

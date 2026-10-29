@@ -26,6 +26,15 @@ namespace mpv_winui.Domains.Playback
         public event EventHandler<int>? AudioTrackSelected;
         public event EventHandler<int>? SecondSubTrackSelected;
 
+        // The tab captions are localized, and each one carries the selected
+        // index of its own list. A SelectorBarItem presents exactly two
+        // elements (Icon and Text), so the caption and the index have to be
+        // one string -- the Pivot could spend a third TextBlock on the number.
+        private string _subtitleTitle = string.Empty;
+        private string _secondSubtitleTitle = string.Empty;
+        private string _videoTitle = string.Empty;
+        private string _audioTitle = string.Empty;
+
         public PlayerTrackSelectorControl()
         {
             InitializeComponent();
@@ -57,22 +66,82 @@ namespace mpv_winui.Domains.Playback
         private void ApplyLocalizedStrings()
         {
             var lang = AppContext.AppLang;
-            SubtitleTabText.Text = lang.SettingsCategorySubtitles;
-            SecondSubtitleTabText.Text = lang.SecondSubtitle;
-            // Its header is an icon plus two text blocks, one of which is
-            // empty when no second-subtitle track exists, so WinUI leaves the
-            // pivot item unnamed. Name it from the same string.
-            AutomationProperties.SetName(SecondSubPivotItem, lang.SecondSubtitle);
-            // The other three headers have the same shape -- an icon plus a
-            // localized TextBlock plus a count TextBlock -- so WinUI leaves them
-            // unnamed for the same reason it left the second one unnamed.
-            // Measured: only SecondSubPivotItem reported a name; the other three
-            // reported "" while their captions were already localized and visible.
-            AutomationProperties.SetName(SubtitlePivotItem, lang.SettingsCategorySubtitles);
-            AutomationProperties.SetName(VideoPivotItem, lang.SettingsCategoryVideo);
-            AutomationProperties.SetName(AudioPivotItem, lang.SettingsCategoryAudio);
-            VideoTabText.Text = lang.SettingsCategoryVideo;
-            AudioTabText.Text = lang.SettingsCategoryAudio;
+            _subtitleTitle = lang.SettingsCategorySubtitles;
+            _secondSubtitleTitle = lang.SecondSubtitle;
+            _videoTitle = lang.SettingsCategoryVideo;
+            _audioTitle = lang.SettingsCategoryAudio;
+            RefreshTabCaptions();
+        }
+
+        /// <summary>
+        /// Rewrites all four tab labels as "caption + selected index".
+        ///
+        /// The index is the list's raw <c>SelectedIndex</c>, with no +1 -- the
+        /// same number the Pivot header showed, including "-1" when nothing is
+        /// selected. That is existing behaviour, not a defect: the selector
+        /// starts with no track chosen and says so.
+        /// </summary>
+        private void RefreshTabCaptions()
+        {
+            SubtitleTab.Text = Caption(_subtitleTitle, SubtitleListView.SelectedIndex);
+            SecondSubtitleTab.Text = Caption(_secondSubtitleTitle, SecondSubListView.SelectedIndex);
+            VideoTab.Text = Caption(_videoTitle, VideoListView.SelectedIndex);
+            AudioTab.Text = Caption(_audioTitle, AudioListView.SelectedIndex);
+
+            // The item's automation name is derived from Text, which already
+            // carries the localized caption, so it is never anonymous. Set it
+            // explicitly as well: the name then cannot drift from the visible
+            // label, and a screen reader announces the same words the tab shows.
+            AutomationProperties.SetName(SubtitleTab, SubtitleTab.Text);
+            AutomationProperties.SetName(SecondSubtitleTab, SecondSubtitleTab.Text);
+            AutomationProperties.SetName(VideoTab, VideoTab.Text);
+            AutomationProperties.SetName(AudioTab, AudioTab.Text);
+        }
+
+        private static string Caption(string title, int index)
+        {
+            return $"{title} {index}";
+        }
+
+        /// <summary>
+        /// A SelectorBar has no content host, so the four lists are stacked in
+        /// one Grid cell and this is the only thing that swaps them. It shows
+        /// exactly the list belonging to the tab strip's selection and hides
+        /// the other three; an unselected bar (SelectedItem null) leaves the
+        /// subtitle list up, which is what the initial IsSelected="True" plus
+        /// the XAML Visibility defaults already do.
+        /// </summary>
+        private void TrackSelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+        {
+            var selected = sender.SelectedItem;
+            SubtitleListView.Visibility = selected == SubtitleTab ? Visibility.Visible : Visibility.Collapsed;
+            SecondSubListView.Visibility = selected == SecondSubtitleTab ? Visibility.Visible : Visibility.Collapsed;
+            VideoListView.Visibility = selected == VideoTab ? Visibility.Visible : Visibility.Collapsed;
+            AudioListView.Visibility = selected == AudioTab ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void SubtitleListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SubtitleTab.Text = Caption(_subtitleTitle, SubtitleListView.SelectedIndex);
+            AutomationProperties.SetName(SubtitleTab, SubtitleTab.Text);
+        }
+
+        private void SecondSubListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SecondSubtitleTab.Text = Caption(_secondSubtitleTitle, SecondSubListView.SelectedIndex);
+            AutomationProperties.SetName(SecondSubtitleTab, SecondSubtitleTab.Text);
+        }
+
+        private void VideoListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            VideoTab.Text = Caption(_videoTitle, VideoListView.SelectedIndex);
+            AutomationProperties.SetName(VideoTab, VideoTab.Text);
+        }
+
+        private void AudioListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            AudioTab.Text = Caption(_audioTitle, AudioListView.SelectedIndex);
+            AutomationProperties.SetName(AudioTab, AudioTab.Text);
         }
 
         public void LoadVideoTracks(IReadOnlyList<MpvTrack> tracks)

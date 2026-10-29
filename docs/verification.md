@@ -38,17 +38,17 @@
 
 ---
 
-## 2. 28 个检查器
+## 2. 30 个检查器
 
-总数：`(git ls-files 'tools/check-*.py' | Measure-Object).Count` → **28**。
+总数：`(git ls-files 'tools/check-*.py' | Measure-Object).Count` → **30**。
 
 | 由谁调用 | 数量 | 名单 |
 |---|---|---|
 | `build.ps1` | 4 | `check-xaml`、`check-script-opts`、`check-winrt-events`、`check-localization`（`-CheckLocalization` 时） |
 | CI | 8 | 上述 4 个 + `check-settings-drift`、`check-doc-tooling`、`check-doc-freshness`、`check-ui-tooltips` |
-| **两边都不跑** | **20** | 其余 |
+| **两边都不跑** | **22** | 其余 |
 
-本仓库没有任何一条链路会跑全 28 个：`build.ps1` 跑 4 个、CI 跑 8 个，两边并集 8 个。
+本仓库没有任何一条链路会跑全 30 个：`build.ps1` 跑 4 个、CI 跑 8 个，两边并集 8 个。
 开发期曾有一份能跑全量的 gate 脚本，它随该轮工作一起归到了 `archive/`（不随仓库分发），
 因此本仓库不再提供全量入口——这也正是下面那张「两边都不跑」表存在的原因。
 
@@ -74,6 +74,7 @@
 | `check-icon-standard` | `FontIcon` codepoint ↔ 它声明的字体 | 手动 |
 | `check-typography-standard` | 间距/字号字面量 ↔ `Styles.xaml` 令牌 | 手动 |
 | `check-more-glyph` | `MoreButton` 的 `Glyph` ↔ `&#xE712;` | 手动 |
+| `check-no-pivot` | `Pivot`/`PivotItem` 在 XAML 与 C# 里的每一处 ↔ 零；并断言两个迁移文件里 `SelectorBar` 确实到位 | 手动 |
 | `check-baseline-lines` | baseline 每条的 `path:line:kind` 是否仍落在目标位置 | 手动 |
 | `check-no-focus-steal` | 探针脚本里的前台 API 调用 ↔ 允许清单 | 手动 |
 | `check-no-launch-activate` | `App.OnLaunched` 是否无条件 `Activate()`；`Start-Process` 是否带 `MVPW_NO_ACTIVATE` | 手动 |
@@ -194,6 +195,32 @@ PiP、HDR/VSR、MediaInfo 标签与封面、`mpv.conf` 优先级、任何 UI。
 控件模板、`VisualState`、`x:Bind`、焦点、键盘导航、DPI、高对比、Mica/Acrylic
 全部无自动化覆盖。`check-visual-state-layout` 与 `check-ui-tooltips` 只做静态文本检查。
 
+**例外：页签切换现在有运行时检查。** 两个 `Pivot`→`SelectorBar` 迁移各留下一对脚本。
+每对都包含「断言」与「证明断言能红」两半，因为本仓库已经用一轮失败换来过这个教训：
+29 个检查器里 28 个在未改任何代码时就已 exit 0，"全部通过"不构成证据。
+
+| 脚本 | 断言什么 |
+|---|---|
+| `tools/test-track-selector-tabs.ps1` | 轨道选择器四个页签，每个**只**显示自己的 `ListView`，另外三个不在屏幕上 |
+| `tools/test-track-selector-tabs.inject.ps1` | 让切换处理器提前 return，上面那条必须红；还原后必须回绿 |
+| `tools/test-control-panel-tabs.ps1` | 快捷面板三个页签各显示自己的页；弹窗高度在三个页签间**不动**（实测 897px，spread 0） |
+| `tools/test-control-panel-tabs.inject.ps1` | ①去掉 420px 接管 → 高度跳动 137px（698/835）必须红；②页签不换页必须红；还原后必须回绿 |
+
+两条操作事实写在脚本注释里，都是靠看它失败换来的：
+
+- **弹窗是 light-dismiss 的。** 任何碰桌面的命令之间它都会关掉，所以每一步都重新打开、
+  重新读 HWND，不缓存。
+- **UIA 的 slug 是按进程生成的。** 页签按可见文字解析，`btn-trackselectionb` 这种截断
+  slug 会解析失败，而失败长得像布局 bug。
+
+还有一个**测量误差**值得记住，它差点让注入测试变成假的：
+`PlayerControl.ControlPanel.cs` 里 420px 出现在两处——`EnsureControlPanel` 的对象初始化器
+和 `OpenControlPanel` 的赋值。只删后者，面板高度一格不变（本机窗口够高，重算出来还是
+420），于是"删除高度接管"这个注入**不会红**。要证明这条断言有效，必须把两处都去掉。
+
+**这些脚本不进 `build.ps1`。** 它们会启动应用、抢占桌面焦点，而构建不该做这些事。
+跑它们的时机是改过这两个控件之后，手工。
+
 ---
 
 ## 4.7 构建警告
@@ -208,7 +235,17 @@ python tools/check-build-warnings.py --full     # 另加 C++ 与测试工程
 
 预算在 `tools/build-warning-budget.txt`，每个代码一行并附**不能修的理由**。未列入预算的
 代码、或超出其数字的，一律失败——所以新引入的警告会立刻变红，而已登记的旧账不会
-淹没它。当前 7 条：`WUI2003` 5 条（`Pivot`）、`WMC1510` 2 条（AOT 裁剪风险）。
+淹没它。当前 2 条，都是 `WMC1510`（AOT 裁剪风险，`MpvPlayerPage.xaml:153,364`）。
+
+`WUI2003` 已归零并保留 `WUI2003 = 0` 一行（2026-10-29 两个 `Pivot` 迁到 `SelectorBar`）。
+留着这一行而不是删掉，是因为「降到 0 的代码重新出现」才是回归的定义。**注意这个数字
+守不住全部**：`WUI2003` 只扫 XAML，`PlayerControl.ControlPanel.cs` 里那个运行时 `Pivot`
+从头到尾一条警告都不产生——只有 `tools/check-no-pivot.py` 看得见它。
+
+不要用这四种办法让 `WUI2003` 变绿：csproj 的 `NoWarn`、`.editorconfig` 的
+`dotnet_diagnostic.WUI2003.severity = none`、移除或降级 WinUIAnalyzer、以及
+`--write-budget`（它会重写这个文件，抹掉里面约 30 行原因注释）。四种都实测过：
+警告消失，`Pivot` 一字未动。
 
 `--no-incremental` 在这里是必需的，实测过一遍：增量构建在刚成功之后只报 2 条而不是 78 条，
 因为 MSBuild 跳过了已经做过的编译，只重跑了 XAML 那一步。一个在不同状态下报 2 和 78 的
@@ -234,7 +271,7 @@ python tools/check-build-warnings.py --full     # 另加 C++ 与测试工程
 
 本地过、CI 红是可能的（`check-settings-drift`、生成器新鲜度，以及三个只在 CI 跑的
 文档与无障碍检查器）。
-CI 过也不等于 28 个检查器都过——两边并集只有 8 个。
+CI 过也不等于 30 个检查器都过——两边并集只有 8 个。
 
 **加检查器的三条规则**：
 ① 先看它红——注入**真实**违规，不是合成违规；② 拒绝不可信输入——
