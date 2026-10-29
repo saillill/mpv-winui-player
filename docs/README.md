@@ -13,7 +13,7 @@
 | [`deploy-layout.md`](deploy-layout.md) | 配置层如何部署、构建产物在哪、哪些文件不能被覆盖 | 改部署或打包的人 |
 | [`localization.md`](localization.md) | `AppLang` 构成、9 个语言文件的缺口、菜单与 `menus.json` | 改文案或菜单的人 |
 | [`motion.md`](motion.md) | 三条曲线、三个时长、Translation 通道、减弱动画闸门 | 加或改动效的人 |
-| [`verification.md`](verification.md) | 28 个检查器、两个测试套件、构建链路、**验证盲区** | 任何人提交前 |
+| [`verification.md`](verification.md) | 30 个检查器、两个测试套件、构建链路、**验证盲区** | 任何人提交前 |
 | [`upstream-gap.md`](upstream-gap.md) | 与上游的许可边界、15 条提交的逐条处置、结构性差异 | 想「上游有这个我们为什么没有」的人 |
 | [`history-filtering-log.md`](history-filtering-log.md) | 历史筛选工作的记录，只增不改 | 查历史决策的人 |
 
