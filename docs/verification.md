@@ -247,6 +247,24 @@ python tools/check-build-warnings.py --full     # 另加 C++ 与测试工程
 `--write-budget`（它会重写这个文件，抹掉里面约 30 行原因注释）。四种都实测过：
 警告消失，`Pivot` 一字未动。
 
+**WinUIAnalyzer 在跑，而且规则会红。** 这一节说明怎么确认，以及它看不见什么。
+`WUI2xxx` 一条都不报有两种可能——真的没违规，或者 `.targets` 的 stand-down 契约把规则
+停用了。判定方法如下，不靠读配置推断：
+
+- `dotnet msbuild src\mpvw-app\mpv-winui.csproj -p:Configuration=Release -p:Platform=x64
+  -getProperty:WindowsAppSDKProvidesWinUIAnalyzer` 读出空串；WASDK 2.5.1 的四个 `.targets`
+  副本里没有一处设置它，stand-down 目标的条件 `=='true'` 不成立。
+- 构建命令行里有 88 个 `/analyzer:`，包含 `Microsoft.WindowsAppSDK.Analyzers.dll`；39 个源
+  `.xaml` 全部作为 `/additionalfile:` 注入；日志里没有 `AD0001`、没有 `CS8032`。
+- 注入**真实**违规，不是合成违规：删掉 `MediaInfoUserControl.xaml` 一处的 `Mode=OneTime`，
+  构建立刻报 `warning WUI2011`，还原即消失。
+- 报告位置是**元素起始行**，不是属性行——按行号跳转会落到别的控件上。
+
+两条实测的规则盲区：裸 `{x:Bind}` 与带 `Converter=` 的绑定都不触发 `WUI2011`（本仓库
+17 处裸绑定是正确语义，0 处带 `Converter=` 缺 `Mode`）；`WUI2010` 的门槛是三段及以上路径，
+本仓库 26 条嵌套绑定全是两段或函数绑定，够不着门槛。所以这两个数字守不住"没有违规"，
+它们只说明"没有规则够得着的违规"。
+
 `--no-incremental` 在这里是必需的，实测过一遍：增量构建在刚成功之后只报 2 条而不是 78 条，
 因为 MSBuild 跳过了已经做过的编译，只重跑了 XAML 那一步。一个在不同状态下报 2 和 78 的
 循环不是循环。
@@ -286,9 +304,9 @@ CI 过也不等于 30 个检查器都过——两边并集只有 8 个。
 ```powershell
 Select-String -Path build.ps1 -Pattern 'check-|MSBuild|dotnet build|dotnet test|Write-Host "==>'
 
-(git ls-files 'tools/check-*.py' | Measure-Object).Count                    # 28
+(git ls-files 'tools/check-*.py' | Measure-Object).Count                    # 30
 Select-String -Path build.ps1 -Pattern 'check-[\w-]+\.py' -AllMatches | % { $_.Matches.Value } | Sort-Object -Unique   # 4
-Select-String -Path .github/workflows/build.yml -Pattern 'check-[\w-]+\.py' -AllMatches | % { $_.Matches.Value } | Sort-Object -Unique   # 5
+Select-String -Path .github/workflows/build.yml -Pattern 'check-[\w-]+\.py' -AllMatches | % { $_.Matches.Value } | Sort-Object -Unique   # 8
 (Get-ChildItem -Recurse -File -Include *.ps1,*.yml | Select-String 'gate\.py').Count   # 0
 
 foreach ($s in @('conf','native')) { foreach ($p in @('\[Test\]','\[TestCase','\[Explicit')) {

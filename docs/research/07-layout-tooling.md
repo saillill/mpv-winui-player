@@ -5,6 +5,7 @@
 > - 已引用 **`Microsoft.Windows.SDK.BuildTools.WinUIAnalyzer 0.7.1`**（`mpv-winui.csproj:81`），
 >   内置 **18 条规则**（DLL 内实测提取：`WUI0001-0004`、`WUI1001-1010`、`WUI2001-2020`、
 >   `WUI3001`、`WUI4001-4102`）
+> - **WinUIAnalyzer 已验证在跑，规则会红**（注入真实违规实测，见 §2.2）；两条实测盲区也记在那里
 > - **没有 XamlStyler 配置**（`src/` 下无 `*.xamlstyler`）
 > - 用户的约束：**先搜现成方案，不要自研脚本**
 
@@ -14,9 +15,9 @@
 
 | 问题类别 | 能否自动检测 | 用什么 | 现状 |
 |---|---|---|---|
-| **`x:Bind` 未写 `Mode`** | **能** | WinUIAnalyzer `WUI2011` | **规则已在项目里，但实测未触发**（全仓 139 条 `x:Bind`，0 条缺 `Mode`，所以无告警是**正确**的） |
-| 嵌套 `x:Bind` 缺 `FallbackValue` | 能 | `WUI2010` | 同上，未触发 |
-| `Converter={x:Null}` | 能 | `WUI2012` | 运行时崩溃，规则已装 |
+| **`x:Bind` 未写 `Mode`** | **能** | WinUIAnalyzer `WUI2011` | **已验证会红**（注入真实违规）。全仓 156 条 `{x:Bind}`：139 条带路径、**0 条缺 `Mode`**，17 条是裸 `{x:Bind}` 被规则豁免 |
+| 嵌套 `x:Bind` 缺 `FallbackValue` | 能 | `WUI2010` | **已验证会红**，但门槛是**三段及以上**路径。本仓库 26 条嵌套绑定全是两段或函数绑定，0 条够得着门槛 |
+| `Converter={x:Null}` | 能 | `WUI2012` | 运行时崩溃；**已验证会红**，本仓库 0 处 |
 | **XAML 格式（属性顺序、缩进、换行）** | **能** | **XamlStyler** | **未引入** |
 | **C# 格式** | 能 | `dotnet format` | 未知是否在用 |
 | **间距/字号令牌违规** | 能（已有） | `check-typography-standard.py` | 已绿，13 条已知豁免 |
@@ -29,7 +30,8 @@
 | **图标语义是否恰当** | **不能**（只能查字形存在） | — | 需人工 |
 
 **关键判断**：本仓库的自建检查器已经覆盖了相当多"能自动检测"的类别。
-真正缺的是 **XAML 格式统一**（XamlStyler）和 **WinUIAnalyzer 是否真的在跑**（需验证）。
+真正缺的是 **XAML 格式统一**（XamlStyler）。WinUIAnalyzer 已经在跑且会红（§2.2），
+不再是缺口；它的两条盲区见同一节。
 
 ---
 
@@ -57,7 +59,12 @@ XamlStyler 首次格式化会重写**全部 39 个 .xaml**，必须先在独立�
 | 规则集 | `WUI0xxx` UWP→WinUI3 API、`WUI1xxx` 迁移表、**`WUI2xxx` 运行时/布局/XAML 陷阱**、`WUI3xxx` MVVM、`WUI4xxx` 互操作 |
 | `WUI2xxx` 明细 | `WUI2001` TabView 原始内容、`WUI2002` TabView 代码后置内容、`WUI2010` 嵌套 x:Bind 缺 Fallback、**`WUI2011` x:Bind 无 Mode**、`WUI2012` `Converter={x:Null}`、`WUI2020`（未提取到描述） |
 | **自停用契约** | `.targets` 里有 `WindowsAppSDKAnalyzersStandDownIfSuperseded`：当 `WindowsAppSDKProvidesWinUIAnalyzer=true` 时**自动移除自身**，让 WASDK 自带的副本接管 |
-| **需验证** | 本项目是否因该契约而实际未运行？`grep WUI2003` 只在 `build-warning-budget.txt` 出现，说明规则**曾**生效 |
+| **实测结论** | **在跑，未被 stand-down。** 构建命令行含 88 个 `/analyzer:`，其中一个是 `...\winuianalyzer\0.7.1\analyzers\dotnet\cs\Microsoft.WindowsAppSDK.Analyzers.dll`；39 个源 `.xaml` 全部作为 `/additionalfile:` 注入；构建日志里没有 `AD0001`（分析器崩溃）也没有 `CS8032`（加载失败） |
+| **契约为何没触发** | WASDK 2.5.1 的四个 `.targets` 副本里**没有一处**设置 `WindowsAppSDKProvidesWinUIAnalyzer`；`dotnet msbuild -getProperty:WindowsAppSDKProvidesWinUIAnalyzer` 读出空串。stand-down 目标的条件是 `=='true'`，不成立 |
+| **判定方法（可重跑）** | 注入而不是推断：把 `MediaInfoUserControl.xaml` 里一处 `Mode=OneTime` 删掉，构建立刻报 `warning WUI2011`；还原即消失。`WUI2012` 用 `Converter={x:Null}` 同样复现 |
+| **盲区一：裸 `{x:Bind}`** | 不触发 `WUI2011`。本仓库 17 处都是这种写法（绑定数据项本身、交给代码后置），`OneTime` 是正确语义，豁免也对 |
+| **盲区二：带 `Converter=`** | 同样不触发 `WUI2011`。实测 `Opacity="{x:Bind O, Converter=...}"` 不报，去掉 `Converter=` 就报。本仓库 0 处命中，但这是规则真实的空洞 |
+| **报的是元素起始行** | 不是属性所在行。第 28 行的属性报成 `(24,18)`——第 24 行是那个 `<TextBlock`。排查时按行号跳转会落到别的控件上 |
 
 ### 2.3 现成"WinUI 打磨"清单（非工具，但可直接当检查项）
 
@@ -87,7 +94,7 @@ XamlStyler 首次格式化会重写**全部 39 个 .xaml**，必须先在独立�
 | 线索 | 可用程度 | 接入成本 | 限制与风险 |
 |---|---|---|---|
 | **XamlStyler** | **高** | **中**（首次全量格式化 39 个文件 + CI 接入） | 会重写全部 XAML，**必须先验证 BOM/CRLF**（本仓库 `* text=auto eol=crlf`）；建议先只加"校验"不加"格式化"（照 OpenConsole 的做法） |
-| **WinUIAnalyzer（验证是否在跑）** | **高** | **低**（一次构建排查） | 若被 stand-down，需显式设 `WindowsAppSDKProvidesWinUIAnalyzer=false` 或改用 WASDK 自带副本 |
+| **WinUIAnalyzer** | **高** | **已完成**（不需要改动） | 已在跑、会红。别为了让它"更灵"去改 `WindowsAppSDKProvidesWinUIAnalyzer`：现在它没被设置，动它只会引入第二个分析器副本或把它关掉 |
 | **4px 网格规则** | **高** | **低**（可作为新检查器，或并入 `check-typography-standard.py`） | 需要先确认现有令牌是否都是 4 的倍数，否则一开就红一片 |
 | **winui-polish 清单** | 中 | 低（人工清单） | 非工具，是审计表；适合作为人工走查的 checklist |
 | `dotnet format` | 中 | 低 | 只管 C#，与 XAML 无关 |
@@ -95,7 +102,7 @@ XamlStyler 首次格式化会重写**全部 39 个 .xaml**，必须先在独立�
 
 ### 已识别的取舍点
 
-1. **先加还是先验证**：应先查清 `WUI2xxx` 为何没触发，再谈新增工具
+1. **先加还是先验证**：`WUI2xxx` 为何没触发已经查清（§2.2）。前置条件解除，可以谈新增工具
 2. **XamlStyler 加"格式化"还是只加"校验"**：前者一次性大 diff，后者可增量
 3. **4px 网格**：现有令牌（`MpvSpaceS`=8、`MpvPopupIconSize`=16 等）已知部分是 4 的倍数，
    但 `MpvPlaylistPanelWidth`=320、`MpvPopupRowMinHeight`=36、`MpvPopupContentPadding`=12,4,12,4
@@ -128,22 +135,22 @@ dotnet format XAML Uno WinUI
 >
 > **用户明确要求：先搜现成方案，不要自研脚本。**
 >
+> `WUI2xxx` **已经实测确认在跑**，不要再查一遍：分析器在 `/analyzer:` 里，XAML 在
+> `/additionalfile:` 里，注入违规会报；WASDK 2.5.1 不设 `WindowsAppSDKProvidesWinUIAnalyzer`，
+> stand-down 不触发。细节见本文 §2.2。
+>
 > 请先回答，不要写代码：
-> 1. `WUI2xxx` 那几条规则在本项目**实际触发过吗**？如何验证（不是看配置，是看构建输出）？
->    `.targets` 里有 `WindowsAppSDKProvidesWinUIAnalyzer=true` 时的自动 stand-down 契约，
->    本项目的 WASDK 2.5.1 是否会设置它？
-> 2. 引入 XamlStyler 时，应只做"校验"（`Verify-XamlFormat`）还是也做"格式化"？
+> 1. 引入 XamlStyler 时，应只做"校验"（`Verify-XamlFormat`）还是也做"格式化"？
 >    本仓库有 `* text=auto eol=crlf` 的 .gitattributes，且刚因工具改 BOM/CRLF 踩过坑。
-> 3. "margin/padding/size 是 4 的倍数"这条规则，现有 `Styles.xaml` 令牌满足吗？
+> 2. "margin/padding/size 是 4 的倍数"这条规则，现有 `Styles.xaml` 令牌满足吗？
 >    请逐个核对，给出违例清单。
-> 4. 30 个检查器只有 8 个在链路上。新增检查器若仍不进 CI，意义何在？应该先补链路还是先加检查？
+> 3. 30 个检查器只有 8 个在链路上。新增检查器若仍不进 CI，意义何在？应该先补链路还是先加检查？
 >
 > 参考现成配置：CommunityToolkit 的 `settings.xamlstyler`、Uno 的 `Settings.XamlStyler`、
 > OpenConsole 的 CI 集成（#9589）。参考清单：skills.rest 的 `winui-polish` 审计项。
 
 ### 4.3 深挖方向
 
-- 跑一次带 `-v:n` 的构建，grep 全部 `WUI\d{4}`，确认哪些规则真的活着
-- 读 `Microsoft.Windows.SDK.BuildTools.WinUIAnalyzer.targets` 的 stand-down 条件
+- `WUI2011` 对带 `Converter=` 的绑定失明（§2.2 盲区二）：这算规则的 bug 还是设计取舍，值得查一次上游
 - 把 `Styles.xaml` 全部 `x:Double` / `Thickness` 令牌导出，按 4 的倍数核对
 - 查 `docs/verification.md` 的"两边都不跑"清单，评估补链路的成本
