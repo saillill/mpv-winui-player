@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Windows.Foundation;
 using Windows.Graphics;
 using mpv_winui.Infrastructure.Common.View;
+using mpv_winui.Infrastructure.Motion;
 using System;
 using System.IO;
 
@@ -34,7 +35,7 @@ namespace mpv_winui.Domains.Playback
     {
         private bool _playlistPanelOpen;
 
-        /// <summary>Opens or closes the pop-out playlist panel.</summary>
+        /// <summary>Opens or closes the in-layout playlist pane.</summary>
         internal void TogglePlaylistPanel()
         {
             if (_playlistPanelOpen)
@@ -49,26 +50,14 @@ namespace mpv_winui.Domains.Playback
 
         private void OpenPlaylistPanel()
         {
-            // Anchored to the button that opened it, offset so the panel's right
-            // edge lines up with the button rather than its left - the panel is
-            // wide and the button is at the right end of the menu row, so
-            // left-aligning it would push the panel off the window.
-            PlaylistPanelPopup.XamlRoot ??= XamlRoot;
-
-            PlaylistPanelPopup.IsOpen = true;
-
             _playlistPanelOpen = true;
 
-            PositionPlaylistPanel();
+            // Visibility first, then the slide: SettleFrom reads the element's
+            // visual, and a Collapsed element has not been measured yet, so the
+            // animation would start from a zero-sized box and snap.
+            PlaylistPanelSurface.Visibility = Visibility.Visible;
 
-            // The panel sizes to its content up to MaxHeight, and the first pass
-            // above runs before that measurement has happened, so it would place
-            // the panel using a height of 0. Re-place once the real size is
-            // known; SizeChanged also fires when the queue grows or shrinks
-            // while the panel is up, which is the other case that can push the
-            // bottom edge off a short display.
-            PlaylistPanelSurface.SizeChanged -= PlaylistPanelSurface_SizeChanged;
-            PlaylistPanelSurface.SizeChanged += PlaylistPanelSurface_SizeChanged;
+            MotionBehaviors.SettleFrom(PlaylistPanelSurface, (float)PlaylistPanelSurface.Width);
         }
 
         /// <summary>The tool key that opens and closes the panel.</summary>
@@ -80,79 +69,16 @@ namespace mpv_winui.Domains.Playback
 
         private void ClosePlaylistPanel()
         {
-            PlaylistPanelPopup.IsOpen = false;
-
             _playlistPanelOpen = false;
 
-            PlaylistPanelSurface.SizeChanged -= PlaylistPanelSurface_SizeChanged;
+            // Collapse rather than animate out: an in-layout column that stays
+            // visible would keep taking its width from the stage, and the exit
+            // animation's completion callback would have to be cancelled by any
+            // rapid toggle back. The pane appears by sliding; it leaves by being
+            // gone, which is also what the navigation pane does.
+            PlaylistPanelSurface.Visibility = Visibility.Collapsed;
         }
 
-        private void PlaylistPanelSurface_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (_playlistPanelOpen)
-            {
-                PositionPlaylistPanel();
-            }
-        }
-
-        /// <summary>
-        /// Places the popup under the playlist key, right-aligned to it.
-        ///
-        /// PointToWindow coordinates are window-relative and the popup is
-        /// unconstrained, so this has to clamp to the display's work area itself -
-        /// nothing else will pull it back on screen. Same rule the control panel
-        /// and track selector follow.
-        /// </summary>
-        private void PositionPlaylistPanel()
-        {
-            if (PlaylistPanelButton.XamlRoot is not { } root)
-            {
-                return;
-            }
-
-            var origin = PlaylistPanelButton
-                .TransformToVisual(root.Content)
-                .TransformPoint(new Point(0, PlaylistPanelButton.ActualHeight));
-
-            var width = PlaylistPanelSurface.Width;
-
-            var x = origin.X + PlaylistPanelButton.ActualWidth - width;
-
-            // Keep it on the display: the popup is unconstrained by design, so
-            // this is the only thing standing between a narrow window and a panel
-            // hanging in space.
-            var area = DisplayArea.GetFromWindowId(
-                App.Window!.AppWindow.Id,
-                DisplayAreaFallback.Primary).WorkArea;
-
-            var scale = root.RasterizationScale > 0 ? root.RasterizationScale : 1;
-
-            var minX = (area.X - App.Window.AppWindow.Position.X) / scale;
-            var maxX = (area.X + area.Width - App.Window.AppWindow.Position.X) / scale - width;
-
-            x = Math.Clamp(x, minX, Math.Max(minX, maxX));
-
-            // Vertically the panel sizes to its content up to MaxHeight and hangs
-            // from the tool row, which on a 1366x768 display put its bottom edge
-            // 112 DIPs below the work area: the lower half of the list could not
-            // be reached by any means, and the x clamp above made the code look
-            // as though it had handled this. The arithmetic lives in
-            // PlaylistPanelPlacement so tests/conf can assert it without a window.
-            //
-            // ActualHeight, not MaxHeight: MaxHeight is the ceiling, and using it
-            // here would lift a short playlist into the middle of the screen for
-            // no reason. Before the first measure ActualHeight is 0, which clamps
-            // to nothing and is corrected by the SizeChanged handler.
-            var minY = (area.Y - App.Window.AppWindow.Position.Y) / scale;
-            var maxY = (area.Y + area.Height - App.Window.AppWindow.Position.Y) / scale;
-
-            var y = PlaylistPanelPlacement.ClampY(
-                origin.Y, PlaylistPanelSurface.ActualHeight, minY, maxY);
-
-            PlaylistPanelPopup.HorizontalOffset = x;
-
-            PlaylistPanelPopup.VerticalOffset = y;
-        }
 
         /// <summary>
         /// One playback-level message, replacing whatever was showing.

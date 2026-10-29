@@ -12,6 +12,6 @@ src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:272:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:447:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1053:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1065:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

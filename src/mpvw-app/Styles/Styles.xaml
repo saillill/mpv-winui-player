@@ -1541,12 +1541,6 @@
     <x:Double x:Key="MpvPlaylistPanelWidth">320</x:Double>
     <x:Double x:Key="MpvPlaylistPanelHeaderHeight">48</x:Double>
 
-    <!-- The pop-out panel's cap. The popup is unconstrained so it can leave the
-         window, which also means nothing stops it growing past the display: a long
-         playlist would produce a panel taller than the screen with no scroll
-         affordance at the edges. 640 keeps it inside a 720-tall window. -->
-    <x:Double x:Key="MpvPlaylistPanelMaxHeight">640</x:Double>
-
     <!-- Panel titles are a step down from a page heading: a panel header is
          chrome, not content. 20 is the Subtitle ramp. -->
     <x:Double x:Key="MpvPanelTitleFontSize">20</x:Double>

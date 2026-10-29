@@ -1040,6 +1040,18 @@
             Grid.Row="1"
             Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
 
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- The stage: everything that fills the window, laid out in the
+                 first column so the playlist pane below can take width away
+                 from it rather than float over it. -->
+            <Grid
+                x:Name="StageHost"
+                Grid.Column="0">
+
             <!-- Playback-level messages: a refused drop, a mixed drop that
                  skipped files, and anything else that needs saying without a
                  dialog. An InfoBar rather than a ContentDialog because none of
@@ -2380,147 +2392,138 @@
 
                 </StackPanel>
 
-            </Grid>            <!-- The playlist side panel.
-                 The official player's playlist is a panel that comes IN over the
-                 picture rather than a column that takes width away from it, and
-                 that is also what the navigation pane does in this shell - so it
-                 slides in from the right with the same surface and the same
-                 dismissal rules. It is not a second three-star column: the video
-                 keeps the full width, and this covers part of it while it is up.
-                 Canvas.ZIndex above both the video and the library, so it works
-                 in either state; the rows are the very same PlaylistItems the
-                 queue section binds to, so the two cannot disagree about what is
-                 queued.
-                 Hidden by default. The slide is a RepositionThemeTransition on a
-                 translate transform, driven by the same 167 ms token the pane
-                 uses, so it feels like the pane rather than like a new kind of
-                 motion. -->
-            <!-- The playlist, as a POP-OUT panel.
-
-     It used to be an in-layout side panel: a scrim plus a column pinned to the
-     right edge of the content area. That is a docked panel wearing a slide
-     animation - it belongs to the page's layout, it is clipped to the window, and
-     it covers the picture while it is up. What was asked for is the other shape:
-     a panel that POPS OUT over the window, the way the transport's own menus do.
-
-     So this is a Popup with ShouldConstrainToRootBounds="False", which is the
-     same mechanism the track selector and the quick-control panel already use
-     for exactly this reason: a WinUI popup lives in its own ContentIsland window, so
-          PrintWindow on the main HWND cannot paint it. It floats
-     above everything, it can extend past the window edge, and it dismisses on a
-     click outside.
-
-     The rows are the very same shape the library's queue section uses - same
-     template, same icons, same highlight - because the two are two views of one
-     collection and the request was explicit that they must not drift apart. -->
-<Popup
-    x:Name="PlaylistPanelPopup"
-    ShouldConstrainToRootBounds="False"
-    IsLightDismissEnabled="True">
-    <Border
-        x:Name="PlaylistPanelSurface"
-        Width="{StaticResource MpvPlaylistPanelWidth}"
-        MaxHeight="{StaticResource MpvPlaylistPanelMaxHeight}"
-        Background="{ThemeResource MpvShellPaneBrush}"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1"
-        CornerRadius="{StaticResource OverlayCornerRadius}">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <Grid
-                Grid.Row="0"
-                Height="{StaticResource MpvPlaylistPanelHeaderHeight}"
-                Padding="16,0,8,0">
-                <TextBlock
-                    x:Name="PlaylistPanelTitle"
-                    VerticalAlignment="Center"
-                    FontSize="{StaticResource MpvPanelTitleFontSize}"
-                    FontWeight="SemiBold" />
-                <Button
-                    x:Name="PlaylistPanelCloseButton"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Padding="{StaticResource MpvCompactButtonPadding}"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Click="PlaylistPanelCloseButton_Click">
-                    <FontIcon
-                        FontSize="16"
-                        Glyph="&#xE711;" />
-                </Button>
             </Grid>
 
-            <ListView
-                x:Name="PlaylistPanelView"
-                Grid.Row="1"
-                Padding="4,0,4,8"
-                Background="Transparent"
-                BorderThickness="0"
-                ContextRequested="PlaylistPanelView_ContextRequested"
-                IsItemClickEnabled="True"
-                ItemClick="PlaylistPanelView_ItemClick"
-                ItemsSource="{x:Bind PlaylistItems, Mode=OneWay}"
-                SelectionMode="None">
-                <ListView.ItemContainerStyle>
-                    <Style
-                        BasedOn="{StaticResource DefaultListViewItemStyle}"
-                        TargetType="ListViewItem">
-                        <Setter Property="Margin" Value="0" />
-                        <Setter Property="Padding" Value="0" />
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    </Style>
-                </ListView.ItemContainerStyle>
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="local:PlaylistItem">
-                        <Grid Height="44">
-                            <Border
-                                Margin="8,1"
-                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                CornerRadius="4"
-                                Visibility="{x:Bind IsCurrent, Mode=OneTime}" />
-                            <Grid
-                                Margin="12,0"
-                                ColumnSpacing="{StaticResource MpvSpaceM}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <FontIcon
-                                    Grid.Column="0"
-                                    FontSize="16"
-                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                    Glyph="&#xE768;"
-                                    Visibility="{x:Bind IsCurrent, Mode=OneTime}" />
-                                <FontIcon
-                                    Grid.Column="0"
-                                    FontSize="16"
-                                    Glyph="&#xE8B2;"
-                                    Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent), Mode=OneTime}" />
-                                <TextBlock
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    Text="{x:Bind Filename, Mode=OneTime}"
-                                    TextTrimming="CharacterEllipsis"
-                                    ToolTipService.ToolTip="{x:Bind Path, Mode=OneTime}" />
-                                <TextBlock
-                                    Grid.Column="2"
-                                    VerticalAlignment="Center"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Style="{StaticResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind DurationText, Mode=OneTime}" />
-                            </Grid>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <!-- The playlist, as an IN-LAYOUT side pane.
+
+     This is the second reversal on this surface, so the reasoning is written
+     down rather than left in a commit message.
+
+     It was an in-layout pane, then a Popup that pops out over the window, and
+     it is an in-layout pane again. The pop-out was chosen for a real reason:
+     a docked panel takes width from the picture while it is up, and it is
+     clipped to the window instead of floating past its edge. The requirement
+     now is the opposite one - a large pane that slides out from the right and
+     belongs to the layout - so the pop-out is reverted deliberately, not
+     because it broke.
+
+     What that costs, stated plainly so nobody rediscovers it: the pane is a
+     grid column, so it cannot extend past the window edge, it cannot overlay
+     the picture, and it must not be given a translucent surface as if it
+     floated. It narrows the stage instead. That is the requested behaviour.
+
+     What it buys: the queue can be long and still scroll to its last row
+     (a Popup with ShouldConstrainToRootBounds="False" had to be clamped by
+     hand, and before that clamp existed its lower half left the screen on a
+     1366x768 display), it participates in the page's own layout and visual
+     states, and it cannot end up behind another island window.
+
+     The rows are the very same PlaylistItems the queue section binds to, so
+     the two views cannot disagree about what is queued. -->
+            <Border
+                x:Name="PlaylistPanelSurface"
+                Grid.Column="1"
+                Width="{StaticResource MpvPlaylistPanelWidth}"
+                Background="{ThemeResource MpvShellPaneBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1,0,0,0"
+                Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid
+                        Grid.Row="0"
+                        Height="{StaticResource MpvPlaylistPanelHeaderHeight}"
+                        Padding="16,0,8,0">
+                        <TextBlock
+                            x:Name="PlaylistPanelTitle"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvPanelTitleFontSize}"
+                            FontWeight="SemiBold" />
+                        <Button
+                            x:Name="PlaylistPanelCloseButton"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Padding="{StaticResource MpvCompactButtonPadding}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="PlaylistPanelCloseButton_Click">
+                            <FontIcon
+                                FontSize="16"
+                                Glyph="&#xE711;" />
+                        </Button>
+                    </Grid>
+
+                    <ListView
+                        x:Name="PlaylistPanelView"
+                        Grid.Row="1"
+                        Padding="4,0,4,8"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        ContextRequested="PlaylistPanelView_ContextRequested"
+                        IsItemClickEnabled="True"
+                        ItemClick="PlaylistPanelView_ItemClick"
+                        ItemsSource="{x:Bind PlaylistItems, Mode=OneWay}"
+                        SelectionMode="None">
+                        <ListView.ItemContainerStyle>
+                            <Style
+                                BasedOn="{StaticResource DefaultListViewItemStyle}"
+                                TargetType="ListViewItem">
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="local:PlaylistItem">
+                                <Grid Height="44">
+                                    <Border
+                                        Margin="8,1"
+                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                        CornerRadius="4"
+                                        Visibility="{x:Bind IsCurrent, Mode=OneTime}" />
+                                    <Grid
+                                        Margin="12,0"
+                                        ColumnSpacing="{StaticResource MpvSpaceM}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon
+                                            Grid.Column="0"
+                                            FontSize="16"
+                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Glyph="&#xE768;"
+                                            Visibility="{x:Bind IsCurrent, Mode=OneTime}" />
+                                        <FontIcon
+                                            Grid.Column="0"
+                                            FontSize="16"
+                                            Glyph="&#xE8B2;"
+                                            Visibility="{x:Bind bc:BindConvertor.InvertVisibility(IsCurrent), Mode=OneTime}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Text="{x:Bind Filename, Mode=OneTime}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTipService.ToolTip="{x:Bind Path, Mode=OneTime}" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind DurationText, Mode=OneTime}" />
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
         </Grid>
-    </Border>
-</Popup>
         </Grid>
 
         <VisualStateManager.VisualStateGroups>
