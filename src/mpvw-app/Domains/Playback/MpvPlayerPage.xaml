@@ -97,10 +97,10 @@
              tile. No card background and no border, because a bordered box
              around a poster is a doubled edge - the picture already has one.
              The hover highlight comes from the Button itself.
-             Local to this page on purpose, the way OptionCardStyle is local to
-             OptionListControl: a card shell is not an application-wide token,
-             and promoting it into Styles.xaml would invite the next screen to
-             restate it slightly differently.
+             Local to this page on purpose, the way the settings row shell is
+             local to OptionListControl: a card shell is not an application-wide
+             token, and promoting it into Styles.xaml would invite the next
+             screen to restate it slightly differently.
              A Button rather than a Border. The card opens the file it stands
              for, and a Border with a Tapped handler would give that up on the
              keyboard and to a screen reader - the automation name below is what

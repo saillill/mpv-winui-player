@@ -130,11 +130,16 @@ section 的 `Id` **就是** `AppLang` 的属性名（类文档 `:10-25`）。例
 |---|---|
 | 行标志 `Option.AdvancedSection` | `Controls/Option.cs` |
 | 页面的 `FoldedSections` | `SettingsPage.Options.cs:35`，赋值 `:1298` |
-| `OptionListControl.CollapsedSectionIds` | `OptionListControl.xaml.cs:226-234`（DP），消费 `:512` |
+| 分区卡片上的 `SectionCardItem.IsFolded` | `Controls/SectionCardItem.cs`，页面构建卡片时置位 |
 
-最后一个是 **sticky** 依赖属性，所以每个给 `OptionList` 赋值的分支都必须清空它。
-实测 **4 个分支**都做了：`SettingsPage.xaml.cs:1540`（搜索）、`:1588`（总览）、
-`:1616`（下钻）、`:1637`（单分区兜底）。
+**曾经是三处**：第三处是 `OptionListControl.CollapsedSectionIds`，一个 sticky 依赖属性。
+sticky 意味着每个给 `OptionList` 赋值的分支都必须记得清空它，而忘掉一次的症状是
+「一张卡片点进去还是它自己」——页面看起来像一个只装着自己的文件夹。
+现在这个属性不存在了：折叠是分区自己的事实，跟着 `SectionCardItem` 走，下游不可能与
+构建它的页面不一致；四个清空分支随之消失（原 EX-13）。
+
+分区还有一种形态：**是否原地展开**。那是 `SectionShapes.cs` 的语义判断，
+不是折叠语义的一部分——一个分区可以折叠，其中一部分原地展开、一部分跳转。
 
 ### 3.4 两个下限
 
@@ -190,11 +195,11 @@ section 的 `Id` **就是** `AppLang` 的属性名（类文档 `:10-25`）。例
 | A-31 | `deploy-test.sh` 有 GNU find 探测 | `tools/deploy-test.sh:36-50` |
 | A-32 | 桌面 `mpvw-TEST.lnk` 不存在 | `Test-Path` = False |
 | A-33 | `check-resources.py` 在仓库内且通过 | 实测 `OK: 182 resource key(s)` |
-| EX-1 | `OptionCardStyle` 仍是 `OptionListControl.xaml` 局部样式 | `OptionListControl.xaml:39`，11 个模板引用 |
+| EX-1 | ~~`OptionCardStyle` 仍是 `OptionListControl.xaml` 局部样式~~ **已失效** | 行容器换成 `SettingsCard` 后没有引用者，样式本身也已不在。行外观现在由 `SettingsCard` 的默认值决定（64 行高、7px 圆角），这是有意的选择 |
 | EX-2 | 三处刻意保留：搜索胶囊、`Generic.xaml` 仅两条隐式样式、`LeftContentToggleSwitchStyle` | `Styles.xaml:1318-1347`、`Themes/Generic.xaml`（13 行）、`Styles.xaml:225` |
 | EX-8 | `Shortcut:` 无静态行、`sectionMap` 不覆盖 | `SettingsPage.Options.cs:1216`、`:693-696` |
 | EX-9 | 生成器不发裸 `new Option`、不发 `AdvancedSection` | 实测 0/0；`gen-schema-options.py:866-874` |
-| EX-13 | 4 个分支各自清 `CollapsedSectionIds` | `SettingsPage.xaml.cs:1540,1588,1616,1637` |
+| EX-13 | ~~4 个分支各自清 `CollapsedSectionIds`~~ **已消除** | 该依赖属性不再存在，折叠状态改由 `SectionCardItem.IsFolded` 承载，四个清空分支随之消失 |
 | EX-14 | `MpvOptionControlGap = 24` 独立令牌 | `Styles.xaml:1189-1196`，20 处消费 |
 | EX-15 | `.Gen.` 文件禁止手改 | 各文件首行 `auto-generated` |
 

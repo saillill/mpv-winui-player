@@ -31,23 +31,6 @@
              here first, in the stage-5 pass, precisely so this list could be
              worked down. -->
 
-        <!-- One card shell for every option row. Eleven templates used to
-             restate this same nine-line Border around a different control, so
-             a change to the row's radius, padding or background meant eleven
-             edits and any missed one was an invisible inconsistency. The shell
-             now lives here once; each template says which control it hosts by
-             setting the hosted control as its content. -->
-        <Style x:Key="OptionCardStyle" TargetType="Border">
-            <Setter Property="MinHeight" Value="72" />
-            <Setter Property="Margin" Value="{StaticResource MpvOptionRowMargin}" />
-            <Setter Property="Padding" Value="{StaticResource MpvCardPadding}" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
-        </Style>
-
         <DataTemplate x:Key="BooleanTemplate" x:DataType="ctl:Option">
             <sc:SettingsCard
                 Header="{x:Bind Label, Mode=OneWay}"

@@ -14,7 +14,7 @@
 |---|---|---|---|---|
 | 01 | 播放/渲染嵌入 | [`01-playback-embedding.md`](01-playback-embedding.md) | 117 | **已修复**（commit `07a99fb`），本文只收备选方案 |
 | 02 | 音乐页 | [`02-music-page.md`](02-music-page.md) | 79 | 已是 `ItemsRepeater`+`UniformGridLayout`，缺的是信息层次与交互 |
-| 03 | 设置页 | [`03-settings-page.md`](03-settings-page.md) | 81 | NavigationView + **356 选项** + 18 个渲染器，IA 已存在但由代码驱动 |
+| 03 | 设置页 | [`03-settings-page.md`](03-settings-page.md) | 101 | NavigationView + **677 选项**（手写 320 + 生成 357）+ 11 个渲染器。**重做已完成**：87 分区、8 分类、`SettingsCard` 行容器、30 分区原地展开 |
 | 04 | 侧栏 | [`04-sidebar.md`](04-sidebar.md) | 99 | Popup 320×≤640，**注释记录这是一次返工**，方向与上次相反 |
 | 05 | 状态栏弹窗 | [`05-status-bar-popups.md`](05-status-bar-popups.md) | 86 | 四类浮层；尺寸一半用令牌一半用 `const double`，这是"不统一"的机械原因 |
 | 06 | 主页图片卡片 | [`06-image-cards.md`](06-image-cards.md) | 106 | 根因是 **WMC9999 编译器崩溃**，不是绑定 Mode |
