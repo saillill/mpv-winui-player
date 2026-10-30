@@ -687,6 +687,8 @@
   "SchemaDesc_Mpv_volume_gain_max": "Set the volume gain range in dB (default: -96 dB min, 12 dB max).",
   "SchemaLabel_Mpv_volume_gain_min": "Volume gain floor",
   "SchemaDesc_Mpv_volume_gain_min": "Set the volume gain range in dB (default: -96 dB min, 12 dB max).",
+  "SchemaLabel_Mpv_volume_max": "volume-max",
+  "SchemaDesc_Mpv_volume_max": "Set the maximum amplification level in percent (default: 130). A value of 130 will allow you to adjust the volume up to about double the normal level.",
   "SchemaLabel_Mpv_wasapi_exclusive_buffer": "WASAPI exclusive buffer",
   "SchemaDesc_Mpv_wasapi_exclusive_buffer": "One of: default, min; or a number; Default: default",
   "SchemaLabel_Mpv_watch_history_path": "Watch history path",

@@ -67,3 +67,12 @@ and modifications are released under LGPL-2.1-or-later.
   this repository; the GPL does not extend to the WinUI app code, which
   communicates with it only through mpv's public `menu-data` /
   `script-message` interfaces.
+
+## App project NuGet dependencies
+
+These are compiled into the app rather than bundled here, so they are listed
+for licence accounting only.
+
+| Package | Version | License | Used for |
+|---|---|---|---|
+| `CommunityToolkit.WinUI.Controls.SettingsControls` | 8.3.260402-preview2 | MIT | `SettingsCard`, the settings page's row container |

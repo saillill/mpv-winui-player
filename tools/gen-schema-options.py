@@ -67,6 +67,11 @@ REPO = Path(__file__).resolve().parent.parent
 APP = REPO / "src" / "mpvw-app"
 SCHEMA = APP / "MpvConfOptions" / "mpv-options.json"
 SETTINGS = APP / "Domains" / "Settings"
+# MpvSettings.cs is not under Domains/Settings: it lives beside the config
+# layer it writes into. The generator read it from SETTINGS and had been
+# failing outright since the move, which is why the .Gen.cs files in the tree
+# were older than the schema they claim to come from.
+MPV_SETTINGS = APP / "Domains" / "MpvConf" / "MpvSettings.cs"
 LANGDIR = APP / "Languages"
 # The English label/description source, kept OUT of Languages/ on purpose:
 # that directory is scanned by check-localization.py as "one file per UI
@@ -201,9 +206,16 @@ GENERAL_THEMES: list[tuple[str, str, str, str, tuple[str, ...]]] = [
 # Kept as an explicit name -> section map rather than a pattern, for the same
 # reason GENERAL_THEMES is: a wrong guess here moves a row somewhere nobody will
 # look for it.
+#
+# The tables below decide a row's folder by matching the words in its *name*.
+# That is a guess, and it is wrong often enough that the override map is the
+# primary mechanism rather than the exception handler: `vo_image_*` is the
+# screenshot encoder, not image processing; `gpu_hwdec_interop` is hardware
+# decoding, not the output chain. A row whose job cannot be read off its name
+# belongs here, with the reason written next to it.
 SECTION_OVERRIDE = {
-    "pitch": "SectionGenAudio",
-    "wasapi-exclusive-buffer": "SectionGenAudio",
+    "pitch": "SectionGenAudioOut",
+    "wasapi-exclusive-buffer": "SectionGenAudioOut",
     "secondary-sid": "SectionGenSubtitles",
     "stretch-dvd-subs": "SectionGenSubtitles",
     "teletext-page": "SectionGenSubtitles",
@@ -212,7 +224,230 @@ SECTION_OVERRIDE = {
     # one, and pinning to the parent would leave them outside every card.
     "hls-bitrate": "SectionGenStreamNetwork",
     "rtsp-transport": "SectionGenStreamNetwork",
+
+    # --- the screenshot encoder, which has nothing to do with video output ---
+    # `vo_image_*` is what mpv writes when the requested output is a still
+    # image. Every one of these matched "image" and landed in Image processing,
+    # which is the deinterlace/crop/sync folder.
+    "vo-image-avif-encoder": "SectionGenScreenshot",
+    "vo-image-avif-opts": "SectionGenScreenshot",
+    "vo-image-avif-pixfmt": "SectionGenScreenshot",
+    "vo-image-format": "SectionGenScreenshot",
+    "vo-image-high-bit-depth": "SectionGenScreenshot",
+    "vo-image-jpeg-quality": "SectionGenScreenshot",
+    "vo-image-jpeg-source-chroma": "SectionGenScreenshot",
+    "vo-image-jxl-distance": "SectionGenScreenshot",
+    "vo-image-jxl-effort": "SectionGenScreenshot",
+    "vo-image-outdir": "SectionGenScreenshot",
+    "vo-image-png-compression": "SectionGenScreenshot",
+    "vo-image-png-filter": "SectionGenScreenshot",
+    "vo-image-tag-colorspace": "SectionGenScreenshot",
+    "vo-image-webp-compression": "SectionGenScreenshot",
+    "vo-image-webp-lossless": "SectionGenScreenshot",
+    "vo-image-webp-quality": "SectionGenScreenshot",
+    # The directory and the AVIF knobs in `screenshot-*` are the same job.
+    "screenshot-avif-opts": "SectionGenScreenshot",
+    "screenshot-avif-pixfmt": "SectionGenScreenshot",
+    "screenshot-dir": "SectionGenScreenshot",
+
+    # --- hardware decoding, not the output chain -----------------------------
+    # "gpu" outranked "hwdec" on pattern length, so these sat in Video output
+    # even though they configure the decoder's interaction with the GPU.
+    "gpu-hwdec-interop": "SectionGenVideoDecode",
+    "gpu-tex-pad-x": "SectionGenVideoDecode",
+    "gpu-tex-pad-y": "SectionGenVideoDecode",
+
+    # --- audio: three jobs that were one folder ------------------------------
+    # Resampling is its own mechanism with seven knobs; volume and gain are the
+    # user-facing loudness controls; the ad/vd queues are decoder plumbing.
+    "ad-lavc-ac3drc": "SectionGenAudioDecode",
+    "ad-lavc-threads": "SectionGenAudioDecode",
+    "ad-queue-enable": "SectionGenAudioDecode",
+    "ad-queue-max-bytes": "SectionGenAudioDecode",
+    "ad-queue-max-samples": "SectionGenAudioDecode",
+    "ad-queue-max-secs": "SectionGenAudioDecode",
+    "audio-demuxer": "SectionGenAudioDecode",
+    "audio-fallback-to-null": "SectionGenAudioDecode",
+    "audio-client-name": "SectionGenAudioOut",
+    "audio-set-media-role": "SectionGenAudioOut",
+    "audio-files": "SectionGenAudioOut",
+    # "resample" appears in each name, but the table matched "audio" first.
+    "audio-resample-cutoff": "SectionGenResample",
+    "audio-resample-filter-size": "SectionGenResample",
+    "audio-resample-linear": "SectionGenResample",
+    "audio-resample-max-output-size": "SectionGenResample",
+    "audio-resample-phase-shift": "SectionGenResample",
+
+    # --- subtitles: rendering, filtering, and sourcing are three jobs --------
+    "sub-filter-jsre": "SectionGenSubtitlesFilter",
+    "sub-filter-regex": "SectionGenSubtitlesFilter",
+    "sub-filter-regex-enable": "SectionGenSubtitlesFilter",
+    "sub-filter-regex-plain": "SectionGenSubtitlesFilter",
+    "sub-filter-regex-warn": "SectionGenSubtitlesFilter",
+    "sub-ass": "SectionGenSubtitles",
+    "sub-ass-styles": "SectionGenSubtitles",
+    "sub-border-style": "SectionGenSubtitles",
+    "sub-glyph-limit": "SectionGenSubtitles",
+    "sub-gray": "SectionGenSubtitles",
+    "sub-scale-with-window": "SectionGenSubtitles",
+    "sub-auto-exts": "SectionGenSubtitlesSource",
+    "sub-create-cc-track": "SectionGenSubtitlesSource",
+    "sub-files": "SectionGenSubtitlesSource",
+    "sub-fix-timing-keep": "SectionGenSubtitlesSource",
+    "sub-fps": "SectionGenSubtitlesSource",
+    "sub-past-video-end": "SectionGenSubtitlesSource",
+    "sub-speed": "SectionGenSubtitlesSource",
+    "sub-stretch-durations": "SectionGenSubtitlesSource",
+    "sub-vsfilter-bidi-compat": "SectionGenSubtitlesSource",
+    "sub-demuxer": "SectionGenSubtitlesSource",
+
+    # --- player & window: the leftovers bin, split by what each one does -----
+    "cover-art-auto": "SectionGenCoverArt",
+    "cover-art-files": "SectionGenCoverArt",
+    "cover-art-whitelist": "SectionGenCoverArt",
+    "clipboard-backends": "SectionGenClipboard",
+    "clipboard-monitor": "SectionGenClipboard",
+    "keep-open-pause": "SectionGenPlaybackBehavior",
+    "pause": "SectionGenPlaybackBehavior",
+    "force-render": "SectionGenPlaybackBehavior",
+    "frames": "SectionGenPlaybackBehavior",
+    "hr-seek-demuxer-offset": "SectionGenPlaybackBehavior",
+    "shuffle": "SectionGenPlaybackBehavior",
+    "watch-history-path": "SectionGenHistory",
+    "show-dependent-tracks": "SectionGenTracks",
+    # `idle` is a Player & window option that the window-scripts sub-theme used
+    # to claim by pattern. Replacing that pattern list with explicit overrides
+    # left it unfiled, and an unfiled generated row is not a visible row: the
+    # section map has no entry for it, so the page drops it. Caught by counting
+    # the emitted rows against HEAD (356 -> 355).
+    "idle": "SectionGenWindowScripts",
+
+    # --- scripting: profiles, history and autoload are three jobs ------------
+    "profile": "SectionGenConfigProfile",
+    "include": "SectionGenConfigProfile",
+    "config": "SectionGenConfigProfile",
+    "player-operation-mode": "SectionGenConfigProfile",
+    "use-filedir-conf": "SectionGenConfigProfile",
+    "reset-on-next-file": "SectionGenConfigProfile",
+    "save-watch-history": "SectionGenHistory",
+    "ignore-path-in-watch-later-config": "SectionGenHistory",
+    "write-filename-in-watch-later-config": "SectionGenHistory",
+    "resume-playback-check-mtime": "SectionGenHistory",
+    "rebase-start-time": "SectionGenHistory",
+    "autoload-files": "SectionGenAutoload",
+    "external-files": "SectionGenAutoload",
+    "archive-exts": "SectionGenAutoload",
+    "untimed": "SectionGenAutoload",
+    "autosync": "SectionGenSync",
+    "initial-audio-sync": "SectionGenSync",
+    "play-direction": "SectionGenPlaybackBehavior",
+    "sstep": "SectionGenPlaybackBehavior",
+    "priority": "SectionGenPlaybackBehavior",
+    "stop-playback-on-init-failure": "SectionGenPlaybackBehavior",
+
+    # --- rendering: framedrop, colour management, and the GPU backend --------
+    "framedrop": "SectionGenFrameSync",
+    "swapchain-depth": "SectionGenFrameSync",
+    "video-sync-max-audio-change": "SectionGenFrameSync",
+    "video-sync-max-factor": "SectionGenFrameSync",
+    "video-timing-offset": "SectionGenFrameSync",
+    "display-fps-override": "SectionGenFrameSync",
+    "container-fps-override": "SectionGenFrameSync",
+    "sdr-adjust-gamma": "SectionGenColourManagement",
+    "treat-srgb-as-power22": "SectionGenColourManagement",
+    "use-embedded-icc-profile": "SectionGenColourManagement",
+    "allow-delayed-peak-detect": "SectionGenColourManagement",
+    "error-diffusion": "SectionGenColourManagement",
+    "temporal-dither": "SectionGenColourManagement",
+    "temporal-dither-period": "SectionGenColourManagement",
+    "fbo-format": "SectionGenGpuBackend",
+    "libplacebo-opts": "SectionGenGpuBackend",
+    "spirv-compiler": "SectionGenGpuBackend",
+    "d3d11va-zero-copy": "SectionGenGpuBackend",
+    "scaler-resizes-only": "SectionGenGpuBackend",
+    "corner-rounding": "SectionGenGpuBackend",
+    "keepaspect": "SectionGenGeometry",
+    "keepaspect-window": "SectionGenGeometry",
+    "monitoraspect": "SectionGenGeometry",
+    "monitorpixelaspect": "SectionGenGeometry",
+    "lavfi-complex": "SectionGenVideoProcess",
+
+    # --- image processing, split into geometry and deinterlace --------------
+    "video-crop": "SectionGenGeometry",
+    "video-margin-ratio-bottom": "SectionGenGeometry",
+    "video-margin-ratio-left": "SectionGenGeometry",
+    "video-margin-ratio-right": "SectionGenGeometry",
+    "video-margin-ratio-top": "SectionGenGeometry",
+    "video-recenter": "SectionGenGeometry",
+    "video-aspect-method": "SectionGenGeometry",
+    "video-osd": "SectionGenGeometry",
+    "deinterlace-field-parity": "SectionGenVideoProcess",
+    "interpolation-preserve": "SectionGenVideoProcess",
+    "interpolation-threshold": "SectionGenVideoProcess",
+
+    # --- buffer and decode queue, kept with their own mechanism -------------
+    "vd-queue-enable": "SectionGenVideoDecode",
+    "vd-queue-max-bytes": "SectionGenVideoDecode",
+    "vd-queue-max-samples": "SectionGenVideoDecode",
+    "vd-queue-max-secs": "SectionGenVideoDecode",
 }
+
+
+# The folders SECTION_OVERRIDE files rows into that no pattern table owns.
+#
+# An override names a section id; something still has to say what that section
+# is called, what it means, and which glyph it wears. Left out, folder_meta()
+# falls through to the General branch and captions every one of them "其他" --
+# which is how a refiling lands rows in the right folder under the wrong heading.
+#
+# Same shape as the other three tables, plus the mpv group the folder belongs
+# to: (section id, group, caption, description, icon). The group decides which
+# settings category the folder appears under; a split folder has no rows of its
+# own to infer that from until every row is classified, so it is stated here.
+#
+# The caption is the key the page files rows by, so two entries sharing a
+# caption would merge their folders.
+SPLIT_SECTIONS: list[tuple[str, str, str, str, str]] = [
+    ("SectionGenScreenshot", "Video & rendering", "截图输出",
+     "截图与缩略图写出的格式、质量与目录", "IconScreenshot"),
+
+    ("SectionGenGeometry", "Video & rendering", "几何与裁切",
+     "画面比例、裁切、边距与重新居中", "IconGeometry"),
+    ("SectionGenFrameSync", "Video & rendering", "帧率与同步",
+     "丢帧策略、显示帧率覆盖与音视频同步容差", "IconFrameSync"),
+
+    ("SectionGenResample", "Audio", "音频重采样",
+     "采样率转换的滤波器、相位与截止频率", "IconResample"),
+    ("SectionGenAudioOut", "Audio", "音频输出",
+     "输出设备、WASAPI 独占缓冲与媒体角色", "IconAudioOut"),
+    ("SectionGenAudioDecode", "Audio", "音频解码与队列",
+     "解码器选项、音频解码队列与降级策略", "IconAudioDecode"),
+    ("SectionGenSync", "Audio", "同步校准",
+     "音频初始同步与自动同步", "IconSync"),
+
+    ("SectionGenSubtitlesFilter", "Subtitles", "字幕筛选",
+     "字幕文本的正则/JS 过滤，用来改写或屏蔽台词", "IconSubtitlesFilter"),
+    ("SectionGenSubtitlesSource", "Subtitles", "字幕来源与同步",
+     "外部字幕查找、时序修正与字体替换", "IconSubtitlesSource"),
+
+    ("SectionGenCoverArt", "Player & window", "封面与缩略图",
+     "从哪里读封面、读哪些文件", "IconCoverArt"),
+    ("SectionGenClipboard", "Player & window", "剪贴板",
+     "剪贴板后端与剪贴板监听", "IconClipboard"),
+    ("SectionGenPlaybackBehavior", "Player & window", "播放行为",
+     "暂停、保持打开、快进方式与播放顺序", "IconPlaybackBehavior"),
+    ("SectionGenHistory", "Player & window", "进度与历史",
+     "观看历史、断点续播与时间轴起点", "IconHistory"),
+    ("SectionGenConfigProfile", "Player & window", "配置与 profile",
+     "配置文件、include 与 profile 机制", "IconConfigProfile"),
+    ("SectionGenAutoload", "Player & window", "自动加载",
+     "自动加载的同目录文件、外部文件与未定时长媒体", "IconAutoload"),
+
+    ("SectionGenColourManagement", "General", "色彩管理",
+     "SDR 调整、ICC 与抖动", "IconColourManagement"),
+    ("SectionGenGpuBackend", "General", "GPU 与着色器后端",
+     "渲染后端、SPIR-V 编译与零拷贝路径", "IconGpuBackend"),
+]
 
 # Icons for the generated folders, including every General sub-theme. Checked
 # for collisions by check-sections.py; reusing existing glyphs rather than
@@ -263,6 +498,30 @@ GENERATED_ICON_GLYPH = {
     # both collided -- with SectionCache and SectionDemuxerPlaylist.)
     "IconCache": "\\uE9A9",
     "IconDemuxer": "\\uEA80",
+    # The 2026-10-30 refiling split six folders into seventeen. Every one of
+    # these was checked against the 68 glyphs the hand-written catalog already
+    # occupies (listed in the comment above SettingsSections.All) and none
+    # collides. They are distinct on purpose: with every row now drawn as a
+    # SettingsCard, the folder glyph is the only thing on a section card that
+    # says which function it holds, so four audio folders sharing one icon
+    # would read as the same card four times.
+    "IconScreenshot": "\\uE7C3",          # camera
+    "IconGeometry": "\\uE91B",            # crop
+    "IconFrameSync": "\\uE916",           # stopwatch
+    "IconResample": "\\uE9D5",            # waveform
+    "IconAudioOut": "\\uE8EF",            # speaker
+    "IconAudioDecode": "\\uE9E9",         # music note
+    "IconSync": "\\uE8AD",                # sync arrows
+    "IconSubtitlesFilter": "\\uE71C",     # filtered list
+    "IconSubtitlesSource": "\\uE8BB",     # font
+    "IconCoverArt": "\\uE91C",            # album
+    "IconClipboard": "\\uE8C8",           # copy
+    "IconPlaybackBehavior": "\\uE768",    # play
+    "IconHistory": "\\uE82D",             # history
+    "IconConfigProfile": "\\uE943",       # code file
+    "IconAutoload": "\\uE8F1",            # library
+    "IconColourManagement": "\\uE765",    # palette
+    "IconGpuBackend": "\\uE74A",          # layers
 }
 
 
@@ -597,6 +856,23 @@ def is_denied(name: str) -> bool:
     return name in DENY_EXACT or name.startswith(DENY_PREFIX)
 
 
+def _strip_csharp_comments(text: str) -> str:
+    """The source with `//` and `/* */` comments blanked out.
+
+    The `wired` scan below matches `set <name>` to find hand-written rows, and
+    it used to run over the raw file. A doc comment explaining mpv's
+    `no-osd set idle no` therefore registered `idle` as hand-written, and the
+    generator silently omitted that option from the settings page -- the row
+    disappeared from a tree where nothing looked wrong.
+
+    Comments are removed rather than the pattern tightened: any regex over raw
+    C# will eventually match prose, and the ones that fail here fail by
+    *omitting* a row, which no checker in this repository sees.
+    """
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+    return re.sub(r"//[^\n]*", "", text)
+
+
 def load_generated() -> list[dict]:
     """Every schema entry this generator is responsible for."""
     schema = json.loads(SCHEMA.read_text(encoding="utf-8-sig"))
@@ -605,7 +881,7 @@ def load_generated() -> list[dict]:
     # than a checked-in list so adding a hand-written row automatically
     # drops its generated twin instead of duplicating it.
     wired = set()
-    mpvsettings = (SETTINGS / "MpvSettings.cs").read_text(encoding="utf-8-sig")
+    mpvsettings = _strip_csharp_comments(MPV_SETTINGS.read_text(encoding="utf-8-sig"))
     for name in re.findall(r'\[\s*(?:nameof\(AppSettings\.)?\w+\s*\]\s*=\s*"([a-z0-9\-]+)"', mpvsettings):
         wired.add(name)
     for name in re.findall(r'\bset ([a-z][a-z0-9\-]*)\s', mpvsettings):
@@ -684,7 +960,8 @@ def gen_names(rows: list[dict]) -> str:
     contains a space genuinely needs quotes; an enum value is always a bare
     token, because the schema enumerates the spellings it accepts.
     """
-    lines = [BANNER, "using System;\nusing System.Collections.Generic;\n",
+    lines = [BANNER,
+             "using mpv_winui.Domains.SettingsModel;\nusing System;\nusing System.Collections.Generic;\n",
              "namespace mpv_winui.Domains.MpvConf\n{",
              "    public static partial class MpvSettings\n    {",
              "        /// <summary>Name map for the schema-generated rows.</summary>",
@@ -922,6 +1199,14 @@ def folder_meta(key: str) -> tuple[str, str, str, str]:
     for g, sec in GROUP_TO_SECTION.items():
         if sec == key:
             return g, CAPTIONS[g][0], CAPTIONS[g][1], GROUP_TO_ICON[g]
+
+    # Folders that exist only because SECTION_OVERRIDE names them. Checked
+    # before the table scan and before the General fallback: they have no
+    # patterns of their own, so nothing else can find them, and falling
+    # through captions every one of them "其他".
+    for sec, group, cap, desc, icon in SPLIT_SECTIONS:
+        if sec == key:
+            return group, cap, desc, icon
 
     # The video/window sub-folders: same group, their own caption and glyph.
     for table, group in (
@@ -1220,8 +1505,14 @@ def main() -> int:
 
     labels = gen_labels(rows)
     targets = {
-        SETTINGS / "AppSettings.Gen.cs": gen_appsettings(rows),
-        SETTINGS / "MpvSettings.Gen.cs": gen_names(rows),
+        # Each file goes where the app project keeps it, which is not one
+        # directory: the settings tree, the settings model and the config layer
+        # were split into separate domains and this map kept pointing at the
+        # old location. Written wrong, a run would create a second copy of a
+        # partial class in the wrong namespace and the build would report a
+        # duplicate member -- or, worse, silently compile the stale file.
+        APP / "Domains" / "SettingsModel" / "AppSettings.Gen.cs": gen_appsettings(rows),
+        APP / "Domains" / "MpvConf" / "MpvSettings.Gen.cs": gen_names(rows),
         SETTINGS / "SettingsPage.Options.Gen.cs": gen_options(rows),
         SETTINGS / "SettingsPage.Sections.Gen.cs": gen_section_glue(rows),
         APP / "Lexicon" / "Language" / "AppLang.Gen.cs": gen_applang_partial(rows, labels),

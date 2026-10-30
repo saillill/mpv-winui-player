@@ -112,6 +112,23 @@
         -->
         <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
         <!--
+          SettingsCard, for the settings page's rows.
+
+          Its own dependency asks for Microsoft.WindowsAppSDK.WinUI 1.8.x, which
+          is a *sub-package*, not the 2.5.1 meta-package above: restore promotes
+          WinUI to the 2.3.9 this tree already uses and leaves the meta-package
+          at 2.5.1. Measured, because the 8.2 line's nuspec pins the whole
+          meta-package at 1.6 and would have dragged WASDK backwards; with
+          WindowsAppSDKSelfContained that is a payload swap, not a version
+          number.
+
+          A preview, deliberately: every published preview of the 8.3 line is
+          listed here rather than quietly upgraded later, and the dependency
+          graph above is the thing that has to stay true when it moves. The
+          package is UI only, so a preview cannot affect a runtime contract.
+        -->
+        <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.3.260402-preview2" />
+        <!--
           Excluding the four feature areas the meta-package drags in that this app
           never calls.
 

@@ -359,6 +359,7 @@ namespace mpv_winui.Domains.MpvConf
             [nameof(AppSettings.Mpv_volume_gain)] = "volume-gain",
             [nameof(AppSettings.Mpv_volume_gain_max)] = "volume-gain-max",
             [nameof(AppSettings.Mpv_volume_gain_min)] = "volume-gain-min",
+            [nameof(AppSettings.Mpv_volume_max)] = "volume-max",
             [nameof(AppSettings.Mpv_wasapi_exclusive_buffer)] = "wasapi-exclusive-buffer",
             [nameof(AppSettings.Mpv_watch_history_path)] = "watch-history-path",
             [nameof(AppSettings.Mpv_window_affinity)] = "window-affinity",

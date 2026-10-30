@@ -210,6 +210,27 @@ internal static class SettingsSections
         new("SectionGenGeneralDesktop", "\uE737", l => l.SectionGenGeneralDesktop, l => l.SectionDescGenGeneralDesktop),
         new("SectionGenGeneralScripting", "\uE716", l => l.SectionGenGeneralScripting, l => l.SectionDescGenGeneralScripting),
         new("SectionGenGeneralRendering", "\uE719", l => l.SectionGenGeneralRendering, l => l.SectionDescGenGeneralRendering),
+        // The 2026-10-30 refiling split six folders into seventeen. Their glyphs
+        // come from the codepoints the hand-written set does not occupy, and each
+        // is distinct on purpose: with every row drawn as a SettingsCard, a folder
+        // glyph is the only thing a section card shows about which function it holds.
+        new("SectionGenScreenshot", "\uE7C3", l => l.SectionGenScreenshot, l => l.SectionDescGenScreenshot),
+        new("SectionGenGeometry", "\uE91B", l => l.SectionGenGeometry, l => l.SectionDescGenGeometry),
+        new("SectionGenFrameSync", "\uE916", l => l.SectionGenFrameSync, l => l.SectionDescGenFrameSync),
+        new("SectionGenResample", "\uE9D5", l => l.SectionGenResample, l => l.SectionDescGenResample),
+        new("SectionGenAudioOut", "\uE8EF", l => l.SectionGenAudioOut, l => l.SectionDescGenAudioOut),
+        new("SectionGenAudioDecode", "\uE9E9", l => l.SectionGenAudioDecode, l => l.SectionDescGenAudioDecode),
+        new("SectionGenSync", "\uE8AD", l => l.SectionGenSync, l => l.SectionDescGenSync),
+        new("SectionGenSubtitlesFilter", "\uE71C", l => l.SectionGenSubtitlesFilter, l => l.SectionDescGenSubtitlesFilter),
+        new("SectionGenSubtitlesSource", "\uE8BB", l => l.SectionGenSubtitlesSource, l => l.SectionDescGenSubtitlesSource),
+        new("SectionGenCoverArt", "\uE91C", l => l.SectionGenCoverArt, l => l.SectionDescGenCoverArt),
+        new("SectionGenClipboard", "\uE8C8", l => l.SectionGenClipboard, l => l.SectionDescGenClipboard),
+        new("SectionGenPlaybackBehavior", "\uE768", l => l.SectionGenPlaybackBehavior, l => l.SectionDescGenPlaybackBehavior),
+        new("SectionGenHistory", "\uE82D", l => l.SectionGenHistory, l => l.SectionDescGenHistory),
+        new("SectionGenConfigProfile", "\uE943", l => l.SectionGenConfigProfile, l => l.SectionDescGenConfigProfile),
+        new("SectionGenAutoload", "\uE8F1", l => l.SectionGenAutoload, l => l.SectionDescGenAutoload),
+        new("SectionGenColourManagement", "\uE765", l => l.SectionGenColourManagement, l => l.SectionDescGenColourManagement),
+        new("SectionGenGpuBackend", "\uE74A", l => l.SectionGenGpuBackend, l => l.SectionDescGenGpuBackend),
     ];
 
     /// <summary>Fallback glyph for a caption the table does not know.</summary>

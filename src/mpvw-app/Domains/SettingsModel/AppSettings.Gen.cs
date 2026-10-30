@@ -154,6 +154,12 @@ namespace mpv_winui.Domains.SettingsModel
             set => _dataSetting.SetValue(nameof(Mpv_volume_gain_min), value);
         }
 
+        public double Mpv_volume_max
+        {
+            get => _dataSetting.GetValue(nameof(Mpv_volume_max), 130.0);
+            set => _dataSetting.SetValue(nameof(Mpv_volume_max), value);
+        }
+
         // ---- Colour & HDR ----
 
         public double Mpv_gamma_factor

@@ -133,7 +133,7 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_tone_mapping_param), AppContext.AppSetting.Mpv_tone_mapping_param = (double)v!),
             });
 
-        // ---- 字幕选项 (24 rows) ----
+        // ---- 字幕选项 (9 rows) ----
         var catSubtitles = AppContext.AppLang.SettingsCategorySubtitles;
         var secSubtitles = AppContext.AppLang.SectionGenSubtitles;
             list.Add(new Option
@@ -189,19 +189,6 @@ public sealed partial class SettingsPage
             });
             list.Add(new Option
             {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_auto_exts),
-                Label = lang.SchemaLabel_Mpv_sub_auto_exts,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_auto_exts,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list",
-                Getter = () => AppContext.AppSetting.Mpv_sub_auto_exts,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_auto_exts), AppContext.AppSetting.Mpv_sub_auto_exts = (string)v!),
-            });
-            list.Add(new Option
-            {
                 Key = nameof(AppContext.AppSetting.Mpv_sub_border_style),
                 Label = lang.SchemaLabel_Mpv_sub_border_style,
                 Category = catSubtitles,
@@ -216,123 +203,6 @@ public sealed partial class SettingsPage
                     ],
                 Getter = () => AppContext.AppSetting.Mpv_sub_border_style,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_border_style), AppContext.AppSetting.Mpv_sub_border_style = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_create_cc_track),
-                Label = lang.SchemaLabel_Mpv_sub_create_cc_track,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_create_cc_track,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_sub_create_cc_track,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_create_cc_track), AppContext.AppSetting.Mpv_sub_create_cc_track = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_demuxer),
-                Label = lang.SchemaLabel_Mpv_sub_demuxer,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_demuxer,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_sub_demuxer,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_demuxer), AppContext.AppSetting.Mpv_sub_demuxer = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_files),
-                Label = lang.SchemaLabel_Mpv_sub_files,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_files,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list; Expects a file path",
-                Getter = () => AppContext.AppSetting.Mpv_sub_files,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_files), AppContext.AppSetting.Mpv_sub_files = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_jsre),
-                Label = lang.SchemaLabel_Mpv_sub_filter_jsre,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_filter_jsre,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list",
-                Getter = () => AppContext.AppSetting.Mpv_sub_filter_jsre,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_jsre), AppContext.AppSetting.Mpv_sub_filter_jsre = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_regex),
-                Label = lang.SchemaLabel_Mpv_sub_filter_regex,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_filter_regex,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list",
-                Getter = () => AppContext.AppSetting.Mpv_sub_filter_regex,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_regex), AppContext.AppSetting.Mpv_sub_filter_regex = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_regex_enable),
-                Label = lang.SchemaLabel_Mpv_sub_filter_regex_enable,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_filter_regex_enable,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_sub_filter_regex_enable,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_regex_enable), AppContext.AppSetting.Mpv_sub_filter_regex_enable = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_regex_plain),
-                Label = lang.SchemaLabel_Mpv_sub_filter_regex_plain,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_filter_regex_plain,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_sub_filter_regex_plain,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_regex_plain), AppContext.AppSetting.Mpv_sub_filter_regex_plain = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_regex_warn),
-                Label = lang.SchemaLabel_Mpv_sub_filter_regex_warn,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_filter_regex_warn,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_sub_filter_regex_warn,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_regex_warn), AppContext.AppSetting.Mpv_sub_filter_regex_warn = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_fix_timing_keep),
-                Label = lang.SchemaLabel_Mpv_sub_fix_timing_keep,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_fix_timing_keep,
-                Type = OptionType.Integer,
-                Getter = () => (double)AppContext.AppSetting.Mpv_sub_fix_timing_keep,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_fix_timing_keep), AppContext.AppSetting.Mpv_sub_fix_timing_keep = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_fps),
-                Label = lang.SchemaLabel_Mpv_sub_fps,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_fps,
-                Type = OptionType.Double,
-                Getter = () => AppContext.AppSetting.Mpv_sub_fps,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_fps), AppContext.AppSetting.Mpv_sub_fps = (double)v!),
             });
             list.Add(new Option
             {
@@ -358,17 +228,6 @@ public sealed partial class SettingsPage
             });
             list.Add(new Option
             {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_past_video_end),
-                Label = lang.SchemaLabel_Mpv_sub_past_video_end,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_past_video_end,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_sub_past_video_end,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_past_video_end), AppContext.AppSetting.Mpv_sub_past_video_end = (bool)v!),
-            });
-            list.Add(new Option
-            {
                 Key = nameof(AppContext.AppSetting.Mpv_sub_scale_with_window),
                 Label = lang.SchemaLabel_Mpv_sub_scale_with_window,
                 Category = catSubtitles,
@@ -377,39 +236,6 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Mpv_sub_scale_with_window,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_scale_with_window), AppContext.AppSetting.Mpv_sub_scale_with_window = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_speed),
-                Label = lang.SchemaLabel_Mpv_sub_speed,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_speed,
-                Type = OptionType.Double,
-                Getter = () => AppContext.AppSetting.Mpv_sub_speed,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_speed), AppContext.AppSetting.Mpv_sub_speed = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_stretch_durations),
-                Label = lang.SchemaLabel_Mpv_sub_stretch_durations,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_stretch_durations,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_sub_stretch_durations,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_stretch_durations), AppContext.AppSetting.Mpv_sub_stretch_durations = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat),
-                Label = lang.SchemaLabel_Mpv_sub_vsfilter_bidi_compat,
-                Category = catSubtitles,
-                Section = secSubtitles,
-                Description = lang.SchemaDesc_Mpv_sub_vsfilter_bidi_compat,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat), AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat = (bool)v!),
             });
             list.Add(new Option
             {
@@ -639,201 +465,9 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_osd_status_msg), AppContext.AppSetting.Mpv_osd_status_msg = (string)v!),
             });
 
-        // ---- 音频选项 (26 rows) ----
+        // ---- 音频选项 (9 rows) ----
         var catAudio = AppContext.AppLang.SettingsCategoryAudio;
         var secAudio = AppContext.AppLang.SectionGenAudio;
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_ad_lavc_ac3drc),
-                Label = lang.SchemaLabel_Mpv_ad_lavc_ac3drc,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_ad_lavc_ac3drc,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 6.0,
-                Getter = () => AppContext.AppSetting.Mpv_ad_lavc_ac3drc,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_lavc_ac3drc), AppContext.AppSetting.Mpv_ad_lavc_ac3drc = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_ad_lavc_threads),
-                Label = lang.SchemaLabel_Mpv_ad_lavc_threads,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_ad_lavc_threads,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 16,
-                Getter = () => (double)AppContext.AppSetting.Mpv_ad_lavc_threads,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_lavc_threads), AppContext.AppSetting.Mpv_ad_lavc_threads = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_ad_queue_enable),
-                Label = lang.SchemaLabel_Mpv_ad_queue_enable,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_ad_queue_enable,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_ad_queue_enable,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_queue_enable), AppContext.AppSetting.Mpv_ad_queue_enable = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_ad_queue_max_bytes),
-                Label = lang.SchemaLabel_Mpv_ad_queue_max_bytes,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_ad_queue_max_bytes,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "ByteSize",
-                Getter = () => AppContext.AppSetting.Mpv_ad_queue_max_bytes,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_queue_max_bytes), AppContext.AppSetting.Mpv_ad_queue_max_bytes = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_ad_queue_max_samples),
-                Label = lang.SchemaLabel_Mpv_ad_queue_max_samples,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_ad_queue_max_samples,
-                Type = OptionType.Integer,
-                Getter = () => (double)AppContext.AppSetting.Mpv_ad_queue_max_samples,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_queue_max_samples), AppContext.AppSetting.Mpv_ad_queue_max_samples = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_ad_queue_max_secs),
-                Label = lang.SchemaLabel_Mpv_ad_queue_max_secs,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_ad_queue_max_secs,
-                Type = OptionType.Double,
-                Getter = () => AppContext.AppSetting.Mpv_ad_queue_max_secs,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_queue_max_secs), AppContext.AppSetting.Mpv_ad_queue_max_secs = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_client_name),
-                Label = lang.SchemaLabel_Mpv_audio_client_name,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_client_name,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_audio_client_name,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_client_name), AppContext.AppSetting.Mpv_audio_client_name = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_demuxer),
-                Label = lang.SchemaLabel_Mpv_audio_demuxer,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_demuxer,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_audio_demuxer,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_demuxer), AppContext.AppSetting.Mpv_audio_demuxer = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_fallback_to_null),
-                Label = lang.SchemaLabel_Mpv_audio_fallback_to_null,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_fallback_to_null,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_audio_fallback_to_null,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_fallback_to_null), AppContext.AppSetting.Mpv_audio_fallback_to_null = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_files),
-                Label = lang.SchemaLabel_Mpv_audio_files,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_files,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list; Expects a file path",
-                Getter = () => AppContext.AppSetting.Mpv_audio_files,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_files), AppContext.AppSetting.Mpv_audio_files = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_cutoff),
-                Label = lang.SchemaLabel_Mpv_audio_resample_cutoff,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_resample_cutoff,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 1.0,
-                Getter = () => AppContext.AppSetting.Mpv_audio_resample_cutoff,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_cutoff), AppContext.AppSetting.Mpv_audio_resample_cutoff = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_filter_size),
-                Label = lang.SchemaLabel_Mpv_audio_resample_filter_size,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_resample_filter_size,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 32,
-                Getter = () => (double)AppContext.AppSetting.Mpv_audio_resample_filter_size,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_filter_size), AppContext.AppSetting.Mpv_audio_resample_filter_size = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_linear),
-                Label = lang.SchemaLabel_Mpv_audio_resample_linear,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_resample_linear,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_audio_resample_linear,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_linear), AppContext.AppSetting.Mpv_audio_resample_linear = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_max_output_size),
-                Label = lang.SchemaLabel_Mpv_audio_resample_max_output_size,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_resample_max_output_size,
-                Type = OptionType.Double,
-                Getter = () => AppContext.AppSetting.Mpv_audio_resample_max_output_size,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_max_output_size), AppContext.AppSetting.Mpv_audio_resample_max_output_size = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_phase_shift),
-                Label = lang.SchemaLabel_Mpv_audio_resample_phase_shift,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_resample_phase_shift,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 30,
-                Getter = () => (double)AppContext.AppSetting.Mpv_audio_resample_phase_shift,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_phase_shift), AppContext.AppSetting.Mpv_audio_resample_phase_shift = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_audio_set_media_role),
-                Label = lang.SchemaLabel_Mpv_audio_set_media_role,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_audio_set_media_role,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_audio_set_media_role,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_set_media_role), AppContext.AppSetting.Mpv_audio_set_media_role = (bool)v!),
-            });
             list.Add(new Option
             {
                 Key = nameof(AppContext.AppSetting.Mpv_mute),
@@ -844,19 +478,6 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Mpv_mute,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_mute), AppContext.AppSetting.Mpv_mute = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_pitch),
-                Label = lang.SchemaLabel_Mpv_pitch,
-                Category = catAudio,
-                Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_pitch,
-                Type = OptionType.Double,
-                Min = 0.01,
-                Max = 100.0,
-                Getter = () => AppContext.AppSetting.Mpv_pitch,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_pitch), AppContext.AppSetting.Mpv_pitch = (double)v!),
             });
             list.Add(new Option
             {
@@ -949,22 +570,19 @@ public sealed partial class SettingsPage
             });
             list.Add(new Option
             {
-                Key = nameof(AppContext.AppSetting.Mpv_wasapi_exclusive_buffer),
-                Label = lang.SchemaLabel_Mpv_wasapi_exclusive_buffer,
+                Key = nameof(AppContext.AppSetting.Mpv_volume_max),
+                Label = lang.SchemaLabel_Mpv_volume_max,
                 Category = catAudio,
                 Section = secAudio,
-                Description = lang.SchemaDesc_Mpv_wasapi_exclusive_buffer,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("default", "default"),
-                        new OptionChoice("min", "min"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_wasapi_exclusive_buffer,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_wasapi_exclusive_buffer), AppContext.AppSetting.Mpv_wasapi_exclusive_buffer = (string)v!),
+                Description = lang.SchemaDesc_Mpv_volume_max,
+                Type = OptionType.Double,
+                Min = 100.0,
+                Max = 1000.0,
+                Getter = () => AppContext.AppSetting.Mpv_volume_max,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_volume_max), AppContext.AppSetting.Mpv_volume_max = (double)v!),
             });
 
-        // ---- 轨道选项 (5 rows) ----
+        // ---- 轨道选项 (6 rows) ----
         var catTracks = AppContext.AppLang.SettingsCategoryPlayback;
         var secTracks = AppContext.AppLang.SectionGenTracks;
             list.Add(new Option
@@ -982,6 +600,17 @@ public sealed partial class SettingsPage
                     ],
                 Getter = () => AppContext.AppSetting.Mpv_aid,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_aid), AppContext.AppSetting.Mpv_aid = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_show_dependent_tracks),
+                Label = lang.SchemaLabel_Mpv_show_dependent_tracks,
+                Category = catTracks,
+                Section = secTracks,
+                Description = lang.SchemaDesc_Mpv_show_dependent_tracks,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_show_dependent_tracks,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_show_dependent_tracks), AppContext.AppSetting.Mpv_show_dependent_tracks = (bool)v!),
             });
             list.Add(new Option
             {
@@ -1040,88 +669,9 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vlang), AppContext.AppSetting.Mpv_vlang = (string)v!),
             });
 
-        // ---- 播放器与窗口选项 (17 rows) ----
+        // ---- 播放器与窗口选项 (1 rows) ----
         var catPlayerWindow = AppContext.AppLang.SettingsCategoryWindow;
         var secPlayerWindow = AppContext.AppLang.SectionGenPlayerWindow;
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_clipboard_backends),
-                Label = lang.SchemaLabel_Mpv_clipboard_backends,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_clipboard_backends,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "Object settings list",
-                Getter = () => AppContext.AppSetting.Mpv_clipboard_backends,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_clipboard_backends), AppContext.AppSetting.Mpv_clipboard_backends = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_clipboard_monitor),
-                Label = lang.SchemaLabel_Mpv_clipboard_monitor,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_clipboard_monitor,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_clipboard_monitor,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_clipboard_monitor), AppContext.AppSetting.Mpv_clipboard_monitor = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_cover_art_auto),
-                Label = lang.SchemaLabel_Mpv_cover_art_auto,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_cover_art_auto,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("no", "no"),
-                        new OptionChoice("exact", "exact"),
-                        new OptionChoice("fuzzy", "fuzzy"),
-                        new OptionChoice("all", "all"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_cover_art_auto,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_cover_art_auto), AppContext.AppSetting.Mpv_cover_art_auto = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_cover_art_files),
-                Label = lang.SchemaLabel_Mpv_cover_art_files,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_cover_art_files,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list; Expects a file path",
-                Getter = () => AppContext.AppSetting.Mpv_cover_art_files,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_cover_art_files), AppContext.AppSetting.Mpv_cover_art_files = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_cover_art_whitelist),
-                Label = lang.SchemaLabel_Mpv_cover_art_whitelist,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_cover_art_whitelist,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list",
-                Getter = () => AppContext.AppSetting.Mpv_cover_art_whitelist,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_cover_art_whitelist), AppContext.AppSetting.Mpv_cover_art_whitelist = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_force_render),
-                Label = lang.SchemaLabel_Mpv_force_render,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_force_render,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_force_render,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_force_render), AppContext.AppSetting.Mpv_force_render = (bool)v!),
-            });
             list.Add(new Option
             {
                 Key = nameof(AppContext.AppSetting.Mpv_force_rgba_osd_rendering),
@@ -1132,126 +682,6 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Mpv_force_rgba_osd_rendering,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_force_rgba_osd_rendering), AppContext.AppSetting.Mpv_force_rgba_osd_rendering = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_frames),
-                Label = lang.SchemaLabel_Mpv_frames,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_frames,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("all", "all"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_frames,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_frames), AppContext.AppSetting.Mpv_frames = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_hr_seek_demuxer_offset),
-                Label = lang.SchemaLabel_Mpv_hr_seek_demuxer_offset,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_hr_seek_demuxer_offset,
-                Type = OptionType.Double,
-                Getter = () => AppContext.AppSetting.Mpv_hr_seek_demuxer_offset,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_hr_seek_demuxer_offset), AppContext.AppSetting.Mpv_hr_seek_demuxer_offset = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_keep_open_pause),
-                Label = lang.SchemaLabel_Mpv_keep_open_pause,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_keep_open_pause,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_keep_open_pause,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_keep_open_pause), AppContext.AppSetting.Mpv_keep_open_pause = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_pause),
-                Label = lang.SchemaLabel_Mpv_pause,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_pause,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_pause,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_pause), AppContext.AppSetting.Mpv_pause = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_screenshot_avif_opts),
-                Label = lang.SchemaLabel_Mpv_screenshot_avif_opts,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_screenshot_avif_opts,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "Key/value list",
-                Getter = () => AppContext.AppSetting.Mpv_screenshot_avif_opts,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_screenshot_avif_opts), AppContext.AppSetting.Mpv_screenshot_avif_opts = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_screenshot_avif_pixfmt),
-                Label = lang.SchemaLabel_Mpv_screenshot_avif_pixfmt,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_screenshot_avif_pixfmt,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_screenshot_avif_pixfmt,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_screenshot_avif_pixfmt), AppContext.AppSetting.Mpv_screenshot_avif_pixfmt = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_screenshot_dir),
-                Label = lang.SchemaLabel_Mpv_screenshot_dir,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_screenshot_dir,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String; Expects a file path",
-                Getter = () => AppContext.AppSetting.Mpv_screenshot_dir,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_screenshot_dir), AppContext.AppSetting.Mpv_screenshot_dir = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_show_dependent_tracks),
-                Label = lang.SchemaLabel_Mpv_show_dependent_tracks,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_show_dependent_tracks,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_show_dependent_tracks,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_show_dependent_tracks), AppContext.AppSetting.Mpv_show_dependent_tracks = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_shuffle),
-                Label = lang.SchemaLabel_Mpv_shuffle,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_shuffle,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_shuffle,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_shuffle), AppContext.AppSetting.Mpv_shuffle = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_watch_history_path),
-                Label = lang.SchemaLabel_Mpv_watch_history_path,
-                Category = catPlayerWindow,
-                Section = secPlayerWindow,
-                Description = lang.SchemaDesc_Mpv_watch_history_path,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_watch_history_path,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_watch_history_path), AppContext.AppSetting.Mpv_watch_history_path = (string)v!),
             });
 
         // ---- 编码输出 (10 rows) ----
@@ -1625,217 +1055,9 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_title), AppContext.AppSetting.Mpv_title = (string)v!),
             });
 
-        // ---- 脚本与配置管线 (22 rows) ----
+        // ---- 脚本与配置管线 (1 rows) ----
         var catGeneralScripting = AppContext.AppLang.SettingsCategoryProgram;
         var secGeneralScripting = AppContext.AppLang.SectionGenGeneralScripting;
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_archive_exts),
-                Label = lang.SchemaLabel_Mpv_archive_exts,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_archive_exts,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list",
-                Getter = () => AppContext.AppSetting.Mpv_archive_exts,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_archive_exts), AppContext.AppSetting.Mpv_archive_exts = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_autoload_files),
-                Label = lang.SchemaLabel_Mpv_autoload_files,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_autoload_files,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_autoload_files,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_autoload_files), AppContext.AppSetting.Mpv_autoload_files = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_autosync),
-                Label = lang.SchemaLabel_Mpv_autosync,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_autosync,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_autosync,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_autosync), AppContext.AppSetting.Mpv_autosync = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_config),
-                Label = lang.SchemaLabel_Mpv_config,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_config,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_config,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_config), AppContext.AppSetting.Mpv_config = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_external_files),
-                Label = lang.SchemaLabel_Mpv_external_files,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_external_files,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list; Expects a file path",
-                Getter = () => AppContext.AppSetting.Mpv_external_files,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_external_files), AppContext.AppSetting.Mpv_external_files = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_ignore_path_in_watch_later_config),
-                Label = lang.SchemaLabel_Mpv_ignore_path_in_watch_later_config,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_ignore_path_in_watch_later_config,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_ignore_path_in_watch_later_config,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ignore_path_in_watch_later_config), AppContext.AppSetting.Mpv_ignore_path_in_watch_later_config = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_include),
-                Label = lang.SchemaLabel_Mpv_include,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_include,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String; Expects a file path",
-                Getter = () => AppContext.AppSetting.Mpv_include,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_include), AppContext.AppSetting.Mpv_include = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_initial_audio_sync),
-                Label = lang.SchemaLabel_Mpv_initial_audio_sync,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_initial_audio_sync,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_initial_audio_sync,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_initial_audio_sync), AppContext.AppSetting.Mpv_initial_audio_sync = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_play_direction),
-                Label = lang.SchemaLabel_Mpv_play_direction,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_play_direction,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("forward", "forward"),
-                        new OptionChoice("+", "+"),
-                        new OptionChoice("backward", "backward"),
-                        new OptionChoice("-", "-"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_play_direction,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_play_direction), AppContext.AppSetting.Mpv_play_direction = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_player_operation_mode),
-                Label = lang.SchemaLabel_Mpv_player_operation_mode,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_player_operation_mode,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("cplayer", "cplayer"),
-                        new OptionChoice("pseudo-gui", "pseudo-gui"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_player_operation_mode,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_player_operation_mode), AppContext.AppSetting.Mpv_player_operation_mode = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_priority),
-                Label = lang.SchemaLabel_Mpv_priority,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_priority,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("no", "no"),
-                        new OptionChoice("realtime", "realtime"),
-                        new OptionChoice("high", "high"),
-                        new OptionChoice("abovenormal", "abovenormal"),
-                        new OptionChoice("normal", "normal"),
-                        new OptionChoice("belownormal", "belownormal"),
-                        new OptionChoice("idle", "idle"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_priority,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_priority), AppContext.AppSetting.Mpv_priority = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_profile),
-                Label = lang.SchemaLabel_Mpv_profile,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_profile,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list",
-                Getter = () => AppContext.AppSetting.Mpv_profile,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_profile), AppContext.AppSetting.Mpv_profile = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_rebase_start_time),
-                Label = lang.SchemaLabel_Mpv_rebase_start_time,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_rebase_start_time,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_rebase_start_time,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_rebase_start_time), AppContext.AppSetting.Mpv_rebase_start_time = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_reset_on_next_file),
-                Label = lang.SchemaLabel_Mpv_reset_on_next_file,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_reset_on_next_file,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String list",
-                Getter = () => AppContext.AppSetting.Mpv_reset_on_next_file,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_reset_on_next_file), AppContext.AppSetting.Mpv_reset_on_next_file = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_resume_playback_check_mtime),
-                Label = lang.SchemaLabel_Mpv_resume_playback_check_mtime,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_resume_playback_check_mtime,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_resume_playback_check_mtime,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_resume_playback_check_mtime), AppContext.AppSetting.Mpv_resume_playback_check_mtime = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_save_watch_history),
-                Label = lang.SchemaLabel_Mpv_save_watch_history,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_save_watch_history,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_save_watch_history,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_save_watch_history), AppContext.AppSetting.Mpv_save_watch_history = (bool)v!),
-            });
             list.Add(new Option
             {
                 Key = nameof(AppContext.AppSetting.Mpv_scripts),
@@ -1849,226 +1071,10 @@ public sealed partial class SettingsPage
                 Getter = () => AppContext.AppSetting.Mpv_scripts,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_scripts), AppContext.AppSetting.Mpv_scripts = (string)v!),
             });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_sstep),
-                Label = lang.SchemaLabel_Mpv_sstep,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_sstep,
-                Type = OptionType.Double,
-                Getter = () => AppContext.AppSetting.Mpv_sstep,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sstep), AppContext.AppSetting.Mpv_sstep = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_stop_playback_on_init_failure),
-                Label = lang.SchemaLabel_Mpv_stop_playback_on_init_failure,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_stop_playback_on_init_failure,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_stop_playback_on_init_failure,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_stop_playback_on_init_failure), AppContext.AppSetting.Mpv_stop_playback_on_init_failure = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_untimed),
-                Label = lang.SchemaLabel_Mpv_untimed,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_untimed,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_untimed,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_untimed), AppContext.AppSetting.Mpv_untimed = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_use_filedir_conf),
-                Label = lang.SchemaLabel_Mpv_use_filedir_conf,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_use_filedir_conf,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_use_filedir_conf,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_use_filedir_conf), AppContext.AppSetting.Mpv_use_filedir_conf = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config),
-                Label = lang.SchemaLabel_Mpv_write_filename_in_watch_later_config,
-                Category = catGeneralScripting,
-                Section = secGeneralScripting,
-                Description = lang.SchemaDesc_Mpv_write_filename_in_watch_later_config,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_write_filename_in_watch_later_config,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config), AppContext.AppSetting.Mpv_write_filename_in_watch_later_config = (bool)v!),
-            });
 
-        // ---- 渲染与色彩微调 (22 rows) ----
+        // ---- 渲染与色彩微调 (1 rows) ----
         var catGeneralRendering = AppContext.AppLang.SettingsCategoryProgram;
         var secGeneralRendering = AppContext.AppLang.SectionGenGeneralRendering;
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_allow_delayed_peak_detect),
-                Label = lang.SchemaLabel_Mpv_allow_delayed_peak_detect,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_allow_delayed_peak_detect,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_allow_delayed_peak_detect,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_allow_delayed_peak_detect), AppContext.AppSetting.Mpv_allow_delayed_peak_detect = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_container_fps_override),
-                Label = lang.SchemaLabel_Mpv_container_fps_override,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_container_fps_override,
-                Type = OptionType.Double,
-                Getter = () => AppContext.AppSetting.Mpv_container_fps_override,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_container_fps_override), AppContext.AppSetting.Mpv_container_fps_override = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_corner_rounding),
-                Label = lang.SchemaLabel_Mpv_corner_rounding,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_corner_rounding,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 1.0,
-                Getter = () => AppContext.AppSetting.Mpv_corner_rounding,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_corner_rounding), AppContext.AppSetting.Mpv_corner_rounding = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_d3d11va_zero_copy),
-                Label = lang.SchemaLabel_Mpv_d3d11va_zero_copy,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_d3d11va_zero_copy,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_d3d11va_zero_copy,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_d3d11va_zero_copy), AppContext.AppSetting.Mpv_d3d11va_zero_copy = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_error_diffusion),
-                Label = lang.SchemaLabel_Mpv_error_diffusion,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_error_diffusion,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_error_diffusion,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_error_diffusion), AppContext.AppSetting.Mpv_error_diffusion = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_fbo_format),
-                Label = lang.SchemaLabel_Mpv_fbo_format,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_fbo_format,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_fbo_format,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_fbo_format), AppContext.AppSetting.Mpv_fbo_format = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_framedrop),
-                Label = lang.SchemaLabel_Mpv_framedrop,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_framedrop,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("no", "no"),
-                        new OptionChoice("vo", "vo"),
-                        new OptionChoice("decoder", "decoder"),
-                        new OptionChoice("decoder+vo", "decoder+vo"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_framedrop,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_framedrop), AppContext.AppSetting.Mpv_framedrop = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_keepaspect),
-                Label = lang.SchemaLabel_Mpv_keepaspect,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_keepaspect,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_keepaspect,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_keepaspect), AppContext.AppSetting.Mpv_keepaspect = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_keepaspect_window),
-                Label = lang.SchemaLabel_Mpv_keepaspect_window,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_keepaspect_window,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_keepaspect_window,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_keepaspect_window), AppContext.AppSetting.Mpv_keepaspect_window = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_lavfi_complex),
-                Label = lang.SchemaLabel_Mpv_lavfi_complex,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_lavfi_complex,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_lavfi_complex,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_lavfi_complex), AppContext.AppSetting.Mpv_lavfi_complex = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_libplacebo_opts),
-                Label = lang.SchemaLabel_Mpv_libplacebo_opts,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_libplacebo_opts,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "Key/value list",
-                Getter = () => AppContext.AppSetting.Mpv_libplacebo_opts,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_libplacebo_opts), AppContext.AppSetting.Mpv_libplacebo_opts = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_monitoraspect),
-                Label = lang.SchemaLabel_Mpv_monitoraspect,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_monitoraspect,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 9.0,
-                Getter = () => AppContext.AppSetting.Mpv_monitoraspect,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_monitoraspect), AppContext.AppSetting.Mpv_monitoraspect = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_monitorpixelaspect),
-                Label = lang.SchemaLabel_Mpv_monitorpixelaspect,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_monitorpixelaspect,
-                Type = OptionType.Double,
-                Min = 0.03125,
-                Max = 32.0,
-                Getter = () => AppContext.AppSetting.Mpv_monitorpixelaspect,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_monitorpixelaspect), AppContext.AppSetting.Mpv_monitorpixelaspect = (double)v!),
-            });
             list.Add(new Option
             {
                 Key = nameof(AppContext.AppSetting.Mpv_rar_list_all_volumes),
@@ -2080,23 +1086,138 @@ public sealed partial class SettingsPage
                 Getter = () => AppContext.AppSetting.Mpv_rar_list_all_volumes,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_rar_list_all_volumes), AppContext.AppSetting.Mpv_rar_list_all_volumes = (bool)v!),
             });
+
+        // ---- 音频解码与队列 (8 rows) ----
+        var catAudioDecode = AppContext.AppLang.SettingsCategoryAudio;
+        var secAudioDecode = AppContext.AppLang.SectionGenAudioDecode;
             list.Add(new Option
             {
-                Key = nameof(AppContext.AppSetting.Mpv_scaler_resizes_only),
-                Label = lang.SchemaLabel_Mpv_scaler_resizes_only,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_scaler_resizes_only,
+                Key = nameof(AppContext.AppSetting.Mpv_ad_lavc_ac3drc),
+                Label = lang.SchemaLabel_Mpv_ad_lavc_ac3drc,
+                Category = catAudioDecode,
+                Section = secAudioDecode,
+                Description = lang.SchemaDesc_Mpv_ad_lavc_ac3drc,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 6.0,
+                Getter = () => AppContext.AppSetting.Mpv_ad_lavc_ac3drc,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_lavc_ac3drc), AppContext.AppSetting.Mpv_ad_lavc_ac3drc = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_ad_lavc_threads),
+                Label = lang.SchemaLabel_Mpv_ad_lavc_threads,
+                Category = catAudioDecode,
+                Section = secAudioDecode,
+                Description = lang.SchemaDesc_Mpv_ad_lavc_threads,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 16,
+                Getter = () => (double)AppContext.AppSetting.Mpv_ad_lavc_threads,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_lavc_threads), AppContext.AppSetting.Mpv_ad_lavc_threads = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_ad_queue_enable),
+                Label = lang.SchemaLabel_Mpv_ad_queue_enable,
+                Category = catAudioDecode,
+                Section = secAudioDecode,
+                Description = lang.SchemaDesc_Mpv_ad_queue_enable,
                 Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_scaler_resizes_only,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_scaler_resizes_only), AppContext.AppSetting.Mpv_scaler_resizes_only = (bool)v!),
+                Getter = () => AppContext.AppSetting.Mpv_ad_queue_enable,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_queue_enable), AppContext.AppSetting.Mpv_ad_queue_enable = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_ad_queue_max_bytes),
+                Label = lang.SchemaLabel_Mpv_ad_queue_max_bytes,
+                Category = catAudioDecode,
+                Section = secAudioDecode,
+                Description = lang.SchemaDesc_Mpv_ad_queue_max_bytes,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "ByteSize",
+                Getter = () => AppContext.AppSetting.Mpv_ad_queue_max_bytes,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_queue_max_bytes), AppContext.AppSetting.Mpv_ad_queue_max_bytes = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_ad_queue_max_samples),
+                Label = lang.SchemaLabel_Mpv_ad_queue_max_samples,
+                Category = catAudioDecode,
+                Section = secAudioDecode,
+                Description = lang.SchemaDesc_Mpv_ad_queue_max_samples,
+                Type = OptionType.Integer,
+                Getter = () => (double)AppContext.AppSetting.Mpv_ad_queue_max_samples,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_queue_max_samples), AppContext.AppSetting.Mpv_ad_queue_max_samples = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_ad_queue_max_secs),
+                Label = lang.SchemaLabel_Mpv_ad_queue_max_secs,
+                Category = catAudioDecode,
+                Section = secAudioDecode,
+                Description = lang.SchemaDesc_Mpv_ad_queue_max_secs,
+                Type = OptionType.Double,
+                Getter = () => AppContext.AppSetting.Mpv_ad_queue_max_secs,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ad_queue_max_secs), AppContext.AppSetting.Mpv_ad_queue_max_secs = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_demuxer),
+                Label = lang.SchemaLabel_Mpv_audio_demuxer,
+                Category = catAudioDecode,
+                Section = secAudioDecode,
+                Description = lang.SchemaDesc_Mpv_audio_demuxer,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_audio_demuxer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_demuxer), AppContext.AppSetting.Mpv_audio_demuxer = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_fallback_to_null),
+                Label = lang.SchemaLabel_Mpv_audio_fallback_to_null,
+                Category = catAudioDecode,
+                Section = secAudioDecode,
+                Description = lang.SchemaDesc_Mpv_audio_fallback_to_null,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_audio_fallback_to_null,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_fallback_to_null), AppContext.AppSetting.Mpv_audio_fallback_to_null = (bool)v!),
+            });
+
+        // ---- 色彩管理 (7 rows) ----
+        var catColourManagement = AppContext.AppLang.SettingsCategoryProgram;
+        var secColourManagement = AppContext.AppLang.SectionGenColourManagement;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_allow_delayed_peak_detect),
+                Label = lang.SchemaLabel_Mpv_allow_delayed_peak_detect,
+                Category = catColourManagement,
+                Section = secColourManagement,
+                Description = lang.SchemaDesc_Mpv_allow_delayed_peak_detect,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_allow_delayed_peak_detect,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_allow_delayed_peak_detect), AppContext.AppSetting.Mpv_allow_delayed_peak_detect = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_error_diffusion),
+                Label = lang.SchemaLabel_Mpv_error_diffusion,
+                Category = catColourManagement,
+                Section = secColourManagement,
+                Description = lang.SchemaDesc_Mpv_error_diffusion,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_error_diffusion,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_error_diffusion), AppContext.AppSetting.Mpv_error_diffusion = (string)v!),
             });
             list.Add(new Option
             {
                 Key = nameof(AppContext.AppSetting.Mpv_sdr_adjust_gamma),
                 Label = lang.SchemaLabel_Mpv_sdr_adjust_gamma,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
+                Category = catColourManagement,
+                Section = secColourManagement,
                 Description = lang.SchemaDesc_Mpv_sdr_adjust_gamma,
                 Type = OptionType.StringList,
                 Choices =
@@ -2110,39 +1231,10 @@ public sealed partial class SettingsPage
             });
             list.Add(new Option
             {
-                Key = nameof(AppContext.AppSetting.Mpv_spirv_compiler),
-                Label = lang.SchemaLabel_Mpv_spirv_compiler,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_spirv_compiler,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("auto", "auto"),
-                        new OptionChoice("shaderc", "shaderc"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_spirv_compiler,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_spirv_compiler), AppContext.AppSetting.Mpv_spirv_compiler = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_swapchain_depth),
-                Label = lang.SchemaLabel_Mpv_swapchain_depth,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
-                Description = lang.SchemaDesc_Mpv_swapchain_depth,
-                Type = OptionType.Integer,
-                Min = 1,
-                Max = 8,
-                Getter = () => (double)AppContext.AppSetting.Mpv_swapchain_depth,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_swapchain_depth), AppContext.AppSetting.Mpv_swapchain_depth = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
                 Key = nameof(AppContext.AppSetting.Mpv_temporal_dither),
                 Label = lang.SchemaLabel_Mpv_temporal_dither,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
+                Category = catColourManagement,
+                Section = secColourManagement,
                 Description = lang.SchemaDesc_Mpv_temporal_dither,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Mpv_temporal_dither,
@@ -2152,8 +1244,8 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.Mpv_temporal_dither_period),
                 Label = lang.SchemaLabel_Mpv_temporal_dither_period,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
+                Category = catColourManagement,
+                Section = secColourManagement,
                 Description = lang.SchemaDesc_Mpv_temporal_dither_period,
                 Type = OptionType.Integer,
                 Min = 1,
@@ -2165,8 +1257,8 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.Mpv_treat_srgb_as_power22),
                 Label = lang.SchemaLabel_Mpv_treat_srgb_as_power22,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
+                Category = catColourManagement,
+                Section = secColourManagement,
                 Description = lang.SchemaDesc_Mpv_treat_srgb_as_power22,
                 Type = OptionType.StringList,
                 Choices =
@@ -2184,12 +1276,198 @@ public sealed partial class SettingsPage
             {
                 Key = nameof(AppContext.AppSetting.Mpv_use_embedded_icc_profile),
                 Label = lang.SchemaLabel_Mpv_use_embedded_icc_profile,
-                Category = catGeneralRendering,
-                Section = secGeneralRendering,
+                Category = catColourManagement,
+                Section = secColourManagement,
                 Description = lang.SchemaDesc_Mpv_use_embedded_icc_profile,
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Mpv_use_embedded_icc_profile,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_use_embedded_icc_profile), AppContext.AppSetting.Mpv_use_embedded_icc_profile = (bool)v!),
+            });
+
+        // ---- 自动加载 (4 rows) ----
+        var catAutoload = AppContext.AppLang.SettingsCategoryWindow;
+        var secAutoload = AppContext.AppLang.SectionGenAutoload;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_archive_exts),
+                Label = lang.SchemaLabel_Mpv_archive_exts,
+                Category = catAutoload,
+                Section = secAutoload,
+                Description = lang.SchemaDesc_Mpv_archive_exts,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list",
+                Getter = () => AppContext.AppSetting.Mpv_archive_exts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_archive_exts), AppContext.AppSetting.Mpv_archive_exts = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_autoload_files),
+                Label = lang.SchemaLabel_Mpv_autoload_files,
+                Category = catAutoload,
+                Section = secAutoload,
+                Description = lang.SchemaDesc_Mpv_autoload_files,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_autoload_files,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_autoload_files), AppContext.AppSetting.Mpv_autoload_files = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_external_files),
+                Label = lang.SchemaLabel_Mpv_external_files,
+                Category = catAutoload,
+                Section = secAutoload,
+                Description = lang.SchemaDesc_Mpv_external_files,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list; Expects a file path",
+                Getter = () => AppContext.AppSetting.Mpv_external_files,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_external_files), AppContext.AppSetting.Mpv_external_files = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_untimed),
+                Label = lang.SchemaLabel_Mpv_untimed,
+                Category = catAutoload,
+                Section = secAutoload,
+                Description = lang.SchemaDesc_Mpv_untimed,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_untimed,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_untimed), AppContext.AppSetting.Mpv_untimed = (bool)v!),
+            });
+
+        // ---- 音频输出 (5 rows) ----
+        var catAudioOut = AppContext.AppLang.SettingsCategoryAudio;
+        var secAudioOut = AppContext.AppLang.SectionGenAudioOut;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_client_name),
+                Label = lang.SchemaLabel_Mpv_audio_client_name,
+                Category = catAudioOut,
+                Section = secAudioOut,
+                Description = lang.SchemaDesc_Mpv_audio_client_name,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_audio_client_name,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_client_name), AppContext.AppSetting.Mpv_audio_client_name = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_files),
+                Label = lang.SchemaLabel_Mpv_audio_files,
+                Category = catAudioOut,
+                Section = secAudioOut,
+                Description = lang.SchemaDesc_Mpv_audio_files,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list; Expects a file path",
+                Getter = () => AppContext.AppSetting.Mpv_audio_files,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_files), AppContext.AppSetting.Mpv_audio_files = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_set_media_role),
+                Label = lang.SchemaLabel_Mpv_audio_set_media_role,
+                Category = catAudioOut,
+                Section = secAudioOut,
+                Description = lang.SchemaDesc_Mpv_audio_set_media_role,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_audio_set_media_role,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_set_media_role), AppContext.AppSetting.Mpv_audio_set_media_role = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_pitch),
+                Label = lang.SchemaLabel_Mpv_pitch,
+                Category = catAudioOut,
+                Section = secAudioOut,
+                Description = lang.SchemaDesc_Mpv_pitch,
+                Type = OptionType.Double,
+                Min = 0.01,
+                Max = 100.0,
+                Getter = () => AppContext.AppSetting.Mpv_pitch,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_pitch), AppContext.AppSetting.Mpv_pitch = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_wasapi_exclusive_buffer),
+                Label = lang.SchemaLabel_Mpv_wasapi_exclusive_buffer,
+                Category = catAudioOut,
+                Section = secAudioOut,
+                Description = lang.SchemaDesc_Mpv_wasapi_exclusive_buffer,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("default", "default"),
+                        new OptionChoice("min", "min"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_wasapi_exclusive_buffer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_wasapi_exclusive_buffer), AppContext.AppSetting.Mpv_wasapi_exclusive_buffer = (string)v!),
+            });
+
+        // ---- 音频重采样 (5 rows) ----
+        var catResample = AppContext.AppLang.SettingsCategoryAudio;
+        var secResample = AppContext.AppLang.SectionGenResample;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_cutoff),
+                Label = lang.SchemaLabel_Mpv_audio_resample_cutoff,
+                Category = catResample,
+                Section = secResample,
+                Description = lang.SchemaDesc_Mpv_audio_resample_cutoff,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 1.0,
+                Getter = () => AppContext.AppSetting.Mpv_audio_resample_cutoff,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_cutoff), AppContext.AppSetting.Mpv_audio_resample_cutoff = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_filter_size),
+                Label = lang.SchemaLabel_Mpv_audio_resample_filter_size,
+                Category = catResample,
+                Section = secResample,
+                Description = lang.SchemaDesc_Mpv_audio_resample_filter_size,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 32,
+                Getter = () => (double)AppContext.AppSetting.Mpv_audio_resample_filter_size,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_filter_size), AppContext.AppSetting.Mpv_audio_resample_filter_size = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_linear),
+                Label = lang.SchemaLabel_Mpv_audio_resample_linear,
+                Category = catResample,
+                Section = secResample,
+                Description = lang.SchemaDesc_Mpv_audio_resample_linear,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_audio_resample_linear,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_linear), AppContext.AppSetting.Mpv_audio_resample_linear = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_max_output_size),
+                Label = lang.SchemaLabel_Mpv_audio_resample_max_output_size,
+                Category = catResample,
+                Section = secResample,
+                Description = lang.SchemaDesc_Mpv_audio_resample_max_output_size,
+                Type = OptionType.Double,
+                Getter = () => AppContext.AppSetting.Mpv_audio_resample_max_output_size,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_max_output_size), AppContext.AppSetting.Mpv_audio_resample_max_output_size = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_audio_resample_phase_shift),
+                Label = lang.SchemaLabel_Mpv_audio_resample_phase_shift,
+                Category = catResample,
+                Section = secResample,
+                Description = lang.SchemaDesc_Mpv_audio_resample_phase_shift,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 30,
+                Getter = () => (double)AppContext.AppSetting.Mpv_audio_resample_phase_shift,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_audio_resample_phase_shift), AppContext.AppSetting.Mpv_audio_resample_phase_shift = Convert.ToInt32(v)),
             });
 
         // ---- 窗口行为 (16 rows) ----
@@ -2414,7 +1692,33 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_window_scale), AppContext.AppSetting.Mpv_window_scale = (double)v!),
             });
 
-        // ---- 视频输出与着色器 (36 rows) ----
+        // ---- 同步校准 (2 rows) ----
+        var catSync = AppContext.AppLang.SettingsCategoryAudio;
+        var secSync = AppContext.AppLang.SectionGenSync;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_autosync),
+                Label = lang.SchemaLabel_Mpv_autosync,
+                Category = catSync,
+                Section = secSync,
+                Description = lang.SchemaDesc_Mpv_autosync,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_autosync,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_autosync), AppContext.AppSetting.Mpv_autosync = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_initial_audio_sync),
+                Label = lang.SchemaLabel_Mpv_initial_audio_sync,
+                Category = catSync,
+                Section = secSync,
+                Description = lang.SchemaDesc_Mpv_initial_audio_sync,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_initial_audio_sync,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_initial_audio_sync), AppContext.AppSetting.Mpv_initial_audio_sync = (bool)v!),
+            });
+
+        // ---- 视频输出与着色器 (17 rows) ----
         var catVideoOutput = AppContext.AppLang.SettingsCategoryVideo;
         var secVideoOutput = AppContext.AppLang.SectionGenVideoOutput;
             list.Add(new Option
@@ -2523,44 +1827,6 @@ public sealed partial class SettingsPage
                 Placeholder = "String list",
                 Getter = () => AppContext.AppSetting.Mpv_display_tags,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_display_tags), AppContext.AppSetting.Mpv_display_tags = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_gpu_hwdec_interop),
-                Label = lang.SchemaLabel_Mpv_gpu_hwdec_interop,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_gpu_hwdec_interop,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_gpu_hwdec_interop,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_gpu_hwdec_interop), AppContext.AppSetting.Mpv_gpu_hwdec_interop = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_x),
-                Label = lang.SchemaLabel_Mpv_gpu_tex_pad_x,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_gpu_tex_pad_x,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 4096,
-                Getter = () => (double)AppContext.AppSetting.Mpv_gpu_tex_pad_x,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_x), AppContext.AppSetting.Mpv_gpu_tex_pad_x = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_y),
-                Label = lang.SchemaLabel_Mpv_gpu_tex_pad_y,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_gpu_tex_pad_y,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 4096,
-                Getter = () => (double)AppContext.AppSetting.Mpv_gpu_tex_pad_y,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_y), AppContext.AppSetting.Mpv_gpu_tex_pad_y = Convert.ToInt32(v)),
             });
             list.Add(new Option
             {
@@ -2686,211 +1952,6 @@ public sealed partial class SettingsPage
                     ],
                 Getter = () => AppContext.AppSetting.Mpv_vo_direct3d_texture_memory,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_direct3d_texture_memory), AppContext.AppSetting.Mpv_vo_direct3d_texture_memory = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_avif_encoder),
-                Label = lang.SchemaLabel_Mpv_vo_image_avif_encoder,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_avif_encoder,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_avif_encoder,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_avif_encoder), AppContext.AppSetting.Mpv_vo_image_avif_encoder = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_avif_opts),
-                Label = lang.SchemaLabel_Mpv_vo_image_avif_opts,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_avif_opts,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "Key/value list",
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_avif_opts,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_avif_opts), AppContext.AppSetting.Mpv_vo_image_avif_opts = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_avif_pixfmt),
-                Label = lang.SchemaLabel_Mpv_vo_image_avif_pixfmt,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_avif_pixfmt,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_avif_pixfmt,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_avif_pixfmt), AppContext.AppSetting.Mpv_vo_image_avif_pixfmt = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_format),
-                Label = lang.SchemaLabel_Mpv_vo_image_format,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_format,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("jpg", "jpg"),
-                        new OptionChoice("jpeg", "jpeg"),
-                        new OptionChoice("png", "png"),
-                        new OptionChoice("webp", "webp"),
-                        new OptionChoice("jxl", "jxl"),
-                        new OptionChoice("avif", "avif"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_format,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_format), AppContext.AppSetting.Mpv_vo_image_format = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_high_bit_depth),
-                Label = lang.SchemaLabel_Mpv_vo_image_high_bit_depth,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_high_bit_depth,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_high_bit_depth,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_high_bit_depth), AppContext.AppSetting.Mpv_vo_image_high_bit_depth = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_quality),
-                Label = lang.SchemaLabel_Mpv_vo_image_jpeg_quality,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_jpeg_quality,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 100,
-                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_jpeg_quality,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_quality), AppContext.AppSetting.Mpv_vo_image_jpeg_quality = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_source_chroma),
-                Label = lang.SchemaLabel_Mpv_vo_image_jpeg_source_chroma,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_jpeg_source_chroma,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_jpeg_source_chroma,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_source_chroma), AppContext.AppSetting.Mpv_vo_image_jpeg_source_chroma = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_jxl_distance),
-                Label = lang.SchemaLabel_Mpv_vo_image_jxl_distance,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_jxl_distance,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 15.0,
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_jxl_distance,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_jxl_distance), AppContext.AppSetting.Mpv_vo_image_jxl_distance = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_jxl_effort),
-                Label = lang.SchemaLabel_Mpv_vo_image_jxl_effort,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_jxl_effort,
-                Type = OptionType.Integer,
-                Min = 1,
-                Max = 9,
-                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_jxl_effort,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_jxl_effort), AppContext.AppSetting.Mpv_vo_image_jxl_effort = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_outdir),
-                Label = lang.SchemaLabel_Mpv_vo_image_outdir,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_outdir,
-                Type = OptionType.String,
-                AllowEmpty = true,
-                Placeholder = "String; Expects a file path",
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_outdir,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_outdir), AppContext.AppSetting.Mpv_vo_image_outdir = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_png_compression),
-                Label = lang.SchemaLabel_Mpv_vo_image_png_compression,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_png_compression,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 9,
-                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_png_compression,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_png_compression), AppContext.AppSetting.Mpv_vo_image_png_compression = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_png_filter),
-                Label = lang.SchemaLabel_Mpv_vo_image_png_filter,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_png_filter,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 5,
-                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_png_filter,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_png_filter), AppContext.AppSetting.Mpv_vo_image_png_filter = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_tag_colorspace),
-                Label = lang.SchemaLabel_Mpv_vo_image_tag_colorspace,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_tag_colorspace,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_tag_colorspace,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_tag_colorspace), AppContext.AppSetting.Mpv_vo_image_tag_colorspace = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_webp_compression),
-                Label = lang.SchemaLabel_Mpv_vo_image_webp_compression,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_webp_compression,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 6,
-                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_webp_compression,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_webp_compression), AppContext.AppSetting.Mpv_vo_image_webp_compression = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_webp_lossless),
-                Label = lang.SchemaLabel_Mpv_vo_image_webp_lossless,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_webp_lossless,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_vo_image_webp_lossless,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_webp_lossless), AppContext.AppSetting.Mpv_vo_image_webp_lossless = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_vo_image_webp_quality),
-                Label = lang.SchemaLabel_Mpv_vo_image_webp_quality,
-                Category = catVideoOutput,
-                Section = secVideoOutput,
-                Description = lang.SchemaDesc_Mpv_vo_image_webp_quality,
-                Type = OptionType.Integer,
-                Min = 0,
-                Max = 100,
-                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_webp_quality,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_webp_quality), AppContext.AppSetting.Mpv_vo_image_webp_quality = Convert.ToInt32(v)),
             });
             list.Add(new Option
             {
@@ -3078,6 +2139,211 @@ public sealed partial class SettingsPage
                 Placeholder = "Relative time or percent position",
                 Getter = () => AppContext.AppSetting.Mpv_start,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_start), AppContext.AppSetting.Mpv_start = (string)v!),
+            });
+
+        // ---- 剪贴板 (2 rows) ----
+        var catClipboard = AppContext.AppLang.SettingsCategoryWindow;
+        var secClipboard = AppContext.AppLang.SectionGenClipboard;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_clipboard_backends),
+                Label = lang.SchemaLabel_Mpv_clipboard_backends,
+                Category = catClipboard,
+                Section = secClipboard,
+                Description = lang.SchemaDesc_Mpv_clipboard_backends,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "Object settings list",
+                Getter = () => AppContext.AppSetting.Mpv_clipboard_backends,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_clipboard_backends), AppContext.AppSetting.Mpv_clipboard_backends = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_clipboard_monitor),
+                Label = lang.SchemaLabel_Mpv_clipboard_monitor,
+                Category = catClipboard,
+                Section = secClipboard,
+                Description = lang.SchemaDesc_Mpv_clipboard_monitor,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_clipboard_monitor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_clipboard_monitor), AppContext.AppSetting.Mpv_clipboard_monitor = (bool)v!),
+            });
+
+        // ---- 配置与 profile (6 rows) ----
+        var catConfigProfile = AppContext.AppLang.SettingsCategoryWindow;
+        var secConfigProfile = AppContext.AppLang.SectionGenConfigProfile;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_config),
+                Label = lang.SchemaLabel_Mpv_config,
+                Category = catConfigProfile,
+                Section = secConfigProfile,
+                Description = lang.SchemaDesc_Mpv_config,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_config,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_config), AppContext.AppSetting.Mpv_config = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_include),
+                Label = lang.SchemaLabel_Mpv_include,
+                Category = catConfigProfile,
+                Section = secConfigProfile,
+                Description = lang.SchemaDesc_Mpv_include,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String; Expects a file path",
+                Getter = () => AppContext.AppSetting.Mpv_include,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_include), AppContext.AppSetting.Mpv_include = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_player_operation_mode),
+                Label = lang.SchemaLabel_Mpv_player_operation_mode,
+                Category = catConfigProfile,
+                Section = secConfigProfile,
+                Description = lang.SchemaDesc_Mpv_player_operation_mode,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("cplayer", "cplayer"),
+                        new OptionChoice("pseudo-gui", "pseudo-gui"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_player_operation_mode,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_player_operation_mode), AppContext.AppSetting.Mpv_player_operation_mode = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_profile),
+                Label = lang.SchemaLabel_Mpv_profile,
+                Category = catConfigProfile,
+                Section = secConfigProfile,
+                Description = lang.SchemaDesc_Mpv_profile,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list",
+                Getter = () => AppContext.AppSetting.Mpv_profile,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_profile), AppContext.AppSetting.Mpv_profile = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_reset_on_next_file),
+                Label = lang.SchemaLabel_Mpv_reset_on_next_file,
+                Category = catConfigProfile,
+                Section = secConfigProfile,
+                Description = lang.SchemaDesc_Mpv_reset_on_next_file,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list",
+                Getter = () => AppContext.AppSetting.Mpv_reset_on_next_file,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_reset_on_next_file), AppContext.AppSetting.Mpv_reset_on_next_file = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_use_filedir_conf),
+                Label = lang.SchemaLabel_Mpv_use_filedir_conf,
+                Category = catConfigProfile,
+                Section = secConfigProfile,
+                Description = lang.SchemaDesc_Mpv_use_filedir_conf,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_use_filedir_conf,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_use_filedir_conf), AppContext.AppSetting.Mpv_use_filedir_conf = (bool)v!),
+            });
+
+        // ---- 帧率与同步 (7 rows) ----
+        var catFrameSync = AppContext.AppLang.SettingsCategoryVideo;
+        var secFrameSync = AppContext.AppLang.SectionGenFrameSync;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_container_fps_override),
+                Label = lang.SchemaLabel_Mpv_container_fps_override,
+                Category = catFrameSync,
+                Section = secFrameSync,
+                Description = lang.SchemaDesc_Mpv_container_fps_override,
+                Type = OptionType.Double,
+                Getter = () => AppContext.AppSetting.Mpv_container_fps_override,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_container_fps_override), AppContext.AppSetting.Mpv_container_fps_override = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_display_fps_override),
+                Label = lang.SchemaLabel_Mpv_display_fps_override,
+                Category = catFrameSync,
+                Section = secFrameSync,
+                Description = lang.SchemaDesc_Mpv_display_fps_override,
+                Type = OptionType.Double,
+                Getter = () => AppContext.AppSetting.Mpv_display_fps_override,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_display_fps_override), AppContext.AppSetting.Mpv_display_fps_override = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_framedrop),
+                Label = lang.SchemaLabel_Mpv_framedrop,
+                Category = catFrameSync,
+                Section = secFrameSync,
+                Description = lang.SchemaDesc_Mpv_framedrop,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("no", "no"),
+                        new OptionChoice("vo", "vo"),
+                        new OptionChoice("decoder", "decoder"),
+                        new OptionChoice("decoder+vo", "decoder+vo"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_framedrop,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_framedrop), AppContext.AppSetting.Mpv_framedrop = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_swapchain_depth),
+                Label = lang.SchemaLabel_Mpv_swapchain_depth,
+                Category = catFrameSync,
+                Section = secFrameSync,
+                Description = lang.SchemaDesc_Mpv_swapchain_depth,
+                Type = OptionType.Integer,
+                Min = 1,
+                Max = 8,
+                Getter = () => (double)AppContext.AppSetting.Mpv_swapchain_depth,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_swapchain_depth), AppContext.AppSetting.Mpv_swapchain_depth = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_sync_max_audio_change),
+                Label = lang.SchemaLabel_Mpv_video_sync_max_audio_change,
+                Category = catFrameSync,
+                Section = secFrameSync,
+                Description = lang.SchemaDesc_Mpv_video_sync_max_audio_change,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 1.0,
+                Getter = () => AppContext.AppSetting.Mpv_video_sync_max_audio_change,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_sync_max_audio_change), AppContext.AppSetting.Mpv_video_sync_max_audio_change = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_sync_max_factor),
+                Label = lang.SchemaLabel_Mpv_video_sync_max_factor,
+                Category = catFrameSync,
+                Section = secFrameSync,
+                Description = lang.SchemaDesc_Mpv_video_sync_max_factor,
+                Type = OptionType.Integer,
+                Min = 1,
+                Max = 10,
+                Getter = () => (double)AppContext.AppSetting.Mpv_video_sync_max_factor,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_sync_max_factor), AppContext.AppSetting.Mpv_video_sync_max_factor = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_timing_offset),
+                Label = lang.SchemaLabel_Mpv_video_timing_offset,
+                Category = catFrameSync,
+                Section = secFrameSync,
+                Description = lang.SchemaDesc_Mpv_video_timing_offset,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 1.0,
+                Getter = () => AppContext.AppSetting.Mpv_video_timing_offset,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_timing_offset), AppContext.AppSetting.Mpv_video_timing_offset = (double)v!),
             });
 
         // ---- 网络与流媒体 (14 rows) ----
@@ -3277,6 +2543,86 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ytdl_raw_options), AppContext.AppSetting.Mpv_ytdl_raw_options = (string)v!),
             });
 
+        // ---- GPU 与着色器后端 (6 rows) ----
+        var catGpuBackend = AppContext.AppLang.SettingsCategoryProgram;
+        var secGpuBackend = AppContext.AppLang.SectionGenGpuBackend;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_corner_rounding),
+                Label = lang.SchemaLabel_Mpv_corner_rounding,
+                Category = catGpuBackend,
+                Section = secGpuBackend,
+                Description = lang.SchemaDesc_Mpv_corner_rounding,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 1.0,
+                Getter = () => AppContext.AppSetting.Mpv_corner_rounding,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_corner_rounding), AppContext.AppSetting.Mpv_corner_rounding = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_d3d11va_zero_copy),
+                Label = lang.SchemaLabel_Mpv_d3d11va_zero_copy,
+                Category = catGpuBackend,
+                Section = secGpuBackend,
+                Description = lang.SchemaDesc_Mpv_d3d11va_zero_copy,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_d3d11va_zero_copy,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_d3d11va_zero_copy), AppContext.AppSetting.Mpv_d3d11va_zero_copy = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_fbo_format),
+                Label = lang.SchemaLabel_Mpv_fbo_format,
+                Category = catGpuBackend,
+                Section = secGpuBackend,
+                Description = lang.SchemaDesc_Mpv_fbo_format,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_fbo_format,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_fbo_format), AppContext.AppSetting.Mpv_fbo_format = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_libplacebo_opts),
+                Label = lang.SchemaLabel_Mpv_libplacebo_opts,
+                Category = catGpuBackend,
+                Section = secGpuBackend,
+                Description = lang.SchemaDesc_Mpv_libplacebo_opts,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "Key/value list",
+                Getter = () => AppContext.AppSetting.Mpv_libplacebo_opts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_libplacebo_opts), AppContext.AppSetting.Mpv_libplacebo_opts = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_scaler_resizes_only),
+                Label = lang.SchemaLabel_Mpv_scaler_resizes_only,
+                Category = catGpuBackend,
+                Section = secGpuBackend,
+                Description = lang.SchemaDesc_Mpv_scaler_resizes_only,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_scaler_resizes_only,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_scaler_resizes_only), AppContext.AppSetting.Mpv_scaler_resizes_only = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_spirv_compiler),
+                Label = lang.SchemaLabel_Mpv_spirv_compiler,
+                Category = catGpuBackend,
+                Section = secGpuBackend,
+                Description = lang.SchemaDesc_Mpv_spirv_compiler,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("auto", "auto"),
+                        new OptionChoice("shaderc", "shaderc"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_spirv_compiler,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_spirv_compiler), AppContext.AppSetting.Mpv_spirv_compiler = (string)v!),
+            });
+
         // ---- 缩放与抖动 (5 rows) ----
         var catVideoScale = AppContext.AppLang.SettingsCategoryVideo;
         var secVideoScale = AppContext.AppLang.SectionGenVideoScale;
@@ -3341,7 +2687,55 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_scale_y), AppContext.AppSetting.Mpv_video_scale_y = (double)v!),
             });
 
-        // ---- 图像处理 (16 rows) ----
+        // ---- 封面与缩略图 (3 rows) ----
+        var catCoverArt = AppContext.AppLang.SettingsCategoryWindow;
+        var secCoverArt = AppContext.AppLang.SectionGenCoverArt;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_cover_art_auto),
+                Label = lang.SchemaLabel_Mpv_cover_art_auto,
+                Category = catCoverArt,
+                Section = secCoverArt,
+                Description = lang.SchemaDesc_Mpv_cover_art_auto,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("no", "no"),
+                        new OptionChoice("exact", "exact"),
+                        new OptionChoice("fuzzy", "fuzzy"),
+                        new OptionChoice("all", "all"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_cover_art_auto,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_cover_art_auto), AppContext.AppSetting.Mpv_cover_art_auto = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_cover_art_files),
+                Label = lang.SchemaLabel_Mpv_cover_art_files,
+                Category = catCoverArt,
+                Section = secCoverArt,
+                Description = lang.SchemaDesc_Mpv_cover_art_files,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list; Expects a file path",
+                Getter = () => AppContext.AppSetting.Mpv_cover_art_files,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_cover_art_files), AppContext.AppSetting.Mpv_cover_art_files = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_cover_art_whitelist),
+                Label = lang.SchemaLabel_Mpv_cover_art_whitelist,
+                Category = catCoverArt,
+                Section = secCoverArt,
+                Description = lang.SchemaDesc_Mpv_cover_art_whitelist,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list",
+                Getter = () => AppContext.AppSetting.Mpv_cover_art_whitelist,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_cover_art_whitelist), AppContext.AppSetting.Mpv_cover_art_whitelist = (string)v!),
+            });
+
+        // ---- 图像处理 (5 rows) ----
         var catVideoProcess = AppContext.AppLang.SettingsCategoryVideo;
         var secVideoProcess = AppContext.AppLang.SectionGenVideoProcess;
             list.Add(new Option
@@ -3360,17 +2754,6 @@ public sealed partial class SettingsPage
                     ],
                 Getter = () => AppContext.AppSetting.Mpv_deinterlace_field_parity,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_deinterlace_field_parity), AppContext.AppSetting.Mpv_deinterlace_field_parity = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_display_fps_override),
-                Label = lang.SchemaLabel_Mpv_display_fps_override,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_display_fps_override,
-                Type = OptionType.Double,
-                Getter = () => AppContext.AppSetting.Mpv_display_fps_override,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_display_fps_override), AppContext.AppSetting.Mpv_display_fps_override = (double)v!),
             });
             list.Add(new Option
             {
@@ -3396,33 +2779,15 @@ public sealed partial class SettingsPage
             });
             list.Add(new Option
             {
-                Key = nameof(AppContext.AppSetting.Mpv_video_aspect_method),
-                Label = lang.SchemaLabel_Mpv_video_aspect_method,
+                Key = nameof(AppContext.AppSetting.Mpv_lavfi_complex),
+                Label = lang.SchemaLabel_Mpv_lavfi_complex,
                 Category = catVideoProcess,
                 Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_aspect_method,
-                Type = OptionType.StringList,
-                Choices =
-                    [
-                        new OptionChoice("bitstream", "bitstream"),
-                        new OptionChoice("container", "container"),
-                        new OptionChoice("ignore", "ignore"),
-                    ],
-                Getter = () => AppContext.AppSetting.Mpv_video_aspect_method,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_aspect_method), AppContext.AppSetting.Mpv_video_aspect_method = (string)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_crop),
-                Label = lang.SchemaLabel_Mpv_video_crop,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_crop,
+                Description = lang.SchemaDesc_Mpv_lavfi_complex,
                 Type = OptionType.String,
                 AllowEmpty = true,
-                Placeholder = "Video rect",
-                Getter = () => AppContext.AppSetting.Mpv_video_crop,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_crop), AppContext.AppSetting.Mpv_video_crop = (string)v!),
+                Getter = () => AppContext.AppSetting.Mpv_lavfi_complex,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_lavfi_complex), AppContext.AppSetting.Mpv_lavfi_complex = (string)v!),
             });
             list.Add(new Option
             {
@@ -3434,119 +2799,6 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Mpv_video_latency_hacks,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_latency_hacks), AppContext.AppSetting.Mpv_video_latency_hacks = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_margin_ratio_bottom),
-                Label = lang.SchemaLabel_Mpv_video_margin_ratio_bottom,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_margin_ratio_bottom,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 1.0,
-                Getter = () => AppContext.AppSetting.Mpv_video_margin_ratio_bottom,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_margin_ratio_bottom), AppContext.AppSetting.Mpv_video_margin_ratio_bottom = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_margin_ratio_left),
-                Label = lang.SchemaLabel_Mpv_video_margin_ratio_left,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_margin_ratio_left,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 1.0,
-                Getter = () => AppContext.AppSetting.Mpv_video_margin_ratio_left,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_margin_ratio_left), AppContext.AppSetting.Mpv_video_margin_ratio_left = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_margin_ratio_right),
-                Label = lang.SchemaLabel_Mpv_video_margin_ratio_right,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_margin_ratio_right,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 1.0,
-                Getter = () => AppContext.AppSetting.Mpv_video_margin_ratio_right,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_margin_ratio_right), AppContext.AppSetting.Mpv_video_margin_ratio_right = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_margin_ratio_top),
-                Label = lang.SchemaLabel_Mpv_video_margin_ratio_top,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_margin_ratio_top,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 1.0,
-                Getter = () => AppContext.AppSetting.Mpv_video_margin_ratio_top,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_margin_ratio_top), AppContext.AppSetting.Mpv_video_margin_ratio_top = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_osd),
-                Label = lang.SchemaLabel_Mpv_video_osd,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_osd,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_video_osd,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_osd), AppContext.AppSetting.Mpv_video_osd = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_recenter),
-                Label = lang.SchemaLabel_Mpv_video_recenter,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_recenter,
-                Type = OptionType.Boolean,
-                Getter = () => AppContext.AppSetting.Mpv_video_recenter,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_recenter), AppContext.AppSetting.Mpv_video_recenter = (bool)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_sync_max_audio_change),
-                Label = lang.SchemaLabel_Mpv_video_sync_max_audio_change,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_sync_max_audio_change,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 1.0,
-                Getter = () => AppContext.AppSetting.Mpv_video_sync_max_audio_change,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_sync_max_audio_change), AppContext.AppSetting.Mpv_video_sync_max_audio_change = (double)v!),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_sync_max_factor),
-                Label = lang.SchemaLabel_Mpv_video_sync_max_factor,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_sync_max_factor,
-                Type = OptionType.Integer,
-                Min = 1,
-                Max = 10,
-                Getter = () => (double)AppContext.AppSetting.Mpv_video_sync_max_factor,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_sync_max_factor), AppContext.AppSetting.Mpv_video_sync_max_factor = Convert.ToInt32(v)),
-            });
-            list.Add(new Option
-            {
-                Key = nameof(AppContext.AppSetting.Mpv_video_timing_offset),
-                Label = lang.SchemaLabel_Mpv_video_timing_offset,
-                Category = catVideoProcess,
-                Section = secVideoProcess,
-                Description = lang.SchemaDesc_Mpv_video_timing_offset,
-                Type = OptionType.Double,
-                Min = 0.0,
-                Max = 1.0,
-                Getter = () => AppContext.AppSetting.Mpv_video_timing_offset,
-                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_timing_offset), AppContext.AppSetting.Mpv_video_timing_offset = (double)v!),
             });
 
         // ---- 解复用细节 (27 rows) ----
@@ -4037,9 +3289,182 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_demuxer_thread), AppContext.AppSetting.Mpv_demuxer_thread = (bool)v!),
             });
 
-        // ---- 硬件解码 (20 rows) ----
+        // ---- 播放行为 (10 rows) ----
+        var catPlaybackBehavior = AppContext.AppLang.SettingsCategoryWindow;
+        var secPlaybackBehavior = AppContext.AppLang.SectionGenPlaybackBehavior;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_force_render),
+                Label = lang.SchemaLabel_Mpv_force_render,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_force_render,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_force_render,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_force_render), AppContext.AppSetting.Mpv_force_render = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_frames),
+                Label = lang.SchemaLabel_Mpv_frames,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_frames,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("all", "all"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_frames,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_frames), AppContext.AppSetting.Mpv_frames = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_hr_seek_demuxer_offset),
+                Label = lang.SchemaLabel_Mpv_hr_seek_demuxer_offset,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_hr_seek_demuxer_offset,
+                Type = OptionType.Double,
+                Getter = () => AppContext.AppSetting.Mpv_hr_seek_demuxer_offset,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_hr_seek_demuxer_offset), AppContext.AppSetting.Mpv_hr_seek_demuxer_offset = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_keep_open_pause),
+                Label = lang.SchemaLabel_Mpv_keep_open_pause,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_keep_open_pause,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_keep_open_pause,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_keep_open_pause), AppContext.AppSetting.Mpv_keep_open_pause = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_pause),
+                Label = lang.SchemaLabel_Mpv_pause,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_pause,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_pause,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_pause), AppContext.AppSetting.Mpv_pause = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_play_direction),
+                Label = lang.SchemaLabel_Mpv_play_direction,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_play_direction,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("forward", "forward"),
+                        new OptionChoice("+", "+"),
+                        new OptionChoice("backward", "backward"),
+                        new OptionChoice("-", "-"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_play_direction,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_play_direction), AppContext.AppSetting.Mpv_play_direction = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_priority),
+                Label = lang.SchemaLabel_Mpv_priority,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_priority,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("no", "no"),
+                        new OptionChoice("realtime", "realtime"),
+                        new OptionChoice("high", "high"),
+                        new OptionChoice("abovenormal", "abovenormal"),
+                        new OptionChoice("normal", "normal"),
+                        new OptionChoice("belownormal", "belownormal"),
+                        new OptionChoice("idle", "idle"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_priority,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_priority), AppContext.AppSetting.Mpv_priority = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_shuffle),
+                Label = lang.SchemaLabel_Mpv_shuffle,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_shuffle,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_shuffle,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_shuffle), AppContext.AppSetting.Mpv_shuffle = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sstep),
+                Label = lang.SchemaLabel_Mpv_sstep,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_sstep,
+                Type = OptionType.Double,
+                Getter = () => AppContext.AppSetting.Mpv_sstep,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sstep), AppContext.AppSetting.Mpv_sstep = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_stop_playback_on_init_failure),
+                Label = lang.SchemaLabel_Mpv_stop_playback_on_init_failure,
+                Category = catPlaybackBehavior,
+                Section = secPlaybackBehavior,
+                Description = lang.SchemaDesc_Mpv_stop_playback_on_init_failure,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_stop_playback_on_init_failure,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_stop_playback_on_init_failure), AppContext.AppSetting.Mpv_stop_playback_on_init_failure = (bool)v!),
+            });
+
+        // ---- 硬件解码 (23 rows) ----
         var catVideoDecode = AppContext.AppLang.SettingsCategoryVideo;
         var secVideoDecode = AppContext.AppLang.SectionGenVideoDecode;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_gpu_hwdec_interop),
+                Label = lang.SchemaLabel_Mpv_gpu_hwdec_interop,
+                Category = catVideoDecode,
+                Section = secVideoDecode,
+                Description = lang.SchemaDesc_Mpv_gpu_hwdec_interop,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_gpu_hwdec_interop,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_gpu_hwdec_interop), AppContext.AppSetting.Mpv_gpu_hwdec_interop = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_x),
+                Label = lang.SchemaLabel_Mpv_gpu_tex_pad_x,
+                Category = catVideoDecode,
+                Section = secVideoDecode,
+                Description = lang.SchemaDesc_Mpv_gpu_tex_pad_x,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 4096,
+                Getter = () => (double)AppContext.AppSetting.Mpv_gpu_tex_pad_x,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_x), AppContext.AppSetting.Mpv_gpu_tex_pad_x = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_y),
+                Label = lang.SchemaLabel_Mpv_gpu_tex_pad_y,
+                Category = catVideoDecode,
+                Section = secVideoDecode,
+                Description = lang.SchemaDesc_Mpv_gpu_tex_pad_y,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 4096,
+                Getter = () => (double)AppContext.AppSetting.Mpv_gpu_tex_pad_y,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_y), AppContext.AppSetting.Mpv_gpu_tex_pad_y = Convert.ToInt32(v)),
+            });
             list.Add(new Option
             {
                 Key = nameof(AppContext.AppSetting.Mpv_hwdec_extra_frames),
@@ -4463,6 +3888,77 @@ public sealed partial class SettingsPage
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_script_opts), AppContext.AppSetting.Mpv_script_opts = (string)v!),
             });
 
+        // ---- 进度与历史 (6 rows) ----
+        var catHistory = AppContext.AppLang.SettingsCategoryWindow;
+        var secHistory = AppContext.AppLang.SectionGenHistory;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_ignore_path_in_watch_later_config),
+                Label = lang.SchemaLabel_Mpv_ignore_path_in_watch_later_config,
+                Category = catHistory,
+                Section = secHistory,
+                Description = lang.SchemaDesc_Mpv_ignore_path_in_watch_later_config,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_ignore_path_in_watch_later_config,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_ignore_path_in_watch_later_config), AppContext.AppSetting.Mpv_ignore_path_in_watch_later_config = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_rebase_start_time),
+                Label = lang.SchemaLabel_Mpv_rebase_start_time,
+                Category = catHistory,
+                Section = secHistory,
+                Description = lang.SchemaDesc_Mpv_rebase_start_time,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_rebase_start_time,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_rebase_start_time), AppContext.AppSetting.Mpv_rebase_start_time = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_resume_playback_check_mtime),
+                Label = lang.SchemaLabel_Mpv_resume_playback_check_mtime,
+                Category = catHistory,
+                Section = secHistory,
+                Description = lang.SchemaDesc_Mpv_resume_playback_check_mtime,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_resume_playback_check_mtime,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_resume_playback_check_mtime), AppContext.AppSetting.Mpv_resume_playback_check_mtime = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_save_watch_history),
+                Label = lang.SchemaLabel_Mpv_save_watch_history,
+                Category = catHistory,
+                Section = secHistory,
+                Description = lang.SchemaDesc_Mpv_save_watch_history,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_save_watch_history,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_save_watch_history), AppContext.AppSetting.Mpv_save_watch_history = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_watch_history_path),
+                Label = lang.SchemaLabel_Mpv_watch_history_path,
+                Category = catHistory,
+                Section = secHistory,
+                Description = lang.SchemaDesc_Mpv_watch_history_path,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_watch_history_path,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_watch_history_path), AppContext.AppSetting.Mpv_watch_history_path = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config),
+                Label = lang.SchemaLabel_Mpv_write_filename_in_watch_later_config,
+                Category = catHistory,
+                Section = secHistory,
+                Description = lang.SchemaDesc_Mpv_write_filename_in_watch_later_config,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_write_filename_in_watch_later_config,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config), AppContext.AppSetting.Mpv_write_filename_in_watch_later_config = (bool)v!),
+            });
+
         // ---- 输入与交互 (21 rows) ----
         var catWindowInput = AppContext.AppLang.SettingsCategoryWindow;
         var secWindowInput = AppContext.AppLang.SectionGenWindowInput;
@@ -4704,6 +4200,591 @@ public sealed partial class SettingsPage
                 Type = OptionType.Boolean,
                 Getter = () => AppContext.AppSetting.Mpv_native_touch,
                 Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_native_touch), AppContext.AppSetting.Mpv_native_touch = (bool)v!),
+            });
+
+        // ---- 几何与裁切 (12 rows) ----
+        var catGeometry = AppContext.AppLang.SettingsCategoryVideo;
+        var secGeometry = AppContext.AppLang.SectionGenGeometry;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_keepaspect),
+                Label = lang.SchemaLabel_Mpv_keepaspect,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_keepaspect,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_keepaspect,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_keepaspect), AppContext.AppSetting.Mpv_keepaspect = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_keepaspect_window),
+                Label = lang.SchemaLabel_Mpv_keepaspect_window,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_keepaspect_window,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_keepaspect_window,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_keepaspect_window), AppContext.AppSetting.Mpv_keepaspect_window = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_monitoraspect),
+                Label = lang.SchemaLabel_Mpv_monitoraspect,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_monitoraspect,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 9.0,
+                Getter = () => AppContext.AppSetting.Mpv_monitoraspect,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_monitoraspect), AppContext.AppSetting.Mpv_monitoraspect = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_monitorpixelaspect),
+                Label = lang.SchemaLabel_Mpv_monitorpixelaspect,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_monitorpixelaspect,
+                Type = OptionType.Double,
+                Min = 0.03125,
+                Max = 32.0,
+                Getter = () => AppContext.AppSetting.Mpv_monitorpixelaspect,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_monitorpixelaspect), AppContext.AppSetting.Mpv_monitorpixelaspect = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_aspect_method),
+                Label = lang.SchemaLabel_Mpv_video_aspect_method,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_video_aspect_method,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("bitstream", "bitstream"),
+                        new OptionChoice("container", "container"),
+                        new OptionChoice("ignore", "ignore"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_video_aspect_method,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_aspect_method), AppContext.AppSetting.Mpv_video_aspect_method = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_crop),
+                Label = lang.SchemaLabel_Mpv_video_crop,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_video_crop,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "Video rect",
+                Getter = () => AppContext.AppSetting.Mpv_video_crop,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_crop), AppContext.AppSetting.Mpv_video_crop = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_margin_ratio_bottom),
+                Label = lang.SchemaLabel_Mpv_video_margin_ratio_bottom,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_video_margin_ratio_bottom,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 1.0,
+                Getter = () => AppContext.AppSetting.Mpv_video_margin_ratio_bottom,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_margin_ratio_bottom), AppContext.AppSetting.Mpv_video_margin_ratio_bottom = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_margin_ratio_left),
+                Label = lang.SchemaLabel_Mpv_video_margin_ratio_left,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_video_margin_ratio_left,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 1.0,
+                Getter = () => AppContext.AppSetting.Mpv_video_margin_ratio_left,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_margin_ratio_left), AppContext.AppSetting.Mpv_video_margin_ratio_left = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_margin_ratio_right),
+                Label = lang.SchemaLabel_Mpv_video_margin_ratio_right,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_video_margin_ratio_right,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 1.0,
+                Getter = () => AppContext.AppSetting.Mpv_video_margin_ratio_right,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_margin_ratio_right), AppContext.AppSetting.Mpv_video_margin_ratio_right = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_margin_ratio_top),
+                Label = lang.SchemaLabel_Mpv_video_margin_ratio_top,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_video_margin_ratio_top,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 1.0,
+                Getter = () => AppContext.AppSetting.Mpv_video_margin_ratio_top,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_margin_ratio_top), AppContext.AppSetting.Mpv_video_margin_ratio_top = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_osd),
+                Label = lang.SchemaLabel_Mpv_video_osd,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_video_osd,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_video_osd,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_osd), AppContext.AppSetting.Mpv_video_osd = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_video_recenter),
+                Label = lang.SchemaLabel_Mpv_video_recenter,
+                Category = catGeometry,
+                Section = secGeometry,
+                Description = lang.SchemaDesc_Mpv_video_recenter,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_video_recenter,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_video_recenter), AppContext.AppSetting.Mpv_video_recenter = (bool)v!),
+            });
+
+        // ---- 截图输出 (19 rows) ----
+        var catScreenshot = AppContext.AppLang.SettingsCategoryVideo;
+        var secScreenshot = AppContext.AppLang.SectionGenScreenshot;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_screenshot_avif_opts),
+                Label = lang.SchemaLabel_Mpv_screenshot_avif_opts,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_screenshot_avif_opts,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "Key/value list",
+                Getter = () => AppContext.AppSetting.Mpv_screenshot_avif_opts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_screenshot_avif_opts), AppContext.AppSetting.Mpv_screenshot_avif_opts = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_screenshot_avif_pixfmt),
+                Label = lang.SchemaLabel_Mpv_screenshot_avif_pixfmt,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_screenshot_avif_pixfmt,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_screenshot_avif_pixfmt,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_screenshot_avif_pixfmt), AppContext.AppSetting.Mpv_screenshot_avif_pixfmt = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_screenshot_dir),
+                Label = lang.SchemaLabel_Mpv_screenshot_dir,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_screenshot_dir,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String; Expects a file path",
+                Getter = () => AppContext.AppSetting.Mpv_screenshot_dir,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_screenshot_dir), AppContext.AppSetting.Mpv_screenshot_dir = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_avif_encoder),
+                Label = lang.SchemaLabel_Mpv_vo_image_avif_encoder,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_avif_encoder,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_avif_encoder,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_avif_encoder), AppContext.AppSetting.Mpv_vo_image_avif_encoder = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_avif_opts),
+                Label = lang.SchemaLabel_Mpv_vo_image_avif_opts,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_avif_opts,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "Key/value list",
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_avif_opts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_avif_opts), AppContext.AppSetting.Mpv_vo_image_avif_opts = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_avif_pixfmt),
+                Label = lang.SchemaLabel_Mpv_vo_image_avif_pixfmt,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_avif_pixfmt,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_avif_pixfmt,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_avif_pixfmt), AppContext.AppSetting.Mpv_vo_image_avif_pixfmt = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_format),
+                Label = lang.SchemaLabel_Mpv_vo_image_format,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_format,
+                Type = OptionType.StringList,
+                Choices =
+                    [
+                        new OptionChoice("jpg", "jpg"),
+                        new OptionChoice("jpeg", "jpeg"),
+                        new OptionChoice("png", "png"),
+                        new OptionChoice("webp", "webp"),
+                        new OptionChoice("jxl", "jxl"),
+                        new OptionChoice("avif", "avif"),
+                    ],
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_format,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_format), AppContext.AppSetting.Mpv_vo_image_format = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_high_bit_depth),
+                Label = lang.SchemaLabel_Mpv_vo_image_high_bit_depth,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_high_bit_depth,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_high_bit_depth,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_high_bit_depth), AppContext.AppSetting.Mpv_vo_image_high_bit_depth = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_quality),
+                Label = lang.SchemaLabel_Mpv_vo_image_jpeg_quality,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_jpeg_quality,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 100,
+                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_jpeg_quality,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_quality), AppContext.AppSetting.Mpv_vo_image_jpeg_quality = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_source_chroma),
+                Label = lang.SchemaLabel_Mpv_vo_image_jpeg_source_chroma,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_jpeg_source_chroma,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_jpeg_source_chroma,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_source_chroma), AppContext.AppSetting.Mpv_vo_image_jpeg_source_chroma = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_jxl_distance),
+                Label = lang.SchemaLabel_Mpv_vo_image_jxl_distance,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_jxl_distance,
+                Type = OptionType.Double,
+                Min = 0.0,
+                Max = 15.0,
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_jxl_distance,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_jxl_distance), AppContext.AppSetting.Mpv_vo_image_jxl_distance = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_jxl_effort),
+                Label = lang.SchemaLabel_Mpv_vo_image_jxl_effort,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_jxl_effort,
+                Type = OptionType.Integer,
+                Min = 1,
+                Max = 9,
+                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_jxl_effort,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_jxl_effort), AppContext.AppSetting.Mpv_vo_image_jxl_effort = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_outdir),
+                Label = lang.SchemaLabel_Mpv_vo_image_outdir,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_outdir,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String; Expects a file path",
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_outdir,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_outdir), AppContext.AppSetting.Mpv_vo_image_outdir = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_png_compression),
+                Label = lang.SchemaLabel_Mpv_vo_image_png_compression,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_png_compression,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 9,
+                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_png_compression,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_png_compression), AppContext.AppSetting.Mpv_vo_image_png_compression = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_png_filter),
+                Label = lang.SchemaLabel_Mpv_vo_image_png_filter,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_png_filter,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 5,
+                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_png_filter,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_png_filter), AppContext.AppSetting.Mpv_vo_image_png_filter = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_tag_colorspace),
+                Label = lang.SchemaLabel_Mpv_vo_image_tag_colorspace,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_tag_colorspace,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_tag_colorspace,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_tag_colorspace), AppContext.AppSetting.Mpv_vo_image_tag_colorspace = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_webp_compression),
+                Label = lang.SchemaLabel_Mpv_vo_image_webp_compression,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_webp_compression,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 6,
+                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_webp_compression,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_webp_compression), AppContext.AppSetting.Mpv_vo_image_webp_compression = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_webp_lossless),
+                Label = lang.SchemaLabel_Mpv_vo_image_webp_lossless,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_webp_lossless,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_vo_image_webp_lossless,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_webp_lossless), AppContext.AppSetting.Mpv_vo_image_webp_lossless = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_vo_image_webp_quality),
+                Label = lang.SchemaLabel_Mpv_vo_image_webp_quality,
+                Category = catScreenshot,
+                Section = secScreenshot,
+                Description = lang.SchemaDesc_Mpv_vo_image_webp_quality,
+                Type = OptionType.Integer,
+                Min = 0,
+                Max = 100,
+                Getter = () => (double)AppContext.AppSetting.Mpv_vo_image_webp_quality,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_vo_image_webp_quality), AppContext.AppSetting.Mpv_vo_image_webp_quality = Convert.ToInt32(v)),
+            });
+
+        // ---- 字幕来源与同步 (10 rows) ----
+        var catSubtitlesSource = AppContext.AppLang.SettingsCategorySubtitles;
+        var secSubtitlesSource = AppContext.AppLang.SectionGenSubtitlesSource;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_auto_exts),
+                Label = lang.SchemaLabel_Mpv_sub_auto_exts,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_auto_exts,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list",
+                Getter = () => AppContext.AppSetting.Mpv_sub_auto_exts,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_auto_exts), AppContext.AppSetting.Mpv_sub_auto_exts = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_create_cc_track),
+                Label = lang.SchemaLabel_Mpv_sub_create_cc_track,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_create_cc_track,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_sub_create_cc_track,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_create_cc_track), AppContext.AppSetting.Mpv_sub_create_cc_track = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_demuxer),
+                Label = lang.SchemaLabel_Mpv_sub_demuxer,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_demuxer,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Getter = () => AppContext.AppSetting.Mpv_sub_demuxer,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_demuxer), AppContext.AppSetting.Mpv_sub_demuxer = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_files),
+                Label = lang.SchemaLabel_Mpv_sub_files,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_files,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list; Expects a file path",
+                Getter = () => AppContext.AppSetting.Mpv_sub_files,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_files), AppContext.AppSetting.Mpv_sub_files = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_fix_timing_keep),
+                Label = lang.SchemaLabel_Mpv_sub_fix_timing_keep,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_fix_timing_keep,
+                Type = OptionType.Integer,
+                Getter = () => (double)AppContext.AppSetting.Mpv_sub_fix_timing_keep,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_fix_timing_keep), AppContext.AppSetting.Mpv_sub_fix_timing_keep = Convert.ToInt32(v)),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_fps),
+                Label = lang.SchemaLabel_Mpv_sub_fps,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_fps,
+                Type = OptionType.Double,
+                Getter = () => AppContext.AppSetting.Mpv_sub_fps,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_fps), AppContext.AppSetting.Mpv_sub_fps = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_past_video_end),
+                Label = lang.SchemaLabel_Mpv_sub_past_video_end,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_past_video_end,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_sub_past_video_end,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_past_video_end), AppContext.AppSetting.Mpv_sub_past_video_end = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_speed),
+                Label = lang.SchemaLabel_Mpv_sub_speed,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_speed,
+                Type = OptionType.Double,
+                Getter = () => AppContext.AppSetting.Mpv_sub_speed,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_speed), AppContext.AppSetting.Mpv_sub_speed = (double)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_stretch_durations),
+                Label = lang.SchemaLabel_Mpv_sub_stretch_durations,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_stretch_durations,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_sub_stretch_durations,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_stretch_durations), AppContext.AppSetting.Mpv_sub_stretch_durations = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat),
+                Label = lang.SchemaLabel_Mpv_sub_vsfilter_bidi_compat,
+                Category = catSubtitlesSource,
+                Section = secSubtitlesSource,
+                Description = lang.SchemaDesc_Mpv_sub_vsfilter_bidi_compat,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat), AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat = (bool)v!),
+            });
+
+        // ---- 字幕筛选 (5 rows) ----
+        var catSubtitlesFilter = AppContext.AppLang.SettingsCategorySubtitles;
+        var secSubtitlesFilter = AppContext.AppLang.SectionGenSubtitlesFilter;
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_jsre),
+                Label = lang.SchemaLabel_Mpv_sub_filter_jsre,
+                Category = catSubtitlesFilter,
+                Section = secSubtitlesFilter,
+                Description = lang.SchemaDesc_Mpv_sub_filter_jsre,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list",
+                Getter = () => AppContext.AppSetting.Mpv_sub_filter_jsre,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_jsre), AppContext.AppSetting.Mpv_sub_filter_jsre = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_regex),
+                Label = lang.SchemaLabel_Mpv_sub_filter_regex,
+                Category = catSubtitlesFilter,
+                Section = secSubtitlesFilter,
+                Description = lang.SchemaDesc_Mpv_sub_filter_regex,
+                Type = OptionType.String,
+                AllowEmpty = true,
+                Placeholder = "String list",
+                Getter = () => AppContext.AppSetting.Mpv_sub_filter_regex,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_regex), AppContext.AppSetting.Mpv_sub_filter_regex = (string)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_regex_enable),
+                Label = lang.SchemaLabel_Mpv_sub_filter_regex_enable,
+                Category = catSubtitlesFilter,
+                Section = secSubtitlesFilter,
+                Description = lang.SchemaDesc_Mpv_sub_filter_regex_enable,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_sub_filter_regex_enable,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_regex_enable), AppContext.AppSetting.Mpv_sub_filter_regex_enable = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_regex_plain),
+                Label = lang.SchemaLabel_Mpv_sub_filter_regex_plain,
+                Category = catSubtitlesFilter,
+                Section = secSubtitlesFilter,
+                Description = lang.SchemaDesc_Mpv_sub_filter_regex_plain,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_sub_filter_regex_plain,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_regex_plain), AppContext.AppSetting.Mpv_sub_filter_regex_plain = (bool)v!),
+            });
+            list.Add(new Option
+            {
+                Key = nameof(AppContext.AppSetting.Mpv_sub_filter_regex_warn),
+                Label = lang.SchemaLabel_Mpv_sub_filter_regex_warn,
+                Category = catSubtitlesFilter,
+                Section = secSubtitlesFilter,
+                Description = lang.SchemaDesc_Mpv_sub_filter_regex_warn,
+                Type = OptionType.Boolean,
+                Getter = () => AppContext.AppSetting.Mpv_sub_filter_regex_warn,
+                Setter = v => ApplyMpv(nameof(AppContext.AppSetting.Mpv_sub_filter_regex_warn), AppContext.AppSetting.Mpv_sub_filter_regex_warn = (bool)v!),
             });
 
         return list;

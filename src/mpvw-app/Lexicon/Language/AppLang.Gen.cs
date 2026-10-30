@@ -696,6 +696,8 @@ namespace mpv_winui.Lexicon.Language
         public string SchemaDesc_Mpv_volume_gain_max { get; set; } = "Set the volume gain range in dB (default: -96 dB min, 12 dB max).";
         public string SchemaLabel_Mpv_volume_gain_min { get; set; } = "Volume gain floor";
         public string SchemaDesc_Mpv_volume_gain_min { get; set; } = "Set the volume gain range in dB (default: -96 dB min, 12 dB max).";
+        public string SchemaLabel_Mpv_volume_max { get; set; } = "volume-max";
+        public string SchemaDesc_Mpv_volume_max { get; set; } = "Set the maximum amplification level in percent (default: 130). A value of 130 will allow you to adjust the volume up to about double the normal level.";
         public string SchemaLabel_Mpv_wasapi_exclusive_buffer { get; set; } = "WASAPI exclusive buffer";
         public string SchemaDesc_Mpv_wasapi_exclusive_buffer { get; set; } = "One of: default, min; or a number; Default: default";
         public string SchemaLabel_Mpv_watch_history_path { get; set; } = "Watch history path";
