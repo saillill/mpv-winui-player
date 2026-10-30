@@ -281,6 +281,32 @@ private List<Option> BuildSettings()
             nameof(AppSettings.CacheEnabled),      // cache switch
             nameof(AppSettings.OsdLevel),          // OSD visibility level
             nameof(AppSettings.EnableVideoPreview),// seek preview switch
+
+            // The generated half. Until now every schema row sat behind a card,
+            // so a category overview showed only the curated rows and 567
+            // options were one click away -- including a handful every player
+            // puts on its front page.
+            //
+            // Chosen against mpv's manual and the configs this repository ships,
+            // then filtered so the same setting cannot appear twice: 68 of the 82
+            // judged common are already hand-written rows under another property
+            // name (`audio-device` is `AudioDevice`, not `Mpv_audio_device`), and
+            // pinning both would draw them twice. tools/pick-overview-rows.py
+            // re-runs that check and prints these lines.
+            //
+            // `pause` and `idle` are absent on purpose: both are mpv options and
+            // both are runtime state the player already owns.
+            nameof(AppSettings.Mpv_autofit_smaller),    // shrink the window to fit small videos
+            nameof(AppSettings.Mpv_d3d11_output_mode),  // windowed vs composition
+            nameof(AppSettings.Mpv_force_window),       // open a window with nothing to play
+            nameof(AppSettings.Mpv_geometry),           // window size and position
+            nameof(AppSettings.Mpv_hidpi_window_scale), // scale with the monitor's DPI
+            nameof(AppSettings.Mpv_keepaspect),         // keep the aspect ratio
+            nameof(AppSettings.Mpv_keepaspect_window),  // keep the window's aspect with the video
+            nameof(AppSettings.Mpv_osc),                // the on-screen controller
+            nameof(AppSettings.Mpv_osd_bar),            // the seek bar
+            nameof(AppSettings.Mpv_screenshot_dir),     // where screenshots go
+            nameof(AppSettings.Mpv_volume),             // volume
         };
 
         // Whether a section folds is read off its FINAL row count, so it is
