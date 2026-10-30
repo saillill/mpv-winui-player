@@ -247,26 +247,43 @@ public sealed partial class SettingsPage : Page
             Categories.Clear();
             ActiveCategoryKeys.Clear();
             _displayedCategoryKeys.Clear();
-            var categoryCount = Math.Min(CategoryOrder.Count, CategoryKeys.Length);
 
             // Pair each stable key with its localized label first: the sidebar
             // customization reorders and hides pairs, and the two public lists
             // have to stay index-aligned.
             //
+            // Keyed by caption, not by index. This used to read CategoryOrder[i]
+            // and CategoryKeys[i] together, which assumed the two arrays list the
+            // same domains in the same order -- and they do not. CategoryKeys is a
+            // fixed table of every key that can exist; CategoryOrder is the rail's
+            // order for the ones that currently show. Once the rail gained entries
+            // the arrays stopped lining up, and the symptom was not an exception:
+            // one pane's caption was drawn with another pane's key, so "输入行为"
+            // vanished from the rail and "快捷键" appeared twice.
+            //
             // The empty-category gate compares against the caption the rows were
-            // built with, but the pair carries the caption to *show*, which is
-            // the user's own name when they renamed the category. The rows are
+            // built with, but the pair carries the caption to *show*, which is the
+            // user's own name when they renamed the category. The rows are
             // re-labelled to match right after, so one string still identifies a
             // category for everything downstream.
-            var pairs = new List<(string Key, string Label)>(categoryCount);
-            for (var i = 0; i < categoryCount; i++)
+            var pairs = new List<(string Key, string Label)>(CategoryOrder.Count);
+            var paired = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var label in CategoryOrder)
             {
-                var label = CategoryOrder[i];
-                if (!Settings.Any(o => o.Category == label))
+                // A rail caption can name more than one stable key: "界面" is
+                // SettingsCategoryWindow's caption and SettingsCategoryOsd's
+                // too, because the OSD is drawn as part of the window. The first
+                // match is the one the rail means; `paired` stops the second
+                // caption from binding the same key twice and losing a pane.
+                var key = CategoryKeys.FirstOrDefault(
+                    k => !paired.Contains(k)
+                        && string.Equals(CategoryCaptionForKey(k), label, StringComparison.Ordinal));
+                if (key is null || !Settings.Any(o => o.Category == label))
                 {
                     continue;
                 }
-                pairs.Add((CategoryKeys[i], CategoryCaptionForKey(CategoryKeys[i]) ?? label));
+                paired.Add(key);
+                pairs.Add((key, CategoryCaptionForKey(key) ?? label));
             }
 
             RenameCategoryRows(pairs);

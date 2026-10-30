@@ -496,4 +496,13 @@ public sealed class Option : INotifyPropertyChanged
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
+
+    /// <summary>
+    /// The caption, matching what the row shows.
+    ///
+    /// UIA falls back to ToString() for a list row that sets no accessible name,
+    /// and the default is the type name -- so option rows were announced as
+    /// "mpv_winui.Domains.Settings.Controls.Option".
+    /// </summary>
+    public override string ToString() => Label;
 }

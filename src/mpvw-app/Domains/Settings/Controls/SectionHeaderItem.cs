@@ -75,4 +75,14 @@ public sealed class SectionHeaderItem
     /// same edit-card strings as option rows, so they share this holder.
     /// </summary>
     public OptionEditText Edit { get; } = new();
+    /// <summary>
+    /// The caption, so a list row that sets no accessible name of its own still
+    /// reports something a reader can use.
+    ///
+    /// UIA falls back to the item's ToString() when no AutomationProperties.Name
+    /// is set, and the default is the type name -- so every section header was
+    /// announced as "mpv_winui.Domains.Settings.Controls.SectionHeaderItem". The
+    /// caption is what the row shows, so it is what the row should say.
+    /// </summary>
+    public override string ToString() => Caption;
 }

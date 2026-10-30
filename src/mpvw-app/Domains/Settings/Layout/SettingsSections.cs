@@ -67,7 +67,7 @@ internal static class SettingsSections
         new("audio", l => l.SettingsCategoryAudio),
         new("subtitles", l => l.SettingsCategorySubtitles),
         new("playback", l => l.SettingsCategoryPlayback),
-        new("interface", l => l.SettingsCategoryWindow),
+        new("window", l => l.SettingsCategoryWindow),
         new("shortcuts", l => l.SettingsCategoryShortcuts),
         new("input", l => l.SettingsCategoryInput),
     ];
