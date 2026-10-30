@@ -11,6 +11,10 @@ public partial class OptionTemplateSelector : DataTemplateSelector
     /// list, at the position the section occupies.</summary>
     public DataTemplate? SectionCardTemplate { get; set; }
 
+    /// <summary>Renders a folded section that opens in place, with its rows
+    /// inside it, instead of navigating to a page.</summary>
+    public DataTemplate? SectionExpanderTemplate { get; set; }
+
     public DataTemplate BooleanTemplate { get; set; } = null!;
     public DataTemplate TextTemplate { get; set; } = null!;
     public DataTemplate IntegerTemplate { get; set; } = null!;
@@ -61,13 +65,24 @@ public partial class OptionTemplateSelector : DataTemplateSelector
             return SectionHeaderTemplate;
         }
 
-        // Before the generic Option case: a collapsed section arrives as its
-        // own list item so the card can sit where its options would have.
-        // The template is optional because it lives in OptionListControl's
-        // resources; another host may not define one.
-        if (item is SectionCardItem && SectionCardTemplate is not null)
+        // Before the generic Option case: a folded section arrives as its own
+        // list item so the card can sit where its options would have. Both
+        // templates are optional because they live in OptionListControl's
+        // resources; another host may not define either.
+        //
+        // Two shapes, decided by the section itself. A subdivision expands here
+        // and carries its own rows; a parallel feature block keeps the card and
+        // navigates. The distinction is semantic -- see SectionShapes.
+        if (item is SectionCardItem card)
         {
-            return SectionCardTemplate;
+            if (card.ExpandsInline && SectionExpanderTemplate is not null)
+            {
+                return SectionExpanderTemplate;
+            }
+            if (SectionCardTemplate is not null)
+            {
+                return SectionCardTemplate;
+            }
         }
 
         if (item is Option option)

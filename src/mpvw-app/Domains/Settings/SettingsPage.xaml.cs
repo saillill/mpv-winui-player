@@ -1729,6 +1729,12 @@ public sealed partial class SettingsPage : Page
                 // three other branches had to remember to clear that property
                 // or inherit a fold set that no longer applied.
                 IsFolded = true,
+                // Two shapes for a folded section: a subdivision opens in place,
+                // a parallel feature block navigates. See SectionShapes for the
+                // per-section answer -- it is a judgement, not arithmetic, which
+                // is why SectionGenStreamDemuxer (27 rows) navigates and
+                // SectionGenVideoScale (5) expands.
+                ExpandsInline = SectionShapes.ExpandsInline(id),
             });
         }
 

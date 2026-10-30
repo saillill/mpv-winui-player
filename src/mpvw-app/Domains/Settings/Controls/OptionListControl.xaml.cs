@@ -470,6 +470,16 @@ public sealed partial class OptionListControl : UserControl
         // unrelated places in the page. Counting per section makes a duplicate
         // card unrepresentable no matter how the list is ordered.
         var introduced = new HashSet<string>(StringComparer.Ordinal);
+        // Sections that become an in-place expander. Their rows are collected
+        // here instead of being emitted, because the expander draws them: a row
+        // emitted as well would appear twice, once inside the expander and once
+        // after it.
+        //
+        // Collection has to finish before the card joins the list, because
+        // SectionCardItem.Rows is bound OneTime.
+        var gathered = new HashSet<string>(StringComparer.Ordinal);
+        var rowsBySection = new Dictionary<string, List<Option>>(StringComparer.Ordinal);
+
         foreach (var option in visible)
         {
             // The header and the card are per section, so a row with no section
@@ -502,7 +512,15 @@ public sealed partial class OptionListControl : UserControl
 
                 if (folded)
                 {
-                    items.Add(card!);
+                    // An in-place section owns its rows and collects them as the
+                    // loop passes over them; the rows themselves are skipped
+                    // below so they are not also emitted as list items.
+                    if (card!.ExpandsInline)
+                    {
+                        gathered.Add(section);
+                        rowsBySection[section] = new List<Option>();
+                    }
+                    items.Add(card);
                 }
                 else if (showHeaders && !repeatsCategory)
                 {
@@ -513,6 +531,17 @@ public sealed partial class OptionListControl : UserControl
                         Description = SettingsSections.MetaFor(section).Description,
                     });
                 }
+            }
+
+            // A row of an in-place section belongs to that section's expander.
+            // It is collected rather than emitted, and it is collected even when
+            // AdvancedSection is true -- the expander is open, so the row is
+            // meant to be visible; the flag describes where it lives, not
+            // whether it shows, once the expander holds it.
+            if (section is not null && gathered.Contains(section))
+            {
+                rowsBySection[section].Add(option);
+                continue;
             }
 
             // Whether this row renders is the row's own answer, not its
@@ -528,6 +557,24 @@ public sealed partial class OptionListControl : UserControl
             if (ShowAdvancedRows || !option.AdvancedSection)
             {
                 items.Add(option);
+            }
+        }
+
+        // Hand each in-place section its rows. This has to happen before the
+        // list is bound: SectionCardItem.Rows is a OneTime binding, so a card
+        // that reached the list with an empty list would render an empty
+        // expander and never revisit the decision.
+        if (rowsBySection.Count > 0)
+        {
+            foreach (var pair in rowsBySection)
+            {
+                if (_sectionCards.Values.FirstOrDefault(
+                        c => c.ExpandsInline
+                            && string.Equals(c.Caption, pair.Key, StringComparison.Ordinal))
+                    is { } owner)
+                {
+                    owner.Rows = pair.Value;
+                }
             }
         }
 

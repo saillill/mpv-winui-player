@@ -382,6 +382,72 @@
              position the section occupies rather than appended after every
              option row. x:Bind needs the concrete type, so it is declared with
              one; x:DataType only affects binding validation. -->
+        <!-- A section that is a subdivision of its category opens here instead
+             of navigating. SettingsExpander draws the header (glyph, caption,
+             description) and owns the expand state; the rows go inside it.
+
+             The rows are an ItemsRepeater rather than an ItemsControl because
+             this control already uses one for the outer list and the same
+             data-template selector resolves their templates; an ItemsControl
+             would need its own selector resource and would stop matching the
+             outer list the moment a template was added.
+
+             No AutomationProperties.Name: the expander's header is the name. -->
+        <!-- A section that is a subdivision of its category opens here instead
+             of navigating. WinUI's own Expander draws the header and owns the
+             expand state; the rows go in its Content.
+
+             Not SettingsExpander, which was the first attempt: its ItemsSource
+             populates a list that is rendered whether or not IsExpanded is set,
+             so a collapsed section still drew all of its rows (measured: seven
+             SettingsCards on screen inside three collapsed expanders). Its
+             ItemTemplate also only accepts a DataTemplate; ItemTemplateSelector
+             is in the assembly's XML docs but is not on the type (WMC0011).
+
+             WinUI's Expander hides its Content when collapsed, which is the one
+             behaviour this needs. The rows are an ItemsRepeater so they reuse the
+             same data-template selector as the outer list; an ItemsControl would
+             need a second selector resource and would drift from the outer list
+             the moment a template was added.
+
+             No AutomationProperties.Name on the rows: the expander's Header is
+             the name for the group. -->
+        <DataTemplate x:Key="SectionExpanderTemplate" x:DataType="ctl:SectionCardItem">
+            <Expander
+                Margin="{StaticResource MpvSectionCardMargin}"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                IsExpanded="False">
+                <Expander.Header>
+                    <Grid ColumnSpacing="{StaticResource MpvSectionCardColumnSpacing}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            VerticalAlignment="Center"
+                            FontFamily="{StaticResource SymbolThemeFontFamily}"
+                            FontSize="{StaticResource MpvSectionCardIconSize}"
+                            Glyph="{x:Bind Icon, Mode=OneTime}" />
+                        <StackPanel
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Spacing="{StaticResource MpvSpaceXxs}">
+                            <TextBlock FontSize="{StaticResource MpvPopupLabelFontSize}" Text="{x:Bind Caption, Mode=OneTime}" />
+                            <TextBlock
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind Description, Mode=OneTime}"
+                                TextTrimming="CharacterEllipsis"
+                                Visibility="{x:Bind DescriptionVisibility, Mode=OneTime}" />
+                        </StackPanel>
+                    </Grid>
+                </Expander.Header>
+                <ItemsRepeater ItemsSource="{x:Bind Rows, Mode=OneTime}"
+                              ItemTemplate="{StaticResource TemplateSelector}" />
+            </Expander>
+        </DataTemplate>
+
         <DataTemplate x:Key="SectionCardTemplate" x:DataType="ctl:SectionCardItem">
             <Button
                 MinHeight="{StaticResource MpvSectionCardMinHeight}"
@@ -452,6 +518,7 @@
             LayoutTemplate="{StaticResource LayoutTemplate}"
             MultiListTemplate="{StaticResource MultiListTemplate}"
             SectionCardTemplate="{StaticResource SectionCardTemplate}"
+            SectionExpanderTemplate="{StaticResource SectionExpanderTemplate}"
             SectionHeaderTemplate="{StaticResource SectionHeaderTemplate}"
             ShaderListTemplate="{StaticResource ShaderListTemplate}"
             TextListTemplate="{StaticResource TextListTemplate}"

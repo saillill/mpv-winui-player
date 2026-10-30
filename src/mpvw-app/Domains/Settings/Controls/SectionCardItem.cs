@@ -1,4 +1,6 @@
 using Microsoft.UI.Xaml;
+using System;
+using System.Collections.Generic;
 
 namespace mpv_winui.Domains.Settings.Controls;
 
@@ -48,6 +50,30 @@ public sealed class SectionCardItem
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
+    /// Whether this section opens in place instead of navigating to a page.
+    ///
+    /// The distinction is semantic, not visual. A section that is a
+    /// *subdivision* of what its category is about -- the several sides of
+    /// subtitles, the stages of the video pipeline -- expands where it sits,
+    /// because opening a separate page for it would put the thing you came for
+    /// one navigation away from the thing you were reading. A section that is a
+    /// *parallel feature block* -- screenshots, window frame, network transport
+    /// -- keeps its card and navigates, because those are separate jobs and a
+    /// page is the right size for them.
+    ///
+    /// See SectionShapes for the per-section answer and the reasoning.
+    /// </summary>
+    public bool ExpandsInline { get; set; }
+
+    /// <summary>
+    /// The rows this section holds, in tree order, when it expands in place.
+    ///
+    /// Empty for a section that navigates: those rows are never handed to the
+    /// card, they live on the page the card opens.
+    /// </summary>
+    public IReadOnlyList<Option> Rows { get; set; } = Array.Empty<Option>();
+
+    /// <summary>
     /// Whether the secondary line has anything to say. Bound directly rather
     /// than through a converter so an empty description collapses the row
     /// instead of leaving a blank gap under the caption.
@@ -58,4 +84,13 @@ public sealed class SectionCardItem
     /// <summary>Screen-reader name: caption plus description, never the icon glyph.</summary>
     public string AccessibleName =>
         string.IsNullOrEmpty(Description) ? Caption : $"{Caption}, {Description}";
+
+    /// <summary>
+    /// The caption, matching what the row shows.
+    ///
+    /// UIA falls back to ToString() for a list row that sets no accessible name,
+    /// and the default is the type name -- these rows were announced as
+    /// "mpv_winui.Domains.Settings.Controls.SectionCardItem".
+    /// </summary>
+    public override string ToString() => Caption;
 }

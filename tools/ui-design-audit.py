@@ -149,11 +149,33 @@ BOARDS["settings"]["assertions"] = (
     # same length nor the same order.
     + [("list_count", "快捷键", 1), ("list_count", "输入行为", 1)]
     # Nothing may report its own CLR type name. UIA falls back to ToString() for
-    # a list row with no accessible name, and both Option and SectionHeaderItem
-    # used the default -- 26 rows announced
+    # a list row with no accessible name, and Option, SectionHeaderItem and
+    # SectionCardItem all used the default -- 26 rows announced
     # "mpv_winui.Domains.Settings.Controls.Option".
     + [("no_type_names", None, None)]
 )
+
+# D13: a folded section is either a subdivision (opens in place) or a parallel
+# feature block (keeps its card and navigates). The distinction lives in
+# SectionShapes; this board checks that it reaches the screen.
+#
+# Subtitles: six of its sections are subdivisions and they all expand in place.
+# The pane also holds one flat section (filter and time axis) whose rows are
+# ordinary cards, which is why the card count below is not zero -- an assertion
+# of zero would fail for the right reason and tell you nothing.
+BOARDS["settings-sections"] = {
+    "open": "ShellSettingsButton",
+    "open_caption": "字幕",
+    "assertions": [
+        # Six expanders, one per subdivision.
+        ("class_count_at_least", "Expander", 6),
+        # And a collapsed expander really holds its rows back. This is the
+        # assertion that would have caught the first attempt: SettingsExpander
+        # with ItemsSource drew seven cards inside three collapsed headers, so
+        # counting expanders alone passes on a broken implementation.
+        ("collapsed_rows_hidden", None, None),
+    ],
+}
 
 
 def settings_list_names(tree):
@@ -167,6 +189,42 @@ def settings_list_names(tree):
 
 def evaluate(tree, spec):
     kind = spec[0]
+    if kind == "class_count":
+        # Matched on className, not type: a SettingsExpander surfaces to UIA as a
+        # Group whose className is "SettingsExpander", and a SettingsCard keeps
+        # its own className too. Counting by type would count Groups.
+        n = sum(1 for el in tree
+                if spec[1] in str(el.get("className") or ""))
+        note = (" (%s)" % spec[3]) if len(spec) > 3 else ""
+        return n == spec[2], "found %d, want %d%s" % (n, spec[2], note)
+    if kind == "class_count_at_least":
+        n = sum(1 for el in tree
+                if spec[1] in str(el.get("className") or ""))
+        return n >= spec[2], "found %d, want at least %d" % (n, spec[2])
+    if kind == "collapsed_rows_hidden":
+        # A collapsed expander must be header-sized, not content-sized. This is
+        # the assertion the first attempt would have failed: SettingsExpander
+        # with ItemsSource reported IsExpanded=False and still drew seven rows
+        # inside the header band, so the expander's own state is not evidence.
+        #
+        # Measured as height instead. The header is ~112 DIP; the smallest
+        # section in this pane holds four rows at 64 DIP each, so 400 is well
+        # clear of a header and well under any expanded section.
+        HEADER_MAX = 400
+        expanded = [el for el in tree
+                    if str(el.get("className") or "").endswith("Expander")
+                    and not el.get("isOffscreen")]
+        if not expanded:
+            return False, "no expander rows on screen"
+        tall = [el for el in expanded if (el.get("height") or 0) > HEADER_MAX]
+        if tall:
+            return False, ("%d expander(s) taller than %d DIP while collapsed, "
+                           "e.g. %r at %s"
+                           % (len(tall), HEADER_MAX,
+                              (tall[0].get("name") or "")[:20],
+                              tall[0].get("height")))
+        return True, "%d collapsed expander(s), tallest %s DIP" % (
+            len(expanded), max((el.get("height") or 0) for el in expanded))
     if kind == "list_names":
         names = settings_list_names(tree)
         ok = spec[1] in names
@@ -193,6 +251,12 @@ def evaluate(tree, spec):
 def describe(spec):
     if spec[0] == "no_type_names":
         return "no CLR type names in row captions"
+    if spec[0] == "collapsed_rows_hidden":
+        return "collapsed expanders are header-sized"
+    if spec[0] == "class_count":
+        return "%s count == %d" % (spec[1], spec[2])
+    if spec[0] == "class_count_at_least":
+        return "%s count >= %d" % (spec[1], spec[2])
     if spec[0] in ("list_names", "list_count"):
         return "rail %s %r%s" % (spec[0].split("_")[1], spec[1],
                                  "" if spec[2] is None else " x%d" % spec[2])
@@ -250,6 +314,30 @@ def main() -> int:
                 print("FAIL: could not open the board (%s) %s" % (opener, err[:200]))
                 return 2
             time.sleep(3)
+
+        # A board may need a second navigation step: the rail item has no
+        # AutomationId, so it is found by its caption and then invoked.
+        caption = board.get("open_caption")
+        if caption:
+            out, rc, _ = run(["winapp", "ui", "search", caption, "-a", str(pid)], 90)
+            item = None
+            for line in out.splitlines():
+                if "ListItem" in line and caption in line:
+                    parts = line.split()
+                    for part in parts:
+                        if part.startswith("itm-"):
+                            item = part
+                            break
+                    if item:
+                        break
+            if item is None:
+                print("FAIL: could not find the %r rail item" % caption)
+                return 2
+            out, rc, err = run(["winapp", "ui", "invoke", item, "-a", str(pid)], 90)
+            if rc != 0:
+                print("FAIL: could not open %r (%s)" % (caption, err[:200]))
+                return 2
+            time.sleep(4)
 
         if args.screenshot:
             shot = os.path.abspath(args.screenshot)
