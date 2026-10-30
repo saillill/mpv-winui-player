@@ -25,6 +25,18 @@ public sealed class SectionCardItem
     /// <summary>Stable section id, used as the navigation target.</summary>
     public string? SectionId { get; set; }
 
+    /// <summary>
+    /// Whether this section's rows sit behind the card rather than on the page.
+    ///
+    /// The single source of truth for that question. It used to be a
+    /// CollapsedSectionIds dependency property on <c>OptionListControl</c>,
+    /// pushed down from the page at four call sites and cleared at a fifth, so
+    /// whether a section folded depended on which branch of the page's builder
+    /// had run last. It is a property of the section, so it lives on the
+    /// section's model.
+    /// </summary>
+    public bool IsFolded { get; set; }
+
     /// <summary>Segoe Fluent glyph resolved from the section catalog.</summary>
     public string Icon { get; set; } = string.Empty;
 

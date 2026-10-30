@@ -989,6 +989,47 @@ def gen_names(rows: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def hand_written_option_text() -> list[tuple[str, str, str | None]]:
+    """(Key, Label property, Description property) for every hand-written row.
+
+    Read back out of the source literals rather than kept in a second list: the
+    literal is what the row actually displays, and a hand-maintained copy is the
+    thing that would drift. A file that stops matching raises here instead of
+    silently contributing no rows.
+
+    The rows do not all follow `Settings<Key>` -- 20 of 320 read something else,
+    because the caption drops a prefix the setting needs for uniqueness
+    (`WindowPiP` reads `SettingsPiP`) or predates the property
+    (`ThemeType` reads `AppSettingTheme`). Those 20 are emitted verbatim from
+    the literal, so the table is right by construction rather than by rule.
+    """
+    import glob
+
+    literal = re.compile(r"new Option\s*\{(.*?)\n\s*\},", re.S)
+    key_re = re.compile(r"Key\s*=\s*nameof\(AppContext\.AppSetting\.(\w+)\)")
+    label_re = re.compile(r"Label\s*=\s*lang\.(\w+)")
+    desc_re = re.compile(r"Description\s*=\s*lang\.(\w+)")
+
+    out: list[tuple[str, str, str | None]] = []
+    seen: set[str] = set()
+    for path in sorted(glob.glob(str(SETTINGS / "SettingsPage.Options.*.cs"))):
+        if path.endswith(".Gen.cs"):
+            continue
+        text = open(path, encoding="utf-8-sig").read()
+        for m in literal.finditer(text):
+            body = m.group(1)
+            k = key_re.search(body)
+            l = label_re.search(body)
+            if not k or not l:
+                continue
+            if k.group(1) in seen:
+                continue
+            seen.add(k.group(1))
+            d = desc_re.search(body)
+            out.append((k.group(1), l.group(1), d.group(1) if d else None))
+    return sorted(out)
+
+
 def gen_options(rows: list[dict]) -> str:
     """The Option literals, plus the section/icon registration they need.
 
@@ -1000,6 +1041,8 @@ def gen_options(rows: list[dict]) -> str:
     by_folder: dict[str, list[dict]] = {}
     for r in rows:
         by_folder.setdefault(folder_for(r), []).append(r)
+
+    hand_written_text = hand_written_option_text()
 
     def sort_key(sec: str) -> tuple[int, int]:
         plain = list(GROUP_TO_SECTION.values())
@@ -1039,8 +1082,64 @@ def gen_options(rows: list[dict]) -> str:
             out.append(_option_literal(r, gvar, svar))
         out.append("")
 
-    out += ["        return list;", "    }", "}", ""]
+    out += ["        return list;", "    }", ""]
+
+    # A key -> (label, description) reader for the in-place language refresh.
+    #
+    # A language switch used to rebuild the whole option tree, which was correct
+    # but threw away where the reader was. Refreshing the rows in place needs to
+    # know, for each existing Option, which AppLang property its text came from.
+    # Reflection over SchemaLabel_Mpv_<name> would work and would also be the
+    # only reflection in this page; a generated table is checked by the compiler
+    # like everything else, and a renamed schema option breaks it loudly.
+    out.append("    /// <summary>")
+    out.append("    /// Re-reads one generated row's text from the current language.")
+    out.append("    ///")
+    out.append("    /// Keyed by the AppSettings property name, which is what Option.Key")
+    out.append("    /// holds. Used by the in-place language refresh; the initial build")
+    out.append("    /// uses the literals above instead.")
+    out.append("    /// </summary>")
+    out.append("    private static (string Label, string? Description)? GeneratedText(string key)")
+    out.append("    {")
+    out.append("        var lang = AppContext.AppLang;")
+    out.append("        switch (key)")
+    out.append("        {")
+    for r in sorted(rows, key=lambda x: x["prop"]):
+        out.append('            case nameof(AppContext.AppSetting.%s):' % r["prop"])
+        out.append("                return (lang.SchemaLabel_%s, lang.SchemaDesc_%s);"
+                   % (r["prop"], r["prop"]))
+    out.append("            default:")
+    out.append("                return null;")
+    out.append("        }")
+    out.append("    }")
+    out.append("")
+    out.append("    /// <summary>")
+    out.append("    /// The same reader for the hand-written rows.")
+    out.append("    ///")
+    out.append("    /// Emitted rather than reflected: the caption a row reads is a fact")
+    out.append("    /// the generator can extract from the literal, and a generated switch")
+    out.append("    /// is checked by the compiler. A reflection lookup would compile even")
+    out.append("    /// when the property it names has been renamed, and the only symptom")
+    out.append("    /// would be a row that keeps its old language after a switch.")
+    out.append("    /// </summary>")
+    out.append("    private static (string Label, string? Description)? HandWrittenText(string key)")
+    out.append("    {")
+    out.append("        var lang = AppContext.AppLang;")
+    out.append("        switch (key)")
+    out.append("        {")
+    for key, label, desc in hand_written_text:
+        out.append("            case nameof(AppContext.AppSetting.%s):" % key)
+        out.append("                return (lang.%s, %s);"
+                   % (label, ("lang." + desc) if desc else "null"))
+    out.append("            default:")
+    out.append("                return null;")
+    out.append("        }")
+    out.append("    }")
+    out.append("}")
+    out.append("")
     return "\n".join(out)
+
+
 
 
 def _placeholder(desc: str) -> str:

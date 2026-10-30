@@ -4789,4 +4789,1394 @@ public sealed partial class SettingsPage
 
         return list;
     }
+
+    /// <summary>
+    /// Re-reads one generated row's text from the current language.
+    ///
+    /// Keyed by the AppSettings property name, which is what Option.Key
+    /// holds. Used by the in-place language refresh; the initial build
+    /// uses the literals above instead.
+    /// </summary>
+    private static (string Label, string? Description)? GeneratedText(string key)
+    {
+        var lang = AppContext.AppLang;
+        switch (key)
+        {
+            case nameof(AppContext.AppSetting.Mpv_ad_lavc_ac3drc):
+                return (lang.SchemaLabel_Mpv_ad_lavc_ac3drc, lang.SchemaDesc_Mpv_ad_lavc_ac3drc);
+            case nameof(AppContext.AppSetting.Mpv_ad_lavc_threads):
+                return (lang.SchemaLabel_Mpv_ad_lavc_threads, lang.SchemaDesc_Mpv_ad_lavc_threads);
+            case nameof(AppContext.AppSetting.Mpv_ad_queue_enable):
+                return (lang.SchemaLabel_Mpv_ad_queue_enable, lang.SchemaDesc_Mpv_ad_queue_enable);
+            case nameof(AppContext.AppSetting.Mpv_ad_queue_max_bytes):
+                return (lang.SchemaLabel_Mpv_ad_queue_max_bytes, lang.SchemaDesc_Mpv_ad_queue_max_bytes);
+            case nameof(AppContext.AppSetting.Mpv_ad_queue_max_samples):
+                return (lang.SchemaLabel_Mpv_ad_queue_max_samples, lang.SchemaDesc_Mpv_ad_queue_max_samples);
+            case nameof(AppContext.AppSetting.Mpv_ad_queue_max_secs):
+                return (lang.SchemaLabel_Mpv_ad_queue_max_secs, lang.SchemaDesc_Mpv_ad_queue_max_secs);
+            case nameof(AppContext.AppSetting.Mpv_aid):
+                return (lang.SchemaLabel_Mpv_aid, lang.SchemaDesc_Mpv_aid);
+            case nameof(AppContext.AppSetting.Mpv_allow_delayed_peak_detect):
+                return (lang.SchemaLabel_Mpv_allow_delayed_peak_detect, lang.SchemaDesc_Mpv_allow_delayed_peak_detect);
+            case nameof(AppContext.AppSetting.Mpv_archive_exts):
+                return (lang.SchemaLabel_Mpv_archive_exts, lang.SchemaDesc_Mpv_archive_exts);
+            case nameof(AppContext.AppSetting.Mpv_audio_client_name):
+                return (lang.SchemaLabel_Mpv_audio_client_name, lang.SchemaDesc_Mpv_audio_client_name);
+            case nameof(AppContext.AppSetting.Mpv_audio_demuxer):
+                return (lang.SchemaLabel_Mpv_audio_demuxer, lang.SchemaDesc_Mpv_audio_demuxer);
+            case nameof(AppContext.AppSetting.Mpv_audio_fallback_to_null):
+                return (lang.SchemaLabel_Mpv_audio_fallback_to_null, lang.SchemaDesc_Mpv_audio_fallback_to_null);
+            case nameof(AppContext.AppSetting.Mpv_audio_files):
+                return (lang.SchemaLabel_Mpv_audio_files, lang.SchemaDesc_Mpv_audio_files);
+            case nameof(AppContext.AppSetting.Mpv_audio_resample_cutoff):
+                return (lang.SchemaLabel_Mpv_audio_resample_cutoff, lang.SchemaDesc_Mpv_audio_resample_cutoff);
+            case nameof(AppContext.AppSetting.Mpv_audio_resample_filter_size):
+                return (lang.SchemaLabel_Mpv_audio_resample_filter_size, lang.SchemaDesc_Mpv_audio_resample_filter_size);
+            case nameof(AppContext.AppSetting.Mpv_audio_resample_linear):
+                return (lang.SchemaLabel_Mpv_audio_resample_linear, lang.SchemaDesc_Mpv_audio_resample_linear);
+            case nameof(AppContext.AppSetting.Mpv_audio_resample_max_output_size):
+                return (lang.SchemaLabel_Mpv_audio_resample_max_output_size, lang.SchemaDesc_Mpv_audio_resample_max_output_size);
+            case nameof(AppContext.AppSetting.Mpv_audio_resample_phase_shift):
+                return (lang.SchemaLabel_Mpv_audio_resample_phase_shift, lang.SchemaDesc_Mpv_audio_resample_phase_shift);
+            case nameof(AppContext.AppSetting.Mpv_audio_set_media_role):
+                return (lang.SchemaLabel_Mpv_audio_set_media_role, lang.SchemaDesc_Mpv_audio_set_media_role);
+            case nameof(AppContext.AppSetting.Mpv_autofit):
+                return (lang.SchemaLabel_Mpv_autofit, lang.SchemaDesc_Mpv_autofit);
+            case nameof(AppContext.AppSetting.Mpv_autofit_larger):
+                return (lang.SchemaLabel_Mpv_autofit_larger, lang.SchemaDesc_Mpv_autofit_larger);
+            case nameof(AppContext.AppSetting.Mpv_autofit_smaller):
+                return (lang.SchemaLabel_Mpv_autofit_smaller, lang.SchemaDesc_Mpv_autofit_smaller);
+            case nameof(AppContext.AppSetting.Mpv_autoload_files):
+                return (lang.SchemaLabel_Mpv_autoload_files, lang.SchemaDesc_Mpv_autoload_files);
+            case nameof(AppContext.AppSetting.Mpv_autosync):
+                return (lang.SchemaLabel_Mpv_autosync, lang.SchemaDesc_Mpv_autosync);
+            case nameof(AppContext.AppSetting.Mpv_backdrop_type):
+                return (lang.SchemaLabel_Mpv_backdrop_type, lang.SchemaDesc_Mpv_backdrop_type);
+            case nameof(AppContext.AppSetting.Mpv_background):
+                return (lang.SchemaLabel_Mpv_background, lang.SchemaDesc_Mpv_background);
+            case nameof(AppContext.AppSetting.Mpv_background_blur_radius):
+                return (lang.SchemaLabel_Mpv_background_blur_radius, lang.SchemaDesc_Mpv_background_blur_radius);
+            case nameof(AppContext.AppSetting.Mpv_background_color):
+                return (lang.SchemaLabel_Mpv_background_color, lang.SchemaDesc_Mpv_background_color);
+            case nameof(AppContext.AppSetting.Mpv_bluray_angle):
+                return (lang.SchemaLabel_Mpv_bluray_angle, lang.SchemaDesc_Mpv_bluray_angle);
+            case nameof(AppContext.AppSetting.Mpv_bluray_device):
+                return (lang.SchemaLabel_Mpv_bluray_device, lang.SchemaDesc_Mpv_bluray_device);
+            case nameof(AppContext.AppSetting.Mpv_border_background):
+                return (lang.SchemaLabel_Mpv_border_background, lang.SchemaDesc_Mpv_border_background);
+            case nameof(AppContext.AppSetting.Mpv_chapter_merge_threshold):
+                return (lang.SchemaLabel_Mpv_chapter_merge_threshold, lang.SchemaDesc_Mpv_chapter_merge_threshold);
+            case nameof(AppContext.AppSetting.Mpv_chapter_seek_threshold):
+                return (lang.SchemaLabel_Mpv_chapter_seek_threshold, lang.SchemaDesc_Mpv_chapter_seek_threshold);
+            case nameof(AppContext.AppSetting.Mpv_chapters_file):
+                return (lang.SchemaLabel_Mpv_chapters_file, lang.SchemaDesc_Mpv_chapters_file);
+            case nameof(AppContext.AppSetting.Mpv_clipboard_backends):
+                return (lang.SchemaLabel_Mpv_clipboard_backends, lang.SchemaDesc_Mpv_clipboard_backends);
+            case nameof(AppContext.AppSetting.Mpv_clipboard_monitor):
+                return (lang.SchemaLabel_Mpv_clipboard_monitor, lang.SchemaDesc_Mpv_clipboard_monitor);
+            case nameof(AppContext.AppSetting.Mpv_config):
+                return (lang.SchemaLabel_Mpv_config, lang.SchemaDesc_Mpv_config);
+            case nameof(AppContext.AppSetting.Mpv_container_fps_override):
+                return (lang.SchemaLabel_Mpv_container_fps_override, lang.SchemaDesc_Mpv_container_fps_override);
+            case nameof(AppContext.AppSetting.Mpv_cookies):
+                return (lang.SchemaLabel_Mpv_cookies, lang.SchemaDesc_Mpv_cookies);
+            case nameof(AppContext.AppSetting.Mpv_corner_rounding):
+                return (lang.SchemaLabel_Mpv_corner_rounding, lang.SchemaDesc_Mpv_corner_rounding);
+            case nameof(AppContext.AppSetting.Mpv_correct_pts):
+                return (lang.SchemaLabel_Mpv_correct_pts, lang.SchemaDesc_Mpv_correct_pts);
+            case nameof(AppContext.AppSetting.Mpv_cover_art_auto):
+                return (lang.SchemaLabel_Mpv_cover_art_auto, lang.SchemaDesc_Mpv_cover_art_auto);
+            case nameof(AppContext.AppSetting.Mpv_cover_art_files):
+                return (lang.SchemaLabel_Mpv_cover_art_files, lang.SchemaDesc_Mpv_cover_art_files);
+            case nameof(AppContext.AppSetting.Mpv_cover_art_whitelist):
+                return (lang.SchemaLabel_Mpv_cover_art_whitelist, lang.SchemaDesc_Mpv_cover_art_whitelist);
+            case nameof(AppContext.AppSetting.Mpv_curl_enabled):
+                return (lang.SchemaLabel_Mpv_curl_enabled, lang.SchemaDesc_Mpv_curl_enabled);
+            case nameof(AppContext.AppSetting.Mpv_curl_http_version):
+                return (lang.SchemaLabel_Mpv_curl_http_version, lang.SchemaDesc_Mpv_curl_http_version);
+            case nameof(AppContext.AppSetting.Mpv_d3d11_composition_size):
+                return (lang.SchemaLabel_Mpv_d3d11_composition_size, lang.SchemaDesc_Mpv_d3d11_composition_size);
+            case nameof(AppContext.AppSetting.Mpv_d3d11_feature_level):
+                return (lang.SchemaLabel_Mpv_d3d11_feature_level, lang.SchemaDesc_Mpv_d3d11_feature_level);
+            case nameof(AppContext.AppSetting.Mpv_d3d11_output_mode):
+                return (lang.SchemaLabel_Mpv_d3d11_output_mode, lang.SchemaDesc_Mpv_d3d11_output_mode);
+            case nameof(AppContext.AppSetting.Mpv_d3d11va_zero_copy):
+                return (lang.SchemaLabel_Mpv_d3d11va_zero_copy, lang.SchemaDesc_Mpv_d3d11va_zero_copy);
+            case nameof(AppContext.AppSetting.Mpv_deinterlace_field_parity):
+                return (lang.SchemaLabel_Mpv_deinterlace_field_parity, lang.SchemaDesc_Mpv_deinterlace_field_parity);
+            case nameof(AppContext.AppSetting.Mpv_demuxer):
+                return (lang.SchemaLabel_Mpv_demuxer, lang.SchemaDesc_Mpv_demuxer);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_backward_playback_step):
+                return (lang.SchemaLabel_Mpv_demuxer_backward_playback_step, lang.SchemaDesc_Mpv_demuxer_backward_playback_step);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_cache_unlink_files):
+                return (lang.SchemaLabel_Mpv_demuxer_cache_unlink_files, lang.SchemaDesc_Mpv_demuxer_cache_unlink_files);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_cache_wait):
+                return (lang.SchemaLabel_Mpv_demuxer_cache_wait, lang.SchemaDesc_Mpv_demuxer_cache_wait);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_donate_buffer):
+                return (lang.SchemaLabel_Mpv_demuxer_donate_buffer, lang.SchemaDesc_Mpv_demuxer_donate_buffer);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_hysteresis_bytes):
+                return (lang.SchemaLabel_Mpv_demuxer_hysteresis_bytes, lang.SchemaDesc_Mpv_demuxer_hysteresis_bytes);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_allow_mimetype):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_allow_mimetype, lang.SchemaDesc_Mpv_demuxer_lavf_allow_mimetype);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_analyzeduration):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_analyzeduration, lang.SchemaDesc_Mpv_demuxer_lavf_analyzeduration);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_buffersize):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_buffersize, lang.SchemaDesc_Mpv_demuxer_lavf_buffersize);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_format):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_format, lang.SchemaDesc_Mpv_demuxer_lavf_format);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_hacks):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_hacks, lang.SchemaDesc_Mpv_demuxer_lavf_hacks);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_linearize_timestamps):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_linearize_timestamps, lang.SchemaDesc_Mpv_demuxer_lavf_linearize_timestamps);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_probe_info):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_probe_info, lang.SchemaDesc_Mpv_demuxer_lavf_probe_info);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_probescore):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_probescore, lang.SchemaDesc_Mpv_demuxer_lavf_probescore);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_probesize):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_probesize, lang.SchemaDesc_Mpv_demuxer_lavf_probesize);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_lavf_propagate_opts):
+                return (lang.SchemaLabel_Mpv_demuxer_lavf_propagate_opts, lang.SchemaDesc_Mpv_demuxer_lavf_propagate_opts);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_mkv_crop_compat):
+                return (lang.SchemaLabel_Mpv_demuxer_mkv_crop_compat, lang.SchemaDesc_Mpv_demuxer_mkv_crop_compat);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_mkv_probe_start_time):
+                return (lang.SchemaLabel_Mpv_demuxer_mkv_probe_start_time, lang.SchemaDesc_Mpv_demuxer_mkv_probe_start_time);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_mkv_probe_video_duration):
+                return (lang.SchemaLabel_Mpv_demuxer_mkv_probe_video_duration, lang.SchemaDesc_Mpv_demuxer_mkv_probe_video_duration);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_mkv_subtitle_preroll):
+                return (lang.SchemaLabel_Mpv_demuxer_mkv_subtitle_preroll, lang.SchemaDesc_Mpv_demuxer_mkv_subtitle_preroll);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_mkv_subtitle_preroll_secs):
+                return (lang.SchemaLabel_Mpv_demuxer_mkv_subtitle_preroll_secs, lang.SchemaDesc_Mpv_demuxer_mkv_subtitle_preroll_secs);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_mkv_subtitle_preroll_secs_index):
+                return (lang.SchemaLabel_Mpv_demuxer_mkv_subtitle_preroll_secs_index, lang.SchemaDesc_Mpv_demuxer_mkv_subtitle_preroll_secs_index);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawaudio_channels):
+                return (lang.SchemaLabel_Mpv_demuxer_rawaudio_channels, lang.SchemaDesc_Mpv_demuxer_rawaudio_channels);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawaudio_format):
+                return (lang.SchemaLabel_Mpv_demuxer_rawaudio_format, lang.SchemaDesc_Mpv_demuxer_rawaudio_format);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawaudio_rate):
+                return (lang.SchemaLabel_Mpv_demuxer_rawaudio_rate, lang.SchemaDesc_Mpv_demuxer_rawaudio_rate);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_codec):
+                return (lang.SchemaLabel_Mpv_demuxer_rawvideo_codec, lang.SchemaDesc_Mpv_demuxer_rawvideo_codec);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_format):
+                return (lang.SchemaLabel_Mpv_demuxer_rawvideo_format, lang.SchemaDesc_Mpv_demuxer_rawvideo_format);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_fps):
+                return (lang.SchemaLabel_Mpv_demuxer_rawvideo_fps, lang.SchemaDesc_Mpv_demuxer_rawvideo_fps);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_h):
+                return (lang.SchemaLabel_Mpv_demuxer_rawvideo_h, lang.SchemaDesc_Mpv_demuxer_rawvideo_h);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_mp_format):
+                return (lang.SchemaLabel_Mpv_demuxer_rawvideo_mp_format, lang.SchemaDesc_Mpv_demuxer_rawvideo_mp_format);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_size):
+                return (lang.SchemaLabel_Mpv_demuxer_rawvideo_size, lang.SchemaDesc_Mpv_demuxer_rawvideo_size);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_rawvideo_w):
+                return (lang.SchemaLabel_Mpv_demuxer_rawvideo_w, lang.SchemaDesc_Mpv_demuxer_rawvideo_w);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_seekable_cache):
+                return (lang.SchemaLabel_Mpv_demuxer_seekable_cache, lang.SchemaDesc_Mpv_demuxer_seekable_cache);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_termination_timeout):
+                return (lang.SchemaLabel_Mpv_demuxer_termination_timeout, lang.SchemaDesc_Mpv_demuxer_termination_timeout);
+            case nameof(AppContext.AppSetting.Mpv_demuxer_thread):
+                return (lang.SchemaLabel_Mpv_demuxer_thread, lang.SchemaDesc_Mpv_demuxer_thread);
+            case nameof(AppContext.AppSetting.Mpv_display_fps_override):
+                return (lang.SchemaLabel_Mpv_display_fps_override, lang.SchemaDesc_Mpv_display_fps_override);
+            case nameof(AppContext.AppSetting.Mpv_display_tags):
+                return (lang.SchemaLabel_Mpv_display_tags, lang.SchemaDesc_Mpv_display_tags);
+            case nameof(AppContext.AppSetting.Mpv_drag_and_drop):
+                return (lang.SchemaLabel_Mpv_drag_and_drop, lang.SchemaDesc_Mpv_drag_and_drop);
+            case nameof(AppContext.AppSetting.Mpv_dvd_angle):
+                return (lang.SchemaLabel_Mpv_dvd_angle, lang.SchemaDesc_Mpv_dvd_angle);
+            case nameof(AppContext.AppSetting.Mpv_dvd_device):
+                return (lang.SchemaLabel_Mpv_dvd_device, lang.SchemaDesc_Mpv_dvd_device);
+            case nameof(AppContext.AppSetting.Mpv_dvd_speed):
+                return (lang.SchemaLabel_Mpv_dvd_speed, lang.SchemaDesc_Mpv_dvd_speed);
+            case nameof(AppContext.AppSetting.Mpv_edition):
+                return (lang.SchemaLabel_Mpv_edition, lang.SchemaDesc_Mpv_edition);
+            case nameof(AppContext.AppSetting.Mpv_end):
+                return (lang.SchemaLabel_Mpv_end, lang.SchemaDesc_Mpv_end);
+            case nameof(AppContext.AppSetting.Mpv_error_diffusion):
+                return (lang.SchemaLabel_Mpv_error_diffusion, lang.SchemaDesc_Mpv_error_diffusion);
+            case nameof(AppContext.AppSetting.Mpv_external_files):
+                return (lang.SchemaLabel_Mpv_external_files, lang.SchemaDesc_Mpv_external_files);
+            case nameof(AppContext.AppSetting.Mpv_fbo_format):
+                return (lang.SchemaLabel_Mpv_fbo_format, lang.SchemaDesc_Mpv_fbo_format);
+            case nameof(AppContext.AppSetting.Mpv_flatten_editions):
+                return (lang.SchemaLabel_Mpv_flatten_editions, lang.SchemaDesc_Mpv_flatten_editions);
+            case nameof(AppContext.AppSetting.Mpv_force_media_title):
+                return (lang.SchemaLabel_Mpv_force_media_title, lang.SchemaDesc_Mpv_force_media_title);
+            case nameof(AppContext.AppSetting.Mpv_force_render):
+                return (lang.SchemaLabel_Mpv_force_render, lang.SchemaDesc_Mpv_force_render);
+            case nameof(AppContext.AppSetting.Mpv_force_rgba_osd_rendering):
+                return (lang.SchemaLabel_Mpv_force_rgba_osd_rendering, lang.SchemaDesc_Mpv_force_rgba_osd_rendering);
+            case nameof(AppContext.AppSetting.Mpv_force_seekable):
+                return (lang.SchemaLabel_Mpv_force_seekable, lang.SchemaDesc_Mpv_force_seekable);
+            case nameof(AppContext.AppSetting.Mpv_force_window):
+                return (lang.SchemaLabel_Mpv_force_window, lang.SchemaDesc_Mpv_force_window);
+            case nameof(AppContext.AppSetting.Mpv_force_window_position):
+                return (lang.SchemaLabel_Mpv_force_window_position, lang.SchemaDesc_Mpv_force_window_position);
+            case nameof(AppContext.AppSetting.Mpv_framedrop):
+                return (lang.SchemaLabel_Mpv_framedrop, lang.SchemaDesc_Mpv_framedrop);
+            case nameof(AppContext.AppSetting.Mpv_frames):
+                return (lang.SchemaLabel_Mpv_frames, lang.SchemaDesc_Mpv_frames);
+            case nameof(AppContext.AppSetting.Mpv_fs_screen):
+                return (lang.SchemaLabel_Mpv_fs_screen, lang.SchemaDesc_Mpv_fs_screen);
+            case nameof(AppContext.AppSetting.Mpv_fs_screen_name):
+                return (lang.SchemaLabel_Mpv_fs_screen_name, lang.SchemaDesc_Mpv_fs_screen_name);
+            case nameof(AppContext.AppSetting.Mpv_gamma_factor):
+                return (lang.SchemaLabel_Mpv_gamma_factor, lang.SchemaDesc_Mpv_gamma_factor);
+            case nameof(AppContext.AppSetting.Mpv_geometry):
+                return (lang.SchemaLabel_Mpv_geometry, lang.SchemaDesc_Mpv_geometry);
+            case nameof(AppContext.AppSetting.Mpv_gpu_hwdec_interop):
+                return (lang.SchemaLabel_Mpv_gpu_hwdec_interop, lang.SchemaDesc_Mpv_gpu_hwdec_interop);
+            case nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_x):
+                return (lang.SchemaLabel_Mpv_gpu_tex_pad_x, lang.SchemaDesc_Mpv_gpu_tex_pad_x);
+            case nameof(AppContext.AppSetting.Mpv_gpu_tex_pad_y):
+                return (lang.SchemaLabel_Mpv_gpu_tex_pad_y, lang.SchemaDesc_Mpv_gpu_tex_pad_y);
+            case nameof(AppContext.AppSetting.Mpv_hdr_peak_percentile):
+                return (lang.SchemaLabel_Mpv_hdr_peak_percentile, lang.SchemaDesc_Mpv_hdr_peak_percentile);
+            case nameof(AppContext.AppSetting.Mpv_hdr_reference_white):
+                return (lang.SchemaLabel_Mpv_hdr_reference_white, lang.SchemaDesc_Mpv_hdr_reference_white);
+            case nameof(AppContext.AppSetting.Mpv_hidpi_window_scale):
+                return (lang.SchemaLabel_Mpv_hidpi_window_scale, lang.SchemaDesc_Mpv_hidpi_window_scale);
+            case nameof(AppContext.AppSetting.Mpv_hls_bitrate):
+                return (lang.SchemaLabel_Mpv_hls_bitrate, lang.SchemaDesc_Mpv_hls_bitrate);
+            case nameof(AppContext.AppSetting.Mpv_hr_seek_demuxer_offset):
+                return (lang.SchemaLabel_Mpv_hr_seek_demuxer_offset, lang.SchemaDesc_Mpv_hr_seek_demuxer_offset);
+            case nameof(AppContext.AppSetting.Mpv_hwdec_extra_frames):
+                return (lang.SchemaLabel_Mpv_hwdec_extra_frames, lang.SchemaDesc_Mpv_hwdec_extra_frames);
+            case nameof(AppContext.AppSetting.Mpv_hwdec_image_format):
+                return (lang.SchemaLabel_Mpv_hwdec_image_format, lang.SchemaDesc_Mpv_hwdec_image_format);
+            case nameof(AppContext.AppSetting.Mpv_hwdec_software_fallback):
+                return (lang.SchemaLabel_Mpv_hwdec_software_fallback, lang.SchemaDesc_Mpv_hwdec_software_fallback);
+            case nameof(AppContext.AppSetting.Mpv_hwdec_threads):
+                return (lang.SchemaLabel_Mpv_hwdec_threads, lang.SchemaDesc_Mpv_hwdec_threads);
+            case nameof(AppContext.AppSetting.Mpv_icc_intent):
+                return (lang.SchemaLabel_Mpv_icc_intent, lang.SchemaDesc_Mpv_icc_intent);
+            case nameof(AppContext.AppSetting.Mpv_icc_use_luma):
+                return (lang.SchemaLabel_Mpv_icc_use_luma, lang.SchemaDesc_Mpv_icc_use_luma);
+            case nameof(AppContext.AppSetting.Mpv_idle):
+                return (lang.SchemaLabel_Mpv_idle, lang.SchemaDesc_Mpv_idle);
+            case nameof(AppContext.AppSetting.Mpv_ignore_path_in_watch_later_config):
+                return (lang.SchemaLabel_Mpv_ignore_path_in_watch_later_config, lang.SchemaDesc_Mpv_ignore_path_in_watch_later_config);
+            case nameof(AppContext.AppSetting.Mpv_image_lut):
+                return (lang.SchemaLabel_Mpv_image_lut, lang.SchemaDesc_Mpv_image_lut);
+            case nameof(AppContext.AppSetting.Mpv_image_lut_type):
+                return (lang.SchemaLabel_Mpv_image_lut_type, lang.SchemaDesc_Mpv_image_lut_type);
+            case nameof(AppContext.AppSetting.Mpv_include):
+                return (lang.SchemaLabel_Mpv_include, lang.SchemaDesc_Mpv_include);
+            case nameof(AppContext.AppSetting.Mpv_index):
+                return (lang.SchemaLabel_Mpv_index, lang.SchemaDesc_Mpv_index);
+            case nameof(AppContext.AppSetting.Mpv_initial_audio_sync):
+                return (lang.SchemaLabel_Mpv_initial_audio_sync, lang.SchemaDesc_Mpv_initial_audio_sync);
+            case nameof(AppContext.AppSetting.Mpv_input_ar_delay):
+                return (lang.SchemaLabel_Mpv_input_ar_delay, lang.SchemaDesc_Mpv_input_ar_delay);
+            case nameof(AppContext.AppSetting.Mpv_input_ar_rate):
+                return (lang.SchemaLabel_Mpv_input_ar_rate, lang.SchemaDesc_Mpv_input_ar_rate);
+            case nameof(AppContext.AppSetting.Mpv_input_builtin_bindings):
+                return (lang.SchemaLabel_Mpv_input_builtin_bindings, lang.SchemaDesc_Mpv_input_builtin_bindings);
+            case nameof(AppContext.AppSetting.Mpv_input_builtin_drag_and_drop):
+                return (lang.SchemaLabel_Mpv_input_builtin_drag_and_drop, lang.SchemaDesc_Mpv_input_builtin_drag_and_drop);
+            case nameof(AppContext.AppSetting.Mpv_input_builtin_dragging):
+                return (lang.SchemaLabel_Mpv_input_builtin_dragging, lang.SchemaDesc_Mpv_input_builtin_dragging);
+            case nameof(AppContext.AppSetting.Mpv_input_commands):
+                return (lang.SchemaLabel_Mpv_input_commands, lang.SchemaDesc_Mpv_input_commands);
+            case nameof(AppContext.AppSetting.Mpv_input_conf):
+                return (lang.SchemaLabel_Mpv_input_conf, lang.SchemaDesc_Mpv_input_conf);
+            case nameof(AppContext.AppSetting.Mpv_input_cursor):
+                return (lang.SchemaLabel_Mpv_input_cursor, lang.SchemaDesc_Mpv_input_cursor);
+            case nameof(AppContext.AppSetting.Mpv_input_cursor_passthrough):
+                return (lang.SchemaLabel_Mpv_input_cursor_passthrough, lang.SchemaDesc_Mpv_input_cursor_passthrough);
+            case nameof(AppContext.AppSetting.Mpv_input_default_bindings):
+                return (lang.SchemaLabel_Mpv_input_default_bindings, lang.SchemaDesc_Mpv_input_default_bindings);
+            case nameof(AppContext.AppSetting.Mpv_input_doubleclick_time):
+                return (lang.SchemaLabel_Mpv_input_doubleclick_time, lang.SchemaDesc_Mpv_input_doubleclick_time);
+            case nameof(AppContext.AppSetting.Mpv_input_dragging_deadzone):
+                return (lang.SchemaLabel_Mpv_input_dragging_deadzone, lang.SchemaDesc_Mpv_input_dragging_deadzone);
+            case nameof(AppContext.AppSetting.Mpv_input_key_fifo_size):
+                return (lang.SchemaLabel_Mpv_input_key_fifo_size, lang.SchemaDesc_Mpv_input_key_fifo_size);
+            case nameof(AppContext.AppSetting.Mpv_input_media_keys):
+                return (lang.SchemaLabel_Mpv_input_media_keys, lang.SchemaDesc_Mpv_input_media_keys);
+            case nameof(AppContext.AppSetting.Mpv_input_preprocess_wheel):
+                return (lang.SchemaLabel_Mpv_input_preprocess_wheel, lang.SchemaDesc_Mpv_input_preprocess_wheel);
+            case nameof(AppContext.AppSetting.Mpv_input_right_alt_gr):
+                return (lang.SchemaLabel_Mpv_input_right_alt_gr, lang.SchemaDesc_Mpv_input_right_alt_gr);
+            case nameof(AppContext.AppSetting.Mpv_input_tablet_emulate_mouse):
+                return (lang.SchemaLabel_Mpv_input_tablet_emulate_mouse, lang.SchemaDesc_Mpv_input_tablet_emulate_mouse);
+            case nameof(AppContext.AppSetting.Mpv_input_touch_emulate_mouse):
+                return (lang.SchemaLabel_Mpv_input_touch_emulate_mouse, lang.SchemaDesc_Mpv_input_touch_emulate_mouse);
+            case nameof(AppContext.AppSetting.Mpv_input_vo_keyboard):
+                return (lang.SchemaLabel_Mpv_input_vo_keyboard, lang.SchemaDesc_Mpv_input_vo_keyboard);
+            case nameof(AppContext.AppSetting.Mpv_interpolation_preserve):
+                return (lang.SchemaLabel_Mpv_interpolation_preserve, lang.SchemaDesc_Mpv_interpolation_preserve);
+            case nameof(AppContext.AppSetting.Mpv_interpolation_threshold):
+                return (lang.SchemaLabel_Mpv_interpolation_threshold, lang.SchemaDesc_Mpv_interpolation_threshold);
+            case nameof(AppContext.AppSetting.Mpv_keep_open_pause):
+                return (lang.SchemaLabel_Mpv_keep_open_pause, lang.SchemaDesc_Mpv_keep_open_pause);
+            case nameof(AppContext.AppSetting.Mpv_keepaspect):
+                return (lang.SchemaLabel_Mpv_keepaspect, lang.SchemaDesc_Mpv_keepaspect);
+            case nameof(AppContext.AppSetting.Mpv_keepaspect_window):
+                return (lang.SchemaLabel_Mpv_keepaspect_window, lang.SchemaDesc_Mpv_keepaspect_window);
+            case nameof(AppContext.AppSetting.Mpv_lavfi_complex):
+                return (lang.SchemaLabel_Mpv_lavfi_complex, lang.SchemaDesc_Mpv_lavfi_complex);
+            case nameof(AppContext.AppSetting.Mpv_length):
+                return (lang.SchemaLabel_Mpv_length, lang.SchemaDesc_Mpv_length);
+            case nameof(AppContext.AppSetting.Mpv_libplacebo_opts):
+                return (lang.SchemaLabel_Mpv_libplacebo_opts, lang.SchemaDesc_Mpv_libplacebo_opts);
+            case nameof(AppContext.AppSetting.Mpv_load_auto_profiles):
+                return (lang.SchemaLabel_Mpv_load_auto_profiles, lang.SchemaDesc_Mpv_load_auto_profiles);
+            case nameof(AppContext.AppSetting.Mpv_load_commands):
+                return (lang.SchemaLabel_Mpv_load_commands, lang.SchemaDesc_Mpv_load_commands);
+            case nameof(AppContext.AppSetting.Mpv_load_console):
+                return (lang.SchemaLabel_Mpv_load_console, lang.SchemaDesc_Mpv_load_console);
+            case nameof(AppContext.AppSetting.Mpv_load_context_menu):
+                return (lang.SchemaLabel_Mpv_load_context_menu, lang.SchemaDesc_Mpv_load_context_menu);
+            case nameof(AppContext.AppSetting.Mpv_load_positioning):
+                return (lang.SchemaLabel_Mpv_load_positioning, lang.SchemaDesc_Mpv_load_positioning);
+            case nameof(AppContext.AppSetting.Mpv_load_scripts):
+                return (lang.SchemaLabel_Mpv_load_scripts, lang.SchemaDesc_Mpv_load_scripts);
+            case nameof(AppContext.AppSetting.Mpv_load_select):
+                return (lang.SchemaLabel_Mpv_load_select, lang.SchemaDesc_Mpv_load_select);
+            case nameof(AppContext.AppSetting.Mpv_load_stats_overlay):
+                return (lang.SchemaLabel_Mpv_load_stats_overlay, lang.SchemaDesc_Mpv_load_stats_overlay);
+            case nameof(AppContext.AppSetting.Mpv_load_unsafe_playlists):
+                return (lang.SchemaLabel_Mpv_load_unsafe_playlists, lang.SchemaDesc_Mpv_load_unsafe_playlists);
+            case nameof(AppContext.AppSetting.Mpv_lut):
+                return (lang.SchemaLabel_Mpv_lut, lang.SchemaDesc_Mpv_lut);
+            case nameof(AppContext.AppSetting.Mpv_lut_type):
+                return (lang.SchemaLabel_Mpv_lut_type, lang.SchemaDesc_Mpv_lut_type);
+            case nameof(AppContext.AppSetting.Mpv_media_controls):
+                return (lang.SchemaLabel_Mpv_media_controls, lang.SchemaDesc_Mpv_media_controls);
+            case nameof(AppContext.AppSetting.Mpv_merge_files):
+                return (lang.SchemaLabel_Mpv_merge_files, lang.SchemaDesc_Mpv_merge_files);
+            case nameof(AppContext.AppSetting.Mpv_mf_fps):
+                return (lang.SchemaLabel_Mpv_mf_fps, lang.SchemaDesc_Mpv_mf_fps);
+            case nameof(AppContext.AppSetting.Mpv_mf_type):
+                return (lang.SchemaLabel_Mpv_mf_type, lang.SchemaDesc_Mpv_mf_type);
+            case nameof(AppContext.AppSetting.Mpv_monitoraspect):
+                return (lang.SchemaLabel_Mpv_monitoraspect, lang.SchemaDesc_Mpv_monitoraspect);
+            case nameof(AppContext.AppSetting.Mpv_monitorpixelaspect):
+                return (lang.SchemaLabel_Mpv_monitorpixelaspect, lang.SchemaDesc_Mpv_monitorpixelaspect);
+            case nameof(AppContext.AppSetting.Mpv_msg_level):
+                return (lang.SchemaLabel_Mpv_msg_level, lang.SchemaDesc_Mpv_msg_level);
+            case nameof(AppContext.AppSetting.Mpv_mute):
+                return (lang.SchemaLabel_Mpv_mute, lang.SchemaDesc_Mpv_mute);
+            case nameof(AppContext.AppSetting.Mpv_native_keyrepeat):
+                return (lang.SchemaLabel_Mpv_native_keyrepeat, lang.SchemaDesc_Mpv_native_keyrepeat);
+            case nameof(AppContext.AppSetting.Mpv_native_touch):
+                return (lang.SchemaLabel_Mpv_native_touch, lang.SchemaDesc_Mpv_native_touch);
+            case nameof(AppContext.AppSetting.Mpv_oac):
+                return (lang.SchemaLabel_Mpv_oac, lang.SchemaDesc_Mpv_oac);
+            case nameof(AppContext.AppSetting.Mpv_oacopts):
+                return (lang.SchemaLabel_Mpv_oacopts, lang.SchemaDesc_Mpv_oacopts);
+            case nameof(AppContext.AppSetting.Mpv_ocopy_metadata):
+                return (lang.SchemaLabel_Mpv_ocopy_metadata, lang.SchemaDesc_Mpv_ocopy_metadata);
+            case nameof(AppContext.AppSetting.Mpv_of):
+                return (lang.SchemaLabel_Mpv_of, lang.SchemaDesc_Mpv_of);
+            case nameof(AppContext.AppSetting.Mpv_ofopts):
+                return (lang.SchemaLabel_Mpv_ofopts, lang.SchemaDesc_Mpv_ofopts);
+            case nameof(AppContext.AppSetting.Mpv_orawts):
+                return (lang.SchemaLabel_Mpv_orawts, lang.SchemaDesc_Mpv_orawts);
+            case nameof(AppContext.AppSetting.Mpv_ordered_chapters):
+                return (lang.SchemaLabel_Mpv_ordered_chapters, lang.SchemaDesc_Mpv_ordered_chapters);
+            case nameof(AppContext.AppSetting.Mpv_ordered_chapters_files):
+                return (lang.SchemaLabel_Mpv_ordered_chapters_files, lang.SchemaDesc_Mpv_ordered_chapters_files);
+            case nameof(AppContext.AppSetting.Mpv_oremove_metadata):
+                return (lang.SchemaLabel_Mpv_oremove_metadata, lang.SchemaDesc_Mpv_oremove_metadata);
+            case nameof(AppContext.AppSetting.Mpv_osc):
+                return (lang.SchemaLabel_Mpv_osc, lang.SchemaDesc_Mpv_osc);
+            case nameof(AppContext.AppSetting.Mpv_osd_bar):
+                return (lang.SchemaLabel_Mpv_osd_bar, lang.SchemaDesc_Mpv_osd_bar);
+            case nameof(AppContext.AppSetting.Mpv_osd_bar_align_x):
+                return (lang.SchemaLabel_Mpv_osd_bar_align_x, lang.SchemaDesc_Mpv_osd_bar_align_x);
+            case nameof(AppContext.AppSetting.Mpv_osd_bar_align_y):
+                return (lang.SchemaLabel_Mpv_osd_bar_align_y, lang.SchemaDesc_Mpv_osd_bar_align_y);
+            case nameof(AppContext.AppSetting.Mpv_osd_bar_marker_min_size):
+                return (lang.SchemaLabel_Mpv_osd_bar_marker_min_size, lang.SchemaDesc_Mpv_osd_bar_marker_min_size);
+            case nameof(AppContext.AppSetting.Mpv_osd_bar_marker_scale):
+                return (lang.SchemaLabel_Mpv_osd_bar_marker_scale, lang.SchemaDesc_Mpv_osd_bar_marker_scale);
+            case nameof(AppContext.AppSetting.Mpv_osd_bar_marker_style):
+                return (lang.SchemaLabel_Mpv_osd_bar_marker_style, lang.SchemaDesc_Mpv_osd_bar_marker_style);
+            case nameof(AppContext.AppSetting.Mpv_osd_bar_outline_size):
+                return (lang.SchemaLabel_Mpv_osd_bar_outline_size, lang.SchemaDesc_Mpv_osd_bar_outline_size);
+            case nameof(AppContext.AppSetting.Mpv_osd_bitmap_max_size):
+                return (lang.SchemaLabel_Mpv_osd_bitmap_max_size, lang.SchemaDesc_Mpv_osd_bitmap_max_size);
+            case nameof(AppContext.AppSetting.Mpv_osd_border_style):
+                return (lang.SchemaLabel_Mpv_osd_border_style, lang.SchemaDesc_Mpv_osd_border_style);
+            case nameof(AppContext.AppSetting.Mpv_osd_glyph_limit):
+                return (lang.SchemaLabel_Mpv_osd_glyph_limit, lang.SchemaDesc_Mpv_osd_glyph_limit);
+            case nameof(AppContext.AppSetting.Mpv_osd_msg1):
+                return (lang.SchemaLabel_Mpv_osd_msg1, lang.SchemaDesc_Mpv_osd_msg1);
+            case nameof(AppContext.AppSetting.Mpv_osd_msg2):
+                return (lang.SchemaLabel_Mpv_osd_msg2, lang.SchemaDesc_Mpv_osd_msg2);
+            case nameof(AppContext.AppSetting.Mpv_osd_msg3):
+                return (lang.SchemaLabel_Mpv_osd_msg3, lang.SchemaDesc_Mpv_osd_msg3);
+            case nameof(AppContext.AppSetting.Mpv_osd_playlist_entry):
+                return (lang.SchemaLabel_Mpv_osd_playlist_entry, lang.SchemaDesc_Mpv_osd_playlist_entry);
+            case nameof(AppContext.AppSetting.Mpv_osd_prune_delay):
+                return (lang.SchemaLabel_Mpv_osd_prune_delay, lang.SchemaDesc_Mpv_osd_prune_delay);
+            case nameof(AppContext.AppSetting.Mpv_osd_status_msg):
+                return (lang.SchemaLabel_Mpv_osd_status_msg, lang.SchemaDesc_Mpv_osd_status_msg);
+            case nameof(AppContext.AppSetting.Mpv_oset_metadata):
+                return (lang.SchemaLabel_Mpv_oset_metadata, lang.SchemaDesc_Mpv_oset_metadata);
+            case nameof(AppContext.AppSetting.Mpv_ovc):
+                return (lang.SchemaLabel_Mpv_ovc, lang.SchemaDesc_Mpv_ovc);
+            case nameof(AppContext.AppSetting.Mpv_ovcopts):
+                return (lang.SchemaLabel_Mpv_ovcopts, lang.SchemaDesc_Mpv_ovcopts);
+            case nameof(AppContext.AppSetting.Mpv_pause):
+                return (lang.SchemaLabel_Mpv_pause, lang.SchemaDesc_Mpv_pause);
+            case nameof(AppContext.AppSetting.Mpv_pitch):
+                return (lang.SchemaLabel_Mpv_pitch, lang.SchemaDesc_Mpv_pitch);
+            case nameof(AppContext.AppSetting.Mpv_play_direction):
+                return (lang.SchemaLabel_Mpv_play_direction, lang.SchemaDesc_Mpv_play_direction);
+            case nameof(AppContext.AppSetting.Mpv_player_operation_mode):
+                return (lang.SchemaLabel_Mpv_player_operation_mode, lang.SchemaDesc_Mpv_player_operation_mode);
+            case nameof(AppContext.AppSetting.Mpv_playlist_exts):
+                return (lang.SchemaLabel_Mpv_playlist_exts, lang.SchemaDesc_Mpv_playlist_exts);
+            case nameof(AppContext.AppSetting.Mpv_playlist_inherit_options):
+                return (lang.SchemaLabel_Mpv_playlist_inherit_options, lang.SchemaDesc_Mpv_playlist_inherit_options);
+            case nameof(AppContext.AppSetting.Mpv_playlist_start):
+                return (lang.SchemaLabel_Mpv_playlist_start, lang.SchemaDesc_Mpv_playlist_start);
+            case nameof(AppContext.AppSetting.Mpv_priority):
+                return (lang.SchemaLabel_Mpv_priority, lang.SchemaDesc_Mpv_priority);
+            case nameof(AppContext.AppSetting.Mpv_profile):
+                return (lang.SchemaLabel_Mpv_profile, lang.SchemaDesc_Mpv_profile);
+            case nameof(AppContext.AppSetting.Mpv_rar_list_all_volumes):
+                return (lang.SchemaLabel_Mpv_rar_list_all_volumes, lang.SchemaDesc_Mpv_rar_list_all_volumes);
+            case nameof(AppContext.AppSetting.Mpv_rebase_start_time):
+                return (lang.SchemaLabel_Mpv_rebase_start_time, lang.SchemaDesc_Mpv_rebase_start_time);
+            case nameof(AppContext.AppSetting.Mpv_replaygain_clip):
+                return (lang.SchemaLabel_Mpv_replaygain_clip, lang.SchemaDesc_Mpv_replaygain_clip);
+            case nameof(AppContext.AppSetting.Mpv_replaygain_fallback):
+                return (lang.SchemaLabel_Mpv_replaygain_fallback, lang.SchemaDesc_Mpv_replaygain_fallback);
+            case nameof(AppContext.AppSetting.Mpv_replaygain_preamp):
+                return (lang.SchemaLabel_Mpv_replaygain_preamp, lang.SchemaDesc_Mpv_replaygain_preamp);
+            case nameof(AppContext.AppSetting.Mpv_reset_on_next_file):
+                return (lang.SchemaLabel_Mpv_reset_on_next_file, lang.SchemaDesc_Mpv_reset_on_next_file);
+            case nameof(AppContext.AppSetting.Mpv_resume_playback_check_mtime):
+                return (lang.SchemaLabel_Mpv_resume_playback_check_mtime, lang.SchemaDesc_Mpv_resume_playback_check_mtime);
+            case nameof(AppContext.AppSetting.Mpv_rtsp_transport):
+                return (lang.SchemaLabel_Mpv_rtsp_transport, lang.SchemaDesc_Mpv_rtsp_transport);
+            case nameof(AppContext.AppSetting.Mpv_save_watch_history):
+                return (lang.SchemaLabel_Mpv_save_watch_history, lang.SchemaDesc_Mpv_save_watch_history);
+            case nameof(AppContext.AppSetting.Mpv_scaler_resizes_only):
+                return (lang.SchemaLabel_Mpv_scaler_resizes_only, lang.SchemaDesc_Mpv_scaler_resizes_only);
+            case nameof(AppContext.AppSetting.Mpv_screenshot_avif_opts):
+                return (lang.SchemaLabel_Mpv_screenshot_avif_opts, lang.SchemaDesc_Mpv_screenshot_avif_opts);
+            case nameof(AppContext.AppSetting.Mpv_screenshot_avif_pixfmt):
+                return (lang.SchemaLabel_Mpv_screenshot_avif_pixfmt, lang.SchemaDesc_Mpv_screenshot_avif_pixfmt);
+            case nameof(AppContext.AppSetting.Mpv_screenshot_dir):
+                return (lang.SchemaLabel_Mpv_screenshot_dir, lang.SchemaDesc_Mpv_screenshot_dir);
+            case nameof(AppContext.AppSetting.Mpv_script_opts):
+                return (lang.SchemaLabel_Mpv_script_opts, lang.SchemaDesc_Mpv_script_opts);
+            case nameof(AppContext.AppSetting.Mpv_scripts):
+                return (lang.SchemaLabel_Mpv_scripts, lang.SchemaDesc_Mpv_scripts);
+            case nameof(AppContext.AppSetting.Mpv_sdr_adjust_gamma):
+                return (lang.SchemaLabel_Mpv_sdr_adjust_gamma, lang.SchemaDesc_Mpv_sdr_adjust_gamma);
+            case nameof(AppContext.AppSetting.Mpv_secondary_sid):
+                return (lang.SchemaLabel_Mpv_secondary_sid, lang.SchemaDesc_Mpv_secondary_sid);
+            case nameof(AppContext.AppSetting.Mpv_show_dependent_tracks):
+                return (lang.SchemaLabel_Mpv_show_dependent_tracks, lang.SchemaDesc_Mpv_show_dependent_tracks);
+            case nameof(AppContext.AppSetting.Mpv_show_in_taskbar):
+                return (lang.SchemaLabel_Mpv_show_in_taskbar, lang.SchemaDesc_Mpv_show_in_taskbar);
+            case nameof(AppContext.AppSetting.Mpv_shuffle):
+                return (lang.SchemaLabel_Mpv_shuffle, lang.SchemaDesc_Mpv_shuffle);
+            case nameof(AppContext.AppSetting.Mpv_sid):
+                return (lang.SchemaLabel_Mpv_sid, lang.SchemaDesc_Mpv_sid);
+            case nameof(AppContext.AppSetting.Mpv_snap_window):
+                return (lang.SchemaLabel_Mpv_snap_window, lang.SchemaDesc_Mpv_snap_window);
+            case nameof(AppContext.AppSetting.Mpv_spirv_compiler):
+                return (lang.SchemaLabel_Mpv_spirv_compiler, lang.SchemaDesc_Mpv_spirv_compiler);
+            case nameof(AppContext.AppSetting.Mpv_sstep):
+                return (lang.SchemaLabel_Mpv_sstep, lang.SchemaDesc_Mpv_sstep);
+            case nameof(AppContext.AppSetting.Mpv_start):
+                return (lang.SchemaLabel_Mpv_start, lang.SchemaDesc_Mpv_start);
+            case nameof(AppContext.AppSetting.Mpv_stop_playback_on_init_failure):
+                return (lang.SchemaLabel_Mpv_stop_playback_on_init_failure, lang.SchemaDesc_Mpv_stop_playback_on_init_failure);
+            case nameof(AppContext.AppSetting.Mpv_stop_screensaver):
+                return (lang.SchemaLabel_Mpv_stop_screensaver, lang.SchemaDesc_Mpv_stop_screensaver);
+            case nameof(AppContext.AppSetting.Mpv_stream_buffer_size):
+                return (lang.SchemaLabel_Mpv_stream_buffer_size, lang.SchemaDesc_Mpv_stream_buffer_size);
+            case nameof(AppContext.AppSetting.Mpv_stream_dump):
+                return (lang.SchemaLabel_Mpv_stream_dump, lang.SchemaDesc_Mpv_stream_dump);
+            case nameof(AppContext.AppSetting.Mpv_stream_record):
+                return (lang.SchemaLabel_Mpv_stream_record, lang.SchemaDesc_Mpv_stream_record);
+            case nameof(AppContext.AppSetting.Mpv_stretch_dvd_subs):
+                return (lang.SchemaLabel_Mpv_stretch_dvd_subs, lang.SchemaDesc_Mpv_stretch_dvd_subs);
+            case nameof(AppContext.AppSetting.Mpv_sub_ass):
+                return (lang.SchemaLabel_Mpv_sub_ass, lang.SchemaDesc_Mpv_sub_ass);
+            case nameof(AppContext.AppSetting.Mpv_sub_ass_styles):
+                return (lang.SchemaLabel_Mpv_sub_ass_styles, lang.SchemaDesc_Mpv_sub_ass_styles);
+            case nameof(AppContext.AppSetting.Mpv_sub_auto_exts):
+                return (lang.SchemaLabel_Mpv_sub_auto_exts, lang.SchemaDesc_Mpv_sub_auto_exts);
+            case nameof(AppContext.AppSetting.Mpv_sub_border_style):
+                return (lang.SchemaLabel_Mpv_sub_border_style, lang.SchemaDesc_Mpv_sub_border_style);
+            case nameof(AppContext.AppSetting.Mpv_sub_create_cc_track):
+                return (lang.SchemaLabel_Mpv_sub_create_cc_track, lang.SchemaDesc_Mpv_sub_create_cc_track);
+            case nameof(AppContext.AppSetting.Mpv_sub_demuxer):
+                return (lang.SchemaLabel_Mpv_sub_demuxer, lang.SchemaDesc_Mpv_sub_demuxer);
+            case nameof(AppContext.AppSetting.Mpv_sub_files):
+                return (lang.SchemaLabel_Mpv_sub_files, lang.SchemaDesc_Mpv_sub_files);
+            case nameof(AppContext.AppSetting.Mpv_sub_filter_jsre):
+                return (lang.SchemaLabel_Mpv_sub_filter_jsre, lang.SchemaDesc_Mpv_sub_filter_jsre);
+            case nameof(AppContext.AppSetting.Mpv_sub_filter_regex):
+                return (lang.SchemaLabel_Mpv_sub_filter_regex, lang.SchemaDesc_Mpv_sub_filter_regex);
+            case nameof(AppContext.AppSetting.Mpv_sub_filter_regex_enable):
+                return (lang.SchemaLabel_Mpv_sub_filter_regex_enable, lang.SchemaDesc_Mpv_sub_filter_regex_enable);
+            case nameof(AppContext.AppSetting.Mpv_sub_filter_regex_plain):
+                return (lang.SchemaLabel_Mpv_sub_filter_regex_plain, lang.SchemaDesc_Mpv_sub_filter_regex_plain);
+            case nameof(AppContext.AppSetting.Mpv_sub_filter_regex_warn):
+                return (lang.SchemaLabel_Mpv_sub_filter_regex_warn, lang.SchemaDesc_Mpv_sub_filter_regex_warn);
+            case nameof(AppContext.AppSetting.Mpv_sub_fix_timing_keep):
+                return (lang.SchemaLabel_Mpv_sub_fix_timing_keep, lang.SchemaDesc_Mpv_sub_fix_timing_keep);
+            case nameof(AppContext.AppSetting.Mpv_sub_fps):
+                return (lang.SchemaLabel_Mpv_sub_fps, lang.SchemaDesc_Mpv_sub_fps);
+            case nameof(AppContext.AppSetting.Mpv_sub_glyph_limit):
+                return (lang.SchemaLabel_Mpv_sub_glyph_limit, lang.SchemaDesc_Mpv_sub_glyph_limit);
+            case nameof(AppContext.AppSetting.Mpv_sub_gray):
+                return (lang.SchemaLabel_Mpv_sub_gray, lang.SchemaDesc_Mpv_sub_gray);
+            case nameof(AppContext.AppSetting.Mpv_sub_past_video_end):
+                return (lang.SchemaLabel_Mpv_sub_past_video_end, lang.SchemaDesc_Mpv_sub_past_video_end);
+            case nameof(AppContext.AppSetting.Mpv_sub_scale_with_window):
+                return (lang.SchemaLabel_Mpv_sub_scale_with_window, lang.SchemaDesc_Mpv_sub_scale_with_window);
+            case nameof(AppContext.AppSetting.Mpv_sub_speed):
+                return (lang.SchemaLabel_Mpv_sub_speed, lang.SchemaDesc_Mpv_sub_speed);
+            case nameof(AppContext.AppSetting.Mpv_sub_stretch_durations):
+                return (lang.SchemaLabel_Mpv_sub_stretch_durations, lang.SchemaDesc_Mpv_sub_stretch_durations);
+            case nameof(AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat):
+                return (lang.SchemaLabel_Mpv_sub_vsfilter_bidi_compat, lang.SchemaDesc_Mpv_sub_vsfilter_bidi_compat);
+            case nameof(AppContext.AppSetting.Mpv_swapchain_depth):
+                return (lang.SchemaLabel_Mpv_swapchain_depth, lang.SchemaDesc_Mpv_swapchain_depth);
+            case nameof(AppContext.AppSetting.Mpv_target_contrast):
+                return (lang.SchemaLabel_Mpv_target_contrast, lang.SchemaDesc_Mpv_target_contrast);
+            case nameof(AppContext.AppSetting.Mpv_target_lut):
+                return (lang.SchemaLabel_Mpv_target_lut, lang.SchemaDesc_Mpv_target_lut);
+            case nameof(AppContext.AppSetting.Mpv_taskbar_progress):
+                return (lang.SchemaLabel_Mpv_taskbar_progress, lang.SchemaDesc_Mpv_taskbar_progress);
+            case nameof(AppContext.AppSetting.Mpv_teletext_page):
+                return (lang.SchemaLabel_Mpv_teletext_page, lang.SchemaDesc_Mpv_teletext_page);
+            case nameof(AppContext.AppSetting.Mpv_temporal_dither):
+                return (lang.SchemaLabel_Mpv_temporal_dither, lang.SchemaDesc_Mpv_temporal_dither);
+            case nameof(AppContext.AppSetting.Mpv_temporal_dither_period):
+                return (lang.SchemaLabel_Mpv_temporal_dither_period, lang.SchemaDesc_Mpv_temporal_dither_period);
+            case nameof(AppContext.AppSetting.Mpv_title):
+                return (lang.SchemaLabel_Mpv_title, lang.SchemaDesc_Mpv_title);
+            case nameof(AppContext.AppSetting.Mpv_tls_ca_file):
+                return (lang.SchemaLabel_Mpv_tls_ca_file, lang.SchemaDesc_Mpv_tls_ca_file);
+            case nameof(AppContext.AppSetting.Mpv_tls_cert_file):
+                return (lang.SchemaLabel_Mpv_tls_cert_file, lang.SchemaDesc_Mpv_tls_cert_file);
+            case nameof(AppContext.AppSetting.Mpv_tls_key_file):
+                return (lang.SchemaLabel_Mpv_tls_key_file, lang.SchemaDesc_Mpv_tls_key_file);
+            case nameof(AppContext.AppSetting.Mpv_tone_mapping_param):
+                return (lang.SchemaLabel_Mpv_tone_mapping_param, lang.SchemaDesc_Mpv_tone_mapping_param);
+            case nameof(AppContext.AppSetting.Mpv_track_auto_selection):
+                return (lang.SchemaLabel_Mpv_track_auto_selection, lang.SchemaDesc_Mpv_track_auto_selection);
+            case nameof(AppContext.AppSetting.Mpv_treat_srgb_as_power22):
+                return (lang.SchemaLabel_Mpv_treat_srgb_as_power22, lang.SchemaDesc_Mpv_treat_srgb_as_power22);
+            case nameof(AppContext.AppSetting.Mpv_untimed):
+                return (lang.SchemaLabel_Mpv_untimed, lang.SchemaDesc_Mpv_untimed);
+            case nameof(AppContext.AppSetting.Mpv_use_embedded_icc_profile):
+                return (lang.SchemaLabel_Mpv_use_embedded_icc_profile, lang.SchemaDesc_Mpv_use_embedded_icc_profile);
+            case nameof(AppContext.AppSetting.Mpv_use_filedir_conf):
+                return (lang.SchemaLabel_Mpv_use_filedir_conf, lang.SchemaDesc_Mpv_use_filedir_conf);
+            case nameof(AppContext.AppSetting.Mpv_vd_apply_cropping):
+                return (lang.SchemaLabel_Mpv_vd_apply_cropping, lang.SchemaDesc_Mpv_vd_apply_cropping);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_assume_old_x264):
+                return (lang.SchemaLabel_Mpv_vd_lavc_assume_old_x264, lang.SchemaDesc_Mpv_vd_lavc_assume_old_x264);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_bitexact):
+                return (lang.SchemaLabel_Mpv_vd_lavc_bitexact, lang.SchemaDesc_Mpv_vd_lavc_bitexact);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_check_hw_profile):
+                return (lang.SchemaLabel_Mpv_vd_lavc_check_hw_profile, lang.SchemaDesc_Mpv_vd_lavc_check_hw_profile);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_fast):
+                return (lang.SchemaLabel_Mpv_vd_lavc_fast, lang.SchemaDesc_Mpv_vd_lavc_fast);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_film_grain):
+                return (lang.SchemaLabel_Mpv_vd_lavc_film_grain, lang.SchemaDesc_Mpv_vd_lavc_film_grain);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_framedrop):
+                return (lang.SchemaLabel_Mpv_vd_lavc_framedrop, lang.SchemaDesc_Mpv_vd_lavc_framedrop);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_show_all):
+                return (lang.SchemaLabel_Mpv_vd_lavc_show_all, lang.SchemaDesc_Mpv_vd_lavc_show_all);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_skipframe):
+                return (lang.SchemaLabel_Mpv_vd_lavc_skipframe, lang.SchemaDesc_Mpv_vd_lavc_skipframe);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_skipidct):
+                return (lang.SchemaLabel_Mpv_vd_lavc_skipidct, lang.SchemaDesc_Mpv_vd_lavc_skipidct);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_skiploopfilter):
+                return (lang.SchemaLabel_Mpv_vd_lavc_skiploopfilter, lang.SchemaDesc_Mpv_vd_lavc_skiploopfilter);
+            case nameof(AppContext.AppSetting.Mpv_vd_lavc_threads):
+                return (lang.SchemaLabel_Mpv_vd_lavc_threads, lang.SchemaDesc_Mpv_vd_lavc_threads);
+            case nameof(AppContext.AppSetting.Mpv_vd_queue_enable):
+                return (lang.SchemaLabel_Mpv_vd_queue_enable, lang.SchemaDesc_Mpv_vd_queue_enable);
+            case nameof(AppContext.AppSetting.Mpv_vd_queue_max_bytes):
+                return (lang.SchemaLabel_Mpv_vd_queue_max_bytes, lang.SchemaDesc_Mpv_vd_queue_max_bytes);
+            case nameof(AppContext.AppSetting.Mpv_vd_queue_max_samples):
+                return (lang.SchemaLabel_Mpv_vd_queue_max_samples, lang.SchemaDesc_Mpv_vd_queue_max_samples);
+            case nameof(AppContext.AppSetting.Mpv_vd_queue_max_secs):
+                return (lang.SchemaLabel_Mpv_vd_queue_max_secs, lang.SchemaDesc_Mpv_vd_queue_max_secs);
+            case nameof(AppContext.AppSetting.Mpv_vid):
+                return (lang.SchemaLabel_Mpv_vid, lang.SchemaDesc_Mpv_vid);
+            case nameof(AppContext.AppSetting.Mpv_video_aspect_method):
+                return (lang.SchemaLabel_Mpv_video_aspect_method, lang.SchemaDesc_Mpv_video_aspect_method);
+            case nameof(AppContext.AppSetting.Mpv_video_crop):
+                return (lang.SchemaLabel_Mpv_video_crop, lang.SchemaDesc_Mpv_video_crop);
+            case nameof(AppContext.AppSetting.Mpv_video_latency_hacks):
+                return (lang.SchemaLabel_Mpv_video_latency_hacks, lang.SchemaDesc_Mpv_video_latency_hacks);
+            case nameof(AppContext.AppSetting.Mpv_video_margin_ratio_bottom):
+                return (lang.SchemaLabel_Mpv_video_margin_ratio_bottom, lang.SchemaDesc_Mpv_video_margin_ratio_bottom);
+            case nameof(AppContext.AppSetting.Mpv_video_margin_ratio_left):
+                return (lang.SchemaLabel_Mpv_video_margin_ratio_left, lang.SchemaDesc_Mpv_video_margin_ratio_left);
+            case nameof(AppContext.AppSetting.Mpv_video_margin_ratio_right):
+                return (lang.SchemaLabel_Mpv_video_margin_ratio_right, lang.SchemaDesc_Mpv_video_margin_ratio_right);
+            case nameof(AppContext.AppSetting.Mpv_video_margin_ratio_top):
+                return (lang.SchemaLabel_Mpv_video_margin_ratio_top, lang.SchemaDesc_Mpv_video_margin_ratio_top);
+            case nameof(AppContext.AppSetting.Mpv_video_osd):
+                return (lang.SchemaLabel_Mpv_video_osd, lang.SchemaDesc_Mpv_video_osd);
+            case nameof(AppContext.AppSetting.Mpv_video_recenter):
+                return (lang.SchemaLabel_Mpv_video_recenter, lang.SchemaDesc_Mpv_video_recenter);
+            case nameof(AppContext.AppSetting.Mpv_video_scale_x):
+                return (lang.SchemaLabel_Mpv_video_scale_x, lang.SchemaDesc_Mpv_video_scale_x);
+            case nameof(AppContext.AppSetting.Mpv_video_scale_y):
+                return (lang.SchemaLabel_Mpv_video_scale_y, lang.SchemaDesc_Mpv_video_scale_y);
+            case nameof(AppContext.AppSetting.Mpv_video_sync_max_audio_change):
+                return (lang.SchemaLabel_Mpv_video_sync_max_audio_change, lang.SchemaDesc_Mpv_video_sync_max_audio_change);
+            case nameof(AppContext.AppSetting.Mpv_video_sync_max_factor):
+                return (lang.SchemaLabel_Mpv_video_sync_max_factor, lang.SchemaDesc_Mpv_video_sync_max_factor);
+            case nameof(AppContext.AppSetting.Mpv_video_timing_offset):
+                return (lang.SchemaLabel_Mpv_video_timing_offset, lang.SchemaDesc_Mpv_video_timing_offset);
+            case nameof(AppContext.AppSetting.Mpv_vlang):
+                return (lang.SchemaLabel_Mpv_vlang, lang.SchemaDesc_Mpv_vlang);
+            case nameof(AppContext.AppSetting.Mpv_vo_direct3d_disable_texture_align):
+                return (lang.SchemaLabel_Mpv_vo_direct3d_disable_texture_align, lang.SchemaDesc_Mpv_vo_direct3d_disable_texture_align);
+            case nameof(AppContext.AppSetting.Mpv_vo_direct3d_exact_backbuffer):
+                return (lang.SchemaLabel_Mpv_vo_direct3d_exact_backbuffer, lang.SchemaDesc_Mpv_vo_direct3d_exact_backbuffer);
+            case nameof(AppContext.AppSetting.Mpv_vo_direct3d_force_power_of_2):
+                return (lang.SchemaLabel_Mpv_vo_direct3d_force_power_of_2, lang.SchemaDesc_Mpv_vo_direct3d_force_power_of_2);
+            case nameof(AppContext.AppSetting.Mpv_vo_direct3d_swap_discard):
+                return (lang.SchemaLabel_Mpv_vo_direct3d_swap_discard, lang.SchemaDesc_Mpv_vo_direct3d_swap_discard);
+            case nameof(AppContext.AppSetting.Mpv_vo_direct3d_texture_memory):
+                return (lang.SchemaLabel_Mpv_vo_direct3d_texture_memory, lang.SchemaDesc_Mpv_vo_direct3d_texture_memory);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_avif_encoder):
+                return (lang.SchemaLabel_Mpv_vo_image_avif_encoder, lang.SchemaDesc_Mpv_vo_image_avif_encoder);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_avif_opts):
+                return (lang.SchemaLabel_Mpv_vo_image_avif_opts, lang.SchemaDesc_Mpv_vo_image_avif_opts);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_avif_pixfmt):
+                return (lang.SchemaLabel_Mpv_vo_image_avif_pixfmt, lang.SchemaDesc_Mpv_vo_image_avif_pixfmt);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_format):
+                return (lang.SchemaLabel_Mpv_vo_image_format, lang.SchemaDesc_Mpv_vo_image_format);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_high_bit_depth):
+                return (lang.SchemaLabel_Mpv_vo_image_high_bit_depth, lang.SchemaDesc_Mpv_vo_image_high_bit_depth);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_quality):
+                return (lang.SchemaLabel_Mpv_vo_image_jpeg_quality, lang.SchemaDesc_Mpv_vo_image_jpeg_quality);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_jpeg_source_chroma):
+                return (lang.SchemaLabel_Mpv_vo_image_jpeg_source_chroma, lang.SchemaDesc_Mpv_vo_image_jpeg_source_chroma);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_jxl_distance):
+                return (lang.SchemaLabel_Mpv_vo_image_jxl_distance, lang.SchemaDesc_Mpv_vo_image_jxl_distance);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_jxl_effort):
+                return (lang.SchemaLabel_Mpv_vo_image_jxl_effort, lang.SchemaDesc_Mpv_vo_image_jxl_effort);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_outdir):
+                return (lang.SchemaLabel_Mpv_vo_image_outdir, lang.SchemaDesc_Mpv_vo_image_outdir);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_png_compression):
+                return (lang.SchemaLabel_Mpv_vo_image_png_compression, lang.SchemaDesc_Mpv_vo_image_png_compression);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_png_filter):
+                return (lang.SchemaLabel_Mpv_vo_image_png_filter, lang.SchemaDesc_Mpv_vo_image_png_filter);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_tag_colorspace):
+                return (lang.SchemaLabel_Mpv_vo_image_tag_colorspace, lang.SchemaDesc_Mpv_vo_image_tag_colorspace);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_webp_compression):
+                return (lang.SchemaLabel_Mpv_vo_image_webp_compression, lang.SchemaDesc_Mpv_vo_image_webp_compression);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_webp_lossless):
+                return (lang.SchemaLabel_Mpv_vo_image_webp_lossless, lang.SchemaDesc_Mpv_vo_image_webp_lossless);
+            case nameof(AppContext.AppSetting.Mpv_vo_image_webp_quality):
+                return (lang.SchemaLabel_Mpv_vo_image_webp_quality, lang.SchemaDesc_Mpv_vo_image_webp_quality);
+            case nameof(AppContext.AppSetting.Mpv_vo_mmcss_profile):
+                return (lang.SchemaLabel_Mpv_vo_mmcss_profile, lang.SchemaDesc_Mpv_vo_mmcss_profile);
+            case nameof(AppContext.AppSetting.Mpv_volume):
+                return (lang.SchemaLabel_Mpv_volume, lang.SchemaDesc_Mpv_volume);
+            case nameof(AppContext.AppSetting.Mpv_volume_gain):
+                return (lang.SchemaLabel_Mpv_volume_gain, lang.SchemaDesc_Mpv_volume_gain);
+            case nameof(AppContext.AppSetting.Mpv_volume_gain_max):
+                return (lang.SchemaLabel_Mpv_volume_gain_max, lang.SchemaDesc_Mpv_volume_gain_max);
+            case nameof(AppContext.AppSetting.Mpv_volume_gain_min):
+                return (lang.SchemaLabel_Mpv_volume_gain_min, lang.SchemaDesc_Mpv_volume_gain_min);
+            case nameof(AppContext.AppSetting.Mpv_volume_max):
+                return (lang.SchemaLabel_Mpv_volume_max, lang.SchemaDesc_Mpv_volume_max);
+            case nameof(AppContext.AppSetting.Mpv_wasapi_exclusive_buffer):
+                return (lang.SchemaLabel_Mpv_wasapi_exclusive_buffer, lang.SchemaDesc_Mpv_wasapi_exclusive_buffer);
+            case nameof(AppContext.AppSetting.Mpv_watch_history_path):
+                return (lang.SchemaLabel_Mpv_watch_history_path, lang.SchemaDesc_Mpv_watch_history_path);
+            case nameof(AppContext.AppSetting.Mpv_window_affinity):
+                return (lang.SchemaLabel_Mpv_window_affinity, lang.SchemaDesc_Mpv_window_affinity);
+            case nameof(AppContext.AppSetting.Mpv_window_corners):
+                return (lang.SchemaLabel_Mpv_window_corners, lang.SchemaDesc_Mpv_window_corners);
+            case nameof(AppContext.AppSetting.Mpv_window_dragging):
+                return (lang.SchemaLabel_Mpv_window_dragging, lang.SchemaDesc_Mpv_window_dragging);
+            case nameof(AppContext.AppSetting.Mpv_window_maximized):
+                return (lang.SchemaLabel_Mpv_window_maximized, lang.SchemaDesc_Mpv_window_maximized);
+            case nameof(AppContext.AppSetting.Mpv_window_minimized):
+                return (lang.SchemaLabel_Mpv_window_minimized, lang.SchemaDesc_Mpv_window_minimized);
+            case nameof(AppContext.AppSetting.Mpv_window_scale):
+                return (lang.SchemaLabel_Mpv_window_scale, lang.SchemaDesc_Mpv_window_scale);
+            case nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config):
+                return (lang.SchemaLabel_Mpv_write_filename_in_watch_later_config, lang.SchemaDesc_Mpv_write_filename_in_watch_later_config);
+            case nameof(AppContext.AppSetting.Mpv_ytdl):
+                return (lang.SchemaLabel_Mpv_ytdl, lang.SchemaDesc_Mpv_ytdl);
+            case nameof(AppContext.AppSetting.Mpv_ytdl_format):
+                return (lang.SchemaLabel_Mpv_ytdl_format, lang.SchemaDesc_Mpv_ytdl_format);
+            case nameof(AppContext.AppSetting.Mpv_ytdl_raw_options):
+                return (lang.SchemaLabel_Mpv_ytdl_raw_options, lang.SchemaDesc_Mpv_ytdl_raw_options);
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// The same reader for the hand-written rows.
+    ///
+    /// Emitted rather than reflected: the caption a row reads is a fact
+    /// the generator can extract from the literal, and a generated switch
+    /// is checked by the compiler. A reflection lookup would compile even
+    /// when the property it names has been renamed, and the only symptom
+    /// would be a row that keeps its old language after a switch.
+    /// </summary>
+    private static (string Label, string? Description)? HandWrittenText(string key)
+    {
+        var lang = AppContext.AppLang;
+        switch (key)
+        {
+            case nameof(AppContext.AppSetting.AbLoopA):
+                return (lang.SettingsAbLoopA, lang.SettingsHelpAbLoopA);
+            case nameof(AppContext.AppSetting.AbLoopB):
+                return (lang.SettingsAbLoopB, lang.SettingsHelpAbLoopB);
+            case nameof(AppContext.AppSetting.AbLoopCount):
+                return (lang.SettingsAbLoopCount, lang.SettingsHelpAbLoopCount);
+            case nameof(AppContext.AppSetting.AdLavcDownmix):
+                return (lang.SettingsAdLavcDownmix, lang.SettingsHelpAdLavcDownmix);
+            case nameof(AppContext.AppSetting.AlwaysOnTop):
+                return (lang.SettingsAlwaysOnTop, lang.SettingsHelpAlwaysOnTop);
+            case nameof(AppContext.AppSetting.AspectRatio):
+                return (lang.SettingsAspect, lang.SettingsHelpAspectRatio);
+            case nameof(AppContext.AppSetting.AudioBuffer):
+                return (lang.SettingsAudioBuffer, lang.SettingsHelpAudioBuffer);
+            case nameof(AppContext.AppSetting.AudioChannels):
+                return (lang.SettingsAudioChannels, lang.SettingsHelpAudioChannels);
+            case nameof(AppContext.AppSetting.AudioDelay):
+                return (lang.SettingsAudioDelay, lang.SettingsHelpAudioDelay);
+            case nameof(AppContext.AppSetting.AudioDevice):
+                return (lang.SettingsAudioDevice, lang.SettingsHelpAudioDevice);
+            case nameof(AppContext.AppSetting.AudioDisplay):
+                return (lang.SettingsAudioDisplay, lang.SettingsHelpAudioDisplay);
+            case nameof(AppContext.AppSetting.AudioExclusive):
+                return (lang.SettingsAudioExclusive, lang.SettingsHelpAudioExclusive);
+            case nameof(AppContext.AppSetting.AudioExts):
+                return (lang.SettingsAudioExts, lang.SettingsHelpAudioExts);
+            case nameof(AppContext.AppSetting.AudioFileAuto):
+                return (lang.SettingsAudioFileAuto, lang.SettingsHelpAudioFileAuto);
+            case nameof(AppContext.AppSetting.AudioFilePaths):
+                return (lang.SettingsAudioFilePaths, lang.SettingsHelpAudioFilePaths);
+            case nameof(AppContext.AppSetting.AudioFormat):
+                return (lang.SettingsAudioFormat, lang.SettingsHelpAudioFormat);
+            case nameof(AppContext.AppSetting.AudioGapless):
+                return (lang.SettingsAudioGapless, lang.SettingsHelpAudioGapless);
+            case nameof(AppContext.AppSetting.AudioLanguage):
+                return (lang.SettingsAudioLanguage, lang.SettingsHelpAudioLanguage);
+            case nameof(AppContext.AppSetting.AudioNormalizeDownmix):
+                return (lang.SettingsAudioNormalizeDownmix, lang.SettingsHelpAudioNormalizeDownmix);
+            case nameof(AppContext.AppSetting.AudioPitchCorrection):
+                return (lang.SettingsAudioPitchCorrection, lang.SettingsHelpAudioPitchCorrection);
+            case nameof(AppContext.AppSetting.AudioReversalBuffer):
+                return (lang.SettingsAudioReversalBuffer, lang.SettingsHelpAudioReversalBuffer);
+            case nameof(AppContext.AppSetting.AudioSampleRate):
+                return (lang.SettingsAudioSampleRate, lang.SettingsHelpAudioSampleRate);
+            case nameof(AppContext.AppSetting.AudioSpdif):
+                return (lang.SettingsAudioSpdif, lang.SettingsHelpAudioSpdif);
+            case nameof(AppContext.AppSetting.AudioStreamSilence):
+                return (lang.SettingsAudioStreamSilence, lang.SettingsHelpAudioStreamSilence);
+            case nameof(AppContext.AppSetting.AudioWaitOpen):
+                return (lang.SettingsAudioWaitOpen, lang.SettingsHelpAudioWaitOpen);
+            case nameof(AppContext.AppSetting.AutoCreatePlaylist):
+                return (lang.SettingsAutoCreatePlaylist, lang.SettingsHelpAutoCreatePlaylist);
+            case nameof(AppContext.AppSetting.AutoWindowResize):
+                return (lang.SettingsAutoWindowResize, lang.SettingsHelpAutoWindowResize);
+            case nameof(AppContext.AppSetting.BackdropType):
+                return (lang.Backdrop, lang.SettingsHelpBackdrop);
+            case nameof(AppContext.AppSetting.BackgroundTileColor0):
+                return (lang.SettingsBackgroundTileColor0, lang.SettingsHelpBackgroundTileColor0);
+            case nameof(AppContext.AppSetting.BackgroundTileColor1):
+                return (lang.SettingsBackgroundTileColor1, lang.SettingsHelpBackgroundTileColor1);
+            case nameof(AppContext.AppSetting.BackgroundTileSize):
+                return (lang.SettingsBackgroundTileSize, lang.SettingsHelpBackgroundTileSize);
+            case nameof(AppContext.AppSetting.BlendSubtitles):
+                return (lang.SettingsBlendSubtitles, lang.SettingsHelpBlendSubtitles);
+            case nameof(AppContext.AppSetting.CacheEnabled):
+                return (lang.SettingsCacheEnabled, lang.SettingsHelpCacheEnabled);
+            case nameof(AppContext.AppSetting.CacheOnDisk):
+                return (lang.SettingsCacheOnDisk, lang.SettingsHelpCacheOnDisk);
+            case nameof(AppContext.AppSetting.CachePause):
+                return (lang.SettingsCachePause, lang.SettingsHelpCachePause);
+            case nameof(AppContext.AppSetting.CachePauseInitial):
+                return (lang.SettingsCachePauseInitial, lang.SettingsHelpCachePauseInitial);
+            case nameof(AppContext.AppSetting.CachePauseWait):
+                return (lang.SettingsCachePauseWait, lang.SettingsHelpCachePauseWait);
+            case nameof(AppContext.AppSetting.CacheSecs):
+                return (lang.SettingsCacheSecs, lang.SettingsHelpCacheSecs);
+            case nameof(AppContext.AppSetting.CheckForUpdates):
+                return (lang.SettingsCheckForUpdates, lang.SettingsCheckForUpdatesDescription);
+            case nameof(AppContext.AppSetting.ControlBarLayout):
+                return (lang.SettingsControlBarLayout, lang.SettingsHelpControlBarLayout);
+            case nameof(AppContext.AppSetting.CookiesFile):
+                return (lang.SettingsCookiesFile, lang.SettingsHelpCookiesFile);
+            case nameof(AppContext.AppSetting.CorrectDownscaling):
+                return (lang.SettingsCorrectDownscaling, lang.SettingsHelpCorrectDownscaling);
+            case nameof(AppContext.AppSetting.CoverArtAlwaysScan):
+                return (lang.SettingsCoverArtAlwaysScan, lang.SettingsHelpCoverArtAlwaysScan);
+            case nameof(AppContext.AppSetting.CoverArtImageExts):
+                return (lang.SettingsCoverArtImageExts, lang.SettingsHelpCoverArtImageExts);
+            case nameof(AppContext.AppSetting.CoverArtLoadFromFilesystem):
+                return (lang.SettingsCoverArtLoadFromFilesystem, lang.SettingsHelpCoverArtLoadFromFilesystem);
+            case nameof(AppContext.AppSetting.CoverArtNames):
+                return (lang.SettingsCoverArtNames, lang.SettingsHelpCoverArtNames);
+            case nameof(AppContext.AppSetting.CoverArtPreferEmbedded):
+                return (lang.SettingsCoverArtPreferEmbedded, lang.SettingsHelpCoverArtPreferEmbedded);
+            case nameof(AppContext.AppSetting.CoverArtPreload):
+                return (lang.SettingsCoverArtPreload, lang.SettingsHelpCoverArtPreload);
+            case nameof(AppContext.AppSetting.Cscale):
+                return (lang.SettingsCscale, lang.SettingsHelpCscale);
+            case nameof(AppContext.AppSetting.CscaleAntiring):
+                return (lang.SettingsCscaleAntiring, lang.SettingsHelpCscaleAntiring);
+            case nameof(AppContext.AppSetting.CurlBufferSize):
+                return (lang.SettingsCurlBufferSize, lang.SettingsHelpCurlBufferSize);
+            case nameof(AppContext.AppSetting.CurlConnectTimeout):
+                return (lang.SettingsCurlConnectTimeout, lang.SettingsHelpCurlConnectTimeout);
+            case nameof(AppContext.AppSetting.CurlMaxRedirects):
+                return (lang.SettingsCurlMaxRedirects, lang.SettingsHelpCurlMaxRedirects);
+            case nameof(AppContext.AppSetting.CurlMaxRequestSize):
+                return (lang.SettingsCurlMaxRequestSize, lang.SettingsHelpCurlMaxRequestSize);
+            case nameof(AppContext.AppSetting.CurlMaxRetries):
+                return (lang.SettingsCurlMaxRetries, lang.SettingsHelpCurlMaxRetries);
+            case nameof(AppContext.AppSetting.CurrentLanguage):
+                return (lang.SettingLanguages, lang.SettingsHelpLanguage);
+            case nameof(AppContext.AppSetting.CursorAutohide):
+                return (lang.SettingsCursorAutohide, lang.SettingsHelpCursorAutohide);
+            case nameof(AppContext.AppSetting.CursorAutohideFsOnly):
+                return (lang.SettingsCursorAutohideFsOnly, lang.SettingsHelpCursorAutohideFsOnly);
+            case nameof(AppContext.AppSetting.D3d11Adapter):
+                return (lang.SettingsD3d11Adapter, lang.SettingsHelpD3d11Adapter);
+            case nameof(AppContext.AppSetting.D3d11ExclusiveFs):
+                return (lang.SettingsD3d11ExclusiveFs, lang.SettingsHelpD3d11ExclusiveFs);
+            case nameof(AppContext.AppSetting.D3d11Flip):
+                return (lang.SettingsD3d11Flip, lang.SettingsHelpD3d11Flip);
+            case nameof(AppContext.AppSetting.D3d11OutputCsp):
+                return (lang.SettingsD3d11OutputCsp, lang.SettingsHelpD3d11OutputCsp);
+            case nameof(AppContext.AppSetting.D3d11OutputFormat):
+                return (lang.SettingsD3d11OutputFormat, lang.SettingsHelpD3d11OutputFormat);
+            case nameof(AppContext.AppSetting.D3d11SyncInterval):
+                return (lang.SettingsD3d11SyncInterval, lang.SettingsHelpD3d11SyncInterval);
+            case nameof(AppContext.AppSetting.D3d11Warp):
+                return (lang.SettingsD3d11Warp, lang.SettingsHelpD3d11Warp);
+            case nameof(AppContext.AppSetting.DScale):
+                return (lang.SettingsDScale, lang.SettingsHelpDScale);
+            case nameof(AppContext.AppSetting.Deband):
+                return (lang.SettingsDeband, lang.SettingsHelpDeband);
+            case nameof(AppContext.AppSetting.Deinterlace):
+                return (lang.SettingsDeinterlace, lang.SettingsHelpDeinterlace);
+            case nameof(AppContext.AppSetting.DemuxerCacheDir):
+                return (lang.SettingsDemuxerCacheDir, lang.SettingsHelpDemuxerCacheDir);
+            case nameof(AppContext.AppSetting.DemuxerHysteresisSecs):
+                return (lang.SettingsDemuxerHysteresisSecs, lang.SettingsHelpDemuxerHysteresisSecs);
+            case nameof(AppContext.AppSetting.DemuxerMaxBackBytes):
+                return (lang.SettingsDemuxerMaxBackBytes, lang.SettingsHelpDemuxerMaxBackBytes);
+            case nameof(AppContext.AppSetting.DemuxerMaxBytes):
+                return (lang.SettingsDemuxerMaxBytes, lang.SettingsHelpDemuxerMaxBytes);
+            case nameof(AppContext.AppSetting.DemuxerReadahead):
+                return (lang.SettingsDemuxerReadahead, lang.SettingsHelpDemuxerReadahead);
+            case nameof(AppContext.AppSetting.DirectoryFilterTypes):
+                return (lang.SettingsDirectoryFilterTypes, lang.SettingsHelpDirectoryFilterTypes);
+            case nameof(AppContext.AppSetting.DirectoryMode):
+                return (lang.SettingsDirectoryMode, lang.SettingsHelpDirectoryMode);
+            case nameof(AppContext.AppSetting.DisplayPeak):
+                return (lang.SettingsDisplayPeak, lang.SettingsHelpDisplayPeak);
+            case nameof(AppContext.AppSetting.Dither):
+                return (lang.SettingsDither, lang.SettingsHelpDither);
+            case nameof(AppContext.AppSetting.DitherDepth):
+                return (lang.SettingsDitherDepth, lang.SettingsHelpDitherDepth);
+            case nameof(AppContext.AppSetting.EnableDebugLog):
+                return (lang.DebugLog, lang.SettingsHelpDebugLog);
+            case nameof(AppContext.AppSetting.EnableVideoPreview):
+                return (lang.SettingsVideoPreview, lang.SettingsHelpVideoPreview);
+            case nameof(AppContext.AppSetting.GamutMappingMode):
+                return (lang.SettingsGamutMappingMode, lang.SettingsHelpGamutMappingMode);
+            case nameof(AppContext.AppSetting.GlslShaderOpts):
+                return (lang.SettingsGlslShaderOpts, lang.SettingsHelpGlslShaderOpts);
+            case nameof(AppContext.AppSetting.GlslShaders):
+                return (lang.SettingsGlslShaders, lang.SettingsHelpGlslShaders);
+            case nameof(AppContext.AppSetting.GlslShadersAppend):
+                return (lang.SettingsGlslShadersAppend, lang.SettingsHelpGlslShadersAppend);
+            case nameof(AppContext.AppSetting.GpuApi):
+                return (lang.SettingsGpuApi, lang.SettingsHelpGpuApi);
+            case nameof(AppContext.AppSetting.GpuContext):
+                return (lang.SettingsGpuContext, lang.SettingsHelpGpuContext);
+            case nameof(AppContext.AppSetting.GpuShaderCache):
+                return (lang.SettingsGpuShaderCache, lang.SettingsHelpGpuShaderCache);
+            case nameof(AppContext.AppSetting.GpuShaderCacheDir):
+                return (lang.SettingsGpuShaderCacheDir, lang.SettingsHelpGpuShaderCacheDir);
+            case nameof(AppContext.AppSetting.HdrAutoLog):
+                return (lang.SettingsHdrAutoLog, lang.SettingsHelpHdrAutoLog);
+            case nameof(AppContext.AppSetting.HdrAutoMode):
+                return (lang.SettingsHdrAutoMode, lang.SettingsHelpHdrAutoMode);
+            case nameof(AppContext.AppSetting.HdrComputePeak):
+                return (lang.SettingsHdrComputePeak, lang.SettingsHelpHdrComputePeak);
+            case nameof(AppContext.AppSetting.HdrContrastRecovery):
+                return (lang.SettingsHdrContrastRecovery, lang.SettingsHelpHdrContrastRecovery);
+            case nameof(AppContext.AppSetting.HdrContrastSmoothness):
+                return (lang.SettingsHdrContrastSmoothness, lang.SettingsHelpHdrContrastSmoothness);
+            case nameof(AppContext.AppSetting.HdrOverrideMode):
+                return (lang.SettingsHdrOverrideMode, lang.SettingsHelpHdrOverrideMode);
+            case nameof(AppContext.AppSetting.HdrPeakDecayRate):
+                return (lang.SettingsHdrPeakDecayRate, lang.SettingsHelpHdrPeakDecayRate);
+            case nameof(AppContext.AppSetting.HdrSceneThresholdHigh):
+                return (lang.SettingsHdrSceneThresholdHigh, lang.SettingsHelpHdrSceneThresholdHigh);
+            case nameof(AppContext.AppSetting.HdrSceneThresholdLow):
+                return (lang.SettingsHdrSceneThresholdLow, lang.SettingsHelpHdrSceneThresholdLow);
+            case nameof(AppContext.AppSetting.HrSeek):
+                return (lang.SettingsHrSeek, lang.SettingsHelpHrSeek);
+            case nameof(AppContext.AppSetting.HrSeekFramedrop):
+                return (lang.SettingsHrSeekFramedrop, lang.SettingsHelpHrSeekFramedrop);
+            case nameof(AppContext.AppSetting.HttpHeaderFields):
+                return (lang.SettingsHttpHeaderFields, lang.SettingsHelpHttpHeaderFields);
+            case nameof(AppContext.AppSetting.HttpProxy):
+                return (lang.SettingsHttpProxy, lang.SettingsHelpHttpProxy);
+            case nameof(AppContext.AppSetting.Hwdec):
+                return (lang.SettingsHwdec, lang.SettingsHelpHwdec);
+            case nameof(AppContext.AppSetting.HwdecCodecs):
+                return (lang.SettingsHwdecCodecs, lang.SettingsHelpHwdecCodecs);
+            case nameof(AppContext.AppSetting.Icc3dlutSize):
+                return (lang.SettingsIcc3dlutSize, lang.SettingsHelpIcc3dlutSize);
+            case nameof(AppContext.AppSetting.IccCache):
+                return (lang.SettingsIccCache, lang.SettingsHelpIccCache);
+            case nameof(AppContext.AppSetting.IccCacheDir):
+                return (lang.SettingsIccCacheDir, lang.SettingsHelpIccCacheDir);
+            case nameof(AppContext.AppSetting.IccForceContrast):
+                return (lang.SettingsIccForceContrast, lang.SettingsHelpIccForceContrast);
+            case nameof(AppContext.AppSetting.IccProfile):
+                return (lang.SettingsIccProfile, lang.SettingsHelpIccProfile);
+            case nameof(AppContext.AppSetting.IccProfileAuto):
+                return (lang.SettingsIccProfileAuto, lang.SettingsHelpIccProfileAuto);
+            case nameof(AppContext.AppSetting.ImageDisplayDuration):
+                return (lang.SettingsImageDisplayDuration, lang.SettingsHelpImageDisplayDuration);
+            case nameof(AppContext.AppSetting.ImageExts):
+                return (lang.SettingsImageExts, lang.SettingsHelpImageExts);
+            case nameof(AppContext.AppSetting.ImageSubsHdrPeak):
+                return (lang.SettingsImageSubsHdrPeak, lang.SettingsHelpImageSubsHdrPeak);
+            case nameof(AppContext.AppSetting.ImageSubsVideoResolution):
+                return (lang.SettingsImageSubsVideoResolution, lang.SettingsHelpImageSubsVideoResolution);
+            case nameof(AppContext.AppSetting.InputIme):
+                return (lang.SettingsInputIme, lang.SettingsHelpInputIme);
+            case nameof(AppContext.AppSetting.InputIpcServer):
+                return (lang.SettingsInputIpcServer, lang.SettingsHelpInputIpcServer);
+            case nameof(AppContext.AppSetting.Interpolation):
+                return (lang.SettingsInterpolation, lang.SettingsHelpInterpolation);
+            case nameof(AppContext.AppSetting.InverseToneMapping):
+                return (lang.SettingsInverseToneMapping, lang.SettingsHelpInverseToneMapping);
+            case nameof(AppContext.AppSetting.KeepOpen):
+                return (lang.SettingsKeepOpen, lang.SettingsHelpKeepOpen);
+            case nameof(AppContext.AppSetting.LinearDownscaling):
+                return (lang.SettingsLinearDownscaling, lang.SettingsHelpLinearDownscaling);
+            case nameof(AppContext.AppSetting.LinearUpscaling):
+                return (lang.SettingsLinearUpscaling, lang.SettingsHelpLinearUpscaling);
+            case nameof(AppContext.AppSetting.LoopFile):
+                return (lang.SettingsLoopFile, lang.SettingsHelpLoopFile);
+            case nameof(AppContext.AppSetting.LoopPlaylist):
+                return (lang.SettingsLoopPlaylist, lang.SettingsHelpLoopPlaylist);
+            case nameof(AppContext.AppSetting.MetadataOsdAutohideForAudio):
+                return (lang.SettingsMetadataOsdAutohideForAudio, lang.SettingsHelpMetadataOsdAutohideForAudio);
+            case nameof(AppContext.AppSetting.MetadataOsdAutohideForAudioWithAlbumArt):
+                return (lang.SettingsMetadataOsdAutohideForAudioWithAlbumArt, lang.SettingsHelpMetadataOsdAutohideForAudioWithAlbumArt);
+            case nameof(AppContext.AppSetting.MetadataOsdAutohideStatusTimeout):
+                return (lang.SettingsMetadataOsdAutohideStatusTimeout, lang.SettingsHelpMetadataOsdAutohideStatusTimeout);
+            case nameof(AppContext.AppSetting.MetadataOsdAutohideTimeout):
+                return (lang.SettingsMetadataOsdAutohideTimeout, lang.SettingsHelpMetadataOsdAutohideTimeout);
+            case nameof(AppContext.AppSetting.MetadataOsdEnableForAudio):
+                return (lang.SettingsMetadataOsdEnableForAudio, lang.SettingsHelpMetadataOsdEnableForAudio);
+            case nameof(AppContext.AppSetting.MetadataOsdEnableForAudioWithAlbumArt):
+                return (lang.SettingsMetadataOsdEnableForAudioWithAlbumArt, lang.SettingsHelpMetadataOsdEnableForAudioWithAlbumArt);
+            case nameof(AppContext.AppSetting.MetadataOsdEnableForImage):
+                return (lang.SettingsMetadataOsdEnableForImage, lang.SettingsHelpMetadataOsdEnableForImage);
+            case nameof(AppContext.AppSetting.MetadataOsdEnableForVideo):
+                return (lang.SettingsMetadataOsdEnableForVideo, lang.SettingsHelpMetadataOsdEnableForVideo);
+            case nameof(AppContext.AppSetting.MetadataOsdEnabled):
+                return (lang.SettingsMetadataOsdEnabled, lang.SettingsHelpMetadataOsdEnabled);
+            case nameof(AppContext.AppSetting.MetadataOsdMessageMaxLength):
+                return (lang.SettingsMetadataOsdMessageMaxLength, lang.SettingsHelpMetadataOsdMessageMaxLength);
+            case nameof(AppContext.AppSetting.MetadataOsdShowAlbumTrack):
+                return (lang.SettingsMetadataOsdShowAlbumTrack, lang.SettingsHelpMetadataOsdShowAlbumTrack);
+            case nameof(AppContext.AppSetting.MetadataOsdShowChapter):
+                return (lang.SettingsMetadataOsdShowChapter, lang.SettingsHelpMetadataOsdShowChapter);
+            case nameof(AppContext.AppSetting.MusicLibraryFolders):
+                return (lang.SettingsMusicLibraryFolders, lang.SettingsHelpMusicLibraryFolders);
+            case nameof(AppContext.AppSetting.NetworkTimeout):
+                return (lang.SettingsNetworkTimeout, lang.SettingsHelpNetworkTimeout);
+            case nameof(AppContext.AppSetting.OsdAlignX):
+                return (lang.SettingsOsdAlignX, lang.SettingsHelpOsdAlignX);
+            case nameof(AppContext.AppSetting.OsdAlignY):
+                return (lang.SettingsOsdAlignY, lang.SettingsHelpOsdAlignY);
+            case nameof(AppContext.AppSetting.OsdBackColor):
+                return (lang.SettingsOsdBackColor, lang.SettingsHelpOsdBackColor);
+            case nameof(AppContext.AppSetting.OsdBarHeight):
+                return (lang.SettingsOsdBarHeight, lang.SettingsHelpOsdBarHeight);
+            case nameof(AppContext.AppSetting.OsdBarWidth):
+                return (lang.SettingsOsdBarWidth, lang.SettingsHelpOsdBarWidth);
+            case nameof(AppContext.AppSetting.OsdBlur):
+                return (lang.SettingsOsdBlur, lang.SettingsHelpOsdBlur);
+            case nameof(AppContext.AppSetting.OsdBold):
+                return (lang.SettingsOsdBold, lang.SettingsHelpOsdBold);
+            case nameof(AppContext.AppSetting.OsdColor):
+                return (lang.SettingsOsdColor, lang.SettingsHelpOsdColor);
+            case nameof(AppContext.AppSetting.OsdDuration):
+                return (lang.SettingsOsdDuration, lang.SettingsHelpOsdDuration);
+            case nameof(AppContext.AppSetting.OsdFont):
+                return (lang.SettingsOsdFont, lang.SettingsHelpOsdFont);
+            case nameof(AppContext.AppSetting.OsdFontProvider):
+                return (lang.SettingsOsdFontProvider, lang.SettingsHelpOsdFontProvider);
+            case nameof(AppContext.AppSetting.OsdFontSize):
+                return (lang.SettingsOsdFontSize, lang.SettingsHelpOsdFontSize);
+            case nameof(AppContext.AppSetting.OsdFontsDir):
+                return (lang.SettingsOsdFontsDir, lang.SettingsHelpOsdFontsDir);
+            case nameof(AppContext.AppSetting.OsdFractions):
+                return (lang.SettingsOsdFractions, lang.SettingsHelpOsdFractions);
+            case nameof(AppContext.AppSetting.OsdItalic):
+                return (lang.SettingsOsdItalic, lang.SettingsHelpOsdItalic);
+            case nameof(AppContext.AppSetting.OsdJustify):
+                return (lang.SettingsOsdJustify, lang.SettingsHelpOsdJustify);
+            case nameof(AppContext.AppSetting.OsdLevel):
+                return (lang.SettingsOsdLevel, lang.SettingsHelpOsdLevel);
+            case nameof(AppContext.AppSetting.OsdMarginX):
+                return (lang.SettingsOsdMarginX, lang.SettingsHelpOsdMarginX);
+            case nameof(AppContext.AppSetting.OsdMarginY):
+                return (lang.SettingsOsdMarginY, lang.SettingsHelpOsdMarginY);
+            case nameof(AppContext.AppSetting.OsdMarginYOffset):
+                return (lang.SettingsOsdMarginYOffset, lang.SettingsHelpOsdMarginYOffset);
+            case nameof(AppContext.AppSetting.OsdOnSeek):
+                return (lang.SettingsOsdOnSeek, lang.SettingsHelpOsdOnSeek);
+            case nameof(AppContext.AppSetting.OsdOutlineColor):
+                return (lang.SettingsOsdOutlineColor, lang.SettingsHelpOsdOutlineColor);
+            case nameof(AppContext.AppSetting.OsdOutlineSize):
+                return (lang.SettingsOsdOutlineSize, lang.SettingsHelpOsdOutlineSize);
+            case nameof(AppContext.AppSetting.OsdPlayingMsg):
+                return (lang.SettingsOsdPlayingMsg, lang.SettingsHelpOsdPlayingMsg);
+            case nameof(AppContext.AppSetting.OsdPlayingMsgDuration):
+                return (lang.SettingsOsdPlayingMsgDuration, lang.SettingsHelpOsdPlayingMsgDuration);
+            case nameof(AppContext.AppSetting.OsdScale):
+                return (lang.SettingsOsdScale, lang.SettingsHelpOsdScale);
+            case nameof(AppContext.AppSetting.OsdScaleByWindow):
+                return (lang.SettingsOsdScaleByWindow, lang.SettingsHelpOsdScaleByWindow);
+            case nameof(AppContext.AppSetting.OsdSelectedColor):
+                return (lang.SettingsOsdSelectedColor, lang.SettingsHelpOsdSelectedColor);
+            case nameof(AppContext.AppSetting.OsdSelectedOutlineColor):
+                return (lang.SettingsOsdSelectedOutlineColor, lang.SettingsHelpOsdSelectedOutlineColor);
+            case nameof(AppContext.AppSetting.OsdShadowOffset):
+                return (lang.SettingsOsdShadowOffset, lang.SettingsHelpOsdShadowOffset);
+            case nameof(AppContext.AppSetting.OsdShaper):
+                return (lang.SettingsOsdShaper, lang.SettingsHelpOsdShaper);
+            case nameof(AppContext.AppSetting.OsdSpacing):
+                return (lang.SettingsOsdSpacing, lang.SettingsHelpOsdSpacing);
+            case nameof(AppContext.AppSetting.OverrideDisplayFps):
+                return (lang.SettingsOverrideDisplayFps, lang.SettingsHelpOverrideDisplayFps);
+            case nameof(AppContext.AppSetting.Panscan):
+                return (lang.SettingsPanscan, lang.SettingsHelpPanscan);
+            case nameof(AppContext.AppSetting.PictureBrightness):
+                return (lang.SettingsPictureBrightness, lang.SettingsHelpPictureBrightness);
+            case nameof(AppContext.AppSetting.PictureContrast):
+                return (lang.SettingsPictureContrast, lang.SettingsHelpPictureContrast);
+            case nameof(AppContext.AppSetting.PictureGamma):
+                return (lang.SettingsPictureGamma, lang.SettingsHelpPictureGamma);
+            case nameof(AppContext.AppSetting.PictureHue):
+                return (lang.SettingsPictureHue, lang.SettingsHelpPictureHue);
+            case nameof(AppContext.AppSetting.PictureSaturation):
+                return (lang.SettingsPictureSaturation, lang.SettingsHelpPictureSaturation);
+            case nameof(AppContext.AppSetting.PictureSharpen):
+                return (lang.SettingsPictureSharpen, lang.SettingsHelpPictureSharpen);
+            case nameof(AppContext.AppSetting.PlayerStyle):
+                return (lang.SettingsPlayerStyle, lang.SettingsHelpPlayerStyle);
+            case nameof(AppContext.AppSetting.PrefetchPlaylist):
+                return (lang.SettingsPrefetchPlaylist, lang.SettingsHelpPrefetchPlaylist);
+            case nameof(AppContext.AppSetting.Referrer):
+                return (lang.SettingsReferrer, lang.SettingsHelpReferrer);
+            case nameof(AppContext.AppSetting.Replaygain):
+                return (lang.SettingsReplaygain, lang.SettingsHelpReplaygain);
+            case nameof(AppContext.AppSetting.ResumePlayback):
+                return (lang.SettingsResumePlayback, lang.SettingsHelpResumePlayback);
+            case nameof(AppContext.AppSetting.SavePositionOnQuit):
+                return (lang.SettingsSavePositionOnQuit, lang.SettingsHelpSavePositionOnQuit);
+            case nameof(AppContext.AppSetting.Scale):
+                return (lang.SettingsScale, lang.SettingsHelpScale);
+            case nameof(AppContext.AppSetting.ScaleAntiring):
+                return (lang.SettingsScaleAntiring, lang.SettingsHelpScaleAntiring);
+            case nameof(AppContext.AppSetting.ScreenshotAvifEncoder):
+                return (lang.SettingsScreenshotAvifEncoder, lang.SettingsHelpScreenshotAvifEncoder);
+            case nameof(AppContext.AppSetting.ScreenshotDirectory):
+                return (lang.SettingsScreenshotDirectory, lang.SettingsHelpScreenshotDirectory);
+            case nameof(AppContext.AppSetting.ScreenshotFormat):
+                return (lang.SettingsScreenshotFormat, lang.SettingsHelpScreenshotFormat);
+            case nameof(AppContext.AppSetting.ScreenshotHighBitDepth):
+                return (lang.SettingsScreenshotHighBitDepth, lang.SettingsHelpScreenshotHighBitDepth);
+            case nameof(AppContext.AppSetting.ScreenshotJpegQuality):
+                return (lang.SettingsScreenshotJpegQuality, lang.SettingsHelpScreenshotJpegQuality);
+            case nameof(AppContext.AppSetting.ScreenshotJpegSourceChroma):
+                return (lang.SettingsScreenshotJpegSourceChroma, lang.SettingsHelpScreenshotJpegSourceChroma);
+            case nameof(AppContext.AppSetting.ScreenshotJxlDistance):
+                return (lang.SettingsScreenshotJxlDistance, lang.SettingsHelpScreenshotJxlDistance);
+            case nameof(AppContext.AppSetting.ScreenshotJxlEffort):
+                return (lang.SettingsScreenshotJxlEffort, lang.SettingsHelpScreenshotJxlEffort);
+            case nameof(AppContext.AppSetting.ScreenshotPngCompression):
+                return (lang.SettingsScreenshotPngCompression, lang.SettingsHelpScreenshotPngCompression);
+            case nameof(AppContext.AppSetting.ScreenshotPngFilter):
+                return (lang.SettingsScreenshotPngFilter, lang.SettingsHelpScreenshotPngFilter);
+            case nameof(AppContext.AppSetting.ScreenshotSw):
+                return (lang.SettingsScreenshotSw, lang.SettingsHelpScreenshotSw);
+            case nameof(AppContext.AppSetting.ScreenshotTagColorspace):
+                return (lang.SettingsScreenshotTagColorspace, lang.SettingsHelpScreenshotTagColorspace);
+            case nameof(AppContext.AppSetting.ScreenshotTemplate):
+                return (lang.SettingsScreenshotTemplate, lang.SettingsHelpScreenshotTemplate);
+            case nameof(AppContext.AppSetting.ScreenshotWebpCompression):
+                return (lang.SettingsScreenshotWebpCompression, lang.SettingsHelpScreenshotWebpCompression);
+            case nameof(AppContext.AppSetting.ScreenshotWebpLossless):
+                return (lang.SettingsScreenshotWebpLossless, lang.SettingsHelpScreenshotWebpLossless);
+            case nameof(AppContext.AppSetting.ScreenshotWebpQuality):
+                return (lang.SettingsScreenshotWebpQuality, lang.SettingsHelpScreenshotWebpQuality);
+            case nameof(AppContext.AppSetting.SecondarySubAssOverride):
+                return (lang.SettingsSecondarySubAssOverride, lang.SettingsHelpSecondarySubAssOverride);
+            case nameof(AppContext.AppSetting.SecondarySubDelay):
+                return (lang.SettingsSecondarySubDelay, lang.SettingsHelpSecondarySubDelay);
+            case nameof(AppContext.AppSetting.SecondarySubPos):
+                return (lang.SettingsSecondarySubPos, lang.SettingsHelpSecondarySubPos);
+            case nameof(AppContext.AppSetting.SecondarySubScale):
+                return (lang.SettingsSecondarySubScale, lang.SettingsHelpSecondarySubScale);
+            case nameof(AppContext.AppSetting.SecondarySubVisibility):
+                return (lang.SettingsSecondarySubVisibility, lang.SettingsHelpSecondarySubVisibility);
+            case nameof(AppContext.AppSetting.SeekHoldEnabled):
+                return (lang.SettingsSeekHold, lang.SettingsHelpSeekHold);
+            case nameof(AppContext.AppSetting.ShowOsdPlayingMsg):
+                return (lang.SettingsShowOsdPlayingMsg, lang.SettingsHelpShowOsdPlayingMsg);
+            case nameof(AppContext.AppSetting.SigmoidUpscaling):
+                return (lang.SettingsSigmoidUpscaling, lang.SettingsHelpSigmoidUpscaling);
+            case nameof(AppContext.AppSetting.Speed):
+                return (lang.SettingsSpeed, lang.SettingsHelpSpeed);
+            case nameof(AppContext.AppSetting.StartFullscreen):
+                return (lang.SettingsStartFullscreen, lang.SettingsHelpStartFullscreen);
+            case nameof(AppContext.AppSetting.StretchImageSubsToScreen):
+                return (lang.SettingsStretchImageSubsToScreen, lang.SettingsHelpStretchImageSubsToScreen);
+            case nameof(AppContext.AppSetting.SubAlignX):
+                return (lang.SettingsSubAlignX, lang.SettingsHelpSubAlignX);
+            case nameof(AppContext.AppSetting.SubAlignY):
+                return (lang.SettingsSubAlignY, lang.SettingsHelpSubAlignY);
+            case nameof(AppContext.AppSetting.SubAssForceMargins):
+                return (lang.SettingsSubAssForceMargins, lang.SettingsHelpSubAssForceMargins);
+            case nameof(AppContext.AppSetting.SubAssJustify):
+                return (lang.SettingsSubAssJustify, lang.SettingsHelpSubAssJustify);
+            case nameof(AppContext.AppSetting.SubAssOverride):
+                return (lang.SettingsSubAssOverride, lang.SettingsHelpSubAssOverride);
+            case nameof(AppContext.AppSetting.SubAssPruneDelay):
+                return (lang.SettingsSubAssPruneDelay, lang.SettingsHelpSubAssPruneDelay);
+            case nameof(AppContext.AppSetting.SubAssScaleWithWindow):
+                return (lang.SettingsSubAssScaleWithWindow, lang.SettingsHelpSubAssScaleWithWindow);
+            case nameof(AppContext.AppSetting.SubAssStyleOverrides):
+                return (lang.SettingsSubAssStyleOverrides, lang.SettingsHelpSubAssStyleOverrides);
+            case nameof(AppContext.AppSetting.SubAssUseVideoData):
+                return (lang.SettingsSubAssUseVideoData, lang.SettingsHelpSubAssUseVideoData);
+            case nameof(AppContext.AppSetting.SubAssVideoAspectOverride):
+                return (lang.SettingsSubAssVideoAspectOverride, lang.SettingsHelpSubAssVideoAspectOverride);
+            case nameof(AppContext.AppSetting.SubAssVsfilterColorCompat):
+                return (lang.SettingsSubAssVsfilterColorCompat, lang.SettingsHelpSubAssVsfilterColorCompat);
+            case nameof(AppContext.AppSetting.SubAuto):
+                return (lang.SettingsSubAuto, lang.SettingsHelpSubAuto);
+            case nameof(AppContext.AppSetting.SubBackColor):
+                return (lang.SettingsSubBackColor, lang.SettingsHelpSubBackColor);
+            case nameof(AppContext.AppSetting.SubBitmapMaxSize):
+                return (lang.SettingsSubBitmapMaxSize, lang.SettingsHelpSubBitmapMaxSize);
+            case nameof(AppContext.AppSetting.SubBlur):
+                return (lang.SettingsSubBlur, lang.SettingsHelpSubBlur);
+            case nameof(AppContext.AppSetting.SubBold):
+                return (lang.SettingsSubBold, lang.SettingsHelpSubBold);
+            case nameof(AppContext.AppSetting.SubBorderColor):
+                return (lang.SettingsSubBorderColor, lang.SettingsHelpSubBorderColor);
+            case nameof(AppContext.AppSetting.SubClearOnSeek):
+                return (lang.SettingsSubClearOnSeek, lang.SettingsHelpSubClearOnSeek);
+            case nameof(AppContext.AppSetting.SubCodePage):
+                return (lang.SettingsSubCodePage, lang.SettingsHelpSubCodePage);
+            case nameof(AppContext.AppSetting.SubColor):
+                return (lang.SettingsSubColor, lang.SettingsHelpSubColor);
+            case nameof(AppContext.AppSetting.SubDelay):
+                return (lang.SettingsSubDelay, lang.SettingsHelpSubDelay);
+            case nameof(AppContext.AppSetting.SubEmbeddedFonts):
+                return (lang.SettingsSubEmbeddedFonts, lang.SettingsHelpSubEmbeddedFonts);
+            case nameof(AppContext.AppSetting.SubFallback):
+                return (lang.SettingsSubFallback, lang.SettingsHelpSubFallback);
+            case nameof(AppContext.AppSetting.SubFilePaths):
+                return (lang.SettingsSubFilePaths, lang.SettingsHelpSubFilePaths);
+            case nameof(AppContext.AppSetting.SubFilterSdh):
+                return (lang.SettingsSubFilterSdh, lang.SettingsHelpSubFilterSdh);
+            case nameof(AppContext.AppSetting.SubFilterSdhEnclosures):
+                return (lang.SettingsSubFilterSdhEnclosures, lang.SettingsHelpSubFilterSdhEnclosures);
+            case nameof(AppContext.AppSetting.SubFilterSdhHarder):
+                return (lang.SettingsSubFilterSdhHarder, lang.SettingsHelpSubFilterSdhHarder);
+            case nameof(AppContext.AppSetting.SubFixTiming):
+                return (lang.SettingsSubFixTiming, lang.SettingsHelpSubFixTiming);
+            case nameof(AppContext.AppSetting.SubFixTimingThreshold):
+                return (lang.SettingsSubFixTimingThreshold, lang.SettingsHelpSubFixTimingThreshold);
+            case nameof(AppContext.AppSetting.SubFont):
+                return (lang.SettingsSubFont, lang.SettingsHelpSubFont);
+            case nameof(AppContext.AppSetting.SubFontFile):
+                return (lang.SettingsSubFontFile, lang.SettingsHelpSubFontFile);
+            case nameof(AppContext.AppSetting.SubFontProvider):
+                return (lang.SettingsSubFontProvider, lang.SettingsHelpSubFontProvider);
+            case nameof(AppContext.AppSetting.SubFontSize):
+                return (lang.SettingsSubFontSize, lang.SettingsHelpSubFontSize);
+            case nameof(AppContext.AppSetting.SubForcedEventsOnly):
+                return (lang.SettingsSubForcedEventsOnly, lang.SettingsHelpSubForcedEventsOnly);
+            case nameof(AppContext.AppSetting.SubGauss):
+                return (lang.SettingsSubGauss, lang.SettingsHelpSubGauss);
+            case nameof(AppContext.AppSetting.SubHdrPeak):
+                return (lang.SettingsSubHdrPeak, lang.SettingsHelpSubHdrPeak);
+            case nameof(AppContext.AppSetting.SubHinting):
+                return (lang.SettingsSubHinting, lang.SettingsHelpSubHinting);
+            case nameof(AppContext.AppSetting.SubItalic):
+                return (lang.SettingsSubItalic, lang.SettingsHelpSubItalic);
+            case nameof(AppContext.AppSetting.SubJustify):
+                return (lang.SettingsSubJustify, lang.SettingsHelpSubJustify);
+            case nameof(AppContext.AppSetting.SubLineSpacing):
+                return (lang.SettingsSubLineSpacing, lang.SettingsHelpSubLineSpacing);
+            case nameof(AppContext.AppSetting.SubMarginX):
+                return (lang.SettingsSubMarginX, lang.SettingsHelpSubMarginX);
+            case nameof(AppContext.AppSetting.SubMarginY):
+                return (lang.SettingsSubMarginY, lang.SettingsHelpSubMarginY);
+            case nameof(AppContext.AppSetting.SubMarginYOffset):
+                return (lang.SettingsSubMarginYOffset, lang.SettingsHelpSubMarginYOffset);
+            case nameof(AppContext.AppSetting.SubOutlineColor):
+                return (lang.SettingsSubOutlineColor, lang.SettingsHelpSubOutlineColor);
+            case nameof(AppContext.AppSetting.SubOutlineSize):
+                return (lang.SettingsSubOutlineSize, lang.SettingsHelpSubOutlineSize);
+            case nameof(AppContext.AppSetting.SubPos):
+                return (lang.SettingsSubPos, lang.SettingsHelpSubPos);
+            case nameof(AppContext.AppSetting.SubScale):
+                return (lang.SettingsSubScale, lang.SettingsHelpSubScale);
+            case nameof(AppContext.AppSetting.SubScaleByWindow):
+                return (lang.SettingsSubScaleByWindow, lang.SettingsHelpSubScaleByWindow);
+            case nameof(AppContext.AppSetting.SubScaleSigns):
+                return (lang.SettingsSubScaleSigns, lang.SettingsHelpSubScaleSigns);
+            case nameof(AppContext.AppSetting.SubShadowOffset):
+                return (lang.SettingsSubShadowOffset, lang.SettingsHelpSubShadowOffset);
+            case nameof(AppContext.AppSetting.SubShaper):
+                return (lang.SettingsSubShaper, lang.SettingsHelpSubShaper);
+            case nameof(AppContext.AppSetting.SubSpacing):
+                return (lang.SettingsSubSpacing, lang.SettingsHelpSubSpacing);
+            case nameof(AppContext.AppSetting.SubUseMargins):
+                return (lang.SettingsSubUseMargins, lang.SettingsHelpSubUseMargins);
+            case nameof(AppContext.AppSetting.SubVisibility):
+                return (lang.SettingsSubVisibility, lang.SettingsHelpSubVisibility);
+            case nameof(AppContext.AppSetting.SubsFallbackForced):
+                return (lang.SettingsSubsFallbackForced, lang.SettingsHelpSubsFallbackForced);
+            case nameof(AppContext.AppSetting.SubsMatchOsLanguage):
+                return (lang.SettingsSubsMatchOsLanguage, lang.SettingsHelpSubsMatchOsLanguage);
+            case nameof(AppContext.AppSetting.SubsWithMatchingAudio):
+                return (lang.SettingsSubsWithMatchingAudio, lang.SettingsHelpSubsWithMatchingAudio);
+            case nameof(AppContext.AppSetting.SubtitleLanguage):
+                return (lang.SettingsSubtitleLanguage, lang.SettingsHelpSubtitleLanguage);
+            case nameof(AppContext.AppSetting.TargetColorspaceHint):
+                return (lang.SettingsTargetColorspaceHint, lang.SettingsHelpTargetColorspaceHint);
+            case nameof(AppContext.AppSetting.TargetColorspaceHintMode):
+                return (lang.SettingsTargetColorspaceHintMode, lang.SettingsHelpTargetColorspaceHintMode);
+            case nameof(AppContext.AppSetting.TargetColorspaceHintStrict):
+                return (lang.SettingsTargetColorspaceHintStrict, lang.SettingsHelpTargetColorspaceHintStrict);
+            case nameof(AppContext.AppSetting.TargetGamut):
+                return (lang.SettingsTargetGamut, lang.SettingsHelpTargetGamut);
+            case nameof(AppContext.AppSetting.TargetPeak):
+                return (lang.SettingsTargetPeak, lang.SettingsHelpTargetPeak);
+            case nameof(AppContext.AppSetting.TargetPrim):
+                return (lang.SettingsTargetPrim, lang.SettingsHelpTargetPrim);
+            case nameof(AppContext.AppSetting.TargetTrc):
+                return (lang.SettingsTargetTrc, lang.SettingsHelpTargetTrc);
+            case nameof(AppContext.AppSetting.TestMpvCommandLog):
+                return (lang.SettingsTestMpvCommandLog, lang.SettingsHelpTestMpvCommandLog);
+            case nameof(AppContext.AppSetting.TestOsdMessage):
+                return (lang.SettingsTestOsdMessage, lang.SettingsHelpTestOsdMessage);
+            case nameof(AppContext.AppSetting.TestSignal):
+                return (lang.SettingsTestSignal, lang.SettingsHelpTestSignal);
+            case nameof(AppContext.AppSetting.ThemeType):
+                return (lang.AppSettingTheme, lang.SettingsHelpTheme);
+            case nameof(AppContext.AppSetting.ThumbnailPreviewWidth):
+                return (lang.SettingsThumbnailSize, lang.SettingsHelpThumbnailSize);
+            case nameof(AppContext.AppSetting.ThumbnailUpdateInterval):
+                return (lang.SettingsThumbnailInterval, lang.SettingsHelpThumbnailInterval);
+            case nameof(AppContext.AppSetting.TitleBar):
+                return (lang.SettingsTitleBar, lang.SettingsHelpTitleBar);
+            case nameof(AppContext.AppSetting.TlsVerify):
+                return (lang.SettingsTlsVerify, lang.SettingsHelpTlsVerify);
+            case nameof(AppContext.AppSetting.ToneMapping):
+                return (lang.SettingsToneMapping, lang.SettingsHelpToneMapping);
+            case nameof(AppContext.AppSetting.ToneMappingMaxBoost):
+                return (lang.SettingsToneMappingMaxBoost, lang.SettingsHelpToneMappingMaxBoost);
+            case nameof(AppContext.AppSetting.ToneMappingVisualize):
+                return (lang.SettingsToneMappingVisualize, lang.SettingsHelpToneMappingVisualize);
+            case nameof(AppContext.AppSetting.Tscale):
+                return (lang.SettingsTscale, lang.SettingsHelpTscale);
+            case nameof(AppContext.AppSetting.UiFont):
+                return (lang.SettingsUiFont, lang.SettingsHelpUiFont);
+            case nameof(AppContext.AppSetting.UserAgent):
+                return (lang.SettingsUserAgent, lang.SettingsHelpUserAgent);
+            case nameof(AppContext.AppSetting.VideoAlignX):
+                return (lang.SettingsVideoAlignX, lang.SettingsHelpVideoAlignX);
+            case nameof(AppContext.AppSetting.VideoAlignY):
+                return (lang.SettingsVideoAlignY, lang.SettingsHelpVideoAlignY);
+            case nameof(AppContext.AppSetting.VideoDecodeDirect):
+                return (lang.SettingsVideoDecodeDirect, lang.SettingsHelpVideoDecodeDirect);
+            case nameof(AppContext.AppSetting.VideoExts):
+                return (lang.SettingsVideoExts, lang.SettingsHelpVideoExts);
+            case nameof(AppContext.AppSetting.VideoLibraryFolders):
+                return (lang.SettingsVideoLibraryFolders, lang.SettingsHelpVideoLibraryFolders);
+            case nameof(AppContext.AppSetting.VideoOutputLevels):
+                return (lang.SettingsVideoOutputLevels, lang.SettingsHelpVideoOutputLevels);
+            case nameof(AppContext.AppSetting.VideoPanX):
+                return (lang.SettingsVideoPanX, lang.SettingsHelpVideoPanX);
+            case nameof(AppContext.AppSetting.VideoPanY):
+                return (lang.SettingsVideoPanY, lang.SettingsHelpVideoPanY);
+            case nameof(AppContext.AppSetting.VideoReversalBuffer):
+                return (lang.SettingsVideoReversalBuffer, lang.SettingsHelpVideoReversalBuffer);
+            case nameof(AppContext.AppSetting.VideoRotate):
+                return (lang.SettingsVideoRotate, lang.SettingsHelpVideoRotate);
+            case nameof(AppContext.AppSetting.VideoSync):
+                return (lang.SettingsVideoSync, lang.SettingsHelpVideoSync);
+            case nameof(AppContext.AppSetting.VideoSyncMaxVideoChange):
+                return (lang.SettingsVideoSyncMaxVideoChange, lang.SettingsHelpVideoSyncMaxVideoChange);
+            case nameof(AppContext.AppSetting.VideoUnscaled):
+                return (lang.SettingsVideoUnscaled, lang.SettingsHelpVideoUnscaled);
+            case nameof(AppContext.AppSetting.VideoZoom):
+                return (lang.SettingsVideoZoom, lang.SettingsHelpVideoZoom);
+            case nameof(AppContext.AppSetting.VolumeMax):
+                return (lang.SettingsVolumeMax, lang.SettingsHelpVolumeMax);
+            case nameof(AppContext.AppSetting.VsrAutoEnabled):
+                return (lang.SettingsVsrAuto, lang.SettingsHelpVsrAuto);
+            case nameof(AppContext.AppSetting.WatchLaterDir):
+                return (lang.SettingsWatchLaterDir, lang.SettingsHelpWatchLaterDir);
+            case nameof(AppContext.AppSetting.WatchLaterOptions):
+                return (lang.SettingsWatchLaterOptions, lang.SettingsHelpWatchLaterOptions);
+            case nameof(AppContext.AppSetting.WindowAspectRatioLock):
+                return (lang.SettingsWindowAspectRatioLock, lang.SettingsHelpWindowAspectRatioLock);
+            case nameof(AppContext.AppSetting.WindowBorder):
+                return (lang.SettingsWindowBorder, lang.SettingsHelpWindowBorder);
+            case nameof(AppContext.AppSetting.WindowPiP):
+                return (lang.SettingsPiP, lang.SettingsHelpPiP);
+            case nameof(AppContext.AppSetting.WindowPiPAnchor):
+                return (lang.SettingsPiPAnchor, lang.SettingsHelpPiPAnchor);
+            case nameof(AppContext.AppSetting.WindowPiPAspectRatioLock):
+                return (lang.SettingsPiPAspectRatioLock, lang.SettingsHelpPiPAspectRatioLock);
+            case nameof(AppContext.AppSetting.WindowPiPOpacity):
+                return (lang.SettingsPiPOpacity, lang.SettingsHelpPiPOpacity);
+            case nameof(AppContext.AppSetting.WindowPiPShowControls):
+                return (lang.SettingsPiPControls, lang.SettingsHelpPiPControls);
+            case nameof(AppContext.AppSetting.WindowPiPShowTopButtons):
+                return (lang.SettingsPiPTopButtons, lang.SettingsHelpPiPTopButtons);
+            case nameof(AppContext.AppSetting.WindowPiPSize):
+                return (lang.SettingsPiPSize, lang.SettingsHelpWindowPiPSize);
+            case nameof(AppContext.AppSetting.WindowRememberSize):
+                return (lang.SettingsRememberWindowSize, lang.SettingsHelpRememberWindowSize);
+            case nameof(AppContext.AppSetting.WindowStartMaximized):
+                return (lang.SettingsStartMaximized, lang.SettingsHelpStartMaximized);
+            case nameof(AppContext.AppSetting.WindowTitle):
+                return (lang.SettingsWindowTitle, lang.SettingsHelpWindowTitle);
+            default:
+                return null;
+        }
+    }
 }

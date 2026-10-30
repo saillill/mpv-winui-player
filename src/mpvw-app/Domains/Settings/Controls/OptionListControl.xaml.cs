@@ -223,27 +223,6 @@ public sealed partial class OptionListControl : UserControl
     /// </summary>
     public bool ShowAdvancedRows { get; set; }
 
-    public IReadOnlySet<string> CollapsedSectionIds
-    {
-        get => (IReadOnlySet<string>)GetValue(CollapsedSectionIdsProperty);
-        set => SetValue(CollapsedSectionIdsProperty, value);
-    }
-
-    public static readonly DependencyProperty CollapsedSectionIdsProperty =
-        DependencyProperty.Register(
-            nameof(CollapsedSectionIds),
-            typeof(IReadOnlySet<string>),
-            typeof(OptionListControl),
-            new PropertyMetadata(
-                (IReadOnlySet<string>)new HashSet<string>(StringComparer.Ordinal),
-                (d, e) =>
-                {
-                    if (d is OptionListControl self)
-                    {
-                        self.ApplyItemsSource();
-                    }
-                }));
-
     /// <summary>
     /// Caption of the category these options belong to, when the list is one
     /// category's page.
@@ -507,10 +486,19 @@ public sealed partial class OptionListControl : UserControl
 
                 // A folded section contributes exactly one item: its card,
                 // right here, at the position its options would have filled.
+                //
+                // Whether a section folds used to live in a CollapsedSectionIds
+                // dependency property, pushed down from the page at four
+                // separate call sites and sticky across reassignments -- the
+                // page had to remember to clear it on every branch that set
+                // OptionList. It is now a fact on the card model itself, which
+                // is where the data comes from anyway: the page builds one
+                // SectionCardItem per folded section and nothing downstream
+                // can be out of step with it.
                 SectionCardItem? card = null;
                 var folded = option.SectionId is { } sectionId
-                    && CollapsedSectionIds.Contains(sectionId)
-                    && _sectionCards.TryGetValue(sectionId, out card);
+                    && _sectionCards.TryGetValue(sectionId, out card)
+                    && card.IsFolded;
 
                 if (folded)
                 {

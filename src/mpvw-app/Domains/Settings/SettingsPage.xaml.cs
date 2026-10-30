@@ -211,6 +211,13 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private void RebuildLocalizedContent()
     {
+        // A drilled-in section is identified by its caption, and every caption
+        // is about to change. Resolve the stable id FIRST, while the caption is
+        // still the one the reader is looking at: IdFor reads the current
+        // language, and after Invalidate() the map is rebuilt from the new one,
+        // so the old caption would no longer resolve.
+        var drilledIntoId = SettingsSections.IdFor(_selectedSection);
+
         // Section captions are localized, and the caption -> stable-id map is
         // cached: a language switch changes every caption, so the cache has to
         // go before the tree is rebuilt.
@@ -221,8 +228,9 @@ public sealed partial class SettingsPage : Page
         ClearActionStatuses();
         var selectedKey = CurrentCategoryKey;
         var offset = OptionsControl.GetScrollOffset();
-        // Section labels are localized; a drilled-in section cannot survive
-        // a rebuild (language switch / reset) — fall back to the overview.
+        // Put the reader back in that section after the rebuild rather than
+        // dropping them on the category overview, which is a surprising place
+        // to land after changing the interface language.
         _selectedSection = null;
         _rebuildingContent = true;
         try
@@ -296,6 +304,18 @@ public sealed partial class SettingsPage : Page
             // used to own.
             AutomationProperties.SetName(BreadcrumbCategoryText, AppContext.AppLang.CommonBack);
             RefreshWarningsAndEnabled();
+
+            // Put the reader back in the section they were reading, now named in
+            // the new language. Looked up by stable id against the rebuilt rows:
+            // a section that no longer exists (a reset, or a layout change)
+            // leaves them on the overview, which is the right fallback.
+            if (drilledIntoId is not null)
+            {
+                _selectedSection = Settings
+                    .FirstOrDefault(o => o.SectionId == drilledIntoId)?
+                    .Section;
+            }
+
             UpdateOptions();
         }
         finally
@@ -614,6 +634,7 @@ public sealed partial class SettingsPage : Page
     {
         RebuildLocalizedContent();
     }
+
 
     /// <summary>Re-runs the passes that read mpv.conf after the file was edited
     /// by hand while the window was open.
@@ -1534,10 +1555,8 @@ public sealed partial class SettingsPage : Page
             // Results span categories, so no caption is "the page itself" --
             // every section header is useful context here.
             OptionsControl.CategoryCaption = null;
-            // Search results are individual rows. Leaving the overview's fold
-            // set in place would collapse any result that happened to land in
-            // a folded section, which is most of them.
-            OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
+            // Search results are individual rows. No cards are registered for
+            // this list, so nothing can fold a result away.
             OptionsControl.SetSectionCards([]);
             OptionsControl.ShowAdvancedRows = false;
             OptionsControl.OptionList = RankedSearchMatches(query);
@@ -1580,12 +1599,8 @@ public sealed partial class SettingsPage : Page
             // at the end is what made a category look like "common stuff, then
             // a dumping ground".
             var advancedCards = BuildSectionCardItems(sections.Where(s => s.Advanced).ToList());
-            var advancedIds = new HashSet<string>(
-                advancedCards.Select(c => c.SectionId!).Where(id => id is not null),
-                StringComparer.Ordinal);
 
             OptionsControl.SetSectionCards(advancedCards);
-            OptionsControl.CollapsedSectionIds = advancedIds;
             OptionsControl.ShowAdvancedRows = false;
             OptionsControl.OptionList = categoryOptions;
             return;
@@ -1603,17 +1618,15 @@ public sealed partial class SettingsPage : Page
             BreadcrumbSeparator.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
             BreadcrumbSection.Text = _selectedSection ?? string.Empty;
 
-            // The fold list has to be cleared, and forgetting it is what made
-            // a card open onto another card.
+            // No cards are registered for a drilled-in section, so none of its
+            // rows can be folded away.
             //
-            // CollapsedSectionIds is set by the overview branch above and is a
-            // sticky dependency property: nothing resets it on the way here.
-            // The drilled-in list is filtered down to the one section that was
-            // clicked, and that section is by definition a member of the fold
-            // set -- so ApplyItemsSource saw a single section, all of whose
-            // rows were collapsed, and emitted the card for it again. The page
-            // looked like a folder that contained only itself.
-            OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
+            // This used to need an explicit CollapsedSectionIds reset: the
+            // property was sticky, the overview branch above set it, and the
+            // drilled-in list is by definition the section that was in that
+            // set. ApplyItemsSource saw a single section, all of whose rows
+            // were collapsed, and emitted the card for it again -- the page
+            // looked like a folder containing only itself.
             OptionsControl.SetSectionCards([]);
             // Inside a section the advanced rows are the content. Without this
             // the rows stay flagged "behind the card" while the cards have just
@@ -1631,10 +1644,8 @@ public sealed partial class SettingsPage : Page
         BreadcrumbCategoryText.Visibility = Visibility.Collapsed;
         BreadcrumbSeparator.Visibility = Visibility.Collapsed;
         BreadcrumbSection.Text = selected ?? string.Empty;
-        // Same staleness as the branches above: a single-section category has
-        // nothing to fold, so it must not inherit the previous category's fold
-        // set and render its only section as a card.
-        OptionsControl.CollapsedSectionIds = new HashSet<string>(StringComparer.Ordinal);
+        // A single-section category has nothing to fold, and no cards are
+        // registered for it, so its only section cannot render as a card.
         OptionsControl.SetSectionCards([]);
         OptionsControl.ShowAdvancedRows = false;
         OptionsControl.OptionList = categoryOptions;
@@ -1689,6 +1700,13 @@ public sealed partial class SettingsPage : Page
                 SectionId = id,
                 Icon = icon,
                 Description = description,
+                // Every card built here is for a section whose rows are behind
+                // it: that is what `foldedSections` means. The flag used to be
+                // implicit -- the caller handed the same id set to
+                // OptionListControl.CollapsedSectionIds -- which is why the
+                // three other branches had to remember to clear that property
+                // or inherit a fold set that no longer applied.
+                IsFolded = true,
             });
         }
 

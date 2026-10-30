@@ -75,7 +75,22 @@ public sealed class Option : INotifyPropertyChanged
 {
     public const string GroupOtherKey = "other";
     public string Key { get; set; } = string.Empty;
-    public string Label { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Row title. Notifies, because the settings rows now bind it directly.
+    ///
+    /// It used to be a bare auto-property: the renderers copied it into their
+    /// own TextBlocks from a DependencyProperty callback, so nothing needed a
+    /// notification. A `{x:Bind ... Mode=OneWay}` in the row template does --
+    /// on a language switch the text has to change without rebuilding the tree,
+    /// and an auto-property raises nothing.
+    /// </summary>
+    public string Label
+    {
+        get => _label;
+        set => Set(ref _label, value);
+    }
+    private string _label = string.Empty;
 
     public string GroupKey
     {
@@ -87,7 +102,20 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     } = string.Empty;
 
-    public string Category { get; set; } = "General";
+    /// <summary>
+    /// Category caption, and the string rows are filtered by.
+    ///
+    /// It is both a display string and a key: the sidebar, the per-category
+    /// reset and the row filter all compare against it. A language switch
+    /// changes it, which is why it notifies -- and why an in-place refresh has
+    /// to re-caption every row before anything reads it again.
+    /// </summary>
+    public string Category
+    {
+        get => _category;
+        set => Set(ref _category, value);
+    }
+    private string _category = "General";
 
     /// <summary>
     /// True when the option's section is an advanced/complex one that stays
@@ -105,11 +133,13 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     }
 
-    /// <summary>Explanatory text shown behind the info (i) button.</summary>
+    /// <summary>Explanatory text, shown as the row's second line.</summary>
     public string? Description
     {
-        get; set;
+        get => _description;
+        set => Set(ref _description, value);
     }
+    private string? _description;
 
     /// <summary>Localized display choices. When set, takes precedence over <see cref="Options"/>.</summary>
     public IList<OptionChoice>? Choices
@@ -165,11 +195,20 @@ public sealed class Option : INotifyPropertyChanged
         get; set;
     } = ';';
 
-    /// <summary>Optional section caption used to split a category into topic groups.</summary>
+    /// <summary>
+    /// Optional section caption used to split a category into topic groups.
+    ///
+    /// Notifies because it is also the string rows are grouped by, and a
+    /// language switch changes it on every row. Two comparisons read it
+    /// (`SettingsPage.Options.cs`), and both run against rows that have already
+    /// been re-captioned, so they see consistent values either way.
+    /// </summary>
     public string? Section
     {
-        get; set;
+        get => _section;
+        set => Set(ref _section, value);
     }
+    private string? _section;
 
     /// <summary>Marks the first option of a section; the list renders a separate section caption row above it.</summary>
     public bool ShowSectionHeader
