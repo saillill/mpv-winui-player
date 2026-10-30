@@ -7,23 +7,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <!-- The title and description are drawn by the SettingsCard that wraps this
+         control; only the style cards are left. -->
     <Grid
         VerticalAlignment="Center"
         Background="Transparent">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <StackPanel
-            Grid.Row="0"
-            Spacing="{StaticResource MpvSpaceXxs}">
-            <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
-            <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
-        </StackPanel>
         <ItemsControl
-            x:Name="StyleCards"
-            Grid.Row="1"
-            Margin="0,12,0,0">
+            x:Name="StyleCards">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Spacing="{StaticResource MpvSpaceM}" />

@@ -37,8 +37,6 @@ public sealed partial class OptionDoubleControl : OptionControlBase
     {
         if (newValue is not null)
         {
-            LabelText.Text = newValue.Label;
-            UpdateDescription(DescriptionText);
             NumberBox.IsEnabled = newValue.IsEnabled;
 
             if (newValue.Min.HasValue)
@@ -104,7 +102,6 @@ public sealed partial class OptionDoubleControl : OptionControlBase
 
     protected override void OnOptionStateChanged()
     {
-        UpdateWarning(WarningText);
         NumberBox.IsEnabled = Setting?.IsEnabled ?? true;
     }
 

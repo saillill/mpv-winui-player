@@ -5,6 +5,7 @@
     xmlns:ctl="using:mpv_winui.Domains.Settings.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sc="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -48,91 +49,113 @@
         </Style>
 
         <DataTemplate x:Key="BooleanTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionBooleanControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="TextTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionStringControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="IntegerTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionIntegerControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="DoubleTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionDoubleControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="TextListTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionStringListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="ColorTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionColorControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="ActionTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionActionControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="CheckListTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionCheckListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="LayoutTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionLayoutControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="MultiListTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionMultiListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="ShaderListTemplate" x:DataType="ctl:Option">
-            <Border Style="{StaticResource OptionCardStyle}">
+            <sc:SettingsCard
+                Header="{x:Bind Label, Mode=OneWay}"
+                Description="{x:Bind Description, Mode=OneWay}">
                 <ctl:OptionShaderListControl
                     Setting="{x:Bind}"
                     VerticalAlignment="Center" />
-            </Border>
+            </sc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="SectionHeaderTemplate" x:DataType="ctl:SectionHeaderItem">

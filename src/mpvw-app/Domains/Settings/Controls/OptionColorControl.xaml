@@ -16,23 +16,10 @@
         </Grid.RowDefinitions>
         <Grid
             Grid.Row="0"
-            ColumnSpacing="{StaticResource MpvOptionControlGap}"
             Background="Transparent"
             Tapped="OnHeaderTapped">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
             <StackPanel
-                Grid.Column="0"
-                VerticalAlignment="Center"
-                Spacing="{StaticResource MpvSpaceXxs}">
-                <TextBlock x:Name="LabelText" Style="{StaticResource MpvOptionLabelStyle}" />
-                <TextBlock x:Name="DescriptionText" Style="{StaticResource MpvOptionDescriptionStyle}" />
-                <TextBlock x:Name="WarningText" Style="{StaticResource MpvOptionWarningStyle}" />
-            </StackPanel>
-            <StackPanel
-                Grid.Column="1"
+                HorizontalAlignment="Right"
                 Orientation="Horizontal"
                 VerticalAlignment="Center"
                 Spacing="{StaticResource MpvSpaceS}">

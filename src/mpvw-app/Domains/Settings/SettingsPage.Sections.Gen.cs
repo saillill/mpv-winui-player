@@ -203,7 +203,7 @@ namespace mpv_winui.Domains.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_window_minimized)] = lang.SectionGenWindowFrame;
             sectionMap[nameof(AppContext.AppSetting.Mpv_window_scale)] = lang.SectionGenWindowFrame;
 
-            // 输入与交互 -- 21 row(s), from mpv's "Player & window"
+            // 输入与交互 -- 12 row(s), from mpv's "Player & window"
             sectionOrder[lang.SectionGenWindowInput] = 1011;
             advancedSections.Add(lang.SectionGenWindowInput);
 
@@ -214,20 +214,11 @@ namespace mpv_winui.Domains.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_builtin_dragging)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_commands)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_conf)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_input_cursor)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_input_cursor_passthrough)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_default_bindings)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_input_doubleclick_time)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_input_dragging_deadzone)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_key_fifo_size)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_media_keys)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_input_preprocess_wheel)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_right_alt_gr)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_input_tablet_emulate_mouse)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_input_touch_emulate_mouse)] = lang.SectionGenWindowInput;
             sectionMap[nameof(AppContext.AppSetting.Mpv_input_vo_keyboard)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_native_keyrepeat)] = lang.SectionGenWindowInput;
-            sectionMap[nameof(AppContext.AppSetting.Mpv_native_touch)] = lang.SectionGenWindowInput;
 
             // 脚本与配置加载 -- 12 row(s), from mpv's "Player & window"
             sectionOrder[lang.SectionGenWindowScripts] = 1012;
@@ -519,8 +510,22 @@ namespace mpv_winui.Domains.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_watch_history_path)] = lang.SectionGenHistory;
             sectionMap[nameof(AppContext.AppSetting.Mpv_write_filename_in_watch_later_config)] = lang.SectionGenHistory;
 
+            // 输入行为 -- 9 row(s), from mpv's "Player & window"
+            sectionOrder[lang.SectionGenInputBehavior] = 1035;
+            advancedSections.Add(lang.SectionGenInputBehavior);
+
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_cursor)] = lang.SectionGenInputBehavior;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_cursor_passthrough)] = lang.SectionGenInputBehavior;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_doubleclick_time)] = lang.SectionGenInputBehavior;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_dragging_deadzone)] = lang.SectionGenInputBehavior;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_preprocess_wheel)] = lang.SectionGenInputBehavior;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_tablet_emulate_mouse)] = lang.SectionGenInputBehavior;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_input_touch_emulate_mouse)] = lang.SectionGenInputBehavior;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_native_keyrepeat)] = lang.SectionGenInputBehavior;
+            sectionMap[nameof(AppContext.AppSetting.Mpv_native_touch)] = lang.SectionGenInputBehavior;
+
             // 几何与裁切 -- 12 row(s), from mpv's "Video & rendering"
-            sectionOrder[lang.SectionGenGeometry] = 1035;
+            sectionOrder[lang.SectionGenGeometry] = 1036;
             advancedSections.Add(lang.SectionGenGeometry);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_keepaspect)] = lang.SectionGenGeometry;
@@ -537,7 +542,7 @@ namespace mpv_winui.Domains.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_video_recenter)] = lang.SectionGenGeometry;
 
             // 截图输出 -- 19 row(s), from mpv's "Video & rendering"
-            sectionOrder[lang.SectionGenScreenshot] = 1036;
+            sectionOrder[lang.SectionGenScreenshot] = 1037;
             advancedSections.Add(lang.SectionGenScreenshot);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_screenshot_avif_opts)] = lang.SectionGenScreenshot;
@@ -561,7 +566,7 @@ namespace mpv_winui.Domains.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_vo_image_webp_quality)] = lang.SectionGenScreenshot;
 
             // 字幕来源与同步 -- 10 row(s), from mpv's "Subtitles"
-            sectionOrder[lang.SectionGenSubtitlesSource] = 1037;
+            sectionOrder[lang.SectionGenSubtitlesSource] = 1038;
             advancedSections.Add(lang.SectionGenSubtitlesSource);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_auto_exts)] = lang.SectionGenSubtitlesSource;
@@ -576,7 +581,7 @@ namespace mpv_winui.Domains.Settings
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_vsfilter_bidi_compat)] = lang.SectionGenSubtitlesSource;
 
             // 字幕筛选 -- 5 row(s), from mpv's "Subtitles"
-            sectionOrder[lang.SectionGenSubtitlesFilter] = 1038;
+            sectionOrder[lang.SectionGenSubtitlesFilter] = 1039;
             advancedSections.Add(lang.SectionGenSubtitlesFilter);
 
             sectionMap[nameof(AppContext.AppSetting.Mpv_sub_filter_jsre)] = lang.SectionGenSubtitlesFilter;

@@ -26,8 +26,6 @@ public sealed partial class OptionShaderListControl : OptionControlBase
 
     protected override void OnSettingChanged(Option? oldValue, Option? newValue)
     {
-        LabelText.Text = newValue?.Label ?? string.Empty;
-        UpdateDescription(DescriptionText);
         AddButton.Content = mpv_winui.AppContext.AppLang.Add;
 
         _loading = true;
@@ -58,7 +56,6 @@ public sealed partial class OptionShaderListControl : OptionControlBase
 
     protected override void OnOptionStateChanged()
     {
-        UpdateWarning(WarningText);
         var enabled = Setting?.IsEnabled ?? true;
         ShaderItems.IsEnabled = enabled;
         AddButton.IsEnabled = enabled;

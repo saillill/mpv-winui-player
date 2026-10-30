@@ -17,8 +17,6 @@ public sealed partial class OptionBooleanControl : OptionControlBase
     {
         if (newValue is not null)
         {
-            LabelText.Text = newValue.Label;
-            UpdateDescription(DescriptionText);
             // Bare Windows-settings switch: the control carries no on/off
             // captions at all — the track alone, right-aligned, does the job.
             ToggleSwitch.IsEnabled = newValue.IsEnabled;
@@ -41,7 +39,6 @@ public sealed partial class OptionBooleanControl : OptionControlBase
 
     protected override void OnOptionStateChanged()
     {
-        UpdateWarning(WarningText);
         ToggleSwitch.IsEnabled = Setting?.IsEnabled ?? true;
     }
 

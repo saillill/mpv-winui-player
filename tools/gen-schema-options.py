@@ -108,6 +108,49 @@ GROUP_TO_CATEGORY = {
     "General": "SettingsCategoryProgram",
 }
 
+# One row's category, when the group's is wrong for it.
+#
+# GROUP_TO_CATEGORY answers per mpv group; this answers per option. The input
+# family is the reason it exists: mpv files all 26 of them under
+# "Player & window", but they are three unrelated jobs, and a settings page that
+# puts them in one pane hides the one people actually come for.
+CATEGORY_OVERRIDE = {
+    # Rebinding: these change which key does what, and they belong beside the
+    # click-to-rebind list BuildShortcutOptions builds from input.conf.
+    "input-conf": "SettingsCategoryShortcuts",
+    "input-default-bindings": "SettingsCategoryShortcuts",
+    "input-builtin-bindings": "SettingsCategoryShortcuts",
+    "input-commands": "SettingsCategoryShortcuts",
+
+    # How the pointer and the keyboard behave, as opposed to what they are bound
+    # to. Someone with a pen or a touchscreen arrives here.
+    "input-cursor": "SettingsCategoryInput",
+    "input-cursor-passthrough": "SettingsCategoryInput",
+    "input-tablet-emulate-mouse": "SettingsCategoryInput",
+    "input-touch-emulate-mouse": "SettingsCategoryInput",
+    "input-preprocess-wheel": "SettingsCategoryInput",
+    "input-dragging-deadzone": "SettingsCategoryInput",
+    "input-doubleclick-time": "SettingsCategoryInput",
+    "native-keyrepeat": "SettingsCategoryInput",
+    "native-touch": "SettingsCategoryInput",
+
+    # Everything else in the family is plumbing: IPC sockets, the terminal input
+    # path, the test harness, the IME bridge. These are "how mpv runs", not "how
+    # you use it", so they sit with the program-level advanced rows.
+    "input-ar-delay": "SettingsCategoryProgram",
+    "input-ar-rate": "SettingsCategoryProgram",
+    "input-builtin-drag-and-drop": "SettingsCategoryProgram",
+    "input-builtin-dragging": "SettingsCategoryProgram",
+    "input-ime": "SettingsCategoryProgram",
+    "input-ipc-client": "SettingsCategoryProgram",
+    "input-ipc-server": "SettingsCategoryProgram",
+    "input-key-fifo-size": "SettingsCategoryProgram",
+    "input-right-alt-gr": "SettingsCategoryProgram",
+    "input-terminal": "SettingsCategoryProgram",
+    "input-test": "SettingsCategoryProgram",
+    "input-vo-keyboard": "SettingsCategoryProgram",
+}
+
 # Sub-folder for the General bucket only.
 #
 # mpv's `General` group is a leftovers bin: 119 of the schema's options land
@@ -390,6 +433,20 @@ SECTION_OVERRIDE = {
     "vd-queue-max-bytes": "SectionGenVideoDecode",
     "vd-queue-max-samples": "SectionGenVideoDecode",
     "vd-queue-max-secs": "SectionGenVideoDecode",
+
+    # The nine rows CATEGORY_OVERRIDE moves into the Input category need a
+    # folder there too: without this they keep the window-input folder while
+    # claiming the Input category, so the new folder is empty and the rows sit
+    # under a heading from another pane.
+    "input-cursor": "SectionGenInputBehavior",
+    "input-cursor-passthrough": "SectionGenInputBehavior",
+    "input-tablet-emulate-mouse": "SectionGenInputBehavior",
+    "input-touch-emulate-mouse": "SectionGenInputBehavior",
+    "input-preprocess-wheel": "SectionGenInputBehavior",
+    "input-dragging-deadzone": "SectionGenInputBehavior",
+    "input-doubleclick-time": "SectionGenInputBehavior",
+    "native-keyrepeat": "SectionGenInputBehavior",
+    "native-touch": "SectionGenInputBehavior",
 }
 
 
@@ -447,6 +504,11 @@ SPLIT_SECTIONS: list[tuple[str, str, str, str, str]] = [
      "SDR 调整、ICC 与抖动", "IconColourManagement"),
     ("SectionGenGpuBackend", "General", "GPU 与着色器后端",
      "渲染后端、SPIR-V 编译与零拷贝路径", "IconGpuBackend"),
+
+    # Its rows live in the Player & window group; CATEGORY_OVERRIDE moves nine of
+    # them into the Input category and this folder holds them.
+    ("SectionGenInputBehavior", "Player & window", "输入行为",
+     "指针、滚轮、触摸与按键重复", "IconWindowInput"),
 ]
 
 # Icons for the generated folders, including every General sub-theme. Checked
@@ -1071,15 +1133,26 @@ def gen_options(rows: list[dict]) -> str:
 
     for folder in sorted(by_folder, key=sort_key):
         group, cap, _desc, _icon = folder_meta(folder)
-        cat = GROUP_TO_CATEGORY[group]
         tag = folder[len("SectionGen"):]
-        gvar = "cat" + tag
         svar = "sec" + tag
         out.append(f"        // ---- {cap} ({len(by_folder[folder])} rows) ----")
-        out.append(f"        var {gvar} = AppContext.AppLang.{cat};")
         out.append(f"        var {svar} = AppContext.AppLang.{folder};")
+
+        # A folder's rows can land in more than one category: CATEGORY_OVERRIDE
+        # answers per option, and the input family -- all of it in one mpv group
+        # -- is split across three. Grouping by category inside the folder keeps
+        # one `cat` local per distinct category and keeps the emitted source
+        # readable, instead of one variable per row.
+        by_cat: dict[str, list[dict]] = {}
         for r in sorted(by_folder[folder], key=lambda x: x["name"]):
-            out.append(_option_literal(r, gvar, svar))
+            resolved = CATEGORY_OVERRIDE.get(r["name"], GROUP_TO_CATEGORY[group])
+            by_cat.setdefault(resolved, []).append(r)
+
+        for cat in sorted(by_cat):
+            gvar = "cat" + tag + ("" if len(by_cat) == 1 else cat.replace("SettingsCategory", ""))
+            out.append(f"        var {gvar} = AppContext.AppLang.{cat};")
+            for r in by_cat[cat]:
+                out.append(_option_literal(r, gvar, svar))
         out.append("")
 
     out += ["        return list;", "    }", ""]
@@ -1099,14 +1172,14 @@ def gen_options(rows: list[dict]) -> str:
     out.append("    /// holds. Used by the in-place language refresh; the initial build")
     out.append("    /// uses the literals above instead.")
     out.append("    /// </summary>")
-    out.append("    private static (string Label, string? Description)? GeneratedText(string key)")
+    out.append("    private static OptionText? GeneratedText(string key)")
     out.append("    {")
     out.append("        var lang = AppContext.AppLang;")
     out.append("        switch (key)")
     out.append("        {")
     for r in sorted(rows, key=lambda x: x["prop"]):
         out.append('            case nameof(AppContext.AppSetting.%s):' % r["prop"])
-        out.append("                return (lang.SchemaLabel_%s, lang.SchemaDesc_%s);"
+        out.append("                return new OptionText(lang.SchemaLabel_%s, lang.SchemaDesc_%s);"
                    % (r["prop"], r["prop"]))
     out.append("            default:")
     out.append("                return null;")
@@ -1122,14 +1195,14 @@ def gen_options(rows: list[dict]) -> str:
     out.append("    /// when the property it names has been renamed, and the only symptom")
     out.append("    /// would be a row that keeps its old language after a switch.")
     out.append("    /// </summary>")
-    out.append("    private static (string Label, string? Description)? HandWrittenText(string key)")
+    out.append("    private static OptionText? HandWrittenText(string key)")
     out.append("    {")
     out.append("        var lang = AppContext.AppLang;")
     out.append("        switch (key)")
     out.append("        {")
     for key, label, desc in hand_written_text:
         out.append("            case nameof(AppContext.AppSetting.%s):" % key)
-        out.append("                return (lang.%s, %s);"
+        out.append("                return new OptionText(lang.%s, %s);"
                    % (label, ("lang." + desc) if desc else "null"))
     out.append("            default:")
     out.append("                return null;")

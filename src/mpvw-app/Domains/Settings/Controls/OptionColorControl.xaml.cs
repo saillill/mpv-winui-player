@@ -28,8 +28,6 @@ public sealed partial class OptionColorControl : OptionControlBase
             return;
         }
 
-        LabelText.Text = newValue.Label;
-        UpdateDescription(DescriptionText);
         RecentLabel.Text = mpv_winui.AppContext.AppLang.ThemeColorRecentColors;
         WindowsLabel.Text = mpv_winui.AppContext.AppLang.ThemeColorWindowsColors;
         CustomButton.Content = mpv_winui.AppContext.AppLang.ThemeColorCustomColors;
@@ -37,11 +35,6 @@ public sealed partial class OptionColorControl : OptionControlBase
         BuildRecentGrid();
         BuildWindowsGrid();
         UpdateSwatch();
-    }
-
-    protected override void OnOptionStateChanged()
-    {
-        UpdateWarning(WarningText);
     }
 
     private void OnHeaderTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)

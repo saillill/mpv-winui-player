@@ -120,6 +120,7 @@ public sealed partial class SettingsPage : Page
     [
         "program", "playback", "video", "audio", "subtitles",
         "window", "network", "shortcuts", "osd", "screenshot",
+        "input",
     ];
 
     /// <summary>Fluent glyphs in the same order as <see cref="CategoryKeys"/>.</summary>
@@ -131,6 +132,10 @@ public sealed partial class SettingsPage : Page
     [
         "\uE713", "\uE768", "\uE714", "\uE767", "\uED1F",
         "\uE8A4", "\uE774", "\uE765", "\uE946", "\uE722",
+        // Keyboard and mouse. `input` is a new pane: it used to share the
+        // "Interface" caption with window and OSD, so it never had a rail entry
+        // of its own to need a glyph.
+        "\uE90F",
     ];
 
     /// <summary>

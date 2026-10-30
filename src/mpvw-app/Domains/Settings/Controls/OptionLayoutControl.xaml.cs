@@ -51,8 +51,6 @@ public sealed partial class OptionLayoutControl : OptionControlBase
             return;
         }
 
-        LabelText.Text = newValue.Label;
-        UpdateDescription(DescriptionText);
         if (newValue.Getter is Func<object?> getter && getter() is string value)
         {
             _current = value;

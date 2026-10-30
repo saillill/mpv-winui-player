@@ -16,8 +16,6 @@ public sealed partial class OptionActionControl : OptionControlBase
             return;
         }
 
-        LabelText.Text = newValue.Label;
-        UpdateDescription(DescriptionText);
         ActionButton.Content = newValue.ActionLabel ?? newValue.Label;
         ActionButton.Visibility = newValue.ActionKind == OptionActionKind.None
             ? Visibility.Collapsed
@@ -67,7 +65,6 @@ public sealed partial class OptionActionControl : OptionControlBase
 
     protected override void OnOptionStateChanged()
     {
-        UpdateWarning(WarningText);
         var enabled = Setting?.IsEnabled ?? true;
         ActionButton.IsEnabled = enabled;
         SecondaryActionButton.IsEnabled = enabled;

@@ -36,8 +36,6 @@ public sealed partial class OptionStringListControl : OptionControlBase
             return;
         }
 
-        LabelText.Text = newValue.Label;
-        UpdateDescription(DescriptionText);
         Combo.IsEnabled = newValue.IsEnabled;
 
         // The free-text field that appears when the user picks "custom". It had no
@@ -46,8 +44,9 @@ public sealed partial class OptionStringListControl : OptionControlBase
         // `Name == ""`, `HelpText == ""`, `IsKeyboardFocusable == true`.
         //
         // The row's own label is the right name -- it is what a sighted user reads beside
-        // the box -- and it is already in `LabelText.Text` two lines up, so this follows
-        // the same "one string, one place" rule the other option controls use
+        // the box -- and it is the same string the hosting SettingsCard shows as the
+        // row's header, so this follows the same "one string, one place" rule the other
+        // option controls use
         // (`OptionListControl` names its toggles from `lang.*`, `OptionColorControl` names
         // its swatch from `AppLang.A11yColorSwatch`). Naming it from the row label rather
         // than from a new AppLang key keeps the nine language files unchanged, and the
@@ -109,7 +108,6 @@ public sealed partial class OptionStringListControl : OptionControlBase
 
     protected override void OnOptionStateChanged()
     {
-        UpdateWarning(WarningText);
         var enabled = Setting?.IsEnabled ?? true;
         Combo.IsEnabled = enabled;
         CustomInput.IsEnabled = enabled;

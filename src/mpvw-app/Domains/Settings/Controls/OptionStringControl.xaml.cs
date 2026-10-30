@@ -41,8 +41,6 @@ public sealed partial class OptionStringControl : OptionControlBase
     {
         if (newValue is not null)
         {
-            LabelText.Text = newValue.Label;
-            UpdateDescription(DescriptionText);
             InputBox.PlaceholderText = newValue.Placeholder ?? string.Empty;
             _pathMode = newValue.PickFolder || newValue.PickFile || newValue.OpenFolder;
 
@@ -103,7 +101,6 @@ public sealed partial class OptionStringControl : OptionControlBase
 
     protected override void OnOptionStateChanged()
     {
-        UpdateWarning(WarningText);
         var enabled = Setting?.IsEnabled ?? true;
         InputBox.IsEnabled = enabled;
         BrowseButton.IsEnabled = enabled;

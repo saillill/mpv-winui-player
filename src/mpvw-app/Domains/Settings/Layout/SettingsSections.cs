@@ -53,6 +53,13 @@ internal static class SettingsSections
     /// Several SettingsCategory* properties now resolve to the same caption on
     /// purpose; see the comment on them in AppLang.cs. This array lists each
     /// domain once, in order.
+    ///
+    /// `shortcuts` and `input` are domains of their own now. They used to
+    /// resolve to "Interface" alongside `interface`, and this array lists each
+    /// *domain* once -- so several keys naming one caption could only ever be
+    /// one row, and the shortcut list had no rail entry to appear under.
+    /// SettingsCategoryOsd still resolves to "Interface" and is covered by the
+    /// `interface` row; it is deliberately not listed a second time.
     internal static readonly Category[] Categories =
     [
         new("program", l => l.SettingsCategoryProgram),
@@ -61,6 +68,8 @@ internal static class SettingsSections
         new("subtitles", l => l.SettingsCategorySubtitles),
         new("playback", l => l.SettingsCategoryPlayback),
         new("interface", l => l.SettingsCategoryWindow),
+        new("shortcuts", l => l.SettingsCategoryShortcuts),
+        new("input", l => l.SettingsCategoryInput),
     ];
 
     /// <summary>
@@ -231,6 +240,10 @@ internal static class SettingsSections
         new("SectionGenAutoload", "\uE8F1", l => l.SectionGenAutoload, l => l.SectionDescGenAutoload),
         new("SectionGenColourManagement", "\uE765", l => l.SectionGenColourManagement, l => l.SectionDescGenColourManagement),
         new("SectionGenGpuBackend", "\uE74A", l => l.SectionGenGpuBackend, l => l.SectionDescGenGpuBackend),
+        // The Input category's folder. Its rows come from the Player & window
+        // group via CATEGORY_OVERRIDE; the glyph is the one the window-input
+        // subtheme already used for keyboard and mouse.
+        new("SectionGenInputBehavior", "\uE950", l => l.SectionGenInputBehavior, l => l.SectionDescGenInputBehavior),
     ];
 
     /// <summary>Fallback glyph for a caption the table does not know.</summary>

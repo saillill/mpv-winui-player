@@ -45,6 +45,7 @@ private List<Option> BuildSettings()
         var window = AppContext.AppLang.SettingsCategoryWindow;
         var network = AppContext.AppLang.SettingsCategoryNetwork;
         var shortcuts = AppContext.AppLang.SettingsCategoryShortcuts;
+        var input = AppContext.AppLang.SettingsCategoryInput;
         var osd = AppContext.AppLang.SettingsCategoryOsd;
         var sPlayerAppearance = AppContext.AppLang.SectionPlayerAppearance;
         var sProgramLanguageLog = AppContext.AppLang.SectionProgramLanguageLog;
@@ -327,11 +328,17 @@ private List<Option> BuildSettings()
         // headings holding four and five sections - the same bucket problem the
         // old Advanced category had.
         //
-        // network, shortcuts and osd still exist as variables and still feed
-        // rows; they now resolve to the Playback and Interface captions (see
-        // AppLang.cs). They must not appear in this array: it is the rail's
-        // order, and three entries sharing one caption would draw the same
-        // domain three times.
+        // Shortcuts, Input and OSD each have their own caption now, so each can
+        // be its own rail entry. It used to be the other way round: all three
+        // shared the string "Interface" with the window category, and the array
+        // deliberately left them out because three entries carrying one caption
+        // would draw the same domain three times.
+        //
+        // OSD stays merged with Window on purpose -- the OSD *is* part of the
+        // window's chrome, and 45 rows of overlay text styling do not deserve a
+        // rail entry of their own. Shortcuts and Input are separate because a
+        // user looking for "change this key" was previously reading through
+        // window geometry to find it.
         var categoryOrder = new[]
         {
             program,
@@ -340,6 +347,8 @@ private List<Option> BuildSettings()
             subtitles,
             playback,
             window,
+            shortcuts,
+            input,
         };
 
         var optionOrder = new Dictionary<string, int>(StringComparer.Ordinal)

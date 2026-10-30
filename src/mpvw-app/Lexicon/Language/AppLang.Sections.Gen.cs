@@ -44,6 +44,8 @@ namespace mpv_winui.Lexicon.Language
         public string SectionDescGenGpuBackend { get; set; } = "渲染后端、SPIR-V 编译与零拷贝路径";
         public string SectionGenHistory { get; set; } = "进度与历史";
         public string SectionDescGenHistory { get; set; } = "观看历史、断点续播与时间轴起点";
+        public string SectionGenInputBehavior { get; set; } = "输入行为";
+        public string SectionDescGenInputBehavior { get; set; } = "指针、滚轮、触摸与按键重复";
         public string SectionGenOsd { get; set; } = "OSD 选项";
         public string SectionDescGenOsd { get; set; } = "全部 OSD 相关选项";
         public string SectionGenPlaybackBehavior { get; set; } = "播放行为";

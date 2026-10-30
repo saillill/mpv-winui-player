@@ -6,44 +6,6 @@ namespace mpv_winui.Domains.Settings.Controls;
 
 public abstract class OptionControlBase : UserControl
 {
-    /// <summary>Shows the option description below the title (Windows Settings style).</summary>
-    protected void UpdateDescription(TextBlock? block)
-    {
-        if (block is null)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(Setting?.Description))
-        {
-            block.Text = string.Empty;
-            block.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        block.Text = Setting.Description;
-        block.Visibility = Visibility.Visible;
-    }
-
-    /// <summary>Shows the yellow "may be ineffective" warning below the description.</summary>
-    protected void UpdateWarning(TextBlock? block)
-    {
-        if (block is null)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(Setting?.Warning))
-        {
-            block.Text = string.Empty;
-            block.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        block.Text = Setting.Warning;
-        block.Visibility = Visibility.Visible;
-    }
-
     /// <summary>Called when the option's Warning or IsEnabled changes; derived controls refresh their state.</summary>
     protected virtual void OnOptionStateChanged()
     {

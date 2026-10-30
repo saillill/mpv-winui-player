@@ -504,8 +504,17 @@ namespace mpv_winui.Lexicon.Language
         public string SettingsCategoryWindow { get; set; } = "Interface";
         /// <summary>Streaming and cache, which are playback behaviour.</summary>
         public string SettingsCategoryNetwork { get; set; } = "Playback";
-        /// <summary>Shortcuts live with the rest of the interface.</summary>
-        public string SettingsCategoryShortcuts { get; set; } = "Interface";
+        /// <summary>Shortcuts: the rebind list plus which binding sets load.
+        ///
+        /// Its own pane. It shared the value "Interface" with the window and OSD
+        /// captions, and the page keys categories by that string -- so all three
+        /// collapsed into one pane and the shortcut list appeared as a section
+        /// buried under the window options. A category needs its own caption to
+        /// be a category.
+        /// </summary>
+        public string SettingsCategoryShortcuts { get; set; } = "Shortcuts";
+        /// <summary>Pointer and keyboard behaviour, as opposed to bindings.</summary>
+        public string SettingsCategoryInput { get; set; } = "Input";
         /// <summary>OSD is part of the interface.</summary>
         public string SettingsCategoryOsd { get; set; } = "Interface";
         // There is no SettingsCategoryAdvanced: the category was removed and its

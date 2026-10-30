@@ -24,8 +24,6 @@ public sealed partial class OptionCheckListControl : OptionControlBase
             return;
         }
 
-        LabelText.Text = newValue.Label;
-        UpdateDescription(DescriptionText);
         ApplyButton.Content = newValue.CheckApplyLabel ?? mpv_winui.AppContext.AppLang.Apply;
         ApplyButton.Visibility = newValue.CheckApplyHandler is null ? Visibility.Collapsed : Visibility.Visible;
         UpdateStatus();
@@ -35,7 +33,6 @@ public sealed partial class OptionCheckListControl : OptionControlBase
 
     protected override void OnOptionStateChanged()
     {
-        UpdateWarning(WarningText);
         ApplyEnabledState();
     }
 
