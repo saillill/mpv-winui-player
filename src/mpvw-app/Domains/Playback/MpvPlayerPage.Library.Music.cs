@@ -347,7 +347,7 @@ namespace mpv_winui.Domains.Playback
             // The album card, not the video one: square cover, album then artist. Both
             // grouped music tabs render albums, and the video card's 16:9 crop loses the
             // sleeve while its single caption loses the artist.
-            var cardTemplate = (DataTemplate)Resources["AlbumCardTemplate"];
+            var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
             var headerTemplate = (DataTemplate)Resources["VideoFolderHeaderTemplate"];
 
             var byAlbum = _musicGrouping == MusicGrouping.Albums;

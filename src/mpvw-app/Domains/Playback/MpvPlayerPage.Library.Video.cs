@@ -287,7 +287,7 @@ namespace mpv_winui.Domains.Playback
         {
             VideoFolderGroups.Children.Clear();
 
-            var cardTemplate = (DataTemplate)Resources["LibraryCardTemplate"];
+            var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
             var headerTemplate = (DataTemplate)Resources["VideoFolderHeaderTemplate"];
 
             // Registered here as well as in the music grouped view: the index

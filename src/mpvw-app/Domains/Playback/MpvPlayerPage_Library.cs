@@ -128,12 +128,11 @@ namespace mpv_winui.Domains.Playback
             LibraryGrid.ElementPrepared += LibraryGrid_ElementPrepared;
             _libraryIdleTimer.Tick += LibraryIdleTimer_Tick;
 
-            // The shared card menu puts its card's overlay away when it closes.
-            // A flyout takes the pointer with it, so the card never sees its own
-            // exit and the overlay would otherwise stay up behind the menu.
+            // The shared card menu takes the pointer with it, so the card never
+            // sees its own exit. Forward Closed to whichever card opened it.
             if (Resources["LibraryCardContextMenu"] is MenuFlyout cardMenu)
             {
-                cardMenu.Closed += LibraryCardMenu_Closed;
+                cardMenu.Closed += CardMenu_Closed;
             }
 
             // Home is the section the page opens on, the same landing the
@@ -160,7 +159,7 @@ namespace mpv_winui.Domains.Playback
 
             if (Resources["LibraryCardContextMenu"] is MenuFlyout cardMenu)
             {
-                cardMenu.Closed -= LibraryCardMenu_Closed;
+                cardMenu.Closed -= CardMenu_Closed;
             }
 
             // The data, not only the events. Leaving these populated was how a rebuilt

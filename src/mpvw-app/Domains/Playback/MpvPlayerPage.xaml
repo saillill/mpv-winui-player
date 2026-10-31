@@ -6,6 +6,7 @@
     xmlns:bc="using:mpv_winui.Infrastructure.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:mpv_winui.Domains.Playback"
+    xmlns:cards="using:mpv_winui.Domains.Playback.Controls"
     xmlns:lib="using:mpv_winui.Domains.Library"
     xmlns:view="using:mpv_winui.Infrastructure.Common.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -140,170 +141,6 @@
 
         <view:IndexLetterOpacityConverter x:Key="IndexLetterOpacity" />
 
-        <DataTemplate x:Key="LibraryCardTemplate" x:DataType="local:LibraryEntry">
-            <Button
-                AutomationProperties.Name="{x:Bind Title, Mode=OneWay}"
-                Click="LibraryCard_Click"
-                PointerCanceled="LibraryCard_PointerCanceled"
-                PointerEntered="LibraryCard_PointerEntered"
-                PointerExited="LibraryCard_PointerExited"
-                Style="{StaticResource LibraryCardButtonStyle}">
-                <StackPanel>
-                    <Border
-                        Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}, Converter={StaticResource SixteenByNine}}"
-                        Style="{StaticResource LibraryCardMediaStyle}">
-                        <Grid>
-                            <!-- The media-kind icon shows until a thumbnail
-                                 arrives, and for good when the shell has none.
-                                 Official Fluent geometry, bound from the row's
-                                 own media kind - see FluentIcons. Sized to the
-                                 official placeholder, which fills about half
-                                 the tile; the Viewbox is what makes the
-                                 24-unit glyph actually 48px, since PathIcon
-                                 draws its geometry at native size. -->
-                            <Viewbox
-                                x:Name="SongCardFallbackIcon"
-                                Width="48"
-                                Height="48"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Visibility="{x:Bind IconVisibility, Mode=OneWay}">
-                                <PathIcon
-                                    Width="24"
-                                    Height="24"
-                                    Data="{x:Bind MediaIcon, Mode=OneWay}"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </Viewbox>
-                            <!-- Named and driven from code, exactly like the album cards
-                                 below. {x:Bind Thumbnail} does not deliver in this template
-                                 either: the thumbnail loads (logged at 600x600 for the one
-                                 .flac in the library) and LibraryEntry raises
-                                 PropertyChanged, yet the Image never shows it, so the card
-                                 stays a grey tile with a note glyph. Reported as
-                                 音乐库的封面依旧没有加载出来. -->
-                            <Image
-                                x:Name="SongCardCoverImage"
-                                Stretch="UniformToFill"
-                                Visibility="Collapsed" />
-
-                            <!-- The hover overlay. Shown and hidden by the
-                                 card's pointer events in code (and by
-                                 MotionBehaviors.FadeIn/FadeOut), never by a
-                                 VisualState, so one reusable template instance
-                                 cannot be left dressed by a state machine when
-                                 it is recycled for another item. Collapsed at
-                                 rest, so it is neither visible nor hit-testable
-                                 until a pointer is on the card. The two labels
-                                 are filled from AppLang when the card is
-                                 entered, which keeps a shared template free of
-                                 localized text. -->
-                            <Grid
-                                x:Name="CardHoverOverlay"
-                                IsHitTestVisible="False"
-                                Visibility="Collapsed">
-                                <!-- The scrim is not hit-testable: it is a
-                                     backdrop, and a backdrop with a background
-                                     would swallow the click that should reach
-                                     the card behind it, so clicking the
-                                     thumbnail would do nothing. The two buttons
-                                     keep their own hit test. -->
-                                <!-- The scrim. Not hit-testable: it is a backdrop, and
-                                     a backdrop with a background would swallow the click
-                                     that should reach the card behind it. -->
-                                <Border
-                                    Background="{ThemeResource SmokeFillColorDefaultBrush}"
-                                    CornerRadius="4"
-                                    IsHitTestVisible="False" />
-
-                                <!-- Play at the lower-left, the overflow at the
-                                     lower-right, both as circles. The reference puts
-                                     them in the corners so they do not sit on the
-                                     thumbnail's subject, and drops the text labels -
-                                     at 32px a glyph is unambiguous and a word is not
-                                     legible. -->
-                                <Button
-                                    x:Name="CardPlayButton"
-                                    Width="48"
-                                    Height="48"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                    BorderThickness="0"
-                                    CornerRadius="24"
-                                    Click="CardPlay_Click">
-                                    <FontIcon
-                                        FontFamily="{StaticResource MpvIconFontFamily}"
-                                        FontSize="14"
-                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                        Glyph="&#xF605;" />
-                                </Button>
-
-                                <Button
-                                    x:Name="CardMoreButton"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="0,0,10,10"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Top"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    BorderThickness="0"
-                                    CornerRadius="16"
-                                    Click="CardMore_Click">
-                                    <!-- Geometry, not a FontIcon glyph. This was
-                                         Glyph="&#xE712;" in the FluentSystemIcons typeface, where
-                                         E712 is not three dots at all: it rendered as an
-                                         unidentifiable symbol. Reported as
-                                         菜单应该是三个点的图标. A font cannot mis-map a path. -->
-                                    <Viewbox Width="14" Height="14">
-                                        <PathIcon Width="24" Height="24" Data="F1 M12 4C11.1716 4 10.5 4.67157 10.5 5.5C10.5 6.32843 11.1716 7 12 7C12.8284 7 13.5 6.32843 13.5 5.5C13.5 4.67157 12.8284 4 12 4ZM12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5ZM10.5 18.5C10.5 17.6716 11.1716 17 12 17C12.8284 17 13.5 17.6716 13.5 18.5C13.5 19.3284 12.8284 20 12 20C11.1716 20 10.5 19.3284 10.5 18.5Z" />
-                                    </Viewbox>
-                                </Button>
-
-                                <!-- The tick box, upper-left. Shown only in selection
-                                     mode, which the entry carries - a box on every card
-                                     outside the mode would read as a bulk-edit screen.
-                                     The whole card toggles it while the mode is on (see
-                                     LibraryCard_Click), so the box is an indicator
-                                     rather than a second hit target. -->
-                                <Border
-                                    x:Name="CardSelectionBox"
-                                    Width="24"
-                                    Height="24"
-                                    Margin="8"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                    CornerRadius="4"
-                                    Visibility="{x:Bind SelectionVisibility, Mode=OneWay}">
-                                    <FontIcon
-                                        FontSize="12"
-                                        Glyph="{x:Bind SelectionGlyph, Mode=OneWay}" />
-                                </Border>
-                            </Grid>
-                        </Grid>
-                    </Border>
-                    <StackPanel
-                        Margin="{StaticResource MpvMediaTileCaptionMargin}"
-                        Spacing="{StaticResource MpvSpaceXxs}">
-                        <!-- Two lines, not the settings page's single truncated
-                             line: a media title is a name, and the difference
-                             between two files is usually in the part that a
-                             one-line cut removes. -->
-                        <TextBlock
-                            MaxLines="2"
-                            Style="{StaticResource BodyTextBlockStyle}"
-                            Text="{x:Bind Title, Mode=OneWay}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{x:Bind Subtitle, Mode=OneWay}"
-                            TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
-                </StackPanel>
-            </Button>
-        </DataTemplate>
 
         <!-- One letter in the A-Z rail.
 
@@ -359,123 +196,15 @@
              Element names are prefixed Album* because the overlay code finds its controls by
              name inside whichever template it was handed, and the video card already owns
              CardHoverOverlay / CardPlayButton / CardMoreButton. -->
-        <DataTemplate x:Key="AlbumCardTemplate" x:DataType="local:LibraryEntry">
-            <Button
-                AutomationProperties.Name="{Binding AlbumTitle}"
-                Click="LibraryCard_Click"
-                PointerCanceled="LibraryCard_PointerCanceled"
-                PointerEntered="LibraryCard_PointerEntered"
-                PointerExited="LibraryCard_PointerExited"
-                Style="{StaticResource LibraryCardButtonStyle}">
-                <StackPanel>
-                    <!-- The square height is set from code (SetCardMediaSquare): the
-                         self-referential {Binding ActualWidth} does not resolve in this
-                         template, and {x:Bind} to it crashes the XAML compiler. -->
-                    <Border
-                        x:Name="AlbumCardMediaBorder"
-                        Style="{StaticResource LibraryCardMediaStyle}">
-                        <Grid>
-                            <Viewbox
-                                x:Name="AlbumCardFallbackIcon"
-                                Width="48"
-                                Height="48"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Visibility="{x:Bind IconVisibility, Mode=OneWay}">
-                                <PathIcon
-                                    Width="24"
-                                    Height="24"
-                                    Data="{x:Bind MediaIcon, Mode=OneWay}"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </Viewbox>
-                            <!-- Named, and driven from code, for the same reason as the two
-                                 captions above: this template's bindings do not take effect.
-                                 Measured: the thumbnail for the .flac loaded at 600x600 and
-                                 the PropertyChanged for Thumbnail fired, yet the card stayed
-                                 flat because neither this Source nor its Visibility updated.
-                                 ElementPrepared sets both once it has the entry. -->
-                            <Image
-                                x:Name="AlbumCardCoverImage"
-                                Stretch="UniformToFill"
-                                Visibility="Collapsed" />
+        <!--  The card control, as an ItemsRepeater template root.
 
-                            <Grid
-                                x:Name="AlbumCardHoverOverlay"
-                                IsHitTestVisible="False"
-                                Visibility="Collapsed">
-                                <Border
-                                    Background="{ThemeResource SmokeFillColorDefaultBrush}"
-                                    CornerRadius="4"
-                                    IsHitTestVisible="False" />
-                                <Button
-                                    x:Name="AlbumCardPlayButton"
-                                    Width="48"
-                                    Height="48"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                    BorderThickness="0"
-                                    CornerRadius="24"
-                                    Click="CardPlay_Click">
-                                    <FontIcon
-                                        FontFamily="{StaticResource MpvIconFontFamily}"
-                                        FontSize="14"
-                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                        Glyph="&#xF605;" />
-                                </Button>
-                                <Button
-                                    x:Name="AlbumCardMoreButton"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="0,0,10,10"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Top"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    BorderThickness="0"
-                                    CornerRadius="16"
-                                    Click="CardMore_Click">
-                                    <!-- Geometry, for the same reason as the video card menu
-                                         button: E712 in FluentSystemIcons is not three dots. -->
-                                    <Viewbox Width="14" Height="14">
-                                        <PathIcon Width="24" Height="24" Data="F1 M12 4C11.1716 4 10.5 4.67157 10.5 5.5C10.5 6.32843 11.1716 7 12 7C12.8284 7 13.5 6.32843 13.5 5.5C13.5 4.67157 12.8284 4 12 4ZM12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5ZM10.5 18.5C10.5 17.6716 11.1716 17 12 17C12.8284 17 13.5 17.6716 13.5 18.5C13.5 19.3284 12.8284 20 12 20C11.1716 20 10.5 19.3284 10.5 18.5Z" />
-                                    </Viewbox>
-                                </Button>
-                                <Border
-                                    x:Name="AlbumCardSelectionBox"
-                                    Width="24"
-                                    Height="24"
-                                    Margin="8"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                    CornerRadius="4"
-                                    Visibility="{x:Bind SelectionVisibility, Mode=OneWay}">
-                                    <FontIcon
-                                        FontSize="12"
-                                        Glyph="{x:Bind SelectionGlyph, Mode=OneWay}" />
-                                </Border>
-                            </Grid>
-                        </Grid>
-                    </Border>
-
-                    <StackPanel
-                        Margin="{StaticResource MpvMediaTileCaptionMargin}"
-                        Spacing="{StaticResource MpvSpaceXxs}">
-                        <TextBlock
-                            x:Name="AlbumCardTitleText"
-                            MaxLines="2"
-                            Style="{StaticResource BodyTextBlockStyle}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            x:Name="AlbumCardArtistText"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
-                </StackPanel>
-            </Button>
+              A template whose root is a typed control is ordinary WinUI, and it
+              is what lets ElementPrepared hand the card its entry as an argument
+              instead of searching the visual tree for named parts. -->
+        <DataTemplate x:Key="LibraryCardControlTemplate">
+            <cards:LibraryCard />
         </DataTemplate>
+
 
         <!-- The card's overflow menu, one definition shared by every card.
              A MenuFlyout is shown with ShowAt and does not have to live inside
@@ -1407,11 +1136,11 @@
                     HorizontalScrollMode="Disabled"
                     VerticalScrollBarVisibility="Auto"
                     VerticalScrollMode="Auto"
-                    ViewChanged="LibraryScroll_ViewChanged">
+                    >
                     <Grid>
                         <ItemsRepeater
                             x:Name="LibraryGrid"
-                            ItemTemplate="{StaticResource LibraryCardTemplate}">
+                            ItemTemplate="{StaticResource LibraryCardControlTemplate}">
                             <ItemsRepeater.Layout>
                                 <!-- The official home grid: about six square tiles
                                      across at the window width the two were

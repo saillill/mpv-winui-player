@@ -11,6 +11,7 @@ using mpv_winui.Infrastructure.Common.Utils;
 using mpv_winui.Infrastructure.Common.View;
 using mpv_winui.Platform.FileSystem;
 using mpv_winui.Infrastructure.Motion;
+using mpv_winui.Domains.Playback.Controls;
 using mpv_winui.Domains.Playlist;
 using System;
 using System.ComponentModel;
@@ -43,6 +44,16 @@ namespace mpv_winui.Domains.Playback
         /// is a single shared MenuFlyout that outlives the card it points at.
         /// </summary>
         private LibraryEntry? _cardMenuEntry;
+
+        /// <summary>
+        /// The card whose overflow button opened the shared menu.
+        ///
+        /// Held so the menu's Closed event can put that card's overlay away. The
+        /// card cannot hear Closed itself - the flyout is shared and lives on the
+        /// page - and it will not receive PointerExited either, because the flyout
+        /// takes the pointer with it.
+        /// </summary>
+        private LibraryCard? _cardMenuCard;
 
         private void ApplyCardStrings()
         {
@@ -438,14 +449,13 @@ namespace mpv_winui.Domains.Playback
 
         /// <summary>
         /// Opens the file a card stands for.
+        ///
+        /// Kept as the click handler's entry point so the card control can stay
+        /// ignorant of what a click means: on the Albums tab it opens the album,
+        /// in selection mode it ticks, otherwise it plays.
         /// </summary>
-        private void LibraryCard_Click(object sender, RoutedEventArgs e)
+        private void HandleCardActivation(LibraryEntry entry)
         {
-            if ((sender as FrameworkElement)?.DataContext is not LibraryEntry entry)
-            {
-                return;
-            }
-
             // In selection mode a click ticks rather than plays: the card's tick box is
             // an indicator, so the whole card is the hit target. Checked first, so a
             // tick cannot be mistaken for a play request on the Albums tab.
@@ -480,180 +490,50 @@ namespace mpv_winui.Domains.Playback
         private void PlayLibraryEntry(LibraryEntry entry) =>
             _mediaPlayer.OpenAsync(new FileItem(entry.Path)).FireAndForget(OnException);
 
-        private void LibraryCard_PointerEntered(object sender, PointerRoutedEventArgs e)
+
+
+
+
+
+
+
+
+
+
+
+
+        /// <summary>The card body was clicked.</summary>
+        private void Card_Tapped(object? sender, EventArgs e)
         {
-            if (sender is not FrameworkElement card || FindCardOverlay(card) is not { } overlay)
+            if (sender is not LibraryCard { Entry: { } entry })
             {
                 return;
             }
 
-            // Filled here, not in the template: the card template is shared, so
-            // it cannot bind a page-level string, and doing it at the moment the
-            // overlay becomes visible keeps it right after a language change.
-            ApplyCardOverlayStrings(card);
-
-            _activeCardOverlay = overlay;
-            ShowCardOverlay(overlay);
+            HandleCardActivation(entry);
         }
 
-        private void LibraryCard_PointerExited(object sender, PointerRoutedEventArgs e) => HideCardOf(sender);
-
-        private void LibraryCard_PointerCanceled(object sender, PointerRoutedEventArgs e) => HideCardOf(sender);
-
-        /// <summary>
-        /// A scroll moves the cards out from under a resting pointer without
-        /// always producing an exit, so the overlay that was up is put away
-        /// explicitly. Only the tracked one can be up, so there is nothing to
-        /// enumerate.
-        /// </summary>
-        private void LibraryScroll_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        /// <summary>The hover layer's play button was clicked.</summary>
+        private void Card_PlayRequested(object? sender, EventArgs e)
         {
-            if (_activeCardOverlay is { } overlay)
-            {
-                HideCardOverlay(overlay);
-            }
-        }
-
-        private void LibraryCardMenu_Closed(object? sender, object e)
-        {
-            if (_activeCardOverlay is { } overlay)
-            {
-                HideCardOverlay(overlay);
-            }
-        }
-
-        private void HideCardOf(object sender)
-        {
-            if (sender is FrameworkElement card && FindCardOverlay(card) is { } overlay)
-            {
-                HideCardOverlay(overlay);
-            }
-        }
-
-        private void ShowCardOverlay(FrameworkElement overlay)
-        {
-            overlay.Visibility = Visibility.Visible;
-            overlay.IsHitTestVisible = true;
-            MotionBehaviors.FadeIn(overlay);
-        }
-
-        /// <summary>
-        /// Fades the overlay out and collapses it once the fade has run. It is
-        /// made un-hit-testable immediately, so the 83 ms it spends fading out
-        /// cannot swallow a click meant for whatever is underneath.
-        /// </summary>
-        private void HideCardOverlay(FrameworkElement overlay)
-        {
-            overlay.IsHitTestVisible = false;
-
-            if (ReferenceEquals(_activeCardOverlay, overlay))
-            {
-                _activeCardOverlay = null;
-            }
-
-            MotionBehaviors.FadeOut(overlay, () =>
-            {
-                // Re-checked in the callback: the pointer can come back inside
-                // the 83 ms the fade takes.
-                if (!overlay.IsHitTestVisible)
-                {
-                    overlay.Visibility = Visibility.Collapsed;
-                    MotionBehaviors.Reset(overlay);
-                }
-            });
-        }
-
-        /// <summary>Returns an overlay to the state a freshly realised card has.</summary>
-        private static void ResetCardOverlay(FrameworkElement overlay)
-        {
-            MotionBehaviors.Reset(overlay);
-            overlay.IsHitTestVisible = false;
-            overlay.Visibility = Visibility.Collapsed;
-        }
-
-        /// <summary>
-        /// Names the overlay's two corner buttons for screen readers and tooltips.
-        ///
-        /// The buttons carry glyphs rather than words now - at 32px a label is not
-        /// legible and the reference uses bare icons - so the text exists only where it
-        /// is needed: the automation name and the tooltip.
-        ///
-        /// Called as the card is entered rather than from the template, which is shared
-        /// and so cannot carry a page-level string.
-        /// </summary>
-        private static void ApplyCardOverlayStrings(FrameworkElement card)
-        {
-            var lang = AppContext.AppLang;
-
-            var play = FindDescendant(card, "CardPlayButton")
-                ?? FindDescendant(card, "AlbumCardPlayButton");
-
-            if (play is Button playButton)
-            {
-                AutomationProperties.SetName(playButton, lang.LibraryCardPlay);
-                ToolTipService.SetToolTip(playButton, lang.LibraryCardPlay);
-            }
-
-            var more = FindDescendant(card, "CardMoreButton")
-                ?? FindDescendant(card, "AlbumCardMoreButton");
-
-            if (more is Button moreButton)
-            {
-                AutomationProperties.SetName(moreButton, lang.LibraryCardMore);
-                ToolTipService.SetToolTip(moreButton, lang.LibraryCardMore);
-            }
-        }
-
-        /// <summary>
-        /// The card's overlay, by name, from the card root.
-        ///
-        /// Two spellings because there are two templates. The album card names its parts
-        /// Album* rather than reusing the video card's names - two DataTemplates in one
-        /// file sharing an x:Name is a separate problem - so a single-name lookup would
-        /// leave album cards with no hover layer: PointerEntered fires, this returns
-        /// null, and the card looks inert with nothing to report.
-        ///
-        /// A candidate list rather than stripping a prefix: these are three fixed names,
-        /// and a prefix rule would be a guess about how the next template gets named.
-        /// </summary>
-        private static FrameworkElement? FindCardOverlay(DependencyObject card) =>
-            FindDescendant(card, "CardHoverOverlay") as FrameworkElement
-            ?? FindDescendant(card, "AlbumCardHoverOverlay") as FrameworkElement;
-
-        /// <summary>
-        /// Depth-first search of a realised card for one named element.
-        ///
-        /// A name search rather than a template part because the card is a
-        /// DataTemplate instance, not a ControlTemplate: there is no
-        /// GetTemplateChild, and the overlay sits behind a content presenter
-        /// whose shape is the card style's business.
-        /// </summary>
-        private static DependencyObject? FindDescendant(DependencyObject root, string name)
-        {
-            var count = VisualTreeHelper.GetChildrenCount(root);
-            for (var i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(root, i);
-                if (child is FrameworkElement { Name: var childName } && childName == name)
-                {
-                    return child;
-                }
-
-                if (FindDescendant(child, name) is { } found)
-                {
-                    return found;
-                }
-            }
-
-            return null;
-        }
-
-        private void CardPlay_Click(object sender, RoutedEventArgs e)
-        {
-            if ((sender as FrameworkElement)?.DataContext is LibraryEntry entry)
+            if (sender is LibraryCard { Entry: { } entry })
             {
                 PlayLibraryEntry(entry);
             }
+        }
+
+        /// <summary>The hover layer's overflow button was clicked.</summary>
+        private void Card_MoreRequested(object? sender, EventArgs e)
+        {
+            if (sender is not LibraryCard { Entry: { } entry } card)
+            {
+                return;
+            }
+
+            _cardMenuEntry = entry;
+
+            ShowCardContextMenu(card, entry);
+            _cardMenuCard = card;
         }
 
         /// <summary>
@@ -661,15 +541,20 @@ namespace mpv_winui.Domains.Playback
         /// to exist, records which entry the menu is for, and shows the shared
         /// menu against this button.
         /// </summary>
-        private void CardMore_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// The shared menu closed: the card that opened it puts its overlay away.
+        ///
+        /// A flyout takes the pointer with it, so the card never receives its own
+        /// PointerExited and the overlay would otherwise stay up behind the menu.
+        /// </summary>
+        private void CardMenu_Closed(object? sender, object e)
         {
-            if (sender is not FrameworkElement button || button.DataContext is not LibraryEntry entry)
-            {
-                return;
-            }
+            _cardMenuCard?.HideOverlayForMenu();
+            _cardMenuCard = null;
+        }
 
-            _cardMenuEntry = entry;
-
+        private void ShowCardContextMenu(FrameworkElement anchor, LibraryEntry entry)
+        {
             if (Resources["LibraryCardContextMenu"] is MenuFlyout cardMenu)
             {
                 foreach (var item in cardMenu.Items)
@@ -684,7 +569,7 @@ namespace mpv_winui.Domains.Playback
                     }
                 }
 
-                cardMenu.ShowAt(button);
+                cardMenu.ShowAt(anchor);
             }
         }
 
@@ -743,72 +628,28 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private void LibraryGrid_ElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
         {
-            // A recycled card keeps whatever the previous item left on it, and
-            // the hover overlay is code-driven state the template cannot reset
-            // by itself. Put it back to rest before the card is reused, so no
-            // card can appear already dressed for another item's hover.
-            if (FindCardOverlay(args.Element) is { } overlay)
+            // One assignment, no name search. The card is a typed control now, so
+            // a part that stops existing fails the build instead of quietly
+            // never painting: FindDescendant(card, "AlbumCardCoverImage") had no
+            // link to the markup, so a rename broke only the picture.
+            //
+            // SetEntry is also where the overlay is reset and the entry's own
+            // subscription is moved, because both are per-entry state on a
+            // recycled element - the card cannot know when it is being reused.
+            if (args.Element is LibraryCard card
+                && sender.ItemsSourceView is { } view
+                && args.Index >= 0 && args.Index < view.Count
+                && view.GetAt(args.Index) is LibraryEntry entry)
             {
-                ResetCardOverlay(overlay);
-            }
+                card.IsAlbum = _librarySection == LibrarySectionMusic;
+                card.SetEntry(entry, ResolveCover(entry));
 
-            // The overlay's labels are set here as well as on hover, so a card
-            // that is on screen but never hovered still carries its button names
-            // for a screen reader walking the grid. Cheap: it reuses the walk
-            // above. A language change reaches cards realised after it, and the
-            // hover path covers the rest.
-            if (args.Element is FrameworkElement card)
-            {
-                // ItemsRepeater does NOT set DataContext on a realised element. That is the
-                // one way it differs from GridView/ListView here, and it silently broke the
-                // album card.
-                //
-                // The album and artist templates bind their two captions with {Binding}, not
-                // {x:Bind}, because a single {x:Bind AlbumTitle} makes the WindowsAppSDK
-                // 2.3.9 XAML compiler fail with WMC9999 (see the long comment on
-                // AlbumCardTemplate). {Binding} resolves against the DataContext, so with no
-                // DataContext every path in those templates resolves to null.
-                //
-                // Measured before this line existed, on the album tab:
-                //
-                //     stddev 0.0, distinct colours 1, whole card = rgb(32,32,32)
-                //
-                // a flat grey rectangle with no cover, no caption and not even the fallback
-                // glyph -- the reported "长条形的灰色底". The song tab measured stddev 17.1 /
-                // 94 colours on the same run, because its template is all {x:Bind} and needs
-                // no DataContext.
-                //
-                // Set here because a DataTemplate has no hook of its own, and ElementPrepared
-                // runs for every realised element including recycled ones -- which is also
-                // what a recycled card needs.
-                if (sender.ItemsSourceView is { } view
-                    && args.Index >= 0 && args.Index < view.Count)
-                {
-                    var item = view.GetAt(args.Index);
-                    card.DataContext = item;
-
-                    // Write the two captions directly instead of relying on {Binding}.
-                    //
-                    // Measured: with DataContext correctly set to the LibraryEntry and the
-                    // entry carrying album="i Love" artist="未知艺术家", the card's two
-                    // TextBlocks still came out EMPTY -- UIA showed two TextControl children
-                    // at the right rectangles with name='', and the whole card rendered as
-                    // one flat rgb(32,32,32).
-                    //
-                    // The template cannot use {x:Bind} here: a single {x:Bind AlbumTitle}
-                    // makes the WindowsAppSDK 2.3.9 XAML compiler fail with WMC9999 (see the
-                    // comment on AlbumCardTemplate). {Binding} was the workaround, and it is
-                    // not resolving inside an ItemsRepeater DataTemplate even with a correct
-                    // DataContext. Rather than fight the binding engine, the two strings are
-                    // assigned where the data is already in hand -- this runs for every
-                    // realised element, including recycled ones, so it also fixes reuse.
-                    SetCardCaption(card, "AlbumCardTitleText", (item as LibraryEntry)?.AlbumTitle);
-                    SetCardCaption(card, "AlbumCardArtistText", (item as LibraryEntry)?.AlbumArtistText);
-                    SetCardCover(card, item as LibraryEntry);
-                    SetCardMediaSquare(card);
-                }
-
-                ApplyCardOverlayStrings(card);
+                card.CardTapped -= Card_Tapped;
+                card.CardTapped += Card_Tapped;
+                card.PlayRequested -= Card_PlayRequested;
+                card.PlayRequested += Card_PlayRequested;
+                card.MoreRequested -= Card_MoreRequested;
+                card.MoreRequested += Card_MoreRequested;
             }
 
             var delay = TimeSpan.FromMilliseconds(Math.Min(args.Index, 8) * 20);
@@ -816,163 +657,26 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
-        /// Shows or hides the album card's cover from code, and hides the fallback glyph
-        /// while a cover is up.
+        /// The cover for an entry, cache first.
         ///
-        /// Same reason as <see cref="SetCardCaption"/>: the template's bindings do not take
-        /// effect here. Measured -- the .flac's thumbnail loaded at 600x600 and
-        /// LibraryEntry raised PropertyChanged for Thumbnail, yet the card stayed a flat
-        /// rgb(32,32,32) because neither the Image's Source nor its Visibility followed.
-        ///
-        /// A null thumbnail is not an error: it is the poster-less state, and the media-kind
-        /// glyph stays visible for it.
+        /// Cache FIRST, entry second. A recycled card is prepared before the item it
+        /// is being pointed at has had its Thumbnail filled, so entry.Thumbnail is
+        /// routinely null for a card whose picture is already decoded and cached --
+        /// measured in the log as "found=SongCardCoverImage thumb=null" repeating while
+        /// a "thumb=present" line sat between them. Reading the cache first is what
+        /// makes the cover survive recycling.
         /// </summary>
-        private void SetCardCover(FrameworkElement card, LibraryEntry? entry)
+        private ImageSource? ResolveCover(LibraryEntry entry)
         {
-            // FindName does not reach into a DataTemplate's instantiated content: the names
-            // belong to the template instance, not to the root the handler was given.
-            // Measured -- "no AlbumCardCoverImage on Button" for every card while the element
-            // was demonstrably in the tree. Walking the visual tree is what works.
-            // TWO templates, two names. The album card's media area and the song card's are
-            // different elements with different shapes (square against 16:9), so the cover code
-            // has to know which one it was handed. The song card was missing from this method
-            // until it was reported: only AlbumCardCoverImage was ever set, so every SONG card
-            // stayed a grey tile with a note glyph forever while the album and artist tabs
-            // worked. Reported as 音乐库的封面依旧没有加载出来, against exactly that tab.
-            var cover = FindDescendant<Image>(card, "AlbumCardCoverImage")
-                ?? FindDescendant<Image>(card, "SongCardCoverImage");
-            if (cover is null)
+            if (entry.Thumbnail is { } own)
             {
-                return;
+                return own;
             }
 
-            var glyphElement =
-                FindDescendant<FrameworkElement>(card, "AlbumCardFallbackIcon")
-                ?? FindDescendant<FrameworkElement>(card, "SongCardFallbackIcon");
-
-            // Cache FIRST, entry second. A recycled card is prepared before the item it is
-            // being pointed at has had its Thumbnail filled, so entry.Thumbnail is routinely null
-            // for a card whose picture is already decoded and cached -- measured in the log as
-            // "found=SongCardCoverImage thumb=null" repeating while a "thumb=present" line sat
-            // between them. Reading the cache first is what makes the cover survive recycling.
-            var image = entry?.Thumbnail;
-            if (image is null && entry is not null
-                && _libraryThumbnails.TryGetValue(entry.Path, out var cached))
-            {
-                image = cached;
-            }
-
-            if (image is not null)
-            {
-                cover.Source = image;
-                cover.Visibility = Visibility.Visible;
-                if (glyphElement is not null)
-                {
-                    glyphElement.Visibility = Visibility.Collapsed;
-                }
-            }
-            else
-            {
-                cover.Source = null;
-                cover.Visibility = Visibility.Collapsed;
-                if (glyphElement is not null)
-                {
-                    glyphElement.Visibility = Visibility.Visible;
-                }
-
-                // The thumbnail arrives LATER: it is fetched asynchronously after the card is
-                // already on screen, and the template's {x:Bind Thumbnail} does not deliver
-                // the update (same reason as the captions). So the one card that is waiting
-                // gets a one-shot listener that repaints when its image lands.
-                //
-                // Guarded by the handler being removed on the first raise: the entry outlives
-                // the card, and a listener kept alive per recycle would repaint elements that
-                // are already showing something else.
-                if (entry is not null)
-                {
-                    void OnThumbnailReady(object? s, PropertyChangedEventArgs e)
-                    {
-                        if (e.PropertyName != nameof(LibraryEntry.Thumbnail))
-                        {
-                            return;
-                        }
-
-                        entry.PropertyChanged -= OnThumbnailReady;
-                        SetCardCover(card, entry);
-                    }
-
-                    entry.PropertyChanged -= OnThumbnailReady;
-                    entry.PropertyChanged += OnThumbnailReady;
-                }
-            }
+            return _libraryThumbnails.TryGetValue(entry.Path, out var cached) ? cached : null;
         }
 
-        /// <summary>
-        /// Gives the album card's media area its square height, in code.
-        ///
-        /// The template asks for `Height="{Binding ActualWidth, RelativeSource={RelativeSource
-        /// Self}}"`, which is a self-referential {Binding}. Every other {Binding} in this
-        /// template turned out not to resolve (the captions came out empty), and {x:Bind}
-        /// cannot replace it: `{x:Bind ActualWidth}` in this DataTemplate crashes the
-        /// WindowsAppSDK 2.3.9 XAML compiler with WMC9999, exactly like {x:Bind AlbumTitle}.
-        ///
-        /// A zero-height media Border would explain a cover that loads but never shows, so the
-        /// height is set here once the real width is known. SizeChanged keeps it square through
-        /// a window resize; the handler is removed when the element is recycled, because
-        /// ElementPrepared runs again for the next item that lands on this card.
-        /// </summary>
-        private static void SetCardMediaSquare(FrameworkElement card)
-        {
-            if (FindDescendant<Border>(card, "AlbumCardMediaBorder") is not Border media)
-            {
-                return;
-            }
 
-            void Fit()
-            {
-                if (media.ActualWidth > 0)
-                {
-                    media.Height = media.ActualWidth;
-                }
-            }
 
-            media.SizeChanged -= OnMediaSizeChanged;
-            media.SizeChanged += OnMediaSizeChanged;
-            Fit();
-
-            static void OnMediaSizeChanged(object sender, SizeChangedEventArgs e)
-            {
-                if (sender is Border b && b.ActualWidth > 0)
-                {
-                    b.Height = b.ActualWidth;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Writes one caption inside a realised card, by name.
-        ///
-        /// The album card's two captions cannot use a binding: {x:Bind} to these properties
-        /// crashes the WindowsAppSDK 2.3.9 XAML compiler (WMC9999), and {Binding} inside an
-        /// ItemsRepeater DataTemplate did not resolve even with a correct DataContext --
-        /// measured, both TextBlocks stayed empty while the entry carried album="i Love" and
-        /// artist="未知艺术家", and the card rendered as one flat rgb(32,32,32). Setting the
-        /// text here is the one mechanism known to work.
-        ///
-        /// A missing name is ignored rather than thrown: this same handler serves the video
-        /// card, which has no album captions at all.
-        /// </summary>
-        private static void SetCardCaption(FrameworkElement card, string name, string? text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return;
-            }
-
-            if (FindDescendant<TextBlock>(card, name) is { } block)
-            {
-                block.Text = text;
-            }
-        }
     }
 }

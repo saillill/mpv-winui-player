@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="mpv_winui.Domains.Playback.Controls.LibraryCard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--  One library card: a media tile, two caption lines, and the hover layer.
+
+          Why this is a UserControl and not a DataTemplate. The templates this
+          replaces had to be driven from outside: ElementPrepared walked the
+          visual tree looking for elements by NAME (FindDescendant(card,
+          "AlbumCardCoverImage")) because a DataTemplate instance has no
+          compiled handle on its own parts. A rename in XAML then produced no
+          error at all - just a card whose cover silently never appeared. The
+          cover has to be assigned from code (a bound Thumbnail does not
+          deliver; measured 2025-10-31), so the card needs a code-behind that
+          owns the parts it writes to.
+
+          What still cannot be a binding, and why:
+            * The cover. {x:Bind Thumbnail} compiles and paints nothing.
+            * The square. A self-referential {Binding ActualWidth} collapses the
+              tile to nothing in this layout - measured, the cover area vanished
+              and only the fallback glyph's row remained.
+          What is NOT a binding here for a different reason: the two captions.
+          They could bind, but the card is handed its entry on every recycle and
+          on every language change, so assigning them is both simpler and one
+          notification fewer.
+
+          The root is a Button rather than a Border: the card opens what it
+          stands for, and a Border with a Tapped handler would give up keyboard
+          focus and its automation name. -->
+
+    <Button
+        x:Name="RootButton"
+        Padding="0"
+        HorizontalAlignment="Stretch"
+        HorizontalContentAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        VerticalContentAlignment="Top"
+        Background="Transparent"
+        BorderThickness="0"
+        Click="RootButton_Click">
+        <StackPanel>
+            <!--  The media tile. Height is assigned from ApplyCoverHeight once
+                  ActualWidth is known; see the class comment. -->
+            <Border
+                x:Name="MediaBorder"
+                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                CornerRadius="4">
+                <Grid>
+                    <!--  The media-kind glyph shows until a cover arrives, and
+                          for good when the file has none. The Viewbox is what
+                          makes the 24-unit PathIcon actually 48px. -->
+                    <Viewbox
+                        x:Name="FallbackIcon"
+                        Width="48"
+                        Height="48"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                        <PathIcon
+                            x:Name="FallbackGlyph"
+                            Width="24"
+                            Height="24"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </Viewbox>
+
+                    <Image
+                        x:Name="CoverImage"
+                        Stretch="UniformToFill"
+                        Visibility="Collapsed" />
+
+                    <!--  The now-playing stripe, along the tile's bottom edge. -->
+                    <Rectangle
+                        x:Name="NowPlayingBar"
+                        Height="2"
+                        VerticalAlignment="Bottom"
+                        Fill="{ThemeResource AccentFillColorDefaultBrush}"
+                        Visibility="Collapsed" />
+
+                    <!--  The hover layer. Hidden and hit-test-inert at rest; the
+                          pointer handlers below own it. It is never driven by a
+                          VisualState because a recycled template would carry the
+                          state to the next item. -->
+                    <Grid
+                        x:Name="HoverOverlay"
+                        IsHitTestVisible="False"
+                        Visibility="Collapsed">
+                        <!--  A gradient, not a flat scrim. The flat one darkened
+                              the whole picture, and the picture is the card. -->
+                        <Border IsHitTestVisible="False">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                                    <GradientStop Offset="0" Color="{ThemeResource SmokeFillColorDefault}" />
+                                    <GradientStop Offset="0.55" Color="Transparent" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+
+                        <!--  Play in the lower-left, overflow in the upper-right:
+                              the two corners the subject is least likely to
+                              occupy. The previous layout put Play in the exact
+                              centre, over the artist's face on most sleeves. -->
+                        <Button
+                            x:Name="PlayButton"
+                            Width="40"
+                            Height="40"
+                            Margin="10"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Bottom"
+                            Background="{ThemeResource AccentFillColorDefaultBrush}"
+                            BorderThickness="0"
+                            Click="PlayButton_Click"
+                            CornerRadius="20">
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                FontSize="14"
+                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                Glyph="&#xF605;" />
+                        </Button>
+
+                        <Button
+                            x:Name="MoreButton"
+                            Width="32"
+                            Height="32"
+                            Margin="10"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                            BorderThickness="0"
+                            Click="MoreButton_Click"
+                            CornerRadius="16">
+                            <!--  Geometry, not a glyph: E712 in FluentSystemIcons
+                                  is not three dots. -->
+                            <Viewbox Width="14" Height="14">
+                                <PathIcon Width="24" Height="24" Data="F1 M12 4C11.1716 4 10.5 4.67157 10.5 5.5C10.5 6.32843 11.1716 7 12 7C12.8284 7 13.5 6.32843 13.5 5.5C13.5 4.67157 12.8284 4 12 4ZM12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5ZM10.5 18.5C10.5 17.6716 11.1716 17 12 17C12.8284 17 13.5 17.6716 13.5 18.5C13.5 19.3284 12.8284 20 11.1716 20C10.5 19.3284 10.5 18.5 10.5 18.5Z" />
+                            </Viewbox>
+                        </Button>
+
+                        <!--  The tick box. Shown only in selection mode; the whole
+                              card is the hit target, so this is an indicator. -->
+                        <Border
+                            x:Name="SelectionBox"
+                            Width="24"
+                            Height="24"
+                            Margin="8"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource ControlFillColorDefaultBrush}"
+                            CornerRadius="4"
+                            Visibility="Collapsed">
+                            <FontIcon x:Name="SelectionGlyphIcon" FontSize="12" />
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <StackPanel Margin="0,8,0,0" Spacing="{StaticResource MpvSpaceXxs}">
+                <!--  Two lines, not one: a media title is a name, and two files
+                      usually differ in the part a one-line cut removes. -->
+                <TextBlock
+                    x:Name="TitleText"
+                    MaxLines="2"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="SubtitleText"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+        </StackPanel>
+    </Button>
+</UserControl>
