@@ -129,7 +129,7 @@ namespace mpv_winui.Domains.Playback.Controls
         /// <summary>
         /// Refreshes the parts that can change after the card is on screen.
         ///
-        /// Only three properties are watched. Everything else on an entry is
+        /// Only four properties are watched. Everything else on an entry is
         /// immutable once built (it is a record of a file), so watching them
         /// would be a subscription per card per property for no notification.
         /// </summary>
@@ -147,6 +147,14 @@ namespace mpv_winui.Domains.Playback.Controls
                     break;
                 case nameof(LibraryEntry.IsNowPlaying):
                     ApplyNowPlaying(entry);
+                    break;
+
+                // IsSelected is watched because it is now one of the two things
+                // that decide the caption colour. Without this, ticking a card in
+                // selection mode showed the tick box but left the text white,
+                // because the caption repaint only ran on IsNowPlaying.
+                case nameof(LibraryEntry.IsSelected):
+                    ApplyCaptionEmphasis(entry);
                     break;
                 case nameof(LibraryEntry.SelectionVisibility):
                 case nameof(LibraryEntry.SelectionGlyph):
@@ -215,26 +223,51 @@ namespace mpv_winui.Domains.Playback.Controls
         }
 
         /// <summary>
-        /// The now-playing stripe and the title tint.
+        /// The caption colour and the now-playing stripe.
         ///
-        /// Both, not just the stripe: at one card in fifty a 2 DIP line along the
-        /// cover's bottom edge is easy to miss, and the title is where the eye
-        /// lands when scanning for what is playing.
+        /// <para><b>Colour is the only thing that varies, and only by state.</b>
+        /// The two caption lines carry one typographic style - same size, same
+        /// weight, same line box - and the card switches between exactly two
+        /// colours: white for an ordinary card, the accent for one that is
+        /// playing or ticked in selection mode. Nothing about the type changes
+        /// between the two, so a row does not re-flow when it becomes the playing
+        /// one, and there is no second, smaller line under it to read as a
+        /// caption.</para>
         ///
-        /// The tint is cleared by assigning null rather than by restoring the
-        /// theme brush explicitly: null is what the element had before, and it
+        /// <para>The tint is cleared by assigning null rather than by restoring
+        /// the theme brush explicitly: null is what the element had before, and it
         /// keeps following the theme instead of pinning whatever brush was current
-        /// when the card happened to be recycled.
+        /// when the card happened to be recycled.</para>
         /// </summary>
         private void ApplyNowPlaying(LibraryEntry entry)
+        {
+            ApplyCaptionEmphasis(entry);
+        }
+
+        /// <summary>
+        /// Picks the one colour both caption lines wear, from the entry's state.
+        ///
+        /// Selected and playing share a colour on purpose: the report asked for
+        /// exactly one emphasised state ("when the card is selected the text turns
+        /// orange"), and a playing card is the other case where the row is meant
+        /// to stand out. Giving them two different colours would mean inventing a
+        /// third meaning nobody asked for.
+        /// </summary>
+        private void ApplyCaptionEmphasis(LibraryEntry entry)
         {
             var playing = entry.IsNowPlaying;
 
             NowPlayingBar.Visibility = playing ? Visibility.Visible : Visibility.Collapsed;
 
-            TitleText.Foreground = playing
-                ? (Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"]
-                : null;
+            var emphasised = playing || entry.IsSelected;
+
+            var brush = (Brush)Application.Current.Resources[
+                emphasised
+                    ? "AccentTextFillColorPrimaryBrush"
+                    : "TextFillColorPrimaryBrush"];
+
+            TitleText.Foreground = brush;
+            SubtitleText.Foreground = brush;
         }
 
         private void ApplySelection(LibraryEntry entry)

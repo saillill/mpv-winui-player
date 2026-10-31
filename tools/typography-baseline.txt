@@ -14,6 +14,11 @@
 #
 # The card's Spacing="2" moved to MpvSpaceXxs instead of joining this list:
 # Spacing IS an x:Double, so the token applies there and the finding is gone.
+#
+# MpvPlayerPage.xaml:891 is the playback InfoBar's Margin="16" - a Thickness for
+# the same reason as the card's, so no spacing token can express it. The line
+# was 867 before the three menu-row tool keys gained their Viewboxes; same
+# finding, renumbered.
 
 src/mpvw-app/Domains/Menu/MenuEditor/MenuEditorPage.xaml:258:SPACING-LITERAL
 src/mpvw-app/Domains/MpvConf/MpvConfEditorPage.xaml:103:SPACING-LITERAL
@@ -23,7 +28,7 @@ src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:174:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:203:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:867:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:244:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:891:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

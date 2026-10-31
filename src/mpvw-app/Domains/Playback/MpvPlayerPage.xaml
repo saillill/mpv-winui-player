@@ -774,8 +774,20 @@
         </MenuBar>
 
             <!-- The three tool keys, at the far right of the menu row. Same
-                 36x36 pitch as the transport buttons, transparent fill so the row
-                 keeps one surface, and no scrim: a menu row is already opaque. -->
+                 44x44 pitch as the transport buttons, transparent fill so the row
+                 keeps one surface, and no scrim: a menu row is already opaque.
+
+                 Each glyph goes through a Viewbox pinned to MpvTransportIconSize.
+                 Setting Width/Height on a PathIcon does NOT scale it: PathIcon
+                 draws its geometry at the source's native 24 units and the
+                 element box only clips. At the 20 this token carries, the three
+                 glyphs therefore lost their outer ring - the camera's body, the
+                 info circle's circumference and the list's right-hand rules all
+                 touched the clip edge - and because their ink fills the 24 grid by
+                 different amounts they also looked like three different sizes.
+                 The Viewbox is what makes 20 mean 20 and makes all three agree.
+                 Every other PathIcon in this app already does this; these three
+                 and the OSD capsule were the ones that did not. -->
             <StackPanel
                 x:Name="PlaybackTools"
                 Grid.Column="1"
@@ -792,10 +804,14 @@
                     BorderThickness="0"
                     CornerRadius="{StaticResource ControlCornerRadius}"
                     Click="ScreenshotButton_Click">
-                    <PathIcon
-                        x:Name="ScreenshotIcon"
+                    <Viewbox
                         Width="{StaticResource MpvTransportIconSize}"
-                        Height="{StaticResource MpvTransportIconSize}" />
+                        Height="{StaticResource MpvTransportIconSize}">
+                        <PathIcon
+                            x:Name="ScreenshotIcon"
+                            Width="24"
+                            Height="24" />
+                    </Viewbox>
                 </Button>
                 <Button
                     x:Name="MediaInfoButton"
@@ -806,10 +822,14 @@
                     BorderThickness="0"
                     CornerRadius="{StaticResource ControlCornerRadius}"
                     Click="MediaInfoButton_Click">
-                    <PathIcon
-                        x:Name="MediaInfoIcon"
+                    <Viewbox
                         Width="{StaticResource MpvTransportIconSize}"
-                        Height="{StaticResource MpvTransportIconSize}" />
+                        Height="{StaticResource MpvTransportIconSize}">
+                        <PathIcon
+                            x:Name="MediaInfoIcon"
+                            Width="24"
+                            Height="24" />
+                    </Viewbox>
                 </Button>
                 <Button
                     x:Name="PlaylistPanelButton"
@@ -820,10 +840,14 @@
                     BorderThickness="0"
                     CornerRadius="{StaticResource ControlCornerRadius}"
                     Click="PlaylistPanelButton_Click">
-                    <PathIcon
-                        x:Name="PlaylistPanelIcon"
+                    <Viewbox
                         Width="{StaticResource MpvTransportIconSize}"
-                        Height="{StaticResource MpvTransportIconSize}" />
+                        Height="{StaticResource MpvTransportIconSize}">
+                        <PathIcon
+                            x:Name="PlaylistPanelIcon"
+                            Width="24"
+                            Height="24" />
+                    </Viewbox>
                 </Button>
             </StackPanel>
         </Grid>
@@ -936,14 +960,25 @@
                         <!--  A PathIcon, not a FontIcon: the capsule's glyphs come
                               from FluentIcons, which hands out path data. Drawing
                               them with the icon font would mean keeping a parallel
-                              codepoint table for a handful of symbols. -->
-                        <PathIcon
-                            x:Name="OsdCapsuleIcon"
-                            Width="16"
-                            Height="16"
-                            VerticalAlignment="Center"
-                            Foreground="{StaticResource MpvCardRingBrush}"
-                            Visibility="Collapsed" />
+                              codepoint table for a handful of symbols.
+
+                              Through a Viewbox for the same reason as the menu
+                              row's three: PathIcon draws at its source's native 24
+                              units, so the 16 this used to set only clipped the
+                              glyph. The capsule showed whatever fitted inside the
+                              clip, which is why the play triangle looked like a
+                              fragment rather than a play mark. -->
+                        <Viewbox
+                            Width="{StaticResource MpvOsdCapsuleIconSize}"
+                            Height="{StaticResource MpvOsdCapsuleIconSize}"
+                            VerticalAlignment="Center">
+                            <PathIcon
+                                x:Name="OsdCapsuleIcon"
+                                Width="24"
+                                Height="24"
+                                Foreground="{StaticResource MpvCardRingBrush}"
+                                Visibility="Collapsed" />
+                        </Viewbox>
                         <TextBlock
                             x:Name="OsdCapsuleText"
                             VerticalAlignment="Center"

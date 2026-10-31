@@ -96,20 +96,61 @@
                   the tile. At the previous 10 the two read as a separate block
                   floating below the picture rather than as its label. -->
             <StackPanel Margin="0,6,0,0" Spacing="{StaticResource MpvSpaceXxs}">
-                <!--  Two lines, not one: a media title is a name, and two files
-                      usually differ in the part a one-line cut removes. -->
+                <!--  Two lines, both in ONE typographic style.
+
+                      They used to be a pair of sizes (15 SemiBold over 14 Regular,
+                      secondary colour) that read as a heading with a caption under
+                      it. Reported as "use the now-playing row's own type for every
+                      card, and stop putting the smaller line underneath" - the
+                      orange row was the one everything else was being measured
+                      against, so it is the one that defines the style now.
+
+                      So: same size, same weight, same line box on both lines. The
+                      ONLY thing that varies is colour, and it varies by state, not
+                      by which line you are on:
+
+                        normal    TextFillColorPrimaryBrush  (white)
+                        selected  AccentTextFillColorPrimaryBrush (orange)
+
+                      Changing the size of one line is therefore not a styling
+                      decision any more, which is what keeps a wrapped title and the
+                      line under it from drifting apart.
+
+                      LineHeight is written here as a literal, and that is a fix
+                      rather than a tidy-up: the constants existed and the grid
+                      sized its cells from them, but nothing in the card applied
+                      them, so a 15px line measured ~32 DIP against the 22 the cell
+                      had reserved for it. CaptionBandHeight came out 18 DIP short
+                      of what the card actually drew, and the second line spilled
+                      out of its cell - the "text sits on the cover" report.
+
+                      Literals rather than a token because CardMetrics is an
+                      internal static class and cannot be named from markup.
+                      Assigning these from the code behind was tried and reverted:
+                      setting LineHeight on a TextBlock straight after
+                      InitializeComponent measured a card that never laid out at
+                      all (UIA reported the whole card at -31384,-31698 and the
+                      captions drew no pixels, while the same card at HEAD sat at
+                      804,478). CardMetricsTests compares these two literals against
+                      CardMetrics.TitleLineHeight / SubtitleLineHeight, so they
+                      cannot drift silently. TextBlock's default
+                      LineStackingStrategy is MaxHeight, which is what lets one
+                      LineHeight govern every wrapped line. -->
                 <TextBlock
                     x:Name="TitleText"
                     MaxLines="2"
                     FontSize="{StaticResource MpvCardTitleFontSize}"
-                    FontWeight="SemiBold"
+                    FontWeight="{StaticResource MpvCardCaptionFontWeight}"
                     Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    LineHeight="22"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="Wrap" />
                 <TextBlock
                     x:Name="SubtitleText"
-                    FontSize="{StaticResource MpvCardSubtitleFontSize}"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    FontSize="{StaticResource MpvCardTitleFontSize}"
+                    FontWeight="{StaticResource MpvCardCaptionFontWeight}"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    LineHeight="19"
                     TextTrimming="CharacterEllipsis" />
             </StackPanel>
 

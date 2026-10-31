@@ -1400,8 +1400,24 @@
      under the cover is too small to read at a glance", and not 13 either, which
      was still small enough to look like a caption rather than a second line of
      the title. -->
+<!-- The card's two caption lines, in ONE style.
+
+     They used to be a pair: 15 SemiBold for the title and 14 Regular in the
+     secondary colour underneath. Reported as "use the now-playing row's type for
+     every card and drop the smaller line" - so the two now share a size and a
+     weight, and differ only by state colour.
+
+     Both keep reading their size from MpvCardTitleFontSize. MpvCardSubtitleFontSize
+     is kept as an alias rather than deleted because the settings pages and the
+     settings rail use it for their own second lines, where the smaller size is
+     still right; only the CARD stops using it for its subtitle.
+
+     SemiBold rather than Regular: at 15 DIP over a photograph a Regular weight
+     loses its stems against mid-tone content, and the card is scanned rather than
+     read. The now-playing row this was benchmarked against is itself SemiBold. -->
 <x:Double x:Key="MpvCardTitleFontSize">15</x:Double>
 <x:Double x:Key="MpvCardSubtitleFontSize">14</x:Double>
+<FontWeight x:Key="MpvCardCaptionFontWeight">SemiBold</FontWeight>
 
 <!-- The hover buttons' surface: translucent, not opaque.
      Reported as "the buttons should use the official Mica effect, simple and
@@ -1441,6 +1457,12 @@
      at a glance from across a room on a video, where 12 is legible only while
      you are already looking at it. -->
 <x:Double x:Key="MpvOsdCapsuleFontSize">14</x:Double>
+
+<!-- The capsule's glyph box. 18 rather than the previous 16: it sits beside 14px
+     text, and a 16px box read as smaller than the words next to it. A token
+     because the icon goes through a Viewbox, whose size has to be written twice
+     (once per axis) - a pair of literals is where these drift apart. -->
+<x:Double x:Key="MpvOsdCapsuleIconSize">18</x:Double>
 
     <!-- Shell chrome geometry.
 
