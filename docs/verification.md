@@ -48,7 +48,7 @@
 | CI | 8 | 上述 4 个 + `check-settings-drift`、`check-doc-tooling`、`check-doc-freshness`、`check-ui-tooltips` |
 | **两边都不跑** | **22** | 其余 |
 
-本仓库没有任何一条链路会跑全 30 个：`build.ps1` 跑 4 个、CI 跑 8 个，两边并集 8 个。
+本仓库没有任何一条链路会跑全 31 个：`build.ps1` 跑 5 个、CI 跑 8 个，两边并集 9 个。
 开发期曾有一份能跑全量的 gate 脚本，它随该轮工作一起归到了 `archive/`（不随仓库分发），
 因此本仓库不再提供全量入口——这也正是下面那张「两边都不跑」表存在的原因。
 
@@ -164,7 +164,7 @@ PiP、HDR/VSR、MediaInfo 标签与封面、`mpv.conf` 优先级、任何 UI。
 
 `check-icon-standard.py` 与 `check-typography-standard.py` 都从
 `APP_DIR = REPO / "src" / "mpvw-app"`（`:38` / `:40`）出发 `rglob("*.xaml")`，
-覆盖全部 39 个 XAML。两个基线文件合计 62 条（49 + 13），全部落在被扫描的目录里。
+覆盖全部 40 个 XAML。两个基线文件合计 61 条（49 + 12），全部落在被扫描的目录里。
 
 **不要让扫描根变成枚举子目录**：枚举子目录时，`Modules` → `Domains` 这类改名会让
 检查器只看到 1 个 XAML，而它仍打印 `OK: 1 XAML file(s)`——健康的措辞掩盖失明的量。
@@ -290,7 +290,7 @@ python tools/check-build-warnings.py --full     # 另加 C++ 与测试工程
 
 本地过、CI 红是可能的（`check-settings-drift`、生成器新鲜度，以及三个只在 CI 跑的
 文档与无障碍检查器）。
-CI 过也不等于 30 个检查器都过——两边并集只有 8 个。
+CI 过也不等于 31 个检查器都过——两边并集只有 9 个。
 
 **加检查器的三条规则**：
 ① 先看它红——注入**真实**违规，不是合成违规；② 拒绝不可信输入——
@@ -317,8 +317,8 @@ dotnet test tests\native\mpv-winrt-test.csproj -c Release -p:Platform=x64    # 2
 
 # 两个基线检查器的扫描根（§4.2）
 Select-String -Path tools\check-icon-standard.py, tools\check-typography-standard.py -Pattern 'APP_DIR = REPO'
-python tools\check-icon-standard.py                                          # OK: 39 XAML file(s)
-python tools\check-typography-standard.py                                    # OK: 39 XAML file(s)
+python tools\check-icon-standard.py                                          # OK: 40 XAML file(s), 145 FontIcon(s)
+python tools\check-typography-standard.py                                    # OK: 40 XAML file(s)
 
 # 盲区行数
 Get-ChildItem src\mpvw-app\Domains\Playback -Filter 'MpvPlayerPage*.cs' | % { [System.IO.File]::ReadAllLines($_.FullName).Count } | Measure-Object -Sum   # 9657
