@@ -41,6 +41,8 @@ import subprocess
 import sys
 import time
 
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXE = os.path.join(REPO, "src", "mpvw-app", "bin", "x64", "Release",
                    "net10.0-windows10.0.26100.0", "win-x64", "mpvw.exe")
@@ -48,6 +50,21 @@ PROC = "mpvw.exe"
 
 # The shell's own rail. Everything else in a ListItem is the settings page.
 SHELL_RAIL = ("主页", "音乐库", "视频库", "播放队列")
+
+# Element slugs the CLI emits, by control family. A board navigates by caption,
+# and which control carries that caption differs: the settings rail is a list,
+# the music tabs are radio buttons, a plain command is a button.
+SLUG_PREFIXES = ("itm-", "rdo-", "rbtn-", "btn-")
+# Where a card lives and how wide it is. Both thresholds identify a card;
+# neither may depend on a property an assertion is judging, or that assertion
+# stops being able to fail (see cards_on_screen).
+# The card control names its root Button in XAML, so this id is stable and says
+# nothing about what the assertions measure.
+CARD_AUTOMATION_ID = "RootButton"
+
+# How far below a card's bottom edge its captions may start. Generous enough
+# for the gap and a wrapped title, small enough not to reach the next row.
+CAPTION_BAND_SLACK = 90
 
 
 def run(args, timeout=120):
@@ -163,6 +180,32 @@ BOARDS["settings"]["assertions"] = (
 # The pane also holds one flat section (filter and time axis) whose rows are
 # ordinary cards, which is why the card count below is not zero -- an assertion
 # of zero would fail for the right reason and tell you nothing.
+# The library cards. Each assertion names the failure it catches, because a board
+# that only checks "something is on screen" passes on every broken implementation.
+#
+#   cards_all_named       Every card's accessible name was the EMPTY STRING while
+#                         the template bound {Binding AlbumTitle}: ItemsRepeater
+#                         sets no DataContext, so the path resolved to null. A
+#                         screen reader walked the grid and read nothing.
+#   card_name_is_caption  The card is named from the caption the user sees, not
+#                         from whatever else happens to be non-empty.
+# What this board deliberately does NOT assert, and why: "the media tile has a
+# height". The card's Button is VerticalAlignment=Stretch, so the height UIA
+# reports is the grid CELL, not the tile. Injecting a zero-height tile left that
+# number unchanged and the board stayed green: the assertion measured the wrong
+# object. The tile's presence is covered by the cover sample in
+# tools/ui-design-audit.py's --screenshot path and by the pixel statistics the
+# card research records, not by a tree assertion that cannot fail.
+BOARDS["cards"] = {
+    # The music library's gear is in the shell; the album tab is a caption.
+    "open": "ShellNav_music",
+    "open_caption_id": "MusicTabAlbums",
+    "assertions": [
+        ("cards_all_named", None, None),
+        ("card_name_is_caption", None, None),
+    ],
+}
+
 BOARDS["settings-sections"] = {
     "open": "ShellSettingsButton",
     "open_caption": "字幕",
@@ -176,6 +219,66 @@ BOARDS["settings-sections"] = {
         ("collapsed_rows_hidden", None, None),
     ],
 }
+
+
+# A card is identified by SHAPE, not by an automation id: the cards carry none,
+# and adding one to the template so a test can read it is the cart leading the
+# horse. The grid's toolbar also holds Buttons, which is what a first version of
+# this counted as cards before the rectangle filter.
+def cards_on_screen(tree, require_name=False):
+    """The library cards, found by AutomationId.
+
+    The card control names its root Button in XAML, so that x:Name becomes the
+    automation id. It is the one identifier here that is neither a caption nor a
+    measurement, and that matters because the assertions judge both:
+
+      * filtering on name made "every card has a name" report "no card found" and
+        stay GREEN on a card with name='';
+      * filtering on height/width dropped the zero-height tile that the third
+        assertion exists to catch, and the board stayed GREEN again.
+
+    Both were found by injecting the defect and watching the board stay green,
+    which is why this repository insists on watching a checker go red.
+    """
+    out = []
+    for el in tree:
+        if el.get("automationId") != CARD_AUTOMATION_ID:
+            continue
+        if require_name and not (el.get("name") or "").strip():
+            continue
+        out.append(el)
+    return out
+
+
+def caption_pairs(tree):
+    """(card name, the caption text that belongs to it) for every card.
+
+    The caption is the Text whose rectangle sits in the card's own column, at or
+    below the card's TOP and no further than a caption band under its BOTTOM.
+    Both bounds are relative to the card, so a collapsed card - the case the
+    third assertion is designed to catch - still yields a pair instead of making
+    this helper report "not an audit" and masking the real finding.
+
+    The first version used a fraction of the card's height as the band, which
+    made a short card look like it had no captions: injecting the collapsed tile
+    turned this assertion red first and hid the one that was supposed to catch it.
+    """
+    pairs = []
+    for card in cards_on_screen(tree):
+        cx, cy, cw = card["x"], card["y"], card["width"]
+        bottom = cy + (card.get("height") or 0)
+        inside = [el for el in tree
+                  if (el.get("type") or "") == "Text"
+                  and (el.get("name") or "").strip()
+                  and el.get("y") is not None
+                  and cx <= el["x"] < cx + cw
+                  and cy <= el["y"] <= bottom + CAPTION_BAND_SLACK]
+        if inside:
+            # The caption is the FIRST such Text under the tile, which for both
+            # card kinds is the title line.
+            inside.sort(key=lambda e: e["y"])
+            pairs.append((card["name"].strip(), inside[0]["name"].strip()))
+    return pairs
 
 
 def settings_list_names(tree):
@@ -225,6 +328,38 @@ def evaluate(tree, spec):
                               tall[0].get("height")))
         return True, "%d collapsed expander(s), tallest %s DIP" % (
             len(expanded), max((el.get("height") or 0) for el in expanded))
+    if kind == "cards_all_named":
+        found = cards_on_screen(tree)
+        if not found:
+            return False, "no card found; not an audit"
+        blank = [c for c in found if not (c.get("name") or "").strip()]
+        return not blank, ("%d of %d card(s) have an empty name"
+                           % (len(blank), len(found)))
+
+    if kind == "card_name_is_caption":
+        pairs = caption_pairs(tree)
+        if not pairs:
+            return False, "no card carries both a name and a caption; not an audit"
+        wrong = [(n, c) for n, c in pairs if n != c]
+        if wrong:
+            return False, ("%d card(s) named from a different property, e.g. "
+                           "name=%r caption=%r" % (len(wrong), wrong[0][0], wrong[0][1]))
+        return True, "%d card(s) named from their caption" % len(pairs)
+
+    if kind == "card_tile_has_media":
+        found = cards_on_screen(tree)
+        if not found:
+            return False, "no card found; not an audit"
+        # A card's height is its media tile plus a caption band. For a square card
+        # that ratio is above 1.0; the collapsed form leaves the caption band alone
+        # at about 0.3. The threshold is a table value so the number is visible.
+        ratios = [(c.get("height") or 0) / c["width"] for c in found if c.get("width")]
+        low = [r for r in ratios if r < spec[2]]
+        if low:
+            return False, ("%d card(s) at or below h/w %.2f, smallest %.2f"
+                           % (len(low), spec[2], min(ratios)))
+        return True, "%d card(s), smallest h/w %.2f" % (len(ratios), min(ratios))
+
     if kind == "list_names":
         names = settings_list_names(tree)
         ok = spec[1] in names
@@ -249,6 +384,10 @@ def evaluate(tree, spec):
 
 
 def describe(spec):
+    if spec[0] == "cards_all_named":
+        return "every card carries an accessible name"
+    if spec[0] == "card_name_is_caption":
+        return "each card is named from its caption"
     if spec[0] == "no_type_names":
         return "no CLR type names in row captions"
     if spec[0] == "collapsed_rows_hidden":
@@ -315,23 +454,43 @@ def main() -> int:
                 return 2
             time.sleep(3)
 
-        # A board may need a second navigation step: the rail item has no
-        # AutomationId, so it is found by its caption and then invoked.
+        # A board may need a second navigation step: neither the settings rail
+        # item nor the music tab carries an AutomationId, so both are found by
+        # their caption and then invoked.
+        #
+        # This used to accept only "ListItem" plus an "itm-" slug, because the
+        # settings rail is a list. The music library's tabs are RadioButtons, so
+        # all three slug prefixes the CLI emits are accepted now. A rail item
+        # still resolves, and a tab resolves too.
+        # Two ways to name the second step, because the two nav surfaces differ.
+        #
+        #   open_caption_id     an AutomationId, when the control has one. The music
+        #                       tabs do (MusicTabAlbums), and an id cannot be
+        #                       confused with a caption that appears twice.
+        #   open_caption        a caption, for the settings rail, whose items carry
+        #                       no AutomationId. Its slug is on the ListItem line.
+        #
+        # The slug the CLI prints for a radio button is "rdo-", and the search lists
+        # it on the "^ invoke via:" line rather than the element's own line - both
+        # learned by reading the output rather than assuming the shape.
         caption = board.get("open_caption")
+        caption_id = board.get("open_caption_id")
+        if caption_id:
+            caption = caption_id
         if caption:
             out, rc, _ = run(["winapp", "ui", "search", caption, "-a", str(pid)], 90)
-            item = None
+            item = caption if caption_id else None
             for line in out.splitlines():
-                if "ListItem" in line and caption in line:
-                    parts = line.split()
-                    for part in parts:
-                        if part.startswith("itm-"):
-                            item = part
-                            break
-                    if item:
+                if caption not in line:
+                    continue
+                for part in line.split():
+                    if part.startswith(SLUG_PREFIXES):
+                        item = part
                         break
+                if item and not caption_id:
+                    break
             if item is None:
-                print("FAIL: could not find the %r rail item" % caption)
+                print("FAIL: could not find the %r nav item" % caption)
                 return 2
             out, rc, err = run(["winapp", "ui", "invoke", item, "-a", str(pid)], 90)
             if rc != 0:
