@@ -1381,6 +1381,15 @@
          a different left edge from the picture. -->
     <Thickness x:Key="MpvMediaTileCaptionMargin">0,8,0,0</Thickness>
 
+<!-- The card's two in-glyph sizes.
+     Not MpvInlineIconSize: that token is for an icon sitting in a line of text,
+     where these sit inside a 40px circle and a 24px tick box. Changing the button
+     size has to move the glyph with it, which a shared inline token would not.
+     The numbers are the ones the two templates carried before the card became a
+     control, so nothing moves visually. -->
+<x:Double x:Key="MpvPlayGlyphFontSize">14</x:Double>
+<x:Double x:Key="MpvCardTickFontSize">12</x:Double>
+
     <!-- Shell chrome geometry.
 
          MpvNavPaneWidth is the navigation pane's open width, and it is also

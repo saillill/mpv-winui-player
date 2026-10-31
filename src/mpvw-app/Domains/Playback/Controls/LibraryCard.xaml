@@ -113,7 +113,7 @@
                             CornerRadius="20">
                             <FontIcon
                                 FontFamily="{StaticResource MpvIconFontFamily}"
-                                FontSize="14"
+                                FontSize="{StaticResource MpvPlayGlyphFontSize}"
                                 Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                                 Glyph="&#xF605;" />
                         </Button>
@@ -148,7 +148,9 @@
                             Background="{ThemeResource ControlFillColorDefaultBrush}"
                             CornerRadius="4"
                             Visibility="Collapsed">
-                            <FontIcon x:Name="SelectionGlyphIcon" FontSize="12" />
+                            <FontIcon
+                                x:Name="SelectionGlyphIcon"
+                                FontSize="{StaticResource MpvCardTickFontSize}" />
                         </Border>
                     </Grid>
                 </Grid>

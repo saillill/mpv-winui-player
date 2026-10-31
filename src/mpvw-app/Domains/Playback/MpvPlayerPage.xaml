@@ -374,6 +374,79 @@
              PathVisibility is Collapsed for the music library's groups: those are
              built from an album tag, have no path, and must not reserve the grey line
              or every album heading would indent away from the video ones. -->
+        <!--  A music group's header: the album's cover, its name, then how many
+              tracks it holds.
+
+              Its own template rather than the folder one. The folder header was
+              built for a DIRECTORY: a 64x36 landscape cover, the folder name, and
+              the folder's full path on a second line. Music groups have no path,
+              so they rendered that line as nothing - a tall empty band under every
+              album name, and the one line that would have said something useful
+              (how many tracks) left blank. That is what "the three tabs read as
+              busy and with no clear hierarchy" was pointing at: the header was not
+              wrong, it was answering a question nobody asked.
+
+              The cover is square and larger, because an album sleeve is the thing
+              you recognise, where a folder thumbnail is a reminder. -->
+        <DataTemplate x:Key="MusicGroupHeaderTemplate" x:DataType="lib:VideoFolderGroup">
+            <Grid
+                Margin="0,16,0,8"
+                ColumnSpacing="{StaticResource MpvSpaceM}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Grid
+                    Grid.Column="0"
+                    Width="56"
+                    Height="56">
+                    <Border
+                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                        CornerRadius="4">
+                        <PathIcon
+                            Width="24"
+                            Height="24"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Data="{x:Bind MediaIcon, Mode=OneTime}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </Border>
+                    <!--  Both the visibility and the source follow the thumbnail, which
+                          arrives after the group is built: a group is created from the
+                          entries the scan produced, and those have no picture yet. OneTime
+                          would freeze it at the moment of construction, which is the same
+                          "cover shows once then goes grey" shape the cards had. -->
+                    <Border CornerRadius="4" Visibility="{x:Bind CoverVisibility, Mode=OneWay}">
+                        <Image
+                            Stretch="UniformToFill"
+                            Source="{x:Bind Cover, Mode=OneWay}" />
+                    </Border>
+                </Grid>
+
+                <StackPanel
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Spacing="{StaticResource MpvSpaceXxs}">
+                    <TextBlock
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind Name, Mode=OneTime}"
+                        TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+
+                <!--  The count sits at the trailing edge rather than under the name:
+                      it is a magnitude, not a subtitle, and a right-aligned column
+                      is where the eye finds one. -->
+                <TextBlock
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind CountText, Mode=OneTime}" />
+            </Grid>
+        </DataTemplate>
+
         <DataTemplate x:Key="VideoFolderHeaderTemplate" x:DataType="lib:VideoFolderGroup">
             <Grid
                 Margin="0,16,0,8"

@@ -349,7 +349,11 @@ namespace mpv_winui.Domains.Playback
             // grouped music tabs render albums, and the video card's 16:9 crop loses the
             // sleeve while its single caption loses the artist.
             var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
-            var headerTemplate = (DataTemplate)Resources["VideoFolderHeaderTemplate"];
+            // The music group header, not the folder one: see the note on
+            // MusicGroupHeaderTemplate. The folder header reserved a line for a path
+            // that a tag group does not have, so every album name sat above an empty
+            // band.
+            var headerTemplate = (DataTemplate)Resources["MusicGroupHeaderTemplate"];
 
             var byAlbum = _musicGrouping == MusicGrouping.Albums;
 

@@ -330,6 +330,36 @@ namespace mpv_winui.Domains.Playback
                 if (generation == _libraryGeneration)
                 {
                     entry.SetThumbnail(image);
+
+                    // A group's header shows its first track's cover, and that
+                    // group was built before this decode finished. Telling every
+                    // realised group that its cover may have moved is cheaper than
+                    // rebuilding the tree - which is what the tag pass does, and
+                    // what loses the scroll position.
+                    NotifyGroupCoversFor(entry.Path);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tells the groups whose first track is this path that their cover arrived.
+        ///
+        /// Only the first track of a group supplies its cover (see
+        /// VideoFolderGroup.Cover), so only that one needs to notify. Walking the
+        /// groups is cheaper than keeping an index for a handful of them.
+        /// </summary>
+        private void NotifyGroupCoversFor(string path)
+        {
+            foreach (var header in _groupHeaders.Values)
+            {
+                // The headers are ContentPresenters (see BuildMusicTagGroups and
+                // BuildVideoFolderGroups), which is what holds the group object.
+                if (header is ContentPresenter presenter
+                    && presenter.Content is VideoFolderGroup group
+                    && group.Items.Count > 0
+                    && string.Equals(group.Items[0].Path, path, StringComparison.OrdinalIgnoreCase))
+                {
+                    group.RaiseCoverChanged();
                 }
             }
         }

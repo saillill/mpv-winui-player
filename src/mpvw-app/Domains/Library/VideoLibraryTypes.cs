@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Media;
 using mpv_winui.Domains.Playback;
 using mpv_winui.Infrastructure.Common.View;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace mpv_winui.Domains.Library;
 
@@ -31,8 +32,33 @@ public sealed record VideoFolderGroup(
     string Name,
     IReadOnlyList<LibraryEntry> Items,
     string Path = "",
-    string Letter = "")
+    string Letter = "") : INotifyPropertyChanged
 {
+    /// <summary>
+    /// Raised when <see cref="Cover"/> or <see cref="CoverVisibility"/> changes.
+    ///
+    /// The header binds both, and the picture they depend on is decoded after the
+    /// group exists: the scan produces entries with no thumbnail, then the loader
+    /// fills them in. Without a notification the header keeps whatever it read at
+    /// construction - which is null, so the album cover never appeared. Measured:
+    /// the album's name and track count were in the tree while the 56px cover was
+    /// not.
+    /// </summary>
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>
+    /// Announces that the group's cover may have changed.
+    ///
+    /// Called by the page once a thumbnail lands. Not raised from <see cref="Cover"/>
+    /// itself: a getter that raises every time it is read would repaint on every
+    /// layout pass.
+    /// </summary>
+    internal void RaiseCoverChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Cover)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CoverVisibility)));
+    }
+
     /// <summary>How many entries the group holds, as text for the row template.</summary>
     public string CountText => Items.Count.ToString();
 
