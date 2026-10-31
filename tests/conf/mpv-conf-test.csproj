@@ -52,6 +52,7 @@
              only visible by asking the table directly. -->
         <Compile Include="..\..\src\mpvw-app\Domains\Playback\ControlBarAdaptiveLayout.cs" Link="Player\ControlBarAdaptiveLayout.cs" />
         <Compile Include="..\..\src\mpvw-app\Domains\Playback\LibraryIndexLetter.cs" Link="Player\LibraryIndexLetter.cs" />
+    <Compile Include="..\..\src\mpvw-app\Domains\Playback\Cards\**\*.cs" Link="Player\Cards\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\..\src\mpvw-app\Domains\Playback\IndexRailHover.cs" Link="Player\IndexRailHover.cs" />
         <Compile Include="..\..\src\mpvw-app\Domains\Playback\Audio\SpectrumAnalyzer.cs" Link="Player\Audio\SpectrumAnalyzer.cs" />
         <Compile Include="..\..\src\mpvw-app\Domains\Playback\Audio\AlbumColorExtractor.cs" Link="Player\Audio\AlbumColorExtractor.cs" />
