@@ -461,17 +461,6 @@ namespace mpv_winui.Domains.Playback
                 // track into one bucket in the first pass while the second pass looks
                 // up real tag names and finds nothing. Measured: the count stayed
                 // null for a one-track album until this changed.
-                var albumByPath = _libraryAll
-                    .Where(e => !e.IsVideo && MediaKinds.IsAudio(e.Path))
-                    .ToDictionary(e => e.Path, e => e.Album ?? string.Empty,
-                        StringComparer.OrdinalIgnoreCase);
-
-                var albumSizes = _libraryAll
-                    .Where(e => !e.IsVideo && MediaKinds.IsAudio(e.Path))
-                    .GroupBy(e => string.IsNullOrWhiteSpace(e.Album) ? "\uFFFF" : e.Album,
-                        StringComparer.CurrentCultureIgnoreCase)
-                    .ToDictionary(g => g.Key, g => g.Count(),
-                        StringComparer.CurrentCultureIgnoreCase);
 
                 for (var i = 0; i < _libraryAll.Count; i++)
                 {
@@ -529,7 +518,7 @@ namespace mpv_winui.Domains.Playback
                 // empty - so it grouped the whole library into one bucket. Counting
                 // again after the pass is the fix, and it costs one pass over a list
                 // that is already in memory.
-                albumSizes = _libraryAll
+                var albumSizes = _libraryAll
                     .Where(e => !e.IsVideo && MediaKinds.IsAudio(e.Path))
                     .GroupBy(e => string.IsNullOrWhiteSpace(e.Album) ? "\uFFFF" : e.Album,
                         StringComparer.CurrentCultureIgnoreCase)
