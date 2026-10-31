@@ -10,14 +10,26 @@
 
 ## 一、根因（仓库内已有完整实测记录）
 
-### 1.1 `WMC9999`：`{x:Bind}` 让 XAML 编译器内部崩溃
+### 1.1 `WMC9999`：`{x:Bind AlbumTitle}` 崩溃，但**不是**因为 `{x:Bind}` 本身
 
-`MpvPlayerPage.xaml:340-341` 与 `MpvPlayerPage.Library.Cards.cs:768,799,917,956` 都记录了同一件事：
+> **2026-10-31 更正。** 本节此前写「只要写一条 `{x:Bind AlbumTitle}` 就崩」，并把原因归于
+> `{x:Bind}` 本身。**归因是错的。** 下表是 `main`@`644a955` 上的实测：
+>
+> | 试验 | 结果 |
+> |---|---|
+> | `{x:Bind AlbumArtistText}` | 编译通过 |
+> | `{x:Bind AlbumTitle}` | WMC9999 |
+> | 先把 `MpvPlayerPage.xaml` 里专辑详情页那个 `x:Name="AlbumTitle"` 改名，再 `{x:Bind AlbumTitle}` | **编译通过**，且运行时渲染出 `i Love` |
+> | `{x:Bind Thumbnail}` 取代 `SetCardCover` | 编译通过，但**运行时封面不显示**（`stddev 20.4 / 25 色`；原代码同一张卡 `57.5 / 52258 色`） |
+>
+> 真因：专辑详情页的 `TextBlock` 叫 `x:Name="AlbumTitle"`，它在 `MpvPlayerPage` 页面类上
+> 生成同名字段，与 `LibraryEntry.AlbumTitle` 撞名。`AlbumArtistText` 没有这个冲突，
+> 所以一直能绑。**两条结论分开记**：文字标题可以绑；封面不行。
 
-> 只要在专辑卡片模板里写一条 `{x:Bind AlbumTitle}`，WindowsAppSDK **2.3.9** 的 XAML
-> 编译器就报 **WMC9999（内部错误，不指定文件、不指定行号）**。
+`MpvPlayerPage.xaml:339-344` 与 `MpvPlayerPage.Library.Cards.cs` 里几处同义注释记录的是
+上面那个错误归因。它们在卡片控件化时一并删除（见 `specs/2026-10-31-cards-and-music-redesign.md`）。
 
-因此专辑模板被迫改用 `{Binding}`。
+因此专辑模板当时被迫改用 `{Binding}`。
 
 **外部佐证**：[StackOverflow 同名问题](https://stackoverflow.com/questions/32850078) 记录了同样的
 `Xaml Internal Error WMC9999: Object reference not set to an instance of an object`；
