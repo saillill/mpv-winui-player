@@ -19,4 +19,4 @@ src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:867:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL
 
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:145:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:184:SPACING-LITERAL

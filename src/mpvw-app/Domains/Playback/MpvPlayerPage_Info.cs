@@ -47,7 +47,18 @@ namespace mpv_winui.Domains.Playback
 
             // The main window's aspect-lock reads these (mpv reports 0x0 when
             // nothing is playing, which clears the lock's "active video" gate).
-            if (args.VideoWidth > 0 && args.VideoHeight > 0)
+            //
+            // An AUDIO file is excluded here even when it reports a size, and it
+            // does: with audio-display=embedded-first mpv decodes the cover art
+            // into the video chain, logs "Displaying cover art", and hands this
+            // handler a real 600x600. Taking that as an active video made the
+            // window resize itself to a ratio meant for a film - measured as
+            // "aspect fit: applied (extra=aspect=1.778 ... extraH=343)" on a flac,
+            // after which the process died. A cover is not a picture to fit the
+            // window to.
+            var isAudio = MediaKinds.IsAudio(_mediaPlayer?.GetCurrentPath());
+
+            if (!isAudio && args.VideoWidth > 0 && args.VideoHeight > 0)
             {
                 MainWindow.HasActiveVideo = true;
                 MainWindow.CurrentVideoAspect = (double)args.VideoWidth / args.VideoHeight;
@@ -66,8 +77,12 @@ namespace mpv_winui.Domains.Playback
             {
                 MainWindow.HasActiveVideo = false;
             }
-            _videoWidth = args.VideoWidth > 0 ? (uint)args.VideoWidth : 0;
-            _videoHeight = args.VideoHeight > 0 ? (uint)args.VideoHeight : 0;
+            // Zero for audio too: _videoWidth/_videoHeight are what the delayed
+            // aspect-fit timer samples, so leaving a cover's 600x600 here would
+            // reintroduce the same resize a quarter of a second later - which is
+            // exactly the "it worked, then the window jumped" shape.
+            _videoWidth = !isAudio && args.VideoWidth > 0 ? (uint)args.VideoWidth : 0;
+            _videoHeight = !isAudio && args.VideoHeight > 0 ? (uint)args.VideoHeight : 0;
             DispatcherQueue.RunAsync(() =>
             {
                 if (!string.IsNullOrEmpty(args.MediaTitle))

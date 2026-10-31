@@ -1390,6 +1390,20 @@
 <x:Double x:Key="MpvPlayGlyphFontSize">14</x:Double>
 <x:Double x:Key="MpvCardTickFontSize">12</x:Double>
 
+<!-- The card subtitle, a step above CaptionTextBlockStyle's 12.
+     Reported as "the text under the cover is too small to read at a glance".
+     13 is the smallest step that reads as body text without competing with the
+     title above it. -->
+<x:Double x:Key="MpvCardSubtitleFontSize">13</x:Double>
+
+<!-- The two hover buttons' surface: translucent, not opaque.
+     Reported as "the buttons should use the official Mica effect, simple and
+     transparent". A Mica *material* is a window backdrop and cannot be applied
+     to a 40px control; what reads as Mica at this size is the acrylic tint, which
+     is what Fluent uses for a control floating over content. It lets the cover
+     show through the circle instead of stamping an opaque disc on it. -->
+<SolidColorBrush x:Key="MpvCardControlBrush" Color="#B31C1C1C" />
+
     <!-- Shell chrome geometry.
 
          MpvNavPaneWidth is the navigation pane's open width, and it is also

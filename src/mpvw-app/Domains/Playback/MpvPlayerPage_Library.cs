@@ -938,7 +938,12 @@ namespace mpv_winui.Domains.Playback
             var musicGrouped = _librarySection == LibrarySectionMusic
                 && _musicGrouping != MusicGrouping.Songs;
 
-            var folderView = (_librarySection == LibrarySectionVideos && _videoFolderView) || musicGrouped;
+            // Home always uses the sectioned container: its two bands need two
+            // different card shapes, which one grid cannot give them.
+            var homeBanded = _librarySection == LibrarySectionHome;
+
+            var folderView = (_librarySection == LibrarySectionVideos && _videoFolderView)
+                || musicGrouped || homeBanded;
 
             if (_librarySection == LibrarySectionVideos)
             {
@@ -978,6 +983,10 @@ namespace mpv_winui.Domains.Playback
                 if (musicGrouped)
                 {
                     BuildMusicTagGroups(cards);
+                }
+                else if (homeBanded)
+                {
+                    BuildHomeSections(cards);
                 }
                 else
                 {

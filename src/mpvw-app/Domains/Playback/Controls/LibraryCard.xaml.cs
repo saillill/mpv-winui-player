@@ -272,6 +272,14 @@ namespace mpv_winui.Domains.Playback.Controls
             if (height > 0)
             {
                 MediaBorder.Height = height;
+
+                // The overlay gets the tile's height, not the card's: the scrim
+                // should stop where the picture does, and the buttons ride that
+                // edge. Leaving it unset let the Grid size itself to its tallest
+                // child - a 32px button - so the scrim was a 32px strip and both
+                // buttons sat in it, which is why MoreButton never appeared at the
+                // card's corner.
+                HoverOverlay.Height = height;
             }
         }
 

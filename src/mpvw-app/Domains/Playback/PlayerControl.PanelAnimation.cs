@@ -60,31 +60,33 @@ namespace mpv_winui.Domains.Playback
     
             public void HideControlPanel()
             {
-                if (_overlayMode)
+                if (!_overlayMode)
                 {
-                    if (_volumeFlyoutOpen)
-                    {
-                        // The user is interacting with the volume flyout above
-                        // the bar; retracting under their slider feels broken.
-                        return;
-                    }
-                    // Debounce: a transient exit (pointer on the mask edge) must
-                    // not start and restart the retract animation repeatedly.
-                    _hideDelayTimer.Tick -= HideDelayTimer_Tick;
-                    _hideDelayTimer.Tick += HideDelayTimer_Tick;
-                    _hideDelayTimer.Start();
+                    // Overlay mode is the only mode that hides the bar.
+                    //
+                    // Outside it the bar is part of the page, not something floating
+                    // over the picture: it has its own surface and the video is laid
+                    // out around it. Hiding it on a click deleted a piece of the
+                    // window's chrome - reported as the status bar vanishing when the
+                    // user clicks, when that should happen only while the bar has been
+                    // switched to transparent by its function key. An opaque bar stays.
                     return;
                 }
-    
-                if (_controlPanelIsVisible)
+
+                if (_volumeFlyoutOpen)
                 {
-                    StopPanelAnimations();
-                    _controlPanelIsVisible = false;
-                    StartPanelAnimation(false);
+                    // The user is interacting with the volume flyout above the bar;
+                    // retracting under their slider feels broken.
+                    return;
                 }
-    
-                OnPanelVisibleChanged?.Invoke(true);
+
+                // Debounce: a transient exit (pointer on the mask edge) must not
+                // start and restart the retract animation repeatedly.
+                _hideDelayTimer.Tick -= HideDelayTimer_Tick;
+                _hideDelayTimer.Tick += HideDelayTimer_Tick;
+                _hideDelayTimer.Start();
             }
+
     
             public void SetOverlayMode(bool overlay)
             {

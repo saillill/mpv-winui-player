@@ -693,7 +693,11 @@ namespace mpv_winui.Domains.Playback
                 && args.Index >= 0 && args.Index < view.Count
                 && view.GetAt(args.Index) is LibraryEntry entry)
             {
-                card.IsAlbum = _librarySection == LibrarySectionMusic;
+                // From the ENTRY, not the section. The home page now carries both
+                // kinds side by side, so a section-level answer is wrong there: it
+                // said "not the music section" for a track and gave the card a 16:9
+                // tile. Measured as a 298x168 cover where a square was expected.
+                card.IsAlbum = !entry.IsVideo && MediaKinds.IsAudio(entry.Path);
                 card.SetEntry(entry, ResolveCover(entry));
 
                 card.CardTapped -= Card_Tapped;

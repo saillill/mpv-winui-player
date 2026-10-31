@@ -595,6 +595,68 @@ namespace mpv_winui.Domains.Playback
         /// square tile is 170 for its own sake - and a shared method taking two magic
         /// numbers would hide which one belongs to which kind of card.
         /// </summary>
+        /// <summary>
+        /// The home section: two bands, watched and listened, each with its own grid.
+        ///
+        /// The home grid used to show every entry in one flow, and the two kinds of
+        /// card are different shapes - a 16:9 frame and a square sleeve. Dropping a
+        /// square card into a landscape cell is what made a music card read as "a
+        /// strange rectangle": it was a square tile stretched into a 16:9 slot, with
+        /// the same MinItemHeight as its neighbours.
+        ///
+        /// Two bands with two layouts fixes both the mixing and the shape, and it is
+        /// why the home section reuses the group container: that container already
+        /// holds a stack of header + repeater pairs, which is exactly two bands.
+        /// </summary>
+        private void BuildHomeSections(List<LibraryEntry> entries)
+        {
+            VideoFolderGroups.Children.Clear();
+
+            _groupHeaders.Clear();
+
+            var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
+
+            var listened = entries.Where(e => MediaKinds.IsAudio(e.Path)).ToList();
+            var watched = entries.Where(e => !MediaKinds.IsAudio(e.Path)).ToList();
+
+            AddHomeBand("最近观看", watched, isAlbum: false);
+            AddHomeBand("最近收听", listened, isAlbum: true);
+
+            void AddHomeBand(string caption, List<LibraryEntry> band, bool isAlbum)
+            {
+                if (band.Count == 0)
+                {
+                    return;
+                }
+
+                // A plain heading rather than the group header: these two bands are
+                // not groups of a tag, they are the two halves of the home page, and
+                // the count belongs nowhere in particular.
+                var heading = new TextBlock
+                {
+                    Text = caption,
+                    Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
+                    Margin = new Thickness(0, 20, 0, 8),
+                };
+
+                VideoFolderGroups.Children.Add(heading);
+
+                var repeater = new ItemsRepeater
+                {
+                    ItemTemplate = cardTemplate,
+                    Layout = isAlbum ? AlbumCardLayout() : CardLayout(),
+                };
+
+                repeater.ElementPrepared += LibraryGrid_ElementPrepared;
+
+                // ItemsSource is what ElementPrepared reads the entry back out of, so
+                // it has to be set before the repeater is measured.
+                repeater.ItemsSource = band;
+
+                VideoFolderGroups.Children.Add(repeater);
+            }
+        }
+
         private static UniformGridLayout AlbumCardLayout()
         {
             // 170 is the reference's own cover size, and the only number here that
