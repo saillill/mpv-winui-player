@@ -237,27 +237,42 @@ namespace mpv_winui.Domains.Playback
         /// A copy rather than a setter because TrackCount is init-only and the
         /// entry is otherwise immutable: the count is a fact about the album that
         /// is only known after every file in it has been read, so it arrives after
-        /// the entry was built. Everything else is carried across verbatim, and
-        /// the mutable state (thumbnail, tick, playing) is re-applied by the
-        /// caller, which already does exactly that for a tag-pass rebuild.
+        /// the entry was built.
+        ///
+        /// The MUTABLE state comes across too, and that is not tidiness: the caller
+        /// has usually just put the thumbnail on this entry (the tag pass copies it
+        /// once), and building a fresh instance without it drops the cover that the
+        /// decode already paid for. Measured: the album group header showed a glyph
+        /// where the sleeve should be, because Cover reads Items[0].Thumbnail and
+        /// the instance it read was this copy.
         /// </summary>
-        internal LibraryEntry WithTrackCount(int? count) => new()
+        internal LibraryEntry WithTrackCount(int? count)
         {
-            Path = Path,
-            Title = Title,
-            Subtitle = Subtitle,
-            IsVideo = IsVideo,
-            Time = Time,
-            IsMissing = IsMissing,
-            MediaIconPath = MediaIconPath,
-            Album = Album,
-            Artist = Artist,
-            AlbumTitle = AlbumTitle,
-            AlbumArtistText = AlbumArtistText,
-            Genre = Genre,
-            Duration = Duration,
-            TrackCount = count,
-        };
+            var copy = new LibraryEntry
+                {
+                Path = Path,
+                Title = Title,
+                Subtitle = Subtitle,
+                IsVideo = IsVideo,
+                Time = Time,
+                IsMissing = IsMissing,
+                MediaIconPath = MediaIconPath,
+                Album = Album,
+                Artist = Artist,
+                AlbumTitle = AlbumTitle,
+                AlbumArtistText = AlbumArtistText,
+                Genre = Genre,
+                    Duration = Duration,
+                    TrackCount = count,
+            };
+
+            copy._thumbnail = _thumbnail;
+            copy._isSelected = _isSelected;
+            copy._selectionMode = _selectionMode;
+            copy._isNowPlaying = _isNowPlaying;
+
+            return copy;
+        }
 
         private void Raise([CallerMemberName] string? name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

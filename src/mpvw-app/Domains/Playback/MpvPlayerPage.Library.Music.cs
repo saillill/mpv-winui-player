@@ -425,6 +425,14 @@ namespace mpv_winui.Domains.Playback
             }
 
             BuildLibraryIndexRail(groups);
+
+            // Every header was just built, and by now the thumbnails may already
+            // be decoded - the loader starts after the grid is up, and this method
+            // can run later than that when a tab switch rebuilds the groups. Those
+            // decodes happened before these headers existed, so no notification
+            // carried them here: the header read the thumbnail at construction and
+            // got null. Telling them once, now, is the difference between a sleeve
+            // and a glyph.
         }
 
         /// <summary>
