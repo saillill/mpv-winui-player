@@ -1,4 +1,4 @@
-{
+﻿{
   "A11yColorSwatch": "Образец цвета",
   "A11yVideoPreview": "Предпросмотр видео",
   "About": "О программе",
@@ -1562,5 +1562,15 @@
   "SectionGenStreamDemuxer": "Детали демультиплексора",
   "SectionGenStreamNetwork": "Сеть и потоковое видео",
   "PlayerStyleCompact": "Компактная",
-  "LibraryTrackCountFormat": "{0} треков"
+  "LibraryTrackCountFormat": "{0} треков",
+  "OsdVolumeFormat": "Громкость {0}",
+  "OsdSpeedFormat": "Скорость {0}x",
+  "OsdMuted": "Без звука",
+  "OsdPaused": "Пауза",
+  "OsdPlaying": "Воспроизведение",
+  "OsdLoopFile": "Повтор файла",
+  "OsdLoopPlaylist": "Повтор списка",
+  "OsdLoopOff": "Повтор выключен",
+  "OsdShuffleOn": "Перемешивание включено",
+  "OsdShuffleOff": "Перемешивание выключено"
 }

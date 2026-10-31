@@ -59,11 +59,50 @@ public class CardMetricsTests
     public void TokensAreTheDocumentedValues()
     {
         Assert.That(CardMetrics.CornerRadius, Is.EqualTo(4));
-        Assert.That(CardMetrics.CaptionTopGap, Is.EqualTo(8));
+
+        // The caption band follows the cell height, so a change here without a
+        // change in CardMetrics.CaptionBandHeight clips the second line. These
+        // four numbers are the reference's own, measured on its hovered card.
+        Assert.That(CardMetrics.CaptionTopGap, Is.EqualTo(6));
         Assert.That(CardMetrics.CaptionLineGap, Is.EqualTo(2));
-        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(40));
-        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(32));
+
+        // Both hover buttons are the same size now: the reference draws them as
+        // one matched pair, and the old 40/32 split made the second look accidental.
+        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(36));
+        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(36));
         Assert.That(CardMetrics.CornerInset, Is.EqualTo(10));
+        Assert.That(CardMetrics.RingThickness, Is.EqualTo(1.5));
         Assert.That(CardMetrics.NowPlayingBarHeight, Is.EqualTo(2));
+    }
+
+    /// <summary>
+    /// The ring has to fit inside the disc's corner radius or it renders as a
+    /// square with a circle inside it. Half the diameter is the only radius that
+    /// makes the two shapes concentric.
+    /// </summary>
+    [Test]
+    public void RingSitsOnTheDiscEdge()
+    {
+        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(CardMetrics.MoreButtonSize));
+        Assert.That(CardMetrics.RingThickness, Is.LessThan(CardMetrics.PlayButtonSize / 4));
+    }
+
+    /// <summary>
+    /// The two caption line heights have to clear the type sizes they stand for.
+    ///
+    /// 15 and 14 at the default 1.2 line box are 18 and 16.8. These constants are
+    /// what the grid cell is built from before any card is measured, so being
+    /// merely equal is not enough - a cell exactly as tall as the glyph box clips
+    /// the descenders of a wrapped line.
+    /// </summary>
+    [Test]
+    public void CaptionLineHeightsClearTheirTypeSizes()
+    {
+        const double TitleFontSize = 15;
+        const double SubtitleFontSize = 14;
+        const double LineBox = 1.2;
+
+        Assert.That(CardMetrics.TitleLineHeight, Is.GreaterThan(TitleFontSize * LineBox));
+        Assert.That(CardMetrics.SubtitleLineHeight, Is.GreaterThan(SubtitleFontSize * LineBox));
     }
 }

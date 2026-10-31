@@ -657,6 +657,34 @@ namespace mpv_winui.Domains.Playback
             }
         }
 
+        /// <summary>
+        /// Points the flat grid's single ItemsRepeater at the cell shape its
+        /// section needs.
+        ///
+        /// An ItemsRepeater has ONE Layout, and every section shares this
+        /// repeater, so the shape has to be switched rather than declared. The
+        /// markup carries the landscape one because that is what Home, Videos and
+        /// Search use; only the music library is square.
+        ///
+        /// Assigning a new Layout is a full re-flow of the repeater, which is why
+        /// this is called from ApplyLibraryFilter (once per filter change) and not
+        /// from a size-changed handler.
+        /// </summary>
+        private void ApplyLibraryGridLayout(bool square)
+        {
+            if (square)
+            {
+                LibraryGrid.Layout = AlbumCardLayout();
+
+                return;
+            }
+
+            // Rebuilt rather than restored from a field: UniformGridLayout is not
+            // shared between two repeaters in this page, so a fresh instance cannot
+            // pick up a stale MinItemHeight from whichever section ran last.
+            LibraryGrid.Layout = CardLayout();
+        }
+
         private static UniformGridLayout AlbumCardLayout()
         {
             // 170 is the reference's own cover size, and the only number here that

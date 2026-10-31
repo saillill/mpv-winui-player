@@ -23,9 +23,23 @@ namespace mpv_winui.Domains.SettingsModel
             set => _dataSetting.SetValue(nameof(SeekHoldEnabled), value);
         }
 
+        /// <summary>
+        /// Whether the bundled metadata_osd.lua draws the title card into the
+        /// video frame.
+        ///
+        /// Off by default, changed from on. The card is mpv-rendered text in
+        /// mpv's font, drawn over the picture in a corner - the exact class of
+        /// thing this app now draws itself (see MpvPlayerPage.Osd.cs). Leaving it
+        /// on meant two overlapping message systems on one frame: the capsule in
+        /// the middle and mpv's card in the corner, saying nearly the same thing.
+        ///
+        /// The row and the whole script stay: it reports chapter and track detail
+        /// the capsule does not attempt, so anyone who wants that card can still
+        /// turn it on, and the setting keeps working when they do.
+        /// </summary>
         public bool MetadataOsdEnabled
         {
-            get => _dataSetting.GetValue(nameof(MetadataOsdEnabled), true);
+            get => _dataSetting.GetValue(nameof(MetadataOsdEnabled), false);
             set => _dataSetting.SetValue(nameof(MetadataOsdEnabled), value);
         }
 

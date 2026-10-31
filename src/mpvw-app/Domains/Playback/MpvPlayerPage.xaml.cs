@@ -132,6 +132,10 @@ namespace mpv_winui.Domains.Playback
                 // runs, so the handler was never called for it.
                 _mediaPlayer.PlaybackStateChanged += MpvPlayerPage_LibraryPlaybackStateChanged;
 
+                // The message capsule. Its handlers report what the user just did,
+                // which is what mpv's own OSD used to do - see MpvPlayerPage.Osd.cs.
+                AttachOsdEvents();
+
                 AppContext.RunMpvCommand = cmd => _ = _mediaPlayer.RunCommandAsync(cmd);
                 AppContext.SetMpvLogLevel = level => _mediaPlayer.SetLogLevel(level);
                 AppContext.GetAudioDevices = () => _mediaPlayer.GetAudioDevices();
@@ -270,6 +274,8 @@ namespace mpv_winui.Domains.Playback
             _mediaPlayer.DiscMenuActiveChanged -= MpvPlayerPage_DiscMenuActiveChanged;
             _mediaPlayer.FileStarted -= MpvPlayerPage_LibraryFileStarted;
             _mediaPlayer.PlaybackStateChanged -= MpvPlayerPage_LibraryPlaybackStateChanged;
+
+            DetachOsdEvents();
 
             TeardownPlayerView();
             CleanupKeyboardInput();

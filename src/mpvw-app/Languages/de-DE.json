@@ -1,4 +1,4 @@
-{
+﻿{
   "A11yColorSwatch": "Farbmuster",
   "A11yVideoPreview": "Videovorschau",
   "About": "Info",
@@ -1562,5 +1562,15 @@
   "SectionGenStreamDemuxer": "Demuxer-Details",
   "SectionGenStreamNetwork": "Netzwerk & Streaming",
   "PlayerStyleCompact": "Kompakt",
-  "LibraryTrackCountFormat": "{0} Titel"
+  "LibraryTrackCountFormat": "{0} Titel",
+  "OsdVolumeFormat": "Lautstärke {0}",
+  "OsdSpeedFormat": "Geschwindigkeit {0}x",
+  "OsdMuted": "Stumm",
+  "OsdPaused": "Pausiert",
+  "OsdPlaying": "Wiedergabe",
+  "OsdLoopFile": "Titel wiederholen",
+  "OsdLoopPlaylist": "Alle wiederholen",
+  "OsdLoopOff": "Wiederholen aus",
+  "OsdShuffleOn": "Zufallswiedergabe an",
+  "OsdShuffleOff": "Zufallswiedergabe aus"
 }

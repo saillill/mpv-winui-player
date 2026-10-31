@@ -1,4 +1,4 @@
-{
+﻿{
   "A11yColorSwatch": "색 샘플",
   "A11yVideoPreview": "동영상 미리보기",
   "About": "정보",
@@ -1562,5 +1562,15 @@
   "SectionGenStreamDemuxer": "디먹서 세부 설정",
   "SectionGenStreamNetwork": "네트워크 및 스트리밍",
   "PlayerStyleCompact": "콤팩트",
-  "LibraryTrackCountFormat": "{0}곡"
+  "LibraryTrackCountFormat": "{0}곡",
+  "OsdVolumeFormat": "볼륨 {0}",
+  "OsdSpeedFormat": "속도 {0}x",
+  "OsdMuted": "음소거",
+  "OsdPaused": "일시 정지",
+  "OsdPlaying": "재생 중",
+  "OsdLoopFile": "한 곡 반복",
+  "OsdLoopPlaylist": "전체 반복",
+  "OsdLoopOff": "반복 끔",
+  "OsdShuffleOn": "셔플 켬",
+  "OsdShuffleOff": "셔플 끔"
 }

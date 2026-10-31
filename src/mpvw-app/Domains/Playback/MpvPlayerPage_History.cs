@@ -56,6 +56,12 @@ namespace mpv_winui.Domains.Playback
                 dialog.Hide();
                 _watchHistoryDialog = null;
             }
+
+            // A row is an explicit "play this", the same as a card click: without
+            // this the file loads behind a library that is still up, because the
+            // session counts as withdrawn once the user has pressed back once.
+            ShowVideoForNextOpen();
+
             _mediaPlayer.OpenAsync(new FileItem(path)).FireAndForget(OnException);
         }
 
@@ -66,6 +72,9 @@ namespace mpv_winui.Domains.Playback
                 dialog.Hide();
                 _watchLaterDialog = null;
             }
+
+            ShowVideoForNextOpen();
+
             _mediaPlayer.OpenAsync(new FileItem(path)).FireAndForget(OnException);
         }
     }

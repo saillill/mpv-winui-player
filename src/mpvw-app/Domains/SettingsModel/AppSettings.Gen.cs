@@ -466,7 +466,7 @@ namespace mpv_winui.Domains.SettingsModel
 
         public bool Mpv_osc
         {
-            get => _dataSetting.GetValue(nameof(Mpv_osc), true);
+            get => _dataSetting.GetValue(nameof(Mpv_osc), false);
             set => _dataSetting.SetValue(nameof(Mpv_osc), value);
         }
 

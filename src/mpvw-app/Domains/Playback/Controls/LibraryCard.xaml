@@ -87,13 +87,23 @@
                 </Grid>
             </Border>
 
-            <StackPanel Margin="0,8,0,0" Spacing="{StaticResource MpvSpaceXxs}">
+            <!--  The caption is part of the card, so it sits in the card's own
+                  column and gets the card's width - not a narrower box that makes
+                  the two lines look like a label stuck underneath.
+
+                  The gap is CaptionTopGap and it is deliberately small: measured
+                  against the reference, the title's cap line begins 6 DIP under
+                  the tile. At the previous 10 the two read as a separate block
+                  floating below the picture rather than as its label. -->
+            <StackPanel Margin="0,6,0,0" Spacing="{StaticResource MpvSpaceXxs}">
                 <!--  Two lines, not one: a media title is a name, and two files
                       usually differ in the part a one-line cut removes. -->
                 <TextBlock
                     x:Name="TitleText"
                     MaxLines="2"
-                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    FontSize="{StaticResource MpvCardTitleFontSize}"
+                    FontWeight="SemiBold"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="Wrap" />
                 <TextBlock
@@ -102,77 +112,90 @@
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextTrimming="CharacterEllipsis" />
             </StackPanel>
+
         </StackPanel>
 
-        <!--  The hover layer, over the whole card. Play at the tile's lower-left,
-              the overflow at its lower-right; the buttons align to the TILE rather
-              than the card, so they share an edge while the scrim covers the
-              captions too.
+            <!--  The hover layer, pinned to the TOP of the card.
 
-              A gradient rather than a flat scrim: the flat one darkened the
-              picture, and the picture is the card. The upper half stays clear so
-              the subject is untouched; the lower half carries the controls.
+                  VerticalAlignment="Top" is not cosmetic and it is the fix for
+                  "the highlight sits too low and does not overlap the picture".
+                  The code behind assigns this Grid the tile's height, and a Grid
+                  with an explicit Height inside a taller parent stops stretching:
+                  WPF and WinUI both centre it instead. So the wash and both
+                  buttons were drawn half a caption band below the picture, and
+                  the tile never got covered at all.
 
-              Hidden and hit-test-inert at rest. The pointer handlers in the code
-              behind own it - never a VisualState, because a recycled template
-              would carry the state to the next item. -->
+                  It stops at the tile's bottom edge on purpose. The wash marks
+                  the thing you are about to play; the two caption lines stay
+                  legible underneath, which is the reference's own behaviour. -->
             <Grid
                 x:Name="HoverOverlay"
+                VerticalAlignment="Top"
                 IsHitTestVisible="False"
                 Visibility="Collapsed">
-                <!--  A gradient, not a flat scrim. The flat one darkened
-                      the whole picture, and the picture is the card. -->
-                <Border IsHitTestVisible="False">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
-                            <GradientStop Offset="0" Color="{ThemeResource SmokeFillColorDefault}" />
-                            <GradientStop Offset="0.55" Color="Transparent" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
 
-                <!--  Play in the lower-left, overflow in the upper-right:
-                      the two corners the subject is least likely to
-                      occupy. The previous layout put Play in the exact
-                      centre, over the artist's face on most sleeves. -->
+                <!--  The wash. A translucent fill over the tile, not a dark
+                      scrim: the previous gradient darkened the bottom of an
+                      already-dim frame. -->
+                <Border
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    CornerRadius="4"
+                    IsHitTestVisible="False" />
+
+                <!--  Play at the tile's lower-left, overflow at its lower-right:
+                      one button per corner, which is what the reference player
+                      does and what the report asked for.
+
+                      A Grid rather than a centred StackPanel. The stack put both
+                      buttons side by side in the middle of the picture, which on
+                      a 16:9 frame lands on the subject rather than on an edge.
+                      Two alignments in one Grid means each button is anchored to
+                      its own corner and cannot drift when the tile's width
+                      changes. -->
                 <Button
                     x:Name="PlayButton"
-                    Width="40"
-                    Height="40"
+                    Width="36"
+                    Height="36"
                     Margin="10"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"
                     Background="{StaticResource MpvCardControlBrush}"
-                    BorderThickness="0"
+                    BorderBrush="{StaticResource MpvCardRingBrush}"
+                    BorderThickness="1.5"
                     Click="PlayButton_Click"
-                    CornerRadius="20">
+                    CornerRadius="18">
                     <FontIcon
                         FontFamily="{StaticResource MpvIconFontFamily}"
                         FontSize="{StaticResource MpvPlayGlyphFontSize}"
-                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        Foreground="{StaticResource MpvCardRingBrush}"
                         Glyph="&#xF605;" />
                 </Button>
 
                 <Button
                     x:Name="MoreButton"
-                    Width="32"
-                    Height="32"
+                    Width="36"
+                    Height="36"
                     Margin="10"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
                     Background="{StaticResource MpvCardControlBrush}"
-                    BorderThickness="0"
+                    BorderBrush="{StaticResource MpvCardRingBrush}"
+                    BorderThickness="1.5"
                     Click="MoreButton_Click"
-                    CornerRadius="16">
-                    <!--  Geometry, not a glyph: E712 in FluentSystemIcons
-                          is not three dots. -->
-                    <Viewbox Width="14" Height="14">
-                        <PathIcon Width="24" Height="24" Data="F1 M12 4C11.1716 4 10.5 4.67157 10.5 5.5C10.5 6.32843 11.1716 7 12 7C12.8284 7 13.5 6.32843 13.5 5.5C13.5 4.67157 12.8284 4 12 4ZM12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5ZM10.5 18.5C10.5 17.6716 11.1716 17 12 17C12.8284 17 13.5 17.6716 13.5 18.5C13.5 19.3284 12.8284 20 11.1716 20C10.5 19.3284 10.5 18.5 10.5 18.5Z" />
+                    CornerRadius="18">
+                    <!--  Geometry, not a glyph: E712 in FluentSystemIcons is not
+                          three dots. -->
+                    <Viewbox Width="13" Height="13">
+                        <PathIcon
+                            Width="24"
+                            Height="24"
+                            Data="F1 M12 4C11.1716 4 10.5 4.67157 10.5 5.5C10.5 6.32843 11.1716 7 12 7C12.8284 7 13.5 6.32843 13.5 5.5C13.5 4.67157 12.8284 4 12 4ZM12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5ZM10.5 18.5C10.5 17.6716 11.1716 17 12 17C12.8284 17 13.5 17.6716 13.5 18.5C13.5 19.3284 12.8284 20 11.1716 20C10.5 19.3284 10.5 18.5 10.5 18.5Z"
+                            Foreground="{StaticResource MpvCardRingBrush}" />
                     </Viewbox>
                 </Button>
 
-                <!--  The tick box. Shown only in selection mode; the whole
-                      card is the hit target, so this is an indicator. -->
+                <!--  The tick box. Shown only in selection mode; the whole card is
+                      the hit target, so this is an indicator. -->
                 <Border
                     x:Name="SelectionBox"
                     Width="24"

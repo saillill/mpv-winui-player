@@ -1,4 +1,4 @@
-{
+﻿{
   "A11yColorSwatch": "Muestra de color",
   "A11yVideoPreview": "Vista previa del vídeo",
   "About": "Acerca de",
@@ -1562,5 +1562,15 @@
   "SectionGenStreamDemuxer": "Detalles del demultiplexor",
   "SectionGenStreamNetwork": "Red y streaming",
   "PlayerStyleCompact": "Compacto",
-  "LibraryTrackCountFormat": "{0} pistas"
+  "LibraryTrackCountFormat": "{0} pistas",
+  "OsdVolumeFormat": "Volumen {0}",
+  "OsdSpeedFormat": "Velocidad {0}x",
+  "OsdMuted": "Silenciado",
+  "OsdPaused": "En pausa",
+  "OsdPlaying": "Reproduciendo",
+  "OsdLoopFile": "Repetir uno",
+  "OsdLoopPlaylist": "Repetir todo",
+  "OsdLoopOff": "Repetición desactivada",
+  "OsdShuffleOn": "Aleatorio activado",
+  "OsdShuffleOff": "Aleatorio desactivado"
 }

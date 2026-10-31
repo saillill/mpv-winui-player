@@ -90,9 +90,23 @@ namespace mpv_winui.Domains.SettingsModel
             set => _dataSetting.SetValue(nameof(OsdOutlineColor), value);
         }
 
+        /// <summary>
+        /// How much text mpv draws over the picture.
+        ///
+        /// 0 by default, changed from 1 (mpv's own default). Every message at
+        /// level 1 - volume, track switches, the file name - is something this app
+        /// now draws itself as a capsule over the video (see MpvPlayerPage.Osd.cs),
+        /// and the two systems report the same events. Leaving mpv's at 1 meant
+        /// every volume key press produced a box in the corner AND a capsule in
+        /// the middle.
+        ///
+        /// 0 is full silence, not partial: at level 1 mpv still draws, and there
+        /// is no level between "all of them" and "none". The row stays exposed, so
+        /// anyone who wants mpv's own text back raises it.
+        /// </summary>
         public int OsdLevel
         {
-            get => _dataSetting.GetValue(nameof(OsdLevel), 1);
+            get => _dataSetting.GetValue(nameof(OsdLevel), 0);
             set => _dataSetting.SetValue(nameof(OsdLevel), value);
         }
 

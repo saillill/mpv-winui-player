@@ -1,12 +1,20 @@
 # Findings already measured and accepted for now. One per line:
 #   <repo-relative path>:<line>:<kind>
 # Regenerate with: python tools/check-typography-standard.py --update-baseline
+#
+# The note below is hand-written and the update flag DROPS it - it rewrites the
+# file from the scan. Re-add it after any --update-baseline run; a baseline with
+# no reasons is a list of numbers nobody can re-judge later.
 
 # LibraryCard.xaml's Margin=8 cannot take MpvSpaceS: the token is an x:Double
 # and Margin is a Thickness, so the assignment throws inside
 # InitializeComponent - and Frame.Navigate swallows that, leaving an empty
 # window with no dialog and no log line. Same reason the empty-state Grid in
 # MpvPlayerPage.xaml spells its ColumnDefinition widths as literals.
+#
+# The card's Spacing="2" moved to MpvSpaceXxs instead of joining this list:
+# Spacing IS an x:Double, so the token applies there and the finding is gone.
+
 src/mpvw-app/Domains/Menu/MenuEditor/MenuEditorPage.xaml:258:SPACING-LITERAL
 src/mpvw-app/Domains/MpvConf/MpvConfEditorPage.xaml:103:SPACING-LITERAL
 src/mpvw-app/Domains/MpvConf/Option/MpvConfOptionControl.xaml:13:SPACING-LITERAL
@@ -15,8 +23,7 @@ src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:174:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:203:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:867:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL
-
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:180:SPACING-LITERAL

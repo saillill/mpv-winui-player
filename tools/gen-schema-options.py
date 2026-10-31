@@ -744,6 +744,33 @@ GROUP_TO_ICON = {
 
 SKIP_TYPES = {"array", "raw"}   # still emitted, but as plain string rows
 
+# mpv's default, where the app wants a different starting value.
+#
+# The schema records what mpv does out of the box, and for an EMBEDDED player
+# that is often wrong: several options describe mpv's own window and its own
+# UI, both of which this app replaces. The generated C# default is what the
+# settings window reads and what the startup batch sends, so a row that
+# disagrees with what the app actually wants opens a gap between "what the UI
+# says" and "what mpv was told".
+#
+# One entry per option, with the reason. Prefer changing the shipped config
+# body when only the file matters; this table is for the value the APP holds.
+DEFAULT_OVERRIDE = {
+    # The on-screen controller. Initialize sets osc=no and the shipped mpv.conf
+    # still says `osc = no`, but Mpv_osc defaulted to true, so the startup batch
+    # sent `set osc yes` over both and mpv's own control bar appeared on top of
+    # this app's transport bar. The app has its own controls; the option stays
+    # exposed so a hand-written `osc=yes` in mpv.conf is still honoured.
+    "osc": False,
+}
+
+
+def default_for(entry: dict, mpv_value):
+    """The app's default for one schema entry, mpv's unless overridden."""
+    if entry["name"] in DEFAULT_OVERRIDE:
+        return DEFAULT_OVERRIDE[entry["name"]]
+    return mpv_value
+
 
 def prop_name(opt: str) -> str:
     """AppSettings property name for an mpv option name.
@@ -761,34 +788,46 @@ def classify(entry: dict) -> tuple[str, dict]:
     mpv allows several accepted value shapes for one option; the first
     branch that can hold a value is the one used, because that branch is
     what mpv will parse first too.
+
+    The default goes through `default_for` in every branch, not just the bool
+    one: an override applied to only one shape would silently do nothing the
+    moment mpv changed that option's first accepted type.
     """
     for v in entry["values"]:
         t = v["type"]
         if t == "bool":
-            return "bool", {"default": entry.get("default") == "yes"}
+            return "bool", {
+                "default": default_for(entry, entry.get("default") == "yes"),
+            }
         if t == "int":
             return "int", {
                 "min": v.get("minimum"),
                 "max": v.get("maximum"),
-                "default": _as_int(entry.get("default")),
+                "default": default_for(entry, _as_int(entry.get("default"))),
             }
         if t == "float":
             return "double", {
                 "min": v.get("minimum"),
                 "max": v.get("maximum"),
-                "default": _as_float(entry.get("default")),
+                "default": default_for(entry, _as_float(entry.get("default"))),
             }
         if t == "string":
             enum = v.get("enum") or []
             if enum:
                 return "string", {
                     "enum": [e.get("value", "") for e in enum],
-                    "default": _as_str(entry.get("default")),
+                    "default": default_for(entry, _as_str(entry.get("default"))),
                 }
-            return "string", {"default": _as_str(entry.get("default"))}
+            return "string", {
+                "default": default_for(entry, _as_str(entry.get("default"))),
+            }
         if t in SKIP_TYPES:
-            return "string", {"default": _as_str(entry.get("default"))}
-    return "string", {"default": _as_str(entry.get("default"))}
+            return "string", {
+                "default": default_for(entry, _as_str(entry.get("default"))),
+            }
+    return "string", {
+        "default": default_for(entry, _as_str(entry.get("default"))),
+    }
 
 
 def _as_int(raw):

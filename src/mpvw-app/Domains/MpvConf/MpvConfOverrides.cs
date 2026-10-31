@@ -289,6 +289,22 @@ public static class MpvConfOverrides
                     // it, so it is ours to update or drop.
                     ourLines.Add(Normalise(here));
                 }
+                else if (ManagedMpvConfig.IsAlwaysAppOwned(m.Groups[1].Value))
+                {
+                    // A mismatch on an option only the code may decide means the
+                    // default moved between builds, not that someone edited the
+                    // line. Treating it as hand-edited would strand the old value
+                    // in the block, where it outranks the body line because mpv
+                    // reads top-down - the stale `osd-level=1` that kept mpv
+                    // drawing OSD text after the app took that job over.
+                    //
+                    // Not added to `ourLines` either: the line on disk is not the
+                    // one we last wrote, so it must be dropped and re-emitted
+                    // from the current value rather than preserved.
+                    AppContext.AppLogger.Info(
+                        "mpv.conf: stale {}={} from an older build dropped, the value is code-owned",
+                        m.Groups[1].Value, m.Groups["value"].Value);
+                }
                 else
                 {
                     // Changed by hand inside our own block.

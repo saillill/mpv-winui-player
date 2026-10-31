@@ -1,4 +1,4 @@
-{
+﻿{
   "A11yColorSwatch": "颜色样块",
   "A11yVideoPreview": "视频预览",
   "About": "关于",
@@ -2274,5 +2274,15 @@
   "SectionGenStreamDemuxer": "解复用细节",
   "SectionGenStreamNetwork": "网络与流媒体",
   "SettingsHelpMusicLibraryFolders": "音乐库扫描的文件夹。通过媒体库页面的添加文件夹按钮添加；在此取消勾选即可移除。",
-  "LibraryTrackCountFormat": "{0} 首"
+  "LibraryTrackCountFormat": "{0} 首",
+  "OsdVolumeFormat": "音量 {0}",
+  "OsdSpeedFormat": "速度 {0}x",
+  "OsdMuted": "已静音",
+  "OsdPaused": "已暂停",
+  "OsdPlaying": "播放中",
+  "OsdLoopFile": "单曲循环",
+  "OsdLoopPlaylist": "列表循环",
+  "OsdLoopOff": "不循环",
+  "OsdShuffleOn": "随机播放",
+  "OsdShuffleOff": "随机已关闭"
 }

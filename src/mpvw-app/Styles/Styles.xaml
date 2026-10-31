@@ -1383,26 +1383,64 @@
 
 <!-- The card's two in-glyph sizes.
      Not MpvInlineIconSize: that token is for an icon sitting in a line of text,
-     where these sit inside a 40px circle and a 24px tick box. Changing the button
+     where these sit inside a 36px circle and a 24px tick box. Changing the button
      size has to move the glyph with it, which a shared inline token would not.
-     The numbers are the ones the two templates carried before the card became a
-     control, so nothing moves visually. -->
-<x:Double x:Key="MpvPlayGlyphFontSize">14</x:Double>
+     15 rather than 14: the disc shrank to 36 and the reference's triangle fills
+     a larger share of it than a 14px glyph does. -->
+<x:Double x:Key="MpvPlayGlyphFontSize">15</x:Double>
 <x:Double x:Key="MpvCardTickFontSize">12</x:Double>
 
-<!-- The card subtitle, a step above CaptionTextBlockStyle's 12.
-     Reported as "the text under the cover is too small to read at a glance".
-     13 is the smallest step that reads as body text without competing with the
-     title above it. -->
-<x:Double x:Key="MpvCardSubtitleFontSize">13</x:Double>
+<!-- The card's two caption sizes.
 
-<!-- The two hover buttons' surface: translucent, not opaque.
+     The title sits at 15, one step above body: the reference player's card
+     reads at this size, and at 14 the two lines read as one cramped block
+     next to a 300px tile.
+
+     The subtitle is 14 - not CaptionTextBlockStyle's 12, reported as "the text
+     under the cover is too small to read at a glance", and not 13 either, which
+     was still small enough to look like a caption rather than a second line of
+     the title. -->
+<x:Double x:Key="MpvCardTitleFontSize">15</x:Double>
+<x:Double x:Key="MpvCardSubtitleFontSize">14</x:Double>
+
+<!-- The hover buttons' surface: translucent, not opaque.
      Reported as "the buttons should use the official Mica effect, simple and
      transparent". A Mica *material* is a window backdrop and cannot be applied
-     to a 40px control; what reads as Mica at this size is the acrylic tint, which
+     to a 36px control; what reads as Mica at this size is the acrylic tint, which
      is what Fluent uses for a control floating over content. It lets the cover
-     show through the circle instead of stamping an opaque disc on it. -->
+     show through the circle instead of stamping an opaque disc on it.
+
+     The colour is unchanged from the reference sample: #B31C1C1C measured on
+     the overlaid disc, which is the thumbnail darkened by roughly 70%. -->
 <SolidColorBrush x:Key="MpvCardControlBrush" Color="#B31C1C1C" />
+
+<!-- The hover buttons' ring and glyph.
+
+     A near-opaque WHITE, sampled from the reference: the play triangle and the
+     three dots are pure white, and the 1.5 DIP circle around them is the same
+     white at roughly 75%. Drawing the ring as a Border rather than a second
+     stroked shape keeps it outside the glyph's own box, so the 36px disc is
+     36px of fill and the ring sits on its edge instead of eating into it.
+
+     Not the accent: measured on the reference, both buttons are neutral. An
+     accent-filled play disc read as a second primary action competing with the
+     cover, which is the one thing on a card that should carry colour. -->
+<SolidColorBrush x:Key="MpvCardRingBrush" Color="#E6FFFFFF" />
+
+<!-- The transient message capsule over the video surface.
+
+     Opaque enough to read over ANY frame, which the old OSD text was not: mpv
+     drew a translucent box whose contrast collapsed on a bright sky. #E6202020
+     is the same weight as a Fluent acrylic popup but flat, because this control
+     has no backdrop to sample - the swap chain is not part of the XAML tree, so
+     a real acrylic brush would composite against the window colour instead of
+     against the picture. -->
+<SolidColorBrush x:Key="MpvOsdCapsuleBrush" Color="#E6202020" />
+
+<!-- The capsule's type. 14, one step above CaptionTextBlockStyle: this is read
+     at a glance from across a room on a video, where 12 is legible only while
+     you are already looking at it. -->
+<x:Double x:Key="MpvOsdCapsuleFontSize">14</x:Double>
 
     <!-- Shell chrome geometry.
 

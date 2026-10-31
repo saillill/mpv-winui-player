@@ -110,6 +110,52 @@ public static class ManagedMpvConfig
         RetiredBlockPrefixes.Any(p => line.StartsWith(p, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
+    /// Options whose value this class always re-derives from the code, never
+    /// from what the file happened to say last time.
+    ///
+    /// <para><b>The defect this exists for.</b> Ownership inside the block is
+    /// decided by comparing the line to the recorded block: a line that no
+    /// longer matches is treated as a hand edit and preserved. That rule is
+    /// right for a value the user typed, and wrong for a value that moved
+    /// because <i>we</i> changed its default. <c>OsdLevel</c> defaulted to 1 and
+    /// became 0 because the app now draws its own capsule; an existing install
+    /// still has <c>osd-level=1</c> in the block, the record still describes a
+    /// block that said 1, and the user never touched either - so the changed
+    /// default read as a hand edit, was carried verbatim, and sat in the block
+    /// <i>below</i> the body line that says 0. mpv reads top-down, so the stale
+    /// 1 won. Measured: every OSD message still appeared while the settings
+    /// code, the generated default and the shipped body all said otherwise.</para>
+    ///
+    /// <para><b>Why a name list and not "always trust the code".</b> Blanket
+    /// re-derivation would erase genuine hand edits in the block, which the
+    /// precedence model promises to keep. These entries are the ones where the
+    /// app is the only writer by design: the setting exists as a window row, has
+    /// no supported hand-edit story, and a stale value is always a bug rather
+    /// than a preference. Anything a user might reasonably hand-tune stays out
+    /// of this list.</para>
+    ///
+    /// <para>Membership here does not stop a hand edit from winning: a line
+    /// outside the block, or in user overrides, still marks the option
+    /// user-owned and the block copy is then dropped rather than rewritten.</para>
+    /// </summary>
+    private static readonly HashSet<string> AlwaysAppOwnedOptions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // The app draws these itself now (MpvPlayerPage.Osd.cs). A value left in
+        // the block by an older build is the bug this list was written for.
+        "osd-level",
+        "osd-playing-msg",
+
+        // The startup batch used to enable mpv's own controller over the app's
+        // transport bar; the same argument applies to a stale `osc=yes`.
+        "osc",
+    };
+
+    /// <summary>True when the option name is one whose value only the code may
+    /// decide, so a mismatched line in the block is stale rather than hand-edited.</summary>
+    internal static bool IsAlwaysAppOwned(string optionName) =>
+        AlwaysAppOwnedOptions.Contains(optionName);
+
+    /// <summary>
     /// The deployed mpv.conf this class rewrites, and therefore the one file
     /// whose lines outrank everything the settings window does at runtime.
     ///

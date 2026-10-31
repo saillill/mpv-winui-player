@@ -896,6 +896,62 @@
                         <TranslateTransform x:Name="PreviewControlTranslation" />
                     </preview:MpvSoftwarePreviewControl.RenderTransform>
                 </preview:MpvSoftwarePreviewControl>
+
+                <!--  The transient message capsule.
+
+                      This is where mpv's own OSD text used to appear. Turning
+                      that off and drawing nothing would have lost the only
+                      feedback for a volume key, a speed change, a track switch or
+                      a seek - all of which are silent otherwise, because the
+                      picture is the only thing on screen.
+
+                      A pill rather than a text line for two reasons: the app has
+                      no ambient typography over the video (so a bare string would
+                      have no contrast against an arbitrary frame), and the
+                      reference players all present this as one centred badge
+                      rather than as corner text.
+
+                      Top-centre, not the OSD's own top-left: the app's own
+                      PlaybackInfoBar lives at the bottom-right, and the two must
+                      not be able to overlap when a drop is refused mid-playback.
+
+                      IsHitTestVisible is false throughout. It sits over the swap
+                      chain, and a badge that ate clicks would make the middle of
+                      the picture dead for as long as a message was up. -->
+                <Border
+                    x:Name="OsdCapsule"
+                    Margin="0,24,0,0"
+                    Padding="18,9"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Background="{StaticResource MpvOsdCapsuleBrush}"
+                    Canvas.ZIndex="20"
+                    CornerRadius="18"
+                    IsHitTestVisible="False"
+                    Opacity="0"
+                    Visibility="Collapsed">
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource MpvSpaceS}">
+                        <!--  A PathIcon, not a FontIcon: the capsule's glyphs come
+                              from FluentIcons, which hands out path data. Drawing
+                              them with the icon font would mean keeping a parallel
+                              codepoint table for a handful of symbols. -->
+                        <PathIcon
+                            x:Name="OsdCapsuleIcon"
+                            Width="16"
+                            Height="16"
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource MpvCardRingBrush}"
+                            Visibility="Collapsed" />
+                        <TextBlock
+                            x:Name="OsdCapsuleText"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource MpvOsdCapsuleFontSize}"
+                            FontWeight="SemiBold"
+                            Foreground="{StaticResource MpvCardRingBrush}" />
+                    </StackPanel>
+                </Border>
             </Grid>
 
             <Grid
@@ -1215,21 +1271,32 @@
                             x:Name="LibraryGrid"
                             ItemTemplate="{StaticResource LibraryCardControlTemplate}">
                             <ItemsRepeater.Layout>
-                                <!-- The official home grid: about six square tiles
-                                     across at the window width the two were
-                                     compared at. Square because the official tiles
-                                     are (its music placeholder squares are the
-                                     giveaway); the nominal item width here matches
-                                     the tile height set in the card style. -->
                                 <!-- Landscape cards. MinItemWidth 253 is the
                                      reference's own card width at DPI 1.5, so a
                                      maximised window lands on four columns as the
-                                     screenshot does. MinItemHeight suits the widest
-                                     card that layout can produce (253 through 16:9
-                                     is 142) plus the two caption lines. -->
+                                     screenshot does. MinItemHeight is what
+                                     CardMetrics.CellHeightFor(253, 16:9) returns -
+                                     142.3 of tile plus the 49 DIP caption band -
+                                     rounded up so a wrapped title's second line has
+                                     somewhere to go. The two numbers are one
+                                     arithmetic in two places; CardMetrics' unit test
+                                     pins the tokens, and an inconsistency here shows
+                                     up as a row that clips its subtitle.
+
+                                     The music library's Songs tab swaps this for
+                                     the square layout in code (see
+                                     ApplyLibraryFilter): a square sleeve in a 16:9
+                                     cell left the tile filling the height and the
+                                     captions falling outside the cell, so the rows
+                                     showed a picture and no title at all.
+
+                                     Kept here rather than assigned in code because
+                                     this is the default every other section uses,
+                                     and a Grid with no Layout at all renders
+                                     nothing. -->
                                 <UniformGridLayout
                                     MinColumnSpacing="{StaticResource MpvSpaceM}"
-                                    MinItemHeight="200"
+                                    MinItemHeight="192"
                                     MinItemWidth="253"
                                     MinRowSpacing="{StaticResource MpvSpaceL}" />
                             </ItemsRepeater.Layout>

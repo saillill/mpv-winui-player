@@ -514,6 +514,22 @@ namespace mpv_winui.Domains.Playback
         {
             MarkNowPlaying(entry);
 
+            // Ask for the video surface BEFORE the load, every time.
+            //
+            // This is the fix for "play a video, press back, click another video,
+            // and the playing page does not come back". FileStarted keeps the
+            // library up when <see cref="_withdrewToLibrary"/> is set, which is
+            // right for an auto-advance during browsing - but a card click is not
+            // an advance, it is the user saying "show me this file". Without this
+            // flag the second click was treated as a track change inside the
+            // withdrawn session, so the video loaded behind a library that never
+            // went away.
+            //
+            // Every other way of opening a file already sets it (the open menu,
+            // a drop, a URL, a folder); the card was the one path that did not,
+            // which is why the defect only ever appeared after pressing back.
+            ShowVideoForNextOpen();
+
             _mediaPlayer.OpenAsync(new FileItem(entry.Path)).FireAndForget(OnException);
         }
 

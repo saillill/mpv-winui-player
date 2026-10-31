@@ -975,6 +975,16 @@ namespace mpv_winui.Domains.Playback
 
             _visibleEntries = cards;
             LibraryGrid.ItemsSource = cards;
+
+            // The Songs tab is a flat grid of SQUARE sleeves, and the markup's
+            // cell is built for a 16:9 frame. Dropping a square tile into it made
+            // the cover fill the cell's height and pushed both caption lines
+            // outside - the tab rendered as a wall of album art with no titles,
+            // which is what "the music library still uses the old card style" was
+            // reporting. The square layout is the same one the grouped tabs use,
+            // so the two now share one set of numbers.
+            ApplyLibraryGridLayout(_librarySection == LibrarySectionMusic);
+
             LibraryGrid.Visibility = folderView ? Visibility.Collapsed : Visibility.Visible;
             VideoFolderGroups.Visibility = folderView ? Visibility.Visible : Visibility.Collapsed;
 

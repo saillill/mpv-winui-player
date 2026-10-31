@@ -1147,6 +1147,24 @@ public static partial class MpvSettings
         // sending them through `set` after init has the same effect as leaving them alone.
         nameof(AppSettings.Mpv_force_window),
         nameof(AppSettings.Mpv_d3d11_output_mode),
+
+        // The on-screen controller. It is a full mpv-drawn UI, and this app has
+        // its own transport bar over the same picture: two control surfaces
+        // stacked on one frame, both responding to the same clicks.
+        //
+        // Initialize already sets `osc=no` before mpv_initialize, and the shipped
+        // mpv.conf carries `osc = no` in its body. Neither survived, because
+        // `Mpv_osc` is a schema-generated row: BuildApplyAllCommands found no
+        // ToCommand arm for it, fell through to GeneratedCommand, and the startup
+        // batch sent `set osc yes` - the default of a boolean row that nobody had
+        // opened - overriding both. Measured: the deployed managed block has no
+        // `osc=` line at all, so nothing else was putting it back.
+        //
+        // Listed here rather than deleted from the schema: the row still exists
+        // and still persists, so a user who wants mpv's own controller can write
+        // `osc=yes` in mpv.conf and mpv honours it at startup. What must never
+        // happen is the app enabling it behind their back.
+        nameof(AppSettings.Mpv_osc),
     };
 
     // --- read-back: mpv.conf -> AppSettings ---------------------------------
@@ -1255,6 +1273,21 @@ public static partial class MpvSettings
         var applied = 0;
         foreach (var (name, text) in effective)
         {
+            // A code-owned option never takes its value from the file. The block
+            // is rewritten from these same properties later in startup, so
+            // loading the old value back would only round-trip a stale default
+            // into itself: the property would hold 1, the writer would faithfully
+            // emit 1, and the new default of 0 in the code would never reach
+            // disk. That is exactly how `osd-level=1` survived a build that
+            // changed it to 0 - the settings page kept showing the old value and
+            // mpv kept drawing OSD text the app had replaced.
+            if (ManagedMpvConfig.IsAlwaysAppOwned(name))
+            {
+                AppContext.AppLogger.Info(
+                    "mpv.conf: {0}={1} not loaded, the value is code-owned", name, text);
+                continue;
+            }
+
             if (TryWriteSetting(KeysByOptionName[name], text))
             {
                 applied++;

@@ -36,7 +36,7 @@ namespace mpv_winui.Domains.SettingsModel
         /// version key existed (they read version 0 and re-run the steps,
         /// which no-op on the flags).
         /// </summary>
-        private const int CurrentSettingsSchemaVersion = 1;
+        private const int CurrentSettingsSchemaVersion = 2;
         private const string SettingsSchemaVersionKey = "SettingsSchemaVersion";
 
         private void MigrateLegacyDefaults()
@@ -57,6 +57,10 @@ namespace mpv_winui.Domains.SettingsModel
                 {
                     MigrateToVersion1();
                 }
+                if (fromVersion < 2)
+                {
+                    MigrateToVersion2OsdOwnership();
+                }
             }
             finally
             {
@@ -64,6 +68,68 @@ namespace mpv_winui.Domains.SettingsModel
                 // migration runs exactly once.
                 _dataSetting.SetValue(SettingsSchemaVersionKey, CurrentSettingsSchemaVersion);
             }
+        }
+
+        /// <summary>
+        /// Resets the two OSD options to the values the code now requires.
+        ///
+        /// <para><b>Why this needs a migration at all.</b> A stored value beats
+        /// the property initialiser, so changing a default in code does nothing
+        /// for anyone who already has the key. <c>OsdLevel</c> moved from 1 to 0
+        /// because this app draws its own capsule over the picture
+        /// (MpvPlayerPage.Osd.cs); every existing install still held 1, the
+        /// managed block was faithfully rewritten with 1, and mpv kept drawing
+        /// its own OSD text on top of the capsule. The runtime read-back proved
+        /// it: <c>osd-level</c> answered 1 while the code, the generated default
+        /// and the shipped body all said 0.</para>
+        ///
+        /// <para><b>Why not just force the value on every launch.</b> The setting
+        /// is exposed in the window, and someone who raised it on purpose must
+        /// keep their choice. A one-time migration is the only form that both
+        /// repairs existing installs and respects a later deliberate change:
+        /// it runs once per install, and a value the user sets afterwards is
+        /// never overwritten.</para>
+        ///
+        /// <para>Written through the same names the property uses, so the
+        /// writer and the read-back path see ordinary values; nothing marks
+        /// these keys special in storage.</para>
+        ///
+        /// <para>Deliberately silent: this runs from the AppSettings constructor,
+        /// and <c>AppContext.AppLogger</c> is a static field on a type whose own
+        /// static initialiser constructs AppSettings. Touching the logger here
+        /// would make a settings read depend on the logging type being fully
+        /// initialised, which is the one ordering this file must not assume.
+        /// The effect is observable without it - the managed block changes and
+        /// the runtime `osd-level` read-back flips.</para>
+        /// </summary>
+        private void MigrateToVersion2OsdOwnership()
+        {
+            const string osdOwnershipMigratedKey = "OsdLevelOwnedByAppMigrated";
+            if (_dataSetting.GetValue(osdOwnershipMigratedKey, false))
+            {
+                return;
+            }
+
+            // Only downgrade 1 -> 0, the value every older build stored. Anything
+            // else means the user moved the row on purpose, and that choice is
+            // theirs to keep.
+            if (_dataSetting.GetValue(nameof(OsdLevel), 1) == 1)
+            {
+                _dataSetting.SetValue(nameof(OsdLevel), 0);
+            }
+
+            // mpv's play-start filename message is drawn by mpv, not by the
+            // capsule, so it is the other half of "mpv draws nothing". Only the
+            // old template value is cleared; any custom text the user typed is
+            // their own and stays.
+            var playingMsg = _dataSetting.GetValue(nameof(OsdPlayingMsg), string.Empty);
+            if (!string.IsNullOrEmpty(playingMsg)
+                && playingMsg.Contains("${!playlist-count", StringComparison.Ordinal))
+            {
+                _dataSetting.SetValue(nameof(OsdPlayingMsg), string.Empty);
+            }
+
+            _dataSetting.SetValue(osdOwnershipMigratedKey, true);
         }
 
         /// <summary>

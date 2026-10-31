@@ -2068,5 +2068,23 @@ namespace mpv_winui.Lexicon.Language
         public string MenuToggleFullWindow { get; set; } = "Full window";
         public string MenuAlwaysOnTop { get; set; } = "Always on top";
         public string MenuQuit { get; set; } = "Quit";
+
+        // ---- the transient message capsule (OsdCapsule) ----
+        //
+        // These replace mpv's own OSD text. mpv's strings are written for an
+        // unbounded text box ("Volume: 74%"); a capsule is one line at 14pt, so
+        // each one is restated in the shortest form that still says the thing.
+        // {0} is the number, already formatted - the caller owns the unit, so a
+        // percentage cannot arrive as "74% %".
+        public string OsdVolumeFormat { get; set; } = "Volume {0}";
+        public string OsdSpeedFormat { get; set; } = "Speed {0}x";
+        public string OsdMuted { get; set; } = "Muted";
+        public string OsdPaused { get; set; } = "Paused";
+        public string OsdPlaying { get; set; } = "Playing";
+        public string OsdLoopFile { get; set; } = "Repeat one";
+        public string OsdLoopPlaylist { get; set; } = "Repeat all";
+        public string OsdLoopOff { get; set; } = "Repeat off";
+        public string OsdShuffleOn { get; set; } = "Shuffle on";
+        public string OsdShuffleOff { get; set; } = "Shuffle off";
     }
 }

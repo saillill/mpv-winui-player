@@ -47,31 +47,55 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>The media tile's corner radius. Replaces CornerRadius="4" x4.</summary>
         public const double CornerRadius = 4;
 
-        /// <summary>Gap between the media tile and its first caption line.</summary>
-        public const double CaptionTopGap = 8;
+        /// <summary>
+        /// Gap between the media tile and its first caption line.
+        ///
+        /// 6, down from 8: the reference's title cap line starts 6 DIP under the
+        /// tile edge. At 8 the captions read as a separate block floating below
+        /// the picture instead of as its label, which is the same complaint in
+        /// the other direction from "the highlight does not overlap the picture".
+        /// Must equal the Margin in LibraryCard.xaml - the card draws it, this
+        /// adds it into the grid cell, and a mismatch crops the second line.
+        /// </summary>
+        public const double CaptionTopGap = 6;
 
         /// <summary>Gap between the title line and the subtitle line.</summary>
         public const double CaptionLineGap = 2;
 
         /// <summary>
-        /// The hover play button's diameter.
+        /// The hover buttons' diameter.
         ///
-        /// 40 rather than the previous 48: the button sits in a corner now, and
-        /// at 48 it covered a visible slice of the cover's lower-left corner -
-        /// the same complaint that moved it out of the middle.
+        /// 36, down from 40, and both buttons are now the same size. The
+        /// reference's discs measure 36 DIP on a 253-wide card; 40 was chosen for
+        /// a single corner button and read as oversized once there were two.
         /// </summary>
-        public const double PlayButtonSize = 40;
+        public const double PlayButtonSize = 36;
 
-        /// <summary>The hover overflow button's diameter. Smaller: it is secondary.</summary>
-        public const double MoreButtonSize = 32;
+        /// <summary>
+        /// The hover overflow button's diameter. The same as the play button's,
+        /// because the reference draws the two as one matched pair - the previous
+        /// 40/32 split made the secondary button look accidental.
+        /// </summary>
+        public const double MoreButtonSize = 36;
 
         /// <summary>
         /// How far the corner buttons sit from the tile's edges.
         ///
-        /// Shared by both corners so the two buttons read as one pair rather
-        /// than as two elements that happened to land near a corner.
+        /// 10, and shared by both corners so the two buttons read as one pair
+        /// rather than as two elements that happened to land near a corner. The
+        /// reference measures the play disc's outer edge at 10 DIP inside the
+        /// tile on both axes.
         /// </summary>
         public const double CornerInset = 10;
+
+        /// <summary>
+        /// The hover buttons' white ring, in DIP.
+        ///
+        /// 1.5, sampled from the reference. Thin enough to read as a hairline
+        /// against a bright frame and thick enough to hold against a dark one,
+        /// which is what a 1px ring fails to do on a letterboxed still.
+        /// </summary>
+        public const double RingThickness = 1.5;
 
         /// <summary>
         /// Height of the now-playing stripe along the cover's bottom edge.
@@ -84,16 +108,25 @@ namespace mpv_winui.Domains.Playback.Cards
         // ------------------------------------------------------------- cell height
 
         /// <summary>
-        /// One title line's height at BodyTextBlockStyle in the card's own width.
+        /// One title line's height at MpvCardTitleFontSize (15).
         ///
         /// A constant rather than a TextBlock measurement because the grid asks for
         /// a cell size BEFORE any card exists: UniformGridLayout needs MinItemHeight
         /// on the first layout pass, so there is nothing to measure yet.
+        ///
+        /// 22 = the 20 a 14px line took, plus the 2 DIP the step to 15 costs at
+        /// the default 1.2 line box. Left at 20 the second line of a wrapped title
+        /// is clipped by the cell, which reads as a card that lost its text.
         /// </summary>
-        public const double TitleLineHeight = 20;
+        public const double TitleLineHeight = 22;
 
-        /// <summary>One subtitle line at CaptionTextBlockStyle.</summary>
-        public const double SubtitleLineHeight = 16;
+        /// <summary>
+        /// One subtitle line's height at MpvCardSubtitleFontSize (14).
+        ///
+        /// 19, from 16. The subtitle moved 12 -> 14, and a cell sized for the old
+        /// line is what clips it: the text is drawn, the grid just stops before it.
+        /// </summary>
+        public const double SubtitleLineHeight = 19;
 
         /// <summary>
         /// The two caption lines and the gaps around them, under the media tile.

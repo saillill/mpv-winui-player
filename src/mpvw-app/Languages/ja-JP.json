@@ -1,4 +1,4 @@
-{
+﻿{
   "A11yColorSwatch": "色サンプル",
   "A11yVideoPreview": "動画プレビュー",
   "About": "バージョン情報",
@@ -1562,5 +1562,15 @@
   "SectionGenStreamDemuxer": "デマルチプレクサの詳細",
   "SectionGenStreamNetwork": "ネットワークとストリーミング",
   "PlayerStyleCompact": "コンパクト",
-  "LibraryTrackCountFormat": "{0} 曲"
+  "LibraryTrackCountFormat": "{0} 曲",
+  "OsdVolumeFormat": "音量 {0}",
+  "OsdSpeedFormat": "速度 {0}x",
+  "OsdMuted": "ミュート",
+  "OsdPaused": "一時停止",
+  "OsdPlaying": "再生中",
+  "OsdLoopFile": "1曲リピート",
+  "OsdLoopPlaylist": "全曲リピート",
+  "OsdLoopOff": "リピートなし",
+  "OsdShuffleOn": "シャッフル",
+  "OsdShuffleOff": "シャッフルなし"
 }

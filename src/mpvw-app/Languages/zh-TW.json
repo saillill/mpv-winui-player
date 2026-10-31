@@ -1,4 +1,4 @@
-{
+﻿{
   "A11yColorSwatch": "顏色樣塊",
   "A11yVideoPreview": "影片預覽",
   "About": "關於",
@@ -1562,5 +1562,15 @@
   "SectionGenStreamDemuxer": "解封裝細節",
   "SectionGenStreamNetwork": "網路與串流",
   "PlayerStyleCompact": "精簡",
-  "LibraryTrackCountFormat": "{0} 首"
+  "LibraryTrackCountFormat": "{0} 首",
+  "OsdVolumeFormat": "音量 {0}",
+  "OsdSpeedFormat": "速度 {0}x",
+  "OsdMuted": "已靜音",
+  "OsdPaused": "已暫停",
+  "OsdPlaying": "播放中",
+  "OsdLoopFile": "單曲循環",
+  "OsdLoopPlaylist": "清單循環",
+  "OsdLoopOff": "不循環",
+  "OsdShuffleOn": "隨機播放",
+  "OsdShuffleOff": "隨機已關閉"
 }
