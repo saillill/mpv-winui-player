@@ -38,13 +38,13 @@
 
 ---
 
-## 2. 30 个检查器
+## 2. 31 个检查器
 
-总数：`(git ls-files 'tools/check-*.py' | Measure-Object).Count` → **30**。
+总数：`(git ls-files 'tools/check-*.py' | Measure-Object).Count` → **31**。
 
 | 由谁调用 | 数量 | 名单 |
 |---|---|---|
-| `build.ps1` | 4 | `check-xaml`、`check-script-opts`、`check-winrt-events`、`check-localization`（`-CheckLocalization` 时） |
+| `build.ps1` | 5 | `check-xaml`、`check-script-opts`、`check-name-collisions`、`check-winrt-events`、`check-localization`（`-CheckLocalization` 时） |
 | CI | 8 | 上述 4 个 + `check-settings-drift`、`check-doc-tooling`、`check-doc-freshness`、`check-ui-tooltips` |
 | **两边都不跑** | **22** | 其余 |
 
@@ -55,6 +55,7 @@
 | 检查器 | 比较的两样东西 | 链路 |
 |---|---|---|
 | `check-xaml` | 每个 `.xaml` 能否被 XML 解析 + 注释里是否含 `--`（WMC9997） | build 第一步 + CI |
+| `check-name-collisions` | 每个 `x:Name` ↔ `LibraryEntry` / `VideoFolderGroup` 的公开属性（同名会让 XAML 编译器报 WMC9999，不指文件名不指行号） | build |
 | `check-script-opts` | `mpv-2.dll` 里的 `script-opt=<s>-<k>=` ↔ `data/scripts/<s>.lua` 的选项表 | build + CI |
 | `check-winrt-events` | IDL 事件 × 原生 `m_*Event(` 抛出点 × C# 订阅，三者 join | build + CI |
 | `check-localization` | `AppLang*.cs` 属性 ↔ 9 个 `Languages/*.json`；`menus.json` ↔ schema | build（可选）+ CI |

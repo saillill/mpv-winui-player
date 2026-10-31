@@ -53,6 +53,14 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 # The IDL kept the old names, so both subscriptions compiled and never fired --
 # one of them made the Error visual state unreachable. Static, so it runs here
 # rather than after the build.
+# A page field that shares a name with a bound data property makes the XAML
+# compiler answer WMC9999 - an internal error with no file and no line - so the
+# reader is sent to the wrong place. The collision itself is mechanical, so it is
+# cheap to name here. Static, so it runs before the build like the others.
+Write-Host "==> Checking name collisions"
+& python "$root\tools\check-name-collisions.py"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 Write-Host "==> Checking WinRT events"
 & python "$root\tools\check-winrt-events.py"
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

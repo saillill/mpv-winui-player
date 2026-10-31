@@ -228,7 +228,7 @@ namespace mpv_winui.Domains.Playback
             ToolTipService.SetToolTip(AlbumShuffleButton, lang.LibraryShufflePlay);
             ToolTipService.SetToolTip(AlbumAddToButton, lang.LibraryAlbumAddTo);
 
-            AlbumTitle.Text = _openAlbum ?? string.Empty;
+            AlbumDetailTitle.Text = _openAlbum ?? string.Empty;
 
             // The artist line is the album's own artist, which every track of an
             // album shares; the first track that has one speaks for the album.

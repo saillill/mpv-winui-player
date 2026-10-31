@@ -1718,7 +1718,7 @@
                             VerticalAlignment="Center"
                             Spacing="{StaticResource MpvSpaceS}">
                             <TextBlock
-                                x:Name="AlbumTitle"
+                                x:Name="AlbumDetailTitle"
                                 FontSize="30"
                                 FontWeight="SemiBold"
                                 MaxLines="2"
