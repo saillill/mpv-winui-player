@@ -1,4 +1,5 @@
 using mpv_winui.Infrastructure.Common.Media;
+using mpv_winui.Domains.Playback.Cards;
 
 using mpv_winui.Domains.Library;
 using Microsoft.UI.Xaml;
@@ -532,12 +533,21 @@ namespace mpv_winui.Domains.Playback
         /// square tile is 170 for its own sake - and a shared method taking two magic
         /// numbers would hide which one belongs to which kind of card.
         /// </summary>
-        private static UniformGridLayout AlbumCardLayout() => new()
+        private static UniformGridLayout AlbumCardLayout()
         {
-            MinItemWidth = 170,
-            MinItemHeight = 246,
-            MinColumnSpacing = 12,
-            MinRowSpacing = 20,
-        };
+            // 170 is the reference's own cover size, and the only number here that
+            // is a choice. The cell height is derived: the square tile plus the two
+            // caption lines. The literal it replaces was 246, which is 30 DIP more
+            // than the card ever occupied - it had stopped being recomputed.
+            const double width = 170;
+
+            return new UniformGridLayout
+            {
+                MinItemWidth = width,
+                MinItemHeight = CardMetrics.CellHeightFor(width, isAlbum: true),
+                MinColumnSpacing = 12,
+                MinRowSpacing = 20,
+            };
+        }
     }
 }

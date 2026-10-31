@@ -25,21 +25,15 @@
 # Pivot in place. See docs/verification.md 4.7.
 WUI2003 = 0
 
-# 2 sites, both {Binding} in MpvPlayerPage.xaml kept deliberately.
+# Both sites this budget used to count have been removed by the card rework, so
+# the number is 0 rather than smaller. Kept as a guard, not deleted: the shape
+# that produced them is writing a {Binding} to a property the trimmer cannot
+# see, and "it dropped to 0" is exactly when a regression would go unnoticed.
 #
-# All three official remedies were measured and all three failed:
-#
-#   * {x:Bind AlbumTitle} -> WMC9999, an internal XAML compiler crash with no
-#     file or line. Reproduced on 2026-10-28 by changing that one attribute and
-#     rebuilding; the tree already documented the bisection that found it.
-#   * [Bindable] on LibraryEntry -> CS8852, because the attribute's generated
-#     setter cannot assign 13 init-only properties.
-#   * x:SuppressXamlTrimWarnings="True" on the owning element -> the warning is
-#     still emitted; the attribute is not honoured by this compiler version.
-#
-# So the warning stands as an accurate statement: under PublishAot the two paths
-# could be trimmed. The first is {Binding ActualWidth, RelativeSource Self},
-# which resolves against Border -- a WinUI type the trimmer always keeps — so it
-# is a false positive in practice. The second is AlbumTitle on LibraryEntry,
-# which is a real risk and has no known workaround in this toolchain.
-WMC1510 = 2
+#   {Binding ActualWidth, RelativeSource Self}  was in the video card template.
+#     It resolved against Border, a WinUI type the trimmer always keeps, so it
+#     was a false positive - and it never worked anyway: the tile collapsed.
+#   AlbumTitle on LibraryEntry                  was in the album card template.
+#     A real AOT risk. The template is gone; the card control assigns the string
+#     directly, which is not a binding path and cannot be trimmed.
+WMC1510 = 0

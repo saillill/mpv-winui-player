@@ -80,5 +80,39 @@ namespace mpv_winui.Domains.Playback.Cards
         /// indicator, so a "this one" mark looks the same in both surfaces.
         /// </summary>
         public const double NowPlayingBarHeight = 2;
+
+        // ------------------------------------------------------------- cell height
+
+        /// <summary>
+        /// One title line's height at BodyTextBlockStyle in the card's own width.
+        ///
+        /// A constant rather than a TextBlock measurement because the grid asks for
+        /// a cell size BEFORE any card exists: UniformGridLayout needs MinItemHeight
+        /// on the first layout pass, so there is nothing to measure yet.
+        /// </summary>
+        public const double TitleLineHeight = 20;
+
+        /// <summary>One subtitle line at CaptionTextBlockStyle.</summary>
+        public const double SubtitleLineHeight = 16;
+
+        /// <summary>
+        /// The two caption lines and the gaps around them, under the media tile.
+        ///
+        /// Both grids size their cell on this, so it is written once: two grids that
+        /// each carried their own copy is how the album cell stayed at a landscape
+        /// height after the album tile became square.
+        /// </summary>
+        public const double CaptionBandHeight =
+            CaptionTopGap + TitleLineHeight + CaptionLineGap + SubtitleLineHeight;
+
+        /// <summary>
+        /// The grid cell height for a card of this width.
+        ///
+        /// Replaces two literals - 170x246 for the album grid and 253x200 for the
+        /// video grid - that had to be recomputed by hand whenever an aspect
+        /// changed. Two cards, two widths, one arithmetic.
+        /// </summary>
+        public static double CellHeightFor(double width, bool isAlbum) =>
+            CoverHeightFor(width, isAlbum) + CaptionBandHeight;
     }
 }

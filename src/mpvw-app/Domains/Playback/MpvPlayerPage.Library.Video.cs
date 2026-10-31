@@ -1,4 +1,5 @@
 using mpv_winui.Infrastructure.Common.Media;
+using mpv_winui.Domains.Playback.Cards;
 
 using mpv_winui.Domains.Library;
 using Microsoft.UI.Xaml;
@@ -332,13 +333,20 @@ namespace mpv_winui.Domains.Playback
             BuildLibraryIndexRail(groups);
         }
 
-        private static UniformGridLayout CardLayout() => new()
+        private static UniformGridLayout CardLayout()
         {
-            MinItemWidth = 253,
-            MinItemHeight = 200,
-            MinColumnSpacing = 12,
-            MinRowSpacing = 16,
-        };
+            // 253 is the reference's card width, and the tile is 16:9 because the
+            // files are landscape frames. The cell height follows from both.
+            const double width = 253;
+
+            return new UniformGridLayout
+            {
+                MinItemWidth = width,
+                MinItemHeight = CardMetrics.CellHeightFor(width, isAlbum: false),
+                MinColumnSpacing = 12,
+                MinRowSpacing = 16,
+            };
+        }
 
         private static List<VideoFolderGroup> GroupVideoFolders(List<LibraryEntry> entries)
         {

@@ -33,13 +33,6 @@ namespace mpv_winui.Domains.Playback
     public sealed partial class MpvPlayerPage
     {
         /// <summary>
-        /// The one card overlay currently faded in. A pointer can rest on only
-        /// one card, so tracking it lets a scroll or the overflow menu put the
-        /// overlay away without walking the repeater's realised children.
-        /// </summary>
-        private FrameworkElement? _activeCardOverlay;
-
-        /// <summary>
         /// The entry the overflow menu was opened for. Captured because the menu
         /// is a single shared MenuFlyout that outlives the card it points at.
         /// </summary>

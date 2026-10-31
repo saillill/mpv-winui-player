@@ -183,9 +183,6 @@ namespace mpv_winui.Domains.Playback
             // empty, a set flag would make the next entry skip the reload and show nothing.
             _libraryLoaded = false;
 
-            // Two references that outlive their usefulness in a way a plain field does not:
-            // one points at a live element, the other at the entry its menu belongs to.
-            _activeCardOverlay = null;
             _cardMenuEntry = null;
             _openAlbum = null;
         }
@@ -913,10 +910,6 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private void ApplyLibraryFilter()
         {
-            // The cards about to be replaced may include the one whose overlay is
-            // up; the tracked reference would then point at a discarded element.
-            _activeCardOverlay = null;
-
             IEnumerable<LibraryEntry> entries = _librarySection switch
             {
                 LibrarySectionMusic => _libraryAll.Where(e => MediaKinds.IsAudio(e.Path)),
