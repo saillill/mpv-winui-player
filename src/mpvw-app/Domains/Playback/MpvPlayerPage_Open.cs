@@ -134,8 +134,45 @@ namespace mpv_winui.Domains.Playback
 
         private async ValueTask PlayFiles(IReadOnlyList<string> files, OpenMode openMode)
         {
+            // The playing marker is moved HERE rather than at each call site, because
+            // there are four of them that can start a library file: a card click, a
+            // card's hover button, the album page's play-all, and the history list.
+            // Only the first two went through PlayLibraryEntry, which is why the flag
+            // was never set when an album was played from its own page - measured as
+            // a marker that never appeared.
+            MarkPlayingFirst(files);
+
             var items = files.Select(file => new FileItem(file, FileType.File)).ToList();
             await _mediaPlayer.OpenAsync(items, openMode);
+        }
+
+        /// <summary>
+        /// Marks the library entry for the first file about to play.
+        ///
+        /// The first file, not every file: an album queues all of its tracks, and the
+        /// card that should light up is the one for the track that is playing now.
+        /// Whatever the queue advances to later is the queue's business, not a card's.
+        ///
+        /// A path with no entry in the library is not an error - a dropped file, a URL,
+        /// a history row that has aged out - so this does nothing rather than failing
+        /// the play.
+        /// </summary>
+        private void MarkPlayingFirst(IReadOnlyList<string> files)
+        {
+            if (files.Count == 0)
+            {
+                return;
+            }
+
+            var first = files[0];
+
+            var entry = _libraryAll.FirstOrDefault(
+                e => string.Equals(e.Path, first, StringComparison.OrdinalIgnoreCase));
+
+            if (entry is not null)
+            {
+                MarkNowPlaying(entry);
+            }
         }
 
         private async ValueTask PlayFolders(IReadOnlyList<string> folders, OpenMode openMode)

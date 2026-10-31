@@ -1561,5 +1561,6 @@
   "SectionGenStreamCache": "Caché y lectura anticipada",
   "SectionGenStreamDemuxer": "Detalles del demultiplexor",
   "SectionGenStreamNetwork": "Red y streaming",
-  "PlayerStyleCompact": "Compacto"
+  "PlayerStyleCompact": "Compacto",
+  "LibraryTrackCountFormat": "{0} pistas"
 }

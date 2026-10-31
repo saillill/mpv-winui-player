@@ -1561,5 +1561,6 @@
   "SectionGenStreamCache": "Кэш и упреждающее чтение",
   "SectionGenStreamDemuxer": "Детали демультиплексора",
   "SectionGenStreamNetwork": "Сеть и потоковое видео",
-  "PlayerStyleCompact": "Компактная"
+  "PlayerStyleCompact": "Компактная",
+  "LibraryTrackCountFormat": "{0} треков"
 }

@@ -480,8 +480,37 @@ namespace mpv_winui.Domains.Playback
         /// Opens a card's file. The card click and the overlay's Play button are
         /// the same action, so they share this one path rather than drifting.
         /// </summary>
-        private void PlayLibraryEntry(LibraryEntry entry) =>
+        private void PlayLibraryEntry(LibraryEntry entry)
+        {
+            MarkNowPlaying(entry);
+
             _mediaPlayer.OpenAsync(new FileItem(entry.Path)).FireAndForget(OnException);
+        }
+
+        /// <summary>
+        /// Moves the playing marker to one entry, clearing it from the last.
+        ///
+        /// Exactly one card may carry it, so this is a sweep rather than a single
+        /// assignment: a previous entry is not remembered on purpose, because the
+        /// list is the authority on what is in it and an index would go stale on
+        /// the first filter change. The lists are small - a library section, not
+        /// the whole disk - so the sweep is cheaper than tracking is correct.
+        ///
+        /// The card watches IsNowPlaying, so the stripe appears without a rebuild;
+        /// LoadMusicTagsAsync carries the flag across when it DOES rebuild.
+        /// </summary>
+        private void MarkNowPlaying(LibraryEntry playing)
+        {
+            foreach (var candidate in _libraryAll)
+            {
+                if (!ReferenceEquals(candidate, playing) && candidate.IsNowPlaying)
+                {
+                    candidate.SetNowPlaying(false);
+                }
+            }
+
+            playing.SetNowPlaying(true);
+        }
 
 
 

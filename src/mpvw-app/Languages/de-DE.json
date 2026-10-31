@@ -1561,5 +1561,6 @@
   "SectionGenStreamCache": "Cache & Vorauslesen",
   "SectionGenStreamDemuxer": "Demuxer-Details",
   "SectionGenStreamNetwork": "Netzwerk & Streaming",
-  "PlayerStyleCompact": "Kompakt"
+  "PlayerStyleCompact": "Kompakt",
+  "LibraryTrackCountFormat": "{0} Titel"
 }

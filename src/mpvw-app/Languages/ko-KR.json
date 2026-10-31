@@ -1561,5 +1561,6 @@
   "SectionGenStreamCache": "캐시 및 미리 읽기",
   "SectionGenStreamDemuxer": "디먹서 세부 설정",
   "SectionGenStreamNetwork": "네트워크 및 스트리밍",
-  "PlayerStyleCompact": "콤팩트"
+  "PlayerStyleCompact": "콤팩트",
+  "LibraryTrackCountFormat": "{0}곡"
 }

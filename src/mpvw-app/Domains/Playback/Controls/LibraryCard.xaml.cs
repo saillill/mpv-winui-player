@@ -145,6 +145,9 @@ namespace mpv_winui.Domains.Playback.Controls
                 case nameof(LibraryEntry.Thumbnail):
                     ApplyCovers(entry, entry.Thumbnail);
                     break;
+                case nameof(LibraryEntry.IsNowPlaying):
+                    ApplyNowPlaying(entry);
+                    break;
                 case nameof(LibraryEntry.SelectionVisibility):
                 case nameof(LibraryEntry.SelectionGlyph):
                     ApplySelection(entry);
@@ -186,7 +189,18 @@ namespace mpv_winui.Domains.Playback.Controls
             if (_isAlbum)
             {
                 TitleText.Text = entry.AlbumTitle;
-                SubtitleText.Text = entry.AlbumArtistText;
+
+                // Artist first, then the count: the artist is what you scan for,
+                // and the count is the detail. A count that is not known adds
+                // nothing at all - not even the separator.
+                var count = AlbumTrackCount.LabelFor(
+                    entry.TrackCount,
+                    n => string.Format(AppContext.AppLang.LibraryTrackCountFormat, n));
+
+                SubtitleText.Text = string.IsNullOrEmpty(count)
+                    ? entry.AlbumArtistText
+                    : entry.AlbumArtistText + " · " + count;
+
                 SubtitleText.Visibility = Visibility.Visible;
 
                 return;
@@ -203,14 +217,24 @@ namespace mpv_winui.Domains.Playback.Controls
         /// <summary>
         /// The now-playing stripe and the title tint.
         ///
-        /// Parked: the flag these read arrives with the card information task,
-        /// and this step's whole point is that the card looks exactly as it did
-        /// before the control existed. One variable at a time.
+        /// Both, not just the stripe: at one card in fifty a 2 DIP line along the
+        /// cover's bottom edge is easy to miss, and the title is where the eye
+        /// lands when scanning for what is playing.
+        ///
+        /// The tint is cleared by assigning null rather than by restoring the
+        /// theme brush explicitly: null is what the element had before, and it
+        /// keeps following the theme instead of pinning whatever brush was current
+        /// when the card happened to be recycled.
         /// </summary>
         private void ApplyNowPlaying(LibraryEntry entry)
         {
-            _ = entry;
-            NowPlayingBar.Visibility = Visibility.Collapsed;
+            var playing = entry.IsNowPlaying;
+
+            NowPlayingBar.Visibility = playing ? Visibility.Visible : Visibility.Collapsed;
+
+            TitleText.Foreground = playing
+                ? (Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"]
+                : null;
         }
 
         private void ApplySelection(LibraryEntry entry)

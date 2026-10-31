@@ -1561,5 +1561,6 @@
   "SectionGenStreamCache": "快取與預讀",
   "SectionGenStreamDemuxer": "解封裝細節",
   "SectionGenStreamNetwork": "網路與串流",
-  "PlayerStyleCompact": "精簡"
+  "PlayerStyleCompact": "精簡",
+  "LibraryTrackCountFormat": "{0} 首"
 }

@@ -2273,5 +2273,6 @@
   "SectionGenStreamCache": "缓存与预读",
   "SectionGenStreamDemuxer": "解复用细节",
   "SectionGenStreamNetwork": "网络与流媒体",
-  "SettingsHelpMusicLibraryFolders": "音乐库扫描的文件夹。通过媒体库页面的添加文件夹按钮添加；在此取消勾选即可移除。"
+  "SettingsHelpMusicLibraryFolders": "音乐库扫描的文件夹。通过媒体库页面的添加文件夹按钮添加；在此取消勾选即可移除。",
+  "LibraryTrackCountFormat": "{0} 首"
 }

@@ -451,6 +451,28 @@ namespace mpv_winui.Domains.Playback
                     return;
                 }
 
+                // Album sizes, counted ONCE from the entries that are about to be
+                // rebuilt. Doing it inside the loop would make it O(n^2) over a
+                // library of a thousand tracks.
+                //
+                // Keyed by PATH, not by album name. The entries here have not been
+                // through the tag pass yet - their Album is empty, because a history
+                // entry never opens the file - so counting by album name groups every
+                // track into one bucket in the first pass while the second pass looks
+                // up real tag names and finds nothing. Measured: the count stayed
+                // null for a one-track album until this changed.
+                var albumByPath = _libraryAll
+                    .Where(e => !e.IsVideo && MediaKinds.IsAudio(e.Path))
+                    .ToDictionary(e => e.Path, e => e.Album ?? string.Empty,
+                        StringComparer.OrdinalIgnoreCase);
+
+                var albumSizes = _libraryAll
+                    .Where(e => !e.IsVideo && MediaKinds.IsAudio(e.Path))
+                    .GroupBy(e => string.IsNullOrWhiteSpace(e.Album) ? "\uFFFF" : e.Album,
+                        StringComparer.CurrentCultureIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.Count(),
+                        StringComparer.CurrentCultureIgnoreCase);
+
                 for (var i = 0; i < _libraryAll.Count; i++)
                 {
                     var entry = _libraryAll[i];
@@ -487,9 +509,48 @@ namespace mpv_winui.Domains.Playback
                     // and the entry being replaced are different objects.
                     replaced.SetSelected(entry.IsSelected);
 
+                    // Same argument for the playing marker, and the symptom is the
+                    // same shape: the tags finish, the tree is rebuilt, and the
+                    // stripe vanishes from under the user's eye. Carrying it here is
+                    // what makes the marker survive a rebuild nobody asked for.
+                    replaced.SetNowPlaying(entry.IsNowPlaying);
+
                     replaced.SetSelectionMode(_selectionMode);
 
                     _libraryAll[i] = replaced;
+                }
+
+                // Second pass: the count is per album, the entries are per file, and
+                // the instances have just been replaced. Writing it here keeps
+                // FromFileWithTags ignorant of a fact it cannot know from one file.
+                //
+                // The sizes are recounted HERE, from the entries as they now are.
+                // The first count ran before the tag pass, when every Album was still
+                // empty - so it grouped the whole library into one bucket. Counting
+                // again after the pass is the fix, and it costs one pass over a list
+                // that is already in memory.
+                albumSizes = _libraryAll
+                    .Where(e => !e.IsVideo && MediaKinds.IsAudio(e.Path))
+                    .GroupBy(e => string.IsNullOrWhiteSpace(e.Album) ? "\uFFFF" : e.Album,
+                        StringComparer.CurrentCultureIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.Count(),
+                        StringComparer.CurrentCultureIgnoreCase);
+
+                for (var i = 0; i < _libraryAll.Count; i++)
+                {
+                    var entry = _libraryAll[i];
+
+                    if (entry.IsVideo || !MediaKinds.IsAudio(entry.Path))
+                    {
+                        continue;
+                    }
+
+                    var key = string.IsNullOrWhiteSpace(entry.Album) ? "\uFFFF" : entry.Album;
+
+                    if (albumSizes.TryGetValue(key, out var size) && entry.TrackCount is null)
+                    {
+                        _libraryAll[i] = entry.WithTrackCount(AlbumTrackCount.For(size));
+                    }
                 }
 
                 // The grid holds the same objects the list did, so it has to be

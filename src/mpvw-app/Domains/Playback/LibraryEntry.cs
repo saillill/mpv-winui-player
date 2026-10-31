@@ -73,6 +73,17 @@ namespace mpv_winui.Domains.Playback
         public string Genre { get; init; } = string.Empty;
 
         /// <summary>
+        /// How many tracks its album holds, once the tags have been read.
+        ///
+        /// Null means UNKNOWN - the tag pass has not run, or the file is not in a
+        /// group. It is not zero: an album with no tracks is not a thing this
+        /// library can produce, and a caption saying "0 tracks" would be a lie
+        /// about a file that exists. The rule lives in AlbumTrackCount so it can
+        /// be asserted without WinUI.
+        /// </summary>
+        public int? TrackCount { get; init; }
+
+        /// <summary>
         /// Playing time, when the shell reports one.
         ///
         /// Null rather than zero for "unknown": the track table shows the length
@@ -184,10 +195,69 @@ namespace mpv_winui.Domains.Playback
         public Visibility IconVisibility =>
             _thumbnail is null && !IsMissing ? Visibility.Visible : Visibility.Collapsed;
 
+        private bool _isNowPlaying;
+
+        /// <summary>
+        /// True for the card whose file is playing.
+        ///
+        /// On the ENTRY, not on the card element, for the same reason the tick is:
+        /// a card is a recycled container, so a bit stored on it follows the
+        /// container to a different file after a scroll. The entry is what the
+        /// fact is about.
+        ///
+        /// Notified, because the card subscribes: the page can set this while the
+        /// card is already realised, and a rebuild is not always what happens next.
+        /// </summary>
+        public bool IsNowPlaying
+        {
+            get => _isNowPlaying;
+            private set
+            {
+                if (_isNowPlaying == value)
+                {
+                    return;
+                }
+
+                _isNowPlaying = value;
+                Raise();
+            }
+        }
+
+        /// <summary>Called by the page when playback moves to or away from this entry.</summary>
+        internal void SetNowPlaying(bool playing) => IsNowPlaying = playing;
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>Called from the thumbnail loader once a frame has decoded.</summary>
         internal void SetThumbnail(ImageSource image) => Thumbnail = image;
+
+        /// <summary>
+        /// The same entry, with its album's track count filled in.
+        ///
+        /// A copy rather than a setter because TrackCount is init-only and the
+        /// entry is otherwise immutable: the count is a fact about the album that
+        /// is only known after every file in it has been read, so it arrives after
+        /// the entry was built. Everything else is carried across verbatim, and
+        /// the mutable state (thumbnail, tick, playing) is re-applied by the
+        /// caller, which already does exactly that for a tag-pass rebuild.
+        /// </summary>
+        internal LibraryEntry WithTrackCount(int? count) => new()
+        {
+            Path = Path,
+            Title = Title,
+            Subtitle = Subtitle,
+            IsVideo = IsVideo,
+            Time = Time,
+            IsMissing = IsMissing,
+            MediaIconPath = MediaIconPath,
+            Album = Album,
+            Artist = Artist,
+            AlbumTitle = AlbumTitle,
+            AlbumArtistText = AlbumArtistText,
+            Genre = Genre,
+            Duration = Duration,
+            TrackCount = count,
+        };
 
         private void Raise([CallerMemberName] string? name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

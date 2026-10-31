@@ -62,6 +62,14 @@ namespace mpv_winui.Lexicon.Language
         /// <summary>See <see cref="LibraryUnknownAlbum"/>.</summary>
         public string LibraryUnknownArtist { get; set; } = "Unknown artist";
 
+        /// <summary>
+        /// The track-count fragment on an album card's subtitle: {0} tracks.
+        ///
+        /// A format string rather than a whole sentence: the card appends it to
+        /// the artist, and a sentence would have to know about the separator.
+        /// </summary>
+        public string LibraryTrackCountFormat { get; set; } = "{0} tracks";
+
         // ---- album page --------------------------------------------------
 
         /// <summary>The album page's action row, alongside <see cref="LibraryPlayAll"/>.</summary>

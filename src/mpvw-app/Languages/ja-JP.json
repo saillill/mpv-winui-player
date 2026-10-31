@@ -1561,5 +1561,6 @@
   "SectionGenStreamCache": "キャッシュと先読み",
   "SectionGenStreamDemuxer": "デマルチプレクサの詳細",
   "SectionGenStreamNetwork": "ネットワークとストリーミング",
-  "PlayerStyleCompact": "コンパクト"
+  "PlayerStyleCompact": "コンパクト",
+  "LibraryTrackCountFormat": "{0} 曲"
 }
