@@ -59,8 +59,39 @@ namespace mpv_winui.Domains.Playback.Cards
         /// </summary>
         public const double CaptionTopGap = 6;
 
-        /// <summary>Gap between the title line and the subtitle line.</summary>
-        public const double CaptionLineGap = 2;
+        /// <summary>
+        /// How far the hover highlight sits inside the cover's edges.
+        ///
+        /// <para>Reported as "the hover highlight has to leave a visible gap from
+        /// the card image". The wash used to share the tile's exact bounds, which
+        /// made the lit region and the picture the same rectangle: the edges
+        /// disappeared into each other and the only thing separating them was the
+        /// colour change, so the frame read as clipped rather than as highlighted.
+        /// Insetting the wash puts a strip of untouched picture around it and the
+        /// two shapes become legible as two shapes.</para>
+        ///
+        /// <para>6 DIP: big enough to read at a glance on a 253-wide card, small
+        /// enough that the highlight still obviously belongs to the picture rather
+        /// than floating inside it.</para>
+        /// </summary>
+        public const double HoverInset = 6;
+
+        /// <summary>
+        /// The hover highlight's own ring.
+        ///
+        /// <para>Reported as "add a noticeably thicker translucent black border".
+        /// It is a <b>semi-transparent black</b> stroke rather than the white one
+        /// the corner buttons wear: those two sit on the picture and need to pop
+        /// off whatever is behind them, while the wash is a large low-contrast
+        /// area whose job is to define an edge. Black at this alpha separates it
+        /// from both a bright frame and the dark page behind the card, and it
+        /// cannot wash the picture out the way an opaque ring would.</para>
+        ///
+        /// <para>2 DIP, against the buttons' 1.5: it outlines a 240-wide
+        /// rectangle rather than a 36-wide disc, so the same weight that reads as
+        /// deliberate on a disc disappears into the edge of a large shape.</para>
+        /// </summary>
+        public const double HoverRingThickness = 2;
 
         /// <summary>
         /// The hover buttons' diameter.
@@ -123,20 +154,29 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// One subtitle line's height at MpvCardSubtitleFontSize (14).
         ///
-        /// 19, from 16. The subtitle moved 12 -> 14, and a cell sized for the old
-        /// line is what clips it: the text is drawn, the grid just stops before it.
+        /// <para><b>No longer part of the cell.</b> The card draws one caption
+        /// line now - the file name - so the cell must not reserve room for a
+        /// second. Left at 19 and still subtracted below, the difference was 21
+        /// DIP of empty band under every card, which reads as inconsistent row
+        /// spacing in the grid rather than as a missing line.</para>
+        ///
+        /// <para>Kept as a constant because the collapsed SubtitleText element
+        /// still declares a LineHeight and CardMetricsTests pins the two against
+        /// each other; if a second line ever comes back, this is the number that
+        /// has to rejoin CaptionBandHeight.</para>
         /// </summary>
         public const double SubtitleLineHeight = 19;
 
         /// <summary>
-        /// The two caption lines and the gaps around them, under the media tile.
+        /// The caption band under the media tile: one gap and one line.
         ///
-        /// Both grids size their cell on this, so it is written once: two grids that
-        /// each carried their own copy is how the album cell stayed at a landscape
-        /// height after the album tile became square.
+        /// Both grids size their cell on this, so it is written once: two grids
+        /// that each carried their own copy is how the album cell stayed at a
+        /// landscape height after the album tile became square.
+        ///
+        /// One line, not two - see <see cref="SubtitleLineHeight"/>.
         /// </summary>
-        public const double CaptionBandHeight =
-            CaptionTopGap + TitleLineHeight + CaptionLineGap + SubtitleLineHeight;
+        public const double CaptionBandHeight = CaptionTopGap + TitleLineHeight;
 
         /// <summary>
         /// The grid cell height for a card of this width.

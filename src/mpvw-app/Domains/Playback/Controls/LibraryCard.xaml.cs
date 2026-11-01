@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.IO;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -194,32 +195,61 @@ namespace mpv_winui.Domains.Playback.Controls
 
         private void ApplyCaptions(LibraryEntry entry)
         {
-            if (_isAlbum)
+            // Both kinds of card show one line, and that line is the plain FILE
+            // NAME - extension included.
+            //
+            // Reported as "drop the date string and the repeated title, keep the
+            // top line, and make it the normal file name; audio cards the same,
+            // no '未知专辑' / '未知艺术家' placeholders". Three things were wrong
+            // before and each came from a different place:
+            //
+            //   * The video line was media-title, which for a library scan is
+            //     whatever mpv read out of the file - hence the
+            //     "Crossfire HD 2025.09.17 - 16.09.03.01" date string sitting
+            //     above a second line repeating the folder.
+            //   * The album card titled itself AlbumTitle, which falls back to
+            //     the LibraryUnknownAlbum placeholder for an untagged file, and
+            //     its second line then said LibraryUnknownArtist.
+            //   * The second line existed at all.
+            //
+            // Path.GetFileName is used rather than the entry's Title because the
+            // entry's Title is exactly the value that was wrong: it is a record of
+            // what the player displayed, not of what the file is called. The
+            // extension stays on - the report asked for the file name, and for a
+            // folder of camera exports the extension is half of what tells two
+            // clips apart.
+            var fileName = FileNameOf(entry.Path);
+
+            TitleText.Text = string.IsNullOrEmpty(fileName) ? entry.Title : fileName;
+
+            // Left assigned (not cleared) so nothing that reads it sees a stale
+            // value from a card that has been recycled onto a different file.
+            // It is Collapsed in the markup; this only keeps it coherent.
+            SubtitleText.Text = string.Empty;
+        }
+
+        /// <summary>
+        /// The file name of a path, or empty when the path is unusable.
+        ///
+        /// Swallows the ArgumentException Path.GetFileName throws on a string
+        /// with illegal characters: a malformed history entry must cost a caption,
+        /// not the whole library pass.
+        /// </summary>
+        private static string FileNameOf(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
             {
-                TitleText.Text = entry.AlbumTitle;
-
-                // Artist first, then the count: the artist is what you scan for,
-                // and the count is the detail. A count that is not known adds
-                // nothing at all - not even the separator.
-                var count = AlbumTrackCount.LabelFor(
-                    entry.TrackCount,
-                    n => string.Format(AppContext.AppLang.LibraryTrackCountFormat, n));
-
-                SubtitleText.Text = string.IsNullOrEmpty(count)
-                    ? entry.AlbumArtistText
-                    : entry.AlbumArtistText + " · " + count;
-
-                SubtitleText.Visibility = Visibility.Visible;
-
-                return;
+                return string.Empty;
             }
 
-            TitleText.Text = entry.Title;
-
-            // The track count joins this line in the card-information task; the
-            // album card keeps its artist line until then, so this step changes
-            // no appearance at all.
-            SubtitleText.Text = entry.Subtitle;
+            try
+            {
+                return Path.GetFileName(path);
+            }
+            catch (ArgumentException)
+            {
+                return string.Empty;
+            }
         }
 
         /// <summary>

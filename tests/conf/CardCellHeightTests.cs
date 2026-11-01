@@ -65,12 +65,24 @@ public class CardCellHeightTests
                     Is.EqualTo(CardMetrics.CaptionBandHeight));
     }
 
+    /// <summary>
+    /// The caption band is ONE line and one gap now.
+    ///
+    /// It was CaptionTopGap + TitleLineHeight + CaptionLineGap + SubtitleLineHeight
+    /// while the card drew two lines. The card draws one - the file name - so the
+    /// band must not keep reserving room for a line that is Collapsed: 21 DIP of
+    /// dead space under every card reads as inconsistent row spacing in the grid,
+    /// which is much harder to attribute than a clipped line.
+    /// </summary>
     [Test]
-    public void CaptionBandIsTwoLinesTwoGapsAndTheTitleGap()
+    public void CaptionBandIsOneLineAndTheTitleGap()
     {
         Assert.That(CardMetrics.CaptionBandHeight,
-                    Is.EqualTo(CardMetrics.CaptionTopGap + CardMetrics.TitleLineHeight
-                               + CardMetrics.CaptionLineGap + CardMetrics.SubtitleLineHeight));
+                    Is.EqualTo(CardMetrics.CaptionTopGap + CardMetrics.TitleLineHeight));
         Assert.That(CardMetrics.CaptionBandHeight, Is.GreaterThan(0));
+
+        // And it is smaller than the two-line band it replaced, which is the whole
+        // point: 28 against the previous 49.
+        Assert.That(CardMetrics.CaptionBandHeight, Is.LessThan(CardMetrics.CaptionTopGap + CardMetrics.TitleLineHeight + CardMetrics.SubtitleLineHeight));
     }
 }

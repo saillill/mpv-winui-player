@@ -64,10 +64,9 @@ public class CardMetricsTests
         Assert.That(CardMetrics.CornerRadius, Is.EqualTo(4));
 
         // The caption band follows the cell height, so a change here without a
-        // change in CardMetrics.CaptionBandHeight clips the second line. These
-        // four numbers are the reference's own, measured on its hovered card.
+        // change in CardMetrics.CaptionBandHeight clips the line it reserves.
+        // These numbers are the reference's own, measured on its hovered card.
         Assert.That(CardMetrics.CaptionTopGap, Is.EqualTo(6));
-        Assert.That(CardMetrics.CaptionLineGap, Is.EqualTo(2));
 
         // Both hover buttons are the same size now: the reference draws them as
         // one matched pair, and the old 40/32 split made the second look accidental.
@@ -76,6 +75,18 @@ public class CardMetricsTests
         Assert.That(CardMetrics.CornerInset, Is.EqualTo(10));
         Assert.That(CardMetrics.RingThickness, Is.EqualTo(1.5));
         Assert.That(CardMetrics.NowPlayingBarHeight, Is.EqualTo(2));
+
+        // The highlight's own separation from the picture. Both are asserted
+        // because they were asked for together ("a visible gap and a noticeably
+        // thicker translucent black border") and either one alone still leaves
+        // the wash and the frame reading as one shape.
+        Assert.That(CardMetrics.HoverInset, Is.EqualTo(6));
+        Assert.That(CardMetrics.HoverRingThickness, Is.EqualTo(2));
+
+        // The ring is thicker than the buttons' ring: it outlines a ~240-wide
+        // rectangle rather than a 36-wide disc, and the weight that reads as
+        // deliberate on a disc vanishes on the edge of a large shape.
+        Assert.That(CardMetrics.HoverRingThickness, Is.GreaterThan(CardMetrics.RingThickness));
     }
 
     /// <summary>
@@ -150,7 +161,97 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// The two caption lines share one type size, and neither is smaller.
+    /// The card draws exactly one caption line, and it is the title.
+    ///
+    /// Reported as "drop the date string and the repeated title, keep only the top
+    /// line". The second line is still in the tree - the code behind assigns it on
+    /// every recycle - so nothing but Collapsed keeps it off the screen, and
+    /// nothing but this assertion keeps it Collapsed. If it comes back visible
+    /// while CaptionBandHeight reserves one line, it is drawn outside its cell.
+    /// </summary>
+    [Test]
+    public void TheSubtitleLineIsCollapsed()
+    {
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        var subtitle = ElementFor(xaml, "SubtitleText");
+
+        Assert.That(
+            subtitle.Contains("Visibility=\"Collapsed\"", StringComparison.Ordinal),
+            "SubtitleText must stay Collapsed: the card shows one line (the file name) " +
+            "and the cell reserves room for one");
+    }
+
+    /// <summary>
+    /// The title line is a single line, never two.
+    ///
+    /// MaxLines="2" was there while the card had a wrapped title over a subtitle.
+    /// With one line, a title allowed to wrap pushes the second line into whatever
+    /// the cell reserved for the thing that no longer exists.
+    /// </summary>
+    [Test]
+    public void TheTitleLineDoesNotWrapToTwoLines()
+    {
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        var title = ElementFor(xaml, "TitleText");
+
+        Assert.That(
+            title.Contains("MaxLines=\"1\"", StringComparison.Ordinal),
+            "TitleText must cap at one line: the cell reserves one");
+    }
+
+    /// <summary>
+    /// The hover wash is inset from the tile and carries its own ring.
+    ///
+    /// Reported as "the highlight and the picture need a visible gap, and it needs
+    /// a noticeably thicker translucent black border". Both are properties of the
+    /// highlight Border, so they are asserted in the markup; a value that silently
+    /// reverts to 0 (no gap) or drops the BorderBrush leaves the wash congruent
+    /// with the picture again, which is the exact state that was reported.
+    /// </summary>
+    [Test]
+    public void TheHoverWashIsInsetAndRinged()
+    {
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        // The ring brush is the black one, not the buttons' white one.
+        Assert.That(
+            xaml.Contains("MpvCardHoverRingBrush", StringComparison.Ordinal),
+            "the hover wash must use MpvCardHoverRingBrush");
+
+        var wash = HoverWashElement(xaml);
+
+        Assert.That(
+            wash.Contains($"Margin=\"{CardMetrics.HoverInset}\"", StringComparison.Ordinal),
+            $"the hover wash must be inset by CardMetrics.HoverInset ({CardMetrics.HoverInset}) " +
+            "so the picture shows around it");
+
+        Assert.That(
+            wash.Contains($"BorderThickness=\"{CardMetrics.HoverRingThickness}\"", StringComparison.Ordinal),
+            $"the hover wash must carry CardMetrics.HoverRingThickness ({CardMetrics.HoverRingThickness})");
+    }
+
+    /// <summary>
+    /// The hover wash Border: the one that names the hover ring brush.
+    /// </summary>
+    private static string HoverWashElement(string xaml)
+    {
+        var marker = "MpvCardHoverRingBrush";
+        var at = xaml.IndexOf(marker, StringComparison.Ordinal);
+        Assert.That(at, Is.GreaterThanOrEqualTo(0), "no element uses MpvCardHoverRingBrush");
+
+        var open = xaml.LastIndexOf('<', at);
+        Assert.That(open, Is.GreaterThanOrEqualTo(0));
+
+        var close = xaml.IndexOf('>', at);
+        Assert.That(close, Is.GreaterThan(at));
+
+        return xaml[open..(close + 1)];
+    }
+
+    /// <summary>
+    /// Both caption lines share one type size, and neither is smaller.
     ///
     /// The report was "use the now-playing row's type for every card and drop the
     /// smaller line underneath". The subtitle used to be MpvCardSubtitleFontSize

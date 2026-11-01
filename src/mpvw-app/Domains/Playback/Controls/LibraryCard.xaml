@@ -138,15 +138,31 @@
                       LineHeight govern every wrapped line. -->
                 <TextBlock
                     x:Name="TitleText"
-                    MaxLines="2"
+                    MaxLines="1"
                     FontSize="{StaticResource MpvCardTitleFontSize}"
                     FontWeight="{StaticResource MpvCardCaptionFontWeight}"
                     Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                     LineHeight="22"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="Wrap" />
+                <!--  The second line is gone.
+
+                      Reported as "drop the date string and the repeated title,
+                      keep only the top line, and make it the plain file name".
+                      It used to carry a subtitle the entry happened to have -
+                      for a video the folder name, which is why every card in a
+                      scan showed a second line that repeated the first or said
+                      "未知专辑 / 未知艺术家" for untagged audio. One line that
+                      always says the file is both less to read and never wrong.
+
+                      Kept in the tree as a collapsed element rather than
+                      deleted: LibraryCard.xaml.cs assigns it on every recycle
+                      and the selection/emphasis path writes to it, and a rename
+                      here is exactly the kind of thing that used to break this
+                      control silently. -->
                 <TextBlock
                     x:Name="SubtitleText"
+                    Visibility="Collapsed"
                     FontSize="{StaticResource MpvCardTitleFontSize}"
                     FontWeight="{StaticResource MpvCardCaptionFontWeight}"
                     Foreground="{ThemeResource TextFillColorPrimaryBrush}"
@@ -175,12 +191,36 @@
                 IsHitTestVisible="False"
                 Visibility="Collapsed">
 
-                <!--  The wash. A translucent fill over the tile, not a dark
-                      scrim: the previous gradient darkened the bottom of an
-                      already-dim frame. -->
+                <!--  The wash, inset from the tile's edges and wearing its own
+                      translucent black ring.
+
+                      Reported twice. First "the highlight sits too low and does
+                      not overlap the picture" - fixed by VerticalAlignment=Top
+                      above. Then "the highlight and the picture have no gap, and
+                      it needs a noticeably thicker translucent black border":
+                      the wash shared the tile's exact bounds, so the lit region
+                      and the picture were the same rectangle and only a colour
+                      change separated them. Insetting it leaves a strip of
+                      untouched picture all round, which is what makes the two
+                      read as two shapes.
+
+                      Margin and BorderThickness rather than shrinking the
+                      parent: the parent stays pinned to the tile (the buttons
+                      anchor to it) and only this Border moves inward.
+
+                      The two numbers are literals because Margin and
+                      BorderThickness are Thickness and must be - an x:Double
+                      token throws inside InitializeComponent, and
+                      Frame.Navigate swallows that into an empty window. They
+                      mirror CardMetrics.HoverInset (6) and HoverRingThickness
+                      (2); the typography baseline records the same constraint
+                      for this file's other Margin. -->
                 <Border
+                    Margin="6"
                     Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                    CornerRadius="4"
+                    BorderBrush="{StaticResource MpvCardHoverRingBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
                     IsHitTestVisible="False" />
 
                 <!--  Play at the tile's lower-left, overflow at its lower-right:

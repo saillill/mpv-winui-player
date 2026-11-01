@@ -1430,6 +1430,16 @@
      the overlaid disc, which is the thumbnail darkened by roughly 70%. -->
 <SolidColorBrush x:Key="MpvCardControlBrush" Color="#B31C1C1C" />
 
+<!-- The hover highlight's ring: translucent BLACK, not the buttons' white.
+
+     Reported as "add a noticeably thicker translucent black border" around the
+     highlight. Black rather than white because the two do different jobs: the
+     corner buttons are small marks that must pop off whatever pixel is behind
+     them, while the highlight is a large area whose job is to draw an edge. A
+     white ring at this size reads as a second highlight; black at 62% darkens
+     just the boundary and keeps the picture inside it readable. -->
+<SolidColorBrush x:Key="MpvCardHoverRingBrush" Color="#9E000000" />
+
 <!-- The hover buttons' ring and glyph.
 
      A near-opaque WHITE, sampled from the reference: the play triangle and the
