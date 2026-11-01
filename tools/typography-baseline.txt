@@ -16,16 +16,21 @@
 # Spacing IS an x:Double, so the token applies there and the finding is gone.
 #
 # LibraryCard.xaml's line numbers move whenever the caption or hover markup
-# changes length; the findings do not.
+# changes length; the finding does not.
 #
-#   219  the hover wash's Margin="6" = CardMetrics.HoverInset
-#   325  the selection box's Margin="8"
+#   82   the hover frame's own Margin = CardMetrics.HoverFrameInset
+#   92   the content inset, same value, so the stroke has a gutter
+#   356  the selection box's Margin="8"
 #
 # Both are Thickness literals and cannot take a spacing token: CardMetrics is an
 # internal static class with double constants, an x:Double has no Thickness
 # conversion, and the assignment throws inside InitializeComponent where
-# Frame.Navigate swallows it. The wash's value is pinned by
-# CardMetricsTests.TheHoverWashIsInsetAndRinged instead.
+# Frame.Navigate swallows it.
+#
+# The frame's own Margin="4" is the same value and is pinned by
+# CardMetricsTests.TheHoverFrameIsWhiteAndWrapsTheWholeCard rather than by a line
+# number here - the gutter has to match the frame's, or the stroke is drawn under
+# the picture.
 #
 # MpvPlayerPage.xaml:891 is the playback InfoBar's Margin="16" - a Thickness for
 # the same reason as the card's, so no spacing token can express it. The line
@@ -40,8 +45,9 @@ src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:174:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:219:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:325:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:82:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:92:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:356:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:891:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

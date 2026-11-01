@@ -76,17 +76,17 @@ public class CardMetricsTests
         Assert.That(CardMetrics.RingThickness, Is.EqualTo(1.5));
         Assert.That(CardMetrics.NowPlayingBarHeight, Is.EqualTo(2));
 
-        // The highlight's own separation from the picture. Both are asserted
-        // because they were asked for together ("a visible gap and a noticeably
-        // thicker translucent black border") and either one alone still leaves
-        // the wash and the frame reading as one shape.
-        Assert.That(CardMetrics.HoverInset, Is.EqualTo(6));
-        Assert.That(CardMetrics.HoverRingThickness, Is.EqualTo(2));
+        // The hover frame's geometry. It wraps the whole card, so it is stated in
+        // terms of the gutter it opens around the content rather than an inset into
+        // the picture - the previous constants (HoverInset 6, HoverRingThickness 2)
+        // described the black inner wash the report rejected.
+        Assert.That(CardMetrics.HoverFrameInset, Is.EqualTo(4));
+        Assert.That(CardMetrics.HoverFrameThickness, Is.EqualTo(1.5));
+        Assert.That(CardMetrics.HoverFrameCornerRadius, Is.EqualTo(8));
 
-        // The ring is thicker than the buttons' ring: it outlines a ~240-wide
-        // rectangle rather than a 36-wide disc, and the weight that reads as
-        // deliberate on a disc vanishes on the edge of a large shape.
-        Assert.That(CardMetrics.HoverRingThickness, Is.GreaterThan(CardMetrics.RingThickness));
+        // The frame is the same weight as the corner discs it encloses: heavier
+        // reads as a selection border rather than a hover affordance.
+        Assert.That(CardMetrics.HoverFrameThickness, Is.EqualTo(CardMetrics.RingThickness));
     }
 
     /// <summary>
@@ -202,34 +202,110 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// The hover wash is inset from the tile and carries its own ring.
+    /// The root button stretches its content, so the hover frame has a card to
+    /// trace.
     ///
-    /// Reported as "the highlight and the picture need a visible gap, and it needs
-    /// a noticeably thicker translucent black border". Both are properties of the
-    /// highlight Border, so they are asserted in the markup; a value that silently
-    /// reverts to 0 (no gap) or drops the BorderBrush leaves the wash congruent
-    /// with the picture again, which is the exact state that was reported.
+    /// <para><b>This is the bug that made the frame invisible, and it took three
+    /// wrong guesses to find.</b> <c>VerticalContentAlignment="Top"</c> pinned the
+    /// content to the top of the button, so the card's root Grid collapsed to its
+    /// content height and the frame - a Border with <c>Margin="4"</c> and no size
+    /// of its own - had nothing left to contract into. It was in the visual tree,
+    /// reported Visible, and drew five pixels: measured by giving it a red 4 DIP
+    /// border and counting them, which is what finally distinguished "not drawn"
+    /// from "not shown".</para>
+    ///
+    /// <para>The earlier guesses are worth recording so they are not repeated:
+    /// an Opacity="0" left in the markup (it multiplies with the compositor fade),
+    /// drawing order (moved to Canvas.ZIndex=10, which did not help on its own),
+    /// and the border brush (swapped for red, which proved the brush was fine).</para>
     /// </summary>
     [Test]
-    public void TheHoverWashIsInsetAndRinged()
+    public void TheRootButtonStretchesItsContent()
     {
         var xaml = File.ReadAllText(CardXamlPath);
 
-        // The ring brush is the black one, not the buttons' white one.
-        Assert.That(
-            xaml.Contains("MpvCardHoverRingBrush", StringComparison.Ordinal),
-            "the hover wash must use MpvCardHoverRingBrush");
-
-        var wash = HoverWashElement(xaml);
+        var root = SelfClosingElement(xaml, "RootButton");
 
         Assert.That(
-            wash.Contains($"Margin=\"{CardMetrics.HoverInset}\"", StringComparison.Ordinal),
-            $"the hover wash must be inset by CardMetrics.HoverInset ({CardMetrics.HoverInset}) " +
-            "so the picture shows around it");
+            root.Contains("VerticalContentAlignment=\"Stretch\"", StringComparison.Ordinal),
+            "RootButton must stretch its content: with \"Top\" the card's Grid collapses " +
+            "to its content height, and the hover frame's Margin has nothing to contract into");
+    }
+
+    /// <summary>
+    /// The hover highlight is a WHITE frame around the WHOLE card.
+    ///
+    /// <para>Reported after the previous attempt: "you did not understand the
+    /// second image - the black frame is inside the card; the outermost hover frame
+    /// should be the outlined one, and what you framed is the video thumbnail".
+    /// The previous design was a wash with a black ring inset into the picture,
+    /// which is the opposite of what was asked for on both counts: wrong colour,
+    /// and wrapping the thumbnail instead of the card.</para>
+    ///
+    /// <para>Three properties make it the requested shape, and each is silent when
+    /// it regresses:</para>
+    ///
+    /// <list type="bullet">
+    /// <item>White - <c>MpvCardRingBrush</c>, the same ring the corner buttons
+    /// wear. The black <c>MpvCardHoverRingBrush</c> must not come back.</item>
+    /// <item>Outermost - the frame is the first child of the card's root Grid and
+    /// is not sized to the tile, so it stretches over picture and caption
+    /// together.</item>
+    /// <item>Separated - it sits <c>HoverFrameInset</c> outside the content, and
+    /// the content is inset by the same amount so the stroke has a gutter.</item>
+    /// </list>
+    /// </summary>
+    [Test]
+    public void TheHoverFrameIsWhiteAndWrapsTheWholeCard()
+    {
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        var frame = SelfClosingElement(xaml, "HoverFrame");
 
         Assert.That(
-            wash.Contains($"BorderThickness=\"{CardMetrics.HoverRingThickness}\"", StringComparison.Ordinal),
-            $"the hover wash must carry CardMetrics.HoverRingThickness ({CardMetrics.HoverRingThickness})");
+            frame.Contains("{StaticResource MpvCardRingBrush}", StringComparison.Ordinal),
+            "the hover frame must use MpvCardRingBrush - the report asked for the " +
+            "outer white outline, not a black one");
+
+        Assert.That(
+            frame.Contains("{StaticResource MpvCardHoverRingBrush}", StringComparison.Ordinal),
+            Is.False,
+            "the frame must not use the black MpvCardHoverRingBrush: that was the " +
+            "inner wash, which the report rejected");
+
+        // It wraps the card, so its stroke is the card's outer edge: the content is
+        // inset by the same amount and the frame is not sized to the tile.
+        var content = ContentGridFor(xaml);
+
+        Assert.That(
+            content.Contains($"Margin=\"{CardMetrics.HoverFrameInset}\"", StringComparison.Ordinal),
+            $"the card's content must be inset by CardMetrics.HoverFrameInset " +
+            $"({CardMetrics.HoverFrameInset}) so the frame's stroke has a gutter");
+
+        Assert.That(
+            frame.Contains("CornerRadius=\"8\"", StringComparison.Ordinal),
+            "the frame's radius is larger than the tile's 4 so the two arcs read as " +
+            "concentric");
+    }
+
+    /// <summary>
+    /// The card's content layer: the Grid directly inside the root, carrying the
+    /// frame's gutter.
+    /// </summary>
+    private static string ContentGridFor(string xaml)
+    {
+        var marker = "x:Name=\"HoverFrame\"";
+        var at = xaml.IndexOf(marker, StringComparison.Ordinal);
+        Assert.That(at, Is.GreaterThanOrEqualTo(0), "no HoverFrame in LibraryCard.xaml");
+
+        // The content Grid follows the frame element.
+        var after = xaml.IndexOf("<Grid Margin=", at, StringComparison.Ordinal);
+        Assert.That(after, Is.GreaterThan(at), "no content Grid after HoverFrame");
+
+        var close = xaml.IndexOf('>', after);
+        Assert.That(close, Is.GreaterThan(after));
+
+        return xaml[after..(close + 1)];
     }
 
     /// <summary>
@@ -284,6 +360,28 @@ public class CardMetricsTests
     }
 
     /// <summary>
+    /// A self-closing element's full tag, comments stripped.
+    ///
+    /// <para>The same comment-stripping as <see cref="ButtonBlock"/> and for the
+    /// same measured reason: this file's prose quotes the very attribute values
+    /// the assertions look for, so a search over raw markup can pass after the
+    /// attribute is deleted.</para>
+    /// </summary>
+    private static string SelfClosingElement(string xaml, string name)
+    {
+        var at = xaml.IndexOf($"x:Name=\"{name}\"", StringComparison.Ordinal);
+        Assert.That(at, Is.GreaterThanOrEqualTo(0), $"{name} not found in LibraryCard.xaml");
+
+        var open = xaml.LastIndexOf('<', at);
+        Assert.That(open, Is.GreaterThanOrEqualTo(0));
+
+        var close = xaml.IndexOf('>', at);
+        Assert.That(close, Is.GreaterThan(at), $"{name} is not closed");
+
+        return Regex.Replace(xaml[open..(close + 1)], "<!--[\\s\\S]*?-->", string.Empty);
+    }
+
+    /// <summary>
     /// Everything from a button's opening tag through its closing tag, with XML
     /// comments removed.
     ///
@@ -317,21 +415,36 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// The hover wash Border: the one that names the hover ring brush.
+    /// The caption reserves a line and a half below the title.
+    ///
+    /// <para>Reported as "the title should leave a line and a half of empty space
+    /// below it". Without it the last line sits hard against the card's lower edge
+    /// and the hover frame encloses nothing underneath.</para>
+    ///
+    /// <para><b>Two places, one number.</b> The reserve lives in the caption's
+    /// Bottom margin AND in <c>CardMetrics.CaptionBandHeight</c>, because the grid
+    /// sizes its cell before any card exists. Dropping it from the markup leaves
+    /// the cell padded but the card empty; dropping it from the band clips it. This
+    /// asserts the markup side; CardCellHeightTests asserts the band.</para>
     /// </summary>
-    private static string HoverWashElement(string xaml)
+    [Test]
+    public void TheCaptionReservesALineAndAHalfBelowTheTitle()
     {
-        var marker = "MpvCardHoverRingBrush";
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        // The caption StackPanel is the one between the tile and the title.
+        var marker = "Spacing=\"{StaticResource MpvSpaceXxs}\"";
         var at = xaml.IndexOf(marker, StringComparison.Ordinal);
-        Assert.That(at, Is.GreaterThanOrEqualTo(0), "no element uses MpvCardHoverRingBrush");
+        Assert.That(at, Is.GreaterThanOrEqualTo(0), "no caption StackPanel");
 
         var open = xaml.LastIndexOf('<', at);
-        Assert.That(open, Is.GreaterThanOrEqualTo(0));
+        var tag = xaml[open..(at + marker.Length)];
 
-        var close = xaml.IndexOf('>', at);
-        Assert.That(close, Is.GreaterThan(at));
-
-        return xaml[open..(close + 1)];
+        var expected = $"0,{CardMetrics.CaptionTopGap},0,{CardMetrics.TrailingCaptionSpace}";
+        Assert.That(
+            tag.Contains($"Margin=\"{expected}\"", StringComparison.Ordinal),
+            $"the caption must reserve {CardMetrics.TrailingCaptionSpace} DIP below the " +
+            $"title (Margin=\"{expected}\"); found: {tag}");
     }
 
     /// <summary>

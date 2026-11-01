@@ -62,36 +62,63 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// How far the hover highlight sits inside the cover's edges.
         ///
-        /// <para>Reported as "the hover highlight has to leave a visible gap from
-        /// the card image". The wash used to share the tile's exact bounds, which
-        /// made the lit region and the picture the same rectangle: the edges
-        /// disappeared into each other and the only thing separating them was the
-        /// colour change, so the frame read as clipped rather than as highlighted.
-        /// Insetting the wash puts a strip of untouched picture around it and the
-        /// two shapes become legible as two shapes.</para>
+        /// <para><b>No longer used by the card.</b> The highlight used to be a
+        /// wash drawn over the picture, inset from its edges. The report was that
+        /// this is the wrong shape entirely: "the black frame is inside the card;
+        /// the outermost hover frame should be the outlined one, and what you
+        /// framed is the thumbnail". What was wanted is a WHITE rounded rectangle
+        /// around the whole card - picture and caption together - which is
+        /// <see cref="HoverFrameInset"/> below.</para>
         ///
-        /// <para>6 DIP: big enough to read at a glance on a 253-wide card, small
-        /// enough that the highlight still obviously belongs to the picture rather
-        /// than floating inside it.</para>
+        /// <para>Kept because CardMetricsTests still pins the value and nothing
+        /// else in the app is named after it; delete with the constant if the
+        /// inner wash is confirmed gone for good.</para>
         /// </summary>
         public const double HoverInset = 6;
 
         /// <summary>
-        /// The hover highlight's own ring.
+        /// The hover frame's ring.
         ///
-        /// <para>Reported as "add a noticeably thicker translucent black border".
-        /// It is a <b>semi-transparent black</b> stroke rather than the white one
-        /// the corner buttons wear: those two sit on the picture and need to pop
-        /// off whatever is behind them, while the wash is a large low-contrast
-        /// area whose job is to define an edge. Black at this alpha separates it
-        /// from both a bright frame and the dark page behind the card, and it
-        /// cannot wash the picture out the way an opaque ring would.</para>
-        ///
-        /// <para>2 DIP, against the buttons' 1.5: it outlines a 240-wide
-        /// rectangle rather than a 36-wide disc, so the same weight that reads as
-        /// deliberate on a disc disappears into the edge of a large shape.</para>
+        /// <para>No longer used - see <see cref="HoverInset"/>. The frame is now
+        /// the buttons' white ring colour, not a black one.</para>
         /// </summary>
         public const double HoverRingThickness = 2;
+
+        /// <summary>
+        /// How far the hover frame sits outside the card's content.
+        ///
+        /// <para>Reported as "the outermost hover frame should be the outlined
+        /// one, with the text aligned to the thumbnail". The frame wraps the whole
+        /// card - tile, caption and all - so it has to sit OUTSIDE the content
+        /// rather than inset into it: the content keeps the card's full width and
+        /// the frame's stroke is drawn in the gap this margin opens around it.</para>
+        ///
+        /// <para>Measured off the reference: the frame's edge is a hair's breadth
+        /// outside the picture, not a gutter. 4 DIP is enough for a 1.5 DIP stroke
+        /// plus the breathing room that keeps it from touching the thumbnail's own
+        /// corner radius.</para>
+        /// </summary>
+        public const double HoverFrameInset = 4;
+
+        /// <summary>
+        /// The hover frame's stroke width.
+        ///
+        /// <para>1.5, matching <see cref="RingThickness"/>: the frame and the two
+        /// corner buttons are the same object family, and a frame heavier than the
+        /// discs it contains reads as a selection border rather than a hover
+        /// affordance.</para>
+        /// </summary>
+        public const double HoverFrameThickness = 1.5;
+
+        /// <summary>
+        /// The hover frame's corner radius.
+        ///
+        /// <para>8 against the tile's 4: the frame is larger than the thumbnail, so
+        /// the same radius on both would look tighter on the frame. The difference
+        /// is what makes the two arcs appear concentric, the same way an outer
+        /// circle needs a bigger radius than the inner one to look parallel.</para>
+        /// </summary>
+        public const double HoverFrameCornerRadius = 8;
 
         /// <summary>
         /// The hover buttons' diameter.
@@ -168,15 +195,33 @@ namespace mpv_winui.Domains.Playback.Cards
         public const double SubtitleLineHeight = 19;
 
         /// <summary>
-        /// The caption band under the media tile: one gap and one line.
+        /// Empty space below the caption, in the card.
+        ///
+        /// <para>Reported as "the title should leave a line and a half of empty
+        /// space below it". 1.5 x <see cref="TitleLineHeight"/> = 33.</para>
+        ///
+        /// <para>It is not padding for its own sake. The hover frame wraps the
+        /// card, so whatever the caption does not occupy is what the frame encloses
+        /// below the text: at zero the last line sat hard against the card's lower
+        /// edge and the frame read as a border around the picture plus an accident
+        /// of text.</para>
+        /// </summary>
+        public const double TrailingCaptionSpace = TitleLineHeight * 1.5;
+
+        /// <summary>
+        /// The caption band under the media tile: one gap, one line, and the
+        /// reserved space below it.
         ///
         /// Both grids size their cell on this, so it is written once: two grids
         /// that each carried their own copy is how the album cell stayed at a
         /// landscape height after the album tile became square.
         ///
-        /// One line, not two - see <see cref="SubtitleLineHeight"/>.
+        /// <see cref="TrailingCaptionSpace"/> is included because the cell has to
+        /// contain it - leaving it out clips it, and a clipped reserve is
+        /// indistinguishable from having none.
         /// </summary>
-        public const double CaptionBandHeight = CaptionTopGap + TitleLineHeight;
+        public const double CaptionBandHeight =
+            CaptionTopGap + TitleLineHeight + TrailingCaptionSpace;
 
         /// <summary>
         /// The grid cell height for a card of this width.

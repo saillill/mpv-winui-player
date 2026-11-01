@@ -36,17 +36,61 @@
         HorizontalAlignment="Stretch"
         HorizontalContentAlignment="Stretch"
         VerticalAlignment="Stretch"
-        VerticalContentAlignment="Top"
+        VerticalContentAlignment="Stretch"
         Background="Transparent"
         BorderThickness="0"
         Click="RootButton_Click">
-        <!--  One Grid over the whole card: the tile AND its two caption lines.
-              The hover layer has to be able to cover both, because they are one
-              card - hovering the picture lit only the picture and left the text
-              untouched, which reads as a picture with a label next to it rather
-              than as a card. -->
+        <!--  One Grid over the whole card: the tile AND its caption line.
+              The hover frame has to wrap both, because they are one card - the
+              report circled the picture on its own and said so: "the outermost
+              hover frame should be the outlined one; what you framed is the
+              thumbnail". -->
         <Grid>
-            <StackPanel>
+            <!--  The hover frame, drawn ON TOP of the content.
+
+                  Reported: "the outermost hover frame should be the white outlined
+                  one". This Border stretches over the whole card - picture and
+                  caption - and its 4 DIP margin is the gutter the stroke sits in,
+                  so the outline traces the card's edge rather than any inner
+                  element's.
+
+                  Three things here were each measured rather than reasoned:
+
+                    * Position. It is the LAST child with a Canvas.ZIndex above the
+                      content, not the first. As the first child it drew behind a
+                      thumbnail whose Image is UniformToFill and opaque, so the frame
+                      existed in the tree, reported Visible, and put no pixels on
+                      screen. On top, the stroke overlaps the picture's outer 1.5 DIP,
+                      which is what the reference shows.
+                    * No Opacity="0". MotionBehaviors.FadeIn animates the compositor
+                      visual's opacity while a XAML Opacity is the element's own, so
+                      an Opacity="0" in markup multiplied the frame to nothing through
+                      the entire fade. Visibility alone hides it, and it is toggled
+                      without a fade - a boundary that fades in reads as the card
+                      resizing.
+                    * No Background. A Border with no background and no child does not
+                      get a composited visual on its own; the always-Transparent value
+                      is left off for the same reason the Opacity is.
+
+                  4 is CardMetrics.HoverFrameInset. A literal because Margin is a
+                  Thickness and an x:Double has no conversion for one - the assignment
+                  throws inside InitializeComponent and Frame.Navigate swallows that
+                  into an empty window. CardMetricsTests pins the markup instead. -->
+            <Border
+                x:Name="HoverFrame"
+                Canvas.ZIndex="10"
+                Margin="4"
+                BorderBrush="{StaticResource MpvCardRingBrush}"
+                BorderThickness="1.5"
+                CornerRadius="8"
+                IsHitTestVisible="False"
+                Visibility="Collapsed" />
+
+            <!--  The content, inset by the frame's gutter so the stroke has room.
+                  Margin rather than padding so the thumbnail's own CornerRadius
+                  still lines up with the frame's arc. -->
+            <Grid Margin="4">
+                <StackPanel>
             <!--  The media tile. Height is assigned from ApplyCoverHeight once
                   ActualWidth is known; see the class comment. -->
             <Border
@@ -94,8 +138,17 @@
                   The gap is CaptionTopGap and it is deliberately small: measured
                   against the reference, the title's cap line begins 6 DIP under
                   the tile. At the previous 10 the two read as a separate block
-                  floating below the picture rather than as its label. -->
-            <StackPanel Margin="0,6,0,0" Spacing="{StaticResource MpvSpaceXxs}">
+                  floating below the picture rather than as its label.
+
+                  The bottom margin is TrailingCaptionSpace, 1.5 lines, and it is
+                  not padding for its own sake: reported as "the title should leave
+                  a line and a half of empty space below it". Without it the
+                  caption's last line sits hard against the card's lower edge and
+                  the hover frame has nothing to enclose underneath - the frame
+                  looked like it was drawn around the picture plus an accident. -->
+            <StackPanel
+                Margin="0,6,0,33"
+                Spacing="{StaticResource MpvSpaceXxs}">
                 <!--  Two lines, both in ONE typographic style.
 
                       They used to be a pair of sizes (15 SemiBold over 14 Regular,
@@ -191,37 +244,15 @@
                 IsHitTestVisible="False"
                 Visibility="Collapsed">
 
-                <!--  The wash, inset from the tile's edges and wearing its own
-                      translucent black ring.
+                <!--  The wash that used to sit here is gone.
 
-                      Reported twice. First "the highlight sits too low and does
-                      not overlap the picture" - fixed by VerticalAlignment=Top
-                      above. Then "the highlight and the picture have no gap, and
-                      it needs a noticeably thicker translucent black border":
-                      the wash shared the tile's exact bounds, so the lit region
-                      and the picture were the same rectangle and only a colour
-                      change separated them. Insetting it leaves a strip of
-                      untouched picture all round, which is what makes the two
-                      read as two shapes.
-
-                      Margin and BorderThickness rather than shrinking the
-                      parent: the parent stays pinned to the tile (the buttons
-                      anchor to it) and only this Border moves inward.
-
-                      The two numbers are literals because Margin and
-                      BorderThickness are Thickness and must be - an x:Double
-                      token throws inside InitializeComponent, and
-                      Frame.Navigate swallows that into an empty window. They
-                      mirror CardMetrics.HoverInset (6) and HoverRingThickness
-                      (2); the typography baseline records the same constraint
-                      for this file's other Margin. -->
-                <Border
-                    Margin="6"
-                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                    BorderBrush="{StaticResource MpvCardHoverRingBrush}"
-                    BorderThickness="2"
-                    CornerRadius="6"
-                    IsHitTestVisible="False" />
+                      It was a translucent fill with a black ring, inset into the
+                      picture. That was the wrong shape: the report circled the
+                      thumbnail and said "the black frame is inside the card; the
+                      outermost hover frame should be the outlined one, and what
+                      you framed is the video thumbnail". The highlight is now
+                      HoverFrame around the whole card, so what remains here is
+                      only the two corner buttons, anchored to the tile. -->
 
                 <!--  Play at the tile's lower-left, overflow at its lower-right:
                       one button per corner, which is what the reference player
@@ -332,6 +363,7 @@
                         x:Name="SelectionGlyphIcon"
                         FontSize="{StaticResource MpvCardTickFontSize}" />
                 </Border>
+            </Grid>
             </Grid>
         </Grid>
     </Button>

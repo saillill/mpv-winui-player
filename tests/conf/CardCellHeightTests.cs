@@ -66,23 +66,30 @@ public class CardCellHeightTests
     }
 
     /// <summary>
-    /// The caption band is ONE line and one gap now.
+    /// The caption band is one line, its gap, and the space reserved below it.
     ///
     /// It was CaptionTopGap + TitleLineHeight + CaptionLineGap + SubtitleLineHeight
-    /// while the card drew two lines. The card draws one - the file name - so the
-    /// band must not keep reserving room for a line that is Collapsed: 21 DIP of
-    /// dead space under every card reads as inconsistent row spacing in the grid,
-    /// which is much harder to attribute than a clipped line.
+    /// while the card drew two lines. The card draws one - the file name - and the
+    /// report then asked for "a line and a half of empty space below the title",
+    /// so the trailing reserve is part of the band, not padding outside it: the
+    /// cell has to contain the space or the grid clips it, and a clipped reserve
+    /// is indistinguishable from having none.
     /// </summary>
     [Test]
-    public void CaptionBandIsOneLineAndTheTitleGap()
+    public void CaptionBandIsOneLineAGapAndTheTrailingReserve()
     {
         Assert.That(CardMetrics.CaptionBandHeight,
-                    Is.EqualTo(CardMetrics.CaptionTopGap + CardMetrics.TitleLineHeight));
-        Assert.That(CardMetrics.CaptionBandHeight, Is.GreaterThan(0));
+                    Is.EqualTo(CardMetrics.CaptionTopGap
+                               + CardMetrics.TitleLineHeight
+                               + CardMetrics.TrailingCaptionSpace));
 
-        // And it is smaller than the two-line band it replaced, which is the whole
-        // point: 28 against the previous 49.
-        Assert.That(CardMetrics.CaptionBandHeight, Is.LessThan(CardMetrics.CaptionTopGap + CardMetrics.TitleLineHeight + CardMetrics.SubtitleLineHeight));
+        // One and a half lines, as asked for.
+        Assert.That(CardMetrics.TrailingCaptionSpace,
+                    Is.EqualTo(CardMetrics.TitleLineHeight * 1.5).Within(1e-9));
+
+        // The reserve is real: without it the band would be 28, and the assertion
+        // above would still pass if TrailingCaptionSpace silently became 0 only
+        // because it was folded into the gap. Naming the number is what stops that.
+        Assert.That(CardMetrics.CaptionBandHeight, Is.EqualTo(61).Within(1e-9));
     }
 }

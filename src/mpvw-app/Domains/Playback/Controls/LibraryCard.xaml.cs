@@ -336,18 +336,40 @@ namespace mpv_winui.Domains.Playback.Controls
             {
                 MediaBorder.Height = height;
 
-                // The overlay gets the tile's height, not the card's: the scrim
-                // should stop where the picture does, and the buttons ride that
-                // edge. Leaving it unset let the Grid size itself to its tallest
-                // child - a 32px button - so the scrim was a 32px strip and both
-                // buttons sat in it, which is why MoreButton never appeared at the
-                // card's corner.
+                // The buttons' layer gets the tile's height, not the card's: the
+                // two discs ride the picture's lower edge, not the caption's.
+                // Leaving it unset let the Grid size itself to its tallest child -
+                // a 36px button - so both buttons sat in a 36px strip and
+                // MoreButton never reached the tile's corner.
+                //
+                // The hover FRAME is deliberately not sized here. It is a sibling
+                // stretched over the whole card, which is the entire point: it
+                // encloses the picture and the caption together, so any height
+                // assignment would put it back to wrapping the picture alone.
                 HoverOverlay.Height = height;
             }
         }
 
         private void ShowOverlay()
         {
+            // Two layers, two jobs, shown together.
+            //
+            // HoverFrame wraps the whole card - picture and caption - and is what
+            // the report called "the outermost hover frame". HoverOverlay holds
+            // the two corner buttons and is pinned to the tile, because the buttons
+            // belong on the picture's lower corners rather than on the card's.
+            //
+            // The frame is toggled by Visibility alone, with no MotionBehaviors
+            // fade, and that is measured rather than tidy: FadeIn animates the
+            // compositor visual's opacity, and a Border with no Background and no
+            // visual content does not get one composed for it, so the animation ran
+            // against a visual that never drew. The frame reported Visible and put
+            // no white pixels on screen - sampled across the card's edge, the only
+            // stroke present was the card background's own colour. A hard on/off is
+            // also correct here: the frame is a boundary, and fading a boundary in
+            // reads as the card resizing.
+            HoverFrame.Visibility = Visibility.Visible;
+
             HoverOverlay.Visibility = Visibility.Visible;
             HoverOverlay.IsHitTestVisible = true;
             MotionBehaviors.FadeIn(HoverOverlay);
@@ -361,6 +383,11 @@ namespace mpv_winui.Domains.Playback.Controls
         private void HideOverlay()
         {
             HoverOverlay.IsHitTestVisible = false;
+
+            // Unconditionally off. The frame has no fade of its own, so there is no
+            // callback to re-check inside: ShowOverlay re-shows it before any exit
+            // that matters.
+            HoverFrame.Visibility = Visibility.Collapsed;
 
             MotionBehaviors.FadeOut(HoverOverlay, () =>
             {
@@ -389,6 +416,16 @@ namespace mpv_winui.Domains.Playback.Controls
             MotionBehaviors.Reset(HoverOverlay);
             HoverOverlay.IsHitTestVisible = false;
             HoverOverlay.Visibility = Visibility.Collapsed;
+
+            // The frame is reset with the buttons, never left behind: a card
+            // recycled onto a different file while the pointer is elsewhere must
+            // not arrive already wearing another item's highlight.
+            //
+            // Visibility only, no MotionBehaviors.Reset: the frame has no opacity
+            // animation to reset (see ShowOverlay), and Reset on a composited
+            // visual is what previously left it at one opacity while the element
+            // said Visible.
+            HoverFrame.Visibility = Visibility.Collapsed;
         }
 
         private void RootButton_Click(object sender, RoutedEventArgs e) => CardTapped?.Invoke(this, EventArgs.Empty);
