@@ -56,6 +56,10 @@ docs/                  契约与事实；索引是 docs/README.md
 3. **跑检查器**——见下面「提交前」。
 4. **行为验证**——启动应用、走 IPC、跑 UI 自动化。事实与方法见
    [`docs/runtime-facts.md`](docs/runtime-facts.md) §2–§4。
+   **部署目录必须在工作区外**（`MPVW_DEPLOY_DIR`，本机现行 `C:\Apps\mpvw`）。工作区内的 exe
+   在 agent 会话里起不来，症状是 `0xc000027b` + `Microsoft.UI.Xaml.dll` 且**不写任何日志**——
+   看着像 stowed exception 缺陷，其实是沙箱按 exe 路径收紧了 `AppData`/HKCU 写入。
+   机制与对照实验见 [`runtime-facts.md` §4.1](docs/runtime-facts.md)。
 5. **交接**——报告构建或部署产物的路径，然后停下。
 
 ---

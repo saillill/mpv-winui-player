@@ -122,6 +122,12 @@ generator；纯文本无依赖且便于人工排查同步问题（`ConfigDeploye
 | `tools/installer/build-installer.ps1` | `dist/mpv-winui-setup-*.msi`（WiX v5） |
 | `tools/deploy-test.ps1` | 覆盖式部署到 `%MPVW_DEPLOY_DIR%`（默认同级 `mpv-deploy`） |
 
+**默认的「同级 `mpv-deploy`」在 agent 会话里必须改掉。** 它落在工作区内，而工作区内的 exe
+起不来——不是权限问题，是文件沙箱按 exe 路径收紧子进程的 `AppData`/HKCU 写入，
+失败显示成 `0xc000027b` 且不写日志。把 `MPVW_DEPLOY_DIR` 指到工作区外（本机现行是
+`C:\Apps\mpvw`）。机制、对照实验与误导性症状见
+[`runtime-facts.md` §4.1](runtime-facts.md)。
+
 `package.ps1:34` 与 `build-installer.ps1:42` 都按 **`mpvw.exe`** 检查 publish 输出——
 检查错名字会让脚本在完全正常的输出上报错（`package.ps1` 的注释记录了这次教训）。
 

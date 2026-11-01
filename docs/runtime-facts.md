@@ -111,6 +111,39 @@ hwnd 197366 上实测：`GetWindowRect` = 264,264,3144,1834，`UIA BoundingRecta
   `-CloseRunning` 先发 `WM_CLOSE`，只对 10 秒仍不理会的窗口强杀，这样 WinUI 能正常退出、
   mpv 能刷日志和存状态。不要往正在运行的安装里部署。
 
+### 4.1 部署目录必须在 agent 工作区**之外**（2026-11-01 实测）
+
+在带文件沙箱的 agent 会话里，**从工作区目录内启动的进程**写不了 `%LOCALAPPDATA%`、`%APPDATA%`、
+`%TEMP%`、`Documents` 和 HKCU；工作区内的路径能随便写。这不是权限降级，也不是审批问题——
+`danger-full-access` 下照样如此，Defender 受控文件夹访问是关的，宿主进程（含其 token）能正常写。
+
+**判据是 exe 所在的路径，不是父进程，不是文件内容。** 同一个 exe 文件：
+
+| 位置 | 写 AppData / HKCU | 应用能否启动 |
+|---|---|---|
+| 工作区内（如 `<repo>\..\mpv-deploy`） | 全部 `UnauthorizedAccessException` | **崩溃** |
+| 工作区外（`C:\Apps\mpvw`、`Documents\` 之外的任意目录） | 正常 | 正常 |
+
+只把文件复制进/出目录就足以翻转结果；改名同一目录无效。`invoke-cim Win32_Process Create`、
+`cmd /c start`、`ShellExecuteEx` 上快捷方式——三种启动方式结论一致。
+
+**症状是误导性的。** 失败表现为 `0xc000027b` + `Microsoft.UI.Xaml.dll`，和 §5 的 stowed exception
+一模一样，但**不是应用缺陷**：`AppContext` 的静态构造要经
+`ApplicationData.GetForUnpackaged(...).LocalSettings` 写 HKCU，被拒后抛
+`TypeInitializationException`，WinUI 把它包装成 stowed exception。logger 正是这个构造器创建的，
+所以**日志文件一行都不会写**，WER 里也拿不到托管栈。别去读 XAML。
+
+侧面佐证：`dotnet test` 的 testhost 在同一位置也会抛
+`Win32Exception (5) 拒绝访问`。把测试输出挪出工作区即恢复：
+
+```powershell
+dotnet test mpvw/tests/conf/mpvw-conf-test.csproj -c Release --artifacts-path C:\Temp\mpvw-tests
+```
+
+**因此**：`tools/deploy-test.ps1` 的 `MPVW_DEPLOY_DIR` 指向工作区外，桌面快捷方式也指向那里。
+本机现行布置是 `C:\Apps\mpvw`。往工作区内布一份「为了在会话里验证」，验不出任何东西——
+它起不来。
+
 ---
 
 ## 5. 定位崩溃
