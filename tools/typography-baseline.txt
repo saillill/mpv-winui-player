@@ -19,7 +19,7 @@
 # changes length; the findings do not.
 #
 #   219  the hover wash's Margin="6" = CardMetrics.HoverInset
-#   284  the selection box's Margin="8"
+#   325  the selection box's Margin="8"
 #
 # Both are Thickness literals and cannot take a spacing token: CardMetrics is an
 # internal static class with double constants, an x:Double has no Thickness
@@ -41,7 +41,7 @@ src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:174:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:219:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:284:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:325:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:891:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

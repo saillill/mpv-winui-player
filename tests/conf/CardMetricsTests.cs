@@ -233,6 +233,90 @@ public class CardMetricsTests
     }
 
     /// <summary>
+    /// Both hover buttons centre their glyph rather than inheriting a default.
+    ///
+    /// <para>Reported with a screenshot circling the two discs: "the icons are not
+    /// centred; the play glyph sits off-centre and its corner got clipped". Two
+    /// causes, and both are silent when they come back:</para>
+    ///
+    /// <list type="bullet">
+    /// <item><c>Padding</c>. A Button's default padding is not symmetric about its
+    /// content, so a 36x36 button pushed its glyph up and right. Every other
+    /// fixed-size icon button in this repository already sets
+    /// <c>Padding="0"</c>; these two were the only ones that did not.</item>
+    /// <item>The content being a bare <c>FontIcon</c>. It lays its glyph out on a
+    /// text baseline, so the ink sits above the centre line even at zero padding.
+    /// A Viewbox is measured and centred as a shape.</item>
+    /// </list>
+    ///
+    /// <para>Asserted from the markup because both are pure XAML: nothing in the
+    /// code behind can observe "the triangle is 2 DIP high of centre".</para>
+    /// </summary>
+    [Test]
+    public void HoverButtonsCentreTheirGlyph()
+    {
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        foreach (var name in new[] { "PlayButton", "MoreButton" })
+        {
+            var button = ButtonBlock(xaml, name);
+
+            Assert.That(
+                button.Contains("Padding=\"0\"", StringComparison.Ordinal),
+                $"{name} must set Padding=\"0\": the inherited padding is not symmetric " +
+                "and pushes the glyph up and right");
+
+            Assert.That(
+                button.Contains("HorizontalContentAlignment=\"Center\"", StringComparison.Ordinal),
+                $"{name} must centre its content horizontally");
+
+            Assert.That(
+                button.Contains("VerticalContentAlignment=\"Center\"", StringComparison.Ordinal),
+                $"{name} must centre its content vertically");
+
+            // The glyph goes through a Viewbox, not straight into the Button: a
+            // FontIcon's baseline offset survives Padding="0".
+            Assert.That(
+                button.Contains("<Viewbox", StringComparison.Ordinal),
+                $"{name} must wrap its glyph in a Viewbox; a bare FontIcon sits above " +
+                "the centre line because it is laid out on a text baseline");
+        }
+    }
+
+    /// <summary>
+    /// Everything from a button's opening tag through its closing tag, with XML
+    /// comments removed.
+    ///
+    /// <para><see cref="ElementFor"/> stops at the first '>', which is right for
+    /// the self-closing TextBlocks it was written for and wrong for these buttons:
+    /// their glyph lives between the two tags, which is what the centring
+    /// assertions need to see.</para>
+    ///
+    /// <para><b>Comments are stripped first, and that is not tidiness.</b> The
+    /// markup beside these two buttons quotes the very attributes the assertions
+    /// look for - "every other icon button already sets Padding=\"0\"" - so a
+    /// search over the raw block found the phrase in the prose. It passed with
+    /// the attribute deleted, which was measured: removing Padding from
+    /// PlayButton left this test green. Matching only real attributes is the
+    /// difference between a regression guard and a comment reader.</para>
+    /// </summary>
+    private static string ButtonBlock(string xaml, string name)
+    {
+        var open = xaml.IndexOf($"x:Name=\"{name}\"", StringComparison.Ordinal);
+        Assert.That(open, Is.GreaterThanOrEqualTo(0), $"{name} not found in LibraryCard.xaml");
+
+        var start = xaml.LastIndexOf('<', open);
+        Assert.That(start, Is.GreaterThanOrEqualTo(0));
+
+        var end = xaml.IndexOf("</Button>", open, StringComparison.Ordinal);
+        Assert.That(end, Is.GreaterThan(open), $"{name} has no closing </Button>");
+
+        var block = xaml[start..(end + "</Button>".Length)];
+
+        return Regex.Replace(block, "<!--[\\s\\S]*?-->", string.Empty);
+    }
+
+    /// <summary>
     /// The hover wash Border: the one that names the hover ring brush.
     /// </summary>
     private static string HoverWashElement(string xaml)

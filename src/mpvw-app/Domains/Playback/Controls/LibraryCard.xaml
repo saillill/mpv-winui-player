@@ -238,18 +238,46 @@
                     Width="36"
                     Height="36"
                     Margin="10"
+                    Padding="0"
                     HorizontalAlignment="Left"
+                    HorizontalContentAlignment="Center"
                     VerticalAlignment="Bottom"
+                    VerticalContentAlignment="Center"
                     Background="{StaticResource MpvCardControlBrush}"
                     BorderBrush="{StaticResource MpvCardRingBrush}"
                     BorderThickness="1.5"
                     Click="PlayButton_Click"
                     CornerRadius="18">
-                    <FontIcon
-                        FontFamily="{StaticResource MpvIconFontFamily}"
-                        FontSize="{StaticResource MpvPlayGlyphFontSize}"
-                        Foreground="{StaticResource MpvCardRingBrush}"
-                        Glyph="&#xF605;" />
+                    <!--  The glyph is centred in a Viewbox, not left to FontIcon.
+
+                          Reported with a screenshot circling both discs: "the
+                          icons are not centred; the play glyph sits off-centre
+                          and its corner is clipped". Two separate causes, both
+                          fixed here:
+
+                            * Padding. A Button's default padding is not
+                              symmetric around its content, so a 36x36 button
+                              with a 15px glyph pushed the glyph up and right.
+                              Every other fixed-size icon button in this
+                              repository already sets Padding="0" - these two
+                              were the only ones that did not.
+                            * Vertical metrics. FontIcon lays its glyph out on a
+                              text baseline, so the ink sits above the centre
+                              line even with padding at zero. A Viewbox is sized
+                              and centred as a shape, which is what makes the
+                              triangle's centroid land on the disc's centre
+                              instead of its box. -->
+                    <Viewbox
+                        Width="15"
+                        Height="15"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                        <FontIcon
+                            FontFamily="{StaticResource MpvIconFontFamily}"
+                            FontSize="{StaticResource MpvPlayGlyphFontSize}"
+                            Foreground="{StaticResource MpvCardRingBrush}"
+                            Glyph="&#xF605;" />
+                    </Viewbox>
                 </Button>
 
                 <Button
@@ -257,16 +285,29 @@
                     Width="36"
                     Height="36"
                     Margin="10"
+                    Padding="0"
                     HorizontalAlignment="Right"
+                    HorizontalContentAlignment="Center"
                     VerticalAlignment="Bottom"
+                    VerticalContentAlignment="Center"
                     Background="{StaticResource MpvCardControlBrush}"
                     BorderBrush="{StaticResource MpvCardRingBrush}"
                     BorderThickness="1.5"
                     Click="MoreButton_Click"
                     CornerRadius="18">
                     <!--  Geometry, not a glyph: E712 in FluentSystemIcons is not
-                          three dots. -->
-                    <Viewbox Width="13" Height="13">
+                          three dots.
+
+                          Same centring treatment as the play button above: the
+                          Viewbox is the element that centres, and the PathIcon
+                          inside it draws at its native 24. Without
+                          Padding="0" the three dots drifted up and right the
+                          same way the triangle did. -->
+                    <Viewbox
+                        Width="13"
+                        Height="13"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
                         <PathIcon
                             Width="24"
                             Height="24"
