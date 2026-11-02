@@ -532,6 +532,79 @@ public class CardMetricsTests
     }
 
     /// <summary>
+    /// All three card grids must leave the frame a home.
+    ///
+    /// The frame lives in a 6 DIP gutter INSIDE the cell (the grid clips anything
+    /// drawn outside it - measured, see Task 0), so the cell is wider than the
+    /// content, and the spacing is what keeps two selected frames apart. The grids
+    /// shipped 12, which put a selected card's frame 2 DIP from its neighbour's.
+    ///
+    /// There are THREE layouts - two built in code, one in markup as the
+    /// first-paint default - and missing any of them leaves one screen tight.
+    ///
+    /// The markup cannot name CardMetrics (it is internal static), so its numbers
+    /// are literals pinned by this test, the same arrangement LineHeight uses.
+    ///
+    /// <para><b>Comments are stripped before the search, and that is not
+    /// tidiness.</b> The comment above the layout quotes the very literals this
+    /// test looks for ("MinItemWidth 265 is CellWidthFor(253)"), so a raw search
+    /// over the file stays green with the attributes reverted to 253 and 12 while
+    /// only the prose moved. That is the trap <see cref="ButtonBlock"/> documents,
+    /// and it was measured there.</para>
+    /// </summary>
+    [Test]
+    public void EveryCardGridLeavesRoomForTheFrame()
+    {
+        Assert.That(CardMetrics.GridColumnSpacing, Is.EqualTo(20));
+        Assert.That(CardMetrics.GridRowSpacing, Is.EqualTo(20));
+
+        // Two selected frames, back to back, must not read as one line.
+        Assert.That(
+            CardMetrics.GridColumnSpacing,
+            Is.GreaterThan(CardMetrics.HoverFrameInset * 2));
+
+        var page = Regex.Replace(File.ReadAllText(PageXamlPath), "<!--[\\s\\S]*?-->", string.Empty);
+
+        var columnSpacing = AttributeFor(page, "MinColumnSpacing");
+
+        Assert.That(
+            page.Contains($"MinColumnSpacing=\"{CardMetrics.GridColumnSpacing}\"", StringComparison.Ordinal),
+            "the markup's default grid must use the same column spacing. It says " +
+            $"{columnSpacing}: MpvSpaceM, which is 12, put a selected card's frame 2 DIP " +
+            "from its neighbour's frame");
+
+        var rowSpacing = AttributeFor(page, "MinRowSpacing");
+
+        Assert.That(
+            page.Contains($"MinRowSpacing=\"{CardMetrics.GridRowSpacing}\"", StringComparison.Ordinal),
+            "the markup's default grid must use the same row spacing. It says " +
+            $"{rowSpacing}: MpvSpaceL is 16, and the cell is 265 wide now, so the rows " +
+            "need the same air the columns get");
+
+        // The cell is the content plus the gutter on both sides.
+        const double ContentWidth = 253;
+
+        var itemWidth = AttributeFor(page, "MinItemWidth");
+
+        Assert.That(
+            page.Contains($"MinItemWidth=\"{CardMetrics.CellWidthFor(ContentWidth)}\"", StringComparison.Ordinal),
+            "the markup's cell must be wide enough for the content AND the frame's gutter. " +
+            $"It says {itemWidth}, while CellWidthFor({ContentWidth}) is " +
+            $"{CardMetrics.CellWidthFor(ContentWidth)} - at 253 the picture is squeezed to " +
+            "241 by its own gutter");
+
+        var minItemHeight = Regex.Match(page, @"MinItemHeight=""([\d.]+)""");
+
+        Assert.That(minItemHeight.Success, "no MinItemHeight in the markup grid");
+
+        Assert.That(
+            double.Parse(minItemHeight.Groups[1].Value, CultureInfo.InvariantCulture),
+            Is.GreaterThanOrEqualTo(CardMetrics.CellHeightFor(ContentWidth, isAlbum: false)),
+            "the first-paint cell is shorter than CardMetrics says the card needs, so the " +
+            "caption band is clipped until ApplyLibraryGridLayout replaces it");
+    }
+
+    /// <summary>
     /// The XAML under test, located without assuming where the binary runs.
     ///
     /// <para>A plain walk up from <c>AppContext.BaseDirectory</c> is not enough:
@@ -588,6 +661,59 @@ public class CardMetricsTests
                 "LibraryCard.xaml not found. Tried:" + Environment.NewLine + string.Join(Environment.NewLine, tried));
         }
     }
+    /// <summary>
+    /// The page markup under test, located the same way as
+    /// <see cref="CardXamlPath"/>: from this file's compiled source path first,
+    /// then a walk up from the binary.
+    ///
+    /// <para>A second helper rather than a parameter on the first: two files, two
+    /// relative paths, and the error has to name the one that was missing. The
+    /// search order is deliberately identical - a different way of finding the
+    /// checkout is a different set of conditions for the test to pass under.</para>
+    /// </summary>
+    private static string PageXamlPath
+    {
+        get
+        {
+            const string Relative =
+                @"src\mpvw-app\Domains\Playback\MpvPlayerPage.xaml";
+
+            var tried = new List<string>();
+
+            // 1. This source file's own path, from [CallerFilePath]: the compiler's
+            //    view of the checkout, which does not move with --artifacts-path.
+            var fromSource = Path.GetDirectoryName(ThisFilePath());
+            if (!string.IsNullOrEmpty(fromSource))
+            {
+                var candidate = Path.GetFullPath(
+                    Path.Combine(fromSource, "..", "..", Relative));
+                tried.Add(candidate);
+
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            // 2. Walk up from the binary, for the ordinary in-tree build.
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+            while (dir is not null)
+            {
+                var candidate = Path.Combine(dir.FullName, Relative);
+                tried.Add(candidate);
+
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+
+                dir = dir.Parent;
+            }
+
+            throw new FileNotFoundException(
+                "MpvPlayerPage.xaml not found. Tried:" + Environment.NewLine + string.Join(Environment.NewLine, tried));
+        }
+    }
 
     /// <summary>
     /// This file's absolute path, as the compiler saw it. Used by
@@ -613,6 +739,16 @@ public class CardMetricsTests
         return double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
     }
 
+    /// <summary>
+    /// The first `name="value"` in <paramref name="text"/>, for a failure message
+    /// that shows what the markup actually says instead of only what was wanted.
+    /// </summary>
+    private static string AttributeFor(string text, string name)
+    {
+        var match = Regex.Match(text, "\\b" + name + "=\"([^\"]*)\"");
+
+        return match.Success ? match.Value : $"{name} (absent)";
+    }
     /// <summary>The FontSize token of the TextBlock carrying
     /// <paramref name="elementName"/>.</summary>
     private static string FontSizeTokenFor(string xaml, string elementName)

@@ -281,5 +281,33 @@ namespace mpv_winui.Domains.Playback.Cards
         /// </summary>
         public static double CellHeightFor(double contentWidth, bool isAlbum) =>
             CoverHeightFor(contentWidth, isAlbum) + (HoverFrameInset * 2) + CaptionBandHeight;
+
+        // ----------------------------------------------------------- grid spacing
+
+        /// <summary>
+        /// The card grids' column spacing, in DIP.
+        ///
+        /// <para><b>Not <c>MpvSpaceM</c> (12), and the difference is the point.</b>
+        /// The frame lives in a 6 DIP gutter inside the cell, so two adjacent
+        /// selected frames are <c>spacing - 2 x HoverFrameInset</c> apart: at 12
+        /// they were 2 DIP apart and the two strokes read as one line, which is
+        /// exactly what a selection border must not do. At 20 they are 8 apart.</para>
+        ///
+        /// <para>The token stays at 12 for its other consumers in markup (21 of
+        /// them when this was written); the grid gets its own number rather than a
+        /// global. The markup's first-paint default cannot reference this class
+        /// (it is internal static), so it carries the literal 20 and
+        /// CardMetricsTests.EveryCardGridLeavesRoomForTheFrame pins the two
+        /// together.</para>
+        /// </summary>
+        public const double GridColumnSpacing = 20;
+
+        /// <summary>
+        /// The card grids' row spacing, in DIP. The same 20 as the columns: a grid
+        /// whose rows breathe less than its columns reads as a table with tight
+        /// rows rather than as a wall of cards, and the frame's gutter is the same
+        /// band vertically.
+        /// </summary>
+        public const double GridRowSpacing = 20;
     }
 }

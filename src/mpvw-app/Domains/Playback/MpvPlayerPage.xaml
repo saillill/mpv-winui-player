@@ -1306,34 +1306,35 @@
                             x:Name="LibraryGrid"
                             ItemTemplate="{StaticResource LibraryCardControlTemplate}">
                             <ItemsRepeater.Layout>
-                                <!-- Landscape cards. MinItemWidth 253 is the
-                                     reference's own card width at DPI 1.5, so a
-                                     maximised window lands on four columns as the
-                                     screenshot does. MinItemHeight is what
-                                     CardMetrics.CellHeightFor(253, 16:9) returns -
-                                     142.3 of tile plus the 49 DIP caption band -
-                                     rounded up so a wrapped title's second line has
-                                     somewhere to go. The two numbers are one
-                                     arithmetic in two places; CardMetrics' unit test
-                                     pins the tokens, and an inconsistency here shows
-                                     up as a row that clips its subtitle.
+                                <!-- Landscape cards. MinItemWidth 265 is CellWidthFor(253):
+                                     the reference's 253 picture plus the 6 DIP frame gutter
+                                     on both sides, because the grid clips anything drawn outside
+                                     the cell. MinItemHeight 216 is CellHeightFor(253, 16:9)
+                                     rounded up: 142.3 of tile, 12 of gutter, 61 of caption
+                                     band. The two numbers are one arithmetic in two places;
+                                     CardMetrics' unit test pins the tokens and
+                                     CardMetricsTests pins these two literals, so do not change
+                                     them back to 253 and 192. The spacings are literals for the
+                                     same reason (CardMetrics is internal static): 20, not
+                                     MpvSpaceM's 12, because the gutter eats 12 of it and leaves
+                                     8 DIP between two selected frames.
 
-                                     The music library's Songs tab swaps this for
-                                     the square layout in code (see
-                                     ApplyLibraryFilter): a square sleeve in a 16:9
-                                     cell left the tile filling the height and the
-                                     captions falling outside the cell, so the rows
-                                     showed a picture and no title at all.
+                                     The music library's Songs tab swaps this for the square
+                                     layout in code (see ApplyLibraryFilter): a square sleeve
+                                     in a 16:9 cell left the tile filling the height and the
+                                     captions falling outside the cell, so the rows showed a
+                                     picture and no title at all.
 
-                                     Kept here rather than assigned in code because
-                                     this is the default every other section uses,
-                                     and a Grid with no Layout at all renders
-                                     nothing. -->
+                                     The picture is still 253 - the CELL grew, not the image.
+
+                                     Kept here rather than assigned in code because this is
+                                     the default every other section uses, and a Grid with no
+                                     Layout at all renders nothing. -->
                                 <UniformGridLayout
-                                    MinColumnSpacing="{StaticResource MpvSpaceM}"
-                                    MinItemHeight="192"
-                                    MinItemWidth="253"
-                                    MinRowSpacing="{StaticResource MpvSpaceL}" />
+                                    MinColumnSpacing="20"
+                                    MinItemHeight="216"
+                                    MinItemWidth="265"
+                                    MinRowSpacing="20" />
                             </ItemsRepeater.Layout>
                         </ItemsRepeater>
 

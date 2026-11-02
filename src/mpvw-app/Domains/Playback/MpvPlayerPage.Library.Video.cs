@@ -337,14 +337,19 @@ namespace mpv_winui.Domains.Playback
         {
             // 253 is the reference's card width, and the tile is 16:9 because the
             // files are landscape frames. The cell height follows from both.
+            //
+            // The width here is the CONTENT's: CellWidthFor adds the frame's 6 DIP
+            // gutter on each side, and the cell - not the picture - is what grew.
+            // The spacing is CardMetrics' 20 rather than MpvSpaceM's 12 because
+            // the gutter eats 12 DIP of it, leaving 8 between two selected frames.
             const double width = 253;
 
             return new UniformGridLayout
             {
-                MinItemWidth = width,
+                MinItemWidth = CardMetrics.CellWidthFor(width),
                 MinItemHeight = CardMetrics.CellHeightFor(width, isAlbum: false),
-                MinColumnSpacing = 12,
-                MinRowSpacing = 16,
+                MinColumnSpacing = CardMetrics.GridColumnSpacing,
+                MinRowSpacing = CardMetrics.GridRowSpacing,
             };
         }
 

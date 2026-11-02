@@ -581,7 +581,7 @@ namespace mpv_winui.Domains.Playback
         /// the markup moved and these did not, which would have laid landscape cards
         /// out in square cells in both grouped views.
         ///
-        /// 253 x 200 is the markup's pair: 253 wide through 16:9 is 142, plus the two
+        /// 265 x 216 is the markup's pair: 253 of picture through 16:9 is 142, plus
         /// caption lines. Change both together - the markup comment says so too.
         /// </summary>
         /// <summary>
@@ -691,14 +691,18 @@ namespace mpv_winui.Domains.Playback
             // is a choice. The cell height is derived: the square tile plus the two
             // caption lines. The literal it replaces was 246, which is 30 DIP more
             // than the card ever occupied - it had stopped being recomputed.
+            //
+            // As in CardLayout, 170 is the CONTENT's width: CellWidthFor adds the
+            // frame's gutter, so the cell is 182 and the sleeve stays 170. Both
+            // spacings come from CardMetrics so the two grids cannot drift apart.
             const double width = 170;
 
             return new UniformGridLayout
             {
-                MinItemWidth = width,
+                MinItemWidth = CardMetrics.CellWidthFor(width),
                 MinItemHeight = CardMetrics.CellHeightFor(width, isAlbum: true),
-                MinColumnSpacing = 12,
-                MinRowSpacing = 20,
+                MinColumnSpacing = CardMetrics.GridColumnSpacing,
+                MinRowSpacing = CardMetrics.GridRowSpacing,
             };
         }
     }
