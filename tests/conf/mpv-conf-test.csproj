@@ -81,6 +81,23 @@
              directory: WatchLaterControl.xaml.cs and WatchHistoryControl.xaml.cs
              next door are UserControls and would drag WinUI into this project. -->
         <Compile Include="..\..\src\mpvw-app\Domains\Playlist\NamedPlaylistFile.cs" Link="Playlist\NamedPlaylistFile.cs" />
+
+        <!-- The store and the type it hands back, for the same reason one level
+             up: what matters is what lands on disk. One broken file must not hide
+             the good ones, adding a file twice must not duplicate an entry, and a
+             rename must not eat the list it would land on - none of which a fake
+             file system would show. The store takes its folder as a constructor
+             argument, so these tests point it at a temporary directory and never
+             touch the app's own data root.
+
+             AppData is deliberately not stubbed here. The store names it only in
+             its parameterless constructor, which these tests do not call; the
+             injected one takes a string. Linking this file therefore costs the
+             project nothing beyond the BCL - AppData.cs itself, in
+             Platform\FileSystem, would drag in Windows.Storage and could not be
+             linked at all. -->
+        <Compile Include="..\..\src\mpvw-app\Domains\Playlist\NamedPlaylist.cs" Link="Playlist\NamedPlaylist.cs" />
+        <Compile Include="..\..\src\mpvw-app\Domains\Playlist\NamedPlaylistStore.cs" Link="Playlist\NamedPlaylistStore.cs" />
     </ItemGroup>
 
     <!--
