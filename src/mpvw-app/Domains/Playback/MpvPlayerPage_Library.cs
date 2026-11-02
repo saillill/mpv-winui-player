@@ -218,19 +218,38 @@ namespace mpv_winui.Domains.Playback
             LibrarySelectionClearText.Text = lang.LibrarySelectionClear;
             SelectionPlayText.Text = lang.LibrarySelectionPlay;
             SelectionQueueText.Text = lang.LibrarySelectionQueue;
-            SelectionPropertiesText.Text = lang.LibrarySelectionProperties;
+            SelectionShowQueueText.Text = lang.LibrarySelectionShowQueue;
 
-            // The three action buttons draw an icon plus a TextBlock, so UIA
-            // reports the button with an empty name: it does not fold a child
-            // TextBlock's text into the parent. Named and tooltipped here, in
-            // the same pass that sets the visible words, so a language change
-            // cannot leave the accessible name in the previous one.
+            // The two drop-downs' own labels. 添加到 is the queue page's existing word
+            // for "add to" - the bar says the same thing in the same place - and 更多
+            // is the card menu's, because it is the same overflow idea one level up.
+            SelectionAddToText.Text = lang.LibraryQueueAddTo;
+            SelectionMoreText.Text = lang.LibraryCardMore;
+
+            // What used to be a button of its own in this bar, now the one item in
+            // 更多. Same action, same key: the reference files it under 更多 rather
+            // than spending a sixth slot on it.
+            SelectionPropertiesItem.Text = lang.LibrarySelectionProperties;
+
+            // Every action in the bar draws an icon plus a TextBlock, and the two
+            // drop-downs draw a TextBlock and a chevron, so UIA reports each of them
+            // with an empty name: it does not fold a child TextBlock's text into the
+            // parent. Named and tooltipped here, in the same pass that sets the
+            // visible words, so a language change cannot leave the accessible name in
+            // the previous one.
+            //
+            // The 更多 item needs neither: a menu item shows its own text, and Windows
+            // puts no tooltip on menu items.
             AutomationProperties.SetName(SelectionPlayButton, lang.LibrarySelectionPlay);
             AutomationProperties.SetName(SelectionQueueButton, lang.LibrarySelectionQueue);
-            AutomationProperties.SetName(SelectionPropertiesButton, lang.LibrarySelectionProperties);
+            AutomationProperties.SetName(SelectionShowQueueButton, lang.LibrarySelectionShowQueue);
+            AutomationProperties.SetName(SelectionAddToButton, lang.LibraryQueueAddTo);
+            AutomationProperties.SetName(SelectionMoreButton, lang.LibraryCardMore);
             ToolTipService.SetToolTip(SelectionPlayButton, lang.LibrarySelectionPlay);
             ToolTipService.SetToolTip(SelectionQueueButton, lang.LibrarySelectionQueue);
-            ToolTipService.SetToolTip(SelectionPropertiesButton, lang.LibrarySelectionProperties);
+            ToolTipService.SetToolTip(SelectionShowQueueButton, lang.LibrarySelectionShowQueue);
+            ToolTipService.SetToolTip(SelectionAddToButton, lang.LibraryQueueAddTo);
+            ToolTipService.SetToolTip(SelectionMoreButton, lang.LibraryCardMore);
 
             // The count string is a format with a {0}, so the bar is refreshed rather
             // than assigned - the number is the point of the label.
@@ -315,9 +334,11 @@ namespace mpv_winui.Domains.Playback
 
             var hasMusicFolders = AppContext.AppSetting.HasLibraryFolders(music: true);
 
-            VideoChrome.Visibility = isVideos && hasVideoFolders
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            // Held, then applied: while the selection bar is up this row is hidden
+            // whatever the section wants, and ApplyVideoChromeVisibility is the one
+            // place that combines the two.
+            _videoChromeWanted = isVideos && hasVideoFolders;
+            ApplyVideoChromeVisibility();
 
             LibraryHeadingTabs.Visibility = isVideos && hasVideoFolders
                 ? Visibility.Visible
@@ -530,6 +551,26 @@ namespace mpv_winui.Domains.Playback
         private readonly Dictionary<string, FrameworkElement> _groupHeaders = new(StringComparer.Ordinal);
 
         /// <summary>
+        /// Whether the section wants its own toolbar (Play all and the sort).
+        ///
+        /// Held rather than assigned straight to <c>VideoChrome.Visibility</c>, because
+        /// the selection bar has a say in the same answer: while it is up the row is
+        /// hidden, and this field is what the header's half of that decision leaves
+        /// behind for <see cref="ApplyVideoChromeVisibility"/>.
+        /// </summary>
+        private bool _videoChromeWanted;
+
+        /// <summary>
+        /// Named playlists, for the add-to menu. Empty on purpose.
+        ///
+        /// A tuple rather than the store's own type: NamedPlaylist arrives with Task 12,
+        /// and a field declared against a type this tree does not have yet does not
+        /// compile. Task 12 replaces the tuple with the real type and fills this from
+        /// the store; the menu reads only <c>Name</c> either way.
+        /// </summary>
+        private IReadOnlyList<(string Name, int Count)> _namedPlaylists = [];
+
+        /// <summary>
         /// True while at least one visible card is ticked.
         ///
         /// Derived, never set from outside: <see cref="UpdateSelectionBar"/> writes it
@@ -572,6 +613,10 @@ namespace mpv_winui.Domains.Playback
 
             LibrarySelectionBar.Visibility = mode ? Visibility.Visible : Visibility.Collapsed;
 
+            // The bar stands where the library's own toolbar was, so the two are never
+            // on screen together: see ApplyVideoChromeVisibility.
+            ApplyVideoChromeVisibility();
+
             LibrarySelectionCount.Text = string.Format(
                 AppContext.AppLang.LibrarySelectionCount, selected);
 
@@ -581,7 +626,30 @@ namespace mpv_winui.Domains.Playback
 
             SelectionPlayButton.IsEnabled = hasSelection;
             SelectionQueueButton.IsEnabled = hasSelection;
-            SelectionPropertiesButton.IsEnabled = selected == 1;
+            SelectionShowQueueButton.IsEnabled = hasSelection;
+            SelectionAddToButton.IsEnabled = hasSelection;
+
+            // 更多 has to stay reachable: its one item is "show in folder", and the
+            // dimming is on the item rather than on the drop-down, so a two-file
+            // selection opens a menu that explains itself instead of a dead button.
+            SelectionMoreButton.IsEnabled = true;
+            SelectionPropertiesItem.IsEnabled = selected == 1;
+        }
+
+        /// <summary>
+        /// Play all and the sort, hidden while the selection bar is up.
+        ///
+        /// The reference's bar stands where that row was, and the two are about
+        /// different sets: Play all enqueues the whole list the ticks are a subset of.
+        /// One write point, called from the two decisions that make it - the section
+        /// header (does this section have a toolbar at all) and the tick count (is the
+        /// bar up) - so neither of them can leave the row visible on its own.
+        /// </summary>
+        private void ApplyVideoChromeVisibility()
+        {
+            VideoChrome.Visibility = _videoChromeWanted && !_selectionMode
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         /// <summary>
@@ -658,6 +726,103 @@ namespace mpv_winui.Domains.Playback
             }
 
             FileLauncher.ShellLaunchFileAsync(entry.Path).FireAndForget(OnException);
+        }
+
+        /// <summary>
+        /// The bar's 队列: brings the play queue on screen.
+        ///
+        /// It calls <see cref="ShowPlayQueue"/> rather than reaching for the section
+        /// itself. That method is already the page's one way to the queue - the menu
+        /// bar's Playlist item and the mpv menu's "playlist" command both go through it
+        /// - and it is what makes the library surface visible before the section
+        /// changes. A second path here would be a second place for that pair of steps
+        /// to get out of order, which on the queue is the difference between landing on
+        /// it and landing on the empty state of whatever section was up.
+        /// </summary>
+        private void SelectionShowQueue_Click(object sender, RoutedEventArgs e)
+        {
+            ShowPlayQueue();
+        }
+
+        /// <summary>
+        /// 「添加到」: the menu is rebuilt every time it opens.
+        ///
+        /// Not a static list, because its middle is the named playlists and those change
+        /// while the page is up (a list is created, renamed or deleted elsewhere). Built
+        /// at parse time, the menu would be a copy that drifts; built here, it cannot.
+        ///
+        /// The first item is the play queue and the last is "new playlist", so the two
+        /// fixed destinations sit at the ends and the named lists grow in the middle.
+        /// Today the middle is empty - the store arrives with Task 12 - which is why the
+        /// reference's two-item menu is exactly what this shows.
+        /// </summary>
+        private void SelectionAddTo_Opening(object? sender, object e)
+        {
+            if (SelectionAddToButton.Flyout is not MenuFlyout menu)
+            {
+                return;
+            }
+
+            menu.Items.Clear();
+
+            // The queue's own name from the navigation pane, not LibraryQueueAddTo:
+            // that key is the "Add to" label this very button wears, and an item that
+            // reads "Add to" inside a menu opened by "Add to" says nothing.
+            var queue = new MenuFlyoutItem { Text = AppContext.AppLang.ShellNavQueue };
+            queue.Click += SelectionAddToQueue_Click;
+            menu.Items.Add(queue);
+
+            menu.Items.Add(new MenuFlyoutSeparator());
+
+            foreach (var playlist in _namedPlaylists)
+            {
+                var item = new MenuFlyoutItem { Text = playlist.Name };
+                item.Click += (_, _) => AddSelectionToPlaylist(playlist.Name);
+                menu.Items.Add(item);
+            }
+
+            menu.Items.Add(new MenuFlyoutSeparator());
+
+            var create = new MenuFlyoutItem { Text = AppContext.AppLang.PlaylistCreate };
+            create.Click += SelectionAddToNewPlaylist_Click;
+            menu.Items.Add(create);
+        }
+
+        /// <summary>
+        /// 「添加到 → 播放队列」. Forwards to the bar's own 「加入播放队列」: one action with
+        /// two ways in, and this forwards rather than repeating the query so the two
+        /// cannot disagree about which files count as selected.
+        /// </summary>
+        private void SelectionAddToQueue_Click(object sender, RoutedEventArgs e)
+        {
+            SelectionQueue_Click(sender, e);
+        }
+
+        /// <summary>
+        /// Puts the ticked files into an existing named playlist.
+        ///
+        /// Unreachable today: <see cref="_namedPlaylists"/> is empty until Task 12 reads
+        /// the store, so the menu never builds the item that calls this. It exists now
+        /// so the loop in <see cref="SelectionAddTo_Opening"/> is real code rather than
+        /// a comment, and so Task 12 has one place to fill in rather than a loop to
+        /// write as well.
+        /// </summary>
+        private void AddSelectionToPlaylist(string name)
+        {
+            _logger.Info("selection: add to playlist '{Name}' is not wired yet (Task 12)", name);
+        }
+
+        /// <summary>
+        /// 「添加到 → 新建播放列表…」.
+        ///
+        /// The item is here from this task because the reference's menu ends with it;
+        /// the naming dialog and the store it writes through arrive with Tasks 12 and
+        /// 13. Until then this reports instead of pretending: a menu item that silently
+        /// does nothing is worse than one that logs why.
+        /// </summary>
+        private void SelectionAddToNewPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            _logger.Info("selection: create playlist is not wired yet (Tasks 12 and 13)");
         }
 
         /// <summary>

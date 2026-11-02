@@ -1193,104 +1193,163 @@
                             </DropDownButton>
                         </Grid>
                     </StackPanel>
-                </StackPanel>
 
-                <!-- The selection bar. Hidden until something is ticked: the
-                     reference reserves no space for it, and a permanently empty row
-                     would push the grid down for a state most visits never enter.
+                    <!-- The selection bar.
 
-                     The count and 清除 sit left, the actions right, and play is the
-                     accent button - the same emphasis the reference gives it. -->
-                <Border
-                    x:Name="LibrarySelectionBar"
-                    Grid.Row="1"
-                    Margin="48,0,48,8"
-                    Padding="16,8"
-                    VerticalAlignment="Top"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Visibility="Collapsed">
-                    <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                         It is a child of THIS header StackPanel, not of LibraryHost's
+                         content row, and that is the fix for "the bar covers the
+                         heading". The header is Grid.Row="0" with Height="Auto", so a
+                         bar in it takes its own space and the row below moves down. As a
+                         direct child of the content row with VerticalAlignment="Top" it
+                         drew OVER the topmost group heading: in the task 6 screenshot the
+                         words for the group's title sat half behind the count and the
+                         clear button. A child of an Auto row cannot reach into the next
+                         row, so the overlap is gone by construction rather than by a
+                         number.
 
-                        <StackPanel
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            Orientation="Horizontal"
-                            Spacing="{StaticResource MpvSpaceS}">
-                            <FontIcon
-                                FontSize="14"
-                                Glyph="&#xE73E;"
-                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock
-                                x:Name="LibrarySelectionCount"
+                         It has no horizontal margin of its own, so it takes the 32 DIP
+                         gutter this StackPanel already carries and lines up with the
+                         heading, the subtitle and the cards. It used to carry
+                         Margin="48,0,48,8", which put its left edge 16 DIP inside every
+                         other left edge on the page.
+
+                         While it is up it REPLACES VideoChrome (Play all and the sort):
+                         the reference's toolbar stands where that row was, and Play all
+                         over a subset of the list is an action about a different set of
+                         files. That rule lives in ApplyVideoChromeVisibility. -->
+                    <Border
+                        x:Name="LibrarySelectionBar"
+                        Margin="0,16,0,0"
+                        Padding="16,8"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Visibility="Collapsed">
+                        <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel
+                                Grid.Column="0"
                                 VerticalAlignment="Center"
-                                Style="{StaticResource BodyTextBlockStyle}" />
-                            <Button
-                                Padding="4,0"
-                                AutomationProperties.LabeledBy="{Binding ElementName=LibrarySelectionClearText}"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Click="SelectionClear_Click">
-                                <TextBlock
-                                    x:Name="LibrarySelectionClearText"
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <FontIcon
+                                    FontSize="{StaticResource MpvInlineIconSize}"
                                     Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                    Style="{StaticResource CaptionTextBlockStyle}" />
-                            </Button>
-                        </StackPanel>
+                                    Glyph="&#xE73E;" />
+                                <TextBlock
+                                    x:Name="LibrarySelectionCount"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource BodyTextBlockStyle}" />
+                                <Button
+                                    Padding="4,0"
+                                    AutomationProperties.LabeledBy="{Binding ElementName=LibrarySelectionClearText}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="SelectionClear_Click">
+                                    <TextBlock
+                                        x:Name="LibrarySelectionClearText"
+                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}" />
+                                </Button>
+                            </StackPanel>
 
-                        <StackPanel
-                            Grid.Column="1"
-                            Orientation="Horizontal"
-                            Spacing="{StaticResource MpvSpaceS}">
-                            <Button
-                                x:Name="SelectionPlayButton"
-                                Padding="{StaticResource MpvActionButtonPadding}"
-                                Click="SelectionPlay_Click"
-                                Style="{StaticResource AccentButtonStyle}">
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    Spacing="{StaticResource MpvSpaceS}">
-                                    <FontIcon FontSize="12" Glyph="&#xE768;" />
+                            <!-- The actions, in the reference's order: play (accent), add
+                                 to the play queue, the queue itself, then the two
+                                 drop-downs. 队列 reuses the glyph the navigation pane
+                                 already gives the queue, so the two affordances for one
+                                 place wear one mark. -->
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <Button
+                                    x:Name="SelectionPlayButton"
+                                    Padding="{StaticResource MpvActionButtonPadding}"
+                                    Click="SelectionPlay_Click"
+                                    Style="{StaticResource AccentButtonStyle}">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <FontIcon
+                                            FontSize="{StaticResource MpvInlineIconSize}"
+                                            Glyph="&#xE768;" />
+                                        <TextBlock
+                                            x:Name="SelectionPlayText"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button
+                                    x:Name="SelectionQueueButton"
+                                    Padding="{StaticResource MpvActionButtonPadding}"
+                                    Click="SelectionQueue_Click">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <FontIcon
+                                            FontSize="{StaticResource MpvInlineIconSize}"
+                                            Glyph="&#xE710;" />
+                                        <TextBlock
+                                            x:Name="SelectionQueueText"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button
+                                    x:Name="SelectionShowQueueButton"
+                                    Padding="{StaticResource MpvActionButtonPadding}"
+                                    Click="SelectionShowQueue_Click">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="{StaticResource MpvSpaceS}">
+                                        <FontIcon
+                                            FontSize="{StaticResource MpvInlineIconSize}"
+                                            Glyph="&#xEA37;" />
+                                        <TextBlock
+                                            x:Name="SelectionShowQueueText"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <!-- The flyout is EMPTY here on purpose: its items are
+                                     built in SelectionAddTo_Opening, because what it
+                                     lists (the named playlists) changes while the page
+                                     is up and a list frozen at parse time would be a
+                                     copy that drifts. -->
+                                <DropDownButton
+                                    x:Name="SelectionAddToButton"
+                                    Padding="{StaticResource MpvActionButtonPaddingTight}">
+                                    <DropDownButton.Flyout>
+                                        <MenuFlyout Opening="SelectionAddTo_Opening" />
+                                    </DropDownButton.Flyout>
                                     <TextBlock
-                                        x:Name="SelectionPlayText"
+                                        x:Name="SelectionAddToText"
                                         VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                            <Button
-                                x:Name="SelectionQueueButton"
-                                Padding="{StaticResource MpvActionButtonPadding}"
-                                Click="SelectionQueue_Click">
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    Spacing="{StaticResource MpvSpaceS}">
-                                    <FontIcon FontSize="12" Glyph="&#xE710;" />
+                                </DropDownButton>
+                                <DropDownButton
+                                    x:Name="SelectionMoreButton"
+                                    Padding="{StaticResource MpvActionButtonPaddingTight}">
+                                    <DropDownButton.Flyout>
+                                        <MenuFlyout>
+                                            <!-- What used to be a button of its own in
+                                                 this bar. Same action, same key; the
+                                                 reference keeps it under 更多. -->
+                                            <MenuFlyoutItem
+                                                x:Name="SelectionPropertiesItem"
+                                                Click="SelectionProperties_Click" />
+                                        </MenuFlyout>
+                                    </DropDownButton.Flyout>
                                     <TextBlock
-                                        x:Name="SelectionQueueText"
+                                        x:Name="SelectionMoreText"
                                         VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                            <Button
-                                x:Name="SelectionPropertiesButton"
-                                Padding="{StaticResource MpvActionButtonPadding}"
-                                Click="SelectionProperties_Click">
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    Spacing="{StaticResource MpvSpaceS}">
-                                    <FontIcon FontSize="12" Glyph="&#xE946;" />
-                                    <TextBlock
-                                        x:Name="SelectionPropertiesText"
-                                        VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                                </DropDownButton>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
 
                 <ScrollViewer
                     x:Name="LibraryScroll"

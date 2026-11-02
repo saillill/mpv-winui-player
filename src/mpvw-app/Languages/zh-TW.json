@@ -1427,6 +1427,8 @@
   "LibrarySelectionPlay": "播放",
   "LibrarySelectionQueue": "加到播放佇列",
   "LibrarySelectionProperties": "在資料夾中顯示",
+  "LibrarySelectionShowQueue": "佇列",
+  "PlaylistCreate": "新建播放列表…",
   "SectionLibraryFolders": "Library folders",
   "SectionDescLibraryFolders": "The folders each library scans. Untick one to remove it from the library.",
   "SettingsVideoLibraryFolders": "Video library folders",

@@ -1427,6 +1427,8 @@
   "LibrarySelectionPlay": "Wiedergeben",
   "LibrarySelectionQueue": "Zur Warteschlange hinzufügen",
   "LibrarySelectionProperties": "Im Ordner anzeigen",
+  "LibrarySelectionShowQueue": "Warteschlange",
+  "PlaylistCreate": "新建播放列表…",
   "SectionLibraryFolders": "Library folders",
   "SectionDescLibraryFolders": "The folders each library scans. Untick one to remove it from the library.",
   "SettingsVideoLibraryFolders": "Video library folders",

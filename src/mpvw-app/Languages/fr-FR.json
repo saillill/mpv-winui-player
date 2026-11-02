@@ -1427,6 +1427,8 @@
   "LibrarySelectionPlay": "Lire",
   "LibrarySelectionQueue": "Ajouter à la file de lecture",
   "LibrarySelectionProperties": "Afficher dans le dossier",
+  "LibrarySelectionShowQueue": "File d'attente",
+  "PlaylistCreate": "新建播放列表…",
   "SectionLibraryFolders": "Library folders",
   "SectionDescLibraryFolders": "The folders each library scans. Untick one to remove it from the library.",
   "SettingsVideoLibraryFolders": "Video library folders",

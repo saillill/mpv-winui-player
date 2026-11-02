@@ -1427,6 +1427,8 @@
   "LibrarySelectionPlay": "再生",
   "LibrarySelectionQueue": "再生キューに追加",
   "LibrarySelectionProperties": "フォルダーで表示",
+  "LibrarySelectionShowQueue": "キュー",
+  "PlaylistCreate": "新建播放列表…",
   "SectionLibraryFolders": "Library folders",
   "SectionDescLibraryFolders": "The folders each library scans. Untick one to remove it from the library.",
   "SettingsVideoLibraryFolders": "Video library folders",

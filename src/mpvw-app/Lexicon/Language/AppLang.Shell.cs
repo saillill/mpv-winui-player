@@ -167,6 +167,22 @@ namespace mpv_winui.Lexicon.Language
         /// <summary>Shows the one ticked file in Explorer.</summary>
         public string LibrarySelectionProperties { get; set; } = "Show in folder";
 
+        /// <summary>
+        /// The bar's queue action: brings the play queue on screen.
+        ///
+        /// Not <see cref="ShellNavQueue"/>: that one is the navigation pane's label and
+        /// the queue page's heading ("Play queue"), while the bar says the short word
+        /// the reference uses, because five actions have to fit on one line.
+        /// </summary>
+        public string LibrarySelectionShowQueue { get; set; } = "Queue";
+
+        /// <summary>
+        /// The last item of the selection bar's 添加到 menu. The dialog it opens arrives
+        /// with Task 13 and the store behind it with Task 12; the key is here now because
+        /// the menu item is, and because a menu item with no words is not a menu item.
+        /// </summary>
+        public string PlaylistCreate { get; set; } = "New playlist…";
+
         public string LibraryEmptyHomeTitle { get; set; } = "No recent media";
 
         public string LibraryEmptyHomeDescription { get; set; } = "Media you play shows up here.";

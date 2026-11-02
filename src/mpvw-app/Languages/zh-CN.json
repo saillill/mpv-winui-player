@@ -2226,6 +2226,8 @@
   "LibrarySelectionPlay": "播放",
   "LibrarySelectionQueue": "加入播放队列",
   "LibrarySelectionProperties": "在文件夹中显示",
+  "LibrarySelectionShowQueue": "队列",
+  "PlaylistCreate": "新建播放列表…",
   "SectionLibraryFolders": "媒体库文件夹",
   "SectionDescLibraryFolders": "各媒体库扫描的文件夹。取消勾选即可从媒体库中移除。",
   "SettingsVideoLibraryFolders": "视频库文件夹",

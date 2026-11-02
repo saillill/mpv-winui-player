@@ -1427,6 +1427,8 @@
   "LibrarySelectionPlay": "Reproducir",
   "LibrarySelectionQueue": "Agregar a la cola de reproducción",
   "LibrarySelectionProperties": "Mostrar en la carpeta",
+  "LibrarySelectionShowQueue": "Cola",
+  "PlaylistCreate": "新建播放列表…",
   "SectionLibraryFolders": "Library folders",
   "SectionDescLibraryFolders": "The folders each library scans. Untick one to remove it from the library.",
   "SettingsVideoLibraryFolders": "Video library folders",

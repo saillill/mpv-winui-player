@@ -1427,6 +1427,8 @@
   "LibrarySelectionPlay": "재생",
   "LibrarySelectionQueue": "재생 대기열에 추가",
   "LibrarySelectionProperties": "폴더에서 보기",
+  "LibrarySelectionShowQueue": "대기열",
+  "PlaylistCreate": "新建播放列表…",
   "SectionLibraryFolders": "Library folders",
   "SectionDescLibraryFolders": "The folders each library scans. Untick one to remove it from the library.",
   "SettingsVideoLibraryFolders": "Video library folders",
