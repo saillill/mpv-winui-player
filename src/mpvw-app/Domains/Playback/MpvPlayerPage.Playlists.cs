@@ -231,18 +231,21 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private async Task RenameNamedPlaylistAsync(string from)
         {
-            var typed = await PromptForPlaylistNameAsync(from, candidate =>
-            {
-                if (string.Equals(candidate, from, StringComparison.Ordinal))
+            var typed = await PromptForPlaylistNameAsync(
+                AppContext.AppLang.PlaylistRename,
+                from,
+                candidate =>
                 {
-                    return null;
-                }
+                    if (string.Equals(candidate, from, StringComparison.Ordinal))
+                    {
+                        return null;
+                    }
 
-                var taken = _playlistStore.List()
-                    .Any(list => string.Equals(list.Name, candidate, StringComparison.CurrentCultureIgnoreCase));
+                    var taken = _playlistStore.List()
+                        .Any(list => string.Equals(list.Name, candidate, StringComparison.CurrentCultureIgnoreCase));
 
-                return taken ? AppContext.AppLang.PlaylistNameTaken : null;
-            });
+                    return taken ? AppContext.AppLang.PlaylistNameTaken : null;
+                });
 
             if (typed is null || string.Equals(typed, from, StringComparison.Ordinal))
             {

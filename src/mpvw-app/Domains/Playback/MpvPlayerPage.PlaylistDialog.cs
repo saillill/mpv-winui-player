@@ -22,12 +22,21 @@ namespace mpv_winui.Domains.Playback
         /// <summary>
         /// Asks for a name, returning null when the user backed out.
         ///
+        /// <paramref name="caption"/> is both the dialog's title and its primary
+        /// button. One word for the two because they are the same act, and
+        /// because a dialog whose title says one thing and whose button says
+        /// another makes the user re-read to find out what pressing it does.
+        /// It started out hard-coded to <c>PlaylistCreate</c>, which meant the
+        /// rename path opened a dialog headed 「新建播放列表…」 over a row that
+        /// already existed - the defect this parameter exists to remove.
+        ///
         /// <paramref name="extraCheck"/> runs after the built-in rules and returns
         /// a message when the name is unusable for a reason this method cannot
         /// know - a rename landing on an existing list, say. Returning null from
         /// it means "fine".
         /// </summary>
         private async Task<string?> PromptForPlaylistNameAsync(
+            string caption,
             string initial,
             Func<string, string?>? extraCheck = null)
         {
@@ -53,9 +62,9 @@ namespace mpv_winui.Domains.Playback
 
             var dialog = new ContentDialog
             {
-                Title = lang.PlaylistCreate,
+                Title = caption,
                 Content = panel,
-                PrimaryButtonText = lang.PlaylistCreate,
+                PrimaryButtonText = caption,
                 CloseButtonText = lang.Cancel,
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot,
@@ -107,6 +116,7 @@ namespace mpv_winui.Domains.Playback
         private async Task CreateEmptyPlaylistAsync()
         {
             var typed = await PromptForPlaylistNameAsync(
+                AppContext.AppLang.PlaylistCreate,
                 string.Empty,
                 candidate => _playlistStore.List().Any(
                     list => string.Equals(list.Name, candidate, StringComparison.CurrentCultureIgnoreCase))
