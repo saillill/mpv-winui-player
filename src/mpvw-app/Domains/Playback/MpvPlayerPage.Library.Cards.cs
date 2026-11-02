@@ -662,11 +662,13 @@ namespace mpv_winui.Domains.Playback
                         .FireAndForget(OnException);
                     break;
                 case "select":
-                    SetSelectionMode(true);
-
                     // The card that opened the menu starts ticked: choosing "select"
                     // on a specific card means that card, and starting with nothing
                     // ticked makes the click look like it did nothing.
+                    //
+                    // No mode switch beside this: the tick itself is what puts the
+                    // page in the mode, and UpdateSelectionBar derives it from the
+                    // count.
                     entry.SetSelected(true);
 
                     UpdateSelectionBar();

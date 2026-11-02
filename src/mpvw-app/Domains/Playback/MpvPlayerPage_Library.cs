@@ -529,47 +529,28 @@ namespace mpv_winui.Domains.Playback
         /// <summary>Where each letter's first group header lives. Rebuilt with the groups.</summary>
         private readonly Dictionary<string, FrameworkElement> _groupHeaders = new(StringComparer.Ordinal);
 
-        /// <summary>True while cards are being ticked.</summary>
+        /// <summary>
+        /// True while at least one visible card is ticked.
+        ///
+        /// Derived, never set from outside: <see cref="UpdateSelectionBar"/> writes it
+        /// from the tick count and reads it back only to notice the moment the mode
+        /// flips, so every card's tick box can be told once instead of on every toggle.
+        /// A mode that could be switched on by itself is what let it outlive the ticks.
+        /// </summary>
         private bool _selectionMode;
 
         /// <summary>
-        /// Enters or leaves selection mode.
+        /// Reads the ticks, then brings the bar and every card's tick box in line with
+        /// them.
         ///
-        /// The entries' own flag is what the tick boxes bind to, so both the flag and
-        /// the visible bar move together - a mode that was on while the bar was hidden
-        /// would leave ticks the user could not act on.
-        /// </summary>
-        /// <remarks>
-        /// Leaving clears every tick. The reference does the same, and keeping them would
-        /// mean a mode re-entered later started with a selection nobody could see, from a
-        /// list that may have changed shape in between.
-        /// </remarks>
-        private void SetSelectionMode(bool on)
-        {
-            if (_selectionMode == on)
-            {
-                return;
-            }
-
-            _selectionMode = on;
-
-            foreach (var entry in _visibleEntries)
-            {
-                entry.SetSelectionMode(on);
-
-                if (!on)
-                {
-                    entry.SetSelected(false);
-                }
-            }
-
-            UpdateSelectionBar();
-        }
-
-        /// <summary>
-        /// Refreshes the selection bar from the current ticks.
+        /// The mode IS the count. This is the one place it is decided, and that is what
+        /// keeps the two reported behaviours from being rules that can disagree: one or
+        /// more ticked means the bar is up and every card shows its box; none ticked
+        /// means the bar is gone and the cards are back to their normal hover. Unticking
+        /// the last card therefore leaves the mode by itself - there is no exit to look
+        /// for.
         ///
-        /// Called after every toggle and after the mode changes, rather than from a
+        /// Called after every toggle and after the labels change, rather than from a
         /// collection-changed handler: the ticks live on the entries, so there is no
         /// collection to observe.
         /// </summary>
@@ -577,9 +558,19 @@ namespace mpv_winui.Domains.Playback
         {
             var selected = _visibleEntries.Count(entry => entry.IsSelected);
 
-            LibrarySelectionBar.Visibility = _selectionMode && selected > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            var mode = selected > 0;
+
+            if (mode != _selectionMode)
+            {
+                _selectionMode = mode;
+
+                foreach (var entry in _visibleEntries)
+                {
+                    entry.SetSelectionMode(mode);
+                }
+            }
+
+            LibrarySelectionBar.Visibility = mode ? Visibility.Visible : Visibility.Collapsed;
 
             LibrarySelectionCount.Text = string.Format(
                 AppContext.AppLang.LibrarySelectionCount, selected);
@@ -594,19 +585,27 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
-        /// Leaves selection mode and clears every tick.
+        /// The bar's 清除: clears every tick, which is how the mode is left.
         ///
-        /// The reference's 清除 does both: the bar goes away and the cards stop showing
-        /// tick boxes. Unticking alone would leave the mode on with nothing selected - a
-        /// state the user had already asked to leave, still on, and reachable no other
-        /// way back out except through another card's menu.
+        /// There is no separate "leave" to call any more - the mode is the count, so
+        /// unticking everything is the exit. It sweeps the visible entries rather than
+        /// remembering which ones were ticked, for the same reason the bar counts them:
+        /// the entries are the only record, and a filter can leave the list with entries
+        /// that are no longer on screen.
         ///
         /// Escape is not wired here on purpose: this page forwards keystrokes to mpv
         /// (MpvPlayerPage_InputForwarding), so an Escape handler would compete with the
         /// player's own binding instead of sitting above it.
         /// </summary>
-        private void SelectionClear_Click(object sender, RoutedEventArgs e) =>
-            SetSelectionMode(false);
+        private void SelectionClear_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var entry in _visibleEntries)
+            {
+                entry.SetSelected(false);
+            }
+
+            UpdateSelectionBar();
+        }
 
         /// <summary>Plays the first ticked file and queues the rest.</summary>
         private void SelectionPlay_Click(object sender, RoutedEventArgs e)
@@ -975,6 +974,15 @@ namespace mpv_winui.Domains.Playback
 
             _visibleEntries = cards;
             LibraryGrid.ItemsSource = cards;
+
+            // The mode is the count OF THE VISIBLE CARDS, so replacing that list is a
+            // change to it. Switching section or typing a search while a card is ticked
+            // drops the tick with the list it belonged to, and without this the bar would
+            // stay up over "已选择 1 项" with nothing on screen ticked - the very state
+            // this model exists to make unreachable. Cheap: one pass over cards already
+            // in memory, and the entries' own flags are only rewritten when the mode
+            // actually flips.
+            UpdateSelectionBar();
 
             // The Songs tab is a flat grid of SQUARE sleeves, and the markup's
             // cell is built for a 16:9 frame. Dropping a square tile into it made

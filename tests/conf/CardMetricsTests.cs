@@ -605,6 +605,38 @@ public class CardMetricsTests
     }
 
     /// <summary>
+    /// The selection mode is the selection, not a switch beside it.
+    ///
+    /// Reported twice, in this order: "0 selected means the bar is gone and the
+    /// cards go back to their normal hover", then "with one selected the others
+    /// show their boxes too". Both hold only if unticking the last card leaves the
+    /// mode - otherwise the mode is on with nothing on screen to say so, and the
+    /// only way out is a menu item the user has no reason to look for.
+    ///
+    /// Asserted from the source because the state lives behind WinUI types the
+    /// test project cannot reference, and a comment saying "mode follows the count"
+    /// is exactly the kind of thing that stops being true.
+    /// </summary>
+    [Test]
+    public void SelectionModeFollowsTheCountRatherThanASwitch()
+    {
+        var source = File.ReadAllText(PageLibrarySourcePath);
+
+        var body = MethodBody(source, "UpdateSelectionBar");
+
+        Assert.That(
+            body.Contains("_selectionMode =", StringComparison.Ordinal),
+            "UpdateSelectionBar must be the place the mode is decided");
+
+        // No other method may assign the flag: SetSelectionMode is gone.
+        Assert.That(
+            source.Contains("private void SetSelectionMode", StringComparison.Ordinal),
+            Is.False,
+            "there must be no SetSelectionMode(bool): a public on/off is what let the mode " +
+            "outlive the ticks");
+    }
+
+    /// <summary>
     /// The XAML under test, located without assuming where the binary runs.
     ///
     /// <para>A plain walk up from <c>AppContext.BaseDirectory</c> is not enough:
@@ -713,6 +745,167 @@ public class CardMetricsTests
             throw new FileNotFoundException(
                 "MpvPlayerPage.xaml not found. Tried:" + Environment.NewLine + string.Join(Environment.NewLine, tried));
         }
+    }
+
+    /// <summary>
+    /// The page's library half, where the selection mode is decided. Located the
+    /// same way as <see cref="PageXamlPath"/>: from this file's compiled source
+    /// path first, then a walk up from the binary.
+    ///
+    /// <para>This is source, not markup, and it is read for the same reason the
+    /// markup is: the state behind it is a page field over WinUI controls, and the
+    /// test project targets <c>net10.0</c>, so it cannot reference the assembly the
+    /// field lives in.</para>
+    /// </summary>
+    private static string PageLibrarySourcePath
+    {
+        get
+        {
+            const string Relative =
+                @"src\mpvw-app\Domains\Playback\MpvPlayerPage_Library.cs";
+
+            var tried = new List<string>();
+
+            var fromSource = Path.GetDirectoryName(ThisFilePath());
+            if (!string.IsNullOrEmpty(fromSource))
+            {
+                var candidate = Path.GetFullPath(
+                    Path.Combine(fromSource, "..", "..", Relative));
+                tried.Add(candidate);
+
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+            while (dir is not null)
+            {
+                var candidate = Path.Combine(dir.FullName, Relative);
+                tried.Add(candidate);
+
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+
+                dir = dir.Parent;
+            }
+
+            throw new FileNotFoundException(
+                "MpvPlayerPage_Library.cs not found. Tried:" + Environment.NewLine +
+                string.Join(Environment.NewLine, tried));
+        }
+    }
+
+    /// <summary>
+    /// The braced body of the method named <paramref name="name"/>: from its
+    /// opening brace through the matching close.
+    ///
+    /// <para><b>Strict on purpose.</b> It throws rather than returning an empty
+    /// string: a helper that quietly answers "" would make the assertion on the
+    /// body fail for a reason that has nothing to do with the code under test, and
+    /// a body-only search that never finds its method is indistinguishable from a
+    /// method that no longer assigns anything.</para>
+    ///
+    /// <para>The name is searched by occurrence rather than by its first one,
+    /// because the first occurrences in this file are CALL sites: the page calls
+    /// <c>UpdateSelectionBar()</c> from other methods before the declaration itself
+    /// appears. An occurrence is the declaration only when its parameter list is
+    /// followed directly by <c>{</c>; a call is followed by <c>;</c>, which is what
+    /// rules it out.</para>
+    /// </summary>
+    private static string MethodBody(string source, string name)
+    {
+        var at = source.IndexOf(name, StringComparison.Ordinal);
+
+        while (at >= 0)
+        {
+            var open = BraceAfterParameterList(source, at + name.Length);
+
+            if (open >= 0)
+            {
+                var depth = 0;
+
+                for (var i = open; i < source.Length; i++)
+                {
+                    if (source[i] == '{')
+                    {
+                        depth++;
+                    }
+                    else if (source[i] == '}')
+                    {
+                        depth--;
+
+                        if (depth == 0)
+                        {
+                            return source[open..(i + 1)];
+                        }
+                    }
+                }
+
+                Assert.Fail($"{name}: its opening brace at offset {open} is never closed");
+            }
+
+            at = source.IndexOf(name, at + name.Length, StringComparison.Ordinal);
+        }
+
+        Assert.Fail(
+            $"no declaration of {name} found in the page source - either the method was " +
+            "renamed or it is gone, and neither is something this test can read past");
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// The offset of the <c>{</c> that opens a declaration whose name ends at
+    /// <paramref name="afterName"/>, or -1 when what follows is a call rather than
+    /// a declaration.
+    /// </summary>
+    private static int BraceAfterParameterList(string source, int afterName)
+    {
+        var i = afterName;
+        while (i < source.Length && char.IsWhiteSpace(source[i]))
+        {
+            i++;
+        }
+
+        if (i >= source.Length || source[i] != '(')
+        {
+            return -1;
+        }
+
+        var depth = 0;
+
+        for (; i < source.Length; i++)
+        {
+            if (source[i] == '(')
+            {
+                depth++;
+            }
+            else if (source[i] == ')')
+            {
+                depth--;
+
+                if (depth == 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (i >= source.Length)
+        {
+            return -1;
+        }
+
+        i++;
+        while (i < source.Length && char.IsWhiteSpace(source[i]))
+        {
+            i++;
+        }
+
+        return i < source.Length && source[i] == '{' ? i : -1;
     }
 
     /// <summary>
