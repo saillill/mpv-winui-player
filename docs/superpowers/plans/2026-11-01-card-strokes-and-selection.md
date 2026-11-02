@@ -1000,6 +1000,11 @@ git commit -m "Cards: the tick box is the way into selection mode, and it surviv
 - Consumes: Task 8 的可见性
 - Produces: 工具栏新增 `SelectionAddToButton`（`DropDownButton`）与 `SelectionMoreButton`
 
+**顺带修一个既有缺陷（Task 6 的截图暴露的）**：工具栏现在是 `Grid.Row="1"` + `VerticalAlignment="Top"`，
+所以它**压**在分区标题上——`task6-a-selected-pointer-away.png` 里「最近观看」被
+「已选择 1 项 · 清除」挡掉一半。工具栏出现时应当把内容推下去，而不是浮在上面。
+这一条不在用户最初的六条需求里，但重做工具栏时不可能不碰它。
+
 - [ ] **Step 1: 按截图排按钮**
 
 工具栏从左到右：`✓ 已选择 N 项 · 清除`（左），右侧依次 `播放`（Accent）、`加入播放队列`、`队列`、`添加到`（DropDownButton）、`更多`（DropDownButton）。现有 `SelectionPropertiesButton`（「在文件夹中显示」「属性」）移进 `更多` 的菜单。
