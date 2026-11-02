@@ -87,6 +87,15 @@
             <SolidColorBrush
                 x:Key="MpvMusicArtworkFallbackBrush"
                 Color="#1A000000" />
+            <SolidColorBrush
+                x:Key="MpvCardCoverStrokeBrush"
+                Color="#14000000" />
+            <SolidColorBrush
+                x:Key="MpvCardFrameBrush"
+                Color="#33000000" />
+            <SolidColorBrush
+                x:Key="MpvCardButtonRingBrush"
+                Color="#73000000" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush
@@ -146,6 +155,15 @@
             <SolidColorBrush
                 x:Key="MpvMusicArtworkFallbackBrush"
                 Color="#1AFFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvCardCoverStrokeBrush"
+                Color="#14FFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvCardFrameBrush"
+                Color="#33FFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvCardButtonRingBrush"
+                Color="#73FFFFFF" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
             <!-- The third dictionary. Light and Dark above each define the same 12 keys and
@@ -203,6 +221,15 @@
             <SolidColorBrush
                 x:Key="MpvMusicArtworkFallbackBrush"
                 Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush
+                x:Key="MpvCardCoverStrokeBrush"
+                Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush
+                x:Key="MpvCardFrameBrush"
+                Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush
+                x:Key="MpvCardButtonRingBrush"
+                Color="{ThemeResource SystemColorWindowTextColor}" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
     <x:Double x:Key="ToggleSwitchPreContentMargin">4</x:Double>
