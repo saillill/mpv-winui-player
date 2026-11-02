@@ -43,18 +43,18 @@ spec 暗示、但没有任务的测试直接覆盖、且最容易咬到真实用
 
 | 文件 | 职责 | 动作 |
 |---|---|---|
-| `src/mpv-app/Domains/Playback/Cards/CardMetrics.cs` | 卡片几何常量：圆角、按钮、外框、新增网格间距 | 修改 |
-| `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml` | 卡片视觉树：外框留槽、按钮缩小、勾选框 | 修改 |
-| `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml.cs` | 选中态与悬停态的状态机 | 修改 |
-| `src/mpv-app/Styles/Styles.xaml` | 三个新描边令牌 × 三套字典 | 修改 |
-| `src/mpv-app/Domains/Playback/MpvPlayerPage.xaml` | 网格默认布局、选择工具栏 | 修改 |
-| `src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Video.cs` | `CardLayout()` 间距 | 修改 |
-| `src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Music.cs` | `AlbumCardLayout()` 间距 | 修改 |
-| `src/mpv-app/Domains/Playback/MpvPlayerPage_Library.cs` | 选择模式状态机、分区路由 | 修改 |
-| `src/mpv-app/Domains/Playback/MpvPlayerPage.Playlists.cs` | 播放列表分区的行列表构建 | 新建 |
-| `src/mpv-app/Domains/Playlist/NamedPlaylistFile.cs` | `.m3u` 解析、格式化、名字校验（纯逻辑，可单测） | 新建 |
-| `src/mpv-app/Domains/Playlist/NamedPlaylistStore.cs` | 列表的读/写/改名/删除（IO + `AppData`） | 新建 |
-| `src/mpv-app/Shell/MainWindow.xaml.cs` | `ShellSections` 加回 `playlists` | 修改 |
+| `src/mpvw-app/Domains/Playback/Cards/CardMetrics.cs` | 卡片几何常量：圆角、按钮、外框、新增网格间距 | 修改 |
+| `src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml` | 卡片视觉树：外框留槽、按钮缩小、勾选框 | 修改 |
+| `src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml.cs` | 选中态与悬停态的状态机 | 修改 |
+| `src/mpvw-app/Styles/Styles.xaml` | 三个新描边令牌 × 三套字典 | 修改 |
+| `src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml` | 网格默认布局、选择工具栏 | 修改 |
+| `src/mpvw-app/Domains/Playback/MpvPlayerPage.Library.Video.cs` | `CardLayout()` 间距 | 修改 |
+| `src/mpvw-app/Domains/Playback/MpvPlayerPage.Library.Music.cs` | `AlbumCardLayout()` 间距 | 修改 |
+| `src/mpvw-app/Domains/Playback/MpvPlayerPage_Library.cs` | 选择模式状态机、分区路由 | 修改 |
+| `src/mpvw-app/Domains/Playback/MpvPlayerPage.Playlists.cs` | 播放列表分区的行列表构建 | 新建 |
+| `src/mpvw-app/Domains/Playlist/NamedPlaylistFile.cs` | `.m3u` 解析、格式化、名字校验（纯逻辑，可单测） | 新建 |
+| `src/mpvw-app/Domains/Playlist/NamedPlaylistStore.cs` | 列表的读/写/改名/删除（IO + `AppData`） | 新建 |
+| `src/mpvw-app/Shell/MainWindow.xaml.cs` | `ShellSections` 加回 `playlists` | 修改 |
 | `tests/conf/CardMetricsTests.cs` | 几何断言跟着改 | 修改 |
 | `tests/conf/NamedPlaylistFileTests.cs` | `.m3u` 解析/格式化 | 新建 |
 
@@ -70,7 +70,7 @@ spec 暗示、但没有任务的测试直接覆盖、且最容易咬到真实用
 
 - [ ] **Step 1: 把外框的 Margin 改成负值**
 
-改 `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml:82`：
+改 `src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:82`：
 
 ```xml
 Margin="-6"
@@ -101,7 +101,7 @@ Expected: 外框的四条边都可见，左侧和上方没有被网格边界切�
 - [ ] **Step 5: 还原**
 
 ```bash
-git checkout -- src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml
+git checkout -- src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml
 ```
 
 ---
@@ -109,7 +109,7 @@ git checkout -- src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml
 ### Task 1: 三个描边令牌 × 三套主题字典
 
 **Files:**
-- Modify: `src/mpv-app/Styles/Styles.xaml`（Light 段、Dark 段、HighContrast 段各加三条）
+- Modify: `src/mpvw-app/Styles/Styles.xaml`（Light 段、Dark 段、HighContrast 段各加三条）
 - Test: 无自动化（构建通过 + Task 2 的断言间接覆盖）
 
 **Interfaces:**
@@ -158,7 +158,7 @@ Expected: 0 错误 0 警告。
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/mpv-app/Styles/Styles.xaml
+git add src/mpvw-app/Styles/Styles.xaml
 git commit -m "Cards: three stroke tokens, one per theme, so a translucent edge can follow the theme"
 ```
 
@@ -167,7 +167,7 @@ git commit -m "Cards: three stroke tokens, one per theme, so a translucent edge 
 ### Task 2: 卡片几何常量
 
 **Files:**
-- Modify: `src/mpv-app/Domains/Playback/Cards/CardMetrics.cs`
+- Modify: `src/mpvw-app/Domains/Playback/Cards/CardMetrics.cs`
 - Test: `tests/conf/CardMetricsTests.cs:62-90`（`TokensAreTheDocumentedValues`）
 
 **Interfaces:**
@@ -240,7 +240,7 @@ public const double CornerInset = 8;
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/Cards/CardMetrics.cs tests/conf/CardMetricsTests.cs
+git add src/mpvw-app/Domains/Playback/Cards/CardMetrics.cs tests/conf/CardMetricsTests.cs
 git commit -m "Cards: bigger radii, smaller hover discs, and a frame radius derived from the outward push"
 ```
 
@@ -249,7 +249,7 @@ git commit -m "Cards: bigger radii, smaller hover discs, and a frame radius deri
 ### Task 3: 卡片视觉树 —— 外框进留槽、按钮缩小、勾选框
 
 **Files:**
-- Modify: `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml`
+- Modify: `src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml`
 - Test: `tests/conf/CardMetricsTests.cs:259-289`（`TheHoverFrameIsWhiteAndWrapsTheWholeCard`）
 
 **Interfaces:**
@@ -390,7 +390,7 @@ Expected: PASS，`check-xaml` 退出 0。
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml src/mpv-app/Domains/Playback/Cards/CardMetrics.cs tests/conf/CardMetricsTests.cs
+git add src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml src/mpvw-app/Domains/Playback/Cards/CardMetrics.cs tests/conf/CardMetricsTests.cs
 git commit -m "Cards: the frame lives in a permanent gutter, because the grid cell clips what hangs outside it"
 ```
 
@@ -399,7 +399,7 @@ git commit -m "Cards: the frame lives in a permanent gutter, because the grid ce
 ### Task 4: 常态封面描边
 
 **Files:**
-- Modify: `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml`（`MediaBorder`，`:96-99`）
+- Modify: `src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml`（`MediaBorder`，`:96-99`）
 - Test: `tests/conf/CardMetricsTests.cs`（新增一条）
 
 **Interfaces:**
@@ -467,7 +467,7 @@ BorderThickness="1"
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml tests/conf/CardMetricsTests.cs
+git add src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml tests/conf/CardMetricsTests.cs
 git commit -m "Cards: a hairline on the cover, so a resting card is not a hole in the grid"
 ```
 
@@ -476,9 +476,9 @@ git commit -m "Cards: a hairline on the cover, so a resting card is not a hole i
 ### Task 5: 网格间距改 20 —— 三处
 
 **Files:**
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage.xaml:1332-1336`
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Video.cs:342-348`
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Music.cs:696-702`
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1332-1336`
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage.Library.Video.cs:342-348`
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage.Library.Music.cs:696-702`
 - Test: `tests/conf/CardMetricsTests.cs`（新增一条）
 
 **Interfaces:**
@@ -604,7 +604,7 @@ Step 2 命令。Expected: PASS。
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/MpvPlayerPage.xaml src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Video.cs src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Music.cs tests/conf/CardMetricsTests.cs
+git add src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml src/mpvw-app/Domains/Playback/MpvPlayerPage.Library.Video.cs src/mpvw-app/Domains/Playback/MpvPlayerPage.Library.Music.cs tests/conf/CardMetricsTests.cs
 git commit -m "Cards: the cell grows by the gutter, and every grid opens 20 DIP"
 ```
 
@@ -613,7 +613,7 @@ git commit -m "Cards: the cell grows by the gutter, and every grid opens 20 DIP"
 ### Task 6: 选中态保留外框
 
 **Files:**
-- Modify: `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml.cs`
+- Modify: `src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml.cs`
 - Test: 无自动化（时序与视觉，靠 Task 7 的 UI 自动化间接覆盖）
 
 **Interfaces:**
@@ -673,7 +673,7 @@ pwsh -NoProfile -File tools\deploy-test.ps1 -CloseRunning -Verify
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml.cs
+git add src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml.cs
 git commit -m "Cards: a ticked card keeps its frame when the pointer leaves"
 ```
 
@@ -682,8 +682,8 @@ git commit -m "Cards: a ticked card keeps its frame when the pointer leaves"
 ### Task 7: 选择模式 ≡ 有勾选
 
 **Files:**
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage_Library.cs:547-609`
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Cards.cs`（`CardMenu_Click` 的 `"select"` 分支、卡片点击）
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage_Library.cs:547-609`
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage.Library.Cards.cs`（`CardMenu_Click` 的 `"select"` 分支、卡片点击）
 - Test: `tests/conf/CardMetricsTests.cs`（新增一条，断言状态机不引入独立开关）
 
 **Interfaces:**
@@ -799,7 +799,7 @@ Expected: PASS，总数比基线多出本轮新增的条数。
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/MpvPlayerPage_Library.cs src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Cards.cs tests/conf/CardMetricsTests.cs
+git add src/mpvw-app/Domains/Playback/MpvPlayerPage_Library.cs src/mpvw-app/Domains/Playback/MpvPlayerPage.Library.Cards.cs tests/conf/CardMetricsTests.cs
 git commit -m "Selection: the mode is the count of ticks, so unticking the last one leaves it"
 ```
 
@@ -808,8 +808,8 @@ git commit -m "Selection: the mode is the count of ticks, so unticking the last 
 ### Task 8: 勾选框出现在卡片左上，且是模式入口
 
 **Files:**
-- Modify: `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml`（`SelectionBox`，`:348-366`）
-- Modify: `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml.cs`
+- Modify: `src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml`（`SelectionBox`，`:348-366`）
+- Modify: `src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml.cs`
 - Test: `tests/conf/CardMetricsTests.cs`（新增一条）
 
 **Interfaces:**
@@ -965,7 +965,7 @@ Expected: 全绿，0 警告。
 - [ ] **Step 8: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml.cs src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Cards.cs src/mpv-app/Domains/Playback/LibraryEntry.Selection.cs tests/conf/CardMetricsTests.cs
+git add src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml.cs src/mpvw-app/Domains/Playback/MpvPlayerPage.Library.Cards.cs src/mpvw-app/Domains/Playback/LibraryEntry.Selection.cs tests/conf/CardMetricsTests.cs
 git commit -m "Cards: the tick box is the way into selection mode, and it survives the pointer leaving"
 ```
 
@@ -974,8 +974,8 @@ git commit -m "Cards: the tick box is the way into selection mode, and it surviv
 ### Task 9: 选择工具栏按截图重做
 
 **Files:**
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage.xaml:1204-1295`（`LibrarySelectionBar`）
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage_Library.cs`（按钮状态、字符串）
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1204-1295`（`LibrarySelectionBar`）
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage_Library.cs`（按钮状态、字符串）
 - Test: 无自动化（视觉，靠截图）
 
 **Interfaces:**
@@ -1046,7 +1046,7 @@ pwsh -NoProfile -File tools\deploy-test.ps1 -CloseRunning -Verify
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/MpvPlayerPage.xaml src/mpv-app/Domains/Playback/MpvPlayerPage_Library.cs
+git add src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml src/mpvw-app/Domains/Playback/MpvPlayerPage_Library.cs
 git commit -m "Selection: the bar from the reference, with the add-to list built when it opens"
 ```
 
@@ -1055,7 +1055,7 @@ git commit -m "Selection: the bar from the reference, with the add-to list built
 ### Task 10: `.m3u` 解析与格式化（纯逻辑）
 
 **Files:**
-- Create: `src/mpv-app/Domains/Playlist/NamedPlaylistFile.cs`
+- Create: `src/mpvw-app/Domains/Playlist/NamedPlaylistFile.cs`
 - Modify: `tests/conf/mpv-conf-test.csproj`（加 `Compile Include` 链接）
 - Test: `tests/conf/NamedPlaylistFileTests.cs`
 
@@ -1177,7 +1177,7 @@ Step 2 命令。Expected: PASS。
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playlist/NamedPlaylistFile.cs tests/conf/NamedPlaylistFileTests.cs
+git add src/mpvw-app/Domains/Playlist/NamedPlaylistFile.cs tests/conf/NamedPlaylistFileTests.cs
 git commit -m "Playlists: the m3u the app already writes and reads, as a pure pair of functions"
 ```
 
@@ -1186,7 +1186,7 @@ git commit -m "Playlists: the m3u the app already writes and reads, as a pure pa
 ### Task 11: 列表的读 / 写 / 改名 / 删除
 
 **Files:**
-- Create: `src/mpv-app/Domains/Playlist/NamedPlaylistStore.cs`
+- Create: `src/mpvw-app/Domains/Playlist/NamedPlaylistStore.cs`
 - Test: 无自动化（IO 与 `AppData`，靠 Task 12 的手动验证）
 
 **Interfaces:**
@@ -1217,7 +1217,7 @@ Expected: 0 错误 0 警告。
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playlist/NamedPlaylistStore.cs
+git add src/mpvw-app/Domains/Playlist/NamedPlaylistStore.cs
 git commit -m "Playlists: one m3u per list under the app's own data root"
 ```
 
@@ -1226,10 +1226,10 @@ git commit -m "Playlists: one m3u per list under the app's own data root"
 ### Task 12: 侧栏分区与行列表
 
 **Files:**
-- Modify: `src/mpv-app/Shell/MainWindow.xaml.cs:186-198`
-- Create: `src/mpv-app/Domains/Playback/MpvPlayerPage.Playlists.cs`
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage.xaml`（新增 `PlaylistsHost`）
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage_Library.cs`（分区路由、空态）
+- Modify: `src/mpvw-app/Shell/MainWindow.xaml.cs:186-198`
+- Create: `src/mpvw-app/Domains/Playback/MpvPlayerPage.Playlists.cs`
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml`（新增 `PlaylistsHost`）
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage_Library.cs`（分区路由、空态）
 - Test: 无自动化（靠 UI 自动化与手动）
 
 **Interfaces:**
@@ -1285,7 +1285,7 @@ Expected: 全部退出 0。
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/mpv-app/Shell/MainWindow.xaml.cs src/mpv-app/Domains/Playback/MpvPlayerPage.Playlists.cs src/mpv-app/Domains/Playback/MpvPlayerPage.xaml src/mpv-app/Domains/Playback/MpvPlayerPage_Library.cs src/mpv-app/Languages src/mpv-app/Shell/AppLang.Shell.cs
+git add src/mpvw-app/Shell/MainWindow.xaml.cs src/mpvw-app/Domains/Playback/MpvPlayerPage.Playlists.cs src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml src/mpvw-app/Domains/Playback/MpvPlayerPage_Library.cs src/mpvw-app/Languages src/mpvw-app/Shell/AppLang.Shell.cs
 git commit -m "Playlists: a section of their own again, as rows rather than cards"
 ```
 
@@ -1294,8 +1294,8 @@ git commit -m "Playlists: a section of their own again, as rows rather than card
 ### Task 13: 命名对话框与「新建播放列表」
 
 **Files:**
-- Create: `src/mpv-app/Domains/Playback/MpvPlayerPage.PlaylistDialog.cs`
-- Modify: `src/mpv-app/Domains/Playback/MpvPlayerPage_Library.cs`（`SelectionAddToNewPlaylist_Click`）
+- Create: `src/mpvw-app/Domains/Playback/MpvPlayerPage.PlaylistDialog.cs`
+- Modify: `src/mpvw-app/Domains/Playback/MpvPlayerPage_Library.cs`（`SelectionAddToNewPlaylist_Click`）
 - Test: 无自动化（对话框，靠手动）
 
 **Interfaces:**
@@ -1324,7 +1324,7 @@ pwsh -NoProfile -File tools\deploy-test.ps1 -CloseRunning -Verify
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/MpvPlayerPage.PlaylistDialog.cs src/mpv-app/Domains/Playback/MpvPlayerPage_Library.cs
+git add src/mpvw-app/Domains/Playback/MpvPlayerPage.PlaylistDialog.cs src/mpvw-app/Domains/Playback/MpvPlayerPage_Library.cs
 git commit -m "Playlists: a name is checked before it becomes a file name"
 ```
 
