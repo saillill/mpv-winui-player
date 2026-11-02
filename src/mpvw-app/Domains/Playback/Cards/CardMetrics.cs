@@ -66,30 +66,19 @@ namespace mpv_winui.Domains.Playback.Cards
         /// </summary>
         public const double CaptionTopGap = 6;
 
-        /// <summary>
-        /// How far the hover highlight sits inside the cover's edges.
-        ///
-        /// <para><b>No longer used by the card.</b> The highlight used to be a
-        /// wash drawn over the picture, inset from its edges. The report was that
-        /// this is the wrong shape entirely: "the black frame is inside the card;
-        /// the outermost hover frame should be the outlined one, and what you
-        /// framed is the thumbnail". What was wanted is a WHITE rounded rectangle
-        /// around the whole card - picture and caption together - which is
-        /// <see cref="HoverFrameInset"/> below.</para>
-        ///
-        /// <para>Kept because CardMetricsTests still pins the value and nothing
-        /// else in the app is named after it; delete with the constant if the
-        /// inner wash is confirmed gone for good.</para>
-        /// </summary>
-        public const double HoverInset = 6;
-
-        /// <summary>
-        /// The hover frame's ring.
-        ///
-        /// <para>No longer used - see <see cref="HoverInset"/>. The frame is now
-        /// the buttons' white ring colour, not a black one.</para>
-        /// </summary>
-        public const double HoverRingThickness = 2;
+        // HoverInset and HoverRingThickness used to sit here: the inset and the
+        // ring of the old inner wash, a translucent fill drawn over the picture.
+        // Both were dead - their own doc said "no longer used", and the only other
+        // mention of either was a test comment recounting what they had been.
+        //
+        // Deleted once the thing they named was confirmed gone rather than merely
+        // unused: HoverOverlay's markup now says in as many words that the wash
+        // is gone and what remains there is the two corner buttons. The live
+        // constant for the frame's gutter is HoverFrameInset, below.
+        //
+        // A constant kept "because a test pins it" is a test pinning a number no
+        // code honours - the same shape as the dead brush token removed from
+        // Styles.xaml in the same pass.
 
         /// <summary>
         /// The gutter reserved around the card's content, in DIP.

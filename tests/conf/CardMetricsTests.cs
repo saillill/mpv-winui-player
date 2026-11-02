@@ -78,8 +78,9 @@ public class CardMetricsTests
 
         // The hover frame's geometry. It wraps the whole card, so it is stated in
         // terms of the gutter it opens around the content rather than an inset into
-        // the picture - the previous constants (HoverInset 6, HoverRingThickness 2)
-        // described the black inner wash the report rejected.
+        // the picture - the constants that described the black inner wash the
+        // report rejected (an inset of 6 and a ring of 2) were deleted once the
+        // wash itself was confirmed gone, so nothing pins a number no code honours.
         Assert.That(CardMetrics.HoverFrameInset, Is.EqualTo(6));
         Assert.That(CardMetrics.HoverFrameThickness, Is.EqualTo(1.5));
         Assert.That(CardMetrics.HoverFrameCornerRadius, Is.EqualTo(12));
@@ -118,7 +119,80 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// An album card never shows a tick box.
+    /// The three theme dictionaries define the same keys.
+    ///
+    /// <para><b>Why this is the only part of theming a test can prove.</b> What a
+    /// colour LOOKS like in HighContrast needs a screen, and this branch never got
+    /// one: the light theme was screenshotted, dark came free with the playlists
+    /// shots, and contrast was reasoned about rather than seen. What can be proved
+    /// mechanically is the failure that would be silent - a key added to Light and
+    /// Dark but forgotten in HighContrast, which renders as a missing resource at
+    /// parse time or a fallback colour at run time, in the one theme nobody was
+    /// looking at.</para>
+    ///
+    /// <para>The three new card strokes were added to all three dictionaries in
+    /// this branch, which is exactly the moment this guard is worth having.</para>
+    /// </summary>
+    [Test]
+    public void TheThreeThemeDictionariesDefineTheSameKeys()
+    {
+        var lines = File.ReadAllLines(StylesXamlPath);
+
+        var themes = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        string? current = null;
+
+        foreach (var line in lines)
+        {
+            var open = Regex.Match(line, "x:Key=\"(Light|Dark|HighContrast)\"");
+            if (open.Success)
+            {
+                current = open.Groups[1].Value;
+                themes[current] = [];
+
+                continue;
+            }
+
+            if (line.Contains("</ResourceDictionary>", StringComparison.Ordinal))
+            {
+                current = null;
+
+                continue;
+            }
+
+            if (current is null)
+            {
+                continue;
+            }
+
+            var key = Regex.Match(line, "x:Key=\"([^\"]+)\"");
+            if (key.Success)
+            {
+                themes[current].Add(key.Groups[1].Value);
+            }
+        }
+
+        // "Parsed nothing" must be an error, not a pass: this repository has had a
+        // checker report success over zero input, and a regex that stopped matching
+        // would otherwise turn this into a test of nothing.
+        Assert.That(themes.Keys, Is.EquivalentTo(new[] { "Light", "Dark", "HighContrast" }),
+            "Styles.xaml no longer has the three theme dictionaries this test reads");
+
+        foreach (var theme in themes.Values)
+        {
+            Assert.That(theme, Is.Not.Empty, "a theme dictionary defines no keys");
+        }
+
+        var light = themes["Light"];
+
+        foreach (var name in new[] { "Dark", "HighContrast" })
+        {
+            Assert.That(
+                themes[name],
+                Is.EquivalentTo(light),
+                $"{name} does not define the same keys as Light; a token missing here falls back silently in that theme");
+        }
+    }
+
     ///
     /// <para>On the Albums/Artists pages one card stands for a whole album and its
     /// click opens that album rather than playing it. A tick box there would make
@@ -788,6 +862,10 @@ public class CardMetricsTests
     /// </summary>
     private static string CardCodePath
         => Locate(@"src\mpvw-app\Domains\Playback\Controls\LibraryCard.xaml.cs");
+
+    /// <summary>The three theme dictionaries, found the same way.</summary>
+    private static string StylesXamlPath
+        => Locate(@"src\mpvw-app\Styles\Styles.xaml");
 
     /// <summary>
     /// Finds a repository file without assuming where the binary runs.
