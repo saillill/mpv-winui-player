@@ -431,8 +431,14 @@ namespace mpv_winui.Domains.Playlist
 
             try
             {
+                // An explicit array rather than a collection expression: the target
+                // is IReadOnlyList, and CsWinRT1032 warns that a collection
+                // expression targeting a non-mutable interface has no defined
+                // concrete type, which matters for trimming and AOT. The build's
+                // warning budget is zero, so it is written the explicit way.
                 var roundTripped = NamedPlaylistFile.ParsePaths(
-                    NamedPlaylistFile.Format([(string.Empty, entry)]));
+                    NamedPlaylistFile.Format(
+                        new[] { (Title: string.Empty, Path: entry) }));
 
                 return roundTripped.Count == 1 &&
                        string.Equals(roundTripped[0], entry, StringComparison.Ordinal);
