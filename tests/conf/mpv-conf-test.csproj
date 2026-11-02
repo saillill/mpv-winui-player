@@ -75,6 +75,12 @@
              mpv command unvalidated, so what matters is exactly which inputs are
              accepted, which is a pure predicate and testable on its own. -->
         <Compile Include="..\..\src\mpvw-app\Lexicon\Language\LanguageCode.cs" Link="Language\LanguageCode.cs" />
+        <!-- The named-playlist m3u. Linked for the usual reason: the property that
+             matters is which inputs are accepted and which lines become paths, and
+             both are pure functions. Only this file is linked, not the whole
+             directory: WatchLaterControl.xaml.cs and WatchHistoryControl.xaml.cs
+             next door are UserControls and would drag WinUI into this project. -->
+        <Compile Include="..\..\src\mpvw-app\Domains\Playlist\NamedPlaylistFile.cs" Link="Playlist\NamedPlaylistFile.cs" />
     </ItemGroup>
 
     <!--
