@@ -311,32 +311,46 @@ dotnet test tests\conf\mpv-conf-test.csproj -c Release --artifacts-path C:\Temp\
 
 Expected: FAIL —— 现在用的是 `MpvCardRingBrush`、`CornerRadius="8"`，外框自己带 `Margin="4"`，内容也带 `Margin="4"`。
 
-- [ ] **Step 3: 改 XAML —— 加一层外槽**
+- [ ] **Step 3: 改 XAML —— 让格子本身成为槽**
 
-`LibraryCard.xaml` 的根 `Grid` 里，把外框和内容都放进一个新的外层 Grid，由它统一留 6 DIP：
+**注意：这一节最初的写法（包一层 `CardGutter`）是错的，实施时已被执行者用算术推翻。**
+保留这段记录，是因为这个坑值得留着：先写下、再被推翻，比悄悄改掉更可信。
+
+~~错在哪~~：若在根 Grid 里再包 `<Grid x:Name="CardGutter" Margin="6">`，把外框和无 Margin 的内容都放进去，
+在 265 宽的格子里两者同框——描边正好压在内容边缘上，等于把本任务要修的毛病原样复现；
+若再给内容加 `Margin="6"`，内缩叠加成 12，图片被缩到 241，违反「内容保持 253」。
+
+**实际做法：根 Grid 就是格子，槽落在内容上。**
 
 ```xml
-<Grid x:Name="CardGutter" Margin="6">
-    <Border
-        x:Name="HoverFrame"
-        Canvas.ZIndex="10"
-        BorderBrush="{ThemeResource MpvCardFrameBrush}"
-        BorderThickness="1.5"
-        CornerRadius="12"
-        IsHitTestVisible="False"
-        Visibility="Collapsed" />
+<!--  根 Grid 不加 Margin：它的宽度就是 CardMetrics.CellWidthFor(253) = 265  -->
+<Border
+    x:Name="HoverFrame"
+    Canvas.ZIndex="10"
+    BorderBrush="{ThemeResource MpvCardFrameBrush}"
+    BorderThickness="1.5"
+    CornerRadius="12"
+    IsHitTestVisible="False"
+    Visibility="Collapsed" />
 
-    <Grid x:Name="CardContent">
-        <!-- 现有 StackPanel 与 HoverOverlay 原样留在里面  -->
-    </Grid>
+<Grid
+    x:Name="CardContent"
+    Margin="6">
+    <!-- 现有 StackPanel 与 HoverOverlay 原样留在里面  -->
 </Grid>
 ```
 
 要点：
 
-- 外框**删掉自己的 `Margin="4"`**，靠外层 `CardGutter` 的 6 定位
-- 内容 `Grid` 从 `<Grid Margin="4">` 变成 `<Grid x:Name="CardContent">`，**没有 Margin**——槽在外层
-- 外框在 `CardGutter` 的坐标系里 `Stretch`，四条边正好落在内容外 6 DIP
+- 外框**删掉自己的 `Margin="4"`，并且不获得新 Margin**——它在根 Grid 里 `Stretch`，占满 265
+- 内容 `Grid` 从 `<Grid Margin="4">` 变成 `<Grid x:Name="CardContent" Margin="6">`：
+  **整张卡唯一的一处内缩**，落在内容上
+- 于是图片落在 6..259（253 宽），外框描边贴着格子内缘，与内容相距 6 DIP
+- 整个卡片只有**一个** Margin。两个 Margin 正是描边与内容会慢慢错开的原因；
+  测试断言外框那个 tag 不含 `Margin`
+
+**已接受的副作用**：描边贴格子内缘，所以它外侧那 0.75 DIP（1.5 的一半）被格子裁掉。
+截图里看不出被切，若日后把描边加粗，就要把外框整体内缩 1 DIP 再画。
 
 - [ ] **Step 4: 改卡片几何**
 
