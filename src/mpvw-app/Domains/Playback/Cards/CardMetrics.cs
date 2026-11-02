@@ -44,8 +44,15 @@ namespace mpv_winui.Domains.Playback.Cards
             return width / CoverAspect(isAlbum);
         }
 
-        /// <summary>The media tile's corner radius. Replaces CornerRadius="4" x4.</summary>
-        public const double CornerRadius = 4;
+        /// <summary>
+        /// The media tile's corner radius. Replaces CornerRadius="4" x4.
+        ///
+        /// 6, up from 4: the comparison page's chosen variant pairs this inner
+        /// radius with a 6 DIP gutter and a 1.5 DIP frame. The frame's own radius
+        /// is derived from this one - see <see cref="HoverFrameCornerRadius"/>,
+        /// which is this plus that gutter.
+        /// </summary>
+        public const double CornerRadius = 6;
 
         /// <summary>
         /// Gap between the media tile and its first caption line.
@@ -85,20 +92,31 @@ namespace mpv_winui.Domains.Playback.Cards
         public const double HoverRingThickness = 2;
 
         /// <summary>
-        /// How far the hover frame sits outside the card's content.
+        /// The gutter reserved around the card's content, in DIP.
         ///
         /// <para>Reported as "the outermost hover frame should be the outlined
         /// one, with the text aligned to the thumbnail". The frame wraps the whole
         /// card - tile, caption and all - so it has to sit OUTSIDE the content
-        /// rather than inset into it: the content keeps the card's full width and
-        /// the frame's stroke is drawn in the gap this margin opens around it.</para>
+        /// rather than inset into it.</para>
         ///
-        /// <para>Measured off the reference: the frame's edge is a hair's breadth
-        /// outside the picture, not a gutter. 4 DIP is enough for a 1.5 DIP stroke
-        /// plus the breathing room that keeps it from touching the thumbnail's own
-        /// corner radius.</para>
+        /// <para><b>It is not empty space that happens to fit the stroke: it is
+        /// the width of a slot the content and the frame share.</b> 6 DIP is kept
+        /// free around the content at all times, hover or not, and the frame's
+        /// stroke is drawn inside that band. The content therefore never moves on
+        /// hover - the one thing this card must not do - and the stroke has room
+        /// to sit clear of the thumbnail's own
+        /// <see cref="CornerRadius"/>.</para>
+        ///
+        /// <para>Why a gutter and not an outward push: the spike measured that the
+        /// grid cell clips whatever hangs outside it. A frame pushed out by a
+        /// negative margin drew nothing in the band beyond the cell - the same
+        /// result with a TranslateTransform instead (the stroke really moved,
+        /// x 364 to 597, and the band beyond the cell still changed by zero
+        /// pixels). So the gutter is part of the cell and the frame is drawn
+        /// inside it: the content keeps the reference's width, the cell carries
+        /// this much extra on each side, and the picture never moves on hover.</para>
         /// </summary>
-        public const double HoverFrameInset = 4;
+        public const double HoverFrameInset = 6;
 
         /// <summary>
         /// The hover frame's stroke width.
@@ -113,38 +131,46 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// The hover frame's corner radius.
         ///
-        /// <para>8 against the tile's 4: the frame is larger than the thumbnail, so
-        /// the same radius on both would look tighter on the frame. The difference
-        /// is what makes the two arcs appear concentric, the same way an outer
-        /// circle needs a bigger radius than the inner one to look parallel.</para>
+        /// <para><b>Derived, not sampled:</b> <see cref="CornerRadius"/> plus
+        /// <see cref="HoverFrameInset"/>, 6 + 6 = 12. The frame's edge runs
+        /// <see cref="HoverFrameInset"/> outside the content's, so its arc has to
+        /// be that much larger to stay parallel to it; anything else and the two
+        /// edges converge at the corners.</para>
+        ///
+        /// <para>The comparison page offered 11 for this and that is the error
+        /// this comment exists to prevent: 11 does not satisfy the relation
+        /// against its own 6 DIP push, it was picked by eye. The structure of that
+        /// variant was chosen; its arithmetic was not.</para>
         /// </summary>
-        public const double HoverFrameCornerRadius = 8;
+        public const double HoverFrameCornerRadius = 12;
 
         /// <summary>
         /// The hover buttons' diameter.
         ///
-        /// 36, down from 40, and both buttons are now the same size. The
-        /// reference's discs measure 36 DIP on a 253-wide card; 40 was chosen for
-        /// a single corner button and read as oversized once there were two.
+        /// 30, down from 36, and both buttons are the same size. Chosen on the
+        /// comparison page together with the 8 DIP corner inset and the thinner
+        /// semi-transparent ring. Whether 30 reads as too small on a real video
+        /// frame is one of the decisions no constant can settle - it is in the
+        /// design's eye-check list, not its arithmetic.
         /// </summary>
-        public const double PlayButtonSize = 36;
+        public const double PlayButtonSize = 30;
 
         /// <summary>
         /// The hover overflow button's diameter. The same as the play button's,
         /// because the reference draws the two as one matched pair - the previous
         /// 40/32 split made the secondary button look accidental.
         /// </summary>
-        public const double MoreButtonSize = 36;
+        public const double MoreButtonSize = 30;
 
         /// <summary>
         /// How far the corner buttons sit from the tile's edges.
         ///
-        /// 10, and shared by both corners so the two buttons read as one pair
-        /// rather than as two elements that happened to land near a corner. The
-        /// reference measures the play disc's outer edge at 10 DIP inside the
-        /// tile on both axes.
+        /// 8, down from 10, shared by both corners so the two buttons read as one
+        /// pair rather than as two elements that happened to land near a corner.
+        /// It moves with <see cref="PlayButtonSize"/>: the discs shrank by a fifth
+        /// and the inset was brought along rather than left at the old scale.
         /// </summary>
-        public const double CornerInset = 10;
+        public const double CornerInset = 8;
 
         /// <summary>
         /// The hover buttons' white ring, in DIP.

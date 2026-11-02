@@ -61,7 +61,7 @@ public class CardMetricsTests
     [Test]
     public void TokensAreTheDocumentedValues()
     {
-        Assert.That(CardMetrics.CornerRadius, Is.EqualTo(4));
+        Assert.That(CardMetrics.CornerRadius, Is.EqualTo(6));
 
         // The caption band follows the cell height, so a change here without a
         // change in CardMetrics.CaptionBandHeight clips the line it reserves.
@@ -70,9 +70,9 @@ public class CardMetricsTests
 
         // Both hover buttons are the same size now: the reference draws them as
         // one matched pair, and the old 40/32 split made the second look accidental.
-        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(36));
-        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(36));
-        Assert.That(CardMetrics.CornerInset, Is.EqualTo(10));
+        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(30));
+        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(30));
+        Assert.That(CardMetrics.CornerInset, Is.EqualTo(8));
         Assert.That(CardMetrics.RingThickness, Is.EqualTo(1.5));
         Assert.That(CardMetrics.NowPlayingBarHeight, Is.EqualTo(2));
 
@@ -80,13 +80,29 @@ public class CardMetricsTests
         // terms of the gutter it opens around the content rather than an inset into
         // the picture - the previous constants (HoverInset 6, HoverRingThickness 2)
         // described the black inner wash the report rejected.
-        Assert.That(CardMetrics.HoverFrameInset, Is.EqualTo(4));
+        Assert.That(CardMetrics.HoverFrameInset, Is.EqualTo(6));
         Assert.That(CardMetrics.HoverFrameThickness, Is.EqualTo(1.5));
-        Assert.That(CardMetrics.HoverFrameCornerRadius, Is.EqualTo(8));
+        Assert.That(CardMetrics.HoverFrameCornerRadius, Is.EqualTo(12));
 
         // The frame is the same weight as the corner discs it encloses: heavier
         // reads as a selection border rather than a hover affordance.
         Assert.That(CardMetrics.HoverFrameThickness, Is.EqualTo(CardMetrics.RingThickness));
+    }
+
+    /// <summary>
+    /// The frame's radius is derived from the content's, not sampled from the
+    /// reference.
+    /// </summary>
+    [Test]
+    public void HoverFrameRadiusIsConcentricWithTheContent()
+    {
+        // The frame sits HoverFrameInset OUTSIDE the content, so its arc must be
+        // that many DIP larger or the two edges are not parallel. This is the
+        // relation the comparison page got wrong (it offered 11 against an
+        // outward push of 6) and the reason the number is derived, not sampled.
+        Assert.That(
+            CardMetrics.HoverFrameCornerRadius,
+            Is.EqualTo(CardMetrics.CornerRadius + CardMetrics.HoverFrameInset));
     }
 
     /// <summary>
