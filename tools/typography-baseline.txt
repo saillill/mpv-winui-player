@@ -18,19 +18,27 @@
 # LibraryCard.xaml's line numbers move whenever the caption or hover markup
 # changes length; the finding does not.
 #
-#   82   the hover frame's own Margin = CardMetrics.HoverFrameInset
-#   92   the content inset, same value, so the stroke has a gutter
-#   356  the selection box's Margin="8"
+#   118  the content's gutter, one per card = CardMetrics.HoverFrameInset
+#   311  the play button's inset from the tile = CardMetrics.CornerInset
+#   358  the overflow button's, the same 8 so the pair reads as a pair
+#   396  the selection box's
 #
-# Both are Thickness literals and cannot take a spacing token: CardMetrics is an
-# internal static class with double constants, an x:Double has no Thickness
-# conversion, and the assignment throws inside InitializeComponent where
-# Frame.Navigate swallows it.
+# All four are Thickness literals and cannot take a spacing token: CardMetrics
+# is an internal static class with double constants, an x:Double has no
+# Thickness conversion, and the assignment throws inside InitializeComponent
+# where Frame.Navigate swallows it.
 #
-# The frame's own Margin="4" is the same value and is pinned by
-# CardMetricsTests.TheHoverFrameIsWhiteAndWrapsTheWholeCard rather than by a line
-# number here - the gutter has to match the frame's, or the stroke is drawn under
-# the picture.
+# The two button entries are NEW with the 30px discs: their inset was 10, which
+# is not a token value and so was never a finding, and it is 8 now, which is
+# MpvSpaceS. The token still cannot be used - it is the token's VALUE that
+# collides, not its type - so they join this list rather than the markup
+# gaining a resource reference that would throw.
+#
+# The FRAME carries no Margin at all any more: it takes its box from the cell,
+# and CardMetricsTests.TheHoverFrameSitsInAGutterOutsideTheContent asserts that
+# its tag stays free of one. Before the gutter rewrite this file had three
+# findings here (the frame's 4, the content's 4, the tick box's 8); the frame's
+# is gone and the buttons' two arrived.
 #
 # MpvPlayerPage.xaml:891 is the playback InfoBar's Margin="16" - a Thickness for
 # the same reason as the card's, so no spacing token can express it. The line
@@ -45,9 +53,10 @@ src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:174:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:82:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:92:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:356:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:118:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:311:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:358:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:396:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:891:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

@@ -44,24 +44,36 @@
               The hover frame has to wrap both, because they are one card - the
               report circled the picture on its own and said so: "the outermost
               hover frame should be the outlined one; what you framed is the
-              thumbnail". -->
+              thumbnail".
+
+              This Grid IS the cell, and the cell is where the gutter lives. The
+              spike measured that a grid cell clips whatever is drawn beyond it,
+              so the frame cannot hang outside the cell: instead the cell is
+              CardMetrics.CellWidthFor(content), 12 DIP wider than the picture,
+              and the frame stretches this whole box while the content sits 6 DIP
+              inside it. One Margin in the pair, on the content - see the comment
+              below the frame for why. -->
         <Grid>
             <!--  The hover frame, drawn ON TOP of the content.
 
                   Reported: "the outermost hover frame should be the white outlined
                   one". This Border stretches over the whole card - picture and
-                  caption - and its 4 DIP margin is the gutter the stroke sits in,
-                  so the outline traces the card's edge rather than any inner
+                  caption - and the cell is 6 DIP wider than the content on every
+                  side, so the outline traces the card's edge rather than any inner
                   element's.
 
-                  Three things here were each measured rather than reasoned:
+                  It carries NO Margin of its own, deliberately. The content holds
+                  the one inset and the frame takes its box from the cell: two
+                  independent Margins is how a stroke and the content it traces
+                  drift apart, and a test asserts this tag stays free of one.
+
+                  Four things here were each measured rather than reasoned:
 
                     * Position. It is the LAST child with a Canvas.ZIndex above the
                       content, not the first. As the first child it drew behind a
                       thumbnail whose Image is UniformToFill and opaque, so the frame
                       existed in the tree, reported Visible, and put no pixels on
-                      screen. On top, the stroke overlaps the picture's outer 1.5 DIP,
-                      which is what the reference shows.
+                      screen. On top, the stroke is drawn 6 DIP clear of the picture.
                     * No Opacity="0". MotionBehaviors.FadeIn animates the compositor
                       visual's opacity while a XAML Opacity is the element's own, so
                       an Opacity="0" in markup multiplied the frame to nothing through
@@ -71,32 +83,46 @@
                     * No Background. A Border with no background and no child does not
                       get a composited visual on its own; the always-Transparent value
                       is left off for the same reason the Opacity is.
+                    * Themed brush. MpvCardFrameBrush, one value per theme. The near
+                      opaque MpvCardRingBrush it wore before is shared with the corner
+                      buttons and the OSD capsule, so one value could not suit all
+                      three.
 
-                  4 is CardMetrics.HoverFrameInset. A literal because Margin is a
-                  Thickness and an x:Double has no conversion for one - the assignment
-                  throws inside InitializeComponent and Frame.Navigate swallows that
-                  into an empty window. CardMetricsTests pins the markup instead. -->
+                  12 is CardMetrics.HoverFrameCornerRadius = CornerRadius (6) +
+                  HoverFrameInset (6): the arc sits one gutter outside the content's,
+                  so it has to be that much larger to stay parallel to it. A literal
+                  because CardMetrics is an internal static class and markup cannot
+                  name it; CardMetricsTests pins the markup instead. -->
             <Border
                 x:Name="HoverFrame"
                 Canvas.ZIndex="10"
-                Margin="4"
-                BorderBrush="{StaticResource MpvCardRingBrush}"
+                BorderBrush="{ThemeResource MpvCardFrameBrush}"
                 BorderThickness="1.5"
-                CornerRadius="8"
+                CornerRadius="12"
                 IsHitTestVisible="False"
                 Visibility="Collapsed" />
 
-            <!--  The content, inset by the frame's gutter so the stroke has room.
+            <!--  The content: the ONE element that carries the gutter.
+
+                  The 6 is CardMetrics.HoverFrameInset, resolved against the cell
+                  rather than against another element, so the picture is the
+                  reference's width and the frame's 6 DIP band is the cell's extra.
+                  It is permanent - the same 6 whether or not the frame is showing -
+                  which is what keeps the content from moving on hover.
+
                   Margin rather than padding so the thumbnail's own CornerRadius
-                  still lines up with the frame's arc. -->
-            <Grid Margin="4">
+                  still lines up with the frame's arc, and a literal because Margin
+                  is a Thickness: an x:Double has no conversion for one, and the
+                  assignment throws inside InitializeComponent where Frame.Navigate
+                  swallows it into an empty window. CardMetricsTests pins it. -->
+            <Grid x:Name="CardContent" Margin="6">
                 <StackPanel>
             <!--  The media tile. Height is assigned from ApplyCoverHeight once
                   ActualWidth is known; see the class comment. -->
             <Border
                 x:Name="MediaBorder"
                 Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                CornerRadius="4">
+                CornerRadius="6">
                 <Grid>
                     <!--  The media-kind glyph shows until a cover arrives, and
                           for good when the file has none. The Viewbox is what
@@ -263,22 +289,36 @@
                       a 16:9 frame lands on the subject rather than on an edge.
                       Two alignments in one Grid means each button is anchored to
                       its own corner and cannot drift when the tile's width
-                      changes. -->
+                      changes.
+
+                      Geometry, from CardMetrics, all three literal because
+                      markup cannot name an internal static class: 30x30 discs
+                      (PlayButtonSize / MoreButtonSize, down from 36), inset 8
+                      from the tile's edges (CornerInset, down from 10), radius
+                      15 (half the diameter, the only radius that keeps the ring
+                      concentric with the disc). The inset moved with the size on
+                      purpose: at the old 10 a 30px disc reads as a button that
+                      shrank inside its old slot rather than as a smaller button.
+
+                      The RING is MpvCardButtonRingBrush, semi-transparent, so it
+                      does not cut a hard edge on a bright frame. The GLYPH stays
+                      MpvCardRingBrush - near-opaque white - because a 13 to 15px
+                      shape at 45% opacity falls apart on the same frame. -->
                 <Button
                     x:Name="PlayButton"
-                    Width="36"
-                    Height="36"
-                    Margin="10"
+                    Width="30"
+                    Height="30"
+                    Margin="8"
                     Padding="0"
                     HorizontalAlignment="Left"
                     HorizontalContentAlignment="Center"
                     VerticalAlignment="Bottom"
                     VerticalContentAlignment="Center"
                     Background="{StaticResource MpvCardControlBrush}"
-                    BorderBrush="{StaticResource MpvCardRingBrush}"
+                    BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
                     BorderThickness="1.5"
                     Click="PlayButton_Click"
-                    CornerRadius="18">
+                    CornerRadius="15">
                     <!--  The glyph is centred in a Viewbox, not left to FontIcon.
 
                           Reported with a screenshot circling both discs: "the
@@ -287,7 +327,7 @@
                           fixed here:
 
                             * Padding. A Button's default padding is not
-                              symmetric around its content, so a 36x36 button
+                              symmetric around its content, so a 30x30 button
                               with a 15px glyph pushed the glyph up and right.
                               Every other fixed-size icon button in this
                               repository already sets Padding="0" - these two
@@ -313,19 +353,19 @@
 
                 <Button
                     x:Name="MoreButton"
-                    Width="36"
-                    Height="36"
-                    Margin="10"
+                    Width="30"
+                    Height="30"
+                    Margin="8"
                     Padding="0"
                     HorizontalAlignment="Right"
                     HorizontalContentAlignment="Center"
                     VerticalAlignment="Bottom"
                     VerticalContentAlignment="Center"
                     Background="{StaticResource MpvCardControlBrush}"
-                    BorderBrush="{StaticResource MpvCardRingBrush}"
+                    BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
                     BorderThickness="1.5"
                     Click="MoreButton_Click"
-                    CornerRadius="18">
+                    CornerRadius="15">
                     <!--  Geometry, not a glyph: E712 in FluentSystemIcons is not
                           three dots.
 

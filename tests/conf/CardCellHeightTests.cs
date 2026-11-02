@@ -12,6 +12,15 @@ namespace mpv_winui_test;
 /// is what "the two cards have no common scale" was about: one arithmetic, two
 /// widths.
 ///
+/// <para><b>The cell is the content plus the gutter now.</b> The hover frame
+/// cannot be drawn outside the cell (measured, see the plan's Task 0), so the
+/// frame lives in a permanent gutter INSIDE it and the cell carries that gutter
+/// on all four sides. The width passed here is the CONTENT's - 170 or 253, the
+/// reference's picture sizes - and <c>CellHeightFor</c> adds the gutter itself.
+/// These assertions therefore state the relation against the content, and the
+/// extra 12 is asserted separately so a change that dropped the gutter while
+/// keeping the relation could not pass.</para>
+///
 /// These assertions deliberately do NOT pin the old literals. 246 was 30 DIP
 /// taller than the album card needs (170 media + 46 of captions), and copying it
 /// into a test would preserve a number whose only justification was that nobody
@@ -21,22 +30,30 @@ namespace mpv_winui_test;
 public class CardCellHeightTests
 {
     [Test]
-    public void SquareCellIsItsMediaPlusTheCaptionBand()
+    public void SquareCellIsItsMediaPlusTheCaptionBandAndTheGutter()
     {
         var h = CardMetrics.CellHeightFor(170, isAlbum: true);
 
-        Assert.That(h, Is.EqualTo(170 + CardMetrics.CaptionBandHeight).Within(0.001));
+        Assert.That(
+            h,
+            Is.EqualTo(170 + CardMetrics.CaptionBandHeight + Gutter).Within(0.001));
         Assert.That(h, Is.GreaterThan(170), "the cell must be taller than the media");
+
+        // The gutter is what the frame is drawn in, so it is not optional padding.
+        Assert.That(Gutter, Is.EqualTo(CardMetrics.HoverFrameInset * 2));
     }
 
     [Test]
     public void LandscapeCellIsShorterThanItsWidth()
     {
-        // 253 through 16:9 is 142.3 of media; with the caption band that is under
-        // 200, which is why the old literal was closer here than on the album grid.
+        // 253 through 16:9 is 142.3 of media; with the caption band and the gutter
+        // that is under 253, which is what "a 16:9 card is wider than it is tall"
+        // means for the CELL - and at 217.3 it is still comfortably under.
         var h = CardMetrics.CellHeightFor(253, isAlbum: false);
 
-        Assert.That(h, Is.EqualTo(142.3125 + CardMetrics.CaptionBandHeight).Within(0.01));
+        Assert.That(
+            h,
+            Is.EqualTo(142.3125 + CardMetrics.CaptionBandHeight + Gutter).Within(0.01));
         Assert.That(h, Is.LessThan(253), "a 16:9 card is wider than it is tall");
     }
 
@@ -48,21 +65,47 @@ public class CardCellHeightTests
     }
 
     [Test]
-    public void ZeroWidthHasNoMediaSoTheCellIsJustTheCaptions()
+    public void ZeroWidthHasNoMediaSoTheCellIsJustTheCaptionsAndTheGutter()
     {
         // Not 0, and not the caption band plus a bogus media height: a zero-width
-        // card has no tile, so the cell is exactly the band. The grid never asks
-        // this question - it sizes from MinItemWidth - but a recycled element can
-        // report 0 width, and the answer has to be finite.
-        Assert.That(CardMetrics.CellHeightFor(0, isAlbum: true),
-                    Is.EqualTo(CardMetrics.CaptionBandHeight));
+        // card has no tile, so the cell is exactly the band plus the two gutter
+        // bands. The grid never asks this question - it sizes from MinItemWidth -
+        // but a recycled element can report 0 width, and the answer has to be
+        // finite.
+        Assert.That(
+            CardMetrics.CellHeightFor(0, isAlbum: true),
+            Is.EqualTo(CardMetrics.CaptionBandHeight + Gutter));
     }
 
     [Test]
     public void NegativeWidthIsTreatedAsNoWidth()
     {
-        Assert.That(CardMetrics.CellHeightFor(-20, isAlbum: false),
-                    Is.EqualTo(CardMetrics.CaptionBandHeight));
+        Assert.That(
+            CardMetrics.CellHeightFor(-20, isAlbum: false),
+            Is.EqualTo(CardMetrics.CaptionBandHeight + Gutter));
+    }
+
+    /// <summary>
+    /// The gutter band, top and bottom: <c>HoverFrameInset</c> twice.
+    ///
+    /// Written from the constant rather than as 12 so the four tests above stay
+    /// relational: if the gutter itself changes, they follow, and
+    /// <c>TokensAreTheDocumentedValues</c> is the one place that pins its value.
+    /// </summary>
+    private const double Gutter = CardMetrics.HoverFrameInset * 2;
+
+    [Test]
+    public void CellWidthIsTheContentPlusTheGutter()
+    {
+        // The width half of the same relation, and the reason a 253 picture still
+        // gets a 253 content inside a 265 cell.
+        Assert.That(CardMetrics.CellWidthFor(253), Is.EqualTo(265).Within(1e-9));
+        Assert.That(CardMetrics.CellWidthFor(170), Is.EqualTo(182).Within(1e-9));
+
+        // The content keeps the reference's width: the cell grew, not the picture.
+        Assert.That(
+            CardMetrics.CellWidthFor(253) - (CardMetrics.HoverFrameInset * 2),
+            Is.EqualTo(253).Within(1e-9));
     }
 
     /// <summary>

@@ -249,7 +249,7 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// The hover highlight is a WHITE frame around the WHOLE card.
+    /// The hover frame sits in a permanent gutter around the card's content.
     ///
     /// <para>Reported after the previous attempt: "you did not understand the
     /// second image - the black frame is inside the card; the outermost hover frame
@@ -262,51 +262,63 @@ public class CardMetricsTests
     /// it regresses:</para>
     ///
     /// <list type="bullet">
-    /// <item>White - <c>MpvCardRingBrush</c>, the same ring the corner buttons
-    /// wear. The black <c>MpvCardHoverRingBrush</c> must not come back.</item>
-    /// <item>Outermost - the frame is the first child of the card's root Grid and
-    /// is not sized to the tile, so it stretches over picture and caption
-    /// together.</item>
-    /// <item>Separated - it sits <c>HoverFrameInset</c> outside the content, and
-    /// the content is inset by the same amount so the stroke has a gutter.</item>
+    /// <item>Themed - <c>MpvCardFrameBrush</c>, one value per theme. The near
+    /// opaque <c>MpvCardRingBrush</c> it used to wear is shared with the corner
+    /// buttons and the OSD capsule, so a single value could not suit all three.</item>
+    /// <item>Concentric - its radius is the content's plus the gutter, so the two
+    /// arcs stay parallel.</item>
+    /// <item>Separated and permanent - the content sits <c>HoverFrameInset</c>
+    /// inside the card whether or not the frame is showing, so hovering moves no
+    /// pixels. The cell carries that gutter (<c>CardMetrics.CellWidthFor</c>), the
+    /// frame stretches the cell, and its own tag carries no Margin: two independent
+    /// Margins is how a stroke and the content it traces drift apart.</item>
     /// </list>
     /// </summary>
     [Test]
-    public void TheHoverFrameIsWhiteAndWrapsTheWholeCard()
+    public void TheHoverFrameSitsInAGutterOutsideTheContent()
     {
         var xaml = File.ReadAllText(CardXamlPath);
 
         var frame = SelfClosingElement(xaml, "HoverFrame");
 
         Assert.That(
-            frame.Contains("{StaticResource MpvCardRingBrush}", StringComparison.Ordinal),
-            "the hover frame must use MpvCardRingBrush - the report asked for the " +
-            "outer white outline, not a black one");
+            frame.Contains("{ThemeResource MpvCardFrameBrush}", StringComparison.Ordinal),
+            "the frame must use the themed MpvCardFrameBrush, not the near-opaque " +
+            "MpvCardRingBrush the buttons and the OSD capsule share");
 
         Assert.That(
-            frame.Contains("{StaticResource MpvCardHoverRingBrush}", StringComparison.Ordinal),
-            Is.False,
-            "the frame must not use the black MpvCardHoverRingBrush: that was the " +
-            "inner wash, which the report rejected");
+            frame.Contains($"CornerRadius=\"{CardMetrics.HoverFrameCornerRadius}\"",
+                StringComparison.Ordinal),
+            "the frame's radius must be the content's plus the gutter, or the two arcs " +
+            "are not concentric");
 
-        // It wraps the card, so its stroke is the card's outer edge: the content is
-        // inset by the same amount and the frame is not sized to the tile.
+        // The gutter is permanent: the OUTER Grid carries it whether or not the
+        // frame is showing, so the content never moves on hover. Measured: the grid
+        // cell clips anything drawn outside it, so the frame lives in this gutter
+        // rather than beyond the cell.
         var content = ContentGridFor(xaml);
 
         Assert.That(
             content.Contains($"Margin=\"{CardMetrics.HoverFrameInset}\"", StringComparison.Ordinal),
-            $"the card's content must be inset by CardMetrics.HoverFrameInset " +
-            $"({CardMetrics.HoverFrameInset}) so the frame's stroke has a gutter");
+            $"the content must sit CardMetrics.HoverFrameInset ({CardMetrics.HoverFrameInset}) " +
+            "inside the card at all times - a gutter that appears on hover would move the " +
+            "picture, which is the one thing this card must not do");
 
+        // And the frame must NOT be a sibling that stretches over the content: it is
+        // the outermost layer, offset by the same gutter.
         Assert.That(
-            frame.Contains("CornerRadius=\"8\"", StringComparison.Ordinal),
-            "the frame's radius is larger than the tile's 4 so the two arcs read as " +
-            "concentric");
+            frame.Contains("Margin=", StringComparison.Ordinal),
+            Is.False,
+            "the frame takes the gutter from its container, not from its own Margin - " +
+            "two independent Margs are how the stroke and the content drift apart");
     }
 
     /// <summary>
-    /// The card's content layer: the Grid directly inside the root, carrying the
-    /// frame's gutter.
+    /// The card's content layer: the named Grid that carries the frame's gutter.
+    ///
+    /// <para>Found by <c>x:Name</c> rather than by a Margin attribute: the search
+    /// string is the anchor, and a grid found by a property it may stop having is
+    /// the search that silently starts matching some other Grid.</para>
     /// </summary>
     private static string ContentGridFor(string xaml)
     {
@@ -315,7 +327,7 @@ public class CardMetricsTests
         Assert.That(at, Is.GreaterThanOrEqualTo(0), "no HoverFrame in LibraryCard.xaml");
 
         // The content Grid follows the frame element.
-        var after = xaml.IndexOf("<Grid Margin=", at, StringComparison.Ordinal);
+        var after = xaml.IndexOf("<Grid x:Name=\"CardContent\"", at, StringComparison.Ordinal);
         Assert.That(after, Is.GreaterThan(at), "no content Grid after HoverFrame");
 
         var close = xaml.IndexOf('>', after);

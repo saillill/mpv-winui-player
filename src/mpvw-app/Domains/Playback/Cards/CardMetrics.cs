@@ -250,13 +250,36 @@ namespace mpv_winui.Domains.Playback.Cards
             CaptionTopGap + TitleLineHeight + TrailingCaptionSpace;
 
         /// <summary>
+        /// The card cell's width: the content plus the gutter on both sides.
+        ///
+        /// <para>The grid clips at the cell edge, so the frame cannot hang
+        /// outside it. The gutter is therefore part of the cell, and the CONTENT
+        /// keeps the reference's 253 - the picture must not shrink just because
+        /// the frame needed a home.</para>
+        ///
+        /// <para>This is the number the grid's <c>MinItemWidth</c> takes, so it
+        /// has to grow by <see cref="HoverFrameInset"/> twice while the card's own
+        /// content margin grows by it once: the margin is inside the cell, and the
+        /// two together are what put the stroke one gutter clear of the
+        /// picture.</para>
+        /// </summary>
+        public static double CellWidthFor(double contentWidth) =>
+            contentWidth + (HoverFrameInset * 2);
+
+        /// <summary>
         /// The grid cell height for a card of this width.
         ///
         /// Replaces two literals - 170x246 for the album grid and 253x200 for the
         /// video grid - that had to be recomputed by hand whenever an aspect
         /// changed. Two cards, two widths, one arithmetic.
+        ///
+        /// The gutter is added here for the same reason as in
+        /// <see cref="CellWidthFor"/>: it is inside the cell on all four sides, so
+        /// the cell carries it above the picture and below the caption as well as
+        /// to each side. <paramref name="contentWidth"/> is the CONTENT's width,
+        /// not the cell's.
         /// </summary>
-        public static double CellHeightFor(double width, bool isAlbum) =>
-            CoverHeightFor(width, isAlbum) + CaptionBandHeight;
+        public static double CellHeightFor(double contentWidth, bool isAlbum) =>
+            CoverHeightFor(contentWidth, isAlbum) + (HoverFrameInset * 2) + CaptionBandHeight;
     }
 }
