@@ -118,10 +118,22 @@
             <Grid x:Name="CardContent" Margin="6">
                 <StackPanel>
             <!--  The media tile. Height is assigned from ApplyCoverHeight once
-                  ActualWidth is known; see the class comment. -->
+                  ActualWidth is known; see the class comment.
+
+                  The hairline is the cover's, not the card's: "a faint grey-white
+                  shadow stroke around the thumbnail" while the card is at rest, so
+                  a resting card is not a hole in the grid. It is 1 DIP at alpha
+                  0x14 (MpvCardCoverStrokeBrush), which is why it reads as an edge
+                  and not as a border. It must stay on THIS Border: an outline
+                  around the whole card would compete with HoverFrame, and the
+                  hover frame is the one that means "this card". Drawn by
+                  BorderThickness rather than by a second nested Border, so it
+                  follows this element's radius instead of tracing a second arc. -->
             <Border
                 x:Name="MediaBorder"
                 Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource MpvCardCoverStrokeBrush}"
+                BorderThickness="1"
                 CornerRadius="6">
                 <Grid>
                     <!--  The media-kind glyph shows until a cover arrives, and

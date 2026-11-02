@@ -314,6 +314,44 @@ public class CardMetricsTests
     }
 
     /// <summary>
+    /// The cover wears a hairline in its resting state, and the caption does not.
+    ///
+    /// <para>The report asked for "a faint grey-white shadow stroke around the
+    /// thumbnail" while the card is not hovered. It is a hairline on the MEDIA
+    /// BORDER, not a halo around the whole card: the second would fight the hover
+    /// frame, which is the one that means "this card".</para>
+    ///
+    /// <para><b>Both properties, because either one alone is silent.</b> A
+    /// BorderBrush with no BorderThickness paints nothing, so asserting the brush
+    /// alone would stay green through exactly the edit that removes the hairline.
+    /// The brush is checked with its markup form, not just its key, so the token is
+    /// a {ThemeResource} and follows the theme rather than resolving once.</para>
+    ///
+    /// <para>Asserted from the markup because it is pure XAML: nothing in the code
+    /// behind can observe "there is a one-pixel edge around the picture".</para>
+    /// </summary>
+    [Test]
+    public void TheCoverWearsAHairlineAndTheCaptionDoesNot()
+    {
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        var media = ElementFor(xaml, "MediaBorder");
+
+        Assert.That(
+            media.Contains("{ThemeResource MpvCardCoverStrokeBrush}", StringComparison.Ordinal),
+            "MediaBorder must paint the resting-state hairline; found: " + media);
+
+        Assert.That(
+            media.Contains("BorderThickness=\"1\"", StringComparison.Ordinal),
+            "the hairline must be 1 DIP - a brush with no thickness paints nothing; found: " + media);
+
+        Assert.That(
+            ElementFor(xaml, "TitleText").Contains("Stroke", StringComparison.Ordinal),
+            Is.False,
+            "the caption must not wear it - only the picture does");
+    }
+
+    /// <summary>
     /// The card's content layer: the named Grid that carries the frame's gutter.
     ///
     /// <para>Found by <c>x:Name</c> rather than by a Margin attribute: the search
