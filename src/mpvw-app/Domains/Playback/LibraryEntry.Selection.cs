@@ -72,22 +72,39 @@ public sealed partial class LibraryEntry
     public string SelectionGlyph => _isSelected ? "\uE73E" : "\uE739";
 
     /// <summary>
-    /// The tick box's visibility: present in selection mode, gone otherwise.
+    /// The tick box's visibility IN SELECTION MODE: present in the mode, gone otherwise.
     ///
     /// The reference hides it entirely outside the mode - a box on every card in the
     /// library would read as a bulk-edit screen.
+    ///
+    /// <para>This is the MODE half only, not the whole answer. The card shows the box
+    /// when this says Visible OR the pointer is on it, because the box is also the way
+    /// into the mode: a control nobody can see before using it is not an entry point.
+    /// The other half is the card's own _pointerInside and is deliberately not stored
+    /// here - the pointer belongs to the element, not to the file.</para>
     /// </summary>
     public Visibility SelectionVisibility =>
         _selectionMode ? Visibility.Visible : Visibility.Collapsed;
 
-    /// <summary>Ticking is only possible in selection mode.</summary>
-    internal void ToggleSelection()
-    {
-        if (!_selectionMode)
-        {
-            return;
-        }
-
-        IsSelected = !IsSelected;
-    }
+    /// <summary>
+    /// Flips this card's tick. Unconditional, and that is the point.
+    ///
+    /// <para>This used to bail out unless <see cref="_selectionMode"/> was already
+    /// true: "ticking is only possible in selection mode", from when the mode was a
+    /// switch the page turned on before any card could be ticked.</para>
+    ///
+    /// <para><b>The guard had to go, because the mode stopped being a switch.</b>
+    /// The mode is now the COUNT of ticks - the page derives it in
+    /// UpdateSelectionBar and pushes it back down - so it is true only once
+    /// something is already ticked. With the guard in place, the first tick could
+    /// never happen: the card was asked not to enter the very state that would
+    /// have made true the condition it was waiting for. The tick box is the way
+    /// into the mode, and the guard made that entry point a no-op.</para>
+    ///
+    /// <para>There is no "not in the mode" state a card can be in any more, so
+    /// there is nothing here to refuse. The card that owns this entry draws its box
+    /// while the pointer is on it precisely so the first click is reachable, and
+    /// the page's handler recomputes the mode after every flip.</para>
+    /// </summary>
+    internal void ToggleSelection() => IsSelected = !IsSelected;
 }

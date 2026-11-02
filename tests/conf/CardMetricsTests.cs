@@ -635,6 +635,41 @@ public class CardMetricsTests
             "there must be no SetSelectionMode(bool): a public on/off is what let the mode " +
             "outlive the ticks");
     }
+    /// <summary>
+    /// The tick box is an affordance, not a readout, so it takes clicks.
+    ///
+    /// It used to live inside HoverOverlay with IsHitTestVisible="False" and no
+    /// handler: it showed a state and could not change one, which is why the only
+    /// way into selection mode was a context menu item nobody would find. It also
+    /// sat on the tile's top-left and vanished with the overlay, so a ticked card
+    /// lost its mark as soon as the pointer left.
+    /// </summary>
+    [Test]
+    public void TheTickBoxIsClickableAndOutlivesTheOverlay()
+    {
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        var box = ElementFor(xaml, "SelectionBox");
+
+        Assert.That(
+            box.Contains("Tapped=", StringComparison.Ordinal)
+                || box.Contains("Click=", StringComparison.Ordinal),
+            "the tick box must have a handler: it is the way into selection mode");
+
+        Assert.That(
+            box.Contains("IsHitTestVisible=\"False\"", StringComparison.Ordinal),
+            Is.False,
+            "a hit-test-invisible tick box is a readout, not an entry point");
+
+        // It is a sibling of the overlay now, not a child: the overlay collapses
+        // on pointer exit, and a tick mark that disappears with it is not a mark.
+        var overlayEnd = xaml.IndexOf("</Grid>", xaml.IndexOf("x:Name=\"HoverOverlay\"", StringComparison.Ordinal), StringComparison.Ordinal);
+        var boxAt = xaml.IndexOf("x:Name=\"SelectionBox\"", StringComparison.Ordinal);
+
+        Assert.That(
+            boxAt, Is.GreaterThan(overlayEnd),
+            "SelectionBox must sit outside HoverOverlay; inside it, it collapses with the hover");
+    }
 
     /// <summary>
     /// The XAML under test, located without assuming where the binary runs.

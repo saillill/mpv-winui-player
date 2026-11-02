@@ -581,6 +581,31 @@ namespace mpv_winui.Domains.Playback
             HandleCardActivation(entry);
         }
 
+        /// <summary>
+        /// The card's tick box was clicked: the way into selection mode.
+        ///
+        /// The card does not decide this. The tick lives on the entry and the mode is
+        /// the count of ticks (see UpdateSelectionBar), so the page flips the entry and
+        /// then recomputes: that one call puts the bar up, tells every card to show its
+        /// box, and - on the way back down - hides both again when the last tick goes.
+        ///
+        /// No play and no open ride along: the tick box is a Button inside the card's
+        /// root Button, and WinUI's inner ButtonBase consumes the pointer press and
+        /// release, so the root raises no Click for this gesture. Verified by hand,
+        /// see LibraryCard.SelectionBox_Click.
+        /// </summary>
+        private void Card_SelectionRequested(object? sender, EventArgs e)
+        {
+            if (sender is not LibraryCard { Entry: { } entry })
+            {
+                return;
+            }
+
+            entry.ToggleSelection();
+
+            UpdateSelectionBar();
+        }
+
         /// <summary>The hover layer's play button was clicked.</summary>
         private void Card_PlayRequested(object? sender, EventArgs e)
         {
@@ -724,6 +749,15 @@ namespace mpv_winui.Domains.Playback
                 card.PlayRequested += Card_PlayRequested;
                 card.MoreRequested -= Card_MoreRequested;
                 card.MoreRequested += Card_MoreRequested;
+
+                // Unsubscribe first, ALWAYS. The element is RECYCLED: the same
+                // LibraryCard instance is prepared again for a different index, so a
+                // bare += adds a second copy of the same handler each time it comes
+                // back. The card would then raise SelectionRequested twice per click
+                // and the tick would flip straight back off - a click that visibly
+                // does nothing, on the one affordance this whole path exists for.
+                card.SelectionRequested -= Card_SelectionRequested;
+                card.SelectionRequested += Card_SelectionRequested;
             }
 
             var delay = TimeSpan.FromMilliseconds(Math.Min(args.Index, 8) * 20);

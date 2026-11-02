@@ -21,7 +21,7 @@
 #   118  the content's gutter, one per card = CardMetrics.HoverFrameInset
 #   323  the play button's inset from the tile = CardMetrics.CornerInset
 #   370  the overflow button's, the same 8 so the pair reads as a pair
-#   408  the selection box's
+#   456  the selection box's, now a Button outside the hover overlay
 #
 # All four are Thickness literals and cannot take a spacing token: CardMetrics
 # is an internal static class with double constants, an x:Double has no
@@ -56,7 +56,7 @@ src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:118:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:323:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:370:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:408:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:456:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:891:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

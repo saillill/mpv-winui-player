@@ -80,6 +80,20 @@ namespace mpv_winui.Domains.Playback.Controls
         /// <summary>Raised when the hover layer's overflow button is clicked.</summary>
         public event EventHandler? MoreRequested;
 
+        /// <summary>
+        /// Raised when the tick box is clicked. The page owns the mode.
+        ///
+        /// An event rather than a direct write to <see cref="LibraryEntry.IsSelected"/>:
+        /// the tick lives on the entry, but the MODE lives on the page - it is the
+        /// count of ticks, pushed back down to every card (UpdateSelectionBar). A card
+        /// that flipped its own entry would tick the right file and leave the bar and
+        /// every other card's box behind.
+        ///
+        /// This is the way into selection mode. Before it existed the only entry was
+        /// the card's context menu, which is not somewhere a person looks.
+        /// </summary>
+        public event EventHandler? SelectionRequested;
+
         public LibraryCard()
         {
             InitializeComponent();
@@ -320,7 +334,12 @@ namespace mpv_winui.Domains.Playback.Controls
         private void ApplySelection(LibraryEntry entry)
         {
             SelectionGlyphIcon.Glyph = entry.SelectionGlyph;
-            SelectionBox.Visibility = entry.SelectionVisibility;
+
+            // The box's Visibility is NOT written here any more. It has two reasons
+            // to be on - the card is in selection mode, or the pointer is on it -
+            // and ApplySelection only knows the first. UpdateSelectionBoxForState
+            // owns both, the same way UpdateFrameForState owns the frame's two.
+            UpdateSelectionBoxForState();
 
             // A ticked card keeps its frame after the pointer leaves: the frame IS
             // the "this one" mark, and a tick box alone disappears under the
@@ -344,6 +363,14 @@ namespace mpv_winui.Domains.Playback.Controls
 
             AutomationProperties.SetName(MoreButton, lang.LibraryCardMore);
             ToolTipService.SetToolTip(MoreButton, lang.LibraryCardMore);
+
+            // The tick box is a Button and a Button needs both, exactly like the two
+            // discs above: UIA does not fold the glyph into a name, so without this it
+            // announces "button" and nothing else. Named here rather than in markup
+            // because the string follows the language, and this is the same pass that
+            // names the rest of the card.
+            AutomationProperties.SetName(SelectionBox, lang.LibraryCardSelect);
+            ToolTipService.SetToolTip(SelectionBox, lang.LibraryCardSelect);
         }
 
         /// <summary>
@@ -402,6 +429,13 @@ namespace mpv_winui.Domains.Playback.Controls
 
             UpdateFrameForState();
 
+            // The tick box is the way into selection mode, so a card with nothing
+            // selected has to show it while the pointer is on it - otherwise the
+            // affordance exists only for people who already found the context
+            // menu. Same pointer flag as the frame, so the two cannot disagree
+            // about whether the pointer is here.
+            UpdateSelectionBoxForState();
+
             HoverOverlay.Visibility = Visibility.Visible;
             HoverOverlay.IsHitTestVisible = true;
             MotionBehaviors.FadeIn(HoverOverlay);
@@ -428,6 +462,11 @@ namespace mpv_winui.Domains.Playback.Controls
             _pointerInside = false;
 
             UpdateFrameForState();
+
+            // The box follows the pointer out too - unless the card is in
+            // selection mode, in which case every card shows it regardless. That
+            // rule lives in UpdateSelectionBoxForState, not here.
+            UpdateSelectionBoxForState();
 
             MotionBehaviors.FadeOut(HoverOverlay, () =>
             {
@@ -483,6 +522,12 @@ namespace mpv_winui.Domains.Playback.Controls
             _pointerInside = false;
 
             UpdateFrameForState();
+
+            // The box is recomputed here for the same reason the frame is: it is a
+            // sibling of the overlay now, so collapsing HoverOverlay no longer takes
+            // it with it. A recycled card would otherwise arrive showing (or hiding)
+            // the previous file's box until something else happened to repaint it.
+            UpdateSelectionBoxForState();
         }
 
         /// <summary>
@@ -510,6 +555,61 @@ namespace mpv_winui.Domains.Playback.Controls
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         }
+
+        /// <summary>
+        /// The tick box is on when the card is in selection mode OR the pointer is on it.
+        ///
+        /// Two reasons, one writer. The box had no such rule before because it was
+        /// inside HoverOverlay: the overlay's own collapse was the second half, so
+        /// "hover-only" fell out of the tree rather than out of a decision. It is a
+        /// sibling now - it has to be, or it cannot be clicked and cannot outlive the
+        /// pointer - so the second half has to be written down.
+        ///
+        /// Read off entry.SelectionVisibility for the mode half, not off a field of
+        /// its own: that property is what the page pushes down through
+        /// SetSelectionMode, and a second copy of it here is a second answer to the
+        /// same question. Null entry means no mode (a card prepared with nothing),
+        /// and the pointer half still applies.
+        ///
+        /// Called from the three places that can change either input: the pointer
+        /// entering and leaving, and ApplySelection (which runs on SetEntry and on
+        /// every SelectionVisibility/Glyph change). ResetOverlay reaches it through
+        /// ApplySelection on the entry path and directly on the null path.
+        /// </summary>
+        private void UpdateSelectionBoxForState()
+        {
+            var inMode = Entry?.SelectionVisibility == Visibility.Visible;
+
+            SelectionBox.Visibility = inMode || _pointerInside
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// The tick box was clicked: ask the page to flip this card's tick.
+        ///
+        /// <b>Nothing is decided here.</b> The tick lives on the entry and the mode
+        /// lives on the page, so this only says "the person asked"; the page's handler
+        /// calls ToggleSelection and then UpdateSelectionBar, which is what brings the
+        /// other cards' boxes in line.
+        ///
+        /// <b>Why there is no e.Handled here.</b> The card's ROOT is also a Button
+        /// (it opens the file), so the obvious worry is that a tick click also fires
+        /// RootButton_Click. WinUI's Click is raised with a plain
+        /// <see cref="RoutedEventArgs"/>, which has no Handled property at all - that
+        /// flag exists on the pointer and Tapped args, and on WPF's RoutedEventArgs,
+        /// not on this one. There is nothing to set.
+        ///
+        /// What actually stops the card's click is ButtonBase itself: the inner button
+        /// marks the pointer press and release handled while it presses, so they never
+        /// reach the outer button and it raises no Click of its own. That is a routing
+        /// behaviour, not a convention, so it was measured rather than assumed -
+        /// clicking the box on a video card with nothing selected ticks the card and
+        /// leaves playback alone (evidence/task8-d-clicked-box-no-playback.png: the
+        /// library is still up and mpv's time-pos is still unavailable afterwards).
+        /// </summary>
+        private void SelectionBox_Click(object sender, RoutedEventArgs e) =>
+            SelectionRequested?.Invoke(this, EventArgs.Empty);
 
         private void RootButton_Click(object sender, RoutedEventArgs e) => CardTapped?.Invoke(this, EventArgs.Empty);
 

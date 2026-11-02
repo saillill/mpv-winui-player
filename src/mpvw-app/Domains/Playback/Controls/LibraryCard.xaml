@@ -399,23 +399,76 @@
                     </Viewbox>
                 </Button>
 
-                <!--  The tick box. Shown only in selection mode; the whole card is
-                      the hit target, so this is an indicator. -->
-                <Border
-                    x:Name="SelectionBox"
-                    Width="24"
-                    Height="24"
-                    Margin="8"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top"
-                    Background="{ThemeResource ControlFillColorDefaultBrush}"
-                    CornerRadius="4"
-                    Visibility="Collapsed">
-                    <FontIcon
-                        x:Name="SelectionGlyphIcon"
-                        FontSize="{StaticResource MpvCardTickFontSize}" />
-                </Border>
             </Grid>
+
+            <!--  The tick box: the way INTO selection mode, not a readout of it.
+
+                  It used to be a Border inside HoverOverlay, and each half of that
+                  was a defect on its own:
+
+                    * HoverOverlay carries IsHitTestVisible="False" and collapses
+                      when the pointer leaves. A box inside it could not be clicked,
+                      and a ticked card lost its mark as soon as the cursor moved
+                      away. That is why the only way into selection mode was the
+                      card's context menu, which nobody would go looking for.
+                    * A Border with no handler reports a state; it cannot change
+                      one. The entry owns the tick and the page owns the mode, so
+                      the card asks rather than decides: this click raises
+                      SelectionRequested and the page flips the entry.
+
+                  A Button inside a card whose ROOT is also a Button is the trap
+                  here: the root's Click opens the file, and a tick that also
+                  started playback would be the defect this control introduces
+                  rather than removes. WinUI's Click takes a plain RoutedEventArgs,
+                  which carries no Handled flag, so there is nothing to set here;
+                  what stops the outer click is ButtonBase marking the pointer
+                  press and release handled while this button presses. That was
+                  measured, not assumed - see SelectionBox_Click in the code
+                  behind.
+
+                  Placement: the 8 DIP Margin is measured from CardContent, which is
+                  the picture's own box, so the box sits 8 DIP inside the PICTURE's
+                  top-left corner - the same inset the two discs use at the tile's
+                  lower corners, which is what makes the three read as one family.
+                  Anchored to the cell instead (the outer Grid, 8 from the cell
+                  edge) it would sit 2 DIP off the picture, inside the permanent 6
+                  DIP gutter the hover frame traces, and read as chrome around the
+                  card rather than as a mark on it.
+
+                  Padding="0" and a centred content box for the measured reason the
+                  two corner buttons give at length below: a Button's default
+                  padding is not symmetric about its content, so a small glyph in a
+                  fixed-size button drifts up and right. CornerRadius 6 is the
+                  radius a 24px Fluent control uses; the 4 this box wore as a Border
+                  reads as a square with rounded corners at this size.
+
+                  Visibility is not decided here, and not by one property either:
+                  the box shows when the entry is in selection mode OR the pointer is
+                  on this card, so it is reachable before any mode exists. That pair
+                  is resolved in UpdateSelectionBoxForState, which runs on every
+                  recycle as well - a recycled card arrives with the box already in
+                  the right state for the file it now stands for, rather than showing
+                  whatever the previous file left behind. -->
+            <Button
+                x:Name="SelectionBox"
+                Width="24"
+                Height="24"
+                Margin="8"
+                Padding="0"
+                HorizontalAlignment="Left"
+                HorizontalContentAlignment="Center"
+                VerticalAlignment="Top"
+                VerticalContentAlignment="Center"
+                Background="{ThemeResource ControlFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
+                BorderThickness="1"
+                Click="SelectionBox_Click"
+                CornerRadius="6"
+                Visibility="Collapsed">
+                <FontIcon
+                    x:Name="SelectionGlyphIcon"
+                    FontSize="{StaticResource MpvCardTickFontSize}" />
+            </Button>
             </Grid>
         </Grid>
     </Button>
