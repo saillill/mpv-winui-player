@@ -44,7 +44,7 @@ spec 暗示、但没有任务的测试直接覆盖、且最容易咬到真实用
 | 文件 | 职责 | 动作 |
 |---|---|---|
 | `src/mpv-app/Domains/Playback/Cards/CardMetrics.cs` | 卡片几何常量：圆角、按钮、外框、新增网格间距 | 修改 |
-| `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml` | 卡片视觉树：外框外推、按钮缩小、勾选框 | 修改 |
+| `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml` | 卡片视觉树：外框留槽、按钮缩小、勾选框 | 修改 |
 | `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml.cs` | 选中态与悬停态的状态机 | 修改 |
 | `src/mpv-app/Styles/Styles.xaml` | 三个新描边令牌 × 三套字典 | 修改 |
 | `src/mpv-app/Domains/Playback/MpvPlayerPage.xaml` | 网格默认布局、选择工具栏 | 修改 |
@@ -228,7 +228,8 @@ public const double MoreButtonSize = 30;
 public const double CornerInset = 8;
 ```
 
-`HoverFrameInset` 的 XML 注释改为描述「外推距离」而不是「内缩距」：它现在是外框画在内容**之外**的距离，与它配对的 markup 是负 Margin。
+`HoverFrameInset` 的 XML 注释改为描述「留槽宽度」：它是内容四周永久保留的 6 DIP，
+外框与内容共用这一道槽（spike 实测：格子会裁掉画到外面的东西）。
 
 `RingSitsOnTheDiscEdge`（`:98-102`）里的 `RingThickness < PlayButtonSize / 4` 在 30px 下是 `1.5 < 7.5`，仍然成立，不用改。
 
@@ -245,7 +246,7 @@ git commit -m "Cards: bigger radii, smaller hover discs, and a frame radius deri
 
 ---
 
-### Task 3: 卡片视觉树 —— 外框外推、按钮缩小、勾选框
+### Task 3: 卡片视觉树 —— 外框进留槽、按钮缩小、勾选框
 
 **Files:**
 - Modify: `src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml`
@@ -261,7 +262,7 @@ git commit -m "Cards: bigger radii, smaller hover discs, and a frame radius deri
 
 ```csharp
 [Test]
-public void TheHoverFrameSitsOutsideTheContentAndCarriesNoLayout()
+public void TheHoverFrameSitsInAGutterOutsideTheContent()
 {
     var xaml = File.ReadAllText(CardXamlPath);
 
@@ -273,64 +274,111 @@ public void TheHoverFrameSitsOutsideTheContentAndCarriesNoLayout()
         "MpvCardRingBrush the buttons and the OSD capsule share");
 
     Assert.That(
-        frame.Contains($"Margin=\"-{CardMetrics.HoverFrameInset}\"", StringComparison.Ordinal),
-        $"the frame must sit {CardMetrics.HoverFrameInset} DIP OUTSIDE the content, " +
-        "written as a negative Margin - it is a visual layer, it does not push anything");
-
-    Assert.That(
         frame.Contains($"CornerRadius=\"{CardMetrics.HoverFrameCornerRadius}\"",
             StringComparison.Ordinal),
-        "the frame's radius must be the content's plus the outward push, or the two arcs " +
+        "the frame's radius must be the content's plus the gutter, or the two arcs " +
         "are not concentric");
 
-    // The content takes no gutter any more: the frame went outside instead.
+    // The gutter is permanent: the OUTER Grid carries it whether or not the
+    // frame is showing, so the content never moves on hover. Measured: the grid
+    // cell clips anything drawn outside it, so the frame lives in this gutter
+    // rather than beyond the cell.
     var content = ContentGridFor(xaml);
 
     Assert.That(
-        content.Contains("Margin=", StringComparison.Ordinal),
+        content.Contains($"Margin=\"{CardMetrics.HoverFrameInset}\"", StringComparison.Ordinal),
+        $"the content must sit CardMetrics.HoverFrameInset ({CardMetrics.HoverFrameInset}) " +
+        "inside the card at all times - a gutter that appears on hover would move the " +
+        "picture, which is the one thing this card must not do");
+
+    // And the frame must NOT be a sibling that stretches over the content: it is
+    // the outermost layer, offset by the same gutter.
+    Assert.That(
+        frame.Contains("Margin=", StringComparison.Ordinal),
         Is.False,
-        "the content Grid must carry no Margin: the frame no longer insets it, so a " +
-        "gutter here would silently narrow every card");
+        "the frame takes the gutter from its container, not from its own Margin - " +
+        "two independent Margs are how the stroke and the content drift apart");
 }
 ```
 
-`ContentGridFor` 的查找串从 `"<Grid Margin="` 改为 `"<Grid"`（内容 Grid 即将没有 Margin 属性），并把返回的片段取到 `>` 为止（不变）。
+`ContentGridFor` 的查找串从 `"<Grid Margin="` 改为 `"<Grid x:Name=\"CardContent\""`（内容 Grid 即将获得这个名字），返回片段仍取到 `>` 为止。
 
 - [ ] **Step 2: 跑测试确认它红**
 
 ```powershell
-dotnet test tests\conf\mpv-conf-test.csproj -c Release --artifacts-path C:\Temp\mpvw-tests --filter "FullyQualifiedName~TheHoverFrameSitsOutside"
+dotnet test tests\conf\mpv-conf-test.csproj -c Release --artifacts-path C:\Temp\mpvw-tests --filter "FullyQualifiedName~TheHoverFrameSitsInAGutter"
 ```
 
-Expected: FAIL —— 现在用的是 `MpvCardRingBrush`、`Margin="4"`、`CornerRadius="8"`，且内容有 `Margin="4"`。
+Expected: FAIL —— 现在用的是 `MpvCardRingBrush`、`CornerRadius="8"`，外框自己带 `Margin="4"`，内容也带 `Margin="4"`。
 
-- [ ] **Step 3: 改 XAML**
+- [ ] **Step 3: 改 XAML —— 加一层外槽**
 
-`LibraryCard.xaml`，逐处：
+`LibraryCard.xaml` 的根 `Grid` 里，把外框和内容都放进一个新的外层 Grid，由它统一留 6 DIP：
 
-| 行 | 现在 | 改为 |
+```xml
+<Grid x:Name="CardGutter" Margin="6">
+    <Border
+        x:Name="HoverFrame"
+        Canvas.ZIndex="10"
+        BorderBrush="{ThemeResource MpvCardFrameBrush}"
+        BorderThickness="1.5"
+        CornerRadius="12"
+        IsHitTestVisible="False"
+        Visibility="Collapsed" />
+
+    <Grid x:Name="CardContent">
+        <!-- 现有 StackPanel 与 HoverOverlay 原样留在里面  -->
+    </Grid>
+</Grid>
+```
+
+要点：
+
+- 外框**删掉自己的 `Margin="4"`**，靠外层 `CardGutter` 的 6 定位
+- 内容 `Grid` 从 `<Grid Margin="4">` 变成 `<Grid x:Name="CardContent">`，**没有 Margin**——槽在外层
+- 外框在 `CardGutter` 的坐标系里 `Stretch`，四条边正好落在内容外 6 DIP
+
+- [ ] **Step 4: 改卡片几何**
+
+| 处 | 现在 | 改为 |
 |---|---|---|
-| `:82` | `Margin="4"` | `Margin="-6"` |
-| `:83` | `{StaticResource MpvCardRingBrush}` | `{ThemeResource MpvCardFrameBrush}` |
-| `:85` | `CornerRadius="8"` | `CornerRadius="12"` |
-| `:92` | `<Grid Margin="4">` | `<Grid x:Name="CardContent">`（同时删掉 Margin） |
-| `:99` | `CornerRadius="4"` | `CornerRadius="6"` |
-| `:269-270` | `Width="36" Height="36"` | `Width="30" Height="30"` |
-| `:271` | `Margin="10"` | `Margin="8"` |
-| `:278` | `{StaticResource MpvCardRingBrush}` | `{ThemeResource MpvCardButtonRingBrush}` |
-| `:281` | `CornerRadius="18"` | `CornerRadius="15"` |
-| `:318` | `Margin="10"` | `Margin="8"` |
-| `:325` | `{StaticResource MpvCardRingBrush}` | `{ThemeResource MpvCardButtonRingBrush}` |
-| `:328` | `CornerRadius="18"` | `CornerRadius="15"` |
+| `MediaBorder` 的 `CornerRadius` | `4` | `6` |
+| `PlayButton` / `MoreButton` 的 `Width`/`Height` | `36` | `30` |
+| 两颗按钮的 `Margin` | `10` | `8` |
+| 两颗按钮的 `BorderBrush` | `{StaticResource MpvCardRingBrush}` | `{ThemeResource MpvCardButtonRingBrush}` |
+| 两颗按钮的 `CornerRadius` | `18` | `15` |
+| 两颗按钮的**字形** `Foreground` | `{StaticResource MpvCardRingBrush}` | **不动** |
 
-`:309` 和 `:346` 是两颗按钮的**字形**前景，保持 `{StaticResource MpvCardRingBrush}` 不动（spec 4.2：字形保持近不透明白）。
+`CardMetrics.cs` 加：
 
-- [ ] **Step 4: 更新同文件里已经过时的注释**
+```csharp
+/// <summary>
+/// The card cell's width: the content plus the gutter on both sides.
+///
+/// The grid clips at the cell edge, so the frame cannot hang outside it. The
+/// gutter is therefore part of the cell, and the CONTENT keeps the reference's
+/// 253 - the picture must not shrink just because the frame needed a home.
+/// </summary>
+public static double CellWidthFor(double contentWidth) =>
+    contentWidth + (HoverFrameInset * 2);
+```
 
-`:89-91` 那段说「The content, inset by the frame's gutter so the stroke has room」已经不成立，改成说明内容不再内缩、外框画在内容之外。
-`:276-277` 附近提到 `Margin="10"` / 36px 的字句一并改。
+`CellHeightFor` 相应改为 **内容高度 + 上下槽 + 文字带**：
 
-- [ ] **Step 5: 跑测试确认它绿**
+```csharp
+public static double CellHeightFor(double contentWidth, bool isAlbum) =>
+    CoverHeightFor(contentWidth, isAlbum) + (HoverFrameInset * 2) + CaptionBandHeight;
+```
+
+- [ ] **Step 5: 更新同文件里已经过时的注释**
+
+外框上方那段「its 4 DIP margin is the gutter the stroke sits in」已经不成立（外框不再有 Margin），
+改成描述外层 `CardGutter`。
+内容 Grid 上方那段「inset by the frame's gutter so the stroke has room」同样改写：
+槽在外层，内容本身不内缩。
+按钮那段提到 `Margin="10"` / 36px / `CornerRadius="18"` 的字句一并改。
+
+- [ ] **Step 6: 跑测试确认它绿**
 
 ```powershell
 python tools\check-xaml.py
@@ -339,11 +387,11 @@ dotnet test tests\conf\mpv-conf-test.csproj -c Release --artifacts-path C:\Temp\
 
 Expected: PASS，`check-xaml` 退出 0。
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml tests/conf/CardMetricsTests.cs
-git commit -m "Cards: the hover frame moves outside the content, and stops reserving a gutter for it"
+git add src/mpv-app/Domains/Playback/Controls/LibraryCard.xaml src/mpv-app/Domains/Playback/Cards/CardMetrics.cs tests/conf/CardMetricsTests.cs
+git commit -m "Cards: the frame lives in a permanent gutter, because the grid cell clips what hangs outside it"
 ```
 
 ---
@@ -434,20 +482,27 @@ git commit -m "Cards: a hairline on the cover, so a resting card is not a hole i
 - Test: `tests/conf/CardMetricsTests.cs`（新增一条）
 
 **Interfaces:**
-- Consumes: Task 2 的 `CardMetrics.GridColumnSpacing` / `GridRowSpacing`
+- Consumes: Task 2 的 `CardMetrics.GridColumnSpacing` / `GridRowSpacing`、Task 3 的 `CellWidthFor`
 - Produces: 无
+
+**间距的计算基准变了。** Task 0 的 spike 证明格子会裁掉画到外面的东西，所以 Task 3
+把 6 DIP 槽做进了格子内部：卡片的 `MinItemWidth` 从 253 变成 `CellWidthFor(253)` = 265，
+`MinItemHeight` 从 `CellHeightFor(253)` = 203.3 变成含上下槽的新值。
+**内容（图片）仍是 253 宽**，变大的是格子。
 
 - [ ] **Step 1: 写失败测试**
 
 ```csharp
 /// <summary>
-/// All three card grids must leave the frame room.
+/// All three card grids must leave the frame a home.
 ///
-/// The frame now sits 6 DIP outside the content on every edge, so two adjacent
-/// selected cards need 12 DIP between them before their strokes touch. The
-/// grids shipped 12 column spacing, which put the two edges exactly on top of
-/// each other. There are THREE layouts - two built in code, one in markup as
-/// the first-paint default - and missing any of them leaves one screen tight.
+/// The frame lives in a 6 DIP gutter INSIDE the cell (the grid clips anything
+/// drawn outside it - measured, see Task 0), so the cell is wider than the
+/// content, and the spacing is what keeps two selected frames apart. The grids
+/// shipped 12, which put a selected card's frame 2 DIP from its neighbour's.
+///
+/// There are THREE layouts - two built in code, one in markup as the
+/// first-paint default - and missing any of them leaves one screen tight.
 ///
 /// The markup cannot name CardMetrics (it is internal static), so its numbers
 /// are literals pinned by this test, the same arrangement LineHeight uses.
@@ -458,7 +513,7 @@ public void EveryCardGridLeavesRoomForTheFrame()
     Assert.That(CardMetrics.GridColumnSpacing, Is.EqualTo(20));
     Assert.That(CardMetrics.GridRowSpacing, Is.EqualTo(20));
 
-    // The minimum the 6 DIP push needs on each side, plus a visible gap.
+    // Two selected frames, back to back, must not read as one line.
     Assert.That(
         CardMetrics.GridColumnSpacing,
         Is.GreaterThan(CardMetrics.HoverFrameInset * 2));
@@ -473,7 +528,13 @@ public void EveryCardGridLeavesRoomForTheFrame()
         page.Contains($"MinRowSpacing=\"{CardMetrics.GridRowSpacing}\"", StringComparison.Ordinal),
         "the markup's default grid must use the same row spacing");
 
-    // And the cell must be tall enough for the caption band it reserves.
+    // The cell is the content plus the gutter on both sides.
+    const double ContentWidth = 253;
+
+    Assert.That(
+        page.Contains($"MinItemWidth=\"{CardMetrics.CellWidthFor(ContentWidth)}\"", StringComparison.Ordinal),
+        "the markup's cell must be wide enough for the content AND the frame's gutter");
+
     var minItemHeight = System.Text.RegularExpressions.Regex.Match(
         page, @"MinItemHeight=""([\d.]+)""");
 
@@ -481,7 +542,7 @@ public void EveryCardGridLeavesRoomForTheFrame()
 
     Assert.That(
         double.Parse(minItemHeight.Groups[1].Value, CultureInfo.InvariantCulture),
-        Is.GreaterThanOrEqualTo(CardMetrics.CellHeightFor(253, isAlbum: false)),
+        Is.GreaterThanOrEqualTo(CardMetrics.CellHeightFor(ContentWidth, isAlbum: false)),
         "the first-paint cell is shorter than CardMetrics says the card needs, so the " +
         "caption band is clipped until ApplyLibraryGridLayout replaces it");
 }
@@ -495,7 +556,7 @@ public void EveryCardGridLeavesRoomForTheFrame()
 dotnet test tests\conf\mpv-conf-test.csproj -c Release --artifacts-path C:\Temp\mpvw-tests --filter "FullyQualifiedName~EveryCardGridLeavesRoom"
 ```
 
-Expected: FAIL —— markup 用的是 `{StaticResource MpvSpaceM}`（12）、`MinItemHeight="192"` 小于 203.31。
+Expected: FAIL —— markup 用的是 `{StaticResource MpvSpaceM}`（12）、`MinItemWidth="253"`（应为 265）、`MinItemHeight="192"`。
 
 - [ ] **Step 3: 改三处布局 + 加两个常量**
 
@@ -513,21 +574,28 @@ markup（`MpvPlayerPage.xaml:1332-1336`）：
 ```xml
 <UniformGridLayout
     MinColumnSpacing="20"
-    MinItemHeight="204"
-    MinItemWidth="253"
+    MinItemHeight="216"
+    MinItemWidth="265"
     MinRowSpacing="20" />
 ```
 
 `CardLayout()`（`MpvPlayerPage.Library.Video.cs:342-348`）：
 
 ```csharp
+// The cell is the content plus the frame's gutter on both sides.
+const double width = 253;
+
+MinItemWidth = CardMetrics.CellWidthFor(width),
+MinItemHeight = CardMetrics.CellHeightFor(width, isAlbum: false),
 MinColumnSpacing = CardMetrics.GridColumnSpacing,
 MinRowSpacing = CardMetrics.GridRowSpacing,
 ```
 
-`AlbumCardLayout()`（`MpvPlayerPage.Library.Music.cs:696-702`）：同上两行（它的行距本来就是 20，改成走常量）。
+`AlbumCardLayout()`（`MpvPlayerPage.Library.Music.cs:696-702`）：同样处理，`width` 保留 170，
+`MinItemWidth = CardMetrics.CellWidthFor(width)`，行距改走 `CardMetrics.GridRowSpacing`。
 
-同时在 markup 那段注释里加一句：`MinItemHeight="204"` 是 `CellHeightFor(253)` 向上取整，由 `CardMetricsTests` 钉住，**不要**改成 192。
+同时在 markup 那段注释里加一句：`MinItemWidth="265"` 与 `MinItemHeight="216"` 是
+`CellWidthFor(253)` 与 `CellHeightFor(253)` 的结果，由 `CardMetricsTests` 钉住，**不要**改回 253/192。
 
 - [ ] **Step 4: 跑测试确认它绿**
 
@@ -537,7 +605,7 @@ Step 2 命令。Expected: PASS。
 
 ```bash
 git add src/mpv-app/Domains/Playback/MpvPlayerPage.xaml src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Video.cs src/mpv-app/Domains/Playback/MpvPlayerPage.Library.Music.cs tests/conf/CardMetricsTests.cs
-git commit -m "Cards: every grid opens 20 DIP, so two selected frames do not touch"
+git commit -m "Cards: the cell grows by the gutter, and every grid opens 20 DIP"
 ```
 
 ---
@@ -1331,7 +1399,7 @@ git commit -m "Cards and playlists: the checks, the baselines, and the documents
 
 ## 自审记录
 
-**Spec 覆盖**：§3.1 三层描边 → Task 1/3/4；§3.2 令牌归属 → Task 1（不动 `MpvCardRingBrush`）；§3.3 浅色反转 → Task 1；§4.1 圆角 → Task 2/3；§4.2 按钮 → Task 2/3；§4.3 常态描边 → Task 4；§4.4 外框外推 + 三处间距 → Task 0/3/5；§4.5 选中保留 → Task 6；§4.6 选择模式 → Task 7/8/9；§4.7 存储 → Task 10/11；§4.8a 添加到清单 → Task 9；§4.8b 行列表 → Task 12；§4.8c 改名删除 → Task 12；§4.8d 专辑卡不出勾选框 → Task 8（`SelectionVisibility` 由条目提供，专辑卡条目不走该路径，见 Task 8 Step 5 的说明）。
+**Spec 覆盖**：§3.1 三层描边 → Task 1/3/4；§3.2 令牌归属 → Task 1（不动 `MpvCardRingBrush`）；§3.3 浅色反转 → Task 1；§4.1 圆角 → Task 2/3；§4.2 按钮 → Task 2/3；§4.3 常态描边 → Task 4；§4.4 外框留槽（spike 后改写）+ 三处间距 → Task 0/3/5；§4.5 选中保留 → Task 6；§4.6 选择模式 → Task 7/8/9；§4.7 存储 → Task 10/11；§4.8a 添加到清单 → Task 9；§4.8b 行列表 → Task 12；§4.8c 改名删除 → Task 12；§4.8d 专辑卡不出勾选框 → Task 8。
 
 **已知缺口**：§4.8d 的实现依赖「专辑卡用的是代表条目」，而 `LibraryEntry` 并不区分「这张卡代表专辑」。Task 8 Step 5 只做了单曲卡。计划里不假装它已完成——专辑卡的排除需要一个判据（按 `MusicGrouping` 与分区），留给执行时确认后再补一步。
 
