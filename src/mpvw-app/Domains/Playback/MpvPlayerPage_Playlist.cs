@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using mpv_winrt;
+using mpv_winui.Domains.Playlist;
 using mpv_winui.Infrastructure.Common.Utils;
 using mpv_winui.Platform.FileSystem;
 using System;
@@ -296,17 +297,16 @@ namespace mpv_winui.Domains.Playback
             {
                 return;
             }
-            var builder = new System.Text.StringBuilder();
-            builder.AppendLine("#EXTM3U");
-            foreach (var item in PlaylistItems)
-            {
-                // Line breaks inside a title would split the EXTINF record;
-                // normalize them to spaces before writing.
-                var title = item.Title.Replace('\r', ' ').Replace('\n', ' ');
-                builder.AppendLine($"#EXTINF:-1,{title}");
-                builder.AppendLine(item.Path);
-            }
-            await System.IO.File.WriteAllTextAsync(file.Path, builder.ToString());
+            // One writer, not two. The named-playlist store writes through
+            // NamedPlaylistFile.Format; this export used to build the same bytes by
+            // hand, and the two differed by a space whenever a title held a line
+            // break - the old double Replace turned CRLF into two spaces where
+            // Format collapses it to one. An exported playlist and a saved one are
+            // the same file format, so they go through the same function.
+            var text = NamedPlaylistFile.Format(
+                PlaylistItems.Select(item => (item.Title, item.Path)).ToList());
+
+            await System.IO.File.WriteAllTextAsync(file.Path, text);
             AppContext.AppLogger.Info($"exported playlist ({PlaylistItems.Count} items): {file.Path}");
         }
 

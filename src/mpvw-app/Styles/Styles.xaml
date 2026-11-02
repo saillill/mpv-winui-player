@@ -166,10 +166,14 @@
                 Color="#73FFFFFF" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
-            <!-- The third dictionary. Light and Dark above each define the same 12 keys and
+            <!-- The third dictionary. Light and Dark above each define the same 15 keys and
                  encode three surface shades (pane darkest, bar between, content lightest).
                  Nothing defined those keys for the contrast theme, so every surface fell back
                  to one colour and the separation was gone.
+
+                 The count is 15, not 12: the tree's own card strokes - cover hairline,
+                 hover frame, button ring - joined all three while the selection bar was
+                 rebuilt, and each one needs a contrast answer like everything else here.
 
                  One flat surface, NOT three shades, and that is deliberate. The installed
                  contrast themes make Window and ButtonFace the same value in every scheme:
