@@ -685,7 +685,17 @@ namespace mpv_winui.Domains.Playback
         /// (MpvPlayerPage_InputForwarding), so an Escape handler would compete with the
         /// player's own binding instead of sitting above it.
         /// </summary>
-        private void SelectionClear_Click(object sender, RoutedEventArgs e)
+        private void SelectionClear_Click(object sender, RoutedEventArgs e) => ClearSelectionTicks();
+
+        /// <summary>
+        /// Unticks every visible entry, which is how the mode is left.
+        ///
+        /// Its own method because a second caller leaves the same way: creating a
+        /// list from the selection spends it. Two callers, one sweep, so
+        /// "leaving the selection" cannot come to mean two different things
+        /// depending on which control was pressed.
+        /// </summary>
+        private void ClearSelectionTicks()
         {
             foreach (var entry in _visibleEntries)
             {
@@ -794,6 +804,15 @@ namespace mpv_winui.Domains.Playback
 
             menu.Items.Add(new MenuFlyoutSeparator());
 
+            // Read the folder here rather than trusting _namedPlaylists: that
+            // cache is filled when the playlists section is built, so on a cold
+            // page - open the app, tick a card, press 添加到 - the menu would list
+            // nothing while the user has lists on disk. One directory read per
+            // open is what the menu being "built rather than declared" is for.
+            _namedPlaylists = _playlistStore.List()
+                .Select(list => (list.Name, list.Count))
+                .ToList();
+
             foreach (var playlist in _namedPlaylists)
             {
                 var item = new MenuFlyoutItem { Text = playlist.Name };
@@ -821,28 +840,86 @@ namespace mpv_winui.Domains.Playback
         /// <summary>
         /// Puts the ticked files into an existing named playlist.
         ///
-        /// Unreachable today: <see cref="_namedPlaylists"/> is empty until Task 12 reads
-        /// the store, so the menu never builds the item that calls this. It exists now
-        /// so the loop in <see cref="SelectionAddTo_Opening"/> is real code rather than
-        /// a comment, and so Task 12 has one place to fill in rather than a loop to
-        /// write as well.
+        /// The store appends rather than replaces, and de-duplicates: pressing
+        /// this twice with the same files in the same list is one entry, not two.
+        /// A missing or unreadable file is skipped exactly as the play and queue
+        /// verbs skip it, so a list never grows an entry that cannot be opened.
         /// </summary>
         private void AddSelectionToPlaylist(string name)
         {
-            _logger.Info("selection: add to playlist '{Name}' is not wired yet (Task 12)", name);
+            var paths = _visibleEntries
+                .Where(entry => entry.IsSelected && !entry.IsMissing)
+                .Select(entry => entry.Path)
+                .ToList();
+
+            if (paths.Count == 0)
+            {
+                return;
+            }
+
+            _playlistStore.Append(name, paths);
+
+            // The section's rows are built from the folder, so they are rebuilt
+            // here rather than left showing a count that is now wrong.
+            if (_librarySection == LibrarySectionPlaylists)
+            {
+                BuildPlaylistRows();
+            }
         }
 
         /// <summary>
-        /// 「添加到 → 新建播放列表…」.
+        /// 「添加到 → 新建播放列表…」: name a list, then put the ticked files in it.
         ///
-        /// The item is here from this task because the reference's menu ends with it;
-        /// the naming dialog and the store it writes through arrive with Tasks 12 and
-        /// 13. Until then this reports instead of pretending: a menu item that silently
-        /// does nothing is worse than one that logs why.
+        /// The dialog is the same one the section's empty state uses, with its own
+        /// words - the first draft of that dialog said 「新建播放列表…」 on the
+        /// rename path too, which is why the caption is now a parameter rather
+        /// than hard-coded.
         /// </summary>
         private void SelectionAddToNewPlaylist_Click(object sender, RoutedEventArgs e)
         {
-            _logger.Info("selection: create playlist is not wired yet (Tasks 12 and 13)");
+            CreatePlaylistFromSelectionAsync().FireAndForget(OnException);
+        }
+
+        /// <summary>
+        /// Names a new list and fills it with the ticked files.
+        ///
+        /// Refuses a name that is already taken, rather than merging: 「新建」 that
+        /// silently appends to an existing list is a surprise, while 「添加到 →
+        /// [that list]」 right above it is the way to append on purpose.
+        /// </summary>
+        private async Task CreatePlaylistFromSelectionAsync()
+        {
+            var paths = _visibleEntries
+                .Where(entry => entry.IsSelected && !entry.IsMissing)
+                .Select(entry => entry.Path)
+                .ToList();
+
+            if (paths.Count == 0)
+            {
+                return;
+            }
+
+            var typed = await PromptForPlaylistNameAsync(
+                AppContext.AppLang.PlaylistCreate,
+                string.Empty,
+                candidate => _playlistStore.List().Any(
+                    list => string.Equals(list.Name, candidate, StringComparison.CurrentCultureIgnoreCase))
+                        ? AppContext.AppLang.PlaylistNameTaken
+                        : null);
+
+            if (typed is null)
+            {
+                return;
+            }
+
+            _playlistStore.Create(typed, paths);
+
+            BuildPlaylistRows();
+
+            // The selection has been spent - it became a list. Leaving every card
+            // ticked would let the next click put the same files in a second list
+            // by accident.
+            ClearSelectionTicks();
         }
 
         /// <summary>
