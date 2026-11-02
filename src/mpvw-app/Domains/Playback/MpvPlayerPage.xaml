@@ -1404,6 +1404,22 @@
                         <StackPanel
                             x:Name="VideoFolderGroups"
                             Visibility="Collapsed" />
+
+                        <!-- The named playlists, as rows rather than cards.
+
+                             A .m3u is neither audio nor a video clip: MediaKinds
+                             has no branch for it and CardMetrics has no aspect
+                             for it, so a card grid would draw a blank fallback
+                             tile per list. A list is a name, a count and two
+                             verbs, which is a row.
+
+                             Built in code (BuildPlaylistRows) because the rows
+                             are files on disk and change without this page
+                             reloading. -->
+                        <StackPanel
+                            x:Name="PlaylistsHost"
+                            Spacing="{StaticResource MpvSpaceXs}"
+                            Visibility="Collapsed" />
                     </Grid>
                 </ScrollViewer>
 

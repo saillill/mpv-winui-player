@@ -183,6 +183,31 @@ namespace mpv_winui.Lexicon.Language
         /// </summary>
         public string PlaylistCreate { get; set; } = "New playlist…";
 
+        // PlaylistPlay already exists: AppLang.cs has it for the queue's own row
+        // menu, and a named list's rows are the same verb. Adding a second one
+        // here was a duplicate declaration, not a second string.
+
+        /// <summary>The row menu's verb that asks for a new name.</summary>
+        public string PlaylistRename { get; set; } = "Rename";
+
+        /// <summary>The row menu's verb that removes the file, after asking.</summary>
+        public string PlaylistDelete { get; set; } = "Delete";
+
+        /// <summary>"{0}" is the list's name.</summary>
+        public string PlaylistDeleteConfirm { get; set; } = "Delete \"{0}\"? Its entries go with it, and there is no undo.";
+
+        /// <summary>The row's overflow button.</summary>
+        public string PlaylistMore { get; set; } = "More";
+
+        /// <summary>The naming field's hint.</summary>
+        public string PlaylistNamePlaceholder { get; set; } = "Name";
+
+        /// <summary>Shown while the typed name is one a list already uses.</summary>
+        public string PlaylistNameTaken { get; set; } = "A list with that name already exists.";
+
+        /// <summary>"{0}" is the number of entries.</summary>
+        public string PlaylistItemCount { get; set; } = "{0} items";
+
         public string LibraryEmptyHomeTitle { get; set; } = "No recent media";
 
         public string LibraryEmptyHomeDescription { get; set; } = "Media you play shows up here.";

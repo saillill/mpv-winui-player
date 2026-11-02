@@ -443,12 +443,17 @@ namespace mpv_winui.Domains.Playback
                 _ => lang.LibraryEmptyMusicDescription,
             };
 
-            // Playlists and the queue offer no empty-state button: neither has
-            // a real "make one" action here, and the queue's own panel keeps
-            // its "Add to" toolbar visible over its empty state, which is the
+            // The queue offers no empty-state button: its own panel keeps its
+            // "Add to" toolbar visible over the empty state, which is the
             // affordance that belongs there.
+            //
+            // Playlists USED to belong in that list, on the grounds that there
+            // was no "make one" action to offer. There is one now - the section
+            // creates a list from its own empty state - so it gets a button, and
+            // it is the one screen where a person with no lists can make the
+            // first one without first selecting something.
             var showButton = !searching
-                && _librarySection is not (LibrarySectionPlaylists or LibrarySectionQueue);
+                && _librarySection is not LibrarySectionQueue;
             LibraryOpenFileButton.Visibility = showButton ? Visibility.Visible : Visibility.Collapsed;
 
             // The shell's own open button hides while this empty state is up.
@@ -463,8 +468,23 @@ namespace mpv_winui.Domains.Playback
             if (showButton)
             {
                 var addFolder = _librarySection is LibrarySectionMusic or LibrarySectionVideos;
-                LibraryOpenFileButtonText.Text = addFolder ? lang.LibraryAddFolder : lang.LibraryOpenFile;
-                LibraryOpenFileIcon.Data = FluentIcons.Geometry(addFolder ? FluentIcons.FolderAdd : FluentIcons.Folder);
+                var isPlaylists = _librarySection == LibrarySectionPlaylists;
+
+                // The same button serves three empty states, so its words and
+                // glyph follow the section: adding a folder where a folder is
+                // what a library needs, opening a file where a file is, and
+                // creating a list where a list is.
+                LibraryOpenFileButtonText.Text = isPlaylists
+                    ? lang.PlaylistCreate
+                    : addFolder ? lang.LibraryAddFolder : lang.LibraryOpenFile;
+
+                LibraryOpenFileIcon.Data = FluentIcons.Geometry(
+                    isPlaylists
+                        ? FluentIcons.Add
+                        : addFolder ? FluentIcons.FolderAdd : FluentIcons.Folder);
+
+                AutomationProperties.SetName(
+                    LibraryOpenFileButton, LibraryOpenFileButtonText.Text);
             }
         }
 
@@ -1158,8 +1178,29 @@ namespace mpv_winui.Domains.Playback
             // so the two now share one set of numbers.
             ApplyLibraryGridLayout(_librarySection == LibrarySectionMusic);
 
-            LibraryGrid.Visibility = folderView ? Visibility.Collapsed : Visibility.Visible;
-            VideoFolderGroups.Visibility = folderView ? Visibility.Visible : Visibility.Collapsed;
+            // The playlists section has no cards at all, so it takes the third
+            // host and both card hosts stay down. Rebuilt from the folder here
+            // rather than cached: the rows are files, and a list can appear or
+            // vanish while this page is open.
+            var isPlaylists = _librarySection == LibrarySectionPlaylists;
+
+            if (isPlaylists)
+            {
+                BuildPlaylistRows();
+            }
+
+            LibraryGrid.Visibility = isPlaylists || folderView
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+
+            VideoFolderGroups.Visibility = folderView && !isPlaylists
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            if (!isPlaylists)
+            {
+                PlaylistsHost.Visibility = Visibility.Collapsed;
+            }
 
             if (folderView)
             {
@@ -1184,13 +1225,26 @@ namespace mpv_winui.Domains.Playback
             var hasCards = cards.Count > 0;
             var isQueue = _librarySection == LibrarySectionQueue;
 
+            // The playlists section draws rows from the folder, not cards from
+            // the history, so "no cards" says nothing about it. Its own emptiness
+            // is the row count - which is why the card-side empty state must step
+            // aside here, or a section holding one list would show 「你没有任何
+            // 播放列表」 over it.
+            var hasPlaylists = isPlaylists && PlaylistsHost.Children.Count > 0;
+
             // The queue is a sibling surface in the same slot, not a filtered
             // grid: exactly one of the three shows at a time. Its panel keeps
             // the toolbar above the rows and swaps the rows for the empty
             // message when mpv reports nothing queued.
             QueueHost.Visibility = isQueue ? Visibility.Visible : Visibility.Collapsed;
-            LibraryScroll.Visibility = !isQueue && hasCards ? Visibility.Visible : Visibility.Collapsed;
-            LibraryEmptyState.Visibility = !isQueue && !hasCards ? Visibility.Visible : Visibility.Collapsed;
+
+            LibraryScroll.Visibility = !isQueue && (hasCards || hasPlaylists)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            LibraryEmptyState.Visibility = !isQueue && !hasPlaylists && !hasCards
+                ? Visibility.Visible
+                : Visibility.Collapsed;
 
             if (isQueue)
             {
@@ -1461,11 +1515,15 @@ namespace mpv_winui.Domains.Playback
 
         private void LibraryOpenFileButton_Click(object sender, RoutedEventArgs e)
         {
-            // Home's empty state opens a file; the two libraries' "Add folder"
-            // reuses the app's existing open-folder command. Same label to
-            // action rule as ApplyEmptyStateContent, which decides which of
-            // the two is on screen.
-            if (_librarySection is LibrarySectionMusic or LibrarySectionVideos)
+            // One button, one action per section - the same label-to-action rule
+            // ApplyEmptyStateContent follows when it decides what the label says.
+            // A button that says 「新建播放列表」 and then opens a file picker would
+            // be the exact defect this repo keeps a checker for.
+            if (_librarySection == LibrarySectionPlaylists)
+            {
+                CreateEmptyPlaylistAsync().FireAndForget(OnException);
+            }
+            else if (_librarySection is LibrarySectionMusic or LibrarySectionVideos)
             {
                 _ = AddLibraryFoldersAsync(_librarySection == LibrarySectionMusic);
             }

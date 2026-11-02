@@ -189,12 +189,17 @@ namespace mpv_winui
             new("music", "\uE8D6", static l => l.ShellNavMusic),
             new("videos", "\uE8B2", static l => l.ShellNavVideos),
             new("queue", "\uEA37", static l => l.ShellNavQueue),
-            // The playlists section used to live here. It rendered the mpv
-            // playlist again - the same rows the queue section and the side panel
-            // already show - so it was a third view of one collection with no
-            // distinct content of its own. Removed at the owner's request: "keep
-            // only the play queue; the playlist is too much of a duplicate to be
-            // worth anything".
+
+            // The playlists section, which is NOT the thing removed here before.
+            // What was deleted was a view of mpv's own playlist - the same rows
+            // the queue section and the side panel already show, a third view of
+            // one collection with nothing of its own. That judgement still holds
+            // and that section is still gone.
+            //
+            // This one is the user's named lists: one .m3u per list, written by
+            // the app, holding whatever they put in them. Different content, its
+            // own storage, and the only place a list the user made can be seen.
+            new("playlists", "\uE8FD", static l => l.ShellNavPlaylists),
         ];
 
         /// <summary>
