@@ -1033,6 +1033,8 @@ private void SelectionAddTo_Opening(object? sender, object e)
 ```
 
 - [ ] **Step 3: 构建并截图**
+
+```powershell
 python tools\check-xaml.py
 .\build.ps1 -Configuration Release -Platform x64
 $env:MPVW_DEPLOY_DIR = "C:\Apps\mpvw"
