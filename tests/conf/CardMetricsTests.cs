@@ -245,7 +245,7 @@ public class CardMetricsTests
         Assert.That(
             root.Contains("VerticalContentAlignment=\"Stretch\"", StringComparison.Ordinal),
             "RootButton must stretch its content: with \"Top\" the card's Grid collapses " +
-            "to its content height, and the hover frame's Margin has nothing to contract into");
+            "to its content height, and the hover frame has nothing to stretch into");
     }
 
     /// <summary>
