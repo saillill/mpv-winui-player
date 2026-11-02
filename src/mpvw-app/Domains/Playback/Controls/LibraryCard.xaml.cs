@@ -59,6 +59,18 @@ namespace mpv_winui.Domains.Playback.Controls
 
         private bool _isAlbum;
 
+        /// <summary>
+        /// Whether the pointer is on this card right now.
+        ///
+        /// A field rather than a read of some visual's state, because the frame
+        /// has two callers and one of them (IsSelected) cannot see the pointer.
+        /// It is also the half of the answer that has to be reset on every
+        /// recycle: the pointer lives on the element, the tick on the entry, and
+        /// a card prepared while the pointer is elsewhere would otherwise keep
+        /// the previous file's "the pointer is here".
+        /// </summary>
+        private bool _pointerInside;
+
         /// <summary>Raised when the card body is clicked.</summary>
         public event EventHandler? CardTapped;
 
@@ -104,7 +116,10 @@ namespace mpv_winui.Domains.Playback.Controls
 
             // The overlay is code-driven state the template cannot reset by
             // itself: a card prepared while the pointer is elsewhere must not
-            // arrive already wearing another item's hover.
+            // arrive already wearing another item's hover. The frame is part of
+            // that reset but is not simply collapsed - ResetOverlay recomputes it
+            // from the entry just assigned, so a recycled card arrives framed
+            // exactly when the file it now stands for is ticked.
             ResetOverlay();
 
             if (entry is null)
@@ -151,11 +166,13 @@ namespace mpv_winui.Domains.Playback.Controls
                     break;
 
                 // IsSelected is watched because it is now one of the two things
-                // that decide the caption colour. Without this, ticking a card in
-                // selection mode showed the tick box but left the text white,
-                // because the caption repaint only ran on IsNowPlaying.
+                // that decide the caption colour, and one of the two things that
+                // decide the frame. Without this, ticking a card in selection
+                // mode showed the tick box but left the text white, because the
+                // caption repaint only ran on IsNowPlaying.
                 case nameof(LibraryEntry.IsSelected):
                     ApplyCaptionEmphasis(entry);
+                    UpdateFrameForState();
                     break;
                 case nameof(LibraryEntry.SelectionVisibility):
                 case nameof(LibraryEntry.SelectionGlyph):
@@ -304,6 +321,14 @@ namespace mpv_winui.Domains.Playback.Controls
         {
             SelectionGlyphIcon.Glyph = entry.SelectionGlyph;
             SelectionBox.Visibility = entry.SelectionVisibility;
+
+            // A ticked card keeps its frame after the pointer leaves: the frame IS
+            // the "this one" mark, and a tick box alone disappears under the
+            // cursor. Reached from SetEntry and from a SelectionVisibility/Glyph
+            // change, so it is a second chance for the frame to agree with the
+            // entry rather than the only one - ResetOverlay already computes it,
+            // and UpdateFrameForState is idempotent by construction.
+            UpdateFrameForState();
         }
 
         private void ApplyAccessibleNames()
@@ -368,7 +393,14 @@ namespace mpv_winui.Domains.Playback.Controls
             // stroke present was the card background's own colour. A hard on/off is
             // also correct here: the frame is a boundary, and fading a boundary in
             // reads as the card resizing.
-            HoverFrame.Visibility = Visibility.Visible;
+            //
+            // The pointer is one of TWO reasons the frame can be on, so it is
+            // recorded and the decision is left to UpdateFrameForState: writing
+            // Visibility here as well is how two writers of one property start
+            // disagreeing, which for a recycled card means another item's frame.
+            _pointerInside = true;
+
+            UpdateFrameForState();
 
             HoverOverlay.Visibility = Visibility.Visible;
             HoverOverlay.IsHitTestVisible = true;
@@ -384,10 +416,18 @@ namespace mpv_winui.Domains.Playback.Controls
         {
             HoverOverlay.IsHitTestVisible = false;
 
-            // Unconditionally off. The frame has no fade of its own, so there is no
-            // callback to re-check inside: ShowOverlay re-shows it before any exit
-            // that matters.
-            HoverFrame.Visibility = Visibility.Collapsed;
+            // The frame goes off with the pointer, unless the card is ticked: a
+            // ticked card keeps its frame after the pointer leaves, because the
+            // frame is the "this one" mark and the tick box alone disappears under
+            // the cursor. UpdateFrameForState holds that rule; this only says the
+            // pointer is gone.
+            //
+            // No fade and no callback for the frame, so nothing here to re-check:
+            // HideOverlayForMenu and the exit can both land mid-fade, and the frame
+            // is already in whatever state the ticks say it should be.
+            _pointerInside = false;
+
+            UpdateFrameForState();
 
             MotionBehaviors.FadeOut(HoverOverlay, () =>
             {
@@ -421,11 +461,54 @@ namespace mpv_winui.Domains.Playback.Controls
             // recycled onto a different file while the pointer is elsewhere must
             // not arrive already wearing another item's highlight.
             //
+            // Both halves of the answer are rebuilt, not collapsed outright. The
+            // tick lives on the entry and is what a recycled card has to be
+            // judged against, so "reset" means: declare the pointer absent, then
+            // let the one rule decide from the entry this card now points at.
+            // Collapsing unconditionally would be a second, independent writer of
+            // HoverFrame.Visibility - the shape this file already lost a card to -
+            // and it would be wrong for a card prepared onto a ticked entry, which
+            // must arrive framed.
+            //
+            // SetEntry assigns Entry before calling this, so the recompute sees
+            // the entry being recycled TO, not the one being released. Nothing
+            // later is relied on to correct it: ResetOverlay is a complete answer
+            // on its own, including on the null-entry path, which returns from
+            // SetEntry before ApplySelection ever runs.
+            //
             // Visibility only, no MotionBehaviors.Reset: the frame has no opacity
             // animation to reset (see ShowOverlay), and Reset on a composited
             // visual is what previously left it at one opacity while the element
             // said Visible.
-            HoverFrame.Visibility = Visibility.Collapsed;
+            _pointerInside = false;
+
+            UpdateFrameForState();
+        }
+
+        /// <summary>
+        /// The frame is on when the pointer is on the card OR the card is ticked.
+        ///
+        /// Both callers - the pointer and the entry's IsSelected - go through here,
+        /// so there is one place that decides. Two independent writers of the same
+        /// Visibility is how a card ends up wearing another card's highlight after a
+        /// recycle, which is the defect ResetOverlay already exists to prevent.
+        ///
+        /// Read as "pointer or tick" rather than as a second, separate highlight for
+        /// the ticked state: the frame IS the mark that says which card is chosen,
+        /// and the tick box alone vanishes under the pointer.
+        ///
+        /// Nothing here moves. The gutter around the content is permanent (the
+        /// content sits its inset inside the cell whether or not the frame shows),
+        /// so turning the frame on and off changes no element's position - measured
+        /// as the content's UIA rect being identical in both states.
+        /// </summary>
+        private void UpdateFrameForState()
+        {
+            var selected = Entry?.IsSelected == true;
+
+            HoverFrame.Visibility = _pointerInside || selected
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         private void RootButton_Click(object sender, RoutedEventArgs e) => CardTapped?.Invoke(this, EventArgs.Empty);
