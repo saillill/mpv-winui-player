@@ -874,7 +874,10 @@ private void Card_SelectionRequested(object? sender, EventArgs e)
 }
 ```
 
-`LibraryEntry.ToggleSelection` 现在要求已在选择模式里才生效（`LibraryEntry.Selection.cs:88-96`）。改成勾选框本身就是入口，所以那个守卫要去掉——改为无条件翻转。同步改它的 doc 注释。
+**`LibraryEntry.ToggleSelection` 的守卫必须去掉。** 它现在要求 `_selectionMode` 为真才翻转（`LibraryEntry.Selection.cs:88-96`），
+而 Task 7 之后 `_selectionMode` 只在**已有选中**时才为真——于是第一次点勾选框永远勾不上任何东西。
+这是 Task 7 与 Task 8 之间的一处真实冲突，裁定为：删掉那个 `if (!_selectionMode) return;`，
+改为无条件翻转，并改写它的 doc 注释（模式现在由计数定义，所以「不在模式里」这个状态不存在）。
 
 - [ ] **Step 6: 跑测试 + 构建**
 
@@ -915,7 +918,18 @@ git commit -m "Cards: the tick box is the way into selection mode, and it surviv
 
 工具栏从左到右：`✓ 已选择 N 项 · 清除`（左），右侧依次 `播放`（Accent）、`加入播放队列`、`队列`、`添加到`（DropDownButton）、`更多`（DropDownButton）。现有 `SelectionPropertiesButton`（「在文件夹中显示」「属性」）移进 `更多` 的菜单。
 
-- [ ] **Step 2: 「添加到」的菜单在打开时构建**
+- [ ] **Step 3: 「添加到」的菜单在打开时构建**
+
+**本任务不引用 Task 12 才创建的东西。** `_namedPlaylists` 在这里声明成空列表，
+`PlaylistCreate` 这个语言键在这里加（`AppLang.Shell.cs` + zh-CN 写「新建播放列表…」，
+其余八份填中文占位——沿用设置页那轮的做法）。Task 12 再把空列表换成 store 的查询结果。
+
+`MpvPlayerPage_Library.cs` 里加：
+
+```csharp
+/// <summary>Named playlists, for the add-to menu. Empty until Task 12 fills it.</summary>
+private IReadOnlyList<NamedPlaylist> _namedPlaylists = [];
+```
 
 `SelectionAddToButton` 的 `Flyout` 用 `MenuFlyout`，在 `Opening` 时清空并重建：
 
@@ -951,8 +965,6 @@ private void SelectionAddTo_Opening(object? sender, object e)
 ```
 
 - [ ] **Step 3: 构建并截图**
-
-```powershell
 python tools\check-xaml.py
 .\build.ps1 -Configuration Release -Platform x64
 $env:MPVW_DEPLOY_DIR = "C:\Apps\mpvw"
