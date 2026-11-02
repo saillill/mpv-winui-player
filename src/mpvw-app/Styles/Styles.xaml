@@ -1453,23 +1453,24 @@
 <!-- The hover buttons' surface: translucent, not opaque.
      Reported as "the buttons should use the official Mica effect, simple and
      transparent". A Mica *material* is a window backdrop and cannot be applied
-     to a 36px control; what reads as Mica at this size is the acrylic tint, which
+     to a 30px control; what reads as Mica at this size is the acrylic tint, which
      is what Fluent uses for a control floating over content. It lets the cover
      show through the circle instead of stamping an opaque disc on it.
 
-     The colour is unchanged from the reference sample: #B31C1C1C measured on
-     the overlaid disc, which is the thumbnail darkened by roughly 70%. -->
-<SolidColorBrush x:Key="MpvCardControlBrush" Color="#B31C1C1C" />
+     Darkened from #B31C1C1C to #DB0C0C0C when the discs shrank 36 -> 30. The
+     value was measured off the reference at the old size; at the new one the
+     disc is smaller, so a 70% tint put less darkness on the frame than the
+     reference does and the white glyph lost contrast over bright scenes. 86% is
+     the same "opaque enough to sit on any frame" the design asked for. -->
+<SolidColorBrush x:Key="MpvCardControlBrush" Color="#DB0C0C0C" />
 
-<!-- The hover highlight's ring: translucent BLACK, not the buttons' white.
+<!-- MpvCardHoverRingBrush used to live here: a translucent BLACK ring (#9E000000)
+     for the hover highlight, from the round where the highlight was a blur and
+     then a black edge. This branch replaced that with MpvCardFrameBrush, which is
+     themed, and the black ring lost its last reader. Deleted rather than kept "in
+     case": a themed token with no user is a claim that something is themed.
 
-     Reported as "add a noticeably thicker translucent black border" around the
-     highlight. Black rather than white because the two do different jobs: the
-     corner buttons are small marks that must pop off whatever pixel is behind
-     them, while the highlight is a large area whose job is to draw an edge. A
-     white ring at this size reads as a second highlight; black at 62% darkens
-     just the boundary and keeps the picture inside it readable. -->
-<SolidColorBrush x:Key="MpvCardHoverRingBrush" Color="#9E000000" />
+     The white ring lives on as MpvCardButtonRingBrush, below. -->
 
 <!-- The hover buttons' ring and glyph.
 

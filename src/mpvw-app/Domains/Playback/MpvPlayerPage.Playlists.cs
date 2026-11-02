@@ -52,13 +52,6 @@ namespace mpv_winui.Domains.Playback
                 PlaylistsHost.Children.Add(BuildPlaylistRow(list));
             }
 
-            // The bar's add-to menu reads this. Refreshed here rather than on
-            // every open: the menu is built when it opens, and this is when the
-            // folder was last read.
-            _namedPlaylists = lists
-                .Select(list => (list.Name, list.Count))
-                .ToList();
-
             UpdatePlaylistsVisibility();
         }
 
@@ -133,7 +126,8 @@ namespace mpv_winui.Domains.Playback
                 Content = new FontIcon { FontSize = 12, Glyph = "\uE768" },
             };
 
-            AutomationProperties.SetName(play, lang.PlaylistPlay);
+            AutomationProperties.SetName(play, $"{lang.PlaylistPlay}: {list.Name}");
+            AutomationProperties.SetAutomationId(play, $"PlaylistPlay_{list.Name}");
             ToolTipService.SetToolTip(play, lang.PlaylistPlay);
             play.Click += (_, _) => PlayNamedPlaylist(list.Name);
 
@@ -165,6 +159,14 @@ namespace mpv_winui.Domains.Playback
             AutomationProperties.SetName(more, lang.PlaylistMore);
             ToolTipService.SetToolTip(more, lang.PlaylistMore);
 
+            // A per-row automation id, because the accessible name cannot tell two
+            // rows apart: every row's overflow button is called 「更多」, so a UIA
+            // query matches them all and cannot choose one. Naming the row in the id
+            // is what makes a specific list clickable by a test - and it is also
+            // what a screen-reader user hears when they land on it.
+            AutomationProperties.SetAutomationId(more, $"PlaylistMore_{list.Name}");
+            AutomationProperties.SetName(more, $"{lang.PlaylistMore}: {list.Name}");
+
             verbs.Children.Add(more);
 
             Grid.SetColumn(verbs, 3);
@@ -174,12 +176,16 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
-        /// Shows the rows host for the playlists section and hides the two card
-        /// hosts.
+        /// Shows the rows host for the playlists section and hands the content
+        /// slot to the right surface.
         ///
-        /// Its own method because three callers need the same three-way answer:
-        /// the section switch, a rename, and a delete. Written once so the three
-        /// hosts can never be visible together.
+        /// <para>Three callers need the same answer: the section switch, and any
+        /// action that changes the row count (create, rename, delete). Those
+        /// actions never touch the history, so they never reach
+        /// ApplyLibraryFilter. Before this called into the slot logic, making a
+        /// list left the empty state up and the new row invisible until the user
+        /// switched sections and came back; deleting the last one left a blank
+        /// scroll area with neither rows nor a message.</para>
         /// </summary>
         private void UpdatePlaylistsVisibility()
         {
@@ -188,6 +194,14 @@ namespace mpv_winui.Domains.Playback
             PlaylistsHost.Visibility = isPlaylists && PlaylistsHost.Children.Count > 0
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+
+            // The card count only matters outside this section: inside it there
+            // are no cards by definition, and elsewhere the row host is down
+            // anyway. Reading _visibleEntries rather than re-filtering keeps this
+            // off the history entirely.
+            ApplyContentSlotVisibility(
+                isQueue: _librarySection == LibrarySectionQueue,
+                hasCards: !isPlaylists && _visibleEntries.Count > 0);
         }
 
         /// <summary>
@@ -241,8 +255,17 @@ namespace mpv_winui.Domains.Playback
                         return null;
                     }
 
+                    // A list does not collide with itself. Without the exclusion,
+                    // renaming "autumn" to "Autumn" was refused as a duplicate -
+                    // the name being fixed was the one it was compared against -
+                    // so the one rename a user is most likely to want (fixing the
+                    // capitals) was the one rename the dialog would not allow.
+                    // The store already permits it: RenameThatOnlyChangesCaseIsAllowed
+                    // asserts exactly that, and until now the UI could never reach it.
                     var taken = _playlistStore.List()
-                        .Any(list => string.Equals(list.Name, candidate, StringComparison.CurrentCultureIgnoreCase));
+                        .Any(list =>
+                            !string.Equals(list.Name, from, StringComparison.Ordinal)
+                            && string.Equals(list.Name, candidate, StringComparison.CurrentCultureIgnoreCase));
 
                     return taken ? AppContext.AppLang.PlaylistNameTaken : null;
                 });

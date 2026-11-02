@@ -199,12 +199,6 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
-        /// The card overflow menu's five items. Set here rather than in the
-        /// markup because the menu is a single shared resource, so this is the
-        /// one place with a stable handle on its items - and because a language
-        /// change has to reach them.
-        /// </summary>
-        /// <summary>
         /// The selection bar's labels.
         ///
         /// In code rather than in the markup because the bar is built once and the
@@ -583,16 +577,6 @@ namespace mpv_winui.Domains.Playback
         private bool _videoChromeWanted;
 
         /// <summary>
-        /// Named playlists, for the add-to menu. Empty on purpose.
-        ///
-        /// A tuple rather than the store's own type: NamedPlaylist arrives with Task 12,
-        /// and a field declared against a type this tree does not have yet does not
-        /// compile. Task 12 replaces the tuple with the real type and fills this from
-        /// the store; the menu reads only <c>Name</c> either way.
-        /// </summary>
-        private IReadOnlyList<(string Name, int Count)> _namedPlaylists = [];
-
-        /// <summary>
         /// True while at least one visible card is ticked.
         ///
         /// Derived, never set from outside: <see cref="UpdateSelectionBar"/> writes it
@@ -785,8 +769,9 @@ namespace mpv_winui.Domains.Playback
         ///
         /// The first item is the play queue and the last is "new playlist", so the two
         /// fixed destinations sit at the ends and the named lists grow in the middle.
-        /// Today the middle is empty - the store arrives with Task 12 - which is why the
-        /// reference's two-item menu is exactly what this shows.
+        /// The middle is filled from the folder on every open, never from a cache: a
+        /// menu built from a stale field would show lists that no longer exist and
+        /// omit the ones made since the page loaded.
         /// </summary>
         private void SelectionAddTo_Opening(object? sender, object e)
         {
@@ -806,16 +791,20 @@ namespace mpv_winui.Domains.Playback
 
             menu.Items.Add(new MenuFlyoutSeparator());
 
-            // Read the folder here rather than trusting _namedPlaylists: that
-            // cache is filled when the playlists section is built, so on a cold
-            // page - open the app, tick a card, press 添加到 - the menu would list
-            // nothing while the user has lists on disk. One directory read per
-            // open is what the menu being "built rather than declared" is for.
-            _namedPlaylists = _playlistStore.List()
+            // Read the folder on every open. A menu built from a field filled when
+            // the playlists section was last visited lists nothing on a cold page -
+            // open the app, tick a card, press 添加到 - and would also offer lists
+            // that have since been deleted.
+            //
+            // A tuple rather than the store's NamedPlaylist: the menu reads only
+            // Name, and the full type would keep every path of every list alive for
+            // a flyout that uses none of them. It is a local for the same reason -
+            // nothing outside this method reads it.
+            var namedPlaylists = _playlistStore.List()
                 .Select(list => (list.Name, list.Count))
                 .ToList();
 
-            foreach (var playlist in _namedPlaylists)
+            foreach (var playlist in namedPlaylists)
             {
                 var item = new MenuFlyoutItem { Text = playlist.Name };
                 item.Click += (_, _) => AddSelectionToPlaylist(playlist.Name);
@@ -861,12 +850,12 @@ namespace mpv_winui.Domains.Playback
 
             _playlistStore.Append(name, paths);
 
-            // The section's rows are built from the folder, so they are rebuilt
-            // here rather than left showing a count that is now wrong.
-            if (_librarySection == LibrarySectionPlaylists)
-            {
-                BuildPlaylistRows();
-            }
+            // No row rebuild here on purpose: this menu is only reachable from a
+            // card grid with cards ticked, and the playlists section has no cards,
+            // so the row count cannot be on screen when this runs. The section
+            // rebuilds when it is next shown (ApplyLibraryFilter), and the add-to
+            // menu re-reads the folder on every open, so both readers stay right
+            // without a refresh from here.
         }
 
         /// <summary>
@@ -1309,21 +1298,7 @@ namespace mpv_winui.Domains.Playback
             // is the row count - which is why the card-side empty state must step
             // aside here, or a section holding one list would show 「你没有任何
             // 播放列表」 over it.
-            var hasPlaylists = isPlaylists && PlaylistsHost.Children.Count > 0;
-
-            // The queue is a sibling surface in the same slot, not a filtered
-            // grid: exactly one of the three shows at a time. Its panel keeps
-            // the toolbar above the rows and swaps the rows for the empty
-            // message when mpv reports nothing queued.
-            QueueHost.Visibility = isQueue ? Visibility.Visible : Visibility.Collapsed;
-
-            LibraryScroll.Visibility = !isQueue && (hasCards || hasPlaylists)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-
-            LibraryEmptyState.Visibility = !isQueue && !hasPlaylists && !hasCards
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            ApplyContentSlotVisibility(isQueue, hasCards);
 
             if (isQueue)
             {
@@ -1335,6 +1310,34 @@ namespace mpv_winui.Domains.Playback
                 // section and from whether a search is what emptied it.
                 ApplyEmptyStateContent();
             }
+        }
+
+        /// <summary>
+        /// Which of the three content surfaces takes the slot: the scrolling
+        /// area, the empty state, or (for the queue) its own host.
+        ///
+        /// <para><b>Its own method because more than one caller changes the
+        /// answer.</b> Creating, renaming or deleting a list changes the row
+        /// count without going anywhere near the history, so those paths never
+        /// reach ApplyLibraryFilter. Before this was extracted they wrote only
+        /// <c>PlaylistsHost</c>, leaving <c>LibraryEmptyState</c> up and
+        /// <c>LibraryScroll</c> collapsed - which is the shape of "I made a list
+        /// and nothing appeared until I switched sections and came back".</para>
+        /// </summary>
+        private void ApplyContentSlotVisibility(bool isQueue, bool hasCards)
+        {
+            var hasPlaylists = _librarySection == LibrarySectionPlaylists
+                && PlaylistsHost.Children.Count > 0;
+
+            QueueHost.Visibility = isQueue ? Visibility.Visible : Visibility.Collapsed;
+
+            LibraryScroll.Visibility = !isQueue && (hasCards || hasPlaylists)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            LibraryEmptyState.Visibility = !isQueue && !hasPlaylists && !hasCards
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         /// <summary>

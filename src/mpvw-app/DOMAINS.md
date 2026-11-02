@@ -15,14 +15,14 @@ XAML 资源 URI、`mpv-conf-test.csproj` 的显式 `Compile Include` 和
 
 | # | 分区 | 目录 | 文件 | 代码行 | 上下文入口 |
 |---|---|---|---:|---:|---|
-| 0 | 外壳 Shell | `Shell/` | 8 | 2511 | [README](Shell/README.md) |
-| 1 | 播放页 Playback | `Domains/Playback/` | 71 | 25304 | [README](Domains/Playback/README.md) |
+| 0 | 外壳 Shell | `Shell/` | 8 | 2542 | [README](Shell/README.md) |
+| 1 | 播放页 Playback | `Domains/Playback/` | 78 | 28173 | [README](Domains/Playback/README.md) |
 | 2 | 设置 Settings | `Domains/Settings/` | 64 | 26980 | [README](Domains/Settings/README.md) |
 | 3 | 设置存储 SettingsModel | `Domains/SettingsModel/` | 16 | 5265 | 无 README，见下 |
 | 4 | mpv 配置 MpvConf | `Domains/MpvConf/` | 29 | 7849 | [README](Domains/MpvConf/README.md) |
 | 5 | 菜单 Menu | `Domains/Menu/` | 18 | 2007 | [README](Domains/Menu/README.md) |
 | 6 | 媒体信息 MediaInfo | `Domains/MediaInfo/` | 6 | 745 | [README](Domains/MediaInfo/README.md) |
-| 7 | 稍后观看 / 历史 Playlist | `Domains/Playlist/` | 8 | 693 | 无 README，见下 |
+| 7 | 稍后观看 / 历史 / 命名播放列表 Playlist | `Domains/Playlist/` | 11 | 1532 | 无 README，见下 |
 | 8 | 库类型 Library | `Domains/Library/` | 1 | 87 | 无 README，见下 |
 | I | 基础设施 | `Infrastructure/` | 39 | 3524 | [Common](Infrastructure/Common/README.md)、[Motion](Infrastructure/Motion/README.md) |
 | P | 平台 | `Platform/` | 14 | 2530 | [Activation](Platform/Activation/README.md)、[AppModel](Platform/AppModel/README.md)、[FileSystem](Platform/FileSystem/README.md)、[Win32](Platform/Win32/README.md) |
@@ -41,7 +41,8 @@ XAML 资源 URI、`mpv-conf-test.csproj` 的显式 `Compile Include` 和
   `tools/gen-schema-options.py` 生成）、存储后端（`IDataSetting` 与三个实现）、
   值编解码（`SettingValueCodec`）。**它不引用任何 UI 域**，这是「设置存储可以
   独立测试」的结构基础。
-- `Domains/Playlist/`：`WatchLater*` 与 `WatchHistory*` 两组解析器 + 控件。
+- `Domains/Playlist/`：`WatchLater*` 与 `WatchHistory*` 两组解析器 + 控件，加上命名播放列表
+  （`NamedPlaylist*`：一个 `.m3u` 的读写，以及它所在目录的存取）。三组互不依赖。
   队列本体不在这里，那是 mpv 的 `playlist` 属性，由 `Playback` 呈现。
 - `Domains/Library/`：`VideoLibraryTypes.cs` 一个文件，库条目类型定义。库视图在
   `Playback`，所以方向是 `Playback → Library`，不是反过来。

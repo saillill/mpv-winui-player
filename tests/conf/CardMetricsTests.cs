@@ -118,6 +118,100 @@ public class CardMetricsTests
     }
 
     /// <summary>
+    /// An album card never shows a tick box.
+    ///
+    /// <para>On the Albums/Artists pages one card stands for a whole album and its
+    /// click opens that album rather than playing it. A tick box there would make
+    /// one click mean two things, and picking a few albums is not what the
+    /// selection bar is for.</para>
+    ///
+    /// <para>Asserted against the source rather than the running control because
+    /// the rule lives in one branch of <c>UpdateSelectionBoxForState</c>, and this
+    /// project cannot create a LibraryCard outside a window. The check is that the
+    /// branch exists and is reached before the visibility is computed - deleting
+    /// it, or moving it after the assignment, turns this red.</para>
+    /// </summary>
+    [Test]
+    public void AnAlbumCardNeverGetsATickBox()
+    {
+        var source = File.ReadAllText(CardCodePath);
+
+        var start = source.IndexOf("private void UpdateSelectionBoxForState", StringComparison.Ordinal);
+        Assert.That(start, Is.GreaterThanOrEqualTo(0), "UpdateSelectionBoxForState is gone");
+
+        var end = source.IndexOf("SelectionBox.Visibility = inMode", start, StringComparison.Ordinal);
+        Assert.That(end, Is.GreaterThan(start), "the visibility computation is gone");
+
+        var method = source[start..end];
+
+        var guard = method.IndexOf("if (_isAlbum)", StringComparison.Ordinal);
+
+        Assert.That(
+            guard,
+            Is.GreaterThanOrEqualTo(0),
+            "the album guard is gone: an album card would show a tick box over a click that opens the album");
+
+        Assert.That(
+            method[guard..],
+            Does.Contain("return"),
+            "the album branch must return before the visibility is computed, not fall through to it");
+    }
+
+    ///
+    /// <para><b>Why this test exists.</b> Every constant above was pinned to a
+    /// number, and the markup was free to disagree with all of them: the round
+    /// that shrank these discs checked the constants while the XAML could have
+    /// kept 36. That was measured, not supposed - setting both buttons' Margin to
+    /// 0, and their size, radius and ring back to 36 / 18 / 3, left the whole
+    /// suite green. These are the numbers that round was about, so something has
+    /// to compare the two sides.</para>
+    ///
+    /// <para><see cref="ButtonBlock"/> strips XML comments before matching, which
+    /// this file needs: the prose beside these buttons quotes the very attribute
+    /// values a regression would remove.</para>
+    /// </summary>
+    [Test]
+    public void TheDiscsInTheMarkupCarryTheTokenGeometry()
+    {
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        foreach (var button in new[] { "PlayButton", "MoreButton" })
+        {
+            var block = ButtonBlock(xaml, button);
+
+            Assert.That(
+                block,
+                Does.Contain($"Width=\"{CardMetrics.PlayButtonSize}\""),
+                $"{button}: width must come from the token, or the disc and its ring radius disagree");
+
+            Assert.That(
+                block,
+                Does.Contain($"Height=\"{CardMetrics.PlayButtonSize}\""),
+                $"{button}: height must come from the token");
+
+            Assert.That(
+                block,
+                Does.Contain($"Margin=\"{CardMetrics.CornerInset}\""),
+                $"{button}: the inset is what puts the disc in the cover's corner; 0 pins it to the edge");
+
+            Assert.That(
+                block,
+                Does.Contain($"BorderThickness=\"{CardMetrics.RingThickness}\""),
+                $"{button}: the ring's weight is a token, not a literal per button");
+
+            // Half the diameter, spelled out: the only radius that makes the ring
+            // and the disc concentric. Derived here rather than read from a token
+            // so the RELATIONSHIP is what is asserted.
+            var radius = CardMetrics.PlayButtonSize / 2.0;
+
+            Assert.That(
+                block,
+                Does.Contain($"CornerRadius=\"{radius}\""),
+                $"{button}: corner radius must be half the diameter ({radius})");
+        }
+    }
+
+    /// <summary>
     /// The two caption line heights have to clear the type sizes they stand for.
     ///
     /// BOTH lines are at MpvCardTitleFontSize (15) now - the card no longer has a
@@ -683,25 +777,44 @@ public class CardMetricsTests
     /// rather than a bare "not found".</para>
     /// </summary>
     private static string CardXamlPath
+        => Locate(@"src\mpvw-app\Domains\Playback\Controls\LibraryCard.xaml");
+
+    /// <summary>
+    /// The card's code-behind, found the same way.
+    ///
+    /// <para>Some rules are not in the markup: the album guard, the single writer
+    /// for each overlay's visibility. Those live in a branch of a method, and this
+    /// is how a test reaches them without a window.</para>
+    /// </summary>
+    private static string CardCodePath
+        => Locate(@"src\mpvw-app\Domains\Playback\Controls\LibraryCard.xaml.cs");
+
+    /// <summary>
+    /// Finds a repository file without assuming where the binary runs.
+    ///
+    /// <para>A plain walk up from <c>AppContext.BaseDirectory</c> is not enough:
+    /// the test host can run from an artifacts path outside the repository
+    /// (<c>dotnet test --artifacts-path</c>), and the source tree is then nowhere
+    /// above it. So the search starts from the compiled chain instead - this
+    /// file's own source path, recorded by the compiler - and falls back to the
+    /// walk. Both are checked, and a miss throws with the paths that were tried
+    /// rather than a bare "not found".</para>
+    /// </summary>
+    private static string Locate(string relative)
     {
-        get
+        var tried = new List<string>();
+
+        // 1. This source file's own path. [CallerFilePath] is the compiler's
+        //    view, so it points into the checkout no matter where the build
+        //    output or the artifacts directory sits. Three levels up from
+        //    tests/conf lands on the repository root (tests/conf -> tests ->
+        //    root), which is what relative is written against.
+        var fromSource = Path.GetDirectoryName(ThisFilePath());
+        if (!string.IsNullOrEmpty(fromSource))
         {
-            const string Relative =
-                @"src\mpvw-app\Domains\Playback\Controls\LibraryCard.xaml";
-
-            var tried = new List<string>();
-
-            // 1. This source file's own path. [CallerFilePath] is the compiler's
-            //    view, so it points into the checkout no matter where the build
-            //    output or the artifacts directory sits. Three levels up from
-            //    tests/conf lands on the repository root (tests/conf -> tests ->
-            //    root), which is what Relative is written against.
-            var fromSource = Path.GetDirectoryName(ThisFilePath());
-            if (!string.IsNullOrEmpty(fromSource))
-            {
-                var candidate = Path.GetFullPath(
-                    Path.Combine(fromSource, "..", "..", Relative));
-                tried.Add(candidate);
+            var candidate = Path.GetFullPath(
+                Path.Combine(fromSource, "..", "..", relative));
+            tried.Add(candidate);
 
                 if (File.Exists(candidate))
                 {
@@ -713,7 +826,7 @@ public class CardMetricsTests
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             while (dir is not null)
             {
-                var candidate = Path.Combine(dir.FullName, Relative);
+                var candidate = Path.Combine(dir.FullName, relative);
                 tried.Add(candidate);
 
                 if (File.Exists(candidate))
@@ -725,9 +838,9 @@ public class CardMetricsTests
             }
 
             throw new FileNotFoundException(
-                "LibraryCard.xaml not found. Tried:" + Environment.NewLine + string.Join(Environment.NewLine, tried));
-        }
+                relative + " not found. Tried:" + Environment.NewLine + string.Join(Environment.NewLine, tried));
     }
+
     /// <summary>
     /// The page markup under test, located the same way as
     /// <see cref="CardXamlPath"/>: from this file's compiled source path first,

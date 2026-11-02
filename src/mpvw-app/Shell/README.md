@@ -35,7 +35,7 @@
 
 ## 导航项（唯一来源）
 
-`MainWindow.xaml.cs` 的 `ShellSections` 数组，**四项**：
+`MainWindow.xaml.cs` 的 `ShellSections` 数组，**五项**：
 
 | key | 图标 | 说明 |
 |---|---|---|
@@ -43,8 +43,12 @@
 | `music` | E8D6 | 音乐库 |
 | `videos` | E8B2 | 视频库 |
 | `queue` | EA37 | 播放队列（`videos` 之后插入分隔线） |
+| `playlists` | E8FD | 用户命名的播放列表（每张表一个 `.m3u`） |
 
-导航项只有上面这些：`playlists` 与 `queue` 重复，不在其中（注释记录在 `ShellSections` 上方）。
+`playlists` 曾被移除过，因为它当时渲染的是 **mpv 自己的播放列表**——和 `queue`、侧栏重复。
+那条判断现在仍然成立，那个东西也仍然不在。现在这一项是用户自己命名的列表：独立存储、
+独立内容，也是产品里唯一能看到自建列表的地方。理由记在 `ShellSections` 上方。
+
 每项的 `AutomationId` 是 `ShellNav_<key>`，供 MCP 断言用；
 `AutomationProperties.SetAutomationId` 是附加属性，不是控件的 CLR 成员。
 

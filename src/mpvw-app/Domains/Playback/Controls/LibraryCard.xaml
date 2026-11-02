@@ -350,17 +350,40 @@
                               and centred as a shape, which is what makes the
                               triangle's centroid land on the disc's centre
                               instead of its box. -->
-                    <Viewbox
-                        Width="15"
-                        Height="15"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-                        <FontIcon
-                            FontFamily="{StaticResource MpvIconFontFamily}"
-                            FontSize="{StaticResource MpvPlayGlyphFontSize}"
-                            Foreground="{StaticResource MpvCardRingBrush}"
-                            Glyph="&#xF605;" />
-                    </Viewbox>
+                    <Grid>
+                        <!--  The hover highlight, ON TOP of the ring rather than
+                              replacing it.
+
+                              Reported as "when the pointer is on a button, do not
+                              remove the original stroke - lay a highlight over
+                              it". So this is a second Border: the Button's own
+                              BorderBrush stays exactly what it is at rest, and
+                              this one adds a brighter 1.5 DIP arc while the
+                              pointer is on the button.
+
+                              Hit-test invisible: the Button has to keep receiving
+                              the pointer, or this would light up and then eat the
+                              click that turned it on. -->
+                        <Border
+                            x:Name="PlayButtonHighlight"
+                            Background="Transparent"
+                            BorderBrush="{StaticResource MpvCardRingBrush}"
+                            BorderThickness="1.5"
+                            CornerRadius="15"
+                            IsHitTestVisible="False"
+                            Visibility="Collapsed" />
+                        <Viewbox
+                            Width="15"
+                            Height="15"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                FontSize="{StaticResource MpvPlayGlyphFontSize}"
+                                Foreground="{StaticResource MpvCardRingBrush}"
+                                Glyph="&#xF605;" />
+                        </Viewbox>
+                    </Grid>
                 </Button>
 
                 <Button
@@ -386,17 +409,30 @@
                           inside it draws at its native 24. Without
                           Padding="0" the three dots drifted up and right the
                           same way the triangle did. -->
-                    <Viewbox
-                        Width="13"
-                        Height="13"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-                        <PathIcon
-                            Width="24"
-                            Height="24"
-                            Data="F1 M12 4C11.1716 4 10.5 4.67157 10.5 5.5C10.5 6.32843 11.1716 7 12 7C12.8284 7 13.5 6.32843 13.5 5.5C13.5 4.67157 12.8284 4 12 4ZM12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5ZM10.5 18.5C10.5 17.6716 11.1716 17 12 17C12.8284 17 13.5 17.6716 13.5 18.5C13.5 19.3284 12.8284 20 11.1716 20C10.5 19.3284 10.5 18.5 10.5 18.5Z"
-                            Foreground="{StaticResource MpvCardRingBrush}" />
-                    </Viewbox>
+                    <Grid>
+                        <!--  The same overlay as the play button's, for the same
+                              reason: the ring stays, a brighter arc is laid over
+                              it while the pointer is on the disc. -->
+                        <Border
+                            x:Name="MoreButtonHighlight"
+                            Background="Transparent"
+                            BorderBrush="{StaticResource MpvCardRingBrush}"
+                            BorderThickness="1.5"
+                            CornerRadius="15"
+                            IsHitTestVisible="False"
+                            Visibility="Collapsed" />
+                        <Viewbox
+                            Width="13"
+                            Height="13"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                            <PathIcon
+                                Width="24"
+                                Height="24"
+                                Data="F1 M12 4C11.1716 4 10.5 4.67157 10.5 5.5C10.5 6.32843 11.1716 7 12 7C12.8284 7 13.5 6.32843 13.5 5.5C13.5 4.67157 12.8284 4 12 4ZM12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5ZM10.5 18.5C10.5 17.6716 11.1716 17 12 17C12.8284 17 13.5 17.6716 13.5 18.5C13.5 19.3284 12.8284 20 11.1716 20C10.5 19.3284 10.5 18.5 10.5 18.5Z"
+                                Foreground="{StaticResource MpvCardRingBrush}" />
+                        </Viewbox>
+                    </Grid>
                 </Button>
 
             </Grid>

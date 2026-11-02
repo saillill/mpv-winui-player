@@ -196,7 +196,7 @@ sticky 意味着每个给 `OptionList` 赋值的分支都必须记得清空它�
 | A-32 | 桌面 `mpvw-TEST.lnk` 不存在 | `Test-Path` = False |
 | A-33 | `check-resources.py` 在仓库内且通过 | 实测 `OK: 182 resource key(s)` |
 | EX-1 | ~~`OptionCardStyle` 仍是 `OptionListControl.xaml` 局部样式~~ **已失效** | 行容器换成 `SettingsCard` 后没有引用者，样式本身也已不在。行外观现在由 `SettingsCard` 的默认值决定（64 行高、7px 圆角），这是有意的选择 |
-| EX-2 | 三处刻意保留：搜索胶囊、`Generic.xaml` 仅两条隐式样式、`LeftContentToggleSwitchStyle` | `Styles.xaml:1318-1347`、`Themes/Generic.xaml`（13 行）、`Styles.xaml:252` |
+| EX-2 | 三处刻意保留：搜索胶囊、`Generic.xaml` 仅两条隐式样式、`LeftContentToggleSwitchStyle` | `Styles.xaml:1318-1347`、`Themes/Generic.xaml`（13 行）、`Styles.xaml:255` |
 | EX-8 | `Shortcut:` 无静态行、`sectionMap` 不覆盖 | `SettingsPage.Options.cs:1216`、`:693-696` |
 | EX-9 | 生成器不发裸 `new Option`、不发 `AdvancedSection` | 实测 0/0；`gen-schema-options.py:866-874` |
 | EX-13 | ~~4 个分支各自清 `CollapsedSectionIds`~~ **已消除** | 该依赖属性不再存在，折叠状态改由 `SectionCardItem.IsFolded` 承载，四个清空分支随之消失 |

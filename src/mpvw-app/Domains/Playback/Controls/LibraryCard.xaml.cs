@@ -54,6 +54,11 @@ namespace mpv_winui.Domains.Playback.Controls
                 _isAlbum = value;
 
                 ApplyCoverHeight();
+
+                // The tick box's right to exist depends on this: a recycled card
+                // that was a track and is now an album would otherwise keep the box
+                // it had, and one that was an album would keep it missing.
+                UpdateSelectionBoxForState();
             }
         }
 
@@ -371,6 +376,38 @@ namespace mpv_winui.Domains.Playback.Controls
             // names the rest of the card.
             AutomationProperties.SetName(SelectionBox, lang.LibraryCardSelect);
             ToolTipService.SetToolTip(SelectionBox, lang.LibraryCardSelect);
+
+            // The two discs' hover highlight: a second Border laid OVER the ring,
+            // never a replacement for it. The owner's words were 「悬浮到按钮上时
+            // 不移除原描边，在描边之上叠加一层高光」 - swapping BorderBrush would
+            // remove the stroke, which is the thing that was ruled out.
+            //
+            // Wired here rather than as VisualStates because a Button's own
+            // PointerOver state is part of its template and would fight these;
+            // and ShowHighlight is the whole of the behaviour, so two small
+            // handlers are plainer than a ControlTemplate.
+            PlayButton.PointerEntered += (_, _) => ShowHighlight(PlayButtonHighlight, true);
+            PlayButton.PointerExited += (_, _) => ShowHighlight(PlayButtonHighlight, false);
+
+            MoreButton.PointerEntered += (_, _) => ShowHighlight(MoreButtonHighlight, true);
+            MoreButton.PointerExited += (_, _) => ShowHighlight(MoreButtonHighlight, false);
+        }
+
+        /// <summary>
+        /// Shows or hides one button's highlight overlay.
+        ///
+        /// Visibility rather than Opacity: <c>MotionBehaviors.FadeIn</c> on an
+        /// ancestor multiplies with a XAML <c>Opacity</c> value rather than
+        /// replacing it, which is a trap this control already documents. A
+        /// collapsed Border animates nothing and composes with nothing.
+        ///
+        /// It is also hidden when the pointer leaves by ANY route, including the
+        /// button collapsing under it (the two discs vanish when the pointer
+        /// leaves the card), so a highlight cannot be left lit on a hidden button.
+        /// </summary>
+        private static void ShowHighlight(Border highlight, bool show)
+        {
+            highlight.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         }
 
         /// <summary>
@@ -578,6 +615,21 @@ namespace mpv_winui.Domains.Playback.Controls
         /// </summary>
         private void UpdateSelectionBoxForState()
         {
+            // An album card never gets a tick box. On the Albums/Artists pages one
+            // card stands for a whole album and its click opens that album rather
+            // than playing it; a tick box there would make the same click mean two
+            // things, and selecting at album level is not what the selection bar is
+            // for - it is for picking a few tracks to play or queue.
+            //
+            // The cards that DO get one: every video library card, the music
+            // library's Songs list, and the single-track cards on Home.
+            if (_isAlbum)
+            {
+                SelectionBox.Visibility = Visibility.Collapsed;
+
+                return;
+            }
+
             var inMode = Entry?.SelectionVisibility == Visibility.Visible;
 
             SelectionBox.Visibility = inMode || _pointerInside
@@ -605,8 +657,10 @@ namespace mpv_winui.Domains.Playback.Controls
         /// reach the outer button and it raises no Click of its own. That is a routing
         /// behaviour, not a convention, so it was measured rather than assumed -
         /// clicking the box on a video card with nothing selected ticks the card and
-        /// leaves playback alone (evidence/task8-d-clicked-box-no-playback.png: the
-        /// library is still up and mpv's time-pos is still unavailable afterwards).
+        /// leaves playback alone (evidence/task8-c-box-click-did-not-start-playback.png:
+        /// the library is still up and mpv's time-pos is still unavailable afterwards;
+        /// evidence/task8-e-control-card-body-click-plays.png is the positive control,
+        /// where a body click does start playing).
         /// </summary>
         private void SelectionBox_Click(object sender, RoutedEventArgs e) =>
             SelectionRequested?.Invoke(this, EventArgs.Empty);

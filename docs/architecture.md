@@ -86,12 +86,12 @@ mpv 的配置树，首次运行由 `ConfigDeployer` 部署到 `%LOCALAPPDATA%\mp
 | 域 | 文件 | 代码行 | 负责 | 不负责 |
 |---|---:|---:|---|---|
 | `Settings` | 64 | 26980 | 设置树构建、选项渲染、依赖门控、布局定制 | `mpv.conf` 文本编辑（那是 `MpvConf`）；设置的持久化存储本身（那是 `SettingsModel`） |
-| `Playback` | 71 | 25304 | 播放页全部 UI、控制栏三套皮肤、PiP、缩略图预览、库视图、音频可视化 | 库文件夹的持久化（`SettingsModel`）；mpv 命令的真正执行（`mpv_winrt`）；媒体元数据解析（`MediaInfo`） |
+| `Playback` | 78 | 28173 | 播放页全部 UI、控制栏三套皮肤、PiP、缩略图预览、库视图、音频可视化 | 库文件夹的持久化（`SettingsModel`）；mpv 命令的真正执行（`mpv_winrt`）；媒体元数据解析（`MediaInfo`） |
 | `MpvConf` | 29 | 7849 | 读写/解析 `mpv.conf`、托管块所有权判定、schema 模型、`script-opts` 写入 | 把设置值翻译成 mpv 命令（`Settings`→`MpvSettings`）；界面渲染（`Settings`） |
 | `SettingsModel` | 16 | 5265 | `AppSettings` 属性、注册表/ApplicationData 存储、值编解码 | 呈现，以及任何 mpv 映射 |
 | `Menu` | 18 | 2007 | 菜单栏构建、菜单编辑器、`menu.conf` 读写 | 菜单项的本地化文案（`Lexicon`） |
 | `MediaInfo` | 6 | 745 | MediaInfo 报告模型与窗口 | 播放、封面之外的媒体读取 |
-| `Playlist` | 8 | 693 | 稍后观看 / 播放历史的解析与两个控件 | 队列本体（那是 mpv 的 `playlist` 属性，由 `Playback` 呈现） |
+| `Playlist` | 11 | 1532 | 稍后观看 / 播放历史的解析与两个控件，命名播放列表的 `.m3u` 读写与存储 | 队列本体（那是 mpv 的 `playlist` 属性，由 `Playback` 呈现） |
 | `Library` | 1 | 87 | 库条目类型定义 | 库视图（那是 `Playback`） |
 
 ### 2.1 域之间的边界（实测）
@@ -112,8 +112,8 @@ mpv 的配置树，首次运行由 `ConfigDeployer` 部署到 `%LOCALAPPDATA%\mp
 |---|---:|---:|---|
 | `Infrastructure/` | 39 | 3524 | `Common`（原子写、日志、窗口基类、图标）、`Controls`、`Converters`、`Motion` |
 | `Platform/` | 14 | 2530 | `Activation`（文件关联/协议）、`AppModel`（打包判定）、`FileSystem`（路径、部署）、`Win32`（钩子、窗口） |
-| `Lexicon/` | 9 | 3422 | `AppLang` 词汇表（2196 个属性）+ 语言加载 |
-| `Shell/` | 8 | 2511 | `MainWindow`、`AppContext`（唯一全局出口） |
+| `Lexicon/` | 9 | 3536 | `AppLang` 词汇表（2255 个属性）+ 语言加载 |
+| `Shell/` | 8 | 2542 | `MainWindow`、`AppContext`（唯一全局出口） |
 | 应用根 | 11 | 200 | `App.xaml(.cs)`、`Program.cs`、manifest、csproj。**这一行是例外**：11 个文件全计，200 行只是 3 个 `.cs`/`.xaml` 的行数 |
 
 `Shell` 命名空间是 `mpv_winui`（不是 `mpv_winui.Shell`），因此 `AppContext` 是不带
@@ -280,7 +280,7 @@ function Measure-Lines($prefix) {
 }
 Measure-Lines src/mpvw-app                           # 288 / 82791
 Measure-Lines src/mpvw-app/Domains/Settings          # 64 / 26980
-Measure-Lines src/mpvw-app/Domains/Playback          # 71 / 25304
+Measure-Lines src/mpvw-app/Domains/Playback          # 78 / 28173
 Measure-Lines src/mpvw-app/Infrastructure            # 39 / 3524
 # 其余域与层照此替换前缀，见 §2 两张表
 ```

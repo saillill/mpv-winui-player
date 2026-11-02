@@ -7,7 +7,7 @@
 
 ## 1. `AppLang` 的构成
 
-`Lexicon/Language/` 下 9 个文件，共 **2196** 个属性：
+`Lexicon/Language/` 下 9 个文件，共 **2255** 个属性：
 
 | 文件 | 属性 | 行数 | 手改? |
 |---|---:|---:|---|
@@ -32,7 +32,7 @@
 
 | 文件 | 键数 | 缺 `AppLang` 属性 | 多余键 | `Schema*` 键 |
 |---|---:|---:|---:|---:|
-| `de-DE` / `en-US` / `es-ES` / `fr-FR` / `ja-JP` / `ko-KR` / `ru-RU` / `zh-TW` | 各 1526 | **712** | 42 | 0 |
+| `de-DE` / `en-US` / `es-ES` / `fr-FR` / `ja-JP` / `ko-KR` / `ru-RU` / `zh-TW` | 各 1583 | **712** | 42 | 0 |
 | `zh-CN` | 2238 | **0** | 42 | **712** |
 
 两个事实：
@@ -130,7 +130,7 @@
 | 新文案至少写 `en-US.json` + `zh-CN.json` | 其余 7 种回落英文字面量；缺失会被检查器报为 hand-written 缺失 |
 | 改 `.Gen.` 属性无效 | 生成器下次覆盖；改生成器或 `MpvConfOptions/mpv-options.json` |
 | `CustomizeStrings` 的键没有 `AppLang` 属性是设计 | 检查器按 `Customize*` + `Apply*` 归为 expected，不要「修」 |
-| 改完跑 `python tools/check-localization.py` | 2196 属性 × 9 文件 + `menus.json` 结构 + 动作白名单 |
+| 改完跑 `python tools/check-localization.py` | 2255 属性 × 9 文件 + `menus.json` 结构 + 动作白名单 |
 
 ---
 
@@ -145,7 +145,7 @@ for f in sorted(glob.glob('src/mpvw-app/Lexicon/Language/AppLang*.cs')):
     print(os.path.basename(f),
           len(re.findall(r'public\s+string\s+\w+\s*\{\s*get;\s*set;\s*\}', t)),
           t.count(chr(10)))
-"                          # 合计 2196
+"                          # 合计 2255
 
 # 每种语言的缺口
 python -c "
@@ -172,7 +172,7 @@ print('top', len(d), 'total', walk(d))       # top 7, total 67
 # CustomizeStrings 行数
 (Get-Content src\mpvw-app\Lexicon\Language\CustomizeStrings.cs).Count      # 88
 
-python tools/check-localization.py                                          # 2196 props, 9 files
+python tools/check-localization.py                                          # 2255 props, 9 files
 python tools/check-localization.py --languages=zh-CN,en-US                   # 窄口径
 ```
 

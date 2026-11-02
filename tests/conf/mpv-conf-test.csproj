@@ -90,12 +90,13 @@
              argument, so these tests point it at a temporary directory and never
              touch the app's own data root.
 
-             AppData is deliberately not stubbed here. The store names it only in
-             its parameterless constructor, which these tests do not call; the
-             injected one takes a string. Linking this file therefore costs the
-             project nothing beyond the BCL - AppData.cs itself, in
+             AppData is satisfied by the stub, not by the real file: the store
+             names it only in its parameterless constructor, which these tests do
+             not call (they pass a directory). TestDoubles\AppDataStub.cs already
+             defines mpv_winui.Platform.FileSystem.AppData with ResolveLocalData,
+             and it points at a temp root. The real AppData.cs, in
              Platform\FileSystem, would drag in Windows.Storage and could not be
-             linked at all. -->
+             linked here at all - the stub is why the compile succeeds anyway. -->
         <Compile Include="..\..\src\mpvw-app\Domains\Playlist\NamedPlaylist.cs" Link="Playlist\NamedPlaylist.cs" />
         <Compile Include="..\..\src\mpvw-app\Domains\Playlist\NamedPlaylistStore.cs" Link="Playlist\NamedPlaylistStore.cs" />
     </ItemGroup>

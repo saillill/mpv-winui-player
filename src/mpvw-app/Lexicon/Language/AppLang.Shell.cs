@@ -177,9 +177,9 @@ namespace mpv_winui.Lexicon.Language
         public string LibrarySelectionShowQueue { get; set; } = "Queue";
 
         /// <summary>
-        /// The last item of the selection bar's 添加到 menu. The dialog it opens arrives
-        /// with Task 13 and the store behind it with Task 12; the key is here now because
-        /// the menu item is, and because a menu item with no words is not a menu item.
+        /// The last item of the selection bar's 添加到 menu, and the title and
+        /// primary button of the dialog it opens. The same words serve both: the
+        /// dialog it summons is asking for exactly what the menu item named.
         /// </summary>
         public string PlaylistCreate { get; set; } = "New playlist…";
 
