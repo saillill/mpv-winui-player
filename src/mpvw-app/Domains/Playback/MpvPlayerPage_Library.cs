@@ -402,9 +402,11 @@ namespace mpv_winui.Domains.Playback
         /// the same rule: the two libraries offer "Add folder" (the app's
         /// existing open-folder command; its media joins the queue and enters
         /// the library through the watch history), Home offers the plain file
-        /// picker, and Playlists offers nothing, because there is no playlist
-        /// to create yet and a button that cannot do what its label says would
-        /// be worse than no button.
+        /// picker, and Playlists offers 「新建播放列表…」, which creates the empty
+        /// list its own section will then show. That last one used to offer
+        /// nothing, on the grounds that a button that cannot do what its label
+        /// says is worse than no button - the rule is unchanged, and the section
+        /// simply acquired an action that honours it.
         ///
         /// A search that matched nothing and a section with nothing in it are
         /// different answers: the searching state swaps both texts and hides
