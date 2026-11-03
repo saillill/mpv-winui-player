@@ -102,7 +102,7 @@
                  dark hole in a light page. -->
             <SolidColorBrush
                 x:Key="MpvCardControlBrush"
-                Color="#F2FFFFFF" />
+                Color="#99FFFFFF" />
             <!-- The glyph on the disc and the tick mark, following the surface:
                  dark ink on the white disc, white ink on the dark one. -->
             <SolidColorBrush
@@ -116,7 +116,7 @@
                 Color="#26000000" />
             <SolidColorBrush
                 x:Key="MpvCardTickBoxFillBrush"
-                Color="#E6FFFFFF" />
+                Color="#99FFFFFF" />
             <SolidColorBrush
                 x:Key="MpvCardTickBoxRingBrush"
                 Color="#59000000" />
@@ -196,7 +196,7 @@
                  the same defect in the other direction. -->
             <SolidColorBrush
                 x:Key="MpvCardControlBrush"
-                Color="#DB0C0C0C" />
+                Color="#99000000" />
             <SolidColorBrush
                 x:Key="MpvCardGlyphBrush"
                 Color="#E6FFFFFF" />
@@ -208,7 +208,7 @@
                 Color="#1FFFFFFF" />
             <SolidColorBrush
                 x:Key="MpvCardTickBoxFillBrush"
-                Color="#DB0C0C0C" />
+                Color="#99000000" />
             <SolidColorBrush
                 x:Key="MpvCardTickBoxRingBrush"
                 Color="#73FFFFFF" />

@@ -1388,7 +1388,7 @@
                                      the default every other section uses, and a Grid with no
                                      Layout at all renders nothing. -->
                                 <UniformGridLayout
-                                    MinColumnSpacing="4"
+                                    MinColumnSpacing="0"
                                     MinItemHeight="184"
                                     MinItemWidth="214"
                                     MinRowSpacing="4" />

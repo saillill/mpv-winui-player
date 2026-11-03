@@ -4,6 +4,62 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <UserControl.Resources>
+        <!--  A Button that draws nothing of its own.
+
+              Reported as 「按钮在悬浮时应该是在半透明上再加一层遮罩，不是取消描边和原渲染」.
+              The obstruction was not this control's code: WinUI's default Button
+              template swaps two resources on PointerOver - ButtonBackgroundPointerOver
+              (ControlFillColorSecondaryBrush) and ButtonBorderBrushPointerOver
+              (ControlElevationBorderBrush), both confirmed in the SDK's generic.xaml.
+              So the surface and the ring were being REPLACED by the template while the
+              pointer was on the disc, and no amount of layering on top could stop it.
+              It also explains 「选中后在悬浮时不要有变化，目前会半透明」 on the tick
+              box: the same swap overwrote the accent fill.
+
+              This template is a single ContentPresenter and nothing else. It has no
+              VisualStateManager at all, so the control's Background, BorderBrush,
+              BorderThickness and CornerRadius are exactly what markup sets, in every
+              state, for the whole life of the control. Pointer feedback is the veil
+              Border each control carries as a sibling - one thing changes on hover,
+              and it is the thing the report asked to change.
+
+              FocusVisualPrimaryThickness is set here because removing the default
+              template also removes its focus rectangle, and a keyboard user would
+              otherwise tab onto a disc with no visible focus. 2 DIP of the system
+              focus colour is the mitigation. -->
+        <Style x:Key="MpvCardIconButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+            <Setter Property="FocusVisualPrimaryBrush"
+                    Value="{ThemeResource SystemControlFocusVisualPrimaryBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <!--  A Border, not a bare ContentPresenter: ContentPresenter
+                              cannot draw a Background or a Border, so the disc's
+                              surface and ring would vanish. The Border is the thing
+                              that renders them, in every state, because this template
+                              has no state at all. -->
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                            <ContentPresenter
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Content="{TemplateBinding Content}"
+                                Padding="{TemplateBinding Padding}" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <!--  One library card: a media tile, two caption lines, and the hover layer.
 
           Why this is a UserControl and not a DataTemplate. The templates this
@@ -97,8 +153,8 @@
                 x:Name="HoverFrame"
                 Canvas.ZIndex="10"
                 BorderBrush="{ThemeResource MpvCardFrameBrush}"
-                BorderThickness="1.5"
-                CornerRadius="12"
+                BorderThickness="1"
+                CornerRadius="14"
                 IsHitTestVisible="False"
                 Visibility="Collapsed" />
 
@@ -134,7 +190,7 @@
                 Background="{ThemeResource ControlFillColorSecondaryBrush}"
                 BorderBrush="{ThemeResource MpvCardCoverStrokeBrush}"
                 BorderThickness="1"
-                CornerRadius="12">
+                CornerRadius="8">
                 <Grid>
                     <!--  The media-kind glyph shows until a cover arrives, and
                           for good when the file has none. The Viewbox is what
@@ -334,7 +390,8 @@
                     BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
                     BorderThickness="1.5"
                     Click="PlayButton_Click"
-                    CornerRadius="18">
+                    CornerRadius="18"
+                    Style="{StaticResource MpvCardIconButtonStyle}">
                     <!--  The glyph is centred in a Viewbox, not left to FontIcon.
 
                           Reported with a screenshot circling both discs: "the
@@ -410,7 +467,8 @@
                     BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
                     BorderThickness="1.5"
                     Click="MoreButton_Click"
-                    CornerRadius="18">
+                    CornerRadius="18"
+                    Style="{StaticResource MpvCardIconButtonStyle}">
                     <!--  Geometry, not a glyph: E712 in FluentSystemIcons is not
                           three dots.
 
@@ -515,14 +573,35 @@
                 HorizontalContentAlignment="Center"
                 VerticalAlignment="Top"
                 VerticalContentAlignment="Center"
-                BorderThickness="1"
+                BorderThickness="1.5"
                 Click="SelectionBox_Click"
-                CornerRadius="13"
+                CornerRadius="6"
+                Style="{StaticResource MpvCardIconButtonStyle}"
                 Visibility="Collapsed">
                 <FontIcon
                     x:Name="SelectionGlyphIcon"
                     FontSize="{StaticResource MpvCardTickFontSize}" />
             </Button>
+
+            <!--  The tick box's pointer-over veil, a sibling of the box for the same
+                  reason the discs have one: a Button's content box is its glyph, so a
+                  Border inside would draw a small ring rather than cover the control.
+
+                  Shown only while the card is UNTICKED - 「选中后在悬浮时不要有变化」.
+                  A ticked box is a statement (this file is in the selection) and
+                  brightening it under the pointer would suggest the tick is a hover
+                  artefact. An unticked box is just a target, so it responds like one. -->
+            <Border
+                x:Name="SelectionBoxHover"
+                Width="26"
+                Height="26"
+                Margin="10"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="{ThemeResource MpvCardButtonHoverBrush}"
+                CornerRadius="6"
+                IsHitTestVisible="False"
+                Visibility="Collapsed" />
             </Grid>
         </Grid>
     </Button>

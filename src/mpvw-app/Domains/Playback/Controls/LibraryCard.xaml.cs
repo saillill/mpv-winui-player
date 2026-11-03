@@ -414,6 +414,20 @@ namespace mpv_winui.Domains.Playback.Controls
             MoreButton.PointerEntered += (_, _) => ShowHover(MoreButtonHover, true);
             MoreButton.PointerExited += (_, _) => ShowHover(MoreButtonHover, false);
             MoreButton.PointerCanceled += (_, _) => ShowHover(MoreButtonHover, false);
+
+            // The tick box's veil follows the same rule, with one extra condition:
+            // it is only ever shown while the card is UNTICKED. 「选中后在悬浮时不要有
+            // 变化」 - a ticked box states that the file is in the selection, and
+            // brightening it under the pointer would make the tick look like a hover
+            // effect rather than a decision.
+            //
+            // Checked at event time rather than cached, so a tick that happens while
+            // the pointer is already on the box takes effect on the next move without
+            // needing another handler. UpdateSelectionBoxForState also hides it when
+            // the entry becomes ticked.
+            SelectionBox.PointerEntered += (_, _) => ShowHover(SelectionBoxHover, Entry?.IsSelected != true);
+            SelectionBox.PointerExited += (_, _) => ShowHover(SelectionBoxHover, false);
+            SelectionBox.PointerCanceled += (_, _) => ShowHover(SelectionBoxHover, false);
         }
 
         /// <summary>
@@ -727,6 +741,16 @@ namespace mpv_winui.Domains.Playback.Controls
 
             SelectionGlyphIcon.Foreground = ResourceBrush(
                 ticked ? "TextOnAccentFillColorPrimaryBrush" : "MpvCardTickGlyphBrush");
+
+            // A ticked box never wears the pointer veil. Cleared here as well as at
+            // the pointer handlers because the pointer can already be resting on the
+            // box when it gets ticked - the scroll wheel and the keyboard can both
+            // reach a tick without moving the mouse, and then no PointerExited will
+            // fire to take the veil off.
+            if (ticked)
+            {
+                SelectionBoxHover.Visibility = Visibility.Collapsed;
+            }
         }
 
         /// <summary>

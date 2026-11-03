@@ -47,22 +47,21 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// The media tile's corner radius. Replaces CornerRadius="4" x4.
         ///
-        /// <para><b>12, equal to <see cref="HoverFrameCornerRadius"/>.</b> The
-        /// report is 「卡片缩略图的圆角还要再圆滑一点，和遮罩框一致」 - rounder, and
-        /// the same as the frame. It was 6 (frame 12, derived as 6 + the 6 DIP
-        /// gutter), so the two arcs were parallel but differed by the gutter: a
-        /// tight corner inside a much larger one reads as two unrelated shapes when
-        /// the frame appears.</para>
+        /// <para><b>8, and the frame is derived from it again (8 + 6 = 14).</b> The
+        /// previous round set both radii to 12 on the request 「和遮罩框一致」, read as
+        /// "make them match". Equal radii on boxes of DIFFERENT size are not parallel
+        /// curves: the frame sits 6 DIP outside the tile, so at the corners its arc
+        /// left the tile's and exposed a sliver of card background -
+        /// 「外遮罩圆角的遮罩四个角漏出来了」, visible in that round's screenshot.</para>
         ///
-        /// <para>Making them equal breaks the "outer radius = inner + offset"
-        /// relation on purpose. That relation is for a border drawn directly on the
-        /// same box; here the frame is a separate element 6 DIP away, and matching
-        /// radii is what makes the card read as one rounded object rather than a
-        /// picture inside a box. The frame's radius therefore stops being derived
-        /// and becomes its own number, which is why the relation's doc comment no
-        /// longer claims otherwise.</para>
+        /// <para>So the concentric relation is back, and the round is toned down to 8
+        /// by the same report (「缩略图圆角和外遮罩都太圆了，削弱一点」). The frame's
+        /// number therefore goes UP to 14 while looking LESS round - it is the tile's
+        /// arc plus the gutter, which is what keeps the two edges parallel. That
+        /// inversion is stated plainly because "less round, bigger number" reads like
+        /// a mistake otherwise.</para>
         /// </summary>
-        public const double CornerRadius = 12;
+        public const double CornerRadius = 8;
 
         /// <summary>
         /// Gap between the media tile and its first caption line.
@@ -120,27 +119,36 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// The hover frame's stroke width.
         ///
-        /// <para>1.5, matching <see cref="RingThickness"/>: the frame and the two
-        /// corner buttons are the same object family, and a frame heavier than the
-        /// discs it contains reads as a selection border rather than a hover
-        /// affordance.</para>
+        /// <para><b>1.0, down from 1.5, and no longer equal to the discs'
+        /// ring.</b> 「外遮罩描边还要变细一点」 - the request is about the frame only.
+        /// The old comment argued for equality because the frame and the discs are one
+        /// object family; what the reports actually establish is a DIRECTION, not an
+        /// equation: the frame must never be heavier than the discs it encloses, or it
+        /// reads as a selection border. Lighter is fine.</para>
+        ///
+        /// <para>1.0 rather than 0.75: at DPI 1.5 that is 1.5 physical pixels - thin,
+        /// but on a half-pixel boundary. 0.75 lands on 1.125 and WinUI does not snap
+        /// it, so it renders soft. That is a rendering limit, not a taste call.</para>
         /// </summary>
-        public const double HoverFrameThickness = 1.5;
+        public const double HoverFrameThickness = 1;
 
         /// <summary>
         /// The hover frame's corner radius.
         ///
-        /// <para><b>Equal to <see cref="CornerRadius"/> by request, not derived
-        /// from it.</b> It used to be <c>CornerRadius + HoverFrameInset</c> - the
-        /// rule for a border drawn on the same box, which keeps an outer arc
-        /// concentric with an inner one - and that gave 12 against a 6 DIP tile.
-        /// The report asked for the thumbnail's corners to match this one
-        /// (「和遮罩框一致」), so the tile came up to 12 and this stayed put. Two
-        /// equal radii on concentric boxes are NOT parallel curves; they are the
-        /// shape a person asked for, and the arithmetic that would forbid it
-        /// describes a different construction.</para>
+        /// <para><b>Derived again: <see cref="CornerRadius"/> plus
+        /// <see cref="HoverFrameInset"/>, 8 + 6 = 14.</b> The previous round set it
+        /// equal to the tile's radius on 「和遮罩框一致」, arguing that the concentric
+        /// rule describes a border on the SAME box and that equal radii were the shape
+        /// asked for. That produced a visible defect the next screenshot caught: with
+        /// the frame 6 DIP outside the tile, equal radii stop being parallel and the
+        /// frame's arc peels away at the four corners, exposing card background -
+        /// 「外遮罩圆角的遮罩四个角漏出来了」.</para>
+        ///
+        /// <para>The rule is not a style preference here; it is what keeps the gap
+        /// constant along the whole edge, corners included. 14 is what it produces for
+        /// a tile of 8.</para>
         /// </summary>
-        public const double HoverFrameCornerRadius = 12;
+        public const double HoverFrameCornerRadius = 14;
 
         /// <summary>
         /// The hover buttons' diameter.
@@ -282,21 +290,20 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// The card grids' column spacing, in DIP.
         ///
-        /// <para><b>4, down from 20.</b> The report is 「卡片与卡片之间间距太宽，应该
-        /// 紧密挨着不要留空」. 20 was chosen to keep two SELECTED frames from reading
-        /// as one line - <c>spacing - 2 x HoverFrameInset</c> had to stay positive -
-        /// but that reasoning optimised for the rare state and paid for it in the
-        /// common one. The gutter is already load-bearing: at 4 the two frames are
-        /// 4 - 12 = -8, i.e. the gutters OVERLAP, and since a frame is only visible
-        /// under the pointer or on a ticked card, two adjacent frames never appear
-        /// together. What the eye sees at rest is two pictures 4 DIP apart, which
-        /// is what 「紧密挨着」 asks for.</para>
+        /// <para><b>0, down from 4 - the floor.</b> 「卡片和卡片间隔还要缩小」. This is
+        /// as tight as the construction allows. Every cell already carries 6 DIP of
+        /// frame gutter on both sides, so two adjacent pictures sit
+        /// <c>spacing + 2 x HoverFrameInset</c> apart; at 0 that is 12 DIP, which is
+        /// the gutter alone. Nothing more can be taken without narrowing the gutter
+        /// itself, and that would leave the 1 DIP frame nowhere to sit clear of the
+        /// tile.</para>
         ///
-        /// <para>Kept non-negative rather than negative: a negative spacing in
-        /// UniformGridLayout is not a thing, and the gutter still has to fit
-        /// inside each cell.</para>
+        /// <para>The original 20 existed to keep two SELECTED frames from reading as
+        /// one line. That constraint is retired, not violated: a frame appears only
+        /// under the pointer or on a ticked card, so two adjacent frames are never on
+        /// screen together.</para>
         /// </summary>
-        public const double GridColumnSpacing = 4;
+        public const double GridColumnSpacing = 0;
 
         /// <summary>
         /// The card grids' row spacing, in DIP. The same 4 as the columns: the

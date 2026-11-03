@@ -61,10 +61,9 @@ public class CardMetricsTests
     [Test]
     public void TokensAreTheDocumentedValues()
     {
-        // 12, matching the hover frame's own radius. 「卡片缩略图的圆角还要再圆滑
-        // 一点，和遮罩框一致」 - the tile came up from 6 so the two arcs match,
-        // which is a deliberate break of the concentric rule; see the test below.
-        Assert.That(CardMetrics.CornerRadius, Is.EqualTo(12));
+        // 8, toned down from 12 (「缩略图圆角和外遮罩都太圆了，削弱一点」). The frame
+        // is derived from this again; see TheFrameRadiusKeepsTheGapParallelAtTheCorners.
+        Assert.That(CardMetrics.CornerRadius, Is.EqualTo(8));
 
         // The caption band follows the cell height, so a change here without a
         // change in CardMetrics.CaptionBandHeight clips the line it reserves.
@@ -82,43 +81,52 @@ public class CardMetricsTests
 
         // The hover frame's geometry. It wraps the whole card, so it is stated in
         // terms of the gutter it opens around the content rather than an inset into
-        // the picture - the constants that described the black inner wash the
-        // report rejected (an inset of 6 and a ring of 2) were deleted once the
-        // wash itself was confirmed gone, so nothing pins a number no code honours.
+        // the picture.
         Assert.That(CardMetrics.HoverFrameInset, Is.EqualTo(6));
-        Assert.That(CardMetrics.HoverFrameThickness, Is.EqualTo(1.5));
-        Assert.That(CardMetrics.HoverFrameCornerRadius, Is.EqualTo(12));
 
-        // The frame is the same weight as the corner discs it encloses: heavier
-        // reads as a selection border rather than a hover affordance.
-        Assert.That(CardMetrics.HoverFrameThickness, Is.EqualTo(CardMetrics.RingThickness));
+        // 1, down from 1.5 (「外遮罩描边还要变细一点」). No longer equal to the discs'
+        // ring - the reports established a direction, not an equation.
+        Assert.That(CardMetrics.HoverFrameThickness, Is.EqualTo(1));
+        Assert.That(CardMetrics.HoverFrameCornerRadius, Is.EqualTo(14));
+
+        // The direction that survives: the frame must never read as HEAVIER than the
+        // discs it encloses, or it becomes a selection border. Lighter is allowed,
+        // which is exactly the change this round made.
+        Assert.That(
+            CardMetrics.HoverFrameThickness,
+            Is.LessThanOrEqualTo(CardMetrics.RingThickness),
+            "a frame heavier than the corner discs reads as a selection border");
+
+        // 1.0 is the floor for a different reason: 0.75 at DPI 1.5 lands on 1.125
+        // physical pixels, which WinUI does not snap, so the stroke renders soft.
+        Assert.That(
+            CardMetrics.HoverFrameThickness,
+            Is.GreaterThanOrEqualTo(1),
+            "below 1 DIP the frame lands off the pixel grid and blurs");
     }
 
     /// <summary>
-    /// The tile's radius and the frame's radius are the same number.
+    /// The tile's radius and the frame's, in the concentric relation.
     ///
-    /// <para><b>This replaces a rule that said the opposite.</b> The frame sits
-    /// <c>HoverFrameInset</c> outside the content, and the concentric rule - outer
-    /// radius equals inner plus offset - is what makes two arcs on the same box
-    /// parallel. It was pinned here: <c>HoverFrameCornerRadius == CornerRadius +
-    /// HoverFrameInset</c>, which gave 12 against a 6 DIP tile.</para>
+    /// <para><b>This test has now asserted three different things, and the history
+    /// is the point.</b> It began as <c>frame == tile + inset</c>. A round that read
+    /// 「和遮罩框一致」 as "make them equal" changed it to <c>frame == tile</c>,
+    /// believing the concentric rule only applied to a border on the same box. The
+    /// next screenshot showed why that was wrong: with the frame 6 DIP outside the
+    /// tile, equal radii stop being parallel and the frame's arc peels away at the
+    /// four corners (「外遮罩圆角的遮罩四个角漏出来了」). So the relation is back.</para>
     ///
-    /// <para>「卡片缩略图的圆角还要再圆滑一点，和遮罩框一致」 asks for the two to
-    /// MATCH, so the tile moved up to 12 and the frame stayed there. The test now
-    /// pins the request instead of the geometry rule, and its old body is recorded
-    /// here because a reader who knows the rule will otherwise think this is a
-    /// mistake.</para>
-    ///
-    /// <para>Equal radii on boxes 6 DIP apart are not parallel curves - the gap
-    /// narrows toward the corners. That is the shape asked for: the card reads as
-    /// one rounded object rather than a picture in a box.</para>
+    /// <para>The rule is not decoration: for two boxes offset by a constant gap it is
+    /// what makes that gap constant along the whole edge, corners included. A test
+    /// that pins "they look the same" cannot catch a leak at four points; this one
+    /// can.</para>
     /// </summary>
     [Test]
-    public void TheTileAndTheFrameShareOneCornerRadius()
+    public void TheFrameRadiusKeepsTheGapParallelAtTheCorners()
     {
         Assert.That(
-            CardMetrics.CornerRadius,
-            Is.EqualTo(CardMetrics.HoverFrameCornerRadius));
+            CardMetrics.HoverFrameCornerRadius,
+            Is.EqualTo(CardMetrics.CornerRadius + CardMetrics.HoverFrameInset));
     }
 
     /// <summary>
@@ -203,8 +211,63 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// A ticked card's box takes the accent colour, an unticked one the neutral
-    /// surface.
+    /// The three icon buttons use a template with no pointer states of its own.
+    ///
+    /// <para>「按钮在悬浮时应该是在半透明上再加一层遮罩，不是取消描边和原渲染」. That
+    /// was not achievable by layering: WinUI's default Button template swaps
+    /// <c>ButtonBackgroundPointerOver</c> and <c>ButtonBorderBrushPointerOver</c> on
+    /// hover (both confirmed in the SDK's generic.xaml), REPLACING the control's
+    /// Background and BorderBrush. The same swap is what made a ticked box go
+    /// translucent under the pointer, because it overwrote the accent fill.</para>
+    ///
+    /// <para>The fix is a minimal ControlTemplate with no VisualStateManager at all,
+    /// so the markup's colours hold in every state. This test is what stops that from
+    /// being quietly undone: remove the Style, or reintroduce a state into the
+    /// template, and the reported behaviour comes back with no other symptom.</para>
+    ///
+    /// <para>Sources rather than rendering: a template's contents cannot be observed
+    /// through UIA, and the failure is a visual one that only appears under a
+    /// pointer - which this machine's automation cannot place without a foreground
+    /// window it will not grant.</para>
+    /// </summary>
+    [Test]
+    public void TheIconButtonsHaveTemplateWithNoPointerStates()
+    {
+        var xaml = File.ReadAllText(CardXamlPath);
+
+        // The style exists and its template has no state machinery.
+        var styleStart = xaml.IndexOf("x:Key=\"MpvCardIconButtonStyle\"", StringComparison.Ordinal);
+        Assert.That(styleStart, Is.GreaterThanOrEqualTo(0), "MpvCardIconButtonStyle is gone");
+
+        var styleEnd = xaml.IndexOf("</Style>", styleStart, StringComparison.Ordinal);
+        Assert.That(styleEnd, Is.GreaterThan(styleStart));
+
+        var style = xaml[styleStart..styleEnd];
+
+        Assert.That(style, Does.Contain("ControlTemplate"),
+            "the style must carry a template, or the default Button template replaces the colours on hover");
+
+        Assert.That(style, Does.Not.Contain("VisualState"),
+            "a VisualState in this template reintroduces the colour swap the template exists to prevent");
+
+        Assert.That(style, Does.Contain("TemplateBinding Background"),
+            "the template must pass the control's Background through, or the disc has no surface");
+
+        Assert.That(style, Does.Contain("TemplateBinding BorderBrush"),
+            "the template must pass BorderBrush through, or the ring disappears");
+
+        // All three controls wear it.
+        foreach (var control in new[] { "PlayButton", "MoreButton", "SelectionBox" })
+        {
+            var block = ButtonBlock(xaml, control);
+
+            Assert.That(
+                block,
+                Does.Contain("MpvCardIconButtonStyle"),
+                $"{control} must use the stateless template, or its surface and ring change on hover");
+        }
+    }
+
     ///
     /// <para>「选择到的按钮应该是强调色」. The two brushes are chosen in
     /// <c>UpdateSelectionBoxForState</c> from <c>Entry.IsSelected</c>, which is why
@@ -859,10 +922,23 @@ public class CardMetricsTests
     [Test]
     public void EveryCardGridLeavesRoomForTheFrame()
     {
-        // Tight by request. The cell still contains the gutter, so a frame has
-        // somewhere to draw; it simply may sit close to its neighbour's.
-        Assert.That(CardMetrics.GridColumnSpacing, Is.EqualTo(4));
+        // Tight by request, and 0 is the floor: the gutter is what remains.
+        Assert.That(CardMetrics.GridColumnSpacing, Is.EqualTo(0));
         Assert.That(CardMetrics.GridRowSpacing, Is.EqualTo(4));
+
+        // The invariant behind "as tight as possible": two adjacent pictures still
+        // have the two gutters between them. At 0 spacing that is 12 DIP, and the
+        // frame still has its band on both sides - nothing overlaps.
+        Assert.That(
+            CardMetrics.GridColumnSpacing + (CardMetrics.HoverFrameInset * 2),
+            Is.GreaterThan(0),
+            "the two gutters are the only gap left; if this reaches 0 the cards touch");
+
+        // And the picture-to-picture gap is exactly the two gutters, which is what
+        // "紧密挨着" leaves once nothing else can be taken.
+        Assert.That(
+            CardMetrics.GridColumnSpacing + (CardMetrics.HoverFrameInset * 2),
+            Is.EqualTo(12));
 
         var page = Regex.Replace(File.ReadAllText(PageXamlPath), "<!--[\\s\\S]*?-->", string.Empty);
 
