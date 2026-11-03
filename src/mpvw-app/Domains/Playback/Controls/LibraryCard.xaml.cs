@@ -145,6 +145,7 @@ namespace mpv_winui.Domains.Playback.Controls
             {
                 TitleText.Text = string.Empty;
                 SubtitleText.Text = string.Empty;
+                SubtitleText.Visibility = Visibility.Collapsed;
                 return;
             }
 
@@ -258,10 +259,18 @@ namespace mpv_winui.Domains.Playback.Controls
 
             TitleText.Text = string.IsNullOrEmpty(fileName) ? entry.Title : fileName;
 
-            // Left assigned (not cleared) so nothing that reads it sees a stale
-            // value from a card that has been recycled onto a different file.
-            // It is Collapsed in the markup; this only keeps it coherent.
-            SubtitleText.Text = string.Empty;
+            // The length, on the second line. Assigned from the entry's own
+            // DurationText rather than formatted here: that property already owns
+            // the "1:23:45 / 4:05 / empty when unknown" rule, and a second copy of
+            // it is how a card and the queue's row come to print the same duration
+            // two ways.
+            //
+            // Collapsed when there is no length - the watch history records none,
+            // so most video cards have nothing to say on this line. A visible empty
+            // TextBlock would reserve the line's height and leave the hole the
+            // report complained about in the other direction.
+            SubtitleText.Text = entry.DurationText;
+            SubtitleText.Visibility = entry.DurationVisibility;
         }
 
         /// <summary>
@@ -377,37 +386,52 @@ namespace mpv_winui.Domains.Playback.Controls
             AutomationProperties.SetName(SelectionBox, lang.LibraryCardSelect);
             ToolTipService.SetToolTip(SelectionBox, lang.LibraryCardSelect);
 
-            // The two discs' hover highlight: a second Border laid OVER the ring,
-            // never a replacement for it. The owner's words were 「悬浮到按钮上时
-            // 不移除原描边，在描边之上叠加一层高光」 - swapping BorderBrush would
-            // remove the stroke, which is the thing that was ruled out.
+            // A stable automation id, because the accessible name is the same on
+            // every card: a UIA query for 「选择」 matches all of them and cannot
+            // choose one. The discs already took ids on the same reasoning
+            // (PlaylistPlay_/PlaylistMore_ in the playlists section); this is the
+            // third control that needed to be addressable by a test.
+            AutomationProperties.SetAutomationId(SelectionBox, "LibraryCardSelect");
+
+            // The two discs' pointer-over state: a darkening veil laid over the
+            // whole disc, as a SIBLING of the Button rather than inside it.
+            //
+            // The previous attempt put a second Border in the Button's content, and
+            // that is why 「描边会缩成一个小圈」: the Button sets Padding="0" and
+            // ContentAlignment=Center, so its content box is the glyph, and the
+            // "highlight" drew a 17px ring around the glyph instead of covering the
+            // 36px disc. These Borders live in the overlay Grid at the same size and
+            // place as the discs, so the ring and the glyph both survive untouched
+            // and only the surface's luminance changes.
             //
             // Wired here rather than as VisualStates because a Button's own
-            // PointerOver state is part of its template and would fight these;
-            // and ShowHighlight is the whole of the behaviour, so two small
-            // handlers are plainer than a ControlTemplate.
-            PlayButton.PointerEntered += (_, _) => ShowHighlight(PlayButtonHighlight, true);
-            PlayButton.PointerExited += (_, _) => ShowHighlight(PlayButtonHighlight, false);
+            // PointerOver state is part of its template and would fight these, and
+            // ShowHover is the whole of the behaviour.
+            PlayButton.PointerEntered += (_, _) => ShowHover(PlayButtonHover, true);
+            PlayButton.PointerExited += (_, _) => ShowHover(PlayButtonHover, false);
+            PlayButton.PointerCanceled += (_, _) => ShowHover(PlayButtonHover, false);
 
-            MoreButton.PointerEntered += (_, _) => ShowHighlight(MoreButtonHighlight, true);
-            MoreButton.PointerExited += (_, _) => ShowHighlight(MoreButtonHighlight, false);
+            MoreButton.PointerEntered += (_, _) => ShowHover(MoreButtonHover, true);
+            MoreButton.PointerExited += (_, _) => ShowHover(MoreButtonHover, false);
+            MoreButton.PointerCanceled += (_, _) => ShowHover(MoreButtonHover, false);
         }
 
         /// <summary>
-        /// Shows or hides one button's highlight overlay.
+        /// Shows or hides one disc's hover veil.
         ///
         /// Visibility rather than Opacity: <c>MotionBehaviors.FadeIn</c> on an
         /// ancestor multiplies with a XAML <c>Opacity</c> value rather than
         /// replacing it, which is a trap this control already documents. A
         /// collapsed Border animates nothing and composes with nothing.
         ///
-        /// It is also hidden when the pointer leaves by ANY route, including the
-        /// button collapsing under it (the two discs vanish when the pointer
-        /// leaves the card), so a highlight cannot be left lit on a hidden button.
+        /// It is also hidden when the pointer leaves by ANY route - including the
+        /// button collapsing under it, which is what PointerCanceled covers when the
+        /// two discs vanish as the pointer leaves the card - so a veil cannot be left
+        /// lit on a hidden button.
         /// </summary>
-        private static void ShowHighlight(Border highlight, bool show)
+        private static void ShowHover(Border veil, bool show)
         {
-            highlight.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            veil.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         }
 
         /// <summary>
@@ -436,7 +460,54 @@ namespace mpv_winui.Domains.Playback.Controls
                 // encloses the picture and the caption together, so any height
                 // assignment would put it back to wrapping the picture alone.
                 HoverOverlay.Height = height;
+
+                ApplyCoverClip();
             }
+        }
+
+        /// <summary>
+        /// Rounds the cover image's corners to the tile's own radius.
+        ///
+        /// <para><b>A Border does not clip its children.</b> MediaBorder carries
+        /// CornerRadius for its background and its hairline, but the Image inside is
+        /// a plain rectangle drawn over them: at the old radius of 6 the four corners
+        /// of the bitmap poked into the rounded corner by under a pixel and nobody
+        /// noticed. At 12 they would be four visible square bites out of a rounded
+        /// tile - which is what 「圆角还要再圆滑一点」 would produce if the radius were
+        /// raised without this.</para>
+        ///
+        /// <para><b>A composition clip, not <c>FrameworkElement.Clip</c>.</b> Clip
+        /// takes a Geometry, and WinUI's <c>RectangleGeometry</c> has no radii at all
+        /// (unlike WPF's) - the first attempt set <c>RadiusX</c> on it and did not
+        /// compile. The rounded shapes live in the composition layer, so the clip is
+        /// built there with <c>CompositionRoundedRectangleGeometry</c>. That is the
+        /// documented way to clip to a rounded rectangle in WinUI 3.</para>
+        /// </summary>
+        private void ApplyCoverClip()
+        {
+            var width = MediaBorder.ActualWidth;
+            var height = MediaBorder.ActualHeight;
+
+            if (width <= 0 || height <= 0)
+            {
+                // A recycled card reports 0 before its first layout pass; a clip of
+                // zero size would hide the cover rather than merely round it.
+                return;
+            }
+
+            var visual = Microsoft.UI.Xaml.Hosting.ElementCompositionPreview
+                .GetElementVisual(CoverImage);
+
+            var rounded = visual.Compositor.CreateRoundedRectangleGeometry();
+
+            rounded.Size = new System.Numerics.Vector2((float)width, (float)height);
+            rounded.CornerRadius = new System.Numerics.Vector2(
+                (float)CardMetrics.CornerRadius, (float)CardMetrics.CornerRadius);
+
+            var clip = visual.Compositor.CreateGeometricClip();
+            clip.Geometry = rounded;
+
+            visual.Clip = clip;
         }
 
         private void ShowOverlay()
@@ -635,7 +706,39 @@ namespace mpv_winui.Domains.Playback.Controls
             SelectionBox.Visibility = inMode || _pointerInside
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+
+            // A ticked box is the ACCENT colour, an unticked one the neutral
+            // surface - 「选择到的按钮应该是强调色」. Set here rather than in markup
+            // because it depends on the entry's state, and this is the one place
+            // that already re-runs for every input that can change it: the mode,
+            // the pointer, and SetEntry on a recycled card.
+            //
+            // The glyph follows the same rule: on the accent fill it has to be the
+            // contrast ink. An unticked box draws no glyph at all now (E739 was
+            // Fluent's own checkbox symbol, which put a square outline inside this
+            // round border), so its unticked colour rarely shows.
+            var ticked = Entry?.IsSelected == true;
+
+            SelectionBox.Background = ResourceBrush(
+                ticked ? "AccentFillColorDefaultBrush" : "MpvCardTickBoxFillBrush");
+
+            SelectionBox.BorderBrush = ResourceBrush(
+                ticked ? "AccentFillColorDefaultBrush" : "MpvCardTickBoxRingBrush");
+
+            SelectionGlyphIcon.Foreground = ResourceBrush(
+                ticked ? "TextOnAccentFillColorPrimaryBrush" : "MpvCardTickGlyphBrush");
         }
+
+        /// <summary>
+        /// A brush from the merged resource dictionaries, by key.
+        ///
+        /// A lookup rather than a typed field because the three tick-box colours are
+        /// resolved per theme at runtime, and a direct cast of a missing key would
+        /// throw inside a layout pass - the failure mode this repo has already paid
+        /// for once with <c>MpvSpaceXS</c>.
+        /// </summary>
+        private static Microsoft.UI.Xaml.Media.Brush ResourceBrush(string key) =>
+            (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[key];
 
         /// <summary>
         /// The tick box was clicked: ask the page to flip this card's tick.

@@ -96,6 +96,33 @@
             <SolidColorBrush
                 x:Key="MpvCardButtonRingBrush"
                 Color="#73000000" />
+            <!-- The corner discs' surface. WHITE in the light theme, which is
+                 what 「在浅色模式下按钮应该是白色」 asked for; it used to be one
+                 near-black brush shared by both themes, so the buttons punched a
+                 dark hole in a light page. -->
+            <SolidColorBrush
+                x:Key="MpvCardControlBrush"
+                Color="#F2FFFFFF" />
+            <!-- The glyph on the disc and the tick mark, following the surface:
+                 dark ink on the white disc, white ink on the dark one. -->
+            <SolidColorBrush
+                x:Key="MpvCardGlyphBrush"
+                Color="#E6000000" />
+            <!-- The pointer-over darkening. On a light surface a hover DARKENS.
+                 This is the whole of the hover state, laid over the disc as a
+                 sibling so the ring and the glyph are untouched. -->
+            <SolidColorBrush
+                x:Key="MpvCardButtonHoverBrush"
+                Color="#26000000" />
+            <SolidColorBrush
+                x:Key="MpvCardTickBoxFillBrush"
+                Color="#E6FFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvCardTickBoxRingBrush"
+                Color="#59000000" />
+            <SolidColorBrush
+                x:Key="MpvCardTickGlyphBrush"
+                Color="#E6000000" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush
@@ -164,6 +191,30 @@
             <SolidColorBrush
                 x:Key="MpvCardButtonRingBrush"
                 Color="#73FFFFFF" />
+            <!-- The dark theme's disc surface stays dark: 「在浅色模式下按钮应该是
+                 白色」 is a light-theme request, and a white disc on a dark page is
+                 the same defect in the other direction. -->
+            <SolidColorBrush
+                x:Key="MpvCardControlBrush"
+                Color="#DB0C0C0C" />
+            <SolidColorBrush
+                x:Key="MpvCardGlyphBrush"
+                Color="#E6FFFFFF" />
+            <!-- A hover on a dark surface LIGHTENS, which is why this is not the
+                 light theme's black wash mirrored: Fluent's own subtle-fill hover
+                 over a dark control is a white veil. -->
+            <SolidColorBrush
+                x:Key="MpvCardButtonHoverBrush"
+                Color="#1FFFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvCardTickBoxFillBrush"
+                Color="#DB0C0C0C" />
+            <SolidColorBrush
+                x:Key="MpvCardTickBoxRingBrush"
+                Color="#73FFFFFF" />
+            <SolidColorBrush
+                x:Key="MpvCardTickGlyphBrush"
+                Color="#E6FFFFFF" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
             <!-- The third dictionary. Light and Dark above each define the same 15 keys and
@@ -233,6 +284,31 @@
                 Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush
                 x:Key="MpvCardButtonRingBrush"
+                Color="{ThemeResource SystemColorWindowTextColor}" />
+            <!-- The contrast answers are SYSTEM colours, not values of their own:
+                 a scheme provides one background and one text colour, and a card
+                 control that invented a third would be the thing that stops
+                 contrasting when the user switches schemes. The discs therefore sit
+                 on the window's own fill and are inked with its text colour. -->
+            <SolidColorBrush
+                x:Key="MpvCardControlBrush"
+                Color="{ThemeResource SystemColorButtonFaceColor}" />
+            <SolidColorBrush
+                x:Key="MpvCardGlyphBrush"
+                Color="{ThemeResource SystemColorButtonTextColor}" />
+            <!-- In the contrast themes the hover is carried by Highlight, which is
+                 what the scheme uses for "the pointer is on this". -->
+            <SolidColorBrush
+                x:Key="MpvCardButtonHoverBrush"
+                Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush
+                x:Key="MpvCardTickBoxFillBrush"
+                Color="{ThemeResource SystemColorButtonFaceColor}" />
+            <SolidColorBrush
+                x:Key="MpvCardTickBoxRingBrush"
+                Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush
+                x:Key="MpvCardTickGlyphBrush"
                 Color="{ThemeResource SystemColorWindowTextColor}" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
@@ -1450,19 +1526,16 @@
 <x:Double x:Key="MpvCardSubtitleFontSize">14</x:Double>
 <FontWeight x:Key="MpvCardCaptionFontWeight">SemiBold</FontWeight>
 
-<!-- The hover buttons' surface: translucent, not opaque.
-     Reported as "the buttons should use the official Mica effect, simple and
-     transparent". A Mica *material* is a window backdrop and cannot be applied
-     to a 30px control; what reads as Mica at this size is the acrylic tint, which
-     is what Fluent uses for a control floating over content. It lets the cover
-     show through the circle instead of stamping an opaque disc on it.
+<!-- MpvCardControlBrush used to live here, one near-black value for both themes.
+     It moved into the three theme dictionaries because the report asked for a
+     WHITE disc in the light theme (「在浅色模式下按钮应该是白色」) and a single
+     shared value cannot be white and dark at once: it made the buttons punch a
+     dark hole in a light page. Its companions - MpvCardGlyphBrush,
+     MpvCardButtonHoverBrush and the three tick-box brushes - are there for the
+     same reason: every one of them is a colour that has to answer to the theme.
 
-     Darkened from #B31C1C1C to #DB0C0C0C when the discs shrank 36 -> 30. The
-     value was measured off the reference at the old size; at the new one the
-     disc is smaller, so a 70% tint put less darkness on the frame than the
-     reference does and the white glyph lost contrast over bright scenes. 86% is
-     the same "opaque enough to sit on any frame" the design asked for. -->
-<SolidColorBrush x:Key="MpvCardControlBrush" Color="#DB0C0C0C" />
+     Nothing about the discs is defined outside a ThemeDictionary now, which is
+     the invariant CardMetricsTests pins: a key here would shadow the themed one. -->
 
 <!-- MpvCardHoverRingBrush used to live here: a translucent BLACK ring (#9E000000)
      for the hover highlight, from the round where the highlight was a blur and

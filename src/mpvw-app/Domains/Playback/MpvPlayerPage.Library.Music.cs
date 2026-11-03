@@ -632,11 +632,19 @@ namespace mpv_winui.Domains.Playback
                 // A plain heading rather than the group header: these two bands are
                 // not groups of a tag, they are the two halves of the home page, and
                 // the count belongs nowhere in particular.
+                //
+                // The LEFT margin is the frame's gutter, and it is the whole of
+                // 「视频音频卡片和最近观看这些主页文本的对齐应该是同内侧缩略图对齐，不是外部
+                // 遮罩框」. Every card's cell begins with CardMetrics.HoverFrameInset of
+                // empty gutter before its picture does, so a heading at margin 0 lined
+                // up with the hover frame's outer edge - an invisible box - while the
+                // thumbnails began 6 DIP further in. Indenting by the same 6 puts the
+                // heading on the pictures' left edge.
                 var heading = new TextBlock
                 {
                     Text = caption,
                     Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
-                    Margin = new Thickness(0, 20, 0, 8),
+                    Margin = new Thickness(CardMetrics.HoverFrameInset, 20, 0, 8),
                 };
 
                 VideoFolderGroups.Children.Add(heading);
@@ -687,15 +695,14 @@ namespace mpv_winui.Domains.Playback
 
         private static UniformGridLayout AlbumCardLayout()
         {
-            // 170 is the reference's own cover size, and the only number here that
-            // is a choice. The cell height is derived: the square tile plus the two
-            // caption lines. The literal it replaces was 246, which is 30 DIP more
-            // than the card ever occupied - it had stopped being recomputed.
+            // 136 is 0.8 x the 170 this used to be, scaled with the landscape grid's
+            // 253 -> 202 so the two keep their ratio. The cell height is derived: the
+            // square tile plus the caption band.
             //
-            // As in CardLayout, 170 is the CONTENT's width: CellWidthFor adds the
-            // frame's gutter, so the cell is 182 and the sleeve stays 170. Both
+            // As in CardLayout, this is the CONTENT's width: CellWidthFor adds the
+            // frame's gutter, so the cell is 148 and the sleeve stays 136. Both
             // spacings come from CardMetrics so the two grids cannot drift apart.
-            const double width = 170;
+            const double width = 136;
 
             return new UniformGridLayout
             {

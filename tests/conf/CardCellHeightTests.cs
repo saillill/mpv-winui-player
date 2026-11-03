@@ -97,42 +97,48 @@ public class CardCellHeightTests
     [Test]
     public void CellWidthIsTheContentPlusTheGutter()
     {
-        // The width half of the same relation, and the reason a 253 picture still
-        // gets a 253 content inside a 265 cell.
-        Assert.That(CardMetrics.CellWidthFor(253), Is.EqualTo(265).Within(1e-9));
-        Assert.That(CardMetrics.CellWidthFor(170), Is.EqualTo(182).Within(1e-9));
+        // The width half of the same relation, and the reason a 202 picture still
+        // gets a 202 content inside a 214 cell. (The numbers were 253/265 and
+        // 170/182 before the card was scaled to 0.8.)
+        Assert.That(CardMetrics.CellWidthFor(202), Is.EqualTo(214).Within(1e-9));
+        Assert.That(CardMetrics.CellWidthFor(136), Is.EqualTo(148).Within(1e-9));
 
-        // The content keeps the reference's width: the cell grew, not the picture.
+        // The content keeps its own width: the cell carries the gutter, so the
+        // picture is not squeezed by the frame's home.
         Assert.That(
-            CardMetrics.CellWidthFor(253) - (CardMetrics.HoverFrameInset * 2),
-            Is.EqualTo(253).Within(1e-9));
+            CardMetrics.CellWidthFor(202) - (CardMetrics.HoverFrameInset * 2),
+            Is.EqualTo(202).Within(1e-9));
     }
 
     /// <summary>
-    /// The caption band is one line, its gap, and the space reserved below it.
+    /// The caption band is the gap, TWO lines, and the space reserved below them.
     ///
-    /// It was CaptionTopGap + TitleLineHeight + CaptionLineGap + SubtitleLineHeight
-    /// while the card drew two lines. The card draws one - the file name - and the
-    /// report then asked for "a line and a half of empty space below the title",
-    /// so the trailing reserve is part of the band, not padding outside it: the
-    /// cell has to contain the space or the grid clips it, and a clipped reserve
-    /// is indistinguishable from having none.
+    /// <para><b>It is two lines again.</b> The band was one line while the card
+    /// showed only the file name, and the second line's reserved 19 DIP was what
+    /// made every row look loose. The report asks for the length on that line
+    /// (「卡片出标题外下一行应该再交代视频、音乐的时间」), so the band contains it.</para>
+    ///
+    /// <para>The trailing reserve is part of the band, not padding outside it: the
+    /// cell has to contain the space or the grid clips it, and a clipped reserve is
+    /// indistinguishable from having none. It is half a line now rather than one
+    /// and a half - 「卡片标题下的留白过多，可以稍微缩短一点」.</para>
     /// </summary>
     [Test]
-    public void CaptionBandIsOneLineAGapAndTheTrailingReserve()
+    public void CaptionBandIsTwoLinesAGapAndTheTrailingReserve()
     {
         Assert.That(CardMetrics.CaptionBandHeight,
                     Is.EqualTo(CardMetrics.CaptionTopGap
                                + CardMetrics.TitleLineHeight
+                               + CardMetrics.SubtitleLineHeight
                                + CardMetrics.TrailingCaptionSpace));
 
-        // One and a half lines, as asked for.
+        // Half a line, as asked for.
         Assert.That(CardMetrics.TrailingCaptionSpace,
-                    Is.EqualTo(CardMetrics.TitleLineHeight * 1.5).Within(1e-9));
+                    Is.EqualTo(CardMetrics.TitleLineHeight * 0.5).Within(1e-9));
 
-        // The reserve is real: without it the band would be 28, and the assertion
+        // The reserve is real: without it the band would be 47, and the assertion
         // above would still pass if TrailingCaptionSpace silently became 0 only
         // because it was folded into the gap. Naming the number is what stops that.
-        Assert.That(CardMetrics.CaptionBandHeight, Is.EqualTo(61).Within(1e-9));
+        Assert.That(CardMetrics.CaptionBandHeight, Is.EqualTo(58).Within(1e-9));
     }
 }

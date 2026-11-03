@@ -47,12 +47,22 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// The media tile's corner radius. Replaces CornerRadius="4" x4.
         ///
-        /// 6, up from 4: the comparison page's chosen variant pairs this inner
-        /// radius with a 6 DIP gutter and a 1.5 DIP frame. The frame's own radius
-        /// is derived from this one - see <see cref="HoverFrameCornerRadius"/>,
-        /// which is this plus that gutter.
+        /// <para><b>12, equal to <see cref="HoverFrameCornerRadius"/>.</b> The
+        /// report is 「卡片缩略图的圆角还要再圆滑一点，和遮罩框一致」 - rounder, and
+        /// the same as the frame. It was 6 (frame 12, derived as 6 + the 6 DIP
+        /// gutter), so the two arcs were parallel but differed by the gutter: a
+        /// tight corner inside a much larger one reads as two unrelated shapes when
+        /// the frame appears.</para>
+        ///
+        /// <para>Making them equal breaks the "outer radius = inner + offset"
+        /// relation on purpose. That relation is for a border drawn directly on the
+        /// same box; here the frame is a separate element 6 DIP away, and matching
+        /// radii is what makes the card read as one rounded object rather than a
+        /// picture inside a box. The frame's radius therefore stops being derived
+        /// and becomes its own number, which is why the relation's doc comment no
+        /// longer claims otherwise.</para>
         /// </summary>
-        public const double CornerRadius = 6;
+        public const double CornerRadius = 12;
 
         /// <summary>
         /// Gap between the media tile and its first caption line.
@@ -120,46 +130,45 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// The hover frame's corner radius.
         ///
-        /// <para><b>Derived, not sampled:</b> <see cref="CornerRadius"/> plus
-        /// <see cref="HoverFrameInset"/>, 6 + 6 = 12. The frame's edge runs
-        /// <see cref="HoverFrameInset"/> outside the content's, so its arc has to
-        /// be that much larger to stay parallel to it; anything else and the two
-        /// edges converge at the corners.</para>
-        ///
-        /// <para>The comparison page offered 11 for this and that is the error
-        /// this comment exists to prevent: 11 does not satisfy the relation
-        /// against its own 6 DIP push, it was picked by eye. The structure of that
-        /// variant was chosen; its arithmetic was not.</para>
+        /// <para><b>Equal to <see cref="CornerRadius"/> by request, not derived
+        /// from it.</b> It used to be <c>CornerRadius + HoverFrameInset</c> - the
+        /// rule for a border drawn on the same box, which keeps an outer arc
+        /// concentric with an inner one - and that gave 12 against a 6 DIP tile.
+        /// The report asked for the thumbnail's corners to match this one
+        /// (「和遮罩框一致」), so the tile came up to 12 and this stayed put. Two
+        /// equal radii on concentric boxes are NOT parallel curves; they are the
+        /// shape a person asked for, and the arithmetic that would forbid it
+        /// describes a different construction.</para>
         /// </summary>
         public const double HoverFrameCornerRadius = 12;
 
         /// <summary>
         /// The hover buttons' diameter.
         ///
-        /// 30, down from 36, and both buttons are the same size. Chosen on the
-        /// comparison page together with the 8 DIP corner inset and the thinner
-        /// semi-transparent ring. Whether 30 reads as too small on a real video
-        /// frame is one of the decisions no constant can settle - it is in the
-        /// design's eye-check list, not its arithmetic.
+        /// <para><b>36, not 30.</b> 30 was measured against a 253-wide card and
+        /// read as too small on a real video frame - which is what the eye-check
+        /// list predicted it might ("whether 30 reads as too small on a real video
+        /// frame is one of the decisions no constant can settle"). The report is
+        /// the answer: 「目前的悬浮按钮又过小了，原基础放大1.2倍左右」, and 30 x 1.2
+        /// is 36 - the size it had before this branch shrank it.</para>
         /// </summary>
-        public const double PlayButtonSize = 30;
+        public const double PlayButtonSize = 36;
 
         /// <summary>
         /// The hover overflow button's diameter. The same as the play button's,
         /// because the reference draws the two as one matched pair - the previous
         /// 40/32 split made the secondary button look accidental.
         /// </summary>
-        public const double MoreButtonSize = 30;
+        public const double MoreButtonSize = 36;
 
         /// <summary>
         /// How far the corner buttons sit from the tile's edges.
         ///
-        /// 8, down from 10, shared by both corners so the two buttons read as one
-        /// pair rather than as two elements that happened to land near a corner.
-        /// It moves with <see cref="PlayButtonSize"/>: the discs shrank by a fifth
-        /// and the inset was brought along rather than left at the old scale.
+        /// <para>10, up from 8 with the discs: the inset belongs to the disc's
+        /// scale, and 8 was chosen to keep a 30px disc off the corner. At 36 the
+        /// same 8 crowds the arc.</para>
         /// </summary>
-        public const double CornerInset = 8;
+        public const double CornerInset = 10;
 
         /// <summary>
         /// The hover buttons' white ring, in DIP.
@@ -196,32 +205,29 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// One subtitle line's height at MpvCardSubtitleFontSize (14).
         ///
-        /// <para><b>No longer part of the cell.</b> The card draws one caption
-        /// line now - the file name - so the cell must not reserve room for a
-        /// second. Left at 19 and still subtracted below, the difference was 21
-        /// DIP of empty band under every card, which reads as inconsistent row
-        /// spacing in the grid rather than as a missing line.</para>
-        ///
-        /// <para>Kept as a constant because the collapsed SubtitleText element
-        /// still declares a LineHeight and CardMetricsTests pins the two against
-        /// each other; if a second line ever comes back, this is the number that
-        /// has to rejoin CaptionBandHeight.</para>
+        /// <para><b>Back in the cell.</b> The card drew one caption line for a
+        /// while - the file name alone - and the band was reduced to match. The
+        /// report asks for the second line back, carrying the length
+        /// (「卡片出标题外下一行应该再交代视频、音乐的时间」), so the band reserves room
+        /// for it again.</para>
         /// </summary>
         public const double SubtitleLineHeight = 19;
 
         /// <summary>
         /// Empty space below the caption, in the card.
         ///
-        /// <para>Reported as "the title should leave a line and a half of empty
-        /// space below it". 1.5 x <see cref="TitleLineHeight"/> = 33.</para>
+        /// <para><b>0.5 x <see cref="TitleLineHeight"/> = 11, down from 1.5 x = 33.</b>
+        /// The report is 「卡片标题下的留白过多，可以稍微缩短一点」. The 1.5 was chosen
+        /// when the card was 253 wide and the caption was one line; with a second
+        /// line back the band is already taller, and 33 on top of it is what made
+        /// the gap read as a hole rather than as breathing room.</para>
         ///
-        /// <para>It is not padding for its own sake. The hover frame wraps the
-        /// card, so whatever the caption does not occupy is what the frame encloses
-        /// below the text: at zero the last line sat hard against the card's lower
-        /// edge and the frame read as a border around the picture plus an accident
-        /// of text.</para>
+        /// <para>Not zero: the hover frame wraps the card, so the caption must not
+        /// end hard against the card's lower edge or the frame reads as a border
+        /// around the picture plus an accident of text. 11 keeps that gap visible
+        /// without leaving a hole.</para>
         /// </summary>
-        public const double TrailingCaptionSpace = TitleLineHeight * 1.5;
+        public const double TrailingCaptionSpace = TitleLineHeight * 0.5;
 
         /// <summary>
         /// The caption band under the media tile: one gap, one line, and the
@@ -236,7 +242,7 @@ namespace mpv_winui.Domains.Playback.Cards
         /// indistinguishable from having none.
         /// </summary>
         public const double CaptionBandHeight =
-            CaptionTopGap + TitleLineHeight + TrailingCaptionSpace;
+            CaptionTopGap + TitleLineHeight + SubtitleLineHeight + TrailingCaptionSpace;
 
         /// <summary>
         /// The card cell's width: the content plus the gutter on both sides.
@@ -276,27 +282,28 @@ namespace mpv_winui.Domains.Playback.Cards
         /// <summary>
         /// The card grids' column spacing, in DIP.
         ///
-        /// <para><b>Not <c>MpvSpaceM</c> (12), and the difference is the point.</b>
-        /// The frame lives in a 6 DIP gutter inside the cell, so two adjacent
-        /// selected frames are <c>spacing - 2 x HoverFrameInset</c> apart: at 12
-        /// they were 2 DIP apart and the two strokes read as one line, which is
-        /// exactly what a selection border must not do. At 20 they are 8 apart.</para>
+        /// <para><b>4, down from 20.</b> The report is 「卡片与卡片之间间距太宽，应该
+        /// 紧密挨着不要留空」. 20 was chosen to keep two SELECTED frames from reading
+        /// as one line - <c>spacing - 2 x HoverFrameInset</c> had to stay positive -
+        /// but that reasoning optimised for the rare state and paid for it in the
+        /// common one. The gutter is already load-bearing: at 4 the two frames are
+        /// 4 - 12 = -8, i.e. the gutters OVERLAP, and since a frame is only visible
+        /// under the pointer or on a ticked card, two adjacent frames never appear
+        /// together. What the eye sees at rest is two pictures 4 DIP apart, which
+        /// is what 「紧密挨着」 asks for.</para>
         ///
-        /// <para>The token stays at 12 for its other consumers in markup (21 of
-        /// them when this was written); the grid gets its own number rather than a
-        /// global. The markup's first-paint default cannot reference this class
-        /// (it is internal static), so it carries the literal 20 and
-        /// CardMetricsTests.EveryCardGridLeavesRoomForTheFrame pins the two
-        /// together.</para>
+        /// <para>Kept non-negative rather than negative: a negative spacing in
+        /// UniformGridLayout is not a thing, and the gutter still has to fit
+        /// inside each cell.</para>
         /// </summary>
-        public const double GridColumnSpacing = 20;
+        public const double GridColumnSpacing = 4;
 
         /// <summary>
-        /// The card grids' row spacing, in DIP. The same 20 as the columns: a grid
-        /// whose rows breathe less than its columns reads as a table with tight
-        /// rows rather than as a wall of cards, and the frame's gutter is the same
-        /// band vertically.
+        /// The card grids' row spacing, in DIP. The same 4 as the columns: the
+        /// rows are separated by the caption band's own trailing space in practice
+        /// (see <see cref="TrailingCaptionSpace"/>), so a large row gap stacked on
+        /// top of that is what made 「卡片标题下的留白过多」.
         /// </summary>
-        public const double GridRowSpacing = 20;
+        public const double GridRowSpacing = 4;
     }
 }

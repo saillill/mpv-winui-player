@@ -63,13 +63,20 @@ public sealed partial class LibraryEntry
     }
 
     /// <summary>
-    /// The tick box's glyph: E73E checked, E739 unchecked, from Segoe Fluent Icons.
+    /// The tick box's glyph: E73E when ticked, empty when not.
     ///
-    /// A glyph rather than two PathIcons swapping Visibility: the generated FluentIcons
-    /// set has no checkbox in it, the settings page already draws its own check marks
-    /// with these two codepoints, and a FontIcon carries no geometry lifetime rule.
+    /// <para><b>E739 is gone from the unticked state.</b> That codepoint is
+    /// Fluent's "checkbox" symbol, which draws a square outline of its own - inside
+    /// a Button that already has a rounded border, so the unticked box showed a
+    /// square drawn inside a rounded square. The report is 「里面包裹了一个正方形描边
+    /// 没有用」. An unticked box is now an empty circle, and the state is carried by
+    /// the box's own fill and border colour rather than by a second outline.</para>
+    ///
+    /// <para>A glyph rather than two PathIcons swapping Visibility, for the reason
+    /// it always was: the generated FluentIcons set has no checkbox in it, and a
+    /// FontIcon carries no geometry lifetime rule.</para>
     /// </summary>
-    public string SelectionGlyph => _isSelected ? "\uE73E" : "\uE739";
+    public string SelectionGlyph => _isSelected ? "\uE73E" : string.Empty;
 
     /// <summary>
     /// The tick box's visibility IN SELECTION MODE: present in the mode, gone otherwise.

@@ -134,7 +134,7 @@
                 Background="{ThemeResource ControlFillColorSecondaryBrush}"
                 BorderBrush="{ThemeResource MpvCardCoverStrokeBrush}"
                 BorderThickness="1"
-                CornerRadius="6">
+                CornerRadius="12">
                 <Grid>
                     <!--  The media-kind glyph shows until a cover arrives, and
                           for good when the file has none. The Viewbox is what
@@ -178,14 +178,16 @@
                   the tile. At the previous 10 the two read as a separate block
                   floating below the picture rather than as its label.
 
-                  The bottom margin is TrailingCaptionSpace, 1.5 lines, and it is
-                  not padding for its own sake: reported as "the title should leave
-                  a line and a half of empty space below it". Without it the
-                  caption's last line sits hard against the card's lower edge and
-                  the hover frame has nothing to enclose underneath - the frame
-                  looked like it was drawn around the picture plus an accident. -->
+                  The bottom margin is TrailingCaptionSpace, half a line (11), and
+                  it is not padding for its own sake: the hover frame wraps the
+                  card, so with zero the caption's last line sits hard against the
+                  card's lower edge and the frame reads as a border around the
+                  picture plus an accident of text. It was 33 (a line and a half)
+                  while the card carried one caption line; with the length line back
+                  that reserved gap on top of it is what 「卡片标题下的留白过多」 was
+                  pointing at. -->
             <StackPanel
-                Margin="0,6,0,33"
+                Margin="0,6,0,11"
                 Spacing="{StaticResource MpvSpaceXxs}">
                 <!--  Two lines, both in ONE typographic style.
 
@@ -236,28 +238,27 @@
                     LineHeight="22"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="Wrap" />
-                <!--  The second line is gone.
+                <!--  The second line: the length.
 
-                      Reported as "drop the date string and the repeated title,
-                      keep only the top line, and make it the plain file name".
-                      It used to carry a subtitle the entry happened to have -
-                      for a video the folder name, which is why every card in a
-                      scan showed a second line that repeated the first or said
-                      "未知专辑 / 未知艺术家" for untagged audio. One line that
-                      always says the file is both less to read and never wrong.
+                      It was collapsed for a round because it carried the entry's
+                      subtitle - for a video the folder name, which repeated the
+                      title or read "未知专辑 / 未知艺术家" on untagged audio. The
+                      report asks for it back, carrying something that is never a
+                      repeat: 「卡片出标题外下一行应该再交代视频、音乐的时间」.
 
-                      Kept in the tree as a collapsed element rather than
-                      deleted: LibraryCard.xaml.cs assigns it on every recycle
-                      and the selection/emphasis path writes to it, and a rename
-                      here is exactly the kind of thing that used to break this
-                      control silently. -->
+                      Visibility is left Visible here and decided by the code
+                      behind from DurationVisibility, because not every entry knows
+                      its length: the watch history records no duration, so a float
+                      or an untagged file has none and the line collapses rather
+                      than showing an empty box. -->
                 <TextBlock
                     x:Name="SubtitleText"
                     Visibility="Collapsed"
-                    FontSize="{StaticResource MpvCardTitleFontSize}"
-                    FontWeight="{StaticResource MpvCardCaptionFontWeight}"
-                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    FontSize="{StaticResource MpvCardSubtitleFontSize}"
+                    FontWeight="Normal"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     LineHeight="19"
+                    MaxLines="1"
                     TextTrimming="CharacterEllipsis" />
             </StackPanel>
 
@@ -304,33 +305,36 @@
                       changes.
 
                       Geometry, from CardMetrics, all three literal because
-                      markup cannot name an internal static class: 30x30 discs
-                      (PlayButtonSize / MoreButtonSize, down from 36), inset 8
-                      from the tile's edges (CornerInset, down from 10), radius
-                      15 (half the diameter, the only radius that keeps the ring
-                      concentric with the disc). The inset moved with the size on
-                      purpose: at the old 10 a 30px disc reads as a button that
-                      shrank inside its old slot rather than as a smaller button.
+                      markup cannot name an internal static class: 36x36 discs
+                      (PlayButtonSize / MoreButtonSize), inset 10 from the tile's
+                      edges (CornerInset), radius 18 (half the diameter, the only
+                      radius that keeps the ring concentric with the disc).
 
-                      The RING is MpvCardButtonRingBrush, semi-transparent, so it
-                      does not cut a hard edge on a bright frame. The GLYPH stays
-                      MpvCardRingBrush - near-opaque white - because a 13 to 15px
-                      shape at 45% opacity falls apart on the same frame. -->
+                      The 36 is the report's own arithmetic: 「原基础放大1.2倍左右」,
+                      30 x 1.2 = 36, which is also the size before this branch
+                      shrank them.
+
+                      The SURFACE is MpvCardControlBrush, which is white in the
+                      light theme and near-black in the dark one - 「在浅色模式下
+                      按钮应该是白色」. The glyph follows the theme with it (see
+                      MpvCardGlyphBrush); the RING is MpvCardButtonRingBrush and
+                      only the ring is translucent, so the disc reads as a solid
+                      control sitting on the frame rather than as a tinted hole. -->
                 <Button
                     x:Name="PlayButton"
-                    Width="30"
-                    Height="30"
-                    Margin="8"
+                    Width="36"
+                    Height="36"
+                    Margin="10"
                     Padding="0"
                     HorizontalAlignment="Left"
                     HorizontalContentAlignment="Center"
                     VerticalAlignment="Bottom"
                     VerticalContentAlignment="Center"
-                    Background="{StaticResource MpvCardControlBrush}"
+                    Background="{ThemeResource MpvCardControlBrush}"
                     BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
                     BorderThickness="1.5"
                     Click="PlayButton_Click"
-                    CornerRadius="15">
+                    CornerRadius="18">
                     <!--  The glyph is centred in a Viewbox, not left to FontIcon.
 
                           Reported with a screenshot circling both discs: "the
@@ -350,57 +354,63 @@
                               and centred as a shape, which is what makes the
                               triangle's centroid land on the disc's centre
                               instead of its box. -->
-                    <Grid>
-                        <!--  The hover highlight, ON TOP of the ring rather than
-                              replacing it.
-
-                              Reported as "when the pointer is on a button, do not
-                              remove the original stroke - lay a highlight over
-                              it". So this is a second Border: the Button's own
-                              BorderBrush stays exactly what it is at rest, and
-                              this one adds a brighter 1.5 DIP arc while the
-                              pointer is on the button.
-
-                              Hit-test invisible: the Button has to keep receiving
-                              the pointer, or this would light up and then eat the
-                              click that turned it on. -->
-                        <Border
-                            x:Name="PlayButtonHighlight"
-                            Background="Transparent"
-                            BorderBrush="{StaticResource MpvCardRingBrush}"
-                            BorderThickness="1.5"
-                            CornerRadius="15"
-                            IsHitTestVisible="False"
-                            Visibility="Collapsed" />
-                        <Viewbox
-                            Width="15"
-                            Height="15"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                            <FontIcon
-                                FontFamily="{StaticResource MpvIconFontFamily}"
-                                FontSize="{StaticResource MpvPlayGlyphFontSize}"
-                                Foreground="{StaticResource MpvCardRingBrush}"
-                                Glyph="&#xF605;" />
-                        </Viewbox>
-                    </Grid>
+                    <Viewbox
+                        Width="17"
+                        Height="17"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                        <FontIcon
+                            FontFamily="{StaticResource MpvIconFontFamily}"
+                            FontSize="{StaticResource MpvPlayGlyphFontSize}"
+                            Foreground="{ThemeResource MpvCardGlyphBrush}"
+                            Glyph="&#xF605;" />
+                    </Viewbox>
                 </Button>
+
+                <!--  The pointer-over darkening of the play disc.
+
+                      Reported as 「现在鼠标在按钮上悬浮描边会缩成一个小圈，不应该这么渲染，
+                      按钮不动在此基础上加一个变亮、变暗遮罩」. The previous attempt put a
+                      second Border INSIDE the Button, and that is exactly what shrank:
+                      the Button sets Padding="0" and HorizontalContentAlignment=Center,
+                      so its content box is the 17px glyph, not the 36px disc - the
+                      "highlight" drew a 17px ring around the glyph.
+
+                      This one is a SIBLING of the Button, in a Grid sized to the disc,
+                      so it covers the whole disc. It is a fill, not a stroke: the ring
+                      is untouched, the glyph is untouched, and what changes is the
+                      luminance of the surface under both - which is what a hover state
+                      on a solid control looks like in Fluent.
+
+                      Hit-test invisible: the Button must keep receiving the pointer, or
+                      this would light up and then eat the click that turned it on. -->
+                <Border
+                    x:Name="PlayButtonHover"
+                    Margin="10"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Width="36"
+                    Height="36"
+                    Background="{ThemeResource MpvCardButtonHoverBrush}"
+                    CornerRadius="18"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed" />
 
                 <Button
                     x:Name="MoreButton"
-                    Width="30"
-                    Height="30"
-                    Margin="8"
+                    Width="36"
+                    Height="36"
+                    Margin="10"
                     Padding="0"
                     HorizontalAlignment="Right"
                     HorizontalContentAlignment="Center"
                     VerticalAlignment="Bottom"
                     VerticalContentAlignment="Center"
-                    Background="{StaticResource MpvCardControlBrush}"
+                    Background="{ThemeResource MpvCardControlBrush}"
                     BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
                     BorderThickness="1.5"
                     Click="MoreButton_Click"
-                    CornerRadius="15">
+                    CornerRadius="18">
                     <!--  Geometry, not a glyph: E712 in FluentSystemIcons is not
                           three dots.
 
@@ -409,31 +419,33 @@
                           inside it draws at its native 24. Without
                           Padding="0" the three dots drifted up and right the
                           same way the triangle did. -->
-                    <Grid>
-                        <!--  The same overlay as the play button's, for the same
-                              reason: the ring stays, a brighter arc is laid over
-                              it while the pointer is on the disc. -->
-                        <Border
-                            x:Name="MoreButtonHighlight"
-                            Background="Transparent"
-                            BorderBrush="{StaticResource MpvCardRingBrush}"
-                            BorderThickness="1.5"
-                            CornerRadius="15"
-                            IsHitTestVisible="False"
-                            Visibility="Collapsed" />
-                        <Viewbox
-                            Width="13"
-                            Height="13"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                            <PathIcon
-                                Width="24"
-                                Height="24"
-                                Data="F1 M12 4C11.1716 4 10.5 4.67157 10.5 5.5C10.5 6.32843 11.1716 7 12 7C12.8284 7 13.5 6.32843 13.5 5.5C13.5 4.67157 12.8284 4 12 4ZM12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5ZM10.5 18.5C10.5 17.6716 11.1716 17 12 17C12.8284 17 13.5 17.6716 13.5 18.5C13.5 19.3284 12.8284 20 11.1716 20C10.5 19.3284 10.5 18.5 10.5 18.5Z"
-                                Foreground="{StaticResource MpvCardRingBrush}" />
-                        </Viewbox>
-                    </Grid>
+                    <Viewbox
+                        Width="15"
+                        Height="15"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                        <PathIcon
+                            Width="24"
+                            Height="24"
+                            Data="F1 M12 4C11.1716 4 10.5 4.67157 10.5 5.5C10.5 6.32843 11.1716 7 12 7C12.8284 7 13.5 6.32843 13.5 5.5C13.5 4.67157 12.8284 4 12 4ZM12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5ZM10.5 18.5C10.5 17.6716 11.1716 17 12 17C12.8284 17 13.5 17.6716 13.5 18.5C13.5 19.3284 12.8284 20 11.1716 20C10.5 19.3284 10.5 18.5 10.5 18.5Z"
+                            Foreground="{ThemeResource MpvCardGlyphBrush}" />
+                    </Viewbox>
                 </Button>
+
+                <!--  The pointer-over darkening of the overflow disc: the same
+                      sibling overlay as the play button's, for the same reason and
+                      with the same measured failure behind it. -->
+                <Border
+                    x:Name="MoreButtonHover"
+                    Margin="10"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Width="36"
+                    Height="36"
+                    Background="{ThemeResource MpvCardButtonHoverBrush}"
+                    CornerRadius="18"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed" />
 
             </Grid>
 
@@ -474,32 +486,38 @@
                   Padding="0" and a centred content box for the measured reason the
                   two corner buttons give at length below: a Button's default
                   padding is not symmetric about its content, so a small glyph in a
-                  fixed-size button drifts up and right. CornerRadius 6 is the
-                  radius a 24px Fluent control uses; the 4 this box wore as a Border
-                  reads as a square with rounded corners at this size.
+                  fixed-size button drifts up and right.
 
-                  Visibility is not decided here, and not by one property either:
-                  the box shows when the entry is in selection mode OR the pointer is
-                  on this card, so it is reachable before any mode exists. That pair
-                  is resolved in UpdateSelectionBoxForState, which runs on every
-                  recycle as well - a recycled card arrives with the box already in
-                  the right state for the file it now stands for, rather than showing
-                  whatever the previous file left behind. -->
+                  CornerRadius 13 on a 26px box: a CIRCLE, not the 6 this wore
+                  before. The box used to be 24 with radius 6, which reads as a
+                  square with rounded corners sitting next to two round discs. The
+                  report's 「里面包裹了一个正方形描边没有用」 was the glyph (now gone);
+                  this makes the box itself round for the same reason the discs are.
+
+                  The fill and border come from UpdateSelectionBoxForState through
+                  MpvCardTickBoxFillBrush / MpvCardTickBoxRingBrush, because they
+                  depend on whether the card is ticked: a ticked box is the accent
+                  colour (「选择到的按钮应该是强调色」), an unticked one is the neutral
+                  surface. They are not set here because markup cannot see the entry.
+
+                  Visibility is not decided here either: the box shows when the entry
+                  is in selection mode OR the pointer is on this card. That pair is
+                  resolved in UpdateSelectionBoxForState, which runs on every recycle
+                  as well - a recycled card arrives with the box already in the right
+                  state for the file it now stands for. -->
             <Button
                 x:Name="SelectionBox"
-                Width="24"
-                Height="24"
-                Margin="8"
+                Width="26"
+                Height="26"
+                Margin="10"
                 Padding="0"
                 HorizontalAlignment="Left"
                 HorizontalContentAlignment="Center"
                 VerticalAlignment="Top"
                 VerticalContentAlignment="Center"
-                Background="{ThemeResource ControlFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
                 BorderThickness="1"
                 Click="SelectionBox_Click"
-                CornerRadius="6"
+                CornerRadius="13"
                 Visibility="Collapsed">
                 <FontIcon
                     x:Name="SelectionGlyphIcon"

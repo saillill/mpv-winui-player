@@ -335,14 +335,14 @@ namespace mpv_winui.Domains.Playback
 
         private static UniformGridLayout CardLayout()
         {
-            // 253 is the reference's card width, and the tile is 16:9 because the
-            // files are landscape frames. The cell height follows from both.
+            // 202 is 0.8 x the reference's 253, and it is the whole of 「卡片整体
+            // 大小缩小一点，0.8左右」. The tile stays 16:9 because the files are
+            // landscape frames; the cell height follows from both.
             //
             // The width here is the CONTENT's: CellWidthFor adds the frame's 6 DIP
-            // gutter on each side, and the cell - not the picture - is what grew.
-            // The spacing is CardMetrics' 20 rather than MpvSpaceM's 12 because
-            // the gutter eats 12 DIP of it, leaving 8 between two selected frames.
-            const double width = 253;
+            // gutter on each side. Scaled together with the album grid's 170 -> 136
+            // so the two grids keep the ratio they had.
+            const double width = 202;
 
             return new UniformGridLayout
             {

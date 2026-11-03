@@ -61,18 +61,22 @@ public class CardMetricsTests
     [Test]
     public void TokensAreTheDocumentedValues()
     {
-        Assert.That(CardMetrics.CornerRadius, Is.EqualTo(6));
+        // 12, matching the hover frame's own radius. 「卡片缩略图的圆角还要再圆滑
+        // 一点，和遮罩框一致」 - the tile came up from 6 so the two arcs match,
+        // which is a deliberate break of the concentric rule; see the test below.
+        Assert.That(CardMetrics.CornerRadius, Is.EqualTo(12));
 
         // The caption band follows the cell height, so a change here without a
         // change in CardMetrics.CaptionBandHeight clips the line it reserves.
         // These numbers are the reference's own, measured on its hovered card.
         Assert.That(CardMetrics.CaptionTopGap, Is.EqualTo(6));
 
-        // Both hover buttons are the same size now: the reference draws them as
-        // one matched pair, and the old 40/32 split made the second look accidental.
-        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(30));
-        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(30));
-        Assert.That(CardMetrics.CornerInset, Is.EqualTo(8));
+        // Both hover buttons are the same size: the reference draws them as one
+        // matched pair. 36 is the report's 「原基础放大1.2倍左右」 applied to the
+        // 30 this branch had shrunk them to.
+        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(36));
+        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(36));
+        Assert.That(CardMetrics.CornerInset, Is.EqualTo(10));
         Assert.That(CardMetrics.RingThickness, Is.EqualTo(1.5));
         Assert.That(CardMetrics.NowPlayingBarHeight, Is.EqualTo(2));
 
@@ -91,19 +95,30 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// The frame's radius is derived from the content's, not sampled from the
-    /// reference.
+    /// The tile's radius and the frame's radius are the same number.
+    ///
+    /// <para><b>This replaces a rule that said the opposite.</b> The frame sits
+    /// <c>HoverFrameInset</c> outside the content, and the concentric rule - outer
+    /// radius equals inner plus offset - is what makes two arcs on the same box
+    /// parallel. It was pinned here: <c>HoverFrameCornerRadius == CornerRadius +
+    /// HoverFrameInset</c>, which gave 12 against a 6 DIP tile.</para>
+    ///
+    /// <para>「卡片缩略图的圆角还要再圆滑一点，和遮罩框一致」 asks for the two to
+    /// MATCH, so the tile moved up to 12 and the frame stayed there. The test now
+    /// pins the request instead of the geometry rule, and its old body is recorded
+    /// here because a reader who knows the rule will otherwise think this is a
+    /// mistake.</para>
+    ///
+    /// <para>Equal radii on boxes 6 DIP apart are not parallel curves - the gap
+    /// narrows toward the corners. That is the shape asked for: the card reads as
+    /// one rounded object rather than a picture in a box.</para>
     /// </summary>
     [Test]
-    public void HoverFrameRadiusIsConcentricWithTheContent()
+    public void TheTileAndTheFrameShareOneCornerRadius()
     {
-        // The frame sits HoverFrameInset OUTSIDE the content, so its arc must be
-        // that many DIP larger or the two edges are not parallel. This is the
-        // relation the comparison page got wrong (it offered 11 against an
-        // outward push of 6) and the reason the number is derived, not sampled.
         Assert.That(
-            CardMetrics.HoverFrameCornerRadius,
-            Is.EqualTo(CardMetrics.CornerRadius + CardMetrics.HoverFrameInset));
+            CardMetrics.CornerRadius,
+            Is.EqualTo(CardMetrics.HoverFrameCornerRadius));
     }
 
     /// <summary>
@@ -119,19 +134,131 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// The three theme dictionaries define the same keys.
+    /// The discs' surface is themed, and the light theme's is light.
+    ///
+    /// <para>「在浅色模式下按钮应该是白色」. The failure it fixes was structural, not a
+    /// wrong hex: MpvCardControlBrush lived OUTSIDE the three theme dictionaries as
+    /// one near-black value, so both themes got a dark disc and the light theme got
+    /// a black hole punched in a white page. Nothing could have caught it by
+    /// comparing the two themes, because there was only ever one value.</para>
+    ///
+    /// <para>So this test asserts the shape: the key exists in all three
+    /// dictionaries (which TheThreeThemeDictionariesDefineTheSameKeys requires of
+    /// every key), it appears exactly once per dictionary, and the Light one is a
+    /// light colour. A key outside the dictionaries would shadow all three, which
+    /// is the defect being guarded.</para>
+    /// </summary>
+    [Test]
+    public void TheDiscSurfaceIsWhiteInTheLightTheme()
+    {
+        var xaml = File.ReadAllText(StylesXamlPath);
+
+        var occurrences = Regex.Matches(xaml, "x:Key=\"MpvCardControlBrush\"").Count;
+
+        Assert.That(
+            occurrences,
+            Is.EqualTo(3),
+            "MpvCardControlBrush must be defined once per theme dictionary. A fourth, " +
+            "outside them, is what made both themes dark");
+
+        var light = DictionaryBody(xaml, "Light");
+
+        var match = Regex.Match(
+            light, "x:Key=\"MpvCardControlBrush\"\\s+Color=\"#([0-9A-Fa-f]{8})\"");
+
+        Assert.That(match.Success, "MpvCardControlBrush is not a literal colour in Light");
+
+        // #AARRGGBB: skip the alpha and take the three colour channels.
+        var hex = match.Groups[1].Value;
+
+        var r = Convert.ToInt32(hex.Substring(2, 2), 16);
+        var g = Convert.ToInt32(hex.Substring(4, 2), 16);
+        var b = Convert.ToInt32(hex.Substring(6, 2), 16);
+
+        Assert.That(
+            (r + g + b) / 3.0,
+            Is.GreaterThan(200),
+            $"the light theme's disc is #{hex}, which is dark; the report asks for white " +
+            "(「在浅色模式下按钮应该是白色」)");
+    }
+
+    /// <summary>
+    /// The text between one named theme dictionary's open and close tags, so a key
+    /// can be read out of the dictionary it belongs to rather than from the file.
+    ///
+    /// <para>Needed because the same key appears three times with three values; a
+    /// file-wide search finds whichever comes first and calls it the theme's.</para>
+    /// </summary>
+    private static string DictionaryBody(string xaml, string theme)
+    {
+        var open = xaml.IndexOf($"x:Key=\"{theme}\"", StringComparison.Ordinal);
+
+        Assert.That(open, Is.GreaterThanOrEqualTo(0), $"{theme} dictionary not found");
+
+        var close = xaml.IndexOf("</ResourceDictionary>", open, StringComparison.Ordinal);
+
+        Assert.That(close, Is.GreaterThan(open), $"{theme} dictionary is not closed");
+
+        return xaml[open..close];
+    }
+
+    /// <summary>
+    /// A ticked card's box takes the accent colour, an unticked one the neutral
+    /// surface.
+    ///
+    /// <para>「选择到的按钮应该是强调色」. The two brushes are chosen in
+    /// <c>UpdateSelectionBoxForState</c> from <c>Entry.IsSelected</c>, which is why
+    /// the test reads the source rather than the markup: the colour cannot be
+    /// written in XAML because it depends on the entry.</para>
+    ///
+    /// <para><b>Why a source test and not a screenshot.</b> Every visual check in
+    /// this round ran in a real window, and the tick box is the one element that
+    /// could not be reached: it is Collapsed until the pointer is on the card or a
+    /// mode exists, and this machine's UI automation refuses to move the pointer
+    /// without a foreground window it will not grant. A screenshot was attempted
+    /// and did not produce the state; this pins the mapping instead, which is the
+    /// part a refactor would break.</para>
+    /// </summary>
+    [Test]
+    public void ATickedBoxTakesTheAccentColour()
+    {
+        var source = File.ReadAllText(CardCodePath);
+
+        var start = source.IndexOf("private void UpdateSelectionBoxForState", StringComparison.Ordinal);
+        Assert.That(start, Is.GreaterThanOrEqualTo(0), "UpdateSelectionBoxForState is gone");
+
+        var body = source[start..source.IndexOf("\n        }", start, StringComparison.Ordinal)];
+
+        // The tick decides; the two branches must name the accent brush and the
+        // neutral one, in that order.
+        Assert.That(body, Does.Contain("Entry?.IsSelected"),
+            "the box's colour must follow the entry's tick");
+
+        Assert.That(body, Does.Contain("AccentFillColorDefaultBrush"),
+            "a ticked box must be the accent colour (「选择到的按钮应该是强调色」)");
+
+        Assert.That(body, Does.Contain("MpvCardTickBoxFillBrush"),
+            "an unticked box must keep the neutral surface");
+
+        // The glyph has to invert on the accent fill, or it is dark ink on the
+        // accent colour.
+        Assert.That(body, Does.Contain("TextOnAccentFillColorPrimaryBrush"),
+            "the tick mark must use the on-accent ink");
+    }
+
     ///
     /// <para><b>Why this is the only part of theming a test can prove.</b> What a
-    /// colour LOOKS like in HighContrast needs a screen, and this branch never got
-    /// one: the light theme was screenshotted, dark came free with the playlists
-    /// shots, and contrast was reasoned about rather than seen. What can be proved
-    /// mechanically is the failure that would be silent - a key added to Light and
-    /// Dark but forgotten in HighContrast, which renders as a missing resource at
-    /// parse time or a fallback colour at run time, in the one theme nobody was
-    /// looking at.</para>
+    /// colour LOOKS like in HighContrast needs a screen, and the round that added
+    /// these never got one: the light theme was screenshotted, dark came free with
+    /// the playlists shots, and contrast was reasoned about rather than seen. What
+    /// can be proved mechanically is the failure that would be silent - a key added
+    /// to Light and Dark but forgotten in HighContrast, which renders as a missing
+    /// resource at parse time or a fallback colour at run time, in the one theme
+    /// nobody was looking at.</para>
     ///
-    /// <para>The three new card strokes were added to all three dictionaries in
-    /// this branch, which is exactly the moment this guard is worth having.</para>
+    /// <para>It has already earned its keep twice: the three card strokes joined
+    /// all three dictionaries together, and the six disc/tick-box colours did the
+    /// same a round later.</para>
     /// </summary>
     [Test]
     public void TheThreeThemeDictionariesDefineTheSameKeys()
@@ -682,84 +809,81 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// Both caption lines share one type size, and neither is smaller.
+    /// The second caption line is smaller and secondary, and that is now correct.
     ///
-    /// The report was "use the now-playing row's type for every card and drop the
-    /// smaller line underneath". The subtitle used to be MpvCardSubtitleFontSize
-    /// (14) while the title was MpvCardTitleFontSize (15), and the pair read as a
-    /// heading with a caption. Asserted from the markup because that is where the
-    /// size is chosen; CardMetrics cannot see a FontSize.
+    /// <para><b>This test used to assert the opposite.</b> When both lines carried
+    /// the title - the name over a subtitle that repeated it - the report was to
+    /// make them one type size so they would not read as a heading with a caption.
+    /// They are no longer the same kind of thing: the second line is the LENGTH
+    /// (「卡片出标题外下一行应该再交代视频、音乐的时间」), which is metadata, and
+    /// metadata at the title's size and weight competes with the file name.</para>
+    ///
+    /// <para>Asserted from the markup because that is where the size is chosen;
+    /// CardMetrics cannot see a FontSize.</para>
     /// </summary>
     [Test]
-    public void BothCaptionLinesShareOneTypeSize()
+    public void TheLengthLineIsSmallerAndSecondary()
     {
         var xaml = File.ReadAllText(CardXamlPath);
 
         Assert.That(FontSizeTokenFor(xaml, "TitleText"), Is.EqualTo("MpvCardTitleFontSize"));
-        Assert.That(FontSizeTokenFor(xaml, "SubtitleText"), Is.EqualTo("MpvCardTitleFontSize"));
+        Assert.That(FontSizeTokenFor(xaml, "SubtitleText"), Is.EqualTo("MpvCardSubtitleFontSize"));
     }
 
     /// <summary>
-    /// All three card grids must leave the frame a home.
+    /// All three card grids use CardMetrics' spacing and a cell wide enough for the
+    /// gutter.
     ///
-    /// The frame lives in a 6 DIP gutter INSIDE the cell (the grid clips anything
-    /// drawn outside it - measured, see Task 0), so the cell is wider than the
-    /// content, and the spacing is what keeps two selected frames apart. The grids
-    /// shipped 12, which put a selected card's frame 2 DIP from its neighbour's.
+    /// <para>The frame lives in a 6 DIP gutter INSIDE the cell (the grid clips
+    /// anything drawn outside it - measured, see Task 0), so the cell is wider than
+    /// the content.</para>
     ///
-    /// There are THREE layouts - two built in code, one in markup as the
-    /// first-paint default - and missing any of them leaves one screen tight.
+    /// <para><b>The spacing is 4 now, and the old "two frames must not touch" rule
+    /// is retired.</b> 20 kept two SELECTED frames 8 DIP apart; the report is
+    /// 「卡片与卡片之间间距太宽，应该紧密挨着不要留空」, which is about the state the
+    /// grid is in almost always - no pointer, nothing ticked, so no frame is drawn
+    /// at all. Optimising the common case is the right trade, and a grid where two
+    /// frames could theoretically touch is one where both cards are under the
+    /// pointer at once, which cannot happen.</para>
     ///
-    /// The markup cannot name CardMetrics (it is internal static), so its numbers
-    /// are literals pinned by this test, the same arrangement LineHeight uses.
+    /// <para>The three layouts are pinned against CardMetrics rather than against
+    /// each other: two are built in code and one is the markup's first-paint
+    /// default, and missing any of the three leaves one screen wrong.</para>
     ///
     /// <para><b>Comments are stripped before the search, and that is not
     /// tidiness.</b> The comment above the layout quotes the very literals this
-    /// test looks for ("MinItemWidth 265 is CellWidthFor(253)"), so a raw search
-    /// over the file stays green with the attributes reverted to 253 and 12 while
-    /// only the prose moved. That is the trap <see cref="ButtonBlock"/> documents,
-    /// and it was measured there.</para>
+    /// test looks for, so a raw search stays green with the attributes reverted
+    /// while only the prose moved. That is the trap <see cref="ButtonBlock"/>
+    /// documents, and it was measured there.</para>
     /// </summary>
     [Test]
     public void EveryCardGridLeavesRoomForTheFrame()
     {
-        Assert.That(CardMetrics.GridColumnSpacing, Is.EqualTo(20));
-        Assert.That(CardMetrics.GridRowSpacing, Is.EqualTo(20));
-
-        // Two selected frames, back to back, must not read as one line.
-        Assert.That(
-            CardMetrics.GridColumnSpacing,
-            Is.GreaterThan(CardMetrics.HoverFrameInset * 2));
+        // Tight by request. The cell still contains the gutter, so a frame has
+        // somewhere to draw; it simply may sit close to its neighbour's.
+        Assert.That(CardMetrics.GridColumnSpacing, Is.EqualTo(4));
+        Assert.That(CardMetrics.GridRowSpacing, Is.EqualTo(4));
 
         var page = Regex.Replace(File.ReadAllText(PageXamlPath), "<!--[\\s\\S]*?-->", string.Empty);
 
-        var columnSpacing = AttributeFor(page, "MinColumnSpacing");
-
         Assert.That(
             page.Contains($"MinColumnSpacing=\"{CardMetrics.GridColumnSpacing}\"", StringComparison.Ordinal),
-            "the markup's default grid must use the same column spacing. It says " +
-            $"{columnSpacing}: MpvSpaceM, which is 12, put a selected card's frame 2 DIP " +
-            "from its neighbour's frame");
-
-        var rowSpacing = AttributeFor(page, "MinRowSpacing");
+            $"the markup's default grid must use the same column spacing; it says " +
+            $"{AttributeFor(page, "MinColumnSpacing")}");
 
         Assert.That(
             page.Contains($"MinRowSpacing=\"{CardMetrics.GridRowSpacing}\"", StringComparison.Ordinal),
-            "the markup's default grid must use the same row spacing. It says " +
-            $"{rowSpacing}: MpvSpaceL is 16, and the cell is 265 wide now, so the rows " +
-            "need the same air the columns get");
+            $"the markup's default grid must use the same row spacing; it says " +
+            $"{AttributeFor(page, "MinRowSpacing")}");
 
         // The cell is the content plus the gutter on both sides.
-        const double ContentWidth = 253;
-
-        var itemWidth = AttributeFor(page, "MinItemWidth");
+        const double ContentWidth = 202;
 
         Assert.That(
             page.Contains($"MinItemWidth=\"{CardMetrics.CellWidthFor(ContentWidth)}\"", StringComparison.Ordinal),
             "the markup's cell must be wide enough for the content AND the frame's gutter. " +
-            $"It says {itemWidth}, while CellWidthFor({ContentWidth}) is " +
-            $"{CardMetrics.CellWidthFor(ContentWidth)} - at 253 the picture is squeezed to " +
-            "241 by its own gutter");
+            $"It says {AttributeFor(page, "MinItemWidth")}, while " +
+            $"CellWidthFor({ContentWidth}) is {CardMetrics.CellWidthFor(ContentWidth)}");
 
         var minItemHeight = Regex.Match(page, @"MinItemHeight=""([\d.]+)""");
 
