@@ -61,6 +61,14 @@ namespace mpv_winui.Domains.Playback
 
             _musicGrouping = grouping;
 
+            // The grouping is part of the toolbar row's predicate - the artists tab
+            // keeps no row - and ApplySectionHeader is where that predicate is
+            // assigned, so switching tabs has to go through it. Before the load
+            // guard on purpose: the three tabs are clickable before the first list
+            // arrives, and a row that waits for the load would stay wrong until the
+            // next section switch.
+            ApplySectionHeader();
+
             if (_libraryLoaded)
             {
                 ApplyLibraryFilter();

@@ -335,8 +335,22 @@ namespace mpv_winui.Domains.Playback
             // is decided by the section. 「音乐库也要有和视频库一样的上方按钮」 - the
             // point is that it is the SAME row in the same place, not a second
             // toolbar that would have to be kept in step with this one.
-            _videoChromeWanted = (isVideos && hasVideoFolders) || (isMusic && hasMusicFolders);
+            //
+            // And the artists tab keeps no row at all: it lists people, while every
+            // control in the strip - Shuffle, the sort, and the genre button as it
+            // arrives - acts on files. The tab condition belongs to THIS field and
+            // nowhere else, so the whole row comes and goes together; a second test
+            // inside a button is the two-answers-one-question shape this repository
+            // has already paid for.
+            _videoChromeWanted = ((isVideos && hasVideoFolders) || (isMusic && hasMusicFolders))
+                && !(isMusic && _musicGrouping == MusicGrouping.Artists);
             ApplyVideoChromeVisibility();
+
+            // The sort menu belongs to this row, and which field it narrates depends
+            // on the section and the music tab - both of which this method is the
+            // one place to change. Refreshed here so the caption can never describe
+            // the previous section's order.
+            UpdateVideoSortChrome();
 
             LibraryHeadingTabs.Visibility = isVideos && hasVideoFolders
                 ? Visibility.Visible
@@ -1253,9 +1267,12 @@ namespace mpv_winui.Domains.Playback
             }
             else if (_librarySection == LibrarySectionMusic)
             {
-                // Songs keeps the title order the flat grid has always used. The
-                // grouped tabs order by the tag first, so each group's cards read
-                // the way its header says, and by title within a group.
+                // Songs is the flat list, so it is the tab the sort menu moves: the
+                // mode comes from EffectiveMusicSort, not from a literal. A literal
+                // here is exactly the reported defect - the button's caption changed
+                // and the list never moved. The grouped tabs order by the tag, so
+                // each group's cards read the way its header says, and by title
+                // within a group.
                 cards = _musicGrouping switch
                 {
                     MusicGrouping.Albums => cards
@@ -1271,7 +1288,7 @@ namespace mpv_winui.Domains.Playback
                         .ThenBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
                         .ToList(),
 
-                    _ => SortVideoEntries(cards, VideoSortMode.NameAsc),
+                    _ => SortVideoEntries(cards, EffectiveMusicSort),
                 };
             }
 

@@ -1,5 +1,6 @@
 using mpv_winui.Domains.Playback.Cards;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace mpv_winui_test;
 
@@ -24,6 +25,12 @@ namespace mpv_winui_test;
 /// in CardMetricsTests.ButtonBlock, where it was measured; it applies here too,
 /// because the reason this file exists is a set of branches a comment can claim
 /// to implement.</para>
+///
+/// <para><b>Task 2's sort guards live here too.</b> The music library's sort is
+/// page state, so what can be pinned on this side is that the state and the
+/// branches reading it exist: a field of music's own, the tab-dependent collapse
+/// the Albums tab needs, and the one predicate that keeps the whole toolbar row
+/// off the artists tab.</para>
 /// </summary>
 [TestFixture]
 public class MusicGenreArtistTests
@@ -267,6 +274,247 @@ public class MusicGenreArtistTests
     }
 
     /// <summary>
+    /// The sort menu on the music tabs reads a field of its own.
+    ///
+    /// <para><b>This is the smallest guard that covers the defect.</b> Until this
+    /// task the music library had no sort at all: <c>ApplyLibraryFilter</c> ordered
+    /// the Songs tab with a hardcoded <c>VideoSortMode.NameAsc</c>, so the button's
+    /// caption changed when it was clicked and the list never moved. A test on this
+    /// side of the window cannot prove that a list moves, but it can prove that the
+    /// state a working sort needs exists at all - and that is what was missing.</para>
+    ///
+    /// <para>Comments are stripped first, for the reason the class summary gives:
+    /// the field's own doc comment names <c>_musicSort</c>, so a raw search would
+    /// stay green with the field deleted. That is not hypothetical - the injection
+    /// that proved this test can fail deleted the three declarations and left the
+    /// prose standing.</para>
+    /// </summary>
+    [Test]
+    public void TheSortMenuReadsAMusicFieldOnTheMusicTabs()
+    {
+        var source = StrippedPageSource(PageVideoCodePath);
+        Assert.That(source, Does.Contain("_musicSort"));
+        Assert.That(source, Does.Contain("EffectiveMusicSort"));
+    }
+
+    /// <summary>
+    /// The music library has a sort of its own, and the Albums tab narrows it.
+    ///
+    /// <para>Three silent failures are pinned here. The field must be declared
+    /// SEPARATE from the video library's: sharing one would make reordering music
+    /// reorder the video grid. The Albums tab orders groups of files, and a group has
+    /// no watch-history time, so both time orders have to collapse to name order
+    /// there instead of sitting in the menu doing nothing. And only the Songs tab may
+    /// offer those two orders, which is the same condition from the other side.</para>
+    /// </summary>
+    [Test]
+    public void TheAlbumTabNarrowsTheMusicSortToNames()
+    {
+        var source = StrippedPageSource(PageVideoCodePath);
+
+        Assert.That(
+            Squashed(source),
+            Does.Contain("private VideoSortMode _musicSort = VideoSortMode.NameAsc;"),
+            "the music library needs a field of its own; on the video field, reordering music reorders videos");
+
+        Assert.That(
+            Squashed(PropertyExpression(source, "private VideoSortMode EffectiveMusicSort =>")),
+            Does.Contain(
+                "!MusicSortHasTimeModes && _musicSort is VideoSortMode.Newest or VideoSortMode.Oldest "
+                + "? VideoSortMode.NameAsc : _musicSort"),
+            "the Albums tab must collapse BOTH time orders to name order, and return every other order as chosen");
+
+        Assert.That(
+            Squashed(PropertyExpression(source, "private bool MusicSortHasTimeModes =>")),
+            Does.Contain("_librarySection != LibrarySectionMusic || _musicGrouping == MusicGrouping.Songs"),
+            "only the Songs tab offers time orders: the grouped tabs order tags, and a tag carries no time");
+    }
+
+    /// <summary>
+    /// The list follows the sort, and each library writes its own field.
+    ///
+    /// <para>This is the residue of the reported defect. Before the fix the Songs
+    /// branch passed a literal mode, so the menu was decoration: the caption moved and
+    /// the cards did not. The counterpart matters just as much - a click outside the
+    /// music section must still write the video field, or the video grid silently
+    /// stops obeying its own menu.</para>
+    /// </summary>
+    [Test]
+    public void TheMusicTabsSortThemselvesAndTheVideoTabKeepsItsOwnField()
+    {
+        var library = StrippedPageSource(PageLibraryCodePath);
+        var video = StrippedPageSource(PageVideoCodePath);
+
+        var filter = Squashed(MethodBody(library, "private void ApplyLibraryFilter()"));
+
+        Assert.That(
+            filter,
+            Does.Contain("_ => SortVideoEntries(cards, EffectiveMusicSort)"),
+            "the Songs tab must order the list it shows; a literal mode in this switch arm is the dead sort this "
+            + "test exists for");
+
+        Assert.That(
+            filter,
+            Does.Not.Contain("SortVideoEntries(cards, VideoSortMode."),
+            "a hardcoded sort mode is back in ApplyLibraryFilter, so one section ignores its menu again");
+
+        Assert.That(
+            filter,
+            Does.Contain("cards = SortVideoEntries(cards, _videoSort)"),
+            "the video library must keep reading the video field");
+
+        var click = Squashed(MethodBody(video, "private void VideoSort_Click(object sender, RoutedEventArgs e)"));
+
+        var guard = click.IndexOf("if (_librarySection == LibrarySectionMusic)", StringComparison.Ordinal);
+        Assert.That(guard, Is.GreaterThanOrEqualTo(0), "the click must ask which section it belongs to");
+
+        var otherwise = click.IndexOf("else", guard, StringComparison.Ordinal);
+        Assert.That(otherwise, Is.GreaterThan(guard), "the click needs a branch for the other section");
+
+        Assert.That(
+            click[guard..otherwise],
+            Does.Contain("_musicSort = parsed"),
+            "a music click must write the music field; writing the video field is how music used to reorder videos");
+
+        Assert.That(
+            click[otherwise..],
+            Does.Contain("_videoSort = parsed"),
+            "a click outside the music section must still write the video field");
+    }
+
+    /// <summary>
+    /// The sort button and the menu always describe the order the list is in.
+    ///
+    /// <para>One value answers the whole strip. The caption, the four radio marks and
+    /// the enabled state of the two time items all come from <c>current</c>, which is
+    /// the SECTION's field. Reading the video field in any one of those places is
+    /// invisible in a screenshot of the video library and a lie on the music one -
+    /// which is exactly the state this task was opened on: 「排序方式：最新」 over a list
+    /// nothing had ordered by time.</para>
+    /// </summary>
+    [Test]
+    public void TheSortChromeDescribesTheOrderInForce()
+    {
+        var body = Squashed(MethodBody(StrippedPageSource(PageVideoCodePath), "private void UpdateVideoSortChrome()"));
+
+        Assert.That(
+            body,
+            Does.Contain("var current = isMusic ? EffectiveMusicSort : _videoSort"),
+            "the chrome must read the field the section on screen actually sorts by");
+
+        Assert.That(
+            body,
+            Does.Contain("var caption = current switch"),
+            "the caption must be derived from that same value, or the button narrates an order the list is not in");
+
+        Assert.That(
+            body,
+            Does.Contain("VideoSortButton.Content = $\"{lang.LibrarySortBy}: {caption}\";"),
+            "the button's caption must print the words derived from current");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(body, Does.Contain("SortByNameAsc.IsChecked = current == VideoSortMode.NameAsc"));
+            Assert.That(body, Does.Contain("SortByNameDesc.IsChecked = current == VideoSortMode.NameDesc"));
+            Assert.That(body, Does.Contain("SortByNewest.IsChecked = current == VideoSortMode.Newest"));
+            Assert.That(body, Does.Contain("SortByOldest.IsChecked = current == VideoSortMode.Oldest"));
+        });
+
+        Assert.That(
+            body,
+            Does.Not.Contain("IsChecked = _videoSort"),
+            "a radio mark still reads the video field: on the music tabs it ticks an order the list is not in");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                body,
+                Does.Contain("SortByNewest.IsEnabled = !(isMusic && !MusicSortHasTimeModes)"),
+                "Newest must be disabled where the tab has no time dimension");
+
+            Assert.That(
+                body,
+                Does.Contain("SortByOldest.IsEnabled = !(isMusic && !MusicSortHasTimeModes)"),
+                "Oldest must be disabled where the tab has no time dimension");
+        });
+    }
+
+    /// <summary>
+    /// The artists tab keeps no toolbar, and it says so through ONE predicate.
+    ///
+    /// <para>The tab condition belongs on <c>_videoChromeWanted</c>, because that
+    /// field is the whole row's answer: every control in the strip - Shuffle, the
+    /// sort, and the genre button as it arrives - appears and disappears together. A
+    /// second tab test inside a button is how the two answers drift apart, which this
+    /// repository has spent whole fix rounds on.</para>
+    ///
+    /// <para>The other half of that ruling is asserted negatively: the method that
+    /// applies the row must not mention the music grouping at all. Its own
+    /// <c>isMusic</c> local answers a different question - which command stands in the
+    /// row - and it stays.</para>
+    /// </summary>
+    [Test]
+    public void TheArtistsTabHidesTheRowThroughTheOnePredicate()
+    {
+        var library = StrippedPageSource(PageLibraryCodePath);
+        var music = StrippedPageSource(PageMusicCodePath);
+
+        var header = Squashed(MethodBody(library, "private void ApplySectionHeader()"));
+
+        Assert.That(
+            header,
+            Does.Contain("!(isMusic && _musicGrouping == MusicGrouping.Artists)"),
+            "the artists tab must keep no toolbar: it lists people, and every control in the row acts on files");
+
+        Assert.That(
+            header,
+            Does.Contain("_videoChromeWanted = "),
+            "the tab condition belongs on _videoChromeWanted, the single predicate for the whole row");
+
+        var visibility = Squashed(MethodBody(library, "private void ApplyVideoChromeVisibility()"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(visibility, Does.Contain("var show = _videoChromeWanted && !_selectionMode;"));
+
+            Assert.That(
+                visibility,
+                Does.Not.Contain("MusicGrouping"),
+                "ApplyVideoChromeVisibility re-tests the tab: two predicates for one answer, and only one of them "
+                + "gets updated the next time the row changes");
+
+            Assert.That(
+                visibility,
+                Does.Not.Contain("Artists"),
+                "the artists tab is named twice; the row's predicate is the only place allowed to name it");
+
+            Assert.That(
+                visibility,
+                Does.Contain("var isMusic = _librarySection == LibrarySectionMusic && !_selectionMode;"),
+                "the Play all / Shuffle swap inside the row is the section's business and must stay");
+        });
+
+        var grouping = Squashed(MethodBody(music, "private void SetMusicGrouping(MusicGrouping grouping)"));
+
+        Assert.That(
+            grouping,
+            Does.Contain("ApplySectionHeader();"),
+            "_musicGrouping feeds the toolbar's predicate, so switching tabs must re-run the method that computes "
+            + "it - otherwise the row lags one tab behind");
+
+        Assert.That(
+            grouping.IndexOf("ApplySectionHeader();", StringComparison.Ordinal),
+            Is.LessThan(grouping.IndexOf("if (_libraryLoaded)", StringComparison.Ordinal)),
+            "the row must be recomputed whether or not the list has loaded: the tabs are clickable before the first "
+            + "load, and a stale predicate stays stale until the next section switch");
+
+        Assert.That(
+            grouping.IndexOf("ApplySectionHeader();", StringComparison.Ordinal),
+            Is.LessThan(grouping.IndexOf("ApplyLibraryFilter();", StringComparison.Ordinal)),
+            "the row is recomputed before the list is rebuilt");
+    }
+
+    /// <summary>
     /// The braced body of the method whose declaration is
     /// <paramref name="signature"/>: from its opening brace through the matching
     /// close.
@@ -334,6 +582,68 @@ public class MusicGenreArtistTests
 
         return stripped;
     }
+
+    /// <summary>
+    /// A page source file with its comments stripped, plus the proof that stripping
+    /// happened.
+    ///
+    /// <para>Same contract as <see cref="StrippedCardCode"/>, with the file as an
+    /// argument because three page sources are read now. The proof is the same length
+    /// comparison: if nothing was removed, the assertions built on the result are
+    /// searching prose.</para>
+    /// </summary>
+    private static string StrippedPageSource(string path)
+    {
+        var raw = File.ReadAllText(path);
+        var stripped = WithoutComments(raw);
+
+        Assert.That(
+            stripped.Length,
+            Is.LessThan(raw.Length),
+            $"{Path.GetFileName(path)} carries no comments, so stripping removed nothing and the "
+            + "assertions built on this text would be reading prose rather than code");
+
+        return stripped;
+    }
+
+    /// <summary>
+    /// The expression-bodied member whose declaration is
+    /// <paramref name="signature"/>, from the signature through its terminating
+    /// semicolon.
+    ///
+    /// <para><see cref="MethodBody"/> needs braces, and the two music-sort properties
+    /// are expression-bodied: searching for a brace after them would walk into the
+    /// NEXT member's body and assert against a different piece of code. Strict for
+    /// the same reason as MethodBody - a helper that answered "" would fail the
+    /// assertion below for a reason that has nothing to do with the code under
+    /// test.</para>
+    /// </summary>
+    private static string PropertyExpression(string source, string signature)
+    {
+        var at = source.IndexOf(signature, StringComparison.Ordinal);
+
+        Assert.That(
+            at,
+            Is.GreaterThanOrEqualTo(0),
+            $"{signature} is gone from the page - renamed, or the member it names was removed");
+
+        var end = source.IndexOf(';', at + signature.Length);
+        Assert.That(end, Is.GreaterThan(at), $"{signature} is never terminated");
+
+        return source[at..(end + 1)];
+    }
+
+    /// <summary>
+    /// The input with every run of whitespace collapsed to one space.
+    ///
+    /// <para>For asserting an EXPRESSION whose line breaks belong to its author, not
+    /// to the rule: a member is wrapped one way today and another after any reformat,
+    /// and a guard that pinned one wrapping would fail on a change that altered
+    /// nothing. Names, operators and the order of the operands still have to match
+    /// exactly.</para>
+    /// </summary>
+    private static string Squashed(string text)
+        => Regex.Replace(text, @"\s+", " ").Trim();
 
     /// <summary>
     /// The C# with every <c>//</c> and <c>/* */</c> comment removed.
@@ -452,6 +762,21 @@ public class MusicGenreArtistTests
     /// <summary>The card's code-behind, located the same way.</summary>
     private static string CardCodePath
         => Locate(@"src\mpvw-app\Domains\Playback\Controls\LibraryCard.xaml.cs");
+
+    /// <summary>
+    /// The page's video-library half: <c>_videoSort</c>, the music sort beside it, and
+    /// the sort menu's own handler and chrome.
+    /// </summary>
+    private static string PageVideoCodePath
+        => Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage.Library.Video.cs");
+
+    /// <summary>The page's library half, where the toolbar row's predicate is decided.</summary>
+    private static string PageLibraryCodePath
+        => Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage_Library.cs");
+
+    /// <summary>The page's music half, where the three music tabs are switched.</summary>
+    private static string PageMusicCodePath
+        => Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage.Library.Music.cs");
 
     /// <summary>
     /// Finds a repository file without assuming where the binary runs.

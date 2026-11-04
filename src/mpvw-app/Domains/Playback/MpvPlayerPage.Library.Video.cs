@@ -46,6 +46,41 @@ namespace mpv_winui.Domains.Playback
         private VideoSortMode _videoSort = VideoSortMode.NameAsc;
 
         /// <summary>
+        /// The music library's sort. Deliberately a field of its own rather than a
+        /// second reader of <see cref="_videoSort"/>: sharing one would make
+        /// reordering the songs reorder the video grid, and a video library left on
+        /// "Newest" would put that word on the Albums tab, where the order it names
+        /// is greyed out.
+        ///
+        /// Session-only for the same reason as the video sort: a way of looking at
+        /// the list during this run, not a preference.
+        /// </summary>
+        private VideoSortMode _musicSort = VideoSortMode.NameAsc;
+
+        /// <summary>
+        /// The music sort actually in force on the tab that is up.
+        ///
+        /// The Albums tab groups files by a tag, and a group carries no
+        /// watch-history time, so both time orders collapse to name order there
+        /// instead of sitting in the menu over a list they cannot move.
+        /// </summary>
+        private VideoSortMode EffectiveMusicSort =>
+            !MusicSortHasTimeModes && _musicSort is VideoSortMode.Newest or VideoSortMode.Oldest
+                ? VideoSortMode.NameAsc
+                : _musicSort;
+
+        /// <summary>
+        /// Whether the music tab that is up has time orders at all: only the flat
+        /// Songs list does. Albums and Artists order tags, and a tag has no time.
+        ///
+        /// True outside the music library as well, because the question is only
+        /// meaningful there - the menu chrome asks it only once it has established
+        /// that the music section is up.
+        /// </summary>
+        private bool MusicSortHasTimeModes =>
+            _librarySection != LibrarySectionMusic || _musicGrouping == MusicGrouping.Songs;
+
+        /// <summary>
         /// The video library's tab labels, toolbar labels and sort menu. Like
         /// the queue's strings, set from AppLang in code so a language change
         /// reaches them through the same path the header uses. The two icons are
@@ -115,7 +150,16 @@ namespace mpv_winui.Domains.Playback
         private void UpdateVideoSortChrome()
         {
             var lang = AppContext.AppLang;
-            var current = _videoSort switch
+
+            // Which field the menu speaks for. The two libraries sort themselves,
+            // so the caption and the four marks have to describe the order the list
+            // ON SCREEN is in - otherwise a video sort left on "Newest" narrates a
+            // music list that was never ordered by time.
+            var isMusic = _librarySection == LibrarySectionMusic;
+
+            var current = isMusic ? EffectiveMusicSort : _videoSort;
+
+            var caption = current switch
             {
                 VideoSortMode.NameDesc => lang.LibrarySortNameDesc,
                 VideoSortMode.Newest => lang.LibrarySortNewest,
@@ -123,12 +167,18 @@ namespace mpv_winui.Domains.Playback
                 _ => lang.LibrarySortNameAsc,
             };
 
-            VideoSortButton.Content = $"{lang.LibrarySortBy}: {current}";
+            VideoSortButton.Content = $"{lang.LibrarySortBy}: {caption}";
 
-            SortByNameAsc.IsChecked = _videoSort == VideoSortMode.NameAsc;
-            SortByNameDesc.IsChecked = _videoSort == VideoSortMode.NameDesc;
-            SortByNewest.IsChecked = _videoSort == VideoSortMode.Newest;
-            SortByOldest.IsChecked = _videoSort == VideoSortMode.Oldest;
+            SortByNameAsc.IsChecked = current == VideoSortMode.NameAsc;
+            SortByNameDesc.IsChecked = current == VideoSortMode.NameDesc;
+            SortByNewest.IsChecked = current == VideoSortMode.Newest;
+            SortByOldest.IsChecked = current == VideoSortMode.Oldest;
+
+            // Greyed out where the tab has no time dimension, rather than hidden:
+            // the menu keeps its shape, and the dimmed item says why the order it
+            // names is not on offer here.
+            SortByNewest.IsEnabled = !(isMusic && !MusicSortHasTimeModes);
+            SortByOldest.IsEnabled = !(isMusic && !MusicSortHasTimeModes);
         }
 
         private void VideoTabAll_Checked(object sender, RoutedEventArgs e) => SetVideoFolderView(false);
@@ -157,9 +207,11 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
-        /// A sort menu choice. The order is session state, so
-        /// <see cref="_videoSort"/> is the only place it is written; the button
-        /// caption and the list are then refreshed from it.
+        /// A sort menu choice. The order is session state, and WHICH field holds it
+        /// is the section's business: the music library has
+        /// <see cref="_musicSort"/> so that reordering music cannot reorder the
+        /// video grid. The button caption and the list are refreshed from the field
+        /// just written.
         /// </summary>
         private void VideoSort_Click(object sender, RoutedEventArgs e)
         {
@@ -168,13 +220,22 @@ namespace mpv_winui.Domains.Playback
                 return;
             }
 
-            _videoSort = tag switch
+            var parsed = tag switch
             {
                 "name-desc" => VideoSortMode.NameDesc,
                 "newest" => VideoSortMode.Newest,
                 "oldest" => VideoSortMode.Oldest,
                 _ => VideoSortMode.NameAsc,
             };
+
+            if (_librarySection == LibrarySectionMusic)
+            {
+                _musicSort = parsed;
+            }
+            else
+            {
+                _videoSort = parsed;
+            }
 
             UpdateVideoSortChrome();
 
