@@ -543,7 +543,12 @@ namespace mpv_winui.Domains.Playback.Controls
         /// </summary>
         private void ApplyCoverHeight()
         {
-            var height = CardMetrics.CoverHeightFor(MediaBorder.ActualWidth, _isAlbum);
+            // One side of the tile, read once. The height is derived from it, and
+            // so is the shape: the Border's radius and the cover's clip are both
+            // computed from this number and from nothing else, so they cannot
+            // describe two different tiles.
+            var width = MediaBorder.ActualWidth;
+            var height = CardMetrics.CoverHeightFor(width, _isAlbum);
 
             if (height > 0)
             {
@@ -562,17 +567,23 @@ namespace mpv_winui.Domains.Playback.Controls
                 HoverOverlay.Height = height;
 
                 // The tile's corner radius, from the identity: a circle for an
-                // artist (half the side), CardMetrics.CornerRadius for a file.
-                // Width and height are equal on a square artist tile, so either
-                // would do here; the CLIP below uses the width, and it must be the
-                // same side as this one.
+                // artist, CardMetrics.CornerRadius for a file.
+                //
+                // From the WIDTH, and the width is passed to the clip below for
+                // exactly that reason. A circle is a square's rounded corner, and
+                // an artist tile only LOOKS square because IsAlbum makes it one -
+                // an invariant that belongs to how the page prepares cards, not to
+                // this control. Deriving the radius from the height here would
+                // make the Border a rounded rectangle (0.28 x width) on any artist
+                // card prepared with IsAlbum false, while the clip below stayed a
+                // circle, and nothing would fail. One side, read once, used twice.
                 var radius = _isArtist
-                    ? new CornerRadius(CardMetrics.CircleCornerRadius(height))
+                    ? new CornerRadius(CardMetrics.CircleCornerRadius(width))
                     : new CornerRadius(CardMetrics.CornerRadius);
 
                 MediaBorder.CornerRadius = radius;
 
-                ApplyCoverClip();
+                ApplyCoverClip(width);
             }
         }
 
@@ -593,10 +604,14 @@ namespace mpv_winui.Domains.Playback.Controls
         /// compile. The rounded shapes live in the composition layer, so the clip is
         /// built there with <c>CompositionRoundedRectangleGeometry</c>. That is the
         /// documented way to clip to a rounded rectangle in WinUI 3.</para>
+        ///
+        /// <para><paramref name="width"/> is passed in rather than re-read so that the
+        /// radius here is the SAME number the Border's radius was built from: one
+        /// width, two shapes. A circle depends on that - a clip and a Border that
+        /// each pick their own side are a circle and a stadium.</para>
         /// </summary>
-        private void ApplyCoverClip()
+        private void ApplyCoverClip(double width)
         {
-            var width = MediaBorder.ActualWidth;
             var height = MediaBorder.ActualHeight;
 
             if (width <= 0 || height <= 0)
@@ -614,9 +629,7 @@ namespace mpv_winui.Domains.Playback.Controls
             rounded.Size = new System.Numerics.Vector2((float)width, (float)height);
 
             // Half the WIDTH for an artist tile, so the clip is the same circle the
-            // Border draws. width and height are equal there; using one of the two
-            // consistently is what keeps a circle from becoming a stadium if that
-            // ever stops being true.
+            // Border draws.
             var r = (float)(_isArtist ? CardMetrics.CircleCornerRadius(width) : CardMetrics.CornerRadius);
 
             rounded.CornerRadius = new System.Numerics.Vector2(r, r);

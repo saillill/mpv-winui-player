@@ -39,6 +39,73 @@ public class MusicGenreArtistTests
     }
 
     /// <summary>
+    /// An artist tile's Border radius is half its WIDTH, and the cover's clip is
+    /// built from that same width.
+    ///
+    /// <para><b>The failure this pins is silent.</b> The tile is a circle only while
+    /// the radius is half the side the clip is a circle of. The border's radius and
+    /// the clip used to be derived from different sides - the border from the
+    /// height, the clip from the width - so they agreed only because
+    /// <c>IsAlbum</c> made the tile square. That is an invariant of how the PAGE
+    /// prepares a card, which this control cannot see and nothing pinned; a card
+    /// prepared with <c>IsAlbum</c> false would draw a rounded rectangle over a
+    /// circular clip and no test would notice.</para>
+    ///
+    /// <para><b>Asserted on the source, not on a rendered tile.</b> A rendered
+    /// assertion is unreachable from <c>tests/conf</c>: the project targets plain
+    /// <c>net10.0</c> and cannot reference <c>Microsoft.UI.Xaml</c>, so it has no
+    /// <c>LibraryCard</c>, no <c>Border</c> and no compositor. The established
+    /// pattern here is reading the card's sources as text (CardMetricsTests does it
+    /// for the markup), so the assertion is that both call sites name the width -
+    /// the identifier that is half of every <c>CircleCornerRadius</c> argument -
+    /// and that the clip receives its width from the caller rather than reading its
+    /// own.</para>
+    /// </summary>
+    [Test]
+    public void TheArtistTileRadiusIsHalfItsWidthOnBothTheBorderAndTheClip()
+    {
+        var source = StrippedCardCode();
+
+        // The tile's height, the Border's radius and the clip all come from the
+        // same method, so "the same width" is a property of this one body.
+        var heightBody = MethodBody(source, "private void ApplyCoverHeight()");
+
+        Assert.That(
+            heightBody,
+            Does.Contain("CardMetrics.CircleCornerRadius(width)"),
+            "the Border's radius must be half the tile's WIDTH: height and width are equal only while IsAlbum "
+            + "is true, and that is the page's promise, not this control's");
+
+        Assert.That(
+            heightBody,
+            Does.Not.Contain("CardMetrics.CircleCornerRadius(height)"),
+            "the Border's radius is back on the height, so the tile is a rounded rectangle whenever the clip's "
+            + "width makes it a circle - two shapes, and nothing renders red");
+
+        // The clip takes the width as an argument instead of reading ActualWidth
+        // itself. A signature is the pin: two independent reads are two numbers
+        // that can differ, and half of a circle IS the equality of those two.
+        Assert.That(
+            heightBody,
+            Does.Contain("ApplyCoverClip(width)"),
+            "ApplyCoverClip must be handed the same width the Border's radius came from, not left to read its "
+            + "own");
+
+        var clipBody = MethodBody(source, "private void ApplyCoverClip(double width)");
+
+        Assert.That(
+            clipBody,
+            Does.Contain("CardMetrics.CircleCornerRadius(width)"),
+            "the clip's radius must be half the width its own geometry is sized from");
+
+        Assert.That(
+            clipBody,
+            Does.Not.Contain("CardMetrics.CircleCornerRadius(height)"),
+            "the clip's radius is on the height while its geometry is sized by the width: on a non-square tile "
+            + "the clip is a stadium, and the cover's corners show through");
+    }
+
+    /// <summary>
     /// An artist tile offers nothing to play: no play disc, no overflow disc.
     ///
     /// <para>Asserted from the source because the discs are Collapsed by the
@@ -53,19 +120,26 @@ public class MusicGenreArtistTests
 
         var body = MethodBody(source, "private void ShowOverlay()");
 
+        var guard = body.IndexOf("if (_isArtist)", StringComparison.Ordinal);
         Assert.That(
-            body,
-            Does.Contain("if (_isArtist)"),
+            guard,
+            Is.GreaterThanOrEqualTo(0),
             "ShowOverlay must branch on IsArtist, or a person's tile shows a play disc and an overflow disc "
             + "for a track nobody chose");
 
+        // The block the guard opens, not the rest of the method: the else branch
+        // restores both discs with the very lines asserted below, so a search over
+        // the whole body stays green with the two branches swapped - which would
+        // show the discs on the artist tile and take them off the file card.
+        var artistBlock = body[guard..body.IndexOf('}', guard)];
+
         Assert.That(
-            body,
+            artistBlock,
             Does.Contain("PlayButton.Visibility = Visibility.Collapsed"),
             "the play disc must be collapsed on an artist tile");
 
         Assert.That(
-            body,
+            artistBlock,
             Does.Contain("MoreButton.Visibility = Visibility.Collapsed"),
             "the overflow disc must be collapsed on an artist tile");
     }
@@ -268,8 +342,15 @@ public class MusicGenreArtistTests
     /// <c>PlayButton</c> and <c>LibraryUnknownArtist</c> deliberately - the branches
     /// being guarded explain themselves there - so a search over the raw source
     /// passes after the code is deleted, which is the one failure these tests exist
-    /// to catch. Each caller then asserts the result contains no <c>//</c>, so this
-    /// stripping is itself checked rather than trusted.</para>
+    /// to catch.</para>
+    ///
+    /// <para>The stripping is checked at its call site rather than here:
+    /// <see cref="StrippedCardCode"/> asserts the result is SHORTER than the file it
+    /// came from. The check is deliberately not "the result contains no
+    /// <c>//</c>" - a <c>//</c> inside a string or char literal is code, this method
+    /// copies such literals through untouched on purpose (see below), and the
+    /// assertion would fail on correct source the first time the control holds a
+    /// URL.</para>
     /// </summary>
     private static string WithoutComments(string code)
     {
