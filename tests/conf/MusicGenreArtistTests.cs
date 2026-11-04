@@ -689,15 +689,29 @@ public class MusicGenreArtistTests
 
         Assert.Multiple(() =>
         {
+            // The KEY, not just the property write: a different template would satisfy
+            // "ItemTemplate is set" while drawing something that is not the library card.
             Assert.That(
                 music,
-                Does.Contain("ArtistAlbumGrid.ItemTemplate"),
-                "an ItemsRepeater without a template draws nothing and never prepares a card");
+                Does.Contain("ArtistAlbumGrid.ItemTemplate").And.Contain("LibraryCardControlTemplate"),
+                "an ItemsRepeater without a template draws nothing; with the wrong one it draws the wrong card");
 
-            Assert.That(
-                xaml.IndexOf("ArtistHost", StringComparison.Ordinal),
-                Is.GreaterThan(xaml.IndexOf("AlbumBackButton", StringComparison.Ordinal)),
-                "the artist layer must come after the album-detail children: later children paint on top, and both carry an opaque background");
+            // Both operands must resolve before their order means anything: IndexOf
+            // returns -1 for a missing name, and -1 on the right of GreaterThan passes
+            // vacuously. Same hole as the SetEntry ordering guard.
+            var artistAt = xaml.IndexOf("ArtistHost", StringComparison.Ordinal);
+            var albumAt = xaml.IndexOf("AlbumBackButton", StringComparison.Ordinal);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(artistAt, Is.GreaterThanOrEqualTo(0), "the artist layer is gone from the markup");
+                Assert.That(albumAt, Is.GreaterThanOrEqualTo(0), "the album header is gone from the markup");
+
+                Assert.That(
+                    artistAt,
+                    Is.GreaterThan(albumAt),
+                    "the artist layer must come after the album-detail children: later children paint on top, and both carry an opaque background");
+            });
         });
     }
 
