@@ -1,4 +1,4 @@
-using mpv_winui.Infrastructure.Common.Media;
+﻿using mpv_winui.Infrastructure.Common.Media;
 using mpv_winui.Domains.Playback.Cards;
 
 using mpv_winui.Domains.Library;
@@ -95,6 +95,14 @@ namespace mpv_winui.Domains.Playback
 
             VideoAddFolderIcon.Data = FluentIcons.Geometry(FluentIcons.FolderAdd);
             VideoPlayAllIcon.Data = FluentIcons.Geometry(FluentIcons.PlayCircle);
+
+            // The music section's own command, in the same slot. Its words, glyph and
+            // accessible name are set here beside Play all so the two can never drift
+            // apart: to the user they are one button whose meaning the section decides.
+            MusicShuffleAllText.Text = lang.LibraryShufflePlay;
+            MusicShuffleAllIcon.Data = FluentIcons.Geometry(FluentIcons.ArrowShuffle);
+            AutomationProperties.SetName(MusicShuffleAllButton, lang.LibraryShufflePlay);
+            ToolTipService.SetToolTip(MusicShuffleAllButton, lang.LibraryShufflePlay);
 
             UpdateVideoSortChrome();
         }
@@ -197,6 +205,37 @@ namespace mpv_winui.Domains.Playback
             }
 
             PlayFiles(paths, OpenMode.Replace).FireAndForget(OnException);
+        }
+        /// <summary>
+        /// Shuffles the whole music library: every visible track, in a random order.
+        ///
+        /// <para>Shuffle rather than Play all, and the difference is not cosmetic. A
+        /// video library has an order the user chose (the sort), so "play all" has a
+        /// first file. A music library does not: 「随机播放」 is the reference own verb
+        /// for this slot, and it is what <see cref="AlbumShuffleButton"/> already does
+        /// inside an album.</para>
+        ///
+        /// <para>Shares the Play all path otherwise, missing files included: mpv failing
+        /// on the first loadfile would read as "the button did nothing".</para>
+        /// </summary>
+        private void MusicShuffleAll_Click(object sender, RoutedEventArgs e)
+        {
+            var paths = _visibleEntries
+                .Where(entry => !entry.IsMissing)
+                .Select(entry => entry.Path)
+                .ToList();
+            if (paths.Count == 0)
+            {
+                return;
+            }
+            // Shuffled HERE rather than by a player flag: the queue is what PlayFiles
+            // builds, so the order the user sees in the queue is the order that plays.
+            var order = paths
+                .Select(path => (path, key: Guid.NewGuid()))
+                .OrderBy(entry => entry.key)
+                .Select(entry => entry.path)
+                .ToList();
+            PlayFiles(order, OpenMode.Replace).FireAndForget(OnException);
         }
 
         private void VideoAddFolder_Click(object sender, RoutedEventArgs e)

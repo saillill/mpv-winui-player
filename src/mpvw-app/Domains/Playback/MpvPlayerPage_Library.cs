@@ -331,7 +331,11 @@ namespace mpv_winui.Domains.Playback
             // Held, then applied: while the selection bar is up this row is hidden
             // whatever the section wants, and ApplyVideoChromeVisibility is the one
             // place that combines the two.
-            _videoChromeWanted = isVideos && hasVideoFolders;
+            // Videos OR music: the same row serves both, and which buttons it shows
+            // is decided by the section. 「音乐库也要有和视频库一样的上方按钮」 - the
+            // point is that it is the SAME row in the same place, not a second
+            // toolbar that would have to be kept in step with this one.
+            _videoChromeWanted = (isVideos && hasVideoFolders) || (isMusic && hasMusicFolders);
             ApplyVideoChromeVisibility();
 
             LibraryHeadingTabs.Visibility = isVideos && hasVideoFolders
@@ -653,11 +657,18 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private void ApplyVideoChromeVisibility()
         {
-            VideoChrome.Visibility = _videoChromeWanted && !_selectionMode
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        }
+            var show = _videoChromeWanted && !_selectionMode;
+            VideoChrome.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
 
+            // One row, two commands in the same slot. The section decides which, so
+            // they can never both be up: a music library showing "Play all" over a
+            // flat list of tracks would be playing "the first one", which means
+            // nothing there.
+            var isMusic = _librarySection == LibrarySectionMusic && !_selectionMode;
+
+            VideoPlayAllButton.Visibility = isMusic ? Visibility.Collapsed : Visibility.Visible;
+            MusicShuffleAllButton.Visibility = isMusic ? Visibility.Visible : Visibility.Collapsed;
+        }
         /// <summary>
         /// The bar's 清除: clears every tick, which is how the mode is left.
         ///

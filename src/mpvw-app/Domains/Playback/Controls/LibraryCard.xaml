@@ -266,8 +266,8 @@
                   that reserved gap on top of it is what 「卡片标题下的留白过多」 was
                   pointing at. -->
             <StackPanel
-                Margin="6,6,0,11"
-                Spacing="{StaticResource MpvSpaceXxs}">
+                Margin="4,6,0,11"
+                Spacing="0">
                 <!--  Two lines, both in ONE typographic style.
 
                       They used to be a pair of sizes (15 SemiBold over 14 Regular,
@@ -310,13 +310,13 @@
                       LineHeight govern every wrapped line. -->
                 <TextBlock
                     x:Name="TitleText"
-                    MaxLines="1"
+                    HorizontalAlignment="Stretch"
                     FontSize="{StaticResource MpvCardTitleFontSize}"
                     FontWeight="{StaticResource MpvCardCaptionFontWeight}"
                     Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                     LineHeight="22"
                     TextTrimming="CharacterEllipsis"
-                    TextWrapping="Wrap" />
+                    TextWrapping="NoWrap" />
                 <!--  The second line: the length.
 
                       It was collapsed for a round because it carried the entry's

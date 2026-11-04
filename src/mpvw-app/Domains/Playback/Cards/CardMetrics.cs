@@ -77,7 +77,7 @@ namespace mpv_winui.Domains.Playback.Cards
         /// and a future radius change should not silently drag the caption with it.
         /// CardMetricsTests pins the markup against this.</para>
         /// </summary>
-        public const double CaptionLeftInset = 6;
+        public const double CaptionLeftInset = 4;
         /// <summary>
         /// Gap between the media tile and its first caption line.
         ///

@@ -1030,6 +1030,7 @@
                         <TextBlock
                             x:Name="LibrarySectionTitle"
                             Grid.Column="0"
+                            Margin="6,0,0,0"
                             VerticalAlignment="Bottom"
                             FontSize="{StaticResource MpvPageHeadingFontSize}"
                             FontWeight="SemiBold"
@@ -1144,7 +1145,8 @@
                                 x:Name="VideoPlayAllButton"
                                 Grid.Column="0"
                                 HorizontalAlignment="Left"
-                                Click="VideoPlayAll_Click">
+                                Click="VideoPlayAll_Click"
+                                Style="{StaticResource AccentButtonStyle}">
                                 <StackPanel
                                     Orientation="Horizontal"
                                     Spacing="{StaticResource MpvSpaceS}">
@@ -1162,12 +1164,53 @@
                                         VerticalAlignment="Center" />
                                 </StackPanel>
                             </Button>
+
+                            <!--  The music section's own left-hand command, in the same
+                                  row and the same place as Play all: 「音乐库也要有和视频库
+                                  一样的上方按钮」. Shuffle rather than Play all, because a
+                                  whole music library is played in a random order - there
+                                  is no meaningful "first track" for a flat list.
+
+                                  Hidden by ApplyVideoChromeVisibility for every section
+                                  but music, so the two commands never appear together. -->
+                            <Button
+                                x:Name="MusicShuffleAllButton"
+                                Grid.Column="0"
+                                HorizontalAlignment="Left"
+                                Click="MusicShuffleAll_Click"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Visibility="Collapsed">
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="{StaticResource MpvSpaceS}">
+                                    <Viewbox
+                                        Width="16"
+                                        Height="16"
+                                        VerticalAlignment="Center">
+                                        <PathIcon
+                                            x:Name="MusicShuffleAllIcon"
+                                            Width="24"
+                                            Height="24" />
+                                    </Viewbox>
+                                    <TextBlock
+                                        x:Name="MusicShuffleAllText"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+
                             <DropDownButton
                                 x:Name="VideoSortButton"
                                 Grid.Column="1"
-                                HorizontalAlignment="Right">
+                                Padding="8,4"
+                                HorizontalAlignment="Right"
+                                Background="Transparent"
+                                BorderThickness="0">
                                 <DropDownButton.Flyout>
-                                    <MenuFlyout>
+                                    <!-- Placement=Bottom: 「应该向下弹出」. Without it
+                                         the flyout picks its own side, which for a
+                                         button near the top of a list can be Up. -->
+                                    <MenuFlyout Placement="Bottom">
                                         <RadioMenuFlyoutItem
                                             x:Name="SortByNameAsc"
                                             Click="VideoSort_Click"

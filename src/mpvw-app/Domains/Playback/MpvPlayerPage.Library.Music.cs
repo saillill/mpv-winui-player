@@ -717,7 +717,7 @@ namespace mpv_winui.Domains.Playback
                 {
                     Text = caption,
                     Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
-                    Margin = new Thickness(CardMetrics.HoverFrameInset, 20, 0, 8),
+                    Margin = new Thickness(CardMetrics.HoverFrameInset, 12, 0, 8),
                 };
 
                 VideoFolderGroups.Children.Add(heading);

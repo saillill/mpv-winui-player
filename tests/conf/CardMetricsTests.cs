@@ -579,22 +579,40 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// The title line is a single line, never two.
+    /// The title line is a single, non-wrapping line.
     ///
-    /// MaxLines="2" was there while the card had a wrapped title over a subtitle.
-    /// With one line, a title allowed to wrap pushes the second line into whatever
-    /// the cell reserved for the thing that no longer exists.
+    /// <para><b>This test used to require <c>MaxLines="1"</c>, and that requirement
+    /// was the bug.</b> Measured on the music library: a 146-DIP-wide title drew 40
+    /// DIP of text and then an ellipsis (「音乐的标题只显示一点点就变省略号了」), with
+    /// most of the element empty. <c>MaxLines="1"</c> alongside
+    /// <c>TextWrapping="Wrap"</c> makes CharacterEllipsis clip against a measure
+    /// width far below the element's own; the same text with
+    /// <c>TextWrapping="NoWrap"</c> and no MaxLines fills the line.</para>
+    ///
+    /// <para>So the assertion is now the PAIR that actually holds it to one line.
+    /// A future round that adds MaxLines back - with any value - or flips the
+    /// wrapping to Wrap is reintroducing the truncated title.</para>
     /// </summary>
     [Test]
-    public void TheTitleLineDoesNotWrapToTwoLines()
+    public void TheTitleLineIsASingleUnwrappedLine()
     {
         var xaml = File.ReadAllText(CardXamlPath);
 
         var title = ElementFor(xaml, "TitleText");
 
         Assert.That(
-            title.Contains("MaxLines=\"1\"", StringComparison.Ordinal),
-            "TitleText must cap at one line: the cell reserves one");
+            title.Contains("TextWrapping=\"NoWrap\"", StringComparison.Ordinal),
+            "TitleText must be NoWrap: with Wrap, CharacterEllipsis clips far short of " +
+            "the element's width and the title shows a few characters and an ellipsis");
+
+        Assert.That(
+            title.Contains("MaxLines", StringComparison.Ordinal),
+            Is.False,
+            "MaxLines must be gone: on a wrapped single-line title it is what truncates");
+
+        Assert.That(
+            title.Contains("TextTrimming=\"CharacterEllipsis\"", StringComparison.Ordinal),
+            "the title still has to ellipsize when it genuinely does not fit");
     }
 
     /// <summary>
@@ -882,12 +900,17 @@ public class CardMetricsTests
         var xaml = File.ReadAllText(CardXamlPath);
 
         // The caption StackPanel is the one between the tile and the title.
-        var marker = "Spacing=\"{StaticResource MpvSpaceXxs}\"";
+        // Anchored on its own Margin: the spacing token it used to carry is gone
+        // (the two caption lines sit flush now), so a marker on Spacing finds
+        // nothing and the assertion below would fail for the wrong reason.
+        var marker = "Margin=\"" + CardMetrics.CaptionLeftInset + "," + CardMetrics.CaptionTopGap + ",0,";
         var at = xaml.IndexOf(marker, StringComparison.Ordinal);
         Assert.That(at, Is.GreaterThanOrEqualTo(0), "no caption StackPanel");
 
+        // From the tag's "<" to the end of its Margin value, so the whole attribute
+        // is inside the slice the assertion searches.
         var open = xaml.LastIndexOf('<', at);
-        var tag = xaml[open..(at + marker.Length)];
+        var tag = xaml[open..(at + marker.Length + 8)];
 
         var expected =
             $"{CardMetrics.CaptionLeftInset},{CardMetrics.CaptionTopGap},0,{CardMetrics.TrailingCaptionSpace}";
