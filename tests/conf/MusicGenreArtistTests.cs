@@ -326,8 +326,9 @@ public class MusicGenreArtistTests
 
         Assert.That(
             Squashed(PropertyExpression(source, "private bool MusicSortHasTimeModes =>")),
-            Does.Contain("_librarySection != LibrarySectionMusic || _musicGrouping == MusicGrouping.Songs"),
-            "only the Songs tab offers time orders: the grouped tabs order tags, and a tag carries no time");
+            Does.Contain("_librarySection == LibrarySectionMusic && _musicGrouping == MusicGrouping.Songs"),
+            "only the Songs tab of the music library offers time orders: the grouped tabs order tags, "
+            + "and a tag carries no time");
     }
 
     /// <summary>
@@ -440,6 +441,37 @@ public class MusicGenreArtistTests
     }
 
     /// <summary>
+    /// The section header re-points the sort chrome, and that call is not
+    /// optional.
+    ///
+    /// <para>The chrome reads the section and the music tab, and
+    /// <c>ApplySectionHeader</c> is the one place either of them changes, so it is
+    /// the one place that has to re-point the caption afterwards.</para>
+    ///
+    /// <para><b>Sliced before searching.</b> A whole-file search passes on the call
+    /// in <c>ApplyVideoStrings</c> - a different caller, on a different occasion -
+    /// so it would stay green against the deletion that matters. The assertion is
+    /// on this method's body alone.</para>
+    ///
+    /// <para><b>It asks for the call, not for the row.</b> On the artists tab the
+    /// whole row is collapsed and this call still runs: the caption must be right
+    /// the moment the row comes back. Whether the row shows is
+    /// <c>_videoChromeWanted</c>'s single answer, asserted by the test below, and
+    /// this guard must not become a second predicate for it.</para>
+    /// </summary>
+    [Test]
+    public void TheSectionHeaderRefreshesTheSortChrome()
+    {
+        var header = Squashed(MethodBody(StrippedPageSource(PageLibraryCodePath), "private void ApplySectionHeader()"));
+
+        Assert.That(
+            header,
+            Does.Contain("UpdateVideoSortChrome();"),
+            "ApplySectionHeader owns the section and the music tab, so it must re-point the caption and "
+            + "the two time items; without the call the chrome keeps describing the previous tab");
+    }
+
+    /// <summary>
     /// The artists tab keeps no toolbar, and it says so through ONE predicate.
     ///
     /// <para>The tab condition belongs on <c>_videoChromeWanted</c>, because that
@@ -452,6 +484,12 @@ public class MusicGenreArtistTests
     /// applies the row must not mention the music grouping at all. Its own
     /// <c>isMusic</c> local answers a different question - which command stands in the
     /// row - and it stays.</para>
+    ///
+    /// <para>That negative half is stated once, against <c>MusicGrouping</c>. A
+    /// second assertion on the bare word <c>Artists</c> used to sit beside it; it was
+    /// strictly broader than the one above, so it could only ever fail alongside it,
+    /// while also failing on any unrelated mention of the word. Deleted rather than
+    /// narrowed: same coverage, one statement of it.</para>
     /// </summary>
     [Test]
     public void TheArtistsTabHidesTheRowThroughTheOnePredicate()
@@ -482,11 +520,6 @@ public class MusicGenreArtistTests
                 Does.Not.Contain("MusicGrouping"),
                 "ApplyVideoChromeVisibility re-tests the tab: two predicates for one answer, and only one of them "
                 + "gets updated the next time the row changes");
-
-            Assert.That(
-                visibility,
-                Does.Not.Contain("Artists"),
-                "the artists tab is named twice; the row's predicate is the only place allowed to name it");
 
             Assert.That(
                 visibility,

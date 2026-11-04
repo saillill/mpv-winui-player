@@ -70,15 +70,14 @@ namespace mpv_winui.Domains.Playback
                 : _musicSort;
 
         /// <summary>
-        /// Whether the music tab that is up has time orders at all: only the flat
-        /// Songs list does. Albums and Artists order tags, and a tag has no time.
-        ///
-        /// True outside the music library as well, because the question is only
-        /// meaningful there - the menu chrome asks it only once it has established
-        /// that the music section is up.
+        /// Whether the tab that is up offers the two time orders. Only the flat
+        /// Songs list of the music library does: Albums and Artists order tags, and
+        /// a tag has no time. The section is named in the condition rather than left
+        /// implied, so outside the music library the answer is false rather than
+        /// accidentally true.
         /// </summary>
         private bool MusicSortHasTimeModes =>
-            _librarySection != LibrarySectionMusic || _musicGrouping == MusicGrouping.Songs;
+            _librarySection == LibrarySectionMusic && _musicGrouping == MusicGrouping.Songs;
 
         /// <summary>
         /// The video library's tab labels, toolbar labels and sort menu. Like
@@ -143,9 +142,16 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
-        /// Points the sort button's caption and the menu's radio mark at the
-        /// active order. Called from ApplyVideoStrings and from every sort
-        /// change, so the two can never disagree with <see cref="_videoSort"/>.
+        /// Points the sort button's caption, the menu's four radio marks and the
+        /// enabled state of the two time orders at the order the list on screen is
+        /// in. Which order that is belongs to the SECTION: the music library's
+        /// <see cref="EffectiveMusicSort"/> while the music section is up, the video
+        /// library's <see cref="_videoSort"/> otherwise.
+        ///
+        /// Called from ApplyVideoStrings, because a language change re-words it;
+        /// from ApplySectionHeader, which is the one place the section and the music
+        /// tab change, so a tab switch cannot leave the caption describing the
+        /// previous tab; and after every sort choice.
         /// </summary>
         private void UpdateVideoSortChrome()
         {
