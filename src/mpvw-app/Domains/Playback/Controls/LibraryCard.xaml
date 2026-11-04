@@ -231,6 +231,24 @@
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </Viewbox>
 
+                    <!--  艺术家瓦片的人像。恒显示，不取封面：一块瓦片代表一个人，标签里没有肖像可供取材。
+                          码位取自捆绑字体 FluentSystemIcons，ic_fluent_person_24_regular = U+F5BE（已用 fontTools
+                          在 Assets/FluentSystemIcons-Regular.ttf 里实测存在）。24 这个字面量不是已令牌化的尺寸
+                          （令牌是 12/14/16/20），check-icon-standard 允许它。 -->
+                    <Viewbox
+                        x:Name="ArtistGlyph"
+                        Width="72"
+                        Height="72"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed">
+                        <FontIcon
+                            FontFamily="{StaticResource MpvIconFontFamily}"
+                            FontSize="24"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            Glyph="&#xF5BE;" />
+                    </Viewbox>
+
                     <Image
                         x:Name="CoverImage"
                         Stretch="UniformToFill"

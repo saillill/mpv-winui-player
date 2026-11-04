@@ -66,6 +66,40 @@ namespace mpv_winui.Domains.Playback.Controls
         private bool _isAlbum;
 
         /// <summary>
+        /// Whether this card stands for an ARTIST rather than for a file.
+        ///
+        /// <para>An artist tile is a person, not a track: it draws a circle, shows
+        /// a person glyph instead of a cover, and offers nothing to play, overflow
+        /// or tick. Set before <see cref="SetEntry"/> for the same reason
+        /// <see cref="IsAlbum"/> is - it changes the tile's geometry - and the
+        /// page's order is <c>IsArtist</c>, <c>IsAlbum</c>, <c>SetEntry</c>.</para>
+        /// </summary>
+        public bool IsArtist
+        {
+            get => _isArtist;
+            set
+            {
+                if (_isArtist == value)
+                {
+                    return;
+                }
+
+                _isArtist = value;
+
+                // 只重算几何与裁剪。封面、人像、标题、副标题都**不在这里重画**：页面按
+                // `card.IsArtist = ...; card.IsAlbum = ...; card.SetEntry(...)` 的顺序赋值，
+                // SetEntry 会用新身份把这几样全部画一遍；在这里再画一次会用一个卡片自己不可能
+                // 知道的 cover 值（传 null）覆盖掉刚解出来的封面。
+                //
+                // 唯一的另一条路径是"同一张卡不换 entry 只换身份"，它不存在：艺术家瓦片与曲目卡
+                // 从不同的 repeater 里来，换 repeater 必然是一次新的 SetEntry。
+                ApplyCoverHeight();
+            }
+        }
+
+        private bool _isArtist;
+
+        /// <summary>
         /// Whether the pointer is on this card right now.
         ///
         /// A field rather than a read of some visual's state, because the frame
@@ -204,6 +238,30 @@ namespace mpv_winui.Domains.Playback.Controls
 
         private void ApplyCovers(LibraryEntry entry, ImageSource? cover)
         {
+            // An artist tile draws no cover at all. This is a complete path of its
+            // own rather than an early return bolted onto the file path: an artist
+            // tile has exactly one thing to show, so there is nothing here to fall
+            // through to and nothing below to keep in sync with it.
+            //
+            // The glyph is unconditional, and deliberately not conditional on
+            // entry.IsMissing the way the media-kind fallback is: a tile stands for
+            // a PERSON, not for the song that happened to be tagged with them, so
+            // it is not the file that decides whether there is anything to draw.
+            if (_isArtist)
+            {
+                CoverImage.Source = null;
+                CoverImage.Visibility = Visibility.Collapsed;
+                FallbackIcon.Visibility = Visibility.Collapsed;
+                ArtistGlyph.Visibility = Visibility.Visible;
+
+                return;
+            }
+
+            // The other identity path. Written here rather than only in the branch
+            // above, because a card RECYCLED from an artist tile back onto a file
+            // would otherwise still be wearing the person.
+            ArtistGlyph.Visibility = Visibility.Collapsed;
+
             // The passed-in cover wins, then the entry's own. Both are checked
             // because a late thumbnail arrives on the entry while the page's
             // cache can already hold one for the same path.
@@ -233,6 +291,26 @@ namespace mpv_winui.Domains.Playback.Controls
 
         private void ApplyCaptions(LibraryEntry entry)
         {
+            // An artist tile's title is the PERSON, not a file name: the tile stands
+            // for a person, while the name below a file card is the name of one song.
+            //
+            // LibraryUnknownArtist is the placeholder AppLang already carries in all
+            // nine language files - an empty tag is not an error here, it just means
+            // there is no name to print.
+            if (_isArtist)
+            {
+                TitleText.Text = string.IsNullOrWhiteSpace(entry.Artist)
+                    ? AppContext.AppLang.LibraryUnknownArtist
+                    : entry.Artist;
+
+                // One line, no second one: under a person's tile there is only a
+                // name.
+                SubtitleText.Text = string.Empty;
+                SubtitleText.Visibility = Visibility.Collapsed;
+
+                return;
+            }
+
             // Both kinds of card show one line, and that line is the plain FILE
             // NAME - extension included.
             //
@@ -333,7 +411,14 @@ namespace mpv_winui.Domains.Playback.Controls
         {
             var playing = entry.IsNowPlaying;
 
-            NowPlayingBar.Visibility = playing ? Visibility.Visible : Visibility.Collapsed;
+            // An artist tile never wears the stripe, whatever the entry says: the
+            // stripe marks the FILE that is sounding, and a tile is not that file -
+            // it is the person the entry happens to be filed under. Written as part
+            // of the visibility decision rather than as a separate collapse, so
+            // there is one writer of this property and not two.
+            NowPlayingBar.Visibility = playing && !_isArtist
+                ? Visibility.Visible
+                : Visibility.Collapsed;
 
             var emphasised = playing || entry.IsSelected;
 
@@ -476,6 +561,17 @@ namespace mpv_winui.Domains.Playback.Controls
                 // assignment would put it back to wrapping the picture alone.
                 HoverOverlay.Height = height;
 
+                // The tile's corner radius, from the identity: a circle for an
+                // artist (half the side), CardMetrics.CornerRadius for a file.
+                // Width and height are equal on a square artist tile, so either
+                // would do here; the CLIP below uses the width, and it must be the
+                // same side as this one.
+                var radius = _isArtist
+                    ? new CornerRadius(CardMetrics.CircleCornerRadius(height))
+                    : new CornerRadius(CardMetrics.CornerRadius);
+
+                MediaBorder.CornerRadius = radius;
+
                 ApplyCoverClip();
             }
         }
@@ -516,8 +612,14 @@ namespace mpv_winui.Domains.Playback.Controls
             var rounded = visual.Compositor.CreateRoundedRectangleGeometry();
 
             rounded.Size = new System.Numerics.Vector2((float)width, (float)height);
-            rounded.CornerRadius = new System.Numerics.Vector2(
-                (float)CardMetrics.CornerRadius, (float)CardMetrics.CornerRadius);
+
+            // Half the WIDTH for an artist tile, so the clip is the same circle the
+            // Border draws. width and height are equal there; using one of the two
+            // consistently is what keeps a circle from becoming a stadium if that
+            // ever stops being true.
+            var r = (float)(_isArtist ? CardMetrics.CircleCornerRadius(width) : CardMetrics.CornerRadius);
+
+            rounded.CornerRadius = new System.Numerics.Vector2(r, r);
 
             var clip = visual.Compositor.CreateGeometricClip();
             clip.Geometry = rounded;
@@ -558,6 +660,31 @@ namespace mpv_winui.Domains.Playback.Controls
             // menu. Same pointer flag as the frame, so the two cannot disagree
             // about whether the pointer is here.
             UpdateSelectionBoxForState();
+
+            // The overlay itself still shows on an artist tile - it is the layer
+            // that carries the discs, and the hover WASH behind them is the
+            // feedback for the pointer being here. What it must not draw is
+            // anything to act on: there is no track to play and no track to open a
+            // menu for, so all four elements go.
+            //
+            // Collapsed rather than unwired. ApplyAccessibleNames attaches the
+            // pointer handlers to both discs on every pass it runs, so unwiring
+            // here would fight it; a collapsed Button cannot be reached by the
+            // pointer in the first place.
+            if (_isArtist)
+            {
+                PlayButton.Visibility = Visibility.Collapsed;
+                MoreButton.Visibility = Visibility.Collapsed;
+                PlayButtonHover.Visibility = Visibility.Collapsed;
+                MoreButtonHover.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                // The other identity path: a card recycled from an artist tile back
+                // onto a file has to arrive with its discs.
+                PlayButton.Visibility = Visibility.Visible;
+                MoreButton.Visibility = Visibility.Visible;
+            }
 
             HoverOverlay.Visibility = Visibility.Visible;
             HoverOverlay.IsHitTestVisible = true;
@@ -734,6 +861,20 @@ namespace mpv_winui.Domains.Playback.Controls
             SelectionBox.Visibility = inMode || _pointerInside
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+
+            // 艺术家瓦片没有勾选框：勾一个人没有可操作的对象。
+            //
+            // Written AFTER the assignment above, not folded into it, because
+            // CardMetricsTests.EveryCardGetsATickBoxIncludingAlbums reads the text
+            // between this method's opening and that assignment: a guard placed
+            // before it - or an early return - is the shape it exists to forbid.
+            // The box is the way into selection mode for a card that stands for a
+            // file; a person is not something to tick.
+            if (_isArtist)
+            {
+                SelectionBox.Visibility = Visibility.Collapsed;
+                SelectionBoxHover.Visibility = Visibility.Collapsed;
+            }
 
             // A ticked box is the ACCENT colour, an unticked one the neutral
             // surface - 「选择到的按钮应该是强调色」. Set here rather than in markup

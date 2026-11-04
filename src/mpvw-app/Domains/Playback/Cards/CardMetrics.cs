@@ -44,6 +44,9 @@ namespace mpv_winui.Domains.Playback.Cards
             return width / CoverAspect(isAlbum);
         }
 
+        /// <summary>The corner radius that makes a square of this size a circle: half its side.</summary>
+        public static double CircleCornerRadius(double diameter) => diameter / 2;
+
         /// <summary>
         /// The media tile's corner radius. Replaces CornerRadius="4" x4.
         ///
