@@ -187,10 +187,10 @@
                 Color="#14FFFFFF" />
             <SolidColorBrush
                 x:Key="MpvCardFrameBrush"
-                Color="#33FFFFFF" />
+                Color="#CC000000" />
             <SolidColorBrush
                 x:Key="MpvCardButtonRingBrush"
-                Color="#73000000" />
+                Color="#73FFFFFF" />
             <!-- The dark theme's disc surface stays dark: 「在浅色模式下按钮应该是
                  白色」 is a light-theme request, and a white disc on a dark page is
                  the same defect in the other direction. -->
