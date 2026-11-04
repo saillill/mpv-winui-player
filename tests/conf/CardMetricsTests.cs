@@ -73,9 +73,9 @@ public class CardMetricsTests
         // Both hover buttons are the same size: the reference draws them as one
         // matched pair. 36 is the report's 「原基础放大1.2倍左右」 applied to the
         // 30 this branch had shrunk them to.
-        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(30));
-        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(30));
-        Assert.That(CardMetrics.CornerInset, Is.EqualTo(9));
+        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(33));
+        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(33));
+        Assert.That(CardMetrics.CornerInset, Is.EqualTo(7.5));
         Assert.That(CardMetrics.RingThickness, Is.EqualTo(1));
         Assert.That(CardMetrics.NowPlayingBarHeight, Is.EqualTo(2));
 
@@ -87,7 +87,7 @@ public class CardMetricsTests
         // 1, down from 1.5 (「外遮罩描边还要变细一点」). No longer equal to the discs'
         // ring - the reports established a direction, not an equation.
         Assert.That(CardMetrics.HoverFrameThickness, Is.EqualTo(1));
-        Assert.That(CardMetrics.HoverFrameCornerRadius, Is.EqualTo(14));
+        Assert.That(CardMetrics.HoverFrameCornerRadius, Is.EqualTo(8));
 
         // The direction that survives: the frame must never read as HEAVIER than the
         // discs it encloses, or it becomes a selection border. Lighter is allowed,
@@ -106,27 +106,35 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// The tile's radius and the frame's, in the concentric relation.
+    /// The tile's radius and the frame's are the same number.
     ///
     /// <para><b>This test has now asserted three different things, and the history
-    /// is the point.</b> It began as <c>frame == tile + inset</c>. A round that read
-    /// 「和遮罩框一致」 as "make them equal" changed it to <c>frame == tile</c>,
-    /// believing the concentric rule only applied to a border on the same box. The
-    /// next screenshot showed why that was wrong: with the frame 6 DIP outside the
-    /// tile, equal radii stop being parallel and the frame's arc peels away at the
-    /// four corners (「外遮罩圆角的遮罩四个角漏出来了」). So the relation is back.</para>
+    /// is the whole argument.</b></para>
     ///
-    /// <para>The rule is not decoration: for two boxes offset by a constant gap it is
-    /// what makes that gap constant along the whole edge, corners included. A test
-    /// that pins "they look the same" cannot catch a leak at four points; this one
-    /// can.</para>
+    /// <para>It began as <c>frame == tile + inset</c> - the concentric rule, which
+    /// keeps a constant gap along the whole edge including the corners. A round that
+    /// read 「和遮罩框一致」 as "make them equal" changed it to <c>frame == tile</c>;
+    /// the next screenshot showed the arcs peeling apart at the four corners and the
+    /// relation came back.</para>
+    ///
+    /// <para>That was still wrong, and the report says why: 「描边和外框统一」. The
+    /// frame is not a border drawn around a box 6 DIP larger - it is a stroke meant to
+    /// trace the CARD's own rounded edge. At radius 14 against a card of radius 8 the
+    /// frame's arcs bulge past the card's corners and leave a crescent of card
+    /// background between the two curves. Equal radii make the two paths coincide,
+    /// which is what "unified" means here.</para>
+    ///
+    /// <para>So this pins coincidence, not parallelism. A future round that "fixes"
+    /// it back to inner-plus-offset is reintroducing the crescents.</para>
     /// </summary>
     [Test]
-    public void TheFrameRadiusKeepsTheGapParallelAtTheCorners()
+    public void TheFrameTracesTheCardsOwnCorner()
     {
         Assert.That(
             CardMetrics.HoverFrameCornerRadius,
-            Is.EqualTo(CardMetrics.CornerRadius + CardMetrics.HoverFrameInset));
+            Is.EqualTo(CardMetrics.CornerRadius),
+            "the frame's radius must equal the card's, or its arcs leave a crescent of " +
+            "background at the four corners");
     }
 
     /// <summary>
@@ -461,9 +469,12 @@ public class CardMetricsTests
                 Does.Contain($"Height=\"{CardMetrics.PlayButtonSize}\""),
                 $"{button}: height must come from the token");
 
+            // Four values, not one: the disc's Margin is a full Thickness so its
+            // CENTRE stays at CornerInset + diameter/2 whatever the diameter is - and
+            // that centre is what the tick box is aligned to.
             Assert.That(
                 block,
-                Does.Contain($"Margin=\"{CardMetrics.CornerInset}\""),
+                Does.Contain($"Margin=\"{CardMetrics.CornerInset},"),
                 $"{button}: the inset is what puts the disc in the cover's corner; 0 pins it to the edge");
 
             Assert.That(

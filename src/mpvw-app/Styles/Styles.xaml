@@ -187,7 +187,7 @@
                 Color="#14FFFFFF" />
             <SolidColorBrush
                 x:Key="MpvCardFrameBrush"
-                Color="#CC000000" />
+                Color="#B3000000" />
             <SolidColorBrush
                 x:Key="MpvCardButtonRingBrush"
                 Color="#73FFFFFF" />

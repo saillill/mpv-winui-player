@@ -95,7 +95,9 @@
         VerticalContentAlignment="Stretch"
         Background="Transparent"
         BorderThickness="0"
-        Click="RootButton_Click">
+        Click="RootButton_Click"
+        CornerRadius="8"
+        Style="{StaticResource MpvCardIconButtonStyle}">
         <!--  One Grid over the whole card: the tile AND its caption line.
               The hover frame has to wrap both, because they are one card - the
               report circled the picture on its own and said so: "the outermost
@@ -154,7 +156,7 @@
                 Canvas.ZIndex="10"
                 BorderBrush="{ThemeResource MpvCardFrameBrush}"
                 BorderThickness="1"
-                CornerRadius="14"
+                CornerRadius="8"
                 IsHitTestVisible="False"
                 Visibility="Collapsed" />
 
@@ -378,9 +380,9 @@
                       control sitting on the frame rather than as a tinted hole. -->
                 <Button
                     x:Name="PlayButton"
-                    Width="30"
-                    Height="30"
-                    Margin="9"
+                    Width="33"
+                    Height="33"
+                    Margin="7.5,7.5,0,7.5"
                     Padding="0"
                     HorizontalAlignment="Left"
                     HorizontalContentAlignment="Center"
@@ -390,7 +392,7 @@
                     BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
                     BorderThickness="1"
                     Click="PlayButton_Click"
-                    CornerRadius="15"
+                    CornerRadius="16.5"
                     Style="{StaticResource MpvCardIconButtonStyle}">
                     <!--  The glyph is centred in a Viewbox, not left to FontIcon.
 
@@ -443,23 +445,23 @@
                       this would light up and then eat the click that turned it on. -->
                 <Border
                     x:Name="PlayButtonHover"
-                    Margin="9"
+                    Margin="7.5,7.5,0,7.5"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"
-                    Width="30"
-                    Height="30"
+                    Width="33"
+                    Height="33"
                     Background="{ThemeResource MpvCardButtonHoverBrush}"
                     BorderBrush="{ThemeResource MpvCardButtonHoverBrush}"
                     BorderThickness="1"
-                    CornerRadius="15"
+                    CornerRadius="16.5"
                     IsHitTestVisible="False"
                     Visibility="Collapsed" />
 
                 <Button
                     x:Name="MoreButton"
-                    Width="30"
-                    Height="30"
-                    Margin="9"
+                    Width="33"
+                    Height="33"
+                    Margin="7.5,7.5,0,7.5"
                     Padding="0"
                     HorizontalAlignment="Right"
                     HorizontalContentAlignment="Center"
@@ -469,7 +471,7 @@
                     BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
                     BorderThickness="1"
                     Click="MoreButton_Click"
-                    CornerRadius="15"
+                    CornerRadius="16.5"
                     Style="{StaticResource MpvCardIconButtonStyle}">
                     <!--  Geometry, not a glyph: E712 in FluentSystemIcons is not
                           three dots.
@@ -497,15 +499,15 @@
                       with the same measured failure behind it. -->
                 <Border
                     x:Name="MoreButtonHover"
-                    Margin="9"
+                    Margin="0,7.5,7.5,7.5"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
-                    Width="30"
-                    Height="30"
+                    Width="33"
+                    Height="33"
                     Background="{ThemeResource MpvCardButtonHoverBrush}"
                     BorderBrush="{ThemeResource MpvCardButtonHoverBrush}"
                     BorderThickness="1"
-                    CornerRadius="15"
+                    CornerRadius="16.5"
                     IsHitTestVisible="False"
                     Visibility="Collapsed" />
 
