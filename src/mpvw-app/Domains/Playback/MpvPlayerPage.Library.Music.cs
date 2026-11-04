@@ -775,7 +775,7 @@ namespace mpv_winui.Domains.Playback
             // As in CardLayout, this is the CONTENT's width: CellWidthFor adds the
             // frame's gutter, so the cell is 148 and the sleeve stays 136. Both
             // spacings come from CardMetrics so the two grids cannot drift apart.
-            const double width = 136;
+            const double width = 150;
 
             return new UniformGridLayout
             {

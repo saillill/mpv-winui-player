@@ -937,7 +937,7 @@ public class CardMetricsTests
     public void EveryCardGridLeavesRoomForTheFrame()
     {
         // Tight by request, and 0 is the floor: the gutter is what remains.
-        Assert.That(CardMetrics.GridColumnSpacing, Is.EqualTo(0));
+        Assert.That(CardMetrics.GridColumnSpacing, Is.EqualTo(1));
         Assert.That(CardMetrics.GridRowSpacing, Is.EqualTo(4));
 
         // The invariant behind "as tight as possible": two adjacent pictures still
@@ -952,7 +952,7 @@ public class CardMetricsTests
         // "紧密挨着" leaves once nothing else can be taken.
         Assert.That(
             CardMetrics.GridColumnSpacing + (CardMetrics.HoverFrameInset * 2),
-            Is.EqualTo(12));
+            Is.EqualTo(13));
 
         var page = Regex.Replace(File.ReadAllText(PageXamlPath), "<!--[\\s\\S]*?-->", string.Empty);
 
@@ -967,7 +967,7 @@ public class CardMetricsTests
             $"{AttributeFor(page, "MinRowSpacing")}");
 
         // The cell is the content plus the gutter on both sides.
-        const double ContentWidth = 202;
+        const double ContentWidth = 222;
 
         Assert.That(
             page.Contains($"MinItemWidth=\"{CardMetrics.CellWidthFor(ContentWidth)}\"", StringComparison.Ordinal),

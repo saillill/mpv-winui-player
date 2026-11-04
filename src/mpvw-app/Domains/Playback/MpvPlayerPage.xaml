@@ -1225,7 +1225,18 @@
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
                         CornerRadius="8"
+                        Translation="0,0,32"
                         Visibility="Collapsed">
+                        <!--  The bar floats above the grid, so it gets a shadow -
+                              「勾选后出现的横向选项框的阴影」. ThemeShadow needs the
+                              Translation above to have anything to project onto: a Z
+                              of 0 keeps it in the cards' own plane and draws nothing.
+                              32 is the depth the player's artwork border already uses
+                              (MusicArtwork), so the app has one shadow depth rather
+                              than a new number per surface. -->
+                        <Border.Shadow>
+                            <ThemeShadow />
+                        </Border.Shadow>
                         <Grid ColumnSpacing="{StaticResource MpvSpaceM}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -1388,9 +1399,9 @@
                                      the default every other section uses, and a Grid with no
                                      Layout at all renders nothing. -->
                                 <UniformGridLayout
-                                    MinColumnSpacing="0"
-                                    MinItemHeight="184"
-                                    MinItemWidth="214"
+                                    MinColumnSpacing="1"
+                                    MinItemHeight="195"
+                                    MinItemWidth="234"
                                     MinRowSpacing="4" />
                             </ItemsRepeater.Layout>
                         </ItemsRepeater>

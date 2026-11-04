@@ -303,7 +303,7 @@ namespace mpv_winui.Domains.Playback.Cards
         /// under the pointer or on a ticked card, so two adjacent frames are never on
         /// screen together.</para>
         /// </summary>
-        public const double GridColumnSpacing = 0;
+        public const double GridColumnSpacing = 1;
 
         /// <summary>
         /// The card grids' row spacing, in DIP. The same 4 as the columns: the

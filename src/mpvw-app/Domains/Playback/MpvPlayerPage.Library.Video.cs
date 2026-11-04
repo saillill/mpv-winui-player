@@ -76,6 +76,18 @@ namespace mpv_winui.Domains.Playback
             MusicTabAlbums.Content = lang.MusicTabAlbums;
 
             MusicTabArtists.Content = lang.MusicTabArtists;
+
+            // Stable automation ids for the three tabs, set beside their words.
+            //
+            // The accessible NAME is the tab's own label, which changes with the
+            // language - so a query for 「专辑」 finds the tab in Chinese and nothing
+            // in any of the other eight. An id does not move, which is what a test or
+            // a future automation needs to say "switch to Albums" at all. Found the
+            // hard way: the album-card tick box could not be exercised because the
+            // tab could not be reached.
+            AutomationProperties.SetAutomationId(MusicTabSongs, "MusicTabSongs");
+            AutomationProperties.SetAutomationId(MusicTabAlbums, "MusicTabAlbums");
+            AutomationProperties.SetAutomationId(MusicTabArtists, "MusicTabArtists");
             SortByNameAsc.Text = lang.LibrarySortNameAsc;
             SortByNameDesc.Text = lang.LibrarySortNameDesc;
             SortByNewest.Text = lang.LibrarySortNewest;
@@ -342,7 +354,7 @@ namespace mpv_winui.Domains.Playback
             // The width here is the CONTENT's: CellWidthFor adds the frame's 6 DIP
             // gutter on each side. Scaled together with the album grid's 170 -> 136
             // so the two grids keep the ratio they had.
-            const double width = 202;
+            const double width = 222;
 
             return new UniformGridLayout
             {

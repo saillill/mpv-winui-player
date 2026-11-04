@@ -565,9 +565,9 @@
                   state for the file it now stands for. -->
             <Button
                 x:Name="SelectionBox"
-                Width="22"
-                Height="22"
-                Margin="9"
+                Width="20"
+                Height="20"
+                Margin="14,9,0,0"
                 Padding="0"
                 HorizontalAlignment="Left"
                 HorizontalContentAlignment="Center"
@@ -575,7 +575,7 @@
                 VerticalContentAlignment="Center"
                 BorderThickness="1"
                 Click="SelectionBox_Click"
-                CornerRadius="5"
+                CornerRadius="4"
                 Style="{StaticResource MpvCardIconButtonStyle}"
                 Visibility="Collapsed">
                 <FontIcon
@@ -593,13 +593,13 @@
                   artefact. An unticked box is just a target, so it responds like one. -->
             <Border
                 x:Name="SelectionBoxHover"
-                Width="22"
-                Height="22"
-                Margin="9"
+                Width="20"
+                Height="20"
+                Margin="14,9,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Background="{ThemeResource MpvCardButtonHoverBrush}"
-                CornerRadius="5"
+                CornerRadius="4"
                 IsHitTestVisible="False"
                 Visibility="Collapsed" />
             </Grid>
