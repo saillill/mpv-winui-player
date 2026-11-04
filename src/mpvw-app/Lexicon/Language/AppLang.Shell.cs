@@ -82,6 +82,15 @@ namespace mpv_winui.Lexicon.Language
         public string LibraryAlbumBack { get; set; } = "Back to music";
 
         /// <summary>
+        /// Back from an album to the artist it was opened from.
+        ///
+        /// Its own string rather than reusing <see cref="LibraryAlbumBack"/>: the two
+        /// land on different surfaces, and a button that says "Back to music" while
+        /// returning to one artist's albums is a wrong statement, not a shorthand.
+        /// </summary>
+        public string LibraryBackToArtist { get; set; } = "Back to artist";
+
+        /// <summary>
         /// "{0} songs, {1}" - the count and total length under the album title.
         /// The separator is a middle dot in Latin languages, which is what the
         /// reference player uses; a translator can drop it for their language.

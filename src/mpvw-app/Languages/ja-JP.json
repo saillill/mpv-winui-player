@@ -1519,6 +1519,7 @@
   "LibraryShufflePlay": "シャッフル再生",
   "LibraryAlbumAddTo": "追加先",
   "LibraryAlbumBack": "音楽に戻る",
+        "LibraryBackToArtist": "アーティストに戻る",
   "LibraryAlbumSummary": "{0} 曲 · {1}",
   "LibraryColumnTitle": "タイトル",
   "LibraryColumnArtist": "アーティスト",

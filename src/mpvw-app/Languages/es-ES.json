@@ -1519,6 +1519,7 @@
   "LibraryShufflePlay": "Reproducción aleatoria",
   "LibraryAlbumAddTo": "Agregar a",
   "LibraryAlbumBack": "Volver a la música",
+        "LibraryBackToArtist": "Volver al artista",
   "LibraryAlbumSummary": "{0} canciones · {1}",
   "LibraryColumnTitle": "Título",
   "LibraryColumnArtist": "Artista",
