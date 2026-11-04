@@ -219,7 +219,10 @@ namespace mpv_winui.Domains.Playback
                         album,
                         StringComparison.CurrentCultureIgnoreCase))
                     .Where(e => artist is null
-                        || string.Equals(e.Artist, artist, StringComparison.CurrentCultureIgnoreCase))
+                        || string.Equals(
+                            string.IsNullOrWhiteSpace(e.Artist) ? string.Empty : e.Artist,
+                            artist,
+                            StringComparison.CurrentCultureIgnoreCase))
                     .OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
                     .ToList()
                 : [];
@@ -256,6 +259,15 @@ namespace mpv_winui.Domains.Playback
                 _albumTracks = [];
 
                 ApplyArtistChrome();
+
+                // The host is put back HERE, not left to OpenAlbum having collapsed it:
+                // OpenAlbum did collapse it on the way in, so a branch that only rebuilds
+                // the artist's contents leaves an empty host on screen. Visibility is
+                // restored before the fade so the page animates as one surface rather
+                // than popping.
+                ArtistHost.Visibility = Visibility.Visible;
+
+                MotionBehaviors.FadeIn(AlbumHost);
 
                 return;
             }
@@ -377,6 +389,12 @@ namespace mpv_winui.Domains.Playback
 
             ArtistAlbumGrid.Layout = AlbumCardLayout();
 
+            // The template, without which an ItemsRepeater draws nothing at all and
+            // ElementPrepared never fires - the grid was declared bare in markup and
+            // this is the only place that fills it. Same resource the other three
+            // repeaters use, so an album card here is the album card everywhere else.
+            ArtistAlbumGrid.ItemTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
+
             ArtistAlbumGrid.ItemsSource = albums;
 
             ArtistAlbumGrid.ElementPrepared -= ArtistAlbumGrid_ElementPrepared;
@@ -418,6 +436,23 @@ namespace mpv_winui.Domains.Playback
 
             card.CardTapped -= ArtistAlbumCard_Tapped;
             card.CardTapped += ArtistAlbumCard_Tapped;
+
+            // The two discs and the tick box are live on this card, so they have to mean
+            // something here. All three get the same handlers the rest of the library
+            // uses, which is what keeps an artist-page card from clicking into silence:
+            // the disc plays the album's carrier track, "more" opens the shared card menu,
+            // and the tick behaves as it does everywhere else - album cards are tickable
+            // (「专辑卡也能勾选，和点击不冲突」), which is a different rule from the artist
+            // TILES, whose lack of a tick box is spec 8.1.4 and a fact about the person,
+            // not about this card.
+            card.PlayRequested -= Card_PlayRequested;
+            card.PlayRequested += Card_PlayRequested;
+
+            card.MoreRequested -= Card_MoreRequested;
+            card.MoreRequested += Card_MoreRequested;
+
+            card.SelectionRequested -= Card_SelectionRequested;
+            card.SelectionRequested += Card_SelectionRequested;
         }
 
         /// <summary>Opens the album a card on the artist page stands for.</summary>

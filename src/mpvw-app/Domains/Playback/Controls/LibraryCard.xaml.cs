@@ -377,7 +377,10 @@ namespace mpv_winui.Domains.Playback.Controls
             // the localized "unknown artist", so it is forced visible here.
             SubtitleText.Visibility = Visibility.Visible;
 
-            AutomationProperties.SetName(RootButton, album);
+            // Derived from the text just written rather than re-stating `album`, so the
+            // button's name and the caption cannot disagree. SetEntry names it the same
+            // way from the same source - one rule, two callers.
+            AutomationProperties.SetName(RootButton, TitleText.Text);
         }
 
         /// <summary>

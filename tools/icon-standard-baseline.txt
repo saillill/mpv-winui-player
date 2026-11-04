@@ -15,10 +15,10 @@ src/mpvw-app/Domains/Playback/PiPWindow.xaml:71:RAW-SIZE
 src/mpvw-app/Domains/Playback/PiPWindow.xaml:97:RAW-SIZE
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1791:RAW-SIZE
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1797:RAW-SIZE
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1993:RAW-SIZE
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:2071:RAW-SIZE
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:2088:RAW-SIZE
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:2105:RAW-SIZE
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1904:RAW-SIZE
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1982:RAW-SIZE
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:1999:RAW-SIZE
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:2016:RAW-SIZE
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:2576:RAW-SIZE
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:2618:RAW-SIZE
 src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:2624:RAW-SIZE

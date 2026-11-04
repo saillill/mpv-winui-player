@@ -646,18 +646,79 @@ public class MusicGenreArtistTests
             Assert.That(
                 prepare,
                 Does.Contain("card.SetAlbumCaption(album.AlbumTitle, album.AlbumArtistText)"),
-                "the artist page's album grid must caption the album, not the file name");
+                "the artist page album grid must caption the album, not the file name");
+
+            // The presence assertion comes FIRST: IndexOf returns -1 for a deleted call,
+            // and -1 is LessThan any positive index, so an ordering test alone would be
+            // green with SetEntry gone entirely.
+            Assert.That(prepare, Does.Contain("card.SetEntry(album"),
+                "the card must still be handed its entry, or nothing renders");
 
             Assert.That(
                 prepare.IndexOf("card.SetEntry(album", StringComparison.Ordinal),
                 Is.LessThan(prepare.IndexOf("card.SetAlbumCaption(", StringComparison.Ordinal)),
                 "SetEntry draws the file-name caption; the album caption has to come after it or it is overwritten");
 
+            // Checked against the file that actually shares this card, not the library
+            // half - that one cannot contain the symbol at all, so an assertion over it
+            // would be true by construction and would pin nothing.
             Assert.That(
-                StrippedPageSource(PageLibraryCodePath),
+                StrippedPageSource(PageCardsCodePath),
                 Does.Not.Contain("SetAlbumCaption"),
-                "the caption is one grid's rule: no other surface may ask for it");
+                "the caption is one grid rule: the shared card grid must not ask for it");
         });
+    }
+
+    /// <summary>
+    /// The artist grid can actually render, and the artist layer can actually be seen.
+    ///
+    /// <para>Both defects these pin shipped green through every logic guard: an
+    /// ItemsRepeater with no ItemTemplate realizes no cards and never raises
+    /// ElementPrepared with one, and a layer declared before the opaque album-detail
+    /// children is painted underneath them. Neither is reachable from a C# assertion
+    /// in this project, so these read the markup and the setup method.</para>
+    /// </summary>
+    [Test]
+    public void TheArtistGridHasATemplateAndSitsOverTheAlbumLayer()
+    {
+        var music = Squashed(MethodBody(
+            StrippedPageSource(PageMusicCodePath),
+            "private void ApplyArtistChrome()"));
+
+        var xaml = File.ReadAllText(Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage.xaml"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                music,
+                Does.Contain("ArtistAlbumGrid.ItemTemplate"),
+                "an ItemsRepeater without a template draws nothing and never prepares a card");
+
+            Assert.That(
+                xaml.IndexOf("ArtistHost", StringComparison.Ordinal),
+                Is.GreaterThan(xaml.IndexOf("AlbumBackButton", StringComparison.Ordinal)),
+                "the artist layer must come after the album-detail children: later children paint on top, and both carry an opaque background");
+        });
+    }
+
+    /// <summary>
+    /// Back from an album opened on an artist page puts the artist page back on screen.
+    ///
+    /// <para>The early return rebuilds the artist contents but must also restore the
+    /// host, because OpenAlbum collapsed it on the way in. Without this the host is left
+    /// blank - and the shared back button keeps pointing at a page nobody can see.</para>
+    /// </summary>
+    [Test]
+    public void BackFromAnArtistsAlbumReshowsTheArtistPage()
+    {
+        var close = Squashed(MethodBody(
+            StrippedPageSource(PageMusicCodePath),
+            "private void CloseAlbum()"));
+
+        Assert.That(
+            close,
+            Does.Contain("ArtistHost.Visibility = Visibility.Visible"),
+            "the artist branch must switch its own host back on, not rely on never having switched it off");
     }
 
     /// <summary>
@@ -944,6 +1005,10 @@ public class MusicGenreArtistTests
     /// <summary>The page's library half, where the toolbar row's predicate is decided.</summary>
     private static string PageLibraryCodePath
         => Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage_Library.cs");
+    /// <summary>The page card half: the grid every library surface shares.</summary>
+    private static string PageCardsCodePath
+        => Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage.Library.Cards.cs");
+
 
     /// <summary>The page's music half, where the three music tabs are switched.</summary>
     private static string PageMusicCodePath
