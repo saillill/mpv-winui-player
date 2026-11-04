@@ -120,7 +120,8 @@ namespace mpv_winui.Domains.Playback
         /// <summary>
         /// "Add to": appends the album to whatever is already queued.
         /// </summary>
-        private void AlbumAddTo_Click(object sender, RoutedEventArgs e)        {
+        private void AlbumAddTo_Click(object sender, RoutedEventArgs e)
+        {
             var paths = _albumTracks
                 .Where(t => !t.IsMissing)
                 .Select(t => t.Path)
