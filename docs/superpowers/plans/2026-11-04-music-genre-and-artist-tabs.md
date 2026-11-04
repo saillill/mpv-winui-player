@@ -339,8 +339,10 @@ private VideoSortMode EffectiveMusicSort =>
 
 /// <summary>只有歌曲页签有时间序；专辑页签排的是组，组没有时间。</summary>
 private bool MusicSortHasTimeModes =>
-    _librarySection != LibrarySectionMusic || _musicGrouping == MusicGrouping.Songs;
+    _librarySection == LibrarySectionMusic && _musicGrouping == MusicGrouping.Songs;
 ```
+
+上式的形状是实现时确定的：写作合取而不是析取，因为它的两个读取点都在音乐分区内，合取在音乐分区内取值相同，而在音乐分区外诚实地说"没有时间序"而不是意外为真。
 
 - [ ] **Step 4: `UpdateVideoSortChrome` 按分区/页签取值**
 
