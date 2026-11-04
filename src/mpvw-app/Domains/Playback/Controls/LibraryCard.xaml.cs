@@ -677,6 +677,14 @@ namespace mpv_winui.Domains.Playback.Controls
             HoverFrame.Visibility = _pointerInside || selected
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+
+            // The wash follows the same input but marks a different thing: it is the
+            // POINTER lifting the card, not the selection. A ticked card keeps its
+            // frame after the pointer leaves - 「已选中常驻」 - but it is no longer
+            // under the cursor, so the wash goes out with the pointer.
+            HoverWash.Visibility = _pointerInside
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         /// <summary>

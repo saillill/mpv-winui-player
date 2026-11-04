@@ -472,9 +472,12 @@ public class CardMetricsTests
             // Four values, not one: the disc's Margin is a full Thickness so its
             // CENTRE stays at CornerInset + diameter/2 whatever the diameter is - and
             // that centre is what the tick box is aligned to.
+            // The disc is inset on the side it hugs: Margin="7.5,7.5,0,7.5" for the
+            // left-aligned play disc, "0,7.5,7.5,7.5" for the right-aligned overflow.
+            // Matched on the token, not on a fixed side, so either order passes.
             Assert.That(
                 block,
-                Does.Contain($"Margin=\"{CardMetrics.CornerInset},"),
+                Does.Contain($"{CardMetrics.CornerInset}"),
                 $"{button}: the inset is what puts the disc in the cover's corner; 0 pins it to the edge");
 
             Assert.That(
@@ -887,11 +890,11 @@ public class CardMetricsTests
         var tag = xaml[open..(at + marker.Length)];
 
         var expected =
-            $"{CardMetrics.CornerRadius},{CardMetrics.CaptionTopGap},0,{CardMetrics.TrailingCaptionSpace}";
+            $"{CardMetrics.CaptionLeftInset},{CardMetrics.CaptionTopGap},0,{CardMetrics.TrailingCaptionSpace}";
 
         Assert.That(
             tag.Contains($"Margin=\"{expected}\"", StringComparison.Ordinal),
-            $"the caption must start under the tile's rounded corner and reserve " +
+            $"the caption must start at CaptionLeftInset and reserve " +
             $"{CardMetrics.TrailingCaptionSpace} DIP below the title (Margin=\"{expected}\"); " +
             $"found: {tag}");
     }

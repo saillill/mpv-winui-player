@@ -64,6 +64,21 @@ namespace mpv_winui.Domains.Playback.Cards
         public const double CornerRadius = 8;
 
         /// <summary>
+        /// How far the caption is indented from the card's left edge.
+        ///
+        /// <para>6, two DIP left of <see cref="CornerRadius"/> (8): the report is
+        /// 「标题右移太多了，再向左移动个2、3px」. At 8 the text started exactly where
+        /// the tile's arc ends, which reads as a deliberate alignment only when the
+        /// arc is visible - and on a picture whose top-left is dark it just looks like
+        /// the caption drifted right.</para>
+        ///
+        /// <para>Its own constant rather than <c>CornerRadius - 2</c>: the two numbers
+        /// answer different questions (how round the tile is, where the text starts)
+        /// and a future radius change should not silently drag the caption with it.
+        /// CardMetricsTests pins the markup against this.</para>
+        /// </summary>
+        public const double CaptionLeftInset = 6;
+        /// <summary>
         /// Gap between the media tile and its first caption line.
         ///
         /// 6, down from 8: the reference's title cap line starts 6 DIP under the

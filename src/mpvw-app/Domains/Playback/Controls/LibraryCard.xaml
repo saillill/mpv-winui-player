@@ -160,6 +160,27 @@
                 IsHitTestVisible="False"
                 Visibility="Collapsed" />
 
+            <!--  The hover wash: the card lifting, behind the frame.
+
+                  A layer of its own rather than the root Button's built-in hover
+                  background, because that one is drawn by WinUI's default Button
+                  template at its own fixed radius - measured at 4 against this card's
+                  8, so its corners poked out past the frame and left four bright nubs
+                  (「颜色图层四个角突出了黑色外框的圆角」). RootButton now uses the
+                  stateless template, which removed the nubs and the wash with them; the
+                  report then asked for the wash back (「悬停底色还是需要的」).
+
+                  So it is here, at radius 8 like the card and the frame, spanning the
+                  whole card - tile and caption - driven by the same _pointerInside that
+                  drives the frame, and placed BEFORE CardContent in z-order so the
+                  picture is not tinted, only the card's own surface. -->
+            <Border
+                x:Name="HoverWash"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="8"
+                IsHitTestVisible="False"
+                Visibility="Collapsed" />
+
             <!--  The content: the ONE element that carries the gutter.
 
                   The 6 is CardMetrics.HoverFrameInset, resolved against the cell
@@ -245,7 +266,7 @@
                   that reserved gap on top of it is what 「卡片标题下的留白过多」 was
                   pointing at. -->
             <StackPanel
-                Margin="8,6,0,11"
+                Margin="6,6,0,11"
                 Spacing="{StaticResource MpvSpaceXxs}">
                 <!--  Two lines, both in ONE typographic style.
 
@@ -461,7 +482,7 @@
                     x:Name="MoreButton"
                     Width="33"
                     Height="33"
-                    Margin="7.5,7.5,0,7.5"
+                    Margin="0,7.5,7.5,7.5"
                     Padding="0"
                     HorizontalAlignment="Right"
                     HorizontalContentAlignment="Center"
