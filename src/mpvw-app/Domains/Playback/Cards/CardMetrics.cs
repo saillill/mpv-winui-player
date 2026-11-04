@@ -160,14 +160,14 @@ namespace mpv_winui.Domains.Playback.Cards
         /// the answer: 「目前的悬浮按钮又过小了，原基础放大1.2倍左右」, and 30 x 1.2
         /// is 36 - the size it had before this branch shrank it.</para>
         /// </summary>
-        public const double PlayButtonSize = 36;
+        public const double PlayButtonSize = 30;
 
         /// <summary>
         /// The hover overflow button's diameter. The same as the play button's,
         /// because the reference draws the two as one matched pair - the previous
         /// 40/32 split made the secondary button look accidental.
         /// </summary>
-        public const double MoreButtonSize = 36;
+        public const double MoreButtonSize = 30;
 
         /// <summary>
         /// How far the corner buttons sit from the tile's edges.
@@ -176,7 +176,7 @@ namespace mpv_winui.Domains.Playback.Cards
         /// scale, and 8 was chosen to keep a 30px disc off the corner. At 36 the
         /// same 8 crowds the arc.</para>
         /// </summary>
-        public const double CornerInset = 10;
+        public const double CornerInset = 9;
 
         /// <summary>
         /// The hover buttons' white ring, in DIP.
@@ -185,7 +185,7 @@ namespace mpv_winui.Domains.Playback.Cards
         /// against a bright frame and thick enough to hold against a dark one,
         /// which is what a 1px ring fails to do on a letterboxed still.
         /// </summary>
-        public const double RingThickness = 1.5;
+        public const double RingThickness = 1;
 
         /// <summary>
         /// Height of the now-playing stripe along the cover's bottom edge.

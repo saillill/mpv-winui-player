@@ -568,6 +568,79 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
+        /// Fills in video lengths, so their cards can show one.
+        ///
+        /// <para><b>Why a pass of its own.</b> <see cref="LoadMusicTagsAsync"/> reads
+        /// <c>MusicProperties</c>, which has no handler for a video container - it
+        /// throws, the reader swallows it into <c>MusicTags.Empty</c>, and a video
+        /// entry never gained a <c>Duration</c>. So the card's second line never
+        /// appeared, which is what 「视频没有显示秒数」 was reporting: not a formatting
+        /// bug, a missing read. Folding this into the music pass would not work
+        /// either, because that one rebuilds entries through
+        /// <c>FromFileWithTags</c> and would write empty music tags over the video
+        /// entry's fields.</para>
+        ///
+        /// <para>Same shape as the music pass: cards first, numbers second, and the
+        /// mutable state carried across so a cover that just decoded and a tick the
+        /// user just made both survive the rebuild.</para>
+        /// </summary>
+        private async Task LoadVideoDurationsAsync(int generation)
+        {
+            var videos = _libraryAll.Where(e => e.IsVideo && e.Duration is null).ToList();
+
+            if (videos.Count == 0)
+            {
+                return;
+            }
+
+            var paths = videos.Select(e => e.Path).ToList();
+
+            try
+            {
+                var lengths = await LibraryTagsReader.ReadDurationsAsync(paths);
+
+                if (generation != _libraryGeneration)
+                {
+                    return;
+                }
+
+                for (var i = 0; i < _libraryAll.Count; i++)
+                {
+                    var entry = _libraryAll[i];
+
+                    if (!entry.IsVideo || entry.Duration is not null)
+                    {
+                        continue;
+                    }
+
+                    if (!lengths.TryGetValue(entry.Path, out var length))
+                    {
+                        // No length from the index: leave the entry alone so the card
+                        // keeps its one caption line. Writing a zero instead would
+                        // print 0:00, which is a lie about the file.
+                        continue;
+                    }
+
+                    _libraryAll[i] = entry.WithDuration(length);
+                }
+
+                // Rebuilt so the new second line actually appears: the entry carries
+                // the length, but the card that drew it was built before the value
+                // existed. Safe here because the caller has awaited the thumbnail
+                // decodes - see FinishVideoDurationsAsync - so ResolveCover finds the
+                // covers in _libraryThumbnails instead of racing them.
+                if (_libraryLoaded)
+                {
+                    ApplyLibraryFilter();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn(ex, "library: video lengths unavailable");
+            }
+        }
+
+        /// <summary>
         /// Groups video entries by the directory each was played from, ordered
         /// by folder name. Two directories that share a leaf name (two
         /// "Downloads" folders) stay separate groups: the key is the full path,

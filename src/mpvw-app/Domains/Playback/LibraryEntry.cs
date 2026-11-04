@@ -274,6 +274,47 @@ namespace mpv_winui.Domains.Playback
             return copy;
         }
 
+        /// <summary>
+        /// A copy carrying a length, for a VIDEO entry.
+        ///
+        /// <para>Videos never went through a tag pass, so <c>Duration</c> was always
+        /// null on them and the card's second line never appeared - 「视频没有显示
+        /// 秒数」. The caption format was never the problem; the number was never
+        /// read.</para>
+        ///
+        /// <para>Same contract as <see cref="WithTrackCount"/>: the MUTABLE state comes
+        /// across, because the caller has usually just set the thumbnail and the tick,
+        /// and a fresh instance would drop both - the cover and the user's selection
+        /// would vanish on a card that had just been prepared.</para>
+        /// </summary>
+        internal LibraryEntry WithDuration(TimeSpan? duration)
+        {
+            var copy = new LibraryEntry
+            {
+                Path = Path,
+                Title = Title,
+                Subtitle = Subtitle,
+                IsVideo = IsVideo,
+                Time = Time,
+                IsMissing = IsMissing,
+                MediaIconPath = MediaIconPath,
+                Album = Album,
+                Artist = Artist,
+                AlbumTitle = AlbumTitle,
+                AlbumArtistText = AlbumArtistText,
+                Genre = Genre,
+                Duration = duration,
+                TrackCount = TrackCount,
+            };
+
+            copy._thumbnail = _thumbnail;
+            copy._isSelected = _isSelected;
+            copy._selectionMode = _selectionMode;
+            copy._isNowPlaying = _isNowPlaying;
+
+            return copy;
+        }
+
         private void Raise([CallerMemberName] string? name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 

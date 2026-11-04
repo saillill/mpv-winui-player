@@ -55,9 +55,10 @@ namespace mpv_winui.Domains.Playback.Controls
 
                 ApplyCoverHeight();
 
-                // The tick box's right to exist depends on this: a recycled card
-                // that was a track and is now an album would otherwise keep the box
-                // it had, and one that was an album would keep it missing.
+                // The tick box no longer depends on this - every card gets one, so a
+                // recycled card cannot arrive with the wrong answer either way. Kept
+                // as a no-op-free reminder: if the box ever becomes conditional
+                // again, this is the line that has to come back.
                 UpdateSelectionBoxForState();
             }
         }
@@ -700,21 +701,26 @@ namespace mpv_winui.Domains.Playback.Controls
         /// </summary>
         private void UpdateSelectionBoxForState()
         {
-            // An album card never gets a tick box. On the Albums/Artists pages one
-            // card stands for a whole album and its click opens that album rather
-            // than playing it; a tick box there would make the same click mean two
-            // things, and selecting at album level is not what the selection bar is
-            // for - it is for picking a few tracks to play or queue.
+            // Every card gets a tick box now, albums included.
             //
-            // The cards that DO get one: every video library card, the music
-            // library's Songs list, and the single-track cards on Home.
-            if (_isAlbum)
-            {
-                SelectionBox.Visibility = Visibility.Collapsed;
-
-                return;
-            }
-
+            // <para>The guard that used to live here collapsed the box whenever
+            // IsAlbum was true, on the argument that a card standing for a whole
+            // album would mean two things at once. Two things were wrong with
+            // that:</para>
+            //
+            // <para>First, <b>IsAlbum is not "this card is an album"</b> - it is
+            // "draw a square tile instead of 16:9", and it is set from the media
+            // type (MpvPlayerPage.Library.Cards). So the guard was really saying
+            // "no tick box on any audio card", which is why the music library had
+            // none at all, including on its Songs tab where a card is one track.
+            // The report is 「音乐卡片也需要勾选框」.</para>
+            //
+            // <para>Second, the album/second meaning is decided in one place
+            // already - HandleCardActivation, by section and grouping - not here.
+            // A tick and a click never collide: the box is a Button, so it takes
+            // the pointer, and the page's activation path checks the selection mode
+            // before anything else. Confirmed by the owner: 「专辑卡也能勾选，和点击
+            // 不冲突」.</para>
             var inMode = Entry?.SelectionVisibility == Visibility.Visible;
 
             SelectionBox.Visibility = inMode || _pointerInside

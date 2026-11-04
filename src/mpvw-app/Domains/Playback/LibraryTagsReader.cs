@@ -78,5 +78,64 @@ namespace mpv_winui.Domains.Playback
                 return MusicTags.Empty;
             }
         }
+
+        /// <summary>
+        /// Lengths for a set of VIDEO files, keyed case-insensitively.
+        ///
+        /// <para><b>Why this cannot reuse <see cref="ReadAsync"/>.</b> That method
+        /// goes through <c>GetMusicPropertiesAsync</c>, which has no handler for a
+        /// video container: it throws, the catch turns it into
+        /// <c>MusicTags.Empty</c>, and the card ends up with no length. That is the
+        /// whole of 「视频没有显示秒数」 - the caption itself was fine, the number was
+        /// never there. Music entries were the only ones ever fed to a reader.</para>
+        ///
+        /// <para><c>GetBasicPropertiesAsync</c> does answer for video: it is backed by
+        /// the shell property store, so it costs an index lookup rather than a decode,
+        /// which is the same trade the music pass makes and the reason neither of them
+        /// is MediaInfo.</para>
+        ///
+        /// <para>Never throws, for the reason the class states: an unreadable file
+        /// contributes nothing and the card shows no length rather than disappearing.
+        /// </para>
+        /// </summary>
+        internal static Task<IReadOnlyDictionary<string, TimeSpan>> ReadDurationsAsync(
+            IReadOnlyList<string> paths,
+            CancellationToken token = default) =>
+            Task.Run(async () =>
+            {
+                var result = new Dictionary<string, TimeSpan>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var path in paths)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    try
+                    {
+                        var file = await StorageFile.GetFileFromPathAsync(path).AsTask().ConfigureAwait(false);
+
+                        // VideoProperties answers for a video container where the
+                        // music properties do not, and both are served from the same
+                        // shell store - so this costs an index lookup, not a decode.
+                        var video = await file.Properties.GetVideoPropertiesAsync().AsTask().ConfigureAwait(false);
+
+                        if (video.Duration > TimeSpan.Zero)
+                        {
+                            result[path] = video.Duration;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Missing file, no property handler, a drive that went away:
+                        // all of them mean "no length", which the card renders as no
+                        // second line rather than as 0:00.
+                    }
+                }
+
+                return (IReadOnlyDictionary<string, TimeSpan>)result;
+            },
+            token);
     }
 }

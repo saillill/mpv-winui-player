@@ -243,7 +243,7 @@
                   that reserved gap on top of it is what 「卡片标题下的留白过多」 was
                   pointing at. -->
             <StackPanel
-                Margin="0,6,0,11"
+                Margin="8,6,0,11"
                 Spacing="{StaticResource MpvSpaceXxs}">
                 <!--  Two lines, both in ONE typographic style.
 
@@ -378,9 +378,9 @@
                       control sitting on the frame rather than as a tinted hole. -->
                 <Button
                     x:Name="PlayButton"
-                    Width="36"
-                    Height="36"
-                    Margin="10"
+                    Width="30"
+                    Height="30"
+                    Margin="9"
                     Padding="0"
                     HorizontalAlignment="Left"
                     HorizontalContentAlignment="Center"
@@ -388,9 +388,9 @@
                     VerticalContentAlignment="Center"
                     Background="{ThemeResource MpvCardControlBrush}"
                     BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
-                    BorderThickness="1.5"
+                    BorderThickness="1"
                     Click="PlayButton_Click"
-                    CornerRadius="18"
+                    CornerRadius="15"
                     Style="{StaticResource MpvCardIconButtonStyle}">
                     <!--  The glyph is centred in a Viewbox, not left to FontIcon.
 
@@ -443,21 +443,21 @@
                       this would light up and then eat the click that turned it on. -->
                 <Border
                     x:Name="PlayButtonHover"
-                    Margin="10"
+                    Margin="9"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"
-                    Width="36"
-                    Height="36"
+                    Width="30"
+                    Height="30"
                     Background="{ThemeResource MpvCardButtonHoverBrush}"
-                    CornerRadius="18"
+                    CornerRadius="15"
                     IsHitTestVisible="False"
                     Visibility="Collapsed" />
 
                 <Button
                     x:Name="MoreButton"
-                    Width="36"
-                    Height="36"
-                    Margin="10"
+                    Width="30"
+                    Height="30"
+                    Margin="9"
                     Padding="0"
                     HorizontalAlignment="Right"
                     HorizontalContentAlignment="Center"
@@ -465,9 +465,9 @@
                     VerticalContentAlignment="Center"
                     Background="{ThemeResource MpvCardControlBrush}"
                     BorderBrush="{ThemeResource MpvCardButtonRingBrush}"
-                    BorderThickness="1.5"
+                    BorderThickness="1"
                     Click="MoreButton_Click"
-                    CornerRadius="18"
+                    CornerRadius="15"
                     Style="{StaticResource MpvCardIconButtonStyle}">
                     <!--  Geometry, not a glyph: E712 in FluentSystemIcons is not
                           three dots.
@@ -495,13 +495,13 @@
                       with the same measured failure behind it. -->
                 <Border
                     x:Name="MoreButtonHover"
-                    Margin="10"
+                    Margin="9"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
-                    Width="36"
-                    Height="36"
+                    Width="30"
+                    Height="30"
                     Background="{ThemeResource MpvCardButtonHoverBrush}"
-                    CornerRadius="18"
+                    CornerRadius="15"
                     IsHitTestVisible="False"
                     Visibility="Collapsed" />
 
@@ -565,17 +565,17 @@
                   state for the file it now stands for. -->
             <Button
                 x:Name="SelectionBox"
-                Width="26"
-                Height="26"
-                Margin="10"
+                Width="22"
+                Height="22"
+                Margin="9"
                 Padding="0"
                 HorizontalAlignment="Left"
                 HorizontalContentAlignment="Center"
                 VerticalAlignment="Top"
                 VerticalContentAlignment="Center"
-                BorderThickness="1.5"
+                BorderThickness="1"
                 Click="SelectionBox_Click"
-                CornerRadius="6"
+                CornerRadius="5"
                 Style="{StaticResource MpvCardIconButtonStyle}"
                 Visibility="Collapsed">
                 <FontIcon
@@ -593,13 +593,13 @@
                   artefact. An unticked box is just a target, so it responds like one. -->
             <Border
                 x:Name="SelectionBoxHover"
-                Width="26"
-                Height="26"
-                Margin="10"
+                Width="22"
+                Height="22"
+                Margin="9"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Background="{ThemeResource MpvCardButtonHoverBrush}"
-                CornerRadius="6"
+                CornerRadius="5"
                 IsHitTestVisible="False"
                 Visibility="Collapsed" />
             </Grid>

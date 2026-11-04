@@ -73,10 +73,10 @@ public class CardMetricsTests
         // Both hover buttons are the same size: the reference draws them as one
         // matched pair. 36 is the report's 「原基础放大1.2倍左右」 applied to the
         // 30 this branch had shrunk them to.
-        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(36));
-        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(36));
-        Assert.That(CardMetrics.CornerInset, Is.EqualTo(10));
-        Assert.That(CardMetrics.RingThickness, Is.EqualTo(1.5));
+        Assert.That(CardMetrics.PlayButtonSize, Is.EqualTo(30));
+        Assert.That(CardMetrics.MoreButtonSize, Is.EqualTo(30));
+        Assert.That(CardMetrics.CornerInset, Is.EqualTo(9));
+        Assert.That(CardMetrics.RingThickness, Is.EqualTo(1));
         Assert.That(CardMetrics.NowPlayingBarHeight, Is.EqualTo(2));
 
         // The hover frame's geometry. It wraps the whole card, so it is stated in
@@ -385,18 +385,27 @@ public class CardMetricsTests
 
     ///
     /// <para>On the Albums/Artists pages one card stands for a whole album and its
-    /// click opens that album rather than playing it. A tick box there would make
-    /// one click mean two things, and picking a few albums is not what the
-    /// selection bar is for.</para>
+    /// <para>Every card gets a tick box, albums included.</para>
     ///
-    /// <para>Asserted against the source rather than the running control because
-    /// the rule lives in one branch of <c>UpdateSelectionBoxForState</c>, and this
-    /// project cannot create a LibraryCard outside a window. The check is that the
-    /// branch exists and is reached before the visibility is computed - deleting
-    /// it, or moving it after the assignment, turns this red.</para>
+    /// <para><b>This test used to assert the opposite</b>, and the reason is worth
+    /// keeping. A guard collapsed the box whenever <c>IsAlbum</c> was true, arguing
+    /// that an album card's click opens the album and a tick would make one click
+    /// mean two things.</para>
+    ///
+    /// <para>Two things were wrong with that. <c>IsAlbum</c> is not "this card is an
+    /// album" - it is "draw a square tile", set from the media type - so the guard
+    /// actually meant "no tick box on any audio card", which is why the whole music
+    /// library had none, Songs tab included (「音乐卡片也需要勾选框」). And the
+    /// album/second-meaning decision is made in <c>HandleCardActivation</c> by section
+    /// and grouping, not here; a tick and a click never collide, because the box is a
+    /// Button and the activation path checks the selection mode first. Confirmed by
+    /// the owner: 「专辑卡也能勾选，和点击不冲突」.</para>
+    ///
+    /// <para>So the assertion is now the ABSENCE of that guard: restoring it in any
+    /// form turns this red.</para>
     /// </summary>
     [Test]
-    public void AnAlbumCardNeverGetsATickBox()
+    public void EveryCardGetsATickBoxIncludingAlbums()
     {
         var source = File.ReadAllText(CardCodePath);
 
@@ -406,19 +415,18 @@ public class CardMetricsTests
         var end = source.IndexOf("SelectionBox.Visibility = inMode", start, StringComparison.Ordinal);
         Assert.That(end, Is.GreaterThan(start), "the visibility computation is gone");
 
-        var method = source[start..end];
-
-        var guard = method.IndexOf("if (_isAlbum)", StringComparison.Ordinal);
+        var beforeAssignment = source[start..end];
 
         Assert.That(
-            guard,
-            Is.GreaterThanOrEqualTo(0),
-            "the album guard is gone: an album card would show a tick box over a click that opens the album");
+            beforeAssignment,
+            Does.Not.Contain("if (_isAlbum)"),
+            "an IsAlbum guard is back: audio cards would lose their tick box, and IsAlbum " +
+            "means 'square tile', not 'this card is an album'");
 
         Assert.That(
-            method[guard..],
-            Does.Contain("return"),
-            "the album branch must return before the visibility is computed, not fall through to it");
+            beforeAssignment,
+            Does.Not.Contain("return"),
+            "something returns before the box is shown, so some cards cannot be ticked");
     }
 
     ///
@@ -839,20 +847,23 @@ public class CardMetricsTests
     }
 
     /// <summary>
-    /// The caption reserves a line and a half below the title.
+    /// The caption is indented to the tile's rounded corner and reserves its
+    /// trailing space.
     ///
-    /// <para>Reported as "the title should leave a line and a half of empty space
-    /// below it". Without it the last line sits hard against the card's lower edge
-    /// and the hover frame encloses nothing underneath.</para>
+    /// <para><b>The left inset is new, and it is the tile's radius.</b> 「标题开头要
+    /// 向右移动一点点，和圆角结束部分对齐」 - the caption starts where the corner's arc
+    /// ends, so the text lines up with the picture's straight edge rather than with
+    /// its rounded corner. That is <c>CardMetrics.CornerRadius</c>, and it moves with
+    /// the radius instead of being a second number that could drift.</para>
     ///
     /// <para><b>Two places, one number.</b> The reserve lives in the caption's
     /// Bottom margin AND in <c>CardMetrics.CaptionBandHeight</c>, because the grid
-    /// sizes its cell before any card exists. Dropping it from the markup leaves
-    /// the cell padded but the card empty; dropping it from the band clips it. This
+    /// sizes its cell before any card exists. Dropping it from the markup leaves the
+    /// cell padded but the card empty; dropping it from the band clips it. This
     /// asserts the markup side; CardCellHeightTests asserts the band.</para>
     /// </summary>
     [Test]
-    public void TheCaptionReservesALineAndAHalfBelowTheTitle()
+    public void TheCaptionStartsAtTheCornerAndReservesItsTrailingSpace()
     {
         var xaml = File.ReadAllText(CardXamlPath);
 
@@ -864,11 +875,14 @@ public class CardMetricsTests
         var open = xaml.LastIndexOf('<', at);
         var tag = xaml[open..(at + marker.Length)];
 
-        var expected = $"0,{CardMetrics.CaptionTopGap},0,{CardMetrics.TrailingCaptionSpace}";
+        var expected =
+            $"{CardMetrics.CornerRadius},{CardMetrics.CaptionTopGap},0,{CardMetrics.TrailingCaptionSpace}";
+
         Assert.That(
             tag.Contains($"Margin=\"{expected}\"", StringComparison.Ordinal),
-            $"the caption must reserve {CardMetrics.TrailingCaptionSpace} DIP below the " +
-            $"title (Margin=\"{expected}\"); found: {tag}");
+            $"the caption must start under the tile's rounded corner and reserve " +
+            $"{CardMetrics.TrailingCaptionSpace} DIP below the title (Margin=\"{expected}\"); " +
+            $"found: {tag}");
     }
 
     /// <summary>

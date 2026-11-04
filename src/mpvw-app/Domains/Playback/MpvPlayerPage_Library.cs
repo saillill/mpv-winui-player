@@ -1065,11 +1065,50 @@ namespace mpv_winui.Domains.Playback
             // Thumbnails after the cards, never before them: a grid that waits
             // for fifty disk reads before showing anything is slower to look at
             // than one that fills in.
-            _ = LoadThumbnailsAsync(generation);
+            var thumbnails = LoadThumbnailsAsync(generation);
 
             // Album and artist tags, same rule: the cards are already up and the
             // grouped tabs fill in when the index answers.
             _ = LoadMusicTagsAsync(generation);
+
+            // Video lengths: a third pass for a third reason. The music pass reads
+            // MusicProperties, which has no handler for a video container, so video
+            // entries never received a Duration and their cards' second line never
+            // appeared - 「视频没有显示秒数」. Separate from the music pass rather than
+            // folded into it: that one rebuilds entries through FromFileWithTags,
+            // which would overwrite a video entry's fields with empty music tags.
+            //
+            // Sequenced AFTER the thumbnails rather than fired alongside them, and
+            // the order is load-bearing: this pass ends by rebuilding the grid so the
+            // new second line appears, and a rebuild that runs while decodes are in
+            // flight produces cards whose covers resolve to nothing - measured as
+            // placeholder glyphs where the sleeves had been. Waiting costs the length
+            // caption a few hundred milliseconds and keeps the pictures.
+            _ = FinishVideoDurationsAsync(generation, thumbnails);
+        }
+
+        /// <summary>
+        /// Waits for the thumbnails, then fills in video lengths.
+        ///
+        /// The two are sequenced rather than parallel because the length pass ends in
+        /// a grid rebuild; see the call site for why that rebuild must not race the
+        /// decodes.
+        /// </summary>
+        private async Task FinishVideoDurationsAsync(int generation, Task thumbnails)
+        {
+            try
+            {
+                await thumbnails;
+            }
+            catch (Exception ex)
+            {
+                // A failed decode pass is not a reason to skip the lengths: they are
+                // independent facts, and the rebuild is safe once the decodes have
+                // stopped whether or not they succeeded.
+                _logger.Warn(ex, "library: thumbnails failed before the length pass");
+            }
+
+            await LoadVideoDurationsAsync(generation);
         }
 
         /// <summary>

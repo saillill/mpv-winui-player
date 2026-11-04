@@ -113,7 +113,7 @@
                  sibling so the ring and the glyph are untouched. -->
             <SolidColorBrush
                 x:Key="MpvCardButtonHoverBrush"
-                Color="#26000000" />
+                Color="#40000000" />
             <SolidColorBrush
                 x:Key="MpvCardTickBoxFillBrush"
                 Color="#99FFFFFF" />
@@ -1522,8 +1522,8 @@
      SemiBold rather than Regular: at 15 DIP over a photograph a Regular weight
      loses its stems against mid-tone content, and the card is scanned rather than
      read. The now-playing row this was benchmarked against is itself SemiBold. -->
-<x:Double x:Key="MpvCardTitleFontSize">15</x:Double>
-<x:Double x:Key="MpvCardSubtitleFontSize">14</x:Double>
+<x:Double x:Key="MpvCardTitleFontSize">14</x:Double>
+<x:Double x:Key="MpvCardSubtitleFontSize">13</x:Double>
 <FontWeight x:Key="MpvCardCaptionFontWeight">SemiBold</FontWeight>
 
 <!-- MpvCardControlBrush used to live here, one near-black value for both themes.
