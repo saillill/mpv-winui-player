@@ -184,7 +184,9 @@ namespace mpv_winui.Domains.Playback
             _libraryLoaded = false;
 
             _cardMenuEntry = null;
-            _openAlbum = null;
+            _openAlbum = default;
+            _albumOpened = false;
+            _openArtist = null;
         }
 
         private void ApplyLibraryStrings()
@@ -1734,9 +1736,19 @@ namespace mpv_winui.Domains.Playback
             // Any album is abandoned rather than kept: coming back to the library
             // is a navigation away from it, and re-entering it later should start
             // from the list, which is where the cards are.
-            _openAlbum = null;
+            //
+            // The artist goes with it: an artist page is reached from the same wall,
+            // and leaving it open would make the next visit land one level in with no
+            // way to see why.
+            _openAlbum = default;
+
+            _albumOpened = false;
+
+            _openArtist = null;
 
             _albumTracks = [];
+
+            ArtistHost.Visibility = Visibility.Collapsed;
 
             AlbumHost.Visibility = Visibility.Collapsed;
 

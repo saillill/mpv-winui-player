@@ -1,5 +1,6 @@
 using mpv_winui.Infrastructure.Common.Media;
 using mpv_winui.Domains.Playback.Cards;
+using mpv_winui.Domains.Playback.Controls;
 
 using mpv_winui.Domains.Library;
 using Microsoft.UI.Xaml;
@@ -119,8 +120,7 @@ namespace mpv_winui.Domains.Playback
         /// <summary>
         /// "Add to": appends the album to whatever is already queued.
         /// </summary>
-        private void AlbumAddTo_Click(object sender, RoutedEventArgs e)
-        {
+        private void AlbumAddTo_Click(object sender, RoutedEventArgs e)        {
             var paths = _albumTracks
                 .Where(t => !t.IsMissing)
                 .Select(t => t.Path)
@@ -143,8 +143,38 @@ namespace mpv_winui.Domains.Playback
             }
         }
 
-        /// <summary>The album currently shown, or null when the page is closed.</summary>
-        private string? _openAlbum;
+        /// <summary>
+        /// The album currently shown, and the artist it was opened from.
+        ///
+        /// <para><b>Why the artist is part of the key.</b> The album page used to be
+        /// identified by the album's name alone, and it filtered the library by that
+        /// name alone. Two artists each having a "Greatest Hits" is ordinary, and both
+        /// of their tracks landed on one page. From the artist page the album is a
+        /// pair, so the pair is what gets remembered.</para>
+        ///
+        /// <para><b>Null means "opened from the Albums tab".</b> That tab groups by
+        /// album name, so it has no artist to narrow by and must keep showing the
+        /// whole album - the same page it showed before this existed.</para>
+        ///
+        /// <para>A tuple rather than a nullable record: it is a value type, so it can
+        /// never be null, which is why <see cref="_albumOpened"/> carries the "is the
+        /// page up at all" answer that the old <c>string?</c> used to carry.</para>
+        /// </summary>
+        private (string Album, string? Artist) _openAlbum;
+
+        /// <summary>
+        /// Whether the album page is up. The tuple cannot answer that by itself.
+        /// </summary>
+        private bool _albumOpened;
+
+        /// <summary>
+        /// The artist whose page is open, or null when the host shows an album.
+        ///
+        /// The artist page and the album page share one host (they are one surface
+        /// with two states), so this is the state that says which one is showing and
+        /// therefore where the back button goes.
+        /// </summary>
+        private string? _openArtist;
 
         /// <summary>
         /// The entries of the open album, in playing order.
@@ -157,13 +187,28 @@ namespace mpv_winui.Domains.Playback
         /// <summary>
         /// Shows one album: its cover, its identity and its tracks.
         ///
-        /// Called from a card click while the Albums tab is up. The tracks are the
-        /// library's own entries filtered by the same album key the grid grouped
-        /// on, so the table cannot disagree with the cards behind it.
+        /// Called from a card click while the Albums tab is up, and from a card click
+        /// on the artist page. The tracks are the library's own entries filtered by the
+        /// same album key the grid grouped on, so the table cannot disagree with the
+        /// cards behind it.
         /// </summary>
-        private void OpenAlbum(string album)
+        private void OpenAlbum(string album) => OpenAlbum(album, artist: null);
+
+        /// <summary>
+        /// Shows one album, optionally narrowed to one artist.
+        ///
+        /// <paramref name="artist"/> null is the Albums tab: group by name, show the
+        /// whole album. Non-null is the artist page, where the album was grouped inside
+        /// that artist and a same-named album by someone else must not join it.
+        ///
+        /// An empty string is a REAL artist here - the "unknown artist" bucket - so the
+        /// test is <c>is null</c>, never <c>IsNullOrWhiteSpace</c>.
+        /// </summary>
+        private void OpenAlbum(string album, string? artist)
         {
-            _openAlbum = album;
+            _openAlbum = (album, artist);
+
+            _albumOpened = true;
 
             _albumTracks = _librarySection == LibrarySectionMusic
                 ? _libraryAll
@@ -172,11 +217,18 @@ namespace mpv_winui.Domains.Playback
                         string.IsNullOrWhiteSpace(e.Album) ? AppContext.AppLang.LibraryUnknownAlbum : e.Album,
                         album,
                         StringComparison.CurrentCultureIgnoreCase))
+                    .Where(e => artist is null
+                        || string.Equals(e.Artist, artist, StringComparison.CurrentCultureIgnoreCase))
                     .OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
                     .ToList()
                 : [];
 
             ApplyAlbumChrome();
+
+            // The artist page and the album page are two states of one host: going into
+            // an album from the artist page leaves the artist page hidden, and the back
+            // button's word follows from _openArtist still being set.
+            ArtistHost.Visibility = Visibility.Collapsed;
 
             LibraryHost.Visibility = Visibility.Collapsed;
 
@@ -188,8 +240,22 @@ namespace mpv_winui.Domains.Playback
         /// <summary>Closes the album page and puts the library back.</summary>
         private void CloseAlbum()
         {
-            if (_openAlbum is null)
+            if (!_albumOpened)
             {
+                return;
+            }
+
+            // From the artist page, "back" is one step, not all the way out: the album
+            // was reached from that artist's albums, and dropping the user on the tile
+            // wall would lose the place they were reading.
+            if (_openArtist is not null)
+            {
+                _albumOpened = false;
+
+                _albumTracks = [];
+
+                ApplyArtistChrome();
+
                 return;
             }
 
@@ -200,6 +266,172 @@ namespace mpv_winui.Domains.Playback
             // The grid may have been reloaded while the album was open (a folder
             // re-bind, a rescan); re-applying is cheaper than tracking that.
             ApplyLibraryFilter();
+        }
+
+        /// <summary>The artist page's back command: one level out, to the tile wall.</summary>
+        private void ArtistBack_Click(object sender, RoutedEventArgs e) => CloseArtist();
+
+        /// <summary>
+        /// Shows one artist: their portrait, their name, and their albums.
+        ///
+        /// <para><b>The albums are grouped here, not carried in.</b> The wall's tiles
+        /// hold one carrier entry each (a tile is a person, not a track), so the
+        /// artist's real tracks are re-derived from the library. Grouping by album key
+        /// gives one card per album, and the carrier for each card is that album's first
+        /// track - the same trick the tiles use, for the same reason: a card needs an
+        /// entry to render, and an album has none of its own.</para>
+        ///
+        /// <para><b>An empty artist is a real artist.</b> It is the "unknown artist"
+        /// bucket, which is one group on the wall like any other, so it opens like any
+        /// other.</para>
+        /// </summary>
+        private void OpenArtist(string artist)
+        {
+            _openArtist = artist;
+
+            _albumOpened = false;
+
+            _albumTracks = [];
+
+            ApplyArtistChrome();
+
+            LibraryHost.Visibility = Visibility.Collapsed;
+
+            AlbumHost.Visibility = Visibility.Visible;
+
+            ArtistHost.Visibility = Visibility.Visible;
+
+            MotionBehaviors.FadeIn(AlbumHost);
+        }
+
+        /// <summary>
+        /// Closes the artist page and puts the library back.
+        ///
+        /// Goes through <see cref="HideSurfacesOverLibrary"/> rather than collapsing
+        /// the host by hand: that method is the one place that knows every surface
+        /// standing above the library, and it also drops the artist state.
+        /// </summary>
+        private void CloseArtist()
+        {
+            if (_openArtist is null)
+            {
+                return;
+            }
+
+            HideSurfacesOverLibrary();
+
+            LibraryHost.Visibility = Visibility.Visible;
+
+            ApplyLibraryFilter();
+        }
+
+        /// <summary>
+        /// Fills the artist page from <see cref="_openArtist"/>: its words, its albums,
+        /// and where the back button goes.
+        ///
+        /// Its own method because two callers rebuild this page - opening an artist, and
+        /// returning to it from one of their albums - and both must produce the same
+        /// surface.
+        /// </summary>
+        private void ApplyArtistChrome()
+        {
+            var lang = AppContext.AppLang;
+
+            var named = string.IsNullOrWhiteSpace(_openArtist)
+                ? lang.LibraryUnknownArtist
+                : _openArtist;
+
+            ArtistDetailName.Text = named;
+
+            // The back button says where it goes. From an album opened FROM this artist
+            // the album page draws its own back button, and that one has to say
+            // "back to artist" rather than "back to music" - see ApplyAlbumChrome.
+            ArtistBackText.Text = lang.LibraryAlbumBack;
+
+            AutomationProperties.SetName(ArtistBackButton, lang.LibraryAlbumBack);
+            ToolTipService.SetToolTip(ArtistBackButton, lang.LibraryAlbumBack);
+
+            var tracks = _libraryAll
+                .Where(e => MediaKinds.IsAudio(e.Path))
+                .Where(e => string.Equals(
+                    string.IsNullOrWhiteSpace(e.Artist) ? string.Empty : e.Artist,
+                    _openArtist ?? string.Empty,
+                    StringComparison.CurrentCultureIgnoreCase))
+                .ToList();
+
+            // One card per album, in album order. The carrier is the album's first
+            // track by title, so the grid is stable across rebuilds rather than
+            // reshuffling with the library's own ordering.
+            var albums = tracks
+                .GroupBy(
+                    e => string.IsNullOrWhiteSpace(e.Album) ? "\uFFFF" : e.Album,
+                    StringComparer.CurrentCultureIgnoreCase)
+                .Select(group => group
+                    .OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
+                    .First())
+                .OrderBy(
+                    e => string.IsNullOrWhiteSpace(e.Album) ? "\uFFFF" : e.Album,
+                    StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+
+            ArtistAlbumGrid.Layout = AlbumCardLayout();
+
+            ArtistAlbumGrid.ItemsSource = albums;
+
+            ArtistAlbumGrid.ElementPrepared -= ArtistAlbumGrid_ElementPrepared;
+            ArtistAlbumGrid.ElementPrepared += ArtistAlbumGrid_ElementPrepared;
+        }
+
+        /// <summary>
+        /// Prepares one album card on the artist page.
+        ///
+        /// <para><b>Two things differ from the same card on the Albums tab.</b> The
+        /// caption is the album and its artist rather than the file name - this grid
+        /// lists albums, and "01 - Track.flac" says nothing about which album a card
+        /// stands for. And the click opens the album narrowed to this artist, because
+        /// the album was grouped inside them.</para>
+        /// </summary>
+        private void ArtistAlbumGrid_ElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
+        {
+            if (args.Element is not LibraryCard card
+                || sender.ItemsSourceView is not { } view
+                || args.Index < 0 || args.Index >= view.Count
+                || view.GetAt(args.Index) is not LibraryEntry album)
+            {
+                return;
+            }
+
+            card.IsArtist = false;
+
+            card.IsAlbum = true;
+
+            card.SetEntry(album, ResolveCover(album));
+
+            // The caption, over the top of what SetEntry just wrote. Done here rather
+            // than by a card mode because it is one grid's rule, not a property of the
+            // card: the Songs and Albums tabs show the file name and must keep doing so.
+            //
+            // Reassigned on every prepare, so a recycled element cannot arrive wearing
+            // the previous album's name.
+            card.SetAlbumCaption(album.AlbumTitle, album.AlbumArtistText);
+
+            card.CardTapped -= ArtistAlbumCard_Tapped;
+            card.CardTapped += ArtistAlbumCard_Tapped;
+        }
+
+        /// <summary>Opens the album a card on the artist page stands for.</summary>
+        private void ArtistAlbumCard_Tapped(object? sender, EventArgs e)
+        {
+            if (_openArtist is null || sender is not LibraryCard { Entry: { } album })
+            {
+                return;
+            }
+
+            OpenAlbum(
+                string.IsNullOrWhiteSpace(album.Album)
+                    ? AppContext.AppLang.LibraryUnknownAlbum
+                    : album.Album,
+                _openArtist);
         }
 
         /// <summary>
@@ -213,7 +445,19 @@ namespace mpv_winui.Domains.Playback
         {
             var lang = AppContext.AppLang;
 
-            AlbumBackText.Text = lang.LibraryAlbumBack;
+            // The back button says where it actually goes. Opened from an artist, one
+            // step out is that artist's albums, not the whole library - and a button
+            // labelled "back to music" that lands on one artist is a wrong statement
+            // rather than a shorthand.
+            var backToArtist = _openAlbum.Artist is not null;
+
+            AlbumBackText.Text = backToArtist ? lang.LibraryBackToArtist : lang.LibraryAlbumBack;
+
+            AutomationProperties.SetName(
+                AlbumBackButton, backToArtist ? lang.LibraryBackToArtist : lang.LibraryAlbumBack);
+
+            ToolTipService.SetToolTip(
+                AlbumBackButton, backToArtist ? lang.LibraryBackToArtist : lang.LibraryAlbumBack);
 
             AlbumColumnTitle.Text = lang.LibraryColumnTitle;
             AlbumColumnArtist.Text = lang.LibraryColumnArtist;
@@ -227,16 +471,18 @@ namespace mpv_winui.Domains.Playback
             // Same reason as the selection bar: an icon beside a TextBlock
             // leaves the button itself unnamed to UIA, so the four album
             // actions carry their accessible name and tooltip from here.
-            AutomationProperties.SetName(AlbumBackButton, lang.LibraryAlbumBack);
+            //
+            // AlbumBackButton is NOT named here: its word depends on where the page
+            // was opened from, and that is decided above. Naming it twice would let
+            // the second write undo the first - measured in this file before.
             AutomationProperties.SetName(AlbumPlayAllButton, lang.LibraryPlayAll);
             AutomationProperties.SetName(AlbumShuffleButton, lang.LibraryShufflePlay);
             AutomationProperties.SetName(AlbumAddToButton, lang.LibraryAlbumAddTo);
-            ToolTipService.SetToolTip(AlbumBackButton, lang.LibraryAlbumBack);
             ToolTipService.SetToolTip(AlbumPlayAllButton, lang.LibraryPlayAll);
             ToolTipService.SetToolTip(AlbumShuffleButton, lang.LibraryShufflePlay);
             ToolTipService.SetToolTip(AlbumAddToButton, lang.LibraryAlbumAddTo);
 
-            AlbumDetailTitle.Text = _openAlbum ?? string.Empty;
+            AlbumDetailTitle.Text = _openAlbum.Album;
 
             // The artist line is the album's own artist, which every track of an
             // album shares; the first track that has one speaks for the album.

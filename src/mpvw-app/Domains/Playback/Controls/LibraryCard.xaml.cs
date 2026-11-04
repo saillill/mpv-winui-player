@@ -353,6 +353,34 @@ namespace mpv_winui.Domains.Playback.Controls
         }
 
         /// <summary>
+        /// Replaces the caption with an album's own name and artist.
+        ///
+        /// <para><b>Why this is a method rather than a card mode.</b> Only one grid wants
+        /// it - the artist page's, which lists albums. The Songs and Albums tabs show the
+        /// file name, and a previous round asked for exactly that (「就是普通文件名，不要
+        /// 未知专辑/未知艺术家这种占位」), so this must not become something the card
+        /// decides for itself. The page that wants the other caption says so, per card,
+        /// after <see cref="SetEntry"/> has drawn the normal one.</para>
+        ///
+        /// <para>Called on every prepare, which is what keeps a recycled element from
+        /// wearing the previous album's name: preparation always runs SetEntry first and
+        /// this second, so the pair is rewritten together.</para>
+        /// </summary>
+        public void SetAlbumCaption(string album, string artist)
+        {
+            TitleText.Text = album;
+
+            SubtitleText.Text = artist;
+
+            // The second line is normally the length, and normally hidden when there is
+            // none. An album always has an artist line to show, even when that line is
+            // the localized "unknown artist", so it is forced visible here.
+            SubtitleText.Visibility = Visibility.Visible;
+
+            AutomationProperties.SetName(RootButton, album);
+        }
+
+        /// <summary>
         /// The file name of a path, or empty when the path is unusable.
         ///
         /// Swallows the ArgumentException Path.GetFileName throws on a string

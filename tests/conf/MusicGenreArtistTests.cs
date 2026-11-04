@@ -546,6 +546,144 @@ public class MusicGenreArtistTests
             Is.LessThan(grouping.IndexOf("ApplyLibraryFilter();", StringComparison.Ordinal)),
             "the row is recomputed before the list is rebuilt");
     }
+    /// <summary>
+    /// The album page remembers the artist it was opened from, and the back button
+    /// says so.
+    ///
+    /// <para>Two artists each having a "Greatest Hits" is ordinary, and the album page
+    /// used to key on the name alone - so both artists' tracks landed on one page. The
+    /// artist component is what stops that, and nothing else in the suite can see it:
+    /// the page's members are not reachable from this project.</para>
+    /// </summary>
+    [Test]
+    public void AnAlbumOpenedFromAnArtistIsScopedToThatArtist()
+    {
+        var music = StrippedPageSource(PageMusicCodePath);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                music,
+                Does.Contain("private (string Album, string? Artist) _openAlbum"),
+                "the open album must carry the artist, or two artists' same-named albums merge");
+
+            Assert.That(
+                music,
+                Does.Contain("private bool _albumOpened"),
+                "a tuple is a value type, so it cannot be the 'is the page up' flag");
+
+            var open = Squashed(MethodBody(music, "private void OpenAlbum(string album, string? artist)"));
+
+            Assert.That(
+                open,
+                Does.Contain(".Where(e => artist is null"),
+                "the narrowing must be part of the same filter chain that builds the track list");
+
+            Assert.That(open, Does.Contain("_openAlbum = (album, artist);"));
+
+            // The Albums tab groups by name, so it has no artist to narrow by and must
+            // An expression-bodied one-liner, so there is no brace span to slice:
+            // the declaration and the pass-through are the same line.
+            Assert.That(
+                music,
+                Does.Contain("private void OpenAlbum(string album) => OpenAlbum(album, artist: null);"),
+                "the Albums tab entry point must not narrow by artist");
+        });
+    }
+
+    /// <summary>
+    /// The back button's word follows where the page was opened from.
+    ///
+    /// <para>A button that says "back to music" and lands on one artist's albums is a
+    /// wrong statement, not a shorthand. Its name and tooltip are written in the same
+    /// two places as its text, and naming it a second time further down the method would
+    /// let the second write undo the first - this file has paid for that before, which is
+    /// why the assertion pins BOTH the branch and the absence of a second writer.</para>
+    /// </summary>
+    [Test]
+    public void TheAlbumBackButtonNamesTheArtistItReturnsTo()
+    {
+        var music = StrippedPageSource(PageMusicCodePath);
+        var chrome = Squashed(MethodBody(music, "private async void ApplyAlbumChrome()"));
+
+        Assert.Multiple(() =>
+        {
+            // All three writers carry the same branch. The text alone is not enough:
+            // a name or tooltip left unconditional would tell a screen reader and a
+            // hover tooltip a different story from the visible label.
+            Assert.That(
+                CountOccurrences(chrome, "backToArtist ? lang.LibraryBackToArtist : lang.LibraryAlbumBack"),
+                Is.EqualTo(3),
+                "the label, the accessible name and the tooltip must all follow where the album was opened from");
+
+            // Squashed collapses the newline between the call and its first argument,
+            // so the needle carries that space.
+            Assert.That(
+                chrome.Split("SetName( AlbumBackButton").Length,
+                Is.EqualTo(2),
+                "AlbumBackButton is named exactly once: a second unconditional write would undo the branch");
+        });
+    }
+
+    /// <summary>
+    /// The artist page's grid captions albums, and only that grid.
+    ///
+    /// <para>The card shows the file name everywhere else - a previous round asked for
+    /// exactly that. So the album caption has to be something the artist page asks for
+    /// per card, not a mode the card decides for itself, and it has to be reapplied on
+    /// every prepare or a recycled element keeps the previous album's name.</para>
+    /// </summary>
+    [Test]
+    public void OnlyTheArtistPagesGridCaptionsAlbums()
+    {
+        var music = StrippedPageSource(PageMusicCodePath);
+        var prepare = Squashed(MethodBody(
+            music,
+            "private void ArtistAlbumGrid_ElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                prepare,
+                Does.Contain("card.SetAlbumCaption(album.AlbumTitle, album.AlbumArtistText)"),
+                "the artist page's album grid must caption the album, not the file name");
+
+            Assert.That(
+                prepare.IndexOf("card.SetEntry(album", StringComparison.Ordinal),
+                Is.LessThan(prepare.IndexOf("card.SetAlbumCaption(", StringComparison.Ordinal)),
+                "SetEntry draws the file-name caption; the album caption has to come after it or it is overwritten");
+
+            Assert.That(
+                StrippedPageSource(PageLibraryCodePath),
+                Does.Not.Contain("SetAlbumCaption"),
+                "the caption is one grid's rule: no other surface may ask for it");
+        });
+    }
+
+    /// <summary>
+    /// Closing the host drops every piece of the artist state.
+    ///
+    /// <para>Three pieces, and a stale one is invisible until it matters: the tuple, the
+    /// bool the tuple cannot provide, and the artist. Leaving the artist set would make
+    /// the next album opened from the Albums tab hand back to an artist page that is not
+    /// on screen.</para>
+    /// </summary>
+    [Test]
+    public void TheHostResetsTheAlbumAndArtistStateTogether()
+    {
+        var library = Squashed(MethodBody(
+            StrippedPageSource(PageLibraryCodePath),
+            "private void HideSurfacesOverLibrary()"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(library, Does.Contain("_openAlbum = default;"));
+            Assert.That(library, Does.Contain("_albumOpened = false;"));
+            Assert.That(library, Does.Contain("_openArtist = null;"));
+            Assert.That(library, Does.Contain("ArtistHost.Visibility = Visibility.Collapsed;"));
+        });
+    }
+
 
     /// <summary>
     /// The braced body of the method whose declaration is
@@ -811,6 +949,20 @@ public class MusicGenreArtistTests
     private static string PageMusicCodePath
         => Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage.Library.Music.cs");
 
+    /// <summary>How many times a needle occurs in a haystack, without allocating a split.</summary>
+    private static int CountOccurrences(string haystack, string needle)
+    {
+        var count = 0;
+        var at = 0;
+
+        while ((at = haystack.IndexOf(needle, at, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            at += needle.Length;
+        }
+
+        return count;
+    }
     /// <summary>
     /// Finds a repository file without assuming where the binary runs.
     ///

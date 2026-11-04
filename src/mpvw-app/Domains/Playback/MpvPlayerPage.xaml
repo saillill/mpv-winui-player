@@ -1883,6 +1883,96 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
+                <!--  The artist page: the album page's other state, in the same host.
+
+                      One host with two states rather than a second overlay above this
+                      one. Both are reached from the library wall, both are one level
+                      deep, and both want the same back button in the same corner - a
+                      second host would mean a second copy of that button and a stack of
+                      z-orders to keep in step. Which state is showing is decided by
+                      _openArtist (see OpenAlbum and ApplyArtistChrome).
+
+                      RowSpan=2 because it has none of the album page's "header row plus
+                      list row" shape: it is one block, and the 32 gutter it takes from
+                      MpvBrowseHostPadding is the padding every browsing surface on this
+                      page uses. -->
+                <Grid
+                    x:Name="ArtistHost"
+                    Grid.RowSpan="2"
+                    Padding="{StaticResource MpvBrowseHostPadding}"
+                    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                    Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel
+                        Grid.Row="0"
+                        Margin="0,8,0,16">
+                        <Button
+                            x:Name="ArtistBackButton"
+                            Margin="0,0,0,16"
+                            Padding="8,4"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="ArtistBack_Click">
+                            <StackPanel
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource MpvSpaceS}">
+                                <FontIcon
+                                    FontFamily="{StaticResource MpvIconFontFamily}"
+                                    FontSize="{StaticResource MpvInlineIconSize}"
+                                    Glyph="&#xE72B;" />
+                                <TextBlock
+                                    x:Name="ArtistBackText"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+                        </Button>
+
+                        <!--  The portrait: a 200px circle with the bundled person glyph
+                              in it. The glyph is the same one a tile wears (U+F5BE,
+                              ic_fluent_person_24_regular), so the page and the tile it
+                              was opened from wear the same mark.
+
+                              100 is CircleCornerRadius(200): a literal because CardMetrics
+                              is an internal static class and markup cannot name it, the
+                              same reason the card's own radii are literals. -->
+                        <Border
+                            Width="200"
+                            Height="200"
+                            HorizontalAlignment="Left"
+                            Background="{ThemeResource MpvMusicArtworkFallbackBrush}"
+                            CornerRadius="100">
+                            <FontIcon
+                                FontFamily="{StaticResource MpvIconFontFamily}"
+                                FontSize="64"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                Glyph="&#xF5BE;" />
+                        </Border>
+
+                        <TextBlock
+                            x:Name="ArtistDetailName"
+                            Margin="0,16,0,0"
+                            FontSize="30"
+                            FontWeight="SemiBold"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+
+                    <!--  No summary line and no action row: the user was explicit that
+                          this page carries neither. What it does carry is the artist's
+                          albums, and the way to play anything is to open one. -->
+                    <ScrollViewer
+                        Grid.Row="1"
+                        HorizontalScrollBarVisibility="Disabled"
+                        HorizontalScrollMode="Disabled"
+                        VerticalScrollBarVisibility="Auto"
+                        VerticalScrollMode="Auto">
+                        <ItemsRepeater x:Name="ArtistAlbumGrid" />
+                    </ScrollViewer>
+                </Grid>
+
                 <StackPanel
                     Grid.Row="0"
                     Margin="{StaticResource MpvBreadcrumbBarMargin}">
