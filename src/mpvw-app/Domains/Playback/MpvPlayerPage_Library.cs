@@ -581,7 +581,15 @@ namespace mpv_winui.Domains.Playback
             QueueView.Visibility = hasItems ? Visibility.Visible : Visibility.Collapsed;
             QueueEmptyState.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
         }
-
+        /// <summary>
+        /// The music library's three presentations.
+        ///
+        /// Songs is the flat list; Albums and Artists group the same files by the
+        /// one tag each of them surfaces. The grouping uses the same per-file
+        /// metadata the rest of the library reads, so there is no second index to
+        /// keep in step - and a file with no tag lands in a single "unknown" group
+        /// rather than being dropped, which is what the reference players do.
+        /// </summary>
         private enum MusicGrouping
         {
             Songs,
@@ -690,6 +698,15 @@ namespace mpv_winui.Domains.Playback
 
             VideoPlayAllButton.Visibility = isMusic ? Visibility.Collapsed : Visibility.Visible;
             MusicShuffleAllButton.Visibility = isMusic ? Visibility.Visible : Visibility.Collapsed;
+
+            // The genre button joins the same swap. It is a MUSIC control standing in a
+            // row both libraries share, so without this the video library shows
+            // 「流派：所有流派」 over a grid the genre layer refuses to filter - a control
+            // that does nothing, which is worse than one that is absent. Set here, beside
+            // the other two, rather than in the markup: the markup cannot know the
+            // section, and a second predicate elsewhere would be a second answer to one
+            // question.
+            MusicGenreButton.Visibility = isMusic ? Visibility.Visible : Visibility.Collapsed;
         }
         /// <summary>
         /// The bar's 清除: clears every tick, which is how the mode is left.
@@ -1244,6 +1261,15 @@ namespace mpv_winui.Domains.Playback
                 _ => [],
             };
 
+            // The music library BEFORE the search runs. The genre dropdown's
+            // vocabulary comes from here, not from the search results (spec 8.3.11):
+            // built from the results, every genre outside the current matches would
+            // vanish from the menu, and the entry the user is filtering by would
+            // disappear while the button still named it.
+            var beforeSearch = _librarySection == LibrarySectionMusic
+                ? entries.ToList()
+                : null;
+
             if (!string.IsNullOrWhiteSpace(_libraryFilter))
             {
                 var needle = _libraryFilter.Trim();
@@ -1273,11 +1299,12 @@ namespace mpv_winui.Domains.Playback
             {
                 beforeGenre = cards;
 
-                // Vocabulary from BEFORE the genre filter (spec 8.3.11): taken after it,
-                // the genre the user just picked would disappear from the menu on the
-                // next rebuild - the button naming something the menu no longer offers.
+                // From the PRE-SEARCH set (spec 8.3.11). Substituting the search
+                // results here is the exact failure the clause names: type a query and
+                // the menu shrinks to that query's genres, so the chosen genre can
+                // vanish while it is still filtering the grid.
                 _musicGenreVocabulary = MusicGenreFilter.Vocabulary(
-                    beforeGenre.Select(e => (e.Album, e.Genre)));
+                    (beforeSearch ?? beforeGenre).Select(e => (e.Album, e.Genre)));
 
                 cards = beforeGenre.Where(e => MusicGenreFilter.Matches(e.Genre, _musicGenre)).ToList();
             }
@@ -1296,25 +1323,26 @@ namespace mpv_winui.Domains.Playback
                 || musicGrouped || homeBanded;
 
             // The Albums tab keeps an album WHOLE. The genre filter above dropped every
-// track that is not the chosen genre, which would leave a matching album holding
-// only the tracks that happen to carry that tag - its heading would count one
-// number and its album page another. So a genre match pulls in every track of its
-// album, taken from the snapshot before the genre layer.
-if (_librarySection == LibrarySectionMusic
-    && _musicGrouping == MusicGrouping.Albums
-    && _musicGenre.Kind != MusicGenreKind.All
-    && beforeGenre is { } allTracks)
-{
-    var kept = MusicGenreFilter.KeptAlbumKeys(
-        allTracks.Select(e => (e.Album, e.Genre)), _musicGenre);
+            // track that is not the chosen genre, which would leave a matching album
+            // holding only the tracks that happen to carry that tag - its heading would
+            // count one number and its album page another. So a genre match pulls in
+            // every track of its album, taken from the snapshot before the genre layer.
+            if (_librarySection == LibrarySectionMusic
+                && _musicGrouping == MusicGrouping.Albums
+                && _musicGenre.Kind != MusicGenreKind.All
+                && beforeGenre is { } allTracks)
+            {
+                var kept = MusicGenreFilter.KeptAlbumKeys(
+                    allTracks.Select(e => (e.Album, e.Genre)), _musicGenre);
 
-    var keptSet = new HashSet<string>(kept, StringComparer.CurrentCultureIgnoreCase);
+                var keptSet = new HashSet<string>(kept, StringComparer.CurrentCultureIgnoreCase);
 
-    cards = allTracks
-        .Where(e => keptSet.Contains(string.IsNullOrWhiteSpace(e.Album) ? string.Empty : e.Album))
-        .ToList();
-}
-if (_librarySection == LibrarySectionVideos)
+                cards = allTracks
+                    .Where(e => keptSet.Contains(string.IsNullOrWhiteSpace(e.Album) ? string.Empty : e.Album))
+                    .ToList();
+            }
+
+            if (_librarySection == LibrarySectionVideos)
             {
                 cards = SortVideoEntries(cards, _videoSort);
             }

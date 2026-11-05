@@ -1521,7 +1521,7 @@
   "LibraryShufflePlay": "Zufallswiedergabe",
   "LibraryAlbumAddTo": "Hinzufügen zu",
   "LibraryAlbumBack": "Zurück zur Musik",
-        "LibraryBackToArtist": "Zurück zum Künstler",
+  "LibraryBackToArtist": "Zurück zum Künstler",
   "LibraryAlbumSummary": "{0} Titel · {1}",
   "LibraryColumnTitle": "Titel",
   "LibraryColumnArtist": "Interpret",

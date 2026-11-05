@@ -1521,7 +1521,7 @@
   "LibraryShufflePlay": "隨機播放",
   "LibraryAlbumAddTo": "加到",
   "LibraryAlbumBack": "返回音樂庫",
-        "LibraryBackToArtist": "返回藝術家",
+  "LibraryBackToArtist": "返回藝術家",
   "LibraryAlbumSummary": "{0} 首歌曲 · {1}",
   "LibraryColumnTitle": "標題",
   "LibraryColumnArtist": "演出者",

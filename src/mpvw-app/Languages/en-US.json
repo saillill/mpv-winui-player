@@ -1497,7 +1497,7 @@
   "LibraryShufflePlay": "Shuffle",
   "LibraryAlbumAddTo": "Add to",
   "LibraryAlbumBack": "Back to music",
-        "LibraryBackToArtist": "Back to artist",
+  "LibraryBackToArtist": "Back to artist",
   "LibraryAlbumSummary": "{0} songs · {1}",
   "LibraryColumnTitle": "Title",
   "LibraryColumnArtist": "Artist",

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace mpv_winui.Domains.Playback.Cards;
@@ -167,7 +167,9 @@ internal static class MusicGenreFilter
                 continue;
             }
 
-            var key = album ?? string.Empty;
+            // Whitespace-only and absent are the same album, spelled the same way here and at every lookup: the page normalises with IsNullOrWhiteSpace, so a raw "   " key would match the genre and then fail its own lookup, dropping that album from the Albums tab.
+            // Whitespace-only and absent are the same album, spelled the same way here and at every lookup: the page normalises with IsNullOrWhiteSpace, so a raw "   " key would match the genre and then fail its own lookup, dropping that album from the Albums tab.
+            var key = string.IsNullOrWhiteSpace(album) ? string.Empty : album;
 
             if (seen.Add(key))
             {

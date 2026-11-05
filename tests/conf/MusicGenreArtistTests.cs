@@ -923,9 +923,57 @@ public class MusicGenreArtistTests
                 "ThenByDescending is the wrong shape: the letters would stay A-Z");
         });
     }
-
+    /// <summary>
+    /// The vocabulary is the whole music library, taken BEFORE the search.
+    ///
+    /// <para>Spec 8.3.11 names both halves: before the search, and before the genre
+    /// filter. Taking the search RESULTS is the failure the clause exists to prevent -
+    /// the menu would shrink to the current query's genres, so the genre being filtered
+    /// on could vanish while the button still named it. Taking the post-genre list has
+    /// the same effect one layer down. So the source is pinned, not just the order of
+    /// two calls: the first version of this test asserted only "before the genre
+    /// filter", which the code satisfied while violating the half that matters.</para>
+    /// </summary>
+    /// <summary>
+    /// The menu is rebuilt when it OPENS, not once when the page is built.
+    ///
+    /// <para>This is the defect that shipped: the vocabulary is filled by the library
+    /// load, which finishes long after construction, so a menu built at startup held
+    /// only the two fixed entries for the whole session. The genres reached the field
+    /// and never the flyout. Nothing in this suite looked at the menu at all, and the
+    /// running app looked plausible because "All genres / Unknown genre" is exactly
+    /// what a one-track library would show.</para>
+    ///
+    /// <para>Pinned as a wiring fact - the flyout names an Opening handler, and that
+    /// handler rebuilds - because the alternative (asserting the item list) needs a
+    /// live MenuFlyout and would test the framework.</para>
+    /// </summary>
     [Test]
-    public void TheGenreVocabularyIsTakenBeforeTheGenreFilter()
+    public void TheGenreMenuIsRebuiltEveryTimeItOpens()
+    {
+        var xaml = File.ReadAllText(Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage.xaml"));
+
+        var music = Squashed(StrippedPageSource(PageMusicCodePath));
+
+        var opening = Squashed(MethodBody(
+            StrippedPageSource(PageMusicCodePath),
+            "private void MusicGenre_Opening(object sender, object e)"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(xaml, Does.Contain("Opening=\"MusicGenre_Opening\""),
+                "the flyout must name an Opening handler, or the menu is built once and never sees the vocabulary");
+
+            Assert.That(opening, Does.Contain("ApplyGenreStrings()"),
+                "the Opening handler must actually rebuild the items");
+
+            // And the builder must add the vocabulary entries, not just the two fixed ones.
+            Assert.That(music, Does.Contain("foreach (var name in _musicGenreVocabulary)"),
+                "the builder must walk the vocabulary, or the menu can only ever hold All and Unknown");
+        });
+    }
+    [Test]
+    public void TheGenreVocabularyIsTakenBeforeTheSearchAndTheGenreFilter()
     {
         var filter = Squashed(MethodBody(
             StrippedPageSource(PageLibraryCodePath),
@@ -933,20 +981,20 @@ public class MusicGenreArtistTests
 
         var vocabulary = filter.IndexOf("MusicGenreFilter.Vocabulary", StringComparison.Ordinal);
         var matches = filter.IndexOf("MusicGenreFilter.Matches", StringComparison.Ordinal);
+        var search = filter.IndexOf("var needle = _libraryFilter.Trim()", StringComparison.Ordinal);
 
         Assert.Multiple(() =>
         {
             Assert.That(vocabulary, Is.GreaterThanOrEqualTo(0), "the vocabulary is never built");
             Assert.That(matches, Is.GreaterThanOrEqualTo(0), "the genre filter is never applied");
+            Assert.That(search, Is.GreaterThanOrEqualTo(0), "the search block is gone");
 
-            // Order alone is a weak guard: a build that filters first and then takes
-            // the vocabulary from the ORIGINAL list still reads vocabulary-before-
-            // matches if the two lines swap. What actually matters is which list the
-            // vocabulary is built from, so that is pinned too.
-            Assert.That(
-                filter,
-                Does.Contain("MusicGenreFilter.Vocabulary( beforeGenre.Select"),
-                "the vocabulary must be built from the snapshot taken before the filter, not from the filtered list");
+            // The pre-search snapshot must exist, and the vocabulary must read it.
+            Assert.That(filter, Does.Contain("var beforeSearch = "),
+                "the pre-search snapshot is gone; without it the vocabulary can only be the search results");
+
+            Assert.That(filter, Does.Contain("MusicGenreFilter.Vocabulary( (beforeSearch ?? beforeGenre).Select"),
+                "the vocabulary must read the pre-search set, not the search results and not the genre-filtered list");
 
             Assert.That(
                 vocabulary,
@@ -982,10 +1030,16 @@ public class MusicGenreArtistTests
                 Is.GreaterThanOrEqualTo(0),
                 "the button is gone from the markup");
 
+            // POSITIVE, and over the file that really holds the method. The first
+            // version of this assertion was a negative over MpvPlayerPage_Library.cs
+            // - a file that cannot contain the symbol at all - so it was true by
+            // construction AND it forbade the fix for the button standing on the
+            // video library. The button belongs to the same swap as Play-all and
+            // Shuffle, because this row is shared by both libraries.
             Assert.That(
                 Squashed(MethodBody(StrippedPageSource(PageLibraryCodePath), "private void ApplyVideoChromeVisibility()")),
-                Does.Not.Contain("MusicGenreButton"),
-                "the row already hides on the artists tab; a second tab check on the button is a second source of truth for one answer");
+                Does.Contain("MusicGenreButton.Visibility = isMusic"),
+                "the genre button is music-only, so it must follow the same section swap as Play-all and Shuffle");
         });
     }
 

@@ -191,6 +191,17 @@ public class MusicGenreFilterTests
     }
 
     [Test]
+    public void AWhitespaceOnlyAlbumKeepsItsKey()
+    {
+        // The page looks the key up with IsNullOrWhiteSpace, so a key of "   " would
+        // match the genre and then miss its own lookup - that album would disappear
+        // from the Albums tab while still counting toward the filter.
+        Assert.That(
+            MusicGenreFilter.KeptAlbumKeys(new[] { ("   ", "Rock") }, MusicGenreSelection.Named("Rock")),
+            Is.EqualTo(new[] { string.Empty }),
+            "a blank album tag files under the same empty key as a missing one");
+    }
+    [Test]
     public void AFilesWithNoAlbumUsesTheEmptyKey()
     {
         // The empty key is returned as-is rather than mapped to a label: this class

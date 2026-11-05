@@ -1521,7 +1521,7 @@
   "LibraryShufflePlay": "Перемешать",
   "LibraryAlbumAddTo": "Добавить в",
   "LibraryAlbumBack": "Назад к музыке",
-        "LibraryBackToArtist": "Назад к исполнителю",
+  "LibraryBackToArtist": "Назад к исполнителю",
   "LibraryAlbumSummary": "{0} треков · {1}",
   "LibraryColumnTitle": "Название",
   "LibraryColumnArtist": "Исполнитель",

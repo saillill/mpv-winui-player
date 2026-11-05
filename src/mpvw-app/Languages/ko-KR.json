@@ -1521,7 +1521,7 @@
   "LibraryShufflePlay": "셔플 재생",
   "LibraryAlbumAddTo": "추가 대상",
   "LibraryAlbumBack": "음악으로 돌아가기",
-        "LibraryBackToArtist": "아티스트로 돌아가기",
+  "LibraryBackToArtist": "아티스트로 돌아가기",
   "LibraryAlbumSummary": "{0}곡 · {1}",
   "LibraryColumnTitle": "제목",
   "LibraryColumnArtist": "아티스트",

@@ -1262,10 +1262,12 @@
                                   are loaded, so it is not a fixed list and must not be
                                   cached in markup. See ApplyGenreStrings.
 
-                                  Visibility is Visible and stays that way. The whole row
-                                  (VideoChrome) is collapsed on the artists tab, so this
-                                  button disappears with it; adding a second tab check here
-                                  would be a second source of truth for the same answer. -->
+                                  Visibility is Collapsed here and switched on by
+                                  ApplyVideoChromeVisibility, beside the Play-all / Shuffle
+                                  swap: this row belongs to BOTH libraries, and the genre
+                                  filter is music-only. Leaving it Visible put a dead control
+                                  in the video library, over a grid the genre layer never
+                                  touches. -->
                             <DropDownButton
                                 x:Name="MusicGenreButton"
                                 Grid.Column="2"
@@ -1273,9 +1275,17 @@
                                 HorizontalAlignment="Right"
                                 Background="Transparent"
                                 BorderThickness="0"
-                                Visibility="Visible">
+                                Visibility="Collapsed">
                                 <DropDownButton.Flyout>
-                                    <MenuFlyout Placement="Bottom" />
+                                    <!--  Rebuilt on OPENING, not when the page is built. The
+                                          vocabulary comes from the tracks that are loaded, and
+                                          they arrive after construction: a menu filled once at
+                                          startup would hold only the two fixed entries for the
+                                          rest of the session. Same rule SelectionAddTo_Opening
+                                          follows. -->
+                                    <MenuFlyout
+                                        Opening="MusicGenre_Opening"
+                                        Placement="Bottom" />
                                 </DropDownButton.Flyout>
                             </DropDownButton>
                         </Grid>

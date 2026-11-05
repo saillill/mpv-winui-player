@@ -34,15 +34,6 @@ namespace mpv_winui.Domains.Playback
     public sealed partial class MpvPlayerPage
     {
         /// <summary>
-        /// The music library's three presentations.
-        ///
-        /// Songs is the flat list; Albums and Artists group the same files by the
-        /// one tag each of them surfaces. The grouping uses the same per-file
-        /// metadata the rest of the library reads, so there is no second index to
-        /// keep in step - and a file with no tag lands in a single "unknown" group
-        /// rather than being dropped, which is what the reference players do.
-        /// </summary>
-        /// <summary>
         /// The genre dropdown's caption, its accessible name, and its items.
         ///
         /// <para>The items are rebuilt rather than declared because the vocabulary comes
@@ -105,6 +96,17 @@ namespace mpv_winui.Domains.Playback
             MusicGenreKind.Unknown => AppContext.AppLang.LibraryUnknownGenre,
             _ => _musicGenre.Name,
         };
+
+        /// <summary>
+        /// Rebuilds the genre menu each time it opens.
+        ///
+        /// <para>The vocabulary is filled by the library load, which finishes long after
+        /// this page is constructed. Building the menu once at startup left it holding
+        /// only the two fixed entries for the whole session - the genres arrived in the
+        /// field and never reached the flyout. Rebuilding on open is also what makes a
+        /// language change and a re-scan show up without a second code path.</para>
+        /// </summary>
+        private void MusicGenre_Opening(object sender, object e) => ApplyGenreStrings();
 
         private void MusicGenre_Click(object sender, RoutedEventArgs e)
         {
