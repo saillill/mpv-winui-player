@@ -793,6 +793,17 @@ namespace mpv_winui.Domains.Playback
                 .ThenBy(group => group.Name, StringComparer.CurrentCultureIgnoreCase)
                 .ToList();
 
+            // Z-A reverses the WHOLE sequence, not the inner comparer. Reversing only
+            // ThenBy would keep the letters running A to Z while each letter's contents
+            // ran backwards - a list that is neither order. The rail stays A to Z and
+            // jumps to the first group carrying that letter, which under this order is
+            // that letter's last row; that is the expected behaviour, not a leak of the
+            // sort into the rail.
+            if (EffectiveMusicSort == VideoSortMode.NameDesc)
+            {
+                groups.Reverse();
+            }
+
             // Letter -> the presenter hosting that group's header, filled as the groups
             // are built so the rail knows where to jump instead of walking the visual
             // tree and guessing which presenter is which.

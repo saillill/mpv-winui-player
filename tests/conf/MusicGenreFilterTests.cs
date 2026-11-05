@@ -155,6 +155,42 @@ public class MusicGenreFilterTests
     }
 
     [Test]
+    public void AnAlbumIsKeptWholeWhenOneTrackMatches()
+    {
+        // The page-side step, not just the key list: an album enters the filter through
+        // ANY one of its tracks, and what survives is every track of that album. Pinned
+        // as a pair because a key list alone does not prove the page filters on it.
+        var tracks = new[]
+        {
+            ("X", "Rock"),
+            ("X", "Pop"),
+            ("X", ""),
+            ("Y", "Jazz"),
+        };
+
+        var kept = MusicGenreFilter.KeptAlbumKeys(tracks, MusicGenreSelection.Named("Rock"));
+
+        var keptSet = new HashSet<string>(kept, StringComparer.CurrentCultureIgnoreCase);
+
+        var surviving = tracks
+            .Where(t => keptSet.Contains(string.IsNullOrWhiteSpace(t.Item1) ? string.Empty : t.Item1))
+            .ToList();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(kept, Is.EqualTo(new[] { "X" }));
+
+            Assert.That(
+                surviving.Select(t => t.Item1 + "|" + t.Item2),
+                Is.EquivalentTo(new[] { "X|Rock", "X|Pop", "X|" }),
+                "the matching track keeps its album mates even when they are another genre or untagged");
+
+            Assert.That(surviving.Any(t => t.Item1 == "Y"), Is.False,
+                "an album nothing in matched must not ride along");
+        });
+    }
+
+    [Test]
     public void AFilesWithNoAlbumUsesTheEmptyKey()
     {
         // The empty key is returned as-is rather than mapped to a label: this class

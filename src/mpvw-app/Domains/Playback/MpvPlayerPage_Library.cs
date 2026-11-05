@@ -1295,7 +1295,26 @@ namespace mpv_winui.Domains.Playback
             var folderView = (_librarySection == LibrarySectionVideos && _videoFolderView)
                 || musicGrouped || homeBanded;
 
-            if (_librarySection == LibrarySectionVideos)
+            // The Albums tab keeps an album WHOLE. The genre filter above dropped every
+// track that is not the chosen genre, which would leave a matching album holding
+// only the tracks that happen to carry that tag - its heading would count one
+// number and its album page another. So a genre match pulls in every track of its
+// album, taken from the snapshot before the genre layer.
+if (_librarySection == LibrarySectionMusic
+    && _musicGrouping == MusicGrouping.Albums
+    && _musicGenre.Kind != MusicGenreKind.All
+    && beforeGenre is { } allTracks)
+{
+    var kept = MusicGenreFilter.KeptAlbumKeys(
+        allTracks.Select(e => (e.Album, e.Genre)), _musicGenre);
+
+    var keptSet = new HashSet<string>(kept, StringComparer.CurrentCultureIgnoreCase);
+
+    cards = allTracks
+        .Where(e => keptSet.Contains(string.IsNullOrWhiteSpace(e.Album) ? string.Empty : e.Album))
+        .ToList();
+}
+if (_librarySection == LibrarySectionVideos)
             {
                 cards = SortVideoEntries(cards, _videoSort);
             }

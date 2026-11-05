@@ -882,6 +882,48 @@ public class MusicGenreArtistTests
     /// genre, so that genre stops appearing among the tracks, so it stops being offered -
     /// while the button still names it. The menu would show nothing ticked.</para>
     /// </summary>
+
+    /// <summary>
+    /// A genre match keeps the whole album, and the album grid follows the sort.
+    ///
+    /// <para>Two behaviours that only exist together: the trim alone would leave the
+    /// album in the sort's own order, and the reverse alone would reorder a list that
+    /// still showed only the matching tracks. Both are source assertions because they
+    /// live in the page's filter, which needs a live repeater to run.</para>
+    /// </summary>
+    [Test]
+    public void AGenreMatchKeepsTheWholeAlbumAndTheGridFollowsTheSort()
+    {
+        var filter = Squashed(MethodBody(
+            StrippedPageSource(PageLibraryCodePath),
+            "private void ApplyLibraryFilter()"));
+
+        var albums = Squashed(MethodBody(
+            StrippedPageSource(PageMusicCodePath),
+            "private void BuildMusicTagGroups(List<LibraryEntry> entries)"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(filter, Does.Contain("MusicGenreFilter.KeptAlbumKeys"),
+                "a matching track must pull in its album mates, or the heading and the album page disagree");
+
+            // Pins the SOURCE LIST, not merely that the snapshot exists: reading the
+            // survivors out of the already-filtered list would keep nothing, and that
+            // variant still contains the words "allTracks" elsewhere.
+            Assert.That(filter, Does.Contain("cards = allTracks").And.Contain("beforeGenre is { } allTracks"),
+                "the survivors come from the pre-genre snapshot; trimming within the filtered list keeps nothing");
+
+            Assert.That(albums, Does.Contain("groups.Reverse()"),
+                "Z-A reverses the whole sequence; reversing only ThenBy gives neither A-Z nor Z-A");
+
+            Assert.That(albums, Does.Contain("EffectiveMusicSort == VideoSortMode.NameDesc"),
+                "the album grid's order must come from the effective sort, not a literal");
+
+            Assert.That(albums, Does.Not.Contain("ThenByDescending"),
+                "ThenByDescending is the wrong shape: the letters would stay A-Z");
+        });
+    }
+
     [Test]
     public void TheGenreVocabularyIsTakenBeforeTheGenreFilter()
     {
