@@ -1343,7 +1343,17 @@ namespace mpv_winui.Domains.Playback
             {
                 if (musicGrouped)
                 {
-                    BuildMusicTagGroups(cards);
+                    // Two grouped tabs, two shapes: Albums groups tracks under their
+                    // album, Artists gives each artist ONE tile and keeps their songs a
+                    // level down. Same container, different builder.
+                    if (_musicGrouping == MusicGrouping.Albums)
+                    {
+                        BuildMusicTagGroups(cards);
+                    }
+                    else
+                    {
+                        BuildArtistTiles(cards);
+                    }
                 }
                 else if (homeBanded)
                 {

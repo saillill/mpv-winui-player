@@ -726,6 +726,96 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
+        /// Fills the artists tab with one circular tile per artist.
+        ///
+        /// <para><b>Why not <see cref="BuildMusicTagGroups"/>.</b> That method groups
+        /// the tracks of one tag and hands the whole group to a repeater, so the
+        /// Artists tab used to be a wall of TRACK cards under an artist heading - the
+        /// heading was the artist, the cards underneath were songs. This method gives
+        /// each artist exactly one card instead: the tile stands for the person, and
+        /// their songs arrive one level down.</para>
+        ///
+        /// <para><b>One carrier entry per tile.</b> A card needs an entry to render, and
+        /// an artist has none of their own, so the tile carries the group's first track.
+        /// <see cref="VideoFolderGroup.Items"/> must therefore hold exactly that one
+        /// entry - the repeater draws one card per item, so handing it the whole group
+        /// rebuilds the wall this replaces. The artist's real track list is re-derived
+        /// by <see cref="OpenArtist"/> from the library.</para>
+        /// </summary>
+        private void BuildArtistTiles(List<LibraryEntry> entries)
+        {
+            VideoFolderGroups.Children.Clear();
+
+            var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
+
+            // Its own header shape: the album header carries a 56px sleeve and a track
+            // count, and a person has neither. One letter is all this wall needs.
+            var headerTemplate = (DataTemplate)Resources["ArtistGroupHeaderTemplate"];
+
+            // "Unknown" sorts last, like the two tag groupings: it is the fallback
+            // bucket, not the most important artist in the library.
+            var unknownLabel = AppContext.AppLang.LibraryUnknownArtist;
+
+            var groups = entries
+                .GroupBy(
+                    entry => string.IsNullOrWhiteSpace(entry.Artist) ? "\uFFFF" : entry.Artist,
+                    StringComparer.CurrentCultureIgnoreCase)
+                .Select(group =>
+                {
+                    var name = group.Key == "\uFFFF" ? unknownLabel : group.Key;
+
+                    // Exactly one: see the note above. Ordered by title first so the
+                    // carrier is stable across rebuilds rather than following whatever
+                    // order the scan produced.
+                    var carrier = group
+                        .OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
+                        .First();
+
+                    return new VideoFolderGroup(
+                        name,
+                        new List<LibraryEntry> { carrier },
+                        Path: string.Empty,
+                        Letter: LibraryIndexLetter.For(name, ch => PinyinInitial.For(ch.ToString())));
+                })
+                .OrderBy(group => Array.IndexOf(LibraryIndexLetter.All, group.Letter))
+                .ThenBy(group => group.Name, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+
+            _groupHeaders.Clear();
+
+            foreach (var group in groups)
+            {
+                var header = new ContentPresenter
+                {
+                    Content = group,
+                    ContentTemplate = headerTemplate,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                };
+
+                VideoFolderGroups.Children.Add(header);
+
+                if (!string.IsNullOrEmpty(group.Letter))
+                {
+                    // First group wins, as in the tag groupings: several artists can
+                    // share a letter and the rail lands on the first of them.
+                    _groupHeaders.TryAdd(group.Letter, header);
+                }
+
+                var repeater = new ItemsRepeater
+                {
+                    ItemTemplate = cardTemplate,
+                    ItemsSource = group.Items,
+                };
+                repeater.Layout = AlbumCardLayout();
+
+                repeater.ElementPrepared += LibraryGrid_ElementPrepared;
+                VideoFolderGroups.Children.Add(repeater);
+            }
+
+            BuildLibraryIndexRail(groups);
+        }
+
+        /// <summary>
         /// Fills in album / artist / length for the music entries, in one batch.
         ///
         /// The folder scan cannot carry these: it enumerates paths and never opens

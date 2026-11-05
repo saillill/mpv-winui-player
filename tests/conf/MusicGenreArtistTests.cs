@@ -736,6 +736,103 @@ public class MusicGenreArtistTests
     }
 
     /// <summary>
+    /// The artists tab builds one tile per artist, and each tile carries one entry.
+    ///
+    /// <para>Two defects share this shape and neither is visible to a logic test. The
+    /// tab used to hand the whole artist group to a repeater, so it drew a wall of
+    /// TRACK cards under an artist heading; and an ItemsRepeater draws one card per
+    /// item, so a group carrying N tracks renders N cards however the grouping reads.
+    /// </para>
+    /// </summary>
+    [Test]
+    public void EachArtistGetsOneTileCarryingOneEntry()
+    {
+        var body = Squashed(MethodBody(
+            StrippedPageSource(PageMusicCodePath),
+            "private void BuildArtistTiles(List<LibraryEntry> entries)"));
+
+        Assert.Multiple(() =>
+        {
+            // Pinned as "one item, named explicitly" rather than by literal syntax.
+            // The first attempt passed a collection expression - `[carrier]` - which is
+            // the same thing by eye and rendered NOTHING: ItemsRepeater realized no card
+            // and the tab stayed blank under its header. Measured by UIA on the running
+            // app, switching that one expression to an explicit List brought the tile
+            // back with no other change. So the guard names the shape that works.
+            Assert.That(body, Does.Contain("new List<LibraryEntry> { carrier }"),
+                "the group must carry the single carrier as an explicit list: one card per item, and a collection expression here renders nothing at all");
+            Assert.That(body, Does.Not.Contain("group.ToList()"),
+                "group.ToList() is the whole artist handed to the repeater - the wall this tab replaces");
+
+            Assert.That(body, Does.Contain("ArtistGroupHeaderTemplate"),
+                "the album header carries a sleeve and a track count, neither of which belongs on a person");
+
+            // The tab is dispatched by grouping, so Albums must keep the builder it had.
+            Assert.That(
+                Squashed(MethodBody(StrippedPageSource(PageLibraryCodePath), "private void ApplyLibraryFilter()")),
+                Does.Contain("MusicGrouping.Albums)"),
+                "ApplyLibraryFilter must route Artists and Albums to different builders");
+        });
+    }
+
+    /// <summary>
+    /// A tile on the artists tab is marked as one, before its entry is handed over.
+    ///
+    /// <para>Order is the whole point: IsArtist decides the cover branch and the clip,
+    /// and SetEntry paints from whatever it says at that moment. Set after, and the
+    /// tile keeps the file-name caption and a square clip.</para>
+    /// </summary>
+    [Test]
+    public void TheArtistTileIsMarkedBeforeItsEntryIsSet()
+    {
+        var prepare = Squashed(MethodBody(
+            StrippedPageSource(PageCardsCodePath),
+            "private void LibraryGrid_ElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(prepare, Does.Contain("card.IsArtist = isArtistTile"),
+                "the tile identity is a card flag, never an entry flag: the same entries feed the songs grid");
+
+            Assert.That(prepare, Does.Contain("card.SetEntry("),
+                "presence first, or -1 makes the ordering assertion vacuous");
+
+            Assert.That(
+                prepare.IndexOf("card.IsArtist", StringComparison.Ordinal),
+                Is.LessThan(prepare.IndexOf("card.SetEntry(", StringComparison.Ordinal)),
+                "IsArtist must be set before SetEntry paints the cover and the caption");
+        });
+    }
+
+    /// <summary>
+    /// Clicking a tile opens the artist page, and does so before the album branch.
+    ///
+    /// <para>A tile is square, so IsAlbum is true for it too. Reaching the album branch
+    /// first would open the carrier track album instead of the person.</para>
+    /// </summary>
+    [Test]
+    public void ClickingATileOpensTheArtistBeforeTheAlbumBranch()
+    {
+        var activation = Squashed(MethodBody(
+            StrippedPageSource(PageCardsCodePath),
+            "private void HandleCardActivation(LibraryEntry entry)"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(activation, Does.Contain("OpenArtist(entry.Artist)"),
+                "nothing else calls OpenArtist, so without this the artist page stays unreachable");
+
+            Assert.That(activation, Does.Contain("OpenAlbum("),
+                "presence first, or -1 makes the ordering assertion vacuous");
+
+            Assert.That(
+                activation.IndexOf("OpenArtist(entry.Artist)", StringComparison.Ordinal),
+                Is.LessThan(activation.IndexOf("OpenAlbum(", StringComparison.Ordinal)),
+                "the artist branch must come before the album branch: a tile is square too");
+        });
+    }
+
+    /// <summary>
     /// Closing the host drops every piece of the artist state.
     ///
     /// <para>Three pieces, and a stale one is invisible until it matters: the tuple, the

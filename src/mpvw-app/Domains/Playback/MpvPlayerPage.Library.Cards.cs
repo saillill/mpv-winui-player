@@ -491,6 +491,20 @@ namespace mpv_winui.Domains.Playback
                 return;
             }
 
+            // On the Artists tab a card stands for a person: clicking it opens their
+            // page, one level in, where their albums are. Checked BEFORE the album
+            // branch because a tile is also square (IsAlbum is true for it), and the
+            // album branch would otherwise open the carrier track's album instead.
+            //
+            // An empty artist is the "unknown artist" bucket - one tile like any other,
+            // and it opens like one.
+            if (_librarySection == LibrarySectionMusic && _musicGrouping == MusicGrouping.Artists)
+            {
+                OpenArtist(entry.Artist);
+
+                return;
+            }
+
             // On the Albums tab a card stands for its album, not for one track:
             // clicking it opens the album, which is what the reference player does
             // and what makes the tab more than a differently-sorted list.
@@ -740,7 +754,21 @@ namespace mpv_winui.Domains.Playback
                 // kinds side by side, so a section-level answer is wrong there: it
                 // said "not the music section" for a track and gave the card a 16:9
                 // tile. Measured as a 298x168 cover where a square was expected.
-                card.IsAlbum = !entry.IsVideo && MediaKinds.IsAudio(entry.Path);
+                //
+                // A tile on the artists tab is a person, not a file: circular, always
+                // wearing the person glyph, with no discs or tick box. That identity is
+                // set on the CARD and never on the entry - the same entry instances are
+                // also handed to the songs grid and the home bands, so a flag on the
+                // entry would follow one track into those surfaces and turn it into an
+                // unplayable circle.
+                //
+                // IsArtist goes FIRST: it decides the cover branch and the clip, and
+                // SetEntry paints both from whatever it says at that moment.
+                var isArtistTile = _librarySection == LibrarySectionMusic
+                    && _musicGrouping == MusicGrouping.Artists;
+
+                card.IsArtist = isArtistTile;
+                card.IsAlbum = isArtistTile || (!entry.IsVideo && MediaKinds.IsAudio(entry.Path));
                 card.SetEntry(entry, ResolveCover(entry));
 
                 card.CardTapped -= Card_Tapped;

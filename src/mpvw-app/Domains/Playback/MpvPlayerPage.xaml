@@ -447,6 +447,22 @@
             </Grid>
         </DataTemplate>
 
+        <!--  The artists tab's group header: one letter, nothing else.
+
+              Deliberately not MusicGroupHeaderTemplate: that one carries a 56px sleeve
+              and a track count, and a person has neither a sleeve nor a track count
+              that means anything as a tile caption. The letter is the only thing the
+              rail needs to land on, so it is the only thing drawn. -->
+        <DataTemplate x:Key="ArtistGroupHeaderTemplate" x:DataType="lib:VideoFolderGroup">
+            <Grid Margin="0,16,0,8">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Text="{x:Bind Name, Mode=OneTime}" />
+            </Grid>
+        </DataTemplate>
+
         <DataTemplate x:Key="VideoFolderHeaderTemplate" x:DataType="lib:VideoFolderGroup">
             <Grid
                 Margin="0,16,0,8"
