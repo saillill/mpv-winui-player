@@ -1152,9 +1152,10 @@
                              the official player keeps them. What stays here is the
                              row's own content: Play all on the left, the sort on
                              the right. -->
-                        <Grid>
+                        <Grid ColumnSpacing="{StaticResource MpvSpaceS}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Button
@@ -1248,6 +1249,33 @@
                                             GroupName="VideoSort"
                                             Tag="oldest" />
                                     </MenuFlyout>
+                                </DropDownButton.Flyout>
+                            </DropDownButton>
+
+                            <!--  The genre filter, third column: to the right of the sort,
+                                  where the user asked for it. Caption shows the current
+                                  value, same shape as the sort button - transparent,
+                                  borderless, opening downwards.
+
+                                  Its items are built in code on every open rather than
+                                  written here: the vocabulary comes from the tracks that
+                                  are loaded, so it is not a fixed list and must not be
+                                  cached in markup. See ApplyGenreStrings.
+
+                                  Visibility is Visible and stays that way. The whole row
+                                  (VideoChrome) is collapsed on the artists tab, so this
+                                  button disappears with it; adding a second tab check here
+                                  would be a second source of truth for the same answer. -->
+                            <DropDownButton
+                                x:Name="MusicGenreButton"
+                                Grid.Column="2"
+                                Padding="8,4"
+                                HorizontalAlignment="Right"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Visibility="Visible">
+                                <DropDownButton.Flyout>
+                                    <MenuFlyout Placement="Bottom" />
                                 </DropDownButton.Flyout>
                             </DropDownButton>
                         </Grid>

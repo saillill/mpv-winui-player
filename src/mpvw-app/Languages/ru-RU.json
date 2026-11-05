@@ -1515,6 +1515,8 @@
   "MusicTabAlbums": "Альбомы",
   "MusicTabArtists": "Исполнители",
   "LibraryUnknownAlbum": "Неизвестный альбом",
+  "LibraryGenreAll": "Все жанры",
+  "LibraryUnknownGenre": "Неизвестный жанр",
   "LibraryUnknownArtist": "Неизвестный исполнитель",
   "LibraryShufflePlay": "Перемешать",
   "LibraryAlbumAddTo": "Добавить в",

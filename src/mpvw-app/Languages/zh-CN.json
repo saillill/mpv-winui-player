@@ -2203,6 +2203,8 @@
   "MusicTabAlbums": "专辑",
   "MusicTabArtists": "艺术家",
   "LibraryUnknownAlbum": "未知专辑",
+  "LibraryGenreAll": "所有流派",
+  "LibraryUnknownGenre": "未知流派",
   "LibraryUnknownArtist": "未知艺术家",
   "LibraryShufflePlay": "随机播放",
   "LibraryAlbumAddTo": "添加到",

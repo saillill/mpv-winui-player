@@ -1515,6 +1515,8 @@
   "MusicTabAlbums": "Albums",
   "MusicTabArtists": "Artistes",
   "LibraryUnknownAlbum": "Album inconnu",
+  "LibraryGenreAll": "Tous les genres",
+  "LibraryUnknownGenre": "Genre inconnu",
   "LibraryUnknownArtist": "Artiste inconnu",
   "LibraryShufflePlay": "Lecture aléatoire",
   "LibraryAlbumAddTo": "Ajouter à",

@@ -42,6 +42,93 @@ namespace mpv_winui.Domains.Playback
         /// keep in step - and a file with no tag lands in a single "unknown" group
         /// rather than being dropped, which is what the reference players do.
         /// </summary>
+        /// <summary>
+        /// The genre dropdown's caption, its accessible name, and its items.
+        ///
+        /// <para>The items are rebuilt rather than declared because the vocabulary comes
+        /// from the tracks that happen to be loaded: a genre that no file uses cannot be
+        /// offered, and caching the list would keep offering one after its last file was
+        /// removed.</para>
+        /// </summary>
+        private void ApplyGenreStrings()
+        {
+            var lang = AppContext.AppLang;
+
+            AutomationProperties.SetName(MusicGenreButton, lang.LibraryColumnGenre);
+
+            ToolTipService.SetToolTip(MusicGenreButton, lang.LibraryColumnGenre);
+
+            MusicGenreButton.Content = $"{lang.LibraryColumnGenre}: {CurrentGenreLabel()}";
+
+            if (MusicGenreButton.Flyout is not MenuFlyout menu)
+            {
+                return;
+            }
+
+            menu.Items.Clear();
+
+            menu.Items.Add(GenreItem(lang.LibraryGenreAll, "all", _musicGenre.Kind == MusicGenreKind.All));
+
+            foreach (var name in _musicGenreVocabulary)
+            {
+                var chosen = _musicGenre.Kind == MusicGenreKind.Named
+                    && string.Equals(_musicGenre.Name, name, StringComparison.OrdinalIgnoreCase);
+
+                menu.Items.Add(GenreItem(name, "genre:" + name, chosen));
+            }
+
+            // Unknown LAST: it is the fallback bucket, not the most important genre,
+            // and a list that opens on "unknown" reads as if it were a real tag.
+            menu.Items.Add(GenreItem(lang.LibraryUnknownGenre, "unknown", _musicGenre.Kind == MusicGenreKind.Unknown));
+        }
+
+        /// <summary>One ticked-able entry in the genre menu.</summary>
+        private RadioMenuFlyoutItem GenreItem(string text, string tag, bool chosen)
+        {
+            var item = new RadioMenuFlyoutItem
+            {
+                Text = text,
+                Tag = tag,
+                GroupName = "MusicGenre",
+                IsChecked = chosen,
+            };
+
+            item.Click += MusicGenre_Click;
+
+            return item;
+        }
+
+        /// <summary>What the dropdown shows for the current choice.</summary>
+        private string CurrentGenreLabel() => _musicGenre.Kind switch
+        {
+            MusicGenreKind.All => AppContext.AppLang.LibraryGenreAll,
+            MusicGenreKind.Unknown => AppContext.AppLang.LibraryUnknownGenre,
+            _ => _musicGenre.Name,
+        };
+
+        private void MusicGenre_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not RadioMenuFlyoutItem { Tag: string tag })
+            {
+                return;
+            }
+
+            _musicGenre = tag switch
+            {
+                "all" => MusicGenreSelection.All,
+                "unknown" => MusicGenreSelection.Unknown,
+                _ when tag.StartsWith("genre:", StringComparison.Ordinal)
+                    => MusicGenreSelection.Named(tag["genre:".Length..]),
+                _ => MusicGenreSelection.All,
+            };
+
+            ApplyGenreStrings();
+
+            if (_libraryLoaded)
+            {
+                ApplyLibraryFilter();
+            }
+        }
         private void MusicTabSongs_Checked(object sender, RoutedEventArgs e) =>
             SetMusicGrouping(MusicGrouping.Songs);
 
@@ -52,6 +139,26 @@ namespace mpv_winui.Domains.Playback
             SetMusicGrouping(MusicGrouping.Artists);
 
         private MusicGrouping _musicGrouping = MusicGrouping.Songs;
+
+        /// <summary>
+        /// The genre the dropdown is filtering to.
+        ///
+        /// <para>Session-only, and deliberately not persisted: a genre picked here is a
+        /// look at the library right now, not a preference, and restoring it on the next
+        /// launch would leave the user staring at a filtered library with no memory of
+        /// having filtered it.</para>
+        /// </summary>
+        private MusicGenreSelection _musicGenre = MusicGenreSelection.All;
+
+        /// <summary>
+        /// Every genre name the loaded tracks use, sorted, for the dropdown.
+        ///
+        /// <para>Filled from the library BEFORE the genre filter is applied (spec 8.3.11).
+        /// Taken after that filter, the entry the user just chose would vanish from the
+        /// menu on the next reload: the button would still name it while the menu had
+        /// nothing to tick.</para>
+        /// </summary>
+        private IReadOnlyList<string> _musicGenreVocabulary = [];
 
         private void SetMusicGrouping(MusicGrouping grouping)
         {

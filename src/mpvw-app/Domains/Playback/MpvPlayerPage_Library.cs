@@ -1,6 +1,7 @@
 using mpv_winui.Infrastructure.Common.Media;
 
 using mpv_winui.Domains.Library;
+using mpv_winui.Domains.Playback.Cards;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -195,6 +196,7 @@ namespace mpv_winui.Domains.Playback
             ApplyEmptyStateContent();
             ApplyQueueStrings();
             ApplyVideoStrings();
+            ApplyGenreStrings();
             ApplyCardStrings();
             ApplySelectionStrings();
             ApplyPlaylistPanelStrings();
@@ -430,7 +432,11 @@ namespace mpv_winui.Domains.Playback
         private void ApplyEmptyStateContent()
         {
             var lang = AppContext.AppLang;
-            var searching = !string.IsNullOrWhiteSpace(_libraryFilter);
+            // A genre is a filter too, so an empty grid it produced is not "this library
+            // is empty" - it is "nothing matched". Same two texts as a search, because
+            // from the user's side both are "I narrowed this and got nothing".
+            var searching = !string.IsNullOrWhiteSpace(_libraryFilter)
+                || _musicGenre.Kind != MusicGenreKind.All;
 
             LibraryEmptyIcon.Data = FluentIcons.Geometry(_librarySection switch
             {
@@ -1247,8 +1253,34 @@ namespace mpv_winui.Domains.Playback
                     || e.Subtitle.Contains(needle, StringComparison.OrdinalIgnoreCase));
             }
 
+            // The music library as it stands AFTER the search and BEFORE the genre
+            // filter. Two things need it: the genre dropdown's vocabulary (below), and
+            // the Albums tab's whole-album retention. Declared here rather than inside a
+            // branch because those two live on different branch conditions.
+            List<LibraryEntry>? beforeGenre = null;
+
             var cards = entries.ToList();
 
+            // Genre applies to the Songs and Albums tabs only (spec 8.3.6). The artists
+            // tab is not a list of files but one tile per person, and its toolbar row -
+            // genre button included - is hidden. Without this exclusion, carrying a genre
+            // over to that tab would silently drop half the tiles with nothing on screen
+            // to explain why.
+            var genreApplies = _librarySection == LibrarySectionMusic
+                && _musicGrouping != MusicGrouping.Artists;
+
+            if (genreApplies)
+            {
+                beforeGenre = cards;
+
+                // Vocabulary from BEFORE the genre filter (spec 8.3.11): taken after it,
+                // the genre the user just picked would disappear from the menu on the
+                // next rebuild - the button naming something the menu no longer offers.
+                _musicGenreVocabulary = MusicGenreFilter.Vocabulary(
+                    beforeGenre.Select(e => (e.Album, e.Genre)));
+
+                cards = beforeGenre.Where(e => MusicGenreFilter.Matches(e.Genre, _musicGenre)).ToList();
+            }
             // Two libraries have a grouped presentation of one list: the video
             // library by the folder each file was played from, the music library
             // by album or artist. Both share the sectioned container below. Every

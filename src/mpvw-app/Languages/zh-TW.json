@@ -1515,6 +1515,8 @@
   "MusicTabAlbums": "專輯",
   "MusicTabArtists": "演出者",
   "LibraryUnknownAlbum": "未知專輯",
+  "LibraryGenreAll": "所有流派",
+  "LibraryUnknownGenre": "未知流派",
   "LibraryUnknownArtist": "未知演出者",
   "LibraryShufflePlay": "隨機播放",
   "LibraryAlbumAddTo": "加到",

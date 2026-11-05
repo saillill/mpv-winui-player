@@ -833,6 +833,79 @@ public class MusicGenreArtistTests
     }
 
     /// <summary>
+    /// The dropdown vocabulary is taken from before the genre filter runs.
+    ///
+    /// <para>Read after the filter, the genre the user just picked would vanish from
+    /// the menu on the next rebuild: the filter removes every track that is not that
+    /// genre, so that genre stops appearing among the tracks, so it stops being offered -
+    /// while the button still names it. The menu would show nothing ticked.</para>
+    /// </summary>
+    [Test]
+    public void TheGenreVocabularyIsTakenBeforeTheGenreFilter()
+    {
+        var filter = Squashed(MethodBody(
+            StrippedPageSource(PageLibraryCodePath),
+            "private void ApplyLibraryFilter()"));
+
+        var vocabulary = filter.IndexOf("MusicGenreFilter.Vocabulary", StringComparison.Ordinal);
+        var matches = filter.IndexOf("MusicGenreFilter.Matches", StringComparison.Ordinal);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(vocabulary, Is.GreaterThanOrEqualTo(0), "the vocabulary is never built");
+            Assert.That(matches, Is.GreaterThanOrEqualTo(0), "the genre filter is never applied");
+
+            // Order alone is a weak guard: a build that filters first and then takes
+            // the vocabulary from the ORIGINAL list still reads vocabulary-before-
+            // matches if the two lines swap. What actually matters is which list the
+            // vocabulary is built from, so that is pinned too.
+            Assert.That(
+                filter,
+                Does.Contain("MusicGenreFilter.Vocabulary( beforeGenre.Select"),
+                "the vocabulary must be built from the snapshot taken before the filter, not from the filtered list");
+
+            Assert.That(
+                vocabulary,
+                Is.LessThan(matches),
+                "vocabulary first, or the chosen genre removes itself from the menu it was chosen from");
+        });
+    }
+
+    /// <summary>
+    /// The artists tab is exempt, and the button rides the row it already lives in.
+    ///
+    /// <para>Two separate guards because they fail differently. Without the exemption,
+    /// carrying a genre onto the artists tab halves the tiles with nothing on screen to
+    /// explain it. With a second tab check on the button, there are two sources of truth
+    /// for one answer - the shape this repository has been bitten by three times.</para>
+    /// </summary>
+    [Test]
+    public void GenreSkipsTheArtistsTabAndTheButtonDoesNotCheckTheTabItself()
+    {
+        var filter = Squashed(MethodBody(
+            StrippedPageSource(PageLibraryCodePath),
+            "private void ApplyLibraryFilter()"));
+
+        var xaml = File.ReadAllText(Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage.xaml"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(filter, Does.Contain("_musicGrouping != MusicGrouping.Artists"),
+                "the genre layer must name the artists tab as exempt");
+
+            Assert.That(
+                xaml.IndexOf("MusicGenreButton", StringComparison.Ordinal),
+                Is.GreaterThanOrEqualTo(0),
+                "the button is gone from the markup");
+
+            Assert.That(
+                Squashed(MethodBody(StrippedPageSource(PageLibraryCodePath), "private void ApplyVideoChromeVisibility()")),
+                Does.Not.Contain("MusicGenreButton"),
+                "the row already hides on the artists tab; a second tab check on the button is a second source of truth for one answer");
+        });
+    }
+
+    /// <summary>
     /// Closing the host drops every piece of the artist state.
     ///
     /// <para>Three pieces, and a stale one is invisible until it matters: the tuple, the

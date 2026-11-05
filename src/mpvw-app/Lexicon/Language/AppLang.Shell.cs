@@ -59,6 +59,12 @@ namespace mpv_winui.Lexicon.Language
         /// </summary>
         public string LibraryUnknownAlbum { get; set; } = "Unknown album";
 
+        /// <summary>The genre dropdown's "no filter" entry.</summary>
+        public string LibraryGenreAll { get; set; } = "All genres";
+
+        /// <summary>The genre dropdown's bucket for tracks with no genre tag.</summary>
+        public string LibraryUnknownGenre { get; set; } = "Unknown genre";
+
         /// <summary>See <see cref="LibraryUnknownAlbum"/>.</summary>
         public string LibraryUnknownArtist { get; set; } = "Unknown artist";
 

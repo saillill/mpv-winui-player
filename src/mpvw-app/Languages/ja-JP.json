@@ -1515,6 +1515,8 @@
   "MusicTabAlbums": "アルバム",
   "MusicTabArtists": "アーティスト",
   "LibraryUnknownAlbum": "不明なアルバム",
+  "LibraryGenreAll": "すべてのジャンル",
+  "LibraryUnknownGenre": "不明なジャンル",
   "LibraryUnknownArtist": "不明なアーティスト",
   "LibraryShufflePlay": "シャッフル再生",
   "LibraryAlbumAddTo": "追加先",
