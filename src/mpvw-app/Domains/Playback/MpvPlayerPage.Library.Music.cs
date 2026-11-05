@@ -407,7 +407,13 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private void OpenArtist(string artist)
         {
-            _openArtist = artist;
+            // Normalised HERE, at the single entry point, rather than at each caller.
+            // A whitespace-only tag and an absent one are the same artist as far as the
+            // grouping is concerned - both land in the unknown bucket - so storing the
+            // raw value would make the page open EMPTY: its own comparison normalises,
+            // and "" would not match "   ". Normalising once also keeps CloseAlbum's
+            // "did we come from an artist" test honest, since that test is a null check.
+            _openArtist = string.IsNullOrWhiteSpace(artist) ? string.Empty : artist;
 
             _albumOpened = false;
 
@@ -849,6 +855,23 @@ namespace mpv_winui.Domains.Playback
         /// rebuilds the wall this replaces. The artist's real track list is re-derived
         /// by <see cref="OpenArtist"/> from the library.</para>
         /// </summary>
+        /// <summary>
+        /// Fills the artists tab with one circular tile per artist.
+        ///
+        /// <para><b>Grouped by LETTER, not by artist.</b> One repeater per artist looked
+        /// right and behaved wrong: a repeater draws its items across the row, so a
+        /// one-item repeater is one tile on a line of its own, and the next artist began
+        /// below it. The tab became a single column of circles, each under a heading
+        /// repeating the name already printed on the tile. Grouping by letter restores
+        /// the shape the spec asks for - a letter heading, then every artist under that
+        /// letter in one grid.</para>
+        ///
+        /// <para><b>The tile is a carrier, not a track.</b> A card needs an entry to
+        /// render and an artist has none of their own, so each artist contributes exactly
+        /// one: their first track by title, chosen so the pick is stable across rebuilds
+        /// rather than following scan order. The artist's real track list is re-derived
+        /// from the library when the tile is opened.</para>
+        /// </summary>
         private void BuildArtistTiles(List<LibraryEntry> entries)
         {
             VideoFolderGroups.Children.Clear();
@@ -856,34 +879,39 @@ namespace mpv_winui.Domains.Playback
             var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
 
             // Its own header shape: the album header carries a 56px sleeve and a track
-            // count, and a person has neither. One letter is all this wall needs.
+            // count, and a letter has neither.
             var headerTemplate = (DataTemplate)Resources["ArtistGroupHeaderTemplate"];
 
             // "Unknown" sorts last, like the two tag groupings: it is the fallback
             // bucket, not the most important artist in the library.
             var unknownLabel = AppContext.AppLang.LibraryUnknownArtist;
 
-            var groups = entries
+            // One carrier per artist, keyed by the artist's own name. GroupBy over a
+            // projection keeps the first track of each artist only.
+            var carriers = entries
                 .GroupBy(
                     entry => string.IsNullOrWhiteSpace(entry.Artist) ? "\uFFFF" : entry.Artist,
                     StringComparer.CurrentCultureIgnoreCase)
-                .Select(group =>
-                {
-                    var name = group.Key == "\uFFFF" ? unknownLabel : group.Key;
+                .Select(artist => artist
+                    .OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
+                    .First())
+                .ToList();
 
-                    // Exactly one: see the note above. Ordered by title first so the
-                    // carrier is stable across rebuilds rather than following whatever
-                    // order the scan produced.
-                    var carrier = group
-                        .OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
-                        .First();
+            // Then filed under the letter the artist's NAME starts with - the same rule
+            // the rail uses, so the rail and the headings cannot disagree.
+            var groups = carriers
+                .GroupBy(
+                    entry =>
+                    {
+                        var name = string.IsNullOrWhiteSpace(entry.Artist) ? unknownLabel : entry.Artist;
 
-                    return new VideoFolderGroup(
-                        name,
-                        new List<LibraryEntry> { carrier },
-                        Path: string.Empty,
-                        Letter: LibraryIndexLetter.For(name, ch => PinyinInitial.For(ch.ToString())));
-                })
+                        return LibraryIndexLetter.For(name, ch => PinyinInitial.For(ch.ToString()));
+                    })
+                .Select(letter => new VideoFolderGroup(
+                    string.IsNullOrEmpty(letter.Key) ? "#" : letter.Key,
+                    letter.ToList(),
+                    Path: string.Empty,
+                    Letter: letter.Key))
                 .OrderBy(group => Array.IndexOf(LibraryIndexLetter.All, group.Letter))
                 .ThenBy(group => group.Name, StringComparer.CurrentCultureIgnoreCase)
                 .ToList();
@@ -903,8 +931,7 @@ namespace mpv_winui.Domains.Playback
 
                 if (!string.IsNullOrEmpty(group.Letter))
                 {
-                    // First group wins, as in the tag groupings: several artists can
-                    // share a letter and the rail lands on the first of them.
+                    // First group wins, as in the tag groupings.
                     _groupHeaders.TryAdd(group.Letter, header);
                 }
 
