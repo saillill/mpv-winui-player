@@ -763,6 +763,13 @@ namespace mpv_winui.Domains.Playback
             {
                 Placement = FlyoutPlacementMode.Bottom,
                 Content = BuildGroupPicker(),
+
+                // Borderless and translucent, as the letter sheet was asked for: the
+                // flyout's own chrome is a bordered panel that reads as a menu, and this
+                // is a sheet of letters. AcrylicInAppFillColorDefaultBrush is the theme's
+                // own translucent surface - a hard-coded dark tint would turn into a black
+                // slab in the light theme.
+                FlyoutPresenterStyle = (Style)Resources["MpvGroupPickerPresenterStyle"],
             };
 
             _groupPicker.ShowAt(anchor);
@@ -780,14 +787,16 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private FrameworkElement BuildGroupPicker()
         {
-            const int Columns = 8;
+            // At most eight across, and never more columns than there are headings. A fixed
+            // eight-column grid sized two buttons into a 512px sheet - most of it empty, and
+            // wide enough to look like a panel rather than a set of letters.
+            var Columns = System.Math.Min(8, System.Math.Max(1, _groupHeaders.Count));
 
             var grid = new Grid
             {
                 Padding = new Thickness(12),
                 RowSpacing = 2,
                 ColumnSpacing = 2,
-                MaxWidth = 560,
             };
 
             for (var column = 0; column < Columns; column++)

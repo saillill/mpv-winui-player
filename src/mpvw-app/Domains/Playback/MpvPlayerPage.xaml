@@ -459,6 +459,19 @@
               attempt to keep a category inside a Button ended with the ContentPresenter
               and the sibling TextBlocks disagreeing about where the baseline goes. Same
               element type as its neighbours, so there is no second layout authority. -->
+        <!--  The heading picker's surface: no border, no menu chrome, a translucent fill
+              behind a grid of letters. Built as a FlyoutPresenter style so the flyout keeps
+              its light-dismiss and placement while losing the frame that made it read as a
+              menu item list. -->
+        <Style x:Key="MpvGroupPickerPresenterStyle" TargetType="FlyoutPresenter">
+            <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MaxWidth" Value="600" />
+        </Style>
+
         <DataTemplate x:Key="LibraryFolderCrumbTemplate" x:DataType="lib:VideoFolderGroup">
             <TextBlock
                 Margin="0,0,4,0"

@@ -374,7 +374,13 @@ namespace mpv_winui.Domains.Playback
             // the previous section's order.
             UpdateVideoSortChrome();
 
-            LibraryHeadingTabs.Visibility = isVideos && hasVideoFolders
+            // Inside a folder the two tabs are hidden: the page IS one folder, so there is
+            // nothing to switch between - "All videos" would leave the folder the heading
+            // and the trail have just announced. The toolbar stays, and Play all scopes
+            // itself to the folder's own videos (_visibleEntries).
+            var insideFolder = _videoFolderView && !string.IsNullOrEmpty(_videoFolderPath);
+
+            LibraryHeadingTabs.Visibility = isVideos && hasVideoFolders && !insideFolder
                 ? Visibility.Visible
                 : Visibility.Collapsed;
 

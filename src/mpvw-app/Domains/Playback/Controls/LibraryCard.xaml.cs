@@ -408,6 +408,20 @@ namespace mpv_winui.Domains.Playback.Controls
             // so most video cards have nothing to say on this line. A visible empty
             // TextBlock would reserve the line's height and leave the hole the
             // report complained about in the other direction.
+            // A folder's second line is its PATH, not its length: a folder has no
+            // duration, and the path is what tells two folders of the same name apart.
+            // Same two lines as every other card, in the same place.
+            if (_isFolder)
+            {
+                SubtitleText.Text = entry.Subtitle;
+
+                SubtitleText.Visibility = string.IsNullOrWhiteSpace(entry.Subtitle)
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
+
+                return;
+            }
+
             SubtitleText.Text = entry.DurationText;
             SubtitleText.Visibility = entry.DurationVisibility;
         }
