@@ -100,6 +100,39 @@ namespace mpv_winui.Domains.Playback.Controls
         private bool _isArtist;
 
         /// <summary>
+        /// Whether this card stands for a FOLDER rather than for a file.
+        ///
+        /// <para>A folder card is the way into a directory: it draws the folder glyph
+        /// large instead of a cover, offers nothing to play, overflow or tick, and drops
+        /// the hover frame - the whole surface is one button that opens it, so a second
+        /// highlight inside it would read as a second target.</para>
+        ///
+        /// <para>Set before <see cref="SetEntry"/> for the same reason the other two
+        /// identities are: it decides what the cover branch draws.</para>
+        /// </summary>
+        public bool IsFolder
+        {
+            get => _isFolder;
+            set
+            {
+                if (_isFolder == value)
+                {
+                    return;
+                }
+
+                _isFolder = value;
+
+                // A folder card keeps no hover frame. Set on every change so a card
+                // recycled from a file back onto a folder - or the other way - arrives
+                // in the right state: the hover handlers only run on pointer events, so
+                // nothing else would reset this.
+                HoverFrame.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private bool _isFolder;
+
+        /// <summary>
         /// Whether the pointer is on this card right now.
         ///
         /// A field rather than a read of some visual's state, because the frame
@@ -257,6 +290,33 @@ namespace mpv_winui.Domains.Playback.Controls
                 return;
             }
 
+            // The third identity. A folder is drawn by the SAME fallback glyph every
+            // other card uses, just larger: entry.MediaIcon already carries
+            // FluentIcons.Folder for a folder entry, and that constant is a vector PATH -
+            // a font codepoint here would draw whatever the icon font happens to have at
+            // that slot, which is how a folder card came out wearing a back arrow.
+            if (_isFolder)
+            {
+                CoverImage.Source = null;
+                CoverImage.Visibility = Visibility.Collapsed;
+                ArtistGlyph.Visibility = Visibility.Collapsed;
+                FallbackIcon.Visibility = Visibility.Visible;
+                FallbackIcon.Width = 88;
+                FallbackIcon.Height = 88;
+
+                // The glyph has to be assigned HERE: this branch returns before the line
+                // below that every other card goes through, so leaving it out drew an
+                // empty box where the folder belongs. A fresh Geometry per assignment -
+                // a Geometry belongs to one PathIcon for its lifetime.
+                FallbackGlyph.Data = entry.MediaIcon;
+
+                return;
+            }
+
+            // Back to the file-card size on every other identity: a card recycled from
+            // a folder onto a video would otherwise keep the enlarged glyph.
+            FallbackIcon.Width = 48;
+            FallbackIcon.Height = 48;
             // The other identity path. Written here rather than only in the branch
             // above, because a card RECYCLED from an artist tile back onto a file
             // would otherwise still be wearing the person.
@@ -715,7 +775,9 @@ namespace mpv_winui.Domains.Playback.Controls
             // pointer handlers to both discs on every pass it runs, so unwiring
             // here would fight it; a collapsed Button cannot be reached by the
             // pointer in the first place.
-            if (_isArtist)
+            // A folder opens; it does not play and has no overflow menu. Same four
+            // elements, same reason as the artist tile beside it.
+            if (_isArtist || _isFolder)
             {
                 PlayButton.Visibility = Visibility.Collapsed;
                 MoreButton.Visibility = Visibility.Collapsed;
@@ -728,6 +790,15 @@ namespace mpv_winui.Domains.Playback.Controls
                 // onto a file has to arrive with its discs.
                 PlayButton.Visibility = Visibility.Visible;
                 MoreButton.Visibility = Visibility.Visible;
+            }
+
+            // A folder card has no hover overlay either: with no discs and no frame
+            // there is nothing left to fade in.
+            if (_isFolder)
+            {
+                HoverOverlay.Visibility = Visibility.Collapsed;
+                HoverOverlay.IsHitTestVisible = false;
+                return;
             }
 
             HoverOverlay.Visibility = Visibility.Visible;
@@ -914,7 +985,7 @@ namespace mpv_winui.Domains.Playback.Controls
             // before it - or an early return - is the shape it exists to forbid.
             // The box is the way into selection mode for a card that stands for a
             // file; a person is not something to tick.
-            if (_isArtist)
+            if (_isArtist || _isFolder)
             {
                 SelectionBox.Visibility = Visibility.Collapsed;
                 SelectionBoxHover.Visibility = Visibility.Collapsed;

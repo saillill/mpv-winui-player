@@ -435,6 +435,17 @@ namespace mpv_winui.Domains.Playback
                 return;
             }
 
+            // A folder card opens the folder. Checked before every other branch: its
+            // entry is a synthetic one, so any later branch would act on a path that is
+            // a directory - the album branch would try to open an album named after a
+            // folder, and the default would hand a directory to the player.
+            if (entry.IsFolderEntry)
+            {
+                EnterFolder(entry.Path);
+
+                return;
+            }
+
             // On the Artists tab a card stands for a person: clicking it opens their
             // page, one level in, where their albums are. Checked BEFORE the album
             // branch because a tile is also square (IsAlbum is true for it), and the
@@ -710,6 +721,13 @@ namespace mpv_winui.Domains.Playback
                 // SetEntry paints both from whatever it says at that moment.
                 var isArtistTile = _librarySection == LibrarySectionMusic
                     && _musicGrouping == MusicGrouping.Artists;
+
+                // A folder card is a place, not a file. The flag rides on the entry
+                // because entries are what the repeater holds; it is only ever set by
+                // LibraryEntry.FromFolder, so a real file cannot claim it.
+                var isFolderCard = entry.IsFolderEntry;
+
+                card.IsFolder = isFolderCard;
 
                 card.IsArtist = isArtistTile;
 

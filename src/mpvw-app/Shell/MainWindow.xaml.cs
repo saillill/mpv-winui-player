@@ -854,6 +854,15 @@ namespace mpv_winui
             // The key stays enabled everywhere (see UpdateShellBackButton), so
             // "nowhere to go" is decided here. Home is the only such place: the
             // two playing shapes always have the other leg to move to.
+            // Inside a video folder the shell's back moves one FOLDER up, before any of
+            // the page-level answers below. Checked first because the folder walk is the
+            // innermost thing the user entered: leaving the folder tree entirely on the
+            // first press loses the path they walked down.
+            if (page.TryGoUpOneFolderFromShell())
+            {
+                return;
+            }
+
             if (page.ShellPageState is ShellPage.Playing or ShellPage.LibraryWhilePlaying)
             {
                 page.ToggleLibraryFromShell();

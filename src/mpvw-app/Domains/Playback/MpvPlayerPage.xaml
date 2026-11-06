@@ -454,6 +454,22 @@
               and a track count, and a person has neither a sleeve nor a track count
               that means anything as a tile caption. The letter is the only thing the
               rail needs to land on, so it is the only thing drawn. -->
+        <!--  One step of the folder trail. A plain TextBlock with a Tapped handler rather
+              than a Button, for the reason the settings page's breadcrumb records: every
+              attempt to keep a category inside a Button ended with the ContentPresenter
+              and the sibling TextBlocks disagreeing about where the baseline goes. Same
+              element type as its neighbours, so there is no second layout authority. -->
+        <DataTemplate x:Key="LibraryFolderCrumbTemplate" x:DataType="lib:VideoFolderGroup">
+            <TextBlock
+                Margin="0,0,4,0"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Tag="{x:Bind Path, Mode=OneTime}"
+                Text="{x:Bind Name, Mode=OneTime}"
+                Tapped="LibraryFolderCrumb_Tapped" />
+        </DataTemplate>
+
         <DataTemplate x:Key="ArtistGroupHeaderTemplate" x:DataType="lib:VideoFolderGroup">
             <Grid Margin="0,16,0,8">
                 <TextBlock
@@ -1037,6 +1053,18 @@
                          tabs belong to the heading, not to a toolbar under it -
                          and splitting them over two rows is what made the video
                          library read as a page with two unrelated headers. -->
+                    <!--  The trail, above the heading and only while inside a folder.
+
+                          It replaces nothing: the heading below is still the page's name,
+                          which is now the FOLDER's name rather than the section's. Two
+                          lines, because a trail that has to share a line with a 40px
+                          heading either shrinks the heading or truncates the path, and the
+                          path is the whole point of being able to click back up it. -->
+                    <ItemsRepeater
+                        x:Name="LibraryFolderTrail"
+                        Margin="0,0,0,4"
+                        Visibility="Collapsed" />
+
                     <Grid ColumnSpacing="{StaticResource MpvSpaceL}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />

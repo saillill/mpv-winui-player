@@ -127,11 +127,11 @@ public class MusicGenreArtistTests
 
         var body = MethodBody(source, "private void ShowOverlay()");
 
-        var guard = body.IndexOf("if (_isArtist)", StringComparison.Ordinal);
+        var guard = body.IndexOf("if (_isArtist || _isFolder)", StringComparison.Ordinal);
         Assert.That(
             guard,
             Is.GreaterThanOrEqualTo(0),
-            "ShowOverlay must branch on IsArtist, or a person's tile shows a play disc and an overflow disc "
+            "ShowOverlay must branch on IsArtist (folders join the same guard), or a person's tile shows a play disc and an overflow disc "
             + "for a track nobody chose");
 
         // The block the guard opens, not the rest of the method: the else branch
@@ -174,7 +174,7 @@ public class MusicGenreArtistTests
             Is.GreaterThanOrEqualTo(0),
             "the mode-or-pointer visibility computation is gone; the tick box has lost one of its two reasons");
 
-        var guard = body.IndexOf("if (_isArtist)", StringComparison.Ordinal);
+        var guard = body.IndexOf("if (_isArtist || _isFolder)", StringComparison.Ordinal);
         Assert.That(
             guard,
             Is.GreaterThan(assignment),
@@ -207,6 +207,9 @@ public class MusicGenreArtistTests
 
         var body = MethodBody(source, "private void ApplyCaptions(LibraryEntry entry)");
 
+        // ApplyCaptions keeps its own artist-only branch: a folder card already has its
+        // name in Title and its path in Subtitle from FromFolder, so the caption code has
+        // nothing to substitute for it.
         var branch = body.IndexOf("if (_isArtist)", StringComparison.Ordinal);
         Assert.That(branch, Is.GreaterThanOrEqualTo(0), "ApplyCaptions must branch on IsArtist");
 

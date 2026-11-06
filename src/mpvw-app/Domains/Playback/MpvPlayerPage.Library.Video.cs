@@ -39,6 +39,16 @@ namespace mpv_winui.Domains.Playback
         private bool _videoFolderView;
 
         /// <summary>
+        /// Which directory the folder tab is showing, or empty for the top level.
+        ///
+        /// <para>The folder tab is a place you walk through, so it needs a current
+        /// position. Empty means "the library roots" - the list of folders one step below
+        /// whatever the scan found. Session-only, like the sort: it is where you happen to
+        /// be looking, not a preference.</para>
+        /// </summary>
+        private string _videoFolderPath = string.Empty;
+
+        /// <summary>
         /// The video library's sort. Session-only on purpose: ordering the grid
         /// is a way of looking at the list during this run, not a preference, so
         /// it is neither persisted nor added to the settings schema.
@@ -458,63 +468,252 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
-        /// Builds the "Video folders" tab: the visible entries grouped by the
-        /// directory they were played from, one header followed by one card grid
-        /// per folder.
+        /// Builds the "Video folders" tab: the folders one level below the current
+        /// position, as cards, and the videos beside them once inside one.
         ///
-        /// A folder is here because something in it was played, never because
-        /// the disk was scanned - the same scope its empty state describes.
-        /// Rebuilt wholesale rather than diffed, because the groups change shape
-        /// (folders appear and vanish, counts move); grouping gives up
-        /// virtualisation, which the video counts make an acceptable trade.
+        /// <para><b>Place, not heading.</b> The tab used to print one heading per folder
+        /// and hang that folder's videos beneath it, which meant a folder holding only
+        /// sub-folders never appeared - there was no file at that level to group - and
+        /// nothing could be walked into. It is a place now: a grid of folder cards you
+        /// click to enter, with the videos of the current folder in the same grid, the way
+        /// a file manager shows them.</para>
+        ///
+        /// <para>Folders first, then videos. That is the order every file manager uses and
+        /// the order the reader expects; mixing them would bury the ways deeper under the
+        /// things already here.</para>
         /// </summary>
         private void BuildVideoFolderGroups(List<LibraryEntry> entries)
         {
             VideoFolderGroups.Children.Clear();
 
-            var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
-            var headerTemplate = (DataTemplate)Resources["VideoFolderHeaderTemplate"];
-
-            // Registered here as well as in the music grouped view: the index
-            // rail jumps by looking the letter up in this map, so a header that
-            // was added to the panel but not to the map is a rail button that
-            // scrolls nowhere.
             _groupHeaders.Clear();
 
-            var groups = GroupVideoFolders(entries);
+            _groupItems.Clear();
 
-            foreach (var group in groups)
+            var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
+
+            var paths = entries.Select(entry => entry.Path).ToList();
+
+            // The folders to show, and the videos at this level. Both are derived from the
+            // same list, so the cards cannot disagree with what opening one will reveal.
+            var folders = LibraryFolderTree.Children(paths, _videoFolderPath);
+
+            var videosHere = LibraryFolderTree.VideosIn(paths, _videoFolderPath);
+
+            var byPath = entries
+                .GroupBy(entry => entry.Path, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+            if (folders.Count > 0)
             {
-                var header = new ContentPresenter
-                {
-                    Content = group,
-                    ContentTemplate = headerTemplate,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
-                };
+                AddFolderCardRow(folders, cardTemplate);
+            }
 
-                VideoFolderGroups.Children.Add(header);
-
-                if (!string.IsNullOrEmpty(group.Letter))
-                {
-                    // First group wins, matching the music view: several folders
-                    // can share a letter and the rail lands on the first.
-                    _groupHeaders.TryAdd(group.Letter, header);
-                }
+            if (videosHere.Count > 0)
+            {
+                var videos = videosHere
+                    .Where(byPath.ContainsKey)
+                    .Select(path => byPath[path])
+                    .ToList();
 
                 var repeater = new ItemsRepeater
                 {
                     ItemTemplate = cardTemplate,
-                    ItemsSource = group.Items,
+                    ItemsSource = videos,
                 };
+
                 repeater.Layout = CardLayout();
 
-                // The same arrival animation the flat grid uses, so the two tabs
-                // read as one surface.
                 repeater.ElementPrepared += LibraryGrid_ElementPrepared;
+
                 VideoFolderGroups.Children.Add(repeater);
             }
-
         }
+
+        /// <summary>
+        /// One row of folder cards.
+        ///
+        /// <para>The cards are <see cref="LibraryEntry"/> values rather than a type of their
+        /// own: the card control is built around an entry, and inventing a second item type
+        /// would mean a second template and a second prepare handler for a card that looks
+        /// and behaves like every other one. Each folder gets a synthetic entry holding its
+        /// path and name - the two things the card prints - and the page marks it as a
+        /// folder when it prepares the card.</para>
+        /// </summary>
+        private void AddFolderCardRow(IReadOnlyList<LibraryFolder> folders, DataTemplate cardTemplate)
+        {
+            var items = new List<LibraryEntry>(folders.Count);
+
+            foreach (var folder in folders)
+            {
+                items.Add(LibraryEntry.FromFolder(folder.Path, folder.Name, folder.Count));
+            }
+
+            var repeater = new ItemsRepeater
+            {
+                ItemTemplate = cardTemplate,
+                ItemsSource = items,
+            };
+
+            // The folder grid uses the ARCHIVE card's geometry, so a folder card is the
+            // same size as a video card and the two rows line up.
+            repeater.Layout = CardLayout();
+
+            repeater.ElementPrepared += LibraryGrid_ElementPrepared;
+
+            VideoFolderGroups.Children.Add(repeater);
+        }
+
+        /// <summary>
+        /// Shows the folder trail above the heading, or hides it at the top level.
+        ///
+        /// <para>The heading itself carries the current folder's name, so the two together
+        /// say "where am I" and "how do I get back". At the top level there is no trail and
+        /// the heading is the section's own name - the page looks exactly as it did before
+        /// anyone walked in.</para>
+        /// </summary>
+        private void ApplyFolderTrail(IReadOnlyList<string> paths)
+        {
+            var inside = _librarySection == LibrarySectionVideos
+                && _videoFolderView
+                && !string.IsNullOrEmpty(_videoFolderPath);
+
+            if (!inside)
+            {
+                LibraryFolderTrail.Visibility = Visibility.Collapsed;
+
+                LibraryFolderTrail.ItemsSource = null;
+
+                return;
+            }
+
+            // The root comes from the BINDING, not from the visible paths: those all sit
+            // inside the current folder, so any root derived from them would be the
+            // folder itself and the trail would read as one step.
+            var root = LibraryFolderTree
+                .RootsFor(_libraryAll.Select(entry => entry.Path).ToList())
+                .Where(candidate => _videoFolderPath.StartsWith(
+                    candidate,
+                    StringComparison.OrdinalIgnoreCase))
+                .OrderBy(candidate => candidate.Length)
+                .FirstOrDefault() ?? string.Empty;
+
+            var trail = LibraryFolderTree.Trail(paths, _videoFolderPath, root);
+
+            var crumbTemplate = (DataTemplate)Resources["LibraryFolderCrumbTemplate"];
+
+            var crumbs = trail
+                .Select(step => new VideoFolderGroup(step.Name, [], step.Path, Letter: string.Empty))
+                .ToList();
+
+            LibraryFolderTrail.ItemTemplate = crumbTemplate;
+
+            LibraryFolderTrail.Layout = new StackLayout { Orientation = Orientation.Horizontal };
+
+            LibraryFolderTrail.ItemsSource = crumbs;
+
+            LibraryFolderTrail.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>Enters a folder, from a card or from a crumb.</summary>
+        private void EnterFolder(string path)
+        {
+            _videoFolderPath = path;
+
+            // The header is part of the navigation, not of the list: it carries the
+            // folder's name and the trail back up. Refreshing the filter alone left the
+            // heading reading "Videos" inside a folder, which is the one place the page
+            // most needs to say where it is.
+            ApplySectionHeader();
+
+            if (_libraryLoaded)
+            {
+                ApplyLibraryFilter();
+            }
+        }
+
+        /// <summary>A crumb was tapped: go back up to that level.</summary>
+        private void LibraryFolderCrumb_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement { Tag: string path })
+            {
+                return;
+            }
+
+            EnterFolder(path);
+        }
+
+        /// <summary>
+        /// The shell's back button, while inside a folder.
+        ///
+        /// <para>Returns true when it handled the press, so the shell can leave its own
+        /// section-level answer alone. One step up, not all the way home: the folder tree
+        /// is a place the user walked into, and jumping to Home from three levels deep
+        /// loses the walk.</para>
+        /// </summary>
+        /// <summary>
+        /// The shell's entry point to <see cref="TryGoUpOneFolder"/>.
+        ///
+        /// <para>Separate name because the shell and the page are different assemblies-facing
+        /// surfaces and the test project reads the page's source by name; the shell calls
+        /// this one, the page calls its own.</para>
+        /// </summary>
+        internal bool TryGoUpOneFolderFromShell() => TryGoUpOneFolder();
+
+        internal bool TryGoUpOneFolder()
+        {
+            if (_librarySection != LibrarySectionVideos
+                || !_videoFolderView
+                || string.IsNullOrEmpty(_videoFolderPath))
+            {
+                return false;
+            }
+
+            var parent = System.IO.Path.GetDirectoryName(
+                _videoFolderPath.TrimEnd(
+                    System.IO.Path.DirectorySeparatorChar,
+                    System.IO.Path.AltDirectorySeparatorChar));
+
+            // Stop at the library root: above it is a folder the scan never produced, and
+            // the trail does not start there either.
+            //
+            // The bound root is the OUTERMOST of the bound folders containing this one, and
+            // it is chosen from that same list rather than from a common ancestor: a library
+            // bound to two unrelated places has the drive as its common ancestor, and using
+            // that let the walk climb out of the library entirely.
+            var bound = LibraryFolderTree.RootsFor(_libraryAll.Select(entry => entry.Path).ToList());
+
+            var root = bound
+                .Where(candidate => _videoFolderPath.StartsWith(candidate, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(candidate => candidate.Length)
+                .FirstOrDefault() ?? string.Empty;
+
+            // Unknown root: stop at the top level rather than guess. Guessing here is what
+            // made one press leave the folder tree instead of climbing one step.
+            _videoFolderPath = string.IsNullOrEmpty(parent) || !HoldsLibrary(parent, root)
+                ? string.Empty
+                : parent;
+
+            ApplySectionHeader();
+
+            if (_libraryLoaded)
+            {
+                ApplyLibraryFilter();
+            }
+
+            return true;
+        }
+
+        /// <summary>Whether <paramref name="candidate"/> is still at or below the library root.</summary>
+        private static bool HoldsLibrary(string candidate, string root)
+        {
+            return !string.IsNullOrEmpty(root)
+                && (string.Equals(candidate, root, StringComparison.OrdinalIgnoreCase)
+                    || candidate.StartsWith(
+                        root + System.IO.Path.DirectorySeparatorChar,
+                        StringComparison.OrdinalIgnoreCase));
+        }
+
 
         private static UniformGridLayout CardLayout()
         {

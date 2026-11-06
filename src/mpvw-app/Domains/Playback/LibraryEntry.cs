@@ -94,6 +94,15 @@ namespace mpv_winui.Domains.Playback
         public DateTimeOffset? AddedAt { get; init; }
 
         /// <summary>
+        /// True only for the pseudo-entry that stands for a directory.
+        ///
+        /// <para>A separate flag rather than "has no duration": an untagged file has no
+        /// duration either, and treating that as a folder would turn it into a card that
+        /// opens a directory listing when clicked.</para>
+        /// </summary>
+        public bool IsFolderEntry { get; init; }
+
+        /// <summary>
         /// How many tracks its album holds, once the tags have been read.
         ///
         /// Null means UNKNOWN - the tag pass has not run, or the file is not in a
@@ -379,6 +388,37 @@ namespace mpv_winui.Domains.Playback
         /// so for a thousand-track folder would take minutes and is what the watch
         /// history avoids too.
         /// </summary>
+        /// <summary>
+        /// A pseudo-entry standing for a DIRECTORY, so a folder can be drawn by the same
+        /// card control every other item uses.
+        ///
+        /// <para>The card is built around an entry - it reads a path, a title and a
+        /// subtitle - and a folder has all three. Inventing a second item type would mean
+        /// a second template, a second prepare handler and a second set of caption rules
+        /// for a card that looks and behaves exactly like the rest.</para>
+        ///
+        /// <para><see cref="IsFolderEntry"/> is what tells the page to mark the card as a
+        /// folder and to open on click instead of playing. It is never true for a file,
+        /// because nothing else constructs an entry through this method.</para>
+        /// </summary>
+        internal static LibraryEntry FromFolder(string path, string name, int videoCount)
+        {
+            return new LibraryEntry
+            {
+                Path = path,
+                Title = name,
+                Subtitle = path,
+                IsFolderEntry = true,
+
+                // The count rides in the field the card already prints for an album's
+                // track count, so a folder says how many videos are inside it without a
+                // fourth caption line.
+                TrackCount = videoCount,
+
+                MediaIconPath = FluentIcons.Folder,
+            };
+        }
+
         internal static LibraryEntry? FromFile(string path) => FromHistory(path, mediaTitle: null, time: null);
 
         /// <summary>

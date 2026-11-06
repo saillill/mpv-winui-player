@@ -313,6 +313,19 @@ namespace mpv_winui.Domains.Playback
                 _ => lang.LibraryHome,
             };
 
+            // Inside a folder the heading is the FOLDER's name, at the same size, with
+            // the trail above it for the way back. A page called "Videos" that lists one
+            // folder's contents is a page that does not say where it is.
+            if (_librarySection == LibrarySectionVideos
+                && _videoFolderView
+                && !string.IsNullOrEmpty(_videoFolderPath))
+            {
+                LibrarySectionTitle.Text = System.IO.Path.GetFileName(
+                    _videoFolderPath.TrimEnd(
+                        System.IO.Path.DirectorySeparatorChar,
+                        System.IO.Path.AltDirectorySeparatorChar));
+            }
+
             var isHome = _librarySection == LibrarySectionHome;
 
             // No subtitle. Home used to carry one line - "Recently used media" -
@@ -1454,6 +1467,11 @@ namespace mpv_winui.Domains.Playback
             {
                 PlaylistsHost.Visibility = Visibility.Collapsed;
             }
+
+            // The trail belongs to the video folder tab only; every other surface hides
+            // it. Called before the grid is built so the heading and the trail describe the
+            // same place in the same pass.
+            ApplyFolderTrail(cards.Select(entry => entry.Path).ToList());
 
             if (folderView)
             {
