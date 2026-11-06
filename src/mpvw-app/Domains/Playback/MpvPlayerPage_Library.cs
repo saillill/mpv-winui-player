@@ -633,12 +633,16 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private readonly Dictionary<string, List<LibraryEntry>> _groupItems = new(StringComparer.Ordinal);
 
-        /// <summary>The heading picker currently on screen, or null.
+        /// <summary>
+        /// Which bucket the heading picker should show as current.
         ///
-        /// <para>Held so a second heading tap can close the first picker: a flyout
-        /// opened from a heading outlives the tap that opened it, and two of them
-        /// stacked leaves the older one stranded behind the newer.</para>
-        private Flyout? _groupPicker;
+        /// <para>Resolved once when the sheet opens rather than per prepared element: the
+        /// answer is the same for all fifty-three, and finding it walks the visual tree.
+        /// </para>
+        /// </summary>
+        private string _pickerCurrentKey = string.Empty;
+
+
 
         /// <summary>
         /// Whether the section wants its own toolbar (Play all and the sort).

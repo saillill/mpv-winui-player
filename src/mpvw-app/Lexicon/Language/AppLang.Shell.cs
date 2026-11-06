@@ -59,6 +59,12 @@ namespace mpv_winui.Lexicon.Language
         /// <summary>Sort by when the file arrived in the library.</summary>
         public string LibrarySortAdded { get; set; } = "Date added";
 
+        /// <summary>The line under the heading picker. Says how to leave it.</summary>
+        public string LibraryGroupPickerHint { get; set; } = "Pick a heading to jump to it";
+
+        /// <summary>The dismiss target of the heading picker.</summary>
+        public string LibraryGroupPickerClose { get; set; } = "Close the heading picker";
+
         /// <summary>
         /// The music library's fallback group for a file with no album tag.
         ///

@@ -1476,6 +1476,8 @@
   "LibrarySortArtist": "Artista",
   "LibrarySortYear": "Año de lanzamiento",
   "LibrarySortAdded": "Fecha de alta",
+  "LibraryGroupPickerHint": "Elige una letra para saltar",
+  "LibraryGroupPickerClose": "Cerrar el selector",
   "LibrarySortNameDesc": "Z-A",
   "LibrarySortNewest": "Más recientes primero",
   "LibrarySortOldest": "Más antiguos primero",

@@ -1476,6 +1476,8 @@
   "LibrarySortArtist": "아티스트",
   "LibrarySortYear": "발매 연도",
   "LibrarySortAdded": "추가한 날짜",
+  "LibraryGroupPickerHint": "글자를 선택해 이동",
+  "LibraryGroupPickerClose": "글자 선택 닫기",
   "LibrarySortNameDesc": "Z-A",
   "LibrarySortNewest": "최신순",
   "LibrarySortOldest": "오래된순",

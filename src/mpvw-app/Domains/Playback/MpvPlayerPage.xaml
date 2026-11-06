@@ -459,18 +459,51 @@
               attempt to keep a category inside a Button ended with the ContentPresenter
               and the sibling TextBlocks disagreeing about where the baseline goes. Same
               element type as its neighbours, so there is no second layout authority. -->
-        <!--  The heading picker's surface: no border, no menu chrome, a translucent fill
-              behind a grid of letters. Built as a FlyoutPresenter style so the flyout keeps
-              its light-dismiss and placement while losing the frame that made it read as a
-              menu item list. -->
-        <Style x:Key="MpvGroupPickerPresenterStyle" TargetType="FlyoutPresenter">
-            <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorDefaultBrush}" />
+        <!--  One letter on the picker sheet. A Button, not a TextBlock with a handler:
+              an empty bucket has to be DISABLED, and IsEnabled on a TextBlock does nothing.
+              The dim comes from the item's own HasContent, so a letter with nothing under
+              it cannot be clicked and cannot look clickable. -->
+        <!--  A letter on the picker sheet: text only, no surface in any state.
+
+              A Button declares its own background through its template, so setting
+              Background="Transparent" on the control is overridden by the default style's
+              Rest/PointerOver/Pressed setters - measured: two letters came out wearing a
+              white box on the sheet while the other fifty-one did not, which is the classic
+              signature of a template that only paints some states. This template paints
+              nothing and takes its ink from the control's Foreground, so the dim -> normal ->
+              accent scale set in code is what shows. -->
+        <Style x:Key="MpvLetterButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="MinWidth" Value="0" />
-            <Setter Property="MaxWidth" Value="600" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}"
+                                Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
+
+        <DataTemplate x:Key="LibraryGroupPickerLetterTemplate" x:DataType="local:LibraryIndexBucket">
+            <Button
+                Width="64"
+                Height="40"
+                Margin="{StaticResource MpvSpaceXxs}"
+                HorizontalContentAlignment="Center"
+                Click="LibraryGroupPickerLetter_Click"
+                Content="{x:Bind Letter, Mode=OneTime}"
+                IsEnabled="{x:Bind HasContent, Mode=OneTime}"
+                Style="{StaticResource MpvLetterButtonStyle}"
+                Tag="{x:Bind Letter, Mode=OneTime}" />
+        </DataTemplate>
 
         <DataTemplate x:Key="LibraryFolderCrumbTemplate" x:DataType="lib:VideoFolderGroup">
             <TextBlock
@@ -1598,6 +1631,59 @@
                             Visibility="Collapsed" />
                     </Grid>
                 </ScrollViewer>
+
+                <!--  The heading picker, as a sheet over the whole content area rather than a
+                      flyout beside the heading that was clicked.
+
+                      A flyout is anchored to its target and sized to its content, which made
+                      the letter grid a small panel hanging off one row - and the reader had to
+                      find it. This covers the same rectangle the cards occupy, so opening it
+                      reads as the content becoming the index, which is what was asked for.
+
+                      Grid.Row="1" so the heading, the tabs and the toolbar stay visible: the
+                      grid is a way to move through that list, not a modal that hides what it
+                      belongs to. Collapsed until a heading is tapped. -->
+                <Grid
+                    x:Name="LibraryGroupPickerHost"
+                    Grid.Row="1"
+                    Canvas.ZIndex="20"
+                    Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                    Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!--  The same close affordance a flyout has: a transparent full-size button
+                          under the grid, so a tap anywhere outside the letters dismisses. Placed
+                          first so the letters sit above it and keep their own clicks. -->
+                    <!--  The dismiss target. Named and tooltipped like every other control:
+                          a full-bleed transparent button with no accessible name is a rectangle
+                          a screen reader announces as "button" and nothing else. -->
+                    <Button
+                        Grid.RowSpan="2"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="LibraryGroupPickerDismiss_Click"
+                        x:Name="LibraryGroupPickerDismiss" />
+
+                    <ItemsRepeater
+                        x:Name="LibraryGroupPicker"
+                        Grid.Row="0"
+                        Margin="{StaticResource MpvBrowseHostPadding}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top" />
+
+                    <TextBlock
+                        x:Name="LibraryGroupPickerTitle"
+                        Grid.Row="1"
+                        Margin="{StaticResource MpvBrowseHostPadding}"
+                        VerticalAlignment="Bottom"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}" />
+                </Grid>
 
                 <!-- The A-Z rail, in its own column so it does not scroll away.
 

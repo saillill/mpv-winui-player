@@ -235,6 +235,8 @@
   "LibrarySortArtist": "Artist",
   "LibrarySortYear": "Release year",
   "LibrarySortAdded": "Date added",
+  "LibraryGroupPickerHint": "Pick a heading to jump to it",
+  "LibraryGroupPickerClose": "Close the heading picker",
   "LibrarySortNameDesc": "Z-A",
   "LibrarySortNewest": "Newest first",
   "LibrarySortOldest": "Oldest first",

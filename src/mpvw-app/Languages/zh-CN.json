@@ -235,6 +235,8 @@
   "LibrarySortArtist": "歌手",
   "LibrarySortYear": "发行年份",
   "LibrarySortAdded": "添加日期",
+  "LibraryGroupPickerHint": "选择字母跳转",
+  "LibraryGroupPickerClose": "关闭字母选择",
   "LibrarySortNameDesc": "Z-A",
   "LibrarySortNewest": "最新在前",
   "LibrarySortOldest": "最早在前",

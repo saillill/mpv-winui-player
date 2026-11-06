@@ -1476,6 +1476,8 @@
   "LibrarySortArtist": "アーティスト",
   "LibrarySortYear": "リリース年",
   "LibrarySortAdded": "追加日",
+  "LibraryGroupPickerHint": "文字を選んで移動",
+  "LibraryGroupPickerClose": "文字選択を閉じる",
   "LibrarySortNameDesc": "Z-A",
   "LibrarySortNewest": "新しい順",
   "LibrarySortOldest": "古い順",

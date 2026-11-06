@@ -1476,6 +1476,8 @@
   "LibrarySortArtist": "Исполнитель",
   "LibrarySortYear": "Год выпуска",
   "LibrarySortAdded": "Дата добавления",
+  "LibraryGroupPickerHint": "Выберите букву для перехода",
+  "LibraryGroupPickerClose": "Закрыть выбор буквы",
   "LibrarySortNameDesc": "Я-А",
   "LibrarySortNewest": "Сначала новые",
   "LibrarySortOldest": "Сначала старые",

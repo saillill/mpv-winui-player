@@ -1476,6 +1476,8 @@
   "LibrarySortArtist": "Künstler",
   "LibrarySortYear": "Erscheinungsjahr",
   "LibrarySortAdded": "Hinzugefügt",
+  "LibraryGroupPickerHint": "Buchstabe zum Springen wählen",
+  "LibraryGroupPickerClose": "Buchstabenauswahl schließen",
   "LibrarySortNameDesc": "Z-A",
   "LibrarySortNewest": "Neueste zuerst",
   "LibrarySortOldest": "Älteste zuerst",

@@ -335,7 +335,31 @@ public class MusicGenreArtistTests
     }
 
     /// <summary>
-    /// The list follows the sort, and each library writes its own field.
+    /// The picker answers two different questions: the whole alphabet for a letter sort,
+    /// only the real headings otherwise.
+    /// </summary>
+    [Test]
+    public void ThePickerListsTheWholeAlphabetForALetterSortAndOnlyTheRealHeadingsOtherwise()
+    {
+        // The two cases answer different questions. A letter sort is "is there anything
+        // under Q", which needs the whole closed alphabet - leave Q out and the grid moves
+        // as the library changes, and cannot say "no". A year or an artist sort has no
+        // closed set, so padding it would invent headings the list does not have.
+        var music = Squashed(StrippedPageSource(PageMusicCodePath));
+
+        var entries = Squashed(MethodBody(music, "private List<LibraryIndexBucket> BuildGroupPickerEntries()"));
+
+        Assert.That(
+            entries,
+            Does.Contain("LibraryIndexLetter.BuildRail"),
+            "a letter sort must offer every bucket, marked with whether it leads anywhere");
+
+        Assert.That(
+            entries,
+            Does.Contain("_groupHeaders.Keys"),
+            "every other sort must offer exactly its own headings");
+    }
+
     ///
     /// <para>This is the residue of the reported defect. Before the fix the Songs
     /// branch passed a literal mode, so the menu was decoration: the caption moved and
@@ -343,6 +367,9 @@ public class MusicGenreArtistTests
     /// music section must still write the video field, or the video grid silently
     /// stops obeying its own menu.</para>
     /// </summary>
+
+    /// <summary>
+    /// The list follows the sort, and each library writes its own field.
     [Test]
     public void TheMusicTabsSortThemselvesAndTheVideoTabKeepsItsOwnField()
     {
