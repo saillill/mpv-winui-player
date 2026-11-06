@@ -348,11 +348,14 @@ public class MusicGenreArtistTests
 
         var filter = Squashed(MethodBody(library, "private void ApplyLibraryFilter()"));
 
+        // The music order no longer runs through SortVideoEntries: three of its modes
+        // (artist, year, added) have no meaning for a folder scan, so the two lists got
+        // separate switches. The property this test was written for is unchanged - the
+        // music list must be ordered by the EFFECTIVE mode, never by a literal.
         Assert.That(
             filter,
-            Does.Contain("_ => SortVideoEntries(cards, EffectiveMusicSort)"),
-            "the Songs tab must order the list it shows; a literal mode in this switch arm is the dead sort this "
-            + "test exists for");
+            Does.Contain("SortMusicEntries(cards, EffectiveMusicSort)"),
+            "the music tabs must order the list they show; a literal mode here is the dead sort this test exists for");
 
         Assert.That(
             filter,
@@ -659,13 +662,15 @@ public class MusicGenreArtistTests
                 Is.LessThan(prepare.IndexOf("card.SetAlbumCaption(", StringComparison.Ordinal)),
                 "SetEntry draws the file-name caption; the album caption has to come after it or it is overwritten");
 
-            // Checked against the file that actually shares this card, not the library
-            // half - that one cannot contain the symbol at all, so an assertion over it
-            // would be true by construction and would pin nothing.
+            // The caption is now shared by BOTH album grids - the artist page's and the
+            // Albums tab's - so the old "no other surface may ask for it" assertion is
+            // exactly backwards. What still has to hold is that the card grid asks for it
+            // AFTER SetEntry, which is asserted above for the artist page; here the same
+            // ordering is pinned for the shared grid.
             Assert.That(
                 StrippedPageSource(PageCardsCodePath),
-                Does.Not.Contain("SetAlbumCaption"),
-                "the caption is one grid rule: the shared card grid must not ask for it");
+                Does.Contain("card.SetEntry(entry").And.Contain("card.SetAlbumCaption("),
+                "the shared grid paints the entry first, then overwrites the caption with the album's");
         });
     }
 
@@ -763,8 +768,8 @@ public class MusicGenreArtistTests
         {
             // Grouped by the LETTER the name starts with. The rail and the headings have
             // to agree, so both go through LibraryIndexLetter.
-            Assert.That(body, Does.Contain("LibraryIndexLetter.For(name"), 
-                "the grouping key must be the index letter, not the artist name");
+            Assert.That(body, Does.Contain("LibraryGroupKey.Letter"), 
+                "artists are filed by the shared grouper, whose letter key is what LibraryIndexLetter answers");
 
             // One carrier per artist survives the regrouping: the artists are collapsed
             // to a single entry each BEFORE the letter grouping runs.
@@ -812,8 +817,8 @@ public class MusicGenreArtistTests
 
             // Both are called, and from DIFFERENT branches: the Albums test comes first
             // and its else-arm holds the artist builder.
-            Assert.That(filter, Does.Contain("if (_musicGrouping == MusicGrouping.Albums)"),
-                "the dispatch must test for Albums explicitly, or one builder serves both tabs");
+            Assert.That(filter, Does.Contain("if (_musicGrouping == MusicGrouping.Artists)"),
+                "the dispatch must test for Artists explicitly: Songs and Albums share one builder, Artists does not");
         });
     }
 
@@ -913,8 +918,8 @@ public class MusicGenreArtistTests
             Assert.That(filter, Does.Contain("cards = allTracks").And.Contain("beforeGenre is { } allTracks"),
                 "the survivors come from the pre-genre snapshot; trimming within the filtered list keeps nothing");
 
-            Assert.That(albums, Does.Contain("groups.Reverse()"),
-                "Z-A reverses the whole sequence; reversing only ThenBy gives neither A-Z nor Z-A");
+            Assert.That(albums, Does.Contain("descending: EffectiveMusicSort == VideoSortMode.NameDesc"),
+                "Z-A is decided by the grouper, which reverses the groups and not the items inside them");
 
             Assert.That(albums, Does.Contain("EffectiveMusicSort == VideoSortMode.NameDesc"),
                 "the album grid's order must come from the effective sort, not a literal");

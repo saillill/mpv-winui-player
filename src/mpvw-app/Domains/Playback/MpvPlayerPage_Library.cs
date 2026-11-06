@@ -606,6 +606,22 @@ namespace mpv_winui.Domains.Playback
         private readonly Dictionary<string, FrameworkElement> _groupHeaders = new(StringComparer.Ordinal);
 
         /// <summary>
+        /// Heading key -> that heading's items, for the letter grid to jump through.
+        ///
+        /// <para>The grid needs to know what is under each heading, and the repeaters
+        /// hold it: asking the visual tree for "the repeater after this presenter"
+        /// would break the moment the two are not adjacent siblings.</para>
+        /// </summary>
+        private readonly Dictionary<string, List<LibraryEntry>> _groupItems = new(StringComparer.Ordinal);
+
+        /// <summary>The heading picker currently on screen, or null.
+        ///
+        /// <para>Held so a second heading tap can close the first picker: a flyout
+        /// opened from a heading outlives the tap that opened it, and two of them
+        /// stacked leaves the older one stranded behind the newer.</para>
+        private Flyout? _groupPicker;
+
+        /// <summary>
         /// Whether the section wants its own toolbar (Play all and the sort).
         ///
         /// Held rather than assigned straight to <c>VideoChrome.Visibility</c>, because
@@ -1336,8 +1352,10 @@ namespace mpv_winui.Domains.Playback
             // library by the folder each file was played from, the music library
             // by album or artist. Both share the sectioned container below. Every
             // other section stays a flat grid.
-            var musicGrouped = _librarySection == LibrarySectionMusic
-                && _musicGrouping != MusicGrouping.Songs;
+            // ALL three music tabs are grouped now. Songs used to be the flat list and the
+            // other two grouped; the songs tab got headings too, so the difference is no
+            // longer "grouped or not" but WHICH key the headings use - see BuildMusicTagGroups.
+            var musicGrouped = _librarySection == LibrarySectionMusic;
 
             // Home always uses the sectioned container: its two bands need two
             // different card shapes, which one grid cannot give them.
@@ -1372,29 +1390,24 @@ namespace mpv_winui.Domains.Playback
             }
             else if (_librarySection == LibrarySectionMusic)
             {
-                // Songs is the flat list, so it is the tab the sort menu moves: the
-                // mode comes from EffectiveMusicSort, not from a literal. A literal
-                // here is exactly the reported defect - the button's caption changed
-                // and the list never moved. The grouped tabs order by the tag, so
-                // each group's cards read the way its header says, and by title
-                // within a group.
-                cards = _musicGrouping switch
-                {
-                    MusicGrouping.Albums => cards
-                        .OrderBy(e => string.IsNullOrWhiteSpace(e.Album) ? "\uFFFF" : e.Album,
-                            StringComparer.CurrentCultureIgnoreCase)
-                        .ThenBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
-                        .ToList(),
-
-                    MusicGrouping.Artists => cards
+                // One order for all three tabs, from the sort menu.
+                //
+                // The three-way switch that used to live here ordered each tab by its own
+                // tag regardless of what the menu said, so the menu only ever moved the
+                // Songs tab. Now the menu decides, and the headings follow it: a year sort
+                // files the list under years, an artist sort under artists.
+                //
+                // The Artists tab is the one exception - it has no sort menu, so it keeps
+                // its own order (artist, then album, then title) and its tiles are filed
+                // under letters.
+                cards = _musicGrouping == MusicGrouping.Artists
+                    ? cards
                         .OrderBy(e => string.IsNullOrWhiteSpace(e.Artist) ? "\uFFFF" : e.Artist,
                             StringComparer.CurrentCultureIgnoreCase)
                         .ThenBy(e => e.Album, StringComparer.CurrentCultureIgnoreCase)
                         .ThenBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
-                        .ToList(),
-
-                    _ => SortVideoEntries(cards, EffectiveMusicSort),
-                };
+                        .ToList()
+                    : SortMusicEntries(cards, EffectiveMusicSort);
             }
 
             _visibleEntries = cards;
@@ -1446,16 +1459,17 @@ namespace mpv_winui.Domains.Playback
             {
                 if (musicGrouped)
                 {
-                    // Two grouped tabs, two shapes: Albums groups tracks under their
-                    // album, Artists gives each artist ONE tile and keeps their songs a
-                    // level down. Same container, different builder.
-                    if (_musicGrouping == MusicGrouping.Albums)
+                    // Three tabs, two shapes. Artists gives each person ONE circular tile
+                    // and keeps their songs a level down; Songs and Albums both file cards
+                    // under headings, differing only in what a card stands for - a track
+                    // or an album.
+                    if (_musicGrouping == MusicGrouping.Artists)
                     {
-                        BuildMusicTagGroups(cards);
+                        BuildArtistTiles(cards);
                     }
                     else
                     {
-                        BuildArtistTiles(cards);
+                        BuildMusicTagGroups(cards);
                     }
                 }
                 else if (homeBanded)

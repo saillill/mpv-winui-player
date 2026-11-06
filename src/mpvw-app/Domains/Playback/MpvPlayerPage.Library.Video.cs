@@ -170,6 +170,9 @@ namespace mpv_winui.Domains.Playback
                 VideoSortMode.NameDesc => lang.LibrarySortNameDesc,
                 VideoSortMode.Newest => lang.LibrarySortNewest,
                 VideoSortMode.Oldest => lang.LibrarySortOldest,
+                VideoSortMode.Artist => lang.LibrarySortArtist,
+                VideoSortMode.Year => lang.LibrarySortYear,
+                VideoSortMode.Added => lang.LibrarySortAdded,
                 _ => lang.LibrarySortNameAsc,
             };
 
@@ -179,6 +182,27 @@ namespace mpv_winui.Domains.Playback
             SortByNameDesc.IsChecked = current == VideoSortMode.NameDesc;
             SortByNewest.IsChecked = current == VideoSortMode.Newest;
             SortByOldest.IsChecked = current == VideoSortMode.Oldest;
+            SortByArtist.IsChecked = current == VideoSortMode.Artist;
+            SortByYear.IsChecked = current == VideoSortMode.Year;
+            SortByAdded.IsChecked = current == VideoSortMode.Added;
+
+            // Words, not just marks: an item with no Text renders as an empty row.
+            SortByNameAsc.Text = lang.LibrarySortNameAsc;
+            SortByNameDesc.Text = lang.LibrarySortNameDesc;
+            SortByNewest.Text = lang.LibrarySortNewest;
+            SortByOldest.Text = lang.LibrarySortOldest;
+            SortByArtist.Text = lang.LibrarySortArtist;
+            SortByYear.Text = lang.LibrarySortYear;
+            SortByAdded.Text = lang.LibrarySortAdded;
+
+            // The three tag orders exist only where there are tags. The video library
+            // sorts a folder scan, which carries no artist, year or arrival date, so
+            // offering them there would be three rows that change nothing.
+            var tagOrders = isMusic ? Visibility.Visible : Visibility.Collapsed;
+
+            SortByArtist.Visibility = tagOrders;
+            SortByYear.Visibility = tagOrders;
+            SortByAdded.Visibility = tagOrders;
 
             // Greyed out where the tab has no time dimension, rather than hidden:
             // the menu keeps its shape, and the dimmed item says why the order it
@@ -231,6 +255,9 @@ namespace mpv_winui.Domains.Playback
                 "name-desc" => VideoSortMode.NameDesc,
                 "newest" => VideoSortMode.Newest,
                 "oldest" => VideoSortMode.Oldest,
+                "artist" => VideoSortMode.Artist,
+                "year" => VideoSortMode.Year,
+                "added" => VideoSortMode.Added,
                 _ => VideoSortMode.NameAsc,
             };
 
@@ -392,6 +419,45 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
+        /// The music library's order, by whichever key the sort menu named.
+        ///
+        /// <para>Separate from <see cref="SortVideoEntries"/> because three of the modes
+        /// do not exist for videos: a folder scan carries no artist, year or arrival date,
+        /// so the two lists cannot share one switch without the video half growing arms
+        /// that only ever see null.</para>
+        ///
+        /// <para>Every order falls back to the title, and every "missing tag" file sorts
+        /// last rather than first: a list that opens on its untagged files buries the ones
+        /// the reader can identify.</para>
+        /// </summary>
+        private static List<LibraryEntry> SortMusicEntries(List<LibraryEntry> entries, VideoSortMode mode)
+        {
+            IEnumerable<LibraryEntry> ordered = mode switch
+            {
+                VideoSortMode.NameDesc =>
+                    entries.OrderByDescending(e => e.Title, StringComparer.CurrentCultureIgnoreCase),
+
+                VideoSortMode.Artist => entries
+                    .OrderBy(e => string.IsNullOrWhiteSpace(e.Artist) ? "\uFFFF" : e.Artist,
+                        StringComparer.CurrentCultureIgnoreCase)
+                    .ThenBy(e => e.Album, StringComparer.CurrentCultureIgnoreCase)
+                    .ThenBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase),
+
+                VideoSortMode.Year => entries
+                    .OrderBy(e => e.Year ?? int.MaxValue)
+                    .ThenBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase),
+
+                VideoSortMode.Added => entries
+                    .OrderByDescending(e => e.AddedAt ?? DateTimeOffset.MinValue)
+                    .ThenBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase),
+
+                _ => entries.OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase),
+            };
+
+            return ordered.ToList();
+        }
+
+        /// <summary>
         /// Builds the "Video folders" tab: the visible entries grouped by the
         /// directory they were played from, one header followed by one card grid
         /// per folder.
@@ -448,7 +514,6 @@ namespace mpv_winui.Domains.Playback
                 VideoFolderGroups.Children.Add(repeater);
             }
 
-            BuildLibraryIndexRail(groups);
         }
 
         private static UniformGridLayout CardLayout()

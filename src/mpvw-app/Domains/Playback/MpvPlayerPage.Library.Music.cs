@@ -6,6 +6,7 @@ using mpv_winui.Domains.Library;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -738,152 +739,295 @@ namespace mpv_winui.Domains.Playback
         }
 
         /// <summary>
-        /// Builds the music library's "Albums" and "Artists" tabs: one header and
-        /// one card grid per tag, in the same container the video library's
-        /// folder view uses.
+        /// Opens the heading picker for the heading that was tapped.
         ///
-        /// A file with no tag is not dropped: it lands in one group labelled
-        /// "unknown" (localised), which is what the reference players do and what
-        /// keeps the card count honest. The group order is alphabetical by tag.
+        /// <para><b>Why a picker instead of a rail.</b> The rail was a permanent 40px
+        /// strip down the right edge that only ever listed letters, so it was useless the
+        /// moment the sort was by year or by artist - and it took horizontal space away
+        /// from the grid on every tab, including the ones it could not help. The heading
+        /// is now the way in: it knows what the list is grouped by, so the picker it opens
+        /// lists the same thing the headings do.</para>
+        /// </summary>
+        private void GroupHeader_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement anchor)
+            {
+                return;
+            }
+
+            // One at a time. Tapping a second heading while a picker is up would stack
+            // two flyouts, and the older one would stay behind the newer.
+            _groupPicker?.Hide();
+
+            _groupPicker = new Flyout
+            {
+                Placement = FlyoutPlacementMode.Bottom,
+                Content = BuildGroupPicker(),
+            };
+
+            _groupPicker.ShowAt(anchor);
+        }
+
+        /// <summary>
+        /// The headings, as a grid of buttons in reading order.
+        ///
+        /// <para>Laid out by hand rather than through a data template: the items are plain
+        /// strings known at build time, and a template for them would need a second XAML
+        /// resource, a binding path and a click handler to do what nine lines here do.</para>
+        ///
+        /// <para>Eight columns is the width of the reference player's own letter sheet and
+        /// keeps fifty-three buckets to seven rows rather than fifty-three.</para>
+        /// </summary>
+        private FrameworkElement BuildGroupPicker()
+        {
+            const int Columns = 8;
+
+            var grid = new Grid
+            {
+                Padding = new Thickness(12),
+                RowSpacing = 2,
+                ColumnSpacing = 2,
+                MaxWidth = 560,
+            };
+
+            for (var column = 0; column < Columns; column++)
+            {
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(64) });
+            }
+
+            var rows = (_groupHeaders.Count + Columns - 1) / Columns;
+
+            for (var row = 0; row < rows; row++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            }
+
+            var index = 0;
+
+            foreach (var (key, header) in _groupHeaders)
+            {
+                var label = header is ContentPresenter { Content: VideoFolderGroup group } ? group.Name : key;
+
+                var button = new Button
+                {
+                    Content = label,
+                    Tag = key,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                    BorderThickness = new Thickness(0),
+                    Padding = new Thickness(4, 6, 4, 6),
+                };
+
+                // The heading the user is already looking at is dimmed but still
+                // clickable: a picker that disables the current entry makes the reader
+                // wonder where they are.
+                if (key == CurrentGroupKey())
+                {
+                    button.Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"];
+                }
+
+                AutomationProperties.SetName(button, label);
+
+                button.Click += GroupPickerItem_Click;
+
+                Grid.SetRow(button, index / Columns);
+
+                Grid.SetColumn(button, index % Columns);
+
+                grid.Children.Add(button);
+
+                index++;
+            }
+
+            return grid;
+        }
+
+        /// <summary>Jumps to the heading that was picked, and closes the picker.</summary>
+        private void GroupPickerItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement { Tag: string key })
+            {
+                return;
+            }
+
+            if (_groupHeaders.TryGetValue(key, out var header))
+            {
+                header.StartBringIntoView(new BringIntoViewOptions
+                {
+                    // A little air above the heading, so the row it labels is not pinned
+                    // to the very top edge of the scroll port.
+                    VerticalAlignmentRatio = 0.1,
+                });
+            }
+
+            _groupPicker?.Hide();
+        }
+
+        /// <summary>Which heading is nearest the top of the port, as a plain key.</summary>
+        private string CurrentGroupKey()
+        {
+            foreach (var (key, header) in _groupHeaders)
+            {
+                if (header.TransformToVisual(LibraryScroll).TransformPoint(new Windows.Foundation.Point(0, 0)).Y >= 0)
+                {
+                    return key;
+                }
+            }
+
+            return _groupHeaders.Count > 0 ? _groupHeaders.Keys.First() : string.Empty;
+        }
+
+        /// <summary>
+        /// Fills a grouped music tab: songs under headings, or albums as cards.
+        ///
+        /// <para><b>What groups by what.</b> The sort decides the headings. A-Z and Z-A
+        /// file under index letters; the year sort files under years; the artist sort
+        /// files under artist names. That is why the grouping lives in
+        /// <see cref="LibraryGrouper"/> rather than here: the three tabs and four key
+        /// types would otherwise be twelve chances to disagree about where an untagged
+        /// file goes.</para>
+        ///
+        /// <para><b>Albums become cards, not headings.</b> The Albums tab used to put the
+        /// album name in a heading and hang its tracks beneath as track cards. It now puts
+        /// one ALBUM card in the grid, captioned with the album and its artist - the same
+        /// shape as the artist page's album grid. A card needs an entry to render, so each
+        /// album contributes its first track as a carrier and the caption is overwritten;
+        /// the album's real track list comes from <see cref="OpenAlbum"/>, which reads the
+        /// whole library rather than this carrier.</para>
         /// </summary>
         private void BuildMusicTagGroups(List<LibraryEntry> entries)
         {
             VideoFolderGroups.Children.Clear();
 
-            // The album card, not the video one: square cover, album then artist. Both
-            // grouped music tabs render albums, and the video card's 16:9 crop loses the
-            // sleeve while its single caption loses the artist.
+            var albumMode = _musicGrouping == MusicGrouping.Albums;
+
             var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
-            // The music group header, not the folder one: see the note on
-            // MusicGroupHeaderTemplate. The folder header reserved a line for a path
-            // that a tag group does not have, so every album name sat above an empty
-            // band.
-            var headerTemplate = (DataTemplate)Resources["MusicGroupHeaderTemplate"];
 
-            var byAlbum = _musicGrouping == MusicGrouping.Albums;
+            // The ONE-LINE header, the same one the artists tab uses. The music header
+            // carried a 56px sleeve, the album name on its own row, the path under it and
+            // a track count at the trailing edge - which was right when the heading WAS the
+            // album and the cards under it were its tracks. Now the heading is a letter or a
+            // year and the cards are albums or songs, so a sleeve for it is a picture of
+            // nothing and the count read 0 on every row.
+            var headerTemplate = (DataTemplate)Resources["ArtistGroupHeaderTemplate"];
 
-            // "Unknown" sorts last rather than first: it is the fallback bucket,
-            // not the most important album in the library.
-            var unknownLabel = byAlbum
-                ? AppContext.AppLang.LibraryUnknownAlbum
-                : AppContext.AppLang.LibraryUnknownArtist;
+            var key = GroupKeyFor(EffectiveMusicSort, albumMode);
 
-            // Grouped by tag, then filed under an index letter. The letter is the
-            // PRIMARY sort key: without it a pinyin-ordered library lists 周杰伦 under
-            // Z after 王菲 under W - each heading correct, the sequence wrong.
-            var groups = entries
-                .GroupBy(entry =>
-                {
-                    var key = byAlbum ? entry.Album : entry.Artist;
+            // One item per heading for the Albums tab: the album's carrier. Songs tab
+            // keeps one item per track, because a song card stands for a song.
+            var sources = albumMode ? AlbumCarriers(entries) : entries;
 
-                    return string.IsNullOrWhiteSpace(key) ? "\uFFFF" : key;
-                }, StringComparer.CurrentCultureIgnoreCase)
-                .Select(group =>
-                {
-                    var name = group.Key == "\uFFFF" ? unknownLabel : group.Key;
+            var groups = LibraryGrouper.Group(
+                Enumerable.Range(0, sources.Count).ToList(),
+                key,
+                i => albumMode ? sources[i].Album : sources[i].Title,
+                i => albumMode ? sources[i].Year : sources[i].Year,
+                i => sources[i].Artist,
+                i => sources[i].AddedAt,
+                ch => PinyinInitial.For(ch.ToString()),
+                descending: EffectiveMusicSort == VideoSortMode.NameDesc);
 
-                    return new VideoFolderGroup(
-                        name,
-                        group.ToList(),
-                        Path: string.Empty,
-                        Letter: LibraryIndexLetter.For(name, ch => PinyinInitial.For(ch.ToString())));
-                })
-                // Index order first, then the culture's own order inside a letter - so
-                // the rail can jump to a letter and the entries there still read the
-                // way the user expects.
-                .OrderBy(group => Array.IndexOf(LibraryIndexLetter.All, group.Letter))
-                .ThenBy(group => group.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ToList();
-
-            // Z-A reverses the WHOLE sequence, not the inner comparer. Reversing only
-            // ThenBy would keep the letters running A to Z while each letter's contents
-            // ran backwards - a list that is neither order. The rail stays A to Z and
-            // jumps to the first group carrying that letter, which under this order is
-            // that letter's last row; that is the expected behaviour, not a leak of the
-            // sort into the rail.
-            if (EffectiveMusicSort == VideoSortMode.NameDesc)
-            {
-                groups.Reverse();
-            }
-
-            // Letter -> the presenter hosting that group's header, filled as the groups
-            // are built so the rail knows where to jump instead of walking the visual
-            // tree and guessing which presenter is which.
             _groupHeaders.Clear();
+
+            _groupItems.Clear();
 
             foreach (var group in groups)
             {
                 var header = new ContentPresenter
                 {
-                    Content = group,
+                    Content = new VideoFolderGroup(LabelForGroup(group), Array.Empty<LibraryEntry>(), Path: string.Empty, Letter: group.SortKey),
                     ContentTemplate = headerTemplate,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                 };
 
+                // The heading is the way into the letter grid, and the only one: the rail
+                // is gone. Tagged so the click handler can ask the presenter which group
+                // it stands for without walking the visual tree looking for a match.
+                header.Tag = group.SortKey;
+
+                header.Tapped += GroupHeader_Tapped;
+
                 VideoFolderGroups.Children.Add(header);
 
-                if (!string.IsNullOrEmpty(group.Letter))
-                {
-                    // First group wins: several albums can share a letter and the rail
-                    // should land on the first of them.
-                    _groupHeaders.TryAdd(group.Letter, header);
-                }
+                _groupHeaders.TryAdd(group.SortKey, header);
+
+                var items = group.Items.Select(i => sources[i]).ToList();
+
+                _groupItems[group.SortKey] = items;
 
                 var repeater = new ItemsRepeater
                 {
                     ItemTemplate = cardTemplate,
-                    ItemsSource = group.Items,
+                    ItemsSource = items,
                 };
+
                 repeater.Layout = AlbumCardLayout();
 
                 repeater.ElementPrepared += LibraryGrid_ElementPrepared;
+
                 VideoFolderGroups.Children.Add(repeater);
             }
+        }
 
-            BuildLibraryIndexRail(groups);
+        /// <summary>Which heading a sort produces.</summary>
+        private static LibraryGroupKey GroupKeyFor(VideoSortMode sort, bool albumMode) => sort switch
+        {
+            VideoSortMode.Year => LibraryGroupKey.Year,
+            VideoSortMode.Artist => LibraryGroupKey.Artist,
+            VideoSortMode.Added => LibraryGroupKey.AddedMonth,
+            _ => LibraryGroupKey.Letter,
+        };
 
-            // Every header was just built, and by now the thumbnails may already
-            // be decoded - the loader starts after the grid is up, and this method
-            // can run later than that when a tab switch rebuilds the groups. Those
-            // decodes happened before these headers existed, so no notification
-            // carried them here: the header read the thumbnail at construction and
-            // got null. Telling them once, now, is the difference between a sleeve
-            // and a glyph.
+        /// <summary>
+        /// One track per album, chosen stably, for the Albums tab's cards.
+        ///
+        /// <para>Ordered by title so the carrier does not follow scan order: the same
+        /// album must pick the same track on every rebuild, or its artwork would change
+        /// when the user switched tabs.</para>
+        /// </summary>
+        private static List<LibraryEntry> AlbumCarriers(List<LibraryEntry> entries)
+        {
+            return entries
+                .GroupBy(
+                    entry => string.IsNullOrWhiteSpace(entry.Album) ? string.Empty : entry.Album,
+                    StringComparer.CurrentCultureIgnoreCase)
+                .Select(album => album
+                    .OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
+                    .First())
+                .ToList();
         }
 
         /// <summary>
-        /// Fills the artists tab with one circular tile per artist.
+        /// What a heading prints.
         ///
-        /// <para><b>Why not <see cref="BuildMusicTagGroups"/>.</b> That method groups
-        /// the tracks of one tag and hands the whole group to a repeater, so the
-        /// Artists tab used to be a wall of TRACK cards under an artist heading - the
-        /// heading was the artist, the cards underneath were songs. This method gives
-        /// each artist exactly one card instead: the tile stands for the person, and
-        /// their songs arrive one level down.</para>
-        ///
-        /// <para><b>One carrier entry per tile.</b> A card needs an entry to render, and
-        /// an artist has none of their own, so the tile carries the group's first track.
-        /// <see cref="VideoFolderGroup.Items"/> must therefore hold exactly that one
-        /// entry - the repeater draws one card per item, so handing it the whole group
-        /// rebuilds the wall this replaces. The artist's real track list is re-derived
-        /// by <see cref="OpenArtist"/> from the library.</para>
+        /// <para>The grouper returns an empty label for its unknown bucket because it
+        /// cannot reach the language table; the page names it here.</para>
         /// </summary>
+        private string LabelForGroup(LibraryGrouping group)
+        {
+            if (group.Label.Length > 0)
+            {
+                return group.Label;
+            }
+
+            return _musicGrouping == MusicGrouping.Albums
+                ? AppContext.AppLang.LibraryUnknownAlbum
+                : AppContext.AppLang.LibraryUnknownArtist;
+        }
+
         /// <summary>
-        /// Fills the artists tab with one circular tile per artist.
+        /// Fills the artists tab: one circular tile per artist, filed under letters.
         ///
-        /// <para><b>Grouped by LETTER, not by artist.</b> One repeater per artist looked
-        /// right and behaved wrong: a repeater draws its items across the row, so a
-        /// one-item repeater is one tile on a line of its own, and the next artist began
-        /// below it. The tab became a single column of circles, each under a heading
-        /// repeating the name already printed on the tile. Grouping by letter restores
-        /// the shape the spec asks for - a letter heading, then every artist under that
-        /// letter in one grid.</para>
+        /// <para><b>Grouped by LETTER, not by artist.</b> A repeater draws its items
+        /// across the row, so a one-item repeater is one tile on a line of its own: the
+        /// tab became a single column of circles, each under a heading repeating the name
+        /// printed on the tile below it.</para>
         ///
-        /// <para><b>The tile is a carrier, not a track.</b> A card needs an entry to
-        /// render and an artist has none of their own, so each artist contributes exactly
-        /// one: their first track by title, chosen so the pick is stable across rebuilds
-        /// rather than following scan order. The artist's real track list is re-derived
-        /// from the library when the tile is opened.</para>
+        /// <para><b>The tile is a carrier, not a track.</b> Each artist contributes
+        /// exactly one entry - their first track by title - so the grid holds people
+        /// rather than songs. The artist's real track list is re-derived by
+        /// <see cref="OpenArtist"/>.</para>
         /// </summary>
         private void BuildArtistTiles(List<LibraryEntry> entries)
         {
@@ -891,76 +1035,68 @@ namespace mpv_winui.Domains.Playback
 
             var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
 
-            // Its own header shape: the album header carries a 56px sleeve and a track
-            // count, and a letter has neither.
             var headerTemplate = (DataTemplate)Resources["ArtistGroupHeaderTemplate"];
 
-            // "Unknown" sorts last, like the two tag groupings: it is the fallback
-            // bucket, not the most important artist in the library.
-            var unknownLabel = AppContext.AppLang.LibraryUnknownArtist;
-
-            // One carrier per artist, keyed by the artist's own name. GroupBy over a
-            // projection keeps the first track of each artist only.
             var carriers = entries
                 .GroupBy(
-                    entry => string.IsNullOrWhiteSpace(entry.Artist) ? "\uFFFF" : entry.Artist,
+                    entry => string.IsNullOrWhiteSpace(entry.Artist) ? string.Empty : entry.Artist,
                     StringComparer.CurrentCultureIgnoreCase)
                 .Select(artist => artist
                     .OrderBy(e => e.Title, StringComparer.CurrentCultureIgnoreCase)
                     .First())
                 .ToList();
 
-            // Then filed under the letter the artist's NAME starts with - the same rule
-            // the rail uses, so the rail and the headings cannot disagree.
-            var groups = carriers
-                .GroupBy(
-                    entry =>
-                    {
-                        var name = string.IsNullOrWhiteSpace(entry.Artist) ? unknownLabel : entry.Artist;
-
-                        return LibraryIndexLetter.For(name, ch => PinyinInitial.For(ch.ToString()));
-                    })
-                .Select(letter => new VideoFolderGroup(
-                    string.IsNullOrEmpty(letter.Key) ? "#" : letter.Key,
-                    letter.ToList(),
-                    Path: string.Empty,
-                    Letter: letter.Key))
-                .OrderBy(group => Array.IndexOf(LibraryIndexLetter.All, group.Letter))
-                .ThenBy(group => group.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ToList();
+            // Artists are never sorted - the tab has no sort menu - so the key is always
+            // the letter. Expressed through the same grouper so a Chinese artist lands in
+            // 拼音X here exactly as it does on the other two tabs.
+            var groups = LibraryGrouper.Group(
+                Enumerable.Range(0, carriers.Count).ToList(),
+                LibraryGroupKey.Letter,
+                i => carriers[i].Artist,
+                i => carriers[i].Year,
+                i => carriers[i].Artist,
+                i => carriers[i].AddedAt,
+                ch => PinyinInitial.For(ch.ToString()));
 
             _groupHeaders.Clear();
+
+            _groupItems.Clear();
 
             foreach (var group in groups)
             {
                 var header = new ContentPresenter
                 {
-                    Content = group,
+                    Content = new VideoFolderGroup(LabelForGroup(group), Array.Empty<LibraryEntry>(), Path: string.Empty, Letter: group.SortKey),
                     ContentTemplate = headerTemplate,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                 };
 
+                header.Tag = group.SortKey;
+
+                header.Tapped += GroupHeader_Tapped;
+
                 VideoFolderGroups.Children.Add(header);
 
-                if (!string.IsNullOrEmpty(group.Letter))
-                {
-                    // First group wins, as in the tag groupings.
-                    _groupHeaders.TryAdd(group.Letter, header);
-                }
+                _groupHeaders.TryAdd(group.SortKey, header);
+
+                var items = group.Items.Select(i => carriers[i]).ToList();
+
+                _groupItems[group.SortKey] = items;
 
                 var repeater = new ItemsRepeater
                 {
                     ItemTemplate = cardTemplate,
-                    ItemsSource = group.Items,
+                    ItemsSource = items,
                 };
+
                 repeater.Layout = AlbumCardLayout();
 
                 repeater.ElementPrepared += LibraryGrid_ElementPrepared;
+
                 VideoFolderGroups.Children.Add(repeater);
             }
-
-            BuildLibraryIndexRail(groups);
         }
+
 
         /// <summary>
         /// Fills in album / artist / length for the music entries, in one batch.

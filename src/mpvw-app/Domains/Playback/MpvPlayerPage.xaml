@@ -1254,6 +1254,29 @@
                                             Click="VideoSort_Click"
                                             GroupName="VideoSort"
                                             Tag="oldest" />
+
+                                        <!--  The three music-only orders. Hidden for the
+                                              video library, which has no tags to sort by:
+                                              ApplyVideoChromeVisibility decides, beside
+                                              the button's own caption. -->
+                                        <RadioMenuFlyoutItem
+                                            x:Name="SortByArtist"
+                                            Click="VideoSort_Click"
+                                            GroupName="VideoSort"
+                                            Tag="artist"
+                                            Visibility="Collapsed" />
+                                        <RadioMenuFlyoutItem
+                                            x:Name="SortByYear"
+                                            Click="VideoSort_Click"
+                                            GroupName="VideoSort"
+                                            Tag="year"
+                                            Visibility="Collapsed" />
+                                        <RadioMenuFlyoutItem
+                                            x:Name="SortByAdded"
+                                            Click="VideoSort_Click"
+                                            GroupName="VideoSort"
+                                            Tag="added"
+                                            Visibility="Collapsed" />
                                     </MenuFlyout>
                                 </DropDownButton.Flyout>
                             </DropDownButton>

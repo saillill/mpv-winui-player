@@ -19,6 +19,15 @@ public enum VideoSortMode
     NameDesc,
     Newest,
     Oldest,
+
+    /// <summary>By the artist tag. Music tabs only.</summary>
+    Artist,
+
+    /// <summary>By the release year from the tag. Music tabs only.</summary>
+    Year,
+
+    /// <summary>By when the file arrived in the library. Music tabs only.</summary>
+    Added,
 }
 
 /// <summary>

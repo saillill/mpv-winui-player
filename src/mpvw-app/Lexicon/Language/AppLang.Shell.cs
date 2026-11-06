@@ -50,6 +50,15 @@ namespace mpv_winui.Lexicon.Language
 
         public string LibrarySortNameAsc { get; set; } = "A-Z";
 
+        /// <summary>Sort the music library by the artist tag.</summary>
+        public string LibrarySortArtist { get; set; } = "Artist";
+
+        /// <summary>Sort by the release year from the tag.</summary>
+        public string LibrarySortYear { get; set; } = "Release year";
+
+        /// <summary>Sort by when the file arrived in the library.</summary>
+        public string LibrarySortAdded { get; set; } = "Date added";
+
         /// <summary>
         /// The music library's fallback group for a file with no album tag.
         ///

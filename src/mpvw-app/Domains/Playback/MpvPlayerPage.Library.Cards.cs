@@ -77,62 +77,6 @@ namespace mpv_winui.Domains.Playback
             }
         }
 
-        /// <summary>
-        /// Builds the A-Z rail for a grouped view.
-        ///
-        /// Every letter is shown, dimmed when empty. The reference does the same, and
-        /// hiding them would make the rail move as the library changes - a person could
-        /// not learn where a letter sits, or see that Q is empty without trying Q.
-        ///
-        /// Both grouped views have one: the music library's album and artist tabs,
-        /// and the video library's folder tab. The video folders were the gap - the
-        /// rail was gated on music, and the folder groups carried no Letter at all,
-        /// so a library of forty folders had no index and no way to ask for one.
-        /// The queue still has none: it is mpv's own playlist.
-        /// </summary>
-        private void BuildLibraryIndexRail(IEnumerable<VideoFolderGroup> groups)
-        {
-            // The rail belongs to any grouped view that assigns letters, not
-            // only the music ones. The video folder view files its groups under
-            // letters too (see BuildVideoFolderGroups, which passes
-            // LibraryIndexLetter.For), and gating on music meant a library with
-            // forty folders had a working index that was never shown -- the
-            // reported "the letter buttons do nothing" was really "there are no
-            // letter buttons".
-            // Only the music library's grouped tabs have an alphabet rail.
-            //
-            // The video library used to qualify whenever the folder view was up, and measured
-            // on the deployed build it did: `VideoTabFolders` exposed a rail of 27 letter
-            // buttons while `VideoTabAll` exposed none. Reported as "视频库不需要右侧的字母排序栏",
-            // and the report is right -- the video library groups by DIRECTORY, and a directory
-            // has no initial to jump to. The letters were keying off the first character of a
-            // folder name, which is an ordering nobody asked for and does not help anyone find
-            // a folder whose name they already know.
-            var isGrouped = _librarySection == LibrarySectionMusic
-                && _musicGrouping != MusicGrouping.Songs;
-
-            if (!isGrouped)
-            {
-                LibraryIndexRail.ItemsSource = null;
-
-                LibraryIndexRail.Visibility = Visibility.Collapsed;
-
-                return;
-            }
-
-            var inUse = groups
-                .Select(group => group.Letter)
-                .Where(letter => !string.IsNullOrEmpty(letter))
-                .Distinct(StringComparer.Ordinal);
-
-            // One table decides the letters and their order for both the rail and the
-            // grouping, so the two cannot disagree about which bucket exists.
-            LibraryIndexRail.ItemsSource = LibraryIndexLetter.BuildRail(inUse);
-
-            LibraryIndexRail.ItemTemplate = (DataTemplate)Resources["LibraryIndexLetterTemplate"];
-
-            LibraryIndexRail.Visibility = Visibility.Visible;
-        }
 
         /// <summary>
         /// Jumps to the first group filed under the clicked letter.
@@ -768,8 +712,31 @@ namespace mpv_winui.Domains.Playback
                     && _musicGrouping == MusicGrouping.Artists;
 
                 card.IsArtist = isArtistTile;
+
                 card.IsAlbum = isArtistTile || (!entry.IsVideo && MediaKinds.IsAudio(entry.Path));
+
                 card.SetEntry(entry, ResolveCover(entry));
+
+                // The Albums tab's card stands for an album, not for the track that
+                // happens to carry it. SetEntry has just painted the file name and the
+                // length, so the caption is overwritten AFTER it - the same order the
+                // artist page's album grid uses, and for the same reason: SetEntry
+                // rewrites both lines on every prepare, so a caption written first would
+                // be replaced the moment the element was recycled.
+                //
+                // The carrier's own entry is unchanged: OpenAlbum re-derives the album's
+                // real track list from the library, so nothing downstream believes this
+                // card is one track.
+                if (_librarySection == LibrarySectionMusic && _musicGrouping == MusicGrouping.Albums)
+                {
+                    card.SetAlbumCaption(
+                        string.IsNullOrWhiteSpace(entry.Album)
+                            ? AppContext.AppLang.LibraryUnknownAlbum
+                            : entry.Album,
+                        string.IsNullOrWhiteSpace(entry.Artist) && string.IsNullOrWhiteSpace(entry.AlbumArtistText)
+                            ? AppContext.AppLang.LibraryUnknownArtist
+                            : (string.IsNullOrWhiteSpace(entry.Artist) ? entry.AlbumArtistText : entry.Artist));
+                }
 
                 card.CardTapped -= Card_Tapped;
                 card.CardTapped += Card_Tapped;

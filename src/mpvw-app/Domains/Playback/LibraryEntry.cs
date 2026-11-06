@@ -283,7 +283,17 @@ namespace mpv_winui.Domains.Playback
                 AlbumTitle = AlbumTitle,
                 AlbumArtistText = AlbumArtistText,
                 Genre = Genre,
-                    Duration = Duration,
+
+                // Carried explicitly, like every other field here. This method builds a
+                // NEW object, so a field it forgets is silently EMPTIED rather than kept -
+                // which is how Year reached the Albums tab as null and filed every album
+                // under "unknown": the tag pass filled it in, and this pass replaced the
+                // entry without it a moment later.
+                Year = Year,
+
+                AddedAt = AddedAt,
+
+                Duration = Duration,
                     TrackCount = count,
             };
 
@@ -324,6 +334,8 @@ namespace mpv_winui.Domains.Playback
                 AlbumTitle = AlbumTitle,
                 AlbumArtistText = AlbumArtistText,
                 Genre = Genre,
+                Year = Year,
+                AddedAt = AddedAt,
                 Duration = duration,
                 TrackCount = TrackCount,
             };
