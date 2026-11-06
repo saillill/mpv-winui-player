@@ -73,6 +73,27 @@ namespace mpv_winui.Domains.Playback
         public string Genre { get; init; } = string.Empty;
 
         /// <summary>
+        /// The release year from the tag, or null when the file carries none.
+        ///
+        /// Null rather than 0: the Albums and Songs tabs group by this value, and a
+        /// zero-year group would collect every untagged file under a heading that is
+        /// not a year. Those files are reachable through the single "unknown" bucket
+        /// instead, which is the same rule the artist and album groupings follow.
+        /// </summary>
+        public int? Year { get; init; }
+
+        /// <summary>
+        /// When this file first entered the library, as the file system reports it.
+        ///
+        /// The file CREATION time, not <see cref="Time"/>: Time is when the watch
+        /// history last recorded a play, so sorting by it answers "what did I listen to
+        /// most recently", which is a different question from "what did I add most
+        /// recently". A file copied in with its original timestamps keeps them, which
+        /// is the honest answer for a library assembled from existing folders.
+        /// </summary>
+        public DateTimeOffset? AddedAt { get; init; }
+
+        /// <summary>
         /// How many tracks its album holds, once the tags have been read.
         ///
         /// Null means UNKNOWN - the tag pass has not run, or the file is not in a
@@ -388,7 +409,32 @@ namespace mpv_winui.Domains.Playback
                     : (string.IsNullOrWhiteSpace(tags.Artist) ? tags.AlbumArtist : tags.Artist),
                 Genre = tags.Genre,
                 Duration = tags.Duration,
+                Year = tags.Year,
             };
+        }
+
+        /// <summary>
+        /// When the file system says this file was created, or null when it will not say.
+        ///
+        /// Read here, at the one place every entry is constructed, so a file found by the
+        /// scan and a file found by the history agree about when it arrived. Swallowed
+        /// rather than thrown: a file can vanish between the enumeration and this call,
+        /// and a library must not fail to load over a timestamp that only drives a sort.
+        ///
+        /// Creation time is what Windows reports for "when this appeared here". A file
+        /// copied in from elsewhere carries its original timestamps, which is the honest
+        /// answer for a library assembled out of folders that already existed.
+        /// </summary>
+        private static DateTimeOffset? CreatedAt(string path)
+        {
+            try
+            {
+                return File.GetCreationTime(path);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         internal static LibraryEntry? FromHistory(string path, string? mediaTitle, DateTimeOffset? time = null)
@@ -428,6 +474,7 @@ namespace mpv_winui.Domains.Playback
                 Subtitle = folder,
                 IsVideo = isVideo,
                 Time = time,
+                AddedAt = CreatedAt(path),
                 IsMissing = !File.Exists(path),
                 // An extension this app does not recognise still gets a card -
                 // it came out of the player's own history, so it is something

@@ -69,7 +69,13 @@ namespace mpv_winui.Domains.Playback
                     // MusicProperties reports zero for "I do not know", which is
                     // not the same as a zero-length track; both become null so the
                     // table hides the column instead of printing 0:00.
-                    properties.Duration > TimeSpan.Zero ? properties.Duration : null);
+                    properties.Duration > TimeSpan.Zero ? properties.Duration : null,
+
+                    // MusicProperties reports 0 for "no year in the tag" - it is not a
+                    // year, and filing every untagged file under year zero would put
+                    // half the library in a 0-year group. null keeps them reachable
+                    // through the single "unknown" bucket instead.
+                    properties.Year > 0 ? (int)properties.Year : null);
             }
             catch (Exception)
             {

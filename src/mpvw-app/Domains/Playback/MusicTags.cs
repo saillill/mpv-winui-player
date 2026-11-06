@@ -16,9 +16,10 @@ namespace mpv_winui.Domains.Playback
         string Artist,
         string AlbumArtist,
         string Genre,
-        System.TimeSpan? Duration)
+        System.TimeSpan? Duration,
+        int? Year)
     {
         public static MusicTags Empty { get; } = new(
-            string.Empty, string.Empty, string.Empty, string.Empty, null);
+            string.Empty, string.Empty, string.Empty, string.Empty, null, null);
     }
 }

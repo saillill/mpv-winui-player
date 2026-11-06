@@ -31,15 +31,61 @@ internal static class LibraryIndexLetter
     internal const string Other = "#";
 
     /// <summary>
-    /// Every bucket the rail offers, in the reference player's order:
-    /// <c>#</c>, then A-Z.
+    /// Every bucket, in the order the letter grid shows them: <c>#</c>, A-Z, then
+    /// 拼音A-拼音Z.
+    ///
+    /// <para>Two sequences rather than one folded one. A Chinese title used to be
+    /// mapped onto the Latin letter its reading starts with, so 周杰伦 and Zayn shared
+    /// the Z bucket. That is wrong for a Chinese library: the reader looking for 周
+    /// scans the pinyin row, not the Latin one, and a bucket that mixes languages
+    /// cannot be labelled honestly. Han titles now land in <c>拼音X</c> and Latin
+    /// titles in <c>X</c>, which is what the reference player's own rail offers.</para>
     /// </summary>
     internal static readonly string[] All =
     [
         Other,
         "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
         "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+        PinyinA, PinyinB, PinyinC, PinyinD, PinyinE, PinyinF, PinyinG, PinyinH,
+        PinyinI, PinyinJ, PinyinK, PinyinL, PinyinM, PinyinN, PinyinO, PinyinP,
+        PinyinQ, PinyinR, PinyinS, PinyinT, PinyinU, PinyinV, PinyinW, PinyinX,
+        PinyinY, PinyinZ,
     ];
+
+    /// <summary>The prefix a Han title's bucket carries, ahead of its pinyin initial.</summary>
+    internal const string PinyinPrefix = "拼音";
+
+    /// <summary>
+    /// The pinyin buckets, spelled out rather than built: <see cref="All"/> is a static
+    /// array initialiser and cannot call a method, and a local sequence expression here
+    /// would need a second static field to name it.
+    /// </summary>
+    private const string PinyinA = PinyinPrefix + "A";
+    private const string PinyinB = PinyinPrefix + "B";
+    private const string PinyinC = PinyinPrefix + "C";
+    private const string PinyinD = PinyinPrefix + "D";
+    private const string PinyinE = PinyinPrefix + "E";
+    private const string PinyinF = PinyinPrefix + "F";
+    private const string PinyinG = PinyinPrefix + "G";
+    private const string PinyinH = PinyinPrefix + "H";
+    private const string PinyinI = PinyinPrefix + "I";
+    private const string PinyinJ = PinyinPrefix + "J";
+    private const string PinyinK = PinyinPrefix + "K";
+    private const string PinyinL = PinyinPrefix + "L";
+    private const string PinyinM = PinyinPrefix + "M";
+    private const string PinyinN = PinyinPrefix + "N";
+    private const string PinyinO = PinyinPrefix + "O";
+    private const string PinyinP = PinyinPrefix + "P";
+    private const string PinyinQ = PinyinPrefix + "Q";
+    private const string PinyinR = PinyinPrefix + "R";
+    private const string PinyinS = PinyinPrefix + "S";
+    private const string PinyinT = PinyinPrefix + "T";
+    private const string PinyinU = PinyinPrefix + "U";
+    private const string PinyinV = PinyinPrefix + "V";
+    private const string PinyinW = PinyinPrefix + "W";
+    private const string PinyinX = PinyinPrefix + "X";
+    private const string PinyinY = PinyinPrefix + "Y";
+    private const string PinyinZ = PinyinPrefix + "Z";
 
     /// <summary>
     /// The bucket a title belongs to.
@@ -85,10 +131,12 @@ internal static class LibraryIndexLetter
 
             if (IsHan(ch) && hanInitial is not null)
             {
-                // A Han initial is a real answer, not a fallback: stop here.
+                // A Han initial is a real answer, not a fallback: stop here. It lands
+                // in its OWN sequence - 拼音Z, not Z - so a Chinese title never shares
+                // a bucket with a Latin one that happens to start with the same letter.
                 if (hanInitial(ch) is { Length: > 0 } initial)
                 {
-                    return initial.ToUpperInvariant();
+                    return PinyinPrefix + initial.ToUpperInvariant();
                 }
             }
 

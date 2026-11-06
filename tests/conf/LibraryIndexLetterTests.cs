@@ -46,17 +46,19 @@ public class LibraryIndexLetterTests
         // # bucket useless.
         Assert.That(LibraryIndexLetter.For("[Deluxe] Album", FakeHan), Is.EqualTo("D"));
         Assert.That(LibraryIndexLetter.For("\"Heroes\"", FakeHan), Is.EqualTo("H"));
-        Assert.That(LibraryIndexLetter.For("《音乐》", FakeHan), Is.EqualTo("Y"));
-        Assert.That(LibraryIndexLetter.For("「周」", FakeHan), Is.EqualTo("Z"));
+        Assert.That(LibraryIndexLetter.For("《音乐》", FakeHan), Is.EqualTo("拼音Y"));
+        Assert.That(LibraryIndexLetter.For("「周」", FakeHan), Is.EqualTo("拼音Z"));
     }
 
     [Test]
     public void HanTitlesFileByPinyin()
     {
-        Assert.That(LibraryIndexLetter.For("周杰伦", FakeHan), Is.EqualTo("Z"));
-        Assert.That(LibraryIndexLetter.For("王菲", FakeHan), Is.EqualTo("W"));
-        Assert.That(LibraryIndexLetter.For("苹果", FakeHan), Is.EqualTo("P"));
-        Assert.That(LibraryIndexLetter.For("音乐", FakeHan), Is.EqualTo("Y"));
+        // 拼音X, not X: a Chinese title gets its own sequence so it never shares a
+        // bucket with a Latin title that happens to start with the same letter.
+        Assert.That(LibraryIndexLetter.For("周杰伦", FakeHan), Is.EqualTo("拼音Z"));
+        Assert.That(LibraryIndexLetter.For("王菲", FakeHan), Is.EqualTo("拼音W"));
+        Assert.That(LibraryIndexLetter.For("苹果", FakeHan), Is.EqualTo("拼音P"));
+        Assert.That(LibraryIndexLetter.For("音乐", FakeHan), Is.EqualTo("拼音Y"));
     }
 
     [Test]
@@ -106,9 +108,19 @@ public class LibraryIndexLetterTests
     public void TheRailIsTheWholeAlphabetInReferenceOrder()
     {
         Assert.That(LibraryIndexLetter.All[0], Is.EqualTo(LibraryIndexLetter.Other));
-        Assert.That(LibraryIndexLetter.All.Length, Is.EqualTo(27));
-        Assert.That(LibraryIndexLetter.All.Skip(1), Is.EqualTo(
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Select(c => c.ToString())));
+
+        // Three bands now: #, the twenty-six Latin letters, then the twenty-six pinyin
+        // buckets. Fifty-three, not twenty-seven.
+        Assert.That(LibraryIndexLetter.All.Length, Is.EqualTo(53));
+
+        Assert.That(
+            LibraryIndexLetter.All.Skip(1).Take(26),
+            Is.EqualTo("ABCDEFGHIJKLMNOPQRSTUVWXYZ".Select(c => c.ToString())));
+
+        Assert.That(
+            LibraryIndexLetter.All.Skip(27),
+            Is.EqualTo("ABCDEFGHIJKLMNOPQRSTUVWXYZ".Select(c => LibraryIndexLetter.PinyinPrefix + c)),
+            "the pinyin band follows the Latin one, in the same order");
     }
 
     [Test]

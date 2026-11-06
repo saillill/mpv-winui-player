@@ -1223,6 +1223,25 @@ namespace mpv_winui.Domains.Playback
             return result;
         }
 
+        /// <summary>
+        /// When the file system says this file was created, or null when it will not say.
+        ///
+        /// Split out and swallowed rather than inlined: a file can vanish between the
+        /// enumeration and this call, and a library scan must not die for a timestamp
+        /// that only drives a sort order.
+        /// </summary>
+        private static DateTimeOffset? CreatedAt(string path)
+        {
+            try
+            {
+                return File.GetCreationTime(path);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         private static List<LibraryEntry> BuildEntries(string historyPath)
         {
             var result = new List<LibraryEntry>();
