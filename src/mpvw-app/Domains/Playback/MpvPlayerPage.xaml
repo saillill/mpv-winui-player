@@ -304,7 +304,8 @@
                                 VerticalAlignment="Center"
                                 Content="{TemplateBinding Content}"
                                 ContentTemplate="{TemplateBinding ContentTemplate}"
-                                FontWeight="SemiBold"
+                                FontSize="16"
+                                FontWeight="Normal"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             <Border
                                 x:Name="TabIndicator"
@@ -1046,7 +1047,6 @@
                         <TextBlock
                             x:Name="LibrarySectionTitle"
                             Grid.Column="0"
-                            Margin="6,0,0,0"
                             VerticalAlignment="Bottom"
                             FontSize="{StaticResource MpvPageHeadingFontSize}"
                             FontWeight="SemiBold"
@@ -1106,10 +1106,16 @@
 
                         <!-- The section's top-right command: Add folder, which the
                              official player keeps on the heading row. -->
+                        <!--  Centred on the heading, not bottom-aligned with the row.
+                              The row is as tall as the 40px heading, so Bottom parked
+                              this 30px button against the heading baseline and it read
+                              as hanging off the line. Center puts its middle on the
+                              heading own middle. The tabs keep Bottom: they belong on
+                              the baseline. -->
                         <Button
                             x:Name="VideoAddFolderButton"
                             Grid.Column="2"
-                            VerticalAlignment="Bottom"
+                            VerticalAlignment="Center"
                             Click="VideoAddFolder_Click">
                             <StackPanel
                                 Orientation="Horizontal"

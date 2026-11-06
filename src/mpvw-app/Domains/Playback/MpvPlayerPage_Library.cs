@@ -314,8 +314,13 @@ namespace mpv_winui.Domains.Playback
             };
 
             var isHome = _librarySection == LibrarySectionHome;
-            LibrarySectionSubtitle.Text = lang.LibraryHomeRecent;
-            LibrarySectionSubtitle.Visibility = isHome ? Visibility.Visible : Visibility.Collapsed;
+
+            // No subtitle. Home used to carry one line - "Recently used media" -
+            // over two bands that already say what they are (最近观看 / 最近收听).
+            // Reported as 主页最近使用的媒体这几个字没用. The element stays declared
+            // because the heading row reserves its height; nothing writes it.
+            LibrarySectionSubtitle.Text = string.Empty;
+            LibrarySectionSubtitle.Visibility = Visibility.Collapsed;
 
             var isVideos = _librarySection == LibrarySectionVideos;
 
