@@ -737,18 +737,6 @@ namespace mpv_winui.Domains.Playback
                 _logger.Warn(ex, "album: cover art unavailable");
             }
         }
-        /// <summary>Space or Enter on a focused heading opens the picker.</summary>
-        private void GroupHeader_KeyDown(object sender, KeyRoutedEventArgs e)
-        {
-            if (e.Key is not (Windows.System.VirtualKey.Space or Windows.System.VirtualKey.Enter))
-            {
-                return;
-            }
-
-            GroupHeader_Tapped(sender, null!);
-
-            e.Handled = true;
-        }
 
         /// <summary>
         /// Opens the heading picker over the content area, growing it into place.
@@ -768,20 +756,15 @@ namespace mpv_winui.Domains.Playback
 
             // A UniformGridLayout, not the default: ItemsRepeater's default is a single
             // column, which laid the fifty-three buckets out as one tall column running off
-            // the bottom of the sheet.
-            //
-            // Left, not Fill, and the repeater itself is LEFT anchored in markup. Both are
-            // deliberate: the sheet's row is Auto, so anything that has to be centred against
-            // the height asks to be measured against an infinite one, and that took the whole
-            // content area down with it - twice - before it was traced. The centring is done
-            // by the outer Grid's star rows instead.
+            // the bottom of the sheet. Fill, not Left: the buckets are the same size, so the
+            // sheet reads as a grid of letters rather than as a ragged list.
             LibraryGroupPicker.Layout = new UniformGridLayout
             {
                 MinItemWidth = 68,
                 MinItemHeight = 44,
                 MinColumnSpacing = 2,
                 MinRowSpacing = 2,
-                ItemsStretch = UniformGridLayoutItemsStretch.None,
+                ItemsStretch = UniformGridLayoutItemsStretch.Fill,
             };
 
             LibraryGroupPicker.ItemsSource = BuildGroupPickerEntries();
@@ -1014,21 +997,6 @@ namespace mpv_winui.Domains.Playback
 
                 header.Tapped += GroupHeader_Tapped;
 
-            // Reachable without a mouse, and findable by automation.
-            //
-            // A heading is a ContentPresenter over a template, so it has no click pattern of
-            // its own: before this it could only be opened by tapping it with a pointer,
-            // which is both an accessibility hole and the reason the picker could not be
-            // exercised by this project's own harness. TabStop + Space/Enter is the same
-            // access every other control on the page already offers.
-            header.IsTabStop = true;
-
-            AutomationProperties.SetAutomationId(header, "LibraryGroupHeader");
-
-            AutomationProperties.SetName(header, LabelForGroup(group));
-
-            header.KeyDown += GroupHeader_KeyDown;
-
                 VideoFolderGroups.Children.Add(header);
 
                 _groupHeaders.TryAdd(group.SortKey, header);
@@ -1155,21 +1123,6 @@ namespace mpv_winui.Domains.Playback
                 header.Tag = group.SortKey;
 
                 header.Tapped += GroupHeader_Tapped;
-
-            // Reachable without a mouse, and findable by automation.
-            //
-            // A heading is a ContentPresenter over a template, so it has no click pattern of
-            // its own: before this it could only be opened by tapping it with a pointer,
-            // which is both an accessibility hole and the reason the picker could not be
-            // exercised by this project's own harness. TabStop + Space/Enter is the same
-            // access every other control on the page already offers.
-            header.IsTabStop = true;
-
-            AutomationProperties.SetAutomationId(header, "LibraryGroupHeader");
-
-            AutomationProperties.SetName(header, LabelForGroup(group));
-
-            header.KeyDown += GroupHeader_KeyDown;
 
                 VideoFolderGroups.Children.Add(header);
 
