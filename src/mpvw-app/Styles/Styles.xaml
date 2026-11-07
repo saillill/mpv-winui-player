@@ -1719,7 +1719,13 @@
           A second token rather than changing the first: the settings page measures the
           same 32 against text with no cards in it, and has no frame to clear. -->
     <Thickness x:Key="MpvLibraryHostPadding">38,0,38,0</Thickness>
-    <Thickness x:Key="MpvLibraryHeaderMargin">38,8,38,16</Thickness>
+
+    <!--  44, not 38: the scroll host's padding puts the CELL at 38, and the cell begins with
+          CardMetrics.HoverFrameInset of empty gutter, so the PICTURE starts at 44. The heading
+          sits outside the scroll host and needs the same 44 to line up with the pictures -
+          38 put it on the cell's invisible outer edge, which is what 「主页标题和缩略图没对齐」
+          was reporting for the third time. 38 + 6 = 44. -->
+    <Thickness x:Key="MpvLibraryHeaderMargin">44,8,44,16</Thickness>
 
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
