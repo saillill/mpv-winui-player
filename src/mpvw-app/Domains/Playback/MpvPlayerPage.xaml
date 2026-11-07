@@ -294,7 +294,7 @@
                             </Grid.RowDefinitions>
                             <Border
                                 x:Name="TabHover"
-                                Grid.RowSpan="2"
+                                Grid.RowSpan="3"
                                 Background="Transparent"
                                 CornerRadius="4" />
                             <ContentPresenter
@@ -554,7 +554,7 @@
                      purpose: it identifies the group, it is not the thing you click. -->
                 <Grid
                     Grid.Column="0"
-                    Grid.RowSpan="2"
+                    Grid.RowSpan="3"
                     Width="64"
                     Height="36"
                     Margin="0,0,10,0"
@@ -1650,6 +1650,7 @@
                     Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
                     Visibility="Collapsed">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
@@ -1661,7 +1662,7 @@
                           a full-bleed transparent button with no accessible name is a rectangle
                           a screen reader announces as "button" and nothing else. -->
                     <Button
-                        Grid.RowSpan="2"
+                        Grid.RowSpan="3"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Background="Transparent"
@@ -1669,20 +1670,30 @@
                         Click="LibraryGroupPickerDismiss_Click"
                         x:Name="LibraryGroupPickerDismiss" />
 
+                    <!--  Top-aligned and LEFT-anchored on purpose. The row is Auto, so a
+                          centred repeater has to be measured against an infinite height, and it
+                          collapses - which took the whole content area down with it, twice,
+                          before this was traced. The centring is done by the outer Grid's
+                          rows instead: an empty star row above and below the letters. -->
                     <ItemsRepeater
                         x:Name="LibraryGroupPicker"
-                        Grid.Row="0"
-                        Margin="{StaticResource MpvLibraryHostPadding}"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top" />
-
-                    <TextBlock
-                        x:Name="LibraryGroupPickerTitle"
                         Grid.Row="1"
                         Margin="{StaticResource MpvLibraryHostPadding}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top" />
+
+                    <!--  The title, at heading size and in the accent. It was a caption in
+                          tertiary ink: the smallest, faintest text on the sheet, sitting under
+                          fifty-three letters that are all larger than it. -->
+                    <TextBlock
+                        x:Name="LibraryGroupPickerTitle"
+                        Grid.Row="0"
+                        Margin="{StaticResource MpvLibraryHostPadding}"
+                        HorizontalAlignment="Center"
                         VerticalAlignment="Bottom"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                        Style="{StaticResource CaptionTextBlockStyle}" />
+                        FontSize="{StaticResource MpvPageHeadingFontSize}"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                 </Grid>
 
                 <!-- The A-Z rail, in its own column so it does not scroll away.
@@ -2358,7 +2369,7 @@
                       page uses. -->
                 <Grid
                     x:Name="ArtistHost"
-                    Grid.RowSpan="2"
+                    Grid.RowSpan="3"
                     Padding="{StaticResource MpvLibraryHostPadding}"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                     Visibility="Collapsed">
@@ -2471,7 +2482,7 @@
                      brush here rather than leaving the previous album's colour. -->
                 <Rectangle
                     x:Name="MusicPageWash"
-                    Grid.RowSpan="2"
+                    Grid.RowSpan="3"
                     Fill="{ThemeResource MpvMusicPageBrush}" />
 
                 <!-- The glow behind the cover: the saturated hue at low opacity,
