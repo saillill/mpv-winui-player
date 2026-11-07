@@ -555,7 +555,24 @@ namespace mpv_winui.Domains.Playback
                 return;
             }
 
+            var changed = !string.Equals(_librarySection, key, StringComparison.Ordinal);
+
             _librarySection = key;
+
+            // A section opens where it starts, every time it is selected.
+            //
+            // Reported as: enter a video folder, click Music in the sidebar, click Videos
+            // again - and the folder is still open. The section had kept every bit of its
+            // browsing state, so coming back landed mid-walk through a tree the user had
+            // left.
+            //
+            // Reset on a real section CHANGE rather than on every call: this method is also
+            // how a section is refreshed in place (a language change, a rescan), and those
+            // must not throw the user out of the folder they are reading.
+            if (changed)
+            {
+                ResetSectionBrowsingState();
+            }
 
             ApplySectionHeader();
 
@@ -1769,6 +1786,21 @@ namespace mpv_winui.Domains.Playback
             }
         }
 
+        /// <summary>
+        /// Brings the library up over a running video, without ever putting it back.
+        ///
+        /// <para>A withdraw, not a toggle: the sidebar asks for a section, and the answer
+        /// must be that section - not "the library, unless it happened to be up already, in
+        /// which case the picture comes back and the window goes black".</para>
+        /// </summary>
+        internal void ShowLibraryFromShell()
+        {
+            if (!_libraryVisible)
+            {
+                SetLibraryVisible(true);
+            }
+        }
+
         internal void ToggleLibraryFromShell()
         {
             SetLibraryVisible(!_libraryVisible);
@@ -1880,6 +1912,49 @@ namespace mpv_winui.Domains.Playback
         /// someone who did not know the collapse list existed. A fourth surface
         /// should be no more likely to be forgotten.
         /// </summary>
+        /// <summary>
+        /// Puts every section's browsing state back to how it starts.
+        ///
+        /// <para><b>One list, deliberately.</b> Each of these is a place the user can be
+        /// inside a section - a folder they walked into, a tab they chose, a genre they
+        /// filtered by. The bug this fixes was a section keeping all of them across a
+        /// sidebar switch, so the next visit resumed a context nobody had asked for.
+        /// Anything added later belongs on this list.</para>
+        ///
+        /// <para>The sort is NOT reset: it is a preference rather than a place, and a user
+        /// who chose Z-A expects it to stay chosen.</para>
+        ///
+        /// <para>The CONTROLS are null-guarded, the fields are not: the fields always
+        /// exist, while the tabs are realised by InitializeComponent and this can be
+        /// reached from a section change that arrives before that finishes.</para>
+        /// </summary>
+        private void ResetSectionBrowsingState()
+        {
+            _videoFolderPath = string.Empty;
+
+            _videoFolderView = false;
+
+            _musicGrouping = MusicGrouping.Songs;
+
+            _musicGenre = MusicGenreSelection.All;
+
+            if (VideoTabAll is not null)
+            {
+                VideoTabAll.IsChecked = true;
+
+                VideoTabFolders.IsChecked = false;
+            }
+
+            if (MusicTabSongs is not null)
+            {
+                MusicTabSongs.IsChecked = true;
+
+                MusicTabAlbums.IsChecked = false;
+
+                MusicTabArtists.IsChecked = false;
+            }
+        }
+
         private void HideSurfacesOverLibrary()
         {
             MusicHost.Visibility = Visibility.Collapsed;

@@ -1080,7 +1080,7 @@
 
                 <StackPanel
                     Grid.Row="0"
-                    Margin="{StaticResource MpvBreadcrumbBarMargin}">
+                    Margin="{StaticResource MpvLibraryHeaderMargin}">
                     <!-- The heading keeps its explicit 40 / SemiBold.
                          Measured against the official player's own window, the
                          two headings' ink is IDENTICAL - 38.9 DIP of cap height
@@ -1565,7 +1565,7 @@
                 <ScrollViewer
                     x:Name="LibraryScroll"
                     Grid.Row="1"
-                    Padding="{StaticResource MpvBrowseHostPadding}"
+                    Padding="{StaticResource MpvLibraryHostPadding}"
                     HorizontalScrollBarVisibility="Disabled"
                     HorizontalScrollMode="Disabled"
                     VerticalScrollBarVisibility="Auto"
@@ -1672,14 +1672,14 @@
                     <ItemsRepeater
                         x:Name="LibraryGroupPicker"
                         Grid.Row="0"
-                        Margin="{StaticResource MpvBrowseHostPadding}"
+                        Margin="{StaticResource MpvLibraryHostPadding}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top" />
 
                     <TextBlock
                         x:Name="LibraryGroupPickerTitle"
                         Grid.Row="1"
-                        Margin="{StaticResource MpvBrowseHostPadding}"
+                        Margin="{StaticResource MpvLibraryHostPadding}"
                         VerticalAlignment="Bottom"
                         Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                         Style="{StaticResource CaptionTextBlockStyle}" />
@@ -1825,7 +1825,7 @@
                 <Grid
                     x:Name="QueueHost"
                     Grid.Row="1"
-                    Margin="{StaticResource MpvBrowseHostPadding}"
+                    Margin="{StaticResource MpvLibraryHostPadding}"
                     Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -2096,7 +2096,7 @@
 
                 <StackPanel
                     Grid.Row="0"
-                    Margin="{StaticResource MpvBreadcrumbBarMargin}">
+                    Margin="{StaticResource MpvLibraryHeaderMargin}">
 
                     <!-- Back to the list. A plain button rather than a breadcrumb
                          control: the album is one level deep and the reference
@@ -2239,7 +2239,7 @@
 
                 <ScrollViewer
                     Grid.Row="1"
-                    Padding="{StaticResource MpvBrowseHostPadding}"
+                    Padding="{StaticResource MpvLibraryHostPadding}"
                     HorizontalScrollBarVisibility="Disabled"
                     HorizontalScrollMode="Disabled"
                     VerticalScrollBarVisibility="Auto"
@@ -2359,7 +2359,7 @@
                 <Grid
                     x:Name="ArtistHost"
                     Grid.RowSpan="2"
-                    Padding="{StaticResource MpvBrowseHostPadding}"
+                    Padding="{StaticResource MpvLibraryHostPadding}"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                     Visibility="Collapsed">
                     <Grid.RowDefinitions>

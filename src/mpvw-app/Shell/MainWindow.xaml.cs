@@ -489,16 +489,24 @@ namespace mpv_winui
                 return;
             }
 
-            // The playing page absorbs navigation. The sections sitting behind
-            // it must not move while the user cannot see them - otherwise
-            // withdrawing would land on a section the user never chose - and a
-            // click must not read as "left the video". The highlight is put
-            // back where it was so the click reads as "nothing happened" rather
-            // than as a selection that had no effect.
+            // Selecting a section from the sidebar while a video is playing goes to that
+            // section, with playback still running behind it.
+            //
+            // This used to swallow the click: the playing page "absorbs navigation" and
+            // the highlight was put back. Reported as two symptoms from one cause -
+            // "switch to another section and nothing happens", and a black window when
+            // the click landed with the library already withdrawn. A navigation control
+            // that does nothing is not a defence of the section behind it.
+            //
+            // Leaving the picture means withdrawing to the library first, so the section
+            // the user asked for is the one that paints.
+            // Only when the picture is the thing on screen. ShellPage.Playing means
+            // "playback running AND the library withdrawn"; LibraryWhilePlaying means the
+            // library is already up, and toggling there would put the picture back - which
+            // is the black window, arrived at from the other side.
             if (ActivePlayer is { ShellPageState: ShellPage.Playing })
             {
-                RestoreNavSelection();
-                return;
+                ActivePlayer?.ShowLibraryFromShell();
             }
 
             foreach (var section in ShellSections)

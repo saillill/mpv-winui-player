@@ -1710,6 +1710,17 @@
     <Thickness x:Key="MpvBrowseHostMargin">0,4,0,0</Thickness>
     <Thickness x:Key="MpvBrowseHostPadding">32,0,32,0</Thickness>
 
+    <!--  The media library's own gutter: the shared 32 plus the card frame's 6.
+          CardMetrics.HoverFrameInset reserves 6 DIP OUTSIDE each tile so the hover frame
+          can wrap the card without the picture moving. That makes the cell's left edge 32
+          while the THUMBNAIL's left edge is 38 - and the heading, the toolbar and the
+          group headings were aligned to the cell, so they sat six DIP left of every
+          picture and caption in the grid. Reported three times, once per section.
+          A second token rather than changing the first: the settings page measures the
+          same 32 against text with no cards in it, and has no frame to clear. -->
+    <Thickness x:Key="MpvLibraryHostPadding">38,0,38,0</Thickness>
+    <Thickness x:Key="MpvLibraryHeaderMargin">38,8,38,16</Thickness>
+
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
          consuming flyout via BasedOn. -->
