@@ -391,7 +391,7 @@
               you recognise, where a folder thumbnail is a reminder. -->
         <DataTemplate x:Key="MusicGroupHeaderTemplate" x:DataType="lib:VideoFolderGroup">
             <Grid
-                Margin="0,16,0,8"
+                Margin="{StaticResource MpvLibraryGroupHeaderMargin}"
                 ColumnSpacing="{StaticResource MpvSpaceM}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -476,6 +476,12 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="0" />
+
+            <!--  A fixed box per letter. Without one the template shrinks to the glyph, and
+                  fifty-three buttons laid out in a Grid collapse into a paragraph of text -
+                  which is exactly what the first run produced. -->
+            <Setter Property="Width" Value="72" />
+            <Setter Property="Height" Value="44" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -492,18 +498,6 @@
             </Setter>
         </Style>
 
-        <DataTemplate x:Key="LibraryGroupPickerLetterTemplate" x:DataType="local:LibraryIndexBucket">
-            <Button
-                Width="64"
-                Height="40"
-                Margin="{StaticResource MpvSpaceXxs}"
-                HorizontalContentAlignment="Center"
-                Click="LibraryGroupPickerLetter_Click"
-                Content="{x:Bind Letter, Mode=OneTime}"
-                IsEnabled="{x:Bind HasContent, Mode=OneTime}"
-                Style="{StaticResource MpvLetterButtonStyle}"
-                Tag="{x:Bind Letter, Mode=OneTime}" />
-        </DataTemplate>
 
         <DataTemplate x:Key="LibraryFolderCrumbTemplate" x:DataType="lib:VideoFolderGroup">
             <TextBlock
@@ -517,7 +511,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ArtistGroupHeaderTemplate" x:DataType="lib:VideoFolderGroup">
-            <Grid Margin="0,16,0,8">
+            <Grid Margin="{StaticResource MpvLibraryGroupHeaderMargin}">
                 <TextBlock
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -528,7 +522,7 @@
 
         <DataTemplate x:Key="VideoFolderHeaderTemplate" x:DataType="lib:VideoFolderGroup">
             <Grid
-                Margin="0,16,0,8"
+                Margin="{StaticResource MpvLibraryGroupHeaderMargin}"
                 ColumnSpacing="{StaticResource MpvSpaceS}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -1649,40 +1643,43 @@
                     Canvas.ZIndex="20"
                     Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
                     Visibility="Collapsed">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <!--  The same close affordance a flyout has: a transparent full-size button
-                          under the grid, so a tap anywhere outside the letters dismisses. Placed
-                          first so the letters sit above it and keep their own clicks. -->
-                    <!--  The dismiss target. Named and tooltipped like every other control:
-                          a full-bleed transparent button with no accessible name is a rectangle
-                          a screen reader announces as "button" and nothing else. -->
+                    <!--  The dismiss target: a transparent full-bleed button under everything,
+                          so a tap anywhere outside the letters closes the sheet. -->
                     <Button
-                        Grid.RowSpan="2"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Background="Transparent"
                         BorderThickness="0"
                         Click="LibraryGroupPickerDismiss_Click"
+                        Style="{StaticResource MpvLetterButtonStyle}"
+                        Width="Auto"
+                        Height="Auto"
                         x:Name="LibraryGroupPickerDismiss" />
 
-                    <ItemsRepeater
-                        x:Name="LibraryGroupPicker"
-                        Grid.Row="0"
-                        Margin="{StaticResource MpvLibraryHostPadding}"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top" />
+                    <!--  The sheet, centred. Centring is done by the outer alignment plus a
+                          StackPanel, NOT by an ItemsRepeater alignment: a repeater asked to
+                          centre vertically inside an Auto row is measured against an
+                          infinite height, collapses, and takes the whole content area with
+                          it - measured twice on this page before it was traced. -->
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="{StaticResource MpvSpaceL}">
+                        <!--  The title, at page-heading size and in the accent. It was a
+                              caption in tertiary ink: the smallest, faintest text on the
+                              surface, sitting under fifty-three letters all larger than it. -->
+                        <TextBlock
+                            x:Name="LibraryGroupPickerTitle"
+                            HorizontalAlignment="Center"
+                            FontSize="{StaticResource MpvPageHeadingFontSize}"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource MpvAccentHeadingBrush}" />
 
-                    <TextBlock
-                        x:Name="LibraryGroupPickerTitle"
-                        Grid.Row="1"
-                        Margin="{StaticResource MpvLibraryHostPadding}"
-                        VerticalAlignment="Bottom"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                        Style="{StaticResource CaptionTextBlockStyle}" />
+                        <!--  The letters: a Grid whose children are added in code. Fifty-three
+                              buttons need no virtualisation, and a Grid filled by hand has no
+                              layout constraint to disagree with. -->
+                        <Grid x:Name="LibraryGroupPickerLetters" />
+                    </StackPanel>
                 </Grid>
 
                 <!-- The A-Z rail, in its own column so it does not scroll away.

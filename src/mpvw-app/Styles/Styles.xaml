@@ -1727,6 +1727,19 @@
           was reporting for the third time. 38 + 6 = 44. -->
     <Thickness x:Key="MpvLibraryHeaderMargin">44,8,44,16</Thickness>
 
+    <!--  Inside the scroll host the cell already starts at the host padding, so a group
+          heading needs only the frame gutter to land on the pictures. Same 6, same reason
+          as the page heading above - the two live on opposite sides of the scroll host and
+          therefore carry different totals for the same visual edge. -->
+    <Thickness x:Key="MpvLibraryGroupHeaderMargin">6,16,0,8</Thickness>
+
+    <!--  The accent as INK, for a heading that has to read as the accent rather than as text.
+          AccentTextFillColorPrimaryBrush is WinUI's own derivation and comes out pale against
+          the dark surface (measured: the picker title read as light grey, not as the violet
+          the app uses everywhere else). Light1 is the same violet lifted one step, which is
+          what the app already picked for accents that have to sit on a dark background. -->
+    <SolidColorBrush x:Key="MpvAccentHeadingBrush" Color="{ThemeResource SystemAccentColorLight1}" />
+
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
          consuming flyout via BasedOn. -->

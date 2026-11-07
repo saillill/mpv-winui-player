@@ -738,90 +738,156 @@ namespace mpv_winui.Domains.Playback
             }
         }
 
+        /// <summary>How many letters fit across the sheet before it wraps.</summary>
+        private const int PickerColumns = 8;
+
         /// <summary>
-        /// Opens the heading picker over the content area, growing it into place.
+        /// Opens the heading picker over the content area.
         ///
-        /// <para><b>A sheet, not a flyout.</b> The picker used to be a flyout anchored to
-        /// the heading that was tapped: sized to its content, hanging off one row, and the
-        /// reader had to find it. It now covers the rectangle the cards occupy and fades up
-        /// from a slight scale, so opening it reads as the content becoming the index. The
-        /// heading, tabs and toolbar stay visible above it - the grid is a way to move
-        /// through that list, not a modal that hides what it belongs to.</para>
+        /// <para><b>A sheet, not a flyout.</b> The picker used to be a flyout anchored to the
+        /// heading that was tapped - sized to its content, hanging off one row, and the reader
+        /// had to find it. It now covers the rectangle the cards occupy, centred in it, so
+        /// opening it reads as the content becoming the index.</para>
+        ///
+        /// <para><b>The letters are built here, into a Grid.</b> An ItemsRepeater with
+        /// UniformGridLayout cannot lay out under an infinite height constraint, and centring
+        /// the repeater asks for exactly that - it collapsed and took the whole content area
+        /// with it, twice, before it was traced. Fifty-three buttons need no virtualisation,
+        /// and a Grid filled by hand has no constraint to disagree with.</para>
         /// </summary>
-        private void GroupHeader_Tapped(object sender, TappedRoutedEventArgs e)
+        private void GroupHeader_Click(object sender, RoutedEventArgs e)
         {
-            // The headings are what the grid lists, so building it here keeps it in step
-            // with the list the tap came from.
-            LibraryGroupPicker.ItemTemplate = (DataTemplate)Resources["LibraryGroupPickerLetterTemplate"];
-
-            // A UniformGridLayout, not the default: ItemsRepeater's default is a single
-            // column, which laid the fifty-three buckets out as one tall column running off
-            // the bottom of the sheet. Fill, not Left: the buckets are the same size, so the
-            // sheet reads as a grid of letters rather than as a ragged list.
-            LibraryGroupPicker.Layout = new UniformGridLayout
-            {
-                MinItemWidth = 68,
-                MinItemHeight = 44,
-                MinColumnSpacing = 2,
-                MinRowSpacing = 2,
-                ItemsStretch = UniformGridLayoutItemsStretch.Fill,
-            };
-
-            LibraryGroupPicker.ItemsSource = BuildGroupPickerEntries();
-
             LibraryGroupPickerTitle.Text = AppContext.AppLang.LibraryGroupPickerHint;
 
-            // Named in code rather than bound in markup: a static AppLang path is not a
-            // valid x:Bind source (the markup compiler fails with WMC9999), and this is the
-            // same string on both the automation name and the tooltip.
+            // Named in code rather than bound in markup: a static AppLang path is not a valid
+            // x:Bind source (the markup compiler fails with WMC9999), and this is the same
+            // string on both the automation name and the tooltip.
             AutomationProperties.SetName(LibraryGroupPickerDismiss, AppContext.AppLang.LibraryGroupPickerClose);
 
             ToolTipService.SetToolTip(LibraryGroupPickerDismiss, AppContext.AppLang.LibraryGroupPickerClose);
 
-            // Which bucket the reader is at, resolved ONCE here rather than inside the
-            // prepare handler: the answer is the same for all fifty-three, and finding it
-            // walks the visual tree - which threw an unhandled XAML exception when it ran
-            // from inside the repeater's own prepare pass.
-            _pickerCurrentKey = CurrentGroupKey();
+            FillGroupPicker();
 
-            LibraryGroupPicker.ElementPrepared -= LibraryGroupPicker_ElementPrepared;
-
-            LibraryGroupPicker.ElementPrepared += LibraryGroupPicker_ElementPrepared;
+            // The list recedes, then the sheet arrives over it.
+            //
+            // A plain Opacity assignment, not a compositor animation and not a Storyboard:
+            // both of those crashed the process while this was being written (0xc000027b on
+            // the UI thread's XAML side, then 0x80070578 from combase because a code-built
+            // Storyboard resolves its target through the XAML namescope and a field is not in
+            // it). Setting the property cannot fail, and the sheet arriving over the softened
+            // list is what carries the change anyway.
+            LibraryScroll.Opacity = 0.35;
 
             LibraryGroupPickerHost.Visibility = Visibility.Visible;
-
-            // Grown from 0.94 with a fade, on the compositor, one frame late.
-            //
-            // One frame late is the whole trick: the sheet was Collapsed until the line
-            // above, so it has no laid-out size yet, and growing about the origin of a
-            // zero-sized element reads as the panel flying in from the corner rather than
-            // as the content expanding. DispatcherQueue.TryEnqueue runs after layout.
-            DispatcherQueue.TryEnqueue(() => MotionBehaviors.DropdownEnter(LibraryGroupPickerHost));
         }
 
         /// <summary>
-        /// Paints one letter: accent for the bucket the list is at, tertiary for an empty
-        /// one, the normal ink for the rest.
+        /// Builds the letter buttons into <see cref="LibraryGroupPickerLetters"/>.
         ///
-        /// <para>The accent is what answers "where am I" - a plain dark weight was
-        /// indistinguishable from every other letter that has content, so the sheet said
-        /// which buckets lead somewhere but not which one the reader was looking at.</para>
+        /// <para>Rebuilt on every open rather than cached: which buckets have content is a
+        /// function of the current list, and a cached grid would keep pointing at headings
+        /// that no longer exist.</para>
         /// </summary>
-        private void LibraryGroupPicker_ElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
+        private void FillGroupPicker()
         {
-            // A Control, not FrameworkElement: Foreground lives on Control, and the
-            // template root here is the Button the style builds.
-            if (args.Element is not Control { DataContext: LibraryIndexBucket bucket } letter)
+            LibraryGroupPickerLetters.Children.Clear();
+
+            LibraryGroupPickerLetters.ColumnDefinitions.Clear();
+
+            LibraryGroupPickerLetters.RowDefinitions.Clear();
+
+            var entries = BuildGroupPickerEntries();
+
+            var columns = System.Math.Min(PickerColumns, System.Math.Max(1, entries.Count));
+
+            for (var column = 0; column < columns; column++)
             {
-                return;
+                LibraryGroupPickerLetters.ColumnDefinitions.Add(new ColumnDefinition());
             }
 
-            letter.Foreground = bucket switch
+            var rows = (entries.Count + columns - 1) / columns;
+
+            for (var row = 0; row < rows; row++)
             {
-                { HasContent: false } => (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"],
-                { Letter: var key } when key == _pickerCurrentKey => (Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"],
-                _ => (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"],
-            };
+                LibraryGroupPickerLetters.RowDefinitions.Add(new RowDefinition());
+            }
+
+            var current = CurrentGroupKey();
+
+            for (var index = 0; index < entries.Count; index++)
+            {
+                var entry = entries[index];
+
+                var letter = new Button
+                {
+                    Content = entry.Letter,
+                    Tag = entry.Letter,
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                    BorderThickness = new Thickness(0),
+                    Style = (Style)Resources["MpvLetterButtonStyle"],
+
+                    // An empty bucket cannot be clicked. A grey letter that still accepted a
+                    // press would scroll nowhere, which reads as a broken button.
+                    IsEnabled = entry.HasContent,
+                };
+
+                letter.Click += GroupPickerItem_Click;
+
+                if (!entry.HasContent)
+                {
+                    letter.Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"];
+                }
+                else if (entry.Letter == current)
+                {
+                    // Where the reader already is, in the accent: a plain dark weight was
+                    // indistinguishable from every other letter that has content.
+                    letter.Foreground = (Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"];
+                }
+
+                Grid.SetRow(letter, index / columns);
+
+                Grid.SetColumn(letter, index % columns);
+
+                LibraryGroupPickerLetters.Children.Add(letter);
+            }
+        }
+
+        /// <summary>
+        /// What the sheet offers: every bucket under a letter sort, only the real headings
+        /// under any other.
+        ///
+        /// <para>A letter sort is a closed set - "is there anything under Q" needs Q to be
+        /// visible and dimmed when the answer is no. Years, artists and months have no such
+        /// set: padding those would invent headings the list does not have.</para>
+        /// </summary>
+        private List<LibraryIndexBucket> BuildGroupPickerEntries()
+        {
+            var keyType = GroupKeyFor(EffectiveMusicSort, _musicGrouping == MusicGrouping.Albums);
+
+            if (keyType == LibraryGroupKey.Letter)
+            {
+                return LibraryIndexLetter.BuildRail(_groupHeaders.Keys);
+            }
+
+            return _groupHeaders.Keys
+                .Select(key => new LibraryIndexBucket(LabelForPicker(key), true))
+                .ToList();
+        }
+
+        /// <summary>
+        /// What one button prints: a letter prints its bucket, anything else its own heading
+        /// label, because a year or an artist name is what the reader is looking for.
+        /// </summary>
+        private string LabelForPicker(string key)
+        {
+            if (_groupHeaders.TryGetValue(key, out var header)
+                && header is ContentPresenter { Content: VideoFolderGroup group })
+            {
+                return group.Name;
+            }
+
+            return key;
         }
 
         /// <summary>Closes the heading picker without navigating.</summary>
@@ -835,64 +901,11 @@ namespace mpv_winui.Domains.Playback
         {
             LibraryGroupPickerHost.Visibility = Visibility.Collapsed;
 
-            LibraryGroupPicker.ItemsSource = null;
+            LibraryScroll.Opacity = 1.0;
         }
 
-        /// <summary>
-        /// What the sheet offers: every bucket under a letter sort, only the real headings
-        /// under any other.
-        ///
-        /// <para><b>Why the two differ.</b> A letter sort is a closed set - "is there
-        /// anything under Q" needs Q to be visible and dimmed when the answer is no, which
-        /// is what the reference player's rail did and what the reader expects. Years,
-        /// artists and months have no such set: padding those would invent headings the
-        /// list does not have.</para>
-        /// </summary>
-        private List<LibraryIndexBucket> BuildGroupPickerEntries()
-        {
-            var keyType = GroupKeyFor(EffectiveMusicSort, _musicGrouping == MusicGrouping.Albums);
-
-            if (keyType == LibraryGroupKey.Letter)
-            {
-                // The alphabet, in the order LibraryIndexLetter defines - the same list the
-                // grouping uses, so the grid and the headings cannot disagree about which
-                // buckets exist. BuildRail marks each one with whether it leads anywhere.
-                return LibraryIndexLetter.BuildRail(_groupHeaders.Keys);
-            }
-
-            // Any other sort: the headings ARE the answer. Nothing to pad it out with, and
-            // every entry leads somewhere, so HasContent is true throughout.
-            return _groupHeaders.Keys
-                .Select(key => new LibraryIndexBucket(LabelForPicker(key), true))
-                .ToList();
-        }
-
-        /// <summary>
-        /// What one button prints.
-        ///
-        /// <para>A letter prints its bucket (<c>#</c>, <c>Q</c>, <c>拼音Q</c>). Anything else
-        /// prints the heading's own label, because a year or an artist name is what the
-        /// reader is looking for and the bucket key is an internal spelling.</para>
-        /// </summary>
-        private string LabelForPicker(string key)
-        {
-            if (_groupHeaders.TryGetValue(key, out var header)
-                && header is ContentPresenter { Content: VideoFolderGroup group })
-            {
-                return group.Name;
-            }
-
-            return key;
-        }
-
-        /// <summary>
-        /// A letter on the sheet was chosen: jump to that heading.
-        ///
-        /// <para>Reading the letter from the sender rather than from a closure over the
-        /// loop variable, because these buttons come from a data template and the page
-        /// never sees the instances it creates.</para>
-        /// </summary>
-        private void LibraryGroupPickerLetter_Click(object sender, RoutedEventArgs e)
+        /// <summary>Jumps to the heading that was picked, and closes the sheet.</summary>
+        private void GroupPickerItem_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not FrameworkElement { Tag: string key })
             {
@@ -903,8 +916,8 @@ namespace mpv_winui.Domains.Playback
             {
                 header.StartBringIntoView(new BringIntoViewOptions
                 {
-                    // A little air above the heading, so the row it labels is not pinned
-                    // to the very top edge of the scroll port.
+                    // A little air above the heading, so the row it labels is not pinned to the
+                    // very top edge of the scroll port.
                     VerticalAlignmentRatio = 0.1,
                 });
             }
@@ -983,11 +996,23 @@ namespace mpv_winui.Domains.Playback
 
             foreach (var group in groups)
             {
-                var header = new ContentPresenter
+                // A Button, not a bare ContentPresenter.
+                //
+                // The heading is the ONLY way into the letter grid, and a presenter has no
+                // click pattern: it could not be reached by keyboard, and automation could
+                // not see it at all - which is why this picker could not be exercised by
+                // this project's own harness. A Button carries the same template, paints no
+                // chrome of its own here, and gives the heading a name, a tab stop and a
+                // click in one move.
+                var header = new Button
                 {
                     Content = new VideoFolderGroup(LabelForGroup(group), Array.Empty<LibraryEntry>(), Path: string.Empty, Letter: group.SortKey),
                     ContentTemplate = headerTemplate,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
+                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                    Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                    BorderThickness = new Thickness(0),
+                    Padding = new Thickness(0),
                 };
 
                 // The heading is the way into the letter grid, and the only one: the rail
@@ -995,7 +1020,9 @@ namespace mpv_winui.Domains.Playback
                 // it stands for without walking the visual tree looking for a match.
                 header.Tag = group.SortKey;
 
-                header.Tapped += GroupHeader_Tapped;
+                header.Click += GroupHeader_Click;
+
+            AutomationProperties.SetAutomationId(header, "LibraryGroupHeader");
 
                 VideoFolderGroups.Children.Add(header);
 
@@ -1113,16 +1140,30 @@ namespace mpv_winui.Domains.Playback
 
             foreach (var group in groups)
             {
-                var header = new ContentPresenter
+                // A Button, not a bare ContentPresenter.
+                //
+                // The heading is the ONLY way into the letter grid, and a presenter has no
+                // click pattern: it could not be reached by keyboard, and automation could
+                // not see it at all - which is why this picker could not be exercised by
+                // this project's own harness. A Button carries the same template, paints no
+                // chrome of its own here, and gives the heading a name, a tab stop and a
+                // click in one move.
+                var header = new Button
                 {
                     Content = new VideoFolderGroup(LabelForGroup(group), Array.Empty<LibraryEntry>(), Path: string.Empty, Letter: group.SortKey),
                     ContentTemplate = headerTemplate,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
+                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                    Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                    BorderThickness = new Thickness(0),
+                    Padding = new Thickness(0),
                 };
 
                 header.Tag = group.SortKey;
 
-                header.Tapped += GroupHeader_Tapped;
+                header.Click += GroupHeader_Click;
+
+            AutomationProperties.SetAutomationId(header, "LibraryGroupHeader");
 
                 VideoFolderGroups.Children.Add(header);
 
