@@ -969,9 +969,9 @@ namespace mpv_winui.Domains.Playback
                 // tinting with the accent: in a dense grid of glyphs an accent wash reads as
                 // "this one is selected", which is what the full-strength accent is already
                 // saying about the letter the reader is standing on.
-                var hoverFill = new SolidColorBrush(Windows.UI.Color.FromArgb(0x24, 0xFF, 0xFF, 0xFF));
+                var hoverFill = new SolidColorBrush(Windows.UI.Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF));
 
-                var hoverStroke = new SolidColorBrush(Windows.UI.Color.FromArgb(0x38, 0xFF, 0xFF, 0xFF));
+                var hoverStroke = new SolidColorBrush(Windows.UI.Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF));
 
                 var clearFill = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
 

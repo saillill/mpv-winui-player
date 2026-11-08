@@ -7,7 +7,7 @@
     mc:Ignorable="d">
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#0F000000" />
+            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#0A000000" />
             <SolidColorBrush
                 x:Key="MpvPlayControlBackground"
                 Color="#60FFFFFF" />
@@ -126,7 +126,7 @@
                 Color="#E6000000" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#17FFFFFF" />
+            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#0DFFFFFF" />
             <SolidColorBrush
                 x:Key="MpvPlayControlBackground"
                 Color="#80000000" />
