@@ -483,10 +483,17 @@
             <Setter Property="Width" Value="84" />
             <Setter Property="Height" Value="46" />
             <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Grid Background="Transparent">
+                        <!--  TemplateBinding, not a literal Transparent.
+
+                              The Grid used to hard-code Background="Transparent", so every
+                              Background this control was given was thrown away - which is why
+                              the hover wash did nothing: the code set it, the template
+                              ignored it, and no visual state exists to fill the gap. -->
+                        <Grid Background="{TemplateBinding Background}">
                             <ContentPresenter
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"

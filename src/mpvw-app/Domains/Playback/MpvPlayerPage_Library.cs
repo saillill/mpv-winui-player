@@ -1956,6 +1956,11 @@ namespace mpv_winui.Domains.Playback
 
                 MusicTabArtists.IsChecked = false;
             }
+
+            // The sheet is a layer over ONE list. Changing what that list shows while it is
+            // up leaves it floating over content it was never built from - and its letters
+            // still point at headings that no longer exist.
+            HideGroupPicker();
         }
 
         private void HideSurfacesOverLibrary()

@@ -958,18 +958,28 @@ namespace mpv_winui.Domains.Playback
                 // pointer to light up. A faint accent wash does it: the glyph already
                 // carries the meaning, and tinting the ink would fight the accent that
                 // marks where the reader already is.
+                // A brush built once and shared, not looked up per pointer move.
+                //
+                // Application.Current.Resources["MpvLetterHoverBrush"] was tried first and
+                // produced nothing visible: the key lives in a merged dictionary and the
+                // lookup resolves to null rather than throwing, so every hover assigned a
+                // null Background and the cell stayed exactly as it was. A literal here has
+                // no lookup to fail.
+                var hoverWash = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x8B, 0x3A, 0x9B));
+
+                var clearWash = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
                 letter.PointerEntered += (s, _) =>
                 {
                     // A dimmed bucket cannot be clicked, so it must not light up either: a
                     // hover wash on a dead letter promises a jump that will not happen.
                     if (((Button)s).IsEnabled)
                     {
-                        ((Button)s).Background = (Brush)Application.Current.Resources["MpvLetterHoverBrush"];
+                        ((Button)s).Background = hoverWash;
                     }
                 };
 
-                letter.PointerExited += (s, _) =>
-                    ((Button)s).Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                letter.PointerExited += (s, _) => ((Button)s).Background = clearWash;
 
                 if (!entry.HasContent)
                 {
@@ -1039,6 +1049,25 @@ namespace mpv_winui.Domains.Playback
         private void LibraryGroupPickerBackdrop_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             CloseGroupPicker();
+        }
+
+        /// <summary>
+        /// Takes the sheet down with no motion.
+        ///
+        /// <para>For the case where the list underneath is being replaced rather than the
+        /// reader closing the sheet: switching library section rebuilds every heading, so
+        /// there is nothing for a shrink to land on. Animating here would play a close over
+        /// content that has already changed.</para>
+        /// </summary>
+        private void HideGroupPicker()
+        {
+            _sheetAnimation?.Stop();
+
+            LibraryGroupPickerHost.Visibility = Visibility.Collapsed;
+
+            LibraryScroll.Opacity = 1.0;
+
+            ResetSheetTransform(1f, 1f);
         }
 
         /// <summary>Hides the sheet, if it is up.</summary>

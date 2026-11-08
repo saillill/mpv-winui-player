@@ -1480,8 +1480,8 @@ public class MusicGenreArtistTests
             Assert.That(body, Does.Contain("PointerEntered"),
                 "a letter has to render something under the pointer; the bare template has no states");
 
-            Assert.That(body, Does.Contain("MpvLetterHoverBrush"),
-                "the wash comes from a named brush, not an inline colour");
+            Assert.That(body, Does.Contain("hoverWash"),
+                "the wash is a brush the handler can assign, built once outside the lambda");
 
             // A dimmed bucket cannot be clicked, so it must not promise a jump it cannot make.
             Assert.That(body, Does.Contain("IsEnabled"),
