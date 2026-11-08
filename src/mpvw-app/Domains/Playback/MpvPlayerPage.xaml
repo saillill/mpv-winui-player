@@ -480,9 +480,9 @@
             <!--  A fixed box per letter. Without one the template shrinks to the glyph, and
                   fifty-three buttons laid out in a Grid collapse into a paragraph of text -
                   which is exactly what the first run produced. -->
-            <Setter Property="Width" Value="72" />
-            <Setter Property="Height" Value="44" />
-            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Width" Value="84" />
+            <Setter Property="Height" Value="46" />
+            <Setter Property="FontSize" Value="18" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">

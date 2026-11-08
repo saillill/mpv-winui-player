@@ -749,7 +749,7 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private static void ScaleHeader(TextBlock label, float factor)
         {
-            label.RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5);
+            label.RenderTransformOrigin = new Windows.Foundation.Point(0, 0.5);
 
             if (label.RenderTransform is not ScaleTransform scale)
             {
@@ -844,7 +844,7 @@ namespace mpv_winui.Domains.Playback
 
                 // The list softens over the same span, so the two movements are one gesture
                 // rather than a fade and a grow that happen to overlap.
-                LibraryScroll.Opacity = 1.0 - (0.65 * progress);
+                LibraryScroll.Opacity = 1.0 - progress;
 
                 if (step < steps)
                 {
@@ -859,7 +859,7 @@ namespace mpv_winui.Domains.Playback
 
                 scale.ScaleY = to;
 
-                LibraryScroll.Opacity = 1.0 - (0.65 * toOpacity);
+                LibraryScroll.Opacity = 1.0 - toOpacity;
             };
 
             _sheetAnimation = timer;
@@ -1027,7 +1027,7 @@ namespace mpv_winui.Domains.Playback
 
                 sheet.Opacity = 1f - progress;
 
-                LibraryScroll.Opacity = 0.35 + (0.65 * progress);
+                LibraryScroll.Opacity = progress;
 
                 if (step < steps)
                 {
@@ -1143,48 +1143,53 @@ namespace mpv_winui.Domains.Playback
 
             foreach (var group in groups)
             {
-                // A plain TextBlock in a hit-testing Border, not a Button.
+                // The heading: a TextBlock that is the hit target, and nothing else.
                 //
-                // A heading is a LABEL, and a Button brings its own box: a Rest fill, a
-                // hover fill, a pressed fill and a focus ring, all of which draw a
-                // rectangle around a single letter. What the heading should do is darken
-                // and grow a little under the pointer, which is a property of the text,
-                // not of a control template.
+                // LEFT, not Stretch. The Border used to fill the row, so the whole width of
+                // the grid was clickable and the pointer grew the letter from wherever it
+                // happened to be. Only the words are the target now - "应该是只在文字上交互
+                // 而不是一整行都是按钮".
                 //
-                // The Button was added in an earlier pass to give this a click pattern and
-                // an automation name. Both are kept: a Border with a Tapped handler still
-                // hit-tests, and AutomationProperties still names it.
+                // No Box: a Border with no background and no border paints nothing, which is
+                // the point. What it has is a Tapped handler and a Tag, so the words are
+                // clickable without a control template putting a rectangle around them.
                 var headerLabel = new TextBlock
                 {
                     Text = LabelForGroup(group),
-                    FontSize = 20,
+                    FontSize = 22,
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                     Foreground = (Brush)Application.Current.Resources["MpvAccentHeadingBrush"],
                     TextTrimming = TextTrimming.CharacterEllipsis,
+
+                    // The growth happens about the text's own centre, and the transform has
+                    // to be allowed to draw OUTSIDE the layout slot or the glyphs are clipped
+                    // the moment they grow - which read as the heading vanishing on hover.
+                    RenderTransformOrigin = new Windows.Foundation.Point(0, 0.5),
                 };
 
                 var header = new Border
                 {
                     Child = headerLabel,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    HorizontalAlignment = HorizontalAlignment.Left,
                     Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
                     Padding = new Thickness(0),
+
+                    // The frame gutter, the same 6 the pictures carry. Without it the heading
+                    // starts at the cell's outer edge and overhangs the thumbnails to the left.
+                    Margin = new Thickness(CardMetrics.HoverFrameInset, 16, 0, 8),
                 };
 
-                // The heading is the way into the letter grid, and the only one: the rail
-                // is gone. Tagged so the click handler can ask the presenter which group
-                // it stands for without walking the visual tree looking for a match.
                 header.Tag = group.SortKey;
 
                 header.Tapped += GroupHeader_Tapped;
 
-                // The only hover feedback: the text itself grows a little. No fill, no
-                // ring, no box - the heading is a label that happens to be clickable.
-                headerLabel.PointerEntered += (_, _) => ScaleHeader(headerLabel, 1.08f);
+                // The only pointer feedback: the text grows from its left edge. A growth from
+                // the left keeps the heading's left edge exactly where the thumbnails' is, so
+                // hovering never makes the column look like it moved.
+                header.PointerEntered += (_, _) => ScaleHeader(headerLabel, 1.08f);
 
-                headerLabel.PointerExited += (_, _) => ScaleHeader(headerLabel, 1f);
+                header.PointerExited += (_, _) => ScaleHeader(headerLabel, 1f);
 
-            AutomationProperties.SetAutomationId(header, "LibraryGroupHeader");
 
                 VideoFolderGroups.Children.Add(header);
 
@@ -1315,29 +1320,37 @@ namespace mpv_winui.Domains.Playback
                 var headerLabel = new TextBlock
                 {
                     Text = LabelForGroup(group),
-                    FontSize = 20,
+                    FontSize = 22,
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                     Foreground = (Brush)Application.Current.Resources["MpvAccentHeadingBrush"],
                     TextTrimming = TextTrimming.CharacterEllipsis,
+
+                    // Grows from its left edge so the column never looks like it moved, and
+                    // may draw outside its slot or the glyphs are clipped as they grow.
+                    RenderTransformOrigin = new Windows.Foundation.Point(0, 0.5),
                 };
 
                 var header = new Border
                 {
                     Child = headerLabel,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    HorizontalAlignment = HorizontalAlignment.Left,
                     Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
                     Padding = new Thickness(0),
+
+                    // The frame gutter, the same 6 the pictures carry. Without it the heading
+                    // starts at the cell's outer edge and overhangs the thumbnails to the left.
+                    Margin = new Thickness(CardMetrics.HoverFrameInset, 16, 0, 8),
                 };
 
                 header.Tag = group.SortKey;
 
                 header.Tapped += GroupHeader_Tapped;
 
-                // The only hover feedback: the text itself grows a little. No fill, no
+                // The only pointer feedback: the text grows from its left edge. No fill, no
                 // ring, no box - the heading is a label that happens to be clickable.
-                headerLabel.PointerEntered += (_, _) => ScaleHeader(headerLabel, 1.08f);
+                header.PointerEntered += (_, _) => ScaleHeader(headerLabel, 1.08f);
 
-                headerLabel.PointerExited += (_, _) => ScaleHeader(headerLabel, 1f);
+                header.PointerExited += (_, _) => ScaleHeader(headerLabel, 1f);
 
             AutomationProperties.SetAutomationId(header, "LibraryGroupHeader");
 
