@@ -1740,6 +1740,12 @@
           what the app already picked for accents that have to sit on a dark background. -->
     <SolidColorBrush x:Key="MpvAccentHeadingBrush" Color="{ThemeResource SystemAccentColorLight1}" />
 
+    <!--  The wash under a letter on hover. Low alpha: the letter grid is a dense field of
+          glyphs, and a solid hover fill on any of them reads as a selection rather than as
+          "your pointer is here". This is the accent at ~12%, which tints the cell without
+          competing with the full-strength accent that marks the letter you are already at. -->
+    <SolidColorBrush x:Key="MpvLetterHoverBrush" Color="#268B3A9B" />
+
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the
          consuming flyout via BasedOn. -->

@@ -1657,7 +1657,7 @@
                           nothing. -->
                     <Border
                         Background="Transparent"
-                        Tapped="LibraryGroupPickerDismiss_Tapped"
+                        PointerPressed="LibraryGroupPickerBackdrop_PointerPressed"
                         x:Name="LibraryGroupPickerDismiss" />
 
                     <!--  The sheet, centred. Centring is done by the outer alignment plus a

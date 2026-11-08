@@ -1437,6 +1437,58 @@ public class MusicGenreArtistTests
             relative + " not found. Tried:" + Environment.NewLine + string.Join(Environment.NewLine, tried));
     }
 
+    [Test]
+    public void ThePickerIsSizedBeforeItShowsAndOnlyALetterClosesIt()
+    {
+        var body = Squashed(MethodBody(
+            StrippedPageSource(PageMusicCodePath),
+            "private void GroupHeader_Tapped(object sender, TappedRoutedEventArgs e)"));
+
+        var sheet = Squashed(MethodBody(
+            StrippedPageSource(PageMusicCodePath),
+            "private void PlaySheetAnimation(float from, float to, float fromOpacity, float toOpacity)"));
+
+        Assert.Multiple(() =>
+        {
+            // The sheet must be at its STARTING size before Visibility flips, or it paints one
+            // frame at full size and then jumps small - the twitch the user reported as 抽搐.
+            var reset = body.IndexOf("ResetSheetTransform", StringComparison.Ordinal);
+            var show = body.IndexOf("Visibility.Visible", StringComparison.Ordinal);
+            Assert.That(reset, Is.GreaterThanOrEqualTo(0), "the sheet is sized by ResetSheetTransform");
+            Assert.That(reset, Is.LessThan(show),
+                "sized BEFORE it is shown: the reverse order paints one full-size frame first");
+
+            // The trigger sequence that is now forbidden: a tap anywhere closing the sheet.
+            Assert.That(body, Does.Not.Contain("Dismiss_Tapped"),
+                "a stray tap must not throw the reader back to the list");
+
+            // A click on a letter is still the real exit, and it navigates first.
+            Assert.That(sheet, Does.Contain("LibraryScroll.Opacity"),
+                "the list is restored by the same timer that grows the sheet");
+        });
+    }
+
+    [Test]
+    public void EveryLetterLightsUpUnderThePointerUnlessItIsEmpty()
+    {
+        var body = Squashed(MethodBody(
+            StrippedPageSource(PageMusicCodePath),
+            "private void FillGroupPicker()"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(body, Does.Contain("PointerEntered"),
+                "a letter has to render something under the pointer; the bare template has no states");
+
+            Assert.That(body, Does.Contain("MpvLetterHoverBrush"),
+                "the wash comes from a named brush, not an inline colour");
+
+            // A dimmed bucket cannot be clicked, so it must not promise a jump it cannot make.
+            Assert.That(body, Does.Contain("IsEnabled"),
+                "the hover is guarded by IsEnabled so dead letters stay inert");
+        });
+    }
+
     /// <summary>
     /// This file's absolute path, as the compiler saw it. Used by
     /// <see cref="Locate"/> to find the checkout when the test host runs outside

@@ -785,9 +785,40 @@ namespace mpv_winui.Domains.Playback
 
             FillGroupPicker();
 
+            // Sized BEFORE it is shown, and that order is the whole of the fix for the
+            // twitch.
+            //
+            // Visibility used to come first, so the sheet was laid out and painted once at
+            // its natural scale - full size - and only then did the first timer tick drop it
+            // to 0.55 and start growing. One frame at 100% followed by a jump to 55% is the
+            // 抽搐: it looked like the sheet flinched before expanding.
+            ResetSheetTransform(0.55f, 0f);
+
             LibraryGroupPickerHost.Visibility = Visibility.Visible;
 
             PlaySheetAnimation(from: 0.55f, to: 1f, fromOpacity: 0f, toOpacity: 1f);
+        }
+
+        /// <summary>
+        /// Puts the sheet at a given scale and opacity without animating.
+        ///
+        /// <para>Called before the sheet is made visible, so the very first frame it paints is
+        /// already the small one. Setting these properties on an element that is still
+        /// Collapsed is free - nothing is measured or painted until it is shown.</para>
+        /// </summary>
+        private void ResetSheetTransform(float scaleTo, float opacityTo)
+        {
+            var sheet = LibraryGroupPickerSheet;
+
+            var scale = sheet.RenderTransform as ScaleTransform ?? new ScaleTransform();
+
+            sheet.RenderTransform = scale;
+
+            scale.ScaleX = scaleTo;
+
+            scale.ScaleY = scaleTo;
+
+            sheet.Opacity = opacityTo;
         }
 
         /// <summary>
@@ -922,6 +953,24 @@ namespace mpv_winui.Domains.Playback
 
                 letter.Click += GroupPickerItem_Click;
 
+                // Hover rendering. The style's template is deliberately bare - one
+                // ContentPresenter and no visual states - so there is nothing for a
+                // pointer to light up. A faint accent wash does it: the glyph already
+                // carries the meaning, and tinting the ink would fight the accent that
+                // marks where the reader already is.
+                letter.PointerEntered += (s, _) =>
+                {
+                    // A dimmed bucket cannot be clicked, so it must not light up either: a
+                    // hover wash on a dead letter promises a jump that will not happen.
+                    if (((Button)s).IsEnabled)
+                    {
+                        ((Button)s).Background = (Brush)Application.Current.Resources["MpvLetterHoverBrush"];
+                    }
+                };
+
+                letter.PointerExited += (s, _) =>
+                    ((Button)s).Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
                 if (!entry.HasContent)
                 {
                     letter.Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"];
@@ -978,8 +1027,16 @@ namespace mpv_winui.Domains.Playback
             return key;
         }
 
-        /// <summary>Closes the heading picker when the empty area is tapped.</summary>
-        private void LibraryGroupPickerDismiss_Tapped(object sender, TappedRoutedEventArgs e)
+        /// <summary>
+        /// Closes the sheet when the pointer is pressed on the empty area around it.
+        ///
+        /// <para><b>Press, not tap, and that is on purpose.</b> A tap on empty space used to
+        /// close the sheet, which meant a mis-aimed click while reaching for a letter threw
+        /// the reader back to the list. The request was 「不是随便点到某个地方就可以退出去，
+        /// 必须要点到某个字母、某个按钮才会退出去」: a pressed click outside is a deliberate
+        /// 'not this' and still closes, but a stray tap does nothing.</para>
+        /// </summary>
+        private void LibraryGroupPickerBackdrop_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             CloseGroupPicker();
         }
