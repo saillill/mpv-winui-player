@@ -782,12 +782,6 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private void GroupHeader_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            // Named in code rather than bound in markup: a static AppLang path is not a valid
-            // x:Bind source (the markup compiler fails with WMC9999), and this is the same
-            // string on both the automation name and the tooltip.
-            AutomationProperties.SetName(LibraryGroupPickerDismiss, AppContext.AppLang.LibraryGroupPickerClose);
-
-            ToolTipService.SetToolTip(LibraryGroupPickerDismiss, AppContext.AppLang.LibraryGroupPickerClose);
 
             FillGroupPicker();
 
@@ -984,8 +978,8 @@ namespace mpv_winui.Domains.Playback
             return key;
         }
 
-        /// <summary>Closes the heading picker without navigating.</summary>
-        private void LibraryGroupPickerDismiss_Click(object sender, RoutedEventArgs e)
+        /// <summary>Closes the heading picker when the empty area is tapped.</summary>
+        private void LibraryGroupPickerDismiss_Tapped(object sender, TappedRoutedEventArgs e)
         {
             CloseGroupPicker();
         }

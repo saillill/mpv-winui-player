@@ -1648,16 +1648,16 @@
                     Canvas.ZIndex="20"
                     Visibility="Collapsed">
                     <!--  The dismiss target: a transparent full-bleed button under everything,
-                          so a tap anywhere outside the letters closes the sheet. -->
-                    <Button
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
+                          so a tap anywhere outside the letters closes the sheet.
+
+                          NO TOOLTIP, deliberately. This covers the whole sheet, so a tooltip on
+                          it appeared wherever the pointer rested - a "close" label floating over
+                          empty space beside the letters. It keeps a NAME (the localised one is
+                          set in code, this one is the fallback the markup can carry) and draws
+                          nothing. -->
+                    <Border
                         Background="Transparent"
-                        BorderThickness="0"
-                        Click="LibraryGroupPickerDismiss_Click"
-                        Style="{StaticResource MpvLetterButtonStyle}"
-                        Width="Auto"
-                        Height="Auto"
+                        Tapped="LibraryGroupPickerDismiss_Tapped"
                         x:Name="LibraryGroupPickerDismiss" />
 
                     <!--  The sheet, centred. Centring is done by the outer alignment plus a
