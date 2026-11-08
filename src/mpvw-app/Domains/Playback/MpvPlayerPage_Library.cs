@@ -659,6 +659,9 @@ namespace mpv_winui.Domains.Playback
         /// </summary>
         private string _pickerCurrentKey = string.Empty;
 
+        /// <summary>The sheets expansion timer, so a second open can stop the first.</summary>
+        private Microsoft.UI.Dispatching.DispatcherQueueTimer? _sheetAnimation;
+
 
 
         /// <summary>

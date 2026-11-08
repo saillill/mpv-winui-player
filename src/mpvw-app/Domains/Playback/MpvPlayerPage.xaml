@@ -1637,11 +1637,15 @@
                       Grid.Row="1" so the heading, the tabs and the toolbar stay visible: the
                       grid is a way to move through that list, not a modal that hides what it
                       belongs to. Collapsed until a heading is tapped. -->
+                <!--  NO background of its own: the list behind is already dimmed, and an acrylic
+                      fill on top of a dimmed list is a second grey layer for no gain - reported as
+                      "背景不要多一层灰底". The sheet is letters over the softened list, nothing
+                      between them. Hit testing still works: a Grid with a null Background does not
+                      capture the pointer, so the dismiss Border below carries that job. -->
                 <Grid
                     x:Name="LibraryGroupPickerHost"
                     Grid.Row="1"
                     Canvas.ZIndex="20"
-                    Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
                     Visibility="Collapsed">
                     <!--  The dismiss target: a transparent full-bleed button under everything,
                           so a tap anywhere outside the letters closes the sheet. -->
@@ -1661,25 +1665,19 @@
                           centre vertically inside an Auto row is measured against an
                           infinite height, collapses, and takes the whole content area with
                           it - measured twice on this page before it was traced. -->
-                    <StackPanel
+                    <!--  The letters alone, centred. There is no title: the sheet is reached by
+                          tapping a heading, so it already says what it is, and 「选择字母跳转」
+                          was a caption restating the only thing the surface does. -->
+                    <Grid
+                        x:Name="LibraryGroupPickerSheet"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Spacing="{StaticResource MpvSpaceL}">
-                        <!--  The title, at page-heading size and in the accent. It was a
-                              caption in tertiary ink: the smallest, faintest text on the
-                              surface, sitting under fifty-three letters all larger than it. -->
-                        <TextBlock
-                            x:Name="LibraryGroupPickerTitle"
-                            HorizontalAlignment="Center"
-                            FontSize="{StaticResource MpvPageHeadingFontSize}"
-                            FontWeight="SemiBold"
-                            Foreground="{ThemeResource MpvAccentHeadingBrush}" />
-
+                        RenderTransformOrigin="0.5,0.5">
                         <!--  The letters: a Grid whose children are added in code. Fifty-three
                               buttons need no virtualisation, and a Grid filled by hand has no
                               layout constraint to disagree with. -->
                         <Grid x:Name="LibraryGroupPickerLetters" />
-                    </StackPanel>
+                    </Grid>
                 </Grid>
 
                 <!-- The A-Z rail, in its own column so it does not scroll away.

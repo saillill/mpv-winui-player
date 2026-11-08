@@ -738,6 +738,31 @@ namespace mpv_winui.Domains.Playback
             }
         }
 
+        /// <summary>
+        /// Grows or shrinks one heading's text under the pointer.
+        ///
+        /// <para>A RenderTransform rather than a font-size change: a font change re-measures
+        /// the line and nudges every card below it, so the list would twitch as the pointer
+        /// moved down it. A scale transform moves nothing but the pixels of the text, and
+        /// its centre is the text's own centre, which is what makes it read as the label
+        /// growing rather than sliding.</para>
+        /// </summary>
+        private static void ScaleHeader(TextBlock label, float factor)
+        {
+            label.RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5);
+
+            if (label.RenderTransform is not ScaleTransform scale)
+            {
+                scale = new ScaleTransform();
+
+                label.RenderTransform = scale;
+            }
+
+            scale.ScaleX = factor;
+
+            scale.ScaleY = factor;
+        }
+
         /// <summary>How many letters fit across the sheet before it wraps.</summary>
         private const int PickerColumns = 8;
 
@@ -755,10 +780,8 @@ namespace mpv_winui.Domains.Playback
         /// with it, twice, before it was traced. Fifty-three buttons need no virtualisation,
         /// and a Grid filled by hand has no constraint to disagree with.</para>
         /// </summary>
-        private void GroupHeader_Click(object sender, RoutedEventArgs e)
+        private void GroupHeader_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            LibraryGroupPickerTitle.Text = AppContext.AppLang.LibraryGroupPickerHint;
-
             // Named in code rather than bound in markup: a static AppLang path is not a valid
             // x:Bind source (the markup compiler fails with WMC9999), and this is the same
             // string on both the automation name and the tooltip.
@@ -768,17 +791,88 @@ namespace mpv_winui.Domains.Playback
 
             FillGroupPicker();
 
-            // The list recedes, then the sheet arrives over it.
-            //
-            // A plain Opacity assignment, not a compositor animation and not a Storyboard:
-            // both of those crashed the process while this was being written (0xc000027b on
-            // the UI thread's XAML side, then 0x80070578 from combase because a code-built
-            // Storyboard resolves its target through the XAML namescope and a field is not in
-            // it). Setting the property cannot fail, and the sheet arriving over the softened
-            // list is what carries the change anyway.
-            LibraryScroll.Opacity = 0.35;
-
             LibraryGroupPickerHost.Visibility = Visibility.Visible;
+
+            PlaySheetAnimation(from: 0.55f, to: 1f, fromOpacity: 0f, toOpacity: 1f);
+        }
+
+        /// <summary>
+        /// The expansion: the sheet grows out of the middle while the list behind it softens.
+        ///
+        /// <para><b>Driven frame by frame, not by an animation.</b> Three earlier attempts all
+        /// took the process down: a compositor StartAnimation on the scroll port's visual
+        /// (0xc000027b on the XAML side), and a code-built Storyboard whose target could not be
+        /// resolved through the XAML namescope (0x80070578 from combase). A DispatcherQueueTimer
+        /// asks the UI thread for a tick, writes two plain properties, and returns - nothing in
+        /// it can fail on a namescope, a compositor, or an element's visual lifetime.</para>
+        ///
+        /// <para><b>Eased, not linear.</b> The 0-1 progress is cubed out of the way by
+        /// <see cref="Ease"/>: an expanding surface that moves at constant speed reads as
+        /// mechanical, and the whole point of the motion is that the letters arrive.</para>
+        /// </summary>
+        private void PlaySheetAnimation(float from, float to, float fromOpacity, float toOpacity)
+        {
+            _sheetAnimation?.Stop();
+
+            var sheet = LibraryGroupPickerSheet;
+
+            var scale = sheet.RenderTransform as ScaleTransform ?? new ScaleTransform();
+
+            sheet.RenderTransform = scale;
+
+            var steps = 16;
+
+            var step = 0;
+
+            var timer = DispatcherQueue.CreateTimer();
+
+            timer.Interval = TimeSpan.FromMilliseconds(12);
+
+            timer.IsRepeating = true;
+
+            timer.Tick += (_, _) =>
+            {
+                step++;
+
+                var progress = Ease((float)step / steps);
+
+                scale.ScaleX = from + ((to - from) * progress);
+
+                scale.ScaleY = scale.ScaleX;
+
+                sheet.Opacity = fromOpacity + ((toOpacity - fromOpacity) * progress);
+
+                // The list softens over the same span, so the two movements are one gesture
+                // rather than a fade and a grow that happen to overlap.
+                LibraryScroll.Opacity = 1.0 - (0.65 * progress);
+
+                if (step < steps)
+                {
+                    return;
+                }
+
+                timer.Stop();
+
+                sheet.Opacity = toOpacity;
+
+                scale.ScaleX = to;
+
+                scale.ScaleY = to;
+
+                LibraryScroll.Opacity = 1.0 - (0.65 * toOpacity);
+            };
+
+            _sheetAnimation = timer;
+
+            timer.Start();
+        }
+
+        /// <summary>Fast at the start, settled at the end: cubic ease-out.</summary>
+        private static float Ease(float t)
+        {
+            var inverse = 1f - t;
+
+            return 1f - (inverse * inverse * inverse);
         }
 
         /// <summary>
@@ -899,9 +993,63 @@ namespace mpv_winui.Domains.Playback
         /// <summary>Hides the sheet, if it is up.</summary>
         private void CloseGroupPicker()
         {
-            LibraryGroupPickerHost.Visibility = Visibility.Collapsed;
+            // Shrinks back the way it came, then hides. Hiding first would make the sheet
+            // vanish rather than close, and the list would snap to full weight under nothing.
+            _sheetAnimation?.Stop();
 
-            LibraryScroll.Opacity = 1.0;
+            var sheet = LibraryGroupPickerSheet;
+
+            var scale = sheet.RenderTransform as ScaleTransform ?? new ScaleTransform();
+
+            sheet.RenderTransform = scale;
+
+            var steps = 10;
+
+            var step = 0;
+
+            var timer = DispatcherQueue.CreateTimer();
+
+            timer.Interval = TimeSpan.FromMilliseconds(12);
+
+            timer.IsRepeating = true;
+
+            timer.Tick += (_, _) =>
+            {
+                step++;
+
+                var progress = Ease((float)step / steps);
+
+                var shrink = 1f - (0.45f * progress);
+
+                scale.ScaleX = shrink;
+
+                scale.ScaleY = shrink;
+
+                sheet.Opacity = 1f - progress;
+
+                LibraryScroll.Opacity = 0.35 + (0.65 * progress);
+
+                if (step < steps)
+                {
+                    return;
+                }
+
+                timer.Stop();
+
+                LibraryGroupPickerHost.Visibility = Visibility.Collapsed;
+
+                sheet.Opacity = 1f;
+
+                scale.ScaleX = 1f;
+
+                scale.ScaleY = 1f;
+
+                LibraryScroll.Opacity = 1.0;
+            };
+
+            _sheetAnimation = timer;
+
+            timer.Start();
         }
 
         /// <summary>Jumps to the heading that was picked, and closes the sheet.</summary>
@@ -972,7 +1120,6 @@ namespace mpv_winui.Domains.Playback
             // album and the cards under it were its tracks. Now the heading is a letter or a
             // year and the cards are albums or songs, so a sleeve for it is a picture of
             // nothing and the count read 0 on every row.
-            var headerTemplate = (DataTemplate)Resources["ArtistGroupHeaderTemplate"];
 
             var key = GroupKeyFor(EffectiveMusicSort, albumMode);
 
@@ -996,22 +1143,31 @@ namespace mpv_winui.Domains.Playback
 
             foreach (var group in groups)
             {
-                // A Button, not a bare ContentPresenter.
+                // A plain TextBlock in a hit-testing Border, not a Button.
                 //
-                // The heading is the ONLY way into the letter grid, and a presenter has no
-                // click pattern: it could not be reached by keyboard, and automation could
-                // not see it at all - which is why this picker could not be exercised by
-                // this project's own harness. A Button carries the same template, paints no
-                // chrome of its own here, and gives the heading a name, a tab stop and a
-                // click in one move.
-                var header = new Button
+                // A heading is a LABEL, and a Button brings its own box: a Rest fill, a
+                // hover fill, a pressed fill and a focus ring, all of which draw a
+                // rectangle around a single letter. What the heading should do is darken
+                // and grow a little under the pointer, which is a property of the text,
+                // not of a control template.
+                //
+                // The Button was added in an earlier pass to give this a click pattern and
+                // an automation name. Both are kept: a Border with a Tapped handler still
+                // hit-tests, and AutomationProperties still names it.
+                var headerLabel = new TextBlock
                 {
-                    Content = new VideoFolderGroup(LabelForGroup(group), Array.Empty<LibraryEntry>(), Path: string.Empty, Letter: group.SortKey),
-                    ContentTemplate = headerTemplate,
+                    Text = LabelForGroup(group),
+                    FontSize = 20,
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    Foreground = (Brush)Application.Current.Resources["MpvAccentHeadingBrush"],
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                };
+
+                var header = new Border
+                {
+                    Child = headerLabel,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
-                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
                     Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
-                    BorderThickness = new Thickness(0),
                     Padding = new Thickness(0),
                 };
 
@@ -1020,7 +1176,13 @@ namespace mpv_winui.Domains.Playback
                 // it stands for without walking the visual tree looking for a match.
                 header.Tag = group.SortKey;
 
-                header.Click += GroupHeader_Click;
+                header.Tapped += GroupHeader_Tapped;
+
+                // The only hover feedback: the text itself grows a little. No fill, no
+                // ring, no box - the heading is a label that happens to be clickable.
+                headerLabel.PointerEntered += (_, _) => ScaleHeader(headerLabel, 1.08f);
+
+                headerLabel.PointerExited += (_, _) => ScaleHeader(headerLabel, 1f);
 
             AutomationProperties.SetAutomationId(header, "LibraryGroupHeader");
 
@@ -1111,7 +1273,6 @@ namespace mpv_winui.Domains.Playback
 
             var cardTemplate = (DataTemplate)Resources["LibraryCardControlTemplate"];
 
-            var headerTemplate = (DataTemplate)Resources["ArtistGroupHeaderTemplate"];
 
             var carriers = entries
                 .GroupBy(
@@ -1140,28 +1301,43 @@ namespace mpv_winui.Domains.Playback
 
             foreach (var group in groups)
             {
-                // A Button, not a bare ContentPresenter.
+                // A plain TextBlock in a hit-testing Border, not a Button.
                 //
-                // The heading is the ONLY way into the letter grid, and a presenter has no
-                // click pattern: it could not be reached by keyboard, and automation could
-                // not see it at all - which is why this picker could not be exercised by
-                // this project's own harness. A Button carries the same template, paints no
-                // chrome of its own here, and gives the heading a name, a tab stop and a
-                // click in one move.
-                var header = new Button
+                // A heading is a LABEL, and a Button brings its own box: a Rest fill, a
+                // hover fill, a pressed fill and a focus ring, all of which draw a
+                // rectangle around a single letter. What the heading should do is grow a
+                // little under the pointer, which is a property of the text, not of a
+                // control template.
+                //
+                // The Button was added in an earlier pass to give this a click pattern and
+                // an automation name. Both are kept: a Border with a Tapped handler still
+                // hit-tests, and AutomationProperties still names it.
+                var headerLabel = new TextBlock
                 {
-                    Content = new VideoFolderGroup(LabelForGroup(group), Array.Empty<LibraryEntry>(), Path: string.Empty, Letter: group.SortKey),
-                    ContentTemplate = headerTemplate,
+                    Text = LabelForGroup(group),
+                    FontSize = 20,
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    Foreground = (Brush)Application.Current.Resources["MpvAccentHeadingBrush"],
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                };
+
+                var header = new Border
+                {
+                    Child = headerLabel,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
-                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
                     Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
-                    BorderThickness = new Thickness(0),
                     Padding = new Thickness(0),
                 };
 
                 header.Tag = group.SortKey;
 
-                header.Click += GroupHeader_Click;
+                header.Tapped += GroupHeader_Tapped;
+
+                // The only hover feedback: the text itself grows a little. No fill, no
+                // ring, no box - the heading is a label that happens to be clickable.
+                headerLabel.PointerEntered += (_, _) => ScaleHeader(headerLabel, 1.08f);
+
+                headerLabel.PointerExited += (_, _) => ScaleHeader(headerLabel, 1f);
 
             AutomationProperties.SetAutomationId(header, "LibraryGroupHeader");
 
