@@ -40,7 +40,7 @@
 # findings here (the frame's 4, the content's 4, the tick box's 8); the frame's
 # is gone and the buttons' two arrived.
 #
-# MpvPlayerPage.xaml:971 is the playback InfoBar's Margin="16" - a Thickness for
+# MpvPlayerPage.xaml:979 is the playback InfoBar's Margin="16" - a Thickness for
 # the same reason as the card's, so no spacing token can express it. The line
 # was 867 before the three menu-row tool keys gained their Viewboxes; same
 # finding, renumbered.
@@ -53,7 +53,7 @@ src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CenterPlayerControlStyle.xaml:174:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:18:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/CompactPlayerControlStyle.xaml:31:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:197:SPACING-LITERAL
-src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:971:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/Controls/LibraryCard.xaml:203:SPACING-LITERAL
+src/mpvw-app/Domains/Playback/MpvPlayerPage.xaml:979:SPACING-LITERAL
 src/mpvw-app/Domains/Playback/QuickControlPanel.xaml:60:SPACING-LITERAL
 src/mpvw-app/Domains/Settings/Controls/ControlBarCanvasControl.xaml:27:SPACING-LITERAL

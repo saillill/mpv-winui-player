@@ -174,9 +174,15 @@
                   whole card - tile and caption - driven by the same _pointerInside that
                   drives the frame, and placed BEFORE CardContent in z-order so the
                   picture is not tinted, only the card's own surface. -->
+            <!--  A DARKENING scrim, not the theme's card surface.
+
+                  This was CardBackgroundFillColorDefaultBrush, which is white in the Light
+                  theme, so hovering a card made it BRIGHTER: 「浅色模式下目前卡片的悬浮遮罩是
+                  变白，应该是变暗的」. A hover state is the surface lifting toward the reader,
+                  and in both themes that reads as darker, never lighter. -->
             <Border
                 x:Name="HoverWash"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                Background="{ThemeResource MpvCardHoverScrimBrush}"
                 CornerRadius="8"
                 IsHitTestVisible="False"
                 Visibility="Collapsed" />

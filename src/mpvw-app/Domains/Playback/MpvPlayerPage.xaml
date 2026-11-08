@@ -487,19 +487,27 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <!--  TemplateBinding, not a literal Transparent.
+                        <!--  A rounded cell with a hairline border, which is the SAME shape the
+                              card's own hover frame uses (CornerRadius 8, 1px stroke). The
+                              first pass painted a square violet fill and the report was
+                              「不应该是淡紫色底直角方形，应该是背景深色圆角加描边的，跟卡片的
+                              悬浮遮罩描边是一样的」.
 
-                              The Grid used to hard-code Background="Transparent", so every
-                              Background this control was given was thrown away - which is why
-                              the hover wash did nothing: the code set it, the template
-                              ignored it, and no visual state exists to fill the gap. -->
-                        <Grid Background="{TemplateBinding Background}">
+                              Both the fill and the stroke come from the control, so the code
+                              that assigns a hover brush also decides the outline. Fluent
+                              keeps a Button from offering a visual state we can override
+                              here, and this template is the whole of the control's look. -->
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
                             <ContentPresenter
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Content="{TemplateBinding Content}"
                                 Foreground="{TemplateBinding Foreground}" />
-                        </Grid>
+                        </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>

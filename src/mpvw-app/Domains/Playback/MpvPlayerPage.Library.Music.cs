@@ -943,7 +943,11 @@ namespace mpv_winui.Domains.Playback
                     Tag = entry.Letter,
                     HorizontalContentAlignment = HorizontalAlignment.Center,
                     Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
-                    BorderThickness = new Thickness(0),
+
+                    // 1, not 0: the hover outline is the same border, just coloured. Zero
+                    // thickness would reserve no room and the cell would shift 1px on hover.
+                    BorderThickness = new Thickness(1),
+                    BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
                     Style = (Style)Resources["MpvLetterButtonStyle"],
 
                     // An empty bucket cannot be clicked. A grey letter that still accepted a
@@ -958,16 +962,20 @@ namespace mpv_winui.Domains.Playback
                 // pointer to light up. A faint accent wash does it: the glyph already
                 // carries the meaning, and tinting the ink would fight the accent that
                 // marks where the reader already is.
-                // A brush built once and shared, not looked up per pointer move.
+                // The hover pair: a darkened fill and a hairline outline.
                 //
-                // Application.Current.Resources["MpvLetterHoverBrush"] was tried first and
-                // produced nothing visible: the key lives in a merged dictionary and the
-                // lookup resolves to null rather than throwing, so every hover assigned a
-                // null Background and the cell stayed exactly as it was. A literal here has
-                // no lookup to fail.
-                var hoverWash = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x8B, 0x3A, 0x9B));
+                // Same shape as the card hover frame - radius 8, 1px stroke - so a letter
+                // and a card answer the pointer the same way. The fill DARKENS rather than
+                // tinting with the accent: in a dense grid of glyphs an accent wash reads as
+                // "this one is selected", which is what the full-strength accent is already
+                // saying about the letter the reader is standing on.
+                var hoverFill = new SolidColorBrush(Windows.UI.Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF));
 
-                var clearWash = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                var hoverStroke = new SolidColorBrush(Windows.UI.Color.FromArgb(0x59, 0xFF, 0xFF, 0xFF));
+
+                var clearFill = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
+                var clearStroke = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
                 letter.PointerEntered += (s, _) =>
                 {
@@ -975,11 +983,18 @@ namespace mpv_winui.Domains.Playback
                     // hover wash on a dead letter promises a jump that will not happen.
                     if (((Button)s).IsEnabled)
                     {
-                        ((Button)s).Background = hoverWash;
+                        ((Button)s).Background = hoverFill;
+
+                        ((Button)s).BorderBrush = hoverStroke;
                     }
                 };
 
-                letter.PointerExited += (s, _) => ((Button)s).Background = clearWash;
+                letter.PointerExited += (s, _) =>
+                {
+                    ((Button)s).Background = clearFill;
+
+                    ((Button)s).BorderBrush = clearStroke;
+                };
 
                 if (!entry.HasContent)
                 {

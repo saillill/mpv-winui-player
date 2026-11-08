@@ -7,6 +7,7 @@
     mc:Ignorable="d">
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#14000000" />
             <SolidColorBrush
                 x:Key="MpvPlayControlBackground"
                 Color="#60FFFFFF" />
@@ -125,6 +126,7 @@
                 Color="#E6000000" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#24FFFFFF" />
             <SolidColorBrush
                 x:Key="MpvPlayControlBackground"
                 Color="#80000000" />
@@ -217,6 +219,7 @@
                 Color="#E6FFFFFF" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
+            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="Transparent" />
             <!-- The third dictionary. Light and Dark above each define the same 15 keys and
                  encode three surface shades (pane darkest, bar between, content lightest).
                  Nothing defined those keys for the contrast theme, so every surface fell back

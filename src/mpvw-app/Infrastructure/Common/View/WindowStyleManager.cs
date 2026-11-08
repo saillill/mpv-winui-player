@@ -1,4 +1,4 @@
-﻿using Microsoft.UI;
+using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -172,7 +172,34 @@ public sealed class WindowStyleManager : IDisposable
         }
 
         var titleBar = _window.AppWindow.TitleBar;
-        titleBar.ButtonForegroundColor = theme == ElementTheme.Dark ? Colors.White : Colors.Black;
+        // (titleBar is declared just above)
+
+        // The EFFECTIVE theme, not the setting.
+        //
+        // GetThemeType answers ElementTheme.Default under the Auto setting, on purpose -
+        // Default is what lets {ThemeResource} follow a contrast theme. Comparing that
+        // against ElementTheme.Dark is false in every Auto session, so the caption buttons
+        // were painted BLACK on a dark shell: 「最小化、全屏窗口和关闭三个键，在暗色模式应该是
+        // 白色的，浅色模式是黑色的，目前好像搞反了」. The setting says "follow the system";
+        // the glyphs have to be whatever the system actually resolved to.
+        var isDark = theme == ElementTheme.Dark
+            || (theme == ElementTheme.Default && _contentRoot.ActualTheme == ElementTheme.Dark);
+
+        titleBar.ButtonForegroundColor = isDark ? Colors.White : Colors.Black;
+
+        // Hover and pressed, which the framework would otherwise draw in its own colours.
+        // A flat scrim that darkens: three glyphs being pressed, not three rectangles of accent.
+        titleBar.ButtonHoverBackgroundColor = isDark
+            ? Windows.UI.Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)
+            : Windows.UI.Color.FromArgb(0x22, 0x00, 0x00, 0x00);
+
+        titleBar.ButtonHoverForegroundColor = isDark ? Colors.White : Colors.Black;
+
+        titleBar.ButtonPressedBackgroundColor = isDark
+            ? Windows.UI.Color.FromArgb(0x55, 0xFF, 0xFF, 0xFF)
+            : Windows.UI.Color.FromArgb(0x33, 0x00, 0x00, 0x00);
+
+        titleBar.ButtonPressedForegroundColor = isDark ? Colors.White : Colors.Black;
         titleBar.ButtonBackgroundColor = Colors.Transparent;
         titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
     }

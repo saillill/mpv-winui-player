@@ -1480,8 +1480,8 @@ public class MusicGenreArtistTests
             Assert.That(body, Does.Contain("PointerEntered"),
                 "a letter has to render something under the pointer; the bare template has no states");
 
-            Assert.That(body, Does.Contain("hoverWash"),
-                "the wash is a brush the handler can assign, built once outside the lambda");
+            Assert.That(body, Does.Contain("hoverFill"),
+                "the hover paints a fill the template can show");
 
             // A dimmed bucket cannot be clicked, so it must not promise a jump it cannot make.
             Assert.That(body, Does.Contain("IsEnabled"),
