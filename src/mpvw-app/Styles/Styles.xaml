@@ -7,7 +7,7 @@
     mc:Ignorable="d">
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#14000000" />
+            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#0F000000" />
             <SolidColorBrush
                 x:Key="MpvPlayControlBackground"
                 Color="#60FFFFFF" />
@@ -126,7 +126,7 @@
                 Color="#E6000000" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#24FFFFFF" />
+            <SolidColorBrush x:Key="MpvCardHoverScrimBrush" Color="#17FFFFFF" />
             <SolidColorBrush
                 x:Key="MpvPlayControlBackground"
                 Color="#80000000" />
@@ -1747,7 +1747,7 @@
           glyphs, and a solid hover fill on any of them reads as a selection rather than as
           "your pointer is here". This is the accent at ~12%, which tints the cell without
           competing with the full-strength accent that marks the letter you are already at. -->
-    <SolidColorBrush x:Key="MpvLetterHoverBrush" Color="#268B3A9B" />
+    <SolidColorBrush x:Key="MpvLetterHoverBrush" Color="#1A8B3A9B" />
 
     <!-- Shared acrylic shell for the player popups (control panel, track
          selector). Per-use Padding/MaxWidth/MaxHeight stay on the

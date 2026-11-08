@@ -190,14 +190,14 @@ public sealed class WindowStyleManager : IDisposable
         // Hover and pressed, which the framework would otherwise draw in its own colours.
         // A flat scrim that darkens: three glyphs being pressed, not three rectangles of accent.
         titleBar.ButtonHoverBackgroundColor = isDark
-            ? Windows.UI.Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)
-            : Windows.UI.Color.FromArgb(0x22, 0x00, 0x00, 0x00);
+            ? Windows.UI.Color.FromArgb(0x24, 0xFF, 0xFF, 0xFF)
+            : Windows.UI.Color.FromArgb(0x18, 0x00, 0x00, 0x00);
 
         titleBar.ButtonHoverForegroundColor = isDark ? Colors.White : Colors.Black;
 
         titleBar.ButtonPressedBackgroundColor = isDark
-            ? Windows.UI.Color.FromArgb(0x55, 0xFF, 0xFF, 0xFF)
-            : Windows.UI.Color.FromArgb(0x33, 0x00, 0x00, 0x00);
+            ? Windows.UI.Color.FromArgb(0x3D, 0xFF, 0xFF, 0xFF)
+            : Windows.UI.Color.FromArgb(0x26, 0x00, 0x00, 0x00);
 
         titleBar.ButtonPressedForegroundColor = isDark ? Colors.White : Colors.Black;
         titleBar.ButtonBackgroundColor = Colors.Transparent;
