@@ -811,15 +811,19 @@ public class MusicGenreArtistTests
             Assert.That(body, Does.Not.Contain("group.ToList(),"),
                 "handing a whole group to a repeater is the wall this tab replaces");
 
-            Assert.That(body, Does.Contain("ArtistGroupHeaderTemplate"),
-                "the album header carries a sleeve and a track count, neither of which belongs on a letter");
+            // The heading is built as TEXT in code now, not through a DataTemplate.
+            //
+            // A template could only reach a Button, and a Button draws a box: a Rest fill, a
+            // hover fill and a focus ring around a single letter. The heading is a label, so
+            // it is a TextBlock in a Border, and what it does under the pointer is grow.
+            Assert.That(body, Does.Contain("var headerLabel = new TextBlock"),
+                "the heading is text, so no control template can put a box around it");
 
-            // And the template it names must exist, or Resources[...] throws at runtime -
-            // the shape that made the artist page blank in 3A.
-            Assert.That(
-                File.ReadAllText(Locate(@"src\mpvw-app\Domains\Playback\MpvPlayerPage.xaml")),
-                Does.Contain("x:Key=\"ArtistGroupHeaderTemplate\""),
-                "ApplyArtistChrome and BuildArtistTiles both look this key up");
+            Assert.That(body, Does.Contain("MpvAccentHeadingBrush"),
+                "the heading is the accent, not secondary ink");
+
+            Assert.That(body, Does.Contain("ScaleHeader"),
+                "the only pointer feedback is the text growing: no fill, no ring, no box");
         });
     }
 
